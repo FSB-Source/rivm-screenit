@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,7 +28,6 @@ import java.util.List;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Afspraak;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.NieuweIntakeAfspraakMakenReden;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.Kamer;
@@ -36,12 +35,11 @@ import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.rivm.screenit.model.enums.BriefType;
-import nl.topicuszorg.hibernate.object.model.HibernateObject;
 import nl.topicuszorg.planning.model.IAppointment;
 import nl.topicuszorg.wicket.planning.model.appointment.Location;
 import nl.topicuszorg.wicket.planning.services.AppointmentService;
 
-import org.joda.time.Interval;
+import com.google.common.collect.Range;
 
 public interface AfspraakService extends AppointmentService
 {
@@ -50,11 +48,12 @@ public interface AfspraakService extends AppointmentService
 
 	List<Afspraak> getAppointments(Client client);
 
-	void verplaatsAfspraak(ColonIntakeAfspraak nieuweAfspraak, Account account, BriefType briefType, boolean briefTegenhouden, boolean uitRooster);
+	void verplaatsAfspraak(ColonIntakeAfspraak nieuweAfspraak, Account account, BriefType briefType, boolean briefTegenhouden, boolean uitRooster,
+		boolean verwezenMedischeRedenenDoorInfolijn);
 
 	void annuleerAfspraak(Afspraak afspraak, Account account, AfspraakStatus status, boolean communicatieTegenhouden);
 
-	void maakNieuweAfspraak(Client client, NieuweIntakeAfspraakMakenReden reden, ColonIntakeAfspraak nieuweAfspraak, boolean briefTegenhouden, boolean uitRooster,
+	void maakNieuweAfspraak(Client client, ColonIntakeAfspraak nieuweAfspraak, boolean briefTegenhouden, boolean uitRooster,
 		BriefType briefType, Account account);
 
 	List<Afspraak> getHistorischeAppointments(Client client);
@@ -70,7 +69,9 @@ public interface AfspraakService extends AppointmentService
 
 	boolean magNieuweAfspraakMaken(Client client);
 
-	List<Object> getAfsprakenKamersInIntervals(Kamer location, List<Interval> verwijderdeIntervals);
+	boolean heeftOnafgerondeVerwijzingOmMedischeRedenen(Afspraak afspraak);
+
+	List<Object> getAfsprakenKamersInRanges(Kamer location, List<Range<Date>> verwijderdeIntervals);
 
 	RoosterItem getRoosterBlokVoorAfspraak(ColonIntakeAfspraak newAfspraak);
 
@@ -78,10 +79,13 @@ public interface AfspraakService extends AppointmentService
 
 	void setAfspraakStatus(Afspraak afspraak, AfspraakStatus status);
 
-	Date getLaatsteWijzigingsdatumAfspraak(HibernateObject entity);
-
 	void afspraakAfzeggen(ColonIntakeAfspraak afspraak, AfspraakStatus status, LocalDateTime nu, boolean communicatieTegenhouden);
 
-	List<Object> getRoosterItemsBezetMetAfspraak(Long roosterItemId, Interval currentViewInterval);
+	List<Object> getRoosterItemsBezetMetAfspraak(Long roosterItemId, Range<Date> currentViewInterval);
 
+	boolean isDoorverwezenOmMedischeRedenenZonderNieuweAfspraak(Client client);
+
+	boolean isAfspraakVerwezenOmMedischeRedenen(ColonIntakeAfspraak afspraak);
+
+	ColonIntakeAfspraak zoekBevestigdeDoorverwijzendeAfspraak(ColonIntakeAfspraak afspraak);
 }

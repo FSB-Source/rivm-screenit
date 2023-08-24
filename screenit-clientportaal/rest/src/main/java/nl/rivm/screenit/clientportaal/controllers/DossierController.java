@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.controllers;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,6 +31,7 @@ import nl.rivm.screenit.clientportaal.model.colon.ColonDossierDto;
 import nl.rivm.screenit.clientportaal.model.mamma.MammaDossierDto;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.service.BaseClientGebeurtenisService;
+import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -46,6 +47,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class DossierController extends AbstractController
 {
+	private final HibernateService hibernateService;
 
 	private final BaseClientGebeurtenisService clientGebeurtenisService;
 
@@ -58,21 +60,21 @@ public class DossierController extends AbstractController
 	@GetMapping("/mamma")
 	public ResponseEntity<MammaDossierDto> getMammaDossier(Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 		return ResponseEntity.ok(mammaDossierMapper.mapToDto(client.getMammaDossier(), clientGebeurtenisService.getClientMammaGebeurtenissen(client)));
 	}
 
 	@GetMapping("/cervix")
 	public ResponseEntity<CervixDossierDto> getCervixDossier(Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 		return ResponseEntity.ok(cervixDossierMapper.mapToDto(client.getCervixDossier(), clientGebeurtenisService.getClientCervixGebeurtenissen(client)));
 	}
 
 	@GetMapping("/colon")
 	public ResponseEntity<ColonDossierDto> getColonDossier(Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 		return ResponseEntity.ok(colonDossierMapper.mapToDto(client.getColonDossier(), clientGebeurtenisService.getClientColonGebeurtenissen(client)));
 	}
 

@@ -4,7 +4,7 @@ package nl.rivm.screenit.dto.mamma.afspraken;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,37 +21,40 @@ package nl.rivm.screenit.dto.mamma.afspraken;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Date;
+
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.enums.MammaDuurMinderValideAfspraak;
 import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.util.TimeRange;
 
-import java.io.Serializable;
-import java.time.LocalTime;
-
-public class MammaScreeningsEenheidDto implements Serializable
+@Getter
+@Setter
+public class MammaScreeningsEenheidDto
 {
-	public LocalTime minderValidePeriode1Vanaf;
+	private TimeRange minderValidePeriode1;
 
-	public LocalTime minderValidePeriode1TotEnMet;
+	private TimeRange minderValidePeriode2;
 
-	public LocalTime minderValidePeriode2Vanaf;
+	private MammaDuurMinderValideAfspraak duurMinderValideAfspraak;
 
-	public LocalTime minderValidePeriode2TotEnMet;
+	private boolean enkeleMammograaf;
 
-	public MammaDuurMinderValideAfspraak duurMinderValideAfspraak;
-
-	public boolean meerdereMammografen;
-
-	public static MammaScreeningsEenheidDto maakScreeningsEenheid(MammaScreeningsEenheid mammaScreeningsEenheid)
+	public static MammaScreeningsEenheidDto vanEntiteit(MammaScreeningsEenheid screeningsEenheid)
 	{
-		MammaScreeningsEenheidDto screeningsEenheid = new MammaScreeningsEenheidDto();
-		screeningsEenheid.minderValidePeriode1Vanaf = DateUtil.toLocalTime(mammaScreeningsEenheid.getMinderValidePeriode1Vanaf());
-		screeningsEenheid.minderValidePeriode1TotEnMet = DateUtil.toLocalTime(mammaScreeningsEenheid.getMinderValidePeriode1TotEnMet());
-		screeningsEenheid.minderValidePeriode2Vanaf = DateUtil.toLocalTime(mammaScreeningsEenheid.getMinderValidePeriode2Vanaf());
-		screeningsEenheid.minderValidePeriode2TotEnMet = DateUtil.toLocalTime(mammaScreeningsEenheid.getMinderValidePeriode2TotEnMet());
-		screeningsEenheid.duurMinderValideAfspraak = mammaScreeningsEenheid.getDuurMinderValideAfspraak();
-		screeningsEenheid.meerdereMammografen = mammaScreeningsEenheid.getMammografen().size() > 1;
+		var screeningsEenheidDto = new MammaScreeningsEenheidDto();
+		screeningsEenheidDto.minderValidePeriode1 = maakMindervalidePeriode(screeningsEenheid.getMinderValidePeriode1Vanaf(), screeningsEenheid.getMinderValidePeriode1TotEnMet());
+		screeningsEenheidDto.minderValidePeriode2 = maakMindervalidePeriode(screeningsEenheid.getMinderValidePeriode2Vanaf(), screeningsEenheid.getMinderValidePeriode2TotEnMet());
+		screeningsEenheidDto.duurMinderValideAfspraak = screeningsEenheid.getDuurMinderValideAfspraak();
+		screeningsEenheidDto.enkeleMammograaf = screeningsEenheid.getMammografen().size() <= 1;
+		return screeningsEenheidDto;
+	}
 
-		return screeningsEenheid;
+	private static TimeRange maakMindervalidePeriode(Date vanaf, Date totEnMet)
+	{
+		return TimeRange.of(DateUtil.toLocalTime(vanaf), DateUtil.toLocalTime(totEnMet));
 	}
 }

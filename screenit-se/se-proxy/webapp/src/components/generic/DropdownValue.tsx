@@ -5,7 +5,7 @@ export type DropdownValueProps<T> = {
 	id: string;
 	value?: T;
 	disabled: boolean;
-	options: Array<T>;
+	options: Array<NonNullable<T>>;
 	required?: boolean;
 	isWhite?: boolean;
 	placeholder?: string;
@@ -15,7 +15,7 @@ export type DropdownValueProps<T> = {
 };
 
 type DropdownOption<T> = {
-	value: T;
+	value: NonNullable<T>;
 	label: string;
 }
 

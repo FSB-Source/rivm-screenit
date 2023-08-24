@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,13 +21,15 @@ package nl.rivm.screenit.service.colon;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
-
-import java.time.LocalDateTime;
 
 public interface IFobtService
 {
@@ -52,4 +54,6 @@ public interface IFobtService
 	void bepaalEnSetHeraanmeldenTekstKey(IFOBTTest ifobtTest);
 
 	void setTestenVerlorenIndienActief(IFOBTTest test);
+
+	Client getAndereClientOpZelfdeAdresEnActieveFit(Client client, List<Long> uitgenodigdeClientIds);
 }

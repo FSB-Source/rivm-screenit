@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -111,10 +111,11 @@ public class MammaVerwerkVerslagServiceImpl implements MammaVerwerkVerslagServic
 		MammaFollowUpMonstermateriaal nieuwMonstermateriaal = nieuwFollowupPa.getMonstermateriaal();
 		MammaFollowUpMonstermateriaal oudMonstermateriaal = oudFollowupPa.getMonstermateriaal();
 
-		return ((Objects.equals(DateUtil.toLocalDate(nieuwPathologieMedischeObservatie.getDatumAutorisatieUitslag()),
+		return Objects.equals(nieuwVerslag.getType(), oudVerslag.getType())
+			&& Objects.equals(DateUtil.toLocalDate(nieuwPathologieMedischeObservatie.getDatumAutorisatieUitslag()),
 			DateUtil.toLocalDate(oudPathologieMedischeObservatie.getDatumAutorisatieUitslag()))
 			&& Objects.equals(nieuwMonstermateriaal.getVerkrijgingswijze(), oudMonstermateriaal.getVerkrijgingswijze())
-			&& Objects.equals(nieuwMonstermateriaal.getZijdigheid(), oudMonstermateriaal.getZijdigheid())));
+			&& Objects.equals(nieuwMonstermateriaal.getZijdigheid(), oudMonstermateriaal.getZijdigheid());
 	}
 
 	private boolean isIdentiekVerslag(MammaFollowUpVerslag nieuwVerslag, MammaFollowUpVerslag oudVerslag)
@@ -137,9 +138,8 @@ public class MammaVerwerkVerslagServiceImpl implements MammaVerwerkVerslagServic
 		MammaFollowUpVerrichting nieuwVerrichting = nieuwVerslagContent.getVerrichting();
 		MammaFollowUpVerrichting oudVerrichting = oudVerslagContent.getVerrichting();
 
-		return (Objects.equals(nieuwVerslag.getStatus(), oudVerslag.getStatus())
+		return Objects.equals(nieuwVerslag.getStatus(), oudVerslag.getStatus())
 			&& Objects.equals(nieuwVerslag.getType(), oudVerslag.getType())
-			&& Objects.equals(DateUtil.toLocalDate(nieuwVerslag.getDatumVerwerkt()), DateUtil.toLocalDate(oudVerslag.getDatumVerwerkt()))
 			&& Objects.equals(DateUtil.toLocalDate(nieuwVerslag.getDatumOnderzoek()), DateUtil.toLocalDate(oudVerslag.getDatumOnderzoek()))
 			&& Objects.equals(nieuwMonstermateriaal.getVerkrijgingswijze(), oudMonstermateriaal.getVerkrijgingswijze())
 			&& Objects.equals(nieuwMonstermateriaal.getZijdigheid(), oudMonstermateriaal.getZijdigheid())
@@ -162,7 +162,7 @@ public class MammaVerwerkVerslagServiceImpl implements MammaVerwerkVerslagServic
 			&& Objects.equals(nieuwPathologieMedischeObservatie.getTnummerLaboratorium(), oudPathologieMedischeObservatie.getTnummerLaboratorium())
 			&& Objects.equals(nieuwPathologieMedischeObservatie.getVersieProtocol(), oudPathologieMedischeObservatie.getVersieProtocol())
 			&& Objects.equals(nieuwVerrichting.getAanvangVerrichting(), oudVerrichting.getAanvangVerrichting())
-			&& Objects.equals(nieuwVerrichting.getEindeVerrichting(), oudVerrichting.getEindeVerrichting()));
+			&& Objects.equals(nieuwVerrichting.getEindeVerrichting(), oudVerrichting.getEindeVerrichting());
 	}
 
 	private boolean isIdentiekePtnm(MammaFollowUpPtnmEnGradering nieuwPtnmEnGradering, MammaFollowUpPtnmEnGradering oudPtnmEnGradering)

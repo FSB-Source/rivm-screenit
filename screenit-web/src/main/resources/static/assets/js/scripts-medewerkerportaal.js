@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -18,10 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
-$(function()
-{
-	$(window).resize(function()
-	{
+$(function () {
+	$(window).resize(function () {
 		calCanvasHeight();
 	});
 
@@ -29,18 +27,15 @@ $(function()
 
 });
 
-function calCanvasHeight()
-{
-	if ($('#jp-container').length <= 0)
-	{
+function calCanvasHeight() {
+	if ($('#jp-container').length <= 0) {
 		return;
 	}
 
 	var topnavHeight = $('#jp-container').offset().top;
 	var marginBottom = 0;
 
-	if ($('body').hasClass('client'))
-	{
+	if ($('body').hasClass('client')) {
 		marginBottom = 20;
 	}
 
@@ -49,12 +44,9 @@ function calCanvasHeight()
 
 	var assetsCombinedHeight = topnavHeight + footerHeight + marginBottom;
 	var canvasHeight = $(window).height();
-	if (canvasHeight > minWindowHeight)
-	{
+	if (canvasHeight > minWindowHeight) {
 		canvasHeight = canvasHeight - assetsCombinedHeight;
-	}
-	else
-	{
+	} else {
 		canvasHeight = minWindowHeight;
 	}
 
@@ -64,13 +56,11 @@ function calCanvasHeight()
 
 }
 
-function initRoosterDatepicker(markupId)
-{
+function initRoosterDatepicker(markupId) {
 
 	$("#" + markupId).addClass('text unit-100');
 	$("#" + markupId).datepicker({
-		onSelect: function(dateText, inst)
-		{
+		onSelect: function (dateText, inst) {
 			var date = $.datepicker.parseDate('dd-mm-yy', dateText);
 			$('.calender-container > div').medewerkersKalender('gotoWeek', date);
 		},
@@ -82,18 +72,14 @@ function initRoosterDatepicker(markupId)
 	});
 }
 
-function initTooltip()
-{
+function initTooltip() {
 	$('*[data-tooltip]').qtip({
 		content: {
-			text: function(api)
-			{
+			text: function (api) {
 				var tooltiptekst = $(this).attr('data-tooltip');
-				if (!(/\s/g.test(tooltiptekst)))
-				{
+				if (!(/\s/g.test(tooltiptekst))) {
 					var $tooltipHtml = $('.' + tooltiptekst).html();
-					if ($tooltipHtml != null)
-					{
+					if ($tooltipHtml != null) {
 						tooltiptekst = $tooltipHtml;
 					}
 				}
@@ -102,27 +88,26 @@ function initTooltip()
 		},
 
 		show: {
-            solo: true
-        },         
-        hide: {
-            fixed: true,
-            when: { event: 'inactive' }, 
-            delay: 1500
-        },
+			solo: true
+		},
+		hide: {
+			fixed: true,
+			when: {event: 'inactive'},
+			delay: 1500
+		},
 		position: {
 			viewport: true,
 		},
 		style: {
 			classes: 'ui-tooltip-colonis'
-		},		
+		},
 	});
 }
 
-function initNullFlavourFields()
-{
+function initNullFlavourFields() {
 	$('.bevatNullFlavour :text').on("change keyup paste blur", function () {
 		if ($.trim($(this).val()).length > 0) {
-			$(this).parent().find(":checkbox").prop( "checked", false );
+			$(this).parent().find(":checkbox").prop("checked", false);
 		}
 	});
 
@@ -134,13 +119,60 @@ function initNullFlavourFields()
 
 }
 
-function toggleBkAfsprakenCheckboxes($blokCheckbox) {
-	$blokCheckbox.closest('table').find('td input[type=checkbox]').prop('checked', $blokCheckbox.prop('checked') === true);
-}
-
 function toggleBkAfsprakenSuperCheckboxes($blokCheckbox) {
 	if ($blokCheckbox.prop('checked') === false) {
 		$blokCheckbox.closest('table').find('th input[type=checkbox]').prop('checked', false);
 		$('.selectAllCheckbox').prop('checked', false);
 	}
 }
+
+function addOnchangeSuperBoxes() {
+	let knop = document.getElementById('toggleBkCheckSuperBoxes');
+
+	if (knop != null) {
+		knop.addEventListener('change', (e) => {
+
+			if ($(e.target).prop('checked') === false) {
+				$(e.target).closest('table').find('th input[type=checkbox]').prop('checked', false);
+				$('.selectAllCheckbox').prop('checked', false);
+			}
+		});
+	}
+}
+
+function toggleBkAfsprakenCheckboxes() {
+	let toggle = $('.js-toggleBkAfsprakenCheckBox')
+	if (toggle !== null) {
+		toggle.on('change', function (event) {
+			$(this).closest('table').find('td input[type=checkbox]').prop('checked',  $(this).prop('checked') === true);
+		});
+	}
+}
+
+function toggleBkAfsprakenSuperCheckboxes($blokCheckbox) {
+	let toggle = $('.js-toggleBkAfsprakenSuperCheckboxes')
+	if (toggle !== null) {
+		toggle.on('change', function (event) {
+			if (toggle.prop('checked') === false) {
+				$(this).closest('table').find('th input[type=checkbox]').prop('checked', false);
+				$('.selectAllCheckbox').prop('checked', false);
+			}
+		});
+	}
+}
+
+function addOnchangeBoxes() {
+	let knop = document.getElementById('toggleBkCheckBoxes');
+	if (knop != null) {
+		knop.addEventListener('change', (e) => {
+			$(e.target).closest('table').find('td input[type=checkbox]').prop('checked', $(e.target).prop('checked') === true)
+		});
+	}
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+	addOnchangeSuperBoxes();
+	addOnchangeBoxes();
+	toggleBkAfsprakenCheckboxes();
+	toggleBkAfsprakenSuperCheckboxes()
+});

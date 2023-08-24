@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.verslag.MammaVerslagRondePanel;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.enums.Actie;
+import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaLezing;
@@ -49,14 +50,24 @@ public class MammaReadOnlyLezingPanel extends GenericPanel<MammaBeoordeling>
 	public MammaReadOnlyLezingPanel(String id, final MammaBeoordeling beoordeling, MammaLezing lezing, boolean nevenbevindingenWeergeven,
 		boolean redenenFotobesprekingWeergeven)
 	{
+		this(id, beoordeling, lezing, nevenbevindingenWeergeven, redenenFotobesprekingWeergeven, false);
+	}
+
+	public MammaReadOnlyLezingPanel(String id, final MammaBeoordeling beoordeling, MammaLezing lezing, boolean nevenbevindingenWeergeven,
+		boolean redenenFotobesprekingWeergeven, boolean isVerslagenPagina)
+	{
 		super(id, ModelUtil.sModel(beoordeling));
 		lezingModel = ModelUtil.ccModel(lezing);
 
 		add(new Label("titelVerslagVerfijnen", lezing.getLezingType().getNaam()));
 
-		MammaLezingParameters lezingParameters = MammaLezingParameters.maakAlleenInzien().setMetAfbeelding(true).setAmputatie(beoordeling.getOnderzoek().getAmputatie());
+		var onderzoek = beoordeling.getOnderzoek();
+		var lezingParameters = MammaLezingParameters.maakAlleenInzien()
+			.setMetAfbeelding(true)
+			.setAmputatie(onderzoek.getAmputatie())
+			.setToonTomosyntheseSlicesRadioButtons(!isVerslagenPagina && MammaOnderzoekType.TOMOSYNTHESE == onderzoek.getOnderzoekType());
 
-		MammaLezingPanel biradsPanel = new MammaLezingPanel(this, "birads", lezingModel, lezingParameters);
+		var biradsPanel = new MammaLezingPanel(this, "birads", lezingModel, lezingParameters);
 
 		add(biradsPanel);
 

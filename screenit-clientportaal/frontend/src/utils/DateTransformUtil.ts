@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -48,5 +48,5 @@ function transformDatesInObject(obj: any): any {
 }
 
 function isDate(value: string): boolean {
-	return /^([1-9][0-9]{3}-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]((:[0-5][0-9]\.[0-9]{3}Z)|((:[0-5][0-9](\.[0-9]{1,9})?)?\+[0-9]{2}:[0-9]{2}))?)$/.test(value)
+	return /^([1-9][0-9]{3}-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]((:[0-5][0-9]\.[0-9]{3}Z)|((:[0-5][0-9](\.[0-9]{1,9})?)?\+[0-9]{2}:[0-9]{2}))?)$/.test(value);
 }

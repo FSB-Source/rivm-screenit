@@ -62,32 +62,49 @@
 
 .maandelijkseSelectie select {
   display: inline;
-  width: auto;
+	width: auto;
 }
 
 .edit-blokkade {
-  .time-field {
-    clear: left;
-    padding-top: 5px;
-    margin-left: 20px;
-  }
+	.time-field {
+		clear: left;
+		padding-top: 5px;
+		margin-left: 20px;
+	}
+}
+
+.input-append.blokkade-list-start-datum {
+	float: left;
 }
 
 .herhaling,
 .edit-blokkade,
 .edit-bk-capaciteit,
 .edit-roosterblok {
-  .controls {
-    margin-left: 90px;
-  }
+	.controls {
+		margin-left: 90px;
+	}
 
-  .control-label {
-    width: 110px;
-  }
+	.control-label {
+		width: 110px;
+	}
 }
 
 .edit-bk-capaciteit {
-  .control-label {
-    width: 80px;
-  }
+	.control-label {
+		width: 80px;
+	}
+}
+
+
+.control-label.breed-label {
+	width: 190px;
+}
+
+.control-label.planning-kopieren {
+	width: 140px;
+}
+
+.three-months.datepicker-120px-breed {
+	width: 120px;
 }

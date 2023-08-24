@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -19,12 +19,12 @@
  * =========================LICENSE_END==================================
  */
 import React from "react"
-import DateFnsUtils from "@date-io/date-fns"
-import {KeyboardDatePicker, MuiPickersUtilsProvider} from "@material-ui/pickers"
+import {DatePicker, LocalizationProvider} from "@mui/x-date-pickers"
+import {TextField} from "@mui/material"
 import styles from "./ScreenitDatePicker.module.scss"
-import {MaterialUiPickersDate} from "@material-ui/pickers/typings/date"
 import {FormikErrors} from "formik"
-import {getBovengrensUitLijst, getOndergrensUitLijst, lijstBevatMeegegevenDatum} from "../../utils/DateUtil"
+import {getBovengrensUitLijst, getOndergrensUitLijst, isWerkdag, lijstBevatMeegegevenDatum} from "../../utils/DateUtil"
+import {AdapterDateFns} from "@mui/x-date-pickers/AdapterDateFns"
 import {nl} from "date-fns/locale"
 
 export type ScreenitDatePickerProps = {
@@ -33,12 +33,14 @@ export type ScreenitDatePickerProps = {
 	title?: string,
 	label: string,
 	errorLabel?: string | FormikErrors<any>,
-	value?: MaterialUiPickersDate,
-	beschikbareDagen?: Date[]
-	onChange: (date: MaterialUiPickersDate, value: string | undefined | null) => void
+	value?: Date | null,
+	beschikbareDagen?: Date[],
+	alleenWerkdagen?: boolean,
+	onChange: (date: Date | null, value: string | undefined | null) => void
 }
 
 const ScreenitDatePicker = (props: ScreenitDatePickerProps) => {
+
 	const ondergrens = getOndergrensUitLijst(props.beschikbareDagen)
 	const bovengrens = getBovengrensUitLijst(props.beschikbareDagen)
 
@@ -46,32 +48,30 @@ const ScreenitDatePicker = (props: ScreenitDatePickerProps) => {
 		<div ref={React.createRef}>
 			<p>{props.title}</p>
 			<div className={props.errorLabel ? styles.inputDivError : styles.inputDiv}>
-				<MuiPickersUtilsProvider locale={nl} utils={DateFnsUtils}>
-					<KeyboardDatePicker
-						data-testid={"input_" + props.propertyName}
+				<LocalizationProvider adapterLocale={nl} dateAdapter={AdapterDateFns}>
+					<DatePicker
+						views={["day"]}
 						className={props.className}
-						name={props.propertyName}
+						inputFormat="dd-MM-yyyy"
 						label={props.label}
-						variant={"inline"}
-						format="dd-MM-yyyy"
-						autoComplete={"off"}
-						minDateMessage={""}
-						maxDateMessage={""}
-						shouldDisableDate={(date) => shouldDisableDate(date, ondergrens, bovengrens, props.beschikbareDagen)}
-						autoOk={true}
-						invalidDateMessage={""}
-						disableToolbar
 						value={props.value}
 						onChange={props.onChange}
+						shouldDisableDate={(date) => shouldDisableDate(date, ondergrens, bovengrens, props.beschikbareDagen, props.alleenWerkdagen)}
+						renderInput={(params) => <TextField data-testid={"input_" + props.propertyName}
+															variant="standard" {...params}  />}
 					/>
-				</MuiPickersUtilsProvider>
+
+				</LocalizationProvider>
 				<p data-testid={"error_" + props.propertyName} className={styles.errorLabel}>{props.errorLabel && String(props.errorLabel)}</p>
 			</div>
 		</div>
 	)
 }
 
-export function shouldDisableDate(date: MaterialUiPickersDate, ondergrens?: Date, bovengrens?: Date, beschikbareDagen?: Date[]) {
+export function shouldDisableDate(date: Date | null, ondergrens?: Date, bovengrens?: Date, beschikbareDagen?: Date[], alleenWerkdagen?: boolean) {
+	if (date !== null && alleenWerkdagen && !isWerkdag(date)) {
+		return true
+	}
 	if (beschikbareDagen && beschikbareDagen.length > 0) {
 		if (date !== null && ondergrens && bovengrens && date >= ondergrens && date <= bovengrens) {
 			return !lijstBevatMeegegevenDatum(beschikbareDagen, date)

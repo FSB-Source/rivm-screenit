@@ -1,0 +1,58 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org/">
+<body>
+<wicket:extend>
+	<div class="row-fluid">
+		<form wicket:id="form">
+			<div class="span8 mamma-exchange-download-onderzoeken" wicket:id="content">
+				<h2 class="pageTitle">Selecteer onderzoeken</h2>
+				<table class="table table-striped table-condensed">
+					<tr>
+						<th>Ronde nummer</th>
+						<th>Onderzoeksdatum</th>
+						<th>Organisatie</th>
+						<th>Type onderzoek</th>
+						<th>Download</th>
+					</tr>
+					<wicket:container wicket:id="contentRepeater"/>
+				</table>
+				<div class="pull-right">
+					<a class="btn js-checkbox-deselecteer-onderzoeken">Deselecteer alles</a>
+					<a class="btn js-checkbox-selecteer-onderzoeken">Selecteer alles</a>
+					<a class="btn btn-success" wicket:id="startDownloaden">Maak downloadverzoek</a>
+				</div>
+			</div>
+
+			<div class="span4 pull-right">
+				<div wicket:id="paspoort"></div>
+			</div>
+		</form>
+	</div>
+	<h1 class="pageTitle">Downloadstatuslijst</h1><span><a wicket:id="refresh">Refresh</a> (autorefresh elke 5 seconden)</span>
+	<div class="row-fluid">
+		<div class="span12">
+			<div wicket:id="werklijst"></div>
+		</div>
+	</div>
+</wicket:extend>
+</body>
+</html>

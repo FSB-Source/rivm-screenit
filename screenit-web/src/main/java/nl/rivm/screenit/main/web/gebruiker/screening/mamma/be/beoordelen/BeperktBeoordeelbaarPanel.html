@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -20,16 +20,17 @@
   -->
 <html xmlns:wicket="http://wicket.apache.org/">
 <wicket:panel>
-    <label class="control-label">Beperkt beoordeelbaar</label>
-    <select class="fullwidth" style="width: 100%" wicket:id="beperktBeoordeelbaarReden">
-        <option>0</option>
-    </select>
-    <p class="input-fullwidth" style="display: grid" wicket:id="beperktBeoordeelbaarRedenText"></p>
-    <div class="control-group" wicket:id="beperktBeoordeelbaarTekstContainer">
-        <div class="span12">
-            <label class="control-label span12" for="waaromGeenBeoordelingMogelijk"> Reden waarom geen beoordeling mogelijk</label>
-            <textarea class="span12 waaromGeenBeoordelingMogelijk required" name="waaromGeenBeoordelingMogelijk" id="waaromGeenBeoordelingMogelijk" wicket:id="waaromGeenBeoordelingMogelijk"></textarea>
-        </div>
-    </div>
+	<label class="control-label">Beperkt beoordeelbaar</label>
+	<select class="fullwidth" wicket:id="beperktBeoordeelbaarReden">
+		<option>0</option>
+	</select>
+	<p class="input-fullwidth display-grid" wicket:id="beperktBeoordeelbaarRedenText"></p>
+	<div class="control-group" wicket:id="beperktBeoordeelbaarTekstContainer">
+		<div class="span12">
+			<label class="control-label span12" for="waaromGeenBeoordelingMogelijk"> Reden waarom geen beoordeling mogelijk</label>
+			<textarea class="span12 waaromGeenBeoordelingMogelijk required" name="waaromGeenBeoordelingMogelijk" id="waaromGeenBeoordelingMogelijk"
+					  wicket:id="waaromGeenBeoordelingMogelijk"></textarea>
+		</div>
+	</div>
 </wicket:panel>
 </html>

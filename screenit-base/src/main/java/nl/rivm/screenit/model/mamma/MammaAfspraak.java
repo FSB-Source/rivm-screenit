@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -20,8 +20,6 @@ package nl.rivm.screenit.model.mamma;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
-
-import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -40,7 +38,11 @@ import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.enums.SmsStatus;
 import nl.rivm.screenit.model.helper.HibernateMagicNumber;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaIdentificatiesoort;
@@ -55,6 +57,8 @@ import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.FetchProfile;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
+
+import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 
 @Entity
 @Table(
@@ -74,6 +78,8 @@ import org.hibernate.envers.NotAudited;
 	fetchOverrides = {
 		@FetchProfile.FetchOverride(entity = MammaAfspraak.class, association = "onderzoek", mode = FetchMode.JOIN)
 	})
+@Getter
+@Setter
 public class MammaAfspraak extends AbstractHibernateObject
 {
 	@Column(nullable = false)
@@ -157,193 +163,7 @@ public class MammaAfspraak extends AbstractHibernateObject
 	@Column(nullable = false)
 	private boolean geforceerdeAfspraak = false;
 
-	public Date getCreatiedatum()
-	{
-		return creatiedatum;
-	}
-
-	public void setCreatiedatum(Date creatiedatum)
-	{
-		this.creatiedatum = creatiedatum;
-	}
-
-	public Date getIngeschrevenOp()
-	{
-		return ingeschrevenOp;
-	}
-
-	public void setIngeschrevenOp(Date ingeschrevenOp)
-	{
-		this.ingeschrevenOp = ingeschrevenOp;
-	}
-
-	public MammaUitnodiging getUitnodiging()
-	{
-		return uitnodiging;
-	}
-
-	public void setUitnodiging(MammaUitnodiging uitnodiging)
-	{
-		this.uitnodiging = uitnodiging;
-	}
-
-	public Boolean getBezwaarAangevraagd()
-	{
-		return bezwaarAangevraagd;
-	}
-
-	public void setBezwaarAangevraagd(Boolean bezwaarAangevraagd)
-	{
-		this.bezwaarAangevraagd = bezwaarAangevraagd;
-	}
-
-	public Date getVanaf()
-	{
-		return vanaf;
-	}
-
-	public void setVanaf(Date vanaf)
-	{
-		this.vanaf = vanaf;
-	}
-
-	public MammaCapaciteitBlok getCapaciteitBlok()
-	{
-		return capaciteitBlok;
-	}
-
-	public void setCapaciteitBlok(MammaCapaciteitBlok capaciteitBlok)
-	{
-		this.capaciteitBlok = capaciteitBlok;
-	}
-
-	public MammaOpkomstkans getOpkomstkans()
-	{
-		return opkomstkans;
-	}
-
-	public void setOpkomstkans(MammaOpkomstkans opkomstkans)
-	{
-		this.opkomstkans = opkomstkans;
-	}
-
-	public MammaAfspraakStatus getStatus()
-	{
-		return status;
-	}
-
-	public void setStatus(MammaAfspraakStatus status)
-	{
-		this.status = status;
-	}
-
-	public InstellingGebruiker getIngeschrevenDoor()
-	{
-		return ingeschrevenDoor;
-	}
-
-	public void setIngeschrevenDoor(InstellingGebruiker ingeschrevenDoor)
-	{
-		this.ingeschrevenDoor = ingeschrevenDoor;
-	}
-
-	public MammaStandplaatsPeriode getStandplaatsPeriode()
-	{
-		return standplaatsPeriode;
-	}
-
-	public void setStandplaatsPeriode(MammaStandplaatsPeriode standplaatsPeriode)
-	{
-		this.standplaatsPeriode = standplaatsPeriode;
-	}
-
-	public MammaOnderzoek getOnderzoek()
-	{
-		return onderzoek;
-	}
-
-	public void setOnderzoek(MammaOnderzoek onderzoek)
-	{
-		this.onderzoek = onderzoek;
-	}
-
-	public BigDecimal getBenodigdeCapaciteit()
-	{
-		return benodigdeCapaciteit;
-	}
-
-	public void setBenodigdeCapaciteit(BigDecimal benodigdeCapaciteit)
-	{
-		this.benodigdeCapaciteit = benodigdeCapaciteit;
-	}
-
-	public MammaVerzettenReden getVerzettenReden()
-	{
-		return verzettenReden;
-	}
-
-	public void setVerzettenReden(MammaVerzettenReden verzettenReden)
-	{
-		this.verzettenReden = verzettenReden;
-	}
-
-	public Date getAfgezegdOp()
-	{
-		return afgezegdOp;
-	}
-
-	public void setAfgezegdOp(Date afgezegdOp)
-	{
-		this.afgezegdOp = afgezegdOp;
-	}
-
-	public MammaIdentificatiesoort getIdentificatiesoort()
-	{
-		return identificatiesoort;
-	}
-
-	public void setIdentificatiesoort(MammaIdentificatiesoort identificatiesoort)
-	{
-		this.identificatiesoort = identificatiesoort;
-	}
-
-	public String getIdentificatienummer()
-	{
-		return identificatienummer;
-	}
-
-	public void setIdentificatienummer(String newValue)
-	{
-		this.identificatienummer = newValue;
-	}
-
-	public MammaKansberekeningAfspraakEvent getAfspraakEvent()
-	{
-		return afspraakEvent;
-	}
-
-	public void setAfspraakEvent(MammaKansberekeningAfspraakEvent afspraakEvent)
-	{
-		this.afspraakEvent = afspraakEvent;
-	}
-
-	public String getPostcode()
-	{
-		return postcode;
-	}
-
-	public void setPostcode(String postcode)
-	{
-		this.postcode = postcode;
-	}
-
-	public boolean isGeforceerdeAfspraak()
-	{
-		return geforceerdeAfspraak;
-	}
-
-	public void setGeforceerdeAfspraak(boolean geforceerdeAfspraak)
-	{
-		this.geforceerdeAfspraak = geforceerdeAfspraak;
-	}
+	@Column(nullable = false)
+	@Enumerated(EnumType.STRING)
+	private SmsStatus smsStatus = SmsStatus.GEEN;
 }

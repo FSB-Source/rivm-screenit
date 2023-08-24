@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.route;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +22,9 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.route;
  */
 
 import java.util.List;
+import java.util.Optional;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.dto.mamma.planning.PlanningStandplaatsPeriodeDto;
 import nl.rivm.screenit.main.service.mamma.MammaStandplaatsPeriodeService;
@@ -35,17 +38,14 @@ import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.googlecode.wicket.jquery.core.Options;
 import com.googlecode.wicket.jquery.ui.interaction.sortable.Sortable;
 
+@Slf4j
 public abstract class MammaStandplaatsPeriodeSortable extends Sortable<PlanningStandplaatsPeriodeDto>
 {
 	private static final long serialVersionUID = 1L;
-
-	private static final Logger LOG = LoggerFactory.getLogger(MammaStandplaatsPeriodeSortable.class);
 
 	@SpringBean
 	private MammaStandplaatsPeriodeService standplaatsPeriodeService;
@@ -57,21 +57,20 @@ public abstract class MammaStandplaatsPeriodeSortable extends Sortable<PlanningS
 
 	private Sortable<PlanningStandplaatsPeriodeDto> connectedSortable;
 
-	private Integer offset;
+	private Integer volgnrBovensteStandplaatsperiodeInView;
 
 	public MammaStandplaatsPeriodeSortable(String id, MammaScreeningsEenheid screeningsEenheid, IModel<List<PlanningStandplaatsPeriodeDto>> list, Options options)
 	{
 		super(id, list, options);
-		offset = list.getObject().stream().min((p1, p2) -> Integer.compare(p1.screeningsEenheidVolgNr, p2.screeningsEenheidVolgNr))
-			.orElse(new PlanningStandplaatsPeriodeDto()).screeningsEenheidVolgNr;
-		if (offset == null)
-		{
-			MammaStandplaatsPeriode defaultPeriode = new MammaStandplaatsPeriode();
-			defaultPeriode.setScreeningsEenheidVolgNr(-1);
-			offset = screeningsEenheid.getStandplaatsPerioden().stream().max((p1, p2) -> Integer.compare(p1.getScreeningsEenheidVolgNr(), p2.getScreeningsEenheidVolgNr()))
-				.orElse(defaultPeriode).getScreeningsEenheidVolgNr() + 1;
-		}
+		volgnrBovensteStandplaatsperiodeInView = list.getObject().stream().mapToInt(standplaatsPeriode -> standplaatsPeriode.screeningsEenheidVolgNr).min()
+			.orElse(bepaalVolgnrGeenStandplaatsInView(screeningsEenheid));
+
 		screeningsEenheidModel = ModelUtil.sModel(screeningsEenheid);
+	}
+
+	private int bepaalVolgnrGeenStandplaatsInView(MammaScreeningsEenheid screeningsEenheid)
+	{
+		return screeningsEenheid.getStandplaatsPerioden().stream().mapToInt(MammaStandplaatsPeriode::getScreeningsEenheidVolgNr).max().orElse(0);
 	}
 
 	protected MammaScreeningsEenheid getScreeningsEenheid()
@@ -80,17 +79,19 @@ public abstract class MammaStandplaatsPeriodeSortable extends Sortable<PlanningS
 	}
 
 	@Override
-	public void onUpdate(AjaxRequestTarget target, PlanningStandplaatsPeriodeDto item, int index)
+	public void onUpdate(AjaxRequestTarget target, PlanningStandplaatsPeriodeDto teVerplaatsenStandplaatsPeriode, int rijNummerWaarheenGeschovenIs)
 	{
-		LOG.debug("onUpdate " + index + "/" + getScreeningsEenheid().getNaam() + "/" + item);
-		if (item != null)
+		LOG.debug("onUpdate " + rijNummerWaarheenGeschovenIs + "/" + getScreeningsEenheid().getNaam() + "/" + teVerplaatsenStandplaatsPeriode);
+		if (teVerplaatsenStandplaatsPeriode != null)
 		{
-			index--;
+			var naarBenedenTeVerplaatsenStandplaatsPeriode = getNaarBenedenTeVerplaatsenStandplaatsPeriode(rijNummerWaarheenGeschovenIs);
 
-			if (magGeplaatstWordenOp(index))
+			if (magGeplaatstWordenOpPlekStandplaatsperiode(naarBenedenTeVerplaatsenStandplaatsPeriode))
 			{
 				modelChanging();
-				standplaatsPeriodeService.updateSortList(index + offset, item, getScreeningsEenheid(), ScreenitSession.get().getLoggedInInstellingGebruiker());
+				int nieuwVolgnr = getNieuwVolgnummer(naarBenedenTeVerplaatsenStandplaatsPeriode);
+				standplaatsPeriodeService.updateSortList(nieuwVolgnr, teVerplaatsenStandplaatsPeriode, getScreeningsEenheid(),
+					ScreenitSession.get().getLoggedInInstellingGebruiker());
 				finalizeMovement(target, true);
 			}
 			else
@@ -103,16 +104,20 @@ public abstract class MammaStandplaatsPeriodeSortable extends Sortable<PlanningS
 	}
 
 	@Override
-	public void onReceive(AjaxRequestTarget target, PlanningStandplaatsPeriodeDto item, int index)
+	public void onReceive(AjaxRequestTarget target, PlanningStandplaatsPeriodeDto teVerplaatsenStandplaatsPeriode, int rijNummerWaarheenGeschovenIs)
 	{
-		LOG.debug("onReceive " + index + "/" + getScreeningsEenheid().getNaam() + "/" + item.standplaatsId + "/" + item.screeningsEenheidVolgNr);
+		LOG.debug("onReceive " + rijNummerWaarheenGeschovenIs + "/" + getScreeningsEenheid().getNaam() + "/" + teVerplaatsenStandplaatsPeriode.standplaatsId + "/"
+			+ teVerplaatsenStandplaatsPeriode.screeningsEenheidVolgNr);
 
-		index--;
-		if (magGeplaatstWordenOp(index))
+		var naarBenedenTeVerplaatsenStandplaatsPeriode = getNaarBenedenTeVerplaatsenStandplaatsPeriode(rijNummerWaarheenGeschovenIs);
+
+		if (magGeplaatstWordenOpPlekStandplaatsperiode(naarBenedenTeVerplaatsenStandplaatsPeriode))
 		{
 			modelChanging();
-			standplaatsPeriodeService.updateSortList(index + offset, item, getScreeningsEenheid(), ScreenitSession.get().getLoggedInInstellingGebruiker());
-			super.onReceive(target, item, index);
+			int nieuwVolgnr = getNieuwVolgnummer(naarBenedenTeVerplaatsenStandplaatsPeriode);
+			standplaatsPeriodeService.updateSortList(nieuwVolgnr, teVerplaatsenStandplaatsPeriode, getScreeningsEenheid(),
+				ScreenitSession.get().getLoggedInInstellingGebruiker());
+			super.onReceive(target, teVerplaatsenStandplaatsPeriode, rijNummerWaarheenGeschovenIs - 1);
 
 			finalizeMovement(target, true);
 		}
@@ -124,22 +129,32 @@ public abstract class MammaStandplaatsPeriodeSortable extends Sortable<PlanningS
 		}
 	}
 
-	@Override
-	public void onRemove(AjaxRequestTarget target, PlanningStandplaatsPeriodeDto item)
+	private int getNieuwVolgnummer(Optional<PlanningStandplaatsPeriodeDto> planningStandplaatsPeriodeDto)
 	{
-		LOG.debug("onRemove " + getScreeningsEenheid().getNaam() + "/" + item.standplaatsId + "/" + item.screeningsEenheidVolgNr);
-		modelChanging();
-		finalizeMovement(target, false);
+		return planningStandplaatsPeriodeDto.map(planningStandplaatsPeriode -> planningStandplaatsPeriode.screeningsEenheidVolgNr).orElse(volgnrBovensteStandplaatsperiodeInView);
 	}
 
-	private boolean magGeplaatstWordenOp(int index)
+	private Optional<PlanningStandplaatsPeriodeDto> getNaarBenedenTeVerplaatsenStandplaatsPeriode(int rijNummer)
 	{
-		List<PlanningStandplaatsPeriodeDto> perioden = getModelObject();
+		var periodes = getModelObject();
 
-		return perioden.size() <= index ||
-			(perioden.get(index).prognose &&
-				(perioden.get(index).id == null ||
-					baseAfspraakService.countAfspraken(perioden.get(index).id, MammaAfspraakStatus.GEPLAND) == 0));
+		return periodes.size() <= rijNummer - 1 ? Optional.empty() : Optional.of(periodes.get(rijNummer - 1));
+	}
+
+	private boolean magGeplaatstWordenOpPlekStandplaatsperiode(Optional<PlanningStandplaatsPeriodeDto> standplaatsPeriodeDtoOptional)
+	{
+		return standplaatsPeriodeDtoOptional.isEmpty() || (standplaatsPeriodeDtoOptional.get().prognose &&
+			(standplaatsPeriodeDtoOptional.get().id == null ||
+				baseAfspraakService.countAfspraken(standplaatsPeriodeDtoOptional.get().id, MammaAfspraakStatus.GEPLAND) == 0));
+	}
+
+	@Override
+	public void onRemove(AjaxRequestTarget target, PlanningStandplaatsPeriodeDto teVerwijderenStandplaatsPeriode)
+	{
+		LOG.debug(
+			"onRemove " + getScreeningsEenheid().getNaam() + "/" + teVerwijderenStandplaatsPeriode.standplaatsId + "/" + teVerwijderenStandplaatsPeriode.screeningsEenheidVolgNr);
+		modelChanging();
+		finalizeMovement(target, false);
 	}
 
 	private void finalizeMovement(AjaxRequestTarget target, boolean isLast)

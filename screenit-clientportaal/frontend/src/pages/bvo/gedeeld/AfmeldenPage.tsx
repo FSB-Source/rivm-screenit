@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,9 +29,9 @@ import {FormErrorComponent} from "../../../components/form_error/FormErrorCompon
 import {getString} from "../../../utils/TekstPropertyUtil"
 import {splitEnumString} from "../../../utils/EnumUtil"
 import {useSelectedBvo} from "../../../utils/Hooks"
-import {Field, Formik, FormikValues} from "formik"
-import {RadioGroup} from "formik-material-ui"
-import {FormControl, FormControlLabel, Radio} from "@material-ui/core"
+import {Formik, FormikValues} from "formik"
+
+import {FormControl, FormControlLabel, Radio, RadioGroup} from "@mui/material"
 import SubmitForm from "../../../components/form/SubmitForm"
 import * as Yup from "yup"
 import {AfmeldOptiesDto, geenAfmeldOpties} from "../../../datatypes/afmelden/AfmeldOptiesDto"
@@ -58,18 +58,36 @@ const AfmeldenPage = () => {
 	}, [setAfmeldOpties, selectedBvo])
 
 	const magEenmaligAfmelden = afmeldOpties.afmeldOpties.includes(AfmeldType.EENMALIG)
+	const magTijdelijkAfmelden = afmeldOpties.afmeldOpties.includes(AfmeldType.TIJDELIJK)
 	const magDefinitiefAfmelden = afmeldOpties.afmeldOpties.includes(AfmeldType.DEFINITIEF)
 
 	const initialValues = {
 		afmeldType: magDefinitiefAfmelden && !magEenmaligAfmelden ? AfmeldType.DEFINITIEF : undefined,
-		afmeldReden: undefined,
+		afmeldReden: null,
+		afmeldenTotJaartal: undefined,
 	}
+
 	const validatieSchema: Yup.AnyObjectSchema = Yup.object().shape({
 		afmeldType: Yup.string().required(getString(properties.form.error)),
-		afmeldReden: selectedBvo === Bevolkingsonderzoek.CERVIX ? Yup.string().when("afmeldType", {
-			is: AfmeldType.DEFINITIEF,
-			then: Yup.string().required(getString(properties.form.error)),
-		}) : Yup.string().required(getString(properties.form.error)),
+		afmeldReden: (() => {
+			switch (selectedBvo) {
+				case Bevolkingsonderzoek.COLON:
+					return Yup.string().nullable()
+
+				case Bevolkingsonderzoek.CERVIX:
+					return Yup.string().when("afmeldType", {
+						is: AfmeldType.DEFINITIEF,
+						then: (schema) => schema.nullable().required(getString(properties.form.error)),
+					})
+
+				case Bevolkingsonderzoek.MAMMA:
+					return Yup.string().nullable().required(getString(properties.form.error))
+			}
+		})(),
+		afmeldenTotJaartal: Yup.number().when("afmeldType", {
+			is: AfmeldType.TIJDELIJK,
+			then: (schema) => schema.required(getString(properties.form.uitlegJaartal)),
+		}),
 	})
 
 	return (
@@ -79,13 +97,17 @@ const AfmeldenPage = () => {
 			description={getString(properties.infoText)}
 			hintEinde={getString(properties.hintText)}>
 
-			{!magEenmaligAfmelden && !magDefinitiefAfmelden && <LadenComponent/>}
+			{!magEenmaligAfmelden && !magDefinitiefAfmelden && !magTijdelijkAfmelden && <LadenComponent/>}
 
 			<div className={styles.uitlegDiv}>
 				<ul>
 					{magEenmaligAfmelden && <div>
 						<li>{getString(properties.afmeldType.eenmalig.text)}</li>
 						<p>{getString(properties.afmeldType.eenmalig.info)}</p>
+					</div>}
+					{magTijdelijkAfmelden && <div>
+						<li>{getString(properties.afmeldType.tijdelijk.text)}</li>
+						<p>{getString(properties.afmeldType.tijdelijk.info)}</p>
 					</div>}
 					{magDefinitiefAfmelden && <div>
 						<li>{getString(properties.afmeldType.definitief.text)}</li>
@@ -96,7 +118,7 @@ const AfmeldenPage = () => {
 
 			{afmeldOpties?.heeftOpenColonIntakeAfspraak && <FormErrorComponent text={getString(properties.errorIntakeAfspraak)}/>}
 
-			{(magEenmaligAfmelden || magDefinitiefAfmelden) &&
+			{(magEenmaligAfmelden || magDefinitiefAfmelden || magTijdelijkAfmelden) &&
 				<Formik initialValues={initialValues}
 						enableReinitialize={true}
 						validationSchema={validatieSchema}
@@ -105,30 +127,27 @@ const AfmeldenPage = () => {
 								getAfmeldingDto(values),
 							)).then(() => {
 								showToast(undefined,
-									values.afmeldType === AfmeldType.EENMALIG ?
-										getString(properties.toast.eenmalig, [BevolkingsonderzoekNaam[selectedBvo]]) :
-										getString(properties.toast.definitief, [BevolkingsonderzoekNaam[selectedBvo]]))
+									bepaalAfmeldingToastTekst(values.afmeldType))
 								navigate(getBvoBaseUrl(selectedBvo))
 							})
 						}}>
 					{formikProps => (
-						<SubmitForm title={magEenmaligAfmelden ? getString(properties.form.title.afmeldType.algemeen) : getString(properties.form.title.afmeldType.definitief)}
+						<SubmitForm title={bepaalAfmeldFormulierTitel()}
 									formikProps={formikProps}
 									buttonLabel={getString(properties.form.submit)}>
 
-							<FormControl
-								required
-								component="fieldset">
+							<FormControl variant="standard" required component="fieldset">
 
 								<p data-testid={"error_geen_keuze_afmeldtype"} className={styles.errorLabel}>{formikProps.errors.afmeldType}</p>
 
-								<Field
+								<RadioGroup
 									className={styles.radiobuttons}
 									name="afmeldType"
-									component={RadioGroup}
+									onChange={formikProps.handleChange}
 									value={formikProps.values.afmeldType || ""}
 									onClick={() => {
-										formikProps.setFieldValue("afmeldReden", "")
+										selectedBvo === Bevolkingsonderzoek.COLON ? formikProps.setFieldValue("afmeldReden", null) :
+											formikProps.setFieldValue("afmeldReden", "")
 									}}>
 									<ul>
 										{magEenmaligAfmelden && <li><FormControlLabel
@@ -136,23 +155,53 @@ const AfmeldenPage = () => {
 											data-testid={"radio_eenmalig"}
 											control={<Radio/>}
 											label={getString(properties.form.radiobutton.eenmalig)}/></li>}
-										<li><FormControlLabel
+										{magTijdelijkAfmelden && <li><FormControlLabel
+											value={AfmeldType.TIJDELIJK}
+											data-testid={"radio_tijdelijk"}
+											control={<Radio/>}
+											label={getString(properties.form.radiobutton.tijdelijk)}/></li>}
+										{magDefinitiefAfmelden && <li><FormControlLabel
 											value={AfmeldType.DEFINITIEF}
 											data-testid={"radio_definitief"}
 											control={<Radio/>}
-											label={getString(properties.form.radiobutton.definitief)}/></li>
+											label={getString(properties.form.radiobutton.definitief)}/></li>}
 									</ul>
-								</Field>
+								</RadioGroup>
 
-								{(formikProps.values.afmeldType !== undefined || !magEenmaligAfmelden) && afmeldTypeHeeftAfmeldingRedenen(formikProps.values.afmeldType) &&
+								{formikProps.values.afmeldType === AfmeldType.TIJDELIJK &&
+									<div>
+										<h3 className={styles.label}>{getString(properties.form.title.tijdelijkAfmeldenJaartal)}</h3>
+										<p data-testid={"error_geen_keuze_tijdelijk_afmelden_jaartal"} className={styles.errorLabel}>{formikProps.errors.afmeldenTotJaartal}</p>
+										<RadioGroup
+											className={styles.radiobuttons}
+											name="afmeldenTotJaartal"
+											value={formikProps.values.afmeldenTotJaartal || ""}
+											onChange={formikProps.handleChange}>
+											<ul>
+												{afmeldOpties.mogelijkeAfmeldJaren
+													.map((jaar: any, index) => {
+														return <li key={index}>
+															<FormControlLabel key={index}
+																			  data-testid={"radio_" + jaar}
+																			  control={<Radio/>}
+																			  className={styles.afmeldRedenRadioButton}
+																			  value={jaar}
+																			  label={jaar}/>
+														</li>
+													})}
+											</ul>
+										</RadioGroup>
+									</div>}
+
+								{(formikProps.values.afmeldType !== undefined || !magEenmaligAfmelden) && afmeldTypeHeeftAfmeldingRedenen(formikProps.values.afmeldType) && selectedBvo !== Bevolkingsonderzoek.COLON &&
 									<div>
 										<h3 className={styles.label}>{getString(properties.form.title.afmeldReden)}</h3>
 										<p data-testid={"error_geen_keuze_afmeldreden"} className={styles.errorLabel}>{formikProps.errors.afmeldReden}</p>
-										<Field
+										<RadioGroup
 											className={styles.radiobuttons}
 											name="afmeldReden"
 											value={formikProps.values.afmeldReden || ""}
-											component={RadioGroup}>
+											onChange={formikProps.handleChange}>
 											<ul>
 												{getAfmeldRedenen(formikProps.values.afmeldType)
 													.map((reden: any, index) => {
@@ -166,7 +215,7 @@ const AfmeldenPage = () => {
 														</li>
 													})}
 											</ul>
-										</Field>
+										</RadioGroup>
 									</div>}
 							</FormControl>
 						</SubmitForm>)}
@@ -185,7 +234,20 @@ const AfmeldenPage = () => {
 			return {
 				afmeldType: values.afmeldType!,
 				afmeldReden: values.afmeldReden!,
+				afmeldenTotJaartal: values.afmeldenTotJaartal,
 			}
+		}
+	}
+
+	function bepaalAfmeldFormulierTitel(): string {
+		if (magEenmaligAfmelden && magTijdelijkAfmelden) {
+			return getString(properties.form.title.afmeldType.alleOptiesColon)
+		} else if (magEenmaligAfmelden) {
+			return getString(properties.form.title.afmeldType.algemeen)
+		} else if (!magEenmaligAfmelden && magTijdelijkAfmelden) {
+			return getString(properties.form.title.afmeldType.tijdelijkEnDefinitief)
+		} else {
+			return getString(properties.form.title.afmeldType.definitief)
 		}
 	}
 
@@ -194,7 +256,27 @@ const AfmeldenPage = () => {
 	}
 
 	function getAfmeldRedenen(afmeldType?: AfmeldType) {
-		return AfmeldType.EENMALIG === afmeldType ? afmeldOpties.afmeldRedenenEenmalig : afmeldOpties.afmeldRedenenDefinitief
+		if (AfmeldType.EENMALIG === afmeldType) {
+			return afmeldOpties.afmeldRedenenEenmalig
+		} else if (AfmeldType.TIJDELIJK === afmeldType) {
+			return afmeldOpties.afmeldRedenenTijdelijk
+		} else {
+			return afmeldOpties.afmeldRedenenDefinitief
+		}
+	}
+
+	function bepaalAfmeldingToastTekst(afmeldType?: AfmeldType): string {
+		if (AfmeldType.EENMALIG === afmeldType) {
+			if (selectedBvo === Bevolkingsonderzoek.MAMMA) {
+				return getString(properties.toast.eenmalig_bk)
+			} else {
+				return getString(properties.toast.eenmalig_dk_bmhk, [BevolkingsonderzoekNaam[selectedBvo]])
+			}
+		} else if (AfmeldType.TIJDELIJK === afmeldType) {
+			return getString(properties.toast.tijdelijk, [BevolkingsonderzoekNaam[selectedBvo]])
+		} else {
+			return getString(properties.toast.definitief, [BevolkingsonderzoekNaam[selectedBvo]])
+		}
 	}
 }
 

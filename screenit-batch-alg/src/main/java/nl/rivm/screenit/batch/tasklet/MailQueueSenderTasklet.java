@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.tasklet;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,6 +30,7 @@ import nl.rivm.screenit.model.Mail;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.repository.MailRepository;
 import nl.rivm.screenit.service.LogService;
+import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5Session;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -74,7 +75,7 @@ public class MailQueueSenderTasklet
 		try
 		{
 			wachtBijProblemen();
-			verwerkMailQueue();
+			OpenHibernate5Session.withoutTransaction().run(() -> verwerkMailQueue());
 		}
 		catch (Exception e)
 		{

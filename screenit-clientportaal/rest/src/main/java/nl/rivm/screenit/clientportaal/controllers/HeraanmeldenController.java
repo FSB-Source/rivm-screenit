@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.controllers;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,6 +31,7 @@ import nl.rivm.screenit.model.ClientContactActieType;
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.service.ClientContactService;
+import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,6 +50,8 @@ import org.springframework.web.bind.annotation.RestController;
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class HeraanmeldenController extends AbstractController
 {
+	private final HibernateService hibernateService;
+
 	private final ClientContactService clientContactService;
 
 	private final HeraanmeldenService heraanmeldenService;
@@ -56,9 +59,9 @@ public class HeraanmeldenController extends AbstractController
 	@GetMapping(value = "/{bevolkingsonderzoek}")
 	public ResponseEntity<HeraanmeldenOptiesDto> getHeraanmeldStatus(@PathVariable Bevolkingsonderzoek bevolkingsonderzoek, Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (aanvraagIsToegestaneActie(client, getClientContactActieType(bevolkingsonderzoek)))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, getClientContactActieType(bevolkingsonderzoek)))
 		{
 			boolean magColonUitnodigingAanvragen = false;
 			boolean magColonIntakAfspraakInplannen = false;
@@ -78,12 +81,12 @@ public class HeraanmeldenController extends AbstractController
 	public ResponseEntity<String> saveHeraanmeldVerzoek(@PathVariable Bevolkingsonderzoek bevolkingsonderzoek, @PathVariable boolean wilNieuweUitnodigingOntvangen,
 		Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 		try
 		{
-			if (aanvraagIsToegestaneActie(client, getClientContactActieType(bevolkingsonderzoek)))
+			if (clientContactService.availableActiesBevatBenodigdeActie(client, getClientContactActieType(bevolkingsonderzoek)))
 			{
-				heraanmeldenService.saveHeraanmeldenVerzoek(getClient(authentication), bevolkingsonderzoek, wilNieuweUitnodigingOntvangen);
+				heraanmeldenService.saveHeraanmeldenVerzoek(getClient(authentication, hibernateService), bevolkingsonderzoek, wilNieuweUitnodigingOntvangen);
 				return ResponseEntity.ok().build();
 			}
 		}

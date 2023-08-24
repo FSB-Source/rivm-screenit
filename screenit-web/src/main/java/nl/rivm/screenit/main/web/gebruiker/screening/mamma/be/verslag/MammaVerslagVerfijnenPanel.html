@@ -3,7 +3,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -62,20 +62,24 @@
                 </div>
                 <div class="row-fluid">
                     <fieldset>
-                        <div class="row-fluid">
-                            <div class="control-group">
-                                <label class="control-label">Vrije verslagtekst</label>
-                            </div>
-                        </div>
-                        <div class="row-fluid">
-                            <div class="span2">
-                                <div class="control-group">
-                                    <div style="padding-right: 14px;">
-                                        <textarea class="low-max-width biradsopmerking" type="text" value="" wicket:id="biradsOpmerking"/>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+						<div class="row-fluid">
+							<div class="control-group">
+								<label class="control-label span2">Vrije verslagtekst</label>
+								<label wicket:id="sliceTomosyntheseTekst" class="control-label font-bold span3">Tomosynthese</label>
+							</div>
+						</div>
+						<div class="row-fluid">
+							<div class="span2">
+								<div class="control-group">
+									<div class="padding-right-14px">
+										<textarea class="low-max-width biradsopmerking" type="text" value="" wicket:id="biradsOpmerking"/>
+									</div>
+								</div>
+							</div>
+							<div class="span8">
+								<div wicket:id="teZienOpContainer"></div>
+							</div>
+						</div>
                     </fieldset>
                 </div>
                 <div class="span10">

@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,18 +27,20 @@ const calcLaesiePositions = () => {
 window.addEventListener('resize', calcLaesiePositions);
 
 function createLaesieImg(src, parentDiv, alleenInzien) {
-    const laesieImg = document.createElement('IMG');
-    laesieImg.src = src;
-    laesieImg.style.position = 'absolute';
-    if (!alleenInzien) {
-        laesieImg.style.cursor = 'move';
-    }
-    laesieImg.onmousedown = mouseDown;
-    laesieImg.onmouseup = mouseUpLaesie;
-    laesieImg.ondragstart = preventDragStart;
-    laesieImg.className = 'laesieImg';
-    parentDiv.appendChild(laesieImg);
-    return laesieImg;
+	const laesieImg = document.createElement('IMG');
+	laesieImg.src = src;
+	laesieImg.style.position = 'absolute';
+	if (!alleenInzien) {
+		laesieImg.style.cursor = 'move';
+	}
+	laesieImg.onmousedown = mouseDown;
+	laesieImg.onmouseup = mouseUpLaesie;
+	laesieImg.ondragstart = preventDragStart;
+	laesieImg.className = 'laesieImg';
+	$(parentDiv).each(function (index) {
+		$(parentDiv)[index].appendChild(laesieImg)
+	});
+	return laesieImg;
 }
 
 var huidigeLezingId;

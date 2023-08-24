@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -235,7 +235,7 @@ public class ProjectServiceImpl implements ProjectService
 			for (Bevolkingsonderzoek excludeerOnderzoek : excludeerAfmeldingOnderzoeken)
 			{
 				if (doelgroepService.behoortTotDoelgroep(client, excludeerOnderzoek)
-					&& AfmeldingUtil.isAfgemeld(clientService.getDossier(client, excludeerOnderzoek)))
+					&& AfmeldingUtil.isEenmaligOfDefinitefAfgemeld(clientService.getDossier(client, excludeerOnderzoek)))
 				{
 					throw new IllegalStateException(
 						"Deze cliënt heeft zich afgemeld bij het onderzoek: " + excludeerOnderzoek.getAfkorting() + ", en deze is geëxcludeerd.");
@@ -668,7 +668,7 @@ public class ProjectServiceImpl implements ProjectService
 		hibernateService.delete(groep);
 		hibernateService.saveOrUpdate(project);
 
-		documentenTeVerwijderen.forEach(d -> uploadDocumentService.delete(d, true));
+		documentenTeVerwijderen.forEach(d -> uploadDocumentService.delete(d));
 
 		if (project.getType().equals(ProjectType.BRIEFPROJECT))
 		{

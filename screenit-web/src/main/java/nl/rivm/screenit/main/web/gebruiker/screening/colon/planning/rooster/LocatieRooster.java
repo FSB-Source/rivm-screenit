@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.rooster;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,8 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.rooster;
  * =========================LICENSE_END==================================
  */
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -28,6 +30,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
 import nl.rivm.screenit.main.service.colon.RoosterService;
@@ -46,6 +50,7 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.colon.ColonUitnodigingService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicus.wicket.calendar.CalendarAjaxBehavior.CalendarCallbackEvents;
 import nl.topicus.wicket.calendar.ICalendarCallback;
 import nl.topicus.wicket.calendar.ICalendarResource;
@@ -76,15 +81,13 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.codehaus.jackson.JsonNode;
 import org.hibernate.ObjectNotFoundException;
-import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wicketstuff.shiro.ShiroConstraint;
 import org.wicketstuff.wiquery.core.javascript.JsQuery;
 import org.wicketstuff.wiquery.core.javascript.JsScope;
 import org.wicketstuff.wiquery.core.javascript.JsScopeContext;
 import org.wicketstuff.wiquery.core.javascript.JsUtils;
 
+@Slf4j
 @SecurityConstraint(
 	actie = Actie.INZIEN,
 	checkScope = true,
@@ -94,11 +97,7 @@ import org.wicketstuff.wiquery.core.javascript.JsUtils;
 public class LocatieRooster extends GenericPanel<Kamer> implements ICalendarCallback
 {
 
-	private static final long serialVersionUID = 1L;
-
 	private static final String CALENDAR_ID = "calendar";
-
-	private static final Logger LOG = LoggerFactory.getLogger(LocatieRooster.class);
 
 	@SpringBean
 	private AppointmentService appointmentService;
@@ -119,7 +118,7 @@ public class LocatieRooster extends GenericPanel<Kamer> implements ICalendarCall
 
 	private final WebMarkupContainer calendarContainer;
 
-	private BootstrapDialog dialog;
+	private final BootstrapDialog dialog;
 
 	private Date start;
 
@@ -134,7 +133,7 @@ public class LocatieRooster extends GenericPanel<Kamer> implements ICalendarCall
 		super(id);
 		this.roosterAantallenPerJaarPanel = roosterAantallenPerJaarPanel;
 		this.dialog = dialog;
-		navigatieStatus.setCalenderDatum(colonUitnodigingService.getGeprognotiseerdeIntakeDatum(true).dayOfWeek().withMinimumValue().getMillis());
+		navigatieStatus.setCalenderDatum(DateUtil.toUtilDate(colonUitnodigingService.getGeprognotiseerdeIntakeDatum(true).with(DayOfWeek.MONDAY)).getTime());
 
 		calendarContainer = new WebMarkupContainer("calendarContainer");
 		calendarContainer.setOutputMarkupId(true);
@@ -158,9 +157,6 @@ public class LocatieRooster extends GenericPanel<Kamer> implements ICalendarCall
 
 			dialog.setContent(new EditRoosterBlokPanel(IDialog.CONTENT_ID, itemModel)
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected void onClose(AjaxRequestTarget target, CalendarRefresher<RoosterItem> refresher)
 				{
@@ -241,7 +237,7 @@ public class LocatieRooster extends GenericPanel<Kamer> implements ICalendarCall
 			}
 			else
 			{
-				eindTime = ((AbstractAppointment) recurrence.getFirstOccurrence()).getEndTime();
+				eindTime = recurrence.getFirstOccurrence().getEndTime();
 			}
 		}
 		return eindTime;
@@ -285,7 +281,7 @@ public class LocatieRooster extends GenericPanel<Kamer> implements ICalendarCall
 
 			for (Kamer kamer : kamers)
 			{
-				kamerEventMap.put(kamer, new ArrayList<IAppointment>());
+				kamerEventMap.put(kamer, new ArrayList<>());
 			}
 
 			List<RoosterItem> items = roosterService.getRooster(new Periode(start, end), kamers);
@@ -316,11 +312,9 @@ public class LocatieRooster extends GenericPanel<Kamer> implements ICalendarCall
 
 	private Schedule newSchedule(final CalendarCallbackEvents[] callBackEvents, ScheduleOptions scheduleOptions)
 	{
-		Schedule nieuweSchedule = new Schedule(CALENDAR_ID, this, scheduleOptions, callBackEvents)
+
+		return new Schedule(CALENDAR_ID, LocatieRooster.this, scheduleOptions, callBackEvents)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onEvent(CalendarEventProperties eventProperties, AjaxRequestTarget target, CalendarCallbackEvents callbackEvent)
 			{
@@ -384,28 +378,23 @@ public class LocatieRooster extends GenericPanel<Kamer> implements ICalendarCall
 				return getSpecificScheduleOptions();
 			}
 		};
-
-		return nieuweSchedule;
 	}
 
 	private ScheduleOptions getSpecificScheduleOptions()
 	{
 		ColoscopieCentrum instantie = ScreenitSession.get().getColoscopieCentrum();
-		DateTime tijdVan = new DateTime(instantie.getOpeningVan());
-		DateTime tijdTot = new DateTime(instantie.getOpeningTot());
+		var tijdVan = LocalTime.of(8, 0);
+		var tijdTot = LocalTime.of(18, 0);
 
 		ScheduleOptions scheduleOptions = ScheduleOptions.defaultOptions();
 
 		scheduleOptions.setSnapToGrid(true);
 		scheduleOptions.setDate(navigatieStatus.getCalenderDatum());
-		scheduleOptions.setBusinessHours(new BusinessHoursOption(tijdVan.getHourOfDay(), tijdTot.getHourOfDay()));
+		scheduleOptions.setBusinessHours(new BusinessHoursOption(tijdVan.getHour(), tijdTot.getHour()));
 		scheduleOptions.setWeek(!navigatieStatus.isDagWeergave());
 
 		JsScope tooltip = new JsScope("elementen")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void execute(JsScopeContext scopeContext)
 			{
@@ -416,9 +405,6 @@ public class LocatieRooster extends GenericPanel<Kamer> implements ICalendarCall
 
 		scheduleOptions.setHeight(new JsScope("schedule")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void execute(JsScopeContext scopeContext)
 			{
@@ -480,9 +466,6 @@ public class LocatieRooster extends GenericPanel<Kamer> implements ICalendarCall
 
 			dialog.setContent(new EditBlokkadePanel(IDialog.CONTENT_ID, blokkadeModel)
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected void onClose(AjaxRequestTarget target, CalendarRefresher<ColonBlokkade> refresher)
 				{

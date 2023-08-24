@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,6 +27,9 @@ import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.util.BigDecimalUtil;
 import nl.rivm.screenit.util.StringUtil;
 
@@ -37,25 +40,31 @@ public class ColonUitnodigingsgebiedSelectieContext implements Comparable<ColonU
 
 	private static final int MAX_COLLECTION_STRING_LENGTH = 10;
 
+	@Getter
 	private final Long uitnodigingsgebiedId;
+
+	@Getter
+	private final String uitnodigingsgebiedNaam;
 
 	private BigDecimal uitnodigingscapaciteitOrig;
 
+	@Getter
 	private BigDecimal uitnodigingscapaciteitOver;
 
 	private BigDecimal uitnodigingscapaciteitTotaal;
 
+	@Getter
+	@Setter
 	private boolean leeglopendGebied;
-
-	private Integer totaalAntalClienten = null;
 
 	private Map<Long, BigDecimal> capVanIl = new HashMap<>();
 
-	public ColonUitnodigingsgebiedSelectieContext(BigDecimal uitnodigingscapaciteit, Long intakelocatieId, Long uitnodigingsgebiedId)
+	public ColonUitnodigingsgebiedSelectieContext(BigDecimal uitnodigingscapaciteit, Long intakelocatieId, Long uitnodigingsgebiedId, String uitnodigingsgebiedNaam)
 	{
 		this.uitnodigingscapaciteitTotaal = uitnodigingscapaciteit;
 		this.uitnodigingscapaciteitOver = uitnodigingscapaciteit;
 		this.uitnodigingsgebiedId = uitnodigingsgebiedId;
+		this.uitnodigingsgebiedNaam = uitnodigingsgebiedNaam;
 		capVanIl.put(intakelocatieId, uitnodigingscapaciteit);
 	}
 
@@ -101,20 +110,9 @@ public class ColonUitnodigingsgebiedSelectieContext implements Comparable<ColonU
 
 	}
 
-	public Long getUitnodigingsgebiedId()
-	{
-		return uitnodigingsgebiedId;
-	}
-
-	public BigDecimal getUitnodigingscapaciteitOver()
-	{
-		return uitnodigingscapaciteitOver;
-	}
-
 	public void consumeUitnodigingscapaciteit()
 	{
 		uitnodigingscapaciteitOver = uitnodigingscapaciteitOver.subtract(BigDecimal.ONE);
-		consumeClient();
 	}
 
 	public void substractUitnodigingscapaciteit(BigDecimal capaciteitAftrekken)
@@ -122,21 +120,9 @@ public class ColonUitnodigingsgebiedSelectieContext implements Comparable<ColonU
 		uitnodigingscapaciteitOver = uitnodigingscapaciteitOver.subtract(capaciteitAftrekken);
 	}
 
-	private void consumeClient()
-	{
-		if (getTotaalAntalClienten() != null)
-		{
-			setTotaalAntalClienten(getTotaalAntalClienten() - 1);
-			if (getTotaalAntalClienten() < 0)
-			{
-				throw new IllegalStateException("Totaal aantal clienten mogen niet lager dan 0 worden.");
-			}
-		}
-	}
-
 	public boolean isGenoegUitnodigingscapaciteitOver()
 	{
-		return uitnodigingscapaciteitOver.compareTo(BigDecimal.ONE) >= 0 && (getTotaalAntalClienten() == null || getTotaalAntalClienten() > 0);
+		return uitnodigingscapaciteitOver.compareTo(BigDecimal.ONE) >= 0;
 	}
 
 	public int getUitnodigingscapaciteitToevoegingOfOver()
@@ -165,35 +151,9 @@ public class ColonUitnodigingsgebiedSelectieContext implements Comparable<ColonU
 		return 0;
 	}
 
-	public void tweeClientenOpEenAdres()
-	{
-
-		consumeClient();
-	}
-
-	public boolean isLeeglopendGebied()
-	{
-		return leeglopendGebied;
-	}
-
-	public void setLeeglopendGebied(boolean leeglopendGebied)
-	{
-		this.leeglopendGebied = leeglopendGebied;
-	}
-
 	public void roundUitnodigingscapaciteitOver()
 	{
 		addUitnodigingscapaciteit(BigDecimal.valueOf(BigDecimalUtil.roundCapaciteit(uitnodigingscapaciteitOver)).subtract(uitnodigingscapaciteitOver), null, true);
-	}
-
-	public Integer getTotaalAntalClienten()
-	{
-		return totaalAntalClienten;
-	}
-
-	public void setTotaalAntalClienten(Integer totaalAntalClienten)
-	{
-		this.totaalAntalClienten = totaalAntalClienten;
 	}
 
 	@Override
@@ -240,12 +200,11 @@ public class ColonUitnodigingsgebiedSelectieContext implements Comparable<ColonU
 	@Override
 	public String toString()
 	{
-		return "ColonUitnodigingsgebiedSelectieContext [" + (uitnodigingsgebiedId != null ? "ugId=" + uitnodigingsgebiedId + ", " : "")
+		return "UitnodigingsgebiedSelectieContext [" + (uitnodigingsgebiedId != null ? "ugId='" + uitnodigingsgebiedId + "', " : "")
 			+ (uitnodigingscapaciteitOrig != null ? "ucapOrig=" + BigDecimalUtil.decimalToString(uitnodigingscapaciteitOrig) + ", " : "")
 			+ (uitnodigingscapaciteitOver != null ? "ucapOver=" + BigDecimalUtil.decimalToString(uitnodigingscapaciteitOver) + ", " : "")
 			+ (uitnodigingscapaciteitTotaal != null ? "ucapTot=" + BigDecimalUtil.decimalToString(uitnodigingscapaciteitTotaal) + ", " : "") 
 			+ (capVanIl != null ? "ucapVanIl=" + StringUtil.toString(capVanIl.entrySet(), MAX_COLLECTION_STRING_LENGTH) + ", " : "") 
-			+ (totaalAntalClienten != null ? "#cl=" + totaalAntalClienten + ", " : "") 
 			+ "leeglopend=" + leeglopendGebied 
 			+ "]";
 	}

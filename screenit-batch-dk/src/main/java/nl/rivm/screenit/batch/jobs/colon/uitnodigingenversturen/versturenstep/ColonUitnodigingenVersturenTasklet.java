@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.uitnodigingenversturen.versturenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,9 +36,11 @@ import nl.rivm.screenit.model.BriefDefinitie;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.MailMergeContext;
+import nl.rivm.screenit.model.ProjectParameterKey;
 import nl.rivm.screenit.model.Rivm;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.colon.ColonMergedBrieven;
+import nl.rivm.screenit.model.colon.ColonOnderzoeksVariant;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -62,7 +64,6 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class ColonUitnodigingenVersturenTasklet extends AbstractUitnodigingenVersturenTasklet<ColonUitnodiging>
 {
-
 	private ColonUitnodigingsDao uitnodigingsDao;
 
 	private HibernateService hibernateService;
@@ -123,7 +124,7 @@ public class ColonUitnodigingenVersturenTasklet extends AbstractUitnodigingenVer
 		if (!AdresUtil.isVolledigAdresVoorInpakcentrum(client))
 		{
 			String melding = "De cliënt heeft een onvolledig adres, dit is geconstateerd bij het aanmaken. De volgende gegevens ontbreken: "
-				+ AdresUtil.bepaalMissendeAdresgegevensString(AdresUtil.getAdres(client.getPersoon(), currentDateSupplier.getDateTime())) + ".";
+				+ AdresUtil.bepaalMissendeAdresgegevensString(AdresUtil.getAdres(client.getPersoon(), currentDateSupplier.getLocalDate())) + ".";
 			int dagen = simplePreferenceService.getInteger(PreferenceKey.INTERNAL_HERINNERINGSPERIODE_LOGREGEL_ONVOLLEDIG_ADRES.name());
 			LOG.warn("clientId " + client.getId() + ": " + melding);
 			if (logService.heeftGeenBestaandeLogregelBinnenPeriode(List.of(LogGebeurtenis.COLON_ADRES_ONVOLLEDIG_VOOR_INPAKCENTRUM), client.getPersoon().getBsn(),
@@ -182,6 +183,26 @@ public class ColonUitnodigingenVersturenTasklet extends AbstractUitnodigingenVer
 	protected void setGegenereerd(ColonUitnodiging uitnodiging)
 	{
 
+	}
+
+	@Override
+	protected void beforeProcessUitnodiging(ColonUitnodiging uitnodiging)
+	{
+		super.beforeProcessUitnodiging(uitnodiging);
+
+		var projectClient = ProjectUtil.getHuidigeProjectClient(uitnodiging.getScreeningRonde().getDossier().getClient(), currentDateSupplier.getDate());
+		if (projectClient != null)
+		{
+			var onderzoeksVariantUitProject = ProjectUtil.getParameter(projectClient.getProject(), ProjectParameterKey.COLON_ONDERZOEKSVARIANT);
+			if (onderzoeksVariantUitProject != null && !uitnodiging.getOnderzoeksVariant().name().equals(onderzoeksVariantUitProject))
+			{
+				uitnodiging.setOnderzoeksVariant(ColonOnderzoeksVariant.valueOf(onderzoeksVariantUitProject));
+			}
+		}
+		else
+		{
+			uitnodiging.setOnderzoeksVariant(ColonOnderzoeksVariant.STANDAARD);
+		}
 	}
 
 	@Override

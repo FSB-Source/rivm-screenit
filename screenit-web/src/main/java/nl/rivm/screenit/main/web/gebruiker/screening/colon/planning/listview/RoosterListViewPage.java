@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.listview;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,19 +27,20 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import nl.rivm.screenit.model.colon.RoosterItemListViewWrapper;
-import nl.rivm.screenit.model.colon.RoosterItemStatus;
-import nl.rivm.screenit.model.colon.RoosterListViewFilter;
 import nl.rivm.screenit.main.service.colon.RoosterService;
-import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.AjaxButtonGroup;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.table.ExportToXslLink;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.PlanningBasePage;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.RoosterItemListViewWrapper;
+import nl.rivm.screenit.model.colon.RoosterItemStatus;
+import nl.rivm.screenit.model.colon.RoosterListViewFilter;
 import nl.rivm.screenit.model.colon.planning.RoosterItem;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.input.simplechoice.SimpleChoiceRenderer;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
@@ -62,41 +62,38 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.lang.Classes;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
+
+import com.google.common.collect.Range;
 
 public class RoosterListViewPage extends PlanningBasePage
 {
-
-	private static final long serialVersionUID = 1L;
-
-	private ScreenitDataTable<RoosterItemListViewWrapper, String> table;
-
 	@SpringBean
 	private RoosterService roosterService;
 
 	@SpringBean
 	private HibernateService hibernateService;
 
+	@SpringBean
+	private ICurrentDateSupplier currentDateSupplier;
+
+	private final ScreenitDataTable<RoosterItemListViewWrapper, String> table;
+
 	public RoosterListViewPage()
 	{
 		super();
 
-		ColoscopieCentrum coloscopieCentrum = ScreenitSession.get().getColoscopieCentrum();
+		var coloscopieCentrum = ScreenitSession.get().getColoscopieCentrum();
 		add(new Label("coloscopiecentrum", coloscopieCentrum.getNaam()));
 
-		RoosterListViewFilter filter = new RoosterListViewFilter();
-		filter.setStartDatum(new Date());
-		filter.setEndDatum(new Date());
+		var filter = new RoosterListViewFilter();
+		filter.setStartDatum(currentDateSupplier.getDate());
+		filter.setEndDatum(currentDateSupplier.getDate());
 		filter.setStatus(null);
 
-		final IModel<RoosterListViewFilter> zoekModel = new Model<RoosterListViewFilter>(filter);
+		final IModel<RoosterListViewFilter> zoekModel = new Model<>(filter);
 
 		final Label totaalBlokken = new Label("totaalBlokken", 0)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onConfigure()
 			{
@@ -107,9 +104,9 @@ public class RoosterListViewPage extends PlanningBasePage
 				if (startDatum.after(endDatum))
 				{
 
-					startDatum = new DateTime(endDatum).withTimeAtStartOfDay().plusDays(1).toDate();
+					startDatum = DateUtil.plusDagen(DateUtil.startDag(endDatum), 1);
 				}
-				Interval periode = new Interval(new DateTime(startDatum), new DateTime(endDatum).withTimeAtStartOfDay().plusDays(1));
+				var periode = Range.closed(startDatum, DateUtil.plusDagen(DateUtil.startDag(endDatum), 1));
 				setDefaultModelObject(roosterService.getCurrentAantalRoosterBlokken(ScreenitSession.get().getColoscopieCentrum(), periode));
 			}
 
@@ -119,11 +116,8 @@ public class RoosterListViewPage extends PlanningBasePage
 
 		setDefaultModel(zoekModel);
 		List<IColumn<RoosterItemListViewWrapper, String>> columns = new ArrayList<>();
-		columns.add(new DateTimePropertyColumn<RoosterItemListViewWrapper, String>(Model.of("Datum/tijd"), "startTime", "startTime", new SimpleDateFormat("dd-MM-yyyy HH:mm"))
+		columns.add(new DateTimePropertyColumn<>(Model.of("Datum/tijd"), "startTime", "startTime", new SimpleDateFormat("dd-MM-yyyy HH:mm"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public IModel<Object> getDataModel(IModel<RoosterItemListViewWrapper> embeddedModel)
 			{
@@ -135,29 +129,23 @@ public class RoosterListViewPage extends PlanningBasePage
 			}
 
 		});
-		columns.add(new PropertyColumn<RoosterItemListViewWrapper, String>(Model.of("Kamer"), "kamer", "kamer"));
-		columns.add(new AbstractColumn<RoosterItemListViewWrapper, String>(Model.of("Status"))
+		columns.add(new PropertyColumn<>(Model.of("Kamer"), "kamer", "kamer"));
+		columns.add(new AbstractColumn<>(Model.of("Status"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<RoosterItemListViewWrapper>> cellItem, String componentId, IModel<RoosterItemListViewWrapper> rowModel)
 			{
 				RoosterItemListViewWrapper wrapper = rowModel.getObject();
 
 				RoosterItem roosterItem = hibernateService.load(RoosterItem.class, wrapper.getRoosterItemId());
-				cellItem.add(new EnumLabel<RoosterItemStatus>(componentId, roosterService.getRoosterItemStatus(roosterItem)));
+				cellItem.add(new EnumLabel<>(componentId, roosterService.getRoosterItemStatus(roosterItem)));
 			}
 
 		});
 
-		table = new ScreenitDataTable<RoosterItemListViewWrapper, String>("tabel", columns, new RoosterListViewDataProvider(zoekModel, coloscopieCentrum), 10,
+		table = new ScreenitDataTable<>("tabel", columns, new RoosterListViewDataProvider(zoekModel, coloscopieCentrum), 10,
 			Model.of("roosterblokken"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<RoosterItemListViewWrapper> model)
 			{
@@ -175,30 +163,24 @@ public class RoosterListViewPage extends PlanningBasePage
 		Form<RoosterListViewFilter> form = new Form<>("form", new CompoundPropertyModel<>(zoekModel));
 		add(form);
 
-		form.add(new AjaxButtonGroup<RoosterItemStatus>("status", new ListModel<RoosterItemStatus>(Arrays.asList(new RoosterItemStatus[] { null, RoosterItemStatus.BLOKKADE,
-			RoosterItemStatus.GEBRUIKT_VOOR_CAPACITEIT, RoosterItemStatus.INTAKE_GEPLAND, RoosterItemStatus.VRIJ_TE_VERPLAATSEN })), new SimpleChoiceRenderer<RoosterItemStatus>()
-			{
-
-				private static final long serialVersionUID = 1L;
-
-				@Override
-				public Object getDisplayValue(RoosterItemStatus object)
-				{
-					if (object == null)
-					{
-						return getString(Classes.simpleName(RoosterItemStatus.class) + ".null");
-					}
-					else
-					{
-						return getString(EnumStringUtil.getPropertyString(object));
-					}
-				}
-
-			})
+		form.add(new AjaxButtonGroup<>("status", new ListModel<>(Arrays.asList(null, RoosterItemStatus.BLOKKADE,
+			RoosterItemStatus.GEBRUIKT_VOOR_CAPACITEIT, RoosterItemStatus.INTAKE_GEPLAND, RoosterItemStatus.VRIJ_TE_VERPLAATSEN)), new SimpleChoiceRenderer<>()
 		{
+			@Override
+			public Object getDisplayValue(RoosterItemStatus object)
+			{
+				if (object == null)
+				{
+					return getString(Classes.simpleName(RoosterItemStatus.class) + ".null");
+				}
+				else
+				{
+					return getString(EnumStringUtil.getPropertyString(object));
+				}
+			}
 
-			private static final long serialVersionUID = 1L;
-
+		})
+		{
 			@Override
 			protected void onSelectionChanged(RoosterItemStatus selection, AjaxRequestTarget target, String markupId)
 			{
@@ -211,9 +193,6 @@ public class RoosterListViewPage extends PlanningBasePage
 		startDatum.setType(Date.class);
 		startDatum.add(new AjaxFormComponentUpdatingBehavior("change")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
@@ -227,9 +206,6 @@ public class RoosterListViewPage extends PlanningBasePage
 		endDatum.setType(Date.class);
 		endDatum.add(new AjaxFormComponentUpdatingBehavior("change")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{

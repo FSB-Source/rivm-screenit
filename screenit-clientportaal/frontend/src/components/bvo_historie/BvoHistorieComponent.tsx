@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,11 +35,12 @@ const BvoHistorieComponent = (props: Props) => {
             {!isEmptyOrUndefined(props.gebeurtenissen) &&
             <h5 className={landingPageStyle.sectieHeader}>Mijn historie</h5>}
             <Container fluid>
-                {props.gebeurtenissen.map((gebeurtenis, count) => <BvoHistorieCard
-                        key={count} tekstKey={gebeurtenis.tekstKey} datumTijd={gebeurtenis.datumTijd}
-                        extraParameters={gebeurtenis.extraParameters}/>)
-                }
-            </Container>
+				{props.gebeurtenissen.map((gebeurtenis, count) =>
+					<BvoHistorieCard
+						key={count} tekstKey={gebeurtenis.tekstKey} datumTijd={gebeurtenis.datumTijd}
+						extraParameters={gebeurtenis.extraParameters}/>)
+				}
+			</Container>
         </div>
     )
 }

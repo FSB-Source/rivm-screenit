@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -129,9 +129,10 @@ public class MammaIMSBerichtInlezenServiceImpl implements MammaIMSBerichtInlezen
 	private void verwerkBerichtBeeldenBeschikbaar(MammaIMSBericht bericht, Client client) throws HL7Exception
 	{
 		MammaScreeningRonde ronde = screeningrondeService.getRondeVanUitnodigingsr(client, bericht.getAccessionNumber());
+
 		if (ronde != null)
 		{
-			onderzoekService.ontvangBeeldenVoorOnderzoek(client, ronde);
+			onderzoekService.ontvangBeeldenVoorOnderzoek(client, ronde, bericht.getOnderzoekType());
 			LOG.info(String.format("Beelden beschikbaar voor accession number: %s, client id: %d", bericht.getAccessionNumber(), client.getId()));
 		}
 		else
@@ -193,7 +194,6 @@ public class MammaIMSBerichtInlezenServiceImpl implements MammaIMSBerichtInlezen
 		logEvent.setMelding(melding);
 		logEvent.setHl7MessageStructure(bericht.getHl7Bericht());
 		logEvent.setLevel(Level.WARNING);
-		logEvent.setClient(null);
 
 		logService.logGebeurtenis(LogGebeurtenis.MAMMA_HL7_BERICHT_ONTVANGEN_MISLUKT,
 			logEvent,

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.herinneren.uitstrijkjestep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.cervix.herinneren.allsteps.CervixHerinnerenReader;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
 
+import org.hibernate.Criteria;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -35,8 +36,15 @@ public class CervixUitstrijkjeHerinnerenReader extends CervixHerinnerenReader
 
 	public CervixUitstrijkjeHerinnerenReader()
 	{
-		super(CERVIX_UITSTRIJKJE_HERINNEREN_READER_FETCH_SIZE, PreferenceKey.CERVIX_HERINNERINGS_PERIODE, OrganisatieParameterKey.CERVIX_MAX_AANTAL_HERINNERINGEN_UITSTRIJKJE,
+		super(CERVIX_UITSTRIJKJE_HERINNEREN_READER_FETCH_SIZE, PreferenceKey.CERVIX_HERINNERINGS_PERIODE_NON_RESPONDER,
+			OrganisatieParameterKey.CERVIX_MAX_AANTAL_HERINNERINGEN_UITSTRIJKJE,
 			"mergedBrieven.printDatum");
+	}
+
+	@Override
+	protected void voegStepSpecifiekeCriteriaToe(Criteria crit)
+	{
+		voegAliasEnCriteriaToeMonstertypeUitstrijkje(crit);
 	}
 
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -155,17 +155,17 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<String> getStandplaatsPlaatsenVanActivePeriodes(IMammaAfspraakWijzigenFilter filter, boolean verzetten)
+	public List<String> getStandplaatsPlaatsenVanActievePeriodes(IMammaAfspraakWijzigenFilter filter, boolean uitstellen)
 	{
 		Set<String> plaatsen = new HashSet<>();
-		List<MammaStandplaatsPeriodeMetAfstandDto> standplaatsPeriodeMetAfstandDtos = getStandplaatsPeriodeMetAfstandDtos(filter, verzetten);
+		List<MammaStandplaatsPeriodeMetAfstandDto> standplaatsPeriodeMetAfstandDtos = getStandplaatsPeriodeMetAfstandDtos(filter, uitstellen);
 		for (MammaStandplaatsPeriodeMetAfstandDto standplaatsPeriodeMetAfstandDto : standplaatsPeriodeMetAfstandDtos)
 		{
 			MammaStandplaatsPeriode standplaatsPeriode = hibernateService.load(MammaStandplaatsPeriode.class,
 				standplaatsPeriodeMetAfstandDto.getStandplaatsPeriodeId());
 
 			LocalDate vrijgegevenTotEnMetDatum = DateUtil.toLocalDate(standplaatsPeriode.getScreeningsEenheid().getVrijgegevenTotEnMet());
-			if ((vrijgegevenTotEnMetDatum != null && !DateUtil.toLocalDate(standplaatsPeriode.getVanaf()).isAfter(vrijgegevenTotEnMetDatum)) || !verzetten)
+			if ((vrijgegevenTotEnMetDatum != null && !DateUtil.toLocalDate(standplaatsPeriode.getVanaf()).isAfter(vrijgegevenTotEnMetDatum)) || uitstellen)
 			{
 				MammaStandplaats standplaats = standplaatsPeriode.getStandplaatsRonde().getStandplaats();
 				plaatsen.add(standplaats.getLocatie().getPlaats());
@@ -176,13 +176,13 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<MammaStandplaatsPeriodeMetAfstandDto> getStandplaatsPeriodeMetAfstandDtos(IMammaAfspraakWijzigenFilter filter, boolean verzetten)
+	public List<MammaStandplaatsPeriodeMetAfstandDto> getStandplaatsPeriodeMetAfstandDtos(IMammaAfspraakWijzigenFilter filter, boolean uitstellen)
 	{
 		Client client = filter.getClient();
 
 		String savedPlaats = filter.getPlaats();
 		filter.setPlaats(null);
-		if (!verzetten)
+		if (uitstellen)
 		{
 			filter.setTotEnMet(filter.getVanaf());
 		}
@@ -402,7 +402,7 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public MammaStandplaatsRonde getStandplaatsRondeVanStandplaats(MammaStandplaats standplaats)
+	public MammaStandplaatsPeriode huidigeStandplaatsPeriodeInRouteVanStandplaats(MammaStandplaats standplaats)
 	{
 		MammaStandplaatsPeriode eerstvolgendePeriodeStandplaats = getEerstvolgendeStandplaatsPeriode(standplaats);
 		if (eerstvolgendePeriodeStandplaats == null)
@@ -420,7 +420,7 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 		{
 			if (DateUtil.isWithinRange(DateUtil.toLocalDate(periode.getVanaf()), DateUtil.toLocalDate(periode.getTotEnMet()), vandaag))
 			{
-				return periode.getStandplaatsRonde();
+				return periode;
 			}
 		}
 

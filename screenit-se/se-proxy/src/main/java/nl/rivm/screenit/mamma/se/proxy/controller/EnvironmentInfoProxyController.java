@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.controller;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -65,13 +65,14 @@ public class EnvironmentInfoProxyController
 	@RequestMapping(method = RequestMethod.GET)
 	public ResponseEntity<EnvironmentInfoDto> readBuildinfo(HttpSession httpSession, HttpServletRequest request)
 	{
-		EnvironmentInfoDto environmentInfo = SeProxyApplication.getEnvironmentInfo();
+		EnvironmentInfoDto environmentInfo = new EnvironmentInfoDto(SeProxyApplication.getEnvironmentInfo());
 		environmentInfo.setNfcEnabled(String.valueOf(!disableNFCAuthentication));
 		environmentInfo.setHuidigWerkstationIpAdres(request.getRemoteAddr());
 		environmentInfo.setMagUpdaten(!logischeSessieService.zijnErNietVerlopenSessies() && !transactionQueueService.zijnErWachtendeTransacties());
 		environmentInfo.setDagenInDaglijstCache(seDaglijstService.dagenInCache());
 		environmentInfo.setCacheVulling(proxyService.cacheVullingInfo());
 		environmentInfo.setDagenDaglijstOphalenLimiet(configuratieService.getConfiguratieIntegerValue(SeConfiguratieKey.SE_DAGLIJST_OPHALEN_VOOR_DAGEN));
+		environmentInfo.setTomosyntheseMogelijk(configuratieService.getConfiguratieBooleanValue(SeConfiguratieKey.TOMOSYNTHESE_MOGELIJK));
 		return ResponseEntity.ok(environmentInfo);
 	}
 }

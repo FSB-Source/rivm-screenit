@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.model;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,8 +24,6 @@ package nl.rivm.screenit.mamma.planning.model;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Collections;
 
 import nl.rivm.screenit.Constants;
 
@@ -61,7 +59,7 @@ public enum PlanningConstanten
 		PlanningConstanten.totEnMetLeeftijd = totEnMetLeeftijd;
 
 		PlanningConstanten.plannenVanafDatum = plannenVanafDatum.with(DayOfWeek.MONDAY);
-		PlanningConstanten.plannenTotEnMetDatum = Collections.max(Arrays.asList(plannenTotEnMetDatum, plannenVanafDatum.plusYears(2))).with(DayOfWeek.SUNDAY);
+		PlanningConstanten.plannenTotEnMetDatum = plannenTotEnMetDatum.with(DayOfWeek.SUNDAY);
 
 		plannenVanafJaar = PlanningConstanten.plannenVanafDatum.getYear();
 		plannenTotEnMetJaar = PlanningConstanten.plannenTotEnMetDatum.getYear();

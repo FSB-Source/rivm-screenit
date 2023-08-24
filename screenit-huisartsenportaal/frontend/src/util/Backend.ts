@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -55,11 +55,11 @@ ScreenitBackend.interceptors.response.use((response) => {
 				await dispatch(refreshOAuthThunkAction(oauth)).then(token => {
 					if (token) {
 						const config = error.config
-						if (config.headers) {
+						if (typeof config !== "undefined" && config.headers) {
 							config.headers.Authorization = `Bearer ${token.access_token}`
 						}
 
-						return ScreenitBackend.request(error.config)
+						return ScreenitBackend.request(error.config!)
 					}
 				}).catch(() => {
 					dispatch(createClearStateAction())

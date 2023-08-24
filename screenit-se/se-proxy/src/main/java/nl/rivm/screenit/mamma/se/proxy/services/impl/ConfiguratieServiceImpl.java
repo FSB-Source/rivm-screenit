@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.services.impl;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -47,6 +47,12 @@ public class ConfiguratieServiceImpl implements ConfiguratieService
 	public Integer getConfiguratieIntegerValue(SeConfiguratieKey key)
 	{
 		return configuratieDao.getConfiguratieIntegerValue(key);
+	}
+
+	@Override
+	public Boolean getConfiguratieBooleanValue(SeConfiguratieKey key)
+	{
+		return configuratieDao.getConfiguratieBooleanValue(key);
 	}
 
 	@Override

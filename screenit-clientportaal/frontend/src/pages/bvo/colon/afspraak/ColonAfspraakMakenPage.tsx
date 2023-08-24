@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,7 +38,6 @@ import {State} from "../../../../datatypes/State"
 import {AxiosResponse} from "axios"
 import {Formik} from "formik"
 import bvoStyle from "../../../../components/BvoStyle.module.scss"
-import ScreenitDatePicker from "../../../../components/input/ScreenitDatePicker"
 import ScreenitBackend from "../../../../utils/Backend"
 import {useThunkDispatch} from "../../../../index"
 import {formatDate, formatDateWithDayName, formatTime, plusDagen, plusMaanden, plusWerkdagen, vandaag} from "../../../../utils/DateUtil"
@@ -52,6 +51,8 @@ import {getContactUrl} from "../../../../utils/UrlUtil"
 import {useRegio, useWindowDimensions} from "../../../../utils/Hooks"
 import AdvancedSearchLinkComponent from "../../../../components/form/AdvancedSearchLinkComponent"
 import SearchForm from "../../../../components/form/SearchForm"
+import ScreenitDatePicker from "../../../../components/input/ScreenitDatePicker"
+import {useLocation} from "react-router-dom"
 
 export type VrijSlotZonderKamerFilter = {
 	ziekenhuisnaam?: string,
@@ -74,17 +75,16 @@ export type VrijSlotZonderKamer = {
 }
 
 const afstandOpties = () => {
-    const afstanden = ["5", "10", "15", "20", "25", "30", "35", "40", "45"]
-    const afstandOpties: Array<DropdownOption> = []
-    for (const afstand of afstanden) {
-        afstandOpties.push({value: afstand, label: afstand + " km"})
-    }
-    return afstandOpties
+	const afstanden = ["5", "10", "15", "20", "25", "30", "35", "40", "45"]
+	const afstandOpties: Array<DropdownOption> = []
+	for (const afstand of afstanden) {
+		afstandOpties.push({value: afstand, label: afstand + " km"})
+	}
+	return afstandOpties
 }
 
 const ColonAfspraakMakenPage = () => {
-
-	const [heraanmelding, setHeraanmelding] = useState<boolean>(false)
+	const [isNieuweAfspraak, setIsNieuweAfspraak] = useState<boolean>(false)
 	const [vrijeSloten, setVrijeSloten] = useState<VrijSlotZonderKamer[]>([])
 	const regio = useRegio()
 	const dispatch = useThunkDispatch()
@@ -100,6 +100,7 @@ const ColonAfspraakMakenPage = () => {
 	const [visibleZoekMeerButton, setVisibleZoekMeerButton] = useState<boolean>(true)
 	const {width} = useWindowDimensions()
 	const gevondenAfsprakenDiv = useRef<HTMLDivElement | null>(null)
+	const afspraakNaHeraanmelding = useLocation().pathname.includes("heraanmelding")
 
 	useEffect(() => {
 		dispatch(getHuidigeIntakeAfspraak())
@@ -110,8 +111,8 @@ const ColonAfspraakMakenPage = () => {
 	}, [setVisibleZoekMeerButton, vrijeSloten, zoekFilter.pagecount])
 
 	useEffect(() => {
-		if (huidigeIntakeAfspraak && huidigeIntakeAfspraak.redenAfzeggen) {
-			setHeraanmelding(huidigeIntakeAfspraak.redenAfzeggen && huidigeIntakeAfspraak.redenAfzeggen.length !== 0)
+		if (huidigeIntakeAfspraak && (huidigeIntakeAfspraak.afspraakAfgezegd || huidigeIntakeAfspraak.andereIntakelocatieOpVerzoekClient)) {
+			setIsNieuweAfspraak(huidigeIntakeAfspraak.afspraakAfgezegd || huidigeIntakeAfspraak.andereIntakelocatieOpVerzoekClient)
 		}
 	}, [huidigeIntakeAfspraak])
 
@@ -154,25 +155,28 @@ const ColonAfspraakMakenPage = () => {
 					title: getString(properties.toast.errors.zoeken.title),
 					description: getString(properties.toast.errors.zoeken.message),
 					type: ToastMessageType.ERROR,
+					alGetoond: false,
 				}))
 			})
 			.finally(() => {
 				setGezocht(true)
 			})
-    }, [dispatch])
+	}, [dispatch])
 
-    const geenResultaten = vrijeSloten.length === 0 && gezocht
+	const geenResultaten = vrijeSloten.length === 0 && gezocht
 
-    return (
-        <BasePage bvoName={BevolkingsonderzoekNaam.COLON}
-                  toonBlob={!heraanmelding}
-                  title={getString(!heraanmelding ? properties.page.title.verzetten : properties.page.title.maken)}
-                  description={getString(!heraanmelding ? properties.page.description.verzetten : properties.page.description.maken)}
-                  blobTitle={!heraanmelding ? getString(properties.blob.title) : ""}
-                  blobText={!heraanmelding && huidigeIntakeAfspraak ? getString(properties.blob.afspraak.moment, [huidigeIntakeAfspraak.weergaveAfspraakmoment]) : ""}
-                  blobAdresLocatie={!heraanmelding && huidigeIntakeAfspraak ? getString(properties.blob.afspraak.locatie, [huidigeIntakeAfspraak.naamInstelling, splitAdresString(huidigeIntakeAfspraak.adresString)]) : ""}>
+	return (
+		<BasePage bvoName={BevolkingsonderzoekNaam.COLON}
+				  toonBlob={!isNieuweAfspraak}
+				  title={getString(!isNieuweAfspraak ? properties.page.title.verzetten : properties.page.title.maken)}
+				  description={getString(!isNieuweAfspraak ? properties.page.description.verzetten :
+					  afspraakNaHeraanmelding ? properties.page.description.heraangemeld + properties.page.description.maken :
+						  properties.page.description.maken)}
+				  blobTitle={!isNieuweAfspraak ? getString(properties.blob.title) : ""}
+				  blobText={!isNieuweAfspraak && huidigeIntakeAfspraak ? getString(properties.blob.afspraak.moment, [huidigeIntakeAfspraak.weergaveAfspraakmoment]) : ""}
+				  blobAdresLocatie={!isNieuweAfspraak && huidigeIntakeAfspraak ? getString(properties.blob.afspraak.locatie, [huidigeIntakeAfspraak.naamInstelling, splitAdresString(huidigeIntakeAfspraak.adresString)]) : ""}>
 
-            <Row className={styles.style}>
+			<Row className={styles.style}>
 				<Col md={5}>
 					<Formik initialValues={initialValues}
 							validationSchema={validationSchema}
@@ -228,16 +232,16 @@ const ColonAfspraakMakenPage = () => {
 									</div>
 								</div>
 								{isAdvancedSearch &&
-								<ScreenitDropdown propertyName={"afstand"}
-												  invalidMessage={formikProps.errors.afstand}
-												  value={formikProps.values.afstand}
-												  options={afstandOpties()}
-												  placeholder={getString(properties.searchitems.afstand.placeholder)}
-												  onChange={(event) => {
-													  formikProps.setFieldValue("afstand", event.target.value)
-													  formikProps.setFieldValue("plaats", "")
-													  formikProps.setFieldValue("ziekenhuisnaam", "")
-												  }}/>}
+									<ScreenitDropdown propertyName={"afstand"}
+													  invalidMessage={formikProps.errors.afstand}
+													  value={formikProps.values.afstand}
+													  options={afstandOpties()}
+													  placeholder={getString(properties.searchitems.afstand.placeholder)}
+													  onChange={(event) => {
+														  formikProps.setFieldValue("afstand", event.target.value)
+														  formikProps.setFieldValue("plaats", "")
+														  formikProps.setFieldValue("ziekenhuisnaam", "")
+													  }}/>}
 								<Button className={bvoStyle.darkBackgroundColor}
 										label={getString(properties.search.do_search)}
 										displayArrow={ArrowType.ARROW_RIGHT}
@@ -265,38 +269,38 @@ const ColonAfspraakMakenPage = () => {
 					)}
 					{geenResultaten && <FormErrorComponent text={getString(properties.search.search_no_results)}/>}
 					{geenResultaten &&
-					<BigUrlButton title={getString(properties.search.search_no_results_contact_header)}
-								  text={getString(properties.search.search_no_results_contact_text)}
-								  link={getContactUrl(regio)}/>}
+						<BigUrlButton title={getString(properties.search.search_no_results_contact_header)}
+									  text={getString(properties.search.search_no_results_contact_text)}
+									  link={getContactUrl(regio)}/>}
 					<div className={styles.navigationButtons}>
 						{gezocht && !geenResultaten && visibleZoekMeerButton &&
-						<div className={styles.showMoreResultsButtonArea}>
-							<Button
-								label={getString(properties.search.navigation_more_results)}
-								displayArrow={ArrowType.ARROW_DOWN}
-								onClick={() => {
-									const nieuwZoekFilter = {
-										...zoekFilter,
-									}
-									nieuwZoekFilter.pagecount = nieuwZoekFilter.pagecount + 1
-									setGezocht(true)
-									zoekAfspraken(nieuwZoekFilter)
-								}}/>
-						</div>}
+							<div className={styles.showMoreResultsButtonArea}>
+								<Button
+									label={getString(properties.search.navigation_more_results)}
+									displayArrow={ArrowType.ARROW_DOWN}
+									onClick={() => {
+										const nieuwZoekFilter = {
+											...zoekFilter,
+										}
+										nieuwZoekFilter.pagecount = nieuwZoekFilter.pagecount + 1
+										setGezocht(true)
+										zoekAfspraken(nieuwZoekFilter)
+									}}/>
+							</div>}
 					</div>
-                    {!gezocht &&
-                    <BeforeSearching text={getString(properties.search.before_search)}/>}
-                </Col>
-            </Row>
-            {gekozenAfspraak &&
-            <ColonAfspraakMakenBevestigingsPopup afspraak={gekozenAfspraak}
-                                                 heraanmelding={heraanmelding}
-                                                 onClose={() => {
-                                                     setGekozenAfspraak(undefined)
-                                                     zoekAfspraken(zoekFilter)
-                                                 }}/>}
-        </BasePage>
-    )
+					{!gezocht &&
+						<BeforeSearching text={getString(properties.search.before_search)}/>}
+				</Col>
+			</Row>
+			{gekozenAfspraak &&
+				<ColonAfspraakMakenBevestigingsPopup afspraak={gekozenAfspraak}
+													 heraanmelding={isNieuweAfspraak}
+													 onClose={() => {
+														 setGekozenAfspraak(undefined)
+														 zoekAfspraken(zoekFilter)
+													 }}/>}
+		</BasePage>
+	)
 }
 
 export default ColonAfspraakMakenPage

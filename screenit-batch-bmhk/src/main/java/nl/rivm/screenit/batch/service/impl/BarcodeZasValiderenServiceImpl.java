@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,10 +38,10 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.service.BaseHoudbaarheidService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -74,8 +74,8 @@ public class BarcodeZasValiderenServiceImpl extends BaseValiderenService impleme
 		List<String> foutmeldingen = new ArrayList<>();
 		List<String> barcodesUitKoppeldata = new ArrayList<>();
 
-		DateTime nu = currentDateSupplier.getDateTime();
-		DateTime minstensHoudbaarTotMetCervix = houdbaarheidService.getMinstensHoudbaarTotMet(nu, PreferenceKey.PERIODE_MINIMALE_HOUDBAARHEID_ZAS_MONSTERS_VOOR_CONTROLE);
+		var vandaag = currentDateSupplier.getLocalDate();
+		var minstensHoudbaarTotMetCervix = houdbaarheidService.getMinstensHoudbaarTotMet(vandaag, PreferenceKey.PERIODE_MINIMALE_HOUDBAARHEID_ZAS_MONSTERS_VOOR_CONTROLE);
 
 		for (KOPPELDATA.VERZONDENUITNODIGING verzondenUitnodiging : koppeldata)
 		{
@@ -117,7 +117,7 @@ public class BarcodeZasValiderenServiceImpl extends BaseValiderenService impleme
 						addFout(foutmeldingen, String.format(KoppelConstants.CERVIX_HOUDBAARHEID_ONBEKEND, verzondenUitnodiging.getID(),
 							StringUtils.defaultIfBlank(zasBarcode, "<geen>"), trackTraceId));
 					}
-					else if (houdbaarheid.getVervalDatum().before(minstensHoudbaarTotMetCervix.toDate()))
+					else if (DateUtil.toLocalDate(houdbaarheid.getVervalDatum()).isBefore(minstensHoudbaarTotMetCervix))
 					{
 						addFout(foutmeldingen, String.format(KoppelConstants.CERVIX_HOUDBAARHEID_TE_KORT, verzondenUitnodiging.getID(),
 							StringUtils.defaultIfBlank(zasBarcode, "<geen>"), trackTraceId));

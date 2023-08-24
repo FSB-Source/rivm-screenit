@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.model;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Date;
 
 import nl.rivm.screenit.model.ClientBrief;
+import nl.rivm.screenit.model.DigitaalClientBericht;
 import nl.rivm.screenit.model.InpakbareUitnodiging;
 import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.berichten.Verslag;
@@ -70,6 +71,8 @@ public class ScreeningRondeGebeurtenis implements IDetachable
 	private IModel<CervixHpvBeoordeling> beoordeling;
 
 	private IModel<ClientBrief<?, ?, ?>> brief;
+
+	private IModel<DigitaalClientBericht<?>> digitaalClientBericht;
 
 	private GebeurtenisBron bron;
 
@@ -124,6 +127,7 @@ public class ScreeningRondeGebeurtenis implements IDetachable
 		ModelUtil.nullSafeDetach(verslag);
 		ModelUtil.nullSafeDetach(afspraak);
 		ModelUtil.nullSafeDetach(brief);
+		ModelUtil.nullSafeDetach(digitaalClientBericht);
 		ModelUtil.nullSafeDetach(beoordeling);
 		ModelUtil.nullSafeDetach(huisartsBericht);
 		ModelUtil.nullSafeDetach(mammaHuisartsBericht);
@@ -197,6 +201,16 @@ public class ScreeningRondeGebeurtenis implements IDetachable
 	public void setBrief(ClientBrief<?, ?, ?> brief)
 	{
 		this.brief = ModelUtil.sModel(brief);
+	}
+
+	public void setDigitaalClientBericht(DigitaalClientBericht<?> mail)
+	{
+		this.digitaalClientBericht = ModelUtil.sModel(mail);
+	}
+
+	public DigitaalClientBericht<?> getDigitaalClientBericht()
+	{
+		return ModelUtil.nullSafeGet(digitaalClientBericht);
 	}
 
 	public GebeurtenisBron getBron()

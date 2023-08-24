@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.beoordelen;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,13 +25,13 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import nl.rivm.screenit.main.model.mamma.MammaImsUserSessionType;
 import nl.rivm.screenit.main.service.mamma.MammaBeoordelingService;
 import nl.rivm.screenit.main.service.mamma.MammaImsService;
 import nl.rivm.screenit.main.service.mamma.MammaLezingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
+import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
 import nl.rivm.screenit.main.web.component.ScreenitIndicatingAjaxButton;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
@@ -48,6 +48,7 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.helper.HibernateMagicNumber;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
@@ -76,6 +77,7 @@ import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxButton;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
+import org.apache.wicket.markup.html.form.RadioChoice;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
@@ -166,6 +168,8 @@ public class MammaBeoordelenLezingPanel extends AbstractBEAccordionPanel<MammaLe
 
 		createRedenenFotobesprekingVelden(form, lezingParameters.isInzien());
 
+		form.add(maakTomosyntheseRelevantRadioChoice(lezingParameters));
+
 		createOpslaanCallbackAjaxBehavior();
 
 		LaesieDtoMapper mapper = new LaesieDtoMapper();
@@ -225,6 +229,18 @@ public class MammaBeoordelenLezingPanel extends AbstractBEAccordionPanel<MammaLe
 
 	}
 
+	private RadioChoice<Boolean> maakTomosyntheseRelevantRadioChoice(MammaLezingParameters lezingParameters)
+	{
+		var radioChoice = ComponentHelper.addHorizontaleBooleanRadioChoice("tomosyntheseRelevantVoorBeoordeling");
+		radioChoice.setSuffix("<span class=\"checkmark\"></span></label>");
+
+		radioChoice.setRequired(true);
+		radioChoice.setEnabled(!lezingParameters.isInzien());
+		radioChoice.setVisible(lezingParameters.isToonTomosyntheseSlicesRadioButtons());
+
+		return radioChoice;
+	}
+
 	public static void tuneTextArea(WebMarkupContainer container, TextArea<String> textArea, boolean alleenInzien, boolean required)
 	{
 		textArea.setEnabled(!alleenInzien);
@@ -258,7 +274,7 @@ public class MammaBeoordelenLezingPanel extends AbstractBEAccordionPanel<MammaLe
 
 		MammaBeoordeling beoordeling = beoordelingPanel.getModelObject();
 
-		List<MammaBeoordelingOpschortenReden> opschortRedenen = getOpschortRedenen(beoordeling);
+		List<MammaBeoordelingOpschortenReden> opschortRedenen = beoordelingService.getMogelijkeOpschortRedenen(beoordeling, getModelObject().getLezingType());
 		ScreenitDropdown<MammaBeoordelingOpschortenReden> opschortenReden = new ScreenitDropdown<>("opschortReden",
 			new CompoundPropertyModel<>(new PropertyModel<>(beoordelingPanel.getModel(), "opschortReden")), opschortRedenen, new EnumChoiceRenderer<>());
 
@@ -287,14 +303,6 @@ public class MammaBeoordelenLezingPanel extends AbstractBEAccordionPanel<MammaLe
 		TextArea<String> opschortenRedenTekst = new TextArea<>("opschortRedenTekst",
 			new CompoundPropertyModel<>(new PropertyModel<>(beoordelingPanel.getModel(), "opschortRedenTekst")));
 		tuneTextArea(opschortRedenTekstContainer, opschortenRedenTekst, lezingParameters.isInzien(), true);
-	}
-
-	private List<MammaBeoordelingOpschortenReden> getOpschortRedenen(MammaBeoordeling beoordeling)
-	{
-		return MammaBeoordelingOpschortenReden.getMogelijkeRedenen(getModelObject().getLezingType())
-			.stream()
-			.filter(reden -> !reden.equals(MammaBeoordelingOpschortenReden.PRIORS_VAN_BUITEN_BVO) || beoordeling.getOnderzoek().getEerderMammogramZorginstelling() != null)
-			.collect(Collectors.toList());
 	}
 
 	private void createRedenenFotobesprekingVelden(ScreenitForm<MammaLezing> form, boolean alleenLezen)
@@ -343,11 +351,12 @@ public class MammaBeoordelenLezingPanel extends AbstractBEAccordionPanel<MammaLe
 	{
 		boolean verslagNogNietDefinitief = lezing.getBeoordeling() == null
 			|| !MammaBeoordelingStatus.VERSLAG_MAKEN.equals(lezing.getBeoordeling().getStatus());
-		MammaLezingParameters lezingParameters = new MammaLezingParameters();
-		lezingParameters.setInzien(!verslagNogNietDefinitief);
-		lezingParameters.setAmputatie(beoordelingPanel.getModelObject().getOnderzoek().getAmputatie());
-		lezingParameters.setToonBiradsOpmerkingVeld(true);
-		return lezingParameters;
+		var onderzoek = beoordelingPanel.getModelObject().getOnderzoek();
+		return new MammaLezingParameters()
+			.setInzien(!verslagNogNietDefinitief)
+			.setAmputatie(onderzoek.getAmputatie())
+			.setToonBiradsOpmerkingVeld(true)
+			.setToonTomosyntheseSlicesRadioButtons(MammaOnderzoekType.TOMOSYNTHESE == onderzoek.getOnderzoekType());
 	}
 
 	private void createOpslaanCallbackAjaxBehavior()

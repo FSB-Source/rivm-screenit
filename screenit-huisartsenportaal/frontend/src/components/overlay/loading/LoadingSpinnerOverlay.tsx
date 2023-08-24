@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +22,7 @@ import classNames from "classnames"
 import styles from "./LoadingSpinner.module.scss"
 import {Spinner} from "react-bootstrap"
 import {useAppSelector} from "../../../index"
+import React from "react"
 
 const LoadingSpinnerOverlay = () => {
 	const loading = useAppSelector(state => state.loading)

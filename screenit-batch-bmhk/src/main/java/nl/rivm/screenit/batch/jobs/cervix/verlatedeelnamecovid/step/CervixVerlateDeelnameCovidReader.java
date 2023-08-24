@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.verlatedeelnamecovid.step;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,7 +33,7 @@ import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
-import nl.rivm.screenit.service.InstellingService;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.query.ScreenitRestrictions;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -54,7 +54,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class CervixVerlateDeelnameCovidReader extends BaseScrollableResultReader
 {
-	private final InstellingService instellingService;
+	private final OrganisatieParameterService organisatieParameterService;
 
 	private final HibernateService hibernateService;
 
@@ -93,7 +93,7 @@ public class CervixVerlateDeelnameCovidReader extends BaseScrollableResultReader
 		crit.add(Restrictions.eq("brief.gegenereerd", true));
 		crit.add(Restrictions.between("brief.creatieDatum",
 			DateUtil.parseDateForPattern("01-10-2019", Constants.DEFAULT_DATE_FORMAT),
-			DateUtil.parseDateForPattern("01-07-2021", Constants.DEFAULT_DATE_FORMAT)));
+			DateUtil.parseDateForPattern("01-01-2022", Constants.DEFAULT_DATE_FORMAT)));
 
 		var subquery = DetachedCriteria.forClass(CervixMonster.class, "monsterSub");
 		subquery.add(Restrictions.eqProperty("monsterSub.ontvangstScreeningRonde", "brief.screeningRonde"));
@@ -110,7 +110,7 @@ public class CervixVerlateDeelnameCovidReader extends BaseScrollableResultReader
 	private Integer getMaxAantalClienten(Long bmhkLabId)
 	{
 		var bmhkLab = hibernateService.get(BMHKLaboratorium.class, bmhkLabId);
-		return instellingService.getOrganisatieParameter(bmhkLab, OrganisatieParameterKey.CERVIX_MAX_AANTAL_CLIENTEN_VERLATE_DEELNAME);
+		return organisatieParameterService.getOrganisatieParameter(bmhkLab, OrganisatieParameterKey.CERVIX_MAX_AANTAL_CLIENTEN_VERLATE_DEELNAME);
 	}
 
 	@Override

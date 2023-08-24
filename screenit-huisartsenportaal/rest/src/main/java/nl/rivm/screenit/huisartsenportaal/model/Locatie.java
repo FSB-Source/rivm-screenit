@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal.model;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,6 +35,7 @@ import javax.persistence.OneToOne;
 import lombok.Getter;
 import lombok.Setter;
 
+import nl.rivm.screenit.huisartsenportaal.ICervixHuisartsLocatie;
 import nl.rivm.screenit.huisartsenportaal.enums.CervixLocatieStatus;
 
 import org.hibernate.envers.Audited;
@@ -43,7 +44,7 @@ import org.hibernate.envers.Audited;
 @Audited
 @Getter
 @Setter
-public class Locatie extends AbstractReferenceObject
+public class Locatie extends AbstractReferenceObject implements ICervixHuisartsLocatie
 {
 	@Column(length = 200, nullable = false)
 	private String naam;

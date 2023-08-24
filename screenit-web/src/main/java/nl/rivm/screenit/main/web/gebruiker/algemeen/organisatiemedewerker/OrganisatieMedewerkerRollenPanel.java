@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatiemedewerker;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,9 +22,12 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatiemedewerker;
  */
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import nl.rivm.screenit.dto.InstellingGebruikerRolDto;
 import nl.rivm.screenit.main.service.MedewerkerService;
 import nl.rivm.screenit.main.service.RolService;
 import nl.rivm.screenit.main.web.ScreenitSession;
@@ -34,16 +37,21 @@ import nl.rivm.screenit.main.web.component.dropdown.RequiredScreenitDropdown;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitListMultipleChoice;
 import nl.rivm.screenit.main.web.component.modal.IDialog;
 import nl.rivm.screenit.main.web.component.table.ActiefHeaderInFormPanel;
+import nl.rivm.screenit.mappers.InstellingGebruikerRolMapper;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.InstellingGebruikerRol;
 import nl.rivm.screenit.model.Rol;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
-import nl.topicuszorg.wicket.hibernate.SimpleListHibernateModel;
+import nl.rivm.screenit.model.helper.InstellingGebruikerRolComparator;
+import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
+import nl.topicuszorg.wicket.hibernate.CglibListHibernateModel;
+import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
+import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.input.AttributeRemover;
-
 import nl.topicuszorg.wicket.input.validator.DependantDateValidator;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -67,8 +75,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 public class OrganisatieMedewerkerRollenPanel extends GenericPanel<InstellingGebruiker>
 {
 
-	private static final long serialVersionUID = 1L;
-
 	private final IDialog dialogParent;
 
 	private final WebMarkupContainer instellingGebruikersContainer;
@@ -79,10 +85,23 @@ public class OrganisatieMedewerkerRollenPanel extends GenericPanel<InstellingGeb
 	@SpringBean
 	private MedewerkerService medewerkerService;
 
+	@SpringBean
+	private InstellingGebruikerRolMapper instellingGebruikerRolMapper;
+
+	private IModel<List<InstellingGebruikerRolDto>> initieleRollen;
+
+	private final IModel<List<InstellingGebruikerRol>> rollenModel;
+
+	private IModel<List<Rol>> toeTeVoegenRollenModel;
+
 	public OrganisatieMedewerkerRollenPanel(String id, IModel<InstellingGebruiker> instellingGebruikerModel, final IDialog dialogParent,
 		final WebMarkupContainer instellingGebruikersContainer)
 	{
 		super(id, instellingGebruikerModel);
+
+		var rollen = new ArrayList<>(instellingGebruikerModel.getObject().getRollen());
+		rollen.sort(new InstellingGebruikerRolComparator());
+		rollenModel = new CglibListHibernateModel<>(rollen);
 		this.dialogParent = dialogParent;
 		this.instellingGebruikersContainer = instellingGebruikersContainer;
 	}
@@ -91,6 +110,7 @@ public class OrganisatieMedewerkerRollenPanel extends GenericPanel<InstellingGeb
 	protected void onInitialize()
 	{
 		super.onInitialize();
+		initieleRollen = Model.ofList(getModelObject().getRollen().stream().map(rol -> instellingGebruikerRolMapper.instellingGebruikerRolToDto(rol)).collect(Collectors.toList()));
 
 		final Form<InstellingGebruiker> rollenForm = new Form<>("rollenForm");
 		rollenForm.setOutputMarkupId(true);
@@ -107,14 +127,13 @@ public class OrganisatieMedewerkerRollenPanel extends GenericPanel<InstellingGeb
 
 		final AjaxSubmitLink opslaan = new AjaxSubmitLink("opslaan")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
 				InstellingGebruiker instellingGebruiker = OrganisatieMedewerkerRollenPanel.this.getModelObject();
 				List<Bevolkingsonderzoek> onderzoeken = new ArrayList<>();
+				instellingGebruiker.setRollen(ModelProxyHelper.deproxy(rollenModel.getObject()));
+
 				for (InstellingGebruikerRol rol : instellingGebruiker.getRollen())
 				{
 					if (rol.isRolActief() && CollectionUtils.isNotEmpty(rol.getBevolkingsonderzoeken()))
@@ -147,7 +166,8 @@ public class OrganisatieMedewerkerRollenPanel extends GenericPanel<InstellingGeb
 					instellingGebruiker.setBevolkingsonderzoeken(onderzoeken);
 				}
 
-				medewerkerService.saveOrUpdateRollen(instellingGebruiker);
+				medewerkerService.saveOrUpdateRollen(ScreenitSession.get().getLoggedInInstellingGebruiker(), initieleRollen.getObject(),
+					(InstellingGebruiker) HibernateHelper.deproxy(instellingGebruiker));
 				info(getLocalizer().getString("action.save.rol", this));
 				OrganisatieMedewerkerKoppelPage page = (OrganisatieMedewerkerKoppelPage) getPage();
 				page.clearCachedAuthorizationInfo(instellingGebruiker);
@@ -160,31 +180,31 @@ public class OrganisatieMedewerkerRollenPanel extends GenericPanel<InstellingGeb
 
 		AjaxSubmitLink toevoegen = new AjaxSubmitLink("toevoegen", rollenForm)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
 				InstellingGebruikerRol instellingGebruikerRol = new InstellingGebruikerRol();
-				InstellingGebruiker instellingGebruiker = OrganisatieMedewerkerRollenPanel.this.getModelObject();
-				instellingGebruiker.getRollen().add(instellingGebruikerRol);
-				instellingGebruikerRol.setInstellingGebruiker(instellingGebruiker);
-				instellingGebruikerRol.setActief(Boolean.TRUE);
+
+				var rollen = new ArrayList<>(rollenModel.getObject());
+				rollen.add(instellingGebruikerRol);
+				rollen.sort(new InstellingGebruikerRolComparator());
+				var rollenModelObject = rollenModel.getObject();
+				rollenModelObject.clear();
+				rollenModelObject.addAll(rollen);
+				var toeTeVoegenRol = rollenModelObject.get(0);
+				toeTeVoegenRol.setInstellingGebruiker(getModelObject());
+				toeTeVoegenRol.setActief(true);
+
 				target.add(rollenForm);
 			}
 		};
-
 		if (actie.getNiveau() < Actie.TOEVOEGEN.getNiveau())
 		{
 			toevoegen.setVisible(false);
 		}
 
-		AjaxLink<Void> sluiten = new AjaxLink<Void>("sluiten")
+		AjaxLink<Void> sluiten = new AjaxLink<>("sluiten")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -204,26 +224,23 @@ public class OrganisatieMedewerkerRollenPanel extends GenericPanel<InstellingGeb
 		InstellingGebruikerRol searchObject = new InstellingGebruikerRol();
 		searchObject.setActief(null);
 		final IModel<InstellingGebruikerRol> searchObjectModel = Model.of(searchObject);
-
-		ListView<InstellingGebruikerRol> listView = new ListView<InstellingGebruikerRol>("rollen", new PropertyModel<List<InstellingGebruikerRol>>(getModel(), "rollen"))
+		var toeTeVoegenRollen = rolService.getToeTeVoegenRollen(getModelObject(), ScreenitSession.get().getLoggedInInstellingGebruiker());
+		toeTeVoegenRollen.sort(Comparator.comparing(Rol::getNaam));
+		toeTeVoegenRollenModel = ModelUtil.listRModel(toeTeVoegenRollen, false);
+		var rollenListView = new ListView<>("rollen", rollenModel)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void populateItem(final ListItem<InstellingGebruikerRol> item)
 			{
 				final boolean inzien = actie.getNiveau() < Actie.AANPASSEN.getNiveau();
-				item.setDefaultModel(new CompoundPropertyModel<InstellingGebruikerRol>(item.getModel()));
+				item.setDefaultModel(new CompoundPropertyModel<>(item.getModel()));
 				InstellingGebruikerRol instellingGebruikerRol = item.getModelObject();
-				InstellingGebruiker instellingGebruiker = instellingGebruikerRol.getInstellingGebruiker();
-				List<Rol> toeTeVoegenRollen = rolService.getToeTeVoegenRollen(instellingGebruiker, ScreenitSession.get().getLoggedInInstellingGebruiker());
 
 				final List<Bevolkingsonderzoek> bvoKeuze;
 				bvoKeuze = getBvoKeuzes(item);
 
 				ScreenitListMultipleChoice<Bevolkingsonderzoek> bevolkingsonderzoeken = new ScreenitListMultipleChoice<>("bevolkingsonderzoeken",
-					new PropertyModel<List<Bevolkingsonderzoek>>(item.getDefaultModel(), "bevolkingsonderzoeken"), bvoKeuze, new EnumChoiceRenderer<Bevolkingsonderzoek>());
+					new PropertyModel<>(item.getDefaultModel(), "bevolkingsonderzoeken"), bvoKeuze, new EnumChoiceRenderer<>());
 				bevolkingsonderzoeken.setRequired(true);
 
 				final WebMarkupContainer bvoContainer = new WebMarkupContainer("bevolkingsonderzoekenContainer");
@@ -231,14 +248,10 @@ public class OrganisatieMedewerkerRollenPanel extends GenericPanel<InstellingGeb
 				bvoContainer.setOutputMarkupId(true);
 				item.add(bvoContainer);
 
-				@SuppressWarnings({ "unchecked", "rawtypes" })
-				RequiredScreenitDropdown<Rol> rol = new RequiredScreenitDropdown<Rol>("rol",
-					new SimpleListHibernateModel<Rol>(toeTeVoegenRollen), new NaamChoiceRenderer<Rol>(), opslaan);
+				RequiredScreenitDropdown<Rol> rol = new RequiredScreenitDropdown<>("rol",
+					toeTeVoegenRollenModel, new NaamChoiceRenderer<>(), opslaan);
 				rol.add(new AjaxFormComponentUpdatingBehavior("change")
 				{
-
-					private static final long serialVersionUID = 1L;
-
 					@Override
 					protected void onUpdate(AjaxRequestTarget target)
 					{
@@ -252,7 +265,7 @@ public class OrganisatieMedewerkerRollenPanel extends GenericPanel<InstellingGeb
 				rol.setVisible(instellingGebruikerRol.getId() == null && !inzien);
 				item.add(rol);
 
-				Label rolVast = new Label("rolVast", new PropertyModel<String>(item.getModel(), "rol.naam"));
+				Label rolVast = new Label("rolVast", new PropertyModel<>(item.getModel(), "rol.naam"));
 				rolVast.setVisible(instellingGebruikerRol.getId() != null || inzien);
 				item.add(rolVast);
 
@@ -265,9 +278,6 @@ public class OrganisatieMedewerkerRollenPanel extends GenericPanel<InstellingGeb
 				Boolean rolActief = instellingGebruikerRol.getActief();
 				WebMarkupContainer toggleActief = new AjaxLink<Void>("toggleActief")
 				{
-
-					private static final long serialVersionUID = 1L;
-
 					@Override
 					public void onClick(AjaxRequestTarget target)
 					{
@@ -275,7 +285,7 @@ public class OrganisatieMedewerkerRollenPanel extends GenericPanel<InstellingGeb
 						{
 							InstellingGebruikerRol instellingGebruikerRol = item.getModelObject();
 							instellingGebruikerRol.setActief(Boolean.FALSE.equals(instellingGebruikerRol.getActief()));
-							if (instellingGebruikerRol.getActief())
+							if (Boolean.TRUE.equals(instellingGebruikerRol.getActief()))
 							{
 								add(new AttributeRemover("class", Model.of(" niet-actief"), " "));
 								add(new AttributeAppender("class", Model.of(" actief")));
@@ -287,8 +297,7 @@ public class OrganisatieMedewerkerRollenPanel extends GenericPanel<InstellingGeb
 							}
 							if (instellingGebruikerRol.getId() == null)
 							{
-								instellingGebruikerRol.getInstellingGebruiker().getRollen().remove(instellingGebruikerRol);
-								instellingGebruikerRol.setInstellingGebruiker(null);
+								rollenModel.getObject().remove(instellingGebruikerRol);
 								target.add(rollenForm);
 							}
 							else
@@ -312,22 +321,16 @@ public class OrganisatieMedewerkerRollenPanel extends GenericPanel<InstellingGeb
 				boolean visible = false;
 				Boolean searchActief = searchObjectModel.getObject().getActief();
 
-				if (Boolean.TRUE.equals(searchActief) && !Boolean.FALSE.equals(rolActief))
-				{
-					visible = true;
-				}
-				else if (Boolean.FALSE.equals(searchActief) && Boolean.FALSE.equals(rolActief))
-				{
-					visible = true;
-				}
-				else if (searchActief == null)
+				if (searchActief == null
+					|| Boolean.TRUE.equals(searchActief) && !Boolean.FALSE.equals(rolActief)
+					|| Boolean.FALSE.equals(searchActief) && Boolean.FALSE.equals(rolActief))
 				{
 					visible = true;
 				}
 				item.setVisible(visible);
 			}
 		};
-		rollenForm.add(listView);
+		rollenForm.add(rollenListView);
 
 		rollenForm.add(new ActiefHeaderInFormPanel<>("actiefHeader", rollenForm, searchObjectModel));
 	}
@@ -335,11 +338,20 @@ public class OrganisatieMedewerkerRollenPanel extends GenericPanel<InstellingGeb
 	private List<Bevolkingsonderzoek> getBvoKeuzes(ListItem<InstellingGebruikerRol> item)
 	{
 		List<Bevolkingsonderzoek> bvoKeuze;
-		bvoKeuze = new ArrayList<Bevolkingsonderzoek>();
+		bvoKeuze = new ArrayList<>();
 		if (item.getModelObject().getRol() != null && CollectionUtils.isNotEmpty(item.getModelObject().getRol().getBevolkingsonderzoeken()))
 		{
 			bvoKeuze.addAll(item.getModelObject().getRol().getBevolkingsonderzoeken());
 		}
 		return bvoKeuze;
+	}
+
+	@Override
+	protected void onDetach()
+	{
+		super.onDetach();
+		ModelUtil.nullSafeDetach(initieleRollen);
+		ModelUtil.nullSafeDetach(rollenModel);
+		ModelUtil.nullSafeDetach(toeTeVoegenRollenModel);
 	}
 }

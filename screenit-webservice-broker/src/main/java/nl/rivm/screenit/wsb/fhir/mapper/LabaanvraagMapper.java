@@ -4,7 +4,7 @@ package nl.rivm.screenit.wsb.fhir.mapper;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -156,16 +156,8 @@ public interface LabaanvraagMapper
 		qualifiedByName = "aspectCervixNormaal")
 	@Mapping(
 		source = "aspectCervix",
-		target = "aspectCervixNietGezien",
-		qualifiedByName = "aspectCervixNietGezien")
-	@Mapping(
-		source = "aspectCervix",
 		target = "aspectCervixAbnormaalOfVerdachtePortio",
 		qualifiedByName = "aspectCervixAbnormaalOfVerdachtePortio")
-	@Mapping(
-		source = "aspectCervixVrijeTekst",
-		target = "aspectCervixAbnormaalOfVerdachtePortioTekst",
-		qualifiedByName = "getTrimmedAnswer")
 	@Mapping(source = "opmerkingenTekst", target = "opmerkingen", qualifiedByName = "isNotBlank")
 	@Mapping(
 		source = "opmerkingenTekst",
@@ -270,8 +262,7 @@ public interface LabaanvraagMapper
 	@Named("anticonceptieIudMirena")
 	static boolean anticonceptieIudMirena(String string)
 	{
-		return "iud mirena".equalsIgnoreCase(getTrimmedLowercaseAnswer(string))
-			|| "hormoonhoudend spiraal".equalsIgnoreCase(getTrimmedLowercaseAnswer(string));
+		return "hormoonhoudend spiraal".equalsIgnoreCase(getTrimmedLowercaseAnswer(string));
 	}
 
 	@Named("anticonceptieAnders")
@@ -304,17 +295,10 @@ public interface LabaanvraagMapper
 		return "normaal".equalsIgnoreCase(getTrimmedLowercaseAnswer(string));
 	}
 
-	@Named("aspectCervixNietGezien")
-	static boolean aspectCervixNietGezien(String string)
-	{
-		return "niet gezien".equalsIgnoreCase(getTrimmedLowercaseAnswer(string));
-	}
-
 	@Named("aspectCervixAbnormaalOfVerdachtePortio")
 	static boolean aspectCervixAbnormaalOfVerdachtePortio(String string)
 	{
-		return "abnormaal of verdachte portio, licht toe...".equalsIgnoreCase(getTrimmedLowercaseAnswer(string))
-			|| "abnormaal of verdachte portio".equalsIgnoreCase(getTrimmedLowercaseAnswer(string));
+		return "abnormaal of verdachte portio".equalsIgnoreCase(getTrimmedLowercaseAnswer(string));
 	}
 
 	@Named("getTrimmedAnswer")

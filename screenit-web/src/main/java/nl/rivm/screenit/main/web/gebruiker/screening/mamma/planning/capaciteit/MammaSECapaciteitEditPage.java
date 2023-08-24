@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,6 +35,7 @@ import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.modal.IDialog;
+import nl.rivm.screenit.main.web.filter.SecurityHeadersFilter;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerBasePage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.MammaPlanningBasePage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.dashboard.MammaPlanningDashboardPage;
@@ -59,6 +60,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.validator.DateValidator;
 import org.wicketstuff.shiro.ShiroConstraint;
@@ -104,6 +106,13 @@ public class MammaSECapaciteitEditPage extends MammaPlanningBasePage
 
 	private final DatePicker<Date> datumField;
 
+	@Override
+	protected void setHeaders(WebResponse response)
+	{
+		super.setHeaders(response);
+		SecurityHeadersFilter.allowUnsafeInlineSecurityPolicy(response); 
+	}
+
 	public MammaSECapaciteitEditPage(MammaScreeningsEenheid screeningsEenheidInit, Date startWeek)
 	{
 		ScreeningOrganisatie sessionSO = ScreenitSession.get().getScreeningOrganisatie();
@@ -121,7 +130,7 @@ public class MammaSECapaciteitEditPage extends MammaPlanningBasePage
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
-				Date huidigeDatum = calenderPanel.getHuidigeStartVanWeek().toDate();
+				Date huidigeDatum = calenderPanel.getHuidigeStartVanWeek();
 				refreshKalender(target, huidigeDatum);
 			}
 		});
@@ -145,7 +154,7 @@ public class MammaSECapaciteitEditPage extends MammaPlanningBasePage
 			{
 				if (calenderPanel.getHuidigeStartVanWeek() != null)
 				{
-					Date huidigeDatum = calenderPanel.getHuidigeStartVanWeek().toDate();
+					Date huidigeDatum = calenderPanel.getHuidigeStartVanWeek();
 					refreshKalender(ajaxRequestTarget, huidigeDatum);
 				}
 			}
@@ -216,13 +225,13 @@ public class MammaSECapaciteitEditPage extends MammaPlanningBasePage
 			public void onClick(AjaxRequestTarget target)
 			{
 				dialog.openWith(target,
-					new MammaWeekHerhalenPopup(IDialog.CONTENT_ID, calenderPanel.getModel(), DateUtil.toLocalDate(calenderPanel.getHuidigeStartVanWeek().toDate()))
+					new MammaWeekHerhalenPopup(IDialog.CONTENT_ID, calenderPanel.getModel(), DateUtil.toLocalDate(calenderPanel.getHuidigeStartVanWeek()))
 					{
 
 						@Override
 						void herhalingOpgeslagen(AjaxRequestTarget target)
 						{
-							Date huidigeDatum = calenderPanel.getHuidigeStartVanWeek().toDate();
+							Date huidigeDatum = calenderPanel.getHuidigeStartVanWeek();
 							refreshKalender(target, huidigeDatum);
 							dialog.close(target);
 						}
@@ -241,13 +250,13 @@ public class MammaSECapaciteitEditPage extends MammaPlanningBasePage
 			public void onClick(AjaxRequestTarget target)
 			{
 				dialog.openWith(target,
-					new MammaDagKopierenPopup(IDialog.CONTENT_ID, calenderPanel.getModel(), calenderPanel.getHuidigeStartVanWeek().toDate())
+					new MammaDagKopierenPopup(IDialog.CONTENT_ID, calenderPanel.getModel(), calenderPanel.getHuidigeStartVanWeek())
 					{
 
 						@Override
 						protected void onOpgeslagen(AjaxRequestTarget target)
 						{
-							Date huidigeDatum = calenderPanel.getHuidigeStartVanWeek().toDate();
+							Date huidigeDatum = calenderPanel.getHuidigeStartVanWeek();
 							refreshKalender(target, huidigeDatum);
 							dialog.close(target);
 						}
@@ -282,7 +291,7 @@ public class MammaSECapaciteitEditPage extends MammaPlanningBasePage
 			herhalingsWeek.setDefaultModelObject("(Nog) niet gezet.");
 		}
 
-		Date huidigeStartVanWeek = calenderPanel.getHuidigeStartVanWeek().toDate();
+		Date huidigeStartVanWeek = calenderPanel.getHuidigeStartVanWeek();
 		datumModel.setObject(huidigeStartVanWeek);
 
 		weekHerhalenLink.setEnabled(!DateUtil.toLocalDate(huidigeStartVanWeek).isBefore(dateSupplier.getLocalDate().with(TemporalAdjusters.next(DayOfWeek.MONDAY))));

@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -19,21 +19,6 @@
   =========================LICENSE_END==================================
   -->
 <html xmlns:wicket="http://wicket.apache.org">
-<wicket:head>
-    <script>
-        function showAccorderen($file) {
-            var $teAccorderen = $('.teAccorderen');
-            if ($file.val() != '') {
-                $teAccorderen.show();
-                $teAccorderen.find('input[type=checkbox]').attr('checked', true);
-            }
-            else if (!$teAccorderen.is(':disabled')) {
-                $teAccorderen.hide();
-                $teAccorderen.find('input[type=checkbox]').attr('checked', true);
-            }
-        }
-    </script>
-</wicket:head>
 <wicket:panel>
     <div class="modal" id="modalOvereenkomst" role="dialog">
         <div class="modal-header">
@@ -57,32 +42,32 @@
                         <label class="control-label">Begindatum <i class="icon-asterisk icon-purple"></i></label>
                         <div class="controls">
                             <div class="input-append">
-                                <input wicket:id="startDatum" type="text" placeholder="dd-mm-jaar" size="16" class="input-small datum">
-                                <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum" tabindex="-1"><i
-                                        class="icon-calendar"></i></a>
-                            </div>
+								<input wicket:id="startDatum" type="text" placeholder="dd-mm-jaar" size="16" class="input-small datum">
+								<a  class="btn js-datepicker-show" title="Datum" tabindex="-1"><i
+										class="icon-calendar"></i></a>
+							</div>
                         </div>
                     </div>
                     <div class="control-group">
                         <label class="control-label">Einddatum</label>
                         <div class="controls">
-                            <div class="input-append">
-                                <input wicket:id="eindDatum" type="text" placeholder="dd-mm-jaar" size="16" class="input-small datum">
-                                <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum" tabindex="-1"><i
-                                        class="icon-calendar"></i></a>
-                            </div>
+							<div class="input-append">
+								<input wicket:id="eindDatum" type="text" placeholder="dd-mm-jaar" size="16" class="input-small datum">
+								<a  class="btn js-datepicker-show" title="Datum" tabindex="-1"><i
+										class="icon-calendar"></i></a>
+							</div>
                         </div>
                     </div>
                     <wicket:enclosure>
-                        <div class="control-group teAccorderen">
-                            <label class="control-label">Overeenkomst te accorderen</label>
-                            <div class="controls">
-                                <div class="input-append">
-                                    <input type="checkbox" wicket:id="teAccoderen"/>
-                                </div>
-                            </div>
-                        </div>
-                    </wicket:enclosure>
+						<div class="control-group teAccorderen">
+							<label class="control-label">Overeenkomst te accorderen</label>
+							<div class="controls">
+								<div class="input-append">
+									<input type="checkbox" wicket:id="teAccoderen"/>
+								</div>
+							</div>
+						</div>
+					</wicket:enclosure>
                     <wicket:enclosure>
                         <div class="control-group">
                             <label class="control-label">Screeningsorganisatie <i class="icon-asterisk icon-purple"></i></label>
@@ -104,7 +89,7 @@
                             <label class="control-label">Definitieve overeenkomst</label>
                             <div class="controls">
                                 <div class="input-append">
-                                    <input type="file" wicket:id="upload" onChange="showAccorderen($(this))"/>
+									<input type="file" wicket:id="upload" class="js-file-te-accorderen"/>
                                 </div>
                             </div>
                         </div>
@@ -113,7 +98,7 @@
             </form>
         </div>
         <div class="modal-footer">
-            <button class="btn" onclick='oldFormValues = getFormValues()' data-dismiss="modal">Annuleren</button>
+            <button class="btn js-save-form-values" data-dismiss="modal">Annuleren</button>
             <button wicket:id="submit" class="btn btn-primary">Opslaan</button>
         </div>
     </div>

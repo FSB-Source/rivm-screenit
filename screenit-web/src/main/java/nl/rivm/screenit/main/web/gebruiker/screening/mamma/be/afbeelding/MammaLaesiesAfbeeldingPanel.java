@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.afbeelding;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -96,7 +96,6 @@ public class MammaLaesiesAfbeeldingPanel extends MammaBaseAfbeeldingPanel<List<L
 	@Override
 	protected void addImage(WebMarkupContainer imageContainer, MammaAfbeeldingZijdeDoorsnede doorsnede)
 	{
-		imageContainer.add(new AttributeAppender("ondragover", Model.of("dragover(event)")));
 		SvgImage img = new SvgImage(doorsnede.getSvgFileName())
 		{
 			@Override

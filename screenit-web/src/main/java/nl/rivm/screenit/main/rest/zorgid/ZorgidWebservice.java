@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.rest.zorgid;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -44,7 +44,7 @@ public class ZorgidWebservice
 	@RequestMapping(value = "/initialized", method = RequestMethod.POST)
 	public ResponseEntity<?> initialized(@RequestBody SessionInitializedEvent sessionInitializedEvent)
 	{
-		zorgIdSessieService.onSessionInitialized(sessionInitializedEvent.getUuid(), sessionInitializedEvent.getNonce());
+		zorgIdSessieService.onSessionInitialized(sessionInitializedEvent);
 		return ResponseEntity.ok().build();
 	}
 

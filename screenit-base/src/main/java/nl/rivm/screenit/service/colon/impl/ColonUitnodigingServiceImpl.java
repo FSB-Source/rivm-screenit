@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.BaseBriefDao;
 import nl.rivm.screenit.dao.colon.ColonUitnodigingsDao;
@@ -46,9 +48,6 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -57,12 +56,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+@Slf4j
 public class ColonUitnodigingServiceImpl implements ColonUitnodigingService
 {
 
 	private static final int EERSTE_COHORT_JAAR_DK = 2013;
-
-	private static final Logger LOG = LoggerFactory.getLogger(ColonUitnodigingServiceImpl.class);
 
 	@Autowired
 	private BaseBriefDao briefDao;
@@ -108,14 +106,14 @@ public class ColonUitnodigingServiceImpl implements ColonUitnodigingService
 	}
 
 	@Override
-	public DateTime getGeprognotiseerdeIntakeDatum(boolean vooraankondigen)
+	public LocalDate getGeprognotiseerdeIntakeDatum(boolean vooraankondigen)
 	{
 		Integer ifobtRetourPeriode = simplePreferenceService.getInteger(PreferenceKey.IFOBTRETOURPERIODE.name());
 		Integer ifobtAnalysePeriode = simplePreferenceService.getInteger(PreferenceKey.IFOBTANALYSEPERIODE.name());
 		Integer intakeAfspraakPeriode = simplePreferenceService.getInteger(PreferenceKey.INTAKEAFSPRAAKPERIODE.name());
 		Integer vooraankondigingsPeriode = simplePreferenceService.getInteger(PreferenceKey.VOORAANKONDIGINSPERIODE.name());
 
-		DateTime geprognotiseerdeIntakeDatum = currentDateSupplier.getDateTime().plusDays(ifobtRetourPeriode).plusDays(ifobtAnalysePeriode).plusDays(intakeAfspraakPeriode);
+		var geprognotiseerdeIntakeDatum = currentDateSupplier.getLocalDate().plusDays(ifobtRetourPeriode).plusDays(ifobtAnalysePeriode).plusDays(intakeAfspraakPeriode);
 
 		if (vooraankondigen)
 		{

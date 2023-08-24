@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.service.impl;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,9 +30,11 @@ import nl.rivm.screenit.mamma.se.service.SELogService;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Instelling;
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.SafeStringUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang3.StringUtils;
@@ -64,7 +66,7 @@ public class SELogServiceImpl implements SELogService
 	{
 		MammaScreeningsEenheid screeningsEenheid = hibernateService.load(MammaScreeningsEenheid.class, screeningsEenheidId);
 		LOG.warn(createLogMessage(account, logGebeurtenis, screeningsEenheid, melding));
-		logService.logGebeurtenis(logGebeurtenis, screeningsEenheid, account, client, melding, datumTijd);
+		logService.logGebeurtenis(logGebeurtenis, screeningsEenheid, account, client, melding, datumTijd, Bevolkingsonderzoek.MAMMA);
 	}
 
 	@Override
@@ -109,12 +111,13 @@ public class SELogServiceImpl implements SELogService
 	public void logInfo(LogGebeurtenis logGebeurtenis, Account account, Client client, MammaScreeningsEenheid screeningsEenheid, LocalDateTime datumTijd, String message)
 	{
 		LOG.info(createLogMessage(account, logGebeurtenis, screeningsEenheid, message));
-		logService.logGebeurtenis(logGebeurtenis, screeningsEenheid, account, client, message, datumTijd);
+		logService.logGebeurtenis(logGebeurtenis, screeningsEenheid, account, client, message, datumTijd, Bevolkingsonderzoek.MAMMA);
 	}
 
 	private String createLogMessage(Account account, LogGebeurtenis logGebeurtenis, MammaScreeningsEenheid se, String message)
 	{
-		String result = String.format("%s; %s; %s", logGebeurtenis.name(), se == null ? "SE-???" : se.getCode(), message != null ? message : "");
+		var messageSafe = SafeStringUtil.maakMetUserInputStringVeiligVoorLogging(message);
+		String result = String.format("%s; %s; %s", logGebeurtenis.name(), se == null ? "SE-???" : se.getCode(), messageSafe != null ? messageSafe : "");
 		return account == null ? result : String.format("%s %s", SELogin.accountIdLogTekst(account), result);
 	}
 

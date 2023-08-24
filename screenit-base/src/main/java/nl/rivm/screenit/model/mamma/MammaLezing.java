@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,8 +39,12 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.helper.HibernateMagicNumber;
+import nl.rivm.screenit.model.mamma.enums.MammaAfwijkingTeZienOp;
 import nl.rivm.screenit.model.mamma.enums.MammaBIRADSWaarde;
 import nl.rivm.screenit.model.mamma.enums.MammaBeperktBeoordeelbaarReden;
 import nl.rivm.screenit.model.mamma.enums.MammaLezingRedenenFotobesprekingMbber;
@@ -60,6 +64,8 @@ import org.hibernate.envers.Audited;
 @Table(schema = "mamma", name = "lezing")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "mamma.cache")
 @Audited
+@Getter
+@Setter
 @Check(
 	constraints = "(lezing.lezing_type = 'DISCREPANTIE_LEZING' AND lezing.birads_links = 'GEEN' AND lezing.birads_rechts = 'GEEN') "
 		+ "OR ((lezing.birads_links != 'GEEN' OR lezing.birads_rechts != 'GEEN') AND lezing.beoordelaar IS NOT NULL) " +
@@ -129,15 +135,18 @@ public class MammaLezing extends AbstractHibernateObject
 	@CollectionTable(schema = "mamma", name = "lezing_redenen_fotobespreking_mbber")
 	private List<MammaLezingRedenenFotobesprekingMbber> redenenFotobesprekingMbber = new ArrayList<>();
 
-	public Date getBeoordelingDatum()
-	{
-		return beoordelingDatum;
-	}
+	@Column
+	private Boolean tomosyntheseRelevantVoorBeoordeling;
 
-	public void setBeoordelingDatum(Date beoordelingDatum)
-	{
-		this.beoordelingDatum = beoordelingDatum;
-	}
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = true)
+	private MammaAfwijkingTeZienOp afwijkingTeZienOp;
+
+	@Column(nullable = true)
+	private Integer zichtbaarOpCcNummer;
+
+	@Column(nullable = true)
+	private Integer zichtbaarOpMloNummer;
 
 	@Transient
 	public MammaBeoordeling getBeoordeling()
@@ -149,135 +158,5 @@ public class MammaLezing extends AbstractHibernateObject
 	public void setBeoordeling(MammaBeoordeling beoordeling)
 	{
 		this.beoordeling = beoordeling;
-	}
-
-	public InstellingGebruiker getBeoordelaar()
-	{
-		return beoordelaar;
-	}
-
-	public void setBeoordelaar(InstellingGebruiker beoordelaar)
-	{
-		this.beoordelaar = beoordelaar;
-	}
-
-	public boolean isOnervarenRadioloog()
-	{
-		return onervarenRadioloog;
-	}
-
-	public void setOnervarenRadioloog(boolean onervarenRadioloog)
-	{
-		this.onervarenRadioloog = onervarenRadioloog;
-	}
-
-	public MammaBIRADSWaarde getBiradsLinks()
-	{
-		return biradsLinks;
-	}
-
-	public void setBiradsLinks(MammaBIRADSWaarde biradsLinks)
-	{
-		this.biradsLinks = biradsLinks;
-	}
-
-	public MammaBIRADSWaarde getBiradsRechts()
-	{
-		return biradsRechts;
-	}
-
-	public void setBiradsRechts(MammaBIRADSWaarde biradsRechts)
-	{
-		this.biradsRechts = biradsRechts;
-	}
-
-	public String getBiradsOpmerking()
-	{
-		return biradsOpmerking;
-	}
-
-	public void setBiradsOpmerking(String biradsOpmerking)
-	{
-		this.biradsOpmerking = biradsOpmerking;
-	}
-
-	public List<MammaLaesie> getLaesies()
-	{
-		return laesies;
-	}
-
-	public void setLaesies(List<MammaLaesie> laesies)
-	{
-		this.laesies = laesies;
-	}
-
-	public MammaLezingType getLezingType()
-	{
-		return lezingType;
-	}
-
-	public void setLezingType(MammaLezingType lezingType)
-	{
-		this.lezingType = lezingType;
-	}
-
-	public MammaBeperktBeoordeelbaarReden getBeperktBeoordeelbaarReden()
-	{
-		return beperktBeoordeelbaarReden;
-	}
-
-	public void setBeperktBeoordeelbaarReden(MammaBeperktBeoordeelbaarReden beperktBeoordeelbaarReden)
-	{
-		this.beperktBeoordeelbaarReden = beperktBeoordeelbaarReden;
-	}
-
-	public String getWaaromGeenBeoordelingMogelijk()
-	{
-		return waaromGeenBeoordelingMogelijk;
-	}
-
-	public void setWaaromGeenBeoordelingMogelijk(String waaromGeenBeoordelingMogelijk)
-	{
-		this.waaromGeenBeoordelingMogelijk = waaromGeenBeoordelingMogelijk;
-	}
-
-	public List<MammaNevenbevindingen> getNevenbevindingen()
-	{
-		return nevenbevindingen;
-	}
-
-	public void setNevenbevindingen(List<MammaNevenbevindingen> nevenbevindingen)
-	{
-		this.nevenbevindingen = nevenbevindingen;
-	}
-
-	public String getNevenbevindingOpmerking()
-	{
-		return nevenbevindingOpmerking;
-	}
-
-	public void setNevenbevindingOpmerking(String nevenbevindingOpmerking)
-	{
-		this.nevenbevindingOpmerking = nevenbevindingOpmerking;
-	}
-
-	public List<MammaLezingRedenenFotobesprekingRadioloog> getRedenenFotobesprekingRadioloog()
-	{
-		return redenenFotobesprekingRadioloog;
-	}
-
-	public void setRedenenFotobesprekingRadioloog(List<MammaLezingRedenenFotobesprekingRadioloog> redenenFotobesprekingRadioloog)
-	{
-		this.redenenFotobesprekingRadioloog = redenenFotobesprekingRadioloog;
-	}
-
-	public List<MammaLezingRedenenFotobesprekingMbber> getRedenenFotobesprekingMbber()
-	{
-		return redenenFotobesprekingMbber;
-	}
-
-	public void setRedenenFotobesprekingMbber(List<MammaLezingRedenenFotobesprekingMbber> redenenFotobesprekingMbber)
-	{
-		this.redenenFotobesprekingMbber = redenenFotobesprekingMbber;
 	}
 }

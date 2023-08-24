@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -55,13 +55,13 @@ public class CervixHuisartsTarievenDataProvider extends SortableDataProvider<Cer
 	@Override
 	public Iterator iterator(long first, long count)
 	{
-		return cervixVerrichtingDao.getCervixHuisartsTarieven(null, first, count, new SortState<String>(getSort().getProperty(), getSort().isAscending())).iterator();
+		return cervixVerrichtingDao.getHuisartsTarieven(null, first, count, new SortState<String>(getSort().getProperty(), getSort().isAscending())).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return cervixVerrichtingDao.countCervixHuisartsTarieven(null);
+		return cervixVerrichtingDao.countHuisartsTarieven(null);
 	}
 
 }

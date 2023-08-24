@@ -4,7 +4,7 @@ package nl.rivm.screenit.util.cervix.hpv_berichtgenerator;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,9 +32,10 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.model.cervix.berichten.CervixHpvResultValue;
 import nl.rivm.screenit.model.cervix.berichten.CervixHpvOrderCode;
 import nl.rivm.screenit.model.cervix.berichten.CervixHpvResultCode;
+import nl.rivm.screenit.model.cervix.berichten.CervixHpvResultValue;
+import nl.rivm.screenit.model.cervix.enums.CervixHpvResultaatBerichtBron;
 
 import au.com.bytecode.opencsv.CSVReader;
 import ca.uhn.hl7v2.model.Message;
@@ -71,6 +72,7 @@ public class CsvToHpvBericht
 					wrapper.setMessageId(messageId);
 					wrapper.setLabNaam(line[1]);
 					wrapper.setInstrumentId(line[2]);
+					wrapper.setResultaatBerichtBron(CervixHpvResultaatBerichtBron.valueOf(line[3]));
 					huidigeMessageId = messageId;
 					wrappers.add(wrapper);
 				}
@@ -107,16 +109,16 @@ public class CsvToHpvBericht
 		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
 
 		CervixHpvBerichtGeneratorMonsterWrapper monsterWrapper = new CervixHpvBerichtGeneratorMonsterWrapper();
-		monsterWrapper.setBarcode(line[3]);
-		monsterWrapper.setOrdercode(CervixHpvOrderCode.fromBerichtWaarde(line[4]));
-		monsterWrapper.setAnalysecode1(CervixHpvResultCode.fromBerichtWaarde(line[5]));
-		monsterWrapper.setAnalyseresultaat1(CervixHpvResultValue.fromValue(line[6]));
-		monsterWrapper.setAnalysecode2(CervixHpvResultCode.fromBerichtWaarde(line[7]));
-		monsterWrapper.setAnalyseresultaat2(CervixHpvResultValue.fromValue(line[8]));
-		monsterWrapper.setAnalysecode3(CervixHpvResultCode.fromBerichtWaarde(line[9]));
-		monsterWrapper.setAnalyseresultaat3(CervixHpvResultValue.fromValue(line[10]));
-		monsterWrapper.setAnalyseDatum(formatter.parse(line[11]));
-		monsterWrapper.setAutorisatieDatum(formatter.parse(line[12]));
+		monsterWrapper.setBarcode(line[4]);
+		monsterWrapper.setOrdercode(CervixHpvOrderCode.fromBerichtWaarde(line[5]));
+		monsterWrapper.setAnalysecode1(CervixHpvResultCode.fromBerichtWaarde(line[6]));
+		monsterWrapper.setAnalyseresultaat1(CervixHpvResultValue.fromValue(line[7]));
+		monsterWrapper.setAnalysecode2(CervixHpvResultCode.fromBerichtWaarde(line[8]));
+		monsterWrapper.setAnalyseresultaat2(CervixHpvResultValue.fromValue(line[9]));
+		monsterWrapper.setAnalysecode3(CervixHpvResultCode.fromBerichtWaarde(line[10]));
+		monsterWrapper.setAnalyseresultaat3(CervixHpvResultValue.fromValue(line[11]));
+		monsterWrapper.setAnalyseDatum(formatter.parse(line[12]));
+		monsterWrapper.setAutorisatieDatum(formatter.parse(line[13]));
 		return monsterWrapper;
 	}
 }

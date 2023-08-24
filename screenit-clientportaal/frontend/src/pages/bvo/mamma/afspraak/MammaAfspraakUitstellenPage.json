@@ -13,15 +13,18 @@
       "tot": "tot %s"
     },
     "hovertext": "Deelname uitstellen",
-    "no_results": "Helaas, er zijn geen zoekresultaten voor %s.<br> Dit kan komen omdat u op de opgegeven datum nu al een afspraak kunt maken voor het onderzoek. U kunt proberen een afspraak te maken door hieronder op ‘Toch liever eerder meedoen?’ te klikken. <br>Het kan ook zijn dat voor de opgegeven datum nog niet bekend is waar onze onderzoekscentra staan."
+    "no_results": "Helaas, we kunnen u voor %s geen nieuwe uitnodiging sturen. U kunt proberen nu al een afspraak te plannen voor deze datum. Klik hiervoor op ‘toch liever eerder meedoen’. <br><br>Lukt dat ook niet? Dan is de planning voor deze datum nog niet bekend en vragen we u om het op een later moment nog een keer te proberen."
   },
   "form": {
+    "title": "Kies een nieuwe datum",
+    "toelichting": "Vul hieronder in rond welke datum u een nieuwe uitnodiging wilt ontvangen.",
     "placeholder": "Datum*",
     "button": "Zoeken",
     "error": {
       "verplicht": "Dit veld is verplicht",
       "ongeldig": "Ongeldige datum",
-      "minimum": "Ongeldig - Kies een datum vanaf %s"
+      "minimum": "Ongeldig - Kies een datum vanaf %s",
+      "werkdag": "Ongeldig - Kies een werkdag"
     }
   },
   "navigation": {
@@ -34,10 +37,10 @@
       "text": "U kunt ook bellen met onze informatielijn."
     }
   },
-  "beforesearching_text": "Vul in het zoekscherm in rond welke datum u een nieuwe uitnodiging wilt ontvangen. Het invullen van een datum is verplicht. </br></br>U krijgt een lijstje met plaatsen waar u rond die datum naar toe kunt voor het onderzoek. </br>Kies waar u wilt meedoen. </br></br>Het kan zijn dat u toch in een andere plaats wordt uitgenodigd. Dat komt omdat de planning van de onderzoekscentra nog niet definitief is.",
+  "beforesearching_text": "Geef aan rond welke datum u een nieuwe uitnodiging wilt ontvangen. Vervolgens krijgt u plaatsen te zien waar u terecht kunt voor het onderzoek. Selecteer de plaats waar u wilt meedoen. <br><br>Belangrijk om te weten: onze planning is nu nog niet definitief, het kan dus voorkomen dat we u toch uitnodigen op een andere locatie.",
   "toast": {
-    "title": "U heeft uw deelname uitgesteld tot %s.",
-    "description": "U krijgt rond deze datum een nieuwe uitnodiging.",
+    "title": "U heeft een afspraak gemaakt op %s.",
+    "description": "U ontvangt hiervan een bevestiging.",
     "error": "Wijzigingen zijn niet opgeslagen."
   }
 }

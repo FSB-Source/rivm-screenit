@@ -17,6 +17,7 @@ export const readMammografen = (): Promise<Array<Mammograaf>> => {
 					const huidigWerkstationIpAdres = environmentInfo.huidigWerkstationIpAdres
 					const mammograaf = mammografen.find((m: Mammograaf) => m.werkstationIpAdres === huidigWerkstationIpAdres)
 					if (mammograaf) {
+						console.log(`Mammograaf gevonden voor ${huidigWerkstationIpAdres}: ${mammograaf.aeTitle}`)
 						store.dispatch(createActionSetHuidigeMammograaf(mammograaf.id))
 					} else {
 						console.log(`Geen mammograaf gevonden voor ${environmentInfo.huidigWerkstationIpAdres} tussen ${JSON.stringify(mammografen)}`)

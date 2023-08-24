@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -37,39 +37,59 @@
         </wicket:enclosure>
         <div class="control-group value">
             <label class="control-label">Locatie</label>
-            <div class="controls">
-                <span wicket:id="adres">Bakkerstraat 2, 1825 CR Zevenaar</span>
-                <span wicket:id="tijdelijk">(tijdelijk)</span>
-            </div>
-        </div>
-        <wicket:enclosure child="locatiebeschrijving">
-            <div class="control-group">
-                <div class="controls" wicket:id="locatiebeschrijving">Locatiebeschrijving</div>
-            </div>
-        </wicket:enclosure>
-        <div class="control-group value">
-            <label class="control-label">Datum/tijd</label>
-            <div class="controls">
-                <span wicket:id="vanaf">maandag 24-04-2022 14:00</span>
-                <a wicket:id="wijzigMoment">wijzigen</a></div>
-        </div>
-        <div class="control-group value" wicket:id="redenContainer">
-            <label class="control-label">Reden
-            </label>
-            <div class="controls" wicket:id="verzettenReden">
-            </div>
-        </div>
-        <wicket:enclosure child="briefAanmaken">
-            <div class="control-group value">
-                <label class="control-label">Bevestigingsbrief aanmaken</label>
-                <div class="controls">
-                    <input wicket:id="briefAanmaken" class="briefAanmaken" type="checkbox"/>
-                </div>
-            </div>
-        </wicket:enclosure>
-        <div wicket:id="waarschuwing" class="control-group value">
-            <wicket:message key="mamma.nieuwe.afspraak.waarschuwing" escape="false"></wicket:message>
-        </div>
-    </fieldset>
+			<div class="controls">
+				<span wicket:id="adres">Bakkerstraat 2, 1825 CR Zevenaar</span>
+				<span wicket:id="tijdelijk">(tijdelijk)</span>
+			</div>
+		</div>
+		<wicket:enclosure child="locatiebeschrijving">
+			<div class="control-group">
+				<div class="controls" wicket:id="locatiebeschrijving">Locatiebeschrijving</div>
+			</div>
+		</wicket:enclosure>
+		<div class="control-group value">
+			<label class="control-label">Datum/tijd</label>
+			<div class="controls">
+				<span wicket:id="vanaf">maandag 24-04-2022 14:00</span>
+				<a wicket:id="wijzigMoment">wijzigen</a></div>
+		</div>
+		<div class="control-group value" wicket:id="redenContainer">
+			<label class="control-label">Reden
+			</label>
+			<div class="controls" wicket:id="verzettenReden">
+			</div>
+		</div>
+		<wicket:enclosure child="afspraakBevestiging">
+			<div class="control-group value">
+				<label class="control-label">Afspraakbevestiging via:
+				</label>
+				<div class="controls radio geen-padding" wicket:id="afspraakBevestiging">
+				</div>
+			</div>
+		</wicket:enclosure>
+		<div class="control-group value" wicket:id="emailadresContainer">
+			<label class="control-label">E-mailadres</label>
+			<div class="controls">
+				<input class="input-xlarge" type="text" wicket:id="emailadres"/>
+			</div>
+		</div>
+		<wicket:enclosure child="smsStatus">
+			<div class="control-group value">
+				<label class="control-label">Sms herinnering
+				</label>
+				<div class="controls radio geen-padding" wicket:id="smsStatus">
+				</div>
+			</div>
+		</wicket:enclosure>
+		<div class="control-group value" wicket:id="mobielNummerContainer">
+			<label class="control-label">Mobiel nummer</label>
+			<div class="controls">
+				<input class="input-xlarge" type="text" wicket:id="mobielNummer"/>
+			</div>
+		</div>
+		<div wicket:id="waarschuwing" class="control-group value">
+			<wicket:message key="mamma.nieuwe.afspraak.waarschuwing" escape="false"></wicket:message>
+		</div>
+	</fieldset>
 </wicket:panel>
 </html>

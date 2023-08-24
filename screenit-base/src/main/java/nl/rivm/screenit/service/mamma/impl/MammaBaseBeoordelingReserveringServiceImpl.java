@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -51,7 +51,8 @@ public class MammaBaseBeoordelingReserveringServiceImpl implements MammaBaseBeoo
 {
 	private static final Logger LOG = LoggerFactory.getLogger(MammaBaseBeoordelingReserveringServiceImpl.class);
 
-	private final Duration MAX_RESERVERINGSTIJD = Duration.ofMinutes(30); 
+	private static final Duration MAX_RESERVERINGSTIJD =
+		Duration.ofMinutes(30); 
 
 	@Autowired
 	private MammaBaseBeoordelingDao beoordelingDao;
@@ -101,6 +102,13 @@ public class MammaBaseBeoordelingReserveringServiceImpl implements MammaBaseBeoo
 	{
 		if (beoordeling.getStatus() == MammaBeoordelingStatus.VERSLAG_GEREED && !beoordeling.getVerslagLezing().getBeoordelaar().equals(ingelogdeGebruiker))
 		{
+			return false;
+		}
+
+		if (List.of(MammaBeoordelingStatus.TWEEDE_LEZING, MammaBeoordelingStatus.TWEEDE_LEZING_OPGESLAGEN).contains(beoordeling.getStatus())
+			&& ingelogdeGebruiker.equals(beoordeling.getEersteLezing().getBeoordelaar()))
+		{
+			LOG.warn("1e lezer probeert beoordeling '{}' te openenen voor 2e lezing", beoordeling.getId());
 			return false;
 		}
 
@@ -156,13 +164,26 @@ public class MammaBaseBeoordelingReserveringServiceImpl implements MammaBaseBeoo
 		return nu.isAfter(reserveringVerlopenTijd);
 	}
 
+	@Override
+	public boolean gereserveerdVoorGebruiker(long beoordelingId, InstellingGebruiker ingelogdeGebruiker, MammaBeLezerSoort lezerSoort)
+	{
+		if (MammaBeLezerSoort.CONCLUSIE_REVIEW.equals(lezerSoort))
+		{
+			return true; 
+		}
+
+		var beoordeling = hibernateService.get(MammaBeoordeling.class, beoordelingId); 
+		hibernateService.reload(beoordeling); 
+		return ingelogdeGebruiker.equals(beoordeling.getReserveringhouder()) && !heeftVerlopenReservering(beoordeling);
+	}
+
 	@Transactional(propagation = Propagation.REQUIRED)
 	@Override
 	public void reserveringenVrijgeven(InstellingGebruiker ingelogdeGebruiker)
 	{
 		List<MammaBeoordeling> vrijTeGevenBeoordelingen = beoordelingDao.getVrijTeGevenBeoordelingen(ingelogdeGebruiker);
 		vrijTeGevenBeoordelingen.forEach(this::geefBeoordelingVrij);
-		LOG.info("Vrijgegeven beoordeling id's: " + vrijTeGevenBeoordelingen.stream().map(b -> b.getId().toString()).collect(Collectors.joining(",")));
+		LOG.info("Vrijgegeven beoordeling id's: {} ", vrijTeGevenBeoordelingen.stream().map(b -> b.getId().toString()).collect(Collectors.joining(",")));
 	}
 
 	@Transactional(propagation = Propagation.REQUIRED)

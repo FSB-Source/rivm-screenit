@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -20,8 +20,6 @@ package nl.rivm.screenit.model.mamma;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
-
-import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -41,6 +39,9 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.EnovationHuisarts;
 import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaFollowUpConclusieStatus;
@@ -52,6 +53,8 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.envers.Audited;
+
+import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 
 @Entity
 @Table(
@@ -67,6 +70,8 @@ import org.hibernate.envers.Audited;
 		@UniqueConstraint(columnNames = "laatste_uitstel"),
 		@UniqueConstraint(columnNames = "screening_ronde_event") })
 @Audited
+@Getter
+@Setter
 public class MammaScreeningRonde extends ScreeningRonde<MammaDossier, MammaBrief, MammaAfmelding, MammaUitnodiging>
 {
 	private static final long serialVersionUID = 1L;
@@ -91,6 +96,11 @@ public class MammaScreeningRonde extends ScreeningRonde<MammaDossier, MammaBrief
 	@OneToMany(mappedBy = "screeningRonde", fetch = FetchType.LAZY)
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "mamma.cache")
 	private List<MammaBrief> brieven = new ArrayList<>();
+
+	@OneToMany(mappedBy = "screeningRonde", fetch = FetchType.LAZY)
+	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "mamma.cache")
+	@Cascade(CascadeType.DELETE)
+	private List<MammaDigitaalClientBericht> berichten = new ArrayList<>();
 
 	@OneToOne(fetch = FetchType.LAZY)
 	private MammaBrief laatsteBrief;
@@ -166,277 +176,4 @@ public class MammaScreeningRonde extends ScreeningRonde<MammaDossier, MammaBrief
 	@Cascade(CascadeType.DELETE)
 	private List<MammaConclusieReview> conclusieReviews = new ArrayList<>();
 
-	@Override
-	public MammaDossier getDossier()
-	{
-		return dossier;
-	}
-
-	@Override
-	public void setDossier(MammaDossier dossier)
-	{
-		this.dossier = dossier;
-	}
-
-	@Override
-	public List<MammaUitnodiging> getUitnodigingen()
-	{
-		return uitnodigingen;
-	}
-
-	@Override
-	public void setUitnodigingen(List<MammaUitnodiging> uitnodigingen)
-	{
-		this.uitnodigingen = uitnodigingen;
-	}
-
-	@Override
-	public MammaUitnodiging getLaatsteUitnodiging()
-	{
-		return laatsteUitnodiging;
-	}
-
-	@Override
-	public void setLaatsteUitnodiging(MammaUitnodiging laatsteUitnodiging)
-	{
-		this.laatsteUitnodiging = laatsteUitnodiging;
-	}
-
-	@Override
-	public List<MammaBrief> getBrieven()
-	{
-		return brieven;
-	}
-
-	@Override
-	public void setBrieven(List<MammaBrief> brieven)
-	{
-		this.brieven = brieven;
-	}
-
-	@Override
-	public MammaBrief getLaatsteBrief()
-	{
-		return laatsteBrief;
-	}
-
-	@Override
-	public void setLaatsteBrief(MammaBrief laatsteBrief)
-	{
-		this.laatsteBrief = laatsteBrief;
-	}
-
-	@Override
-	public List<MammaAfmelding> getAfmeldingen()
-	{
-		return afmeldingen;
-	}
-
-	@Override
-	public void setAfmeldingen(List<MammaAfmelding> afmeldingen)
-	{
-		this.afmeldingen = afmeldingen;
-	}
-
-	@Override
-	public MammaAfmelding getLaatsteAfmelding()
-	{
-		return laatsteAfmelding;
-	}
-
-	@Override
-	public void setLaatsteAfmelding(MammaAfmelding laatsteAfmelding)
-	{
-		this.laatsteAfmelding = laatsteAfmelding;
-	}
-
-	public MammaStandplaatsRonde getStandplaatsRonde()
-	{
-		return standplaatsRonde;
-	}
-
-	public void setStandplaatsRonde(MammaStandplaatsRonde standplaatsRonde)
-	{
-		this.standplaatsRonde = standplaatsRonde;
-	}
-
-	public Long getUitnodigingsNr()
-	{
-		return uitnodigingsNr;
-	}
-
-	public void setUitnodigingsNr(Long uitnodigingsNr)
-	{
-		this.uitnodigingsNr = uitnodigingsNr;
-	}
-
-	public EnovationHuisarts getHuisarts()
-	{
-		return huisarts;
-	}
-
-	public void setHuisarts(EnovationHuisarts huisarts)
-	{
-		this.huisarts = huisarts;
-	}
-
-	public MammaGeenHuisartsOption getGeenHuisartsOptie()
-	{
-		return geenHuisartsOptie;
-	}
-
-	public void setGeenHuisartsOptie(MammaGeenHuisartsOption geenHuisartsOptie)
-	{
-		this.geenHuisartsOptie = geenHuisartsOptie;
-	}
-
-	public boolean getIsGeforceerd()
-	{
-		return isGeforceerd;
-	}
-
-	public void setIsGeforceerd(boolean geforceerd)
-	{
-		isGeforceerd = geforceerd;
-	}
-
-	public MammaKansberekeningScreeningRondeEvent getScreeningRondeEvent()
-	{
-		return screeningRondeEvent;
-	}
-
-	public void setScreeningRondeEvent(MammaKansberekeningScreeningRondeEvent screeningRondeEvent)
-	{
-		this.screeningRondeEvent = screeningRondeEvent;
-	}
-
-	public String getPostcode()
-	{
-		return postcode;
-	}
-
-	public void setPostcode(String postcode)
-	{
-		this.postcode = postcode;
-	}
-
-	public Date getDatumVastleggenHuisarts()
-	{
-		return datumVastleggenHuisarts;
-	}
-
-	public void setDatumVastleggenHuisarts(Date datumVastleggenHuisarts)
-	{
-		this.datumVastleggenHuisarts = datumVastleggenHuisarts;
-	}
-
-	public Boolean getMinderValideOnderzoekZiekenhuis()
-	{
-		return minderValideOnderzoekZiekenhuis;
-	}
-
-	public void setMinderValideOnderzoekZiekenhuis(Boolean minderValideOnderzoekZiekenhuis)
-	{
-		this.minderValideOnderzoekZiekenhuis = minderValideOnderzoekZiekenhuis;
-	}
-
-	public List<MammaUitstel> getUitstellen()
-	{
-		return uitstellen;
-	}
-
-	public void setUitstellen(List<MammaUitstel> uitstellen)
-	{
-		this.uitstellen = uitstellen;
-	}
-
-	public MammaUitstel getLaatsteUitstel()
-	{
-		return laatsteUitstel;
-	}
-
-	public void setLaatsteUitstel(MammaUitstel laatsteUitstel)
-	{
-		this.laatsteUitstel = laatsteUitstel;
-	}
-
-	public MammaFollowUpConclusieStatus getFollowUpConclusieStatus()
-	{
-		return followUpConclusieStatus;
-	}
-
-	public void setFollowUpConclusieStatus(MammaFollowUpConclusieStatus followUpConclusieStatus)
-	{
-		this.followUpConclusieStatus = followUpConclusieStatus;
-	}
-
-	public void setFollowUpConclusieStatusGewijzigdOp(Date followUpConclusieStatusGewijzigdOp)
-	{
-		this.followUpConclusieStatusGewijzigdOp = followUpConclusieStatusGewijzigdOp;
-	}
-
-	public Date getFollowUpConclusieStatusGewijzigdOp()
-	{
-		return followUpConclusieStatusGewijzigdOp;
-	}
-
-	public List<MammaFollowUpRadiologieVerslag> getFollowUpRadiologieVerslagen()
-	{
-		return followUpRadiologieVerslagen;
-	}
-
-	public void setFollowUpRadiologieVerslagen(List<MammaFollowUpRadiologieVerslag> followUpRadiologieVerslagen)
-	{
-		this.followUpRadiologieVerslagen = followUpRadiologieVerslagen;
-	}
-
-	public List<MammaFollowUpVerslag> getFollowUpVerslagen()
-	{
-		return followUpVerslagen;
-	}
-
-	public void setFollowUpVerslagen(List<MammaFollowUpVerslag> followUpVerslagen)
-	{
-		this.followUpVerslagen = followUpVerslagen;
-	}
-
-	public Date getLaatstGebeldFollowUpNietGedownload()
-	{
-		return laatstGebeldFollowUpNietGedownload;
-	}
-
-	public void setLaatstGebeldFollowUpNietGedownload(Date laatstGebeldFollowUpNietGedownload)
-	{
-		this.laatstGebeldFollowUpNietGedownload = laatstGebeldFollowUpNietGedownload;
-	}
-
-	public List<MammaUploadBeeldenVerzoek> getUploadBeeldenVerzoeken()
-	{
-		return uploadBeeldenVerzoeken;
-	}
-
-	public void setUploadBeeldenVerzoeken(List<MammaUploadBeeldenVerzoek> uploadBeeldenVerzoeken)
-	{
-		this.uploadBeeldenVerzoeken = uploadBeeldenVerzoeken;
-	}
-
-	public MammaOnderzoek getLaatsteOnderzoek()
-	{
-		return laatsteOnderzoek;
-	}
-
-	public void setLaatsteOnderzoek(MammaOnderzoek laatsteOnderzoek)
-	{
-		this.laatsteOnderzoek = laatsteOnderzoek;
-	}
-
-	public List<MammaConclusieReview> getConclusieReviews()
-	{
-		return conclusieReviews;
-	}
-
-	public void setConclusieReviews(List<MammaConclusieReview> conclusieReviews)
-	{
-		this.conclusieReviews = conclusieReviews;
-	}
 }

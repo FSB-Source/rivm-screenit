@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -25,27 +25,27 @@
         <h3>Huisarts uit vorige ronde</h3>
     </div>
     <div class="modal-body">
-        <div style="display: block;" id="bevestigen" class="form-container huisarts-bevestigen">
-            <h2>Huisarts bevestigen</h2>
-            <div class="form-horizontal">
-                <div class="control-group value">
-                    <label class="control-label">Naam huisarts</label>
-                    <div class="controls" wicket:id="huisartsNaam">Vries, H. de</div>
-                </div>
-                <div class="control-group value">
-                    <label class="control-label">Praktijknaam</label>
-                    <div class="controls" wicket:id="praktijkNaam">
-                        Huisartspraktijk de Kameleon
-                    </div>
-                </div>
-                <div class="control-group value">
-                    <label class="control-label">Adres</label>
-                    <div class="controls" wicket:id="praktijkAdres">
-                        Plaats 9a <br> 8224AB Lelystad
-                    </div>
-                </div>
-                <div class="control-group value">
-                    <label class="control-label">Telefoonnummer</label>
+		<div id="bevestigen" class="form-container huisarts-bevestigen display-block">
+			<h2>Huisarts bevestigen</h2>
+			<div class="form-horizontal">
+				<div class="control-group value">
+					<label class="control-label">Naam huisarts</label>
+					<div class="controls" wicket:id="huisartsNaam">Vries, H. de</div>
+				</div>
+				<div class="control-group value">
+					<label class="control-label">Praktijknaam</label>
+					<div class="controls" wicket:id="praktijkNaam">
+						Huisartspraktijk de Kameleon
+					</div>
+				</div>
+				<div class="control-group value">
+					<label class="control-label">Adres</label>
+					<div class="controls" wicket:id="praktijkAdres">
+						Plaats 9a <br> 8224AB Lelystad
+					</div>
+				</div>
+				<div class="control-group value">
+					<label class="control-label">Telefoonnummer</label>
                     <div class="controls" wicket:id="telefoonnummer">0320-222506
                     </div>
                 </div>
@@ -74,8 +74,8 @@
     </div>
 
     <div class="modal-footer">
-        <a style="display: block;" id="terugNaarZoekenBtn"
-           class="btn pull-left" href="javascript:void(0);" wicket:id="terug">Andere huisarts selecteren</a>
+		<a class="display-block btn pull-left" id="terugNaarZoekenBtn"
+		   wicket:id="terug">Andere huisarts selecteren</a>
         <button data-dismiss="modal" class="btn" wicket:id="annuleren">Annuleren</button>
         <button id="huisartsOpslaanBtn" data-dismiss="modal"
                 class="btn btn-primary" wicket:id="opslaan">Selecteer

@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.component.table;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -42,6 +42,9 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.util.SingleSortState;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
+import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
@@ -58,6 +61,12 @@ import org.apache.wicket.model.Model;
 
 public class ScreenitDataTable<T, S> extends IndicatingAjaxLinkDataTable<T, S>
 {
+	@Override
+	public void renderHead(IHeaderResponse response)
+	{
+		super.renderHead(response);
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/mouse/mouseOverOut.js"));
+	}
 
 	private static final long serialVersionUID = 1L;
 
@@ -235,6 +244,21 @@ public class ScreenitDataTable<T, S> extends IndicatingAjaxLinkDataTable<T, S>
 
 	}
 
+	@Override
+	protected Item<T> newRowItem(String id, int index, IModel<T> model)
+	{
+		super.newRowItem(id, index, model);
+		return new Item<T>(id, index, model)
+		{
+			@Override
+			protected void onComponentTag(ComponentTag tag)
+			{
+				super.onComponentTag(tag);
+				tag.put("class", getCssClass(getIndex(), getModel()));
+			}
+		};
+	}
+
 	private Long berekenDeJuisteNummer(Long paginaNumber)
 	{
 
@@ -252,8 +276,10 @@ public class ScreenitDataTable<T, S> extends IndicatingAjaxLinkDataTable<T, S>
 		Item<IColumn<T, S>> returnItem = null;
 
 		final IColumn<T, S> column = model.getObject();
+
 		if (isRowClickable(getRowModel()) && !(column instanceof INotClickableColumn))
 		{
+
 			returnItem = new AjaxLinkItem<T, S>(id, index, model, getRowModel())
 			{
 				private static final long serialVersionUID = 1L;
@@ -262,6 +288,16 @@ public class ScreenitDataTable<T, S> extends IndicatingAjaxLinkDataTable<T, S>
 				public void onClickItem(AjaxRequestTarget target, IModel<T> theModel)
 				{
 					ScreenitDataTable.this.onClick(target, theModel);
+				}
+
+				@Override
+				protected void onComponentTag(ComponentTag tag)
+				{
+					super.onComponentTag(tag);
+					tag.remove("onmouseover");
+					tag.remove("onmouseout");
+					tag.remove("style");
+					tag.append("class", "js-on-mouse-over js-on-mouse-out move-handle ", " ");
 				}
 			};
 		}

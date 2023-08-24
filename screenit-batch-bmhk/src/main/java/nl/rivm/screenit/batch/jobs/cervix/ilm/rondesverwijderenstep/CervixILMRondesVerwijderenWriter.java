@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.ilm.rondesverwijderenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -97,7 +97,7 @@ public class CervixILMRondesVerwijderenWriter extends BaseWriter<CervixScreening
 		}
 		verplaatsteUitnodigingen.forEach(u -> ronde.getUitnodigingen().remove(u));
 		hibernateService.saveOrUpdateAll(ronde);
-		cervixBaseScreeningrondeService.verwijderCervixScreeningRonde(ronde);
+		cervixBaseScreeningrondeService.verwijderScreeningRonde(ronde);
 	}
 
 	private void verplaatsUitnodigingNaarRonde(CervixUitnodiging uitnodiging, CervixScreeningRonde origineleRonde, CervixScreeningRonde nieuweRonde)

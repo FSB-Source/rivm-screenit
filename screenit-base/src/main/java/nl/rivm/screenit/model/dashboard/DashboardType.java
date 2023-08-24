@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.dashboard;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -93,9 +93,11 @@ public enum DashboardType
 	CERVIX_DIGITALE_LABFORMULIER_FOUT_BERICHTEN("Digitaal labformulier fout berichten", List.of(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE),
 		Bevolkingsonderzoek.CERVIX),
 
-	CERVIX_HPV_KOPPELING("HPV koppeling", List.of(OrganisatieType.RIVM, OrganisatieType.BMHK_LABORATORIUM), Bevolkingsonderzoek.CERVIX),
+	CERVIX_HPV_KOPPELING("HPV koppeling (alleen analyseresultaten)", List.of(OrganisatieType.RIVM, OrganisatieType.BMHK_LABORATORIUM), Bevolkingsonderzoek.CERVIX),
 
-	CERVIX_ORDER("Order verwerking", List.of(OrganisatieType.RIVM, OrganisatieType.BMHK_LABORATORIUM), Bevolkingsonderzoek.CERVIX),
+	CERVIX_ORDER("Cytologie order verwerking", List.of(OrganisatieType.RIVM, OrganisatieType.BMHK_LABORATORIUM), Bevolkingsonderzoek.CERVIX),
+
+	CERVIX_HL7V2_KOPPELINGEN("HL7v2 koppelingen (alleen HPV order)", Bevolkingsonderzoek.CERVIX),
 
 	CERVIX_VERSLAG_CYTOLOGIE("Verslag cytologie", List.of(OrganisatieType.RIVM, OrganisatieType.BMHK_LABORATORIUM), Bevolkingsonderzoek.CERVIX),
 
@@ -108,6 +110,8 @@ public enum DashboardType
 	CERVIX_HPVMIN_UITSLAGEN_VERWIJDEREN("HPV(-) labformuliergegevens wissen + scans verwijderen", Bevolkingsonderzoek.CERVIX),
 
 	CERVIX_VERLATE_DEELNAME_COVID19("Verlate deelname COVID-19", Bevolkingsonderzoek.CERVIX),
+
+	CERVIX_OUDE_NIET_INGESTUURDE_ZAS("Herinneren oude ZAS (Z) insturen", Bevolkingsonderzoek.CERVIX),
 
 	CERVIX_ILM("ILM BMHK", Bevolkingsonderzoek.CERVIX),
 
@@ -153,11 +157,14 @@ public enum DashboardType
 
 	ILM_ALGEMENE_GEGEVENS_VERWIJDEREN("ILM algemene gegevens verwijderen", Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
 
+	WACHTWOORD_VERLOOPT_HERINNERING("Wachtwoord verloopt herinnering", Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
+
 	ENOVATION_HUISARTSEN("Enovation huisartsen import", Bevolkingsonderzoek.MAMMA, Bevolkingsonderzoek.COLON),
 
 	MAIL_LANDELIJK("Mail versturen", List.of(OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
 
 	SIGNALERING_GENDER("Signalering gender", Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
+
 	;
 
 	private final String naam;

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,9 @@ package nl.rivm.screenit.main.service.impl;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumMap;
@@ -33,13 +36,14 @@ import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.main.model.EmailConfiguratie;
 import nl.rivm.screenit.main.model.OvereenkomstConfiguratie;
 import nl.rivm.screenit.main.model.Parameterisatie;
-import nl.rivm.screenit.main.model.WachtwoordConfiguratie;
 import nl.rivm.screenit.main.model.mamma.IMSConfiguratie;
 import nl.rivm.screenit.main.service.ParameterisatieService;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie.dto.UitnodigingCohortDto;
@@ -53,7 +57,9 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaUitnodigingsinterval;
 import nl.rivm.screenit.model.mamma.enums.MammaUitnodigingsintervalType;
 import nl.rivm.screenit.model.project.Project;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.object.model.HibernateObject;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -64,7 +70,6 @@ import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,19 +77,18 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 @Slf4j
+@AllArgsConstructor
 public class ParameterisatieServiceImpl implements ParameterisatieService
 {
-	@Autowired
-	private SimplePreferenceService simplePreferenceService;
+	private final SimplePreferenceService simplePreferenceService;
 
-	@Autowired
-	private PreferenceService preferenceService;
+	private final PreferenceService preferenceService;
 
-	@Autowired
-	private LogService logService;
+	private final LogService logService;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
+
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
@@ -204,57 +208,56 @@ public class ParameterisatieServiceImpl implements ParameterisatieService
 			}
 			else if (clazz.equals(Date.class))
 			{
-				SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyyMMdd");
 				Date dateValue = null;
-				try
+				String string = simplePreferenceService.getString(preferenceKey.name());
+				if (StringUtils.isNotBlank(string))
 				{
-					String string = simplePreferenceService.getString(preferenceKey.name());
-					if (StringUtils.isNotBlank(string))
+					SimpleDateFormat dateFormatter = new SimpleDateFormat(Constants.DATE_FORMAT_YYYYMMDD);
+					try
 					{
 						dateValue = dateFormatter.parse(string);
 					}
-				}
-				catch (ParseException e)
-				{
-					dateValue = new Date();
+					catch (ParseException e)
+					{
+						dateValue = currentDateSupplier.getDate();
+					}
 				}
 				values.put(preferenceKey, dateValue);
+			}
+			else if (clazz.equals(LocalDate.class))
+			{
+				LocalDate dateValue = null;
+				String string = simplePreferenceService.getString(preferenceKey.name());
+				if (StringUtils.isNotBlank(string))
+				{
+					dateValue = LocalDate.parse(string, DateUtil.LOCAL_DATE_FORMAT);
+				}
+				values.put(preferenceKey, dateValue);
+			}
+			else if (clazz.equals(LocalDateTime.class))
+			{
+				LocalDateTime dateTimeValue = null;
+				String string = simplePreferenceService.getString(preferenceKey.name());
+				if (StringUtils.isNotBlank(string))
+				{
+					dateTimeValue = LocalDateTime.parse(string, DateUtil.LOCAL_DATE_TIME_FORMAT);
+				}
+				values.put(preferenceKey, dateTimeValue);
+			}
+			else if (clazz.equals(LocalTime.class))
+			{
+				LocalTime timeValue = null;
+				String string = simplePreferenceService.getString(preferenceKey.name());
+				if (StringUtils.isNotBlank(string))
+				{
+					timeValue = LocalTime.parse(string, DateUtil.LOCAL_TIME_FORMAT);
+				}
+				values.put(preferenceKey, timeValue);
 			}
 		}
 		parameterisatie.setParameters(values);
 		parameterisatie.setCohorten(hibernateService.loadAll(UitnodigingCohort.class));
 		return parameterisatie;
-	}
-
-	@Override
-	public WachtwoordConfiguratie loadWachtwoordConfiguratie()
-	{
-		WachtwoordConfiguratie wachtwoordConfiguratie = new WachtwoordConfiguratie();
-		wachtwoordConfiguratie.setWachtwoordaanvragen(simplePreferenceService.getBoolean(PreferenceKey.WACHTWOORDAANVRAGEN.name()));
-		wachtwoordConfiguratie.setWachtwoordemail(simplePreferenceService.getString(PreferenceKey.WACHTWOORDEMAIL.name()));
-		wachtwoordConfiguratie.setWachtwoordemailsubject(simplePreferenceService.getString(PreferenceKey.WACHTWOORDEMAILSUBJECT.name()));
-		wachtwoordConfiguratie.setUziemail(simplePreferenceService.getString(PreferenceKey.UZIEMAIL.name()));
-		wachtwoordConfiguratie.setUziemailsubject(simplePreferenceService.getString(PreferenceKey.UZIEMAILSUBJECT.name()));
-		wachtwoordConfiguratie.setDagenWachtwoordGeldig(simplePreferenceService.getInteger(PreferenceKey.DAGEN_WACHTWOORD_GELDIG.name()));
-		wachtwoordConfiguratie.setFoutieveAanmeldpogingenTimeout(simplePreferenceService.getInteger(PreferenceKey.FOUTIEVE_AANMELDPOGINGEN_TIMEOUT.name()));
-		wachtwoordConfiguratie.setMaximumFoutieveAanmeldpogingen(simplePreferenceService.getInteger(PreferenceKey.MAXIMUM_FOUTIEVE_AANMELDPOGINGEN.name()));
-
-		return wachtwoordConfiguratie;
-	}
-
-	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
-	public void saveOrUpdateWachtwoordConfiguratie(WachtwoordConfiguratie wachtwoordConfiguratie)
-	{
-		simplePreferenceService.putBoolean(PreferenceKey.WACHTWOORDAANVRAGEN.name(), wachtwoordConfiguratie.getWachtwoordaanvragen());
-		simplePreferenceService.putString(PreferenceKey.WACHTWOORDEMAIL.name(), wachtwoordConfiguratie.getWachtwoordemail());
-		simplePreferenceService.putString(PreferenceKey.WACHTWOORDEMAILSUBJECT.name(), wachtwoordConfiguratie.getWachtwoordemailsubject());
-		simplePreferenceService.putString(PreferenceKey.UZIEMAIL.name(), wachtwoordConfiguratie.getUziemail());
-		simplePreferenceService.putString(PreferenceKey.UZIEMAILSUBJECT.name(), wachtwoordConfiguratie.getUziemailsubject());
-		simplePreferenceService.putInteger(PreferenceKey.DAGEN_WACHTWOORD_GELDIG.name(), wachtwoordConfiguratie.getDagenWachtwoordGeldig());
-		simplePreferenceService.putInteger(PreferenceKey.FOUTIEVE_AANMELDPOGINGEN_TIMEOUT.name(), wachtwoordConfiguratie.getFoutieveAanmeldpogingenTimeout());
-		simplePreferenceService.putInteger(PreferenceKey.MAXIMUM_FOUTIEVE_AANMELDPOGINGEN.name(), wachtwoordConfiguratie.getMaximumFoutieveAanmeldpogingen());
-
 	}
 
 	private double getDoubleValue(PreferenceKey preferenceKey)
@@ -359,7 +362,8 @@ public class ParameterisatieServiceImpl implements ParameterisatieService
 			{
 				stringKeyNaam = key.name();
 			}
-			return stringKeyNaam + ": oud '" + oldValue + "' -> nieuw '" + value + "'";
+
+			return stringKeyNaam + ": oud '" + (oldValue != null ? oldValue : "<leeg>") + "' -> nieuw '" + value + "'";
 		}
 		return null;
 	}
@@ -377,7 +381,7 @@ public class ParameterisatieServiceImpl implements ParameterisatieService
 		}
 		else if (preferenceKey.getType().equals(Date.class))
 		{
-			SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyyMMdd");
+			SimpleDateFormat dateFormatter = new SimpleDateFormat(Constants.DATE_FORMAT_YYYYMMDD);
 			String stringValue = dateFormatter.format(value);
 			simplePreferenceService.putString(preferenceKey.name(), stringValue);
 		}
@@ -397,6 +401,25 @@ public class ParameterisatieServiceImpl implements ParameterisatieService
 		{
 			simplePreferenceService.putEnum(preferenceKey.name(), (Enum) value);
 		}
+		else if (preferenceKey.getType().equals(LocalTime.class))
+		{
+			var timeFormatter = DateUtil.LOCAL_TIME_FORMAT;
+			String stringValue = timeFormatter.format((LocalTime) value);
+			simplePreferenceService.putString(preferenceKey.name(), stringValue);
+		}
+		else if (preferenceKey.getType().equals(LocalDate.class))
+		{
+			var timeFormatter = DateUtil.LOCAL_DATE_FORMAT;
+			String stringValue = timeFormatter.format((LocalDate) value);
+			simplePreferenceService.putString(preferenceKey.name(), stringValue);
+		}
+		else if (preferenceKey.getType().equals(LocalDateTime.class))
+		{
+			var timeFormatter = DateUtil.LOCAL_DATE_TIME_FORMAT;
+			String stringValue = timeFormatter.format((LocalDateTime) value);
+			simplePreferenceService.putString(preferenceKey.name(), stringValue);
+		}
+
 		else if (value instanceof HibernateObject)
 		{
 			HibernateObject hibernateObject = (HibernateObject) value;

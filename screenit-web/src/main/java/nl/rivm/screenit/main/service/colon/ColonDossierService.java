@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.colon;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,7 +35,7 @@ public interface ColonDossierService
 
 	void monsterNietBeoordeelbaar(IFOBTTest ifobtTest);
 
-	void conclusieOpslaan(ColonIntakeAfspraak afspraak, ColonVervolgonderzoekKeuzesDto keuzes, InstellingGebruiker ingelogdeGebruiker, boolean wasOnHold);
+	void conclusieOpslaan(ColonIntakeAfspraak afspraak, ColonVervolgonderzoekKeuzesDto keuzes, InstellingGebruiker ingelogdeGebruiker, ColonConclusieType voorgaandeConclusie);
 
 	void verwijderScannedAntwoordFormulier(ColonUitnodiging uitnodiging, InstellingGebruiker ingelogdeGebruiker);
 

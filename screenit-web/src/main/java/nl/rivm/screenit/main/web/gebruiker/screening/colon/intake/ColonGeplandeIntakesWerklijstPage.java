@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.intake;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,8 +24,11 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.intake;
 import java.util.ArrayList;
 import java.util.List;
 
+import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ConclusieTypeFilter;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
+
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 
 public class ColonGeplandeIntakesWerklijstPage extends WerklijstIntakePage
 {
@@ -38,6 +41,16 @@ public class ColonGeplandeIntakesWerklijstPage extends WerklijstIntakePage
 	@Override
 	protected List<ConclusieTypeFilter> getFilterOpties()
 	{
-		return new ArrayList<ConclusieTypeFilter>();
+		return new ArrayList<>();
+	}
+
+	@Override
+	protected List<IColumn<ColonIntakeAfspraak, String>> getColumns()
+	{
+		var columns = super.getColumns();
+		addDatumBriefAfspraakColumn(columns);
+		addHuisartsColumn(columns);
+		addVerwezenColumn(columns);
+		return columns;
 	}
 }

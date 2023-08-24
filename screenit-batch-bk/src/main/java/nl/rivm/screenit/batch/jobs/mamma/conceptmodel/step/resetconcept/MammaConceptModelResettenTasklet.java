@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.conceptmodel.step.resetconcept;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -57,7 +57,7 @@ public class MammaConceptModelResettenTasklet implements Tasklet
 	public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)
 	{
 		RestTemplate restApi = RestApiFactory.create();
-		restApi.postForEntity(planningBkRestUrl + PlanningRestConstants.C_ACTIE + "/readModel", null, String.class);
+		restApi.postForEntity(planningBkRestUrl + PlanningRestConstants.C_ACTIE + "/" + PlanningRestConstants.C_READMODEL, null, String.class);
 
 		return RepeatStatus.FINISHED;
 	}

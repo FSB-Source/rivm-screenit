@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,18 +33,16 @@ import nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten.fragm
 import nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten.fragments.ClientFieldsFragment;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten.fragments.IntakeLocatieFieldsFragment;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten.fragments.MergeFieldsFragment;
-import nl.rivm.screenit.model.BMHKLaboratorium;
-import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.Gemeente;
+import nl.rivm.screenit.model.Brief;
 import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.model.ZASRetouradres;
 import nl.rivm.screenit.model.cervix.CervixBrief;
-import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
+import nl.rivm.screenit.model.colon.ColonBrief;
+import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.MergeFieldTestType;
-import nl.rivm.screenit.model.overeenkomsten.AfgeslotenMedewerkerOvereenkomst;
+import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ClientService;
 import nl.topicuszorg.spring.injection.SpringBeanProvider;
@@ -250,7 +248,7 @@ public abstract class DocumentTemplateTestenFieldsPanel extends GenericPanel<Doc
 			{
 				return mergeFieldTestType == MergeFieldTestType.BMHKLAB
 					? new BooleanFragment("extraField", DocumentTemplateTestenFieldsPanel.this,
-						new PropertyModel<>(DocumentTemplateTestenFieldsPanel.this.getModel(), "microbioloog"))
+					new PropertyModel<>(DocumentTemplateTestenFieldsPanel.this.getModel(), "microbioloog"))
 					: new EmptyPanel("extraField").setVisible(false);
 			}
 
@@ -259,7 +257,7 @@ public abstract class DocumentTemplateTestenFieldsPanel extends GenericPanel<Doc
 			{
 				super.renderHead(response);
 				response.render(OnDomReadyHeaderItem.forScript("toggleChevron();"));
-			};
+			}
 		};
 	}
 
@@ -301,32 +299,49 @@ public abstract class DocumentTemplateTestenFieldsPanel extends GenericPanel<Doc
 	public static MailMergeContext createMailMergeContext(final DocumentTemplateTestWrapper wrapper,
 		final ScreeningOrganisatie screeningOrganisatie)
 	{
-		BMHKLaboratorium bmhkLaboratorium = wrapper.getBmhkLaboratorium();
-		ZASRetouradres zasRetouradres = bmhkLaboratorium.getRetouradressen().get(0);
-		CervixUitnodiging cervixUitnodiging = wrapper.getCervixUitnodiging();
-		AfgeslotenMedewerkerOvereenkomst overeenkomst = wrapper.getOvereenkomst();
-		Client client = wrapper.getClient();
-		Gemeente gbaGemeente = client.getPersoon().getGbaAdres().getGbaGemeente();
-
-		gbaGemeente.setScreeningOrganisatie(screeningOrganisatie);
-		zasRetouradres.setRegio(screeningOrganisatie);
-		overeenkomst.setScreeningOrganisatie(screeningOrganisatie);
-
-		MailMergeContext context = new MailMergeContext();
-		context.setUseTestValue(Boolean.TRUE);
-		context.setClient(client);
-		context.setCervixUitnodiging(cervixUitnodiging);
-		context.setOvereenkomst(overeenkomst);
-		context.putValue(MailMergeContext.CONTEXT_SCREENING_ORGANISATIE, screeningOrganisatie);
-		context.putValue(MailMergeContext.CONTEXT_MAMMA_CE, SpringBeanProvider.getInstance().getBean(ClientService.class).bepaalCe(client));
-		context.setIntakeAfspraak(wrapper.getIntakeAfspraak());
-		context.setBmhkLaboratorium(bmhkLaboratorium);
-
-		CervixBrief brief = new CervixBrief();
+		var context = maakBasicContext(wrapper, screeningOrganisatie);
+		var brief = maakCervixBrief(wrapper);
 		context.setBrief(brief);
-		brief.setMonster(cervixUitnodiging.getMonster());
 
-		CervixUitstrijkje cervixUitstrijkje = (CervixUitstrijkje) brief.getMonster();
+		return context;
+	}
+
+	public static MailMergeContext createMailMergeContext(final DocumentTemplateTestWrapper wrapper,
+		final ScreeningOrganisatie screeningOrganisatie, BriefType printType)
+	{
+		var context = maakBasicContext(wrapper, screeningOrganisatie);
+
+		Brief brief;
+		if (printType != null)
+		{
+			switch (printType.getOnderzoeken()[0])
+			{
+			case COLON:
+				brief = new ColonBrief();
+				break;
+			case CERVIX:
+				brief = maakCervixBrief(wrapper);
+				break;
+			case MAMMA:
+				brief = new MammaBrief();
+				break;
+			default:
+				throw new IllegalStateException("Brief heeft altijd een BVO type");
+			}
+			brief.setBriefType(printType);
+			context.setBrief(brief);
+		}
+
+		return context;
+	}
+
+	private static CervixBrief maakCervixBrief(final DocumentTemplateTestWrapper wrapper)
+	{
+		var cervixBrief = new CervixBrief();
+		var cervixUitnodiging = wrapper.getCervixUitnodiging();
+
+		cervixBrief.setMonster(cervixUitnodiging.getMonster());
+		var cervixUitstrijkje = (CervixUitstrijkje) cervixUitnodiging.getMonster();
 		if (wrapper.isFromDBBMHKLAB()
 			&& wrapper.isMicrobioloog())
 		{
@@ -336,6 +351,33 @@ public abstract class DocumentTemplateTestenFieldsPanel extends GenericPanel<Doc
 		{
 			cervixUitstrijkje.setUitstrijkjeStatus(CervixUitstrijkjeStatus.BEOORDEELD_DOOR_CYTOLOGIE);
 		}
+
+		return cervixBrief;
+	}
+
+	private static MailMergeContext maakBasicContext(final DocumentTemplateTestWrapper wrapper,
+		final ScreeningOrganisatie screeningOrganisatie)
+	{
+		var bmhkLaboratorium = wrapper.getBmhkLaboratorium();
+		var zasRetouradres = bmhkLaboratorium.getRetouradressen().get(0);
+		var cervixUitnodiging = wrapper.getCervixUitnodiging();
+		var overeenkomst = wrapper.getOvereenkomst();
+		var client = wrapper.getClient();
+		var gbaGemeente = client.getPersoon().getGbaAdres().getGbaGemeente();
+
+		gbaGemeente.setScreeningOrganisatie(screeningOrganisatie);
+		zasRetouradres.setRegio(screeningOrganisatie);
+		overeenkomst.setScreeningOrganisatie(screeningOrganisatie);
+
+		var context = new MailMergeContext();
+		context.setUseTestValue(Boolean.TRUE);
+		context.setClient(client);
+		context.setCervixUitnodiging(cervixUitnodiging);
+		context.setOvereenkomst(overeenkomst);
+		context.putValue(MailMergeContext.CONTEXT_SCREENING_ORGANISATIE, screeningOrganisatie);
+		context.putValue(MailMergeContext.CONTEXT_MAMMA_CE, SpringBeanProvider.getInstance().getBean(ClientService.class).bepaalCe(client));
+		context.setIntakeAfspraak(wrapper.getIntakeAfspraak());
+		context.setBmhkLaboratorium(bmhkLaboratorium);
 
 		return context;
 	}

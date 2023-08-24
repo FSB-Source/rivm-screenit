@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -20,19 +20,19 @@
   -->
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-        <h3>Volledige melding</h3>
-    </div>
-    <div class="modal-body form-horizontal" style="max-height: 600px;">
-        <div class="control-group span12">
-            <div class="row">
-                <div wicket:id="melding"></div>
-            </div>
-        </div>
-    </div>
-    <div class="modal-footer">
-        <a href="javascript:void(0);" class="btn btn-primary" data-dismiss="modal">Sluiten</a>
-    </div>
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal">&times;</button>
+		<h3>Volledige melding</h3>
+	</div>
+	<div class="modal-body form-horizontal max-height-600px">
+		<div class="control-group span12">
+			<div class="row">
+				<div wicket:id="melding"></div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-footer">
+		<a  class="btn btn-primary" data-dismiss="modal">Sluiten</a>
+	</div>
 </wicket:panel>
 </html>

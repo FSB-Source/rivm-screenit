@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.algemeen.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,6 @@ import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +42,6 @@ import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.EnovationHuisarts;
 import nl.rivm.screenit.model.GbaPersoon;
-import nl.rivm.screenit.model.OnbekendeHuisarts;
 import nl.rivm.screenit.model.TijdelijkAdres;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.algemeen.AlgemeneBrief;
@@ -60,12 +58,10 @@ import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
 import nl.rivm.screenit.model.cervix.cis.CervixCISHistorieOngestructureerdRegel;
-import nl.rivm.screenit.model.cervix.verslag.CervixVerslag;
 import nl.rivm.screenit.model.colon.ColonConclusie;
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
-import nl.rivm.screenit.model.colon.ColonVerslag;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
@@ -85,10 +81,8 @@ import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaGeenHuisartsOption;
 import nl.rivm.screenit.model.mamma.enums.MammaIdentificatiesoort;
-import nl.rivm.screenit.model.mamma.verslag.MammaVerslag;
 import nl.rivm.screenit.model.verslag.NullFlavourQuantity;
 import nl.rivm.screenit.model.verslag.Quantity;
-import nl.rivm.screenit.model.verslag.VerslagContent;
 import nl.rivm.screenit.model.verslag.VraagElement;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -98,7 +92,7 @@ import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.MammaBaseLaesieService;
 import nl.rivm.screenit.util.AdresUtil;
-import nl.rivm.screenit.util.IFOBTTestUtil;
+import nl.rivm.screenit.util.FITTestUtil;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.rivm.screenit.util.StringUtil;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
@@ -126,7 +120,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.Version;
@@ -198,7 +191,7 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 
 	private void vervangGetekendeFormulier(OverdrachtPersoonsgegevens overdracht, UploadDocument nieuwDocument, Account account) throws IOException
 	{
-		uploadDocumentService.delete(overdracht.getOntvangenAanvraagbrief(), true);
+		uploadDocumentService.delete(overdracht.getOntvangenAanvraagbrief());
 		overdracht.setOntvangenAanvraagbrief(nieuwDocument);
 		saveOrUpdateGetekendFormulier(overdracht, nieuwDocument);
 		logService.logGebeurtenis(LogGebeurtenis.VERVANGEN_DOCUMENT, account, overdracht.getClient(), "Formulier inzage/overdracht persoonsgegevens is vervangen.");
@@ -245,17 +238,17 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 			Client client = overdrachtPersoonsgegevens.getClient();
 			GbaPersoon persoon = client.getPersoon();
 			addClientGegevens(workbook, createHelper, cellStyleDate, persoon);
-			if (overdrachtPersoonsgegevens.getDkGegevens())
+			if (Boolean.TRUE.equals(overdrachtPersoonsgegevens.getDkGegevens()))
 			{
-				addDkGegevens(workbook, createHelper, cellStyleDate, cellStyleDateTime, client.getColonDossier());
+				addDkGegevens(workbook, cellStyleDate, cellStyleDateTime, client.getColonDossier());
 			}
-			if (overdrachtPersoonsgegevens.getBmhkGegevens())
+			if (Boolean.TRUE.equals(overdrachtPersoonsgegevens.getBmhkGegevens()))
 			{
-				addBmhkGegevens(workbook, createHelper, cellStyleDate, cellStyleDateTime, client.getCervixDossier());
+				addBmhkGegevens(workbook, cellStyleDateTime, client.getCervixDossier());
 			}
-			if (overdrachtPersoonsgegevens.getBkGegevens())
+			if (Boolean.TRUE.equals(overdrachtPersoonsgegevens.getBkGegevens()))
 			{
-				addBkGegevens(workbook, createHelper, cellStyleDate, cellStyleDateTime, client.getMammaDossier());
+				addBkGegevens(workbook, cellStyleDateTime, client.getMammaDossier());
 			}
 			workbook.write(outputStream);
 			logService.logGebeurtenis(LogGebeurtenis.CLIENT_OVERDRACHT_PERSOONSGEGEVENS_GEDOWNLOAD, account, overdrachtPersoonsgegevens.getClient());
@@ -267,79 +260,79 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 		}
 	}
 
-	private void addBkGegevens(Workbook workbook, CreationHelper createHelper, CellStyle cellStyleDate, CellStyle cellStyleDateTime, MammaDossier mammaDossier)
+	private void addBkGegevens(Workbook workbook, CellStyle cellStyleDateTime, MammaDossier mammaDossier)
 	{
 		Sheet sheet = workbook.createSheet(Bevolkingsonderzoek.MAMMA.getNaam());
 		List<MammaScreeningRonde> rondes = new ArrayList<>(mammaDossier.getScreeningRondes());
-		Collections.sort(rondes, new PropertyComparator<>("creatieDatum", false, true));
+		rondes.sort(new PropertyComparator<>("creatieDatum", false, true));
 
-		addRow(sheet, "Doelgroep", StringUtil.enumName2readableString(mammaDossier.getDoelgroep().name()), workbook, null);
+		addRow(sheet, "Doelgroep", StringUtil.enumName2readableString(mammaDossier.getDoelgroep().name()), null);
 		for (MammaScreeningRonde ronde : rondes)
 		{
-			addRow(sheet, "Ronde", rondeNummerService.geefRondeNummer(ronde), ronde.getCreatieDatum(), workbook, cellStyleDateTime);
-			addBkHuisarts(workbook, cellStyleDateTime, sheet, ronde);
-			addBkOnderzoeken(workbook, cellStyleDateTime, sheet, ronde);
-			addBKFollowUpVerslagen(workbook, cellStyleDateTime, sheet, ronde);
+			addRow(sheet, "Ronde", rondeNummerService.geefRondeNummer(ronde), ronde.getCreatieDatum(), cellStyleDateTime);
+			addBkHuisarts(cellStyleDateTime, sheet, ronde);
+			addBkOnderzoeken(cellStyleDateTime, sheet, ronde);
+			addBKFollowUpVerslagen(cellStyleDateTime, sheet, ronde);
 			addEmptyRow(sheet);
 		}
 	}
 
-	private void addBkHuisarts(Workbook workbook, CellStyle cellStyleDateTime, Sheet sheet, MammaScreeningRonde ronde)
+	private void addBkHuisarts(CellStyle cellStyleDateTime, Sheet sheet, MammaScreeningRonde ronde)
 	{
 		EnovationHuisarts huisarts = ronde.getHuisarts();
 		if (huisarts != null)
 		{
-			addRow(sheet, "Huisarts", getVolledigeHuisArtsTekst(huisarts), ronde.getDatumVastleggenHuisarts(), workbook, cellStyleDateTime);
+			addRow(sheet, "Huisarts", getVolledigeHuisArtsTekst(huisarts), ronde.getDatumVastleggenHuisarts(), cellStyleDateTime);
 		}
 		else
 		{
 			MammaGeenHuisartsOption geenHuisartsOptie = ronde.getGeenHuisartsOptie();
 			if (geenHuisartsOptie != null)
 			{
-				addRow(sheet, "Huisarts", geenHuisartsOptie.name(), ronde.getDatumVastleggenHuisarts(), workbook, cellStyleDateTime);
+				addRow(sheet, "Huisarts", geenHuisartsOptie.name(), ronde.getDatumVastleggenHuisarts(), cellStyleDateTime);
 			}
 		}
 	}
 
-	private void addBkOnderzoeken(Workbook workbook, CellStyle cellStyleDateTime, Sheet sheet, MammaScreeningRonde ronde)
+	private void addBkOnderzoeken(CellStyle cellStyleDateTime, Sheet sheet, MammaScreeningRonde ronde)
 	{
 		List<MammaUitnodiging> uitnodigingen = ronde.getUitnodigingen();
 		for (MammaUitnodiging uitnodiging : uitnodigingen)
 		{
 			for (MammaAfspraak afspraak : uitnodiging.getAfspraken())
 			{
-				addBkAfspraakIdentificatie(workbook, cellStyleDateTime, sheet, afspraak);
-				addBkOnderzoekSe(workbook, cellStyleDateTime, sheet, afspraak);
-				addBkBeoordelingen(workbook, cellStyleDateTime, sheet, afspraak.getOnderzoek());
+				addBkAfspraakIdentificatie(cellStyleDateTime, sheet, afspraak);
+				addBkOnderzoekSe(cellStyleDateTime, sheet, afspraak);
+				addBkBeoordelingen(cellStyleDateTime, sheet, afspraak.getOnderzoek());
 			}
 		}
 	}
 
-	private void addBkLaesies(Workbook workbook, CellStyle cellStyleDateTime, Sheet sheet, MammaBeoordeling beoordeling)
+	private void addBkLaesies(CellStyle cellStyleDateTime, Sheet sheet, MammaBeoordeling beoordeling)
 	{
 		if (beoordeling.getVerslagLezing() != null)
 		{
 			String laesieString = baseLaesieService.getAllLaesieTekstVoorVerslagLezing(beoordeling.getVerslagLezing());
-			addRow(sheet, "Laesies", laesieString, beoordeling.getStatusDatum(), workbook, cellStyleDateTime);
+			addRow(sheet, "Laesies", laesieString, beoordeling.getStatusDatum(), cellStyleDateTime);
 		}
 	}
 
-	private void addBkNevenbevindingen(Workbook workbook, CellStyle cellStyleDateTime, Sheet sheet, MammaBeoordeling beoordeling)
+	private void addBkNevenbevindingen(CellStyle cellStyleDateTime, Sheet sheet, MammaBeoordeling beoordeling)
 	{
 		if (baseBeoordelingService.heeftBeoordelingNevenbevindingen(beoordeling))
 		{
 			String nevenbevindingenString = baseBeoordelingService.getMammaLezingEnumsTekst(MammaLezing::getNevenbevindingen, beoordeling.getEersteLezing(),
 				beoordeling.getTweedeLezing());
 			String nevenbevindingOpmerkingTekst = baseBeoordelingService.getNevenbevindingOpmerkingTekst("\n", beoordeling.getEersteLezing(), beoordeling.getTweedeLezing());
-			addRow(sheet, "Nevenbevindingen", nevenbevindingenString, beoordeling.getStatusDatum(), workbook, cellStyleDateTime);
+			addRow(sheet, "Nevenbevindingen", nevenbevindingenString, beoordeling.getStatusDatum(), cellStyleDateTime);
 			if (nevenbevindingOpmerkingTekst != null)
 			{
-				addRow(sheet, "Nevenbevindingen opmerking", nevenbevindingOpmerkingTekst, beoordeling.getStatusDatum(), workbook, cellStyleDateTime);
+				addRow(sheet, "Nevenbevindingen opmerking", nevenbevindingOpmerkingTekst, beoordeling.getStatusDatum(), cellStyleDateTime);
 			}
 		}
 	}
 
-	private void addBkBeoordelingen(Workbook workbook, CellStyle cellStyleDateTime, Sheet sheet, MammaOnderzoek onderzoek)
+	private void addBkBeoordelingen(CellStyle cellStyleDateTime, Sheet sheet, MammaOnderzoek onderzoek)
 	{
 		if (onderzoek != null)
 		{
@@ -347,15 +340,15 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 			{
 				if (MammaBeoordelingStatus.isUitslagStatus(beoordeling.getStatus()))
 				{
-					addRow(sheet, "Uitslag", beoordeling.getStatus().getNaam(), beoordeling.getStatusDatum(), workbook, cellStyleDateTime);
-					addBkLaesies(workbook, cellStyleDateTime, sheet, beoordeling);
-					addBkNevenbevindingen(workbook, cellStyleDateTime, sheet, beoordeling);
+					addRow(sheet, "Uitslag", beoordeling.getStatus().getNaam(), beoordeling.getStatusDatum(), cellStyleDateTime);
+					addBkLaesies(cellStyleDateTime, sheet, beoordeling);
+					addBkNevenbevindingen(cellStyleDateTime, sheet, beoordeling);
 				}
 			}
 		}
 	}
 
-	private void addBkOnderzoekSe(Workbook workbook, CellStyle cellStyleDateTime, Sheet sheet, MammaAfspraak afspraak)
+	private void addBkOnderzoekSe(CellStyle cellStyleDateTime, Sheet sheet, MammaAfspraak afspraak)
 	{
 		String label = "Afspraak";
 		String status = StringUtil.enumName2readableString(afspraak.getStatus().name());
@@ -370,10 +363,10 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 			datum = onderzoek.getAfgerondOp() != null ? onderzoek.getAfgerondOp() : onderzoek.getCreatieDatum();
 			label = "Onderzoek";
 		}
-		addRow(sheet, label, status + " : " + se, datum, workbook, cellStyleDateTime);
+		addRow(sheet, label, status + " : " + se, datum, cellStyleDateTime);
 	}
 
-	private void addBkAfspraakIdentificatie(Workbook workbook, CellStyle cellStyleDateTime, Sheet sheet, MammaAfspraak afspraak)
+	private void addBkAfspraakIdentificatie(CellStyle cellStyleDateTime, Sheet sheet, MammaAfspraak afspraak)
 	{
 		String identificatienummer = afspraak.getIdentificatienummer();
 		MammaIdentificatiesoort identificatieSoort = afspraak.getIdentificatiesoort();
@@ -382,38 +375,37 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 			addRow(sheet, "Identificatie",
 				StringUtil.enumName2readableString(identificatieSoort.name()) + " : " + identificatienummer,
 				afspraak.getIngeschrevenOp(),
-				workbook, cellStyleDateTime);
+				cellStyleDateTime);
 		}
 	}
 
-	private void addBKFollowUpVerslagen(Workbook workbook, CellStyle cellStyleDateTime, Sheet sheet, MammaScreeningRonde ronde)
+	private void addBKFollowUpVerslagen(CellStyle cellStyleDateTime, Sheet sheet, MammaScreeningRonde ronde)
 	{
-		for (MammaVerslag verslag : ronde.getFollowUpVerslagen())
+		for (var verslag : ronde.getFollowUpVerslagen())
 		{
-			addVerslagRow(workbook, cellStyleDateTime, sheet, verslag);
+			addVerslagRow(cellStyleDateTime, sheet, verslag);
 		}
-		for (MammaFollowUpRadiologieVerslag radiologieVerslag : ronde.getFollowUpRadiologieVerslagen())
+		for (var radiologieVerslag : ronde.getFollowUpRadiologieVerslagen())
 		{
-			addMammaFollowUpRadiologieverslagRow(workbook, cellStyleDateTime, sheet, radiologieVerslag);
+			addMammaFollowUpRadiologieverslagRow(cellStyleDateTime, sheet, radiologieVerslag);
 		}
 	}
 
-	private void addDkGegevens(Workbook workbook, CreationHelper createHelper, CellStyle cellStyleDate, CellStyle cellStyleDateTime, ColonDossier dossier)
+	private void addDkGegevens(Workbook workbook, CellStyle cellStyleDate, CellStyle cellStyleDateTime, ColonDossier dossier)
 	{
 		Sheet sheet = workbook.createSheet(Bevolkingsonderzoek.COLON.getNaam());
 		List<ColonScreeningRonde> rondes = new ArrayList<>(dossier.getScreeningRondes());
-		Collections.sort(rondes, new PropertyComparator<ColonScreeningRonde>("creatieDatum", false, true));
+		rondes.sort(new PropertyComparator<>("creatieDatum", false, true));
 		for (ColonScreeningRonde ronde : rondes)
 		{
-			addRow(sheet, "Ronde", rondeNummerService.geefRondeNummer(ronde), ronde.getCreatieDatum(), workbook, cellStyleDateTime);
-			addDkHuisarts(workbook, cellStyleDateTime, sheet, ronde);
-			addDkOnbekendeHuisarts(workbook, cellStyleDateTime, sheet, ronde);
-			addFITUitslagen(workbook, cellStyleDateTime, sheet, ronde);
-			addIntakeConclusies(workbook, cellStyleDate, cellStyleDateTime, sheet, ronde);
-			addDkVerslagen(workbook, cellStyleDateTime, sheet, ronde);
+			addRow(sheet, "Ronde", rondeNummerService.geefRondeNummer(ronde), ronde.getCreatieDatum(), cellStyleDateTime);
+			addDkHuisarts(cellStyleDateTime, sheet, ronde);
+			addFITUitslagen(cellStyleDateTime, sheet, ronde);
+			addIntakeConclusies(cellStyleDate, cellStyleDateTime, sheet, ronde);
+			addDkVerslagen(cellStyleDateTime, sheet, ronde);
 			if (ronde.getDefinitiefVervolgbeleid() != null)
 			{
-				addRow(sheet, "Definitief vervolgbeleid", ronde.getDefinitiefVervolgbeleid(), ronde.getStatusDatum(), workbook, cellStyleDateTime);
+				addRow(sheet, "Definitief vervolgbeleid", ronde.getDefinitiefVervolgbeleid(), ronde.getStatusDatum(), cellStyleDateTime);
 			}
 			addEmptyRow(sheet);
 		}
@@ -421,113 +413,101 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 		sheet.autoSizeColumn(2);
 	}
 
-	private void addDkHuisarts(Workbook workbook, CellStyle cellStyleDateTime, Sheet sheet, ColonScreeningRonde ronde)
+	private void addDkHuisarts(CellStyle cellStyleDateTime, Sheet sheet, ColonScreeningRonde ronde)
 	{
 		EnovationHuisarts huisarts = ronde.getColonHuisarts();
 		if (huisarts != null)
 		{
-			addRow(sheet, "Huisarts", getVolledigeHuisArtsTekst(huisarts), ronde.getDatumVastleggenHuisarts(), workbook, cellStyleDateTime);
+			addRow(sheet, "Huisarts", getVolledigeHuisArtsTekst(huisarts), ronde.getDatumVastleggenHuisarts(), cellStyleDateTime);
 		}
 	}
 
-	private void addDkOnbekendeHuisarts(Workbook workbook, CellStyle cellStyleDateTime, Sheet sheet, ColonScreeningRonde ronde)
-	{
-		OnbekendeHuisarts onbekendeHuisarts = ronde.getOnbekendeHuisarts();
-		if (onbekendeHuisarts != null)
-		{
-			String volledigeHuisartsTekst = "Huisarts: " + NaamUtil.getNaamOnbekendeHuisarts(onbekendeHuisarts) + ", Praktijk: " + onbekendeHuisarts.getPraktijkNaam()
-				+ ", Adres: "
-				+ AdresUtil.getOnbekendeHuisartsAdres(onbekendeHuisarts);
-			addRow(sheet, "Onbekende huisarts", volledigeHuisartsTekst, ronde.getDatumVastleggenHuisarts(), workbook, cellStyleDateTime);
-		}
-	}
-
-	private void addFITUitslagen(Workbook workbook, CellStyle cellStyleDateTime, Sheet sheet, ColonScreeningRonde ronde)
+	private void addFITUitslagen(CellStyle cellStyleDateTime, Sheet sheet, ColonScreeningRonde ronde)
 	{
 		for (IFOBTTest test : ronde.getIfobtTesten())
 		{
 			if (test.getStatus() == IFOBTTestStatus.UITGEVOERD && test.getUitslag() != null)
 			{
 				String interpretatie = "";
-				if (IFOBTTestUtil.isGunstig(test))
+				if (FITTestUtil.isGunstig(test))
 				{
 					interpretatie = "(gunstig)";
 				}
-				else if (IFOBTTestUtil.isOngunstig(test))
+				else if (FITTestUtil.isOngunstig(test))
 				{
 					interpretatie = "(ongunstig)";
 				}
-				addRow(sheet, "Uitslag FIT " + interpretatie, test.getUitslag().doubleValue(), test.getStatusDatum(), workbook, cellStyleDateTime);
+				addRow(sheet, "Uitslag FIT " + interpretatie, test.getUitslag().doubleValue(), test.getStatusDatum(), cellStyleDateTime);
 			}
 		}
 	}
 
-	private void addIntakeConclusies(Workbook workbook, CellStyle cellStyleDate, CellStyle cellStyleDateTime, Sheet sheet, ColonScreeningRonde ronde)
+	private void addIntakeConclusies(CellStyle cellStyleDate, CellStyle cellStyleDateTime, Sheet sheet, ColonScreeningRonde ronde)
 	{
 		for (ColonIntakeAfspraak afspraak : ronde.getAfspraken())
 		{
 			ColonConclusie conclusie = afspraak.getConclusie();
 			if (afspraak.getStatus() == AfspraakStatus.UITGEVOERD && conclusie != null)
 			{
-				addRow(sheet, "Conclusie intake afspraak", conclusie.getType(), conclusie.getDatum(), workbook, cellStyleDateTime);
+				addRow(sheet, "Conclusie intake afspraak", conclusie.getType(), conclusie.getDatum(), cellStyleDateTime);
 				if (conclusie.getType() == ColonConclusieType.COLOSCOPIE)
 				{
-					addRow(sheet, "Datum coloscopie", conclusie.getDatumColoscopie(), conclusie.getDatum(), workbook, cellStyleDate, cellStyleDateTime);
+					addRow(sheet, "Datum coloscopie", conclusie.getDatumColoscopie(), conclusie.getDatum(), cellStyleDate, cellStyleDateTime);
 				}
 			}
 		}
 	}
 
-	private void addDkVerslagen(Workbook workbook, CellStyle cellStyleDateTime, Sheet sheet, ColonScreeningRonde ronde)
+	private void addDkVerslagen(CellStyle cellStyleDateTime, Sheet sheet, ColonScreeningRonde ronde)
 	{
-		for (ColonVerslag verslag : ronde.getVerslagen())
+		for (var verslag : ronde.getVerslagen())
 		{
-			addVerslagRow(workbook, cellStyleDateTime, sheet, verslag);
+			addVerslagRow(cellStyleDateTime, sheet, verslag);
 		}
 	}
 
-	private void addBmhkGegevens(Workbook workbook, CreationHelper createHelper, CellStyle cellStyleDate, CellStyle cellStyleDateTime, CervixDossier dossier)
+	private void addBmhkGegevens(Workbook workbook, CellStyle cellStyleDateTime, CervixDossier dossier)
 	{
 		Sheet sheet = workbook.createSheet(Bevolkingsonderzoek.CERVIX.getNaam());
 		List<CervixScreeningRonde> rondes = new ArrayList<>(dossier.getScreeningRondes());
-		Collections.sort(rondes, new PropertyComparator<CervixScreeningRonde>("creatieDatum", false, true));
+		rondes.sort(new PropertyComparator<>("creatieDatum", false, true));
 		for (CervixScreeningRonde ronde : rondes)
 		{
-			addRow(sheet, "Ronde", rondeNummerService.geefRondeNummer(ronde), ronde.getCreatieDatum(), workbook, cellStyleDateTime);
-			addBmhkUitslagen(workbook, cellStyleDateTime, sheet, ronde);
-			addBmhkVerslagen(workbook, cellStyleDateTime, sheet, ronde);
+			addRow(sheet, "Ronde", rondeNummerService.geefRondeNummer(ronde), ronde.getCreatieDatum(), cellStyleDateTime);
+			addBmhkUitslagen(cellStyleDateTime, sheet, ronde);
+			addBmhkVerslagen(cellStyleDateTime, sheet, ronde);
 			addEmptyRow(sheet);
 		}
-		addCISHistorie(workbook, cellStyleDateTime, dossier, sheet);
+		addCISHistorie(cellStyleDateTime, dossier, sheet);
 		sheet.autoSizeColumn(0);
 		sheet.autoSizeColumn(2);
 	}
 
-	private void addBmhkUitslagen(Workbook workbook, CellStyle cellStyleDateTime, Sheet sheet, CervixScreeningRonde ronde)
+	private void addBmhkUitslagen(CellStyle cellStyleDateTime, Sheet sheet, CervixScreeningRonde ronde)
 	{
 		List<CervixMonster> ontvangenMonsters = cervixRondeDao.getOntvangenMonsters(ronde);
 		for (CervixMonster monster : ontvangenMonsters)
 		{
-			addUitstrijkje(workbook, cellStyleDateTime, sheet, monster);
-			addZAS(workbook, cellStyleDateTime, sheet, monster);
+			addUitstrijkje(cellStyleDateTime, sheet, monster);
+			addZAS(cellStyleDateTime, sheet, monster);
 		}
 	}
 
-	private void addUitstrijkje(Workbook workbook, CellStyle cellStyleDateTime, Sheet sheet, CervixMonster monster)
+	private void addUitstrijkje(CellStyle cellStyleDateTime, Sheet sheet, CervixMonster monster)
 	{
 		if (CervixMonsterUtil.isUitstrijkje(monster))
 		{
 			CervixUitstrijkje uitstrijkje = CervixMonsterUtil.getUitstrijkje(monster);
-			addBmhkHuisarts(workbook, cellStyleDateTime, sheet, uitstrijkje);
+			addBmhkHuisarts(cellStyleDateTime, sheet, uitstrijkje);
 			CervixHpvBeoordeling beoordeling = uitstrijkje.getLaatsteHpvBeoordeling();
 			if (beoordeling != null && beoordeling.getHpvUitslag() != null)
 			{
-				addRow(sheet, "HPV uitslag (uitstrijkje)", beoordeling.getHpvUitslag().getNaam(), beoordeling.getAnalyseDatum(), workbook, cellStyleDateTime);
+				addRow(sheet, "HPV uitslag (uitstrijkje)", beoordeling.getHpvUitslag().getNaam(), beoordeling.getAnalyseDatum(), cellStyleDateTime);
 			}
 		}
 	}
 
-	private void addBmhkHuisarts(Workbook workbook, CellStyle cellStyleDateTime, Sheet sheet, CervixUitstrijkje uitstrijkje)
+	private void addBmhkHuisarts(CellStyle cellStyleDateTime, Sheet sheet, CervixUitstrijkje uitstrijkje)
 	{
 		CervixLabformulier labformulier = uitstrijkje.getLabformulier();
 		if (labformulier != null && labformulier.getHuisartsLocatie() != null)
@@ -536,11 +516,11 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 			CervixHuisarts huisarts = huisartsLocatie.getHuisarts();
 			String volledigeHuisartsTekst = "Huisarts: " + NaamUtil.getNaamHuisarts(huisarts) + ", Praktijk: " + huisarts.getNaam() + ", Adres: "
 				+ AdresUtil.getVolledigeAdresString(huisartsLocatie.getLocatieAdres()) + ", Locatie: " + huisartsLocatie.getNaam();
-			addRow(sheet, "Uitstrijkend arts", volledigeHuisartsTekst, labformulier.getStatusDatum(), workbook, cellStyleDateTime);
+			addRow(sheet, "Uitstrijkend arts", volledigeHuisartsTekst, labformulier.getStatusDatum(), cellStyleDateTime);
 		}
 	}
 
-	private void addZAS(Workbook workbook, CellStyle cellStyleDateTime, Sheet sheet, CervixMonster monster)
+	private void addZAS(CellStyle cellStyleDateTime, Sheet sheet, CervixMonster monster)
 	{
 		if (CervixMonsterUtil.isZAS(monster))
 		{
@@ -548,26 +528,26 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 			CervixHpvBeoordeling beoordeling = zas.getLaatsteHpvBeoordeling();
 			if (beoordeling != null && beoordeling.getHpvUitslag() != null)
 			{
-				addRow(sheet, "HPV uitslag (ZAS)", beoordeling.getHpvUitslag().getNaam(), beoordeling.getAnalyseDatum(), workbook, cellStyleDateTime);
+				addRow(sheet, "HPV uitslag (ZAS)", beoordeling.getHpvUitslag().getNaam(), beoordeling.getAnalyseDatum(), cellStyleDateTime);
 			}
 		}
 	}
 
-	private void addBmhkVerslagen(Workbook workbook, CellStyle cellStyleDateTime, Sheet sheet, CervixScreeningRonde ronde)
+	private void addBmhkVerslagen(CellStyle cellStyleDateTime, Sheet sheet, CervixScreeningRonde ronde)
 	{
-		for (CervixVerslag verslag : ronde.getVerslagen())
+		for (var verslag : ronde.getVerslagen())
 		{
-			addVerslagRow(workbook, cellStyleDateTime, sheet, verslag);
+			addVerslagRow(cellStyleDateTime, sheet, verslag);
 		}
 	}
 
-	private void addVerslagRow(Workbook workbook, CellStyle cellStyleDateTime, Sheet sheet, Verslag verslag)
+	private void addVerslagRow(CellStyle cellStyleDateTime, Sheet sheet, Verslag<?, ?> verslag)
 	{
 		OntvangenCdaBericht ontvangenBericht = verslag.getOntvangenBericht();
-		VerslagContent verslagContent = verslag.getVerslagContent();
+		var verslagContent = verslag.getVerslagContent();
 		if (verslagContent != null)
 		{
-			String label = null;
+			String label;
 			switch (verslag.getType())
 			{
 			case CERVIX_CYTOLOGIE:
@@ -580,6 +560,7 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 				label = "Ontvangen pathologie verslag";
 				break;
 			case MAMMA_PA_FOLLOW_UP:
+			case MAMMA_PA_FOLLOW_UP_MONITOR:
 				label = "Ontvangen follow-up pathologie verslag";
 				break;
 			default:
@@ -607,7 +588,7 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 				mapper.registerModule(simpleModule);
 				ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
 
-				addRow(sheet, label, writer.writeValueAsString(HibernateHelper.deproxy(verslagContent)), ontvangen, workbook,
+				addRow(sheet, label, writer.writeValueAsString(HibernateHelper.deproxy(verslagContent)), ontvangen,
 					cellStyleDateTime);
 			}
 			catch (JsonProcessingException e)
@@ -617,7 +598,7 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 		}
 	}
 
-	private void addMammaFollowUpRadiologieverslagRow(Workbook workbook, CellStyle cellStyleDateTime, Sheet sheet, MammaFollowUpRadiologieVerslag radiologieVerslag)
+	private void addMammaFollowUpRadiologieverslagRow(CellStyle cellStyleDateTime, Sheet sheet, MammaFollowUpRadiologieVerslag radiologieVerslag)
 	{
 		if (radiologieVerslag.getIngevoerdOp() != null)
 		{
@@ -647,13 +628,13 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 			if (!rowStrings.isEmpty())
 			{
 				String row = String.join(", ", rowStrings);
-				addRow(sheet, label, row, ingevoerdOp, workbook, cellStyleDateTime);
+				addRow(sheet, label, row, ingevoerdOp, cellStyleDateTime);
 			}
 		}
 	}
 
 	@JsonIgnoreProperties(value = { "id" })
-	private class MixInByPropName
+	private static class MixInByPropName
 	{
 	}
 
@@ -686,7 +667,7 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 	{
 
 		@Override
-		public void serialize(Date value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonGenerationException
+		public void serialize(Date value, JsonGenerator jgen, SerializerProvider provider) throws IOException
 		{
 			jgen.writeString(Constants.getDateFormat().format(value));
 		}
@@ -696,7 +677,7 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 	{
 
 		@Override
-		public void serialize(Boolean value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonGenerationException
+		public void serialize(Boolean value, JsonGenerator jgen, SerializerProvider provider) throws IOException
 		{
 			jgen.writeString(Boolean.TRUE.equals(value) ? "Ja" : "Nee");
 		}
@@ -706,7 +687,7 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 	{
 
 		@Override
-		public void serialize(NullFlavourQuantity value, JsonGenerator gen, SerializerProvider serializers) throws IOException, JsonProcessingException
+		public void serialize(NullFlavourQuantity value, JsonGenerator gen, SerializerProvider serializers) throws IOException
 		{
 			String quantity = value.getValue();
 			if (value.getUnit() != null)
@@ -726,7 +707,7 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 	{
 
 		@Override
-		public void serialize(Quantity value, JsonGenerator gen, SerializerProvider serializers) throws IOException, JsonProcessingException
+		public void serialize(Quantity value, JsonGenerator gen, SerializerProvider serializers) throws IOException
 		{
 			String quantity = value.getValue();
 			if (value.getUnit() != null)
@@ -738,20 +719,20 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 
 	}
 
-	private void addCISHistorie(Workbook workbook, CellStyle cellStyleDateTime, CervixDossier dossier, Sheet sheet)
+	private void addCISHistorie(CellStyle cellStyleDateTime, CervixDossier dossier, Sheet sheet)
 	{
 		if (dossier.getCisHistorie() != null)
 		{
 			Map<String, List<CervixCISHistorieOngestructureerdRegel>> ongestructureerdeRegelsPerRonde = CervixCisHistoryUtil
 				.getOngestructureerdeRegelsPerRonde(dossier.getCisHistorie(), true);
 			List<String> rondeVolgorde = CervixCisHistoryUtil.getOrderdKeys(ongestructureerdeRegelsPerRonde, true);
-			addRow(sheet, "CIS historie", null, workbook, null);
+			addRow(sheet, "CIS historie", null, null);
 			for (String ronde : rondeVolgorde)
 			{
-				addRow(sheet, "Ronde", ronde, workbook, null);
+				addRow(sheet, "Ronde", ronde, null);
 				for (CervixCISHistorieOngestructureerdRegel regel : ongestructureerdeRegelsPerRonde.get(ronde))
 				{
-					addRow(sheet, "Regel", regel.getTekst(), regel.getDatum(), workbook, cellStyleDateTime);
+					addRow(sheet, "Regel", regel.getTekst(), regel.getDatum(), cellStyleDateTime);
 				}
 			}
 		}
@@ -762,9 +743,9 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 		Sheet sheet = workbook.createSheet("Clientgegevens");
 		addGbaPersoonGegevens(workbook, sheet, createHelper, cellStyleDate, persoon);
 
-		addGbaAdres(workbook, sheet, persoon);
-		addTijdelijkGbaAdres(workbook, sheet, persoon);
-		addTijdelijkAdres(workbook, sheet, persoon, cellStyleDate);
+		addGbaAdres(sheet, persoon);
+		addTijdelijkGbaAdres(sheet, persoon);
+		addTijdelijkAdres(sheet, persoon, cellStyleDate);
 		sheet.autoSizeColumn(0);
 		sheet.autoSizeColumn(1);
 	}
@@ -772,82 +753,82 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 	private void addGbaPersoonGegevens(Workbook workbook, Sheet sheet, CreationHelper createHelper, CellStyle cellStyleDate, GbaPersoon persoon)
 	{
 		CellStyle cellStyleGeboortedatum = workbook.createCellStyle();
-		addRow(sheet, "Bsn", persoon, "bsn", workbook, null);
-		addRow(sheet, "Anummer", persoon, "anummer", workbook, null);
-		addRow(sheet, "Geslachtsnaam", persoon, "achternaam", workbook, null);
-		addRow(sheet, "Geslachtsnaam tussenvoegsel", persoon, "tussenvoegsel", workbook, null);
-		addRow(sheet, "Voornamen", persoon, "voornaam", workbook, null);
-		addRow(sheet, "Naamgebruik", persoon, "naamGebruik", workbook, null);
-		addRow(sheet, "Adellijke titel", persoon, "titel", workbook, null);
+		addRow(sheet, "Bsn", persoon, "bsn", null);
+		addRow(sheet, "Anummer", persoon, "anummer", null);
+		addRow(sheet, "Geslachtsnaam", persoon, "achternaam", null);
+		addRow(sheet, "Geslachtsnaam tussenvoegsel", persoon, "tussenvoegsel", null);
+		addRow(sheet, "Voornamen", persoon, "voornaam", null);
+		addRow(sheet, "Naamgebruik", persoon, "naamGebruik", null);
+		addRow(sheet, "Adellijke titel", persoon, "titel", null);
 		String geboortedatumPattern = "dd-MM-yyyy";
 		if (persoon.getGeboortedatumPrecisie() != null)
 		{
 			geboortedatumPattern = persoon.getGeboortedatumPrecisie().getDatePattern();
 		}
 		cellStyleGeboortedatum.setDataFormat(createHelper.createDataFormat().getFormat(geboortedatumPattern));
-		addRow(sheet, "Geboortedatum", persoon, "geboortedatum", workbook, cellStyleGeboortedatum);
-		addRow(sheet, "Geslacht", persoon, "geslacht", workbook, null);
-		addRow(sheet, "Datum vestiging Nederland", persoon, "datumVestigingNederland", workbook, cellStyleDate);
-		addRow(sheet, "Datum vertrokken uit Nederland", persoon, "datumVertrokkenUitNederland", workbook, cellStyleDate);
-		addRow(sheet, "Partner achternaam", persoon, "partnerAchternaam", workbook, null);
-		addRow(sheet, "Partner tussenvoegsel", persoon, "partnerTussenvoegsel", workbook, cellStyleDate);
-		addRow(sheet, "Datum aangaan partnerschap", persoon, "datumAangaanPartnerschap", workbook, cellStyleDate);
-		addRow(sheet, "Datum ontbinding partnerschap", persoon, "datumOntbindingPartnerschap", workbook, cellStyleDate);
+		addRow(sheet, "Geboortedatum", persoon, "geboortedatum", cellStyleGeboortedatum);
+		addRow(sheet, "Geslacht", persoon, "geslacht", null);
+		addRow(sheet, "Datum vestiging Nederland", persoon, "datumVestigingNederland", cellStyleDate);
+		addRow(sheet, "Datum vertrokken uit Nederland", persoon, "datumVertrokkenUitNederland", cellStyleDate);
+		addRow(sheet, "Partner achternaam", persoon, "partnerAchternaam", null);
+		addRow(sheet, "Partner tussenvoegsel", persoon, "partnerTussenvoegsel", cellStyleDate);
+		addRow(sheet, "Datum aangaan partnerschap", persoon, "datumAangaanPartnerschap", cellStyleDate);
+		addRow(sheet, "Datum ontbinding partnerschap", persoon, "datumOntbindingPartnerschap", cellStyleDate);
 	}
 
-	private void addGbaAdres(Workbook workbook, Sheet sheet, GbaPersoon persoon)
+	private void addGbaAdres(Sheet sheet, GbaPersoon persoon)
 	{
 		BagAdres gbaAdres = persoon.getGbaAdres();
-		addAdres(workbook, sheet, gbaAdres, "BRP ");
-		addRow(sheet, "BRP Locatie beschrijving", gbaAdres, "locatieBeschrijving", workbook, null);
-		addRow(sheet, "BRP Gemeente", gbaAdres, "gbaGemeente.naam", workbook, null);
+		addAdres(sheet, gbaAdres, "BRP ");
+		addRow(sheet, "BRP Locatie beschrijving", gbaAdres, "locatieBeschrijving", null);
+		addRow(sheet, "BRP Gemeente", gbaAdres, "gbaGemeente.naam", null);
 	}
 
-	private void addTijdelijkGbaAdres(Workbook workbook, Sheet sheet, GbaPersoon persoon)
+	private void addTijdelijkGbaAdres(Sheet sheet, GbaPersoon persoon)
 	{
 		Adres adres = persoon.getTijdelijkGbaAdres();
 		if (adres != null)
 		{
-			addAdres(workbook, sheet, adres, "Tijdelijk BRP ");
+			addAdres(sheet, adres, "Tijdelijk BRP ");
 		}
 	}
 
-	private void addTijdelijkAdres(Workbook workbook, Sheet sheet, GbaPersoon persoon, CellStyle cellStyleDate)
+	private void addTijdelijkAdres(Sheet sheet, GbaPersoon persoon, CellStyle cellStyleDate)
 	{
 		TijdelijkAdres adres = persoon.getTijdelijkAdres();
 		if (adres != null)
 		{
-			addAdres(workbook, sheet, adres, "Tijdelijk ");
-			addRow(sheet, "Tijdelijk adres startdatum", adres, "startDatum", workbook, cellStyleDate);
-			addRow(sheet, "Tijdelijk adres einddatum", adres, "eindDatum", workbook, cellStyleDate);
+			addAdres(sheet, adres, "Tijdelijk ");
+			addRow(sheet, "Tijdelijk adres startdatum", adres, "startDatum", cellStyleDate);
+			addRow(sheet, "Tijdelijk adres einddatum", adres, "eindDatum", cellStyleDate);
 		}
 	}
 
-	private void addAdres(Workbook workbook, Sheet sheet, Adres adres, String labelPrefix)
+	private void addAdres(Sheet sheet, Adres adres, String labelPrefix)
 	{
-		addRow(sheet, labelPrefix + "Straat", adres, "straat", workbook, null);
-		addRow(sheet, labelPrefix + "Huisnummer", adres, "huisnummer", workbook, null);
-		addRow(sheet, labelPrefix + "Huisletter", adres, "huisletter", workbook, null);
-		addRow(sheet, labelPrefix + "Huisnummer toevoeging", adres, "huisnummerToevoeging", workbook, null);
-		addRow(sheet, labelPrefix + "Huisnummer aanduiding", adres, "huisnummerAanduiding", workbook, null);
-		addRow(sheet, labelPrefix + "Postcode", adres, "postcode", workbook, null);
-		addRow(sheet, labelPrefix + "Plaats", adres, "plaats", workbook, null);
-		addRow(sheet, labelPrefix + "Locatie beschrijving", adres, "locatieBeschrijving", workbook, null);
+		addRow(sheet, labelPrefix + "Straat", adres, "straat", null);
+		addRow(sheet, labelPrefix + "Huisnummer", adres, "huisnummer", null);
+		addRow(sheet, labelPrefix + "Huisletter", adres, "huisletter", null);
+		addRow(sheet, labelPrefix + "Huisnummer toevoeging", adres, "huisnummerToevoeging", null);
+		addRow(sheet, labelPrefix + "Huisnummer aanduiding", adres, "huisnummerAanduiding", null);
+		addRow(sheet, labelPrefix + "Postcode", adres, "postcode", null);
+		addRow(sheet, labelPrefix + "Plaats", adres, "plaats", null);
+		addRow(sheet, labelPrefix + "Locatie beschrijving", adres, "locatieBeschrijving", null);
 	}
 
 	private void addEmptyRow(Sheet sheet)
 	{
-		addRow(sheet, null, null, null, null);
+		addRow(sheet, null, null, null);
 	}
 
-	private void addRow(Sheet sheet, String label, Object rootObject, String property, Workbook workbook, CellStyle style)
+	private void addRow(Sheet sheet, String label, Object rootObject, String property, CellStyle style)
 	{
 		try
 		{
 			Object value = PropertyUtilsBean2.getInstance().getNestedProperty(rootObject, property);
 			if (value != null)
 			{
-				addRow(sheet, label, value, workbook, style);
+				addRow(sheet, label, value, style);
 			}
 		}
 		catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e)
@@ -856,9 +837,9 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 		}
 	}
 
-	private void addRow(Sheet sheet, String label, Object value, Date datumTijd, Workbook workbook, CellStyle dateStyle, CellStyle dateTimeStyle)
+	private void addRow(Sheet sheet, String label, Object value, Date datumTijd, CellStyle dateStyle, CellStyle dateTimeStyle)
 	{
-		Row row = addRow(sheet, label, value, workbook, dateStyle);
+		Row row = addRow(sheet, label, value, dateStyle);
 		if (datumTijd != null)
 		{
 			Cell cell = row.createCell(2);
@@ -866,12 +847,12 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 		}
 	}
 
-	private void addRow(Sheet sheet, String label, Object value, Date datumTijd, Workbook workbook, CellStyle dateTimeStyle)
+	private void addRow(Sheet sheet, String label, Object value, Date datumTijd, CellStyle dateTimeStyle)
 	{
-		addRow(sheet, label, value, datumTijd, workbook, null, dateTimeStyle);
+		addRow(sheet, label, value, datumTijd, null, dateTimeStyle);
 	}
 
-	private Row addRow(Sheet sheet, String label, Object value, Workbook workbook, CellStyle style)
+	private Row addRow(Sheet sheet, String label, Object value, CellStyle style)
 	{
 		Row row = sheet.createRow(sheet.getPhysicalNumberOfRows());
 		Cell cell = row.createCell(0);
@@ -886,7 +867,7 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 	{
 		if (cellValue instanceof Double)
 		{
-			cell.setCellValue(((Double) cellValue).doubleValue());
+			cell.setCellValue((Double) cellValue);
 		}
 		else if (cellValue instanceof Date)
 		{
@@ -936,7 +917,7 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 			while (resolver.hasNested(name))
 			{
 				String next = resolver.next(name);
-				Object nestedBean = null;
+				Object nestedBean;
 				if (bean instanceof Map)
 				{
 					nestedBean = getPropertyOfMapBean((Map) bean, next);

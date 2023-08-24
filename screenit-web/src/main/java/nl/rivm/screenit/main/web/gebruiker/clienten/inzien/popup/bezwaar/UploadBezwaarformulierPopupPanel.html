@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -35,7 +35,7 @@
                     <div class="control-group">
                         <label class="control-label">Aanvraag gedaan via</label>
                         <div class="controls">
-                            <label class="control-label" style="font-weight: bold;">Infolijn</label>
+                            <label class="control-label font-bold">Infolijn</label>
                         </div>
                     </div>
                 </div>
@@ -44,8 +44,8 @@
                         <label class="control-label">Bezwaarformulier verstuurd</label>
                         <div class="controls">
                             <ul class="lijst" wicket:id="brievenLijst">
-                                <li><label style="font-weight: bold;" wicket:id="brief">Geen gegevens beschikbaar
-                                    stellen voor wetenschappelijk onderzoek = Actief</label></li>
+								<li><label class="font-bold" wicket:id="brief">Geen gegevens beschikbaar
+									stellen voor wetenschappelijk onderzoek = Actief</label></li>
                             </ul>
                         </div>
                     </div>
@@ -67,7 +67,7 @@
             <a class="btn left" wicket:id="doorvoeren">Brief aanmaken herstellen <span class="muted">*</span></a>
             <a class="btn left" wicket:id="geenHandtekening">Geen handtekening?</a>
             <a class="btn" data-dismiss="modal">Annuleren</a>
-            <a href="javascript:void(0);" class="btn btn-primary" wicket:id="doorgaan">Bezwaar afronden</a>
+            <a  class="btn btn-primary" wicket:id="doorgaan">Bezwaar afronden</a>
             <p class="muted">* geldt voor de laatste brief</p>
         </div>
     </form>

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.colon;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,7 +29,7 @@ public class ColonVervolgonderzoekKeuzesDto implements Serializable
 {
 	public Boolean intakeConclusie;
 
-	public Boolean afspraakDirectMaken;
+	public Boolean verwijzing;
 
 	public Boolean redenGeenVervolgOnderzoek;
 
@@ -38,4 +38,6 @@ public class ColonVervolgonderzoekKeuzesDto implements Serializable
 	public Integer aantalJarenTerugNaarScreening;
 
 	public ColonConclusieType conclusie;
+
+	public Boolean isDoorverwezenDoorInfolijn;
 }

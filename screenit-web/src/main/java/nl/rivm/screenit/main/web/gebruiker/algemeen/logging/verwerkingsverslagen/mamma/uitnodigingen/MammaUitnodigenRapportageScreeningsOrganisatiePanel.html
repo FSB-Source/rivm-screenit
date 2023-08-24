@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -38,8 +38,8 @@
 				<th>Open uitnodigingen</th>
 				<th>Mindervalide uitnodigingen</th>
 				<th>Suspect uitnodigingen</th>
-				<th style="border-left: 3px solid #dddddd;">Uitnodigingen na uitstel</th>
-				<th style="border-left: 3px solid #dddddd;">Uitgesteld mindervalide uitwijk standplaats</th>
+				<th class="uitstel-table-border">Uitnodigingen na uitstel</th>
+				<th class="uitstel-table-border">Uitgesteld mindervalide uitwijk standplaats</th>
 				<th>Uitgesteld achtervang standplaats</th>
 			</tr>
 			</thead>
@@ -52,8 +52,8 @@
 				<td wicket:id="uitgenodigdOpen"/>
 				<td wicket:id="uitgenodigdMinderValide"/>
 				<td wicket:id="uitgenodigdSuspect"/>
-				<td style="border-left: 3px solid #dddddd;" wicket:id="uitgenodigdNaUitstel"/>
-				<td style="border-left: 3px solid #dddddd;" wicket:id="uitgesteldMinderValideUitgewijktUitstel"/>
+				<td class="uitstel-table-border" wicket:id="uitgenodigdNaUitstel"/>
+				<td class="uitstel-table-border" wicket:id="uitgesteldMinderValideUitgewijktUitstel"/>
 				<td wicket:id="uitgesteldAchtervangUitstel"/>
 			</tr>
 			</tbody>

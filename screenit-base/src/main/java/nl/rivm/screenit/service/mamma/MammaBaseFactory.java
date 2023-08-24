@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ import java.util.Date;
 
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.model.enums.SmsStatus;
 import nl.rivm.screenit.model.mamma.MammaAdhocMeekijkverzoek;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaAnnotatieAfbeelding;
@@ -51,7 +52,7 @@ public interface MammaBaseFactory
 		MammaVerzettenReden verzettenReden);
 
 	MammaAfspraak maakAfspraak(MammaScreeningRonde ronde, MammaCapaciteitBlok capaciteitBlok, Date vanaf, MammaStandplaatsPeriode standplaatsPeriode,
-		MammaVerzettenReden verzettenReden, boolean notificeerBetrokkenSe, boolean stuurBerichtNaarSectra, boolean isGeforceerdeAfspraak);
+		MammaVerzettenReden verzettenReden, boolean notificeerBetrokkenSe, boolean stuurBerichtNaarSectra, boolean isGeforceerdeAfspraak, SmsStatus smsStatus);
 
 	MammaUitstel maakUitstel(MammaScreeningRonde screeningRonde, MammaStandplaats standplaats, Date streefDatum, MammaUitstelReden uitstelReden);
 

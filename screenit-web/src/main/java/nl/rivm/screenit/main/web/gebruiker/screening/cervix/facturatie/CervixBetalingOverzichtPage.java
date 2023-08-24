@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.facturatie;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.service.cervix.CervixBetalingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -35,15 +36,15 @@ import nl.rivm.screenit.main.web.gebruiker.screening.cervix.CervixScreeningBaseP
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.OrganisatieType;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdrachtRegel;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdrachtRegelSpecificatie;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.service.InstellingService;
+import nl.rivm.screenit.service.DistributedLockService;
 import nl.rivm.screenit.service.cervix.CervixVerrichtingService;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -64,7 +65,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	constraint = ShiroConstraint.HasPermission,
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.CERVIX },
 	recht = { Recht.GEBRUIKER_SCREENING_BETALINGEN_BMHK },
-	organisatieTypeScopes = { OrganisatieType.SCREENINGSORGANISATIE })
+	organisatieTypeScopes = { OrganisatieType.RIVM })
 public class CervixBetalingOverzichtPage extends CervixScreeningBasePage
 {
 	@SpringBean
@@ -74,7 +75,10 @@ public class CervixBetalingOverzichtPage extends CervixScreeningBasePage
 	private CervixVerrichtingService cervixVerrichtingService;
 
 	@SpringBean
-	private HibernateService hibernateService;
+	private InstellingService instellingService;
+
+	@SpringBean
+	private DistributedLockService lockService;
 
 	private IModel<CervixBetaalopdracht> betaalopdrachtModel;
 
@@ -84,9 +88,9 @@ public class CervixBetalingOverzichtPage extends CervixScreeningBasePage
 
 	private IModel<List<CervixBetaalopdrachtRegelSpecificatie>> huisartsenBetaalRegelSpecificaties;
 
-	public CervixBetalingOverzichtPage(List<CervixBoekRegel> boekregels)
+	public CervixBetalingOverzichtPage(List<CervixBoekRegel> boekregels, long screeningsOrganisatieId)
 	{
-		ScreeningOrganisatie organisatie = ScreenitSession.get().getScreeningOrganisatie();
+		var organisatie = instellingService.getScreeningOrganisatie(screeningsOrganisatieId);
 		betaalopdrachtModel = ModelUtil
 			.cModel(cervixVerrichtingService.createBetaalOpdracht(organisatie, boekregels));
 
@@ -151,12 +155,32 @@ public class CervixBetalingOverzichtPage extends CervixScreeningBasePage
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				CervixBetaalopdracht opdracht = (CervixBetaalopdracht) form.getModelObject();
-				cervixBetalingService.archiveerBestaandeOpdrachten(opdracht.getScreeningOrganisatie());
-				Long opdrachtId = cervixBetalingService.opslaanBetaalopdracht(opdracht);
-				cervixBetalingService.genereerCervixBetalingsSpecificatieEnSepaBestand(opdrachtId);
-				setResponsePage(CervixBetalingSepaBestandenPage.class);
-				ScreenitSession.get().info(getString("sepa.bestand.genereren"));
+				genereerSepabestandAlsNiemandAndersBezigIs();
+			}
+
+			private void genereerSepabestandAlsNiemandAndersBezigIs()
+			{
+				if (lockService.verkrijgLockIndienBeschikbaar(Constants.BMHK_BETALING_GENEREREN_LOCKNAAM))
+				{
+					try
+					{
+						CervixBetaalopdracht opdracht = form.getModelObject();
+						cervixBetalingService.archiveerBestaandeOpdrachten(opdracht.getScreeningOrganisatie());
+						Long opdrachtId = cervixBetalingService.opslaanBetaalopdracht(opdracht);
+						cervixBetalingService.genereerCervixBetalingsSpecificatieEnSepaBestand(opdrachtId);
+						setResponsePage(CervixBetalingSepaBestandenPage.class);
+						ScreenitSession.get().info(getString("sepa.bestand.genereren"));
+					}
+					catch (RuntimeException rte)
+					{
+						lockService.unlock(Constants.BMHK_BETALING_GENEREREN_LOCKNAAM);
+						throw rte;
+					}
+				}
+				else
+				{
+					info(getString("info.bmhk.sepa.genereren.al.in.gebruik"));
+				}
 			}
 		});
 	}

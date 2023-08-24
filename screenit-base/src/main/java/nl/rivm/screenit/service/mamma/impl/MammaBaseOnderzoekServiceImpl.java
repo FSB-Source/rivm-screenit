@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -42,6 +42,7 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.logging.MammaHl7v24BerichtLogEvent;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
@@ -238,14 +239,27 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 	}
 
 	@Override
-	public void ontvangBeeldenVoorOnderzoek(Client client, MammaScreeningRonde ronde) throws HL7Exception
+	public void ontvangBeeldenVoorOnderzoek(Client client, MammaScreeningRonde ronde, MammaOnderzoekType imsOnderzoekType) throws HL7Exception
 	{
-		MammaOnderzoek onderzoek = ronde.getLaatsteUitnodiging().getLaatsteAfspraak().getOnderzoek();
+		MammaOnderzoek onderzoek = ronde.getLaatsteOnderzoek();
 		MammaMammografie mammografie = onderzoek.getMammografie();
-		if (MammaMammografieIlmStatus.NIET_BESCHIKBAAR.equals(mammografie.getIlmStatus()))
+
+		if (imsOnderzoekType != onderzoek.getOnderzoekType())
+		{
+			var message = String.format("Onderzoek met uitnodigingsnummer %s is omgezet van '%s' naar '%s' op basis van het CentralAvailable bericht van het IMS.",
+				ronde.getUitnodigingsNr(), onderzoek.getOnderzoekType().getNaam(), imsOnderzoekType.getNaam());
+
+			onderzoek.setOnderzoekType(imsOnderzoekType);
+			hibernateService.saveOrUpdate(onderzoek);
+
+			logService.logGebeurtenis(LogGebeurtenis.MAMMA_ONDERZOEKTYPE_GEWIJZIGD, client, message, Bevolkingsonderzoek.MAMMA);
+		}
+
+		if (mammografie.getIlmStatus() == MammaMammografieIlmStatus.NIET_BESCHIKBAAR)
 		{
 			updateDossierMammografieVelden(mammografie);
 			setMammografieStatus(mammografie, MammaMammografieIlmStatus.BESCHIKBAAR);
+
 			if (isOnderzoekOnvolledigZonderFotos(onderzoek))
 			{
 				if (onderzoek.isDoorgevoerd())
@@ -256,7 +270,7 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 				beeldenAlBeschikbaarControle(onderzoek);
 			}
 		}
-		else
+		else if (mammografie.getIlmStatus() != MammaMammografieIlmStatus.BESCHIKBAAR)
 		{
 			String melding = String.format("Inkomend CA bericht voor uitnodgingsnr %s is al verwerkt op %s en kon niet worden omgezet van %s naar BESCHIKBAAR",
 				ronde.getUitnodigingsNr(), mammografie.getIlmStatusDatum(), mammografie.getIlmStatus().name());
@@ -278,7 +292,6 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 			logEvent.setMelding(melding);
 			logEvent.setHl7MessageStructure(bericht.getHl7Bericht());
 			logEvent.setLevel(Level.WARNING);
-			logEvent.setClient(client);
 
 			logService.logGebeurtenis(LogGebeurtenis.MAMMA_HL7_BERICHT_ERROR_ONTVANGEN, logEvent, null, client, Bevolkingsonderzoek.MAMMA);
 		}
@@ -401,6 +414,7 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 		addIfPresent("Aanvullende informatie", onderzoek.getAanvullendeInformatieOperatie(), result);
 		addIfPresent("Onvolledig onderzoek", onderzoek.getOnvolledigOnderzoek() != null ? onderzoek.getOnvolledigOnderzoek().getNaam() : null, result);
 		addIfPresent("Onderbroken onderzoek", onderzoek.getOnderbrokenOnderzoek() != null ? onderzoek.getOnderbrokenOnderzoek().getNaam() : null, result);
+		addIfPresent("Type onderzoek", onderzoek.getOnderzoekType().getNaam(), result);
 		return result;
 	}
 

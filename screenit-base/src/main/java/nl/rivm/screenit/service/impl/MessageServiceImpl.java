@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,17 +21,17 @@ package nl.rivm.screenit.service.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
+
+import nl.rivm.screenit.dao.MessageDao;
 import nl.rivm.screenit.model.messagequeue.Message;
 import nl.rivm.screenit.model.messagequeue.MessageType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.MessageService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -41,14 +41,16 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+@Slf4j
 @Service
-@Transactional(propagation= Propagation.REQUIRED)
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MessageServiceImpl implements MessageService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MessageServiceImpl.class);
-
 	@Autowired
 	private HibernateService hibernateService;
+
+	@Autowired
+	private MessageDao messageDao;
 
 	@Autowired
 	@Qualifier(value = "applicationInstance")
@@ -57,52 +59,81 @@ public class MessageServiceImpl implements MessageService
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
 
-	private final static ObjectMapper objectMapper = new ObjectMapper();
+	private static final ObjectMapper objectMapper = new ObjectMapper();
 
 	@Override
-	public void queueMessage(MessageType type, Object content) throws JsonProcessingException
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void queueMessage(MessageType type, Object content)
 	{
-		Message newMessage = new Message();
-		newMessage.setType(type);
-		newMessage.setSenderApplicationInstance(applicationInstance);
-		newMessage.setContent(objectMapper.writeValueAsString(content));
-		newMessage.setAanmaakMoment(currentDateSupplier.getDate());
-		hibernateService.saveOrUpdate(newMessage);
+		queueMessage(type, content, null);
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void queueMessage(MessageType type, Object content, String context)
+	{
+		try
+		{
+			Message newMessage = new Message();
+			newMessage.setType(type);
+			newMessage.setSenderApplicationInstance(applicationInstance);
+			newMessage.setContent(objectMapper.writeValueAsString(content));
+			newMessage.setAanmaakMoment(currentDateSupplier.getDate());
+			newMessage.setContext(context);
+			hibernateService.saveOrUpdate(newMessage);
+		}
+		catch (JsonProcessingException e)
+		{
+			throw new IllegalArgumentException(e.getMessage(), e);
+		}
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void dequeueMessage(Message message)
 	{
 		hibernateService.delete(message);
 	}
 
 	@Override
-	@Transactional(propagation= Propagation.SUPPORTS, readOnly = true)
 	public Message getOldestMessage(MessageType type)
 	{
-		Criteria criteria = hibernateService.getHibernateSession().createCriteria(Message.class);
-		criteria.add(Restrictions.eq("type", type));
-		criteria.addOrder(Order.asc("id"));
-		criteria.setMaxResults(1);
-		return (Message) criteria.uniqueResult();
+		return messageDao.getOldestMessage(type);
 	}
 
 	@Override
-	public <T> T getContent(Message message)
+	public List<Message> fetchMessages(MessageType type, int maxFetchSize)
+	{
+		return fetchMessages(type, null, maxFetchSize);
+	}
+
+	@Override
+	public List<Message> fetchMessages(MessageType type, String context, int maxFetchSize)
+	{
+		return messageDao.fetchMessages(type, context, maxFetchSize);
+	}
+
+	@Override
+	public <T> T getContent(Message message) throws JsonProcessingException
 	{
 		Object contentDto = null;
 		if (message != null)
 		{
-			try
-			{
-				contentDto = objectMapper.readValue(message.getContent(), message.getType().getContentType());
-			}
-			catch (JsonProcessingException e)
-			{
-				LOG.error("Fout bij conversie naar DTO", e);
-			}
+			contentDto = objectMapper.readValue(message.getContent(), message.getType().getContentType());
 		}
 		return (T) contentDto;
+	}
+
+	@Override
+	public Long fetchQueueSize(MessageType type)
+	{
+		return fetchQueueSize(type, null);
+	}
+
+	@Override
+	public Long fetchQueueSize(MessageType type, String context)
+	{
+		return messageDao.fetchQueueSize(type, context);
 	}
 
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.services.colon;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,6 @@ package nl.rivm.screenit.clientportaal.services.colon;
 import nl.rivm.screenit.clientportaal.model.colon.ColonVrijSlotZonderKamerDto;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.enums.RedenAfspraakAfzeggen;
 import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamer;
 
 public interface ColonAfspraakService
@@ -33,7 +32,7 @@ public interface ColonAfspraakService
 
 	ColonVrijSlotZonderKamerDto vanVrijSlotNaarColonVrijSlot(VrijSlotZonderKamer vrijSlot);
 
-	void intakeAfspraakAfzeggen(Client client, RedenAfspraakAfzeggen redenAfzeggen);
+	void intakeAfspraakAfzeggen(Client client);
 
 	ColonIntakeAfspraak initNieuweAfspraak(ColonIntakeAfspraak oudeAfspraak, VrijSlotZonderKamer gekozenVrijSlotZonderKamer);
 }

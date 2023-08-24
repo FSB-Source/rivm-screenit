@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,11 +22,10 @@ import React from "react"
 import * as Yup from "yup"
 import {getString} from "../../../utils/TekstPropertyUtil"
 import properties from "../../../pages/bvo/cervix/ZasAanvragenPage.json"
-import {Field, Formik} from "formik"
+import {Formik} from "formik"
 import SubmitForm from "../SubmitForm"
-import {FormControl, FormControlLabel, Radio} from "@material-ui/core"
+import {FormControl, FormControlLabel, Radio, RadioGroup} from "@mui/material"
 import styles from "./ZasNaUitstelForm.module.scss"
-import {RadioGroup} from "formik-material-ui"
 import {formatDateText} from "../../../utils/DateUtil"
 
 export type ZasNaUitstelFormProps = {
@@ -57,17 +56,16 @@ const ZasNaUitstelForm = (props: ZasNaUitstelFormProps) => {
 				<SubmitForm<ZasNaUitstel> title={getString(properties.form.title)}
 										  formikProps={formikProps}
 										  buttonLabel={getString(properties.form.button)}>
-					<FormControl required
-								 component="fieldset">
+					<FormControl variant="standard" required component="fieldset">
 
 						<span>{getString(properties.form.description)}</span>
 
 						<p data-testid={"error_geen_keuze"} className={styles.errorLabel}>{formikProps.errors.zasNaUitstelOntvangen}</p>
 
-						<Field
+						<RadioGroup
 							className={styles.radiobuttons}
 							name="zasNaUitstelOntvangen"
-							component={RadioGroup}
+							onChange={formikProps.handleChange}
 							value={formikProps.values.zasNaUitstelOntvangen || ""}>
 							<ul>
 								<li>
@@ -89,12 +87,12 @@ const ZasNaUitstelForm = (props: ZasNaUitstelFormProps) => {
 									<p className={styles.checkboxTekst}><br/>{getString(properties.form.niet_uitstellen.description)}</p>
 								</li>
 							</ul>
-						</Field>
+						</RadioGroup>
 					</FormControl>
 				</SubmitForm>)}
 
 		</Formik>
-	</>
+	</>;
 }
 
 export default ZasNaUitstelForm

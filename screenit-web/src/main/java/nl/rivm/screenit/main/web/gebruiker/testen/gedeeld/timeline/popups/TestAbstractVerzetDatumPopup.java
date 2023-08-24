@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.popups;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,8 @@ package nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.popups;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 
@@ -28,28 +30,25 @@ import nl.rivm.screenit.main.web.component.NaamChoiceRenderer;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.components.TestEnumRadioChoice;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.INaam;
+import nl.rivm.screenit.util.DateUtil;
 
 import org.apache.wicket.markup.html.form.RadioChoice;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.joda.time.DateTime;
-import org.joda.time.Days;
 
 public abstract class TestAbstractVerzetDatumPopup extends AbstractTestBasePopupPanel
 {
 
-	private IModel<Integer> numberModel = Model.of(Integer.valueOf(35));
+	private final IModel<Integer> numberModel = Model.of(35);
 
-	private IModel<TijdType> tijdTypeModel = Model.of(TijdType.DAY);
-
-	private TextField<Integer> numberField;
+	private final IModel<TijdType> tijdTypeModel = Model.of(TijdType.DAY);
 
 	public TestAbstractVerzetDatumPopup(String id, IModel<List<Client>> clientModel)
 	{
 		super(id, clientModel);
 
-		numberField = new TextField<>("number", numberModel, Integer.class);
+		TextField<Integer> numberField = new TextField<>("number", numberModel, Integer.class);
 		numberField.setRequired(true);
 		numberField.setLabel(Model.of("Aantal"));
 		add(numberField);
@@ -69,9 +68,9 @@ public abstract class TestAbstractVerzetDatumPopup extends AbstractTestBasePopup
 		switch (tijdType)
 		{
 		case MONTH:
-			return Days.daysBetween(new DateTime(), new DateTime().plusMonths(aantal.intValue())).getDays();
+			return DateUtil.getPeriodeTussenTweeDatums(LocalDateTime.now(), LocalDateTime.now().plusMonths(aantal.intValue()), ChronoUnit.DAYS);
 		case YEAR:
-			return Days.daysBetween(new DateTime(), new DateTime().plusYears(aantal.intValue())).getDays();
+			return DateUtil.getPeriodeTussenTweeDatums(LocalDateTime.now(), LocalDateTime.now().plusYears(aantal.intValue()), ChronoUnit.DAYS);
 		default:
 			return aantal.intValue();
 		}

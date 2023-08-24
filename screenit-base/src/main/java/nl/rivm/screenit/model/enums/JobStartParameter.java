@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,5 +29,7 @@ public enum JobStartParameter
 
 	COLON_SELECTIE_HERSTART,
 
-	MAMMA_PALGA_EXPORT
+	MAMMA_PALGA_EXPORT,
+
+	MAMMA_PALGA_IMPORT
 }

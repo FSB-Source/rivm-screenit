@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.controller;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -40,6 +40,7 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.util.NaamUtil;
+import nl.rivm.screenit.SafeStringUtil;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.SecurityUtils;
@@ -56,10 +57,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-
 @RestController
 @RequestMapping("/api/authenticatie")
 public class AuthenticatieController extends AuthorizedController
@@ -67,7 +64,7 @@ public class AuthenticatieController extends AuthorizedController
 	private static final Logger LOG = LoggerFactory.getLogger(AuthenticatieController.class);
 
 	@Autowired
-	MammaScreeningsEenheidService screeningsEenheidService;
+	private MammaScreeningsEenheidService screeningsEenheidService;
 
 	@Autowired
 	private LogService logService;
@@ -78,13 +75,9 @@ public class AuthenticatieController extends AuthorizedController
 	@Autowired
 	private ConfiguratieService configuratieService;
 
-	private static final SimpleBeanPropertyFilter FILTER_JSON_VELDEN_OUDE_VERSIE = SimpleBeanPropertyFilter.serializeAllExcept("seParameters");
-
-	private static final SimpleBeanPropertyFilter FILTER_JSON_VELDEN_NIEUWE_VERSIE = SimpleBeanPropertyFilter.serializeAllExcept("seMaxOfflineInlogPeriode");
-
-	private static final String OUDE_VERSIE = "20.5";
-
 	private static final String LOGGING = "logging";
+
+	private static final CustomObjectMapper objectMapper = new CustomObjectMapper();
 
 	@RequestMapping(value = "/inloggen/{genereerLogging}", method = RequestMethod.POST)
 	public ResponseEntity login(@RequestHeader(value = "Authorization") String credentials,
@@ -134,22 +127,7 @@ public class AuthenticatieController extends AuthorizedController
 			result.setMedewerkercode(medewerker.getMedewerkercode().toString());
 			result.setNavigatie(navigatie);
 
-			configuratieService.voegParametersToe(result);
-
-			SimpleFilterProvider filterProvider = new SimpleFilterProvider();
-
-			String majorVersie = versie.substring(0, versie.lastIndexOf('.'));
-			if (OUDE_VERSIE.equals(majorVersie))
-			{
-				filterProvider.addFilter("autorisatieFilter", FILTER_JSON_VELDEN_OUDE_VERSIE);
-			}
-			else
-			{
-				filterProvider.addFilter("autorisatieFilter", FILTER_JSON_VELDEN_NIEUWE_VERSIE);
-			}
-
-			ObjectMapper objectMapper = new CustomObjectMapper();
-			objectMapper.setFilterProvider(filterProvider);
+			configuratieService.voegParametersToe(result, versie, ingelogdeScreeningsEenheid);
 
 			return ResponseEntity.ok(objectMapper.readTree(objectMapper.writeValueAsString(result)));
 		}
@@ -160,7 +138,8 @@ public class AuthenticatieController extends AuthorizedController
 	@RequestMapping(value = "/uitloggen", method = RequestMethod.POST)
 	public ResponseEntity logout(HttpServletRequest request)
 	{
-		LOG.debug(request.toString());
+		var safeRequestString = SafeStringUtil.maakMetUserInputStringVeiligVoorLogging(request.toString());
+		LOG.debug(safeRequestString);
 		InstellingGebruiker instellingGebruiker = getInstellingGebruiker(request);
 		if (instellingGebruiker != null)
 		{

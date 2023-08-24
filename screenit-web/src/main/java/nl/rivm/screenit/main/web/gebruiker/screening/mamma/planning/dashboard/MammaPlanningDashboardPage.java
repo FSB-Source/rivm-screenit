@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.dashboard;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -140,7 +140,7 @@ public class MammaPlanningDashboardPage extends MammaPlanningBasePage
 				MammaScreeningsEenheid screeningsEenheid = model.getObject();
 				if (screeningsEenheid.getUitnodigenTotEnMet() != null && !screeningsEenheid.getUitnodigenTotEnMet().equals(screeningsEenheid.getUitgenodigdTotEnMet()))
 				{
-					cell.add(new AttributeAppender("style", Model.of("font-weight: bold;")));
+					cell.add(new AttributeAppender("class", Model.of("font-bold")));
 				}
 			}
 		});

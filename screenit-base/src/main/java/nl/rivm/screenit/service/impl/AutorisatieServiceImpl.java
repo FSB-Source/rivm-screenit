@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -86,6 +86,7 @@ public class AutorisatieServiceImpl implements AutorisatieService
 			{
 
 				gebruiker.setLaatsteKeerWachtwoordGewijzigd(currentDateSupplier.getDate());
+				gebruiker.setWachtwoordVerlooptWaarschuwingVerzonden(false);
 				hibernateService.saveOrUpdate(gebruiker);
 			}
 			else

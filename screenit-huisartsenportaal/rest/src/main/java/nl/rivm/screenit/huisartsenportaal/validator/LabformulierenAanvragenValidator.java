@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal.validator;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,7 @@ package nl.rivm.screenit.huisartsenportaal.validator;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
@@ -29,13 +29,12 @@ import lombok.extern.slf4j.Slf4j;
 import nl.rivm.screenit.huisartsenportaal.dto.AanvraagDto;
 import nl.rivm.screenit.huisartsenportaal.dto.AanvragenZoekObjectDto;
 import nl.rivm.screenit.huisartsenportaal.enums.CervixLocatieStatus;
-import nl.rivm.screenit.huisartsenportaal.model.Huisarts;
 import nl.rivm.screenit.huisartsenportaal.model.LabformulierAanvraag;
 import nl.rivm.screenit.huisartsenportaal.model.Locatie;
 import nl.rivm.screenit.huisartsenportaal.repository.AanvraagCriteriaRepository;
 import nl.rivm.screenit.huisartsenportaal.repository.LocatieRepository;
+import nl.rivm.screenit.huisartsenportaal.util.CervixLocatieUtil;
 
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
@@ -59,7 +58,7 @@ public class LabformulierenAanvragenValidator extends BaseValidator<AanvraagDto>
 	@Override
 	public void validateTarget(AanvraagDto target, Errors errors)
 	{
-		Huisarts huisarts = getIngelogdeHuisarts();
+		var huisarts = getIngelogdeHuisarts();
 		LOG.debug("aangekomen bij Validatie, huisarts = " + huisarts.getAgbcode());
 
 		Locatie locatieVanDto = null;
@@ -68,22 +67,26 @@ public class LabformulierenAanvragenValidator extends BaseValidator<AanvraagDto>
 			locatieVanDto = locatieRepository.findByHuisartsportaalId(target.getLocatie().getHuisartsportaalId());
 		}
 
-		if (locatieVanDto == null || !CervixLocatieStatus.ACTIEF.equals(locatieVanDto.getStatus()))
+		if (locatieVanDto == null)
 		{
 			LOG.debug("error.geen.locatie");
 			errors.reject("error.geen.locatie", "Voor het aanvragen dient u een locatie te selecteren.");
 		}
 		else
 		{
-
+			if (!CervixLocatieStatus.ACTIEF.equals(locatieVanDto.getStatus()) || !CervixLocatieUtil.isLocatieCompleet(locatieVanDto))
+			{
+				LOG.debug("error.geen.locatie");
+				errors.reject("error.geen.locatie", "De gekozen locatie is niet actief of is niet goed ingevuld.");
+			}
 			if (!locatieVanDto.getHuisarts().equals(huisarts))
 			{
 				LOG.debug("error.locatie.onbekend");
 				errors.reject("error.locatie.onbekend", "Deze locatie hoort niet bij deze huisarts.");
 			}
 
-			Date beginDatumVandaag = new DateTime().withTimeAtStartOfDay().toDate();
-			Date eindDatumVandaag = new DateTime().withTimeAtStartOfDay().plusDays(1).toDate();
+			var beginDatumVandaag = LocalDate.now();
+			var eindDatumVandaag = LocalDate.now().plusDays(1);
 
 			List<LabformulierAanvraag> aanvragenVandaag = aanvraagCriteriaRepository.findByLocatieAndAanvraagDatumBetween(locatieVanDto, beginDatumVandaag, eindDatumVandaag);
 			if (aanvragenVandaag.size() >= 2)
@@ -97,10 +100,10 @@ public class LabformulierenAanvragenValidator extends BaseValidator<AanvraagDto>
 				LOG.debug("error.aantal.null");
 				errors.reject("error.aantal.null", "Voor het aanvragen dient u een geldig aantal in te voeren.");
 			}
-			else if (target.getAantal() > 75)
+			else if (target.getAantal() > 25)
 			{
 				LOG.debug("error.aantal.max");
-				errors.reject("error.aantal.max", "De maximale waarde moet lager dan 75 zijn.");
+				errors.reject("error.aantal.max", "De maximale waarde moet lager dan 25 zijn.");
 			}
 			else if (target.getAantal() < 10)
 			{

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.aftergba.overledenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,7 +25,6 @@ import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.enums.RedenAfspraakAfzeggen;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.service.colon.AfspraakService;
 
@@ -41,7 +40,6 @@ public class OverledenWriter extends BaseWriter<ColonIntakeAfspraak>
 	@Override
 	public void write(ColonIntakeAfspraak afspraak) throws Exception
 	{
-		afspraak.setRedenAfzeggen(RedenAfspraakAfzeggen.CLIENT_OVERLEDEN);
 		afspraakService.annuleerAfspraak(afspraak, null, AfspraakStatus.GEANNULEERD_OVERLIJDEN, false);
 	}
 

@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal.service.impl;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -82,6 +82,7 @@ public class LabformulierServiceImpl implements LabformulierService
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public LabformulierAanvraag saveAanvraag(Huisarts huisarts, AanvraagDto aanvraagDto) throws IllegalStateException
 	{
 		Locatie locatie = null;
@@ -108,6 +109,7 @@ public class LabformulierServiceImpl implements LabformulierService
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public LabformulierAanvraag saveScreenITAanvraag(AanvraagDto aanvraagDto)
 	{
 

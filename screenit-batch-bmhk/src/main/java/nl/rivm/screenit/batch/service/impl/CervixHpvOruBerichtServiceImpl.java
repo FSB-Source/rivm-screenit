@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,6 +31,7 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
+import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,6 +45,7 @@ import ca.uhn.hl7v2.model.v24.datatype.FT;
 import ca.uhn.hl7v2.model.v24.group.ORU_R01_ORDER_OBSERVATION;
 import ca.uhn.hl7v2.model.v24.group.ORU_R01_PATIENT_RESULT;
 import ca.uhn.hl7v2.model.v24.message.ORU_R01;
+import ca.uhn.hl7v2.model.v24.segment.OBR;
 import ca.uhn.hl7v2.model.v24.segment.OBX;
 
 @Slf4j
@@ -77,10 +79,12 @@ public class CervixHpvOruBerichtServiceImpl implements CervixHpvOruBerichtServic
 			ORU_R01_PATIENT_RESULT oruPatientResult = oruBericht.getPATIENT_RESULT();
 
 			Client client = monster.getOntvangstScreeningRonde().getDossier().getClient();
-			hl7BaseService.buildPIDSegment(oruPatientResult.getPATIENT().getPID(), client);
+			hl7BaseService.buildPIDSegmentWithForcedGender(oruPatientResult.getPATIENT().getPID(), client, Geslacht.VROUW);
 
 			ORU_R01_ORDER_OBSERVATION orderObservation = oruPatientResult.getORDER_OBSERVATION();
-			hl7BaseService.buildOBRSegment(orderObservation.getOBR(), monster);
+			OBR obr = hl7BaseService.buildOBRSegment(orderObservation.getOBR(), monster, false);
+			obr.getRequestedDateTime().getTs1_TimeOfAnEvent().setValue(hl7BaseService.getCurrentDateTimeString());
+			obr.getObr4_UniversalServiceIdentifier().getCe1_Identifier().setValue("Cervixcytologie");
 
 			OBX obx1 = orderObservation.getOBSERVATION(0).getOBX();
 			obx1.getSetIDOBX().setValue("1");

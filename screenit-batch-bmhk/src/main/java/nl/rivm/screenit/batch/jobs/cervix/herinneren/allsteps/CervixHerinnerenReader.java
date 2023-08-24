@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.herinneren.allsteps;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ package nl.rivm.screenit.batch.jobs.cervix.herinneren.allsteps;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Arrays;
 import java.util.Date;
 
 import nl.rivm.screenit.PreferenceKey;
@@ -29,8 +30,9 @@ import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
+import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.InstellingService;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.query.ScreenitRestrictions;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
@@ -54,7 +56,7 @@ public abstract class CervixHerinnerenReader extends BaseScrollableResultReader
 	private SimplePreferenceService preferenceService;
 
 	@Autowired
-	private InstellingService instellingService;
+	private OrganisatieParameterService organisatieParameterService;
 
 	private PreferenceKey periodeParameterKey;
 
@@ -89,16 +91,8 @@ public abstract class CervixHerinnerenReader extends BaseScrollableResultReader
 		crit.add(Restrictions.eq("uitnodiging.herinneren", true));
 		crit.add(Restrictions.isNull("uitnodiging.herinnerenGeannuleerdDatum"));
 
-		crit.add(Restrictions.lt(periodeProperty, getMaxPeriodeDatum(periodeParameterKey)));
-
-		if (maxAantalParameterKey == OrganisatieParameterKey.CERVIX_MAX_AANTAL_HERINNERINGEN_ZAS)
-		{
-			crit.createAlias("uitnodiging.monster", "zas", JoinType.INNER_JOIN, Restrictions.eq("uitnodiging.monsterType", CervixMonsterType.ZAS));
-		}
-		else
-		{
-			crit.createAlias("uitnodiging.monster", "uitstrijkje", JoinType.INNER_JOIN, Restrictions.eq("uitnodiging.monsterType", CervixMonsterType.UITSTRIJKJE));
-		}
+		maakHerinneringsPeriodeCriteria(crit);
+		voegStepSpecifiekeCriteriaToe(crit);
 
 		Integer maxAantalHerinneringen = getMaxAantalHerinneringen(maxAantalParameterKey);
 		if (maxAantalHerinneringen != null)
@@ -108,6 +102,26 @@ public abstract class CervixHerinnerenReader extends BaseScrollableResultReader
 		}
 
 		return crit;
+	}
+
+	private void maakHerinneringsPeriodeCriteria(Criteria crit)
+	{
+		crit.add(Restrictions.lt(periodeProperty, getMaxPeriodeDatum(periodeParameterKey)));
+	}
+
+	protected void voegAliasEnCriteriaToeMonstertypeZas(Criteria crit)
+	{
+		crit.createAlias("uitnodiging.monster", "zas", JoinType.INNER_JOIN, Restrictions.eq("uitnodiging.monsterType", CervixMonsterType.ZAS));
+	}
+
+	protected void voegCriteriaCheckOpBriefTypeToe(Criteria criteria, BriefType... briefTypes)
+	{
+		criteria.add(Restrictions.in("brief.briefType", Arrays.asList(briefTypes)));
+	}
+
+	protected void voegAliasEnCriteriaToeMonstertypeUitstrijkje(Criteria crit)
+	{
+		crit.createAlias("uitnodiging.monster", "uitstrijkje", JoinType.INNER_JOIN, Restrictions.eq("uitnodiging.monsterType", CervixMonsterType.UITSTRIJKJE));
 	}
 
 	@Override
@@ -129,7 +143,11 @@ public abstract class CervixHerinnerenReader extends BaseScrollableResultReader
 
 	private Integer getMaxAantalHerinneringen(OrganisatieParameterKey paramKey)
 	{
-		return instellingService.getOrganisatieParameter(null, paramKey);
+		return organisatieParameterService.getOrganisatieParameter(null, paramKey);
 	}
 
+	protected void voegStepSpecifiekeCriteriaToe(Criteria crit)
+	{
+		throw new IllegalStateException("Deze methode moet overriden worden in specifieke step");
+	}
 }

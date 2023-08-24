@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -21,17 +21,17 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 	<p wicket:id="rondeForcerenMelding"></p>
-	<table style="width: 100%" class="table table-bordered table-condensed">
+	<table class="width-100procent table table-bordered table-condensed">
 		<thead>
-			<tr>
-				<th class="input-medium">Betreft</th>
-				<th class="input-medium">Streefdatum</th>
-				<th>Locatie</th>
+		<tr>
+			<th class="input-medium">Betreft</th>
+			<th class="input-medium">Streefdatum</th>
+			<th>Locatie</th>
+			<th class="input-micro"></th>
+			<wicket:enclosure child="uitstellen">
 				<th class="input-micro"></th>
-				<wicket:enclosure child="uitstellen">
-					<th class="input-micro"></th>
-				</wicket:enclosure>
-			</tr>
+			</wicket:enclosure>
+		</tr>
 		</thead>
 		<tbody>
 			<tr>

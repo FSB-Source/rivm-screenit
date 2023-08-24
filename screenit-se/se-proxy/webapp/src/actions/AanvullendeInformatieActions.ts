@@ -2,6 +2,7 @@ import type {OnvolledigOnderzoekOption} from "../datatypes/visueleinspectie/aanv
 import type {OnderbrokenOnderzoekOption} from "../datatypes/visueleinspectie/aanvullendeinformatie/OnderbrokenOnderzoek"
 import type {ExtraFotosReden} from "../datatypes/visueleinspectie/aanvullendeinformatie/ExtraFotosReden"
 import type {Amputatie} from "../datatypes/Onderzoek"
+import {OnderzoekType} from "../datatypes/OnderzoekType"
 
 export type AanvullendeInformatieActions =
 	EerderMammogramJaartalAction
@@ -12,7 +13,8 @@ export type AanvullendeInformatieActions =
 	| DubbeleTijdAction
 	| DubbeleTijdRedenAction
 	| AdviesHuisartsAction
-	| SetAmputatieAction;
+	| SetAmputatieAction
+	| SetOnderzoekTypeAction;
 export const MAAK_EERDER_MAMMOGRAM_JAARTAL = "MAAK_EERDER_MAMMOGRAM_JAARTAL"
 export type EerderMammogramJaartalAction = {
 	type: "MAAK_EERDER_MAMMOGRAM_JAARTAL";
@@ -67,6 +69,17 @@ export const createActionMaakExtraFotosRedenen = (afspraakId: number, extraFotos
 	type: MAAK_EXTRA_FOTOS_REDENEN,
 	afspraakId: afspraakId,
 	extraFotosRedenen: extraFotosRedenen,
+})
+export const MAAK_ONDERZOEK_TYPE = "MAAK_ONDERZOEK_TYPE"
+export type SetOnderzoekTypeAction = {
+	type: "MAAK_ONDERZOEK_TYPE";
+	afspraakId: number;
+	onderzoekType: OnderzoekType;
+}
+export const createActionSetOnderzoekType = (afspraakId: number, onderzoekType: OnderzoekType): SetOnderzoekTypeAction => ({
+	type: MAAK_ONDERZOEK_TYPE,
+	afspraakId: afspraakId,
+	onderzoekType: onderzoekType,
 })
 export const MAAK_DUBBELE_TIJD = "MAAK_DUBBELE_TIJD"
 export type DubbeleTijdAction = {

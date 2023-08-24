@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.preferences;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,19 +25,22 @@ import java.util.Arrays;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
-import nl.rivm.screenit.main.web.component.ConfirmingIndicatingAjaxSubmitLink;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
-import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
+import nl.rivm.screenit.main.web.component.validator.ScreenitTelefoonnummerValidator;
 import nl.rivm.screenit.main.web.gebruiker.testen.TestenBasePage;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
+import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.MailVerzenden;
+import nl.rivm.screenit.model.SmsVerzenden;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
+import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
+import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.NumberTextField;
@@ -45,9 +48,9 @@ import org.apache.wicket.markup.html.form.RadioChoice;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.apache.wicket.validation.validator.StringValidator;
+import org.jetbrains.annotations.NotNull;
 import org.wicketstuff.shiro.ShiroConstraint;
-
-import com.google.common.base.Strings;
 
 @SecurityConstraint(
 	actie = Actie.INZIEN,
@@ -60,80 +63,178 @@ public class TestPreferencesPage extends TestenBasePage
 	@SpringBean
 	private SimplePreferenceService preferenceService;
 
-	private final Model<MailVerzenden> mailVerzendenModel;
+	private Model<MailVerzenden> mailVerzendenModel;
 
-	private final Model<String> alternatiefAdresModel;
+	private Model<SmsVerzenden> smsVerzendenModel;
+
+	private Model<String> alternatiefAdresModel;
+
+	private Model<String> alternatiefMobielNummerModel;
 
 	private Model<Boolean> bkKansberekeningEnabledModel;
 
 	private Model<Integer> bkKansberekeningDefaultOpkomstKansModel;
+
+	private WebMarkupContainer alternatiefMobielnummerContainer;
+
+	private RadioChoice<SmsVerzenden> smsVerzendenRadioChoice;
+
+	private WebMarkupContainer alternatiefAdresContainer;
+
+	private RadioChoice<MailVerzenden> mailVerzendenRadioChoice;
 
 	public TestPreferencesPage()
 	{
 		Form<Void> form = new ScreenitForm<>("form");
 		add(form);
 
-		MailVerzenden mailVerzendenPreference = preferenceService.getEnum(PreferenceKey.MAIL_VERZENDEN.toString(), MailVerzenden.class);
-		if (mailVerzendenPreference == null)
-		{
-			mailVerzendenPreference = MailVerzenden.AAN;
-		}
-		mailVerzendenModel = new Model<>(mailVerzendenPreference);
+		alternatiefMailAdres(form);
 
-		alternatiefAdresModel = new Model<>(preferenceService.getString(PreferenceKey.ALTERNATIEF_ADRES.toString()));
-
-		RadioChoice<MailVerzenden> mailVerzenden = new RadioChoice<>("mailVerzenden", mailVerzendenModel, Arrays.asList(MailVerzenden.values()),
-			new EnumChoiceRenderer<>());
-		mailVerzenden.setPrefix("<label class=\"radio\">");
-		mailVerzenden.setSuffix("</label>");
-		form.add(mailVerzenden);
-
-		final TextField<String> alternatiefAdres = new TextField<>("alternatiefAdres", alternatiefAdresModel);
-		alternatiefAdres.setEnabled(MailVerzenden.ALTERNATIEF_ADRES.equals(mailVerzendenModel.getObject()));
-		alternatiefAdres.setOutputMarkupId(true);
-		form.add(alternatiefAdres);
-
-		mailVerzenden.add(new AjaxFormSubmitBehavior("change")
-		{
-			@Override
-			protected void onSubmit(AjaxRequestTarget target)
-			{
-				alternatiefAdres.setEnabled(MailVerzenden.ALTERNATIEF_ADRES.equals(mailVerzendenModel.getObject()));
-				target.add(alternatiefAdres);
-			}
-		});
+		alternatiefMobielNummer(form);
 
 		kansBerekeningBKFields(form);
 
-		BootstrapDialog dialog = new BootstrapDialog("dialog");
-		add(dialog);
+		formOpslaan(form);
+	}
 
-		form.add(new ConfirmingIndicatingAjaxSubmitLink<Void>("opslaan", form, dialog, "opslaan.mailing.aan")
+	private void alternatiefMobielNummer(Form<Void> form)
+	{
+		maakAlternatiefMobielNummerContainer();
+		maakSmsVerzendenRadioChoiceKnop();
+
+		form.add(alternatiefMobielnummerContainer);
+		form.add(smsVerzendenRadioChoice);
+
+		alternatiefMobielnummerContainer.setVisible(SmsVerzenden.ALTERNATIEF_MOBIELNUMMER.equals(smsVerzendenModel.getObject()));
+
+		smsVerzendenAjaxOnChange();
+	}
+
+	@NotNull
+	private void maakAlternatiefMobielNummerContainer()
+	{
+		alternatiefMobielnummerContainer = new WebMarkupContainer("alternatiefMobielnummerContainer");
+		alternatiefMobielnummerContainer.setOutputMarkupPlaceholderTag(true);
+
+		alternatiefMobielNummerModel = new Model<>(preferenceService.getString(PreferenceKey.ALTERNATIEF_MOBIELNUMMER.toString()));
+		var alternatiefMobielnummerTextfield = new TextField<>("alternatiefMobielnummer", alternatiefMobielNummerModel);
+		alternatiefMobielnummerTextfield.setRequired(true);
+		alternatiefMobielnummerTextfield.setOutputMarkupPlaceholderTag(true);
+		alternatiefMobielnummerTextfield.add(ScreenitTelefoonnummerValidator.mobielNederlandsNummer());
+		alternatiefMobielnummerTextfield.add(StringValidator.maximumLength(GbaPersoon.MAX_PHONE_LENGTH));
+
+		alternatiefMobielnummerContainer.add(alternatiefMobielnummerTextfield);
+
+	}
+
+	private void smsVerzendenAjaxOnChange()
+	{
+		smsVerzendenRadioChoice.add(new AjaxFormChoiceComponentUpdatingBehavior()
 		{
 			@Override
-			protected boolean skipConfirmation()
+			protected void onUpdate(AjaxRequestTarget ajaxRequestTarget)
 			{
-				return !MailVerzenden.AAN.equals(mailVerzendenModel.getObject());
+				alternatiefMobielnummerContainer.setVisible(smsVerzendenModel.getObject().equals(SmsVerzenden.ALTERNATIEF_MOBIELNUMMER));
+				ajaxRequestTarget.add(alternatiefMobielnummerContainer);
 			}
+		});
+	}
 
+	@NotNull
+	private void maakSmsVerzendenRadioChoiceKnop()
+	{
+		SmsVerzenden smsVerzendenPreference = preferenceService.getEnum(PreferenceKey.SMS_VERZENDEN.name(), SmsVerzenden.class);
+		smsVerzendenModel = new Model<>(smsVerzendenPreference);
+
+		var smsVerzendenOpties = Arrays.asList(SmsVerzenden.ALTERNATIEF_MOBIELNUMMER, SmsVerzenden.UIT);
+
+		smsVerzendenRadioChoice = new RadioChoice<>("smsVerzenden", smsVerzendenModel, smsVerzendenOpties,
+			new EnumChoiceRenderer<>(this));
+		smsVerzendenRadioChoice.setPrefix("<label class=\"radio\">");
+		smsVerzendenRadioChoice.setSuffix("</label>");
+		smsVerzendenRadioChoice.setRequired(true);
+	}
+
+	private void formOpslaan(Form<Void> form)
+	{
+		form.add(new IndicatingAjaxSubmitLink("opslaan", form)
+		{
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				if (MailVerzenden.ALTERNATIEF_ADRES.equals(mailVerzendenModel.getObject())
-					&& Strings.isNullOrEmpty(alternatiefAdresModel.getObject()))
-				{
-					error("Alternatief adres verplicht");
-				}
-				else
-				{
-					preferenceService.putEnum(PreferenceKey.MAIL_VERZENDEN.name(), mailVerzendenModel.getObject());
-					preferenceService.putString(PreferenceKey.ALTERNATIEF_ADRES.toString(), alternatiefAdresModel.getObject());
-					success("Voorkeuren opgeslagen");
-				}
-
+				preferenceEmailOpslaan();
+				preferenceSmsOpslaan();
 				opslaanBkKansberekening();
+				success("Voorkeuren opgeslagen");
+
+			}
+
+			private void preferenceSmsOpslaan()
+			{
+				preferenceService.putEnum(PreferenceKey.SMS_VERZENDEN.name(), smsVerzendenModel.getObject());
+				preferenceService.putString(PreferenceKey.ALTERNATIEF_MOBIELNUMMER.toString(), alternatiefMobielNummerModel.getObject());
+			}
+
+			private void preferenceEmailOpslaan()
+			{
+				preferenceService.putEnum(PreferenceKey.MAIL_VERZENDEN.name(), mailVerzendenModel.getObject());
+				preferenceService.putString(PreferenceKey.ALTERNATIEF_ADRES.toString(), alternatiefAdresModel.getObject());
 			}
 		});
+	}
+
+	private void alternatiefMailAdres(Form<Void> form)
+	{
+		MailVerzenden mailVerzendenPreference = preferenceService.getEnum(PreferenceKey.MAIL_VERZENDEN.name(), MailVerzenden.class);
+		mailVerzendenModel = new Model<>(mailVerzendenPreference);
+		alternatiefAdresModel = new Model<>(preferenceService.getString(PreferenceKey.ALTERNATIEF_ADRES.toString()));
+
+		maakMailVerzendenRadioChoiceKnop();
+		maakAlternatiefAdresTextField();
+
+		form.add(mailVerzendenRadioChoice);
+		form.add(alternatiefAdresContainer);
+
+		alternatiefAdresContainer.setVisible(MailVerzenden.ALTERNATIEF_ADRES.equals(mailVerzendenModel.getObject()));
+
+		mailVerzendenAjaxOnChange();
+	}
+
+	private void mailVerzendenAjaxOnChange()
+	{
+		mailVerzendenRadioChoice.add(new AjaxFormChoiceComponentUpdatingBehavior()
+		{
+			@Override
+			protected void onUpdate(AjaxRequestTarget ajaxRequestTarget)
+			{
+				alternatiefAdresContainer.setVisible(MailVerzenden.ALTERNATIEF_ADRES.equals(mailVerzendenModel.getObject()) && mailVerzendenModel.getObject() != null);
+				ajaxRequestTarget.add(alternatiefAdresContainer);
+			}
+		});
+	}
+
+	@NotNull
+	private void maakAlternatiefAdresTextField()
+	{
+		alternatiefAdresContainer = new WebMarkupContainer("alternatiefAdresContainer");
+		alternatiefAdresContainer.setVisible(true);
+		alternatiefAdresContainer.setOutputMarkupPlaceholderTag(true);
+
+		final TextField<String> alternatiefAdres = new TextField<>("alternatiefAdres", alternatiefAdresModel);
+		alternatiefAdres.setRequired(true);
+		alternatiefAdresContainer.setOutputMarkupPlaceholderTag(true);
+		alternatiefAdresContainer.add(alternatiefAdres);
+
+	}
+
+	private void maakMailVerzendenRadioChoiceKnop()
+	{
+		var mailVerzendenOpties = Arrays.asList(MailVerzenden.ALTERNATIEF_ADRES, MailVerzenden.UIT);
+		mailVerzendenRadioChoice = new RadioChoice<>("mailVerzenden", mailVerzendenModel, mailVerzendenOpties,
+			new EnumChoiceRenderer<>(this));
+		mailVerzendenRadioChoice.setPrefix("<label class=\"radio\">");
+		mailVerzendenRadioChoice.setSuffix("</label>");
+		mailVerzendenRadioChoice.setRequired(true);
 	}
 
 	private void kansBerekeningBKFields(Form<Void> form)

@@ -4,7 +4,7 @@ package nl.rivm.screenit.wsb.fhir.interceptor;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,21 +27,22 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.PreferenceKey;
+import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5Session;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
+@Slf4j
 @Configuration
 @EnableScheduling
 public class FQDNProvider
 {
-	private static final Logger LOG = LoggerFactory.getLogger(FQDNProvider.class);
 
 	private static final String JOB_OMSCHRIJVING = "Reset de FQDNs vanuit de parameterisatie";
 
@@ -55,17 +56,20 @@ public class FQDNProvider
 	@Scheduled(cron = "0 */5 * * * ?")
 	public void removeVerlopenSessies()
 	{
-		LOG.debug("Start: " + JOB_OMSCHRIJVING);
-		String validFQDNstring = simplePreferenceService.getString(PreferenceKey.INTERNAL_CERVIX_LAB_FORMULIER_VALID_FQDNS.name());
-		if (StringUtils.isNotBlank(validFQDNstring))
+		OpenHibernate5Session.withoutTransaction().run(() ->
 		{
-			validFQDNs = Arrays.asList(validFQDNstring.split(";"));
-		}
-		else
-		{
-			validFQDNs = new ArrayList<>();
-		}
-		LOG.debug("Stop: " + JOB_OMSCHRIJVING);
+			LOG.debug("Start: " + JOB_OMSCHRIJVING);
+			String validFQDNstring = simplePreferenceService.getString(PreferenceKey.INTERNAL_CERVIX_LAB_FORMULIER_VALID_FQDNS.name());
+			if (StringUtils.isNotBlank(validFQDNstring))
+			{
+				validFQDNs = Arrays.asList(validFQDNstring.split(";"));
+			}
+			else
+			{
+				validFQDNs = new ArrayList<>();
+			}
+			LOG.debug("Stop: " + JOB_OMSCHRIJVING);
+		});
 	}
 
 	boolean isFQDNCheckNeeded()

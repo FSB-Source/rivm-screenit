@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.services.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -79,12 +79,25 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 	{
 		LocalDate vandaag = currentDateSupplier.getLocalDate();
 
-		MammaAfspraakWijzigenFilterDto filterVoorOphalenKandidaatAfspraken = MammaAfspraakWijzigenFilterDto.filterVoorOphalenAfsprakenBinnenVrijgegevenPeriode(client, plaats, afstand, vandaag,
-			getMaximaleVrijgegevenTotEnMetDatumBijPlaats(plaats, afstand));
+		MammaAfspraakWijzigenFilterDto filterVoorOphalenKandidaatAfspraken = MammaAfspraakWijzigenFilterDto.filterVoorOphalenAfsprakenBinnenPeriode(client, plaats,
+			afstand, vandaag,
+			maximaalAfspraakDagVoorPlaats(client, plaats, afstand));
 		List<MammaKandidaatAfspraakDto> kandidaatAfspraken = baseAfspraakService.getKandidaatAfspraken(client,
 			filterVoorOphalenKandidaatAfspraken);
 
 		return kandidaatAfspraken.stream().map(MammaKandidaatAfspraakDto::getDatum).sorted().distinct().collect(Collectors.toList());
+	}
+
+	private LocalDate maximaalAfspraakDagVoorPlaats(Client client, String plaats, String afstand)
+	{
+		var laatstMogelijkeAfspraakDatum = baseAfspraakService.laatstMogelijkeAfspraakDatum(client.getMammaDossier());
+		var maximumVrijgegevenTotEnMetDag = getMaximaleVrijgegevenTotEnMetDatumBijPlaats(plaats, afstand);
+
+		if (laatstMogelijkeAfspraakDatum != null && laatstMogelijkeAfspraakDatum.isBefore(maximumVrijgegevenTotEnMetDag))
+		{
+			return laatstMogelijkeAfspraakDatum;
+		}
+		return maximumVrijgegevenTotEnMetDag;
 	}
 
 	private LocalDate getMaximaleVrijgegevenTotEnMetDatumBijPlaats(String plaats, String afstand)
@@ -92,7 +105,7 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 		LocalDate vandaag = currentDateSupplier.getLocalDate();
 
 		MammaAfspraakWijzigenFilterDto filterOphalenStandplaatsPerioden = MammaAfspraakWijzigenFilterDto.filterVoorOphalenStandplaatsenViaPlaatsOfAfstand(plaats, afstand, vandaag,
-				vandaag.plusYears(2));
+			vandaag.plusYears(2));
 		List<MammaStandplaatsPeriode> standplaatsPerioden = standplaatsDao.getStandplaatsPerioden(filterOphalenStandplaatsPerioden);
 
 		return DateUtil.toLocalDate(standplaatsService.getMaximaleVrijgegevenTotEnMetDatum(standplaatsPerioden));
@@ -120,7 +133,7 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 	}
 
 	@Override
-	public MammaAfspraakOptieDto toMammaKandidaatOptie(MammaKandidaatAfspraakDto kandidaatAfspraakDto)
+	public MammaAfspraakOptieDto toMammaKandidaatOptie(MammaKandidaatAfspraakDto kandidaatAfspraakDto, Client client)
 	{
 		MammaAfspraakOptieDto mammaAfspraakOptieDto = new MammaAfspraakOptieDto(kandidaatAfspraakDto);
 		MammaStandplaatsPeriode standplaatsPeriode = hibernateService.get(MammaStandplaatsPeriode.class,
@@ -132,9 +145,15 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 		mammaAfspraakOptieDto.setPostcode(locatie.getPostcode());
 		mammaAfspraakOptieDto.setPlaats(locatie.getPlaats());
 
-		boolean briefKanNietMeerVerzondenWorden = baseAfspraakService.briefKanNietMeerVerzondenWorden(DateUtil.toUtilDate(kandidaatAfspraakDto.getDatum()));
-		mammaAfspraakOptieDto.setToonBevestigingsBriefOptie(briefKanNietMeerVerzondenWorden);
-		mammaAfspraakOptieDto.setBevestigingsBrief(briefKanNietMeerVerzondenWorden);
+		boolean briefKanVerzondenWorden = baseAfspraakService.briefKanNogVerzondenWorden(DateUtil.toUtilDate(kandidaatAfspraakDto.getDatum()));
+		mammaAfspraakOptieDto.setToonBevestigingsBriefOptie(briefKanVerzondenWorden);
+
+		boolean smsKanVerzondenWorden = baseAfspraakService.smsKanNogVerzondenWorden(kandidaatAfspraakDto.getDatumTijd());
+		mammaAfspraakOptieDto.setToonSmsHerinneringOptie(smsKanVerzondenWorden);
+
+		mammaAfspraakOptieDto.setClientEmailAdres(client.getPersoon().getEmailadres());
+		mammaAfspraakOptieDto.setClientMobielNummer(client.getPersoon().getTelefoonnummer1());
+
 		return mammaAfspraakOptieDto;
 	}
 

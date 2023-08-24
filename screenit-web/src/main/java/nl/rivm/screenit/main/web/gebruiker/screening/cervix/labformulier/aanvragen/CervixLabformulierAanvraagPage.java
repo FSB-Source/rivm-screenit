@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.labformulier.aanvra
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,7 +25,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import nl.rivm.screenit.dao.cervix.CervixHuisartsBaseDao;
+import nl.rivm.screenit.main.dao.cervix.CervixHuisartsDao;
 import nl.rivm.screenit.main.service.cervix.CervixHuisartsService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -80,7 +80,7 @@ public class CervixLabformulierAanvraagPage extends CervixScreeningBasePage
 	private CervixHuisartsService uitstrijkendArtsService;
 
 	@SpringBean
-	private CervixHuisartsBaseDao cervixHuisartsBaseDao;
+	private CervixHuisartsDao huisartsDao;
 
 	private WebMarkupContainer uitstrijkendArtsContainer;
 
@@ -153,12 +153,12 @@ public class CervixLabformulierAanvraagPage extends CervixScreeningBasePage
 		Form<CervixLabformulierAanvraag> form = new Form<>("form", aanvraagModel);
 		uitstrijkendArtsContrainer.add(form);
 
-		ComponentHelper.addTextField(form, "aantal", true, 2, Integer.class, false).add(RangeValidator.range(10, 75));
+		ComponentHelper.addTextField(form, "aantal", true, 2, Integer.class, false).add(RangeValidator.range(10, 25));
 
 		List<CervixHuisartsLocatie> locaties = new ArrayList<CervixHuisartsLocatie>();
 		if (huisartsModel != null)
 		{
-			locaties = cervixHuisartsBaseDao.getActieveHuisartsLocatiesVanHuisarts(huisartsModel.getObject());
+			locaties = huisartsDao.getActieveHuisartsLocatiesVanHuisarts(huisartsModel.getObject());
 		}
 		ScreenitDropdown<CervixHuisartsLocatie> locatieDropDown = new ScreenitDropdown<CervixHuisartsLocatie>("huisartsLocatie", ModelUtil.listModel(locaties),
 			new IChoiceRenderer<CervixHuisartsLocatie>()
@@ -195,8 +195,6 @@ public class CervixLabformulierAanvraagPage extends CervixScreeningBasePage
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				CervixHuisarts huisarts = huisartsModel.getObject();
-
 				InstellingGebruiker igebruiker = ScreenitSession.get().getLoggedInInstellingGebruiker();
 
 				uitstrijkendArtsService.aanvraagLabformulieren(aanvraagModel.getObject(), aanvraagModel.getObject().getHuisartsLocatie(), igebruiker);

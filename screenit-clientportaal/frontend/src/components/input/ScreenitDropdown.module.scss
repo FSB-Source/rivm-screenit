@@ -6,31 +6,32 @@
   width: 100%;
 
   .inputContainer {
-    position: relative;
-    border: 1px solid $grijs-700;
-    border-radius: 4px;
-    background-color: $wit-base;
-    margin-bottom: 5px;
-    padding: 0 12px 8px;
-    width: 100%;
+		position: relative;
+		border: 1px solid $grijs-700;
+		border-radius: 4px;
+		background-color: $wit-base;
+		margin-bottom: 5px;
+		padding: 0 12px 8px;
+		width: 100%;
 
-    &.invalid {
-      border: 1px solid $rood-base;
-    }
 
-    label {
-      position: absolute;
-      z-index: 2;
-      transition: 0.2s;
-      pointer-events: none;
-      left: 12px;
-      top: 5px;
+		&.invalid {
+			border: 1px solid $rood-base;
+		}
 
-      &:hover {
-        cursor: pointer;
-      }
-    }
-  }
+		label {
+			position: absolute;
+			z-index: 2;
+			transition: 0.2s;
+			pointer-events: none;
+			right: 4px;
+			top: 10px;
+
+			&:hover {
+				cursor: pointer;
+			}
+		}
+	}
 
   .dropdown {
     border: none;

@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,8 +28,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -49,7 +49,6 @@ import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
-import nl.rivm.screenit.model.colon.ColonAfmelding;
 import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.colon.ColonConclusie;
 import nl.rivm.screenit.model.colon.ColonDossier;
@@ -62,7 +61,6 @@ import nl.rivm.screenit.model.colon.ColonVooraankondiging;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.IFOBTType;
 import nl.rivm.screenit.model.colon.Kamer;
-import nl.rivm.screenit.model.colon.enums.ColonAfmeldingReden;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
@@ -76,7 +74,7 @@ import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.model.enums.HuisartsBerichtType;
 import nl.rivm.screenit.model.enums.RedenNietTeBeoordelen;
 import nl.rivm.screenit.service.BaseBriefService;
-import nl.rivm.screenit.service.ClientService;
+import nl.rivm.screenit.service.BaseDossierService;
 import nl.rivm.screenit.service.DossierFactory;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.TestService;
@@ -85,12 +83,13 @@ import nl.rivm.screenit.service.colon.ColonHuisartsBerichtService;
 import nl.rivm.screenit.service.colon.ColonTestService;
 import nl.rivm.screenit.service.impl.ImportBvoViaCsv;
 import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.IFOBTTestUtil;
+import nl.rivm.screenit.util.FITTestUtil;
 import nl.rivm.screenit.util.TestBsnGenerator;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.wicket.planning.model.Discipline;
+import nl.topicuszorg.wicket.planning.model.appointment.Location;
 import nl.topicuszorg.wicket.planning.model.appointment.recurrence.AbstractRecurrence;
 import nl.topicuszorg.wicket.planning.model.appointment.recurrence.NoRecurrence;
 import nl.topicuszorg.wicket.planning.services.RecurrenceService;
@@ -99,7 +98,6 @@ import org.apache.commons.lang.StringUtils;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,35 +105,25 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.ImmutableMap;
-
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
 public class ColonTestServiceImpl implements ColonTestService
 {
 	private static final Logger LOG = LoggerFactory.getLogger(ColonTestServiceImpl.class);
-
 	@Autowired
 	private HibernateService hibernateService;
-
 	@Autowired
 	private SimplePreferenceService simplePreferenceService;
-
 	@Autowired
 	private ClientDao clientDao;
-
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
-
 	@Autowired
 	private AfspraakDefinitieDao afspraakDefinitieDao;
-
 	@Autowired
 	private ColonHuisartsBerichtService huisartsBerichtService;
-
 	@Autowired
 	private BaseBriefService briefService;
-
 	@Autowired
 	private TestService testService;
 
@@ -146,9 +134,6 @@ public class ColonTestServiceImpl implements ColonTestService
 	private ColonTestDao colonTestDao;
 
 	@Autowired
-	private ClientService clientService;
-
-	@Autowired
 	private RecurrenceService recurrenceService;
 
 	@Autowired
@@ -156,6 +141,9 @@ public class ColonTestServiceImpl implements ColonTestService
 
 	@Autowired
 	private ColonDossierBaseService dossierService;
+
+	@Autowired
+	private BaseDossierService baseDossierService;
 
 	@Override
 	public ColonConclusie maakAfspraakEnConclusie(GbaPersoon filter, Date fitVerwerkingsDatum)
@@ -197,7 +185,7 @@ public class ColonTestServiceImpl implements ColonTestService
 		{
 			fit = maakHuidigeIFobtOntvangenEnOngunstig(filter);
 		}
-		else if (!IFOBTTestUtil.isOngunstig(uitnodiging.getGekoppeldeTest()))
+		else if (!FITTestUtil.isOngunstig(uitnodiging.getGekoppeldeTest()))
 		{
 			uitnodiging = maakNieuweUitnodiging(screeningRonde, ColonOnderzoeksVariant.STANDAARD);
 			fit = maakHuidigeIFobtOntvangenEnOngunstig(filter);
@@ -233,19 +221,12 @@ public class ColonTestServiceImpl implements ColonTestService
 		intakeAfspraak.setStatus(AfspraakStatus.GEPLAND);
 		if (intakeAfspraak.getStartTime() == null)
 		{
-			intakeAfspraak.setStartTime(currentDateSupplier.getDateTime().plusDays(1).toDate());
+			intakeAfspraak.setStartTime(DateUtil.plusDagen(currentDateSupplier.getDate(), 1));
 		}
 		if (intakeAfspraak.getLocation() == null)
 		{
 			List<Kamer> all = hibernateService.loadAll(Kamer.class);
-			Collections.sort(all, new Comparator<Kamer>()
-			{
-				@Override
-				public int compare(Kamer o1, Kamer o2)
-				{
-					return o1.getId().compareTo(o2.getId());
-				}
-			});
+			all.sort(Comparator.comparing(Location::getId));
 			intakeAfspraak.setLocation(all.get(0));
 		}
 		if (intakeAfspraak.getDefinition() == null)
@@ -255,7 +236,7 @@ public class ColonTestServiceImpl implements ColonTestService
 		}
 		if (intakeAfspraak.getEndTime() == null)
 		{
-			intakeAfspraak.setEndTime(new DateTime(intakeAfspraak.getStartTime()).plusMinutes(intakeAfspraak.getDefinition().getDuurAfspraakInMinuten()).toDate());
+			intakeAfspraak.setEndTime(DateUtil.plusTijdseenheid(intakeAfspraak.getStartTime(), intakeAfspraak.getDefinition().getDuurAfspraakInMinuten(), ChronoUnit.MINUTES));
 		}
 		b2.setIntakeAfspraak(intakeAfspraak);
 		hibernateService.saveOrUpdate(b2);
@@ -358,15 +339,15 @@ public class ColonTestServiceImpl implements ColonTestService
 		hibernateService.saveOrUpdate(screeningRonde);
 
 		IFOBTTest test = screeningRonde.getLaatsteIFOBTTest();
-		DateTime date = currentDateSupplier.getDateTime();
+		var date = currentDateSupplier.getDate();
 		int rapelDagen = simplePreferenceService.getInteger(PreferenceKey.IFOBTRAPELPERIODE.name());
-		date = date.minusDays(rapelDagen + 2);
-		Date rapelDate = date.toDate();
+		date = DateUtil.minDagen(date, rapelDagen + 2);
+		Date rapelDate = date;
 		test.setStatusDatum(rapelDate);
 		hibernateService.saveOrUpdate(test);
 
 		ColonUitnodiging uitnodiging = screeningRonde.getLaatsteUitnodiging();
-		uitnodiging.setVerstuurdDatum(date.minusSeconds(20).toDate());
+		uitnodiging.setVerstuurdDatum(DateUtil.plusTijdseenheid(date, 20, ChronoUnit.SECONDS));
 		hibernateService.saveOrUpdate(uitnodiging);
 
 		uitnodiging = geefUitnodiging(screeningRonde);
@@ -403,10 +384,10 @@ public class ColonTestServiceImpl implements ColonTestService
 		maakVooraankonding(client, dossier);
 		ColonScreeningRonde screeningRonde = geefScreeningRonde(dossier);
 
-		DateTime date = currentDateSupplier.getDateTime();
+		var date = currentDateSupplier.getDate();
 		int uitnodigingsDagen = simplePreferenceService.getInteger(PreferenceKey.UITNODIGINGSINTERVAL.name());
-		date = date.minusDays(uitnodigingsDagen + 1);
-		Date uitnodigingsDate = date.toDate();
+		date = DateUtil.minDagen(date, uitnodigingsDagen + 1);
+		Date uitnodigingsDate = date;
 
 		if (screeningRonde.getCreatieDatum() == null)
 		{
@@ -470,11 +451,11 @@ public class ColonTestServiceImpl implements ColonTestService
 		test.setNormWaarde(normwaarde);
 		test.setUitslag(uitslag);
 
-		if (test.getStatus() == IFOBTTestStatus.ACTIEF && !IFOBTTestUtil.isOngunstig(test))
+		if (test.getStatus() == IFOBTTestStatus.ACTIEF && !FITTestUtil.isOngunstig(test))
 		{
 			test.setStatus(IFOBTTestStatus.UITGEVOERD);
 		}
-		else if (test.getStatus() == IFOBTTestStatus.ACTIEF || IFOBTTestUtil.isOngunstig(test))
+		else if (test.getStatus() == IFOBTTestStatus.ACTIEF || FITTestUtil.isOngunstig(test))
 		{
 			test.setStatus(IFOBTTestStatus.UITGEVOERD);
 		}
@@ -553,7 +534,7 @@ public class ColonTestServiceImpl implements ColonTestService
 			int rapelDagen = simplePreferenceService.getInteger(PreferenceKey.IFOBTRAPELPERIODE.name());
 			date = date.minusDays(rapelDagen + 1);
 			Date rapelDate = DateUtil.toUtilDate(date);
-			ifobt.setBarcode("TGD" + IFOBTTestUtil.getIfobtTestBarcode(uitnodiging.getUitnodigingsId()));
+			ifobt.setBarcode("TGD" + FITTestUtil.getFITTestBarcode(uitnodiging.getUitnodigingsId()));
 			ifobt.setStatus(IFOBTTestStatus.ACTIEF);
 			ifobt.setColonScreeningRonde(uitnodiging.getScreeningRonde());
 			ifobt.setHerinnering(Boolean.FALSE);
@@ -580,7 +561,7 @@ public class ColonTestServiceImpl implements ColonTestService
 	private IFOBTTest geefStudietest(ColonUitnodiging uitnodiging, ColonScreeningRonde screeningRonde)
 	{
 		IFOBTTest studietest = new IFOBTTest();
-		studietest.setBarcode("TST" + IFOBTTestUtil.getIfobtTestBarcode(uitnodiging.getUitnodigingsId()));
+		studietest.setBarcode("TST" + FITTestUtil.getFITTestBarcode(uitnodiging.getUitnodigingsId()));
 		studietest.setStatus(IFOBTTestStatus.ACTIEF);
 		studietest.setColonScreeningRonde(uitnodiging.getScreeningRonde());
 		studietest.setHerinnering(Boolean.FALSE);
@@ -759,10 +740,8 @@ public class ColonTestServiceImpl implements ColonTestService
 					colonDossier.setClient(client);
 					client.setColonDossier(colonDossier);
 
-					DateTime datumVooraankondiging = currentDateSupplier.getDateTime();
-
-					Integer aantalDagenVooraankondiging = Integer.parseInt(aantalDagenVooraankondigingCell) + startRondeCorrectie;
-					datumVooraankondiging = datumVooraankondiging.plusDays(aantalDagenVooraankondiging);
+					var aantalDagenVooraankondiging = Integer.parseInt(aantalDagenVooraankondigingCell) + startRondeCorrectie;
+					var datumVooraankondiging = DateUtil.plusDagen(currentDateSupplier.getDate(), aantalDagenVooraankondiging);
 
 					String statusRonde = columns[headersIndex.get("StatusRonde")];
 					if (StringUtils.isNotBlank(statusRonde))
@@ -771,22 +750,22 @@ public class ColonTestServiceImpl implements ColonTestService
 						ColonBrief brief = new ColonBrief();
 						colonVooraankondiging.setBrief(brief);
 						colonVooraankondiging.setClient(client);
-						colonVooraankondiging.setCreatieDatum(datumVooraankondiging.toDate());
+						colonVooraankondiging.setCreatieDatum(datumVooraankondiging);
 
 						brief.setBriefType(BriefType.COLON_VOORAANKONDIGING);
-						brief.setCreatieDatum(datumVooraankondiging.toDate());
+						brief.setCreatieDatum(datumVooraankondiging);
 						brief.setGegenereerd(true);
 						brief.setTemplateNaam("vooraankondiging.doc");
 						brief.setClient(client);
 
 						ColonMergedBrieven mergedBrieven = new ColonMergedBrieven();
 						mergedBrieven.setBriefType(BriefType.COLON_VOORAANKONDIGING);
-						mergedBrieven.setCreatieDatum(datumVooraankondiging.toDate());
+						mergedBrieven.setCreatieDatum(datumVooraankondiging);
 						mergedBrieven.setGeprint(true);
-						mergedBrieven.setPrintDatum(datumVooraankondiging.toDate());
+						mergedBrieven.setPrintDatum(datumVooraankondiging);
 						mergedBrieven.setVerwijderd(true);
 						brief.setMergedBrieven(mergedBrieven);
-						mergedBrieven.setBrieven(new ArrayList<ColonBrief>());
+						mergedBrieven.setBrieven(new ArrayList<>());
 						mergedBrieven.getBrieven().add(brief);
 						colonDossier.setColonVooraankondiging(colonVooraankondiging);
 
@@ -817,14 +796,13 @@ public class ColonTestServiceImpl implements ColonTestService
 						}
 
 						categoriePerPatient.put(client.getPersoon().getBsn(), colonUitnodigingCategorie);
-						DateTime datumRondeDatum = currentDateSupplier.getDateTime();
-						Integer aantalDagendatumRondeDatum = Integer.parseInt(columns[headersIndex.get("DatumRonde")]) + startRondeCorrectie;
-						datumRondeDatum = datumRondeDatum.plusDays(aantalDagendatumRondeDatum);
+						var aantalDagendatumRondeDatum = Integer.parseInt(columns[headersIndex.get("DatumRonde")]) + startRondeCorrectie;
+						var datumRondeDatum = DateUtil.plusDagen(currentDateSupplier.getDate(), aantalDagendatumRondeDatum);
 
 						ColonScreeningRonde colonScreeningRonde = new ColonScreeningRonde();
-						colonScreeningRonde.setCreatieDatum(datumRondeDatum.toDate());
+						colonScreeningRonde.setCreatieDatum(datumRondeDatum);
 						colonScreeningRonde.setStatus(ScreeningRondeStatus.valueOf(statusRonde));
-						colonScreeningRonde.setStatusDatum(datumRondeDatum.toDate());
+						colonScreeningRonde.setStatusDatum(datumRondeDatum);
 						colonScreeningRonde.setDossier(colonDossier);
 						colonScreeningRonde.setAangemeld(true);
 						colonDossier.getScreeningRondes().add(colonScreeningRonde);
@@ -835,18 +813,18 @@ public class ColonTestServiceImpl implements ColonTestService
 						uitnodiging.setUitnodigingsId(uitnodigingsDao.getNextUitnodigingsId());
 						uitnodiging.setScreeningRonde(colonScreeningRonde);
 						uitnodiging.setColonUitnodigingCategorie(colonUitnodigingCategorie);
-						uitnodiging.setCreatieDatum(datumRondeDatum.toDate());
+						uitnodiging.setCreatieDatum(datumRondeDatum);
 						uitnodiging.setOnderzoeksVariant(ColonOnderzoeksVariant.STANDAARD);
 						String ifobtOntvangen = columns[headersIndex.get("IFOBT ontvangen")];
 						if (StringUtils.isNotBlank(columns[headersIndex.get("Uitnodiging")]))
 						{
-							uitnodiging.setUitnodigingsDatum(datumRondeDatum.toDate());
+							uitnodiging.setUitnodigingsDatum(datumRondeDatum);
 							uitnodiging.setVerstuurd(true);
-							uitnodiging.setVerstuurdDatum(datumRondeDatum.minusDays(2).toDate());
+							uitnodiging.setVerstuurdDatum(DateUtil.minDagen(datumRondeDatum, 2));
 						}
 						else
 						{
-							uitnodiging.setUitnodigingsDatum(datumRondeDatum.plusDays(10).toDate());
+							uitnodiging.setUitnodigingsDatum(DateUtil.plusDagen(datumRondeDatum, 10));
 							uitnodiging.setVerstuurd(false);
 						}
 						colonScreeningRonde.setLaatsteUitnodiging(uitnodiging);
@@ -864,9 +842,9 @@ public class ColonTestServiceImpl implements ColonTestService
 							colonScreeningRonde.getIfobtTesten().add(ifobtTest);
 							colonScreeningRonde.setLaatsteIFOBTTest(ifobtTest);
 							ifobtTest.setColonScreeningRonde(colonScreeningRonde);
-							ifobtTest.setStatusDatum(datumRondeDatum.minusSeconds(1).toDate());
+							ifobtTest.setStatusDatum(DateUtil.minusTijdseenheid(datumRondeDatum, 1, ChronoUnit.SECONDS));
 							ifobtTest.setBarcode("AAB" + StringUtils.leftPad("" + trackTraceId++, 4, "0"));
-							ifobtTest.setDatumVerstuurd(datumRondeDatum.minusDays(12).toDate());
+							ifobtTest.setDatumVerstuurd(DateUtil.minDagen(datumRondeDatum, 12));
 							ifobtTest.setType(IFOBTType.GOLD);
 							uitnodiging.setVerstuurdDoorInpakcentrum(true);
 							uitnodiging.setGekoppeldeTest(ifobtTest);
@@ -876,8 +854,8 @@ public class ColonTestServiceImpl implements ColonTestService
 
 							if (StringUtils.isNotBlank(ifobtOntvangen))
 							{
-								ifobtTest.setVerwerkingsDatum(datumRondeDatum.minusDays(12).toDate());
-								ifobtTest.setAnalyseDatum(datumRondeDatum.minusDays(11).toDate());
+								ifobtTest.setVerwerkingsDatum(DateUtil.minDagen(datumRondeDatum, 12));
+								ifobtTest.setAnalyseDatum(DateUtil.minDagen(datumRondeDatum, 11));
 								ifobtTest.setUitslag(BigDecimal.valueOf(Integer.parseInt(columns[headersIndex.get("IFOBT uitslag")])));
 								ifobtTest.setNormWaarde(BigDecimal.valueOf(Integer.parseInt(columns[headersIndex.get("IFOBT norm")])));
 								String statusTest = columns[headersIndex.get("StatusTest")];
@@ -939,101 +917,23 @@ public class ColonTestServiceImpl implements ColonTestService
 	@Override
 	public void clientReset(Client client)
 	{
-		ColonDossier dossier = client.getColonDossier();
+		var dossier = client.getColonDossier();
 		if (dossier == null)
 		{
 			return;
 		}
+		dossierService.maakDossierLeeg(dossier);
 
-		verwijderRondesVanColonDossier(dossier);
-		hibernateService.deleteAll(client.getAfspraken());
-		client.setAfspraken(new ArrayList<>());
+		baseDossierService.verwijderLaatsteAfmelding(dossier);
 
-		hibernateService.deleteAll(client.getComplicaties());
-		if (dossier.getColonVooraankondiging() != null)
-		{
-			ColonVooraankondiging vooraankondigiging = dossier.getColonVooraankondiging();
-			dossier.setColonVooraankondiging(null);
-			hibernateService.delete(vooraankondigiging);
-		}
-
-		List<ColonVooraankondiging> vooraankondigingen = hibernateService.getByParameters(ColonVooraankondiging.class, ImmutableMap.of("client", client));
-		hibernateService.deleteAll(vooraankondigingen);
-
-		for (ColonAfmelding afmelding : dossier.getAfmeldingen())
-		{
-			if (ColonAfmeldingReden.PROEF_BEVOLKINGSONDERZOEK.equals(afmelding.getReden()))
-			{
-				if (clientService.isHandtekeningBriefGebruiktBijMeedereColonAfmeldingen(afmelding.getHandtekeningDocumentAfmelding(), "handtekeningDocumentAfmelding"))
-				{
-					afmelding.setHandtekeningDocumentAfmelding(null);
-					hibernateService.saveOrUpdate(afmelding);
-				}
-				if (clientService.isHandtekeningBriefGebruiktBijMeedereColonAfmeldingen(afmelding.getHandtekeningDocumentHeraanmelding(), "handtekeningDocumentHeraanmelding"))
-				{
-					afmelding.setHandtekeningDocumentHeraanmelding(null);
-					hibernateService.saveOrUpdate(afmelding);
-				}
-			}
-		}
+		List<ColonBrief> overgeblevenBrieven = hibernateService.getByParameters(ColonBrief.class, Map.of("client", client));
+		hibernateService.deleteAll(overgeblevenBrieven);
 
 		client.setColonDossier(null);
 		hibernateService.saveOrUpdate(client);
-
 		hibernateService.delete(dossier);
 
-		List<ColonBrief> overgeblevenBrieven = hibernateService.getByParameters(ColonBrief.class, ImmutableMap.of("client", client));
-		hibernateService.deleteAll(overgeblevenBrieven);
-
 		dossierFactory.maakDossiers(client);
-	}
-
-	private void verwijderRondesVanColonDossier(ColonDossier dossier)
-	{
-		List<ColonScreeningRonde> rondes = dossier.getScreeningRondes();
-		dossier.setLaatsteScreeningRonde(null);
-		dossier.setScreeningRondes(new ArrayList<>());
-		for (ColonScreeningRonde ronde : rondes)
-		{
-			for (ColonBrief brief : ronde.getBrieven())
-			{
-				brief.setIfobtTest(null);
-				hibernateService.saveOrUpdate(brief);
-			}
-			verwijderIFOBTestVoorUitnodigingen(ronde.getUitnodigingen());
-		}
-		hibernateService.deleteAll(rondes);
-	}
-
-	private void verwijderIFOBTestVoorUitnodigingen(List<ColonUitnodiging> uitnodigingen)
-	{
-		for (ColonUitnodiging uitnodiging : uitnodigingen)
-		{
-			IFOBTTest test = uitnodiging.getGekoppeldeTest();
-			IFOBTTest testE = uitnodiging.getGekoppeldeExtraTest();
-			uitnodiging.setGekoppeldeTest(null);
-			uitnodiging.setGekoppeldeExtraTest(null);
-			hibernateService.saveOrUpdate(uitnodiging);
-
-			if (test != null)
-			{
-				ColonScreeningRonde andereScreeningRonde = test.getColonScreeningRonde();
-				andereScreeningRonde.setLaatsteIFOBTTest(null);
-				andereScreeningRonde.setLaatsteIFOBTTestExtra(null);
-				andereScreeningRonde.getIfobtTesten().remove(test);
-				hibernateService.saveOrUpdate(andereScreeningRonde);
-				hibernateService.delete(test);
-			}
-			if (testE != null)
-			{
-				ColonScreeningRonde andereScreeningRonde = testE.getColonScreeningRonde();
-				andereScreeningRonde.setLaatsteIFOBTTest(null);
-				andereScreeningRonde.setLaatsteIFOBTTestExtra(null);
-				andereScreeningRonde.getIfobtTesten().remove(testE);
-				hibernateService.saveOrUpdate(andereScreeningRonde);
-				hibernateService.delete(testE);
-			}
-		}
 	}
 
 	@Override
@@ -1097,9 +997,10 @@ public class ColonTestServiceImpl implements ColonTestService
 		if (client.getPersoon().getOverlijdensdatum() == null && client.getColonDossier().getColonVooraankondiging() != null
 			&& client.getPersoon().getDatumVertrokkenUitNederland() == null)
 		{
-			DateTime datumVooraankondiging = new DateTime(client.getColonDossier().getColonVooraankondiging().getCreatieDatum());
-			DateTime datumVooraankondigingPlusPeriode = datumVooraankondiging.plusDays(simplePreferenceService.getInteger(PreferenceKey.VOORAANKONDIGINSPERIODE.name()));
-			if (datumVooraankondigingPlusPeriode.isBeforeNow() && client.getColonDossier().getScreeningRondes().size() == 0)
+			var datumVooraankondiging = client.getColonDossier().getColonVooraankondiging().getCreatieDatum();
+			var datumVooraankondigingPlusPeriode = DateUtil.plusDagen(datumVooraankondiging,
+				simplePreferenceService.getInteger(PreferenceKey.VOORAANKONDIGINSPERIODE.name()));
+			if (datumVooraankondigingPlusPeriode.before(currentDateSupplier.getDate()) && client.getColonDossier().getScreeningRondes().size() == 0)
 			{
 				return ColonUitnodigingCategorie.U1;
 			}
@@ -1107,7 +1008,7 @@ public class ColonTestServiceImpl implements ColonTestService
 			if (client.getColonDossier().getLaatsteScreeningRonde() != null)
 			{
 				LocalDate datumVolgendeUitnodiging = dossierService.getDatumVolgendeUitnodiging(client.getColonDossier());
-				boolean volgendeUitnodigingsDatumBereikt = !datumVolgendeUitnodiging.isAfter(LocalDate.now());
+				boolean volgendeUitnodigingsDatumBereikt = !datumVolgendeUitnodiging.isAfter(currentDateSupplier.getLocalDate());
 				if (client.getColonDossier().getLaatsteScreeningRonde().getStatus() == ScreeningRondeStatus.AFGEROND
 					&& volgendeUitnodigingsDatumBereikt)
 				{

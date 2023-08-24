@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.messagequeue;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,6 +35,7 @@ import javax.persistence.TemporalType;
 import lombok.Getter;
 import lombok.Setter;
 
+import nl.rivm.screenit.model.helper.HibernateMagicNumber;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;
@@ -63,4 +64,7 @@ public class Message extends AbstractHibernateObject
 	@Type(type = "org.hibernate.type.TextType")
 	@Column(nullable = false)
 	private String content;
+
+	@Column(nullable = true, length = HibernateMagicNumber.L255)
+	private String context;
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,10 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit;
  * =========================LICENSE_END==================================
  */
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -52,16 +55,10 @@ import nl.rivm.screenit.service.mamma.MammaBaseCapaciteitsBlokService;
 import nl.rivm.screenit.service.mamma.MammaBaseConceptPlanningsApplicatie;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.mamma.MammaPlanningUtil;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.head.CssHeaderItem;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.JavaScriptHeaderItem;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
-import org.apache.wicket.markup.head.PriorityHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -73,18 +70,13 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.joda.time.DateTime;
-import org.joda.time.LocalTime;
 
 public class MammaCapaciteitOverviewPanel extends GenericPanel<MammaScreeningsEenheid>
 {
 
-	public static final LocalTime MINIMALE_TIJD = new LocalTime(7, 30);
+	public static final LocalTime MINIMALE_TIJD = LocalTime.of(7, 30);
 
-	public static final LocalTime MAXIMALE_TIJD = new LocalTime(21, 0);
-
-	@SpringBean
-	private HibernateService hibernateService;
+	public static final LocalTime MAXIMALE_TIJD = LocalTime.of(21, 0);
 
 	@SpringBean
 	private ICurrentDateSupplier dateSupplier;
@@ -97,9 +89,7 @@ public class MammaCapaciteitOverviewPanel extends GenericPanel<MammaScreeningsEe
 
 	private Date origStartTijd;
 
-	private DateTime huidigeStartVanWeek;
-
-	private DateTime huidigeEindVanWeek;
+	private Date huidigeStartVanWeek;
 
 	private final BootstrapDialog dialog;
 
@@ -189,8 +179,8 @@ public class MammaCapaciteitOverviewPanel extends GenericPanel<MammaScreeningsEe
 					IModel<PlanningCapaciteitBlokDto> blokModel = new CompoundPropertyModel<>(new PlanningCapaciteitBlokDto());
 					PlanningCapaciteitBlokDto blok = blokModel.getObject();
 					blok.screeningsEenheidId = getModelObject().getId();
-					blok.vanaf = range.getStart().toDate();
-					blok.tot = range.getEnd().toDate();
+					blok.vanaf = range.getStart();
+					blok.tot = range.getEnd();
 					blok.minderValideAfspraakMogelijk = true;
 					openEventPopup(response, blokModel);
 				}
@@ -214,7 +204,7 @@ public class MammaCapaciteitOverviewPanel extends GenericPanel<MammaScreeningsEe
 			{
 				if (magAanpassen && event.getEvent().isEditable())
 				{
-					IModel<PlanningCapaciteitBlokDto> blokModel = new CompoundPropertyModel<PlanningCapaciteitBlokDto>(sourceFactory.getBlok(event.getEvent().getConceptId()));
+					IModel<PlanningCapaciteitBlokDto> blokModel = new CompoundPropertyModel<>(sourceFactory.getBlok(event.getEvent().getConceptId()));
 					openEventPopup(response, blokModel);
 				}
 			}
@@ -223,7 +213,6 @@ public class MammaCapaciteitOverviewPanel extends GenericPanel<MammaScreeningsEe
 			protected void onViewDisplayed(View view, CalendarResponse response)
 			{
 				huidigeStartVanWeek = view.getStart();
-				huidigeEindVanWeek = view.getEnd();
 				response.getTarget().add(tooltips.getParent());
 				response.getTarget().appendJavaScript("initTooltip()");
 				MammaCapaciteitOverviewPanel.this.onCalenderRendered(response.getTarget());
@@ -246,7 +235,7 @@ public class MammaCapaciteitOverviewPanel extends GenericPanel<MammaScreeningsEe
 
 	}
 
-	public DateTime getHuidigeStartVanWeek()
+	public Date getHuidigeStartVanWeek()
 	{
 		return huidigeStartVanWeek;
 	}
@@ -321,14 +310,14 @@ public class MammaCapaciteitOverviewPanel extends GenericPanel<MammaScreeningsEe
 	{
 		Date start = blok.vanaf;
 		Date tot = blok.tot;
-		LocalTime startTime = new LocalTime(start);
-		LocalTime totTime = new LocalTime(tot);
+		LocalTime startTime = DateUtil.toLocalTime(start);
+		LocalTime totTime = DateUtil.toLocalTime(tot);
 
-		if (startTime.getMinuteOfHour() % 5 != 0)
+		if (startTime.getMinute() % 5 != 0)
 		{
 			getThisPage().errorMelding(getString("CapaciteitKalender.starttijd.minuten.geen.factor.vijf"));
 		}
-		if (totTime.getMinuteOfHour() % 5 != 0)
+		if (totTime.getMinute() % 5 != 0)
 		{
 			getThisPage().errorMelding(getString("CapaciteitKalender.eindtijd.minuten.geen.factor.vijf"));
 		}
@@ -346,7 +335,7 @@ public class MammaCapaciteitOverviewPanel extends GenericPanel<MammaScreeningsEe
 		{
 			getThisPage().errorMelding(getString("CapaciteitKalender.starttijd.in.verleden"));
 		}
-		if (totTime.getHourOfDay() == 0 || startTime.isBefore(MINIMALE_TIJD) || totTime.isAfter(MAXIMALE_TIJD))
+		if (totTime.getHour() == 0 || startTime.isBefore(MINIMALE_TIJD) || totTime.isAfter(MAXIMALE_TIJD))
 		{
 			getThisPage().errorMelding(getString("CapaciteitKalender.blok.buiten.minmax"));
 		}
@@ -355,22 +344,22 @@ public class MammaCapaciteitOverviewPanel extends GenericPanel<MammaScreeningsEe
 	private boolean wijzigCapaciteitsBlok(AbstractShiftedEventParam event)
 	{
 
-		if (!(event instanceof DroppedEvent) || event instanceof DroppedEvent && !((DroppedEvent) event).isAllDay())
+		if (!(event instanceof DroppedEvent) || !((DroppedEvent) event).isAllDay())
 		{
 			PlanningCapaciteitBlokDto blok = sourceFactory.getBlok(event.getEvent().getConceptId());
 			origStartTijd = blok.vanaf;
 
 			if (event.getNewEndTime().getDayOfYear() > event.getNewStartTime().getDayOfYear())
 			{
-				long millisDifference = event.getNewEndTime().getMillis() - event.getNewStartTime().getMillis();
-				DateTime newEndDate = event.getNewEndTime().withTimeAtStartOfDay();
-				blok.tot = newEndDate.toDate();
-				blok.vanaf = newEndDate.minusMillis((int) millisDifference).toDate();
+				long millisDifference = Duration.between(event.getNewStartTime(), event.getNewEndTime()).toMillis();
+				var newEndDate = DateUtil.startDag(DateUtil.toUtilDate(event.getNewEndTime()));
+				blok.tot = newEndDate;
+				blok.vanaf = DateUtil.minusTijdseenheid(newEndDate, millisDifference, ChronoUnit.MILLIS);
 			}
 			else
 			{
-				blok.vanaf = event.getNewStartTime().toDate();
-				blok.tot = event.getNewEndTime().toDate();
+				blok.vanaf = DateUtil.toUtilDate(event.getNewStartTime());
+				blok.tot = DateUtil.toUtilDate(event.getNewEndTime());
 			}
 			onBeforeOpslaan(blok);
 
@@ -401,15 +390,6 @@ public class MammaCapaciteitOverviewPanel extends GenericPanel<MammaScreeningsEe
 			tooltips.add(new MeldingenTooltip(tooltips.newChildId(), standplaatsPeriodeModel));
 			addedTooltips.add(tooltipId);
 		}
-	}
-
-	@Override
-	public void renderHead(IHeaderResponse response)
-	{
-		super.renderHead(response);
-		response.render(new PriorityHeaderItem(CssHeaderItem.forUrl("assets/js/libs/qtip/jquery.qtip.min.css")));
-		response.render(new PriorityHeaderItem(JavaScriptHeaderItem.forUrl("assets/js/libs/qtip/jquery.qtip.min.js")));
-		response.render(new OnDomReadyHeaderItem("initTooltip()"));
 	}
 
 	private class MeldingenTooltip extends Fragment

@@ -4,7 +4,7 @@ import {createActionQueueDaglijstVerversen} from "../actions/UpdateAction"
 import type {Transaction} from "../datatypes/Transaction"
 import {dispatchActions} from "./DispatchUtil"
 import {createActionOffline, createActionOnline} from "../actions/ConnectionActions"
-import {persistentErrorToast, persistentSuccessToast} from "./ToastUtil"
+import {persistentErrorToast} from "./ToastUtil"
 import {nuISO, setOffset} from "./DateUtil"
 import * as moment from "moment"
 import {Duration} from "moment"
@@ -48,14 +48,15 @@ export const initWebSocket = (): void => {
 		client.subscribe("/transactionReceive", (message: Message) => {
 			try {
 				verwerkSocketBericht(message)
-			} catch (e: any) {
-				console.error(`Fout bij het verwerken van socketbericht ${message} door ${e} ${e.stack && `stacktrace: ${e.stack}`}`)
+			} catch (e: unknown) {
+				if (e instanceof Error) {
+					console.error(`Fout bij het verwerken van socketbericht ${message} door ${e} ${e.stack && `stacktrace: ${e.stack}`}`)
+				}
 			}
 		})
+		forceerUpdateVoorVerkeerdeVersie()
 	}
-
 	client.activate()
-	forceerUpdateVoorVerkeerdeVersie()
 }
 
 const forceerUpdateVoorVerkeerdeVersie = (): void => {
@@ -67,9 +68,7 @@ const forceerUpdateVoorVerkeerdeVersie = (): void => {
 				window.onbeforeunload = function (): boolean | undefined {
 					return undefined
 				}
-
 				window.location.reload()
-				persistentSuccessToast("De SE is geüpdatet naar de nieuwste versie.")
 			}
 		})
 	})

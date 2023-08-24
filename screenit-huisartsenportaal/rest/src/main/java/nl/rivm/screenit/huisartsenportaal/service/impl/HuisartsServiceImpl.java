@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal.service.impl;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,12 +21,12 @@ package nl.rivm.screenit.huisartsenportaal.service.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.huisartsenportaal.dto.HuisartsDto;
-import nl.rivm.screenit.huisartsenportaal.dto.LocatieDto;
 import nl.rivm.screenit.huisartsenportaal.dto.WachtwoordVergetenDto;
 import nl.rivm.screenit.huisartsenportaal.model.Huisarts;
 import nl.rivm.screenit.huisartsenportaal.model.Medewerker;
@@ -38,15 +38,14 @@ import nl.rivm.screenit.huisartsenportaal.service.AdresService;
 import nl.rivm.screenit.huisartsenportaal.service.HuisartsService;
 import nl.rivm.screenit.huisartsenportaal.service.LocatieService;
 import nl.rivm.screenit.huisartsenportaal.util.CodeGenerator;
+import nl.rivm.screenit.huisartsenportaal.util.DateUtil;
 
-import org.joda.time.DateTime;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
@@ -69,7 +68,8 @@ public class HuisartsServiceImpl implements HuisartsService
 	private ModelMapper modelMapper;
 
 	@Override
-	public Huisarts updateHuisarts(HuisartsDto huisartsDto, Huisarts huisarts)
+	@Transactional(propagation = Propagation.REQUIRED)
+	public Huisarts updateAndGetHuisarts(HuisartsDto huisartsDto, Huisarts huisarts)
 	{
 		modelMapper.map(huisartsDto, huisarts);
 
@@ -89,12 +89,13 @@ public class HuisartsServiceImpl implements HuisartsService
 			huisarts.setOvereenkomstGeaccordeerdDatum(new Date());
 		}
 
-		adresService.setAdres(huisartsDto.getPostadres());
+		adresService.updateAndGetAdres(huisartsDto.getPostadres());
 
 		huisartsRepository.save(huisarts);
 		return huisarts;
 	}
 
+	@Override
 	public Huisarts updateWachtwoord(Huisarts huisarts, String wachtwoord)
 	{
 		String encodedWachtwoord = passwordEncoder.encode(wachtwoord);
@@ -112,7 +113,7 @@ public class HuisartsServiceImpl implements HuisartsService
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public Huisarts setHuisarts(HuisartsDto huisartsDto)
+	public Huisarts updateAndGetHuisarts(HuisartsDto huisartsDto)
 	{
 		Huisarts huisarts = null;
 		if (huisartsDto.getHuisartsportaalId() != null)
@@ -150,27 +151,22 @@ public class HuisartsServiceImpl implements HuisartsService
 		huisarts.setInlogCode(huisartsDto.getInlogCode());
 		if (huisartsDto.getPostadres() != null)
 		{
-			huisarts.setPostadres(adresService.setAdres(huisartsDto.getPostadres()));
+			huisarts.setPostadres(adresService.updateAndGetAdres(huisartsDto.getPostadres()));
 		}
-		if (CollectionUtils.isEmpty(huisartsDto.getLocaties()))
-		{
-			for (LocatieDto locatieDto : huisartsDto.getLocaties())
-			{
-				huisarts.getLocaties().add(locatieService.setLocatie(huisarts, locatieDto));
-			}
-		}
+
 		huisartsRepository.save(huisarts);
 		return huisarts;
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public Huisarts wachtwoordVergeten(Huisarts huisarts) throws IllegalStateException
 	{
 		if (huisarts != null && InlogMethode.USERNAME_PASSWORD.equals(huisarts.getInlogMethode()))
 		{
 			String codeB = CodeGenerator.genereerCode(3, 3);
 			huisarts.setInlogCode(codeB);
-			List<Recht> rechten = new ArrayList<Recht>();
+			List<Recht> rechten = new ArrayList<>();
 			rechten.add(Recht.ROLE_REGISTEREN);
 			huisarts.setRollen(rechten);
 			huisarts.setAttempts(0);
@@ -233,7 +229,7 @@ public class HuisartsServiceImpl implements HuisartsService
 	public Long remainingMinutesLock(Huisarts huisarts)
 	{
 		Date lastAttempt = huisarts.getLastAttemptDate();
-		Date lockdownTime = new DateTime().minusMinutes(Medewerker.MAX_LOCKED).toDate();
+		Date lockdownTime = DateUtil.toUtilDate(LocalDateTime.now().minusMinutes(Medewerker.MAX_LOCKED));
 		long diffMs = lastAttempt.getTime() - lockdownTime.getTime();
 		long diffsec = diffMs / 1000;
 		long minuten = diffsec / 60 + 1;

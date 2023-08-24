@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal.jms.listener;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -93,14 +93,16 @@ public class MessageListener
 				{
 					HuisartsDto dto = (HuisartsDto) object;
 					LOG.info(loginfo + " voor type huisarts(ha_id: " + dto.getHuisartsportaalId() + ", s_id: " + dto.getScreenitId() + ")");
-					huisartsService.setHuisarts(dto);
+					huisartsService.updateAndGetHuisarts(dto);
 				}
+
 				else if (object instanceof LocatieDto)
 				{
 					LocatieDto dto = (LocatieDto) object;
 					Huisarts huisarts = huisartsService.getHuisartsWith(dto.getHuisartsId());
 					LOG.info(loginfo + " voor type locatie(ha_id: " + dto.getHuisartsportaalId() + ", s_id: " + dto.getScreenitId() + ")");
-					locatieService.setLocatie(huisarts, dto);
+					locatieService.updateAndGetLocatie(huisarts, dto);
+					locatieService.nietVerstuurdeLabformulierenVerwijderen(dto);
 				}
 				else if (object instanceof OvereenkomstDto)
 				{

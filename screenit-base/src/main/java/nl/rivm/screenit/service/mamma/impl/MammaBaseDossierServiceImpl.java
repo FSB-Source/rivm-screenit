@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -44,8 +44,6 @@ import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaKansberekeningScreeningRondeEvent;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.rivm.screenit.model.mamma.MammaStandplaats;
-import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
@@ -54,6 +52,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectInactiefReden;
 import nl.rivm.screenit.service.BaseClientContactService;
+import nl.rivm.screenit.service.BaseDossierService;
 import nl.rivm.screenit.service.ClientDoelgroepService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.DashboardService;
@@ -96,6 +95,9 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 	@Autowired
 	@Lazy
 	private ClientService clientService;
+
+	@Autowired
+	private BaseDossierService baseDossierService;
 
 	@Autowired
 	private BaseClientContactService baseClientContactService;
@@ -164,7 +166,7 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 	public Stream<MammaScreeningRonde> laatste3AfgerondeRondesMetOnderzoek(MammaDossier dossier)
 	{
 		return dossier.getScreeningRondes().stream().filter(r -> r.getStatus() == ScreeningRondeStatus.AFGEROND).filter(this::heeftOnderzoek)
-			.sorted((r1, r2) -> r2.getStatusDatum().compareTo(r1.getStatusDatum())).limit(3);
+			.sorted((r1, r2) -> r2.getCreatieDatum().compareTo(r1.getCreatieDatum())).limit(3);
 	}
 
 	private boolean heeftOnderzoek(MammaScreeningRonde ronde)
@@ -175,7 +177,7 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 	@Override
 	public boolean isAfspraakMakenMogelijk(MammaDossier dossier, boolean viaClientportaal, boolean viaSePassant)
 	{
-		if (heeftGbaPostcode(dossier))
+		if (heeftGbaPostcode(dossier) && clientService.isLevendeInwonerNederlandMetGbaIndicatie(dossier.getClient()))
 		{
 			MammaScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
 			if (ronde != null && !ronde.getMinderValideOnderzoekZiekenhuis()
@@ -217,7 +219,7 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 	@Override
 	public boolean isVerzettenMogelijk(MammaDossier dossier)
 	{
-		if (heeftGbaPostcode(dossier))
+		if (heeftGbaPostcode(dossier) && clientService.isLevendeInwonerNederlandMetGbaIndicatie(dossier.getClient()))
 		{
 			MammaScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
 			if (ronde != null && ronde.getStatus() == ScreeningRondeStatus.LOPEND)
@@ -325,19 +327,19 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 	@Override
 	public void rondeForceren(Client client) throws MammaStandplaatsVanPostcodeOnbekendException
 	{
-		MammaStandplaats standplaats = standplaatsService.getStandplaatsMetPostcode(client);
+		var standplaats = standplaatsService.getStandplaatsMetPostcode(client);
 		if (standplaats == null)
 		{
 			LOG.info("Client {} niet te koppelen aan standplaats", client.getId());
 			throw new MammaStandplaatsVanPostcodeOnbekendException();
 		}
-		MammaStandplaatsRonde screeningRonde = standplaatsService.getStandplaatsRondeVanStandplaats(standplaats);
-		if (screeningRonde == null)
+		var standplaatsPeriode = standplaatsService.huidigeStandplaatsPeriodeInRouteVanStandplaats(standplaats);
+		if (standplaatsPeriode == null)
 		{
 			LOG.info("Standplaats {} niet in route", standplaats.getId());
 			throw new MammaStandplaatsVanPostcodeOnbekendException();
 		}
-		MammaScreeningRonde ronde = baseFactory.maakRonde(client.getMammaDossier(), screeningRonde, true);
+		MammaScreeningRonde ronde = baseFactory.maakRonde(client.getMammaDossier(), standplaatsPeriode.getStandplaatsRonde(), true);
 
 		baseFactory.maakUitnodiging(ronde, ronde.getStandplaatsRonde(),
 			screeningrondeService.bepaalBriefTypeVoorOpenUitnodiging(volgendeUitnodigingService.isSuspect(client.getMammaDossier()),
@@ -352,22 +354,17 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void verwijderMammaDossier(Client client)
+	public void maakDossierLeeg(MammaDossier dossier)
 	{
-		baseClientContactService.verwijderClientContacten(client, Bevolkingsonderzoek.MAMMA);
-
-		MammaDossier dossier = client.getMammaDossier();
 		if (dossier != null)
 		{
+			Client client = dossier.getClient();
+
+			baseClientContactService.verwijderClientContacten(client, Bevolkingsonderzoek.MAMMA);
+
 			screeningrondeService.verwijderAlleScreeningRondes(dossier);
 
-			dossier.setInactiefVanaf(null);
-			dossier.setInactiefTotMet(null);
-
-			if (DossierStatus.INACTIEF.equals(dossier.getStatus()) && Boolean.TRUE.equals(dossier.getAangemeld()))
-			{
-				dossier.setStatus(DossierStatus.ACTIEF);
-			}
+			opruimenDossier(dossier);
 
 			MammaKansberekeningScreeningRondeEvent screeningRondeEvent = dossier.getScreeningRondeEvent();
 			if (screeningRondeEvent != null)
@@ -378,14 +375,27 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 
 			hibernateService.saveOrUpdate(dossier);
 			followUpService.refreshUpdateFollowUpConclusie(dossier);
+
+			baseDossierService.verwijderNietLaatsteDefinitieveAfmeldingenUitDossier(client.getMammaDossier());
+
+			hibernateService.saveOrUpdate(client);
+
+			ProjectClient projectClient = ProjectUtil.getHuidigeProjectClient(client, currentDateSupplier.getDate(), false);
+			if (projectClient != null)
+			{
+				clientService.projectClientInactiveren(projectClient, ProjectInactiefReden.VERWIJDERING_VAN_DOSSIER, Bevolkingsonderzoek.MAMMA);
+			}
 		}
+	}
 
-		hibernateService.saveOrUpdate(client);
+	private void opruimenDossier(MammaDossier dossier)
+	{
+		dossier.setInactiefVanaf(null);
+		dossier.setInactiefTotMet(null);
 
-		ProjectClient projectClient = ProjectUtil.getHuidigeProjectClient(client, currentDateSupplier.getDate(), false);
-		if (projectClient != null)
+		if (DossierStatus.INACTIEF.equals(dossier.getStatus()) && Boolean.TRUE.equals(dossier.getAangemeld()))
 		{
-			clientService.projectClientInactiveren(projectClient, ProjectInactiefReden.VERWIJDERING_VAN_DOSSIER, null);
+			dossier.setStatus(DossierStatus.ACTIEF);
 		}
 	}
 

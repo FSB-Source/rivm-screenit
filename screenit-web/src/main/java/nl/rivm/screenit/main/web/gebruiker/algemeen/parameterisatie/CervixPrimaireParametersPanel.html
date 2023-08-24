@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -30,21 +30,34 @@
 			<div class="row-fluid">
 				<div class="span4">
 					<div class="control-group">
-						<label class="control-label">Herinneringsperiode</label>
+						<label class="control-label">Vooraankondigingsperiode</label>
 						<div class="controls">
-							<input wicket:id="cervixHerinneringsPeriode" class="input-small" type="text"> weken
+							<input wicket:id="cervixVooraankondigingsPeriode" class="input-small" type="text">
+							dagen
 						</div>
 					</div>
 					<div class="control-group">
-						<label class="control-label">Interval Controle Uitstrijkje</label>
+						<label class="control-label">Herinneringsperiode non-responder</label>
 						<div class="controls">
-							<input wicket:id="cervixIntervalControleUitstrijkje" class="input-small" type="text"> maanden
+							<input wicket:id="cervixHerinneringsPeriodeNonResponder" class="input-small" type="text"> weken
 						</div>
 					</div>
 					<div class="control-group">
 						<label class="control-label">Herinneringsperiode ZAS</label>
 						<div class="controls">
 							<input wicket:id="cervixHerinneringsPeriodeZas" class="input-small" type="text"> weken
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label">Herinneringsperiode laatste herinnering</label>
+						<div class="controls">
+							<input wicket:id="cervixHerinneringsPeriodeLaatsteHerinnering" class="input-small" type="text"> weken
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label">Interval Controle Uitstrijkje</label>
+						<div class="controls">
+							<input wicket:id="cervixIntervalControleUitstrijkje" class="input-small" type="text"> maanden
 						</div>
 					</div>
 					<div class="control-group">
@@ -60,13 +73,13 @@
 						</div>
 					</div>
 					<div class="control-group">
-						<label class="control-label">Maximum aantal ZAS-en via InfoLijn</label>
+						<label class="control-label">Maximum aantal ZAS-en handmatig aanvragen via InfoLijn</label>
 						<div class="controls">
 							<input wicket:id="cervixMaxZasAanvragenInfolijn" class="input-small" type="text">
 						</div>
 					</div>
 					<div class="control-group">
-						<label class="control-label">Maximum aantal ZAS-en via Clientportaal</label>
+						<label class="control-label">Maximum aantal ZAS-en handmatig aanvragen via Clientportaal</label>
 						<div class="controls">
 							<input wicket:id="cervixMaxZasAanvragenClient" class="input-small" type="text">
 						</div>
@@ -75,7 +88,7 @@
 						<label class="control-label">Startdatum aanlevering genotypering analyseresultaten en invoering triage</label>
 						<div class="controls">
 							<input type="text" class="datum" wicket:id="cervixStartAanleveringGenotyperingEnInvoeringTriage"/>
-							<a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum" tabindex="-1"><i
+							<a class="btn js-datepicker-show" title="Datum" tabindex="-1"><i
 									class="icon-calendar"></i></a>
 						</div>
 					</div>
@@ -182,14 +195,6 @@
 							dagen
 						</div>
 					</div>
-
-					<div class="control-group">
-						<label class="control-label">Vooraankondigingsperiode</label>
-						<div class="controls">
-							<input wicket:id="cervixVooraankondigingsPeriode" class="input-small" type="text">
-							dagen
-						</div>
-					</div>
 				</div>
 			</div>
 		</fieldset>
@@ -211,7 +216,7 @@
 											<textarea wicket:id="cervixHerinneringTekst" cols="60" rows="4"></textarea>
 										</label>
 									</div>
-							</li>
+								</li>
 							</ul>
 						</div>
 					</div>
@@ -236,14 +241,14 @@
 								<li>
 									<div class="mergeveld-waarde">
 										<label>Eenmalig
-											<textarea wicket:id="cervixEenmaligHeraanmeldenTekst" cols="60" rows="4" ></textarea>
+											<textarea wicket:id="cervixEenmaligHeraanmeldenTekst" cols="60" rows="4"></textarea>
 										</label>
 									</div>
 								</li>
 								<li>
 									<div class="mergeveld-waarde">
 										<label>Definitief
-											<textarea wicket:id="cervixDefinitiefHeraanmeldenTekst" cols="60" rows="4" ></textarea>
+											<textarea wicket:id="cervixDefinitiefHeraanmeldenTekst" cols="60" rows="4"></textarea>
 										</label>
 									</div>
 								</li>

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.status.step;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,6 +24,7 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.status.step;
 import nl.rivm.screenit.batch.jobs.mamma.beoordeling.MammaBaseBeoordelingReader;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
+import nl.rivm.screenit.util.DateUtil;
 
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
@@ -61,10 +62,10 @@ public class MammaBeoordelingenAccorderenReader extends MammaBaseBeoordelingRead
 					Subqueries.propertyNotIn("tweedeLezing.beoordelaar.id", radiologenAanHetWerkSubquery)),
 				Restrictions.and(
 					Restrictions.eq("beoordeling.status", MammaBeoordelingStatus.EERSTE_LEZING_OPGESLAGEN),
-					Restrictions.le("eersteLezing.beoordelingDatum", currentDateSupplier.getDateTime().minusDays(DAGEN).toDate())),
-				Restrictions.and(
-					Restrictions.eq("beoordeling.status", MammaBeoordelingStatus.TWEEDE_LEZING_OPGESLAGEN),
-					Restrictions.le("tweedeLezing.beoordelingDatum", currentDateSupplier.getDateTime().minusDays(DAGEN).toDate()))));
+					Restrictions.le("eersteLezing.beoordelingDatum", DateUtil.minDagen(currentDateSupplier.getDate(), DAGEN)),
+					Restrictions.and(
+						Restrictions.eq("beoordeling.status", MammaBeoordelingStatus.TWEEDE_LEZING_OPGESLAGEN),
+						Restrictions.le("tweedeLezing.beoordelingDatum", DateUtil.minDagen(currentDateSupplier.getDate(), DAGEN))))));
 
 		return criteria;
 	}

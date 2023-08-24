@@ -35,7 +35,7 @@ export default class AkkoordPopupView extends React.Component<AkkoordPopupViewSt
 
 				{(this.props.akkoordString || this.props.annulerenString) && <ModalFooter>
 					{this.props.akkoordString && (this.props.alleenOnline ?
-						<AlleenOnlineButton id={this.props.akkoordString} color="primary" label={this.props.akkoordString}
+						<AlleenOnlineButton id={this.props.akkoordString.replaceAll(" ", "-")} color="primary" label={this.props.akkoordString}
 											online={this.props.online ?? false}
 											onClick={(): void => {
 												this.props.akkoord(this.props.callback)

@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,8 @@ import HeaderComponent from "./components/header/HeaderComponent"
 import FooterComponent from "./components/footer/FooterComponent"
 import ActiveToastsComponent from "./components/toast/ActiveToastsComponent"
 import {useGotoPageTop, useHideAllToasts, useRefreshBvoDossier, useRefreshClient, useRefreshEnvironmentInfo} from "./utils/Hooks"
+import LoadingSpinnerOverlay from "./components/loading/LoadingSpinnerOverlay"
+import UnsupportedBrowserBanner from "./components/banner/unsupportedbrowser/UnsupportedBrowserBanner"
 
 const App = () => {
 	useRefreshEnvironmentInfo()
@@ -40,8 +42,10 @@ const App = () => {
 		<div className={styles.app}>
 			<Container className={styles.appBody} fluid>
 				<ActiveToastsComponent/>
+				<LoadingSpinnerOverlay/>
 				<HeaderComponent/>
 				<Container fluid className={styles.appContent}>
+					<UnsupportedBrowserBanner/>
 					<AppRoutes/>
 				</Container>
 			</Container>

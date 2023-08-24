@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -348,9 +348,12 @@ public enum Recht implements INaam
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
 		Actie.INZIEN),
 
-	GEBRUIKER_CLIENT_TELEFOONNUMMER_REGISTREREN(
-		"Cli\u00EBnt telefoonnummer registreren",
-		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA }),
+	GEBRUIKER_CLIENT_CONTACTGEGEVENS_REGISTREREN(
+		"Cli\u00EBnt contactgegevens registreren",
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA },
+		new ToegangLevel[] { ToegangLevel.LANDELIJK },
+		Actie.AANPASSEN
+	),
 
 	GEBRUIKER_CLIENT_SCREENINGSRONDE("Screeningsronde", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA }),
 
@@ -374,13 +377,13 @@ public enum Recht implements INaam
 		"Download overdracht persoonsgegevens",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA },
 		null,
-		new Actie[] { Actie.INZIEN }),
+		Actie.INZIEN),
 
 	GEBRUIKER_CLIENT_CIS_HISTORIE(
 		"CIS Historie",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.CERVIX },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
-		new Actie[] { Actie.INZIEN }),
+		Actie.INZIEN),
 
 	GEBRUIKER_CLIENT_UITSTEL("Uitstel vragen cli\u00EBnt", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.CERVIX }),
 
@@ -424,6 +427,12 @@ public enum Recht implements INaam
 		"Brieven opnieuw klaarzetten",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA }),
 
+	GEBRUIKER_CLIENT_SR_MAILS_OPNIEUW_VERZENDEN(
+		"Clientmails opnieuw verzenden",
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA },
+		new ToegangLevel[] { ToegangLevel.LANDELIJK },
+		Actie.AANPASSEN),
+
 	GEBRUIKER_CLIENT_SR_BRIEVEN_TEGENHOUDEN(
 		"Brieven tegenhouden",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA },
@@ -465,6 +474,9 @@ public enum Recht implements INaam
 	GEBRUIKER_SCREENING_IFOBT_BATCH("FIT batch registratie", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON }, new ToegangLevel[] { ToegangLevel.LANDELIJK }),
 
 	GEBRUIKER_SCREENING_INTAKE_WERKLIJST("Werklijst intake", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON }),
+
+	GEBRUIKER_SCREENING_WERKLIJST_MISSENDE_MDL_VERSLAGEN("Werklijst missende MDL verslagen", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON },
+		new ToegangLevel[] { ToegangLevel.INSTELLING }, Actie.INZIEN),
 
 	GEBRUIKER_SCREENING_DEFINITIEF_VERVOLGDBELEID("Beheren definitief vervolgbeleid", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON }),
 
@@ -742,7 +754,7 @@ public enum Recht implements INaam
 	GEBRUIKER_SCREENING_BETALINGEN_BMHK(
 		"Betalingen BMHK exporteren",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.CERVIX },
-		new ToegangLevel[] { ToegangLevel.REGIO },
+		new ToegangLevel[] { ToegangLevel.LANDELIJK },
 		Actie.TOEVOEGEN,
 		Actie.VERWIJDEREN),
 
@@ -784,73 +796,73 @@ public enum Recht implements INaam
 		"Afspraken cli\u00EBnt",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
-		new Actie[] { Actie.INZIEN }),
+		Actie.INZIEN),
 
 	GEBRUIKER_CLIENT_MAMMA_RONDE_FORCEREN(
 		"Ronde forceren",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
-		new Actie[] { Actie.TOEVOEGEN }),
+		Actie.TOEVOEGEN),
 
 	GEBRUIKER_CLIENT_MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS(
 		"Mindervalide onderzoek ziekenhuis",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
-		new Actie[] { Actie.AANPASSEN }),
+		Actie.AANPASSEN),
 
 	GEBRUIKER_CLIENT_MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS_TERUGDRAAIEN(
 		"Mindervalide onderzoek ziekenhuis terugdraaien",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
-		new Actie[] { Actie.AANPASSEN }),
+		Actie.AANPASSEN),
 
 	GEBRUIKER_CLIENT_MAMMA_INFOBRIEF_PROTHESEN(
 		"Infobrief prothesen",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
-		new Actie[] { Actie.TOEVOEGEN }),
+		Actie.TOEVOEGEN),
 
 	GEBRUIKER_CLIENT_MAMMA_AFSPRAAK_MAKEN(
 		"Afspraak maken",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
-		new Actie[] { Actie.TOEVOEGEN }),
+		Actie.TOEVOEGEN),
 
 	GEBRUIKER_CLIENT_MAMMA_AFSPRAAK_WIJZIGEN(
 		"Afspraak wijzigen",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
-		new Actie[] { Actie.AANPASSEN }),
+		Actie.AANPASSEN),
 
 	GEBRUIKER_MAMMA_AFSPRAAK_BULK_VERZETTEN(
 		"Bulk verzetten",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.REGIO },
-		new Actie[] { Actie.AANPASSEN }),
+		Actie.AANPASSEN),
 
 	GEBRUIKER_CLIENT_MAMMA_AFSPRAAK_BUITEN_REGIO(
 		"Afspraak buiten regio",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
-		new Actie[] { Actie.AANPASSEN }),
+		Actie.AANPASSEN),
 
 	GEBRUIKER_CLIENT_MAMMA_AFSPRAAK_MAKEN_FORCEREN(
 		"Afspraak forceren",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
-		new Actie[] { Actie.TOEVOEGEN }),
+		Actie.TOEVOEGEN),
 
 	GEBRUIKER_CLIENT_MAMMA_AFMELDEN(
 		"Afmelden",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
-		new Actie[] { Actie.AANPASSEN }),
+		Actie.AANPASSEN),
 
 	GEBRUIKER_CLIENT_MAMMA_HERAANMELDEN(
 		"Heraanmelden",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
-		new Actie[] { Actie.AANPASSEN }),
+		Actie.AANPASSEN),
 
 	GEBRUIKER_CLIENT_MAMMA_HERBEOORDELEN(
 		"Herbeoordeling aanvragen",
@@ -863,7 +875,7 @@ public enum Recht implements INaam
 		"IMS desktop sync",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
-		new Actie[] { Actie.INZIEN }),
+		Actie.INZIEN),
 
 	GEBRUIKER_SCREENING_MAMMA_BEOORDELING_WERKLIJST(
 		"Beoordeling werklijst",
@@ -880,6 +892,12 @@ public enum Recht implements INaam
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.INSTELLING },
 		Actie.AANPASSEN),
+
+	GEBRUIKER_BEOORDELINGSEENHEID_COORDINEREND_RADIOLOOG(
+		"Co\u00F6rdinerend radioloog",
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
+		new ToegangLevel[] { ToegangLevel.INSTELLING },
+		Actie.TOEVOEGEN),
 
 	GEBRUIKER_SCREENING_MAMMA_DOSSIERGEGEVENS(
 		"Dossiergegevens",
@@ -1112,7 +1130,12 @@ public enum Recht implements INaam
 		"Toon genderidentiteit",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.MAMMA, Bevolkingsonderzoek.CERVIX },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
-		Actie.INZIEN);
+		Actie.INZIEN),
+
+	GEBRUIKER_SCREENING_MAMMA_BE_ONDERZOEKTYPE_FILTER(
+		"BE type onderzoek filter",
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
+		new ToegangLevel[] { ToegangLevel.INSTELLING }, Actie.INZIEN);
 
 	private final String omschrijving;
 
@@ -1157,6 +1180,6 @@ public enum Recht implements INaam
 
 	public List<OrganisatieType> getOrganisatieTypes()
 	{
-		return null;
+		return Collections.emptyList();
 	}
 }

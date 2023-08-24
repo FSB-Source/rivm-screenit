@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.colon.timeline.popups;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,6 +33,7 @@ import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.popups.Abstra
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.colon.ColoscopieLocatie;
 import nl.rivm.screenit.model.colon.enums.MdlVervolgbeleid;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.InstellingService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -52,6 +53,9 @@ public class TestMDLVerslagPopup extends AbstractTestBasePopupPanel
 
 	@SpringBean
 	private InstellingService instellingService;
+
+	@SpringBean
+	private ICurrentDateSupplier currentDateSupplier;
 
 	private IModel<ColoscopieLocatie> coloscopieLocatieModel;
 
@@ -77,7 +81,7 @@ public class TestMDLVerslagPopup extends AbstractTestBasePopupPanel
 
 		add(vervolgBeleidDropDown);
 
-		datumOnderzoekModel = Model.of(new Date());
+		datumOnderzoekModel = Model.of(currentDateSupplier.getDate());
 		FormComponent<Date> datumOnderzoek = ComponentHelper.addTextField(this, "datumOnderzoek", true, 10, Date.class, false);
 		datumOnderzoek.setModel(datumOnderzoekModel);
 		datumOnderzoek.setType(Date.class);

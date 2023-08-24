@@ -1,9 +1,9 @@
 {
-  "title": "Nieuwe uitnodigingsbrief aanvragen",
-  "description": "Voor het maken van het uitstrijkje bij de huisarts heeft u de uitnodigingsbrief nodig. Hier zitten twee stickers op met een streepjescode. In deze code zijn uw gegevens verwerkt. Uw huisarts plakt deze stickers op het laboratoriumformulier en op het uitstrijkpotje. Zo weten wij dat het uitstrijkje van u is. </br></br>Bent u de uitnodigingsbrief met de stickers kwijt? Dan kunt u een nieuwe brief aanvragen. U krijgt deze binnen een paar dagen met de post.",
-  "button": "Nieuwe uitnodigingsbrief aanvragen",
+  "title": "Nieuwe uitnodiging aanvragen",
+  "description": "U heeft een uitnodiging ontvangen met daarin een uitnodigingsbrief waarmee u naar de huisarts kan gaan en mogelijk heeft u ook een zelfafnameset ontvangen.<br><br>Voor het maken van het uitstrijkje bij de huisartspraktijk heeft u de uitnodigingsbrief nodig. Hier zitten twee stickers op met een streepjescode. In deze code zijn uw persoonlijke gegevens verwerkt. Uw huisarts plakt deze stickers op het laboratoriumformulier en op het uitstrijkpotje. Zo weten wij dat het uitstrijkje van u is.<br><br>Bent u de uitnodigingsbrief met de stickers kwijt? Dan kunt u een nieuwe brief aanvragen. U krijgt deze binnen een paar dagen met de post.<br><br>Indien u de zelfafnameset wilt gebruiken en deze kwijt bent kunt u deze aanvragen via het menu: <i>\"Ik wil graag een zelfafnameset aanvragen\"</i>",
+  "button": "Nieuwe uitnodiging aanvragen",
   "toast": {
-    "title": "U heeft een nieuwe uitnodigingsbrief aangevraagd.",
-    "description": "U krijgt de brief binnen een paar dagen met de post."
+    "title": "U heeft een nieuwe uitnodiging aangevraagd.",
+    "description": "U ontvangt deze binnen een paar dagen met de post."
   }
 }

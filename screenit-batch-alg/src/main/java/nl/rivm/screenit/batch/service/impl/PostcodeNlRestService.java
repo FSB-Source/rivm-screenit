@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,18 +27,20 @@ import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
+import java.util.Objects;
 import java.util.zip.ZipInputStream;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.batch.dto.postcodenl.PostcodeNlDto;
+import nl.rivm.screenit.dto.PostcodeNlDto;
+import nl.rivm.screenit.model.PostcodeNlProductCode;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.rest.RestApiFactory;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.http.entity.ContentType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -49,6 +51,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 @Service
+@Slf4j
 public class PostcodeNlRestService
 {
 	@Autowired
@@ -56,8 +59,6 @@ public class PostcodeNlRestService
 
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(PostcodeNlRestService.class);
 
 	public InputStream getDelivery(PostcodeNlProductCode productCode) throws IOException
 	{
@@ -72,30 +73,30 @@ public class PostcodeNlRestService
 			preferenceService.getString(PreferenceKey.POSTCODE_NL_API_SCHEME.name()),
 			preferenceService.getString(PreferenceKey.POSTCODE_NL_API_HOST.name()),
 			preferenceService.getString(PreferenceKey.POSTCODE_NL_API_DELIVERYPATH.name()),
-			productCode.toString(),
+			productCode.getCode(),
 			currentTarget);
 		RestTemplate restApi = RestApiFactory.create();
-		LOGGER.info("Calling " + uri);
+		LOG.info("Calling {}", uri);
 		ResponseEntity<PostcodeNlDto[]> response = restApi.exchange(uri, HttpMethod.GET, getPostcodeNlRequest(), PostcodeNlDto[].class);
 
 		if (response.getStatusCode() == HttpStatus.OK)
 		{
-			LOGGER.info(response.getStatusCode() + " from server at " + uri);
-			if (response.getBody().length > 0 && response.getBody()[0].getDeliveryTarget() != getTarget(productCode))
+			LOG.info("{} from server at {}", response.getStatusCode(), uri);
+			if (Objects.requireNonNull(response.getBody()).length > 0 && !response.getBody()[0].getDeliveryTarget().equals(getTarget(productCode)))
 			{
-				LOGGER.info(productCode.toString() + " delivery beschikbaar met target = " + response.getBody()[0].getDeliveryTarget() +
-					". Huidig target = " + getTarget(productCode));
-				setTarget(productCode, response.getBody()[0]);
-				return openStream(response.getBody()[0].getDownloadUrl());
+				PostcodeNlDto postcodeNlDto = response.getBody()[0];
+				LOG.info("{} delivery beschikbaar met target = {}. Huidig target = {}", productCode.getCode(), postcodeNlDto.getDeliveryTarget(), getTarget(productCode));
+				setTarget(productCode, postcodeNlDto);
+				return openStream(postcodeNlDto.getDownloadUrl());
 			}
 			else
 			{
-				LOGGER.info("Geen nieuwe delivery beschikbaar.");
+				LOG.info("Geen nieuwe delivery beschikbaar.");
 			}
 		}
 		else
 		{
-			LOGGER.warn(response.getStatusCode() + " from server at " + uri);
+			LOG.warn("{} from server at {}", response.getStatusCode(), uri);
 		}
 		return null;
 	}
@@ -114,7 +115,7 @@ public class PostcodeNlRestService
 		}
 		default:
 		{
-			LOGGER.error("Kon geen target ophalen, invalide productcode: " + productCode);
+			LOG.error("Kon geen target ophalen, invalide productcode: {}", productCode);
 			return null;
 		}
 		}
@@ -135,7 +136,7 @@ public class PostcodeNlRestService
 			break;
 		}
 		default:
-			LOGGER.error("Kon geen target zetten, invalide productcode: " + productCode);
+			LOG.error("Kon geen target zetten, invalide productcode: {}", productCode);
 			break;
 		}
 	}

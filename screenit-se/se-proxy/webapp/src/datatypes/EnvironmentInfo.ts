@@ -5,4 +5,5 @@ export type EnvironmentInfo = {
 	nfcEnabled: boolean;
 	huidigWerkstationIpAdres: string;
 	dagenDaglijstOphalenLimiet: number;
+	tomosyntheseMogelijk: boolean;
 };

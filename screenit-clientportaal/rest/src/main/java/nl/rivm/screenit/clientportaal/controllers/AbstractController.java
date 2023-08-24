@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.controllers;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,11 +26,8 @@ import lombok.extern.slf4j.Slf4j;
 import nl.rivm.screenit.clientportaal.filter.CPAccountResolverDelegate;
 import nl.rivm.screenit.clientportaal.security.userdetails.ScreenitUserDetails;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.ClientContactActieType;
-import nl.rivm.screenit.service.ClientContactService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -38,22 +35,11 @@ import org.springframework.security.core.Authentication;
 @Slf4j
 public abstract class AbstractController
 {
-	@Autowired
-	private HibernateService hibernateService;
-
-	@Autowired
-	private ClientContactService clientContactService;
-
-	public Client getClient(Authentication authentication)
+	protected Client getClient(Authentication authentication, HibernateService hibernateService)
 	{
 		Client client = hibernateService.get(Client.class, ((ScreenitUserDetails) authentication.getPrincipal()).getClientId());
 		CPAccountResolverDelegate.setClient(client);
 		return client;
-	}
-
-	protected boolean aanvraagIsToegestaneActie(Client client, ClientContactActieType clientContactActieType)
-	{
-		return clientContactService.availableActiesBevatBenodigdeActie(client, clientContactActieType);
 	}
 
 	protected <T> ResponseEntity<T> createForbiddenResponse()

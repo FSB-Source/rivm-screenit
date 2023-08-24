@@ -4,7 +4,7 @@ package nl.rivm.screenit.util.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,9 @@ package nl.rivm.screenit.util.cervix;
 
 import java.util.List;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
@@ -31,6 +34,9 @@ import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 
+import org.apache.commons.lang.StringUtils;
+
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixMonsterUtil
 {
 
@@ -71,6 +77,18 @@ public class CervixMonsterUtil
 		return getAlphaNumericCharacterVanHetAantalScreeningRondes(cervixDossier.getScreeningRondes(), bsnModulo)
 			+ getAlphaNumericCharacterVanHetAantalUitnodigingen(laatsteScreeningRonde.getUitnodigingen(), bsnModulo)
 			+ getAlphaNumericCharactorVanLaatste3MonsterIdDigits(laatsteUitnodiging.getMonster().getMonsterId());
+	}
+
+	public static String getMonsterEntityIdentifier(CervixMonster monster, boolean postfix)
+	{
+		var identifier = StringUtils.leftPad(monster.getMonsterId(), 9, "0");
+
+		if (postfix)
+		{
+			identifier += ".HPV";
+		}
+
+		return identifier;
 	}
 
 	private static String getAlphaNumericCharacterVanHetAantalScreeningRondes(List<CervixScreeningRonde> screeningRondes,

@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -46,8 +46,6 @@ public enum ExtraOpslaanKey
 
 	BEZWAAR_BRIEF,
 
-	REDEN_NIEUWE_AFSPRAAK,
-
 	AFSPRAAK_BRIEF,
 
 	AFSPRAAK_BRIEF_TEGENHOUDEN,
@@ -66,14 +64,24 @@ public enum ExtraOpslaanKey
 
 	COLON_HUISARTSBERICHTEN_VERZENDEN,
 
+	COLON_VERWIJZING_MEDISCHE_REDENEN_INFOLIJN,
+
 	ZAS_DOOR_CLIENT_AANGEVRAAGD,
 
 	MAMMA_UITSTEL,
 
-	MAMMA_BRIEF_AANMAKEN,
+	BEVESTIGINGS_TYPE,
 
 	MAMMA_HUISARTS,
 
 	MAMMA_AFSPRAAK_FILTER,
+
+	AFSPRAAK_BEVESTIGING_MAIL_ADRES,
+
+	SMS_STATUS,
+
+	AFSPRAAK_HERINNERING_TELEFOONNUMMER,
+
+	MAMMA_NIEUWE_AFSPRAAK_ID
 
 }

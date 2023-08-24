@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.clienten.agenda;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,6 +37,7 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.service.ClientService;
+import nl.rivm.screenit.service.colon.AfspraakService;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -51,12 +51,13 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 public class ClientAgendaPanel extends GenericPanel<Client>
 {
 
-	private static final long serialVersionUID = 1L;
-
 	private BootstrapDialog dialog;
 
 	@SpringBean
 	private ClientService clientService;
+
+	@SpringBean
+	private AfspraakService afspraakService;
 
 	public ClientAgendaPanel(String id, IModel<Client> model)
 	{
@@ -68,9 +69,6 @@ public class ClientAgendaPanel extends GenericPanel<Client>
 
 		IndicatingAjaxLink<Void> contactAanmaken = new IndicatingAjaxLink<Void>("contactAanmaken")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -78,14 +76,13 @@ public class ClientAgendaPanel extends GenericPanel<Client>
 			}
 
 		};
+		Client client = model.getObject();
 		contactAanmaken
-			.setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_CONTACT, null, model.getObject()) && !clientService.isClientOverleden(model.getObject()));
+			.setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_CONTACT, null, client) && !clientService.isClientOverleden(client));
 		add(contactAanmaken);
 
-		ColonAfspraakPanel colonAfspraakPanel = new ColonAfspraakPanel("dkAfspraak", ModelUtil.cModel(model.getObject()))
+		ColonAfspraakPanel colonAfspraakPanel = new ColonAfspraakPanel("dkAfspraak", ModelUtil.sModel(client))
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void afspraakWijzigen(AjaxRequestTarget target, Afspraak afspraak, boolean locatieWijzigen)
@@ -93,9 +90,17 @@ public class ClientAgendaPanel extends GenericPanel<Client>
 				ColonIntakeAfspraak intakeAfspraak = (ColonIntakeAfspraak) HibernateHelper.deproxy(ModelProxyHelper.deproxy(afspraak));
 				List<Object> extraParameters = new ArrayList<>();
 				extraParameters.add(intakeAfspraak);
-				extraParameters.add(AfspraakStatus.VERPLAATST);
-				extraParameters.add(Boolean.valueOf(locatieWijzigen));
-				setResponsePage(new ClientContactPage(ClientAgendaPanel.this.getModel(), extraParameters, ClientContactActieTypeWrapper.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN));
+				ClientContactActieTypeWrapper actieTypeWrapper = ClientContactActieTypeWrapper.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN;
+				if (afspraakService.heeftOnafgerondeVerwijzingOmMedischeRedenen(afspraak))
+				{
+					actieTypeWrapper = ClientContactActieTypeWrapper.COLON_NIEUWE_AFSPRAAK_AANMAKEN;
+				}
+				else
+				{
+					extraParameters.add(AfspraakStatus.VERPLAATST);
+					extraParameters.add(Boolean.valueOf(locatieWijzigen));
+				}
+				setResponsePage(new ClientContactPage(ClientAgendaPanel.this.getModel(), extraParameters, actieTypeWrapper));
 			}
 
 			@Override
@@ -110,7 +115,7 @@ public class ClientAgendaPanel extends GenericPanel<Client>
 		};
 		add(colonAfspraakPanel);
 
-		MammaAfspraakPanel mammaAfspraakPanel = new MammaAfspraakPanel("bkAfspraak", ModelUtil.cModel(model.getObject()))
+		MammaAfspraakPanel mammaAfspraakPanel = new MammaAfspraakPanel("bkAfspraak", ModelUtil.sModel(client))
 		{
 			private static final long serialVersionUID = 1L;
 

@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.cervix.facturatie;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,9 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.helper.HibernateMagicNumber;
 
@@ -35,9 +38,10 @@ import org.hibernate.envers.Audited;
 
 @Entity
 @Audited
+@Getter
+@Setter
 public class CervixLabTarief extends CervixTarief
 {
-
 	@Column(nullable = true, precision = HibernateMagicNumber.P5, scale = HibernateMagicNumber.S2)
 	private BigDecimal hpvAnalyseUitstrijkjeTarief;
 
@@ -53,67 +57,21 @@ public class CervixLabTarief extends CervixTarief
 	@Column(nullable = true, precision = HibernateMagicNumber.P5, scale = HibernateMagicNumber.S2)
 	private BigDecimal cytologieVervolguitstrijkjeTarief;
 
+	@Column(nullable = true, precision = HibernateMagicNumber.P5, scale = HibernateMagicNumber.S2)
+	private BigDecimal logistiekTarief;
+
+	@Column(nullable = true, precision = HibernateMagicNumber.P5, scale = HibernateMagicNumber.S2)
+	private BigDecimal monsterontvangstEnMonsterverwerkingZasTarief;
+
+	@Column(nullable = true, precision = HibernateMagicNumber.P5, scale = HibernateMagicNumber.S2)
+	private BigDecimal hpvAnalyseKlinischEnZelfAfgenomenTarief;
+
+	@Column(nullable = true, precision = HibernateMagicNumber.P5, scale = HibernateMagicNumber.S2)
+	private BigDecimal cervixcytologieManueelScreenenTarief;
+
+	@Column(nullable = true, precision = HibernateMagicNumber.P5, scale = HibernateMagicNumber.S2)
+	private BigDecimal cervixcytologieMetCosTarief;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	private BMHKLaboratorium bmhkLaboratorium;
-
-	public BigDecimal getHpvAnalyseUitstrijkjeTarief()
-	{
-		return hpvAnalyseUitstrijkjeTarief;
-	}
-
-	public void setHpvAnalyseUitstrijkjeTarief(BigDecimal hpvAnalyseUitstrijkjeTarief)
-	{
-		this.hpvAnalyseUitstrijkjeTarief = hpvAnalyseUitstrijkjeTarief;
-	}
-
-	public BigDecimal getHpvAnalyseZasTarief()
-	{
-		return hpvAnalyseZasTarief;
-	}
-
-	public void setHpvAnalyseZasTarief(BigDecimal hpvAnalyseZasTarief)
-	{
-		this.hpvAnalyseZasTarief = hpvAnalyseZasTarief;
-	}
-
-	public BigDecimal getCytologieNaHpvUitstrijkjeTarief()
-	{
-		return cytologieNaHpvUitstrijkjeTarief;
-	}
-
-	public void setCytologieNaHpvUitstrijkjeTarief(BigDecimal cytologieNaHpvUitstrijkjeTarief)
-	{
-		this.cytologieNaHpvUitstrijkjeTarief = cytologieNaHpvUitstrijkjeTarief;
-	}
-
-	public BigDecimal getCytologieNaHpvZasTarief()
-	{
-		return cytologieNaHpvZasTarief;
-	}
-
-	public void setCytologieNaHpvZasTarief(BigDecimal cytologieNaHpvZasTarief)
-	{
-		this.cytologieNaHpvZasTarief = cytologieNaHpvZasTarief;
-	}
-
-	public BigDecimal getCytologieVervolguitstrijkjeTarief()
-	{
-		return cytologieVervolguitstrijkjeTarief;
-	}
-
-	public void setCytologieVervolguitstrijkjeTarief(BigDecimal cytologieVervolguitstrijkjeTarief)
-	{
-		this.cytologieVervolguitstrijkjeTarief = cytologieVervolguitstrijkjeTarief;
-	}
-
-	public BMHKLaboratorium getBmhkLaboratorium()
-	{
-		return bmhkLaboratorium;
-	}
-
-	public void setBmhkLaboratorium(BMHKLaboratorium bmhkLaboratorium)
-	{
-		this.bmhkLaboratorium = bmhkLaboratorium;
-	}
-
 }

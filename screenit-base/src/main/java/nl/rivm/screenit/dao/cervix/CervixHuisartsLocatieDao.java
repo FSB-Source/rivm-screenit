@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,24 +21,25 @@ package nl.rivm.screenit.dao.cervix;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.model.Gemeente;
+import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.enums.CervixHuisartsLocatieMutatieSoort;
 import nl.rivm.screenit.service.cervix.CervixHuisartsLocatieFilter;
 
-import org.joda.time.DateTime;
-
 public interface CervixHuisartsLocatieDao
 {
-
 	List<CervixHuisartsLocatie> getHuisartsLocaties(CervixHuisartsLocatieFilter filter, long first, long count, String sortProperty, boolean asc);
 
 	List<CervixHuisartsLocatie> getHuisartsLocaties(long first, long count, String orderByProperty, boolean ascending,
-		String agbCode, List<CervixHuisartsLocatieMutatieSoort> mutatiesoorten, DateTime mutatiedatumVanaf, DateTime mutatiedatumTot, Gemeente... gemeentes);
+		String agbCode, List<CervixHuisartsLocatieMutatieSoort> mutatiesoorten, Date mutatiedatumVanaf, Date mutatiedatumTot, List<Gemeente> gemeentes);
 
 	long countHuisartsLocaties(CervixHuisartsLocatieFilter filter);
 
-	long countHuisartsLocaties(String agbCode, List<CervixHuisartsLocatieMutatieSoort> mutatiesoorten, DateTime mutatiedatumVanaf, DateTime mutatiedatumTot, Gemeente... gemeentes);
+	long countHuisartsLocaties(String agbCode, List<CervixHuisartsLocatieMutatieSoort> mutatiesoorten, Date mutatiedatumVanaf, Date mutatiedatumTot, List<Gemeente> gemeentes);
+
+	CervixHuisarts getActieveHuisartsMetEenActieveLocatie(String agb);
 }

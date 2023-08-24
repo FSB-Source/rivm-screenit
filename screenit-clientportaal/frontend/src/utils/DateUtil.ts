@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
-import {addBusinessDays, addDays, addMonths, differenceInDays, max, min, startOfDay, subDays, subMonths} from "date-fns"
+import {addBusinessDays, addDays, addMonths, differenceInDays, isWeekend, max, min, startOfDay, subDays, subMonths} from "date-fns"
 import {isNullOfUndefined} from "./EmptyUtil"
 import {cpStore} from "../index"
 
@@ -119,6 +119,10 @@ export const geefLaatsteDatum = (date1: Date, date2: Date): Date => {
 
 export const plusWerkdagen = (datum: Date, dagen: number): Date => {
 	return addBusinessDays(datum, dagen)
+}
+
+export const isWerkdag = (datum: Date): boolean => {
+	return !isWeekend(datum)
 }
 
 export function getOndergrensUitLijst(lijst: Date[] | undefined): Date | undefined {

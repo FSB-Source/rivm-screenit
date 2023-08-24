@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.verslag;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,7 @@ import java.util.List;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.AbstractMammaRondePanel;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.dto.LaesieDto;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.dto.LaesieDtoMapper;
+import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaLezing;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
@@ -68,8 +69,10 @@ public class MammaVerslagRondePanel extends AbstractMammaRondePanel
 		else if (beoordeling.getVerslagLezing() != null)
 		{
 			beoordeling.getVerslagLezing().setBeoordeling(beoordeling);
+			var onderzoek = beoordeling.getOnderzoek();
+			var toonAfwijkingSliceButtons = MammaOnderzoekType.TOMOSYNTHESE == onderzoek.getOnderzoekType();
 			verslagPanel = new MammaVerslagVerfijnenPanel(this, "verslagPanel", new CompoundPropertyModel<>(new PropertyModel<>(getModel(), "verslagLezing")),
-				getModelObject().getOnderzoek().getAmputatie());
+				onderzoek.getAmputatie(), toonAfwijkingSliceButtons);
 			verslagVerfijnenPanel = (MammaVerslagVerfijnenPanel) verslagPanel;
 		}
 		else

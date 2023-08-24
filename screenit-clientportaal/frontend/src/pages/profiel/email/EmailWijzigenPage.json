@@ -1,0 +1,16 @@
+{
+  "page": {
+    "title": "Mijn e-mailadres",
+    "description": "Geef uw e-mailadres aan ons door, dan kunnen wij u in de toekomst nog beter van dienst zijn, bijvoorbeeld door uw afspraak voor het bevolkingsonderzoek borstkanker te bevestigen. Wij e-mailen u nooit over uw uitslag van het bevolkingsonderzoek.",
+    "hint": "Heeft u al eerder uw e-mailadres ingevuld? Dan ziet u dat hieronder. <br/> Klopt het e-mailadres nog? Dan hoeft u niets te doen. <br/> Heeft u een ander e-mailadres? Haal dan het oude e-mailadres weg, vul het nieuwe e-mailadres in en klik op E-mailadres opslaan."
+  },
+  "form": {
+    "title": "Mijn e-mailadres:",
+    "mail": "E-mailadres",
+    "button": "E-mailadres opslaan",
+    "invalid_mail_adres": "Het e-mailadres is ongeldig"
+  },
+  "toast": {
+    "title": "We hebben uw e-mailadres opgeslagen."
+  }
+}

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.component;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,33 +23,32 @@ package nl.rivm.screenit.main.web.component;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.Constants;
+import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.ThreadLocalDateFormat;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.util.convert.ConversionException;
-import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wicketstuff.datetime.DateConverter;
 
+@Slf4j
 public class MultiDateConverter extends DateConverter
 {
 
-	private static final long serialVersionUID = 1L;
-
 	private static final String[] FORMATS = new String[] { Constants.DEFAULT_DATE_TIME_FORMAT_SHORT_YEAR, "ddMMyy", "dMyy" };
 
-	private static final Logger LOG = LoggerFactory.getLogger(MultiDateConverter.class);
-
-	private final List<ThreadLocalDateFormat> patterns = new ArrayList<ThreadLocalDateFormat>();
+	private final List<ThreadLocalDateFormat> patterns = new ArrayList<>();
 
 	public MultiDateConverter()
 	{
@@ -75,7 +74,7 @@ public class MultiDateConverter extends DateConverter
 				{
 					SimpleDateFormat sdf = iter.next().get();
 					sdf.setLenient(false);
-					sdf.set2DigitYearStart(beginThisYear().minusYears(98).toDate());
+					sdf.set2DigitYearStart(DateUtil.toUtilDate(beginThisYear().minusYears(98)));
 					parsed = sdf.parse(value);
 					LOG.debug("Gebruikte format: " + sdf.toPattern());
 				}
@@ -117,9 +116,8 @@ public class MultiDateConverter extends DateConverter
 		return null;
 	}
 
-	private DateTime beginThisYear()
+	private LocalDate beginThisYear()
 	{
-		DateTime today = new DateTime();
-		return new DateTime(today.getYear(), 01, 01, 0, 0);
+		return LocalDate.now().with(TemporalAdjusters.firstDayOfYear());
 	}
 }

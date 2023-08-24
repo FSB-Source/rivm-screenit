@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.dao.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -77,7 +77,7 @@ public class IntakeAfspraakDaoImpl extends AbstractAutowiredDao implements Intak
 		criteria.add(Restrictions.eq("laatsteScreeningRonde.status", ScreeningRondeStatus.LOPEND));
 		criteria.add(Restrictions.or(Restrictions.eq("testen.status", IFOBTTestStatus.UITGEVOERD), Restrictions.eq("testen.status", IFOBTTestStatus.DOETNIETMEE)));
 		criteria.add(ColonRestrictions.critOngunstig("testen."));
-		ColonRestrictions.addNogGeenUitslagbriefOntvangenCriteria(criteria, "laatsteScreeningRonde", BriefType.COLON_BRIEVEN_GEEN_INTAKE_NODIG);
+		ColonRestrictions.addNogGeenBriefOntvangenVanTypesCriteria(criteria, "laatsteScreeningRonde", BriefType.COLON_BRIEVEN_GEEN_INTAKE_NODIG);
 
 		criteria.add(Subqueries.propertyNotIn("laatsteScreeningRonde.id", ColonRestrictions.critAfsprakenZonderVervolg(uitnodigingsIntervalVerlopen)));
 

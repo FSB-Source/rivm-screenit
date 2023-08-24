@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.colon.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,7 +25,7 @@ import java.util.Arrays;
 
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.IFOBTType;
-import nl.rivm.screenit.util.IFOBTTestUtil;
+import nl.rivm.screenit.util.FITTestUtil;
 
 public enum IFOBTTestStatus
 {
@@ -51,7 +51,7 @@ public enum IFOBTTestStatus
 		@Override
 		public boolean magWijzigenNaarStatus(IFOBTTestStatus nieuweStatus, IFOBTTest buis)
 		{
-			return Arrays.asList(UITGEVOERD).contains(nieuweStatus) && uitgevoerdEnUitslag(nieuweStatus, buis);
+			return Arrays.asList(UITGEVOERD, VERVALDATUMVERLOPEN, NIETTEBEOORDELEN).contains(nieuweStatus) && uitgevoerdEnUitslag(nieuweStatus, buis);
 		}
 	},
 
@@ -60,7 +60,7 @@ public enum IFOBTTestStatus
 		@Override
 		public boolean magWijzigenNaarStatus(IFOBTTestStatus nieuweStatus, IFOBTTest buis)
 		{
-			return Arrays.asList(UITGEVOERD).contains(nieuweStatus) && IFOBTTestUtil.isOngunstig(buis);
+			return Arrays.asList(UITGEVOERD, VERVALDATUMVERLOPEN, NIETTEBEOORDELEN).contains(nieuweStatus) && uitgevoerdEnUitslag(nieuweStatus, buis);
 		}
 	},
 
@@ -68,42 +68,63 @@ public enum IFOBTTestStatus
 
 	WACHTOPTEST_VERWIJDERD_AF,
 
-	WELBRIEFGEENTEST,
+	WELBRIEFGEENTEST
+		{
+			@Override
+			public boolean magWijzigenNaarStatus(IFOBTTestStatus nieuweStatus, IFOBTTest buis)
+			{
+				return Arrays.asList(UITGEVOERD, VERVALDATUMVERLOPEN, NIETTEBEOORDELEN).contains(nieuweStatus) && uitgevoerdEnUitslag(nieuweStatus, buis);
+			}
+		},
 
-	NIETONTVANGEN,
+	NIETONTVANGEN
+		{
+			@Override
+			public boolean magWijzigenNaarStatus(IFOBTTestStatus nieuweStatus, IFOBTTest buis)
+			{
+				return Arrays.asList(UITGEVOERD, VERVALDATUMVERLOPEN, NIETTEBEOORDELEN).contains(nieuweStatus) && uitgevoerdEnUitslag(nieuweStatus, buis);
+			}
+		},
 
 	NIETTEBEOORDELEN
-	{
-		@Override
-		public boolean magWijzigenNaarStatus(IFOBTTestStatus nieuweStatus, IFOBTTest buis)
 		{
-			return Arrays.asList(UITGEVOERD).contains(nieuweStatus) && uitgevoerdEnUitslag(nieuweStatus, buis);
-		}
-	},
+			@Override
+			public boolean magWijzigenNaarStatus(IFOBTTestStatus nieuweStatus, IFOBTTest buis)
+			{
+				return Arrays.asList(UITGEVOERD).contains(nieuweStatus) && uitgevoerdEnUitslag(nieuweStatus, buis);
+			}
+		},
 
 	VERVALDATUMVERLOPEN
-	{
-		@Override
-		public boolean magWijzigenNaarStatus(IFOBTTestStatus nieuweStatus, IFOBTTest buis)
 		{
-			return Arrays.asList(VERWIJDERD).contains(nieuweStatus);
-		}
-	},
+			@Override
+			public boolean magWijzigenNaarStatus(IFOBTTestStatus nieuweStatus, IFOBTTest buis)
+			{
+				return Arrays.asList(VERWIJDERD).contains(nieuweStatus);
+			}
+		},
 
 	WACHTOPBRIEF,
 
 	ONBETROUWBAAR,
 
-	WELTESTGEENBRIEF,
+	WELTESTGEENBRIEF
+		{
+			@Override
+			public boolean magWijzigenNaarStatus(IFOBTTestStatus nieuweStatus, IFOBTTest buis)
+			{
+				return Arrays.asList(UITGEVOERD, VERVALDATUMVERLOPEN, NIETTEBEOORDELEN).contains(nieuweStatus) && uitgevoerdEnUitslag(nieuweStatus, buis);
+			}
+		},
 
 	UITGEVOERD
-	{
-		@Override
-		public boolean magWijzigenNaarStatus(IFOBTTestStatus nieuweStatus, IFOBTTest buis)
 		{
-			return Arrays.asList(VERWIJDERD).contains(nieuweStatus);
-		}
-	},
+			@Override
+			public boolean magWijzigenNaarStatus(IFOBTTestStatus nieuweStatus, IFOBTTest buis)
+			{
+				return Arrays.asList(VERWIJDERD).contains(nieuweStatus);
+			}
+		},
 
 	VERWIJDERD,
 
@@ -128,7 +149,7 @@ public enum IFOBTTestStatus
 
 	private static boolean uitgevoerdEnUitslag(IFOBTTestStatus nieuweStatus, IFOBTTest buis)
 	{
-		return nieuweStatus != UITGEVOERD || IFOBTTestUtil.isOngunstig(buis) || IFOBTTestUtil.isGunstig(buis);
+		return nieuweStatus != UITGEVOERD || FITTestUtil.isOngunstig(buis) || FITTestUtil.isGunstig(buis);
 	}
 
 	public static boolean isMutableEindStatus(IFOBTTestStatus status)

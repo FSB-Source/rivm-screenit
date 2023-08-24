@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.cervix;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,7 @@ import nl.rivm.screenit.main.model.testen.TestTimelineRonde;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.TestVervolgKeuzeOptie;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.service.cervix.enums.CervixTestTimeLineDossierTijdstip;
@@ -43,6 +44,8 @@ public interface CervixTestTimelineService
 	List<Client> maakOfWijzigClienten(TestTimelineModel timelineModel);
 
 	List<String> validateTestClienten(List<Client> clienten);
+
+	boolean magNieuweRondeStarten(CervixDossier dossier);
 
 	boolean magOntvangen(CervixUitnodiging uitnodiging);
 

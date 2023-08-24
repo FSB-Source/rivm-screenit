@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,34 +35,38 @@ function detecteerBarcodescanner(event) {
 
     if (barcodeScanner_DetectionTimeout) { 
         if (keyboardEvent.key === 'Enter') {
-            if (barcodeScanner_ingetypteBarcodekarakters.length >= barcodeScanner_minimumAantalCijfersUitstrijkje || (barcodeScanner_ingetypteBarcodekarakters[0] === 'Z' && barcodeScanner_ingetypteBarcodekarakters.length >= barcodeScanner_minimumAantalKaraktersZAS)) {
+			if (barcodeScanner_ingetypteBarcodekarakters.length >= barcodeScanner_minimumAantalCijfersUitstrijkje ||
+				((barcodeScanner_ingetypteBarcodekarakters[0] === 'Z' || barcodeScanner_ingetypteBarcodekarakters[0] === 'C') &&
+					barcodeScanner_ingetypteBarcodekarakters.length >= barcodeScanner_minimumAantalKaraktersZAS)) {
 
-                clearTimeout(barcodeScanner_DetectionTimeout);
-                barcodeScanner_klaarMetBarcodeScannenOp = now();
-                barcodeScanner_timerGestartOp = null;
-                barcodeScanner_DetectionTimeout = null;
-                barcodeScanner_ingetypteBarcodekarakters = '';
+				clearTimeout(barcodeScanner_DetectionTimeout);
+				barcodeScanner_klaarMetBarcodeScannenOp = now();
+				barcodeScanner_timerGestartOp = null;
+				barcodeScanner_DetectionTimeout = null;
+				barcodeScanner_ingetypteBarcodekarakters = '';
 
-            } else {
-                eenMensHeeftInHetBarcodeveldGetypt(keyboardEvent);
-            }
+			} else {
+				eenMensHeeftInHetBarcodeveldGetypt(keyboardEvent);
+			}
         } else if (isCijfertoets(keyboardEvent)) {
             barcodeScanner_ingetypteBarcodekarakters += keyboardEvent.key;
         } else if (keyboardEvent.key !== 'j' || ! keyboardEvent.ctrlKey) {
             eenMensHeeftInHetBarcodeveldGetypt(keyboardEvent);
         }
     } else { 
-        if (isCijfertoets(keyboardEvent) || (keyboardEvent.key === 'Z' && keyboardEvent.shiftKey)) {
-            barcodeScanner_ingetypteBarcodekarakters = keyboardEvent.key;
-            barcodeScanner_timerGestartOp = now();
-            function handler() { 
-                clearInput(keyboardEvent);
-                eenMensHeeftInHetBarcodeveldGetypt(keyboardEvent);
-            }
-            barcodeScanner_DetectionTimeout = setTimeout(handler, barcodeScanner_maxDuur);
-        } else if (barcodeScanner_klaarMetBarcodeScannenOp && (now() - barcodeScanner_klaarMetBarcodeScannenOp <= barcodeScanner_maxTijdTussenBarcodeEnToetsErna)) {
-            keyboardEvent.preventDefault(); 
-        } else {
+		if (isCijfertoets(keyboardEvent) || ((keyboardEvent.key === 'Z' || keyboardEvent.key === 'C') && keyboardEvent.shiftKey)) {
+			barcodeScanner_ingetypteBarcodekarakters = keyboardEvent.key;
+			barcodeScanner_timerGestartOp = now();
+
+			function handler() { 
+				clearInput(keyboardEvent);
+				eenMensHeeftInHetBarcodeveldGetypt(keyboardEvent);
+			}
+
+			barcodeScanner_DetectionTimeout = setTimeout(handler, barcodeScanner_maxDuur);
+		} else if (barcodeScanner_klaarMetBarcodeScannenOp && (now() - barcodeScanner_klaarMetBarcodeScannenOp <= barcodeScanner_maxTijdTussenBarcodeEnToetsErna)) {
+			keyboardEvent.preventDefault(); 
+		} else {
             eenMensHeeftInHetBarcodeveldGetypt(keyboardEvent);
         }
     }
@@ -83,13 +87,39 @@ function detecteerBarcodescanner(event) {
     }
 
     function clearInput(keyboardEvent) {
-        function handler2() { 
-            keyboardEvent.target.value = '';
-        }
-        setTimeout(handler2, 20);
-    }
+		function handler2() { 
+			keyboardEvent.target.value = '';
+		}
+
+		setTimeout(handler2, 20);
+	}
 }
 
 function setBarcodescannerMelding(tekst) {
-    document.getElementById('meldingBijHandmatigeInvoerInBarcodeVeld').innerText = tekst;
+	document.getElementById('meldingBijHandmatigeInvoerInBarcodeVeld').innerText = tekst;
 }
+
+function handmatigeInvoerButtonEvent() {
+	let handmatigeInvoer = $('.js-barcodescanner-handmatige-invoer-button');
+
+	if (handmatigeInvoer !== null) {
+		handmatigeInvoer.on('click', function (event) {
+			setBarcodescannerMelding('')
+		});
+	}
+}
+
+function detecteerBarcodescannerEvent() {
+	let detecteerBarcodescanner = $('.js-detecteer-barcodescanner')
+
+	if (detecteerBarcodescanner !== null) {
+		detecteerBarcodescanner.keypress(function (event) {
+			detecteerBarcodescanner(event)
+		});
+	}
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+	handmatigeInvoerButtonEvent();
+	detecteerBarcodescannerEvent();
+});

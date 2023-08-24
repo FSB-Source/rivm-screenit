@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@
 import classNames from "classnames"
 import styles from "./BaseFormField.module.scss"
 import {Col, FormGroup} from "react-bootstrap"
+import React from "react"
 
 export interface SharedFormFieldProps {
 	alignRight?: boolean;

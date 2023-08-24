@@ -5,7 +5,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,7 +23,6 @@ package nl.rivm.screenit.service.impl;
  */
 
 import java.util.Arrays;
-import java.util.Date;
 
 import nl.rivm.screenit.dao.BaseUitnodigingDao;
 import nl.rivm.screenit.model.Client;
@@ -38,7 +37,6 @@ import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.DateUtil;
 
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -77,8 +75,8 @@ public class BaseUitnodigingServiceImpl implements BaseUitnodigingService
 	@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 	public <U extends InpakbareUitnodiging<?>> boolean isVerstuurdMetTijdelijkAdres(U uitnodiging)
 	{
-		Date verstuurdDatum = uitnodiging.getVerstuurdDatum();
-		return AdresUtil.isTijdelijkAdres(uitnodiging.getScreeningRonde().getDossier().getClient().getPersoon(), new DateTime(verstuurdDatum));
+		var verstuurdDatum = DateUtil.toLocalDate(uitnodiging.getVerstuurdDatum());
+		return AdresUtil.isTijdelijkAdres(uitnodiging.getScreeningRonde().getDossier().getClient().getPersoon(), verstuurdDatum);
 	}
 
 	@Override

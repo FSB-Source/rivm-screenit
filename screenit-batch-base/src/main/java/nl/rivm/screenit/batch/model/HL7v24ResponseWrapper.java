@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.model;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,8 +21,17 @@ package nl.rivm.screenit.batch.model;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
+
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.berichten.ScreenITResponseV24MessageWrapper;
 
+import org.apache.commons.lang.StringUtils;
+
+@Getter
+@Setter
 public class HL7v24ResponseWrapper
 {
 	private ScreenITResponseV24MessageWrapper responseV24MessageWrapper;
@@ -31,45 +40,29 @@ public class HL7v24ResponseWrapper
 
 	private Exception crashException;
 
-	private boolean success;
+	private final List<String> succesAckCodes = List.of("AA", "CA");
 
-	public ScreenITResponseV24MessageWrapper getResponseV24MessageWrapper()
-	{
-		return responseV24MessageWrapper;
-	}
+	private final List<String> errorAckCodes = List.of("AE", "CE");
 
-	public void setResponseV24MessageWrapper(ScreenITResponseV24MessageWrapper responseV24MessageWrapper)
+	public boolean isError()
 	{
-		this.responseV24MessageWrapper = responseV24MessageWrapper;
-	}
-
-	public String getMelding()
-	{
-		return melding;
-	}
-
-	public void setMelding(String melding)
-	{
-		this.melding = melding;
-	}
-
-	public Exception getCrashException()
-	{
-		return crashException;
-	}
-
-	public void setCrashException(Exception crashException)
-	{
-		this.crashException = crashException;
+		if (responseV24MessageWrapper != null)
+		{
+			return errorAckCodes.contains(responseV24MessageWrapper.getAcknowledgmentCodeString());
+		}
+		else
+		{
+			return false;
+		}
 	}
 
 	public boolean isSuccess()
 	{
-		return success;
+		if (responseV24MessageWrapper != null)
+		{
+			return succesAckCodes.contains(responseV24MessageWrapper.getAcknowledgmentCodeString());
+		}
+		return StringUtils.isBlank(melding);
 	}
 
-	public void setSuccess(boolean success)
-	{
-		this.success = success;
-	}
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,6 +30,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.BaseHoudbaarheidDao;
@@ -92,14 +94,11 @@ import nl.rivm.screenit.service.colon.ColonVerwerkVerslagService;
 import nl.rivm.screenit.service.colon.IFobtService;
 import nl.rivm.screenit.util.ColonScreeningRondeUtil;
 import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.IFOBTTestUtil;
+import nl.rivm.screenit.util.FITTestUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.wicket.planning.model.Discipline;
 
-import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -107,12 +106,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
+@Slf4j
 public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 {
 
-	public static final int DEFAULT_TIIJD_TUSSEN_VERSTUURD_EN_UITSLAG_ONTVANGEN = 8;
-
-	private static final Logger LOG = LoggerFactory.getLogger(ColonTestTimelineServiceImpl.class);
+	public static final int DEFAULT_TIJD_TUSSEN_VERSTUURD_EN_UITSLAG_ONTVANGEN = 8;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -245,9 +243,12 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 
 	private void keuzeIntakeAfspraak(List<TestVervolgKeuzeOptie> keuzes, ColonScreeningRonde ronde)
 	{
-		if (ronde.getAfspraken().isEmpty() && ColonScreeningRondeUtil.zijnErOngunstigeIfobts(ronde))
+		if (ColonScreeningRondeUtil.zijnErOngunstigeIfobts(ronde))
 		{
-			keuzes.add(TestVervolgKeuzeOptie.INTAKE_AFSPRAAK);
+			if (ronde.getAfspraken().isEmpty())
+			{
+				keuzes.add(TestVervolgKeuzeOptie.INTAKE_AFSPRAAK);
+			}
 			keuzes.add(TestVervolgKeuzeOptie.MDL_VERSLAG);
 		}
 	}
@@ -285,6 +286,11 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 		BagAdres adres = new BagAdres();
 		adres.setGbaGemeente(model.getGemeente());
 
+		if (model.getGemeente() != null)
+		{
+			adres.setGemeenteCode(model.getGemeente().getCode());
+			adres.setGemeente(model.getGemeente().getNaam());
+		}
 		persoon.setGbaAdres(adres);
 		return testService.maakClient(persoon);
 	}
@@ -300,7 +306,7 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 			GbaPersoon gbaPersoon = client.getPersoon();
 			gbaPersoon.setGeslacht(model.getGeslacht());
 			gbaPersoon.setGeboortedatum(model.getGeboortedatum());
-			gbaPersoon.getGbaAdres().setPostcode(model.getPostcode());
+
 			hibernateService.saveOrUpdateAll(gbaPersoon);
 		}
 		return clienten;
@@ -356,6 +362,7 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 			if (eersteClient == null)
 			{
 				aantalUitnodigingen = getAantalUitnodigingen(client);
+				aantalTestbuizen = getAantalTestbuizen(client);
 				eersteClient = client;
 			}
 
@@ -457,7 +464,7 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 		{
 			verstuurdDatum = uitnodiging.getCreatieDatum();
 		}
-		LocalDate datumVerstuurd = DateUtil.toLocalDate(verstuurdDatum).plusDays(DEFAULT_TIIJD_TUSSEN_VERSTUURD_EN_UITSLAG_ONTVANGEN);
+		LocalDate datumVerstuurd = DateUtil.toLocalDate(verstuurdDatum).plusDays(DEFAULT_TIJD_TUSSEN_VERSTUURD_EN_UITSLAG_ONTVANGEN);
 		return (int) ChronoUnit.DAYS.between(datumVerstuurd, currentDateSupplier.getLocalDate());
 	}
 
@@ -515,7 +522,7 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 	{
 		if (uitnodiging != null && uitnodiging.getGekoppeldeTest() == null)
 		{
-			String baseTestBarcode = IFOBTTestUtil.getIfobtTestBarcode(uitnodiging.getUitnodigingsId());
+			String baseTestBarcode = FITTestUtil.getFITTestBarcode(uitnodiging.getUitnodigingsId());
 			Date nu = currentDateSupplier.getDate();
 			if (ColonOnderzoeksVariant.isOfType(uitnodiging.getOnderzoeksVariant(), IFOBTType.GOLD))
 			{
@@ -657,23 +664,23 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 	public IFOBTTest ifobtTestOntvangen(Client client, Boolean verlopen, IFOBTTest buis, int analyseDatumDiff)
 	{
 
-		ColonUitnodiging uitnodiging = IFOBTTestUtil.getUitnodiging(buis);
+		ColonUitnodiging uitnodiging = FITTestUtil.getUitnodiging(buis);
 		int aantalDagen = bepaalAantalDagenVoorOnvangenAntwoordformulierOfIfobtTest(uitnodiging);
 		if (aantalDagen >= 0)
 		{
 			testTimelineTimeService.calculateBackwards(client.getColonDossier(), aantalDagen);
 		}
 
-		DateTime nu = currentDateSupplier.getDateTime().withTimeAtStartOfDay();
+		var vandaag = currentDateSupplier.getLocalDate();
 
-		if (IFOBTTestUtil.heeftUitslag(buis))
+		if (FITTestUtil.heeftUitslag(buis))
 		{
 			IFOBTVervaldatum ifobtVervaldatum = houdbaarheidDao.getHoudbaarheidVoor(IFOBTVervaldatum.class, buis.getBarcode());
 			IFOBTVervaldatum tijdelijkVervaldatum = null;
 			if (ifobtVervaldatum == null && !Boolean.TRUE.equals(verlopen))
 			{
 				tijdelijkVervaldatum = new IFOBTVervaldatum();
-				tijdelijkVervaldatum.setVervalDatum(currentDateSupplier.getDateTime().plusDays(10).toDate());
+				tijdelijkVervaldatum.setVervalDatum(DateUtil.toUtilDate(vandaag.plusDays(10)));
 				tijdelijkVervaldatum.setType(buis.getType());
 				tijdelijkVervaldatum.setLengthBarcode(buis.getBarcode().length());
 				tijdelijkVervaldatum.setBarcodeStart(buis.getBarcode());
@@ -682,11 +689,11 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 			}
 			else if (ifobtVervaldatum != null && (buis.getBarcode().startsWith("TGD") || buis.getBarcode().startsWith("TST")))
 			{
-				ifobtVervaldatum.setVervalDatum(currentDateSupplier.getDateTime().plusDays(10).toDate());
+				ifobtVervaldatum.setVervalDatum(DateUtil.toUtilDate(vandaag.plusDays(10)));
 				hibernateService.saveOrUpdate(ifobtVervaldatum);
 			}
-			buis.setAnalyseDatum(nu.minusDays(analyseDatumDiff).toDate());
-			buis.setVerwerkingsDatum(nu.toDate());
+			buis.setAnalyseDatum(DateUtil.toUtilDate(vandaag.minusDays(analyseDatumDiff)));
+			buis.setVerwerkingsDatum(DateUtil.toUtilDate(vandaag));
 			uitslagOntvangen(buis);
 
 			if (tijdelijkVervaldatum != null && (buis.getBarcode().startsWith("TGD") || buis.getBarcode().startsWith("TST"))
@@ -754,10 +761,8 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 
 	private Date getRapelDate()
 	{
-		Integer rapelPeriode = preferenceService.getInteger(PreferenceKey.IFOBTRAPELPERIODE.name());
-		DateTime rapelDateTime = currentDateSupplier.getDateTime();
-		rapelDateTime = rapelDateTime.minusDays(rapelPeriode);
-		return rapelDateTime.toDate();
+		var rapelPeriode = preferenceService.getInteger(PreferenceKey.IFOBTRAPELPERIODE.name());
+		return DateUtil.minDagen(currentDateSupplier.getDate(), rapelPeriode);
 	}
 
 	@Override
@@ -776,7 +781,7 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 		ColonScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
 
 		ColonBrief brief = briefService.maakBvoBrief(ronde, BriefType.COLON_UITNODIGING_INTAKE);
-		brief.setCreatieDatum(new DateTime(brief.getCreatieDatum()).minusSeconds(5).toDate());
+		brief.setCreatieDatum(DateUtil.minusTijdseenheid(brief.getCreatieDatum(), 5, ChronoUnit.SECONDS));
 
 		ColonIntakeAfspraak intakeAfspraak = ronde.getLaatsteAfspraak();
 		if (intakeAfspraak == null)
@@ -798,7 +803,7 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 		intakeAfspraak.setStatus(AfspraakStatus.GEPLAND);
 		if (intakeAfspraak.getStartTime() == null)
 		{
-			intakeAfspraak.setStartTime(currentDateSupplier.getDateTime().plusDays(1).toDate());
+			intakeAfspraak.setStartTime(DateUtil.plusDagen(currentDateSupplier.getDate(), 1));
 		}
 		if (intakeAfspraak.getLocation() == null)
 		{
@@ -820,7 +825,7 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 		}
 		if (intakeAfspraak.getEndTime() == null)
 		{
-			intakeAfspraak.setEndTime(new DateTime(intakeAfspraak.getStartTime()).plusMinutes(intakeAfspraak.getDefinition().getDuurAfspraakInMinuten()).toDate());
+			intakeAfspraak.setEndTime(DateUtil.plusTijdseenheid(intakeAfspraak.getStartTime(), intakeAfspraak.getDefinition().getDuurAfspraakInMinuten(), ChronoUnit.MINUTES));
 		}
 		brief.setIntakeAfspraak(intakeAfspraak);
 		hibernateService.saveOrUpdate(brief);
@@ -842,7 +847,6 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 		ColonIntakeAfspraak intakeAfspraak = ronde.getLaatsteAfspraak();
 		ColonConclusie conclusie = intakeAfspraak.getConclusie();
 		InstellingGebruiker ingelogdeGebruiker = hibernateService.loadAll(InstellingGebruiker.class).get(0);
-		boolean wasOnHold = false;
 		keuzes.conclusie = type;
 		if (conclusie == null)
 		{
@@ -864,13 +868,12 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 			break;
 		case DOORVERWIJZEN_NAAR_ANDER_CENTRUM:
 			keuzes.intakeConclusie = false;
-			keuzes.afspraakDirectMaken = true;
-			conclusie.setLocatieNieuweAfspraak(hibernateService.loadAll(Kamer.class).stream().filter(k -> !k.equals(intakeAfspraak.getLocation())).findFirst().orElse(null));
-			conclusie.setDatumTijdNieuweAfspraak(DateUtil.toUtilDate(currentDateSupplier.getLocalDateTime().plusDays(2)));
+			keuzes.verwijzing = true;
+			conclusie.setDoorverwijzingBevestigd(true);
 			break;
 		case CLIENT_WIL_ANDERE_INTAKELOKATIE:
 			keuzes.intakeConclusie = false;
-			keuzes.afspraakDirectMaken = false;
+			keuzes.verwijzing = false;
 			break;
 		case GEEN_VERVOLGONDERZOEK:
 			keuzes.intakeConclusie = true;
@@ -878,12 +881,10 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 			break;
 		}
 		intakeAfspraak.setConclusie(conclusie);
-		if (conclusie.getType() == ColonConclusieType.ON_HOLD)
-		{
-			wasOnHold = true;
-		}
+
 		conclusie.setInstellingGebruiker(ingelogdeGebruiker);
-		colonDossierService.conclusieOpslaan(intakeAfspraak, keuzes, ingelogdeGebruiker, wasOnHold);
+
+		colonDossierService.conclusieOpslaan(intakeAfspraak, keuzes, ingelogdeGebruiker, null);
 	}
 
 	@Override
@@ -922,5 +923,6 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 		hibernateService.saveOrUpdate(verslag);
 		hibernateService.saveOrUpdate(ronde);
 		verwerkVerslagService.verwerkInDossier(verslag);
+		colonDossierBaseService.setVolgendeUitnodigingVoorVerslag(verslag);
 	}
 }

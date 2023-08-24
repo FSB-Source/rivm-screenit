@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.batch.popupconfig;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,8 +21,17 @@ package nl.rivm.screenit.model.batch.popupconfig;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import nl.rivm.screenit.model.berichten.enums.VerslagType;
+
+@Getter
+@AllArgsConstructor
 public enum MammaPalgaGrondslag
 {
-	KWALITEITSBORGING,
-	LANDELIJKE_MONITOR,
+	KWALITEITSBORGING(VerslagType.MAMMA_PA_FOLLOW_UP),
+	LANDELIJKE_MONITOR(VerslagType.MAMMA_PA_FOLLOW_UP_MONITOR);
+
+	private final VerslagType verslagType;
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,6 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie;
  */
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.main.web.ScreenitSession;
@@ -41,7 +40,9 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
 import nl.rivm.screenit.service.AutorisatieService;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.StamtabellenService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.Component;
@@ -73,6 +74,9 @@ public abstract class MedewerkerSmallZoekPanel extends GenericPanel<Gebruiker>
 
 	@SpringBean
 	private StamtabellenService stamtabellenService;
+
+	@SpringBean
+	private ICurrentDateSupplier currentDateSupplier;
 
 	private IModel<Gebruiker> selectedMedewerker = Model.of();
 
@@ -113,9 +117,6 @@ public abstract class MedewerkerSmallZoekPanel extends GenericPanel<Gebruiker>
 
 		AjaxSubmitLink zoeken = new ScreenitAjaxLink("zoeken")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -142,9 +143,6 @@ public abstract class MedewerkerSmallZoekPanel extends GenericPanel<Gebruiker>
 
 		AjaxLink<Object> opslaan = new AjaxLink<Object>("opslaan")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -183,9 +181,6 @@ public abstract class MedewerkerSmallZoekPanel extends GenericPanel<Gebruiker>
 		ScreenitDataTable<Gebruiker, String> medewerkers = new ScreenitDataTable<Gebruiker, String>("medewerkers", columns,
 			new MedewerkerDataProvider("achternaam", getModel(), false), new Model<>("medewerkers"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<Gebruiker> model)
 			{
@@ -210,12 +205,9 @@ public abstract class MedewerkerSmallZoekPanel extends GenericPanel<Gebruiker>
 	{
 		List<IColumn<Gebruiker, String>> columns = new ArrayList<>();
 
-		columns.add(new PropertyColumn<Gebruiker, String>(Model.of("Naam medewerker"), "achternaam", "naamVolledigMetVoornaam"));
-		columns.add(new PropertyColumn<Gebruiker, String>(Model.of("Organisaties"), "instelling")
+		columns.add(new PropertyColumn<>(Model.of("Naam medewerker"), "achternaam", "naamVolledigMetVoornaam"));
+		columns.add(new PropertyColumn<>(Model.of("Organisaties"), "instelling")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<Gebruiker>> item, String componentId, IModel<Gebruiker> rowModel)
 			{
@@ -230,7 +222,7 @@ public abstract class MedewerkerSmallZoekPanel extends GenericPanel<Gebruiker>
 						boolean inDienst = Boolean.FALSE;
 						for (InstellingGebruikerRol rol : organisatieMedewerker.getRollen())
 						{
-							if (rol.getActief() && (rol.getEindDatum() == null || rol.getEindDatum().after(new Date())))
+							if (rol.getActief() && (rol.getEindDatum() == null || DateUtil.compareAfter(rol.getEindDatum(), currentDateSupplier.getDate())))
 							{
 								inDienst = Boolean.TRUE;
 								break;

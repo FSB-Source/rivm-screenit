@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,7 +27,7 @@ import ScreenitBackend from "../../../../utils/Backend"
 import {useThunkDispatch} from "../../../../index"
 import BasePage from "../../../BasePage"
 import SearchResultAfspraken from "../../../../components/search_results/SearchResultAfspraken"
-import {formatDate, formatDateText, formatDateWithDayName, plusDagen, plusWerkdagen, vandaag} from "../../../../utils/DateUtil"
+import {formatDate, formatDateText, formatDateWithDayName, isWerkdag, plusDagen, plusWerkdagen, vandaag} from "../../../../utils/DateUtil"
 import {FormErrorComponent} from "../../../../components/form_error/FormErrorComponent"
 import BeforeSearching from "../../../../components/search_results/BeforeSearching"
 import {getString} from "../../../../utils/TekstPropertyUtil"
@@ -39,13 +39,13 @@ import {useRegio} from "../../../../utils/Hooks"
 import BigUrlButton from "../../../../components/bigUrlButton/BigUrlButton"
 import * as Yup from "yup"
 import {Formik} from "formik"
-import ScreenitDatePicker from "../../../../components/input/ScreenitDatePicker"
 import classNames from "classnames"
 import bvoStyle from "../../../../components/BvoStyle.module.scss"
 import {ArrowType} from "../../../../components/vectors/ArrowIconComponent"
 import Button from "../../../../components/input/Button"
 import SearchForm from "../../../../components/form/SearchForm"
 import {useNavigate} from "react-router-dom"
+import ScreenitDatePicker from "../../../../components/input/ScreenitDatePicker"
 
 export type UitstelZoekFilter = {
 	vanaf: Date | null,
@@ -89,7 +89,10 @@ const MammaAfspraakUitstellenPage = () => {
 		vanaf: Yup.date().required(getString(properties.form.error.verplicht))
 			.nullable()
 			.typeError(getString(properties.form.error.ongeldig))
-			.min(plusDagen(vandaag(), 1), getString(properties.form.error.minimum, [formatDate(vandaag())])),
+			.min(plusDagen(vandaag(), 1), getString(properties.form.error.minimum, [formatDate(vandaag())]))
+			.test("vanaf", getString(properties.form.error.werkdag), ((value) => {
+				return !!value && isWerkdag(value)
+			})),
 	})
 
 	return (
@@ -102,10 +105,12 @@ const MammaAfspraakUitstellenPage = () => {
 					<Formik initialValues={initialValues}
 							validationSchema={validatieSchema}
 							onSubmit={zoek}>
-						{formikProps => (<SearchForm title={getString(properties.form.button)}>
+						{formikProps => (<SearchForm title={getString(properties.form.title)}>
+							<div>{getString(properties.form.toelichting)}</div>
 							<ScreenitDatePicker className={styles.datepicker}
 												propertyName={"vanaf"}
 												label={getString(properties.form.placeholder)}
+												alleenWerkdagen={true}
 												errorLabel={formikProps.errors.vanaf}
 												value={formikProps.values.vanaf}
 												onChange={value => {

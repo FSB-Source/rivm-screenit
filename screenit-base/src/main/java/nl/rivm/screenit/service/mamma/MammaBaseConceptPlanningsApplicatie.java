@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.service.mamma;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -41,9 +40,6 @@ import nl.rivm.screenit.model.mamma.MammaBlokkade;
 import nl.rivm.screenit.model.mamma.MammaPostcodeReeks;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
-
-import org.joda.time.DateTime;
-
 public interface MammaBaseConceptPlanningsApplicatie
 {
 
@@ -57,7 +53,7 @@ public interface MammaBaseConceptPlanningsApplicatie
 
 	void sendScreeningsEenheid(MammaScreeningsEenheid screeningsEenheid, boolean isNieuw);
 
-	PlanningWeekDto getWeek(MammaScreeningsEenheid screeningEenheid, DateTime start);
+	PlanningWeekDto getWeek(MammaScreeningsEenheid screeningEenheid, Date start);
 
 	String getAfspraakDrempelOverzichtStandplaats(long standplaatsId);
 

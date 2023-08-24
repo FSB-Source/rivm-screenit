@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.dicom.worklist;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -42,8 +42,6 @@ import static org.dcm4che3.data.Tag.PatientName;
 
 class MammograafWorklistItemBuilder
 {
-	private static final String RIS_SCREENIT = "SCREEN";
-
 	private static final String SCREENIT_BK_MAMMOGRAAF_UID = "0.4.0.127.0.14.1.3.3.1.";
 
 	private final ScreenITWerklijstItem screenITWerklijstItem;
@@ -75,7 +73,8 @@ class MammograafWorklistItemBuilder
 	{
 		Attributes worklistItem = createWorklistItem();
 
-		addScheduledProcedureStep(worklistItem, seItem, DateUtil.toUtilDate(seItem.getStartMoment()), "Kwaliteitsopname", seItem.getOnderzoekscode());
+		var risCode = seItem.getOnderzoekscode();
+		addScheduledProcedureStep(worklistItem, seItem, DateUtil.toUtilDate(seItem.getStartMoment()), "Kwaliteitsopname", risCode);
 
 		worklistItem.setString(Tag.AccessionNumber, VR.SH, seItem.getAccessionNumber());
 		worklistItem.setString(Tag.ReferringPhysicianName, VR.PN, seItem.getMedewerkercode());
@@ -99,7 +98,7 @@ class MammograafWorklistItemBuilder
 
 		worklistItem.setString(Tag.StudyID, VR.SH, seItem.getAccessionNumber());
 		worklistItem.setString(Tag.RequestedProcedureDescription, VR.LO, "Kwaliteitsopname");
-		addSequenceWithCodeValue(Tag.RequestedProcedureCodeSequence, worklistItem, seItem.getOnderzoekscode());
+		addSequenceWithCodeValue(Tag.RequestedProcedureCodeSequence, worklistItem, risCode);
 
 		return worklistItem;
 	}
@@ -123,11 +122,11 @@ class MammograafWorklistItemBuilder
 		String uitnodigingsNr = String.valueOf(clientScreenITWerklijstItem.getUitnodigingsNr()); 
 
 		Attributes worklistItem = createWorklistItem();
-
-		addScheduledProcedureStep(worklistItem, clientScreenITWerklijstItem, DateUtil.toUtilDate(clientScreenITWerklijstItem.getStartDatumTijd()), "Mammography", RIS_SCREENIT);
+		var risCode = clientScreenITWerklijstItem.getOnderzoekscode();
+		addScheduledProcedureStep(worklistItem, clientScreenITWerklijstItem, DateUtil.toUtilDate(clientScreenITWerklijstItem.getStartDatumTijd()), "Mammography", risCode);
 		worklistItem.setString(Tag.ReferringPhysicianName, VR.PN, clientScreenITWerklijstItem.getMedewerkercode());
 		worklistItem.setString(Tag.RequestedProcedureDescription, VR.LO, "Mammography");
-		addSequenceWithCodeValue(Tag.RequestedProcedureCodeSequence, worklistItem, RIS_SCREENIT);
+		addSequenceWithCodeValue(Tag.RequestedProcedureCodeSequence, worklistItem, risCode);
 		worklistItem.setString(Tag.StudyInstanceUID, VR.UI, SCREENIT_BK_MAMMOGRAAF_UID + uitnodigingsNr); 
 		worklistItem.setString(Tag.AccessionNumber, VR.SH, uitnodigingsNr);
 		addPatientInfo(worklistItem, clientScreenITWerklijstItem);

@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,6 +39,7 @@ import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
+import nl.rivm.screenit.service.BaseDossierService;
 import nl.rivm.screenit.service.BerichtToBatchService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.UploadDocumentService;
@@ -87,6 +88,9 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 
 	@Autowired
 	private MammaBaseIlmService baseIlmService;
+
+	@Autowired
+	private BaseDossierService baseDossierService;
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -154,7 +158,7 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 		hibernateService.deleteAll(screeningRonde.getUitstellen());
 		verwijderAlleUitnodigingen(screeningRonde.getUitnodigingen());
 		hibernateService.deleteAll(screeningRonde.getBrieven());
-		hibernateService.deleteAll(screeningRonde.getAfmeldingen());
+		baseDossierService.verwijderAlleAfmeldingenUitRonde(screeningRonde);
 		hibernateService.deleteAll(screeningRonde.getFollowUpVerslagen());
 		hibernateService.deleteAll(screeningRonde.getFollowUpRadiologieVerslagen());
 
@@ -206,7 +210,7 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 							hibernateService.deleteAll(beoordeling.getHuisartsBerichten());
 							if (beoordeling.getVerslagPdf() != null)
 							{
-								uploadDocumentService.delete(beoordeling.getVerslagPdf(), true);
+								uploadDocumentService.delete(beoordeling.getVerslagPdf());
 							}
 						});
 					hibernateService.deleteAll(afspraak.getOnderzoek().getBeoordelingen());

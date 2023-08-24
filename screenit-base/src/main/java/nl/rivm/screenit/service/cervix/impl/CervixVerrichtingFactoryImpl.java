@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,21 +21,27 @@ package nl.rivm.screenit.service.cervix.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
+import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
+import nl.rivm.screenit.model.cervix.CervixCytologieVerslag;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
-import nl.rivm.screenit.model.cervix.facturatie.CervixTarief;
 import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting;
 import nl.rivm.screenit.service.HuisartsenportaalSyncService;
+import nl.rivm.screenit.service.cervix.Cervix2023StartBepalingService;
 import nl.rivm.screenit.service.cervix.CervixVerrichtingFactory;
 import nl.rivm.screenit.service.cervix.CervixVerrichtingService;
 import nl.rivm.screenit.util.BriefUtil;
+import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.cervix.CervixHuisartsToDtoUtil;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -61,13 +67,88 @@ public class CervixVerrichtingFactoryImpl implements CervixVerrichtingFactory
 	@Autowired
 	private HibernateService hibernateService;
 
+	@Autowired
+	private Cervix2023StartBepalingService cervix2023StartBepalingService;
+
 	@Override
-	public void maakLabVerrichting(CervixMonster monster, CervixTariefType tariefType, Date verrichtingsDatum)
+	public List<CervixVerrichting> maakLabVerrichting(CervixMonster monster, CervixTariefType tariefType, Date verrichtingsDatum)
 	{
-		maakVerrichting(monster, tariefType, verrichtingsDatum, null);
+		var laboratorium = getLaboratoriumVoorVerrichting(tariefType, monster, verrichtingsDatum);
+		var bmhk2023Lab = cervix2023StartBepalingService.isBmhk2023Laboratorium(laboratorium);
+		var verrichtingen = new ArrayList<CervixVerrichting>();
+
+		if (!Boolean.TRUE.equals(bmhk2023Lab))
+		{
+			verrichtingen.add(maakVerrichting(monster, tariefType, verrichtingsDatum, null, laboratorium));
+		}
+		else
+		{
+
+			switch (tariefType)
+			{
+			case LAB_HPV_ANALYSE_UITSTRIJKJE:
+				verrichtingen.add(maakVerrichting(monster, CervixTariefType.LAB_LOGISTIEK, verrichtingsDatum, null, laboratorium));
+				verrichtingen.add(maakVerrichting(monster, CervixTariefType.LAB_HPV_ANALYSE_KLINISCH_EN_ZELF_AFGENOMEN, verrichtingsDatum, null, laboratorium));
+				break;
+
+			case LAB_HPV_ANALYSE_ZAS:
+				verrichtingen.add(maakVerrichting(monster, CervixTariefType.LAB_MONSTERONTVANGST_EN_MONSTEROPWERKING_ZAS, verrichtingsDatum, null, laboratorium));
+				verrichtingen.add(maakVerrichting(monster, CervixTariefType.LAB_HPV_ANALYSE_KLINISCH_EN_ZELF_AFGENOMEN, verrichtingsDatum, null, laboratorium));
+				break;
+
+			case LAB_CYTOLOGIE_NA_HPV_UITSTRIJKJE:
+				verrichtingen.add(maakCervixcytologieVerrichting(monster, verrichtingsDatum, laboratorium));
+				break;
+
+			case LAB_CYTOLOGIE_NA_HPV_ZAS:
+			case LAB_CYTOLOGIE_VERVOLGUITSTRIJKJE:
+				verrichtingen.add(maakVerrichting(monster, CervixTariefType.LAB_LOGISTIEK, verrichtingsDatum, null, laboratorium));
+				verrichtingen.add(maakCervixcytologieVerrichting(monster, verrichtingsDatum, laboratorium));
+				break;
+
+			default:
+				throw new IllegalStateException(String.format("Verrichting %s kan niet verwerkt worden door lab", tariefType.name()));
+			}
+		}
+
+		return verrichtingen;
 	}
 
-	private CervixVerrichting maakVerrichting(CervixMonster monster, CervixTariefType tariefType, Date verrichtingsDatum, CervixHuisartsLocatie huisartsLocatie)
+	@Override
+	public void maakHuisartsVerrichting(CervixMonster monster, Date verrichtingsDatum, CervixHuisartsLocatie huisartsLocatie)
+	{
+		var verrichting = maakVerrichting(monster, CervixTariefType.HUISARTS_UITSTRIJKJE, verrichtingsDatum, huisartsLocatie, null);
+
+		huisartsenportaalSyncService.sendJmsBericht(CervixHuisartsToDtoUtil.getVerrichtingDto(verrichting));
+	}
+
+	private CervixVerrichting maakCervixcytologieVerrichting(CervixMonster monster, Date verrichtingsDatum, BMHKLaboratorium laboratorium)
+	{
+		if (isCos(monster))
+		{
+			return maakVerrichting(monster, CervixTariefType.LAB_CERVIXCYTOLOGIE_MET_COS, verrichtingsDatum, null, laboratorium);
+		}
+		else
+		{
+			return maakVerrichting(monster, CervixTariefType.LAB_CERVIXCYTOLOGIE_MANUEEL_SCREENEN, verrichtingsDatum, null, laboratorium);
+		}
+	}
+
+	private boolean isCos(CervixMonster monster)
+	{
+		return monster
+			.getOntvangstScreeningRonde()
+			.getVerslagen()
+			.stream()
+			.findFirst()
+			.flatMap(verslag -> Optional.of(((CervixCytologieVerslag) verslag).getVerslagContent().getCytologieUitslagBvoBmhk()))
+			.filter(uitslag -> uitslag.getMonsterBmhk().getMonsterIdentificatie().replaceFirst("^0+(?!$)", "").equals(monster.getMonsterId()))
+			.map(uitslag -> Boolean.TRUE.equals(uitslag.getCos()))
+			.orElse(false);
+	}
+
+	private CervixVerrichting maakVerrichting(CervixMonster monster, CervixTariefType tariefType, Date verrichtingsDatum, CervixHuisartsLocatie huisartsLocatie,
+		BMHKLaboratorium laboratorium)
 	{
 		Client client = monster.getOntvangstScreeningRonde().getDossier().getClient();
 
@@ -94,7 +175,7 @@ public class CervixVerrichtingFactoryImpl implements CervixVerrichtingFactory
 			so = gemeente.getScreeningOrganisatie();
 		}
 
-		CervixVerrichting verrichting = new CervixVerrichting();
+		var verrichting = new CervixVerrichting();
 		verrichting.setMonster(monster);
 		verrichting.setVerrichtingsDatum(verrichtingsDatum);
 		verrichting.setHuisartsLocatie(huisartsLocatie);
@@ -102,8 +183,8 @@ public class CervixVerrichtingFactoryImpl implements CervixVerrichtingFactory
 		verrichting.setClient(client);
 		verrichting.setType(tariefType);
 		hibernateService.saveOrUpdate(verrichting);
-		CervixBoekRegel boekRegel = new CervixBoekRegel();
-		CervixTarief tarief = verrichtingService.getTariefVoorDatum(tariefType, verrichtingsDatum, monster.getLaboratorium());
+		var boekRegel = new CervixBoekRegel();
+		var tarief = verrichtingService.getTariefVoorDatum(tariefType, verrichtingsDatum, laboratorium);
 		boekRegel.setTarief(tarief);
 		boekRegel.setDebet(false);
 		boekRegel.setVerrichting(verrichting);
@@ -113,10 +194,21 @@ public class CervixVerrichtingFactoryImpl implements CervixVerrichtingFactory
 		return verrichting;
 	}
 
-	@Override
-	public void maakHuisartsVerrichting(CervixMonster monster, CervixTariefType tariefType, Date verrichtingsDatum, CervixHuisartsLocatie huisartsLocatie)
+	private BMHKLaboratorium getLaboratoriumVoorVerrichting(CervixTariefType tariefType, CervixMonster monster, Date verrichtingsDatum)
 	{
-		CervixVerrichting verrichting = maakVerrichting(monster, tariefType, verrichtingsDatum, huisartsLocatie);
-		huisartsenportaalSyncService.sendJmsBericht(CervixHuisartsToDtoUtil.getVerrichtingDto(verrichting));
+		if (tariefType == CervixTariefType.LAB_HPV_ANALYSE_UITSTRIJKJE || tariefType == CervixTariefType.LAB_HPV_ANALYSE_ZAS)
+		{
+			return monster.getLaboratorium();
+		}
+
+		if (cervix2023StartBepalingService.datumValtBinnenBmhk2023(DateUtil.toLocalDate(verrichtingsDatum)))
+		{
+			return Optional.ofNullable(monster.getOntvangstScreeningRonde().getUitstrijkjeCytologieUitslag())
+				.flatMap(uitslag -> Optional.ofNullable(uitslag.getCytologieVerslag()))
+				.flatMap(verslag -> Optional.ofNullable(verslag.getLaboratorium()))
+				.orElse(monster.getLaboratorium());
+		}
+
+		return monster.getLaboratorium();
 	}
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -42,6 +42,7 @@ import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.cervix.Cervix2023StartBepalingService;
 import nl.rivm.screenit.service.cervix.CervixAfmeldService;
 import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
@@ -79,6 +80,9 @@ public class CervixAfmeldServiceImpl implements CervixAfmeldService
 
 	@Autowired
 	private CervixBaseScreeningrondeService screeningrondeService;
+
+	@Autowired
+	private Cervix2023StartBepalingService bmhk2023StartBepalingService;
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -155,14 +159,14 @@ public class CervixAfmeldServiceImpl implements CervixAfmeldService
 				}
 				CervixUitnodiging laatsteUitnodiging = clientService.getLaatstVerstuurdeUitnodiging(ronde, true);
 				LocalDate geboorteDatum = DateUtil.toLocalDate(ronde.getDossier().getClient().getPersoon().getGeboortedatum());
-				if (CervixLeeftijdcategorie.getLeeftijd(geboorteDatum, creatieDatum.toLocalDate()) < 30)
+				if (DateUtil.getLeeftijd(geboorteDatum, creatieDatum.toLocalDate()) < CervixLeeftijdcategorie.minimumLeeftijd())
 				{
 					return;
 				}
 
 				CervixBrief brief;
 				boolean herinneren = true;
-				if (laatsteUitnodiging != null)
+				if (laatsteUitnodiging != null && !screeningrondeService.nieuweUitnodigingVoorClientMoetPUZijn(ronde))
 				{
 					CervixBrief laatsteUitnodigingBrief = laatsteUitnodiging.getBrief();
 					brief = briefService.maakBvoBrief(ronde, laatsteUitnodigingBrief.getBriefType(), DateUtil.toUtilDate(creatieDatum));
@@ -177,7 +181,7 @@ public class CervixAfmeldServiceImpl implements CervixAfmeldService
 					brief = briefService.maakBvoBrief(ronde, leeftijdcategorie.getUitnodigingsBrief(), DateUtil.toUtilDate(creatieDatum));
 				}
 
-				cervixFactory.maakUitnodiging(ronde, brief, herinneren, true);
+				cervixFactory.maakUitnodigingMetVoorEnNaBmhk2023HerinnerenCheck(ronde, brief, herinneren);
 			}
 		}
 	}
@@ -204,7 +208,7 @@ public class CervixAfmeldServiceImpl implements CervixAfmeldService
 				{
 					LocalDate vandaag = currentDateSupplier.getLocalDate();
 					LocalDate minimaleGeboortedatum = vandaag.minusYears(CervixLeeftijdcategorie._65.getLeeftijd());
-					LocalDate maximaleGeboortedatum = vandaag.minusYears(CervixLeeftijdcategorie._30.getLeeftijd());
+					LocalDate maximaleGeboortedatum = vandaag.minusYears(CervixLeeftijdcategorie.minimumLeeftijd());
 					LocalDate geboortedatum = DateUtil.toLocalDate(client.getPersoon().getGeboortedatum());
 					if (geboortedatum.isAfter(minimaleGeboortedatum) && geboortedatum.isBefore(maximaleGeboortedatum)
 						&& isHuidigeDatumBinnenRonde0(client))

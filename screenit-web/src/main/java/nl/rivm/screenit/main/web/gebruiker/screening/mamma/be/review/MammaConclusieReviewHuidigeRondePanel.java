@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.review;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,14 +31,11 @@ import nl.rivm.screenit.main.web.component.ScreenitIndicatingAjaxButton;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitListMultipleChoice;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.AbstractMammaBeoordelenPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.panels.MammaKwaliteitscontroleHuidigeRondePanel;
-import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaConclusieReview;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaLezingRedenenFotobesprekingMbber;
 import nl.rivm.screenit.model.mamma.enums.MammaLezingRedenenFotobesprekingRadioloog;
-import nl.rivm.screenit.service.LogService;
-import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.Component;
@@ -53,18 +50,25 @@ public class MammaConclusieReviewHuidigeRondePanel extends MammaKwaliteitscontro
 	@SpringBean
 	private MammaConclusieReviewService conclusieReviewService;
 
-	@SpringBean
-	private MammaBaseBeoordelingService beoordelingService;
-
-	@SpringBean
-	private LogService logService;
-
 	private final IModel<MammaConclusieReview> conclusieReviewModel;
 
-	public MammaConclusieReviewHuidigeRondePanel(String id, IModel<MammaBeoordeling> beoordelingModel, IModel<MammaConclusieReview> conclusieReviewModel)
+	private final IModel<MammaScreeningRonde> screeningRondeModel;
+
+	private final boolean coordinerendRadioloogKijktBijAndereRadioloog;
+
+	public MammaConclusieReviewHuidigeRondePanel(String id, IModel<MammaBeoordeling> beoordelingModel, IModel<MammaConclusieReview> conclusieReviewModel,
+		IModel<MammaScreeningRonde> screeningRondeModel)
 	{
 		super(id, beoordelingModel);
-		this.conclusieReviewModel = conclusieReviewModel;
+
+		this.coordinerendRadioloogKijktBijAndereRadioloog = !conclusieReviewModel.getObject().getRadioloog().equals(ScreenitSession.get().getLoggedInInstellingGebruiker());
+		this.screeningRondeModel = screeningRondeModel;
+
+		this.conclusieReviewModel = coordinerendRadioloogKijktBijAndereRadioloog ?
+			ModelUtil.ccModel(
+				conclusieReviewService.getConclusieReviewCoordinerendRadioloog(screeningRondeModel.getObject(), ScreenitSession.get().getLoggedInInstellingGebruiker())) :
+			conclusieReviewModel;
+
 		setIngeklapt(false);
 	}
 
@@ -78,7 +82,6 @@ public class MammaConclusieReviewHuidigeRondePanel extends MammaKwaliteitscontro
 
 		ScreenitIndicatingAjaxButton buttonGezien = new ScreenitIndicatingAjaxButton("gezien", form)
 		{
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -86,22 +89,33 @@ public class MammaConclusieReviewHuidigeRondePanel extends MammaKwaliteitscontro
 			}
 
 		};
-		buttonGezien.setVisible(!reviewAlGedaan);
+		buttonGezien.setVisible(!coordinerendRadioloogKijktBijAndereRadioloog && !reviewAlGedaan);
 		form.add(buttonGezien);
 		buttons.add(buttonGezien);
 
 		ScreenitIndicatingAjaxButton buttonOpslaan = new ScreenitIndicatingAjaxButton("opslaan", form)
 		{
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
 				voerSubmitUit(target);
 			}
 		};
-		buttonOpslaan.setVisible(reviewAlGedaan);
+		buttonOpslaan.setVisible(!coordinerendRadioloogKijktBijAndereRadioloog && reviewAlGedaan);
 		form.add(buttonOpslaan);
 		buttons.add(buttonOpslaan);
+
+		var buttonVolgende = new ScreenitIndicatingAjaxButton("volgende", form)
+		{
+			@Override
+			protected void onSubmit(AjaxRequestTarget target)
+			{
+				voerVolgendeUit(target);
+			}
+		};
+		buttonVolgende.setVisible(coordinerendRadioloogKijktBijAndereRadioloog);
+		form.add(buttonVolgende);
+		buttons.add(buttonVolgende);
 
 		panelContainer.add(form);
 	}
@@ -125,16 +139,31 @@ public class MammaConclusieReviewHuidigeRondePanel extends MammaKwaliteitscontro
 		MammaConclusieReview conclusieReview = conclusieReviewModel.getObject();
 		conclusieReviewService.conclusieReviewAfronden(conclusieReview);
 
-		logService.logGebeurtenis(LogGebeurtenis.CONCLUSIE_REVIEW_AFGEROND, ScreenitSession.get().getLoggedInAccount(),
-			beoordelingService.getClientVanBeoordeling(getModelObject()), Bevolkingsonderzoek.MAMMA);
+		logConclusieReviewAfgerond();
 
-		((AbstractMammaBeoordelenPage) getPage()).volgendeVerslag(target);
+		((AbstractMammaBeoordelenPage) getPage()).volgendeBeoordeling(target);
+	}
+
+	private void voerVolgendeUit(AjaxRequestTarget target)
+	{
+		conclusieReviewService.saveConclusieReviewCoordinerendRadioloog(conclusieReviewModel.getObject(), screeningRondeModel.getObject(),
+			ScreenitSession.get().getLoggedInInstellingGebruiker());
+
+		((AbstractMammaBeoordelenPage) getPage()).volgendeBeoordeling(target);
+	}
+
+	private void logConclusieReviewAfgerond()
+	{
+		conclusieReviewService.logConclusieReviewAfgerond(ScreenitSession.get().getLoggedInInstellingGebruiker(), screeningRondeModel.getObject().getDossier().getClient(),
+			conclusieReviewModel.getObject(),
+			coordinerendRadioloogKijktBijAndereRadioloog);
 	}
 
 	@Override
 	protected void onDetach()
 	{
 		ModelUtil.nullSafeDetach(conclusieReviewModel);
+		ModelUtil.nullSafeDetach(screeningRondeModel);
 		super.onDetach();
 	}
 }

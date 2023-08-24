@@ -1,8 +1,17 @@
 @charset "utf-8";
 
 .doNotSelect {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+.footer-versie {
+	font-size: 70%;
+	margin-top: 20px;
+}
+
+.opacity-05 {
+	opacity: 0.5;
 }

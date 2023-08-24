@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.hl7bericht;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,7 @@ import java.util.Arrays;
 import nl.rivm.screenit.main.service.HL7TestMessageService;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
-import nl.rivm.screenit.model.berichten.HL7TestMessageWrapper;
+import nl.rivm.screenit.model.berichten.ScreenITResponseHL7v2MessageWrapper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -197,7 +197,7 @@ public class TestHL7BerichtPanel extends Panel
 				try
 				{
 
-					HL7TestMessageWrapper responseMessageWrapper = null;
+					ScreenITResponseHL7v2MessageWrapper responseMessageWrapper = null;
 					switch (testBerichtTypeModel.getObject())
 					{
 					case DK_IFOBT:

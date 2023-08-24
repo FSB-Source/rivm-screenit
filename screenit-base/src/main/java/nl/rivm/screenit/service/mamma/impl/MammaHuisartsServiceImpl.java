@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -95,10 +95,10 @@ public class MammaHuisartsServiceImpl implements MammaHuisartsService
 
 			ronde.setHuisarts(huisarts);
 
-			boolean diffHuisarts = StringUtils.isNotBlank(EntityAuditUtil.getDiffFieldToLatestVersion(ronde, "huisarts", hibernateService.getHibernateSession()));
-			boolean diffGeenHuisartsOptie = StringUtils.isNotBlank(EntityAuditUtil.getDiffFieldToLatestVersion(ronde, "geenHuisartsOptie", hibernateService.getHibernateSession()));
+			var isHuisartsGewijzigd = StringUtils.isNotBlank(
+				EntityAuditUtil.getDiffFieldsToLatestVersion(ronde, hibernateService.getHibernateSession(), "geenHuisartsOptie", "huisarts"));
 
-			if (diffHuisarts || diffGeenHuisartsOptie)
+			if (isHuisartsGewijzigd)
 			{
 				ronde.setDatumVastleggenHuisarts(currentDateSupplier.getDate());
 				hibernateService.saveOrUpdate(ronde);
@@ -195,9 +195,7 @@ public class MammaHuisartsServiceImpl implements MammaHuisartsService
 			MammaGeenHuisartsOption vorigeGeenHuisartsOptie = getMammaGeenHuisartsOptieVorigeRonde(ronde);
 			if (vorigeGeenHuisartsOptie != null && vorigeHuisarts == null)
 			{
-				{
-					return setMammaGeenHuisartsOption(ronde, vorigeGeenHuisartsOptie, client);
-				}
+				return setMammaGeenHuisartsOption(ronde, vorigeGeenHuisartsOptie, client);
 			}
 			else
 			{

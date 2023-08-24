@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,12 +26,10 @@ import java.util.List;
 import nl.rivm.screenit.dao.cervix.CervixScreeningrondeDao;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
-import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
@@ -41,18 +39,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class CervixScreeningrondeDaoImpl extends AbstractAutowiredDao implements CervixScreeningrondeDao
 {
-
-	@Override
-	public Long getAantalZASsenAangevraagd(CervixScreeningRonde screeningRonde, boolean aangevraagdDoorClient)
-	{
-		Criteria criteria = getSession().createCriteria(CervixUitnodiging.class);
-		criteria.add(Restrictions.eq("zasAangevraagdDoorClient", aangevraagdDoorClient));
-		criteria.add(Restrictions.eq("monsterType", CervixMonsterType.ZAS));
-		criteria.add(Restrictions.eq("screeningRonde", screeningRonde));
-		criteria.setProjection(Projections.rowCount());
-		return ((Number) criteria.uniqueResult()).longValue();
-	}
-
 	@Override
 	public CervixScreeningRonde getLaatsteScreeningRonde(String bsn)
 	{

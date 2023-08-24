@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -56,6 +56,10 @@ public interface CervixFactory
 
 	void updateDossierMetVolgendeRondeDatum(CervixDossier dossier, LocalDateTime creatiedatum);
 
+	CervixUitnodiging maakHeraanvraagUitnodiging(CervixScreeningRonde ronde, CervixBrief brief);
+
+	CervixUitnodiging maakUitnodigingMetVoorEnNaBmhk2023HerinnerenCheck(CervixScreeningRonde ronde, CervixBrief brief, boolean herinneren);
+
 	CervixUitnodiging maakUitnodiging(CervixScreeningRonde ronde, BriefType briefType);
 
 	void maakVooraankondiging(CervixScreeningRonde ronde);
@@ -75,7 +79,9 @@ public interface CervixFactory
 
 	CervixUitnodiging maakZasUitnodiging(Client client, Account account, boolean uitstelDatumNemen, boolean zasAangevraagdDoorClient);
 
-	CervixZas maakZas(CervixUitnodiging uitnodiging, String monsterId);
+	CervixUitnodiging maakHerinneringNonResponderMetZas(Client client);
+
+	CervixZas maakZasMonster(CervixUitnodiging uitnodiging, String monsterId);
 
 	CervixUitstel maakUitstel(CervixScreeningRonde ronde, Date uitstellenTot, CervixUitstelType uitstelType);
 

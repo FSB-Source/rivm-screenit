@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.cervix;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,20 +23,20 @@ package nl.rivm.screenit.main.service.cervix;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.BMHKLaboratorium;
-import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
+import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
 import nl.rivm.screenit.model.cervix.facturatie.CervixTarief;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 public interface CervixBetalingService
 {
+	List<CervixTariefType> getTariefTypenVoorLaboratorium(BMHKLaboratorium laboratorium);
 
 	void genereerCervixBetalingsSpecificatieEnSepaBestand(Long betaalopdrachtId);
 
@@ -46,15 +46,13 @@ public interface CervixBetalingService
 
 	void maakSpecificatieBestand(File specificatieBestand, CervixBetaalopdracht opdracht) throws Exception;
 
-	void verwijderSepaBestanden(CervixBetaalopdracht betaalopdracht, InstellingGebruiker loggedInInstellingGebruiker) throws JsonProcessingException;
+	void verwijderSepaBestanden(CervixBetaalopdracht betaalopdracht);
 
 	void archiveerBestaandeOpdrachten(ScreeningOrganisatie screeningOrganisatie);
 
 	void toevoegenTarief(CervixTarief tarief, Account account);
 
-	void berekenEinddatumCervixLaboratoriumTarief(BMHKLaboratorium laboratorium);
-
-	String toevoegenIndexatieTarief(CervixTarief nieuweTarief, Account account) throws JsonProcessingException;
+	String toevoegenIndexatieTarief(CervixTarief nieuweTarief, Account account);
 
 	void verwijderCervixTarief(CervixTarief tarief, Account account);
 }

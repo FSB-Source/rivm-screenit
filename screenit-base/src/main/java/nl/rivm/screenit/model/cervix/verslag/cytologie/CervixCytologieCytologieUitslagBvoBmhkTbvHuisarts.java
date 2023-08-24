@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.cervix.verslag.cytologie;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -45,11 +45,11 @@ public class CervixCytologieCytologieUitslagBvoBmhkTbvHuisarts
 	private CervixCytologieVerslagContent verslagContent;
 
 	@Column(length = 4096)
-	@VraagElement(displayName = "Protocollair verslag", extraTekst = "Het protocollair verslag (PV) zoals gegenereerd door de PALGA Protocol Module t.b.v. de uitslagverstrekking aan de huisarts", code = "2.16.840.1.113883.2.4.3.36.77.2.10.280010", isVerplicht = true)
+	@VraagElement(displayName = "Protocollair verslag", extraTekst = "Het protocollair verslag (PV) zoals gegenereerd door de PALGA Protocol Module t.b.v. de uitslagverstrekking aan de huisarts", code = "2.16.840.1.113883.2.4.3.36.77.2.11.267", isVerplicht = true)
 	private String protocollairVerslag;
 
 	@Column(length = 4096)
-	@VraagElement(displayName = "Conclusie", extraTekst = "De tekstuele conclusie zoals gegenereerd door de PALGA Protocol Module t.b.v. de uitslagverstrekking aan de huisarts", code = "2.16.840.1.113883.2.4.3.36.77.2.10.280020", isVerplicht = true)
+	@VraagElement(displayName = "Conclusie", extraTekst = "De tekstuele conclusie zoals gegenereerd door de PALGA Protocol Module t.b.v. de uitslagverstrekking aan de huisarts", code = "2.16.840.1.113883.2.4.3.36.77.2.11.268", isVerplicht = true)
 	private String conclusie;
 
 	public CervixCytologieVerslagContent getVerslagContent()

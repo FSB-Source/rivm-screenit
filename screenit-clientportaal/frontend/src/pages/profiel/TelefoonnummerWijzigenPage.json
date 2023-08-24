@@ -6,9 +6,11 @@
   },
   "form": {
     "title": "Mijn telefoonnummer:",
-    "placeholder": "Telefoonnummer %s",
+    "mobiel_nummer": "Mobiel nummer",
+    "extra_nummer": "Extra telefoonnummer",
     "button": "Telefoonnummer opslaan",
-    "invalid": "Het telefoonnummer is ongeldig"
+    "invalid_mobiel_nummer": "Het mobiele nummer is ongeldig",
+    "invalid_extra_nummer": "Het telefoonnummer is ongeldig"
   },
   "toast": {
     "title": "We hebben uw telefoonnummer opgeslagen.",

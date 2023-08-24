@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.gedeeld;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,8 @@ import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
 import nl.rivm.screenit.service.mamma.MammaVolgendeUitnodigingService;
 
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -37,6 +39,13 @@ public class MammaDoelgroepIndicatorPanel extends Panel
 
 	@SpringBean
 	private MammaVolgendeUitnodigingService volgendeUitnodigingService;
+
+	@Override
+	public void renderHead(IHeaderResponse response)
+	{
+		super.renderHead(response);
+		response.render(CssHeaderItem.forUrl("assets/font-awesome/css/font-awesome.min.css"));
+	}
 
 	public MammaDoelgroepIndicatorPanel(String id, MammaDossier dossier, boolean toonTehuis)
 	{

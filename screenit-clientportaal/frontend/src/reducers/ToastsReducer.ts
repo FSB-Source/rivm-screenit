@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,24 +21,22 @@
 import {ToastMessage} from "../datatypes/toast/ToastMessage"
 import {ToastActions} from "../actions/ToastAction"
 
-function ToastsReducer(stateSlice: ToastMessage[] = [], action: ToastActions): ToastMessage[] {
-	const toasts = stateSlice.slice()
+function ToastsReducer(state: ToastMessage[] = [], action: ToastActions): ToastMessage[] {
 	switch (action.type) {
 		case "SHOW_TOAST":
 			const {type, description, title} = action.toast
-			const toastZitNogNietInLijst = toasts.findIndex(value => value.type === type && value.description === description && value.title === title) === -1
+			const toastZitNogNietInLijst = state.findIndex(value => value.type === type && value.description === description && value.title === title) === -1
 			if (toastZitNogNietInLijst) {
-				toasts.push(action.toast)
+				return [...state, action.toast]
 			}
-            return toasts;
-        case "HIDE_TOAST":
-            toasts.splice(action.index, 1)
-            return toasts;
-        case "HIDE_ALL_TOASTS":
-            return [];
-        default:
-            return stateSlice;
-    }
+			return state
+		case "HIDE_TOAST":
+			return state.filter((toast, index) => index !== action.index)
+		case "HIDE_ALL_TOASTS":
+			return state.filter(toasts => !toasts.alGetoond).map(toast => ({...toast, alGetoond: true}))
+		default:
+			return state
+	}
 }
 
-export default ToastsReducer;
+export default ToastsReducer

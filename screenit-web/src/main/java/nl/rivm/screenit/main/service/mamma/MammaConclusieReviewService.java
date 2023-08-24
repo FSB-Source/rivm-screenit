@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,14 +21,15 @@ package nl.rivm.screenit.main.service.mamma;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaConclusieReviewZoekObject;
+import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.enums.MammaConclusieReviewFilterOptie;
 import nl.rivm.screenit.model.mamma.MammaConclusieReview;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.rivm.screenit.model.mamma.enums.MammaFollowUpConclusieStatus;
 import nl.rivm.screenit.model.mamma.enums.MammobridgeRole;
 
 public interface MammaConclusieReviewService
@@ -41,9 +42,18 @@ public interface MammaConclusieReviewService
 
 	MammaConclusieReview getConclusieReview(MammaScreeningRonde screeningRonde, InstellingGebruiker radioloog);
 
+	MammaConclusieReview getConclusieReviewCoordinerendRadioloog(MammaScreeningRonde screeningRonde, InstellingGebruiker radioloog);
+
+	void saveConclusieReviewCoordinerendRadioloog(MammaConclusieReview conclusieReview, MammaScreeningRonde screeningRonde,
+		InstellingGebruiker radioloog);
+
 	void maakConclusieReviewVoorBetrokkenRadiologen(MammaScreeningRonde screeningRonde);
 
 	void conclusieReviewAfronden(MammaConclusieReview conclusieReview);
 
 	MammobridgeRole getMammobridgeRoleBijConclusieReviewFilter(MammaConclusieReviewFilterOptie filterOptie);
+
+	Date bepaalInitieleConclusieReviewSorteerDatumCoordinerendRadioloog(MammaConclusieReviewZoekObject zoekObject);
+
+	void logConclusieReviewAfgerond(InstellingGebruiker gebruiker, Client client, MammaConclusieReview conclusieReview, boolean doorCoordinerendRadioloog);
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.service;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,8 +22,9 @@ package nl.rivm.screenit.mamma.se.service;
  */
 
 import nl.rivm.screenit.mamma.se.dto.SeAutorisatieDto;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 
 public interface ConfiguratieService
 {
-    void voegParametersToe(SeAutorisatieDto result);
+	void voegParametersToe(SeAutorisatieDto result, String versie, MammaScreeningsEenheid screeningsEenheid);
 }

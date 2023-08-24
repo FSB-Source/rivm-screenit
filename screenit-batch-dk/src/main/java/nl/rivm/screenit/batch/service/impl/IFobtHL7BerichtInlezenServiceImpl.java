@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -57,7 +57,7 @@ import nl.rivm.screenit.model.verwerkingverslag.IfobtVerwerkingRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.IfobtVerwerkingRapportageEntry;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
-import nl.rivm.screenit.util.IFOBTTestUtil;
+import nl.rivm.screenit.util.FITTestUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang3.StringUtils;
@@ -283,7 +283,7 @@ public class IFobtHL7BerichtInlezenServiceImpl implements IFobtHL7BerichtInlezen
 
 	private void logAction(IFOBTTest ifobt)
 	{
-		Client client = IFOBTTestUtil.getUitnodiging(ifobt).getScreeningRonde().getDossier().getClient();
+		Client client = FITTestUtil.getUitnodiging(ifobt).getScreeningRonde().getDossier().getClient();
 		logService.logGebeurtenis(LogGebeurtenis.IFOBT_ONTVANGEN, client, "barcode: " + ifobt.getBarcode(), Bevolkingsonderzoek.COLON);
 	}
 

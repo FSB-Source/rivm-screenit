@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -40,6 +40,10 @@ import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
+import lombok.Getter;
+import lombok.Setter;
+
+import nl.rivm.screenit.huisartsenportaal.ICervixHuisartsLocatie;
 import nl.rivm.screenit.huisartsenportaal.enums.CervixLocatieStatus;
 import nl.rivm.screenit.model.IActief;
 import nl.rivm.screenit.model.cervix.enums.CervixHuisartsLocatieMutatieSoort;
@@ -59,9 +63,10 @@ import org.hibernate.envers.Audited;
 		@Index(name = "idx_cervix_huisarts_locatie_naam", columnList = "naam") })
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "organisatie.cache")
 @Audited
-public class CervixHuisartsLocatie extends AbstractHibernateObject implements ICervixHuisartsportaalObject, IActief
+@Setter
+@Getter
+public class CervixHuisartsLocatie extends AbstractHibernateObject implements ICervixHuisartsportaalObject, IActief, ICervixHuisartsLocatie
 {
-
 	@OneToOne(fetch = FetchType.LAZY, optional = false)
 	private CervixHuisartsAdres locatieAdres;
 
@@ -111,78 +116,6 @@ public class CervixHuisartsLocatie extends AbstractHibernateObject implements IC
 	@Column(nullable = true)
 	private Boolean moetVerifierenVoorActivatie = false;
 
-	public String getNaam()
-	{
-		return naam;
-	}
-
-	public void setNaam(String naam)
-	{
-		this.naam = naam;
-	}
-
-	public String getIban()
-	{
-		return iban;
-	}
-
-	public void setIban(String iban)
-	{
-		this.iban = iban;
-	}
-
-	public String getIbanTenaamstelling()
-	{
-		return ibanTenaamstelling;
-	}
-
-	public void setIbanTenaamstelling(String ibanTenaamstelling)
-	{
-		this.ibanTenaamstelling = ibanTenaamstelling;
-	}
-
-	public String getZorgmailklantnummer()
-	{
-		return zorgmailklantnummer;
-	}
-
-	public void setZorgmailklantnummer(String zorgmailklantnummer)
-	{
-		this.zorgmailklantnummer = zorgmailklantnummer;
-	}
-
-	public CervixHuisartsAdres getLocatieAdres()
-	{
-		return locatieAdres;
-	}
-
-	public void setLocatieAdres(CervixHuisartsAdres locatieAdres)
-	{
-		this.locatieAdres = locatieAdres;
-	}
-
-	public CervixHuisarts getHuisarts()
-	{
-		return huisarts;
-	}
-
-	public void setHuisarts(CervixHuisarts cervixHuisarts)
-	{
-		this.huisarts = cervixHuisarts;
-	}
-
-	@Override
-	public Long getHuisartsportaalId()
-	{
-		return huisartsportaalId;
-	}
-
-	@Override
-	public void setHuisartsportaalId(Long huisartsportaalId)
-	{
-		this.huisartsportaalId = huisartsportaalId;
-	}
-
 	@Override
 	public void setScreenitId(Long id)
 	{
@@ -199,68 +132,6 @@ public class CervixHuisartsLocatie extends AbstractHibernateObject implements IC
 	}
 
 	@Override
-	public Date getMutatiedatum()
-	{
-		return mutatiedatum;
-	}
-
-	@Override
-	public void setMutatiedatum(Date mutatiedatum)
-	{
-		this.mutatiedatum = mutatiedatum;
-	}
-
-	public List<CervixHuisartsBericht> getHuisartsberichten()
-	{
-		return huisartsberichten;
-	}
-
-	public void setHuisartsberichten(List<CervixHuisartsBericht> huisartsberichten)
-	{
-		this.huisartsberichten = huisartsberichten;
-	}
-
-	public List<CervixLabformulier> getLabformulieren()
-	{
-		return labformulieren;
-	}
-
-	public void setLabformulieren(List<CervixLabformulier> labformulieren)
-	{
-		this.labformulieren = labformulieren;
-	}
-
-	public List<CervixVerrichting> getVerrichtingen()
-	{
-		return verrichtingen;
-	}
-
-	public void setVerrichtingen(List<CervixVerrichting> verrichtingen)
-	{
-		this.verrichtingen = verrichtingen;
-	}
-
-	public CervixHuisartsLocatieMutatieSoort getMutatieSoort()
-	{
-		return mutatieSoort;
-	}
-
-	public void setMutatieSoort(CervixHuisartsLocatieMutatieSoort mutatieSoort)
-	{
-		this.mutatieSoort = mutatieSoort;
-	}
-
-	public CervixLocatieStatus getStatus()
-	{
-		return status;
-	}
-
-	public void setStatus(CervixLocatieStatus status)
-	{
-		this.status = status;
-	}
-
-	@Override
 	@Transient
 	public Boolean getActief()
 	{
@@ -272,25 +143,5 @@ public class CervixHuisartsLocatie extends AbstractHibernateObject implements IC
 	public void setActief(Boolean actief)
 	{
 
-	}
-
-	public String getVerificatieCode()
-	{
-		return verificatieCode;
-	}
-
-	public void setVerificatieCode(String verificatieCode)
-	{
-		this.verificatieCode = verificatieCode;
-	}
-
-	public Boolean getMoetVerifierenVoorActivatie()
-	{
-		return moetVerifierenVoorActivatie;
-	}
-
-	public void setMoetVerifierenVoorActivatie(Boolean moetVerifierenVoorActivatie)
-	{
-		this.moetVerifierenVoorActivatie = moetVerifierenVoorActivatie;
 	}
 }

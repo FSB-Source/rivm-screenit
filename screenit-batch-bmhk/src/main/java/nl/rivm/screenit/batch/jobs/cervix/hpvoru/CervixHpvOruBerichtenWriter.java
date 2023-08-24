@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.hpvoru;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -43,6 +43,7 @@ import nl.rivm.screenit.batch.service.CervixHpvOruBerichtService;
 import nl.rivm.screenit.batch.service.HL7BaseSendMessageService;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.Instelling;
+import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.Rivm;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
@@ -50,6 +51,7 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
@@ -79,6 +81,8 @@ public class CervixHpvOruBerichtenWriter extends BaseWriter<CervixScreeningRonde
 
 	private final HL7BaseSendMessageService sendMessageService;
 
+	private final OrganisatieParameterService organisatieParameterService;
+
 	@Override
 	public void writeItems(List<? extends Long> items) throws Exception
 	{
@@ -89,7 +93,9 @@ public class CervixHpvOruBerichtenWriter extends BaseWriter<CervixScreeningRonde
 		if (LocalDateTime.now().isBefore(limit))
 		{
 			var messageContext = new ScreenITHL7MessageContext(HapiContextType.UTF_8);
-			var connection = hl7BaseService.openConnection(laboratorium, 3, messageContext);
+			messageContext.setHost(organisatieParameterService.getOrganisatieParameter(laboratorium, OrganisatieParameterKey.CERVIX_ORU_HOST));
+			messageContext.setPort(organisatieParameterService.getOrganisatieParameter(laboratorium, OrganisatieParameterKey.CERVIX_ORU_PORT));
+			var connection = hl7BaseService.openConnection(laboratorium.getNaam(), 3, messageContext);
 			AtomicInteger verzonden = new AtomicInteger(0);
 
 			items.stream().map(item -> getHibernateService().get(CervixScreeningRonde.class, item)).filter(Objects::nonNull).map(CervixScreeningRonde::getMonsterHpvUitslag)

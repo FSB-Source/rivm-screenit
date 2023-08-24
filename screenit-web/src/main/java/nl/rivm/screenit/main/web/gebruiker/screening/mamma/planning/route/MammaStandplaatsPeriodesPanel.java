@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.route;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -45,17 +45,11 @@ import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
-
 import nl.topicuszorg.wicket.input.behavior.IndicatingAjaxEventBehavior;
+
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.head.CssHeaderItem;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.JavaScriptHeaderItem;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
-import org.apache.wicket.markup.head.PriorityHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -150,15 +144,15 @@ public class MammaStandplaatsPeriodesPanel extends Panel
 
 		standplaatsPerioden2Container.setVisible(true);
 
-		standplaatsPerioden1Container.add(new AttributeAppender("class", " split-table floatleft"));
-		standplaatsPerioden2Container.add(new AttributeAppender("class", " split-table floatright"));
+		standplaatsPerioden1Container.add(new AttributeAppender("class", "split-table float-left"));
+		standplaatsPerioden2Container.add(new AttributeAppender("class", "split-table float-right"));
 
 		initSecondSortable(model2);
 	}
 
 	private void initFirstSortable(IModel<MammaScreeningsEenheid> model)
 	{
-		huidigeStandplaatsPeriodes = new ListModel<PlanningStandplaatsPeriodeDto>(standplaatsPeriodeService.getStandplaatsPeriodesSorted(model.getObject()));
+		huidigeStandplaatsPeriodes = new ListModel<>(standplaatsPeriodeService.getStandplaatsPeriodesSorted(model.getObject()));
 
 		sortable1 = this.newSortable("standplaatsPerioden", model.getObject(), huidigeStandplaatsPeriodes);
 		sortable1.setOutputMarkupId(true);
@@ -180,7 +174,7 @@ public class MammaStandplaatsPeriodesPanel extends Panel
 		}
 		else
 		{
-			vergelijkendeStandplaatsPeriode = new ListModel<PlanningStandplaatsPeriodeDto>(standplaatsPeriodeService.getStandplaatsPeriodesSorted(model2.getObject()));
+			vergelijkendeStandplaatsPeriode = new ListModel<>(standplaatsPeriodeService.getStandplaatsPeriodesSorted(model2.getObject()));
 
 			sortable2 = this.newSortable("standplaatsPerioden2", model2.getObject(), vergelijkendeStandplaatsPeriode);
 			sortable2.setOutputMarkupId(true);
@@ -222,7 +216,7 @@ public class MammaStandplaatsPeriodesPanel extends Panel
 
 	protected Sortable.HashListView<PlanningStandplaatsPeriodeDto> newListView(String id, IModel<List<PlanningStandplaatsPeriodeDto>> model)
 	{
-		return new Sortable.HashListView<PlanningStandplaatsPeriodeDto>(id, model)
+		return new Sortable.HashListView<>(id, model)
 		{
 
 			private static final long serialVersionUID = 1L;
@@ -230,11 +224,11 @@ public class MammaStandplaatsPeriodesPanel extends Panel
 			@Override
 			protected void populateItem(ListItem<PlanningStandplaatsPeriodeDto> item)
 			{
-				PlanningStandplaatsPeriodeDto standplaatsPeriodeDto = item.getModelObject();
-				MammaStandplaats standplaats = hibernateService.load(MammaStandplaats.class, standplaatsPeriodeDto.standplaatsId);
-				String naam = StandplaatsPeriodeUtil.getStandplaatsPeriodeNaam(standplaatsPeriodeDto, standplaats);
-				Label labelStandplaats = new Label("standplaats", naam);
-				Label afspraakDrempel = null;
+				var standplaatsPeriodeDto = item.getModelObject();
+				var standplaats = hibernateService.load(MammaStandplaats.class, standplaatsPeriodeDto.standplaatsId);
+				var naam = StandplaatsPeriodeUtil.getStandplaatsPeriodeNaam(standplaatsPeriodeDto, standplaats);
+				var labelStandplaats = new Label("standplaats", naam);
+				Label afspraakDrempel;
 				if (standplaatsPeriodeDto.afspraakDrempel != null)
 				{
 					afspraakDrempel = new Label("afspraakDrempel", standplaatsPeriodeDto.afspraakDrempel + "%");
@@ -243,12 +237,12 @@ public class MammaStandplaatsPeriodesPanel extends Panel
 				{
 					afspraakDrempel = new Label("afspraakDrempel", "");
 				}
-				Label labelVanaf = new Label("vanaf", standplaatsPeriodeDto.vanaf);
-				Label labelTotEnMet = new Label("totEnMet", standplaatsPeriodeDto.totEnMet);
-				boolean totEnMetDatumDefinitief = (standplaatsPeriodeDto.totEnMet != null && !Boolean.TRUE.equals(standplaatsPeriodeDto.prognose));
+				var labelVanaf = new Label("vanaf", standplaatsPeriodeDto.vanaf);
+				var labelTotEnMet = new Label("totEnMet", standplaatsPeriodeDto.totEnMet);
+				boolean totEnMetDatumDefinitief = (standplaatsPeriodeDto.totEnMet != null && Boolean.FALSE.equals(standplaatsPeriodeDto.prognose));
 				if (totEnMetDatumDefinitief)
 				{
-					labelTotEnMet.add(new AttributeAppender("style", Model.of("font-weight: bold;")));
+					labelTotEnMet.add(new AttributeAppender("class", Model.of(" font-bold")));
 				}
 
 				addClickBehavior(labelStandplaats, item.getModel());
@@ -264,7 +258,6 @@ public class MammaStandplaatsPeriodesPanel extends Panel
 
 				item.add(new MammaStandplaatsPeriodeOpmerkingenPanel("opmerkingen", item.getModel())
 				{
-
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -274,7 +267,6 @@ public class MammaStandplaatsPeriodesPanel extends Panel
 						IModel<MammaStandplaats> standplaatsModel = ModelUtil.sModel(standplaats2);
 						dialog.openWith(target, new MammaRouteStandplaatsOpmerkingenPanel(IDialog.CONTENT_ID, standplaatsModel)
 						{
-
 							private static final long serialVersionUID = 1L;
 
 							@Override
@@ -313,7 +305,6 @@ public class MammaStandplaatsPeriodesPanel extends Panel
 
 				item.add(new MammaStandplaatsPeriodeIndicatiePanel("indicatie", item.getModel())
 				{
-
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -339,13 +330,12 @@ public class MammaStandplaatsPeriodesPanel extends Panel
 
 				item.add(new MammaStandplaatsPeriodeIntervalPanel("interval", item.getModel())
 				{
-
 					private static final long serialVersionUID = 1L;
 				});
 
 				boolean magVerplaatsen = magAanpassen && !totEnMetDatumDefinitief
 					&& (standplaatsPeriodeDto.id == null
-						|| baseAfspraakService.countAfspraken(standplaatsPeriodeDto.id, MammaAfspraakStatus.NIET_GEANNULEERD.toArray(new MammaAfspraakStatus[] {})) == 0);
+					|| baseAfspraakService.countAfspraken(standplaatsPeriodeDto.id, MammaAfspraakStatus.NIET_GEANNULEERD.toArray(new MammaAfspraakStatus[] {})) == 0);
 				item.add(new WebMarkupContainer("handle").setVisible(magVerplaatsen));
 				item.add(new EmptyPanel("emptyHandle").setVisible(!magVerplaatsen));
 			}
@@ -359,7 +349,7 @@ public class MammaStandplaatsPeriodesPanel extends Panel
 					protected void onEvent(AjaxRequestTarget target)
 					{
 						boolean magBeginDatumWijzigen = false;
-						boolean magEindDatumWijzigen = false;
+						boolean magEindDatumWijzigen;
 						IModel<PlanningStandplaatsPeriodeDto> standplaatsPeriodeModel = new CompoundPropertyModel<>(standplaatsPeriodeIModel.getObject());
 						PlanningStandplaatsPeriodeDto standplaatsPeriodeDto = standplaatsPeriodeIModel.getObject();
 						List<PlanningStandplaatsPeriodeDto> perioden = model.getObject();
@@ -372,7 +362,8 @@ public class MammaStandplaatsPeriodesPanel extends Panel
 						else
 						{
 							magBeginDatumWijzigen = standplaatsPeriodeDto.screeningsEenheidVolgNr == 0
-								&& (standplaatsPeriodeDto.id == null || baseAfspraakService.countAfspraken(standplaatsPeriodeDto.id, MammaAfspraakStatus.NIET_GEANNULEERD.toArray(new MammaAfspraakStatus[] {})) == 0);
+								&& (standplaatsPeriodeDto.id == null
+								|| baseAfspraakService.countAfspraken(standplaatsPeriodeDto.id, MammaAfspraakStatus.NIET_GEANNULEERD.toArray(new MammaAfspraakStatus[] {})) == 0);
 							magEindDatumWijzigen = true;
 						}
 						if (perioden.size() > huidigeStandplaatsPeriodeIndex + 1)
@@ -424,7 +415,6 @@ public class MammaStandplaatsPeriodesPanel extends Panel
 
 	private class MeldingenTooltip extends Fragment
 	{
-
 		private static final long serialVersionUID = 1L;
 
 		public MeldingenTooltip(String id, IModel<PlanningStandplaatsPeriodeDto> model)
@@ -434,7 +424,6 @@ public class MammaStandplaatsPeriodesPanel extends Panel
 			add(new AttributeAppender("class", Model.of(" " + TOOLTIP_MELDING_PREFIX + standplaatsPeriodeDto.conceptId)));
 			add(new ListView<PlanningMeldingenDto.PlanningMeldingDto>("meldingen", standplaatsPeriodeDto.meldingenDto.meldingen)
 			{
-
 				private static final long serialVersionUID = 1L;
 
 				@Override
@@ -452,7 +441,6 @@ public class MammaStandplaatsPeriodesPanel extends Panel
 
 	private class BlokkadesTooltip extends Fragment
 	{
-
 		private static final long serialVersionUID = 1L;
 
 		public BlokkadesTooltip(String id, IModel<PlanningStandplaatsPeriodeDto> model)
@@ -491,15 +479,6 @@ public class MammaStandplaatsPeriodesPanel extends Panel
 				}
 			});
 		}
-	}
-
-	@Override
-	public void renderHead(IHeaderResponse response)
-	{
-		super.renderHead(response);
-		response.render(new PriorityHeaderItem(CssHeaderItem.forUrl("assets/js/libs/qtip/jquery.qtip.min.css")));
-		response.render(new PriorityHeaderItem(JavaScriptHeaderItem.forUrl("assets/js/libs/qtip/jquery.qtip.min.js")));
-		response.render(new OnDomReadyHeaderItem("initTooltip()"));
 	}
 
 	@Override

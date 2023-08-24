@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -52,7 +52,7 @@ public abstract class MammaClientZoekenBasePage extends MammaScreeningBasePage
 {
 	private IModel<Client> clientFilter = createClientZoekObjectModel();
 
-	private Form<Client> clientZoekForm = new Form<>("clientZoekForm", clientFilter);
+	private final Form<Client> clientZoekForm = new Form<>("clientZoekForm", clientFilter);
 
 	@SpringBean
 	protected ClientService clientService;
@@ -62,12 +62,12 @@ public abstract class MammaClientZoekenBasePage extends MammaScreeningBasePage
 	@SpringBean
 	protected LogService logService;
 
-	public MammaClientZoekenBasePage()
+	protected MammaClientZoekenBasePage()
 	{
 		createZoekContainer();
 	}
 
-	public MammaClientZoekenBasePage(Client client)
+	protected MammaClientZoekenBasePage(Client client)
 	{
 		this();
 		if (client != null)
@@ -117,6 +117,7 @@ public abstract class MammaClientZoekenBasePage extends MammaScreeningBasePage
 			}
 		};
 		clientZoekForm.add(submitBtn);
+		clientZoekForm.setDefaultButton(submitBtn);
 	}
 
 	protected void zoekClient(AjaxRequestTarget target)
@@ -141,7 +142,7 @@ public abstract class MammaClientZoekenBasePage extends MammaScreeningBasePage
 				error("Client niet gevonden");
 			}
 		}
-		else if (clients.size() == 0)
+		else if (clients.isEmpty())
 		{
 			error("Client niet gevonden");
 		}

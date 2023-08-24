@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.screening.gedeeld.houdbaarheid;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,6 +26,7 @@ import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerBasePage;
 import nl.rivm.screenit.model.AbstractHoudbaarheid;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import nl.topicuszorg.wicket.planning.web.component.DatePickerHelper;
@@ -42,13 +42,9 @@ import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.joda.time.DateTime;
 
 public abstract class HoudbaarheidEditPage<H extends AbstractHoudbaarheid> extends GebruikerBasePage
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private HibernateService hibernateService;
 
@@ -77,9 +73,6 @@ public abstract class HoudbaarheidEditPage<H extends AbstractHoudbaarheid> exten
 
 		form.add(new IFormValidator()
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void validate(Form<?> form)
 			{
@@ -102,13 +95,10 @@ public abstract class HoudbaarheidEditPage<H extends AbstractHoudbaarheid> exten
 
 		form.add(new SubmitLink("submit")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onSubmit()
 			{
-				DateTime dt = new DateTime();
+				var nu = currentDateSupplier.getLocalDateTime();
 				H vervalDatum = model.getObject();
 				if (ifobtVervaldatumService.overlaptBestaandeReeks(ModelProxyHelper.deproxy(vervalDatum)))
 				{
@@ -116,7 +106,7 @@ public abstract class HoudbaarheidEditPage<H extends AbstractHoudbaarheid> exten
 				}
 				else if (vervalDatum.getVervalDatum().after(currentDateSupplier.getDate()))
 				{
-					if (vervalDatum.getVervalDatum() != null && new DateTime(vervalDatum.getVervalDatum()).isAfter(dt.plusMonths(6)))
+					if (vervalDatum.getVervalDatum() != null && DateUtil.toLocalDateTime(vervalDatum.getVervalDatum()).isAfter(nu.plusMonths(6)))
 					{
 						ScreenitSession.get().info("De batch is succesvol opgeslagen");
 					}

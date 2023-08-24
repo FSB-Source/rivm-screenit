@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,7 +30,7 @@ import properties from "./TelefoonnummerWijzigenPage.json"
 import {Formik} from "formik"
 import SubmitForm from "../../components/form/SubmitForm"
 import ScreenitTextfield from "../../components/input/ScreenitTextfield"
-import {isTelefoonnummerValid} from "../../validators/TelefoonnummerValidator"
+import {isMobielnummerValid, isTelefoonnummerValid} from "../../validators/TelefoonnummerValidator"
 import {useNavigate} from "react-router-dom"
 import {showToast} from "../../utils/ToastUtil"
 
@@ -46,11 +46,11 @@ const TelefoonnummerWijzigenPage = () => {
 
 	const validatieSchema: Yup.AnyObjectSchema = Yup.object().shape({
 		telefoonnummer1: Yup.string()
-			.test("telefoonnummerValidatie", getString(properties.form.invalid), function (value) {
-				return isTelefoonnummerValid(value)
+			.test("mobielNummerValidatie", getString(properties.form.invalid_mobiel_nummer), function (value) {
+				return isMobielnummerValid(value)
 			}),
 		telefoonnummer2: Yup.string()
-			.test("telefoonnummerValidatie", getString(properties.form.invalid), function (value) {
+			.test("telefoonnummerValidatie", getString(properties.form.invalid_extra_nummer), function (value) {
 				return isTelefoonnummerValid(value)
 			}),
 	})
@@ -78,13 +78,13 @@ const TelefoonnummerWijzigenPage = () => {
 					<ScreenitTextfield name={"telefoonnummer1"}
 									   value={formikProps.values.telefoonnummer1}
 									   invalidMessage={formikProps.errors.telefoonnummer1}
-									   placeholder={getString(properties.form.placeholder, ["1"])}
+									   placeholder={getString(properties.form.mobiel_nummer)}
 									   onChange={value => formikProps.setFieldValue("telefoonnummer1", value)}/>
 
 					<ScreenitTextfield name={"telefoonnummer2"}
 									   value={formikProps.values.telefoonnummer2}
 									   invalidMessage={formikProps.errors.telefoonnummer2}
-									   placeholder={getString(properties.form.placeholder, ["2"])}
+									   placeholder={getString(properties.form.extra_nummer)}
 									   onChange={value => formikProps.setFieldValue("telefoonnummer2", value)}/>
 
 				</SubmitForm>)}

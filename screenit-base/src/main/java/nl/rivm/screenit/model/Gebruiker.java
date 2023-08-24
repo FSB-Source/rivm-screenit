@@ -4,7 +4,7 @@ package nl.rivm.screenit.model;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,6 +39,9 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.enums.InlogMethode;
 import nl.rivm.screenit.model.helper.HibernateMagicNumber;
 import nl.rivm.screenit.model.nieuws.GebruikerNieuwsItem;
@@ -58,10 +61,10 @@ import org.hibernate.envers.NotAudited;
 		@Index(name = "IDX_GEBRUIKER_ACTIEF", columnList = "actief"),
 		@Index(name = "IDX_GEBRUIKER_ACHTERNAAM", columnList = "achternaam") })
 @Audited
+@Getter
+@Setter
 public class Gebruiker extends Medewerker<InstellingGebruiker> implements Account, IActief
 {
-	private static final long serialVersionUID = 1L;
-
 	@Enumerated(EnumType.STRING)
 	private Aanhef aanhef;
 
@@ -111,6 +114,9 @@ public class Gebruiker extends Medewerker<InstellingGebruiker> implements Accoun
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date laatsteKeerWachtwoordGewijzigd;
 
+	@Column(nullable = false)
+	private boolean wachtwoordVerlooptWaarschuwingVerzonden;
+
 	private String wachtwoordChangeCode;
 
 	@Temporal(TemporalType.TIMESTAMP)
@@ -143,178 +149,6 @@ public class Gebruiker extends Medewerker<InstellingGebruiker> implements Accoun
 
 	@Column(nullable = true, length = HibernateMagicNumber.L255)
 	private String ondertekenaar;
-
-	public String getGebruikersnaam()
-	{
-		return gebruikersnaam;
-	}
-
-	public void setGebruikersnaam(String gebruikersnaam)
-	{
-		this.gebruikersnaam = gebruikersnaam;
-	}
-
-	public String getWachtwoord()
-	{
-		return wachtwoord;
-	}
-
-	public void setWachtwoord(String wachtwoord)
-	{
-		this.wachtwoord = wachtwoord;
-	}
-
-	public Date getActiefTotEnMet()
-	{
-		return actiefTotEnMet;
-	}
-
-	public void setActiefTotEnMet(Date einddatum)
-	{
-		this.actiefTotEnMet = einddatum;
-	}
-
-	public Date getTijdLaatsteFoutieveInlog()
-	{
-		return tijdLaatsteFoutieveInlog;
-	}
-
-	public void setTijdLaatsteFoutieveInlog(Date tijdLaatsteFoutieveInlog)
-	{
-		this.tijdLaatsteFoutieveInlog = tijdLaatsteFoutieveInlog;
-	}
-
-	public Integer getFoutieveInlogpogingen()
-	{
-		return foutieveInlogpogingen;
-	}
-
-	public void setFoutieveInlogpogingen(Integer foutieveInlogpogingen)
-	{
-		this.foutieveInlogpogingen = foutieveInlogpogingen;
-	}
-
-	public InlogStatus getInlogstatus()
-	{
-		return inlogstatus;
-	}
-
-	public void setInlogstatus(InlogStatus inlogstatus)
-	{
-		this.inlogstatus = inlogstatus;
-	}
-
-	public Date getLaatsteKeerWachtwoordGewijzigd()
-	{
-		return laatsteKeerWachtwoordGewijzigd;
-	}
-
-	public void setLaatsteKeerWachtwoordGewijzigd(Date laatsteKeerWachtwoordGewijzigd)
-	{
-		this.laatsteKeerWachtwoordGewijzigd = laatsteKeerWachtwoordGewijzigd;
-	}
-
-	public String getWachtwoordChangeCode()
-	{
-		return wachtwoordChangeCode;
-	}
-
-	public void setWachtwoordChangeCode(String wachtwoordChangeCode)
-	{
-		this.wachtwoordChangeCode = wachtwoordChangeCode;
-	}
-
-	public Date getDatumWachtwoordAanvraag()
-	{
-		return datumWachtwoordAanvraag;
-	}
-
-	public void setDatumWachtwoordAanvraag(Date datumWachtwoordAanvraag)
-	{
-		this.datumWachtwoordAanvraag = datumWachtwoordAanvraag;
-	}
-
-	public Aanhef getAanhef()
-	{
-		return aanhef;
-	}
-
-	public void setAanhef(Aanhef aanhef)
-	{
-		this.aanhef = aanhef;
-	}
-
-	public Titel getTitel()
-	{
-		return titel;
-	}
-
-	public void setTitel(Titel titel)
-	{
-		this.titel = titel;
-	}
-
-	public String getTelefoonnummerwerk()
-	{
-		return telefoonnummerwerk;
-	}
-
-	public void setTelefoonnummerwerk(String telefoonnummerwerk)
-	{
-		this.telefoonnummerwerk = telefoonnummerwerk;
-	}
-
-	public String getEmailwerk()
-	{
-		return emailwerk;
-	}
-
-	public void setEmailwerk(String emailwerk)
-	{
-		this.emailwerk = emailwerk;
-	}
-
-	public String getTelefoonnummerextra()
-	{
-		return telefoonnummerextra;
-	}
-
-	public void setTelefoonnummerextra(String telefoonnummerextra)
-	{
-		this.telefoonnummerextra = telefoonnummerextra;
-	}
-
-	public String getEmailextra()
-	{
-		return emailextra;
-	}
-
-	public void setEmailextra(String emailextra)
-	{
-		this.emailextra = emailextra;
-	}
-
-	public String getTelefoonnummerprive()
-	{
-		return telefoonnummerprive;
-	}
-
-	public void setTelefoonnummerprive(String telefoonnummerprive)
-	{
-		this.telefoonnummerprive = telefoonnummerprive;
-	}
-
-	@Override
-	public Boolean getActief()
-	{
-		return actief;
-	}
-
-	@Override
-	public void setActief(Boolean actief)
-	{
-		this.actief = actief;
-	}
 
 	@Override
 	@Transient
@@ -417,56 +251,6 @@ public class Gebruiker extends Medewerker<InstellingGebruiker> implements Accoun
 		return naamVolledig.toString();
 	}
 
-	public Functie getFunctie()
-	{
-		return functie;
-	}
-
-	public void setFunctie(Functie functie)
-	{
-		this.functie = functie;
-	}
-
-	public Boolean getZorgverlener()
-	{
-		return zorgverlener;
-	}
-
-	public void setZorgverlener(Boolean zorgverlener)
-	{
-		this.zorgverlener = zorgverlener;
-	}
-
-	public String getPatholoogId()
-	{
-		return patholoogId;
-	}
-
-	public void setPatholoogId(String patholoogId)
-	{
-		this.patholoogId = patholoogId;
-	}
-
-	public YubiKey getYubiKey()
-	{
-		return yubiKey;
-	}
-
-	public void setYubiKey(YubiKey yubiKey)
-	{
-		this.yubiKey = yubiKey;
-	}
-
-	public InlogMethode getInlogMethode()
-	{
-		return inlogMethode;
-	}
-
-	public void setInlogMethode(InlogMethode inlogMethode)
-	{
-		this.inlogMethode = inlogMethode;
-	}
-
 	@Override
 	public int hashCode()
 	{
@@ -565,73 +349,4 @@ public class Gebruiker extends Medewerker<InstellingGebruiker> implements Accoun
 		return returnValue;
 	}
 
-	public Date getGeboortedatum()
-	{
-		return geboortedatum;
-	}
-
-	public void setGeboortedatum(Date geboortedatum)
-	{
-		this.geboortedatum = geboortedatum;
-	}
-
-	public List<AfgeslotenMedewerkerOvereenkomst> getAfgeslotenKwaliteitsOvereenkomsten()
-	{
-		return afgeslotenKwaliteitsOvereenkomsten;
-	}
-
-	public void setAfgeslotenKwaliteitsOvereenkomsten(List<AfgeslotenMedewerkerOvereenkomst> afgeslotenKwaliteitsOvereenkomsten)
-	{
-		this.afgeslotenKwaliteitsOvereenkomsten = afgeslotenKwaliteitsOvereenkomsten;
-	}
-
-	public List<GebruikerNieuwsItem> getGebruikerNieuwsItems()
-	{
-		return gebruikerNieuwsItems;
-	}
-
-	public void setGebruikerNieuwsItems(List<GebruikerNieuwsItem> gebruikerNieuwsItems)
-	{
-		this.gebruikerNieuwsItems = gebruikerNieuwsItems;
-	}
-
-	public UploadDocument getHandtekening()
-	{
-		return handtekening;
-	}
-
-	public void setHandtekening(UploadDocument handtekening)
-	{
-		this.handtekening = handtekening;
-	}
-
-	public String getOndertekenaar()
-	{
-		return ondertekenaar;
-	}
-
-	public void setOndertekenaar(String ondertekenaar)
-	{
-		this.ondertekenaar = ondertekenaar;
-	}
-
-	public Date getActiefVanaf()
-	{
-		return actiefVanaf;
-	}
-
-	public void setActiefVanaf(Date actiefVanaf)
-	{
-		this.actiefVanaf = actiefVanaf;
-	}
-
-	public Integer getMedewerkercode()
-	{
-		return medewerkercode;
-	}
-
-	public void setMedewerkercode(Integer medewerkercode)
-	{
-		this.medewerkercode = medewerkercode;
-	}
 }

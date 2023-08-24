@@ -4,7 +4,7 @@ package nl.rivm.screenit.model;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -37,7 +37,7 @@ public enum ProjectParameterKey
 
 	COLON_ONDERZOEKSVARIANT(ProjectType.PROJECT, ColonOnderzoeksVariant.class, Bevolkingsonderzoek.COLON, null, false),
 
-	COLON_UITNODIGEN_PRIORITEIT(ProjectType.PROJECT, Integer.class, Bevolkingsonderzoek.COLON, 999, true),
+	COLON_UITNODIGEN_PRIORITEIT(ProjectType.PROJECT, Integer.class, Bevolkingsonderzoek.COLON, 999, false),
 
 	COLON_FIT_NORM_WAARDE(ProjectType.PROJECT, BigDecimal.class, Bevolkingsonderzoek.COLON, 1000, false),
 

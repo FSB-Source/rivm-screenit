@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -45,6 +45,7 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.HuisartsBerichtType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaArchitectuurverstoringLaesie;
@@ -383,11 +384,18 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 
 		hibernateService.saveOrUpdate(lezing);
 		hibernateService.saveOrUpdate(beoordeling);
+
 		logService.logGebeurtenis(LogGebeurtenis.MAMMA_BEOORDELING_AFGEROND, lezing.getBeoordelaar(),
 			getClientVanBeoordeling(beoordeling),
 			beoordeling.getStatus().getNaam() + MammaScreeningRondeUtil.bepaalNaamBiradsWaarde(MammaZijde.RECHTER_BORST, lezing.getBiradsRechts())
-				+ MammaScreeningRondeUtil.bepaalNaamBiradsWaarde(MammaZijde.LINKER_BORST, lezing.getBiradsLinks()),
+				+ MammaScreeningRondeUtil.bepaalNaamBiradsWaarde(MammaZijde.LINKER_BORST, lezing.getBiradsLinks()) + getLogMeldingOnderzoekTypeTekst(
+				beoordeling),
 			Bevolkingsonderzoek.MAMMA);
+	}
+
+	private String getLogMeldingOnderzoekTypeTekst(MammaBeoordeling beoordeling)
+	{
+		return beoordeling.getOnderzoek().getOnderzoekType() == MammaOnderzoekType.MAMMOGRAFIE ? "" : " (" + beoordeling.getOnderzoek().getOnderzoekType().getNaam() + ")";
 	}
 
 	private void koppelLezingAanBeoordeling(MammaBeoordeling beoordeling, MammaLezing lezing)
@@ -487,7 +495,7 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 		beoordeling.setToegewezenGebruiker(gebruiker);
 		beoordeling.setToegewezenOp(currentDateSupplier.getDate());
 		String melding;
-		MammaBeoordeling vorigeBeoordeling = EntityAuditUtil.getLastEntity(beoordeling, hibernateService.getHibernateSession());
+		MammaBeoordeling vorigeBeoordeling = EntityAuditUtil.getLastVersionOfEntity(beoordeling, hibernateService.getHibernateSession());
 		if (beoordeling.getVerslagLezing() != null && vorigeBeoordeling != null)
 		{
 			if (vorigeBeoordeling.getToegewezenGebruiker() != null && vorigeBeoordeling.getToegewezenOp() != null)
@@ -543,11 +551,12 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 			bepaalVervolgStapEnZetStatus(beoordeling, true);
 			beoordelingReserveringService.geefBeoordelingVrij(beoordeling);
 		}
-
-		else if (MammaBeoordelingStatus.VERSLAG_MAKEN.equals(beoordeling.getStatus()))
+		else if (MammaBeoordelingStatus.VERSLAG_MAKEN == beoordeling.getStatus())
 		{
-			setStatus(beoordeling, MammaBeoordelingStatus.VERSLAG_GEREED);
+			var errorString = String.format("MammaBeoordeling met status %s en id '%d' zou hier niet moeten komen.", beoordeling.getStatus(), beoordeling.getId());
+			throw new IllegalStateException(errorString);
 		}
+
 		hibernateService.saveOrUpdate(beoordeling);
 	}
 

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.verrichtingen.cleanup;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,14 +21,13 @@ package nl.rivm.screenit.batch.jobs.cervix.verrichtingen.cleanup;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
-
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
 import nl.rivm.screenit.model.enums.BestandStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.DateUtil;
 
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
@@ -46,19 +45,12 @@ public class BetalingBestandenCleanUpReader extends BaseScrollableResultReader
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-
 		var crit = session.createCriteria(CervixBetaalopdracht.class);
 		crit.add(Restrictions.isNotNull("sepaSpecificatiePdf"));
 		crit.add(Restrictions.isNotNull("sepaDocument"));
-		crit.add(Restrictions.le("statusDatum", getDateTwoYearsBack()));
+		crit.add(Restrictions.le("statusDatum", DateUtil.toUtilDate(currentDateSupplier.getLocalDate().minusYears(2))));
 		crit.add(Restrictions.or(Restrictions.eq("status", BestandStatus.VERWERKT), Restrictions.eq("status", BestandStatus.GEARCHIVEERD)));
 		return crit;
 	}
 
-	private Date getDateTwoYearsBack()
-	{
-		var dateTime = currentDateSupplier.getDateTimeMidnight();
-		dateTime = dateTime.minusYears(2);
-		return dateTime.toDate();
-	}
 }

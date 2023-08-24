@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal.service.impl;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -42,10 +42,8 @@ import nl.rivm.screenit.huisartsenportaal.repository.VerrichtingRepository;
 import nl.rivm.screenit.huisartsenportaal.service.BetalingService;
 import nl.rivm.screenit.huisartsenportaal.service.LocatieService;
 import nl.rivm.screenit.huisartsenportaal.service.VerrichtingenService;
+import nl.rivm.screenit.huisartsenportaal.util.DateUtil;
 
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -71,8 +69,6 @@ public class VerrichtingServiceImpl implements VerrichtingenService
 
 	@Autowired
 	private BetalingService betalingService;
-
-	private DateTimeFormatter dateFormat = DateTimeFormat.forPattern("dd-MM-yyyy");
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
@@ -156,11 +152,12 @@ public class VerrichtingServiceImpl implements VerrichtingenService
 	{
 		if (datum != null)
 		{
-			return dateFormat.print(new DateTime(datum));
+			return DateUtil.formatForPattern("dd-MM-yyyy", datum);
 		}
 		return null;
 	}
 
+	@Override
 	public VerrichtingDto convertToDto(Verrichting verrichting)
 	{
 		VerrichtingDto verrichtingDto = new VerrichtingDto();
@@ -176,6 +173,7 @@ public class VerrichtingServiceImpl implements VerrichtingenService
 		return verrichtingDto;
 	}
 
+	@Override
 	public Verrichting convertFromDto(VerrichtingDto verrichtingDto)
 	{
 		Verrichting verrichting = new Verrichting();

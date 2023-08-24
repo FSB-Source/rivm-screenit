@@ -4,7 +4,7 @@ package nl.rivm.screenit;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,12 +21,23 @@ package nl.rivm.screenit;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalTime;
 import java.util.Date;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
+@Getter
 public enum PreferenceKey
 {
+	START_MIDDAG("Start middag", LocalTime.class),
+
+	START_AVOND("Start avond", LocalTime.class),
 
 	VOORAANKONDIGINSPERIODE("Vooraankondingsperiode", Integer.class),
+
+	COLON_VOORAANKONDIGING_NA_VERVOLGONDERZOEK("Vooraankondiging na vervolgonderzoek", Integer.class),
 
 	UITNODIGINGSINTERVAL("Spreidingsperiode (interval)", Integer.class),
 
@@ -49,6 +60,10 @@ public enum PreferenceKey
 	WACHTWOORDEMAIL("Wachtwoordaanvragen e-mail", String.class),
 
 	WACHTWOORDEMAILSUBJECT("Wachtwoordaanvragen e-mailonderwerp", String.class),
+
+	WACHTWOORDVERLOOPTEMAIL("Wachtwoord verloopt e-mail", String.class),
+
+	WACHTWOORDVERLOOPTEMAILSUBJECT("Wachtwoord verloopt e-mailonderwerp", String.class),
 
 	UZIEMAIL("Uzi e-mail", String.class),
 
@@ -78,6 +93,8 @@ public enum PreferenceKey
 
 	WACHTWOORDAANVRAGEN("Wachtwoorden aanvragen", Boolean.class),
 
+	WACHTWOORD_VERLOOPT_HERINNERINGS_TERMIJN("Herinneringstermijn voor wachtwoord verloopt", Integer.class),
+
 	IFOBT_NORM_WAARDE("FIT norm waarde", Double.class),
 
 	IFOBT_DETECTIEGRENS("FIT detectiegrens", Double.class),
@@ -91,6 +108,10 @@ public enum PreferenceKey
 	ONGUNSTIGE_UITSLAG_WACHT_PERIODE("Ongunstige uitslag wacht periode", Integer.class),
 
 	COLON_MAX_EXTRA_DAGEN_PLANNING_INTAKE("Maximale extra dagen planning intake", Integer.class),
+
+	COLON_LAATSTE_RONDE_BRIEF_TEKST("Tekst bij (potentieel) laatste uitnodiging", String.class),
+
+	COLON_VOLGENDE_RONDE_BRIEF_TEKST("Tekst bij (potentieel) volgende uitnodiging", String.class),
 
 	MAX_AFSTAND_CLIENT_COLOSCOPIECENTRUM("Maximale afstand client - intakelocatie", Integer.class),
 
@@ -126,7 +147,11 @@ public enum PreferenceKey
 
 	MAIL_VERZENDEN("Mail verzenden", Enum.class),
 
+	SMS_VERZENDEN("Sms verzenden", Enum.class),
+
 	ALTERNATIEF_ADRES("Alternatief adres", String.class),
+
+	ALTERNATIEF_MOBIELNUMMER("Alternatief mobielnummer", String.class),
 
 	KANSBEREKENING_BK("Kansberekening BK", Enum.class),
 
@@ -142,15 +167,17 @@ public enum PreferenceKey
 
 	INTERNAL_ZORGMAIL_BESTAND_URL("URL zorgmail update bestand", String.class),
 
-	CERVIX_HERINNERINGS_PERIODE("Herinneringsperiode", Integer.class),
+	CERVIX_HERINNERINGS_PERIODE_NON_RESPONDER("Herinneringsperiode non-responder", Integer.class),
 
 	CERVIX_INTERVAL_CONTROLE_UITSTRIJKJE("Interval Controle Uitstrijkje", Integer.class),
 
 	CERVIX_HERINNERINGS_PERIODE_ZAS("Herinneringsperiode ZAS", Integer.class),
 
-	CERVIX_MAX_ZAS_AANVRAGEN_INFOLIJN("Maximum aantal ZAS-en via InfoLijn", Integer.class),
+	CERVIX_HERINNERINGS_PERIODE_LAATSTE_HERINNERING("Periode laatste herinnering", Integer.class),
 
-	CERVIX_MAX_ZAS_AANVRAGEN_CLIENT("Maximum aantal ZAS-en via Clientportaal", Integer.class),
+	CERVIX_MAX_ZAS_AANVRAGEN_INFOLIJN("Maximum aantal ZAS-en handmatig aanvragen via InfoLijn", Integer.class),
+
+	CERVIX_MAX_ZAS_AANVRAGEN_CLIENT("Maximum aantal ZAS-en handmatig aanvragen via Clientportaal", Integer.class),
 
 	CERVIX_HERINNERING_TEKST("Herinnering tekst", String.class),
 
@@ -168,6 +195,8 @@ public enum PreferenceKey
 
 	COLON_EENMALIG_HERAANMELDEN_TEKST("Eenmalig heraanmelden tekst", String.class),
 
+	COLON_TIJDELIJK_HERAANMELDEN_TEKST("Tijdelijk heraanmelden tekst", String.class),
+
 	COLON_DEFINITIEF_HERAANMELDEN_TEKST("Definitief heraanmelden tekst", String.class),
 
 	COLON_ZONDER_CONCLUSIE_PERIODE("Zonder intakeconclusie periode", Integer.class),
@@ -183,6 +212,10 @@ public enum PreferenceKey
 	COLON_CLIENTPORTAAL_VERVANGENDE_TEKST("DK clientportaal: Vervangende tekst", String.class),
 
 	COLON_CLIENTPORTAAL_TIJDELIJKE_MELDING("DK clientportaal: Tijdelijke melding", String.class),
+
+	COLON_DEFINITIEVE_AFMELDING_BEVESTIGING_TEKST("Definitief afgemeld bevestiging tekst", String.class),
+
+	COLON_TIJDELIJKE_AFMELDING_BEVESTIGING_TEKST("Tijdelijk afgemeld bevestiging tekst", String.class),
 
 	CERVIX_WACHTTIJD_UITSTRIJKJE_ONTBREEKT_ANALOOG("Uitstrijkje ontbreekt (analoog labformulier)", Integer.class),
 
@@ -214,13 +247,17 @@ public enum PreferenceKey
 
 	CERVIX_BEZWAAR_CONTROLE_VERVOLG_VERWIJSADVIES_SUBJECT("Bezwaar mail subject voor controle verwijsadvies", String.class),
 
-	CERVIX_OMMISSIE_VERSTREKEN_HA_ONBEKEND_MAIL("Mail tekst voor huisarts onbekend met ommissie verstreken", String.class),
+	CERVIX_OMISSIE_VERSTREKEN_HA_ONBEKEND_MAIL("Mail tekst voor huisarts onbekend met omissie verstreken", String.class),
 
-	CERVIX_OMMISSIE_VERSTREKEN_HA_ONBEKEND_MAIL_SUBJECT("Mail subject voor huisarts onbekend met ommissie verstreken", String.class),
+	CERVIX_OMISSIE_VERSTREKEN_HA_ONBEKEND_MAIL_SUBJECT("Mail subject voor huisarts onbekend met omissie verstreken", String.class),
 
-	CERVIX_OMMISSIE_VERSTREKEN_ALSNOG_BEOORDELING_ONTVANGEN_MAIL("Mail tekst voor omissie afgegaan te laat beoordeling, met alsnog beoordeling", String.class),
+	CERVIX_OMISSIE_VERSTREKEN_ALSNOG_BEOORDELING_ONTVANGEN_MAIL("Mail tekst voor omissie afgegaan te laat beoordeling, met alsnog beoordeling", String.class),
 
-	CERVIX_OMMISSIE_VERSTREKEN_ALSNOG_BEOORDELING_ONTVANGEN_MAIL_SUBJECT("Mail subject voor omissie afgegaan te laat beoordeling, met alsnog beoordeling", String.class),
+	CERVIX_OMISSIE_VERSTREKEN_ALSNOG_BEOORDELING_ONTVANGEN_MAIL_SUBJECT("Mail subject voor omissie afgegaan te laat beoordeling, met alsnog beoordeling", String.class),
+
+	CERVIX_OMISSIE_ONTBREKEND_CYTOLOGIEVERSLAG_SUBJECT("Mail subject voor omissie ontbrekend cytologieverslag", String.class),
+
+	CERVIX_OMISSIE_ONTBREKEND_CYTOLOGIEVERSLAG_MAIL("Mail tekst voor omissie ontbrekend cytologieverslag", String.class),
 
 	CERVIX_HUISARTS_AAN_UITSTRIJKJE_GEKOPPELD_MAIL("Mail tekst voor huisarts gekoppeld aan monster", String.class),
 
@@ -236,6 +273,8 @@ public enum PreferenceKey
 
 	CERVIX_START_AANLEVERING_GENOTYPERING_EN_INVOERING_TRIAGE("Startdatum aanlevering genotypering analyseresultaten en invoering triage BMHK", Date.class),
 
+	CERVIX_START_BMHK2023("Startdatum BMHK2023", Date.class),
+
 	MAMMA_MINIMALE_LEEFTIJD("Minimale leeftijd", Integer.class),
 
 	MAMMA_MAXIMALE_LEEFTIJD("Maximale leeftijd", Integer.class),
@@ -246,6 +285,10 @@ public enum PreferenceKey
 
 	MAMMA_AFSPRAAK_BIJ_UITNODIGEN_VANAF_AANTAL_WERKDAGEN("Afspraak bij uitnodigen vanaf", Integer.class),
 
+	MAMMA_AFSPRAAK_ZOEKEN_STANDAARD_FILTER_EINDDATUM_DAGEN_IN_TOEKOMST("Afspraak zoeken standaard einddatum", Integer.class),
+
+	MAMMA_AFSPRAAK_ZOEKEN_AANTAL_MINUTEN_IN_TOEKOMST("Afspraak zoeken minimaal aantal minuten in de toekomst", Integer.class),
+
 	MAMMA_AFSPRAAK_VERZETTEN_ZONDER_CLIENT_CONTACT_VANAF_AANTAL_WERKDAGEN("Afspraak verzetten zonder client contact vanaf", Integer.class),
 
 	MAMMA_CAPACITEIT_VOLLEDIG_BENUT_TOT_EN_MET_AANTAL_WERKDAGEN("Capaciteit volledig benut tot en met", Integer.class),
@@ -253,6 +296,8 @@ public enum PreferenceKey
 	MAMMA_BEVESTIGINGSBRIEF_NIET_VERZENDEN_BINNEN_AANTAL_WERKDAGEN("Bevestigingsbrief niet versturen als de afspraak valt binnen aantal dagen", Integer.class),
 
 	MAMMA_BULK_VERZETTEN_IN_VERLEDEN_AANTAL_WEKEN("Bulk verzetten in verleden", Integer.class),
+
+	MAMMA_BULK_VERZETTEN_ALLEEN_BRIEF("Bulk verzetten alleen brief versturen", Boolean.class),
 
 	MAMMA_FOLLOW_UP_NIET_GEDOWNLOAD_WERKLIJST_NA_DAGEN("Op follow-up niet gedownload werklijst na dagen", Integer.class),
 
@@ -265,6 +310,8 @@ public enum PreferenceKey
 	MAMMA_AFSPRAAK_BETREFT_BEVESTIGING_TEKST("Tekst bij bevestiging afspraak bevolkingsonderzoek borstkanker", String.class),
 
 	MAMMA_AFSPRAAK_BETREFT_WIJZIGING_TEKST("Tekst bij gewijzigde afspraak bevolkingsonderzoek borstkanker", String.class),
+
+	MAMMA_UITNODIGING_NA_UITSTEL_TEKST("Tekst bij uitnodiging ten gevolge van uitstel", String.class),
 
 	MAMMA_HERINNERINGS_PERIODE_GEEN_AFSPRAAK("Herinneringsperiode geen afspraak", Integer.class),
 
@@ -402,25 +449,18 @@ public enum PreferenceKey
 
 	CLIENT_GENDERIDENTITEITSWIJZIGING_TEKST("Genderidentiteitswijziging tekst", String.class),
 
-	;
+	INTERNAL_MAMMA_SE_PING_INTERVAL("Se REST ping interval", Integer.class),
+
+	INTERNAL_MAMMA_SE_PONG_TIMEOUT("Se REST pong timeout", Integer.class),
+
+	MAMMA_AFSPRAAK_SMS_HERINNERING_TERMIJN("Tijd in uren waarvoor sms herinnering voor afspraak gestuurd wordt", Integer.class),
+
+	RETRIES_VERZENDEN_INPAKCENTRUM("Retry voor verzenden naar inpakcentrum", Integer.class),
+
+	TIME_BETWEEN_RETRIES_VERZENDEN_INPAKCENTRUM("Tijd tussen de retries voor verzenden naar inpakcentrum in ms", Integer.class);
 
 	private final String layoutName;
 
-	private final Class<?> clazz;
+	private final Class<?> type;
 
-	PreferenceKey(String layoutName, Class<?> clazz)
-	{
-		this.clazz = clazz;
-		this.layoutName = layoutName;
-	}
-
-	public Class<?> getType()
-	{
-		return clazz;
-	}
-
-	public String getLayoutName()
-	{
-		return layoutName;
-	}
 }

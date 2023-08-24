@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,8 @@ package nl.rivm.screenit.main.service;
 
 import java.util.List;
 
+import nl.rivm.screenit.dto.RolDto;
+import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.InstellingGebruikerRol;
 import nl.rivm.screenit.model.Rol;
@@ -30,6 +32,8 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 
 public interface RolService
 {
+
+	void setRechtActiefOfInactief(Rol rol, Account loggedInAccount);
 
 	void saveOrUpdateRol(Rol rol);
 
@@ -43,7 +47,8 @@ public interface RolService
 
 	List<Rol> getActieveRollen(List<Bevolkingsonderzoek> bevolkingsonderzoeken);
 
-	boolean opslaan(Rol rol, List<InstellingGebruikerRol> rollen, List<Bevolkingsonderzoek> verwijderdeBevolkingsonderzoek, InstellingGebruiker instellingGebruiker);
+	boolean opslaan(Rol rol, List<InstellingGebruikerRol> rollen, RolDto initieleRol, List<Bevolkingsonderzoek> verwijderdeBevolkingsonderzoek,
+		InstellingGebruiker ingelogdeInstellingGebruiker);
 
 	boolean zijnErRechtenDieVerwijderdWorden(Rol rol);
 }

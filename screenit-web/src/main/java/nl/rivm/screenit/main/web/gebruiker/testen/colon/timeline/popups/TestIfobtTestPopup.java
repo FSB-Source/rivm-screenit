@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.colon.timeline.popups;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,7 +39,7 @@ import nl.rivm.screenit.model.colon.IFOBTType;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
 import nl.rivm.screenit.service.colon.ColonStudietestService;
 import nl.rivm.screenit.service.impl.ProjectUitslagenUploadException;
-import nl.rivm.screenit.util.IFOBTTestUtil;
+import nl.rivm.screenit.util.FITTestUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.wicket.hibernate.SimpleListHibernateModel;
@@ -103,7 +103,7 @@ public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 		{
 			for (IFOBTTest buis : ronde.getIfobtTesten())
 			{
-				if (!IFOBTTestUtil.heeftUitslag(buis))
+				if (!FITTestUtil.heeftUitslag(buis))
 				{
 					buizenZonderUitslag.add(buis);
 					List<IFOBTTest> buizen = new ArrayList<>();
@@ -124,7 +124,7 @@ public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 					for (int i = 0; i < ronde.getIfobtTesten().size(); i++)
 					{
 						IFOBTTest test = ronde.getIfobtTesten().get(i);
-						if (!IFOBTTestUtil.heeftUitslag(test))
+						if (!FITTestUtil.heeftUitslag(test))
 						{
 							SimpleListHibernateModel<IFOBTTest> testBuizen = buizenMap.get(buizenZonderUitslag.get(i).getId());
 							testBuizen.add(test);
@@ -138,7 +138,7 @@ public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 			@Override
 			public Object getDisplayValue(IFOBTTest test)
 			{
-				return "Buis(" + test.getBarcode() + ")/Uitnodiging(" + IFOBTTestUtil.getUitnodiging(test).getUitnodigingsId() + ")";
+				return "Buis(" + test.getBarcode() + ")/Uitnodiging(" + FITTestUtil.getUitnodiging(test).getUitnodigingsId() + ")";
 			}
 
 			@Override
@@ -215,16 +215,7 @@ public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
-				Long eersteBuisId = testModel.getObject().getId();
-				List<IFOBTTest> testBuizen = new ArrayList<>();
-				if (buizenMap.containsKey(eersteBuisId))
-				{
-					testBuizen = buizenMap.get(eersteBuisId).getObject();
-				}
-				for (IFOBTTest buis : testBuizen)
-				{
-					buis.setUitslag(uitslagValueModel.getObject());
-				}
+				testModel.getObject().setUitslag(uitslagValueModel.getObject());
 				target.add(uitslagText);
 			}
 
@@ -245,7 +236,6 @@ public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 	@Override
 	protected void opslaan()
 	{
-		buizenMap.get(testModel.getObject().getId());
 		List<IFOBTTest> testBuizen = new ArrayList<>();
 		if (testModel.getObject().getId() != null)
 		{
@@ -258,6 +248,7 @@ public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 			{
 				if (!IFOBTTestStatus.NIETTEBEOORDELEN.equals(buis.getStatus()))
 				{
+					buis.setUitslag(testModel.getObject().getUitslag());
 					if (buis.getType().equals(IFOBTType.STUDIE))
 					{
 						try
@@ -274,9 +265,23 @@ public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 					}
 					else
 					{
+						checkEnVerwijderGeinterpreteerdeUitslagExtraBuis(buis);
 						colonTestTimelineService.ifobtTestOntvangen(buis.getColonScreeningRonde().getDossier().getClient(), verlopenModel.getObject(), buis, 1);
 					}
 				}
+			}
+		}
+	}
+
+	private void checkEnVerwijderGeinterpreteerdeUitslagExtraBuis(IFOBTTest buis)
+	{
+		var uitnodiging = buis.getColonUitnodiging();
+		if (uitnodiging != null && uitnodiging.getGekoppeldeExtraTest() != null)
+		{
+			var andereFIT = uitnodiging.getGekoppeldeExtraTest();
+			if (IFOBTType.STUDIE == andereFIT.getType() && andereFIT.getVerwerkingsDatum() == null && andereFIT.getGeinterpreteerdeUitslag() != null)
+			{
+				andereFIT.setGeinterpreteerdeUitslag(null);
 			}
 		}
 	}

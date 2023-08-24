@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,8 @@ package nl.rivm.screenit.huisartsenportaal;
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import javax.jms.ConnectionFactory;
@@ -94,8 +96,10 @@ public class Application extends SpringBootServletInitializer
 		connectionFactory.setPrefetchPolicy(prefetchPolicy());
 		connectionFactory.setRedeliveryPolicy(redeliveryPolicy());
 		connectionFactory.setBrokerURL(brokerUrl);
-
-		connectionFactory.setTrustAllPackages(true);
+		List<String> trustedPackages = new ArrayList<>();
+		trustedPackages.add("nl.rivm.screenit");
+		trustedPackages.add("java");
+		connectionFactory.setTrustedPackages(trustedPackages);
 
 		return connectionFactory;
 	}

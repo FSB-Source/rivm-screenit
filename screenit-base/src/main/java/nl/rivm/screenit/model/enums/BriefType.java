@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,8 +35,13 @@ import nl.topicuszorg.util.collections.CollectionUtils;
 
 public enum BriefType
 {
-
 	COLON_VOORAANKONDIGING(
+		OrganisatieType.SCREENINGSORGANISATIE,
+		new ProjectBriefActieType[] { ProjectBriefActieType.VERVANGENDEBRIEF, ProjectBriefActieType.XDAGENNAY },
+		true,
+		Bevolkingsonderzoek.COLON),
+
+	COLON_VOORAANKONDIGING_NA_VERVOLGONDERZOEK(
 		OrganisatieType.SCREENINGSORGANISATIE,
 		new ProjectBriefActieType[] { ProjectBriefActieType.VERVANGENDEBRIEF, ProjectBriefActieType.XDAGENNAY },
 		true,
@@ -179,7 +184,7 @@ public enum BriefType
 			@Override
 			public List<BriefType> getMagNietOpZelfdeDagAfgedruktTypes()
 			{
-				return new ArrayList<>(Arrays.asList(COLON_BEVESTIGING_TERUG_NAAR_SCREENING, COLON_BEVESTIGING_DEFINITIEVE_EXCLUSIE, COLON_INTAKE_NO_SHOW, COLON_INTAKE_GEWIJZIGD));
+				return List.of(COLON_BEVESTIGING_TERUG_NAAR_SCREENING, COLON_BEVESTIGING_DEFINITIEVE_EXCLUSIE, COLON_INTAKE_NO_SHOW, COLON_INTAKE_GEWIJZIGD);
 			}
 		},
 
@@ -192,7 +197,7 @@ public enum BriefType
 			@Override
 			public List<BriefType> getMagNietOpZelfdeDagAfgedruktTypes()
 			{
-				return new ArrayList<>(Arrays.asList(COLON_BEVESTIGING_TERUG_NAAR_SCREENING, COLON_BEVESTIGING_DEFINITIEVE_EXCLUSIE, COLON_INTAKE_NO_SHOW, COLON_INTAKE_GEWIJZIGD));
+				return List.of(COLON_BEVESTIGING_TERUG_NAAR_SCREENING, COLON_BEVESTIGING_DEFINITIEVE_EXCLUSIE, COLON_INTAKE_NO_SHOW, COLON_INTAKE_GEWIJZIGD, COLON_INTAKE_AFMELDING);
 			}
 		},
 
@@ -200,7 +205,14 @@ public enum BriefType
 		OrganisatieType.SCREENINGSORGANISATIE,
 		new ProjectBriefActieType[] { ProjectBriefActieType.VERVANGENDEBRIEF, ProjectBriefActieType.XDAGENNAY },
 		true,
-		Bevolkingsonderzoek.COLON),
+		Bevolkingsonderzoek.COLON)
+		{
+			@Override
+			public List<BriefType> getMagNietOpZelfdeDagAfgedruktTypes()
+			{
+				return List.of(COLON_INTAKE_AFMELDING, COLON_INTAKE_GEWIJZIGD);
+			}
+		},
 
 	COLON_UITSLAGBRIEF_EXTRA_MONSTER(
 		OrganisatieType.SCREENINGSORGANISATIE,
@@ -226,11 +238,35 @@ public enum BriefType
 		true,
 		Bevolkingsonderzoek.COLON),
 
-	COLON_AFMELDING_AANVRAAG(OrganisatieType.SCREENINGSORGANISATIE, true, Bevolkingsonderzoek.COLON),
+	COLON_AFMELDING_AANVRAAG(OrganisatieType.SCREENINGSORGANISATIE, true, Bevolkingsonderzoek.COLON)
+		{
+			@Override
+			public List<BriefType> getMagNietOpZelfdeDagAfgedruktTypes()
+			{
+				return new ArrayList<>(Arrays.asList(COLON_AFMELDING_AANVRAAG, COLON_AFMELDING_BEVESTIGING, COLON_AFMELDING_HANDTEKENING, COLON_HERAANMELDING_AANVRAAG,
+					COLON_HERAANMELDING_BEVESTIGING, COLON_HERAANMELDING_HANDTEKENING));
+			}
+		},
 
-	COLON_AFMELDING_BEVESTIGING(OrganisatieType.SCREENINGSORGANISATIE, true, Bevolkingsonderzoek.COLON),
+	COLON_AFMELDING_BEVESTIGING(OrganisatieType.SCREENINGSORGANISATIE, true, Bevolkingsonderzoek.COLON)
+		{
+			@Override
+			public List<BriefType> getMagNietOpZelfdeDagAfgedruktTypes()
+			{
+				return new ArrayList<>(Arrays.asList(COLON_AFMELDING_AANVRAAG, COLON_AFMELDING_BEVESTIGING, COLON_AFMELDING_HANDTEKENING, COLON_HERAANMELDING_AANVRAAG,
+					COLON_HERAANMELDING_BEVESTIGING, COLON_HERAANMELDING_HANDTEKENING));
+			}
+		},
 
-	COLON_AFMELDING_HANDTEKENING(OrganisatieType.SCREENINGSORGANISATIE, true, Bevolkingsonderzoek.COLON),
+	COLON_AFMELDING_HANDTEKENING(OrganisatieType.SCREENINGSORGANISATIE, true, Bevolkingsonderzoek.COLON)
+		{
+			@Override
+			public List<BriefType> getMagNietOpZelfdeDagAfgedruktTypes()
+			{
+				return new ArrayList<>(Arrays.asList(COLON_AFMELDING_AANVRAAG, COLON_AFMELDING_BEVESTIGING, COLON_AFMELDING_HANDTEKENING, COLON_HERAANMELDING_AANVRAAG,
+					COLON_HERAANMELDING_BEVESTIGING, COLON_HERAANMELDING_HANDTEKENING));
+			}
+		},
 
 	COLON_HERINNERING(
 		OrganisatieType.SCREENINGSORGANISATIE,
@@ -246,12 +282,36 @@ public enum BriefType
 		Bevolkingsonderzoek.COLON),
 
 	@Deprecated
-	COLON_HERAANMELDING_AANVRAAG(OrganisatieType.SCREENINGSORGANISATIE, true, Bevolkingsonderzoek.COLON),
+	COLON_HERAANMELDING_AANVRAAG(OrganisatieType.SCREENINGSORGANISATIE, true, Bevolkingsonderzoek.COLON)
+		{
+			@Override
+			public List<BriefType> getMagNietOpZelfdeDagAfgedruktTypes()
+			{
+				return new ArrayList<>(Arrays.asList(COLON_AFMELDING_AANVRAAG, COLON_AFMELDING_BEVESTIGING, COLON_AFMELDING_HANDTEKENING, COLON_HERAANMELDING_AANVRAAG,
+					COLON_HERAANMELDING_BEVESTIGING, COLON_HERAANMELDING_HANDTEKENING));
+			}
+		},
 
-	COLON_HERAANMELDING_BEVESTIGING(OrganisatieType.SCREENINGSORGANISATIE, true, Bevolkingsonderzoek.COLON),
+	COLON_HERAANMELDING_BEVESTIGING(OrganisatieType.SCREENINGSORGANISATIE, true, Bevolkingsonderzoek.COLON)
+		{
+			@Override
+			public List<BriefType> getMagNietOpZelfdeDagAfgedruktTypes()
+			{
+				return new ArrayList<>(Arrays.asList(COLON_AFMELDING_AANVRAAG, COLON_AFMELDING_BEVESTIGING, COLON_AFMELDING_HANDTEKENING, COLON_HERAANMELDING_AANVRAAG,
+					COLON_HERAANMELDING_BEVESTIGING, COLON_HERAANMELDING_HANDTEKENING));
+			}
+		},
 
 	@Deprecated
-	COLON_HERAANMELDING_HANDTEKENING(OrganisatieType.SCREENINGSORGANISATIE, true, Bevolkingsonderzoek.COLON),
+	COLON_HERAANMELDING_HANDTEKENING(OrganisatieType.SCREENINGSORGANISATIE, true, Bevolkingsonderzoek.COLON)
+		{
+			@Override
+			public List<BriefType> getMagNietOpZelfdeDagAfgedruktTypes()
+			{
+				return new ArrayList<>(Arrays.asList(COLON_AFMELDING_AANVRAAG, COLON_AFMELDING_BEVESTIGING, COLON_AFMELDING_HANDTEKENING, COLON_HERAANMELDING_AANVRAAG,
+					COLON_HERAANMELDING_BEVESTIGING, COLON_HERAANMELDING_HANDTEKENING));
+			}
+		},
 
 	COLON_OPEN_UITNODIGING(OrganisatieType.SCREENINGSORGANISATIE, true, Bevolkingsonderzoek.COLON),
 
@@ -360,7 +420,31 @@ public enum BriefType
 		true,
 		Bevolkingsonderzoek.CERVIX),
 
+	CERVIX_LAATSTE_HERINNERING(
+		OrganisatieType.SCREENINGSORGANISATIE,
+		new ProjectBriefActieType[] { ProjectBriefActieType.VERVANGENDEBRIEF, ProjectBriefActieType.XDAGENNAY },
+		true,
+		Bevolkingsonderzoek.CERVIX),
+
+	CERVIX_HERINNERING_30_JARIGEN(
+		OrganisatieType.SCREENINGSORGANISATIE,
+		new ProjectBriefActieType[] { ProjectBriefActieType.VERVANGENDEBRIEF, ProjectBriefActieType.XDAGENNAY },
+		true,
+		Bevolkingsonderzoek.CERVIX),
+
 	CERVIX_ZAS_UITNODIGING(
+		OrganisatieType.INPAKCENTRUM,
+		new ProjectBriefActieType[] { ProjectBriefActieType.VERVANGENDEBRIEF, ProjectBriefActieType.XDAGENNAY },
+		false,
+		Bevolkingsonderzoek.CERVIX),
+
+	CERVIX_ZAS_COMBI_UITNODIGING_30(
+		OrganisatieType.INPAKCENTRUM,
+		new ProjectBriefActieType[] { ProjectBriefActieType.VERVANGENDEBRIEF, ProjectBriefActieType.XDAGENNAY },
+		false,
+		Bevolkingsonderzoek.CERVIX),
+
+	CERVIX_ZAS_NON_RESPONDER(
 		OrganisatieType.INPAKCENTRUM,
 		new ProjectBriefActieType[] { ProjectBriefActieType.VERVANGENDEBRIEF, ProjectBriefActieType.XDAGENNAY },
 		false,
@@ -806,7 +890,10 @@ public enum BriefType
 		BriefType.CERVIX_UITSTRIJKJE_TWEEDE_KEER_ONBEOORDEELBAAR, BriefType.CERVIX_CYTOLOGIE_ONBEOORDEELBAAR, BriefType.CERVIX_ZAS_HPV_POSITIEF,
 		BriefType.CERVIX_ZAS_TWEEDE_KEER_ONBEOORDEELBAAR, BriefType.CERVIX_ZAS_NA_HPV_POSITIEF, BriefType.CERVIX_ZAS_NA_CYTOLOGIE_ONBEOORDEELBAAR);
 
-	private static final List<BriefType> CERVIX_ZAS_BRIEVEN = Arrays.asList(BriefType.CERVIX_ZAS_UITNODIGING, BriefType.CERVIX_ZAS_NIET_ANALYSEERBAAR_OF_ONBEOORDEELBAAR);
+	private static final List<BriefType> CERVIX_ZAS_BRIEVEN = Arrays.asList(BriefType.CERVIX_ZAS_UITNODIGING, BriefType.CERVIX_ZAS_NIET_ANALYSEERBAAR_OF_ONBEOORDEELBAAR,
+		BriefType.CERVIX_ZAS_COMBI_UITNODIGING_30, BriefType.CERVIX_ZAS_NON_RESPONDER);
+
+	private static final List<BriefType> CERVIX_ZAS_NIET_DIRECT_HERZENDBAAR = List.of(BriefType.CERVIX_ZAS_NON_RESPONDER, BriefType.CERVIX_ZAS_COMBI_UITNODIGING_30);
 
 	public static final List<BriefType> CERVIX_UITSLAG_BRIEVEN = Arrays.asList(
 		BriefType.CERVIX_UITSTRIJKJE_NIET_ANALYSEERBAAR_OF_HPV_ONBEOORDEELBAAR,
@@ -1012,6 +1099,11 @@ public enum BriefType
 	public static List<BriefType> getCervixZasBrieven()
 	{
 		return CERVIX_ZAS_BRIEVEN;
+	}
+
+	public static List<BriefType> getCervixZasUitnodigingNietDirectHerzendbaarBrieven()
+	{
+		return CERVIX_ZAS_NIET_DIRECT_HERZENDBAAR;
 	}
 
 	public boolean isActief()

@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.services.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,7 +34,6 @@ import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.Kamer;
-import nl.rivm.screenit.model.colon.enums.RedenAfspraakAfzeggen;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamer;
 import nl.rivm.screenit.service.colon.AfspraakService;
@@ -86,7 +85,7 @@ public class ColonAfspraakServiceImpl implements ColonAfspraakService
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void intakeAfspraakAfzeggen(Client client, RedenAfspraakAfzeggen redenAfzeggen)
+	public void intakeAfspraakAfzeggen(Client client)
 	{
 		ColonIntakeAfspraak intakeAfspraak = client.getColonDossier().getLaatsteScreeningRonde().getLaatsteAfspraak();
 		if (intakeAfspraak == null)
@@ -95,8 +94,6 @@ public class ColonAfspraakServiceImpl implements ColonAfspraakService
 		}
 		else
 		{
-			intakeAfspraak.setRedenAfzeggen(redenAfzeggen);
-
 			afspraakService.annuleerAfspraak(intakeAfspraak, client, AfspraakStatus.GEANNULEERD_CLIENT, false);
 		}
 	}

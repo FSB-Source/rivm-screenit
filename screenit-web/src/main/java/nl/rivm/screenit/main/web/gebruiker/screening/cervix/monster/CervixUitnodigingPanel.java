@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.monster;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.main.service.cervix.CervixBarcodeAfdrukService;
+import nl.rivm.screenit.main.service.cervix.CervixUitnodigingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
@@ -54,7 +55,6 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -97,10 +97,10 @@ public abstract class CervixUitnodigingPanel<M extends CervixMonster> extends Ge
 	private BezwaarService bezwaarService;
 
 	@SpringBean
-	private HibernateService hibernateService;
+	private SimplePreferenceService preferenceService;
 
 	@SpringBean
-	private SimplePreferenceService preferenceService;
+	private CervixUitnodigingService uitnodigingService;
 
 	private CervixBarcodeAfdrukkenBasePage parentPage;
 
@@ -147,7 +147,7 @@ public abstract class CervixUitnodigingPanel<M extends CervixMonster> extends Ge
 
 		CervixUitnodiging uitnodiging = getModelObject().getUitnodiging();
 		Client client = uitnodiging.getScreeningRonde().getDossier().getClient();
-		BMHKLaboratorium laboratorium = (BMHKLaboratorium) HibernateHelper.deproxy(ScreenitSession.get().getInstelling());
+		BMHKLaboratorium ingelogdNamensLaboratorium = (BMHKLaboratorium) HibernateHelper.deproxy(ScreenitSession.get().getInstelling());
 
 		logService.logGebeurtenis(LogGebeurtenis.CERVIX_UITNODIGING_INGEZIEN, ScreenitSession.get().getLoggedInAccount(), client, getString("titel") + " - " + getStatus(),
 			Bevolkingsonderzoek.CERVIX);
@@ -183,21 +183,27 @@ public abstract class CervixUitnodigingPanel<M extends CervixMonster> extends Ge
 				}
 			});
 		monsterSignaleringen.setLabelPosition(AbstractChoice.LabelPosition.WRAP_AFTER);
-		monsterSignaleringen.add(AttributeModifier.append("style", "div.label.input: margin: 0px;"));
+		monsterSignaleringen.add(AttributeModifier.append("class", "monster-signalering"));
 		monsterSignaleringenContainer.add(monsterSignaleringen);
 
 		overigeSignalering = ComponentHelper.newTextField("overigeSignalering", 255, false);
 		monsterSignaleringenContainer.add(overigeSignalering);
 
 		boolean reedsIngeboekt = reedsIngeboekt();
-		if (nuInboeken())
+		var magNuInboeken = nuInboeken();
+		if (magNuInboeken)
 		{
 			inboeken();
 		}
-		boolean ingeboektInAnderLaboratorium = getModelObject().getLaboratorium() != null && !laboratorium.equals(getModelObject().getLaboratorium());
+		BMHKLaboratorium laboratorium = getModelObject().getLaboratorium();
+		boolean ingeboektInAnderLaboratorium = laboratorium != null && !ingelogdNamensLaboratorium.equals(laboratorium);
 
 		CervixVervolgTekst vervolgTekst = vervolgService.bepaalVervolg(getModelObject(), null).getVervolgTekst();
 		vervolgService.digitaalLabformulierKlaarVoorCytologie(getModelObject(), vervolgTekst);
+		if (magNuInboeken)
+		{
+			vervolgService.sendHpvOrder(getModelObject(), vervolgTekst, laboratorium);
+		}
 
 		WebMarkupContainer labformulierLaboratoriumContainer = new WebMarkupContainer("labformulierLaboratoriumContainer");
 		form.add(labformulierLaboratoriumContainer);
@@ -231,17 +237,19 @@ public abstract class CervixUitnodigingPanel<M extends CervixMonster> extends Ge
 		reedsIngeboektLabel.setVisible(ontvangstMonster() && reedsIngeboekt);
 		form.add(reedsIngeboektLabel);
 
-		addMonsterTypeSpecifics(form, labformulierLaboratoriumContainer, laboratorium, ingeboektInAnderLaboratorium);
+		addMonsterTypeSpecifics(form, labformulierLaboratoriumContainer, ingelogdNamensLaboratorium, ingeboektInAnderLaboratorium);
 
 		form.add(new AjaxFormSubmitBehavior("change")
 		{
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
+				BMHKLaboratorium bmhkLaboratorium = getModelObject().getLaboratorium();
 				saveMonster(target);
 
 				CervixVervolgTekst vervolgstap = vervolgService.bepaalVervolg(getModelObject(), null).getVervolgTekst();
 				vervolgService.digitaalLabformulierKlaarVoorCytologie(getModelObject(), vervolgstap);
+				vervolgService.sendHpvOrder(getModelObject(), vervolgstap, bmhkLaboratorium);
 
 				fieldset.add(new AttributeModifier("class", vervolgstap.getCssClass()));
 				target.add(fieldset);
@@ -277,16 +285,19 @@ public abstract class CervixUitnodigingPanel<M extends CervixMonster> extends Ge
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
+				var monster = CervixUitnodigingPanel.this.getModelObject();
+				var uitnodiging = monster.getUitnodiging();
+
 				if (preferenceService.getBoolean(PreferenceKey.BMHK_LABEL_PRINTEN_ZONDER_PDF.name(), false))
 				{
 					target.prependJavaScript(
-						"printBarcode('" + CervixUitnodigingPanel.this.getModelObject().getUitnodiging().getBrief().getClient().getPersoon().getBsn() + "', '"
-							+ (CervixUitnodigingPanel.this.getModelObject().getMonsterId() + "');"));
+						"printBarcode('" + uitnodiging.getBrief().getClient().getPersoon().getBsn() + "', '"
+							+ (monster.getMonsterId() + "');"));
 					showBackupPrintMonsterIdContainer(target);
 				}
 				else
 				{
-					showBarcode(target, false);
+					showBarcode(target, true);
 				}
 			}
 		});
@@ -344,11 +355,13 @@ public abstract class CervixUitnodigingPanel<M extends CervixMonster> extends Ge
 
 	protected void showBarcode(AjaxRequestTarget target, boolean force)
 	{
-		if (!force && preferenceService.getBoolean(PreferenceKey.BMHK_LABEL_PRINTEN_ZONDER_PDF.name(), false))
+		var uitnodiging = getModelObject().getUitnodiging();
+
+		if (!force && barcodeNietMeteenAfdrukken(uitnodiging))
 		{
 			return;
 		}
-		File barcodeFile = barcodeAfdrukService.saveBarcodeDocument(getModelObject().getUitnodiging());
+		File barcodeFile = barcodeAfdrukService.saveBarcodeDocument(uitnodiging);
 		ScreenitSession.get().addTempFile(barcodeFile);
 
 		PdfViewer newBarcode = new PdfViewer("barcode", barcodeFile);
@@ -362,6 +375,11 @@ public abstract class CervixUitnodigingPanel<M extends CervixMonster> extends Ge
 			focusMonsterId(target);
 		}
 		registreerBarcodeAfgedrukt(target);
+	}
+
+	private boolean barcodeNietMeteenAfdrukken(CervixUitnodiging uitnodiging)
+	{
+		return preferenceService.getBoolean(PreferenceKey.BMHK_LABEL_PRINTEN_ZONDER_PDF.name(), false) || uitnodigingService.uitnodigingHeeftZasMetNieuweBarcode(uitnodiging);
 	}
 
 	private void hideBarcode(AjaxRequestTarget target)

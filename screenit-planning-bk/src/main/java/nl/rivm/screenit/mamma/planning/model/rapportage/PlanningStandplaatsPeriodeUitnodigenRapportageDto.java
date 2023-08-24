@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.model.rapportage;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,11 @@ package nl.rivm.screenit.mamma.planning.model.rapportage;
 
 import java.util.Date;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class PlanningStandplaatsPeriodeUitnodigenRapportageDto
 {
 
@@ -44,93 +49,4 @@ public class PlanningStandplaatsPeriodeUitnodigenRapportageDto
 
 	private Long uitgesteldMinderValideUitgewijktUitstel = 0L;
 
-	public Long getStandplaatsPeriodeId()
-	{
-		return standplaatsPeriodeId;
-	}
-
-	public void setStandplaatsPeriodeId(Long standplaatsPeriodeId)
-	{
-		this.standplaatsPeriodeId = standplaatsPeriodeId;
-	}
-
-	public Date getUitnodigenTotEnMet()
-	{
-		return uitnodigenTotEnMet;
-	}
-
-	public void setUitnodigenTotEnMet(Date uitnodigenTotEnMet)
-	{
-		this.uitnodigenTotEnMet = uitnodigenTotEnMet;
-	}
-
-	public Long getUitgenodigdAfspraak()
-	{
-		return uitgenodigdAfspraak;
-	}
-
-	public void setUitgenodigdAfspraak(Long uitgenodigdAfspraak)
-	{
-		this.uitgenodigdAfspraak = uitgenodigdAfspraak;
-	}
-
-	public Long getUitgenodigdOpen()
-	{
-		return uitgenodigdOpen;
-	}
-
-	public void setUitgenodigdOpen(Long uitgenodigdOpen)
-	{
-		this.uitgenodigdOpen = uitgenodigdOpen;
-	}
-
-	public Long getUitgenodigdMinderValide()
-	{
-		return uitgenodigdMinderValide;
-	}
-
-	public void setUitgenodigdMinderValide(Long uitgenodigdMinderValide)
-	{
-		this.uitgenodigdMinderValide = uitgenodigdMinderValide;
-	}
-
-	public Long getUitgenodigdSuspect()
-	{
-		return uitgenodigdSuspect;
-	}
-
-	public void setUitgenodigdSuspect(Long uitgenodigdSuspect)
-	{
-		this.uitgenodigdSuspect = uitgenodigdSuspect;
-	}
-
-	public Long getUitgenodigdNaUitstel()
-	{
-		return uitgenodigdNaUitstel;
-	}
-
-	public void setUitgenodigdNaUitstel(Long uitgenodigdNaUitstel)
-	{
-		this.uitgenodigdNaUitstel = uitgenodigdNaUitstel;
-	}
-
-	public Long getUitgesteldAchtervangUitstel()
-	{
-		return uitgesteldAchtervangUitstel;
-	}
-
-	public void setUitgesteldAchtervangUitstel(Long uitgesteldAchtervangUitstel)
-	{
-		this.uitgesteldAchtervangUitstel = uitgesteldAchtervangUitstel;
-	}
-
-	public Long getUitgesteldMinderValideUitgewijktUitstel()
-	{
-		return uitgesteldMinderValideUitgewijktUitstel;
-	}
-
-	public void setUitgesteldMinderValideUitgewijktUitstel(Long uitgesteldMinderValideUitgewijktUitstel)
-	{
-		this.uitgesteldMinderValideUitgewijktUitstel = uitgesteldMinderValideUitgewijktUitstel;
-	}
 }

@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -319,44 +319,43 @@
 		</div>
 	</wicket:fragment>
 	<wicket:fragment wicket:id="fragmentDatePicker">
-		<div class="controls input-append" style="margin-left: 185px">
-			<input wicket:id="formComponent" class="input-medium" type="text" />
-			<a href="javascript:void(0);" class="add-on"
-			   onclick="$(this).prev().datepicker('show');return false;"
+		<div class="controls input-append template-datepicker">
+			<input wicket:id="formComponent" class="input-medium" type="text"/>
+			<a  class="add-on js-datepicker-show"
 			   title="Datum" tabindex="-1"><i class="icon-calendar"></i></a>
 		</div>
 	</wicket:fragment>
 	<wicket:fragment wicket:id="fragmentText">
-		<div class="controls" style="margin-left: 345px">
-			<input wicket:id="formComponent" class="input-medium" type="text" />
+		<div class="controls template-document-fragment-text">
+			<input wicket:id="formComponent" class="input-medium" type="text"/>
 		</div>
 	</wicket:fragment>
 	<wicket:fragment wicket:id="fragmentBoolean">
-		<div class="controls" wicket:id="formComponent" style="margin-left: 355px">
+		<div class="controls template-document-fragment-boolean " wicket:id="formComponent">
 		</div>
 	</wicket:fragment>
 	<wicket:fragment wicket:id="fragmentEnum">
 		<div class="controls">
-           	<span wicket:id="formContainer"> <select wicket:id="formComponent" style="margin-left: 165px">
+           	<span wicket:id="formContainer"> <select wicket:id="formComponent" class="template-document-fragment">
 		   	</select></span>
 		</div>
 	</wicket:fragment>
 	<wicket:fragment wicket:id="fragmentMammaAfspraakRedenVerzet">
 		<div class="controls">
-			<span wicket:id="formContainer"><select wicket:id="formComponent" style="margin-left: 165px">
+			<span wicket:id="formContainer"><select wicket:id="formComponent" class="template-document-fragment">
 			</select></span>
 		</div>
 	</wicket:fragment>
 	<wicket:fragment wicket:id="fragmentMammaAfspraakBetreft">
 		<div class="controls">
-			<span wicket:id="formContainer"><select wicket:id="formComponent" style="margin-left: 165px">
+			<span wicket:id="formContainer"><select wicket:id="formComponent" class="template-document-fragment">
 			</select></span>
 		</div>
 	</wicket:fragment>
 	<wicket:fragment wicket:id="fragmentBKRadioloogOndertekenaar">
 		<div class="controls">
 			<input class="input-medium" type="text" wicket:id="textField"></input>
-			<span wicket:id="formContainer"><select wicket:id="formComponent" style="margin-left: 165px">
+			<span wicket:id="formContainer"><select wicket:id="formComponent" class="template-document-fragment">
 			</select></span>
 		</div>
 	</wicket:fragment>

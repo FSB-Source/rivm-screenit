@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,7 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:extend>
     <h1 class="pageTitle">
-        <a href="javascript:void(0);" wicket:id="terugViaTitle" class="page">Schema externe kwaliteitscontrole</a>
+        <a  wicket:id="terugViaTitle" class="page">Schema externe kwaliteitscontrole</a>
         <span class="divider">&gt;</span> <span class="subpage">Regel toevoegen</span>
     </h1>
     <fieldset>
@@ -52,15 +52,15 @@
                         <label class="control-label">Deadline</label>
                         <div class="controls">
                             <input type="text" class="datum" wicket:id="deadline"/>
-                            <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum" tabindex="-1"><i
-                                    class="icon-calendar"></i></a>
+                            <a  class="btn js-datepicker-show" title="Datum" tabindex="-1"><i
+									class="icon-calendar"></i></a>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="buttons">
-                <a href="javascript:void(0);" wicket:id="annuleren" class="btn">Annuleren</a>
-                <a href="javascript:void(0);" wicket:id="opslaan" class="btn btn-primary">Opslaan</a>
+                <a  wicket:id="annuleren" class="btn">Annuleren</a>
+                <a  wicket:id="opslaan" class="btn btn-primary">Opslaan</a>
             </div>
         </form>
     </fieldset>

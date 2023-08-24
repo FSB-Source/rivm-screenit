@@ -1,0 +1,68 @@
+{
+  "afspraak_maken": {
+    "bevestiging": {
+      "title": "Afspraak bevestigen",
+      "description": "Hieronder ziet u de gegevens van uw afspraak. Wilt u deze afspraak definitief maken? Klik dan op de blauwe knop. Wilt u uw onderzoek toch liever op een ander moment? Kies dan voor ‘Andere afspraak maken’."
+    },
+    "failure": {
+      "title": "Gekozen afspraak niet meer beschikbaar",
+      "description": "U heeft een datum en tijd gekozen voor uw afspraak (zie hieronder). Deze afspraak is net gereserveerd voor een andere cliënt en is niet meer beschikbaar.<br>Klik op ‘Andere afspraak maken’. U ziet dan welke afspraken beschikbaar zijn."
+    },
+    "headers": {
+      "datumtijd": "Datum en tijd",
+      "locatie": "Locatie"
+    },
+    "checkbox": {
+      "bevestigingsbrief": "Stuur mij een brief met de gegevens van mijn afspraak"
+    },
+    "button": {
+      "bevestigen": "Ja, ik bevestig deze afspraak",
+      "andere_afspraak": "Andere afspraak maken"
+    },
+    "toast": {
+      "title": "U heeft een afspraak gemaakt voor het bevolkingsonderzoek borstkanker.",
+      "brief_melding": "U krijgt binnen een paar dagen een brief met de gegevens van uw afspraak. Neem deze brief mee naar uw afspraak. ",
+      "geen_brief": "U heeft zelf de afspraak genoteerd. Neem uw uitnodigingsbrief mee naar uw afspraak.",
+      "geen_wijzigingen": "Geen wijzigingen opgeslagen",
+      "geen_bevestiging": "Geen afspraakbevestiging aangemaakt",
+      "error": {
+        "algemeen": "Helaas, er is iets fout gegaan. Probeer het nog een keer.<br/>Krijgt u steeds deze foutmelding? Bel dan met onze informatielijn.",
+        "niet_beschikbaar": "Dit tijdstip is niet meer beschikbaar."
+      }
+    }
+  },
+  "mail": {
+    "titel": "Bevestiging per e-mail",
+    "mail_knop_tekst": "Ja, stuur mij de bevestiging per e-mail",
+    "brief_link_tekst": "Nee, stuur mij een bevestiging per post",
+    "geen_bevestiging_tekst": "Nee, stuur mij geen bevestiging",
+    "boven_invoerveld": "Mijn e-mailadres:",
+    "controleer_email_tekst": "Wilt u de gegevens van uw afspraak per e-mail ontvangen? Controleer uw e-mailadres of vul het in.",
+    "email_validatie": {
+      "niet_aanwezig": "E-mailadres ontbreekt",
+      "fout": "Vul een correct e-mailadres in",
+      "te_lang": "E-mailadres is te lang"
+    }
+  },
+  "sms": {
+    "titel": "Herinnering per SMS",
+    "sms_knop_tekst": "Ja, stuur mij een herinnering per SMS",
+    "geen_sms_tekst": "Nee, stuur mij geen herinnering per SMS",
+    "boven_invoerveld": "Mijn telefoonnummer:",
+    "controleer_mobiel_tekst": "Wilt u voorafgaand aan uw afspraak een herinnering per SMS ontvangen? Controleer uw telefoonnummer of vul het in.",
+    "sms_validatie": {
+      "niet_aanwezig": "Telefoonnummer ontbreekt",
+      "fout": "Vul een correct telefoonnummer in"
+    }
+  },
+  "bevestiging": {
+    "titel": "Uw afspraak",
+    "altijd": "Bedankt voor het maken van uw afspraak.",
+    "mail": "<br><br>We sturen u binnen 30 minuten  een bevestiging per e-mail. Heeft u de bevestiging niet ontvangen? Neem dan contact met ons op.",
+    "brief": "<br><br>U krijgt binnen een paar dagen een brief met de gegevens van uw afspraak.",
+    "sms": "<br><br>U ontvangt van ons een SMS-herinnering voorafgaand aan uw afspraak.",
+    "meenemen": "<br><br><strong>Neem het volgende mee naar het onderzoek:</strong><ul><li>Uw geldig identiteitsbewijs (paspoort, identiteitskaart of rijbewijs).</li><li>De uitnodigingsbrief (vul vooraf de achterzijde van de uitnodigingsbrief in).</li></ul>",
+    "controleer_ha": "Controleer uw huisartsgegevens",
+    "sla_over": "Sla over en verlaat dit scherm"
+  }
+}

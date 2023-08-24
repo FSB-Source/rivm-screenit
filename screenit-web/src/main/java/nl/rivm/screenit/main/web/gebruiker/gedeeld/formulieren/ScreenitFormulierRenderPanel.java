@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.gedeeld.formulieren;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -80,11 +80,6 @@ import nl.topicuszorg.wicket.model.DetachableListModel;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.head.CssHeaderItem;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.JavaScriptHeaderItem;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
-import org.apache.wicket.markup.head.PriorityHeaderItem;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -358,7 +353,7 @@ public class ScreenitFormulierRenderPanel extends GenericPanel<ScreenitFormulier
 						protected boolean magAntwoordUpdaten(Object newValue)
 						{
 							return true;
-						};
+						}
 					};
 
 				}
@@ -514,16 +509,6 @@ public class ScreenitFormulierRenderPanel extends GenericPanel<ScreenitFormulier
 		}
 		ExpressieSettings.setExpressieProvider(new ScreenitExpressieProvider());
 		ExpressieSettings.getResultaatConverters().put(DSValue.class, new DSValueConverter());
-	}
-
-	@Override
-	public void renderHead(IHeaderResponse response)
-	{
-		super.renderHead(response);
-		response.render(new PriorityHeaderItem(CssHeaderItem.forUrl("assets/js/libs/qtip/jquery.qtip.min.css")));
-		response.render(new PriorityHeaderItem(JavaScriptHeaderItem.forUrl("assets/js/libs/qtip/jquery.qtip.min.js")));
-		response.render(new OnDomReadyHeaderItem("initTooltip()"));
-		response.render(new OnDomReadyHeaderItem("initNullFlavourFields()"));
 	}
 
 	@Override

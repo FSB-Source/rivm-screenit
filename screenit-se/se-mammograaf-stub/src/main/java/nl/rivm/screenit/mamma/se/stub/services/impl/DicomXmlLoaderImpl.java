@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.stub.services.impl;
  * ========================LICENSE_START=================================
  * se-mammograaf-stub
  * %%
- * Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,10 +35,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class DicomXmlLoaderImpl implements DicomXmlLoader
 {
+	@Override
 	public Attributes loadXML(InputStream is) throws Exception
 	{
 		Attributes dicomObject = new Attributes();
-		SAXParser saxParser = SAXParserFactory.newInstance().newSAXParser();
+		var factory = SAXParserFactory.newInstance();
+		factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+		factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+		SAXParser saxParser = factory.newSAXParser();
+
 		ContentHandlerAdapter contentHandlerAdapter = new ContentHandlerAdapter(dicomObject);
 		saxParser.parse(is, contentHandlerAdapter);
 		return dicomObject;

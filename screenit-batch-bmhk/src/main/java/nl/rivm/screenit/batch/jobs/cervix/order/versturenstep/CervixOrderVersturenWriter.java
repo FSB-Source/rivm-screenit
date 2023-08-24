@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.order.versturenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,7 +30,9 @@ import lombok.extern.slf4j.Slf4j;
 import nl.rivm.screenit.batch.jobs.cervix.order.CervixOrderConstants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.batch.service.CervixHL7BaseService;
+import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.Instelling;
+import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.Rivm;
 import nl.rivm.screenit.model.cervix.CervixCytologieOrder;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieOrderStatus;
@@ -61,7 +63,9 @@ public class CervixOrderVersturenWriter extends BaseWriter<CervixCytologieOrder>
 	{
 		LOG.info("Order bericht wordt verstuurd voor cytologieOrder:" + cytologieOrder.getId());
 
-		var responseWrapper = hl7BaseService.sendHL7Message(cytologieOrder.getHl7Bericht(), cytologieOrder.getUitstrijkje().getLaboratorium());
+		BMHKLaboratorium laboratorium = cytologieOrder.getUitstrijkje().getLaboratorium();
+		var responseWrapper = hl7BaseService.sendHL7Message(cytologieOrder.getHl7Bericht(), laboratorium, OrganisatieParameterKey.CERVIX_CYTOLOGIE_ORDER_HOST,
+			OrganisatieParameterKey.CERVIX_CYTOLOGIE_ORDER_PORT);
 
 		if (responseWrapper.isSuccess())
 		{

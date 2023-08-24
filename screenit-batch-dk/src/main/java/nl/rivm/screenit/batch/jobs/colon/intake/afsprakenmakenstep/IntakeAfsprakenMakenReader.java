@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.intake.afsprakenmakenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -81,6 +81,14 @@ public class IntakeAfsprakenMakenReader implements ItemReader<ClientAfspraak>, I
 	@Autowired
 	@Qualifier("maximumRetrySecondsSpend")
 	private Long maximumRetrySecondsSpend = Long.valueOf(10);
+
+	@Autowired
+	@Qualifier("maximumSecondsSpend")
+	private Long maximumSecondsSpend = 120L;
+
+	@Autowired
+	@Qualifier("aantalSecondenPerClient")
+	private Long aantalSecondenPerClient = 6L;
 
 	@Autowired
 	@Qualifier("afstandFactorRetry")
@@ -162,14 +170,22 @@ public class IntakeAfsprakenMakenReader implements ItemReader<ClientAfspraak>, I
 			StringBuilder planningResultaat = new StringBuilder();
 
 			innerExecutionContext.put(IntakeAfsprakenMakenConstants.ALLE_INTAKES_VERWERKT, Boolean.TRUE);
-
+			long maximaleTijd = aantalSecondenPerClient * clientAfspraken.size();
 			if (ronde == 0)
 			{
-				clienten = planIntakeAfsprakenService.planIntakeAfspraken(clientAfspraken, vrijeSloten, planningResultaat).iterator();
+				if (maximaleTijd > maximumSecondsSpend)
+				{
+					maximaleTijd = maximumSecondsSpend;
+				}
+				clienten = planIntakeAfsprakenService.planIntakeAfspraken(clientAfspraken, vrijeSloten, planningResultaat, maximaleTijd).iterator();
 			}
 			else
 			{
-				clienten = planIntakeAfsprakenService.planIntakeAfspraken(clientAfspraken, vrijeSloten, planningResultaat, maximumRetrySecondsSpend).iterator();
+				if (maximaleTijd > maximumRetrySecondsSpend)
+				{
+					maximaleTijd = maximumRetrySecondsSpend;
+				}
+				clienten = planIntakeAfsprakenService.planIntakeAfspraken(clientAfspraken, vrijeSloten, planningResultaat, maximaleTijd).iterator();
 			}
 			intakeMelding.setAantalRondes(ronde);
 			intakeMelding.setPlannerResultaat(planningResultaat.toString());

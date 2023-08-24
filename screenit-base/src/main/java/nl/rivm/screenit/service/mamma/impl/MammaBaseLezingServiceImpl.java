@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,22 +21,14 @@ package nl.rivm.screenit.service.mamma.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Arrays;
-import java.util.List;
-
-import nl.rivm.screenit.model.mamma.MammaBeoordeling;
+import nl.rivm.screenit.model.mamma.MammaLezing;
 import nl.rivm.screenit.model.mamma.enums.MammaAfbeeldingZijdeDoorsnede;
 import nl.rivm.screenit.model.mamma.enums.MammaAmputatie;
-import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
+import nl.rivm.screenit.model.mamma.enums.MammaBIRADSWaarde;
 import nl.rivm.screenit.model.mamma.enums.MammaZijde;
 import nl.rivm.screenit.service.mamma.MammaBaseLezingService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.hibernate.envers.AuditReader;
-import org.hibernate.envers.AuditReaderFactory;
-import org.hibernate.envers.RevisionType;
-import org.hibernate.envers.query.AuditEntity;
-import org.hibernate.envers.query.AuditQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -55,9 +47,9 @@ public class MammaBaseLezingServiceImpl implements MammaBaseLezingService
 	{
 		return amputatie != null
 			&& ((MammaAfbeeldingZijdeDoorsnede.LINKS_HORIZONTALE_DOORSNEDE.equals(doorsnede) || MammaAfbeeldingZijdeDoorsnede.LINKS_VERTICALE_DOORSNEDE.equals(doorsnede))
-				&& MammaAmputatie.LINKERBORST.equals(amputatie))
+			&& MammaAmputatie.LINKERBORST.equals(amputatie))
 			|| ((MammaAfbeeldingZijdeDoorsnede.RECHTS_HORIZONTALE_DOORSNEDE.equals(doorsnede) || MammaAfbeeldingZijdeDoorsnede.RECHTS_VERTICALE_DOORSNEDE.equals(doorsnede))
-				&& MammaAmputatie.RECHTERBORST.equals(amputatie));
+			&& MammaAmputatie.RECHTERBORST.equals(amputatie));
 	}
 
 	@Override
@@ -65,6 +57,27 @@ public class MammaBaseLezingServiceImpl implements MammaBaseLezingService
 	{
 		return amputatie != null && ((MammaZijde.LINKER_BORST.equals(zijde) && MammaAmputatie.LINKERBORST.equals(amputatie))
 			|| (MammaZijde.RECHTER_BORST.equals(zijde) && MammaAmputatie.RECHTERBORST.equals(amputatie)));
+	}
+
+	@Override
+	public MammaZijde bepaalZijdeMetPrioriteit(MammaLezing lezing)
+	{
+		var biradsLinks = lezing.getBiradsLinks();
+		var biradsRechts = lezing.getBiradsRechts();
+		if (biradsLinks != null && biradsRechts != null)
+		{
+			return bepaalBelangrijksteZijde(biradsLinks, biradsRechts);
+		}
+		return MammaZijde.RECHTER_BORST;
+	}
+
+	private MammaZijde bepaalBelangrijksteZijde(MammaBIRADSWaarde links, MammaBIRADSWaarde rechts)
+	{
+		if (links.getPrio() > rechts.getPrio())
+		{
+			return MammaZijde.LINKER_BORST;
+		}
+		return MammaZijde.RECHTER_BORST;
 	}
 
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.huisartsimport;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,7 @@ import java.util.List;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.main.service.ZorgmailImportPoolExecuterService;
+import nl.rivm.screenit.main.service.cervix.CervixBulkHuisartsenService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.validator.AantalBestandenUploadenValidator;
 import nl.rivm.screenit.main.web.component.validator.FileValidator;
@@ -43,7 +44,6 @@ import nl.rivm.screenit.service.BerichtToBatchService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.UploadDocumentService;
-import nl.rivm.screenit.service.cervix.CervixBulkHuisartsenService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;

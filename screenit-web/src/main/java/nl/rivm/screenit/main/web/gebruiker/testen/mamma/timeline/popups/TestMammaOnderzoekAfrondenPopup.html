@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -22,25 +22,31 @@
 <wicket:panel>
     <div class="control-group span7 form-horizontal">
     	<div class="row">
-            <div class="control-group">
-                <label class="control-label">Onvolledig</label>
-                <div class="controls">
-                    <select wicket:id="onvolledig"></select>
-                </div>
-            </div>
-            <div class="control-group">
-                <label class="control-label">Onderbroken</label>
-                <div class="controls">
-                    <select wicket:id="onderbroken"></select>
-                </div>
-            </div>
-            <div class="control-group">
-                <label class="control-label">Afwijking</label>
-                <div class="controls">
-                    <input wicket:id="afwijking" type="checkbox"></input>
-                </div>
-            </div>
-        </div>
+			<div class="control-group">
+				<label class="control-label">Type onderzoek</label>
+				<div class="controls">
+					<select wicket:id="typeOnderzoek"></select>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">Onvolledig</label>
+				<div class="controls">
+					<select wicket:id="onvolledig"></select>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">Onderbroken</label>
+				<div class="controls">
+					<select wicket:id="onderbroken"></select>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">Afwijking</label>
+				<div class="controls">
+					<input wicket:id="afwijking" type="checkbox"></input>
+				</div>
+			</div>
+		</div>
     </div>
 </wicket:panel>
 </html>

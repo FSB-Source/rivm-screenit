@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,9 +29,7 @@ import javax.annotation.PostConstruct;
 
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.WerkDagHelper;
 import nl.rivm.screenit.model.cervix.CervixHuisartsBericht;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixMonster;
@@ -43,7 +41,6 @@ import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.HuisartsBerichtType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.MailService;
 import nl.rivm.screenit.service.cervix.CervixHuisartsBerichtService;
 import nl.rivm.screenit.service.cervix.CervixMailService;
 import nl.rivm.screenit.util.DateUtil;
@@ -51,7 +48,6 @@ import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -76,13 +72,7 @@ public class CervixOmissiesLabproces
 	@Autowired
 	private CervixMailService cervixMailService;
 
-	@Autowired
-	private MailService mailService;
-
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
-
-	private CervixMonster monster;
+	private final CervixMonster monster;
 
 	private List<Omissie> omissieLijst;
 
@@ -108,14 +98,13 @@ public class CervixOmissiesLabproces
 	{
 		for (var omissie : omissieLijst)
 		{
-			if (omissie.vanToepassing())
+			if (omissie.vanToepassing() && omissie.getStartWachttijd() != null)
 			{
 				var preferenceKeyWachttijd = omissie.preferenceKeyWachttijd;
 
-				var eindWachttijd = WerkDagHelper.plusBusinessDays(new DateTime(omissie.getStartWachttijd()),
-					preferenceService.getInteger(preferenceKeyWachttijd.name()));
+				var eindWachttijd = DateUtil.plusWerkdagen(omissie.getStartWachttijd(), preferenceService.getInteger(preferenceKeyWachttijd.name()));
 
-				if (dateSupplier.getDateTime().isAfter(eindWachttijd))
+				if (dateSupplier.getLocalDateTime().isAfter(DateUtil.toLocalDateTime(eindWachttijd)))
 				{
 					omissie.voerActieUit();
 					LOG.info("Omissie " + preferenceKeyWachttijd.name() + " uitgevoerd voor client met id "
@@ -126,9 +115,8 @@ public class CervixOmissiesLabproces
 				var preferenceKeyWachttijdWaarschuwing = omissie.preferenceKeyWachttijdWaarschuwing;
 				if (preferenceKeyWachttijdWaarschuwing != null)
 				{
-					var eindWachttijdWaarschuwing = WerkDagHelper.plusBusinessDays(new DateTime(omissie.getStartWachttijd()),
-						preferenceService.getInteger(preferenceKeyWachttijdWaarschuwing.name()));
-					if (dateSupplier.getDateTime().isAfter(eindWachttijdWaarschuwing))
+					var eindWachttijdWaarschuwing = DateUtil.plusWerkdagen(omissie.getStartWachttijd(), preferenceService.getInteger(preferenceKeyWachttijdWaarschuwing.name()));
+					if (dateSupplier.getLocalDateTime().isAfter(DateUtil.toLocalDateTime(eindWachttijdWaarschuwing)))
 					{
 						omissie.verstuurWaarschuwing();
 						LOG.info("Gewaarschuwd voor omissie " + preferenceKeyWachttijd.name() + " voor client met id "
@@ -157,7 +145,7 @@ public class CervixOmissiesLabproces
 					{
 						if (uitstrijkje.getUitstrijkjeStatus() == CervixUitstrijkjeStatus.NIET_ONTVANGEN
 							&& (labformulier.getStatus() == CervixLabformulierStatus.GECONTROLEERD
-								|| labformulier.getStatus() == CervixLabformulierStatus.GECONTROLEERD_CYTOLOGIE)
+							|| labformulier.getStatus() == CervixLabformulierStatus.GECONTROLEERD_CYTOLOGIE)
 							&& labformulier.getUitstrijkjeOntbreektHuisartsBericht() == null)
 						{
 							return true;
@@ -203,21 +191,18 @@ public class CervixOmissiesLabproces
 	{
 		return new Omissie(PreferenceKey.CERVIX_WACHTTIJD_WACHT_OP_UITSTRIJKJE_ONTVANGEN_ANALOOG, CervixOmissieType.WACHT_OP_UITSTRIJKJE_ONTVANGEN)
 		{
-
-			private CervixUitstrijkje uitstrijkje;
-
 			@Override
 			protected boolean vanToepassing()
 			{
 				if (monster instanceof CervixUitstrijkje)
 				{
-					uitstrijkje = (CervixUitstrijkje) monster;
+					CervixUitstrijkje uitstrijkje = (CervixUitstrijkje) monster;
 					if (labformulier != null)
 					{
 						if (uitstrijkje.getUitstrijkjeStatus() == CervixUitstrijkjeStatus.NIET_ONTVANGEN
 							&& (labformulier.getStatus() == CervixLabformulierStatus.GECONTROLEERD
-								|| labformulier.getStatus() == CervixLabformulierStatus.GECONTROLEERD_CYTOLOGIE
-								|| labformulier.getStatus() == CervixLabformulierStatus.HUISARTS_ONBEKEND))
+							|| labformulier.getStatus() == CervixLabformulierStatus.GECONTROLEERD_CYTOLOGIE
+							|| labformulier.getStatus() == CervixLabformulierStatus.HUISARTS_ONBEKEND))
 						{
 							return true;
 						}
@@ -510,34 +495,7 @@ public class CervixOmissiesLabproces
 			@Override
 			protected void verstuurWaarschuwing()
 			{
-				var uitstrijkje = CervixMonsterUtil.getUitstrijkje(monster);
-				var dateFormat = Constants.getDateTimeSecondsFormat();
-
-				var wachtOp = preferenceService.getInteger(preferenceKeyWachttijd.name());
-				var wachtOpWaarschuwing = preferenceService.getInteger(preferenceKeyWachttijdWaarschuwing.name());
-
-				var content = "Geachte heer, mevrouw,<br /><br />" +
-					"Volgens onze informatie hebben we van onderstaand monsterID binnen het bevolkingsonderzoek baarmoederhalskanker nog geen cytologieverslag ontvangen.<br /><br />"
-					+
-					"BVO Monster ID: {monsterID}<br />" +
-					"Monster in lab ontvangen op: {monsterOntvangst}<br />" +
-					"Cytologie-order verstuurd op: {orderVerstuurd}<br /><br />" +
-					"De datum waarop het monster door {labNaam} is ontvangen is minimaal {wachtOpWaarschuwingCytoUitslag} werkdagen geleden.<br />" +
-					"Deze (dagelijkse) mail blijft terugkomen totdat in ScreenIT het cytologieverslag is binnengekomen en verwerkt, of totdat er {wachtOpCytoUitslag} werkdagen zijn verstreken sinds de ontvangst van het monster. Indien dat laatste het geval is, ontvangen huisarts en cli&euml;nt een uitslag (cytologisch) onbeoordeelbaar.<br /><br />"
-					+
-					"Voor vragen met betrekking tot dit bericht kunt u zich wenden tot de helpdesk van LBO via het e-mail adres helpdesk@fsb-lbo.nl";
-
-				content = content.replaceAll("\\{monsterID\\}", monster.getMonsterId());
-				content = content.replaceAll("\\{monsterOntvangst\\}", dateFormat.format(monster.getOntvangstdatum()));
-				var orderVerstuurd = dateFormat.format(uitstrijkje.getCytologieOrder().getStatusDatum());
-				content = content.replaceAll("\\{orderVerstuurd\\}", orderVerstuurd);
-				content = content.replaceAll("\\{wachtOpCytoUitslag\\}", wachtOp.toString());
-				content = content.replaceAll("\\{wachtOpWaarschuwingCytoUitslag\\}", wachtOpWaarschuwing.toString());
-				content = content.replaceAll("\\{labNaam\\}", monster.getLaboratorium().getNaam());
-
-				var subject = "Ontbrekend cytologieverslag";
-
-				mailService.queueMail(uitstrijkje.getLaboratorium().getBmhkLabWarnMail(), subject, content);
+				cervixMailService.sendWachtOpCytologieUitslagMail(monster);
 			}
 		};
 	}
@@ -558,7 +516,7 @@ public class CervixOmissiesLabproces
 
 		protected CervixOmissieType omissieType;
 
-		public Omissie(PreferenceKey preferenceKeyWachttijd, PreferenceKey preferenceKeyWachttijdWaarschuwing, CervixOmissieType type)
+		protected Omissie(PreferenceKey preferenceKeyWachttijd, PreferenceKey preferenceKeyWachttijdWaarschuwing, CervixOmissieType type)
 		{
 			this.preferenceKeyWachttijdWaarschuwing = preferenceKeyWachttijdWaarschuwing;
 			setLabformulier();
@@ -566,7 +524,7 @@ public class CervixOmissiesLabproces
 			setPreferenceKeyWachttijd(preferenceKeyWachttijd, type);
 		}
 
-		public Omissie(PreferenceKey preferenceKeyWachttijd, CervixOmissieType type)
+		protected Omissie(PreferenceKey preferenceKeyWachttijd, CervixOmissieType type)
 		{
 			this.preferenceKeyWachttijdWaarschuwing = null;
 			setLabformulier();
@@ -632,9 +590,8 @@ public class CervixOmissiesLabproces
 
 		public long bepaalWerkdagenTotOmissie()
 		{
-			var eindWachttijd = WerkDagHelper.plusBusinessDays(new DateTime(getStartWachttijd()),
-				preferenceService.getInteger(preferenceKeyWachttijd.name()));
-			return WerkDagHelper.werkdagenTotDatum(dateSupplier.getLocalDate(), DateUtil.toLocalDate(eindWachttijd.toDate()));
+			var eindWachttijd = DateUtil.plusWerkdagen(getStartWachttijd(), preferenceService.getInteger(preferenceKeyWachttijd.name()));
+			return DateUtil.getDaysBetweenIgnoreWeekends(dateSupplier.getDate(), eindWachttijd, true);
 		}
 	}
 

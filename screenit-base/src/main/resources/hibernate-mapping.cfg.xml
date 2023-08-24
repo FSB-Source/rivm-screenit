@@ -3,7 +3,7 @@
   ========================LICENSE_START=================================
   screenit-base
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -42,10 +42,11 @@
         <mapping class="nl.rivm.screenit.model.RegioBvoContactGegevens"/>
         <mapping class="nl.rivm.screenit.model.ProjectParameter"/>
         <mapping class="nl.rivm.screenit.model.Mail"/>
+        <mapping class="nl.rivm.screenit.model.MailAttachment"/>
+        <mapping class="nl.rivm.screenit.model.DigitaalBerichtTemplate"/>
 
         <mapping class="nl.rivm.screenit.model.Client"/>
         <mapping class="nl.rivm.screenit.model.EnovationHuisarts"/>
-        <mapping class="nl.rivm.screenit.model.OnbekendeHuisarts"/>
         <mapping class="nl.rivm.screenit.model.colon.ColonHuisartsBericht"/>
         <mapping class="nl.rivm.screenit.model.HuisartsBerichtTemplate"/>
         <mapping class="nl.rivm.screenit.model.ClientContact"/>
@@ -186,6 +187,7 @@
         <mapping class="nl.rivm.screenit.model.cervix.CervixCytologieVerslag"/>
         <mapping class="nl.rivm.screenit.model.cervix.CervixZasHoudbaarheid"/>
         <mapping class="nl.rivm.screenit.model.cervix.CervixBulkUpload"/>
+        <mapping class="nl.rivm.screenit.model.cervix.berichten.CervixFoutHL7v2Bericht"/>
 
         <mapping class="nl.rivm.screenit.model.overeenkomsten.Overeenkomst"/>
         <mapping class="nl.rivm.screenit.model.overeenkomsten.AbstractAfgeslotenOvereenkomst"/>
@@ -327,6 +329,7 @@
         <mapping class="nl.rivm.screenit.model.mamma.MammaKansberekeningStandplaatsRondeGemiddelden"/>
 
         <mapping class="nl.rivm.screenit.model.mamma.MammaBrief"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaDigitaalClientBericht"/>
         <mapping class="nl.rivm.screenit.model.mamma.MammaMergedBrieven"/>
         <mapping class="nl.rivm.screenit.model.mamma.MammaOnderzoek"/>
         <mapping class="nl.rivm.screenit.model.mamma.MammaMammografie"/>

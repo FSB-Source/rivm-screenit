@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -37,11 +37,13 @@ import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.model.messagequeue.dto.CervixHerindexatieDto;
 import nl.rivm.screenit.service.HuisartsenportaalSyncService;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.cervix.Cervix2023StartBepalingService;
 import nl.rivm.screenit.util.cervix.CervixHuisartsToDtoUtil;
 import nl.rivm.screenit.util.cervix.CervixTariefUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
+import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +72,9 @@ public class CervixHerindexeerVerrichtingenServiceImpl implements CervixHerindex
 	@Autowired
 	private LogService logService;
 
+	@Autowired
+	private Cervix2023StartBepalingService cervix2023StartBepalingService;
+
 	private final static ObjectMapper objectMapper = new ObjectMapper();
 
 	@Override
@@ -78,13 +83,17 @@ public class CervixHerindexeerVerrichtingenServiceImpl implements CervixHerindex
 		int aantalVerrichtingen = 0;
 		CervixTarief oudeTarief = hibernateService.load(CervixTarief.class, herindexatieDto.getOudeTariefId());
 		CervixTarief nieuweTarief = hibernateService.load(CervixTarief.class, herindexatieDto.getNieuweTariefId());
+
 		if (herindexatieDto.isHuisartsTarief())
 		{
 			aantalVerrichtingen += bepaalBoekregelsVoorVerrichtingen(oudeTarief, nieuweTarief, CervixTariefType.HUISARTS_UITSTRIJKJE);
 		}
 		else
 		{
-			for (CervixTariefType labTariefType : CervixTariefType.getAlleLabTariefTypes())
+			var organisatie = ((CervixLabTarief) Hibernate.unproxy(nieuweTarief)).getBmhkLaboratorium();
+			var bmhk2023Lab = cervix2023StartBepalingService.isBmhk2023Laboratorium(organisatie);
+
+			for (CervixTariefType labTariefType : CervixTariefType.getAlleLabTariefTypes(bmhk2023Lab))
 			{
 				if (!labTariefType.getBedragVanTarief(nieuweTarief).equals(labTariefType.getBedragVanTarief(oudeTarief)))
 				{

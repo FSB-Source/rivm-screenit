@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,8 +39,8 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.batch.popupconfig.MammaPalgaExportConfig;
+import nl.rivm.screenit.model.batch.popupconfig.MammaPalgaGrondslag;
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
-import nl.rivm.screenit.model.berichten.enums.VerslagType;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaDossier;
@@ -118,7 +118,7 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 		List<UploadDocument> exports = palgaDao.getExports();
 		for (UploadDocument export : exports)
 		{
-			uploadDocumentService.delete(export, true);
+			uploadDocumentService.delete(export);
 		}
 	}
 
@@ -187,13 +187,13 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 		List<UploadDocument> imports = palgaDao.getImports();
 		for (UploadDocument importDoc : imports)
 		{
-			uploadDocumentService.delete(importDoc, true);
+			uploadDocumentService.delete(importDoc);
 		}
 	}
 
 	private UploadDocument extractImport(UploadDocument importDocument, String zipWachtwoord) throws ZipException
 	{
-		List<File> files = ZipUtil.extractZip(uploadDocumentService.load(importDocument), zipWachtwoord,
+		List<File> files = ZipUtil.extractZip(importDocument.getFile(), zipWachtwoord,
 			locatieFilestore + File.separator + FileStoreLocation.MAMMA_PALGA_CSV_IMPORT.getPath(),
 			true);
 		if (files.size() != 1 || !files.get(0).getName().endsWith(".csv"))
@@ -214,10 +214,11 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 		int column = 0;
 		for (String headerText : row)
 		{
-			if (StringUtils.isNotBlank(headerText))
+			if (StringUtils.isBlank(headerText))
 			{
-				vulMappingVoorKolom(mapping, headerText, column);
+				throw new IllegalArgumentException("Kolom " + (column + 1) + " heeft lege kolomheader");
 			}
+			vulMappingVoorKolom(mapping, headerText, column);
 			column++;
 		}
 		LOG.debug("Klaar met aanmaken mappings object.");
@@ -288,7 +289,7 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 		case "gradering_dcis":
 			mapping.setGraderingDcis(column);
 			break;
-		case "type_niet_eenduidig_benigne_laesies":
+		case "type_niet_eenduidig_benigne_laes":
 			mapping.setTypeNietEenduidigBenigneLaesies(column);
 			break;
 		case "type_eenduidig_benigne_laesies":
@@ -307,7 +308,7 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 			mapping.setMatchniveau(column);
 			break;
 		default:
-			throw new IllegalStateException("Ongeldige kolomnaam: " + headerTekst);
+			throw new IllegalArgumentException("Ongeldige kolomnaam: " + headerTekst);
 		}
 	}
 
@@ -340,9 +341,13 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-	public String verwerkImportDto(MammaPalgaCsvImportDto dto) throws NoSuchFieldException
+	public String verwerkImportDto(MammaPalgaCsvImportDto dto, MammaPalgaGrondslag grondslag) throws NoSuchFieldException
 	{
 		MammaDossier dossier = hibernateService.get(MammaDossier.class, dto.getPseudoId());
+		if (dossier == null)
+		{
+			return "pseudoId";
+		}
 		GbaPersoon persoon = dossier.getClient().getPersoon();
 		if (dto.getGeboortejaar() != DateUtil.toLocalDate(persoon.getGeboortedatum()).getYear())
 		{
@@ -387,12 +392,9 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 		vulMeerkeuzeVeldPa(followupPa.getTypeCis(), dto.getTypeCis(), "typeCis");
 
 		MammaFollowUpPtnmEnGradering ptnmEnGradering = new MammaFollowUpPtnmEnGradering();
-		if (dto.getPt() != null || dto.getPn() != null)
-		{
-			ptnmEnGradering.setFollowupPa(followupPa);
-			ptnmEnGradering.setPt(getDsValue(dto.getPt(), "pt", MammaFollowUpPtnmEnGradering.class));
-			ptnmEnGradering.setPn(getDsValue(dto.getPn(), "pn", MammaFollowUpPtnmEnGradering.class));
-		}
+		ptnmEnGradering.setFollowupPa(followupPa);
+		ptnmEnGradering.setPt(getDsValue(dto.getPt(), "pt", MammaFollowUpPtnmEnGradering.class));
+		ptnmEnGradering.setPn(getDsValue(dto.getPn(), "pn", MammaFollowUpPtnmEnGradering.class));
 		followupPa.setPtnmEnGradering(ptnmEnGradering);
 		verslagContent.setFollowupPa(Collections.singletonList(followupPa));
 
@@ -413,7 +415,7 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 		verslag.setVerslagContent(verslagContent);
 
 		verslag.setStatus(VerslagStatus.AFGEROND);
-		verslag.setType(VerslagType.MAMMA_PA_FOLLOW_UP); 
+		verslag.setType(grondslag.getVerslagType());
 		verslag.setDatumVerwerkt(currentDateSupplier.getDate());
 
 		String validatieFout = valideerVerslag(verslag, dto.getVersieProtocol() != null);
@@ -442,7 +444,7 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 
 		if (targetList.size() != targetList.stream().distinct().count())
 		{
-			throw new IllegalStateException("Dubbele waarde in meerkeuzeveld " + varName);
+			throw new IllegalArgumentException("Dubbele waarde in meerkeuzeveld " + varName);
 		}
 	}
 

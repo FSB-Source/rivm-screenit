@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.afbeelding;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,11 +23,18 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.afbeelding;
 
 import nl.rivm.screenit.model.mamma.enums.MammaAfbeeldingZijdeDoorsnede;
 
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+
+import static nl.rivm.screenit.model.mamma.enums.MammaAfbeeldingZijdeDoorsnede.LINKS_HORIZONTALE_DOORSNEDE;
+import static nl.rivm.screenit.model.mamma.enums.MammaAfbeeldingZijdeDoorsnede.LINKS_VERTICALE_DOORSNEDE;
+import static nl.rivm.screenit.model.mamma.enums.MammaAfbeeldingZijdeDoorsnede.RECHTS_HORIZONTALE_DOORSNEDE;
+import static nl.rivm.screenit.model.mamma.enums.MammaAfbeeldingZijdeDoorsnede.RECHTS_VERTICALE_DOORSNEDE;
 
 public abstract class MammaBaseAfbeeldingPanel<T> extends GenericPanel<T>
 {
@@ -39,13 +46,20 @@ public abstract class MammaBaseAfbeeldingPanel<T> extends GenericPanel<T>
 	}
 
 	@Override
+	public void renderHead(IHeaderResponse response)
+	{
+		super.renderHead(response);
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/borst.js"));
+	}
+
+	@Override
 	protected void onInitialize()
 	{
 		super.onInitialize();
-		addContainerWithImage(this, MammaAfbeeldingZijdeDoorsnede.RECHTS_VERTICALE_DOORSNEDE);
-		addContainerWithImage(this, MammaAfbeeldingZijdeDoorsnede.LINKS_VERTICALE_DOORSNEDE);
-		addContainerWithImage(this, MammaAfbeeldingZijdeDoorsnede.RECHTS_HORIZONTALE_DOORSNEDE);
-		addContainerWithImage(this, MammaAfbeeldingZijdeDoorsnede.LINKS_HORIZONTALE_DOORSNEDE);
+		addContainerWithImage(this, RECHTS_VERTICALE_DOORSNEDE);
+		addContainerWithImage(this, LINKS_VERTICALE_DOORSNEDE);
+		addContainerWithImage(this, RECHTS_HORIZONTALE_DOORSNEDE);
+		addContainerWithImage(this, LINKS_HORIZONTALE_DOORSNEDE);
 		add(createBeoordelingIconenPanel("beoordelingIconenPanel"));
 	}
 
@@ -53,6 +67,7 @@ public abstract class MammaBaseAfbeeldingPanel<T> extends GenericPanel<T>
 	{
 		WebMarkupContainer imageContainer = new WebMarkupContainer(zijdeDoorsnede.getSvgFileName() + "Container");
 		imagesContainer.add(imageContainer);
+
 		addImage(imageContainer, zijdeDoorsnede);
 	}
 

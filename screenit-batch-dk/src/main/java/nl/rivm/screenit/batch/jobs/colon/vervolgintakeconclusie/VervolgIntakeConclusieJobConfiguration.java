@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,6 +24,8 @@ package nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie;
 import nl.rivm.screenit.batch.jobs.AbstractJobConfiguration;
 import nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie.briefandereintakelocatie.HerinneringClientWilAnderIntakeLocatieBriefReader;
 import nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie.briefandereintakelocatie.HerinneringClientWilAnderIntakeLocatieBriefWriter;
+import nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie.onafgerondeverwijzing.OnbevestigdeIntakeVerwijzingenReader;
+import nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie.onafgerondeverwijzing.OnbevestigdeIntakeVerwijzingenWriter;
 import nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie.versturennoshow.HuisartsNoShowReader;
 import nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie.versturennoshow.HuisartsNoShowWriter;
 import nl.rivm.screenit.model.enums.JobType;
@@ -39,13 +41,15 @@ public class VervolgIntakeConclusieJobConfiguration extends AbstractJobConfigura
 {
 
 	@Bean
-	public Job vervolgIntakeConclusieJob(VervolgIntakeConclusieJobListener listener, Step verstuurNoShowBerichten, Step herinneringClientWilAndereIntakeLocatieStep)
+	public Job vervolgIntakeConclusieJob(VervolgIntakeConclusieJobListener listener, Step verstuurNoShowBerichten, Step herinneringClientWilAndereIntakeLocatieStep,
+		Step onbevestigdeIntakeVerwijzingenStep)
 	{
 		return jobBuilderFactory.get(JobType.VERVOLG_INTAKE_CONCLUSIE_BATCH.name())
 			.listener(listener)
 			.start(verstuurNoShowBerichten)
 			.on("*").to(herinneringClientWilAndereIntakeLocatieStep)
 			.from(verstuurNoShowBerichten).on(ExitStatus.FAILED.getExitCode()).to(herinneringClientWilAndereIntakeLocatieStep)
+			.from(herinneringClientWilAndereIntakeLocatieStep).next(onbevestigdeIntakeVerwijzingenStep)
 			.end()
 			.build();
 	}
@@ -65,6 +69,17 @@ public class VervolgIntakeConclusieJobConfiguration extends AbstractJobConfigura
 	public Step herinneringClientWilAndereIntakeLocatieStep(HerinneringClientWilAnderIntakeLocatieBriefReader reader, HerinneringClientWilAnderIntakeLocatieBriefWriter writer)
 	{
 		return stepBuilderFactory.get("herinneringClientWilAndereIntakeLocatieStep")
+			.transactionManager(transactionManager)
+			.<Long, Long> chunk(10)
+			.reader(reader)
+			.writer(writer)
+			.build();
+	}
+
+	@Bean
+	public Step onbevestigdeIntakeVerwijzingenStep(OnbevestigdeIntakeVerwijzingenReader reader, OnbevestigdeIntakeVerwijzingenWriter writer)
+	{
+		return stepBuilderFactory.get("onbevestigdeIntakeVerwijzingenStep")
 			.transactionManager(transactionManager)
 			.<Long, Long> chunk(10)
 			.reader(reader)

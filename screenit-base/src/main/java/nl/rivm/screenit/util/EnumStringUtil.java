@@ -4,7 +4,7 @@ package nl.rivm.screenit.util;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,13 +21,17 @@ package nl.rivm.screenit.util;
  * =========================LICENSE_END==================================
  */
 
+import java.util.function.UnaryOperator;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.util.functionalinterfaces.BvoHouder;
+
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public final class EnumStringUtil
 {
-
-	private EnumStringUtil()
-	{
-
-	}
 
 	public static <T extends Enum<T>> String getPropertyString(T value)
 	{
@@ -51,4 +55,10 @@ public final class EnumStringUtil
 		}
 	}
 
+	public static <T extends Enum<T> & BvoHouder> String maakStringMetBvoEnEnumPropertyString(T enumMetBvo,
+		UnaryOperator<String> getString)
+	{
+		String bvoNamen = Bevolkingsonderzoek.getAfkortingen(enumMetBvo.getBevolkingsonderzoeken());
+		return String.format("%s - %s", bvoNamen, getString.apply(EnumStringUtil.getPropertyString(enumMetBvo)));
+	}
 }

@@ -6,7 +6,8 @@
     },
     "description": {
       "verzetten": "U bent uitgenodigd voor een gesprek over vervolgonderzoek. Wij hebben daarvoor een afspraak voor u gemaakt. <br> <br>Komt de afspraak voor het gesprek u niet uit? Of wilt u liever een afspraak in een ander ziekenhuis of behandelcentrum? Dan kunt u de afspraak verzetten.<br><br>Vul het zoekscherm hieronder in en kies uw afspraak.<br>U ontvangt een schriftelijke bevestiging van de nieuwe afspraak.",
-      "maken": "U heeft zich opnieuw aangemeld voor het bevolkingsonderzoek darmkanker.<br><br>De laatste keer dat u meedeed, is er bloed in uw ontlasting gevonden. Om de oorzaak hiervan te vinden, is vervolgonderzoek nodig.<br>U kunt een afspraak maken voor een gesprek over vervolgonderzoek.<br><br>Vul het zoekscherm hieronder in en kies uw afspraak.<br>U ontvangt een schriftelijke bevestiging van de afspraak."
+      "maken": "De laatste keer dat u meedeed, is er bloed in uw ontlasting gevonden. Om de oorzaak hiervan te vinden, is vervolgonderzoek nodig.<br>U kunt een afspraak maken voor een gesprek over vervolgonderzoek.<br><br>Vul het zoekscherm hieronder in en kies uw afspraak.<br>U ontvangt een schriftelijke bevestiging van de afspraak.",
+      "heraangemeld": "U heeft zich opnieuw aangemeld voor het bevolkingsonderzoek darmkanker.<br><br>"
     },
     "bvo_name": "Bevolkingsonderzoek %s"
   },

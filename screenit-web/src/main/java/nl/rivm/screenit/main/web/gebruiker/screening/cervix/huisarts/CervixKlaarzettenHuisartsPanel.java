@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.huisarts;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,6 +38,7 @@ import nl.rivm.screenit.model.Woonplaats;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixRegioBrief;
 import nl.rivm.screenit.service.GemeenteService;
+import nl.rivm.screenit.service.MailService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -67,10 +68,13 @@ public abstract class CervixKlaarzettenHuisartsPanel extends GenericPanel<Cervix
 	private static final Logger LOG = LoggerFactory.getLogger(CervixKlaarzettenHuisartsPanel.class);
 
 	@SpringBean
-	private CervixHuisartsService cervixHuisartsService;
+	private CervixHuisartsService huisartsService;
 
 	@SpringBean
-	private CervixHuisartsSyncService cervixHuisartsSyncService;
+	private CervixHuisartsSyncService huisartsSyncService;
+
+	@SpringBean
+	private MailService mailService;
 
 	@SpringBean
 	private GemeenteService gemeenteService;
@@ -84,7 +88,7 @@ public abstract class CervixKlaarzettenHuisartsPanel extends GenericPanel<Cervix
 
 	public CervixKlaarzettenHuisartsPanel(String id, CervixHuisarts arts)
 	{
-		super(id, ModelUtil.cModel(arts));
+		super(id, ModelUtil.ccModel(arts));
 
 		alleWoonplaatsen = ModelUtil.listRModel(hibernateService.loadAll(Woonplaats.class, "naam", true));
 
@@ -96,7 +100,7 @@ public abstract class CervixKlaarzettenHuisartsPanel extends GenericPanel<Cervix
 		String laatsteBrief = "";
 		if (arts.getId() != null)
 		{
-			CervixRegioBrief brief = cervixHuisartsService.getLaatsteRegistratieBrief(arts);
+			CervixRegioBrief brief = huisartsService.getLaatsteRegistratieBrief(arts);
 			if (brief != null)
 			{
 				laatsteBrief = "; laatste uitnodiging klaargezet op " + Constants.getDateFormat().format(brief.getCreatieDatum());
@@ -109,19 +113,19 @@ public abstract class CervixKlaarzettenHuisartsPanel extends GenericPanel<Cervix
 		ComponentHelper.addTextField(form, "postadres.huisnummer", true, 10, Integer.class, false).add(RangeValidator.minimum(0));
 		ComponentHelper.addTextField(form, "postadres.huisnummerToevoeging", false, 26, false);
 		ComponentHelper.newPostcodeTextField(form, "postadres.postcode", true, false);
-		form.add(new ScreenitDropdown<Woonplaats>("postadres.woonplaats", alleWoonplaatsen, new IChoiceRenderer<Woonplaats>()
+		form.add(new ScreenitDropdown<>("postadres.woonplaats", alleWoonplaatsen, new IChoiceRenderer<>()
 		{
 			@Override
-			public Object getDisplayValue(Woonplaats object)
+			public Object getDisplayValue(Woonplaats woonplaats)
 			{
 
-				return object.getNaam() + " (Gemeente: " + object.getGemeente().getNaam() + ")";
+				return woonplaats.getNaam() + " (Gemeente: " + woonplaats.getGemeente().getNaam() + ")";
 			}
 
 			@Override
-			public String getIdValue(Woonplaats object, int index)
+			public String getIdValue(Woonplaats woonplaats, int index)
 			{
-				return object.getId().toString();
+				return woonplaats.getId().toString();
 			}
 
 			@Override
@@ -144,8 +148,6 @@ public abstract class CervixKlaarzettenHuisartsPanel extends GenericPanel<Cervix
 		form.add(new IndicatingAjaxSubmitLink("uitnodigingVersturen", form)
 		{
 
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -153,13 +155,12 @@ public abstract class CervixKlaarzettenHuisartsPanel extends GenericPanel<Cervix
 				String woonplaatsControleMelding = controleerWoonplaats(arts);
 				if (StringUtils.isBlank(woonplaatsControleMelding))
 				{
-
-					arts = cervixHuisartsService.maakOfWijzigUitstrijkendArts(arts, ScreenitSession.get().getLoggedInInstellingGebruiker());
-					cervixHuisartsService.sendRegistratieMail(arts);
-					cervixHuisartsSyncService.sendData(arts);
+					arts = huisartsService.maakOfWijzigUitstrijkendArts(arts, ScreenitSession.get().getLoggedInInstellingGebruiker());
+					mailService.sendRegistratieMail(arts);
+					huisartsSyncService.sendData(arts);
 					if (!CollectionUtils.isEmpty(arts.getHuisartsLocaties()))
 					{
-						cervixHuisartsService.saveCervixHuisartsLocatie(arts.getHuisartsLocaties());
+						huisartsService.saveCervixHuisartsLocatie(arts.getHuisartsLocaties());
 					}
 
 					ScreenitSession.get().info("Uitnodiging klaargezet.");

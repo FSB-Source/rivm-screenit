@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,9 +28,10 @@ import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
-import nl.rivm.screenit.repository.CervixBoekRegelRepository;
+import nl.rivm.screenit.repository.cervix.CervixBoekRegelRepository;
 import nl.rivm.screenit.service.HuisartsenportaalSyncService;
 import nl.rivm.screenit.service.UploadDocumentService;
+import nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification;
 import nl.rivm.screenit.util.cervix.CervixHuisartsToDtoUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -50,7 +51,7 @@ public class CervixVerwijderSepaDataServiceImpl implements CervixVerwijderSepaDa
 	private HibernateService hibernateService;
 
 	@Autowired
-	private CervixBoekRegelRepository cervixBoekRegelRepository;
+	private CervixBoekRegelRepository boekRegelRepository;
 
 	@Autowired
 	private HuisartsenportaalSyncService huisartsenportaalSyncService;
@@ -62,19 +63,19 @@ public class CervixVerwijderSepaDataServiceImpl implements CervixVerwijderSepaDa
 	public List<CervixBoekRegel> haalBoekRegelsOp(Long id, int aantal)
 	{
 		Pageable limit = PageRequest.of(0, aantal);
-		return cervixBoekRegelRepository
-			.findAll(cervixBoekRegelRepository.baseSpecification()
-				.and(cervixBoekRegelRepository.metOpdrachtID(id))
-				.and(cervixBoekRegelRepository.metSpecificatie()), limit)
+		return boekRegelRepository
+			.findAll(CervixBoekRegelSpecification.baseSpecification()
+				.and(CervixBoekRegelSpecification.metOpdrachtID(id))
+				.and(CervixBoekRegelSpecification.metSpecificatie()), limit)
 			.getContent();
 	}
 
 	@Override
 	public long aantalTeVerwerkenBoekregels(Long id)
 	{
-		return cervixBoekRegelRepository
-			.count(cervixBoekRegelRepository.baseSpecification()
-				.and(cervixBoekRegelRepository.metOpdrachtID(id)));
+		return boekRegelRepository
+			.count(CervixBoekRegelSpecification.baseSpecification()
+				.and(CervixBoekRegelSpecification.metOpdrachtID(id)));
 	}
 
 	@Override
@@ -87,7 +88,8 @@ public class CervixVerwijderSepaDataServiceImpl implements CervixVerwijderSepaDa
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void ontkoppelBoekregelsVanSpecificatie(List<CervixBoekRegel> boekRegels)
 	{
-		boekRegels.forEach(boekRegel -> {
+		boekRegels.forEach(boekRegel ->
+		{
 			boekRegel.setSpecificatie(null);
 			hibernateService.saveOrUpdate(boekRegel);
 			if (boekRegel.getVerrichting() != null &&
@@ -108,11 +110,11 @@ public class CervixVerwijderSepaDataServiceImpl implements CervixVerwijderSepaDa
 		betaalopdracht.setSepaSpecificatiePdf(null);
 		if (sepaDocument != null)
 		{
-			uploadDocumentService.delete(sepaDocument, true);
+			uploadDocumentService.delete(sepaDocument);
 		}
 		if (sepaSpecificatiePdf != null)
 		{
-			uploadDocumentService.delete(sepaSpecificatiePdf, true);
+			uploadDocumentService.delete(sepaSpecificatiePdf);
 		}
 		hibernateService.delete(betaalopdracht);
 	}

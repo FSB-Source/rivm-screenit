@@ -1,61 +1,70 @@
 @charset "utf-8";
 .biradskeuze {
-  border: 1px solid #CCC;
-  border-radius: 10px;
-  padding: 10px;
+	border: 1px solid #CCC;
+	border-radius: 10px;
+	padding: 10px;
 
-  > label {
-    text-align: center;
-  }
+	> label {
+		text-align: center;
+	}
 
-  .radio:nth-child(3) {
-    border-top: 1px solid #CCC;
-    padding-top: 10px;
-    margin-top: 10px;
+	.radio:nth-child(3) {
+		border-top: 1px solid #CCC;
+		padding-top: 10px;
+		margin-top: 10px;
 
-    .checkmark {
-      top: 10px;
-    }
-  }
+		.checkmark {
+			top: 10px;
+		}
+	}
 
-  .radio:first-child {
-    padding-top: 0;
-  }
+	.radio:first-child {
+		padding-top: 0;
+	}
 
-  .controls[disabled] * {
-    cursor: not-allowed;
-  }
+	.controls[disabled] * {
+		cursor: not-allowed;
+	}
+}
+
+.accordion-inner.onderzoek-accordion {
+	padding: 0px;
+}
+
+.span6.afwijking-tekst {
+	min-height: 0;
 }
 
 .biradskeuze .radio,
-.laesie-specificaties .radio {
-  display: block;
-  position: relative;
-  padding-left: 25px;
+.laesie-specificaties .radio,
+.tomosynthese-slices-keuze .radio {
+	display: block;
+	position: relative;
+	padding-left: 25px;
 
-  input {
-    opacity: 0;
-  }
+	input {
+		opacity: 0;
+	}
 
-  .checkmark {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 15px;
-    width: 15px;
-    background-color: #e5e5e5;
-    border-radius: 50%;
-  }
+	.checkmark {
+		position: absolute;
+		top: 0;
+		left: 0;
+		height: 15px;
+		width: 15px;
+		background-color: #e5e5e5;
+		border-radius: 50%;
+	}
 
-  input:checked ~ .checkmark {
-    border: 5px solid #60347F;
-    width: 5px;
-    height: 5px;
-  }
+	input:checked ~ .checkmark {
+		border: 5px solid #60347F;
+		width: 5px;
+		height: 5px;
+	}
 
-  input:disabled ~ .checkmark {
-    opacity: 0.4;
-  }
+	input:disabled ~ .checkmark {
+		opacity: 0.4;
+	}
 }
 
 .biradskeuze.biradsverwijzen {
@@ -106,13 +115,40 @@ img.beoordelingsafbeelding {
 }
 
 .font-weight-bolder {
-  font-weight: bolder;
+	font-weight: bolder;
 }
 
 .laesienummer {
-  color: black;
+	color: black;
 }
 
 .waaromGeenBeoordelingMogelijk .icon-asterisk {
-  display: none;
+	display: none;
+}
+
+.cursor-move {
+	cursor: move;
+}
+
+.row-fluid div.tomosynthese-slices-keuze {
+	border: 1px solid #CCC;
+	border-radius: 10px;
+	padding: 5px;
+	margin-left: 0;
+	label {
+		margin-bottom: 0;
+	}
+}
+
+.tomo-afwijking-zichtbaar-op .icon-asterisk {
+	display: none;
+}
+
+.tomo-afwijking-zichtbaar-op .fullwidth.error {
+	border-color: #e5e5e5;
+	color: #e5e5e5;
+}
+
+.tomosynthese-slices-keuze .checkmark {
+	margin-top: 2px;
 }

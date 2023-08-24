@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.model;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,6 +30,7 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 
+import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.mamma.enums.MammaFactorType;
 
 @Getter
@@ -58,16 +59,15 @@ public class PlanningScreeningsOrganisatie extends PlanningEntiteit
 
 	private int vervallenCapaciteitsreserveringDagen;
 
-	public PlanningScreeningsOrganisatie(Long id, Integer afspraakDrempel, BigDecimal factorEersteOnderzoek, BigDecimal factorDubbeleTijd, BigDecimal factorMinderValide,
-		int wekenVanTevorenUitnodigen, int vervallenCapaciteitsreserveringDagen)
+	public PlanningScreeningsOrganisatie(ScreeningOrganisatie screeningOrganisatie)
 	{
-		super(id);
-		this.afspraakDrempel = afspraakDrempel;
-		this.factorEersteOnderzoek = factorEersteOnderzoek;
-		this.factorDubbeleTijd = factorDubbeleTijd;
-		this.factorMinderValide = factorMinderValide;
-		this.wekenVanTevorenUitnodigen = wekenVanTevorenUitnodigen;
-		this.vervallenCapaciteitsreserveringDagen = vervallenCapaciteitsreserveringDagen;
+		super(screeningOrganisatie.getId());
+		afspraakDrempel = screeningOrganisatie.getAfspraakDrempelBk();
+		factorEersteOnderzoek = screeningOrganisatie.getFactorEersteOnderzoekBk();
+		factorDubbeleTijd = screeningOrganisatie.getFactorDubbeleTijdBk();
+		factorMinderValide = screeningOrganisatie.getFactorMinderValideBk();
+		wekenVanTevorenUitnodigen = screeningOrganisatie.getWekenVanTevorenUitnodigen();
+		vervallenCapaciteitsreserveringDagen = screeningOrganisatie.getVervallenCapaciteitsreserveringDagenBk();
 	}
 
 	public BigDecimal getFactor(MammaFactorType factorType)
@@ -92,7 +92,7 @@ public class PlanningScreeningsOrganisatie extends PlanningEntiteit
 		conceptGewijzigdDoor.add(instellingGebruikerId);
 	}
 
-	public void restConceptGewijzigdDoor()
+	public void resetConceptGewijzigdDoor()
 	{
 		conceptGewijzigdDoor.clear();
 	}

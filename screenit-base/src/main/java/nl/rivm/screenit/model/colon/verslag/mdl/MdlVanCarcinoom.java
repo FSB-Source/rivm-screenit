@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.colon.verslag.mdl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -51,7 +51,7 @@ public class MdlVanCarcinoom
 	private MdlLaesiecoloscopiecentrum laesiecoloscopiecentrum;
 
 	@Column
-	@VraagElement(displayName = "Stenoserend ja/nee", extraTekst = "Stenoserend ja/nee", code = "2.16.840.1.113883.2.4.3.36.77.2.10.145110")
+	@VraagElement(displayName = "Stenoserend ja/nee", extraTekst = "Stenoserend ja/nee", code = "2.16.840.1.113883.2.4.3.36.77.2.11.141")
 	private Boolean stenoserendJanee;
 
 	@Embedded
@@ -60,13 +60,13 @@ public class MdlVanCarcinoom
 		@AttributeOverride(name = "value", column = @Column(name = "specifiekeAfstandTumorVanafAnusValue")),
 		@AttributeOverride(name = "unit", column = @Column(name = "specifiekeAfstandTumorVanafAnusUnit"))
 	})
-	@VraagElement(displayName = "Specifieke afstand tumor vanaf anus", extraTekst = "Specifieke afstand tumor vanaf anus (in cm)", code = "2.16.840.1.113883.2.4.3.36.77.2.10.145062", isVerplicht = true, unit = {
+	@VraagElement(displayName = "Specifieke afstand tumor vanaf anus", extraTekst = "Specifieke afstand tumor vanaf anus (in cm)", code = "2.16.840.1.113883.2.4.3.36.77.2.11.144", isVerplicht = true, unit = {
 		@VraagElementUnit(unit = "cm", min = "1.0", max = "200.0")
 	})
 	private Quantity specifiekeAfstandTumorVanafAnus;
 
 	@Column
-	@VraagElement(displayName = "Te passeren ja/nee", extraTekst = "Carcinoom is wel/niet te passeren", code = "2.16.840.1.113883.2.4.3.36.77.2.10.145140")
+	@VraagElement(displayName = "Te passeren ja/nee", extraTekst = "Carcinoom is wel/niet te passeren", code = "2.16.840.1.113883.2.4.3.36.77.2.11.145")
 	private Boolean tePasserenJanee;
 
 	public MdlLaesiecoloscopiecentrum getLaesiecoloscopiecentrum()

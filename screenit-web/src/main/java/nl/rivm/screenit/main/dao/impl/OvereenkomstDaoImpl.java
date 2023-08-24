@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.dao.impl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -37,8 +36,8 @@ import nl.rivm.screenit.model.overeenkomsten.Overeenkomst;
 import nl.rivm.screenit.model.overeenkomsten.OvereenkomstType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.query.DateYearRestrictions;
-import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 import nl.topicuszorg.hibernate.restrictions.NvlRestrictions;
+import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
@@ -58,7 +57,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class OvereenkomstDaoImpl extends AbstractAutowiredDao implements OvereenkomstDao
 {
-
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
 
@@ -182,7 +180,7 @@ public class OvereenkomstDaoImpl extends AbstractAutowiredDao implements Overeen
 	public int getVolgnummerOvereenkomst()
 	{
 		Criteria criteria = this.getSession().createCriteria(AbstractAfgeslotenOvereenkomst.class);
-		criteria.add(DateYearRestrictions.eq("startDatum", currentDateSupplier.getDateTime().getYear()));
+		criteria.add(DateYearRestrictions.eq("startDatum", currentDateSupplier.getLocalDate().getYear()));
 		criteria.setProjection(Projections.rowCount());
 
 		return ((Number) criteria.uniqueResult()).intValue() + 1;

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.helpers;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -53,15 +53,19 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 public abstract class BaseTypedScrollableResultReader<T> implements ItemReader<T>, ItemStream
 {
 
-	@Autowired
-	private SessionFactory sessionFactory;
-
 	protected final ThreadLocal<ScrollableResults> resultSet = new ThreadLocal<>();
 
 	protected final List<Long> processedIds = new ArrayList<>();
 
+	@Setter
+	protected int fetchSize = 20;
+
+	@Autowired
+	private SessionFactory sessionFactory;
+
 	private boolean unbindSessionFromThread = false;
 
+	@Getter
 	private Session hibernateSession;
 
 	private StatelessSession criteriaSession;
@@ -70,9 +74,6 @@ public abstract class BaseTypedScrollableResultReader<T> implements ItemReader<T
 	private StepExecution stepExecution;
 
 	private JobExecution jobExecution;
-
-	@Setter
-	protected int fetchSize = 20;
 
 	@Override
 	public void open(ExecutionContext executionContext) throws ItemStreamException
@@ -115,7 +116,7 @@ public abstract class BaseTypedScrollableResultReader<T> implements ItemReader<T
 		return Projections.distinct(Projections.id());
 	}
 
-	public abstract ScrollableResults createScrollableResults(StatelessSession session);
+	protected abstract ScrollableResults createScrollableResults(StatelessSession session);
 
 	@Override
 	public void close() throws ItemStreamException

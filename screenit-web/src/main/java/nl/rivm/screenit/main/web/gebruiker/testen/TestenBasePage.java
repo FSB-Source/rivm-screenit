@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -180,7 +180,7 @@ public class TestenBasePage extends GebruikerBasePage
 		timelineModel.setBsn(clienten.stream().map(c -> c.getPersoon().getBsn()).collect(Collectors.joining(",")));
 		timelineModel.setANummer(clienten.stream().map(c ->
 			c.getPersoon().getAnummer() == null ? "onbekend" : c.getPersoon().getAnummer()).collect(Collectors.joining(",")));
-		timelineModel.setLeeftijd(DateUtil.getAantalJaarTussenTweeDatums(DateUtil.toLocalDate(client.getPersoon().getGeboortedatum()), dateSupplier.getLocalDate()));
+		timelineModel.setLeeftijd(DateUtil.getLeeftijd(DateUtil.toLocalDate(client.getPersoon().getGeboortedatum()), dateSupplier.getLocalDate()));
 		return timelineModel;
 	}
 
@@ -209,7 +209,9 @@ public class TestenBasePage extends GebruikerBasePage
 		}
 		else
 		{
-			return new EmptyPanel("directNaarClientDossier");
+			EmptyPanel directNaarClientDossier = new EmptyPanel("directNaarClientDossier");
+			directNaarClientDossier.setVisible(false);
+			return directNaarClientDossier;
 		}
 	}
 

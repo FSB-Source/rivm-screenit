@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,7 @@ import java.security.KeyStore;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import javax.inject.Inject;
@@ -50,6 +51,7 @@ import nl.topicuszorg.zorgid.client.impl.ZorgidClientImpl;
 import nl.topicuszorg.zorgid.model.ZorgidException;
 import nl.topicuszorg.zorgid.model.sessie.ClosedReason;
 import nl.topicuszorg.zorgid.model.sessie.OpenCancelledReason;
+import nl.topicuszorg.zorgid.webservice.SessionInitializedEvent;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -87,6 +89,8 @@ public class ZorgIdSessieServiceImpl implements ZorgIdSessieService, Application
 	private static final int SESSIE_TIMEOUT = 1800; 
 
 	private static final ObjectMapper objectMapper = new ObjectMapper();
+
+	private static final long ZORG_ID_CONNECTION_TIME = 300L;
 
 	@Inject
 	private SimplePreferenceService preferenceService;
@@ -128,7 +132,8 @@ public class ZorgIdSessieServiceImpl implements ZorgIdSessieService, Application
 			objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.NONE);
 			objectMapper.addMixIn(Object.class, MixInByPropName.class);
 			LOG.info("doInit");
-			OpenHibernate5Session.withCommittedTransaction().run(() -> {
+			OpenHibernate5Session.withCommittedTransaction().run(() ->
+			{
 				try
 				{
 					this.zorgidClient = zorgidClient(zorgidClientTemplate());
@@ -196,7 +201,7 @@ public class ZorgIdSessieServiceImpl implements ZorgIdSessieService, Application
 		String key = "ZorgId-" + uuid.toString();
 		if (LOG.isTraceEnabled())
 		{
-			LOG.trace("Key: " + key);
+			LOG.trace("Key: {}", key);
 		}
 		return key;
 	}
@@ -215,7 +220,7 @@ public class ZorgIdSessieServiceImpl implements ZorgIdSessieService, Application
 		try
 		{
 			sessieStateString = objectMapper.writeValueAsString(sessieState);
-			LOG.trace(sessieState.getClass().getSimpleName() + ": " + sessieStateString);
+			LOG.trace("{}: {}", sessieState.getClass().getSimpleName(), sessieStateString);
 		}
 		catch (JsonProcessingException e)
 		{
@@ -279,7 +284,8 @@ public class ZorgIdSessieServiceImpl implements ZorgIdSessieService, Application
 	public void removeVerlopenSessies()
 	{
 
-		activeSessions.entrySet().removeIf(entry -> {
+		activeSessions.entrySet().removeIf(entry ->
+		{
 			final boolean remove = entry.getValue().isExpired();
 			if (remove)
 			{
@@ -301,10 +307,11 @@ public class ZorgIdSessieServiceImpl implements ZorgIdSessieService, Application
 	}
 
 	@Override
-	public void onSessionInitialized(UUID uuid, String nonce)
+	public void onSessionInitialized(SessionInitializedEvent sessionInitializedEvent)
 	{
+		var uuid = sessionInitializedEvent.getUuid();
 		LOG.info("Session initialized: {}", uuid);
-		addSessieState(uuid, new InitializedSessieState(nonce));
+		addSessieState(uuid, new InitializedSessieState(sessionInitializedEvent));
 	}
 
 	@Override
@@ -433,6 +440,7 @@ public class ZorgIdSessieServiceImpl implements ZorgIdSessieService, Application
 			.setSSLContext(zorgidSslContext())
 			.setMaxConnPerRoute(maxConnPerRoute)
 			.setMaxConnTotal(2 * maxConnPerRoute)
+			.setConnectionTimeToLive(ZORG_ID_CONNECTION_TIME, TimeUnit.SECONDS)
 			.build();
 		final HttpComponentsClientHttpRequestFactory httpRequestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
 		httpRequestFactory.setConnectionRequestTimeout(zorgidClientConnectTimeout());
@@ -441,10 +449,10 @@ public class ZorgIdSessieServiceImpl implements ZorgIdSessieService, Application
 		return new RestTemplate(httpRequestFactory);
 	}
 
-	public ZorgidClient zorgidClient(RestTemplate zorgidClientTemplate)
+	private ZorgidClient zorgidClient(RestTemplate zorgidClientTemplate)
 	{
 		String zorgidCallbackUrl = zorgidCallbackUrl();
-		LOG.info("Opgestart met zorgidCallbackUrl: " + zorgidCallbackUrl);
+		LOG.info("Opgestart met zorgidCallbackUrl: {}", zorgidCallbackUrl);
 		Supplier<String> oAuthTokenSupplier = idpService::getIdpAccessTokenVoorZorgId;
 		return new ZorgidClientImpl(zorgidServerUrl(), zorgidCallbackUrl, zorgidClientTemplate, oAuthTokenSupplier);
 	}

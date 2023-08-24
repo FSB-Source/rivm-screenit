@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -42,62 +42,74 @@ import {AfmeldOptiesDto, geenAfmeldOpties} from "../../datatypes/afmelden/Afmeld
 import properties from "./BvoTakenComponent.json"
 
 export type BvoTakenComponentProps = {
-    beschikbareActies: ClientContactActieType[],
-    toonVervangendeTekst: boolean;
+	beschikbareActies: ClientContactActieType[],
+	toonVervangendeTekst: boolean;
 }
 
 const BvoTakenComponent = (props: BvoTakenComponentProps) => {
-    const bvo = useSelectedBvo()!
-    const dispatch = useThunkDispatch()
-    const persoon = useSelector((state: State) => state.client.persoon)
-    const beschikbareActies = props.beschikbareActies
-    const bezwaren = useSelector((state: State) => state.client.laatsteBezwaarMoment)
-    const [afmeldOpties, setAfmeldOpties] = useState<AfmeldOptiesDto>(geenAfmeldOpties)
+	const bvo = useSelectedBvo()!
+	const dispatch = useThunkDispatch()
+	const persoon = useSelector((state: State) => state.client.persoon)
+	const beschikbareActies = props.beschikbareActies
+	const bezwaren = useSelector((state: State) => state.client.laatsteBezwaarMoment)
+	const [afmeldOpties, setAfmeldOpties] = useState<AfmeldOptiesDto>(geenAfmeldOpties)
+	const {vertrokkenUitNederland} = persoon
+	const afmeldContactActieTypeVanBvo: ClientContactActieType = bvo === Bevolkingsonderzoek.MAMMA ? ClientContactActieType.MAMMA_AFMELDEN : bvo === Bevolkingsonderzoek.CERVIX ? ClientContactActieType.CERVIX_AFMELDEN : ClientContactActieType.COLON_AFMELDEN
 
-    const afmeldContactActieTypeVanBvo: ClientContactActieType = bvo === Bevolkingsonderzoek.MAMMA ? ClientContactActieType.MAMMA_AFMELDEN : bvo === Bevolkingsonderzoek.CERVIX ? ClientContactActieType.CERVIX_AFMELDEN : ClientContactActieType.COLON_AFMELDEN
+	useEffect(() => {
+		ScreenitBackend.get(`/afmelden/${bvo}`)
+			.then((response) => {
+				setAfmeldOpties(response.data)
+			})
 
-    useEffect(() => {
-        ScreenitBackend.get(`/afmelden/${bvo}`)
-            .then((response) => {
-                setAfmeldOpties(response.data)
-            })
+		bvo && vertrokkenUitNederland === false && dispatch(getLaatsteBezwaarMoment(bvo))
+		return () => {
+			dispatch(setLaatsteBezwaarMomentAction([]))
+		}
+	}, [bvo, dispatch, vertrokkenUitNederland])
 
-        bvo && dispatch(getLaatsteBezwaarMoment(bvo))
-        return () => {
-            dispatch(setLaatsteBezwaarMomentAction([]))
-        }
-    }, [bvo, dispatch])
-
-    return (
+	return (
 		<Row className={styles.bvoSelectie}>
-			<Col lg={4}>
-				<TaakComponent icon={<TelefoonnummerIcon/>}
-							   link="/profiel/telefoonnummer/"
-							   tekst={(persoon.telefoonnummer1 || persoon.telefoonnummer2) ? getString(properties.taak.telefoonnummer.wijzigen) : getString(properties.taak.telefoonnummer.doorgeven)}/>
-			</Col>
+			{vertrokkenUitNederland === false &&
+				<Col lg={4}>
+					<TaakComponent icon={<TelefoonnummerIcon/>}
+								   link="/profiel/telefoonnummer/"
+								   tekst={(persoon.telefoonnummer1 || persoon.telefoonnummer2) ? getString(properties.taak.telefoonnummer.wijzigen) : getString(properties.taak.telefoonnummer.doorgeven)}/>
+				</Col>
+			}
 			{beschikbareActies.includes(afmeldContactActieTypeVanBvo) &&
-			<Col lg={4}>
-				<TaakComponent icon={<AfmeldenIcon/>}
-							   link={getAfmeldenUrl(bvo)}
-							   tekst={afmeldOpties.afmeldOpties.includes(AfmeldType.EENMALIG) ? getString(properties.taak.afmelden.algemeen) : getString(properties.taak.afmelden.definitief)}/>
-			</Col>
+				<Col lg={4}>
+					<TaakComponent icon={<AfmeldenIcon/>}
+								   link={getAfmeldenUrl(bvo)}
+								   tekst={bepaalAfmeldenTekst(afmeldOpties.afmeldOpties)}/>
+				</Col>
 			}
 			{!props.toonVervangendeTekst && beschikbareActies.includes(ClientContactActieType.BEZWAAR) &&
-			<Col lg={4}>
-				<TaakComponent icon={<BezwaarIcon/>}
-							   link={getBezwaarUrl(bvo)}
-							   tekst={bezwaren.find(b => b.active) ? getString(properties.taak.bezwaar.intrekken) : getString(properties.taak.bezwaar.maken)}/>
-			</Col>
+				<Col lg={4}>
+					<TaakComponent icon={<BezwaarIcon/>}
+								   link={getBezwaarUrl(bvo)}
+								   tekst={bezwaren.find(b => b.active) ? getString(properties.taak.bezwaar.intrekken) : getString(properties.taak.bezwaar.maken)}/>
+				</Col>
 			}
-			{beschikbareActies.includes(ClientContactActieType.TIJDELIJK_ADRES) &&
-			<Col lg={4}>
-				<TaakComponent icon={<HuisIcon/>}
-							   link="/profiel/adres/"
-							   tekst={persoon.tijdelijkAdres ? getString(properties.taak.adres.wijzigen) : getString(properties.taak.adres.doorgeven)}/>
-			</Col>
+			{beschikbareActies.includes(ClientContactActieType.TIJDELIJK_ADRES) && vertrokkenUitNederland === false &&
+				<Col lg={4}>
+					<TaakComponent icon={<HuisIcon/>}
+								   link="/profiel/adres/"
+								   tekst={persoon.tijdelijkAdres ? getString(properties.taak.adres.wijzigen) : getString(properties.taak.adres.doorgeven)}/>
+				</Col>
 			}
 		</Row>
 	)
+
+	function bepaalAfmeldenTekst(opties: AfmeldType[]): string {
+		if (opties.includes(AfmeldType.EENMALIG)) {
+			return getString(properties.taak.afmelden.algemeen)
+		} else if (opties.includes(AfmeldType.TIJDELIJK)) {
+			return getString(properties.taak.afmelden.definitiefOfTijdelijk)
+		} else {
+			return getString(properties.taak.afmelden.definitief)
+		}
+	}
 
 }
 

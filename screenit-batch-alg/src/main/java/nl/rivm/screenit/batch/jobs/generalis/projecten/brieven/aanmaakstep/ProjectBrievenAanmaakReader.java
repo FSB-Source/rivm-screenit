@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.generalis.projecten.brieven.aanmaakstep;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -49,24 +49,28 @@ public class ProjectBrievenAanmaakReader extends BaseScrollableResultReader
 		Criteria crit = session.createCriteria(ProjectBriefActie.class);
 		crit.add(Restrictions.eq("actief", Boolean.TRUE));
 
-		crit.add( 
-			Restrictions.or( 
+		crit.add(
+			Restrictions.or(
 				Restrictions.and(
-					Restrictions.eq("type", ProjectBriefActieType.DATUM), 
-					Restrictions.eq("datum", vandaag) 
-				), 
-				Restrictions.eq("type", ProjectBriefActieType.XDAGENNAY), 
-				Restrictions.eq("type", ProjectBriefActieType.XMETY), 
-				Restrictions.eq("type", ProjectBriefActieType.HERINNERING)) 
-		); 
+					Restrictions.eq("type", ProjectBriefActieType.DATUM),
+					Restrictions.eq("datum", vandaag)
+				),
+				Restrictions.and(
+					Restrictions.eq("type", ProjectBriefActieType.VANAF_DATUM),
+					Restrictions.le("datum", vandaag)
+				),
+				Restrictions.eq("type", ProjectBriefActieType.XDAGENNAY),
+				Restrictions.eq("type", ProjectBriefActieType.XMETY),
+				Restrictions.eq("type", ProjectBriefActieType.HERINNERING))
+		);
 
 		crit.createAlias("project", "project");
 		crit.add(
 			Restrictions.and(
-				Restrictions.gt("project.eindDatum", vandaag), 
+				Restrictions.gt("project.eindDatum", vandaag),
 				Restrictions.le("project.startDatum", vandaag)
-			) 
-		); 
+			)
+		);
 
 		return crit;
 	}

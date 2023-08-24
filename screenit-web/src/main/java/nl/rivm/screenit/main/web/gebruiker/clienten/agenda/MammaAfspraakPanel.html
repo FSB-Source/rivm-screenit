@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -20,28 +20,28 @@
   -->
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <h2>Borstkanker</h2>
-    <table style="width: 100%" class="table table-bordered table-condensed">
-        <thead>
-        <tr>
-            <th class="input-large">Datum / tijd</th>
-            <th>Locatie</th>
-            <th class="input-micro"></th>
-            <th class="input-micro"></th>
-            <th class="input-micro"></th>
-            <wicket:enclosure child="inhoud:uitstellen">
-                <th class="input-micro"></th>
-            </wicket:enclosure>
-        </tr>
-        </thead>
-        <tbody wicket:id="inhoud">
-        <tr>
-            <td class="input-large" wicket:id="vanaf">zaterdag 18-11-2017
-                15:10
-            </td>
-            <td>
-                <wicket:container wicket:id="standplaats"/>
-            </td>
+	<h2>Borstkanker</h2>
+	<table class="table table-bordered table-condensed width-100procent">
+		<thead>
+		<tr>
+			<th class="input-large">Datum / tijd</th>
+			<th>Locatie</th>
+			<th class="input-micro"></th>
+			<th class="input-micro"></th>
+			<th class="input-micro"></th>
+			<wicket:enclosure child="inhoud:uitstellen">
+				<th class="input-micro"></th>
+			</wicket:enclosure>
+		</tr>
+		</thead>
+		<tbody wicket:id="inhoud">
+		<tr>
+			<td class="input-large" wicket:id="vanaf">zaterdag 18-11-2017
+				15:10
+			</td>
+			<td>
+				<wicket:container wicket:id="standplaats"/>
+			</td>
 
             <td>
                 <a class="btn" wicket:id="brief">Brief</a>

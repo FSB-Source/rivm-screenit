@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.dao.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,22 +21,22 @@ package nl.rivm.screenit.main.dao.mamma;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
+
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaConclusieReviewZoekObject;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.mamma.MammaConclusieReview;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 
-import java.util.List;
-
 public interface MammaConclusieReviewDao
 {
-    long countConclusieReviewsVanRadioloog(MammaConclusieReviewZoekObject zoekObject);
+	long countConclusieReviewsVanRadioloog(MammaConclusieReviewZoekObject zoekObject);
 
-    List<MammaConclusieReview> zoekConclusieReviewsVanRadioloog(MammaConclusieReviewZoekObject zoekObject, int first, int count, String sortProperty, boolean asc);
+	List<MammaConclusieReview> zoekConclusieReviewsVanRadioloog(MammaConclusieReviewZoekObject zoekObject, int first, int count, String sortProperty, boolean asc);
 
-    List<Long> zoekBeoordelingIdsMetConclusie(MammaConclusieReviewZoekObject zoekObject, String sortProperty, boolean asc);
+	List<Long> zoekBeoordelingIdsMetConclusie(MammaConclusieReviewZoekObject zoekObject, String sortProperty, boolean asc);
 
-    MammaConclusieReview getConclusieReview(MammaScreeningRonde screeningRonde, InstellingGebruiker radioloog);
+	MammaConclusieReview getConclusieReview(MammaScreeningRonde screeningRonde, InstellingGebruiker radioloog, boolean doorCoordinerendRadioloog);
 
-    List<InstellingGebruiker> getRadiologenMetLezingVanRondeEnZonderReview(MammaScreeningRonde screeningRonde);
+	List<InstellingGebruiker> getRadiologenMetLezingVanRondeEnZonderReview(MammaScreeningRonde screeningRonde);
 }

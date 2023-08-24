@@ -47,7 +47,7 @@ export default class EmailView extends Component<EmailViewStateProps & EmailView
 								label={"E-mailadres"} placeholder={"Voer e-mailadres in"}
 								disabled={this.props.disabled} value={this.props.emailadres || ""}
 								onChange={this.onEmailChange} fieldId={EMAIL_FIELD_ID}
-								maxLength={50}/>
+								maxLength={100}/>
 						</Col>
 					</Row>
 				</Col>

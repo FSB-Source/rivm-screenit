@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -42,7 +42,6 @@ import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting;
 
 public interface CervixVerrichtingDao
 {
-
 	List<CervixBoekRegel> getVerrichtingenVoorBetaling(CervixBetalingsZoekObject zoekObject, SortState<String> sortState, long first, long count);
 
 	List<CervixBoekRegel> getLabVerrichtingen(CervixVerrichtingenZoekObject verrichtingenCriteria, ScreeningOrganisatie screeningOrganisatie, BMHKLaboratorium bmhkLaboratorium,
@@ -61,29 +60,29 @@ public interface CervixVerrichtingDao
 	long countHuisartsVerrichtingen(CervixVerrichtingenZoekObject verrichtingenCriteria, ScreeningOrganisatie screeningOrganisatie, CervixHuisarts huisarts,
 		CervixHuisartsLocatie huisartsLocatie);
 
-	List<CervixHuisartsTarief> getCervixHuisartsTarieven(CervixHuisartsTarief tarief, long first, long count, SortState<String> sortState);
+	List<CervixHuisartsTarief> getHuisartsTarieven(CervixHuisartsTarief tarief, long first, long count, SortState<String> sortState);
 
-	Long countCervixHuisartsTarieven(CervixHuisartsTarief tarief);
+	Long countHuisartsTarieven(CervixHuisartsTarief tarief);
 
-	CervixHuisartsTarief getLatestCervixHuisartsTarief();
+	CervixHuisartsTarief getLatestHuisartsTarief();
 
-	CervixLabTarief getLatestCervixLabTarief(BMHKLaboratorium lab);
+	CervixLabTarief getLatestLabTarief(BMHKLaboratorium lab);
 
-	CervixHuisartsTarief getCervixHuisartsTarief(Date datum);
+	CervixHuisartsTarief getHuisartsTarief(Date datum);
 
-	CervixLabTarief getCervixLaboratoriumTarief(CervixLabTarief tarief);
+	CervixLabTarief getLaboratoriumTarief(CervixLabTarief tarief);
 
-	List<CervixHuisartsTarief> getCervixHuisartsTarievenZonderEinddatum();
+	List<CervixHuisartsTarief> getHuisartsTarievenZonderEinddatum();
 
-	List<CervixLabTarief> getCervixLabTarievenZonderEinddatum(BMHKLaboratorium lab);
+	List<CervixLabTarief> getLabTarievenZonderEinddatum(BMHKLaboratorium lab);
 
-	List<CervixLabTarief> getCervixLabTarieven(CervixLabTarief zoekobject, long first, long count, SortState<String> sortState);
+	List<CervixLabTarief> getLabTarieven(CervixLabTarief zoekobject, long first, long count, SortState<String> sortState);
 
-	Long countCervixLabTarieven(CervixLabTarief zoekobject);
+	Long countLabTarieven(CervixLabTarief zoekobject);
 
-	List<CervixBetaalopdracht> getCervixBetaalopdrachten(ScreeningOrganisatie organisatie, SortState<String> sortState, long first, long count);
+	List<CervixBetaalopdracht> getBetaalOpdrachten(SortState<String> sortState, long first, long count);
 
-	Long countCervixBetaalOpdrachten(ScreeningOrganisatie organisatie);
+	Long countBetaalOpdrachten();
 
 	List<CervixBetaalopdracht> getVandaagGemaakteBetaalOpdrachten();
 

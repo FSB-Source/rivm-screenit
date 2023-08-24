@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.palga.csvimport.step;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,6 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.jobs.BatchConstants;
 import nl.rivm.screenit.dto.mamma.MammaPalgaCsvImportDto;
+import nl.rivm.screenit.model.batch.popupconfig.MammaPalgaGrondslag;
+import nl.rivm.screenit.model.enums.JobStartParameter;
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.service.mamma.MammaPalgaService;
 
@@ -52,6 +54,8 @@ public class MammaPalgaCsvImportWriter implements ItemWriter<MammaPalgaCsvImport
 	@Override
 	public void write(List<? extends MammaPalgaCsvImportDto> items) throws Exception
 	{
+		var grondslag = MammaPalgaGrondslag.valueOf(jobExecution.getJobParameters().getString(JobStartParameter.MAMMA_PALGA_IMPORT.name()));
+
 		for (MammaPalgaCsvImportDto dto : items)
 		{
 			if (dto.getRegelNummer() != HEADER_ROW && !dto.isFout())
@@ -59,10 +63,10 @@ public class MammaPalgaCsvImportWriter implements ItemWriter<MammaPalgaCsvImport
 				String logMeldingPrefix = "#" + dto.getRegelNummer() + ": ";
 				try
 				{
-					String errorMessage = palgaService.verwerkImportDto(dto);
+					String errorMessage = palgaService.verwerkImportDto(dto, grondslag);
 					if (errorMessage != null)
 					{
-						logMelding(logMeldingPrefix + errorMessage, null);
+						logMelding(logMeldingPrefix + errorMessage, null, dto);
 					}
 					else
 					{
@@ -71,35 +75,39 @@ public class MammaPalgaCsvImportWriter implements ItemWriter<MammaPalgaCsvImport
 				}
 				catch (IllegalArgumentException e)
 				{
-					logMelding(logMeldingPrefix + "semantisch", e);
+					logMelding(logMeldingPrefix + "semantisch", e, dto);
 					throw e;
 				}
 				catch (Exception e)
 				{
-					logMelding(logMeldingPrefix + "technisch", e);
+					logMelding(logMeldingPrefix + "technisch", e, dto);
 					throw e;
 				}
-
 			}
 		}
 	}
 
-	private void logMelding(String errorMessage, Exception e)
+	private void logMelding(String errorMessage, Exception e, MammaPalgaCsvImportDto dto)
 	{
-		ExecutionContext executionContext = jobExecution.getExecutionContext();
+		dto.setFout(true); 
 
-		String melding = (getExecutionContext().containsKey(BatchConstants.MELDING) ? getExecutionContext().getString(BatchConstants.MELDING) + errorMessage
-			: "Er zijn een aantal fouten gevonden tijdens het uitvoeren van de import:<br>" + errorMessage) + "<br>";
-		executionContext.putString(BatchConstants.MELDING, melding);
-		executionContext.put(BatchConstants.LEVEL, Level.WARNING);
+		var uitgebreideErrorMessage = errorMessage;
 		if (e instanceof IllegalArgumentException)
 		{
-			LOG.error(errorMessage + ". " + e.getMessage());
+			uitgebreideErrorMessage += ". " + e.getMessage();
+			LOG.error(uitgebreideErrorMessage);
 		}
 		else if (e != null)
 		{
-			LOG.error(errorMessage, e);
+			LOG.error(uitgebreideErrorMessage, e);
 		}
+
+		ExecutionContext executionContext = jobExecution.getExecutionContext();
+
+		String melding = (getExecutionContext().containsKey(BatchConstants.MELDING) ? getExecutionContext().getString(BatchConstants.MELDING) + uitgebreideErrorMessage
+			: "Er zijn een aantal fouten gevonden tijdens het uitvoeren van de import:<br>" + uitgebreideErrorMessage) + "<br>";
+		executionContext.putString(BatchConstants.MELDING, melding);
+		executionContext.put(BatchConstants.LEVEL, Level.WARNING);
 	}
 
 	protected ExecutionContext getExecutionContext()

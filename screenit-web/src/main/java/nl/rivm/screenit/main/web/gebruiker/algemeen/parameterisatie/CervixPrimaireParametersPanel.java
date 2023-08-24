@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -65,8 +65,9 @@ public class CervixPrimaireParametersPanel extends BasePrimaireParametersPanel
 		form.add(new TextField<>("afkapwaardeLabformulier", Integer.class).add(RangeValidator.range(0, 1000)).setRequired(true));
 
 		form.add(new TextField<>("periodeUitslagNaarHuisarts", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
-		form.add(new TextField<>("cervixHerinneringsPeriode", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
+		form.add(new TextField<>("cervixHerinneringsPeriodeNonResponder", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
 		form.add(new TextField<>("cervixHerinneringsPeriodeZas", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
+		form.add(new TextField<>("cervixHerinneringsPeriodeLaatsteHerinnering", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
 		form.add(new TextField<>("cervixIntervalControleUitstrijkje", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
 		form.add(new TextField<>("cervixMaxZasAanvragenInfolijn", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
 		form.add(new TextField<>("cervixMaxZasAanvragenClient", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));

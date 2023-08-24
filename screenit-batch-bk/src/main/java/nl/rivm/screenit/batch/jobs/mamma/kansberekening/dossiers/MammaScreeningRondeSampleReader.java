@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.kansberekening.dossiers;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,12 +24,13 @@ package nl.rivm.screenit.batch.jobs.mamma.kansberekening.dossiers;
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.batch.jobs.mamma.kansberekening.MammaAbstractEventReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
 
 import org.hibernate.Criteria;
+import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
@@ -37,12 +38,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class MammaScreeningRondeSampleReader extends MammaAbstractEventReader
+public class MammaScreeningRondeSampleReader extends BaseScrollableResultReader
 {
 	private final ICurrentDateSupplier dateSupplier;
 
 	@Override
-	public Criteria getCriteria(StatelessSession session)
+	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
 		var printDatumVoor = DateUtil.toUtilDate(dateSupplier.getLocalDate().minusWeeks(Constants.DEELNAMEKANSBEREKENING_NA_WEKEN));
 

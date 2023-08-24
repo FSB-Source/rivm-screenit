@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.messagequeue;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,6 +24,7 @@ package nl.rivm.screenit.model.messagequeue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import nl.rivm.screenit.model.messagequeue.dto.CervixHL7v24HpvOrderTriggerDto;
 import nl.rivm.screenit.model.messagequeue.dto.CervixHerindexatieDto;
 import nl.rivm.screenit.model.messagequeue.dto.VerwijderBetaalOpdrachtDto;
 
@@ -32,7 +33,10 @@ import nl.rivm.screenit.model.messagequeue.dto.VerwijderBetaalOpdrachtDto;
 public enum MessageType
 {
 	VERWIJDER_BETAAL_OPDRACHT(VerwijderBetaalOpdrachtDto.class),
-	HERINDEXATIE(CervixHerindexatieDto.class);
+
+	HERINDEXATIE(CervixHerindexatieDto.class),
+
+	HPV_ORDER(CervixHL7v24HpvOrderTriggerDto.class);
 
 	private final Class<?> contentType;
 

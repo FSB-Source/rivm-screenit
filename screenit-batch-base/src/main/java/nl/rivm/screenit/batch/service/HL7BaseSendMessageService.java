@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,7 +32,7 @@ import ca.uhn.hl7v2.model.Message;
 
 public interface HL7BaseSendMessageService
 {
-	void openConnection(String connectieNaam, String host, String port, int pogingen, ScreenITHL7MessageContext messageContext) throws HL7Exception;
+	void openConnection(String connectieNaam, int pogingen, ScreenITHL7MessageContext messageContext) throws HL7Exception;
 
 	HL7v24ResponseWrapper sendHL7Message(String hl7Bericht, ScreenITHL7MessageContext messageContext) throws HL7Exception, LLPException, IOException;
 

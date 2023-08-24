@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.brieven.genererenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,8 +23,11 @@ package nl.rivm.screenit.batch.jobs.colon.brieven.genererenstep;
 
 import java.util.Date;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenWriter;
 import nl.rivm.screenit.batch.jobs.colon.brieven.ColonBrievenConstants;
+import nl.rivm.screenit.document.BaseDocumentCreator;
 import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.colon.ColonBrief;
@@ -33,12 +36,17 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.service.colon.ColonTijdelijkAfmeldenJaartallenService;
+import nl.rivm.screenit.service.colon.afmeldbrief.ColonAfmeldDocumentCreator;
 
 import org.springframework.stereotype.Component;
 
 @Component
+@AllArgsConstructor
 public class ColonBrievenGenererenWriter extends AbstractBrievenGenererenWriter<ColonBrief, ColonMergedBrieven>
 {
+	private ColonTijdelijkAfmeldenJaartallenService tijdelijkAfmeldenJaartallenService;
+
 	@Override
 	protected ColonMergedBrieven createConcreteMergedBrieven(Date aangemaaktOp)
 	{
@@ -90,5 +98,20 @@ public class ColonBrievenGenererenWriter extends AbstractBrievenGenererenWriter<
 	public Bevolkingsonderzoek[] getBevolkingsonderzoeken()
 	{
 		return new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON };
+	}
+
+	@Override
+	public BaseDocumentCreator getDocumentCreator(MailMergeContext context)
+	{
+		var client = context.getClient();
+		var brief = context.getBrief();
+
+		if (brief != null && client != null && (BriefType.COLON_AFMELDING_AANVRAAG == brief.getBriefType() || BriefType.COLON_AFMELDING_HANDTEKENING == brief.getBriefType()))
+		{
+			var mogelijkeTijdelijkAfmeldJaren = tijdelijkAfmeldenJaartallenService.bepaalMogelijkeAfmeldJaren(client);
+			return new ColonAfmeldDocumentCreator(mogelijkeTijdelijkAfmeldJaren);
+		}
+
+		return null;
 	}
 }

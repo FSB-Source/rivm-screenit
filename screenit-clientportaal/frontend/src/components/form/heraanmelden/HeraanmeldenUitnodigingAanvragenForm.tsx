@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,11 +22,10 @@ import React from "react"
 import * as Yup from "yup"
 import {getString} from "../../../utils/TekstPropertyUtil"
 import properties from "../../../pages/bvo/gedeeld/HeraanmeldenPage.json"
-import {Field, Formik} from "formik"
+import {Formik} from "formik"
 import SubmitForm from "../SubmitForm"
-import {FormControl, FormControlLabel, Radio} from "@material-ui/core"
+import {FormControl, FormControlLabel, Radio, RadioGroup} from "@mui/material"
 import styles from "./HeraanmeldenUitnodigingAanvragenForm.module.scss"
-import {RadioGroup} from "formik-material-ui"
 
 export type HeraanmeldenUitnodigingAanvragenFormProps = {
 	onSubmitSucces: (value: boolean) => void
@@ -54,15 +53,13 @@ const HeraanmeldenUitnodigingAanvragenForm = (props: HeraanmeldenUitnodigingAanv
 			{formikProps => (<SubmitForm<UitnodigingColonAanvragen> title={getString(properties.form.title.COLON.uitnodiging)}
 																	formikProps={formikProps}
 																	buttonLabel={getString(properties.form.button)}>
-				<FormControl
-					required
-					component="fieldset">
+				<FormControl variant="standard" required component="fieldset">
 
 					<p data-testid={"error_geen_keuze"} className={styles.errorLabel}>{formikProps.errors.uitnodigingAanvragen}</p>
 
-					<Field
+					<RadioGroup
 						name="uitnodigingAanvragen"
-						component={RadioGroup}
+						onChange={formikProps.handleChange}
 						value={formikProps.values.uitnodigingAanvragen || ""}>
 						<ul className={styles.radioGroup}>
 							<FormControlLabel
@@ -77,12 +74,12 @@ const HeraanmeldenUitnodigingAanvragenForm = (props: HeraanmeldenUitnodigingAanv
 								control={<Radio/>}
 								label={getString(properties.form.radio_button.nee)}/>
 						</ul>
-					</Field>
+					</RadioGroup>
 				</FormControl>
 			</SubmitForm>)}
 
 		</Formik>
-	</>
+	</>;
 }
 
 export default HeraanmeldenUitnodigingAanvragenForm

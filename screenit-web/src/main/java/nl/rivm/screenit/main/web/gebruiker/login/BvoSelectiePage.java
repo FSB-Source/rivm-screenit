@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.login;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +22,8 @@ package nl.rivm.screenit.main.web.gebruiker.login;
  */
 
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.model.InstellingGebruiker;
@@ -44,15 +46,10 @@ import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class BvoSelectiePage extends LoginBasePage
 {
-
-	private static final long serialVersionUID = 1L;
-
-	private static final Logger LOG = LoggerFactory.getLogger(BvoSelectiePage.class);
 
 	@SpringBean
 	private AutorisatieService autorisatieService;
@@ -65,7 +62,7 @@ public class BvoSelectiePage extends LoginBasePage
 
 	public BvoSelectiePage(InstellingGebruiker instellingGebruiker)
 	{
-		List<Bevolkingsonderzoek> onderzoeken = autorisatieService.getBevolkingsonderzoeken(instellingGebruiker);
+		List<Bevolkingsonderzoek> onderzoeken = Bevolkingsonderzoek.sort(autorisatieService.getBevolkingsonderzoeken(instellingGebruiker));
 		if (CollectionUtils.isNotEmpty(onderzoeken) && onderzoeken.size() == 1)
 		{
 			LOG.debug("Er is 1 BVO beschikbaar, deze wordt meteen toegekend.");
@@ -78,7 +75,6 @@ public class BvoSelectiePage extends LoginBasePage
 		}
 		else if (CollectionUtils.isNotEmpty(onderzoeken) && onderzoeken.size() > 1)
 		{
-			Bevolkingsonderzoek.sort(onderzoeken);
 			LOG.debug("Er zijn meerdere BVO's beschikbaar, selectiescherm wordt getoond.");
 			WebMarkupContainer bvoBeschikbaarContainer = new WebMarkupContainer("bvoBeschikbaarContainer");
 			Form<InstellingGebruiker> bvoForm = new Form<InstellingGebruiker>("bvoForm", ModelUtil.cModel(instellingGebruiker));
@@ -99,9 +95,6 @@ public class BvoSelectiePage extends LoginBasePage
 			bvoForm.add(keuzemaken);
 			bvoForm.add(new AjaxSubmitLink("opslaan")
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected void onSubmit(AjaxRequestTarget target)
 				{
@@ -129,9 +122,6 @@ public class BvoSelectiePage extends LoginBasePage
 			WebMarkupContainer container = new WebMarkupContainer("bvoOnbeschikbaarContainer");
 			container.add(new Link<Void>("stoppen")
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				public void onClick()
 				{

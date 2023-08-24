@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.controller;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ import javax.servlet.http.HttpSession;
 
 import nl.rivm.screenit.mamma.se.proxy.services.LogischeSessieService;
 import nl.rivm.screenit.mamma.se.proxy.services.ProxyService;
+import nl.rivm.screenit.mamma.se.proxy.util.SafeStringUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +57,8 @@ public class AdhocMeekijkverzoekProxyController
 	public ResponseEntity adhocControleIndienen(@RequestBody String reden, @PathVariable long afspraakId, HttpSession session,
 		@RequestHeader("YubikeyIdentificatie") String yubikeyIdentificatie, @RequestHeader("accountId") String accountId)
 	{
-		LOG.info("Meekijkverzoek LRCB aangevraagd voor afspraakId: " + afspraakId + " met reden: " + reden);
+		var safeReden = SafeStringUtil.maakStringMetUserInputVeiligVoorLogging(reden);
+		LOG.info("Meekijkverzoek LRCB aangevraagd voor afspraakId: " + afspraakId + " met reden: " + safeReden);
 		if (!logischeSessieService.geldigeYubikey(yubikeyIdentificatie))
 		{
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).build();

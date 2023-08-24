@@ -60,6 +60,8 @@ export const datumFormaat = (isoDatum: string | Date | null | undefined): string
 
 export const tijdFormaat = (isoTijd: string | undefined): string => isoTijd ? moment(isoTijd).format("HH:mm") : ""
 
+export const datumTijdFormaat = (isoTijd: string | undefined): string => isoTijd ? moment(isoTijd).format("DD-MM-YYYY HH:mm") : ""
+
 export const getDate = (isoDatetime: string): string => {
 	return isoDatetime.split("T")[0]
 }
@@ -100,4 +102,16 @@ export const vandaagDate = (): Date => {
 
 export const isValideDatum = (datum: Date): boolean => {
 	return datum.getFullYear().toString().length === 4
+}
+
+export const stringDatumEnStringTijdNaarDatumTijd = (datum: string, tijd: string): Date => {
+	return new Date(`${datum}T${tijd}`)
+}
+
+export const verschilDatumTijdEnNuInMinuten = (datumTijd: string | Date): number => {
+	return moment.duration(moment(nuISO()).diff(new Date(datumTijd))).as("minutes")
+}
+
+export const numberMinutenNaarStringUrenEnMinuten = (minuten: number): string => {
+	return moment.duration(minuten, "minutes").humanize()
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.medewerker;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.medewerker;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -260,6 +261,9 @@ public class MedewerkerZoeken extends MedewerkerBeheer
 		zoekForm = new Form<Gebruiker>("zoekForm", (IModel<Gebruiker>) getDefaultModel());
 		add(zoekForm);
 
+		var rollen = rolService.getActieveRollen(bevolkingsonderzoeken);
+		rollen.sort(Comparator.comparing(Rol::getNaam));
+
 		zoekForm.add(new TextField<>("achternaam"));
 		zoekForm.add(new TextField<>("organisatieMedewerkers[0].organisatie.naam"));
 		zoekForm.add(new TextField<>("organisatieMedewerkers[0].organisatie.adressen[0].plaats"));
@@ -269,7 +273,7 @@ public class MedewerkerZoeken extends MedewerkerBeheer
 		zoekForm.add(new ListMultipleChoice<Functie>("functies", new PropertyModel<List<Functie>>(this, "selectedFuncties"),
 			ModelUtil.listRModel(stamtabellenService.getFuncties(null), false), new NaamChoiceRenderer<>()));
 		zoekForm.add(new ListMultipleChoice<Rol>("rollen", new PropertyModel<List<Rol>>(this, "selectedRollen"),
-			ModelUtil.listRModel(rolService.getActieveRollen(bevolkingsonderzoeken), false), new ChoiceRenderer<>("naam")));
+			ModelUtil.listRModel(rollen, false), new ChoiceRenderer<>("naam")));
 
 		AjaxSubmitLink submitLink = new AjaxSubmitLink("zoeken", zoekForm)
 		{

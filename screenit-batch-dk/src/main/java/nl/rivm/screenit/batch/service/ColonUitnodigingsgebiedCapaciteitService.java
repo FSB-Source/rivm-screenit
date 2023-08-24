@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.List;
 
 import nl.rivm.screenit.batch.service.impl.ColonUitnodigingsgebiedSelectieContext;
+import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 
 import org.springframework.batch.item.ExecutionContext;
 
@@ -34,6 +35,6 @@ public interface ColonUitnodigingsgebiedCapaciteitService
 
 	List<ColonUitnodigingsgebiedSelectieContext> leegloopHerverdelen(Collection<ColonUitnodigingsgebiedSelectieContext> uitnodigingsGebieden);
 
-	Integer bepaalProjectGroepPopulatie(Long uitnodigingsGebiedId, Long projectGroupId, Integer minimaleLeeftijd, Integer maximaleLeeftijd);
+	int bepaalProjectGroepPopulatie(long uitnodigingsGebiedId, ColonUitnodigingCategorie categorie, long projectGroupId, Integer minimaleLeeftijd, Integer maximaleLeeftijd);
 
 }

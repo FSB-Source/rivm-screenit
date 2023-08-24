@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ package nl.rivm.screenit.service.cervix;
  * =========================LICENSE_END==================================
  */
 
+import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
@@ -39,4 +40,6 @@ public interface CervixMonsterService
 	Long getNextMonsterId();
 
 	boolean monsterHeeftHpvBeoordelingMetGenotypeOther(CervixMonster monsterHpvUitslag);
+
+	boolean magInstellingMonsterInzien(Instelling instelling, CervixMonster monster);
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.logging.verwerkingsverslage
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,7 +29,6 @@ import java.util.function.Function;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaIntervalUitnodigenRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaStandplaatsPeriodeUitnodigenRapportage;
-import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaStandplaatsRondeRapportageStatus;
 import nl.topicuszorg.wicket.model.SortingListModel;
 
 import org.apache.wicket.markup.html.basic.Label;
@@ -64,18 +63,16 @@ public class MammaUitnodigenRapportageScreeningsOrganisatiePanel extends Generic
 			protected void populateItem(ListItem<MammaStandplaatsPeriodeUitnodigenRapportage> listItem)
 			{
 				listItem.setModel(new CompoundPropertyModel<>(listItem.getModel()));
-				boolean uitnodigenFout = MammaStandplaatsRondeRapportageStatus.FOUT.equals(listItem.getModelObject().getStandplaatsRondeUitnodigenRapportage().getStatus());
 				listItem.add(new Label("standplaatsPeriode.screeningsEenheid.naam"));
 				listItem.add(new Label("uitnodigenTotEnMet"));
 				listItem.add(new Label("standplaatsPeriode.standplaatsRonde.standplaats.naam"));
-				listItem.add(new Label("uitgenodigdAfspraak", uitnodigenFout ? "" : listItem.getModel().getObject().getUitgenodigdAfspraak()));
-				listItem.add(new Label("uitgenodigdOpen", uitnodigenFout ? "" : listItem.getModel().getObject().getUitgenodigdOpen()));
-				listItem.add(new Label("uitgenodigdMinderValide", uitnodigenFout ? "" : listItem.getModel().getObject().getUitgenodigdMinderValide()));
-				listItem.add(new Label("uitgenodigdSuspect", uitnodigenFout ? "" : listItem.getModel().getObject().getUitgenodigdSuspect()));
-				listItem.add(new Label("uitgenodigdNaUitstel", uitnodigenFout ? "" : listItem.getModel().getObject().getUitgenodigdNaUitstel()));
-				listItem.add(new Label("uitgesteldAchtervangUitstel", uitnodigenFout ? "" : listItem.getModel().getObject().getUitgesteldAchtervangUitstel()));
-				listItem.add(
-					new Label("uitgesteldMinderValideUitgewijktUitstel", uitnodigenFout ? "" : listItem.getModel().getObject().getUitgesteldMinderValideUitgewijktUitstel()));
+				listItem.add(new Label("uitgenodigdAfspraak"));
+				listItem.add(new Label("uitgenodigdOpen"));
+				listItem.add(new Label("uitgenodigdMinderValide"));
+				listItem.add(new Label("uitgenodigdSuspect"));
+				listItem.add(new Label("uitgenodigdNaUitstel"));
+				listItem.add(new Label("uitgesteldAchtervangUitstel"));
+				listItem.add(new Label("uitgesteldMinderValideUitgewijktUitstel"));
 			}
 		});
 

@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.service.impl;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,8 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.dto.mamma.se.MammaKwaliteitsopnameDto;
 import nl.rivm.screenit.mamma.se.dto.ErrorDto;
@@ -79,8 +81,6 @@ import nl.rivm.screenit.util.FoutmeldingsCodeUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -92,10 +92,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
+@Slf4j
 public class SeTransactionServiceImpl implements SeTransactionService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(SeTransactionService.class);
-
 	@Autowired
 	private ObjectMapper objectMapper;
 
@@ -280,10 +279,11 @@ public class SeTransactionServiceImpl implements SeTransactionService
 		switch (actionDto.getType())
 		{
 		case INSCHRIJVEN:
-			inschrijvenService.inschrijven(objectMapper.readValue(actionDto.getNodeText(), InschrijvenDto.class), transactieGebruiker, transactieDatumTijd);
+			inschrijvenService.inschrijven(objectMapper.readValue(actionDto.getNodeText(), InschrijvenDto.class), transactieGebruiker, transactieDatumTijd, screeningsEenheid);
 			break;
 		case CLIENTGEGEVENS_OPSLAAN:
-			inschrijvenService.inschrijvingWijzigen(objectMapper.readValue(actionDto.getNodeText(), InschrijvenDto.class), transactieGebruiker);
+			inschrijvenService.inschrijvingWijzigen(objectMapper.readValue(actionDto.getNodeText(), InschrijvenDto.class), transactieGebruiker, transactieDatumTijd,
+				screeningsEenheid);
 			break;
 		case UITSCHRIJVEN:
 			uitschrijvenService.uitschrijven(objectMapper.readValue(actionDto.getNodeText(), UitschrijvenDto.class), transactieGebruiker);
@@ -379,7 +379,7 @@ public class SeTransactionServiceImpl implements SeTransactionService
 	private void kwaliteitsopname(ActionDto actionDto, MammaHL7v24ORMBerichtStatus ormBerichtStatus) throws IOException
 	{
 		MammaKwaliteitsopnameDto kwaliteitsopname = objectMapper.readValue(actionDto.getNodeText(), MammaKwaliteitsopnameDto.class);
-		LOG.info("Kwaliteitsopname " + ormBerichtStatus + ", " + ToStringBuilder.reflectionToString(kwaliteitsopname));
+		LOG.info("Kwaliteitsopname {}, {}", ormBerichtStatus, ToStringBuilder.reflectionToString(kwaliteitsopname));
 		hl7BerichtenToBatchService.queueMammaKwaliteitsopnameHL7v24BerichtUitgaand(kwaliteitsopname, ormBerichtStatus);
 	}
 

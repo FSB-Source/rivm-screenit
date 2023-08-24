@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.controllers;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,6 +27,7 @@ import nl.rivm.screenit.clientportaal.model.LoginBrowserInfoDto;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.LogService;
+import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -45,6 +46,7 @@ import static nl.rivm.screenit.security.UserAgentUtil.getParsedUserAgentInfo;
 @AllArgsConstructor
 public class LoginController extends AbstractController
 {
+	private final HibernateService hibernateService;
 
 	private final LogService logService;
 
@@ -52,9 +54,8 @@ public class LoginController extends AbstractController
 	@PutMapping
 	public ResponseEntity<Void> logLoggingInAction(@RequestBody LoginBrowserInfoDto loginBrowserInfo, Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 		logService.logGebeurtenis(LogGebeurtenis.INLOGGEN, client, getParsedUserAgentInfo(loginBrowserInfo.getUserAgent()));
-
 		return ResponseEntity.ok().build();
 	}
 

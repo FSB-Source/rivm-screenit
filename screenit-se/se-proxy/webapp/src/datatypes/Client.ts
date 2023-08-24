@@ -22,6 +22,7 @@ export type ClientDto = {
 	doelgroep: Doelgroep;
 	inTehuis: boolean;
 	dubbeleTijdReden?: string;
+	jaarLaatsteVerwijzing?: number;
 	vorigeOnderzoeken: Array<VorigOnderzoekDto>;
 
 };
@@ -43,6 +44,7 @@ export type Client = {
 	doelgroep: Doelgroep;
 	inTehuis: boolean;
 	dubbeleTijdReden?: string;
+	jaarLaatsteVerwijzing?: number;
 	vorigeOnderzoeken: Array<VorigOnderzoek>;
 
 };
@@ -66,6 +68,7 @@ export function mapClientDtoToClient(clientDto: ClientDto): Client {
 		doelgroep: clientDto.doelgroep,
 		inTehuis: clientDto.inTehuis,
 		dubbeleTijdReden: clientDto.dubbeleTijdReden,
+		jaarLaatsteVerwijzing: clientDto.jaarLaatsteVerwijzing,
 		vorigeOnderzoeken: maakVorigOnderzoeken(clientDto),
 	}
 }

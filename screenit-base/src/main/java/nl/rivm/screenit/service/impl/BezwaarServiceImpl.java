@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,7 @@ package nl.rivm.screenit.service.impl;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -38,31 +39,20 @@ import nl.rivm.screenit.comparator.BezwaarComparator;
 import nl.rivm.screenit.dao.cervix.CervixRondeDao;
 import nl.rivm.screenit.model.AanvraagBriefStatus;
 import nl.rivm.screenit.model.Account;
-import nl.rivm.screenit.model.Afmelding;
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Bezwaar;
 import nl.rivm.screenit.model.BezwaarMoment;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactManier;
-import nl.rivm.screenit.model.Dossier;
-import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.RedenOpnieuwAanvragenClientgegevens;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.algemeen.BezwaarBrief;
 import nl.rivm.screenit.model.algemeen.BezwaarGroupViewWrapper;
 import nl.rivm.screenit.model.algemeen.BezwaarViewWrapper;
-import nl.rivm.screenit.model.cervix.CervixBrief;
 import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
-import nl.rivm.screenit.model.cervix.cis.CervixCISHistorie;
-import nl.rivm.screenit.model.colon.ColonAfmelding;
 import nl.rivm.screenit.model.colon.ColonDossier;
-import nl.rivm.screenit.model.colon.ColonScreeningRonde;
-import nl.rivm.screenit.model.colon.ColonVooraankondiging;
-import nl.rivm.screenit.model.colon.Complicatie;
-import nl.rivm.screenit.model.colon.enums.ColonAfmeldingReden;
-import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BezwaarType;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -74,29 +64,27 @@ import nl.rivm.screenit.model.envers.RevisionKenmerk;
 import nl.rivm.screenit.model.envers.RevisionKenmerkInThreadHolder;
 import nl.rivm.screenit.model.gba.Nationaliteit;
 import nl.rivm.screenit.model.logging.LogEvent;
+import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.berichten.xds.XdsStatus;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectInactiefReden;
 import nl.rivm.screenit.service.BaseBriefService;
-import nl.rivm.screenit.service.BaseClientContactService;
 import nl.rivm.screenit.service.BezwaarService;
 import nl.rivm.screenit.service.ClientDoelgroepService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.UploadDocumentService;
-import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
+import nl.rivm.screenit.service.cervix.CervixBaseDossierService;
 import nl.rivm.screenit.service.cervix.CervixMailService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.mamma.MammaBaseDossierService;
 import nl.rivm.screenit.util.BezwaarUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.ProjectUtil;
-import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Polis;
 
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -105,7 +93,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static nl.rivm.screenit.model.enums.BezwaarType.GEEN_GEBRUIK_LICHAAMSMATERIAAL_WETENSCHAPPELIJK_ONDERZOEK;
 import static nl.rivm.screenit.model.enums.BezwaarType.GEEN_SIGNALERING_VERWIJSADVIES;
-import static nl.topicuszorg.util.collections.CollectionUtils.isEmpty;
 import static nl.topicuszorg.util.collections.CollectionUtils.isEqualCollection;
 import static nl.topicuszorg.util.collections.CollectionUtils.isNotEmpty;
 
@@ -138,11 +125,8 @@ public class BezwaarServiceImpl implements BezwaarService
 	@Autowired(required = false)
 	private MammaBaseDossierService mammaBaseDossierService;
 
-	@Autowired
-	private BaseClientContactService baseClientContactService;
-
 	@Autowired(required = false)
-	private CervixBaseScreeningrondeService cervixBaseScreeningrondeService;
+	private CervixBaseDossierService cervixBaseDossierService;
 
 	@Autowired(required = false)
 	private CervixMailService mailService;
@@ -233,15 +217,15 @@ public class BezwaarServiceImpl implements BezwaarService
 	{
 
 		client.getBezwaarMomenten().add(bezwaarMoment);
-		DateTime nu = currentDateSupplier.getDateTime();
+		var nu = currentDateSupplier.getDate();
 
 		LOG.info("Bezwaar: aanvraag");
-		BezwaarBrief brief = briefService.maakBezwaarBrief(bezwaarMoment, BriefType.CLIENT_BEZWAAR_AANVRAAG, nu.toDate());
+		BezwaarBrief brief = briefService.maakBezwaarBrief(bezwaarMoment, BriefType.CLIENT_BEZWAAR_AANVRAAG, nu);
 		bezwaarMoment.setClient(client);
 		bezwaarMoment.getBrieven().add(brief);
 		bezwaarMoment.setBezwaarAanvraag(brief);
 		bezwaarMoment.setStatus(AanvraagBriefStatus.BRIEF);
-		bezwaarMoment.setStatusDatum(nu.plusMillis(50).toDate());
+		bezwaarMoment.setStatusDatum(DateUtil.plusTijdseenheid(nu, 50, ChronoUnit.MILLIS));
 
 		hibernateService.saveOrUpdate(bezwaarMoment);
 		hibernateService.saveOrUpdate(client);
@@ -254,11 +238,11 @@ public class BezwaarServiceImpl implements BezwaarService
 	{
 
 		LOG.info("Bezwaar: handtekening brief de deur uit;");
-		DateTime nu = currentDateSupplier.getDateTime();
-		BezwaarBrief brief = briefService.maakBezwaarBrief(bezwaar, BriefType.CLIENT_BEZWAAR_HANDTEKENING, nu.toDate());
+		var nu = currentDateSupplier.getDate();
+		BezwaarBrief brief = briefService.maakBezwaarBrief(bezwaar, BriefType.CLIENT_BEZWAAR_HANDTEKENING, nu);
 		bezwaar.setStatus(AanvraagBriefStatus.BRIEF);
 		bezwaar.getBrieven().add(brief);
-		bezwaar.setStatusDatum(nu.plusMillis(50).toDate());
+		bezwaar.setStatusDatum(DateUtil.plusTijdseenheid(nu, 50, ChronoUnit.MILLIS));
 		bezwaar.setBezwaarAanvraag(brief);
 		hibernateService.saveOrUpdate(bezwaar);
 	}
@@ -317,12 +301,12 @@ public class BezwaarServiceImpl implements BezwaarService
 	{
 
 		LOG.info("Bezwaar: " + BriefType.CLIENT_BEZWAAR_HANDTEKENING.toString() + "nogmaals verstuurd!");
-		DateTime nu = currentDateSupplier.getDateTime();
+		var nu = currentDateSupplier.getDate();
 
-		BezwaarBrief brief = briefService.maakBezwaarBrief(moment, BriefType.CLIENT_BEZWAAR_HANDTEKENING, nu.toDate());
+		BezwaarBrief brief = briefService.maakBezwaarBrief(moment, BriefType.CLIENT_BEZWAAR_HANDTEKENING, nu);
 		moment.setStatus(AanvraagBriefStatus.BRIEF);
 		moment.getBrieven().add(brief);
-		moment.setStatusDatum(nu.plusMillis(50).toDate());
+		moment.setStatusDatum(DateUtil.plusTijdseenheid(nu, 50, ChronoUnit.MILLIS));
 		moment.setBezwaarAanvraag(brief);
 		hibernateService.saveOrUpdate(moment);
 	}
@@ -410,7 +394,7 @@ public class BezwaarServiceImpl implements BezwaarService
 	public boolean bezwaarDocumentenVervangen(UploadDocument nieuwDocument, BezwaarMoment bezwaarMoment, UploadDocument huidigDocument, Account account)
 	{
 		bezwaarMoment.setBezwaarBrief(null);
-		uploadDocumentService.delete(huidigDocument, true);
+		uploadDocumentService.delete(huidigDocument);
 
 		bezwaarMoment.setBezwaarBrief(nieuwDocument);
 		try
@@ -812,173 +796,19 @@ public class BezwaarServiceImpl implements BezwaarService
 		if (Bevolkingsonderzoek.COLON.equals(bezwaar.getBevolkingsonderzoek()))
 		{
 			ColonDossier dossier = client.getColonDossier();
-			bezwaarVerzoekTotVerwijderingColonDossier(dossier);
+			colonDossierBaseService.maakDossierLeeg(dossier);
 		}
 
 		if (Bevolkingsonderzoek.CERVIX.equals(bezwaar.getBevolkingsonderzoek()))
 		{
 			CervixDossier dossier = client.getCervixDossier();
-			bezwaarVerzoekTotVerwijderingCervixDossier(dossier);
+			cervixBaseDossierService.maakDossierLeeg(dossier);
 		}
 
 		if (Bevolkingsonderzoek.MAMMA.equals(bezwaar.getBevolkingsonderzoek()))
 		{
-			mammaBaseDossierService.verwijderMammaDossier(client);
-			verwijderNietLaatsteDefinitieveAfmeldingen(client.getMammaDossier());
-		}
-	}
-
-	private void bezwaarVerzoekTotVerwijderingCervixDossier(CervixDossier dossier)
-	{
-		Client client = dossier.getClient();
-
-		cervixBaseScreeningrondeService.verwijderCervixScreeningRondes(dossier);
-
-		verwijderNietLaatsteDefinitieveAfmeldingen(dossier);
-
-		baseClientContactService.verwijderClientContacten(client, Bevolkingsonderzoek.CERVIX);
-
-		if (dossier.getCisHistorie() != null)
-		{
-			CervixCISHistorie cervixCISHistorie = dossier.getCisHistorie();
-			hibernateService.deleteAll(cervixCISHistorie.getCisHistorieRegels());
-			dossier.setCisHistorie(null);
-
-			hibernateService.delete(cervixCISHistorie);
-		}
-
-		dossier.setInactiefVanaf(null);
-		dossier.setInactiefTotMet(null);
-		CervixBrief vooraankondigingsBrief = dossier.getVooraankondigingsBrief();
-		if (vooraankondigingsBrief != null)
-		{
-			dossier.setVooraankondigingsBrief(null);
-			hibernateService.delete(vooraankondigingsBrief);
-		}
-
-		if (DossierStatus.INACTIEF.equals(dossier.getStatus()) && Boolean.TRUE.equals(dossier.getAangemeld()))
-		{
-			dossier.setStatus(DossierStatus.ACTIEF);
-		}
-		hibernateService.saveOrUpdate(dossier);
-
-		hibernateService.saveOrUpdate(client);
-
-		ProjectClient projectClient = ProjectUtil.getHuidigeProjectClient(client, currentDateSupplier.getDate(), false);
-		if (projectClient != null)
-		{
-			clientService.projectClientInactiveren(projectClient, ProjectInactiefReden.VERWIJDERING_VAN_DOSSIER, null);
-		}
-	}
-
-	private void bezwaarVerzoekTotVerwijderingColonDossier(ColonDossier dossier)
-	{
-		Client client = dossier.getClient();
-
-		if (dossier.getLaatsteScreeningRonde() != null)
-		{
-			colonDossierBaseService.setDatumVolgendeUitnodiging(dossier, ColonUitnodigingsintervalType.VERWIJDERD_DOSSIER);
-		}
-
-		List<ColonScreeningRonde> rondes = dossier.getScreeningRondes();
-		dossier.setLaatsteScreeningRonde(null);
-		dossier.setScreeningRondes(new ArrayList<>());
-		if (isNotEmpty(rondes))
-		{
-			for (ColonScreeningRonde ronde : rondes)
-			{
-				hibernateService.delete(ronde);
-			}
-		}
-
-		verwijderNietLaatsteDefinitieveAfmeldingen(dossier);
-
-		baseClientContactService.verwijderClientContacten(client, Bevolkingsonderzoek.COLON);
-
-		if (isNotEmpty(client.getAfspraken()))
-		{
-			hibernateService.deleteAll(client.getAfspraken());
-			client.setAfspraken(new ArrayList<>());
-		}
-
-		if (!isEmpty(client.getComplicaties()))
-		{
-			for (Complicatie complicatie : client.getComplicaties())
-			{
-				hibernateService.delete(complicatie);
-			}
-		}
-
-		if (dossier.getColonVooraankondiging() != null)
-		{
-			ColonVooraankondiging vooraankondigiging = dossier.getColonVooraankondiging();
-			dossier.setColonVooraankondiging(null);
-			hibernateService.delete(vooraankondigiging);
-		}
-
-		dossier.setInactiveerReden(null);
-		dossier.setInactiefVanaf(null);
-		dossier.setInactiefTotMet(null);
-
-		if (DossierStatus.INACTIEF.equals(dossier.getStatus()) && Boolean.TRUE.equals(dossier.getAangemeld()))
-		{
-			dossier.setStatus(DossierStatus.ACTIEF);
-		}
-
-		hibernateService.saveOrUpdate(dossier);
-
-		hibernateService.saveOrUpdate(client);
-
-		ProjectClient projectClient = ProjectUtil.getHuidigeProjectClient(client, currentDateSupplier.getDate(), false);
-		if (projectClient != null)
-		{
-			clientService.projectClientInactiveren(projectClient, ProjectInactiefReden.VERWIJDERING_VAN_DOSSIER, null);
-		}
-	}
-
-	private <D extends Dossier<?, A>, A extends Afmelding<?, ?, ?>> void verwijderNietLaatsteDefinitieveAfmeldingen(D dossier)
-	{
-
-		for (A afmelding : dossier.getAfmeldingen())
-		{
-
-			if (!afmelding.equals(dossier.getLaatsteAfmelding()) && afmelding.getHeraanmeldDatum() != null)
-			{
-				colonSpecifiekeVerwijderVerwerking(afmelding);
-				if (afmelding.getHandtekeningDocumentAfmelding() != null)
-				{
-					uploadDocumentService.delete(afmelding.getHandtekeningDocumentAfmelding(), true);
-				}
-				if (afmelding.getHandtekeningDocumentHeraanmelding() != null)
-				{
-					uploadDocumentService.delete(afmelding.getHandtekeningDocumentHeraanmelding(), true);
-				}
-				hibernateService.delete(afmelding);
-			}
-		}
-	}
-
-	private <A extends Afmelding<?, ?, ?>> void colonSpecifiekeVerwijderVerwerking(A afmelding)
-	{
-		afmelding = (A) HibernateHelper.deproxy(afmelding);
-		if (afmelding instanceof ColonAfmelding)
-		{
-			ColonAfmelding colonAfmelding = (ColonAfmelding) afmelding;
-
-			if (ColonAfmeldingReden.PROEF_BEVOLKINGSONDERZOEK.equals(colonAfmelding.getReden()))
-			{
-
-				if (clientService.isHandtekeningBriefGebruiktBijMeedereColonAfmeldingen(afmelding.getHandtekeningDocumentAfmelding(), "handtekeningDocumentAfmelding"))
-				{
-					afmelding.setHandtekeningDocumentAfmelding(null);
-					hibernateService.saveOrUpdate(afmelding);
-				}
-				if (clientService.isHandtekeningBriefGebruiktBijMeedereColonAfmeldingen(afmelding.getHandtekeningDocumentHeraanmelding(), "handtekeningDocumentHeraanmelding"))
-				{
-					afmelding.setHandtekeningDocumentHeraanmelding(null);
-					hibernateService.saveOrUpdate(afmelding);
-				}
-			}
+			MammaDossier dossier = client.getMammaDossier();
+			mammaBaseDossierService.maakDossierLeeg(dossier);
 		}
 	}
 

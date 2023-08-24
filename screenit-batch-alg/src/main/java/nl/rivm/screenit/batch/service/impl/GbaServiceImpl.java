@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,7 +32,6 @@ import nl.rivm.screenit.batch.dao.GbaDao;
 import nl.rivm.screenit.batch.jobs.generalis.gba.exception.GbaImportException;
 import nl.rivm.screenit.batch.jobs.generalis.gba.wrappers.GbaValidatieWrapper;
 import nl.rivm.screenit.batch.service.GbaService;
-import nl.rivm.screenit.service.TransgenderService;
 import nl.rivm.screenit.dao.CoordinatenDao;
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;
@@ -55,9 +54,10 @@ import nl.rivm.screenit.model.gba.Land;
 import nl.rivm.screenit.model.gba.Nationaliteit;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.TransgenderService;
 import nl.rivm.screenit.util.AdresUtil;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.gba.vertrouwdverbonden.model.GbaPartnerschap;
 import nl.topicuszorg.gba.vertrouwdverbonden.model.Record;
 import nl.topicuszorg.gba.vertrouwdverbonden.model.Vo107Bericht;
@@ -73,9 +73,6 @@ import nl.topicuszorg.util.postcode.PostcodeFormatter;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -109,12 +106,7 @@ public class GbaServiceImpl implements GbaService
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Autowired
-	private InstellingService instellingService;
-
-	@Autowired
 	private TransgenderService transgenderService;
-
-	private final DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("dd-MM-yyyy");
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
@@ -448,7 +440,7 @@ public class GbaServiceImpl implements GbaService
 
 			if (client.getPersoon().getGeboortedatum() != null)
 			{
-				foutmelding += ", geb. datum : " + dateTimeFormatter.print(new DateTime(client.getPersoon().getGeboortedatum()));
+				foutmelding += ", geb. datum : " + DateUtil.formatShortDate(client.getPersoon().getGeboortedatum());
 				gebDatumAdded = true;
 			}
 		}
@@ -458,7 +450,7 @@ public class GbaServiceImpl implements GbaService
 			foutmelding += ", geb. datum uit bericht: ";
 			if (geboorteDatum != null)
 			{
-				foutmelding += dateTimeFormatter.print(new DateTime(geboorteDatum));
+				foutmelding += DateUtil.formatShortDate(geboorteDatum);
 			}
 			else
 			{

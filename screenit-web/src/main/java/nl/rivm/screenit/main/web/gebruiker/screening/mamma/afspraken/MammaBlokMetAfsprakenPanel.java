@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.afspraken;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -41,13 +41,13 @@ import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.HibernateCheckBoxListContainer;
 
 import org.apache.wicket.AttributeModifier;
-import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public class MammaBlokMetAfsprakenPanel extends GenericPanel<MammaCapaciteitBlok>
 {
@@ -96,6 +96,6 @@ public class MammaBlokMetAfsprakenPanel extends GenericPanel<MammaCapaciteitBlok
 			.sorted(Comparator.comparing(MammaAfspraak::getVanaf)).collect(Collectors.toList());
 		magBulkVerzetten &= !blokType.equals(MammaCapaciteitBlokType.TEHUIS);
 		blok.add(new MammaAfsprakenBlokPanel("afspraken", ModelUtil.listRModel(afspraken), selectedAfspraken, currentDay, magVerzetten, magBulkVerzetten));
-		blok.add(new AttributeModifier("style", "background-color: " + blokType.getBackgroundColor() + "; border-color: " + blokType.getBorderColor()));
+		blok.add(new AttributeModifier("class", " mamma-blok-met-afspraken-" + blokType.name().toLowerCase()));
 	}
 }

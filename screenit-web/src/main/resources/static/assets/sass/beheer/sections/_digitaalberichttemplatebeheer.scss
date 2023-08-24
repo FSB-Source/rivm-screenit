@@ -1,0 +1,18 @@
+@charset "utf-8";
+.digitaal-bericht-template-beheer-mergeveld {
+	.select2-container.digitaal-bericht-dropdown {
+		width: 500px;
+	}
+	.digitaal-bericht-dropdown .select2-container {
+		width: 500px;
+	}
+
+	.select2-container.bericht-subject-container {
+		width: 650px;
+	}
+
+
+	.bericht-subject, .bericht-body {
+		width: 600px;
+	}
+}

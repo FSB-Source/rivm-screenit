@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -62,13 +62,12 @@ public enum Bevolkingsonderzoek
 
 	public static String getAfkortingen(List<Bevolkingsonderzoek> onderzoeken)
 	{
-		sort(onderzoeken);
-		return onderzoeken.stream().map(Bevolkingsonderzoek::getAfkorting).collect(Collectors.joining(", "));
+		return sort(onderzoeken).stream().map(Bevolkingsonderzoek::getAfkorting).collect(Collectors.joining(", "));
 	}
 
-	public static void sort(List<Bevolkingsonderzoek> onderzoeken)
+	public static List<Bevolkingsonderzoek> sort(List<Bevolkingsonderzoek> onderzoeken)
 	{
-		onderzoeken.sort(Comparator.comparing(Bevolkingsonderzoek::getNaam));
+		return onderzoeken.stream().sorted(Comparator.comparing(Bevolkingsonderzoek::getNaam)).collect(Collectors.toList());
 	}
 
 	public static boolean heeftAlleBevolkingsonderzoeken(List<Bevolkingsonderzoek> onderzoeken)

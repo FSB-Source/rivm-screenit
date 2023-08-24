@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -49,7 +49,7 @@ public interface ClientDao
 
 	List<Client> zoekClienten(Client zoekObject);
 
-	List<Client> getClientenOpAdres(BagAdres adres, Integer minmaleLeeftijd, Integer maximaleLeeftijd, int uitnodigingsInterval);
+	List<Client> getClientenOpAdresMetLimiet(BagAdres adres, Integer minmaleLeeftijd, Integer maximaleLeeftijd, int uitnodigingsInterval);
 
 	List<ClientContact> getClientContacten(Client client, long first, long count, String sortProperty, boolean ascending);
 

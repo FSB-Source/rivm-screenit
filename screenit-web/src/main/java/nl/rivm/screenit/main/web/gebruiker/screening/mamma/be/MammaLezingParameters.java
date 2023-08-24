@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,8 +21,11 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+
 import nl.rivm.screenit.model.mamma.enums.MammaAmputatie;
 
+@Getter
 public class MammaLezingParameters
 {
 	private boolean inzien;
@@ -41,6 +44,8 @@ public class MammaLezingParameters
 
 	private MammaAmputatie amputatie;
 
+	private boolean toonTomosyntheseSlicesRadioButtons;
+
 	public static MammaLezingParameters maakAlleenInzien()
 	{
 		MammaLezingParameters lezingParameters = new MammaLezingParameters();
@@ -49,53 +54,34 @@ public class MammaLezingParameters
 		return lezingParameters;
 	}
 
-	public boolean isInzien()
-	{
-		return inzien;
-	}
-
 	public MammaLezingParameters setInzien(boolean inzien)
 	{
 		this.inzien = inzien;
-		return this; 
-	}
-
-	public boolean isVerwijzenRechtsVerplicht()
-	{
-		return verwijzenRechtsVerplicht;
+		return this;
 	}
 
 	public MammaLezingParameters setVerwijzenRechtsVerplicht(boolean verwijzenRechtsVerplicht)
 	{
 		this.verwijzenRechtsVerplicht = verwijzenRechtsVerplicht;
-		return this; 
-	}
-
-	public boolean isVerwijzenLinksVerplicht()
-	{
-		return verwijzenLinksVerplicht;
+		return this;
 	}
 
 	public MammaLezingParameters setVerwijzenLinksVerplicht(boolean verwijzenLinksVerplicht)
 	{
 		this.verwijzenLinksVerplicht = verwijzenLinksVerplicht;
-		return this; 
+		return this;
 	}
 
-	public boolean getVerbergAfrondKnop()
+	public MammaLezingParameters setToonTomosyntheseSlicesRadioButtons(boolean toonTomo)
 	{
-		return verbergAfrondKnop;
+		this.toonTomosyntheseSlicesRadioButtons = toonTomo;
+		return this;
 	}
 
 	public MammaLezingParameters setVerbergAfrondKnop(boolean verbergAfrondKnop)
 	{
 		this.verbergAfrondKnop = verbergAfrondKnop;
-		return this; 
-	}
-
-	public boolean isToonOvernemenKnop()
-	{
-		return toonOvernemenKnop;
+		return this;
 	}
 
 	public MammaLezingParameters setToonOvernemenKnop(boolean toonOvernemenKnop)
@@ -104,31 +90,16 @@ public class MammaLezingParameters
 		return this;
 	}
 
-	public boolean isMetAfbeelding()
-	{
-		return metAfbeelding;
-	}
-
 	public MammaLezingParameters setMetAfbeelding(boolean metAfbeelding)
 	{
 		this.metAfbeelding = metAfbeelding;
 		return this;
 	}
 
-	public MammaAmputatie getAmputatie()
-	{
-		return amputatie;
-	}
-
 	public MammaLezingParameters setAmputatie(MammaAmputatie amputatie)
 	{
 		this.amputatie = amputatie;
 		return this;
-	}
-
-	public boolean isToonBiradsOpmerkingVeld()
-	{
-		return toonBiradsOpmerkingVeld;
 	}
 
 	public MammaLezingParameters setToonBiradsOpmerkingVeld(boolean toonBiradsOpmerkingVeld)

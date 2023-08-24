@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -19,95 +19,54 @@
   =========================LICENSE_END==================================
   -->
 <html xmlns:wicket="http://wicket.apache.org">
-<wicket:head>
-    <link rel="stylesheet" href="assets/font-awesome/css/font-awesome.min.css"/>
-    <style>
-        .bk-afspraken-nav > * {
-            margin-top: 0 !important;
-            margin-bottom: 0 !important;
-            margin-right: 10px;
-            display: inline-block;
-            float: none;
-        }
-
-        .bk-afspraken-nav {
-            display: inline-block;
-        }
-
-        .bk-afspraken-nav-datum {
-            margin-right: -5px;
-        }
-
-        .one-row {
-            display: flex;
-        }
-
-        .totaal-capaciteit {
-            width: 250px;
-        }
-
-        .checkbox-container {
-            flex: 1;
-            margin-left: 28px;
-        }
-
-        .blokkades {
-            background-color: #f7e7e7;
-            border-color: #df9f9f;
-            padding: 6px;
-            border-radius: 6px;
-        }
-    </style>
-</wicket:head>
 <wicket:extend>
     <div class="text-right">
-        <h1 class="pull-left" style="margin-bottom: 5px">Afsprakenkalender - <span wicket:id="dag"></span></h1>
-        <div class="btn-top bk-afspraken-nav" style="margin-bottom: 5px">
-            <button class="btn btn-primary" wicket:id="bulkVerzetten">Bulk verzetten</button>
+		<h1 class="pull-left margin-bottom-5px">Afsprakenkalender - <span wicket:id="dag"></span></h1>
+		<div class="btn-top bk-afspraken-nav margin-bottom-5px">
+			<button class="btn btn-primary" wicket:id="bulkVerzetten">Bulk verzetten</button>
 
-            <select wicket:id="screeningsEenheidDropdown" class="text-left"></select>
+			<select wicket:id="screeningsEenheidDropdown" class="text-left"></select>
 
-            <button class="btn bk-afspraken-nav-datum" wicket:id="prevDay">&lt;</button>
-            <input wicket:id="datum" class="datum bk-afspraken-nav-datum" type="text" value="">
-            <button class="btn bk-afspraken-nav-datum" wicket:id="nextDay">&gt;</button>
-            <a href="javascript:void(0);" class="btn" onclick="$(this).parent().find('.datum').datepicker('show');return false;" title="Datum" tabindex="-1"><i
-                    class="icon-calendar"></i></a>
+			<button class="btn bk-afspraken-nav-datum" wicket:id="prevDay">&lt;</button>
+			<input wicket:id="datum" class="datum bk-afspraken-nav-datum" type="text" value="">
+			<button class="btn bk-afspraken-nav-datum" wicket:id="nextDay">&gt;</button>
+			<a class="btn js-datepicker-show-parent bk-afspraken-datum" title="Datum" tabindex="-1"><i
+					class="icon-calendar"></i></a>
+			<button class="btn" wicket:id="terug">Terug</button>
+		</div>
+	</div>
+	<p>
+	<div class="meta-info-mamma-afspraken-dag-overzicht" wicket:id="metaInfo">
+		<div><span>Standplaats:</span> <span class="font-bold" wicket:id="standplaatsPeriodeTekst"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<span>Blokkade(s): </span> <span class="font-bold" wicket:id="blokkades"></span></div>
+	</div>
+	</p>
+	<div>
+		<form wicket:id="form">
+			<p>
+			<div class="one-row">
+				<div class="span6">
+					<div class="checkbox-container" wicket:id="selectAllCheckboxContainer">
+						<input class="selectAllCheckbox js-select-all-checkbox" type="checkbox">
+						(De)selecteer alle afspraken
+					</div>
+				</div>
+				<div class="span6 text-right totaal-capaciteit blok-header" wicket:id="capaciteitContainer">
+					<div>
+						<wicket:container wicket:id="aantalAfspraken"></wicket:container>
+						afspraken
+					</div>
+					<wicket:container wicket:id="vrijeCapaciteit"></wicket:container>
+					van
+					<wicket:container wicket:id="beschikbareCapaciteit"></wicket:container>
+					vrij
+				</div>
+			</div>
+			</p>
+			<div class="row-fluid" wicket:id="calendar"/>
+		</form>
+	</div>
 
-            <button class="btn" wicket:id="terug">Terug</button>
-        </div>
-    </div>
-    <p>
-    <div style="margin-left:15px; margin-bottom:15px; color: #54026e;" wicket:id="metaInfo">
-        <div><span>Standplaats:</span> <span style="font-weight: bold;" wicket:id="standplaatsPeriodeTekst"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <span>Blokkade(s): </span> <span style="font-weight: bold;" wicket:id="blokkades"></span></div>
-    </div>
-    </p>
-    <div>
-        <form wicket:id="form">
-            <p>
-            <div class="one-row">
-                <div class="span6">
-                    <div class="checkbox-container" wicket:id="selectAllCheckboxContainer">
-                        <input class="selectAllCheckbox" type="checkbox" onchange="$('table input[type=checkbox]').prop('checked', $(this).prop('checked') === true)">
-                        (De)selecteer alle afspraken
-                    </div>
-                </div>
-                <div class="span6 text-right totaal-capaciteit blok-header" wicket:id="capaciteitContainer">
-                    <div>
-                        <wicket:container wicket:id="aantalAfspraken"></wicket:container>
-                        afspraken
-                    </div>
-                    <wicket:container wicket:id="vrijeCapaciteit"></wicket:container>
-                    van
-                    <wicket:container wicket:id="beschikbareCapaciteit"></wicket:container>
-                    vrij
-                </div>
-            </div>
-            </p>
-            <div class="row-fluid" wicket:id="calendar"/>
-        </form>
-    </div>
-
-    <div wicket:id="dialog"/>
+	<div wicket:id="dialog"/>
 </wicket:extend>
 </html>

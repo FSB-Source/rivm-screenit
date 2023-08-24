@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.controller;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -106,16 +106,16 @@ public class AdhocMeekijkverzoekController extends AuthorizedController
 		var lrcb_emailadres = preferenceService.getString(PreferenceKey.MAMMA_MEEKIJKVERZOEK_MAIL_ADRES.name());
 
 		var emailBody = String.format("Beste LRCB,<br />" +
-			"<br />" +
-			"Er staat een nieuw meekijk verzoek gereed op jullie AD HOC meekijk werklijst in ScreenIT.<br />" +
-			"Het betreft onderzoek met volgnummer: %s en reden: %s.<br />" +
-			"Dit is een onderzoek van %s.<br />" +
-			"<br />" +
-			"Login in ScreenIT om beelden te bekijken.<br />" +
-			"<br />" +
-			"Dit is een automatisch gegenereerde email, beantwoorden is niet mogelijk.", adHocVolgNr, reden,
+				"<br />" +
+				"Er staat een nieuw meekijk verzoek gereed op jullie AD HOC meekijk werklijst in ScreenIT.<br />" +
+				"Het betreft onderzoek met volgnummer: %s en reden: %s.<br />" +
+				"Dit is een onderzoek van %s.<br />" +
+				"<br />" +
+				"Login in ScreenIT om beelden te bekijken.<br />" +
+				"<br />" +
+				"Dit is een automatisch gegenereerde email, beantwoorden is niet mogelijk.", adHocVolgNr, reden,
 			afspraak.getStandplaatsPeriode().getScreeningsEenheid().getCode());
-		mailService.queueMail(lrcb_emailadres, EMAIL_ONDERWERP, emailBody, MailPriority.HIGH);
+		mailService.queueMailAanProfessional(lrcb_emailadres, EMAIL_ONDERWERP, emailBody, MailPriority.HIGH);
 
 		return ResponseEntity.ok().build();
 	}

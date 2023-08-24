@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -20,17 +20,17 @@
   -->
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div style="margin-top: 10px">
-        <div wicket:id="standplaatsPerioden1Container">
-            <fieldset>
-                <table class="table table-striped table-bordered table-condensed" wicket:id="standplaatsPerioden">
-                    <tr class="headers">
-                        <th>Standplaatsperiode</th>
-                        <th>Opmerkingen</th>
-                        <th>Drempel</th>
-                        <th>Start</th>
-                        <th>Eind</th>
-                        <th>Blokkades</th>
+    <div class="margin-top-10px">
+		<div wicket:id="standplaatsPerioden1Container">
+			<fieldset>
+				<table class="table table-striped table-bordered table-condensed" wicket:id="standplaatsPerioden">
+					<tr class="headers">
+						<th>Standplaatsperiode</th>
+						<th>Opmerkingen</th>
+						<th>Drempel</th>
+						<th>Start</th>
+						<th>Eind</th>
+						<th>Blokkades</th>
                         <th>Interval</th>
                         <th>Indicatie</th>
                         <th wicket:id="handleHeader1"></th>
@@ -82,7 +82,7 @@
         </div>
     </div>
     <div wicket:id="tooltipContainer">
-        <div wicket:id="tooltip" style="display: none;"></div>
+		<div wicket:id="tooltip" class="display-none"></div>
     </div>    
     <wicket:fragment wicket:id="meldingenFragment">
     	<table class="table table-bordered table-condensed">

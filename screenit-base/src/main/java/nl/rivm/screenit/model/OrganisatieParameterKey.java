@@ -4,7 +4,7 @@ package nl.rivm.screenit.model;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,6 +33,10 @@ public enum OrganisatieParameterKey
 
 	CERVIX_MAX_AANTAL_HERINNERINGEN_ZAS(OrganisatieType.RIVM, Integer.class, 1000, Bevolkingsonderzoek.CERVIX),
 
+	CERVIX_MAX_AANTAL_HERINNERINGEN_ZAS_PU(OrganisatieType.RIVM, Integer.class, 1000, Bevolkingsonderzoek.CERVIX),
+
+	CERVIX_MAX_AANTAL_HERINNERINGEN_ZAS_NON_RESPONDER(OrganisatieType.RIVM, Integer.class, 1000, Bevolkingsonderzoek.CERVIX),
+
 	CERVIX_MAX_AANTAL_HERINNERINGEN_UITSTRIJKJE(OrganisatieType.RIVM, Integer.class, 15000, Bevolkingsonderzoek.CERVIX),
 
 	CERVIX_MAX_AANTAL_HEROVERWEGERS(OrganisatieType.BMHK_LABORATORIUM, Integer.class, 52, Bevolkingsonderzoek.CERVIX),
@@ -43,7 +47,25 @@ public enum OrganisatieParameterKey
 
 	CERVIX_PROJECT_VERLATE_DEELNAME(OrganisatieType.RIVM, String.class, null, Bevolkingsonderzoek.CERVIX),
 
+	CERVIX_MAX_AANTAL_CLIENTEN_OUDE_ZAS(OrganisatieType.RIVM, Integer.class, 25000, Bevolkingsonderzoek.CERVIX),
+
+	CERVIX_PROJECT_OUDE_ZAS(OrganisatieType.RIVM, String.class, null, Bevolkingsonderzoek.CERVIX),
+
 	CERVIX_ORDER_NIEUWE_STIJL(OrganisatieType.BMHK_LABORATORIUM, Boolean.class, null, Bevolkingsonderzoek.CERVIX),
+
+	CERVIX_HPV_ORDER_NIEUW(OrganisatieType.BMHK_LABORATORIUM, Boolean.class, null, Bevolkingsonderzoek.CERVIX),
+
+	CERVIX_HPV_ORDER_HOST(OrganisatieType.BMHK_LABORATORIUM, String.class, null, Bevolkingsonderzoek.CERVIX),
+
+	CERVIX_HPV_ORDER_PORT(OrganisatieType.BMHK_LABORATORIUM, Integer.class, 65535, Bevolkingsonderzoek.CERVIX),
+
+	CERVIX_CYTOLOGIE_ORDER_HOST(OrganisatieType.BMHK_LABORATORIUM, String.class, null, Bevolkingsonderzoek.CERVIX),
+
+	CERVIX_CYTOLOGIE_ORDER_PORT(OrganisatieType.BMHK_LABORATORIUM, Integer.class, 65535, Bevolkingsonderzoek.CERVIX),
+
+	CERVIX_ORU_HOST(OrganisatieType.BMHK_LABORATORIUM, String.class, null, Bevolkingsonderzoek.CERVIX),
+
+	CERVIX_ORU_PORT(OrganisatieType.BMHK_LABORATORIUM, Integer.class, 65535, Bevolkingsonderzoek.CERVIX),
 
 	MAX_MERGED_BRIEVEN_PDF_SIZE_MB(OrganisatieType.SCREENINGSORGANISATIE, Integer.class, 999, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.MAMMA),
 

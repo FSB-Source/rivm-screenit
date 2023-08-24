@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.controleuitslag.controlestep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,7 +28,7 @@ import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.InstellingService;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
@@ -46,14 +46,14 @@ public class ColonControleMissendeUitslagenReader extends BaseScrollableResultRe
 {
 	private final ICurrentDateSupplier currentDateSupplier;
 
-	private final InstellingService instellingService;
+	private final OrganisatieParameterService organisatieParameterService;
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
 		try
 		{
-			var signaleringsTermijn = instellingService.getOrganisatieParameter(null, OrganisatieParameterKey.COLON_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN, 30);
+			var signaleringsTermijn = organisatieParameterService.getOrganisatieParameter(null, OrganisatieParameterKey.COLON_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN, 30);
 
 			var criteria = session.createCriteria(IFOBTTest.class, "ifobt");
 			var vandaag = currentDateSupplier.getLocalDate();

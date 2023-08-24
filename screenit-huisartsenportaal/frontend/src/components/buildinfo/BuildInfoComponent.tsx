@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -18,9 +18,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
+import React, {useEffect} from "react"
 import styles from "./BuildInfoComponent.module.scss"
 import {useAppSelector, useAppThunkDispatch} from "../../index"
-import {useEffect} from "react"
 import {fetchBuildInfo} from "../../api/BuildInfoThunkAction"
 import {formatDateTime} from "../../util/DateUtil"
 

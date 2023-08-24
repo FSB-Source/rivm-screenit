@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -122,12 +122,12 @@ class CervixBepaalVervolgLabproces
 				if (context.huidigeMonster.equals(context.uitstrijkjeVervolgonderzoekUitslag))
 				{
 					vervolg.setVervolgTekst(CervixVervolgTekst.UITSTRIJKJE_CYTOLOGIE_UITSLAG_BEWAAR);
-					bepaalGevolgenLabproces.bepaalGevolgenUitstijkjeVervolgonderzoekUitslag();
+					bepaalGevolgenLabproces.bepaalGevolgenUitstrijkjeVervolgonderzoekUitslag();
 				}
 				else
 				{
 					vervolg.setVervolgTekst(CervixVervolgTekst.UITSTRIJKJE_REEDS_CYTOLOGIE_UITSLAG_VERNIETIG);
-					bepaalGevolgenLabproces.bepaalGevolgenUitstijkjeReedsVervolgonderzoekUitslag();
+					bepaalGevolgenLabproces.bepaalGevolgenUitstrijkjeReedsVervolgonderzoekUitslag();
 				}
 			}
 			else
@@ -144,7 +144,7 @@ class CervixBepaalVervolgLabproces
 					if (context.huidigUitstrijkje.getCytologieVerslag().getCytologieUitslag() == CervixCytologieUitslag.PAP0)
 					{
 						vervolg.setVervolgTekst(CervixVervolgTekst.UITSTRIJKJE_CYTOLOGIE_ONBEOORDEELBAAR_VERNIETIG);
-						bepaalGevolgenLabproces.bepaalGevolgenUitstijkjeVervolgonderzoekOnbeoordeelbaar();
+						bepaalGevolgenLabproces.bepaalGevolgenUitstrijkjeVervolgonderzoekOnbeoordeelbaar();
 					}
 					else
 					{
@@ -153,7 +153,7 @@ class CervixBepaalVervolgLabproces
 					break;
 				case NIET_ANALYSEERBAAR:
 					vervolg.setVervolgTekst(CervixVervolgTekst.UITSTRIJKJE_NIET_ANALYSEERBAAR);
-					bepaalGevolgenLabproces.bepaalGevolgenUitstijkjeInVervolgonderzoekNietAnalyseerbaar();
+					bepaalGevolgenLabproces.bepaalGevolgenUitstrijkjeInVervolgonderzoekNietAnalyseerbaar();
 					break;
 				default:
 					throw new IllegalStateException();
@@ -175,12 +175,12 @@ class CervixBepaalVervolgLabproces
 				if (context.huidigeMonster.equals(context.uitstrijkjeCytologieUitslag))
 				{
 					vervolg.setVervolgTekst(CervixVervolgTekst.UITSTRIJKJE_CYTOLOGIE_UITSLAG_BEWAAR);
-					bepaalGevolgenLabproces.bepaalGevolgenUitstijkjeCytologieUitslag();
+					bepaalGevolgenLabproces.bepaalGevolgenUitstrijkjeCytologieUitslag();
 				}
 				else
 				{
 					vervolg.setVervolgTekst(CervixVervolgTekst.UITSTRIJKJE_REEDS_CYTOLOGIE_UITSLAG_VERNIETIG);
-					bepaalGevolgenLabproces.bepaalGevolgenUitstijkjeReedsCytologieUitslag();
+					bepaalGevolgenLabproces.bepaalGevolgenUitstrijkjeReedsCytologieUitslag();
 				}
 			}
 			else

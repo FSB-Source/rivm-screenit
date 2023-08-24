@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.overeenkomsten;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -123,9 +123,17 @@ public abstract class OvereenkomstEditPanel extends Panel
 						fileUpload = fileUploadModel.getObject().get(0);
 					}
 
-					overeenkomstService.saveOrUpdateOvereenkomst(overeenkomst, fileUpload, ScreenitSession.get().getLoggedInAccount());
+					try
+					{
+						overeenkomstService.saveOrUpdateOvereenkomst(overeenkomst, ScreenitSession.get().fileUploadToUploadDocument(fileUpload),
+							ScreenitSession.get().getLoggedInAccount());
+						info(getString("message.succes"));
+					}
+					catch (Exception e)
+					{
+						error("Fout bij verwerken van geuploaded bestand");
+					}
 					OvereenkomstEditPanel.this.onSubmit(target);
-					info(getString("message.succes"));
 				}
 			}
 

@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,19 +21,18 @@ package nl.rivm.screenit.service.colon;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.util.Set;
 
 import nl.rivm.screenit.model.BriefDefinitie;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
-
-import org.joda.time.DateTime;
 
 public interface ColonUitnodigingService
 {
 
 	BriefDefinitie getBriefType(ColonUitnodiging colonUitnodiging);
 
-	DateTime getGeprognotiseerdeIntakeDatum(boolean vooraankondigen);
+	LocalDate getGeprognotiseerdeIntakeDatum(boolean vooraankondigen);
 
 	ColonUitnodiging cloneUitnodiging(ColonUitnodiging uitnodiging, boolean checkAlleenUitslagGecommuniceerd);
 

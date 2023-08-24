@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -23,57 +23,72 @@
     <form wicket:id="uploadForm">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h3 wicket:id="title">Afronden definitieve afmelding</h3>
+            <h3 wicket:id="title">Afronden definitieve/tijdelijke afmelding</h3>
         </div>
         <div class="modal-body form-horizontal">
             <fieldset class="hero-unit">
-                <p>Om de definitieve afmelding te kunnen afronden moet eerst het antwoordformulier <strong>MET een
-                    handtekening van de cli&euml;nt</strong> worden geupload.</p>
+				<p>Om de definitieve/tijdelijke afmelding te kunnen afronden moet eerst het antwoordformulier <strong>MET een
+					handtekening van de cli&euml;nt</strong> worden geupload.</p>
             </fieldset>
             <div class="control-group  span7">
                 <div class="row">
                     <div class="control-group">
                         <label class="control-label">Aanvraag gedaan via</label>
                         <div class="controls">
-                            <label class="control-label" style="font-weight: bold; width: 300px"
-                                   wicket:id="wijzeAfmelding">Infolijn</label>
-                        </div>
+							<label class="control-label font-bold label-client"
+								   wicket:id="wijzeAfmelding">Infolijn</label>
+						</div>
                     </div>
                 </div>
                 <div class="row">
                     <div class="control-group">
                         <label class="control-label">Afmeldformulier verstuurd</label>
                         <div class="controls">
-                            <ul class="lijst" wicket:id="brievenLijst">
-                                <li><label style="font-weight: bold;" wicket:id="brief">Geen gegevens beschikbaar
-                                    stellen voor wetenschappelijk onderzoek = Actief</label></li>
-                            </ul>
+							<ul class="lijst" wicket:id="brievenLijst">
+								<li><label class="font-bold" wicket:id="brief">Geen gegevens beschikbaar
+									stellen voor wetenschappelijk onderzoek = Actief</label></li>
+							</ul>
                         </div>
                     </div>
                 </div>
                 <div wicket:id="formulierAanwezigContainer">
-                    <div class="row">
-                        <div class="control-group">
-                            <label class="control-label">Bestand selecteren
-                            <i class="icon-asterisk icon-purple"></i></label>
-                            <div class="controls">
-                                <input type="file" wicket:id="fileUpload">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="control-group">
-                            <label class="control-label">Reden afmelding
-                            <i class="icon-asterisk icon-purple"></i></label>
-                            <div class="controls" wicket:id="reden">
-                                <label class="radio"> <input type="radio" name="reden_afmelden" id=""> Geen tijd /
-                                    zin</label>
-                                <label class="radio"> <input type="radio" name="reden_afmelden" id=""> Medische
-                                    reden</label>
-                                <label class="radio"> <input type="radio" name="reden_afmelden" id=""> Anders</label>
-                            </div>
-                        </div>
-                    </div>
+					<div class="row">
+						<div class="control-group">
+							<label class="control-label">Bestand selecteren
+								<i class="icon-asterisk icon-purple"></i></label>
+							<div class="controls">
+								<input type="file" wicket:id="fileUpload">
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="control-group" wicket:id="typeContainer">
+							<label class="control-label">Type afmelding
+								<i class="icon-asterisk icon-purple"></i></label>
+							<div class="controls" wicket:id="type">
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="control-group-left">
+							<label class="control-label">Reden afmelding
+								<i class="icon-asterisk icon-purple"></i></label>
+							<div class="controls" wicket:id="reden">
+								<label class="radio"> <input type="radio" name="reden_afmelden" id=""> Geen tijd /
+									zin</label>
+								<label class="radio"> <input type="radio" name="reden_afmelden" id=""> Medische
+									reden</label>
+								<label class="radio"> <input type="radio" name="reden_afmelden" id=""> Anders</label>
+							</div>
+						</div>
+						<div class="control-group" wicket:id="tijdelijkAfmeldenTotJaartalContainer">
+							<label class="control-label">Weer uitgenodigd in kalenderjaar:
+								<i class="icon-asterisk icon-purple"></i>
+							</label>
+							<div class="controls no-overflow" wicket:id="tijdelijkAfmeldenTotJaartal">
+							</div>
+						</div>
+					</div>
                 </div>
             </div>
         </div>
@@ -83,7 +98,7 @@
             <a class="btn left" wicket:id="doorvoeren">Brief aanmaken herstellen <span class="muted">*</span></a>
             <a class="btn left" wicket:id="geenHandtekening">Geen handtekening?</a>
             <a class="btn" data-dismiss="modal">Annuleren</a>
-            <a href="javascript:void(0);" class="btn btn-primary" wicket:id="doorgaan">Afmelding afronden</a>
+            <a  class="btn btn-primary" wicket:id="doorgaan">Afmelding afronden</a>
             <p class="muted">* geldt voor de laatste brief</p>
         </div>
     </form>

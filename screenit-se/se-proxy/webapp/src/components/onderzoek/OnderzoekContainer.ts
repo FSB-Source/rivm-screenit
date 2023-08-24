@@ -8,6 +8,7 @@ import type {Amputatie, Onderzoek} from "../../datatypes/Onderzoek"
 import {RootState, store} from "../../Store"
 import {showErrorToast} from "../../util/ToastUtil"
 import type {AnnotatieAfbeelding} from "../../datatypes/AnnotatieAfbeelding"
+import {MAMMOGRAFIE, OnderzoekType} from "../../datatypes/OnderzoekType"
 
 const mapStateToProps = (state: RootState): OnderzoekViewProps => {
 	const client = getMandatory(state.clientenById, state.navigation.clientId)
@@ -23,7 +24,7 @@ const mapStateToProps = (state: RootState): OnderzoekViewProps => {
 	}
 }
 
-export const maakWerklijstItem = (afspraak: Afspraak, client: Client, aeTitle: string, medewerkercode: string): ClientWerklijstItem => {
+export const maakWerklijstItem = (afspraak: Afspraak, client: Client, aeTitle: string, medewerkercode: string, onderzoekType: OnderzoekType): ClientWerklijstItem => {
 	return {
 		bsn: client.bsn,
 		uitnodigingsNr: afspraak.uitnodigingsNr,
@@ -35,6 +36,7 @@ export const maakWerklijstItem = (afspraak: Afspraak, client: Client, aeTitle: s
 		geslacht: client.geslacht,
 		aeTitle,
 		medewerkercode: medewerkercode,
+		onderzoekscode: MAMMOGRAFIE === onderzoekType ? "SCREEN" : "SCREENDBT",
 	}
 }
 

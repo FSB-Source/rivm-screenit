@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.route;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -73,6 +73,9 @@ import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxButton;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
@@ -84,6 +87,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.validator.RangeValidator;
+import org.wicketstuff.wiquery.core.javascript.JsStatement;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
 import com.google.common.collect.Range;
@@ -137,7 +141,22 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 
 	private WebMarkupContainer minderValideUitwijkStandplaatsContainer;
 
-	public MammaStandplaatsPeriodeEditPanel(String id, IModel<PlanningStandplaatsPeriodeDto> model, PlanningStandplaatsPeriodeDto volgendeStandplaatsPeriode,
+	@Override
+	public void renderHead(IHeaderResponse response)
+	{
+		super.renderHead(response);
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/voorspellingsgrafiek/util.js"));
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/voorspellingsgrafiek/data.js"));
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/voorspellingsgrafiek/rij.js"));
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/voorspellingsgrafiek/matrix.js"));
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/voorspellingsgrafiek/voorspellingsgrafiek.js"));
+
+		JsStatement jsStatement = new JsStatement();
+		jsStatement.append("deVoorspellingsgrafiekenDeelnamekans = new VoorspellingsgrafiekenDeelnamekans();");
+		response.render(OnDomReadyHeaderItem.forScript(jsStatement.render()));
+	}
+
+	protected MammaStandplaatsPeriodeEditPanel(String id, IModel<PlanningStandplaatsPeriodeDto> model, PlanningStandplaatsPeriodeDto volgendeStandplaatsPeriode,
 		IModel<MammaScreeningsEenheid> screeningsEenheidModel, boolean magBeginDatumWijzigen, boolean magEindDatumWijzigen)
 	{
 		super(id, model);
@@ -229,13 +248,13 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 
 		achtervangStandplaatsPeriodeDropdown = new ScreenitDropdown<>("achtervangStandplaatsId",
 			actieveStandplaatsen, new ChoiceRenderer<>()
+		{
+			@Override
+			public Object getDisplayValue(Long object)
 			{
-				@Override
-				public Object getDisplayValue(Long object)
-				{
-					return hibernateService.load(MammaStandplaats.class, object).getNaam();
-				}
-			});
+				return hibernateService.load(MammaStandplaats.class, object).getNaam();
+			}
+		});
 		achtervangStandplaatsPeriodeDropdown.add(new OnChangeAjaxBehavior()
 		{
 			@Override
@@ -274,13 +293,13 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 
 		minderValideUitwijkStandplaatsDropdown = new ScreenitDropdown<>("minderValideUitwijkStandplaatsId",
 			actieveStandplaatsen, new ChoiceRenderer<>()
+		{
+			@Override
+			public Object getDisplayValue(Long object)
 			{
-				@Override
-				public Object getDisplayValue(Long object)
-				{
-					return hibernateService.load(MammaStandplaats.class, object).getNaam();
-				}
-			});
+				return hibernateService.load(MammaStandplaats.class, object).getNaam();
+			}
+		});
 
 		minderValideUitwijkStandplaatsDropdown.add(new OnChangeAjaxBehavior()
 		{
@@ -371,26 +390,25 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 			standplaatsRondeUitnodigenRapportage = standplaatsPeriodeService.getStandplaatsRondeUitnodigenRapportage(standplaatsPeriode.getStandplaatsRonde());
 		}
 
-		if (standplaatsRondeUitnodigenRapportage != null)
+		if (standplaatsRondeUitnodigenRapportage != null && standplaatsRondeUitnodigenRapportage.getStatus() != MammaStandplaatsRondeRapportageStatus.ALLEEN_UITSTEL_UITNODIGINGEN)
 		{
 			nietUitgenodigd.setVisible(false);
 
 			uitnodigenOverzichtContainer.setDefaultModel(ModelUtil.csModel(standplaatsRondeUitnodigenRapportage));
-			boolean uitnodigenFout = MammaStandplaatsRondeRapportageStatus.FOUT.equals(standplaatsRondeUitnodigenRapportage.getStatus());
-			uitnodigenOverzichtContainer.add(new Label("totaalTotaal", uitnodigenFout ? "" : standplaatsRondeUitnodigenRapportage.getTotaalTotaal()));
-			uitnodigenOverzichtContainer.add(new Label("totaalVervolgRonde", uitnodigenFout ? "" : standplaatsRondeUitnodigenRapportage.getTotaalVervolgRonde()));
-			uitnodigenOverzichtContainer.add(new Label("totaalEersteRonde", uitnodigenFout ? "" : standplaatsRondeUitnodigenRapportage.getTotaalEersteRonde()));
-			uitnodigenOverzichtContainer.add(new Label("totaalDubbeleTijd", uitnodigenFout ? "" : standplaatsRondeUitnodigenRapportage.getTotaalDubbeleTijd()));
-			uitnodigenOverzichtContainer.add(new Label("totaalMinderValide", uitnodigenFout ? "" : standplaatsRondeUitnodigenRapportage.getTotaalMinderValide()));
-			uitnodigenOverzichtContainer.add(new Label("totaalTehuis", uitnodigenFout ? "" : standplaatsRondeUitnodigenRapportage.getTotaalTehuis()));
-			uitnodigenOverzichtContainer.add(new Label("totaalSuspect", uitnodigenFout ? "" : standplaatsRondeUitnodigenRapportage.getTotaalSuspect()));
-			uitnodigenOverzichtContainer.add(new Label("uitTeNodigenTotaal", uitnodigenFout ? "" : standplaatsRondeUitnodigenRapportage.getUitTeNodigenTotaal()));
-			uitnodigenOverzichtContainer.add(new Label("uitTeNodigenVervolgRonde", uitnodigenFout ? "" : standplaatsRondeUitnodigenRapportage.getUitTeNodigenVervolgRonde()));
-			uitnodigenOverzichtContainer.add(new Label("uitTeNodigenEersteRonde", uitnodigenFout ? "" : standplaatsRondeUitnodigenRapportage.getUitTeNodigenEersteRonde()));
-			uitnodigenOverzichtContainer.add(new Label("uitTeNodigenDubbeleTijd", uitnodigenFout ? "" : standplaatsRondeUitnodigenRapportage.getUitTeNodigenDubbeleTijd()));
-			uitnodigenOverzichtContainer.add(new Label("uitTeNodigenMinderValide", uitnodigenFout ? "" : standplaatsRondeUitnodigenRapportage.getUitTeNodigenMinderValide()));
-			uitnodigenOverzichtContainer.add(new Label("uitTeNodigenTehuis", uitnodigenFout ? "" : standplaatsRondeUitnodigenRapportage.getUitTeNodigenTehuis()));
-			uitnodigenOverzichtContainer.add(new Label("uitTeNodigenSuspect", uitnodigenFout ? "" : standplaatsRondeUitnodigenRapportage.getUitTeNodigenSuspect()));
+			uitnodigenOverzichtContainer.add(new Label("totaalTotaal"));
+			uitnodigenOverzichtContainer.add(new Label("totaalVervolgRonde"));
+			uitnodigenOverzichtContainer.add(new Label("totaalEersteRonde"));
+			uitnodigenOverzichtContainer.add(new Label("totaalDubbeleTijd"));
+			uitnodigenOverzichtContainer.add(new Label("totaalMinderValide"));
+			uitnodigenOverzichtContainer.add(new Label("totaalTehuis"));
+			uitnodigenOverzichtContainer.add(new Label("totaalSuspect"));
+			uitnodigenOverzichtContainer.add(new Label("uitTeNodigenTotaal"));
+			uitnodigenOverzichtContainer.add(new Label("uitTeNodigenVervolgRonde"));
+			uitnodigenOverzichtContainer.add(new Label("uitTeNodigenEersteRonde"));
+			uitnodigenOverzichtContainer.add(new Label("uitTeNodigenDubbeleTijd"));
+			uitnodigenOverzichtContainer.add(new Label("uitTeNodigenMinderValide"));
+			uitnodigenOverzichtContainer.add(new Label("uitTeNodigenTehuis"));
+			uitnodigenOverzichtContainer.add(new Label("uitTeNodigenSuspect"));
 		}
 		else
 		{
@@ -558,9 +576,9 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 
 			if (initieleTotEnMet != null
 				&& (vrijgegevenTotEnMet != null
-					&& !MammaPlanningUtil.datumIsMeerDanVijfWerkdagenVoorDatum(vrijgegevenTotEnMet, initieleTotEnMet)
-					|| uitnodigenTotEnMet != null
-						&& !MammaPlanningUtil.datumIsMeerDanVijfWerkdagenVoorDatum(uitnodigenTotEnMet, initieleTotEnMet)))
+				&& !MammaPlanningUtil.datumIsMeerDanVijfWerkdagenVoorDatum(vrijgegevenTotEnMet, initieleTotEnMet)
+				|| uitnodigenTotEnMet != null
+				&& !MammaPlanningUtil.datumIsMeerDanVijfWerkdagenVoorDatum(uitnodigenTotEnMet, initieleTotEnMet)))
 			{
 				standplaatsPeriodeDto.totEnMet = initieleTotEnMet;
 				error(

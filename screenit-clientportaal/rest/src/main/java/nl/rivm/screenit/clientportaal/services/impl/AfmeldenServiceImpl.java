@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.services.impl;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,6 +36,7 @@ import nl.rivm.screenit.model.Afmelding;
 import nl.rivm.screenit.model.AfmeldingType;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Dossier;
+import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixAfmelding;
 import nl.rivm.screenit.model.cervix.enums.CervixAfmeldingReden;
 import nl.rivm.screenit.model.colon.ColonAfmelding;
@@ -44,6 +45,8 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.mamma.MammaAfmelding;
 import nl.rivm.screenit.model.mamma.enums.MammaAfmeldingReden;
 import nl.rivm.screenit.service.ClientContactService;
+import nl.rivm.screenit.service.colon.ColonTijdelijkAfmeldenJaartallenService;
+import nl.rivm.screenit.util.AfmeldingUtil;
 import nl.rivm.screenit.util.EnumStringUtil;
 
 import org.springframework.stereotype.Service;
@@ -57,12 +60,16 @@ public class AfmeldenServiceImpl implements AfmeldenService
 {
 	private final ClientContactService clientContactService;
 
+	private final ColonTijdelijkAfmeldenJaartallenService tijdelijkAfmeldenJaartallenService;
+
 	@Override
 	public AfmeldOptiesDto getAfmeldOpties(Client client, Bevolkingsonderzoek bvo)
 	{
 		List<AfmeldingType> afmeldOpties = new ArrayList<>();
 		List<String> afmeldRedenenEenmalig = new ArrayList<>();
+		List<String> afmeldRedenenTijdelijk = new ArrayList<>();
 		List<String> afmeldRedenenDefinitief = new ArrayList<>();
+		List<Integer> mogelijkeAfmeldJaren = new ArrayList<>();
 		boolean heeftOpenIntakeAfspraak = false;
 
 		switch (bvo)
@@ -79,7 +86,9 @@ public class AfmeldenServiceImpl implements AfmeldenService
 				.collect(Collectors.toList());
 
 			gefilterdeColonAfmeldingRedenen.forEach(afmeldingReden -> afmeldRedenenEenmalig.add(EnumStringUtil.getPropertyString(afmeldingReden)));
+			gefilterdeColonAfmeldingRedenen.forEach(afmeldingReden -> afmeldRedenenTijdelijk.add(EnumStringUtil.getPropertyString(afmeldingReden)));
 			gefilterdeColonAfmeldingRedenen.forEach(afmeldingReden -> afmeldRedenenDefinitief.add(EnumStringUtil.getPropertyString(afmeldingReden)));
+			mogelijkeAfmeldJaren = tijdelijkAfmeldenJaartallenService.bepaalMogelijkeAfmeldJaren(client);
 
 			heeftOpenIntakeAfspraak = clientContactService.heeftOpenIntakeAfspraak(client);
 			break;
@@ -89,7 +98,7 @@ public class AfmeldenServiceImpl implements AfmeldenService
 			MammaAfmeldingReden.definitieveRedenen().forEach(afmeldingReden -> afmeldRedenenDefinitief.add(EnumStringUtil.getPropertyString(afmeldingReden)));
 			break;
 		}
-		return new AfmeldOptiesDto(afmeldOpties, afmeldRedenenEenmalig, afmeldRedenenDefinitief, heeftOpenIntakeAfspraak);
+		return new AfmeldOptiesDto(afmeldOpties, afmeldRedenenEenmalig, afmeldRedenenTijdelijk, afmeldRedenenDefinitief, mogelijkeAfmeldJaren, heeftOpenIntakeAfspraak);
 	}
 
 	@Override
@@ -120,7 +129,7 @@ public class AfmeldenServiceImpl implements AfmeldenService
 	@Override
 	public ColonAfmelding valideerEnGetColonAfmelding(AfmeldingDto<ColonAfmeldingReden> afmeldingDto, Client client)
 	{
-		if (afmeldingDto.getAfmeldReden() == null || afmeldingDto.getAfmeldType() == null)
+		if (afmeldingDto.getAfmeldType() == null)
 		{
 			throw new IllegalStateException("Niet alle verplichte velden zijn gevuld");
 		}
@@ -128,25 +137,51 @@ public class AfmeldenServiceImpl implements AfmeldenService
 		{
 			throw new IllegalStateException("Afmeldtype " + afmeldingDto.getAfmeldType().name() + " is ongeldig");
 		}
+		else if (AfmeldingType.TIJDELIJK.equals(afmeldingDto.getAfmeldType()) && afmeldingDto.getAfmeldenTotJaartal() == null)
+		{
+			throw new IllegalStateException("Tijdelijke afmelding zonder jaartal tot wanneer er afgemeld moet worden!");
+		}
 
 		ColonAfmelding colonAfmelding = vulAfmelding(afmeldingDto, new ColonAfmelding(), client.getColonDossier());
 
-		colonAfmelding.setReden(afmeldingDto.getAfmeldReden());
+		if (afmeldingDto.getAfmeldenTotJaartal() != null)
+		{
+			colonAfmelding.setTijdelijkAfmeldenTotJaartal(afmeldingDto.getAfmeldenTotJaartal());
+		}
 
 		return colonAfmelding;
 	}
 
-	private <D extends Dossier<?, AF>, AF extends Afmelding<?, D, ?>> AF vulAfmelding(AfmeldingDto<?> afmeldingDto, AF afmelding, D dossier)
+	private <S extends ScreeningRonde<D, ?, A, ?>, D extends Dossier<S, A>, A extends Afmelding<S, D, ?>> A vulAfmelding(AfmeldingDto<?> afmeldingDto, A afmelding, D dossier)
 	{
-		AF laatsteAfmelding = dossier.getLaatsteAfmelding();
-		if (laatsteAfmelding != null && laatsteAfmelding.getAfmeldingStatus() == AanvraagBriefStatus.BRIEF)
+		var laatsteAfmelding = dossier.getLaatsteAfmelding();
+		if (AfmeldingUtil.isAangevraagdeDefinitieveAfmelding(laatsteAfmelding))
 		{
 			afmelding = laatsteAfmelding;
 		}
 		else
 		{
-			afmelding.setType(afmeldingDto.getAfmeldType());
+			afmelding = haalTijdelijkeAfmeldingAanvraagUitLaatsteRonde(afmelding, dossier);
+		}
+		if (afmelding.getId() == null)
+		{
 			afmelding.setAfmeldingStatus(AanvraagBriefStatus.BRIEF);
+		}
+		afmelding.setType(afmeldingDto.getAfmeldType());
+		return afmelding;
+	}
+
+	private static <S extends ScreeningRonde<D, ?, A, ?>, D extends Dossier<S, A>, A extends Afmelding<S, D, ?>> A haalTijdelijkeAfmeldingAanvraagUitLaatsteRonde(A afmelding,
+		D dossier)
+	{
+		var laatsteScreeningRonde = dossier.getLaatsteScreeningRonde();
+		if (laatsteScreeningRonde != null)
+		{
+			A laatsteAfmelding = laatsteScreeningRonde.getLaatsteAfmelding();
+			if (AfmeldingUtil.isAangevraagdeTijdelijkeAfmelding(laatsteAfmelding))
+			{
+				afmelding = laatsteAfmelding;
+			}
 		}
 		return afmelding;
 	}

@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.model.colon;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,10 +24,13 @@ package nl.rivm.screenit.model.colon;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class CapaciteitsPercWijziging implements Serializable
 {
-
-	private static final long serialVersionUID = 1L;
 
 	private Long ilUgId;
 
@@ -56,116 +58,6 @@ public class CapaciteitsPercWijziging implements Serializable
 
 	private Integer nieuwAdhPer;
 
-	public Long getIlUgId()
-	{
-		return ilUgId;
-	}
-
-	public void setIlUgId(Long ilUgId)
-	{
-		this.ilUgId = ilUgId;
-	}
-
-	public Long getIlId()
-	{
-		return ilId;
-	}
-
-	public void setIlId(Long ilId)
-	{
-		this.ilId = ilId;
-	}
-
-	public String getIntakelocatie()
-	{
-		return intakelocatie;
-	}
-
-	public void setIntakelocatie(String intakelocatie)
-	{
-		this.intakelocatie = intakelocatie;
-	}
-
-	public Long getUgId()
-	{
-		return ugId;
-	}
-
-	public void setUgId(Long ugId)
-	{
-		this.ugId = ugId;
-	}
-
-	public String getUitnodigingsgebied()
-	{
-		return uitnodigingsgebied;
-	}
-
-	public void setUitnodigingsgebied(String uitnodigingsgebied)
-	{
-		this.uitnodigingsgebied = uitnodigingsgebied;
-	}
-
-	public Integer getOudCapPer()
-	{
-		return oudCapPer;
-	}
-
-	public void setOudCapPer(Integer oudCapPer)
-	{
-		this.oudCapPer = oudCapPer;
-	}
-
-	public BigDecimal getOudBerekendeIntakes()
-	{
-		return oudBerekendeIntakes;
-	}
-
-	public void setOudBerekendeIntakes(BigDecimal oudBerekendeIntakes)
-	{
-		this.oudBerekendeIntakes = oudBerekendeIntakes;
-	}
-
-	public BigDecimal getOudIntakesProg()
-	{
-		return oudIntakesProg;
-	}
-
-	public void setOudIntakesProg(BigDecimal oudIntakesProg)
-	{
-		this.oudIntakesProg = oudIntakesProg;
-	}
-
-	public Integer getNieuwCapPer()
-	{
-		return nieuwCapPer;
-	}
-
-	public void setNieuwCapPer(Integer nieuwCapPer)
-	{
-		this.nieuwCapPer = nieuwCapPer;
-	}
-
-	public BigDecimal getNieuwBerekendeIntakes()
-	{
-		return nieuwBerekendeIntakes;
-	}
-
-	public void setNieuwBerekendeIntakes(BigDecimal nieuwBerekendeIntakes)
-	{
-		this.nieuwBerekendeIntakes = nieuwBerekendeIntakes;
-	}
-
-	public BigDecimal getNieuwIntakesProg()
-	{
-		return nieuwIntakesProg;
-	}
-
-	public void setNieuwIntakesProg(BigDecimal nieuwIntakesProg)
-	{
-		this.nieuwIntakesProg = nieuwIntakesProg;
-	}
-
 	public BigDecimal getVerschilOud()
 	{
 		if (oudIntakesProg != null)
@@ -182,26 +74,6 @@ public class CapaciteitsPercWijziging implements Serializable
 			return nieuwIntakesProg.subtract(nieuwBerekendeIntakes);
 		}
 		return null;
-	}
-
-	public Integer getOudAdhPer()
-	{
-		return oudAdhPer;
-	}
-
-	public void setOudAdhPer(Integer oudAdhPer)
-	{
-		this.oudAdhPer = oudAdhPer;
-	}
-
-	public Integer getNieuwAdhPer()
-	{
-		return nieuwAdhPer;
-	}
-
-	public void setNieuwAdhPer(Integer nieuwAdhPer)
-	{
-		this.nieuwAdhPer = nieuwAdhPer;
 	}
 
 	@Override

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.technischbeheer;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,43 +21,33 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.technischbeheer;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Collections;
 import java.util.List;
 
 import nl.rivm.screenit.main.model.Parameterisatie;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
-import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.EditOrganisatieParametersPanel;
+import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.EditOrganisatieParametersHorizontalPanel;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie.ParameterisatiePropertyModel;
-import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
-import nl.rivm.screenit.service.InstellingService;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
-import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.apache.wicket.validation.IValidator;
-import org.apache.wicket.validation.ValidationError;
 import org.apache.wicket.validation.validator.RangeValidator;
-import org.springframework.scheduling.support.CronSequenceGenerator;
 
 public class TechnischeParametersPanel extends BaseTechnischBeheerParametersPanel
 {
 	private static final long serialVersionUID = 1L;
 
 	@SpringBean
-	private InstellingService instellingService;
+	private OrganisatieParameterService organisatieParameterService;
 
 	public TechnischeParametersPanel(String id, IModel<Parameterisatie> model)
 	{
@@ -69,44 +59,9 @@ public class TechnischeParametersPanel extends BaseTechnischBeheerParametersPane
 		sosParameters(magAanpassen);
 	}
 
-	private void bmhkLabParameters(boolean magAanpassen)
-	{
-		List<BMHKLaboratorium> actieveLabs = instellingService.getActieveInstellingen(BMHKLaboratorium.class);
-		Form<?> labsForm = new Form<>("labsForm");
-
-		ListView<BMHKLaboratorium> labs = new ListView<BMHKLaboratorium>("labs", ModelUtil.listRModel(actieveLabs, false))
-		{
-			@Override
-			protected void populateItem(ListItem<BMHKLaboratorium> item)
-			{
-				item.setModel(new CompoundPropertyModel<>(item.getModel()));
-				item.add(new Label("naam"));
-				item.setVisible(!Boolean.FALSE.equals(item.getModelObject().getActief()));
-				ComponentHelper.addTextField(item, "orderHost", false, 100, String.class, !magAanpassen);
-				ComponentHelper.addTextField(item, "orderPort", false, 5, Integer.class, !magAanpassen);
-			}
-		};
-
-		labsForm.add(labs);
-		add(labsForm);
-
-		AjaxSubmitLink opslaanKnop = new AjaxSubmitLink("parametersOpslaan")
-		{
-			@Override
-			protected void onSubmit(AjaxRequestTarget target)
-			{
-				opslaan(target);
-				info("Parameters zijn opgeslagen");
-
-			}
-		};
-		opslaanKnop.setVisible(magAanpassen);
-		labsForm.add(opslaanKnop);
-	}
-
 	private void sosParameters(boolean magAanpassen)
 	{
-		add(new EditOrganisatieParametersPanel("soParameters", Collections.singletonList(OrganisatieParameterKey.MAX_MERGED_BRIEVEN_PDF_SIZE_MB), magAanpassen)
+		add(new EditOrganisatieParametersHorizontalPanel("soParameters", List.of(OrganisatieParameterKey.MAX_MERGED_BRIEVEN_PDF_SIZE_MB), magAanpassen)
 		{
 
 			@Override
@@ -118,7 +73,36 @@ public class TechnischeParametersPanel extends BaseTechnischBeheerParametersPane
 					protected void onSubmit(AjaxRequestTarget target)
 					{
 						super.onSubmit(target);
-						instellingService.saveOrUpdateOrganisatieParameters(getAllParameters(), ScreenitSession.get().getLoggedInInstellingGebruiker());
+						organisatieParameterService.saveOrUpdateOrganisatieParameters(getAllParameters(), ScreenitSession.get().getLoggedInInstellingGebruiker());
+						info("Parameters zijn opgeslagen");
+					}
+				};
+				parametersOpslaan.setVisible(magAanpassen);
+				TechnischeParametersPanel.this.add(parametersOpslaan);
+			}
+
+		});
+	}
+
+	private void bmhkLabParameters(boolean magAanpassen)
+	{
+		add(new EditOrganisatieParametersHorizontalPanel("bmhkLabParameters",
+			List.of(OrganisatieParameterKey.CERVIX_HPV_ORDER_NIEUW,
+				OrganisatieParameterKey.CERVIX_HPV_ORDER_HOST, OrganisatieParameterKey.CERVIX_HPV_ORDER_PORT,
+				OrganisatieParameterKey.CERVIX_CYTOLOGIE_ORDER_HOST, OrganisatieParameterKey.CERVIX_CYTOLOGIE_ORDER_PORT,
+				OrganisatieParameterKey.CERVIX_ORU_HOST, OrganisatieParameterKey.CERVIX_ORU_PORT), magAanpassen)
+		{
+
+			@Override
+			protected void addOpslaanButton(Form<Void> form)
+			{
+				IndicatingAjaxSubmitLink parametersOpslaan = new IndicatingAjaxSubmitLink("bmhkLabParametersOpslaan", form)
+				{
+					@Override
+					protected void onSubmit(AjaxRequestTarget target)
+					{
+						super.onSubmit(target);
+						organisatieParameterService.saveOrUpdateOrganisatieParameters(getAllParameters(), ScreenitSession.get().getLoggedInInstellingGebruiker());
 						info("Parameters zijn opgeslagen");
 					}
 				};
@@ -134,15 +118,9 @@ public class TechnischeParametersPanel extends BaseTechnischBeheerParametersPane
 	{
 		Form<Parameterisatie> form = new Form<>("form");
 		form.add(ComponentHelper.newDatePicker("startdatumBmhk", magAanpassen()).setRequired(true));
+		form.add(ComponentHelper.newDatePicker("cervixStartBmhk2023", magAanpassen()).setRequired(true));
 		form.add(new TextField<>("internalZorgmailBestandUrl", String.class).setRequired(true));
 		form.add(new TextField<>("internalWsbSchematronVersionpathmapping", String.class).setRequired(true));
-		form.add(new TextField<>("internalMammaSeInformatieOphalenCron", String.class).add((IValidator<String>) validatable ->
-		{
-			if (!CronSequenceGenerator.isValidExpression(validatable.getValue()))
-			{
-				validatable.error(new ValidationError("Invalide cron expressie"));
-			}
-		}).setRequired(true));
 		form.add(ComponentHelper.newDatePicker("internalColonComplicatieVerwerkingStop", magAanpassen()).setRequired(true));
 		int maxKiloBytesZip = 129000;
 		form.add(new TextField<>("internalMaxGrootteZip", Integer.class).setRequired(true).add(RangeValidator.range(1, maxKiloBytesZip)));
@@ -151,6 +129,8 @@ public class TechnischeParametersPanel extends BaseTechnischBeheerParametersPane
 		form.add(new TextField<>("internalMammaImsDicomCmoveConfig", String.class).setRequired(true));
 		form.add(new TextField<>("internalMammaImsDicomCstoreConfig", String.class).setRequired(true));
 		form.add(new TextField<>("internalCervixLabFormulierValidFqdns", String.class));
+		form.add(new TextField<>("retriesVerzendenInpakcentrum", Integer.class).setRequired(true).add(RangeValidator.minimum(1)));
+		form.add(new TextField<>("timeBetweenRetriesVerzendenInpakcentrum", Integer.class).setRequired(true).add(RangeValidator.minimum(1)));
 		form.add(new CheckBox("bmhkLabelPrintenZonderPdf"));
 		return form;
 	}

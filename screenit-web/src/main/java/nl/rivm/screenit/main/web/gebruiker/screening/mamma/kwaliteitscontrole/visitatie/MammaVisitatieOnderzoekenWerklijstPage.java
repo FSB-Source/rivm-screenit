@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.v
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,7 +28,6 @@ import java.util.Map;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaVisitatieOnderzoekenWerklijstZoekObject;
-import nl.rivm.screenit.main.service.mamma.MammaBeoordelingService;
 import nl.rivm.screenit.main.service.mamma.MammaKwaliteitscontroleService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
@@ -52,8 +51,6 @@ import nl.rivm.screenit.model.mamma.MammaVisitatieOnderzoek;
 import nl.rivm.screenit.model.mamma.enums.MammaVisitatieOnderdeel;
 import nl.rivm.screenit.model.mamma.enums.MammaVisitatieOnderzoekStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaVisitatieStatus;
-import nl.rivm.screenit.service.LogService;
-import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
@@ -63,6 +60,8 @@ import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -82,20 +81,10 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.MAMMA })
 public abstract class MammaVisitatieOnderzoekenWerklijstPage extends MammaVisitatieBasePage
 {
-
 	static final String SESSION_KEY = "visitatie";
 
 	@SpringBean
-	private MammaBeoordelingService beoordelingService;
-
-	@SpringBean
-	private MammaBaseBeoordelingService baseBeoordelingService;
-
-	@SpringBean
 	private MammaKwaliteitscontroleService kwaliteitscontroleService;
-
-	@SpringBean
-	private LogService logService;
 
 	private final IModel<MammaVisitatieOnderzoekenWerklijstZoekObject> zoekObjectModel;
 
@@ -113,6 +102,13 @@ public abstract class MammaVisitatieOnderzoekenWerklijstPage extends MammaVisita
 			throw new IllegalStateException("Zoekobject moet gevuld zijn met " + SESSION_KEY);
 		}
 		wijzigIDS7Role(onderdeel.getIds7Role());
+	}
+
+	@Override
+	public void renderHead(IHeaderResponse response)
+	{
+		super.renderHead(response);
+		response.render(CssHeaderItem.forUrl("assets/css/base_styles_be.css"));
 	}
 
 	@Override

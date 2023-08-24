@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,11 +23,10 @@ import {createShowToastAction} from "../actions/ToastAction"
 import {ToastMessageType} from "../datatypes/toast/ToastMessage"
 
 export function showToast(toastTitel: string | undefined, toastMessage: string, toastType: ToastMessageType = ToastMessageType.INFO): void {
-	setTimeout(() => {
-		cpStore.dispatch(createShowToastAction({
-			title: toastTitel,
-			description: toastMessage,
-			type: toastType,
-		}))
-	},50)
+	cpStore.dispatch(createShowToastAction({
+		title: toastTitel,
+		description: toastMessage,
+		type: toastType,
+		alGetoond: false,
+	}))
 }

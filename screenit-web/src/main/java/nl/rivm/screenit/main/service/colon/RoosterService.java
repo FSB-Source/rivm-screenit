@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.colon;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,14 +39,12 @@ import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
 import nl.topicuszorg.wicket.planning.util.Periode;
 
-import org.joda.time.Interval;
+import com.google.common.collect.Range;
 
 public interface RoosterService
 {
 
 	List<RoosterItem> getRooster(Periode periode, List<Kamer> kamers);
-
-	List<RoosterItem> getOneindigeRoostersItems();
 
 	void magRoosterItemOpslaanVerwijderen(RoosterItem roosteritem, RecurrenceOption recurrenceOption, Date recurrenceEditEnd,
 		Date origRecEndDateTime, boolean wijzigen) throws OpslaanVerwijderenTijdBlokException;
@@ -62,7 +60,7 @@ public interface RoosterService
 
 	RoosterItemStatus getRoosterItemStatus(RoosterItem roosterItem);
 
-	Integer getCurrentAantalRoosterBlokken(ColoscopieCentrum intakeLocatie, Interval periode);
+	Integer getCurrentAantalRoosterBlokken(ColoscopieCentrum intakeLocatie, Range<Date> periode);
 
 	List<Date> getMdlDatums(Client client, IntakelocatieVanTotEnMetFilter intakeVanTotEnMetFilter);
 

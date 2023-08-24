@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.login;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,8 +21,6 @@ package nl.rivm.screenit.main.web.gebruiker.login;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Map;
-
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -30,7 +28,6 @@ import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.AuthenticatieService;
 import nl.rivm.screenit.service.LogService;
-import nl.topicuszorg.hibernate.spring.dao.HibernateSearchService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.input.behavior.FocusBehavior;
 
@@ -50,9 +47,6 @@ public class PasswordRequestPage extends LoginBasePage
 	@SpringBean
 	private LogService logService;
 
-	@SpringBean
-	private HibernateSearchService hibernateSearchService;
-
 	public PasswordRequestPage(PageParameters pageParameters)
 	{
 		Gebruiker medewerker = new Gebruiker();
@@ -71,26 +65,21 @@ public class PasswordRequestPage extends LoginBasePage
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				Gebruiker gebruiker = form.getModelObject();
-				if (StringUtils.isBlank(gebruiker.getGebruikersnaam()) && StringUtils.isBlank(gebruiker.getEmailextra()))
+				var zoekGebruiker = form.getModelObject();
+				if (StringUtils.isBlank(zoekGebruiker.getGebruikersnaam()) && StringUtils.isBlank(zoekGebruiker.getEmailextra()))
 				{
-					error(getLocalizer().getString("error.password.request", this));
+					error(getString("error.password.request"));
 					return;
 				}
-				int size = hibernateSearchService.count(gebruiker);
 
-				info(getLocalizer().getString("info.gegevens.verstuurd", this));
-				if (size == 1)
-				{
-					requestPassword(gebruiker);
-				}
+				requestPassword(zoekGebruiker);
 			}
 
 			@Override
 			protected void onError(AjaxRequestTarget target)
 			{
 				super.onError(target);
-				error(getLocalizer().getString("error.password.request", this));
+				error(getString("error.password.request"));
 			}
 
 		};
@@ -100,25 +89,21 @@ public class PasswordRequestPage extends LoginBasePage
 
 	}
 
-	private void requestPassword(Gebruiker medewerkerModelObject)
+	private void requestPassword(Gebruiker zoekGebruiker)
 	{
-		Map<Gebruiker, Boolean> medewerkerMap = authenticatieService.requestNewPassword(medewerkerModelObject);
+		var gebruiker = authenticatieService.requestNewPassword(zoekGebruiker.getGebruikersnaam(), zoekGebruiker.getEmailextra());
 
-		Gebruiker medewerker = null;
-		if (medewerkerMap.size() > 0)
+		if (gebruiker != null)
 		{
-			medewerker = medewerkerMap.keySet().iterator().next();
-		}
-
-		if (medewerker != null)
-		{
-			if (medewerker.getEmailwerk() == null && medewerker.getEmailextra() == null)
+			if (gebruiker.getEmailextra() == null)
 			{
-				logService.logGebeurtenis(LogGebeurtenis.AANVRAGEN_ACCOUNT_MISLUKT, medewerker, "Er is geen mail adres aanwezig voor deze gebruiker");
+				logService.logGebeurtenis(LogGebeurtenis.AANVRAGEN_ACCOUNT_MISLUKT, gebruiker, "Er is geen mail adres aanwezig voor deze gebruiker");
+				error(getString("error.password.request"));
 			}
 			else
 			{
-				logService.logGebeurtenis(LogGebeurtenis.WACHTWOORD_AANGEVRAAGD, medewerker);
+				logService.logGebeurtenis(LogGebeurtenis.WACHTWOORD_AANGEVRAAGD, gebruiker);
+				info(getString("info.gegevens.verstuurd"));
 			}
 		}
 	}

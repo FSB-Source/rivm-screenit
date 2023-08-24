@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.b
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import nl.rivm.screenit.main.service.mamma.MammaImsService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.MammaClientPaspoortPanel;
@@ -71,9 +70,6 @@ public class MammaBeeldenInzienPage extends AbstractMammaBeoordelenPage
 	private LogService logService;
 
 	@SpringBean
-	private MammaImsService imsService;
-
-	@SpringBean
 	private HibernateService hibernateService;
 
 	@SpringBean
@@ -110,11 +106,12 @@ public class MammaBeeldenInzienPage extends AbstractMammaBeoordelenPage
 
 	private IndicatingAjaxLink<Void> maakVolgendeKnop()
 	{
-		return new IndicatingAjaxLink<Void>("volgende")
+		return new IndicatingAjaxLink<>("volgende")
 		{
+			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				volgendeVerslag(target);
+				volgendeBeoordeling(target);
 			}
 		};
 	}
@@ -122,10 +119,10 @@ public class MammaBeeldenInzienPage extends AbstractMammaBeoordelenPage
 	@Override
 	protected void openInitieleBeoordeling(Long initieleOnderzoekId)
 	{
-		updateClientAfhankelijkePanels();
+		updateClientAfhankelijkePanelsVoorOnderzoek();
 	}
 
-	private void updateClientAfhankelijkePanels()
+	private void updateClientAfhankelijkePanelsVoorOnderzoek()
 	{
 		maakPaspoort();
 		maakMiniWerklijst();
@@ -159,13 +156,13 @@ public class MammaBeeldenInzienPage extends AbstractMammaBeoordelenPage
 	}
 
 	@Override
-	public void volgendeVerslag(AjaxRequestTarget target)
+	public void volgendeBeoordeling(AjaxRequestTarget target)
 	{
 		if (clientenIds.size() > 1)
 		{
 			clientenIds.remove(0);
 			updateModels();
-			updateClientAfhankelijkePanels();
+			updateClientAfhankelijkePanelsVoorOnderzoek();
 			updateImsOnderzoek(target);
 			target.add(dossierContainer);
 		}
@@ -185,9 +182,9 @@ public class MammaBeeldenInzienPage extends AbstractMammaBeoordelenPage
 	}
 
 	@Override
-	public void gaNaarVerslag(Long onderzoekId, AjaxRequestTarget target)
+	public void gaNaarBeoordeling(Long onderzoekId, AjaxRequestTarget target)
 	{
-		throw new IllegalStateException("gaNaarVerslag niet ondersteund bij beelden inzien");
+		throw new IllegalStateException("gaNaarBeoordeling niet ondersteund bij beelden inzien");
 	}
 
 	@Override
@@ -217,13 +214,14 @@ public class MammaBeeldenInzienPage extends AbstractMammaBeoordelenPage
 	@Override
 	protected MammaBeLezerSoort getLezerSoort()
 	{
-		throw new IllegalStateException("gaNaarVerslag en openInitieleBeoordeling zijn in deze class overridden, waardoor deze methode niet meer aangeroepen zou moeten worden.");
+		throw new IllegalStateException(
+			"gaNaarBeoordeling en openInitieleBeoordeling zijn in deze class overridden, waardoor deze methode niet meer aangeroepen zou moeten worden.");
 	}
 
 	@Override
 	protected void handleImsError(AjaxRequestTarget target, String errorMessage, Long onderzoekId)
 	{
-		error(imsService.handleError(errorMessage, getIngelogdeGebruiker(), (b) -> getString((String) b), onderzoekId));
+		error(imsService.handleError(errorMessage, getIngelogdeGebruiker(), b -> getString((String) b), onderzoekId));
 		disableVolgendeKnop(target);
 	}
 

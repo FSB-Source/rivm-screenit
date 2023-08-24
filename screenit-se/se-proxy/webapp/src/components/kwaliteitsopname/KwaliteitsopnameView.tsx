@@ -9,6 +9,10 @@ import {getActieveKwaliteitsopname} from "../../restclient/WerklijstRestclient"
 import {createStartBezigMetKwaliteitsopnameAction} from "../../actions/BezigMetKwaliteitsopnameActions"
 import {parseKwaliteitsopnameVolgNr} from "../../util/KwaliteitsopnameUtil"
 
+export type KwaliteitsopnameViewStateProps = {
+	tomosyntheseMogelijk: boolean;
+}
+
 export type KwaliteitsopnameViewProps = {
 	onKwaliteitsopnameAction: (actionType: string, reden: KwaliteitsopnameReden, voorOfNaKalibratie: VoorOfNaKalibratie) => void;
 };
@@ -27,9 +31,10 @@ export type KwaliteitsopnameReden =
 	| "Graag SE bellen"
 	| "Op verzoek LRCB"
 	| "Kalibratie op verzoek LRCB"
-	| "Nieuw mammografiesysteem (LRCB)";
+	| "Nieuw mammografiesysteem (LRCB)"
+	| "Dagelijkse tomosynthese"
 
-const kwaliteitsopnameRedenen: Array<KwaliteitsopnameReden> = ["Periodieke kalibratie", "Regulier Onderhoud", "Verplaatsing", "Storing", "Reparatie", "Vervanging rontgenbuis", "Vervanging detector (LRCB)", "Foutieve opname in set", "Zichtbare Beeldverstoring", "Error tijdens kalibratie", "Graag SE bellen", "Op verzoek LRCB", "Kalibratie op verzoek LRCB", "Nieuw mammografiesysteem (LRCB)"]
+const kwaliteitsopnameRedenen: Array<KwaliteitsopnameReden> = ["Periodieke kalibratie", "Regulier Onderhoud", "Verplaatsing", "Storing", "Reparatie", "Vervanging rontgenbuis", "Vervanging detector (LRCB)", "Foutieve opname in set", "Zichtbare Beeldverstoring", "Error tijdens kalibratie", "Graag SE bellen", "Op verzoek LRCB", "Kalibratie op verzoek LRCB", "Nieuw mammografiesysteem (LRCB)", "Dagelijkse tomosynthese"]
 
 export type VoorOfNaKalibratie = "Voor kalibratie" | "Na kalibratie" | "Geen kalibratie";
 const voorOfNaKalibraties: Array<VoorOfNaKalibratie> = ["Voor kalibratie", "Na kalibratie", "Geen kalibratie"]
@@ -39,9 +44,9 @@ export type KwaliteitsopnameState = {
 	bezigMetKwaliteitsopname: boolean;
 };
 
-export default class KwaliteitsopnameView extends React.Component<KwaliteitsopnameViewProps, KwaliteitsopnameState> {
+export default class KwaliteitsopnameView extends React.Component<KwaliteitsopnameViewProps & KwaliteitsopnameViewStateProps, KwaliteitsopnameState> {
 
-	constructor(props: KwaliteitsopnameViewProps) {
+	constructor(props: KwaliteitsopnameViewProps & KwaliteitsopnameViewStateProps) {
 		super(props)
 		this.state = {
 			reden: undefined,
@@ -83,6 +88,13 @@ export default class KwaliteitsopnameView extends React.Component<Kwaliteitsopna
 		})
 	}
 
+	magRedenInzien = (reden: KwaliteitsopnameReden, tomosyntheseMogelijk: boolean): boolean => {
+		if ("Dagelijkse tomosynthese" !== reden || tomosyntheseMogelijk) {
+			return true
+		}
+		return false
+	}
+
 	render(): JSX.Element {
 		const state = this.state
 		const startEnabled = state.reden && state.voorOfNaKalibratie && !state.bezigMetKwaliteitsopname
@@ -100,13 +112,14 @@ export default class KwaliteitsopnameView extends React.Component<Kwaliteitsopna
 							<PaneelNaam titel={"Reden"}/>
 							{kwaliteitsopnameRedenen.map(reden => {
 								const actief = reden === this.state.reden
-								return <Row key={reden}>
-									<label className={"btn"}>
-										<input type={"radio"} checked={actief} name={"reden"} disabled={stopEnabled}
-											   onClick={(): void => {
-												   this.setReden(reden)
-											   }}/> {reden}</label>
-								</Row>
+								return this.magRedenInzien(reden, this.props.tomosyntheseMogelijk) &&
+									<Row key={reden}>
+										<label className={"btn"}>
+											<input type={"radio"} checked={actief} name={"reden"} disabled={stopEnabled}
+												   onClick={(): void => {
+													   this.setReden(reden)
+												   }}/> {reden}</label>
+									</Row>
 							})}
 						</Paneel>
 					</Col>
@@ -170,7 +183,7 @@ export default class KwaliteitsopnameView extends React.Component<Kwaliteitsopna
 									}}/>
 							</Row>
 						</Paneel>
-					</Col>;
+					</Col>
 				</Row>
 			</div>
 		</div>

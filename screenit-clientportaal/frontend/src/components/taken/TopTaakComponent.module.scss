@@ -9,6 +9,7 @@
 	box-shadow: 0 20px 30px -19px rgba(0, 0, 0, 0.15);
 	padding-left: 30px;
 	padding-right: 30px;
+	margin-bottom: 30px;
 	padding-top: 20px;
 	transition: 0.3s;
 	font-size: 1.1rem;
@@ -83,14 +84,14 @@
 				}
 			}
 		}
-  }
+	}
 }
 
 .topTaakIcon {
-  align-self: center;
-  float: right;
+	align-self: center;
+	float: right;
 
-  svg {
+	svg {
 		height: 50px;
 		width: 50px;
 		background-color: $wit-base;

@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.colon.verslag.mdl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -60,7 +60,7 @@ public class MdlBostonBowelPreparation
 		@DSValueSetValue(code = "9", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.103"),
 		@DSValueSetValue(code = "ASKU", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(displayName = "Boston Bowel Preparation Scale Sum Score", extraTekst = "Boston Bowel Preparation Scale Sum Score", code = "2.16.840.1.113883.2.4.3.36.77.2.10.140009", isVerplicht = true)
+	@VraagElement(displayName = "Boston Bowel Preparation Scale Sum Score", extraTekst = "Boston Bowel Preparation Scale Sum Score", code = "2.16.840.1.113883.2.4.3.36.77.2.11.85", isVerplicht = true)
 	private DSValue bostonBowelPreparationScaleSumScore;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -71,7 +71,7 @@ public class MdlBostonBowelPreparation
 		@DSValueSetValue(code = "3", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.102"),
 		@DSValueSetValue(code = "ASKU", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(displayName = "BBPS Score Colon ascendens", extraTekst = "Boston Bowel Preparation Scale (score: 0-3) Colon ascendens", code = "2.16.840.1.113883.2.4.3.36.77.2.10.140020", isVerplicht = true)
+	@VraagElement(displayName = "BBPS Score Colon ascendens", extraTekst = "Boston Bowel Preparation Scale (score: 0-3) Colon ascendens", code = "2.16.840.1.113883.2.4.3.36.77.2.11.86", isVerplicht = true)
 	private DSValue bbpsScoreColonAscendens;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -82,7 +82,7 @@ public class MdlBostonBowelPreparation
 		@DSValueSetValue(code = "3", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.102"),
 		@DSValueSetValue(code = "ASKU", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(displayName = "BBPS Score Colon transversum", extraTekst = "Boston Bowel Preparation Scale (score: 0-3) Colon transversum", code = "2.16.840.1.113883.2.4.3.36.77.2.10.140023", isVerplicht = true)
+	@VraagElement(displayName = "BBPS Score Colon transversum", extraTekst = "Boston Bowel Preparation Scale (score: 0-3) Colon transversum", code = "2.16.840.1.113883.2.4.3.36.77.2.11.87", isVerplicht = true)
 	private DSValue bbpsScoreColonTransversum;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -93,7 +93,7 @@ public class MdlBostonBowelPreparation
 		@DSValueSetValue(code = "3", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.102"),
 		@DSValueSetValue(code = "ASKU", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(displayName = "BBPS Score Colon descendens", extraTekst = "Boston Bowel Preparation Scale (score: 0-3) Colon descendens", code = "2.16.840.1.113883.2.4.3.36.77.2.10.140024", isVerplicht = true)
+	@VraagElement(displayName = "BBPS Score Colon descendens", extraTekst = "Boston Bowel Preparation Scale (score: 0-3) Colon descendens", code = "2.16.840.1.113883.2.4.3.36.77.2.11.88", isVerplicht = true)
 	private DSValue bbpsScoreColonDescendens;
 
 	public MdlVoorbereidingColoscopie getVoorbereidingColoscopie()

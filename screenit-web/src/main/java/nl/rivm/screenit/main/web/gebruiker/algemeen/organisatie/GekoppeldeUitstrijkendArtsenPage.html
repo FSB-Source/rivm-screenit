@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -64,23 +64,23 @@
                             <div class="control-group">
                                 <label class="control-label">Mutatiedatum</label>
                                 <div class="controls">
-                                    Vanaf
-                                    <div class="input-append">
-                                        <input wicket:id="zoekMutatiedatumVanaf" type="text" placeholder="dd-mm-jaar"
-                                               size="16" class="input-small three-months vanafDatum">
-                                        <a href="javascript:void(0);" class="btn"
-                                           onclick="$(this).prev().datepicker('show');return false;" title="Datum"><i
-                                                class="icon-calendar"></i></a>
-                                    </div>
-                                    Tot en met
-                                    <div class="input-append">
-                                        <input wicket:id="zoekMutatiedatumTot" type="text" placeholder="dd-mm-jaar"
-                                               size="16" class="input-small three-months">
-                                        <a href="javascript:void(0);" class="btn"
-                                           onclick="$(this).prev().datepicker('show');return false;" title="Datum"><i
-                                                class="icon-calendar"></i></a>
-                                    </div>
-                                </div>
+									Vanaf
+									<div class="input-append">
+										<input wicket:id="zoekMutatiedatumVanaf" type="text" placeholder="dd-mm-jaar"
+											   size="16" class="input-small three-months vanafDatum">
+										<a  class="btn js-datepicker-show "
+										   title="Datum"><i
+												class="icon-calendar"></i></a>
+									</div>
+									Tot en met
+									<div class="input-append">
+										<input wicket:id="zoekMutatiedatumTot" type="text" placeholder="dd-mm-jaar"
+											   size="16" class="input-small three-months">
+										<a  class="btn js-datepicker-show"
+										   title="Datum"><i
+												class="icon-calendar"></i></a>
+									</div>
+								</div>
                             </div>
                         </div>
                     </div>

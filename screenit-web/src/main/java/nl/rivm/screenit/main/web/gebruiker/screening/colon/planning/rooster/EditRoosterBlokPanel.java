@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.rooster;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,7 +29,6 @@ import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.dao.colon.AfspraakDefinitieDao;
 import nl.rivm.screenit.main.model.RecurrenceOption;
 import nl.rivm.screenit.main.service.colon.RoosterService;
 import nl.rivm.screenit.main.web.ScreenitSession;
@@ -50,14 +49,12 @@ import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.input.validator.ValueValidator;
 import nl.topicuszorg.wicket.planning.model.appointment.recurrence.AbstractRecurrence;
 import nl.topicuszorg.wicket.planning.model.appointment.recurrence.NoRecurrence;
-import nl.topicuszorg.wicket.planning.services.ScheduleService;
 import nl.topicuszorg.wicket.planning.web.component.DatePickerHelper;
 import nl.topicuszorg.wicket.planning.web.component.DateTimeField;
 import nl.topicuszorg.wicket.planning.web.panel.recurrence.HerhalingPanel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
@@ -74,27 +71,19 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.LocalDate;
 import org.joda.time.Minutes;
+import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.wicketstuff.wiquery.ui.datepicker.DateOption;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
 public abstract class EditRoosterBlokPanel extends AbstractEditTijdSlotPanel<RoosterItem>
 {
-
-	private static final long serialVersionUID = 1L;
-
-	@SpringBean
-	private ScheduleService scheduleService;
-
-	@SpringBean
-	private AfspraakDefinitieDao afspraakDefinitieDao;
-
 	@SpringBean
 	private RoosterService roosterService;
 
 	@SpringBean
 	private LogService logService;
 
-	private final IModel<Integer> aantalBlokken = Model.of(Integer.valueOf(1));
+	private final IModel<Integer> aantalBlokken = Model.of(1);
 
 	private RoosterItemStatus roosterItemStatus;
 
@@ -180,9 +169,6 @@ public abstract class EditRoosterBlokPanel extends AbstractEditTijdSlotPanel<Roo
 
 		DateTimeField startTimeField = new ScreenITDateTimeField("startTime", magDatumWijzigen)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public String getDatePickerLabel()
 			{
@@ -219,9 +205,6 @@ public abstract class EditRoosterBlokPanel extends AbstractEditTijdSlotPanel<Roo
 		final TextField<Integer> aantalBlokkenField = new TextField<>("aantalBlokken", aantalBlokken, Integer.class);
 		aantalBlokkenField.add(new AjaxFormComponentUpdatingBehavior("blur")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
@@ -251,9 +234,6 @@ public abstract class EditRoosterBlokPanel extends AbstractEditTijdSlotPanel<Roo
 		herhalingContainer.setEnabled(magAanpassen);
 		HerhalingPanel herhalingPanel = new HerhalingPanel("herhaling", getRecurrence())
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onChangeHerhalingType(AjaxRequestTarget target, boolean showHerhalingEind)
 			{
@@ -269,9 +249,6 @@ public abstract class EditRoosterBlokPanel extends AbstractEditTijdSlotPanel<Roo
 
 		form.add(new AbstractFormValidator()
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void validate(Form<?> form)
 			{

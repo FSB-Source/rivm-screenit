@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.intake;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -51,7 +51,9 @@ import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.colon.AfspraakService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.util.ColonScreeningRondeUtil;
 import nl.rivm.screenit.util.DateUtil;
@@ -80,13 +82,17 @@ import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIntakeAfspraak>
 {
-	private static final long serialVersionUID = 1L;
-
 	private static final List<ColonConclusieType> OPTIES_INTAKE_CONCLUSIE_JA = Arrays.asList(ColonConclusieType.COLOSCOPIE, ColonConclusieType.CT_COLOGRAFIE,
 		ColonConclusieType.GEEN_VERVOLGONDERZOEK);
 
-	private static final List<ColonConclusieType> OPTIES_INTAKE_CONCLUSIE_NEE = Arrays.asList(ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM, ColonConclusieType.NO_SHOW,
-		ColonConclusieType.ON_HOLD);
+	private static final IModel<List<Boolean>> BOOLEAN_OPTIONS_MODEL = new ListModel<>(Arrays.asList(Boolean.TRUE, Boolean.FALSE));
+
+	private final List<ColonConclusieType> optiesIntakeConclusieNee = new ArrayList<>(
+		Arrays.asList(ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM, ColonConclusieType.NO_SHOW, ColonConclusieType.ON_HOLD));
+
+	private final IModel<List<Boolean>> intakeconclusieOptionsModel = new ListModel<>(new ArrayList<>(Arrays.asList(Boolean.TRUE, Boolean.FALSE)));
+
+	private final boolean verwijzingMoetBevestigdWorden;
 
 	@SpringBean
 	private ColonDossierService dossierService;
@@ -95,19 +101,21 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 	private ColonDossierBaseService dossierBaseService;
 
 	@SpringBean
+	private ClientService clientService;
+
+	@SpringBean
 	private ICurrentDateSupplier dateSupplier;
+
+	@SpringBean
+	private AfspraakService afspraakService;
 
 	private ColonConclusieType origConclusie;
 
 	private Component conclusieContainer;
 
-	private IModel<List<Boolean>> booleanOptionsModel = new ListModel<>(Arrays.asList(Boolean.TRUE, Boolean.FALSE));
-
 	private boolean mdlVerslagVerwerkt;
 
 	private ColonVervolgonderzoekKeuzesDto vervolgonderzoekDto;
-
-	private IChoiceRenderer<Boolean> booleanChoiceRenderer = new BooleanChoiceRenderer();
 
 	private ConfirmingIndicatingAjaxSubmitLink<ColonIntakeAfspraak> opslaan;
 
@@ -115,7 +123,6 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 
 	private class IntegerChoiceRenderer implements IChoiceRenderer<Integer>
 	{
-
 		@Override
 		public Object getDisplayValue(Integer object)
 		{
@@ -142,6 +149,7 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 		ColonIntakeAfspraak afspraak = ModelUtil.nullSafeGet(model);
 		ColonConclusie conclusie = afspraak.getConclusie();
 		mdlVerslagVerwerkt = ColonScreeningRondeUtil.heeftAfgerondeVerslag(afspraak.getColonScreeningRonde(), VerslagType.MDL);
+		vervolgonderzoekDto = new ColonVervolgonderzoekKeuzesDto();
 
 		if (conclusie == null)
 		{
@@ -149,11 +157,21 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 			afspraak.setConclusie(conclusie);
 			conclusie = afspraak.getConclusie(); 
 			readOnly = false;
+			verwijzingMoetBevestigdWorden = false;
 		}
 		else
 		{
 			origConclusie = conclusie.getType();
-			readOnly = !dossierService.magConclusieAanpassenVerwijderen(afspraak, origConclusie);
+
+			verwijzingMoetBevestigdWorden =
+				ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM == origConclusie && Boolean.FALSE.equals(afspraak.getConclusie().getDoorverwijzingBevestigd());
+			readOnly = !verwijzingMoetBevestigdWorden && !dossierService.magConclusieAanpassenVerwijderen(afspraak, origConclusie);
+			if (verwijzingMoetBevestigdWorden)
+			{
+				intakeconclusieOptionsModel.getObject().remove(Boolean.TRUE);
+				optiesIntakeConclusieNee.remove(ColonConclusieType.ON_HOLD);
+				vervolgonderzoekDto.isDoorverwezenDoorInfolijn = true;
+			}
 		}
 		if (afspraak.getBezwaar() == null)
 		{
@@ -167,7 +185,6 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 		{
 			conclusie.setInstellingGebruiker(ScreenitSession.get().getLoggedInInstellingGebruiker());
 		}
-
 		Form<ColonIntakeAfspraak> form = new ConclusieForm("form", model);
 		add(form);
 		Client client = model.getObject().getColonScreeningRonde().getDossier().getClient();
@@ -191,12 +208,10 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 
 			ColonIntakeAfspraak intakeAfspraak = ModelUtil.nullSafeGet(model);
 
-			vervolgonderzoekDto = new ColonVervolgonderzoekKeuzesDto();
 			initKeuzes();
 
-			add(new VraagFragment("eersteVraag", "intakeConclusie")
+			add(new VraagFragment("eersteVraag", "intakeConclusie", intakeconclusieOptionsModel)
 			{
-
 				@Override
 				protected Component onJa(String id)
 				{
@@ -206,7 +221,7 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 				@Override
 				protected Component onNee(String id)
 				{
-					return new ConclusieFragment(id, OPTIES_INTAKE_CONCLUSIE_NEE);
+					return new ConclusieFragment(id, optiesIntakeConclusieNee);
 				}
 
 			});
@@ -218,6 +233,7 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 			Client client = intakeAfspraak.getColonScreeningRonde().getDossier().getClient();
 			add(new Label("client.persoon.achternaam", NaamUtil.titelVoorlettersTussenvoegselEnAanspreekAchternaam(client)));
 			add(new Label("conclusie.instellingGebruiker.medewerker.naamVolledig"));
+			addOudeAfspraak();
 
 			List<Integer> choices = new ArrayList<>();
 			choices.add(null);
@@ -229,7 +245,7 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 			asaScoreChoice.setEnabled(!mdlVerslagVerwerkt);
 			add(asaScoreChoice);
 
-			add(new AjaxButtonGroup<>("bezwaar", booleanOptionsModel, booleanChoiceRenderer).setEnabled(!mdlVerslagVerwerkt)
+			add(new AjaxButtonGroup<>("bezwaar", BOOLEAN_OPTIONS_MODEL, new BooleanChoiceRenderer()).setEnabled(!mdlVerslagVerwerkt)
 				.setVisible(intakeAfspraak.getBezwaar()));
 
 			opslaan = new ConfirmingIndicatingAjaxSubmitLink<>("conclusieOpslaan", dialog, null)
@@ -245,9 +261,29 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 						InstellingGebruiker loggedInInstellingGebruiker = ScreenitSession.get().getLoggedInInstellingGebruiker();
 						conclusie.setInstellingGebruiker(loggedInInstellingGebruiker);
 						dossierService.conclusieOpslaan(ModelProxyHelper.deproxy(afspraak), vervolgonderzoekDto, loggedInInstellingGebruiker,
-							ColonConclusieType.ON_HOLD.equals(origConclusie));
+							origConclusie);
+
+						laatMeldingenZien(afspraak);
 
 						close(target);
+					}
+				}
+
+				private void laatMeldingenZien(ColonIntakeAfspraak afspraak)
+				{
+					if ((origConclusie == null || !ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM.equals(origConclusie))
+						&& afspraak.getConclusie() != null
+						&& ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM.equals(afspraak.getConclusie().getType()))
+					{
+						var regio = afspraak.getLocation().getColoscopieCentrum().getRegio();
+						if (regio != null)
+						{
+							warn(String.format(getString("bel.infolijn.voor.afspraak"), regio.getTelefoon()));
+						}
+						else
+						{
+							warn(getString("bel.infolijn.voor.afspraak.zonder.regio.info"));
+						}
 					}
 				}
 
@@ -282,35 +318,30 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 						resourceModel.setParameters("" + jaar);
 					}
 					return resourceModel;
-
 				}
 
 				@Override
 				protected boolean skipConfirmation()
 				{
-					ColonIntakeAfspraak afspraak = ConclusieForm.this.getModelObject();
-					ColonConclusie conclusie = afspraak.getConclusie();
-					if (ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM.equals(vervolgonderzoekDto.conclusie) && Boolean.TRUE.equals(vervolgonderzoekDto.afspraakDirectMaken)
-						&& (conclusie.getDatumTijdNieuweAfspraak() == null || conclusie.getLocatieNieuweAfspraak() == null))
-					{
-						ColonConclusieVastleggenPanel.this.error(getString("error.datum.tijd.mist"));
-						return true;
-					}
-					else
-					{
-						return vervolgonderzoekDto.redenGeenVervolgOnderzoek == null;
-					}
+					return vervolgonderzoekDto.redenGeenVervolgOnderzoek == null;
 				}
 			};
-
 			add(opslaan);
 			opslaan.setVisible(!AfspraakStatus.isGeannuleerd(intakeAfspraak.getStatus()) && !mdlVerslagVerwerkt);
 			opslaan.setEnabled(intakeAfspraak.getConclusie().getId() != null);
 			opslaan.setOutputMarkupId(true);
+
+			if (verwijzingMoetBevestigdWorden)
+			{
+				opslaan.add(new Label("opslaanTekst", "Bevestigen"));
+			}
+			else
+			{
+				opslaan.add(new Label("opslaanTekst", "Opslaan"));
+			}
 			final ConfirmingIndicatingAjaxLink<ColonIntakeAfspraak> verwijderen = new ConfirmingIndicatingAjaxLink<>("conclusieVerwijderen", dialog,
 				"conclusie.verwijderen")
 			{
-
 				@Override
 				public void onClick(AjaxRequestTarget target)
 				{
@@ -336,11 +367,21 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 			};
 			verwijderen.setVisible(dossierService.magConclusieAanpassenVerwijderen(intakeAfspraak, origConclusie)
 				&& ScreenitSession.get().checkPermission(Recht.GEBRUIKER_SCREENING_INTAKE_WERKLIJST, Actie.VERWIJDEREN));
+			verwijderen.setEnabled(true);
 			add(verwijderen);
 
 			add(new WebMarkupContainer("tekstOntvangenMDLverslag").setVisible(mdlVerslagVerwerkt));
 			add(new WebMarkupContainer("tekstGeenLaatsteAfspraak")
-				.setVisible(!mdlVerslagVerwerkt && !intakeAfspraak.getColonScreeningRonde().getLaatsteAfspraak().equals(intakeAfspraak)));
+				.setVisible(!mdlVerslagVerwerkt && !intakeAfspraak.getColonScreeningRonde().getLaatsteAfspraak().equals(intakeAfspraak) && !(getModelObject().getConclusie() != null
+					&& ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM.equals(getModelObject().getConclusie().getType()))));
+		}
+
+		private void addOudeAfspraak()
+		{
+			var oudeAfspraak = afspraakService.zoekBevestigdeDoorverwijzendeAfspraak(getModelObject());
+
+			add(new Label("verwezenDoor", new PropertyModel<>(ModelUtil.sModel(oudeAfspraak), "location.coloscopieCentrum.naam")).setVisible(
+				oudeAfspraak != null));
 		}
 
 		private Date getDatumEersteOngunstigeUitslagInRonde(ColonIntakeAfspraak intakeAfspraak)
@@ -357,15 +398,15 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 			{
 				ColonConclusieType type = conclusie.getType();
 				vervolgonderzoekDto.conclusie = type;
-				if (OPTIES_INTAKE_CONCLUSIE_NEE.contains(type))
+				if (optiesIntakeConclusieNee.contains(type))
 				{
 					vervolgonderzoekDto.intakeConclusie = false;
-					vervolgonderzoekDto.afspraakDirectMaken = type == ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM ? true : null;
+					vervolgonderzoekDto.verwijzing = type == ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM ? true : null;
 				}
 				else if (type == ColonConclusieType.CLIENT_WIL_ANDERE_INTAKELOKATIE)
 				{
 					vervolgonderzoekDto.intakeConclusie = false;
-					vervolgonderzoekDto.afspraakDirectMaken = false;
+					vervolgonderzoekDto.verwijzing = false;
 					vervolgonderzoekDto.conclusie = ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM;
 				}
 				else if (OPTIES_INTAKE_CONCLUSIE_JA.contains(type))
@@ -390,7 +431,6 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 						break;
 					}
 				}
-
 			}
 		}
 
@@ -403,18 +443,14 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 				for (ColonBrief brief : ronde.getBrieven())
 				{
 					if (brief.getIntakeAfspraak() != null && brief.getMergedBrieven() != null && afspraak.getId().equals(brief.getIntakeAfspraak().getId())
-						&& BriefType.COLON_UITNODIGING_INTAKE.equals(brief.getBriefType()))
+						&& BriefType.COLON_UITNODIGING_INTAKE.equals(brief.getBriefType()) && brief.getMergedBrieven().getPrintDatum() != null)
 					{
-						if (brief.getMergedBrieven() != null && brief.getMergedBrieven().getPrintDatum() != null)
-						{
-							briefAfgedrukt = brief.getMergedBrieven().getPrintDatum();
-						}
+						briefAfgedrukt = brief.getMergedBrieven().getPrintDatum();
 					}
 				}
 			}
 			return briefAfgedrukt;
 		}
-
 	}
 
 	private class ConclusieFragment extends Fragment
@@ -435,7 +471,6 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 					addOrUpdateContainer(target, antwoord);
 					resetNietGeselecteerdeGegevens();
 				}
-
 			};
 			conclusieType.setEnabled(!readOnly);
 			add(conclusieType);
@@ -457,31 +492,28 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 					break;
 				case DOORVERWIJZEN_NAAR_ANDER_CENTRUM:
 					opslaanEnabled = false;
-
 				case CLIENT_WIL_ANDERE_INTAKELOKATIE:
-					newContainer = new VraagFragment(containerId, "afspraakDirectMaken", new BooleanChoiceRenderer()
+					newContainer = new VraagFragment(containerId, "verwijzing", new BooleanChoiceRenderer()
 					{
 						@Override
 						public Object getDisplayValue(Boolean object)
 						{
 							return Boolean.TRUE.equals(object) ? getString("medischeRedenen") : getString("opVerzoekClient");
 						}
-					})
+					}, BOOLEAN_OPTIONS_MODEL)
 					{
-
 						@Override
-						protected Component onJa(String id)
+						protected Component onJa(String id) 
 						{
-							return new MaakAfspraakZonderCapaciteitPanel(id, readOnly, ColonConclusieVastleggenPanel.this.getModel());
+							return doorVerwijzenNaarAnderIntakeLocatie(id);
 						}
 
 						@Override
-						protected Component onNee(String id)
+						protected Component onNee(String id) 
 						{
 							return new GevolgFragment(id,
 								new StringResourceModel(EnumStringUtil.getPropertyString(ColonConclusieType.CLIENT_WIL_ANDERE_INTAKELOKATIE) + ".gevolg"));
 						}
-
 					};
 					break;
 				case GEEN_VERVOLGONDERZOEK:
@@ -493,13 +525,12 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 						{
 							return Boolean.TRUE.equals(object) ? getString("medischeRedenen") : getString("opVerzoekClient");
 						}
-					})
+					}, BOOLEAN_OPTIONS_MODEL)
 					{
-
 						@Override
 						protected Component onJa(String id)
 						{
-							return new VraagFragment(id, "terugNaarScreening")
+							return new VraagFragment(id, "terugNaarScreening", BOOLEAN_OPTIONS_MODEL)
 							{
 
 								@Override
@@ -509,7 +540,6 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 								}
 							};
 						}
-
 					};
 					break;
 				case ON_HOLD:
@@ -533,9 +563,40 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 				conclusieContainer = newContainer;
 				add(conclusieContainer);
 			}
-
 		}
 
+		private Fragment doorVerwijzenNaarAnderIntakeLocatie(String id)
+		{
+			var afspraak = ColonConclusieVastleggenPanel.this.getModelObject();
+			if (ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM.equals(origConclusie))
+			{
+				Boolean doorverwijzingBevestigd = afspraak.getConclusie().getDoorverwijzingBevestigd();
+				if (Boolean.TRUE.equals(doorverwijzingBevestigd))
+				{
+					if (afspraak.getNieuweAfspraak() != null)
+					{
+						return new VerwijzingFragment(id, readOnly, ColonConclusieVastleggenPanel.this.getModel());
+					}
+					else
+					{
+						return new BelInfolijnVoorAfspraak(id);
+					}
+				}
+				else if (Boolean.FALSE.equals(doorverwijzingBevestigd))
+				{
+					return new VerwijzingFragment(id, readOnly, ColonConclusieVastleggenPanel.this.getModel());
+				}
+				else
+				{
+					throw new IllegalStateException("doorverwijzingBevestigd mag niet leeg zijn");
+				}
+			}
+			else
+			{
+				return new GevolgFragment(id,
+					new StringResourceModel(EnumStringUtil.getPropertyString(ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM) + ".gevolg"));
+			}
+		}
 	}
 
 	private class VraagFragment extends Fragment
@@ -543,20 +604,23 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 
 		private static final long serialVersionUID = 1L;
 
+		private final IModel<List<Boolean>> opties;
+
 		private String vraag;
 
 		private IChoiceRenderer<Boolean> renderer;
 
-		public VraagFragment(String id, String vraag)
+		public VraagFragment(String id, String vraag, IModel<List<Boolean>> opties)
 		{
-			this(id, vraag, booleanChoiceRenderer);
+			this(id, vraag, new BooleanChoiceRenderer(), opties);
 		}
 
-		public VraagFragment(String id, String vraag, IChoiceRenderer<Boolean> renderer)
+		public VraagFragment(String id, String vraag, IChoiceRenderer<Boolean> renderer, IModel<List<Boolean>> opties)
 		{
 			super(id, "vraagFragment", ColonConclusieVastleggenPanel.this);
 			this.vraag = vraag;
 			this.renderer = renderer;
+			this.opties = opties;
 		}
 
 		@Override
@@ -566,7 +630,7 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 			add(new Label("vraag", getString(vraag)));
 			IModel<Boolean> antwoordModel = new PropertyModel<>(vervolgonderzoekDto, vraag);
 			setOutputMarkupId(true);
-			add(new AjaxButtonGroup<Boolean>("antwoord", antwoordModel, booleanOptionsModel, renderer)
+			add(new AjaxButtonGroup<>("antwoord", antwoordModel, opties, renderer)
 			{
 				@Override
 				protected void onSelectionChanged(Boolean antwoord, AjaxRequestTarget target, String markupId)
@@ -579,8 +643,7 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 					target.add(opslaan);
 				}
 
-			}
-				.setEnabled(!readOnly));
+			}.setEnabled(!readOnly));
 			maakVervolgPanel(antwoordModel.getObject());
 		}
 
@@ -601,9 +664,8 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 				newVervolgPannel = new EmptyPanel(id);
 			}
 			addOrReplace(newVervolgPannel);
-			boolean eindIsBereikt = antwoord != null
-				&& (newVervolgPannel instanceof EmptyPanel || newVervolgPannel instanceof GevolgFragment || newVervolgPannel instanceof MaakAfspraakZonderCapaciteitPanel);
-			return eindIsBereikt;
+			return antwoord != null
+				&& (newVervolgPannel instanceof EmptyPanel || newVervolgPannel instanceof GevolgFragment || newVervolgPannel instanceof VerwijzingFragment);
 		}
 
 		protected Component onJa(String id)
@@ -615,12 +677,10 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 		{
 			return new EmptyPanel(id);
 		}
-
 	}
 
 	private class TerugNaarScreeningFragment extends Fragment
 	{
-
 		private static final long serialVersionUID = 1L;
 
 		public TerugNaarScreeningFragment(String id)
@@ -645,7 +705,6 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 
 			}.setEnabled(!readOnly));
 		}
-
 	}
 
 	private class OnHoldRedenFragment extends Fragment
@@ -661,9 +720,18 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 		}
 	}
 
+	private class BelInfolijnVoorAfspraak extends Fragment
+	{
+		public BelInfolijnVoorAfspraak(String id)
+		{
+			super(id, "belInfolijnVoorAfspraak", ColonConclusieVastleggenPanel.this);
+
+			add(new Label("location.coloscopieCentrum.regio.telefoon"));
+		}
+	}
+
 	private class GevolgFragment extends Fragment
 	{
-
 		private static final long serialVersionUID = 1L;
 
 		public GevolgFragment(String id, IModel<String> gevolgModel)
@@ -672,7 +740,34 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 
 			add(new Label("gevolg", gevolgModel));
 		}
+	}
 
+	private class VerwijzingFragment extends Fragment
+	{
+		public VerwijzingFragment(String id, boolean readOnly, IModel<ColonIntakeAfspraak> model)
+		{
+			super(id, "verwijzingFragment", ColonConclusieVastleggenPanel.this, model);
+			setVisible(!readOnly);
+		}
+
+		@Override
+		protected void onInitialize()
+		{
+			super.onInitialize();
+
+			ColonIntakeAfspraak afspraak = getModelObject();
+			if (Boolean.TRUE.equals(afspraak.getConclusie().getDoorverwijzingBevestigd()))
+			{
+				add(new Label("begeleidendTekst", getString("verwijzingCompleet")));
+			}
+			else
+			{
+				add(new Label("begeleidendTekst", getString("bevestigingNodigVoorVerwijzing")).setEscapeModelStrings(false));
+			}
+			add(new Label("nieuweAfspraak.location.coloscopieCentrum.naam"));
+			add(new Label("nieuweAfspraak.location.name"));
+			add(DateLabel.forDatePattern("nieuweAfspraak.startTime", "EEEE dd-MM-yyyy HH:mm"));
+		}
 	}
 
 	private void resetNietGeselecteerdeGegevens()
@@ -680,13 +775,11 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 		ColonConclusie conclusie = getModelObject().getConclusie();
 		if (Boolean.TRUE.equals(vervolgonderzoekDto.intakeConclusie))
 		{
-			vervolgonderzoekDto.afspraakDirectMaken = null;
-			if (OPTIES_INTAKE_CONCLUSIE_NEE.contains(vervolgonderzoekDto.conclusie))
+			vervolgonderzoekDto.verwijzing = null;
+			if (optiesIntakeConclusieNee.contains(vervolgonderzoekDto.conclusie))
 			{
 				vervolgonderzoekDto.conclusie = null;
 			}
-			conclusie.setDatumTijdNieuweAfspraak(null);
-			conclusie.setLocatieNieuweAfspraak(null);
 		}
 		else if (Boolean.FALSE.equals(vervolgonderzoekDto.intakeConclusie))
 		{
@@ -694,14 +787,9 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 			{
 				vervolgonderzoekDto.conclusie = null;
 			}
-			if (!Boolean.TRUE.equals(vervolgonderzoekDto.afspraakDirectMaken) || !ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM.equals(vervolgonderzoekDto.conclusie))
-			{
-				conclusie.setDatumTijdNieuweAfspraak(null);
-				conclusie.setLocatieNieuweAfspraak(null);
-			}
 			if (!ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM.equals(vervolgonderzoekDto.conclusie))
 			{
-				vervolgonderzoekDto.afspraakDirectMaken = null;
+				vervolgonderzoekDto.verwijzing = null;
 			}
 		}
 		if (vervolgonderzoekDto.conclusie == null || ColonConclusieType.CT_COLOGRAFIE == vervolgonderzoekDto.conclusie)

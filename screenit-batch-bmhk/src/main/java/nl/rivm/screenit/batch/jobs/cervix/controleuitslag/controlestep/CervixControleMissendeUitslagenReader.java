@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.controleuitslag.controlestep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,7 +28,7 @@ import nl.rivm.screenit.dao.cervix.impl.CervixRestrictions;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.InstellingService;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
@@ -46,7 +46,7 @@ public class CervixControleMissendeUitslagenReader extends BaseScrollableResultR
 {
 	private final ICurrentDateSupplier currentDateSupplier;
 
-	private final InstellingService instellingService;
+	private final OrganisatieParameterService organisatieParameterService;
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
@@ -55,7 +55,7 @@ public class CervixControleMissendeUitslagenReader extends BaseScrollableResultR
 		{
 			var vandaag = currentDateSupplier.getLocalDate();
 			var minimaleSignaleringsDatum = vandaag.minusDays(
-				instellingService.getOrganisatieParameter(null, OrganisatieParameterKey.CERVIX_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN, 30));
+				organisatieParameterService.getOrganisatieParameter(null, OrganisatieParameterKey.CERVIX_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN, 30));
 			var signalerenVanaf = vandaag.minusDays(MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN);
 
 			var criteria = session.createCriteria(CervixMonster.class, "monster");

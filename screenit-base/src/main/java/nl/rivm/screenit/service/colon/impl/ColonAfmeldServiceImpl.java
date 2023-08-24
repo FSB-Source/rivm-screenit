@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,10 +21,10 @@ package nl.rivm.screenit.service.colon.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+import nl.rivm.screenit.model.AanvraagBriefStatus;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.AfmeldingType;
 import nl.rivm.screenit.model.Client;
@@ -41,7 +41,6 @@ import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
-import nl.rivm.screenit.model.colon.enums.RedenAfspraakAfzeggen;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -55,7 +54,7 @@ import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonScreeningsrondeService;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.IFOBTTestUtil;
+import nl.rivm.screenit.util.FITTestUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang.BooleanUtils;
@@ -137,7 +136,6 @@ public class ColonAfmeldServiceImpl implements ColonAfmeldService
 			if (AfspraakStatus.GEPLAND.equals(status)
 				|| AfspraakStatus.UITGEVOERD.equals(status) && ColonConclusieType.NO_SHOW.equals(conclusieType))
 			{
-				laatsteAfspraak.setRedenAfzeggen(RedenAfspraakAfzeggen.CLIENT_WIL_NIET_DEELNEMEN);
 				afspraakService.afspraakAfzeggen(laatsteAfspraak, AfspraakStatus.GEANNULEERD_AFMELDEN, currentDateSupplier.getLocalDateTime(), false);
 
 				LOG.info("Afmelding: laatste intake afspraak is afgezegd");
@@ -169,7 +167,7 @@ public class ColonAfmeldServiceImpl implements ColonAfmeldService
 	@Override
 	public void vervolgAfmelden(ColonAfmelding afmelding)
 	{
-		if (afmelding.getType() == AfmeldingType.DEFINITIEF)
+		if (AfmeldingType.DEFINITIEF.equals(afmelding.getType()) || AfmeldingType.TIJDELIJK.equals(afmelding.getType()))
 		{
 			if (!ColonAfmeldingReden.PROEF_BEVOLKINGSONDERZOEK.equals(afmelding.getReden()))
 			{
@@ -177,8 +175,12 @@ public class ColonAfmeldServiceImpl implements ColonAfmeldService
 					briefService.maakBvoBrief(afmelding, BriefType.COLON_AFMELDING_BEVESTIGING, currentDateSupplier.getDate()));
 				hibernateService.saveOrUpdate(afmelding);
 			}
-
-			ColonScreeningRonde ronde = afmelding.getDossier().getLaatsteScreeningRonde();
+			var dossier = afmelding.getDossier();
+			if (dossier == null)
+			{
+				dossier = afmelding.getScreeningRonde().getDossier();
+			}
+			var ronde = dossier.getLaatsteScreeningRonde();
 			if (ronde != null && ronde.getOpenUitnodiging() != null && ronde.getOpenUitnodiging().getUitslag() == null)
 			{
 				OpenUitnodiging uitnodiging = ronde.getOpenUitnodiging();
@@ -192,22 +194,21 @@ public class ColonAfmeldServiceImpl implements ColonAfmeldService
 	@Override
 	public void vervolgHeraanmelden(ColonAfmelding herAanTeMeldenAfmelding, Account account)
 	{
-		ColonScreeningRonde ronde = getGeldigeRondeVoorHeraanmelding(herAanTeMeldenAfmelding);
+		var ronde = getGeldigeRondeVoorHeraanmelding(herAanTeMeldenAfmelding);
 
-		LocalDateTime nu = currentDateSupplier.getLocalDateTime();
-		if (herAanTeMeldenAfmelding.getType() == AfmeldingType.DEFINITIEF)
+		var nu = currentDateSupplier.getLocalDateTime();
+		if (herAanTeMeldenAfmelding.getType() != AfmeldingType.EENMALIG
+			&& herAanTeMeldenAfmelding.getReden() != ColonAfmeldingReden.PROEF_BEVOLKINGSONDERZOEK
+			&& BooleanUtils.isNotTrue(herAanTeMeldenAfmelding.getHeraanmeldingBevestigingsBriefTegenhouden()) &&
+			(herAanTeMeldenAfmelding.getType() == AfmeldingType.DEFINITIEF || herAanTeMeldenAfmelding.getAfmeldingStatus() == AanvraagBriefStatus.VERWERKT))
 		{
-			if (!ColonAfmeldingReden.PROEF_BEVOLKINGSONDERZOEK.equals(herAanTeMeldenAfmelding.getReden())
-				&& BooleanUtils.isNotTrue(herAanTeMeldenAfmelding.getHeraanmeldingBevestigingsBriefTegenhouden()))
-			{
-				herAanTeMeldenAfmelding.setHeraanmeldBevestiging(
-					briefService.maakBvoBrief(herAanTeMeldenAfmelding, BriefType.COLON_HERAANMELDING_BEVESTIGING, DateUtil.toUtilDate(nu)));
-				hibernateService.saveOrUpdate(herAanTeMeldenAfmelding);
-			}
+			herAanTeMeldenAfmelding.setHeraanmeldBevestiging(
+				briefService.maakBvoBrief(herAanTeMeldenAfmelding, BriefType.COLON_HERAANMELDING_BEVESTIGING, DateUtil.toUtilDate(nu)));
+			hibernateService.saveOrUpdate(herAanTeMeldenAfmelding);
 		}
 
 		ColonIntakeAfspraak afspraak = herAanTeMeldenAfmelding.getHeraanmeldingAfspraak();
-		if (herAanTeMeldenAfmelding.getClientWilNieuweUitnodiging() && afspraak == null)
+		if (Boolean.TRUE.equals(herAanTeMeldenAfmelding.getClientWilNieuweUitnodiging()) && afspraak == null)
 		{
 			screeningsrondeService.createNieuweUitnodiging(ronde, ColonUitnodigingCategorie.U4_2);
 		}
@@ -245,7 +246,7 @@ public class ColonAfmeldServiceImpl implements ColonAfmeldService
 			}
 			ColonBrief brief = briefService.maakBvoBrief(ronde, afspraakBriefType, DateUtil.toUtilDate(nu.plus(150, ChronoUnit.MILLIS)));
 
-			if (herAanTeMeldenAfmelding.getHeraanmeldingAfspraakBriefTegenhouden())
+			if (Boolean.TRUE.equals(herAanTeMeldenAfmelding.getHeraanmeldingAfspraakBriefTegenhouden()))
 			{
 				hibernateService.saveOrUpdate(BriefUtil.setTegenhouden(brief, true));
 			}
@@ -257,13 +258,13 @@ public class ColonAfmeldServiceImpl implements ColonAfmeldService
 		if (ronde != null)
 		{
 			openUitnodigingService.afmeldingHeraanmeldingReactieOpOpenUitnodiging(herAanTeMeldenAfmelding, ronde, account);
-			if (!herAanTeMeldenAfmelding.getClientWilNieuweUitnodiging())
+			if (Boolean.FALSE.equals(herAanTeMeldenAfmelding.getClientWilNieuweUitnodiging()))
 			{
 				ColonUitnodiging uitnodiging = ronde.getLaatsteUitnodiging();
 				if (uitnodiging != null)
 				{
 					IFOBTTest gekoppeldeTest = uitnodiging.getGekoppeldeTest();
-					IFOBTTestStatus ifobtTestStatus = IFOBTTestUtil.getActieveIFOBTTestStatusNaHeraanmelding(uitnodiging);
+					IFOBTTestStatus ifobtTestStatus = FITTestUtil.getActieveFITTestStatusNaHeraanmelding(uitnodiging);
 					if (ifobtTestStatus != null && gekoppeldeTest != null
 						&& gekoppeldeTest.getStatus().magWijzigenNaarStatus(ifobtTestStatus, gekoppeldeTest))
 					{
@@ -284,6 +285,7 @@ public class ColonAfmeldServiceImpl implements ColonAfmeldService
 		switch (herAanTeMeldenAfmelding.getType())
 		{
 		case EENMALIG:
+		case TIJDELIJK:
 			if (Boolean.TRUE.equals(herAanTeMeldenAfmelding.getRondeGesloten()))
 			{
 				ronde = herAanTeMeldenAfmelding.getScreeningRonde();

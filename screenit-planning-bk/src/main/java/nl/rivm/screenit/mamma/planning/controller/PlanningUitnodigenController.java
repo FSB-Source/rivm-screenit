@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.controller;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,7 +31,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
-import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -39,11 +38,11 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dto.mamma.planning.PlanningRestConstants;
-import nl.rivm.screenit.mamma.planning.dao.PlanningReadModelDao;
 import nl.rivm.screenit.mamma.planning.index.PlanningScreeningsEenheidIndex;
 import nl.rivm.screenit.mamma.planning.index.PlanningStatusIndex;
 import nl.rivm.screenit.mamma.planning.model.PlanningClient;
@@ -60,8 +59,7 @@ import nl.rivm.screenit.mamma.planning.model.PlanningTehuis;
 import nl.rivm.screenit.mamma.planning.model.PopulatieMetStreefDatum;
 import nl.rivm.screenit.mamma.planning.model.rapportage.PlanningStandplaatsRondeUitnodigenRapportageDto;
 import nl.rivm.screenit.mamma.planning.model.rapportage.PlanningUitnodigenRapportageDto;
-import nl.rivm.screenit.mamma.planning.service.PlanningConceptOpslaanService;
-import nl.rivm.screenit.mamma.planning.service.PlanningConceptService;
+import nl.rivm.screenit.mamma.planning.service.PlanningConceptmodelService;
 import nl.rivm.screenit.mamma.planning.service.PlanningUitnodigenService;
 import nl.rivm.screenit.mamma.planning.service.PlanningUitnodigingContext;
 import nl.rivm.screenit.mamma.planning.service.impl.UitnodigenCapaciteitCalculator;
@@ -96,20 +94,16 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @RequestMapping("/" + PlanningRestConstants.C_UITNODIGEN)
+@RequiredArgsConstructor
 public class PlanningUitnodigenController
 {
-
 	private static final ThreadPoolExecutor executor = new ThreadPoolExecutor(0, 100, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
 
 	private static final BigDecimal MINUS_HALF = BigDecimal.valueOf(-0.5);
 
 	private static Integer uitnodigenVanafJaar;
 
-	private final PlanningReadModelDao readModelDao;
-
-	private final PlanningConceptService conceptService;
-
-	private final PlanningConceptOpslaanService conceptOpslaanService;
+	private final PlanningConceptmodelService conceptmodelService;
 
 	private final PlanningUitnodigenService uitnodigenService;
 
@@ -122,22 +116,6 @@ public class PlanningUitnodigenController
 	private final LogService logService;
 
 	private final InstellingService instellingService;
-
-	public PlanningUitnodigenController(PlanningReadModelDao readModelDao, PlanningConceptService conceptService,
-		PlanningConceptOpslaanService conceptOpslaanService, PlanningUitnodigenService uitnodigenService,
-		SimplePreferenceService preferenceService, ICurrentDateSupplier dateSupplier, HibernateService hibernateService, LogService logService,
-		InstellingService instellingService)
-	{
-		this.readModelDao = readModelDao;
-		this.conceptService = conceptService;
-		this.conceptOpslaanService = conceptOpslaanService;
-		this.uitnodigenService = uitnodigenService;
-		this.preferenceService = preferenceService;
-		this.dateSupplier = dateSupplier;
-		this.hibernateService = hibernateService;
-		this.logService = logService;
-		this.instellingService = instellingService;
-	}
 
 	private static boolean teSelecteren(PlanningClient client, PlanningUitnodigingContext context, int uitnodigenTotEnMetJaar, PlanningPostcodeReeksRegio postcodeReeksRegio)
 	{
@@ -166,13 +144,13 @@ public class PlanningUitnodigenController
 
 	private static boolean uitTeNodigen(PlanningClient client)
 	{
-		return client.getAfspraakStandplaats() == null && client.getUitstelStandplaats() == null && !client.isUitgenodigdHuidigeStandplaatsRonde()
-			|| Boolean.FALSE.equals(client.getUitgenodigdNaUitstel());
-	}
+		var clientHeeftGeenUitstelEnMoetUitgenodigdWorden =
+			client.getAfspraakStandplaats() == null && client.getUitstelStandplaats() == null && !client.isUitgenodigdHuidigeStandplaatsRonde();
 
-	private static boolean heeftUitstel(PlanningClient client)
-	{
-		return client.getUitstelStandplaats() != null && client.getUitstelReden() == MammaUitstelReden.CLIENT_CONTACT && !client.getUitgenodigdNaUitstel();
+		var clientMoetUitgenodigdWordenVoorAchtervangOfMinderValideUitwijk =
+			Boolean.FALSE.equals(client.getUitgenodigdNaUitstel()) && client.getUitstelReden() != MammaUitstelReden.CLIENT_CONTACT;
+
+		return clientHeeftGeenUitstelEnMoetUitgenodigdWorden || clientMoetUitgenodigdWordenVoorAchtervangOfMinderValideUitwijk;
 	}
 
 	private static void scaleHuidigeStreefDatumEersteRondeClienten(NavigableSet<PlanningClient> clientNavigableSet)
@@ -257,7 +235,7 @@ public class PlanningUitnodigenController
 			uitnodigenService.clear();
 			uitnodigenVanafJaar = dateSupplier.getLocalDate().getYear();
 
-			readModelDao.readDataModel();
+			conceptmodelService.resetConceptmodel();
 
 			hibernateService.getHibernateSession().setFlushMode(FlushMode.COMMIT);
 
@@ -265,7 +243,7 @@ public class PlanningUitnodigenController
 
 			uitnodigen(rapportage);
 
-			readModelDao.readDataModel();
+			conceptmodelService.resetConceptmodel();
 
 			rapportage.setDatumVerwerking(dateSupplier.getDate());
 			hibernateService.save(rapportage);
@@ -462,7 +440,7 @@ public class PlanningUitnodigenController
 						{
 							openUitnodigingClientSet.add(client);
 						}
-						else if (!client.isSuspect() && (client.getDeelnamekans().compareTo(afspraakDrempel) >= 0 || heeftUitstel(client)))
+						else if (!client.isSuspect() && client.getDeelnamekans().compareTo(afspraakDrempel) >= 0)
 						{
 							afspraakUitnodigingClientSet.add(client);
 						}
@@ -559,8 +537,8 @@ public class PlanningUitnodigenController
 		for (PopulatieMetStreefDatum wijkPopulatie : populatiePerWijk.values())
 		{
 			scaleHuidigeStreefDatumEersteRondeClienten(wijkPopulatie.getClienten());
-			OptionalDouble average = wijkPopulatie.getClienten().stream().mapToLong(client -> client.getHuidigeStreefDatum().toEpochDay()).average();
-			wijkPopulatie.setUitnodigingStreefDatum(LocalDate.ofEpochDay(Math.round(average.getAsDouble())));
+			var average = wijkPopulatie.getClienten().stream().mapToLong(client -> client.getHuidigeStreefDatum().toEpochDay()).average().orElseThrow();
+			wijkPopulatie.setUitnodigingStreefDatum(LocalDate.ofEpochDay(Math.round(average)));
 		}
 		return new TreeSet<>(populatiePerWijk.values());
 	}
@@ -616,16 +594,16 @@ public class PlanningUitnodigenController
 				standplaatsPeriodeUitnodigenRapportage
 					.setStandplaatsPeriode(hibernateService.load(MammaStandplaatsPeriode.class, standplaatsPeriodeUitnodigenRapportageDto.getStandplaatsPeriodeId()));
 				standplaatsPeriodeUitnodigenRapportage.setStandplaatsRondeUitnodigenRapportage(standplaatsRondeUitnodigenRapportage);
-				standplaatsPeriodeUitnodigenRapportage.setUitgenodigdAfspraak(!uitnodigenFout ? standplaatsPeriodeUitnodigenRapportageDto.getUitgenodigdAfspraak() : -1);
-				standplaatsPeriodeUitnodigenRapportage.setUitgenodigdMinderValide(!uitnodigenFout ? standplaatsPeriodeUitnodigenRapportageDto.getUitgenodigdMinderValide() : -1);
-				standplaatsPeriodeUitnodigenRapportage.setUitgenodigdNaUitstel(!uitnodigenFout ? standplaatsPeriodeUitnodigenRapportageDto.getUitgenodigdNaUitstel() : -1);
-				standplaatsPeriodeUitnodigenRapportage.setUitgenodigdOpen(!uitnodigenFout ? standplaatsPeriodeUitnodigenRapportageDto.getUitgenodigdOpen() : -1);
-				standplaatsPeriodeUitnodigenRapportage.setUitgenodigdSuspect(!uitnodigenFout ? standplaatsPeriodeUitnodigenRapportageDto.getUitgenodigdSuspect() : -1);
+				standplaatsPeriodeUitnodigenRapportage.setUitgenodigdAfspraak(!uitnodigenFout ? standplaatsPeriodeUitnodigenRapportageDto.getUitgenodigdAfspraak() : null);
+				standplaatsPeriodeUitnodigenRapportage.setUitgenodigdMinderValide(!uitnodigenFout ? standplaatsPeriodeUitnodigenRapportageDto.getUitgenodigdMinderValide() : null);
+				standplaatsPeriodeUitnodigenRapportage.setUitgenodigdNaUitstel(!uitnodigenFout ? standplaatsPeriodeUitnodigenRapportageDto.getUitgenodigdNaUitstel() : null);
+				standplaatsPeriodeUitnodigenRapportage.setUitgenodigdOpen(!uitnodigenFout ? standplaatsPeriodeUitnodigenRapportageDto.getUitgenodigdOpen() : null);
+				standplaatsPeriodeUitnodigenRapportage.setUitgenodigdSuspect(!uitnodigenFout ? standplaatsPeriodeUitnodigenRapportageDto.getUitgenodigdSuspect() : null);
 				standplaatsPeriodeUitnodigenRapportage.setUitnodigenTotEnMet(standplaatsPeriodeUitnodigenRapportageDto.getUitnodigenTotEnMet());
 				standplaatsPeriodeUitnodigenRapportage
-					.setUitgesteldAchtervangUitstel(!uitnodigenFout ? standplaatsPeriodeUitnodigenRapportageDto.getUitgesteldAchtervangUitstel() : -1);
+					.setUitgesteldAchtervangUitstel(!uitnodigenFout ? standplaatsPeriodeUitnodigenRapportageDto.getUitgesteldAchtervangUitstel() : null);
 				standplaatsPeriodeUitnodigenRapportage
-					.setUitgesteldMinderValideUitgewijktUitstel(!uitnodigenFout ? standplaatsPeriodeUitnodigenRapportageDto.getUitgesteldMinderValideUitgewijktUitstel() : -1);
+					.setUitgesteldMinderValideUitgewijktUitstel(!uitnodigenFout ? standplaatsPeriodeUitnodigenRapportageDto.getUitgesteldMinderValideUitgewijktUitstel() : null);
 				standplaatsPeriodeUitnodigenRapportages.add(standplaatsPeriodeUitnodigenRapportage);
 
 				MammaStandplaatsRondeRapportageStatus rondeRapportageStatus = standplaatsRondeUitnodigingRapportageDto.getStatus();
@@ -712,23 +690,24 @@ public class PlanningUitnodigenController
 					uitTeNodigenEersteRonde++;
 				}
 			}
-			switch (client.getDoelgroep())
+
+			if (client.getDoelgroep() == MammaDoelgroep.DUBBELE_TIJD)
 			{
-			case DUBBELE_TIJD:
 				totaalDubbeleTijd++;
 				if (uitTeNodigen(client))
 				{
 					uitTeNodigenDubbeleTijd++;
 				}
-				break;
-			case MINDER_VALIDE:
+			}
+			else if (client.getDoelgroep() == MammaDoelgroep.MINDER_VALIDE)
+			{
 				totaalMinderValide++;
 				if (uitTeNodigen(client))
 				{
 					uitTeNodigenMinderValide++;
 				}
-				break;
 			}
+
 			if (client.getTehuis() != null)
 			{
 				totaalTehuis++;
@@ -737,6 +716,7 @@ public class PlanningUitnodigenController
 					uitTeNodigenTehuis++;
 				}
 			}
+
 			if (client.isSuspect())
 			{
 				totaalSuspect++;
@@ -750,7 +730,7 @@ public class PlanningUitnodigenController
 		synchronized (rapportageDto)
 		{
 			PlanningStandplaatsRondeUitnodigenRapportageDto standplaatsRondeUitnodigenRapportage = rapportageDto.getStandplaatsRondeUitnodigenRapportages().stream()
-				.filter(element -> element.getStandplaatsRondeId().equals(standplaatsRonde.getId())).findAny().orElse(null);
+				.filter(element -> element.getStandplaatsRondeId().equals(standplaatsRonde.getId())).findAny().orElseThrow();
 
 			if (context.uitnodigenOnderbreken)
 			{

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.brieven.client.genererenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,7 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.util.query.ScreenitRestrictions;
+import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5Session;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.hibernate.Criteria;
@@ -176,9 +178,13 @@ public class MammaBrievenGenererenPartitioner extends AbstractBrievenGenererenPa
 
 	private Boolean isEersteRondeBrief(BriefType briefType)
 	{
+		var annoteerEersteRonde = new AtomicBoolean();
+		OpenHibernate5Session.withoutTransaction().run(() ->
+		{
+			annoteerEersteRonde.set(preferenceService.getBoolean(PreferenceKey.MAMMA_ANNOTEER_EERSTE_RONDE.name(), Boolean.FALSE));
+		});
 
-		var annoteerEersteRonde = preferenceService.getBoolean(PreferenceKey.MAMMA_ANNOTEER_EERSTE_RONDE.name());
-		return Boolean.TRUE.equals(annoteerEersteRonde) && BriefType.getMammaEersteRondeBrieftype().contains(briefType);
+		return Boolean.TRUE.equals(annoteerEersteRonde.get()) && BriefType.getMammaEersteRondeBrieftype().contains(briefType);
 	}
 
 	void partitionBuilders(Map<String, ExecutionContext> partities, long organisatieID, BriefType briefType, boolean briefApart, Long standPlaatsID, Boolean tijdelijk,

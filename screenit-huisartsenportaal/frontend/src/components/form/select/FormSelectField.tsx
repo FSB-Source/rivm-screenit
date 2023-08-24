@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,6 +24,8 @@ import classNames from "classnames"
 import styles from "./FormSelectField.module.scss"
 import {SelectOption} from "../../../state/datatypes/dto/SelectOption"
 
+import React from "react"
+
 export interface FormSelectFieldProps<T> extends SharedFormFieldProps {
 	clearable?: boolean;
 	options: SelectOption<T>[];
@@ -44,6 +46,7 @@ function FormSelectField<T>(props: FormSelectFieldProps<T>) {
 			placeholder={props.label}
 			formatOptionLabel={props.formatOptionLabel}
 			noOptionsMessage={() => "Geen opties beschikbaar"}
+			isSearchable={false}
 			isDisabled={props.disabled}
 		/>
 	</BaseFormField>

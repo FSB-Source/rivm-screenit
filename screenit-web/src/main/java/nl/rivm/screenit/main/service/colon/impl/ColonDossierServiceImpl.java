@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,6 @@ package nl.rivm.screenit.main.service.colon.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -43,7 +42,6 @@ import nl.rivm.screenit.model.BerichtZoekFilter;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.Gebruiker;
-import nl.rivm.screenit.model.IGeografischeCoordinaten;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
@@ -59,13 +57,10 @@ import nl.rivm.screenit.model.colon.ColonHuisartsBericht;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.IFOBTTest;
-import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.ColonGeenOnderzoekReden;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
-import nl.rivm.screenit.model.colon.planning.AfspraakDefinitie;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.rivm.screenit.model.dashboard.DashboardStatus;
@@ -76,21 +71,19 @@ import nl.rivm.screenit.model.logging.LogRegel;
 import nl.rivm.screenit.model.project.ProjectInactiefReden;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ClientService;
-import nl.rivm.screenit.service.CoordinatenService;
 import nl.rivm.screenit.service.DashboardService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.colon.AfspraakService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.IFobtService;
-import nl.rivm.screenit.service.impl.PersoonCoordinaten;
-import nl.rivm.screenit.util.BigDecimalUtil;
+import nl.rivm.screenit.util.AfmeldingUtil;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.ColonScreeningRondeUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.EntityAuditUtil;
-import nl.rivm.screenit.util.IFOBTTestUtil;
+import nl.rivm.screenit.util.FITTestUtil;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -99,11 +92,11 @@ import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.ObjectNotFoundException;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.collect.Range;
 
 import static nl.rivm.screenit.Constants.MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN;
 
@@ -132,9 +125,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 
 	private final ColonDossierBaseService dossierBaseService;
 
-	private final CoordinatenService coordinatenService;
-
-	private final InstellingService instellingService;
+	private final OrganisatieParameterService organisatieParameterService;
 
 	private final DashboardService dashboardService;
 
@@ -147,13 +138,14 @@ public class ColonDossierServiceImpl implements ColonDossierService
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void conclusieOpslaan(ColonIntakeAfspraak afspraak, ColonVervolgonderzoekKeuzesDto keuzes, InstellingGebruiker ingelogdeGebruiker, boolean wasOnHold)
+	public void conclusieOpslaan(ColonIntakeAfspraak afspraak, ColonVervolgonderzoekKeuzesDto keuzes, InstellingGebruiker ingelogdeGebruiker,
+		ColonConclusieType oudeConclusieType)
 	{
 		ColonConclusie conclusie = afspraak.getConclusie();
 		boolean nieuweConclusie = conclusie.getId() == null;
 		String conclusieDiff = null;
 		conclusie.setType(keuzes.conclusie);
-		if (!keuzes.intakeConclusie && keuzes.conclusie == ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM && !keuzes.afspraakDirectMaken)
+		if (!keuzes.intakeConclusie && keuzes.conclusie == ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM && !keuzes.verwijzing)
 		{
 			conclusie.setType(ColonConclusieType.CLIENT_WIL_ANDERE_INTAKELOKATIE);
 		}
@@ -198,10 +190,16 @@ public class ColonDossierServiceImpl implements ColonDossierService
 			List<ColonBrief> aangemaakteConclusieBrieven = briefService.getNietGegenereerdeBrievenVanBriefTypes(screeningRonde.getBrieven(), BriefType.getColonConclusieBrieven());
 			verwijderVervolgStappen(screeningRonde, aangemaakteConclusieBrieven);
 		}
-		if (!nieuweConclusie && StringUtils.isBlank(conclusieDiff))
+		if (!nieuweConclusie && StringUtils.isBlank(conclusieDiff) && !Boolean.TRUE.equals(keuzes.isDoorverwezenDoorInfolijn))
 		{
 			return;
 		}
+
+		if (Boolean.TRUE.equals(conclusie.getDoorverwijzingBevestigd()) && !ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM.equals(conclusie.getType()))
+		{
+			conclusie.setDoorverwijzingBevestigd(null);
+		}
+
 		LocalDateTime nu = currentDateSupplier.getLocalDateTime();
 		conclusie.setDatum(DateUtil.toUtilDate(nu));
 		hibernateService.saveOrUpdate(conclusie);
@@ -217,59 +215,27 @@ public class ColonDossierServiceImpl implements ColonDossierService
 			hibernateService.saveOrUpdate(screeningRonde);
 			break;
 		case DOORVERWIJZEN_NAAR_ANDER_CENTRUM:
-		{
-			ColonIntakeAfspraak nieuweAfspraak = new ColonIntakeAfspraak();
-			Kamer kamer = conclusie.getLocatieNieuweAfspraak();
-
-			nieuweAfspraak.setLocation(kamer);
-			nieuweAfspraak.setStartTime(conclusie.getDatumTijdNieuweAfspraak());
-			nieuweAfspraak.setColonScreeningRonde(screeningRonde);
-			nieuweAfspraak.setClient(client);
-			nieuweAfspraak.setActief(true);
-			nieuweAfspraak.setBezwaar(false);
-			nieuweAfspraak.setDatumLaatsteWijziging(DateUtil.toUtilDate(nu));
-			nieuweAfspraak.setAfspraaknummer(System.currentTimeMillis());
-			nieuweAfspraak.setStatus(AfspraakStatus.GEPLAND);
-
-			ColoscopieCentrum intakeLocatie = kamer.getColoscopieCentrum();
-			AfspraakDefinitie afspraakDefinitie = intakeLocatie.getAfspraakDefinities().get(0);
-			Integer duurAfspraakInMinuten = afspraakDefinitie.getDuurAfspraakInMinuten();
-			nieuweAfspraak.setEndTime(new DateTime(nieuweAfspraak.getStartTime()).plusMinutes(duurAfspraakInMinuten).toDate());
-			nieuweAfspraak.setDefinition(afspraakDefinitie);
-			nieuweAfspraak.addDiscipline(afspraakDefinitie.getDisciplines().get(0));
-			PersoonCoordinaten persoonCoordinaten = coordinatenService.getCoordinatenVanPersoon(client.getPersoon());
-			IGeografischeCoordinaten intakeLocatieCoordinaten = intakeLocatie.getPostcodeCoordinaten();
-			if (persoonCoordinaten.vanAdres != null && intakeLocatieCoordinaten != null)
+			if (!afspraakService.heeftOnafgerondeVerwijzingOmMedischeRedenen(afspraak))
 			{
-				double distance = BigDecimalUtil.berekenDistance(persoonCoordinaten.vanAdres, intakeLocatieCoordinaten);
-				nieuweAfspraak.setAfstand(BigDecimal.valueOf(distance));
+				conclusie.setDoorverwijzingBevestigd(true);
+				hibernateService.saveOrUpdate(conclusie);
+			}
+			break;
+		case CLIENT_WIL_ANDERE_INTAKELOKATIE:
+			if (afspraak.getNieuweAfspraak() != null)
+			{
+				afspraakService.setAfspraakStatus(afspraak, AfspraakStatus.VERPLAATST);
+			}
+			break;
+		case NO_SHOW:
+			if (afspraak.getNieuweAfspraak() != null)
+			{
+				afspraakService.setAfspraakStatus(afspraak, AfspraakStatus.VERPLAATST);
 			}
 			else
 			{
-				nieuweAfspraak.setAfstand(BigDecimal.valueOf(0));
+				briefService.maakBvoBrief(screeningRonde, BriefType.COLON_INTAKE_NO_SHOW);
 			}
-			client.getAfspraken().add(nieuweAfspraak);
-			screeningRonde.getAfspraken().add(nieuweAfspraak);
-			screeningRonde.setLaatsteAfspraak(nieuweAfspraak);
-			afspraak.setNieuweAfspraak(nieuweAfspraak);
-			nieuweAfspraak.setOudeAfspraak(afspraak);
-
-			afspraakService.setAfspraakStatus(afspraak, AfspraakStatus.UITGEVOERD);
-
-			hibernateService.saveOrUpdate(nieuweAfspraak);
-			hibernateService.saveOrUpdate(screeningRonde);
-			hibernateService.saveOrUpdate(client);
-			RoosterItem roosterBlok = afspraakService.getVrijRoosterBlokVoorAfspraak(nieuweAfspraak);
-			if (roosterBlok != null)
-			{
-				afspraak.setRoosterItem(roosterBlok);
-				roosterBlok.getAfspraken().add(nieuweAfspraak);
-				hibernateService.saveOrUpdateAll(nieuweAfspraak, roosterBlok);
-			}
-			break;
-		}
-		case NO_SHOW:
-			briefService.maakBvoBrief(screeningRonde, BriefType.COLON_INTAKE_NO_SHOW);
 			break;
 		case GEEN_VERVOLGONDERZOEK:
 			BriefType briefType;
@@ -283,7 +249,6 @@ public class ColonDossierServiceImpl implements ColonDossierService
 			}
 			briefService.maakBvoBrief(screeningRonde, briefType);
 			break;
-
 		}
 		if (!ColonConclusieType.CT_COLOGRAFIE.equals(conclusie.getType()))
 		{
@@ -329,7 +294,6 @@ public class ColonDossierServiceImpl implements ColonDossierService
 		boolean diffs;
 		diffs = !Objects.equals(oldAfspraakConclusie.getAsaScore(), conclusie.getAsaScore());
 		diffs |= ObjectUtils.compare(oldAfspraakConclusie.getDatumColoscopie(), conclusie.getDatumColoscopie()) != 0;
-		diffs |= ObjectUtils.compare(oldAfspraakConclusie.getDatumTijdNieuweAfspraak(), conclusie.getDatumTijdNieuweAfspraak()) != 0;
 		diffs |= !Objects.equals(oldAfspraakConclusie.getGeenOnderzoekReden(), conclusie.getGeenOnderzoekReden());
 		diffs |= !Objects.equals(oldAfspraakConclusie.getType(), conclusie.getType());
 		diffs |= !Objects.equals(oldAfspraakConclusie.getNoShowBericht(), conclusie.getNoShowBericht());
@@ -351,8 +315,8 @@ public class ColonDossierServiceImpl implements ColonDossierService
 		ColonDossier colonDossier = colonScreeningRonde.getDossier();
 		Client client = colonDossier.getClient();
 
-		DateTime datumTerugOntvangen = new DateTime(uitnodiging.getDatumTerugOntvangen());
-		Interval range = new Interval(datumTerugOntvangen, datumTerugOntvangen.plusSeconds(3));
+		var datumTerugOntvangen = uitnodiging.getDatumTerugOntvangen();
+		var range = Range.closed(DateUtil.toLocalDateTime(datumTerugOntvangen), DateUtil.toLocalDateTime(datumTerugOntvangen).plusSeconds(3));
 
 		ifobtService.verwijderScannedAntwoordFormulier(uitnodiging);
 
@@ -423,7 +387,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 
 		if (ScreeningRondeStatus.AFGEROND.equals(colonScreeningRonde.getStatus())
 			&& (colonScreeningRonde.getLaatsteAfmelding() == null || colonScreeningRonde.getLaatsteAfmelding().getRondeHeropend())
-			&& (colonDossier.getLaatsteAfmelding() == null || colonDossier.getLaatsteAfmelding().getHeraanmeldStatus() == AanvraagBriefStatus.VERWERKT))
+			&& (!AfmeldingUtil.isAfgerondeDefinitieveAfmelding(colonDossier.getLaatsteAfmelding())))
 		{
 			colonScreeningRonde.setStatus(ScreeningRondeStatus.LOPEND);
 			colonScreeningRonde.setAfgerondReden(null);
@@ -505,12 +469,12 @@ public class ColonDossierServiceImpl implements ColonDossierService
 		hibernateService.delete(brief);
 	}
 
-	private void findAfmeldingenEnBrievenToDelete(List<ColonAfmelding> teVerwijderenAfmeldingen, List<ColonBrief> teVerwijderenBrieven, Interval range,
+	private void findAfmeldingenEnBrievenToDelete(List<ColonAfmelding> teVerwijderenAfmeldingen, List<ColonBrief> teVerwijderenBrieven, Range<LocalDateTime> range,
 		List<ColonAfmelding> afmeldingen)
 	{
 		for (ColonAfmelding afmelding : afmeldingen)
 		{
-			if (range.contains(new DateTime(afmelding.getAfmeldDatum())))
+			if (range.contains(DateUtil.toLocalDateTime(afmelding.getAfmeldDatum())))
 			{
 				if (afmelding.getAfmeldingAanvraag() != null)
 				{
@@ -637,7 +601,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void verwijderIfobtUitslag(IFOBTTest buis, UploadDocument uploadDocument, InstellingGebruiker ingelogdeGebruiker)
 	{
-		ColonUitnodiging uitnodiging = (ColonUitnodiging) HibernateHelper.deproxy(ModelProxyHelper.deproxy(IFOBTTestUtil.getUitnodiging(buis)));
+		ColonUitnodiging uitnodiging = (ColonUitnodiging) HibernateHelper.deproxy(ModelProxyHelper.deproxy(FITTestUtil.getUitnodiging(buis)));
 
 		ColonScreeningRonde screeningRonde = buis.getColonScreeningRonde();
 		Client client = screeningRonde.getDossier().getClient();
@@ -655,7 +619,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 		List<ColonIntakeAfspraak> teVerwijderenAfspraken = new ArrayList<>();
 		List<ColonHuisartsBericht> teVerwijderenHuisartsberichten = new ArrayList<>();
 
-		if (IFOBTTestUtil.isOngunstig(buis) && !IFOBTTestUtil.heeftMeerdereOngunstigeUitslagenInZelfdeRonde(buis))
+		if (FITTestUtil.isOngunstig(buis) && !FITTestUtil.heeftMeerdereOngunstigeUitslagenInZelfdeRonde(buis))
 		{
 			for (ColonIntakeAfspraak afspraak : screeningRonde.getAfspraken())
 			{
@@ -713,9 +677,9 @@ public class ColonDossierServiceImpl implements ColonDossierService
 
 	private boolean isBriefTeVerwijderen(IFOBTTest buis, ColonBrief bestaandeBrief)
 	{
-		return IFOBTTestUtil.isEnigeUitgevoerdeIfobtInZelfdeRonde(buis) && BriefUtil.isUitslagBrief(bestaandeBrief)
-			|| IFOBTTestUtil.isOngunstig(buis) && BriefUtil.isOngunstigeUitslagBrief(bestaandeBrief)
-			&& !IFOBTTestUtil.heeftMeerdereOngunstigeUitslagenInZelfdeRonde(buis);
+		return FITTestUtil.isEnigeUitgevoerdeFITInZelfdeRonde(buis) && BriefUtil.isUitslagBrief(bestaandeBrief)
+			|| FITTestUtil.isOngunstig(buis) && BriefUtil.isOngunstigeUitslagBrief(bestaandeBrief)
+			&& !FITTestUtil.heeftMeerdereOngunstigeUitslagenInZelfdeRonde(buis);
 	}
 
 	@Override
@@ -724,7 +688,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 	{
 		if (uploadDocument != null)
 		{
-			ColonUitnodiging uitnodiging = IFOBTTestUtil.getUitnodiging(buis);
+			ColonUitnodiging uitnodiging = FITTestUtil.getUitnodiging(buis);
 			IFOBTTest gekoppeldeTest = uitnodiging.getGekoppeldeTest();
 			if (gekoppeldeTest != null)
 			{
@@ -743,7 +707,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 	public boolean setUitslagenGecontroleerdEnUpdateDashboard(LogRegel logRegel, InstellingGebruiker medewerker, DashboardStatus dashboardStatus)
 	{
 		var dossier = logRegel.getClient().getColonDossier();
-		var signaleringsTermijn = instellingService.getOrganisatieParameter(null, OrganisatieParameterKey.COLON_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN, 30);
+		var signaleringsTermijn = organisatieParameterService.getOrganisatieParameter(null, OrganisatieParameterKey.COLON_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN, 30);
 
 		var nu = currentDateSupplier.getLocalDate();
 		var laatstGesignaleerdeIfobt = ifobtDao.getLaatsteIfobtTestMetMissendeUitslagVanDossier(dossier,
@@ -756,11 +720,12 @@ public class ColonDossierServiceImpl implements ColonDossierService
 		if (laatstGesignaleerdeIfobt == null)
 		{
 			LOG.warn("Er zijn geen gesignaleerde IFOBTs gevonden voor dossier {}", dossier.getId());
-			return isGedowngrade;
 		}
-		dossier.setDatumLaatstGecontroleerdeSignalering(laatstGesignaleerdeIfobt.getAnalyseDatum());
-		hibernateService.saveOrUpdate(dossier);
-
+		else
+		{
+			dossier.setDatumLaatstGecontroleerdeSignalering(laatstGesignaleerdeIfobt.getAnalyseDatum());
+			hibernateService.saveOrUpdate(dossier);
+		}
 		return isGedowngrade;
 	}
 }

@@ -1,30 +1,18 @@
 {
+  "extends": "../../../frontend-base/tsconfig.base.json",
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ],
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx"
+  ],
   "compilerOptions": {
-    "target": "es6",
     "typeRoots": [
       "./typings",
-      "./node_modules/@types"
-    ],
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-    "noFallthroughCasesInSwitch": true
-  },
-  "include": [
-    "src"
-  ]
+      "./node_modules/@types",
+      "../../../node_modules/@types"
+    ]
+  }
 }

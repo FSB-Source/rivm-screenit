@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie;
  * =========================LICENSE_END==================================
  */
 
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,7 @@ import java.util.Map.Entry;
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
+import nl.rivm.screenit.batch.repository.ColonScreeningRondeRepository;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Level;
@@ -40,11 +42,15 @@ import nl.rivm.screenit.model.verwerkingverslag.SelectieRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.SelectieRapportageEntry;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.colon.ColonDossierBaseService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.stereotype.Component;
+
+import com.google.common.primitives.Ints;
 
 @Component
 @AllArgsConstructor
@@ -56,6 +62,10 @@ public class SelectieListener extends BaseLogListener
 	private final ICurrentDateSupplier currentDateSupplier;
 
 	private final HibernateService hibernateService;
+
+	private final ColonScreeningRondeRepository screeningRondeRepository;
+
+	private final ColonDossierBaseService dossierService;
 
 	@Override
 	protected void beforeStarting(JobExecution jobExecution)
@@ -83,9 +93,24 @@ public class SelectieListener extends BaseLogListener
 		}
 
 		hibernateService.saveOrUpdate(selectieRapportage);
-		jobExecution.getExecutionContext().putLong(SelectieConstants.RAPPORTAGEKEYSELECTIE, selectieRapportage.getId());
-		jobExecution.getExecutionContext().putInt(SelectieConstants.COLONSELECTIEWAARSCHUWINGIFOBTS, 0);
-		jobExecution.getExecutionContext().putInt(SelectieConstants.COLONSELECTIEMAXIMAALIFOBTS, 0);
+		dossierService.updateIntervalReferentieDatums();
+		var executionContext = jobExecution.getExecutionContext();
+		executionContext.putLong(SelectieConstants.RAPPORTAGEKEYSELECTIE, selectieRapportage.getId());
+		executionContext.putInt(SelectieConstants.COLONSELECTIEWAARSCHUWINGIFOBTS, 0);
+		executionContext.putInt(SelectieConstants.COLONSELECTIEMAXIMAALIFOBTS, 0);
+		executionContext.putInt(SelectieConstants.LAATSTE_RONDE_AANTAL_DAGEN_GELEDEN_GEMAAKT, bepaalAantalDagenGeledenLaatsteRondeGemaakt());
+	}
+
+	private int bepaalAantalDagenGeledenLaatsteRondeGemaakt()
+	{
+		var ronde = screeningRondeRepository.findFirstByOrderByCreatieDatumDesc();
+		long aantalDagenGeledenLaatsteRondeGemaakt = 0;
+		if (ronde != null)
+		{
+			aantalDagenGeledenLaatsteRondeGemaakt = Math.max(1,
+				Math.abs(ChronoUnit.DAYS.between(currentDateSupplier.getLocalDate(), DateUtil.toLocalDate(ronde.getCreatieDatum()))));
+		}
+		return Ints.checkedCast(aantalDagenGeledenLaatsteRondeGemaakt);
 	}
 
 	@Override

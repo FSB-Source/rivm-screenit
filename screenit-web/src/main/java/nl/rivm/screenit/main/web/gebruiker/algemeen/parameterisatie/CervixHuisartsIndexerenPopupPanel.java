@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -46,8 +46,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 public abstract class CervixHuisartsIndexerenPopupPanel extends GenericPanel<CervixHuisartsTarief>
 {
 	@SpringBean
@@ -61,7 +59,7 @@ public abstract class CervixHuisartsIndexerenPopupPanel extends GenericPanel<Cer
 		super(id, ModelUtil.ccModel(new CervixHuisartsTarief()));
 
 		CervixHuisartsTarief tarief = getModelObject();
-		CervixHuisartsTarief latest = verrichtingDao.getLatestCervixHuisartsTarief();
+		CervixHuisartsTarief latest = verrichtingDao.getLatestHuisartsTarief();
 		if (latest != null)
 		{
 			tarief.setTarief(latest.getTarief());
@@ -102,7 +100,7 @@ public abstract class CervixHuisartsIndexerenPopupPanel extends GenericPanel<Cer
 					String melding = betalingService.toevoegenIndexatieTarief(nieuweTarief, ScreenitSession.get().getLoggedInAccount());
 					opslaan(target, melding);
 				}
-				catch (IllegalArgumentException | JsonProcessingException e)
+				catch (IllegalArgumentException e)
 				{
 					error(getString(e.getMessage()));
 				}

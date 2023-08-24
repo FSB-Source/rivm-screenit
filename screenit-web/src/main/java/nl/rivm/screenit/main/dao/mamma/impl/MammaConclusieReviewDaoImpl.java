@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.dao.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -102,8 +102,10 @@ public class MammaConclusieReviewDaoImpl extends AbstractAutowiredDao implements
 		subCriteria.createAlias("screeningRonde", "screeningRonde");
 
 		addGereviewedRestriction(zoekObject, subCriteria);
+		addConclusiedatumRestriction(zoekObject, subCriteria);
 
 		subCriteria.add(Restrictions.eq("radioloog", zoekObject.getInstellingGebruiker()));
+		subCriteria.add(Restrictions.eq("reviewAlsCoordinerendRadioloog", false));
 
 		addFilterOptieRestrictions(zoekObject, instellingGebruiker, subCriteria);
 		subCriteria.setProjection(Projections.id());
@@ -152,6 +154,15 @@ public class MammaConclusieReviewDaoImpl extends AbstractAutowiredDao implements
 		else
 		{
 			crit.add(Restrictions.isNull("reviewMoment"));
+		}
+	}
+
+	private void addConclusiedatumRestriction(MammaConclusieReviewZoekObject zoekObject, DetachedCriteria crit)
+	{
+		var filterConclusieDatumVanaf = zoekObject.getZoekenVanafEindconclusieDatum();
+		if (filterConclusieDatumVanaf != null)
+		{
+			crit.add(Restrictions.ge("screeningRonde.followUpConclusieStatusGewijzigdOp", filterConclusieDatumVanaf));
 		}
 	}
 
@@ -205,11 +216,12 @@ public class MammaConclusieReviewDaoImpl extends AbstractAutowiredDao implements
 	}
 
 	@Override
-	public MammaConclusieReview getConclusieReview(MammaScreeningRonde screeningRonde, InstellingGebruiker radioloog)
+	public MammaConclusieReview getConclusieReview(MammaScreeningRonde screeningRonde, InstellingGebruiker radioloog, boolean alsCoordinerendRadioloogGereviewd)
 	{
 		Criteria criteria = getSession().createCriteria(MammaConclusieReview.class, "conclusieReview");
 		criteria.add(Restrictions.eq("conclusieReview.screeningRonde.id", screeningRonde.getId()));
 		criteria.add(Restrictions.eq("conclusieReview.radioloog.id", radioloog.getId()));
+		criteria.add(Restrictions.eq("conclusieReview.reviewAlsCoordinerendRadioloog", alsCoordinerendRadioloogGereviewd));
 
 		return (MammaConclusieReview) criteria.uniqueResult();
 	}

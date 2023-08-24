@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -110,7 +111,8 @@ public class MammaEdiServiceImpl extends EdiServiceBaseImpl implements MammaEdiS
 						return;
 					}
 
-					if (huisartsBericht.getStatusDatum().compareTo(currentDateSupplier.getDateTime().minusMinutes(Constants.BK_HA_BERICHT_MAX_WAITTME).toDate()) < 0
+					if (huisartsBericht.getStatusDatum()
+						.compareTo(DateUtil.minusTijdseenheid(currentDateSupplier.getDate(), Constants.BK_HA_BERICHT_MAX_WAITTME, ChronoUnit.MINUTES)) < 0
 						&& MammaHuisartsBerichtStatus.AANGEMAAKT.equals(huisartsBericht.getStatus()))
 					{
 						LOG.debug("Thread BK HA bericht. Bericht wordt niet verstuurd via async.");

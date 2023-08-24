@@ -7,8 +7,8 @@
     <name>screenit-parent</name>
 
     <parent>
-        <groupId>nl.topicuszorg</groupId>
-        <artifactId>parent</artifactId>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
     </parent>
 
     <organization>
@@ -49,6 +49,10 @@
                             <artifactId>hibernate-jpamodelgen</artifactId>
                         </dependency>
                     </dependencies>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-eclipse-plugin</artifactId>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -230,7 +234,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
                 <configuration>
-                    <arguments>-Dmaven.javadoc.skip=true -DskipTests -Ptesten,fast</arguments>
+                    <arguments>-Dmaven.javadoc.skip=true -DskipTests -Ptesten</arguments>
                     <tagBase>
                         https://svn.topicuszorg.nl/svn/topicuszorg/${project.artifactId}/tags
                     </tagBase>
@@ -240,17 +244,18 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
+                    <forkCount>1</forkCount>
+                    <reuseForks>true</reuseForks>
                     <includes>
                         <include>**/*Test.java</include>
                         <include>**/*Tester.java</include>
-                        <include>**/*IT.java</include>
                     </includes>
-                    <systemProperties>
+                    <systemPropertyVariables>
                         <property>
                             <name>logback.configurationFile</name>
                             <value>logback-test.groovy</value>
                         </property>
-                    </systemProperties>
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
             <plugin>
@@ -295,6 +300,278 @@
                     <author>false</author>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>enforce-all</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                </requireMavenVersion>
+                                <conflictRule implementation="nl.topicuszorg.enforcer.rule.ConflictRule">
+                                    <message>Meerdere SLF4J-bindings tegelijk - wij gebruiken meestal slf4j-log4j12</message>
+                                    <expressions>
+                                        <expression>org.slf4j:slf4j-log4j12</expression>
+                                        <expression>org.slf4j:slf4j-jcl</expression>
+                                        <expression>org.slf4j:slf4j-jdk14</expression>
+                                    </expressions>
+                                </conflictRule>
+                                <conflictRule implementation="nl.topicuszorg.enforcer.rule.ConflictRule">
+                                    <message>bevatten beide o.a. javax.activation.DataHandler, vindt CXF iig niet leuk. Exclude geronimo.</message>
+                                    <expressions>
+                                        <expression>org.apache.geronimo.specs:geronimo-activation</expression>
+                                        <expression>javax.activation:activation</expression>
+                                    </expressions>
+                                </conflictRule>
+                                <conflictRule implementation="nl.topicuszorg.enforcer.rule.ConflictRule">
+                                    <message>zie ook: http://wiki.topicuszorg.nl/wiki/index.php/Geronimo. Exclude geronimo.</message>
+                                    <expressions>
+                                        <expression>org.apache.geronimo.specs:geronimo-javamail</expression>
+                                        <expression>javax.mail</expression>
+                                    </expressions>
+                                </conflictRule>
+                                <conflictRule implementation="nl.topicuszorg.enforcer.rule.ConflictRule">
+                                    <message>cglib 2.2 gebruikt asm 3.x, cglib 2.1_3 gebruikt asm 1.5.x. gebruikelijk is 2.1_3 en 1.5.x</message>
+                                    <regexes>
+                                        <regex>^asm.*:jar:1\..*</regex>
+                                        <regex>.*cglib:jar:2\.2.*</regex>
+                                    </regexes>
+                                </conflictRule>
+                                <conflictRule implementation="nl.topicuszorg.enforcer.rule.ConflictRule">
+                                    <expressions>
+                                        <expression>wsdl4j:wsdl4j</expression>
+                                        <expression>axis-wsdl4j</expression>
+                                    </expressions>
+                                </conflictRule>
+                                <conflictRule implementation="nl.topicuszorg.enforcer.rule.ConflictRule">
+                                    <expressions>
+                                        <expression>freemarker</expression>
+                                        <expression>org.freemarker</expression>
+                                    </expressions>
+                                </conflictRule>
+                                <conflictRule implementation="nl.topicuszorg.enforcer.rule.ConflictRule">
+                                    <message>in de hibernate-javax.persistence zit meer</message>
+                                    <expressions>
+                                        <expression>org.hibernate.javax.persistence</expression>
+                                        <expression>javax.persistence:persistence-api</expression>
+                                    </expressions>
+                                </conflictRule>
+                                <sameVersionRule implementation="nl.topicuszorg.enforcer.rule.SameVersionRule">
+                                    <expressions>
+                                        <expression>org.apache.wicket</expression>
+                                    </expressions>
+                                </sameVersionRule>
+                                <sameVersionRule implementation="nl.topicuszorg.enforcer.rule.SameVersionRule">
+                                    <expressions>
+                                        <expression>org.springframework</expression>
+                                    </expressions>
+                                    <exclusions>
+                                        <exclusion>spring-mock</exclusion>
+                                    </exclusions>
+                                </sameVersionRule>
+                                <sameVersionRule implementation="nl.topicuszorg.enforcer.rule.SameVersionRule">
+                                    <expressions>
+                                        <expression>^asm</expression>
+                                    </expressions>
+                                </sameVersionRule>
+                                <sameVersionRule implementation="nl.topicuszorg.enforcer.rule.SameVersionRule">
+                                    <expressions>
+                                        <expression>org.hibernate:hibernate-core</expression>
+                                        <expression>org.hibernate:hibernate-envers</expression>
+                                        <expression>org.hibernate:hibernate-entitymanager</expression>
+                                        <expression>org.hibernate:hibernate-ehcache</expression>
+                                    </expressions>
+                                    <regexes>
+                                        <regex>^org\.hibernate:hibernate-annotations:jar:3\.[56789]</regex>
+                                    </regexes>
+                                </sameVersionRule>
+                                <bannedDependencies>
+                                    <excludes>
+                                        <exclude>junit:junit</exclude>
+                                    </excludes>
+                                </bannedDependencies>
+                                <bannedDependencies>
+                                    <message>We gebruiken hamcrest en geen assertj</message>
+                                    <excludes>
+                                        <exclude>org.assertj:assertj-core</exclude>
+                                    </excludes>
+                                </bannedDependencies>
+                                <bannedDependencies>
+                                    <message>findbugs maven release komen tegenwoordig van com.google.code.findbugs, dus onderstaande zou moeten worden com.google.code.findbugs
+                                    </message>
+                                    <excludes>
+                                        <exclude>net.sourceforge.findbugs</exclude>
+                                        <exclude>findbugs:findbugs-annotations</exclude>
+                                    </excludes>
+                                </bannedDependencies>
+                                <bannedDependencies>
+                                    <message>pdfbox uit wkhtmltopdf was als jar gedeployt; verander de pom in org.apache.pdfbox (1.5.0?)</message>
+                                    <excludes>
+                                        <exclude>pdfbox:pdfbox:[0.7.3]</exclude>
+                                    </excludes>
+                                </bannedDependencies>
+                                <bannedDependencies>
+                                    <message>Deze heeft geen implementatie</message>
+                                    <excludes>
+                                        <exclude>commons-logging:commons-logging-api:[99.0-does-not-exist]</exclude>
+                                        <exclude>commons-logging:commons-logging:[99.0-does-not-exist]</exclude>
+                                    </excludes>
+                                </bannedDependencies>
+                                <conflictRule implementation="nl.topicuszorg.enforcer.rule.ConflictRule">
+                                    <message>Er staan bouncycastle-implementaties voor verschillende jdk's op het classpath.</message>
+                                    <expressions>
+                                        <expression>bcprov-jdk14</expression>
+                                        <expression>bcprov-jdk15</expression>
+                                        <expression>bcprov-jdk16</expression>
+                                    </expressions>
+                                </conflictRule>
+                                <conflictRule implementation="nl.topicuszorg.enforcer.rule.ConflictRule">
+                                    <message>Niet in een cirkeltje loggen</message>
+                                    <expressions>
+                                        <expression>slf4j-log4j12</expression>
+                                        <expression>log4j-over-slf4j</expression>
+                                    </expressions>
+                                </conflictRule>
+                                <sameVersionRule implementation="nl.topicuszorg.enforcer.rule.SameVersionRule">
+                                    <message>pdfbox uit wkhtmltopdf was als jar gedeployt; verander de pom in org.apache.pdfbox (1.5.0?)</message>
+                                    <regexes>
+                                        <regex>.*pdfbox.*</regex>
+                                    </regexes>
+                                </sameVersionRule>
+                                <sameVersionRule implementation="nl.topicuszorg.enforcer.rule.SameVersionRule">
+                                    <message>Verschillende versies van SLF4-artifacts</message>
+                                    <regexes>
+                                        <regex>^org\.slf4j.*</regex>
+                                    </regexes>
+                                </sameVersionRule>
+                                <sameVersionRule implementation="nl.topicuszorg.enforcer.rule.SameVersionRule">
+                                    <message>commons-collections 3 heeft een aantal dingen echt anders dan 2.</message>
+                                    <onlyMajor>true</onlyMajor>
+                                    <expressions>
+                                        <expression>commons-collections:commons-collections</expression>
+                                    </expressions>
+                                </sameVersionRule>
+                                <sameVersionRule implementation="nl.topicuszorg.enforcer.rule.SameVersionRule">
+                                    <message>commons-codec 1.4 heeft andere Base64-methoden dan 1.3</message>
+                                    <expressions>
+                                        <expression>commons-codec:commons-codec</expression>
+                                    </expressions>
+                                </sameVersionRule>
+                                <conflictRule implementation="nl.topicuszorg.enforcer.rule.ConflictRule">
+                                    <message>Het correcte package voor 'commons-foo' is altijd 'commons-foo', niet 'org.apache.commons'</message>
+                                    <expressions>
+                                        <expression>org.apache.commons:commons-.*</expression>
+                                        <expression>.*</expression>
+                                    </expressions>
+                                </conflictRule>
+                                <conflictRule implementation="nl.topicuszorg.enforcer.rule.ConflictRule">
+                                    <message>jdom heeft sinds versie 1.1 groupId 'org.jdom' en niet meer 'jdom'.</message>
+                                    <expressions>
+                                        <expression>jdom:jdom</expression>
+                                        <expression>org.jdom:jdom</expression>
+                                    </expressions>
+                                </conflictRule>
+                                <conflictRule implementation="nl.topicuszorg.enforcer.rule.ConflictRule">
+                                    <message>velocity wil je waarschijnlijk uit org.apache.velocity hebben</message>
+                                    <expressions>
+                                        <expression>velocity:velocity</expression>
+                                        <expression>org.apache.velocity:velocity</expression>
+                                    </expressions>
+                                </conflictRule>
+                                <bannedDependencies>
+                                    <message>http://bugs.icu-project.org/trac/ticket/3209</message>
+                                    <excludes>
+                                        <exclude>com.ibm.icu:icu4j:(,2.8)</exclude>
+                                    </excludes>
+                                </bannedDependencies>
+                                <sameVersionRule implementation="nl.topicuszorg.enforcer.rule.SameVersionRule">
+                                    <message>geen verschillende axis2-versies door elkaar - let ook op groupid 'axis2' though</message>
+                                    <expressions>
+                                        <expression>org.apache.axis2</expression>
+                                    </expressions>
+                                    <exclusions>
+                                        <exclusion>addressing</exclusion>
+
+                                    </exclusions>
+                                </sameVersionRule>
+                                <sameVersionRule implementation="nl.topicuszorg.enforcer.rule.SameVersionRule">
+                                    <message>Verschillende versies van CXF</message>
+                                    <expressions>
+                                        <expression>org.apache.cxf</expression>
+                                    </expressions>
+                                </sameVersionRule>
+                                <sameVersionRule implementation="nl.topicuszorg.enforcer.rule.SameVersionRule">
+                                    <message>Verschillende versies van TopicusZorg componenten (zie boven voor het lijstje)</message>
+                                    <regexes>
+                                        <regex>
+                                            ^nl\.topicuszorg\.*
+                                        </regex>
+                                    </regexes>
+                                </sameVersionRule>
+                                <conflictRule implementation="nl.topicuszorg.enforcer.rule.ConflictRule">
+                                    <message>mockito-all en hamcrest-all conflicteren met elkaar: waarschijnlijk heb je aan mockito-core genoeg.</message>
+                                    <expressions>
+                                        <expression>org.mockito:mockito-all</expression>
+                                        <expression>org.hamcrest:hamcrest-all</expression>
+                                    </expressions>
+                                </conflictRule>
+                            </rules>
+                            <fail>true</fail>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>enforce-wicket-extensions</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <bannedDependencies>
+                                    <message>nl.topicuszorg.wicket-extensions:wicket-extensions vervangt wicket-input e.d.
+                                    </message>
+                                    <excludes>
+                                        <exclude>nl.topicuszorg.wicket-extensions:wicket-extension-input:[3.0,)</exclude>
+                                        <exclude>nl.topicuszorg.wicket-extensions:wicket-extension-search:[3.0,)</exclude>
+                                        <exclude>nl.topicuszorg.wicket-extensions:wicket-extension-hibernate:[3.0,)</exclude>
+                                        <exclude>nl.topicuszorg.wicket-extensions:wicket-extension-util:[2.0,)</exclude>
+                                        <exclude>nl.topicuszorg.wicket-extensions:wicket-extension-events</exclude>
+                                        <exclude>nl.topicuszorg.wicket-extensions:wicket-extension-base:[2.0,)</exclude>
+                                        <exclude>nl.topicuszorg.wicket-extensions:wicket-extension-filter:[1.0,)</exclude>
+                                        <exclude>nl.topicuszorg.wicket-extensions:wicket-extension-applet</exclude>
+                                    </excludes>
+                                </bannedDependencies>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>nl.topicuszorg</groupId>
+                        <artifactId>enforcer</artifactId>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <skipIfEmpty>true</skipIfEmpty>
+                </configuration>
+            </plugin>
         </plugins>
         <extensions>
             <extension>
@@ -314,6 +591,13 @@
             <groupId>javax.validation</groupId>
             <artifactId>validation-api</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
     </dependencies>
 
 </project>

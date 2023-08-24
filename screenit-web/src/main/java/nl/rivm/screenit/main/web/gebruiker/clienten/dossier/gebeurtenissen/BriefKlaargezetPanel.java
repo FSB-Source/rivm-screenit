@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,6 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Collections;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +44,6 @@ import nl.rivm.screenit.util.BriefUtil;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -69,7 +67,7 @@ public class BriefKlaargezetPanel extends AbstractGebeurtenisDetailPanel
 
 	private WebMarkupContainer tegenhoudenContainer;
 
-	private final List<BriefType> tegenhoudenNietMogelijkBriefTypes = Collections.singletonList(BriefType.CERVIX_ZAS_UITNODIGING);
+	private final List<BriefType> tegenhoudenNietMogelijkBriefTypes = BriefType.getCervixZasBrieven();
 
 	public BriefKlaargezetPanel(String id, IModel<ScreeningRondeGebeurtenis> model)
 	{
@@ -97,9 +95,8 @@ public class BriefKlaargezetPanel extends AbstractGebeurtenisDetailPanel
 		GebeurtenisUtil.voegBriefTypeOfNaamBriefToe(mogelijk, brief);
 
 		mogelijk.add(DateLabel.forDatePattern("brief.creatieDatum", Model.of(brief.getCreatieDatum()), Constants.DEFAULT_DATE_FORMAT));
-		boolean tegenhoudenNietMogelijkBevatBriefType = tegenhoudenNietMogelijkBriefTypes.contains(brief.getBriefType());
-		mogelijk.add(new Label("nietMeer", Model.of("niet meer"))
-			.setVisible(BriefUtil.isGegenereerd(brief) || tegenhoudenNietMogelijkBevatBriefType));
+		boolean tegenhoudenNietMogelijk = tegenhoudenNietMogelijkBriefTypes.contains(brief.getBriefType());
+		mogelijk.add(new WebMarkupContainer("nietMeer").setVisible(BriefUtil.isGegenereerd(brief) || tegenhoudenNietMogelijk));
 		IndicatingAjaxLink<Void> tegenhoudenLink = new IndicatingAjaxLink<>("tegenhouden")
 		{
 			@Override
@@ -110,7 +107,7 @@ public class BriefKlaargezetPanel extends AbstractGebeurtenisDetailPanel
 				verversTegenhouden(target);
 			}
 		};
-		tegenhoudenLink.setVisible(!BriefUtil.isTegengehouden(brief) && !tegenhoudenNietMogelijkBevatBriefType);
+		tegenhoudenLink.setVisible(!BriefUtil.isTegengehouden(brief) && !tegenhoudenNietMogelijk);
 		mogelijk.add(tegenhoudenLink);
 		mogelijk.add(new IndicatingAjaxLink<Void>("activeren")
 		{
@@ -125,13 +122,12 @@ public class BriefKlaargezetPanel extends AbstractGebeurtenisDetailPanel
 				verversTegenhouden(target);
 			}
 		}.setVisible(BriefUtil.isTegengehouden(brief)));
-		mogelijk.setVisible(BriefUtil.isNietGegenereerdEnNietVervangen(brief) && !tegenhoudenNietMogelijkBevatBriefType);
+		mogelijk.setVisible(BriefUtil.isNietGegenereerdEnNietVervangen(brief) && !tegenhoudenNietMogelijk);
 		tegenhoudenContainer.add(mogelijk);
 
 		WebMarkupContainer nietmogelijk = new WebMarkupContainer("nietMogelijk");
-		nietmogelijk.add(new Label("tekst", Model.of(getString("message.nietmogelijkbrieftegenhouden"))));
 
-		nietmogelijk.setVisible(BriefUtil.isGegenereerd(brief) || tegenhoudenNietMogelijkBevatBriefType);
+		nietmogelijk.setVisible(BriefUtil.isGegenereerd(brief) || tegenhoudenNietMogelijk);
 		tegenhoudenContainer.add(nietmogelijk);
 		tegenhoudenContainer.setOutputMarkupId(true);
 		return tegenhoudenContainer;

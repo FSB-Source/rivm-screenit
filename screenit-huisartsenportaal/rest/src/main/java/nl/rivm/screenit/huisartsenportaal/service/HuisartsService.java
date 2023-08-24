@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal.service;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,9 +28,9 @@ import nl.rivm.screenit.huisartsenportaal.model.Huisarts;
 public interface HuisartsService
 {
 
-	Huisarts updateHuisarts(HuisartsDto huisartsDto, Huisarts huisarts);
+	Huisarts updateAndGetHuisarts(HuisartsDto huisartsDto, Huisarts huisarts);
 
-	Huisarts setHuisarts(HuisartsDto huisartsDto);
+	Huisarts updateAndGetHuisarts(HuisartsDto huisartsDto);
 
 	Huisarts updateWachtwoord(Huisarts huisarts, String wachtwoord);
 

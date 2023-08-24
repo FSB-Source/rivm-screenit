@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,7 +25,11 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.dao.cervix.CervixDossierDao;
@@ -36,95 +40,69 @@ import nl.rivm.screenit.model.ClientContactManier;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.UploadDocument;
-import nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht;
-import nl.rivm.screenit.model.berichten.enums.BerichtStatus;
-import nl.rivm.screenit.model.berichten.enums.BerichtType;
-import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
-import nl.rivm.screenit.model.berichten.enums.VerslagType;
 import nl.rivm.screenit.model.cervix.CervixAfmelding;
 import nl.rivm.screenit.model.cervix.CervixBrief;
-import nl.rivm.screenit.model.cervix.CervixCytologieVerslag;
 import nl.rivm.screenit.model.cervix.CervixDossier;
-import nl.rivm.screenit.model.cervix.CervixHpvBericht;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixMergedBrieven;
-import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
-import nl.rivm.screenit.model.cervix.CervixZas;
 import nl.rivm.screenit.model.cervix.cis.CervixCISHistorie;
 import nl.rivm.screenit.model.cervix.enums.CervixAfmeldingReden;
-import nl.rivm.screenit.model.cervix.enums.CervixCytologieUitslag;
-import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
-import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
-import nl.rivm.screenit.model.cervix.enums.CervixZasStatus;
-import nl.rivm.screenit.model.cervix.verslag.cytologie.CervixCytologieVerslagContent;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.BaseAfmeldService;
+import nl.rivm.screenit.service.BaseDossierService;
 import nl.rivm.screenit.service.DossierFactory;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.TestService;
-import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
+import nl.rivm.screenit.service.cervix.CervixBaseDossierService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
 import nl.rivm.screenit.service.cervix.CervixTestService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.util.collections.CollectionUtils;
 
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileCopyUtils;
 
 import com.aspose.words.Document;
-import com.google.common.collect.ImmutableMap;
 
+@Slf4j
 @Service
+@AllArgsConstructor
 @Transactional(propagation = Propagation.REQUIRED)
 public class CervixTestServiceImpl implements CervixTestService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(CervixTestServiceImpl.class);
+	private final CervixBaseDossierService cervixBaseDossierService;
 
-	@Autowired
-	private TestService testService;
+	private final BaseDossierService baseDossierService;
 
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final TestService testService;
 
-	@Autowired
-	private ClientDao clientDao;
+	private final ICurrentDateSupplier dateSupplier;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final ClientDao clientDao;
 
-	@Autowired
-	private CervixFactory factory;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private BaseAfmeldService baseAfmeldService;
+	private final CervixFactory factory;
 
-	@Autowired
-	private AsposeService asposeService;
+	private final BaseAfmeldService baseAfmeldService;
 
-	@Autowired
-	private CervixDossierDao dossierDao;
+	private final AsposeService asposeService;
 
-	@Autowired
-	private CervixBaseScreeningrondeService cervixBaseScreeningrondeService;
+	private final CervixDossierDao dossierDao;
 
-	@Autowired
-	private DossierFactory dossierFactory;
+	private final DossierFactory dossierFactory;
 
 	@Override
 	public CervixDossier geefDossier(GbaPersoon gbaPersoon)
@@ -164,20 +142,6 @@ public class CervixTestServiceImpl implements CervixTestService
 		return screeningRonde.getLaatsteUitnodiging();
 	}
 
-	private CervixUitnodiging geefLaatsteZasUitnodgiging(GbaPersoon gbaPersoon)
-	{
-		CervixScreeningRonde screeningRonde = geefScreeningRonde(gbaPersoon);
-		List<CervixUitnodiging> uitnodigingen = screeningRonde.getUitnodigingen();
-		for (CervixUitnodiging uitnodiging : uitnodigingen)
-		{
-			if (CervixMonsterType.ZAS.equals(uitnodiging.getMonsterType()))
-			{
-				return uitnodiging;
-			}
-		}
-		return null;
-	}
-
 	@Override
 	public CervixUitnodiging maakUitnodiging(GbaPersoon gbaPersoon, BriefType briefType)
 	{
@@ -186,30 +150,6 @@ public class CervixTestServiceImpl implements CervixTestService
 		CervixUitnodiging uitnodiging = factory.maakUitnodiging(ronde, briefType, true, true);
 		verzendLaatsteBrief(ronde);
 		return uitnodiging;
-	}
-
-	public CervixMonster geefMonster(GbaPersoon gbaPersoon)
-	{
-		return geefLaatsteUitnodiging(gbaPersoon).getMonster();
-
-	}
-
-	@Override
-	public CervixUitstrijkje geefUitstrijkje(GbaPersoon gbaPersoon)
-	{
-		return geefUitstrijkje(gbaPersoon, null, null);
-	}
-
-	@Override
-	public CervixUitstrijkje geefUitstrijkje(GbaPersoon gbaPersoon, String monsterId)
-	{
-		return geefUitstrijkje(gbaPersoon, null, monsterId, null);
-	}
-
-	@Override
-	public CervixUitstrijkje geefUitstrijkje(GbaPersoon gbaPersoon, CervixUitstrijkjeStatus uitstrijkjeStatus, BMHKLaboratorium laboratorium)
-	{
-		return geefUitstrijkje(gbaPersoon, uitstrijkjeStatus, null, laboratorium);
 	}
 
 	@Override
@@ -234,120 +174,10 @@ public class CervixTestServiceImpl implements CervixTestService
 	}
 
 	@Override
-	public CervixZas geefZas(GbaPersoon gbaPersoon, CervixZasStatus zasStatus, BMHKLaboratorium bmhkLaboratorium)
-	{
-		return geefZas(gbaPersoon, zasStatus, null, bmhkLaboratorium);
-	}
-
-	@Override
-	public CervixZas geefZas(GbaPersoon gbaPersoon, CervixZasStatus zasStatus, String monsterId, BMHKLaboratorium bmhkLaboratorium)
-	{
-		CervixUitnodiging uitnodiging = geefLaatsteZasUitnodgiging(gbaPersoon);
-		if (uitnodiging == null)
-		{
-			uitnodiging = maakUitnodiging(gbaPersoon, BriefType.CERVIX_ZAS_UITNODIGING);
-		}
-
-		CervixZas zas = (CervixZas) HibernateHelper.deproxy(uitnodiging.getMonster());
-		if (zasStatus != null)
-		{
-			zas.setZasStatus(zasStatus);
-			zas.setStatusDatum(dateSupplier.getDate());
-		}
-		if (zasStatus == CervixZasStatus.ONTVANGEN)
-		{
-			zas.setOntvangstdatum(dateSupplier.getDate());
-			zas.setOntvangstScreeningRonde(dossierDao.getOntvangstRonde(zas));
-			zas.setLaboratorium(bmhkLaboratorium);
-		}
-		return zas;
-	}
-
-	@Override
-	public CervixHpvBeoordelingWaarde geefHpvUitslag(GbaPersoon gbaPersoon, CervixHpvBeoordelingWaarde hpvUitslag, BMHKLaboratorium laboratorium)
-	{
-		CervixHpvBericht hpvBericht = factory.maakHpvBericht(laboratorium, "instrumentId", "hl7Bericht", Long.toString(System.currentTimeMillis()));
-		hpvBericht.setStatus(BerichtStatus.VERWERKT);
-		hibernateService.saveOrUpdate(hpvBericht);
-
-		CervixUitnodiging uitnodiging = geefLaatsteUitnodiging(gbaPersoon);
-		factory.maakHpvBeoordeling(uitnodiging.getMonster(), hpvBericht, dateSupplier.getDate(), dateSupplier.getDate(), hpvUitslag, null);
-
-		if (hpvUitslag != CervixHpvBeoordelingWaarde.ONGELDIG)
-		{
-			CervixScreeningRonde ronde = geefScreeningRonde(gbaPersoon);
-			ronde.setMonsterHpvUitslag(uitnodiging.getMonster());
-			hibernateService.saveOrUpdate(ronde);
-		}
-		return hpvUitslag;
-	}
-
-	@Override
-	public CervixUitstrijkje geefCytologieUitslag(GbaPersoon gbaPersoon, CervixCytologieUitslag cytologieUitslag, BMHKLaboratorium laboratorium)
-	{
-		CervixUitstrijkje uitstrijkje = cytologieUitslag(gbaPersoon, cytologieUitslag, laboratorium);
-		CervixScreeningRonde ontvangstRonde = uitstrijkje.getOntvangstScreeningRonde();
-		if (cytologieUitslag != CervixCytologieUitslag.PAP0)
-		{
-			ontvangstRonde.setUitstrijkjeCytologieUitslag(uitstrijkje);
-		}
-
-		hibernateService.saveOrUpdate(ontvangstRonde);
-		return uitstrijkje;
-	}
-
-	@Override
-	public CervixUitstrijkje geefVervolgonderzoekUitslag(GbaPersoon gbaPersoon, CervixCytologieUitslag cytologieUitslag,
-		BMHKLaboratorium laboratorium)
-	{
-		CervixUitstrijkje uitstrijkje = cytologieUitslag(gbaPersoon, cytologieUitslag, laboratorium);
-		CervixScreeningRonde ontvangstRonde = uitstrijkje.getOntvangstScreeningRonde();
-		if (cytologieUitslag != CervixCytologieUitslag.PAP0)
-		{
-			ontvangstRonde.setUitstrijkjeVervolgonderzoekUitslag(uitstrijkje);
-		}
-		hibernateService.saveOrUpdate(ontvangstRonde);
-		return uitstrijkje;
-	}
-
-	private CervixUitstrijkje cytologieUitslag(GbaPersoon gbaPersoon, CervixCytologieUitslag cytologieUitslag, BMHKLaboratorium laboratorium)
-	{
-		CervixUitstrijkje uitstrijkje = geefUitstrijkje(gbaPersoon);
-		CervixScreeningRonde ontvangstRonde = uitstrijkje.getOntvangstScreeningRonde();
-
-		OntvangenCdaBericht ontvangenCdaBericht = new OntvangenCdaBericht();
-		ontvangenCdaBericht.setOntvangen(dateSupplier.getDate());
-		ontvangenCdaBericht.setBerichtType(BerichtType.CERVIX_CYTOLOGIE_VERSLAG);
-		ontvangenCdaBericht.setStatus(BerichtStatus.VERWERKT);
-
-		CervixCytologieVerslag cytologieVerslag = new CervixCytologieVerslag();
-		cytologieVerslag.setType(VerslagType.CERVIX_CYTOLOGIE);
-		cytologieVerslag.setStatus(VerslagStatus.AFGEROND);
-		cytologieVerslag.setCytologieUitslag(cytologieUitslag);
-		cytologieVerslag.setOntvangenBericht(ontvangenCdaBericht);
-		cytologieVerslag.setLaboratorium(laboratorium);
-		cytologieVerslag.setUitstrijkje(uitstrijkje);
-		uitstrijkje.setCytologieVerslag(cytologieVerslag);
-		cytologieVerslag.setScreeningRonde(ontvangstRonde);
-		ontvangstRonde.getVerslagen().add(cytologieVerslag);
-
-		CervixCytologieVerslagContent cytologieVerslagContent = new CervixCytologieVerslagContent();
-		cytologieVerslag.setVerslagContent(cytologieVerslagContent);
-		cytologieVerslagContent.setVerslag(cytologieVerslag);
-
-		hibernateService.saveOrUpdate(ontvangenCdaBericht);
-		hibernateService.saveOrUpdate(cytologieVerslagContent);
-		hibernateService.saveOrUpdate(cytologieVerslag);
-		hibernateService.saveOrUpdate(uitstrijkje);
-		hibernateService.saveOrUpdate(ontvangstRonde);
-		return uitstrijkje;
-	}
-
-	@Override
 	public CervixLabformulier geefLabformulier(GbaPersoon gbaPersoon, CervixLabformulierStatus labformulierStatus, BMHKLaboratorium laboratorium,
 		CervixHuisartsLocatie huisartsLocatie)
 	{
-		CervixUitstrijkje uitstrijkje = geefUitstrijkje(gbaPersoon);
+		CervixUitstrijkje uitstrijkje = geefUitstrijkje(gbaPersoon, null, null, null);
 
 		CervixLabformulier labformulier = uitstrijkje.getLabformulier();
 		if (labformulier == null)
@@ -391,13 +221,6 @@ public class CervixTestServiceImpl implements CervixTestService
 		uitstrijkje.setLabformulier(labformulier);
 		hibernateService.saveOrUpdate(uitstrijkje);
 		return labformulier;
-	}
-
-	@Override
-	public CervixHuisartsLocatie geefHuisartsLocatie()
-	{
-		return (CervixHuisartsLocatie) hibernateService.getHibernateSession().createCriteria(CervixHuisartsLocatie.class).setMaxResults(1)
-			.setFirstResult(0).uniqueResult();
 	}
 
 	@Override
@@ -477,56 +300,24 @@ public class CervixTestServiceImpl implements CervixTestService
 	public void clientReset(Client client)
 	{
 		CervixDossier dossier = client.getCervixDossier();
+
 		if (dossier == null)
 		{
 			return;
 		}
-		CervixCISHistorie cisHistorie = dossier.getCisHistorie();
-		if (cisHistorie != null)
-		{
-			verwijderCisHistorie(cisHistorie);
-		}
+		cervixBaseDossierService.maakDossierLeeg(dossier);
 
-		if (dossier.getVooraankondigingsBrief() != null)
-		{
-			dossier.setVooraankondigingsBrief(null);
-		}
+		baseDossierService.verwijderLaatsteAfmelding(dossier);
 
-		cervixBaseScreeningrondeService.verwijderCervixScreeningRondes(dossier);
-
-		if (CollectionUtils.isNotEmpty(dossier.getAfmeldingen()))
-		{
-			for (CervixAfmelding afmelding : dossier.getAfmeldingen())
-			{
-				afmelding.setAfmeldingAanvraag(null);
-				afmelding.setAfmeldingBevestiging(null);
-				afmelding.setHeraanmeldAanvraag(null);
-				afmelding.setHeraanmeldBevestiging(null);
-				hibernateService.deleteAll(afmelding.getBrieven());
-			}
-			dossier.setLaatsteAfmelding(null);
-			hibernateService.deleteAll(dossier.getAfmeldingen());
-		}
+		List<CervixBrief> overgeblevenBrieven = hibernateService.getByParameters(CervixBrief.class, Map.of("client", client));
+		hibernateService.deleteAll(overgeblevenBrieven);
 
 		client.setCervixDossier(null);
 		hibernateService.delete(dossier);
 		hibernateService.saveOrUpdate(client);
 
-		List<CervixBrief> overgeblevenBrieven = hibernateService.getByParameters(CervixBrief.class, ImmutableMap.of("client", client));
-		hibernateService.deleteAll(overgeblevenBrieven);
-
 		dossierFactory.maakDossiers(client);
-
 		LOG.info("Client gereset met bsn: " + client.getPersoon().getBsn());
-	}
-
-	private void verwijderCisHistorie(CervixCISHistorie cisHistorie)
-	{
-		cisHistorie.setScreeningRonde(null);
-		cisHistorie.setAfmelding(null);
-		cisHistorie.setUitstel(null);
-		hibernateService.saveOrUpdate(cisHistorie);
-		hibernateService.delete(cisHistorie);
 	}
 
 	@Override

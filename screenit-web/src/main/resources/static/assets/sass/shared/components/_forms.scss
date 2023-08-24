@@ -24,6 +24,10 @@ input[type=number].error, input[type=text].error, .error textarea,
 	text-align: left;
 }
 
+.form-longer-labels .control-label {
+	width: 300px;
+}
+
 .form-actions {
 	margin: 0;
 	padding: 0;
@@ -348,4 +352,8 @@ textarea.textarea-large {
 		z-index: 2;
 		user-select: none;
 	}
+}
+
+input.radio-input-met-textfield-label {
+	margin-top: 12px;
 }

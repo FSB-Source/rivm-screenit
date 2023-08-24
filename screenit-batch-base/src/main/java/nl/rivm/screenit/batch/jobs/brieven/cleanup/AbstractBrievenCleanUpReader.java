@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.brieven.cleanup;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,7 @@ import java.lang.reflect.ParameterizedType;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.DateUtil;
 
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
@@ -51,7 +52,7 @@ public abstract class AbstractBrievenCleanUpReader<MB extends MergedBrieven<?>> 
 				Restrictions.or(Restrictions.isEmpty("brieven"),
 					Restrictions.and(
 						Restrictions.eq("geprint", Boolean.TRUE),
-						Restrictions.le("printDatum", currentDateSupplier.getDateTime().minusDays(getMinimaleBestaanOpFilestore()).toDate()))));
+						Restrictions.le("printDatum", DateUtil.minDagen(currentDateSupplier.getDate(), getMinimaleBestaanOpFilestore())))));
 			return crit;
 		}
 		catch (Exception e)

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,6 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.model.colon.ClientCategorieEntry;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 
@@ -56,30 +55,8 @@ public class ClientSelectieItemReader extends AbstractClientSelectieReader
 				TransactionSynchronizationManager.bindResource(sessionFactory, new SessionHolder(hibernateSession));
 				unbindSessionFromThread = true;
 			}
-			Integer uitnodigingsInterval = preferenceService.getInteger(PreferenceKey.UITNODIGINGSINTERVAL.name());
-			if (uitnodigingsInterval == null)
-			{
-				throw new IllegalStateException("Spreidingsperiode op de parameterisatie pagina is niet gezet");
-			}
-			Integer minimaleLeeftijd = preferenceService.getInteger(PreferenceKey.MINIMALE_LEEFTIJD_COLON.name());
-			if (minimaleLeeftijd == null)
-			{
-				throw new IllegalStateException("Minimale leeftijd colonscreening op de parameterisatie pagina is niet gezet.");
-			}
-
-			Integer maximaleLeeftijd = preferenceService.getInteger(PreferenceKey.MAXIMALE_LEEFTIJD_COLON.name());
-			if (maximaleLeeftijd == null)
-			{
-				throw new IllegalStateException("Maximale leeftijd colonscreening op de parameterisatie pagina is niet gezet");
-			}
-			Integer wachttijdVerzendenPakket = preferenceService.getInteger(PreferenceKey.WACHTTIJD_VERZENDEN_PAKKET_TWEE_OP_EEN_ADRES.name());
-			if (wachttijdVerzendenPakket == null)
-			{
-				throw new IllegalStateException("Wachttijd verzenden pakket bij 2 op 1 adres op de parameterisatie pagina is niet gezet");
-			}
 			context = executionContext;
-			cursor = new ClientSelectieItemCursor(hibernateSession, fetchSize, uitnodigingsInterval, context, minimaleLeeftijd, maximaleLeeftijd, uitgenodigdeClientIds,
-				wachttijdVerzendenPakket, clientDao, currentDateSupplier.getLocalDate());
+			cursor = new ClientSelectieItemCursor(hibernateSession, fetchSize, context, uitgenodigdeClientIds, fitService, currentDateSupplier.getLocalDate());
 
 		}
 		finally

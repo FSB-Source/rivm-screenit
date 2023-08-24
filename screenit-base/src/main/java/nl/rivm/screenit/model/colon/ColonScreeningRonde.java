@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,7 +39,6 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import nl.rivm.screenit.model.EnovationHuisarts;
-import nl.rivm.screenit.model.OnbekendeHuisarts;
 import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.colon.enums.ColonDefinitiefVervolgbeleid;
 
@@ -74,11 +73,6 @@ public class ColonScreeningRonde extends ScreeningRonde<ColonDossier, ColonBrief
 	@Audited(targetAuditMode = NOT_AUDITED)
 	@Cascade(org.hibernate.annotations.CascadeType.SAVE_UPDATE)
 	private EnovationHuisarts colonHuisarts;
-
-	@Deprecated
-	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = true)
-	@Audited(targetAuditMode = NOT_AUDITED)
-	private OnbekendeHuisarts onbekendeHuisarts;
 
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date datumVastleggenHuisarts;
@@ -328,18 +322,6 @@ public class ColonScreeningRonde extends ScreeningRonde<ColonDossier, ColonBrief
 	public void setKoppelresultatenKankerregistratie(List<ColonKoppelresultaatKankerregistratie> koppelresultatenKankerregistratie)
 	{
 		this.koppelresultatenKankerregistratie = koppelresultatenKankerregistratie;
-	}
-
-	@Deprecated
-	public OnbekendeHuisarts getOnbekendeHuisarts()
-	{
-		return onbekendeHuisarts;
-	}
-
-	@Deprecated
-	public void setOnbekendeHuisarts(OnbekendeHuisarts onbekendeHuisarts)
-	{
-		this.onbekendeHuisarts = onbekendeHuisarts;
 	}
 
 	public EnovationHuisarts getColonHuisarts()

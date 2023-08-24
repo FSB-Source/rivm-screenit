@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,9 +21,17 @@ package nl.rivm.screenit.service.cervix.enums;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@AllArgsConstructor
+@Getter
 public enum CervixVervolgTekst
 {
-
 	UITSTRIJKJE_REGISTREER_ONTVANGST(""),
 
 	UITSTRIJKJE_ONTVANGEN_NAAR_HPV("vervolgstap-naar-hpv"),
@@ -80,15 +88,15 @@ public enum CervixVervolgTekst
 
 	ZAS_CLIENT_REEDS_GEINFORMEERD_VERNIETIG("vervolgstap-vernietig");
 
-	private String cssClass;
+	private final String cssClass;
 
-	CervixVervolgTekst(String cssClass)
+	public boolean isVoorHpvOrder()
 	{
-		this.cssClass = cssClass;
+		return getHpvOrderTeksten().contains(this);
 	}
 
-	public String getCssClass()
+	private static List<CervixVervolgTekst> getHpvOrderTeksten()
 	{
-		return cssClass;
+		return Arrays.stream(values()).filter(v -> v.cssClass.equals("vervolgstap-naar-hpv")).collect(Collectors.toList());
 	}
 }

@@ -17,7 +17,7 @@ import {dispatchActions} from "../../util/DispatchUtil"
 import {createActionSetEmailAdres} from "../../actions/ClientActions"
 import {showErrorToast, showWijzigingenOpgeslagenToast} from "../../util/ToastUtil"
 import {createActionWijzigingenVerwerkt, createActionWijzigingIdentificatie} from "../../actions/WijzigingenActions"
-import {TelefoonnummerValidator} from "../../validation/TelefoonnummerValidator"
+import {MobielnummerValidator, TelefoonnummerValidator} from "../../validation/TelefoonnummerValidator"
 import {TELEFOON_1_FIELD_ID, TELEFOON_2_FIELD_ID} from "./TelefoonView"
 import {Dispatch} from "redux"
 import {RootState} from "../../Store"
@@ -42,8 +42,8 @@ export const newClientGegevensForm = (client: Client | undefined, afspraak: Afsp
 		identificatiesoort: afspraak.identificatiesoort,
 	} : undefined, "Identificatienummer", new IdentificatieValidator()))
 	fieldsMap.set(EMAIL_FIELD_ID, initialFormField(client?.emailadres, "E-mailadres", new EmailValidator()))
-	fieldsMap.set(TELEFOON_1_FIELD_ID, initialFormField(client?.telefoonnummer1, "Telefoonnummer", new TelefoonnummerValidator()))
-	fieldsMap.set(TELEFOON_2_FIELD_ID, initialFormField(client?.telefoonnummer2, "Mobiel nummer", new TelefoonnummerValidator()))
+	fieldsMap.set(TELEFOON_1_FIELD_ID, initialFormField(client?.telefoonnummer1, "Mobiel nummer", new MobielnummerValidator()))
+	fieldsMap.set(TELEFOON_2_FIELD_ID, initialFormField(client?.telefoonnummer2, "Extra telefoonnummer", new TelefoonnummerValidator()))
 	return {
 		formId: "clientgegevens",
 		fieldsById: fieldsMap,

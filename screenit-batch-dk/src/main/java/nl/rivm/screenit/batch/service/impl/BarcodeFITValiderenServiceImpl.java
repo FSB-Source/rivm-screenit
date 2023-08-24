@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -40,10 +40,10 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.service.BaseHoudbaarheidService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -76,8 +76,8 @@ public class BarcodeFITValiderenServiceImpl extends BaseValiderenService impleme
 		List<String> foutmeldingen = new ArrayList<>();
 		List<String> barcodesUitKoppeldata = new ArrayList<>();
 
-		DateTime nu = currentDateSupplier.getDateTime();
-		DateTime minstensHoudbaarTotMetColon = houdbaarheidService.getMinstensHoudbaarTotMet(nu, PreferenceKey.PERIODE_MINIMALE_HOUDBAARHEID_IFOBT_MONSTERS_VOOR_CONTROLE);
+		var vandaag = currentDateSupplier.getLocalDate();
+		var minstensHoudbaarTotMetColon = houdbaarheidService.getMinstensHoudbaarTotMet(vandaag, PreferenceKey.PERIODE_MINIMALE_HOUDBAARHEID_IFOBT_MONSTERS_VOOR_CONTROLE);
 
 		for (KOPPELDATA.VERZONDENUITNODIGING verzondenUitnodiging : koppeldata)
 		{
@@ -141,14 +141,15 @@ public class BarcodeFITValiderenServiceImpl extends BaseValiderenService impleme
 						addFout(foutmeldingen, String.format(KoppelConstants.COLON_HOUDBAARHEID_ONBEKEND, verzondenUitnodiging.getID(), ifobtBarcodeGold,
 							StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId, ""));
 					}
-					else if (ifobtVervaldatum.getVervalDatum().before(minstensHoudbaarTotMetColon.toDate()))
+					else if (DateUtil.toLocalDate(ifobtVervaldatum.getVervalDatum()).isBefore(minstensHoudbaarTotMetColon))
 					{
 						addFout(foutmeldingen, String.format(KoppelConstants.COLON_HOUDBAARHEID_TE_KORT, verzondenUitnodiging.getID(), ifobtBarcodeGold,
 							StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId, ""));
 					}
 					if (barcodeAlTeruggekoppeld(barcodesUitKoppeldata, ifobtBarcodeGold))
 					{
-						addFout(foutmeldingen, String.format(KoppelConstants.COLON_BUISID_IS_DUBBEL, verzondenUitnodiging.getID(), ifobtBarcodeGold, StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId));
+						addFout(foutmeldingen, String.format(KoppelConstants.COLON_BUISID_IS_DUBBEL, verzondenUitnodiging.getID(), ifobtBarcodeGold,
+							StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId));
 					}
 					else
 					{
@@ -179,14 +180,15 @@ public class BarcodeFITValiderenServiceImpl extends BaseValiderenService impleme
 						addFout(foutmeldingen, String.format(KoppelConstants.COLON_HOUDBAARHEID_ONBEKEND, verzondenUitnodiging.getID(), ifobtBarcodeGold,
 							StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId, "Extra "));
 					}
-					else if (ifobtVervaldatum.getVervalDatum().before(minstensHoudbaarTotMetColon.toDate()))
+					else if (DateUtil.toLocalDate(ifobtVervaldatum.getVervalDatum()).isBefore(minstensHoudbaarTotMetColon))
 					{
 						addFout(foutmeldingen, String.format(KoppelConstants.COLON_HOUDBAARHEID_TE_KORT, verzondenUitnodiging.getID(), ifobtBarcodeGold,
 							StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId, "Extra "));
 					}
 					if (barcodeAlTeruggekoppeld(barcodesUitKoppeldata, ifobtBarcodeExtra))
 					{
-						addFout(foutmeldingen, String.format(KoppelConstants.COLON_BUISID_IS_DUBBEL, verzondenUitnodiging.getID(), ifobtBarcodeGold, ifobtBarcodeExtra, trackTraceId));
+						addFout(foutmeldingen,
+							String.format(KoppelConstants.COLON_BUISID_IS_DUBBEL, verzondenUitnodiging.getID(), ifobtBarcodeGold, ifobtBarcodeExtra, trackTraceId));
 					}
 					else
 					{

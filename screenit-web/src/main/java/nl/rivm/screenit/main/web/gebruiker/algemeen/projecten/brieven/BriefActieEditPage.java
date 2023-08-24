@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.brieven;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,6 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.brieven;
  * =========================LICENSE_END==================================
  */
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -145,9 +144,9 @@ public class BriefActieEditPage extends ProjectBasePage
 		vragenlijstContainer = getVragenlijstContainer();
 		form.add(vragenlijstContainer);
 
-		List<ProjectBriefActieType> types = new ArrayList<ProjectBriefActieType>();
-
+		var types = new ArrayList<ProjectBriefActieType>();
 		types.add(ProjectBriefActieType.DATUM);
+		types.add(ProjectBriefActieType.VANAF_DATUM);
 		types.add(ProjectBriefActieType.XDAGENNAY);
 		types.add(ProjectBriefActieType.XMETY);
 		if (ProjectType.PROJECT.equals(project.getType()))
@@ -181,7 +180,7 @@ public class BriefActieEditPage extends ProjectBasePage
 
 		form.add(new TextField<>("printomschrijving"));
 
-		add(new IndicatingAjaxLink<Project>("annuleren", model)
+		add(new IndicatingAjaxLink<>("annuleren", model)
 		{
 
 			private static final long serialVersionUID = 1L;
@@ -210,13 +209,7 @@ public class BriefActieEditPage extends ProjectBasePage
 					List<FileUpload> herinneringFilesUpload = herinnerFileUploads.getObject();
 					try
 					{
-						FileUpload fileUpload = filesUploaded.get(0);
-						File file = filesUploaded.get(0).writeToTempFile();
-						uploadDocument = new UploadDocument();
-						uploadDocument.setFile(file);
-						uploadDocument.setNaam(fileUpload.getClientFileName());
-						uploadDocument.setContentType(fileUpload.getContentType());
-						uploadDocument.setActief(true);
+						uploadDocument = ScreenitSession.get().fileUploadToUploadDocument(filesUploaded.get(0));
 						uploadDocumentService.saveOrUpdate(uploadDocument, FileStoreLocation.PROJECT_BRIEF_TEMPLATES, actie.getProject().getId());
 						actie.setDocument(uploadDocument);
 						actie.setUploader(ScreenitSession.get().getLoggedInInstellingGebruiker());
@@ -226,13 +219,7 @@ public class BriefActieEditPage extends ProjectBasePage
 						if (actie.isHerinneren())
 						{
 							herinnerActie = briefHerinnerenVragenlijstModel.getObject();
-							fileUpload = herinneringFilesUpload.get(0);
-							file = fileUpload.writeToTempFile();
-							herinneringsDocument = new UploadDocument();
-							herinneringsDocument.setFile(file);
-							herinneringsDocument.setNaam(fileUpload.getClientFileName());
-							herinneringsDocument.setContentType(fileUpload.getContentType());
-							herinneringsDocument.setActief(true);
+							herinneringsDocument = ScreenitSession.get().fileUploadToUploadDocument(herinneringFilesUpload.get(0));
 							uploadDocumentService.saveOrUpdate(herinneringsDocument, FileStoreLocation.PROJECT_BRIEF_TEMPLATES, actie.getProject().getId());
 							herinnerActie.setUploader(ScreenitSession.get().getLoggedInInstellingGebruiker());
 							herinnerActie.setDocument(herinneringsDocument);
@@ -410,25 +397,29 @@ public class BriefActieEditPage extends ProjectBasePage
 	private Panel getTypePanel(ProjectBriefActieType type)
 	{
 		Panel panel;
-		if (ProjectBriefActieType.DATUM.equals(type))
+		if (type != null)
 		{
-			panel = new BriefActieTypeDatumPanel("typePanel", briefActieModel);
-		}
-		else if (ProjectBriefActieType.VERVANGENDEBRIEF.equals(type))
-		{
-			panel = new BriefActieTypeVervangendeBriefPanel("typePanel", briefActieModel);
-		}
-		else if (ProjectBriefActieType.HERINNERING.equals(type))
-		{
-			panel = new BriefActieTypeHerinneringPanel("typePanel", briefActieModel);
-		}
-		else if (ProjectBriefActieType.XDAGENNAY.equals(type))
-		{
-			panel = new BriefActieTypeXnaYPanel("typePanel", briefActieModel);
-		}
-		else if (ProjectBriefActieType.XMETY.equals(type))
-		{
-			panel = new BriefActieTypeXmetYPanel("typePanel", briefActieModel);
+			switch (type)
+			{
+			case DATUM:
+			case VANAF_DATUM:
+				panel = new BriefActieTypeDatumPanel("typePanel", briefActieModel);
+				break;
+			case VERVANGENDEBRIEF:
+				panel = new BriefActieTypeVervangendeBriefPanel("typePanel", briefActieModel);
+				break;
+			case HERINNERING:
+				panel = new BriefActieTypeHerinneringPanel("typePanel", briefActieModel);
+				break;
+			case XDAGENNAY:
+				panel = new BriefActieTypeXnaYPanel("typePanel", briefActieModel);
+				break;
+			case XMETY:
+				panel = new BriefActieTypeXmetYPanel("typePanel", briefActieModel);
+				break;
+			default:
+				panel = new EmptyPanel("typePanel");
+			}
 		}
 		else
 		{

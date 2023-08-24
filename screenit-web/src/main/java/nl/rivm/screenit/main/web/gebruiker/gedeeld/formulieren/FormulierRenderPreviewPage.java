@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.gedeeld.formulieren;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -37,16 +36,10 @@ import org.apache.wicket.model.IModel;
 
 public abstract class FormulierRenderPreviewPage extends GebruikerBasePage
 {
-
-	private static final long serialVersionUID = 1L;
-
-	public FormulierRenderPreviewPage(IModel<ScreenitFormulierInstantie> formulierInstantie)
+	protected FormulierRenderPreviewPage(IModel<ScreenitFormulierInstantie> formulierInstantie)
 	{
 		add(new ScreenitFormulierRenderPanel("panel", formulierInstantie)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected IModel<FormulierResultaatImpl> createRenderContextModel(ScreenitFormulierInstantie formulierInstantie, FormulierRenderContext formulierRenderContext)
 			{
@@ -73,9 +66,6 @@ public abstract class FormulierRenderPreviewPage extends GebruikerBasePage
 		});
 		add(new Link<Void>("terug")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick()
 			{

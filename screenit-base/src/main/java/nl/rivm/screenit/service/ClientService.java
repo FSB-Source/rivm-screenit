@@ -4,7 +4,7 @@ package nl.rivm.screenit.service;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ package nl.rivm.screenit.service;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import nl.rivm.screenit.model.Account;
@@ -36,6 +37,7 @@ import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.gba.GbaVraag;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectInactiefReden;
 
@@ -47,7 +49,9 @@ public interface ClientService
 
 	Client getLaatstAfgevoerdeClient(String bsn);
 
-	Client setTelefoonnummer(Client client);
+	void saveContactGegevens(Client client, Account ingelogdAccount);
+
+	void saveContactGegevens(Client client, Account ingelogdAccount, MammaScreeningsEenheid screeningsEenheid, LocalDateTime transactieDatumTijd);
 
 	Client getClientByBsnFromNg01Bericht(String bsn, String anummer);
 
@@ -85,6 +89,8 @@ public interface ClientService
 
 	boolean clientInBuitenland(Client client);
 
+	boolean clientHeeftGbaIndicatie(Client client);
+
 	GbaVraag vraagGbaGegevensOpnieuwAan(Client client, Account account, RedenOpnieuwAanvragenClientgegevens reden);
 
 	boolean isTijdelijkeAdresNuActueel(GbaPersoon persoon);
@@ -106,4 +112,8 @@ public interface ClientService
 	CentraleEenheid bepaalCe(Client client);
 
 	String getGbaPostcode(Client client);
+
+	Integer getLeeftijd(Client client);
+
+	boolean isLevendeInwonerNederlandMetGbaIndicatie(Client client);
 }

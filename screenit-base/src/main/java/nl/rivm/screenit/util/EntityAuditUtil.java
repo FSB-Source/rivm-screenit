@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.util;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,6 +35,10 @@ import java.util.Objects;
 
 import javax.persistence.Temporal;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.model.envers.ScreenitRevisionEntity;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.object.model.HibernateObject;
@@ -55,23 +58,16 @@ import org.hibernate.envers.query.AuditQuery;
 import org.hibernate.envers.query.criteria.AuditCriterion;
 import org.hibernate.proxy.HibernateProxyHelper;
 import org.reflections.ReflectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@Slf4j
 public final class EntityAuditUtil
 {
-	private static final Logger LOG = LoggerFactory.getLogger(EntityAuditUtil.class);
-
-	private EntityAuditUtil()
-	{
-
-	}
-
-	public final static <H extends HibernateObject> AuditQuery createQuery(H entity, Session session)
+	public static <H extends HibernateObject> AuditQuery createQuery(H entity, Session session)
 	{
 		AuditReader reader = AuditReaderFactory.get(session);
-		Class clazz = null;
-		Serializable id = null;
+		Class clazz;
+		Serializable id;
 		try
 		{
 			clazz = Hibernate.getClass(entity);
@@ -89,7 +85,7 @@ public final class EntityAuditUtil
 		return query;
 	}
 
-	public final static <H extends HibernateObject> H getPreviousToLastEntity(H entity, Session session)
+	public static <H extends HibernateObject> H getPreviousVersionOfEntity(H entity, Session session)
 	{
 		List<Object[]> results = EntityAuditUtil.getEntityHistory(entity, session, null, false, 2);
 		if (results.size() > 1)
@@ -99,27 +95,27 @@ public final class EntityAuditUtil
 		return null;
 	}
 
-	public final static <H extends HibernateObject> H getLastEntity(H entity, Session session)
+	public static <H extends HibernateObject> H getLastVersionOfEntity(H entity, Session session)
 	{
 		List<Object[]> results = getEntityHistory(entity, session, null, false, 1);
-		if (results.size() > 0)
+		if (!results.isEmpty())
 		{
 			return EntityAuditUtil.getRevisionEntity(results.get(0));
 		}
 		return null;
 	}
 
-	public final static <H extends HibernateObject> List<Object[]> getEntityHistory(H entity, Session session, boolean changedOnly)
+	public static <H extends HibernateObject> List<Object[]> getEntityHistory(H entity, Session session, boolean changedOnly)
 	{
 		return getEntityHistory(entity, session, null, changedOnly, null);
 	}
 
-	public final static <H extends HibernateObject> List<Object[]> getEntityHistory(H entity, Session session, AuditCriterion additionalCriteria, boolean changedOnly)
+	public static <H extends HibernateObject> List<Object[]> getEntityHistory(H entity, Session session, AuditCriterion additionalCriteria, boolean changedOnly)
 	{
 		return getEntityHistory(entity, session, additionalCriteria, changedOnly, null);
 	}
 
-	public final static <H extends HibernateObject> List<Object[]> getEntityHistory(H entity, Session session, AuditCriterion additionalCriteria, boolean changedOnly,
+	public static <H extends HibernateObject> List<Object[]> getEntityHistory(H entity, Session session, AuditCriterion additionalCriteria, boolean changedOnly,
 		Integer maxResults)
 	{
 		AuditQuery query = createQuery(entity, session);
@@ -140,48 +136,37 @@ public final class EntityAuditUtil
 	}
 
 	@SuppressWarnings("unchecked")
-	public final static <H extends HibernateObject> H getRevisionEntity(Object auditRow)
+	public static <H extends HibernateObject> H getRevisionEntity(Object auditRow)
 	{
 		return (H) ((Object[]) auditRow)[0];
 	}
 
-	public final static ScreenitRevisionEntity getRevisionInfo(Object auditRow)
+	public static ScreenitRevisionEntity getRevisionInfo(Object auditRow)
 	{
 		return (ScreenitRevisionEntity) ((Object[]) auditRow)[1];
 	}
 
-	public final static RevisionType getRevisionType(Object auditRow)
+	public static RevisionType getRevisionType(Object auditRow)
 	{
 		return (RevisionType) ((Object[]) auditRow)[2];
 	}
 
-	public final static <T extends HibernateObject> String getDiffFieldToLatestVersion(T entity, String fieldName, Session session)
+	public static <T extends HibernateObject> String getDiffFieldsToLatestVersion(T entity, Session session, String... fieldNames)
 	{
+		T lastEntity = null;
 		if (entity.getId() != null)
 		{
-			T lastEntity = getLastEntity(entity, session);
-			if (lastEntity != null)
-			{
-				return diffEntities(lastEntity, entity, fieldName);
-			}
+			lastEntity = getLastVersionOfEntity(entity, session);
 		}
-		return diffEntities(null, entity, null);
+		return diffEntities(lastEntity, entity, fieldNames);
 	}
 
-	public final static <T extends HibernateObject> String getDiffToLatestVersion(T entity, Session session)
+	public static <T extends HibernateObject> String getDiffToLatestVersion(T entity, Session session)
 	{
-		if (entity.getId() != null)
-		{
-			T lastEntity = getLastEntity(entity, session);
-			if (lastEntity != null)
-			{
-				return diffEntities(lastEntity, entity, null);
-			}
-		}
-		return diffEntities(null, entity, null);
+		return getDiffFieldsToLatestVersion(entity, session);
 	}
 
-	private final static <T extends HibernateObject> String diffEntities(T oldEntity, T newEntity, String specifiekFieldName)
+	private static <T extends HibernateObject> String diffEntities(T oldEntity, T newEntity, String... specifiekFieldNames)
 	{
 		String diff = "";
 		newEntity = (T) HibernateHelper.deproxy(newEntity);
@@ -190,11 +175,15 @@ public final class EntityAuditUtil
 		{
 			String fieldName = field.getName();
 			SkipFieldForDiff skipField = field.getAnnotation(SkipFieldForDiff.class);
-			if ((specifiekFieldName == null || specifiekFieldName.equals(fieldName)) && !fieldName.equals("id") && !fieldName.equals("serialVersionUID")
+			if ((specifiekFieldNames.length == 0 || Arrays.asList(specifiekFieldNames).contains(fieldName)) && !fieldName.equals("id") && !fieldName.equals("serialVersionUID")
 				&& !fieldName.startsWith("$j") && !fieldName.equals("PROPERTY_ID") && skipField == null
 				&& (skipFieldsForDiff == null || !Arrays.asList(skipFieldsForDiff.value()).contains(fieldName)))
 			{
 				DiffSpecs diffSpec = field.getAnnotation(DiffSpecs.class);
+				String displayName;
+
+				displayName = diffSpec != null && StringUtils.isNotBlank(diffSpec.displayName()) ? diffSpec.displayName() : fieldName;
+
 				Object oldValue = null;
 				Object newValue = null;
 				try
@@ -228,7 +217,7 @@ public final class EntityAuditUtil
 						{
 							diff += ", ";
 						}
-						diff += fieldName + ": " + oldValue + " -> " + newValue;
+						diff += displayName + ": " + oldValue + " -> " + newValue;
 					}
 				}
 				else if (Date.class.isAssignableFrom(field.getType()))
@@ -244,21 +233,21 @@ public final class EntityAuditUtil
 							diff += ", ";
 						}
 
-						diff += fieldName + ": " + oldValue + " -> " + newValue;
+						diff += displayName + ": " + oldValue + " -> " + newValue;
 					}
 				}
 				else if (HibernateObject.class.isAssignableFrom(field.getType()))
 				{
 					if (!Objects.equals(oldValue, newValue))
 					{
-						diff = getDiffFromReference(diff, diffSpec, fieldName, oldValue, newValue);
+						diff = getDiffFromReference(diff, diffSpec, displayName, oldValue, newValue);
 					}
 				}
 				else if (Comparable.class.isAssignableFrom(field.getType()))
 				{
 					if (ObjectUtils.compare((Comparable<T>) oldValue, (Comparable<T>) newValue) != 0)
 					{
-						diff = getDiffFromReference(diff, diffSpec, fieldName, oldValue, newValue);
+						diff = getDiffFromReference(diff, diffSpec, displayName, oldValue, newValue);
 					}
 				}
 				else if (List.class.isAssignableFrom(field.getType()) && diffSpec != null && diffSpec.listSupported())
@@ -267,7 +256,7 @@ public final class EntityAuditUtil
 					List newValueList = newValue != null ? new ArrayList((List) newValue) : new ArrayList();
 					if (!CollectionUtils.isEqualCollection(oldValueList, newValueList))
 					{
-						diff = getDiffFromList(diff, diffSpec, fieldName, oldValueList, newValueList);
+						diff = getDiffFromList(diff, diffSpec, displayName, oldValueList, newValueList);
 					}
 				}
 			}
@@ -325,7 +314,7 @@ public final class EntityAuditUtil
 			{
 				format = "dd-MM-yyyy";
 			}
-			else if (oldValue instanceof Date || newValue instanceof Date)
+			else if (oldValue != null || newValue != null)
 			{
 				format = "dd-MM-yyyy hh:mm";
 			}

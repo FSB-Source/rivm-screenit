@@ -138,16 +138,17 @@
 }
 
 .subnav .bk-concept-gewijzigd-door {
-  margin: 14px 10px 0 14px;
-  font-size: 12px;
-  font-weight: bold;
-  span {  
-  	padding: 7px 7px 7px 7px;
-  }
-  
-  span:hover {
-  	background-color: $colorColonis-beheer3;
-  }
+	margin: 14px 10px 0 14px;
+	font-size: 12px;
+	font-weight: bold;
+	color: white;
+	span {
+		padding: 7px 7px 7px 7px;
+	}
+
+	span:hover {
+		background-color: $colorColonis-beheer3;
+	}
 }
 
 .subnav .nav-tabs {

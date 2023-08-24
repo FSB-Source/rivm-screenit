@@ -4,7 +4,7 @@ package nl.rivm.screenit.util;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,7 +30,6 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Huisarts;
-import nl.rivm.screenit.model.OnbekendeHuisarts;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.NaamGebruik;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Persoon;
@@ -388,30 +387,6 @@ public abstract class NaamUtil
 			naam.append(medewerker.getAchternaam());
 		}
 
-		return naam.toString();
-	}
-
-	public static String getNaamOnbekendeHuisarts(OnbekendeHuisarts huisarts)
-	{
-		StringBuilder naam = new StringBuilder();
-		if (huisarts == null)
-		{
-			return naam.toString();
-		}
-
-		if (StringUtils.isNotBlank(huisarts.getHuisartsNaam()))
-		{
-			naam.append(huisarts.getHuisartsNaam());
-		}
-
-		if (StringUtils.isNotBlank(huisarts.getPraktijkNaam()))
-		{
-			if (naam.length() > 0)
-			{
-				naam.append(" / ");
-			}
-			naam.append(huisarts.getPraktijkNaam());
-		}
 		return naam.toString();
 	}
 

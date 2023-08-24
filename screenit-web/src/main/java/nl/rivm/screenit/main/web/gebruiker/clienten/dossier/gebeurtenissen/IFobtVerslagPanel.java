@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,6 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen;
  * =========================LICENSE_END==================================
  */
 
-import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
@@ -49,7 +48,7 @@ import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.FileType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.UploadDocumentService;
-import nl.rivm.screenit.util.IFOBTTestUtil;
+import nl.rivm.screenit.util.FITTestUtil;
 import nl.topicuszorg.documentupload.wicket.UploadDocumentLink;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -94,8 +93,6 @@ public class IFobtVerslagPanel extends AbstractGebeurtenisDetailPanel
 	private UploadDocument uploadDocument;
 
 	private IndicatingAjaxSubmitLink formUploadBtn;
-
-	private File tmpFile;
 
 	private Form uploadForm;
 
@@ -169,10 +166,7 @@ public class IFobtVerslagPanel extends AbstractGebeurtenisDetailPanel
 					FileUpload fileUpload = file.getObject().get(0);
 					try
 					{
-						tmpFile = fileUpload.writeToTempFile();
-						tmpFile.deleteOnExit();
 						maakUploadDocument(fileUpload);
-						uploadDocument.setFile(tmpFile);
 						Client client = getModelObject().getBuis().getColonScreeningRonde().getDossier().getClient();
 						uploadDocumentService.saveOrUpdate(uploadDocument, FileStoreLocation.COLON_UITSLAG_VERWIJDEREN_CLIENT_BRIEF, client.getId());
 						colonDossierService.vervangUitslagVerwijderenDocument(getModelObject().getBuis(), uploadDocument);
@@ -221,8 +215,6 @@ public class IFobtVerslagPanel extends AbstractGebeurtenisDetailPanel
 					FileUpload fileUpload = file.getObject().get(0);
 					try
 					{
-						tmpFile = fileUpload.writeToTempFile();
-						tmpFile.deleteOnExit();
 						maakUploadDocument(fileUpload);
 					}
 					catch (Exception e)
@@ -242,28 +234,12 @@ public class IFobtVerslagPanel extends AbstractGebeurtenisDetailPanel
 			}
 
 			@Override
-			public void onNoClick(AjaxRequestTarget target)
-			{
-				super.onNoClick(target);
-				tmpFile.delete();
-			}
-
-			@Override
-			public void onCloseClick(AjaxRequestTarget target)
-			{
-				super.onCloseClick(target);
-				tmpFile.delete();
-			}
-
-			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-
 				IFOBTTest buis = IFobtVerslagPanel.this.getModelObject().getBuis();
 				ColonUitnodiging uitnodiging = (ColonUitnodiging) IFobtVerslagPanel.this.getModelObject().getUitnodiging();
 				try
 				{
-					uploadDocument.setFile(tmpFile);
 					uploadDocumentService.saveOrUpdate(uploadDocument, FileStoreLocation.COLON_UITSLAG_VERWIJDEREN_CLIENT_BRIEF,
 						uitnodiging.getScreeningRonde().getDossier().getClient().getId());
 				}
@@ -293,7 +269,7 @@ public class IFobtVerslagPanel extends AbstractGebeurtenisDetailPanel
 		{
 			ColonDossier dossier = uitnodiging.getScreeningRonde().getDossier();
 			IFOBTTest buis = screeningRondeGebeurtenis.getBuis();
-			if (!IFOBTTestUtil.isLaatsteUitslagVanLaatsteRonde(dossier, uitnodiging.getGekoppeldeTest().getStatusDatum()))
+			if (!FITTestUtil.isLaatsteUitslagVanLaatsteRonde(dossier, uitnodiging.getGekoppeldeTest().getStatusDatum()))
 			{
 				magVerwijderen = false;
 			}
@@ -315,12 +291,9 @@ public class IFobtVerslagPanel extends AbstractGebeurtenisDetailPanel
 		return magVerwijderen;
 	}
 
-	private void maakUploadDocument(FileUpload fileUpload)
+	private void maakUploadDocument(FileUpload fileUpload) throws Exception
 	{
-		uploadDocument = new UploadDocument();
-		uploadDocument.setActief(Boolean.TRUE);
-		uploadDocument.setContentType(fileUpload.getContentType());
-		uploadDocument.setNaam(fileUpload.getClientFileName());
+		uploadDocument = ScreenitSession.get().fileUploadToUploadDocument(fileUpload);
 	}
 
 	private String getInterpretatie(IFOBTTest buis, IFOBTTestStatus status)
@@ -330,11 +303,11 @@ public class IFobtVerslagPanel extends AbstractGebeurtenisDetailPanel
 		{
 			interpretatie = "Verwijderd";
 		}
-		else if (IFOBTTestUtil.isGunstig(buis))
+		else if (FITTestUtil.isGunstig(buis))
 		{
 			interpretatie = "Gunstig";
 		}
-		else if (IFOBTTestUtil.isOngunstig(buis))
+		else if (FITTestUtil.isOngunstig(buis))
 		{
 			interpretatie = "Ongunstig";
 		}

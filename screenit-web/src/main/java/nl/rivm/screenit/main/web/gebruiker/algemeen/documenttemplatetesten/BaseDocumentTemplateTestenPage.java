@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -273,7 +273,7 @@ public abstract class BaseDocumentTemplateTestenPage extends AlgemeenPage
 				ScreeningOrganisatie screeningOrganisatie = selectedRegio.getObject();
 
 				MailMergeContext context = DocumentTemplateTestenFieldsPanel
-					.createMailMergeContext(wrapper, screeningOrganisatie);
+					.createMailMergeContext(wrapper, screeningOrganisatie, printType);
 
 				BMHKLaboratorium bmhkLaboratorium = wrapper.getBmhkLaboratorium();
 				Client client = wrapper.getClient();

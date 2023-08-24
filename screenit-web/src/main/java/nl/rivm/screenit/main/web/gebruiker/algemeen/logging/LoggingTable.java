@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.logging;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -43,6 +43,7 @@ import nl.rivm.screenit.main.web.gebruiker.algemeen.logging.verwerkingsverslagen
 import nl.rivm.screenit.main.web.gebruiker.algemeen.logging.verwerkingsverslagen.uitnodigingversturen.UitnodigingVersturenVerslagPage;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerBasePage;
 import nl.rivm.screenit.main.web.gebruiker.clienten.inzien.ClientInzienPage;
+import nl.rivm.screenit.main.web.gebruiker.screening.cervix.hl7v2berichten.CervixVerwerkHL7v2FoutBerichtenPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.palga.MammaPalgaUitwisselingPage;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.GbaStatus;
@@ -140,6 +141,9 @@ public class LoggingTable extends ScreenitDataTable<LogRegel, String>
 		case CERVIX_ZAS_UITNODIGING_VERSTUREN_JOB_AFGEROND:
 			setResponsePage(new ZasVersturenVerslagPage(ModelUtil.sModel((CervixUitnodigingVersturenLogEvent) logEvent)));
 			break;
+		case CERVIX_HL7V2_BERICHT_VERSTUREN_MISLUKT:
+			setResponsePage(CervixVerwerkHL7v2FoutBerichtenPage.class);
+			break;
 		case MAMMA_HL7_BERICHT_AL_ONTVANGEN:
 		case MAMMA_HL7_BERICHT_ONTVANGEN_MISLUKT:
 		case MAMMA_HL7_BERICHT_VERSTUREN_MISLUKT:
@@ -189,6 +193,8 @@ public class LoggingTable extends ScreenitDataTable<LogRegel, String>
 				return ScreenitSession.get().getAuthorizationStrategy().isInstantiationAuthorized(UitnodigingVersturenVerslagPage.class);
 			case CERVIX_ZAS_UITNODIGING_VERSTUREN_JOB_AFGEROND:
 				return ScreenitSession.get().getAuthorizationStrategy().isInstantiationAuthorized(ZasVersturenVerslagPage.class);
+			case CERVIX_HL7V2_BERICHT_VERSTUREN_MISLUKT:
+				return ScreenitSession.get().getAuthorizationStrategy().isInstantiationAuthorized(CervixVerwerkHL7v2FoutBerichtenPage.class);
 			case RETOURZENDINGEN_VERWERKT:
 				return ScreenitSession.get().getAuthorizationStrategy().isInstantiationAuthorized(RetourzendingenVerwerkingsVerslagPage.class);
 			case IFOBT_VERWERKING_AFGEROND:

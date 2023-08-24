@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.main.service.mamma.MammaAfspraakService;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.AbstractClientContactActiePanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.ClientContactPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.ClientContactPanel.ClientContactPanelCreateContext;
@@ -35,6 +34,7 @@ import nl.rivm.screenit.model.ClientContactActie;
 import nl.rivm.screenit.model.ClientContactActieType;
 import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
+import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
@@ -49,7 +49,7 @@ public class MammaClientContactAfspraakMakenPanel extends AbstractClientContactA
 	private ClientContactPanelCreateContext clientContactPanelCreateContext;
 
 	@SpringBean
-	private MammaAfspraakService afspraakService;
+	private MammaBaseAfspraakService afspraakService;
 
 	public MammaClientContactAfspraakMakenPanel(String id, IModel<ClientContactActie> model, IModel<Client> client, List<Object> extraPanelParams)
 	{

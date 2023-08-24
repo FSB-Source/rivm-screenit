@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.controller;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,8 @@ import java.sql.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import lombok.RequiredArgsConstructor;
+
 import nl.rivm.screenit.dto.mamma.planning.PlanningDagDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningHerhalenDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningRestConstants;
@@ -37,29 +39,26 @@ import nl.rivm.screenit.mamma.planning.model.PlanningDag;
 import nl.rivm.screenit.mamma.planning.model.PlanningScreeningsEenheid;
 import nl.rivm.screenit.mamma.planning.model.PlanningStandplaatsPeriode;
 import nl.rivm.screenit.mamma.planning.model.PlanningWeek;
-import nl.rivm.screenit.mamma.planning.service.PlanningConceptService;
+import nl.rivm.screenit.mamma.planning.service.PlanningCapaciteitAgendaService;
 import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningDoorrekenenManager;
 import nl.rivm.screenit.util.DateUtil;
 
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController()
 @RequestMapping("/" + PlanningRestConstants.C_WEEK)
+@RequiredArgsConstructor
 public class PlanningWeekController
 {
-	private final PlanningConceptService conceptService;
+	private final PlanningCapaciteitAgendaService capaciteitAgendaService;
 
-	public PlanningWeekController(PlanningConceptService conceptService)
-	{
-		this.conceptService = conceptService;
-	}
-
-	@RequestMapping(value = "/{screeningsEenheidId}/{maandag}", method = RequestMethod.GET)
+	@GetMapping(value = "/{screeningsEenheidId}/{maandag}")
 	@ResponseBody
 	public PlanningWeekDto getBeschikbareCapaciteit(@PathVariable Long screeningsEenheidId, @PathVariable Long maandag)
 	{
@@ -99,11 +98,11 @@ public class PlanningWeekController
 		return weekDto;
 	}
 
-	@RequestMapping(method = RequestMethod.PUT)
+	@PutMapping
 	public void herhalen(@RequestBody PlanningHerhalenDto herhalenDto)
 	{
 		PlanningScreeningsEenheid screeningsEenheidVan = PlanningScreeningsEenheidIndex.get(herhalenDto.screeningsEenheidIdVan);
-		conceptService.herhalen(screeningsEenheidVan,
+		capaciteitAgendaService.herhalen(screeningsEenheidVan,
 			PlanningScreeningsEenheidIndex.get(herhalenDto.screeningsEenheidIdNaar),
 			screeningsEenheidVan.getWeek(herhalenDto.teHerhalenWeek),
 			herhalenDto.herhalenVanaf,
@@ -112,7 +111,7 @@ public class PlanningWeekController
 		PlanningDoorrekenenManager.run();
 	}
 
-	@RequestMapping(value = "/plannenTotEnMetDatum", method = RequestMethod.GET)
+	@GetMapping(value = "/plannenTotEnMetDatum")
 	public java.util.Date getPlannenTotEnMetDatum()
 	{
 		return DateUtil.toUtilDate(PlanningConstanten.plannenTotEnMetDatum);

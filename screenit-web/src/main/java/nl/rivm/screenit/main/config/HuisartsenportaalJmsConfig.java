@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.config;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,7 @@ import nl.rivm.screenit.main.jms.listener.HuisartsportaalListener;
 import org.apache.activemq.pool.PooledConnectionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 
 @Configuration
@@ -35,6 +36,7 @@ public class HuisartsenportaalJmsConfig
 {
 
 	@Bean
+	@Profile("!filler")
 	public DefaultMessageListenerContainer huisartsportaalListenerContainer(PooledConnectionFactory jmsFactory, HuisartsportaalListener listener,
 		Destination huisartsportaalListenerDestination)
 	{

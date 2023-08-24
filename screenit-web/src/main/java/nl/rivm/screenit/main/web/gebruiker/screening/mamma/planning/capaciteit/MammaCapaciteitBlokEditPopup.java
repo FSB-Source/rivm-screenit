@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -42,6 +42,7 @@ import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.enums.MammaCapaciteitBlokType;
 import nl.rivm.screenit.service.mamma.MammaBaseCapaciteitsBlokService;
 import nl.rivm.screenit.util.BigDecimalUtil;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.input.timefield.TimeField;
@@ -63,7 +64,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.validator.RangeValidator;
-import org.joda.time.DateTime;
 
 public abstract class MammaCapaciteitBlokEditPopup extends GenericPanel<PlanningCapaciteitBlokDto>
 {
@@ -272,9 +272,10 @@ public abstract class MammaCapaciteitBlokEditPopup extends GenericPanel<Planning
 	private void setDateForEndTimeField()
 	{
 
-		DateTime endDateTime = new DateTime(endTime.getDate());
-		DateTime currentStartDate = new DateTime(getModelObject().vanaf);
-		if (endDateTime.getHourOfDay() == 0 && endDateTime.getMinuteOfHour() == 0)
+		var endDateTime = DateUtil.toLocalDateTime(endTime.getDate());
+		var currentStartDate = DateUtil.toLocalDateTime(getModelObject().vanaf);
+
+		if (endDateTime.getHour() == 0 && endDateTime.getMinute() == 0)
 		{
 			endDateTime = endDateTime.withDayOfYear(currentStartDate.plusDays(1).getDayOfYear());
 		}
@@ -282,16 +283,13 @@ public abstract class MammaCapaciteitBlokEditPopup extends GenericPanel<Planning
 		{
 			endDateTime = endDateTime.withDayOfYear(currentStartDate.getDayOfYear());
 		}
-		endTime.setDate(endDateTime.toDate());
+		endTime.setDate(DateUtil.toUtilDate(endDateTime));
 	}
 
 	private void addOpslaanLink(final Form<PlanningCapaciteitBlokDto> editForm)
 	{
 		IndicatingAjaxButton opslaanLink = new ConfirmingIndicatingAjaxSubmitLink<Void>("opslaan", editForm, confirmPopup, "opslaan.popup")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			private int aantalAfspraken = 0;
 
 			@Override
@@ -367,11 +365,6 @@ public abstract class MammaCapaciteitBlokEditPopup extends GenericPanel<Planning
 	}
 
 	protected abstract void onVerwijderen(AjaxRequestTarget target, IModel<PlanningCapaciteitBlokDto> model);
-
-	protected String getConfirmPopupKey()
-	{
-		return "verwijder.popup";
-	}
 
 	protected IModel<String> getDeleteTekst()
 	{

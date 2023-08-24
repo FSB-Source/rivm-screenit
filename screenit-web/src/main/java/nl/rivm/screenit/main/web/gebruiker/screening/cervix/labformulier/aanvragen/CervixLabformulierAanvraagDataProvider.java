@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.labformulier.aanvra
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,7 +23,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.labformulier.aanvra
 
 import java.util.Iterator;
 
-import nl.rivm.screenit.dao.cervix.CervixHuisartsBaseDao;
+import nl.rivm.screenit.main.dao.cervix.CervixHuisartsDao;
 import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixLabformulierAanvraag;
@@ -39,7 +39,7 @@ public class CervixLabformulierAanvraagDataProvider extends SortableDataProvider
 {
 
 	@SpringBean
-	private CervixHuisartsBaseDao cervixHuisartsDao;
+	private CervixHuisartsDao huisartsDao;
 
 	private IModel<CervixHuisarts> zoekObject;
 
@@ -53,14 +53,14 @@ public class CervixLabformulierAanvraagDataProvider extends SortableDataProvider
 	@Override
 	public Iterator<? extends CervixLabformulierAanvraag> iterator(long first, long count)
 	{
-		return cervixHuisartsDao.getCervixLabformulierOrdersVanInstelling(ModelUtil.nullSafeGet(zoekObject), first, count,
-			new SortState<>(getSort().getProperty(), getSort().isAscending()));
+		return huisartsDao.getCervixLabformulierOrdersVanInstelling(ModelUtil.nullSafeGet(zoekObject), first, count,
+			new SortState<>(getSort().getProperty(), getSort().isAscending())).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return cervixHuisartsDao.getAantalCervixLabformulierOrdersVanInstelling(ModelUtil.nullSafeGet(zoekObject));
+		return huisartsDao.getAantalCervixLabformulierOrdersVanInstelling(ModelUtil.nullSafeGet(zoekObject));
 	}
 
 	@Override
@@ -69,4 +69,10 @@ public class CervixLabformulierAanvraagDataProvider extends SortableDataProvider
 		return ModelUtil.sModel(object);
 	}
 
+	@Override
+	public void detach()
+	{
+		super.detach();
+		ModelUtil.nullSafeDetach(zoekObject);
+	}
 }

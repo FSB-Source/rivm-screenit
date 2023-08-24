@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.batch;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,9 +28,8 @@ import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ConfirmingIndicatingAjaxLink;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.modal.IDialog;
-import nl.rivm.screenit.main.web.gebruiker.algemeen.batch.parameterpopuppanel.IBatchParameterPopupPanel;
-import nl.rivm.screenit.main.web.gebruiker.algemeen.batch.parameterpopuppanel.colonclientselectie.BatchColonClientSelectieParameterPopupPanel;
-import nl.rivm.screenit.main.web.gebruiker.algemeen.batch.parameterpopuppanel.mammapalgaexport.BatchMammaPalgaExportParameterPopupPanel;
+import nl.rivm.screenit.main.web.gebruiker.algemeen.batch.parameterpopuppanel.BatchParameterPopupPanel;
+import nl.rivm.screenit.main.web.gebruiker.algemeen.batch.parameterpopuppanel.JobStartPopupPanelFactory;
 import nl.rivm.screenit.model.batch.BatchJob;
 import nl.rivm.screenit.model.batch.BvoZoekCriteria;
 import nl.rivm.screenit.model.enums.Actie;
@@ -56,15 +55,12 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class JobStartPanel extends BatchBvoFilterPanel
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private JobService jobService;
 
 	private WebMarkupContainer jobsContainer;
 
-	private BootstrapDialog dialog;
+	private final BootstrapDialog dialog;
 
 	public JobStartPanel(String id)
 	{
@@ -72,17 +68,24 @@ public class JobStartPanel extends BatchBvoFilterPanel
 
 		dialog = new BootstrapDialog("startJobDialog");
 		add(dialog);
-
-		maakListView(null);
-
+		maakListView();
 	}
 
-	private void maakListView(AjaxRequestTarget target)
+	private void maakListView()
 	{
 		jobsContainer = new WebMarkupContainer("jobsContainer");
 		jobsContainer.setOutputMarkupId(true);
 		addOrReplace(jobsContainer);
 
+		List<JobType> jobs = teTonenJobTypes();
+		boolean magToevoegen = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BATCH_STATUS, Actie.TOEVOEGEN);
+		jobsContainer.add(new WebMarkupContainer("startHeader").setVisible(magToevoegen));
+		jobsContainer.add(new WebMarkupContainer("configHeader").setVisible(magToevoegen));
+		jobsContainer.add(maakJobsListView(jobs, magToevoegen));
+	}
+
+	private List<JobType> teTonenJobTypes()
+	{
 		List<JobType> jobs = new ArrayList<>();
 
 		for (JobType jobType : JobType.values())
@@ -100,14 +103,13 @@ public class JobStartPanel extends BatchBvoFilterPanel
 				jobs.add(jobType);
 			}
 		}
-		boolean magToevoegen = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BATCH_STATUS, Actie.TOEVOEGEN);
-		jobsContainer.add(new WebMarkupContainer("startHeader").setVisible(magToevoegen));
-		jobsContainer.add(new WebMarkupContainer("configHeader").setVisible(magToevoegen));
+		return jobs;
+	}
 
-		jobsContainer.add(new PropertyListView<>("jobs", jobs)
+	private PropertyListView<JobType> maakJobsListView(List<JobType> jobs, boolean magToevoegen)
+	{
+		return new PropertyListView<>("jobs", jobs)
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void populateItem(final ListItem<JobType> item)
 			{
@@ -115,93 +117,84 @@ public class JobStartPanel extends BatchBvoFilterPanel
 				item.add(new Label("bvoLabel", Bevolkingsonderzoek.getAfkortingen(jobType.getBevolkingsOnderzoeken())));
 				item.add(new EnumLabel<>("naam", jobType));
 				item.add(new Label("beschrijving", getString(EnumStringUtil.getPropertyString(jobType) + ".beschrijving")));
-				item.add(new ConfirmingIndicatingAjaxLink<>("start", item.getModel(), dialog, null)
-				{
-					private IBatchParameterPopupPanel customPopupPanel;
-					@Override
-					public void onClick(AjaxRequestTarget target)
-					{
-						BatchJob batchJob = new BatchJob();
-						batchJob.setJobType(getModelObject());
-						if (customPopupPanel != null)
-						{
-							customPopupPanel.vulJobParameters(batchJob.getJobParameters());
-						}
+				var jobStartButton = jobStartButton(item);
+				item.add(jobStartButton.setVisible(magToevoegen));
 
-						jobService.startJob(batchJob, ScreenitSession.get().getLoggedInInstellingGebruiker());
-					}
-
-					@Override
-					protected IModel<String> getHeaderStringModel()
-					{
-						JobType job = item.getModelObject();
-						return Model.of(getJobName(job));
-					}
-
-					@Override
-					protected IModel<String> getContentStringModel()
-					{
-						JobType job = item.getModelObject();
-						String beginQuestion = "Weet u zeker dat u de batchjob ";
-						String endQuestion = " wilt starten?";
-						String naam = getJobName(job);
-						return Model.of(beginQuestion + naam + endQuestion);
-					}
-
-					@Override
-					protected void createCustomComponent(String id, Form<?> form)
-					{
-						if (JobType.CLIENT_SELECTIE.equals(getModelObject()))
-						{
-							customPopupPanel = new BatchColonClientSelectieParameterPopupPanel(id, form);
-							form.add((Component) customPopupPanel);
-						}
-						else if (JobType.MAMMA_PALGA_CSV_EXPORT.equals(getModelObject()))
-						{
-							customPopupPanel = new BatchMammaPalgaExportParameterPopupPanel(id, form);
-							form.add((Component) customPopupPanel);
-						}
-						else
-						{
-							customPopupPanel = null;
-							super.createCustomComponent(id, form);
-						}
-
-					}
-				}.setVisible(magToevoegen));
-
-				WebMarkupContainer configButtonContainer = new WebMarkupContainer("configButtonContainer");
-				Component config = new IndicatingAjaxLink<JobType>("config")
-				{
-
-					@Override
-					public void onClick(AjaxRequestTarget target)
-					{
-						dialog.openWith(target, new EditBatchJobParametersPopup(IDialog.CONTENT_ID, jobType)
-						{
-
-							@Override
-							protected void close(AjaxRequestTarget target)
-							{
-								dialog.close(target);
-							}
-
-						});
-					}
-				};
-				config.setVisible(jobType.getJobParameters() != null);
-				configButtonContainer.add(config);
+				WebMarkupContainer configButtonContainer = jobConfigContainer(jobType);
 				configButtonContainer.setVisible(magToevoegen);
 				item.add(configButtonContainer);
 			}
-		});
+		};
+	}
 
+	private WebMarkupContainer jobStartButton(ListItem<JobType> item)
+	{
+		return new ConfirmingIndicatingAjaxLink<>("start", item.getModel(), dialog, null)
+		{
+			private BatchParameterPopupPanel customPopupPanel;
+
+			@Override
+			protected IModel<String> getHeaderStringModel()
+			{
+				JobType job = item.getModelObject();
+				return Model.of(getJobName(job));
+			}
+
+			@Override
+			protected IModel<String> getContentStringModel()
+			{
+				JobType job = item.getModelObject();
+				String beginQuestion = "Weet u zeker dat u de batchjob ";
+				String endQuestion = " wilt starten?";
+				String naam = getJobName(job);
+				return Model.of(beginQuestion + naam + endQuestion);
+			}
+
+			@Override
+			protected void createCustomComponent(String id, Form<?> form)
+			{
+				customPopupPanel = JobStartPopupPanelFactory.create(getModelObject(), id, form);
+				form.add((Component) customPopupPanel);
+			}
+
+			@Override
+			public void onClick(AjaxRequestTarget target)
+			{
+				BatchJob batchJob = new BatchJob();
+				batchJob.setJobType(getModelObject());
+				customPopupPanel.vulJobParameters(batchJob.getJobParameters());
+				jobService.startJob(batchJob, ScreenitSession.get().getLoggedInInstellingGebruiker());
+			}
+		};
+	}
+
+	private WebMarkupContainer jobConfigContainer(JobType jobType)
+	{
+		WebMarkupContainer configButtonContainer = new WebMarkupContainer("configButtonContainer");
+		Component config = new IndicatingAjaxLink<JobType>("config")
+		{
+			@Override
+			public void onClick(AjaxRequestTarget target)
+			{
+				dialog.openWith(target, new EditBatchJobParametersPopup(IDialog.CONTENT_ID, jobType)
+				{
+					@Override
+					protected void close(AjaxRequestTarget target)
+					{
+						dialog.close(target);
+					}
+				});
+			}
+		};
+		config.setVisible(jobType.getJobParameters() != null);
+		configButtonContainer.add(config);
+		return configButtonContainer;
 	}
 
 	@Override
 	protected void bvoFilterChanged(IModel<BvoZoekCriteria> filterModel, AjaxRequestTarget target)
 	{
-		maakListView(target);
+		maakListView();
 		target.add(jobsContainer);
 	}
 }

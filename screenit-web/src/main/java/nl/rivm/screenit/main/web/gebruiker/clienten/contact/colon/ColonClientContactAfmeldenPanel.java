@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,10 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.AbstractClientContactAfmeldenPanel;
 import nl.rivm.screenit.model.AanvraagBriefStatus;
@@ -34,45 +38,92 @@ import nl.rivm.screenit.model.ClientContactActie;
 import nl.rivm.screenit.model.ClientContactManier;
 import nl.rivm.screenit.model.colon.ColonAfmelding;
 import nl.rivm.screenit.model.colon.enums.ColonAfmeldingReden;
+import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
+import nl.rivm.screenit.service.colon.ColonTijdelijkAfmeldenJaartallenService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.RadioChoice;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
+import org.apache.wicket.spring.injection.annot.SpringBean;
 
+@Getter
+@Setter
 public class ColonClientContactAfmeldenPanel extends AbstractClientContactAfmeldenPanel<ColonAfmelding, ColonAfmeldingReden>
 {
 	private static final long serialVersionUID = 1;
+
+	@SpringBean
+	private ColonTijdelijkAfmeldenJaartallenService tijdelijkAfmeldenJaartallenService;
+
+	private WebMarkupContainer tijdelijkAfmeldenJaartallenContainer;
+
+	private Integer gekozenJaartalTijdelijkAfmelden;
 
 	public ColonClientContactAfmeldenPanel(String id, IModel<ClientContactActie> model, IModel<Client> client, List<Object> extraPanelParams)
 	{
 		super(id, model, client, extraPanelParams);
 	}
 
+	private void setTijdelijkAfmeldenJaartalContainer(Client client)
+	{
+		var beschikbareJaartallenTijdelijkAfmelden = tijdelijkAfmeldenJaartallenService.bepaalMogelijkeAfmeldJaren(client);
+		if (!beschikbareJaartallenTijdelijkAfmelden.isEmpty())
+		{
+			gekozenJaartalTijdelijkAfmelden = beschikbareJaartallenTijdelijkAfmelden.get(0);
+		}
+
+		RadioChoice<Integer> tijdelijkAfmeldenJaartallen = new RadioChoice<>("tijdelijkAfmeldenJaartallen", new PropertyModel<>(this, "gekozenJaartalTijdelijkAfmelden"),
+			beschikbareJaartallenTijdelijkAfmelden);
+		tijdelijkAfmeldenJaartallen.setPrefix("<label class=\"radio\">");
+		tijdelijkAfmeldenJaartallen.setSuffix("</label>");
+		tijdelijkAfmeldenJaartallen.setRequired(true);
+
+		tijdelijkAfmeldenJaartallenContainer.setOutputMarkupPlaceholderTag(true);
+		tijdelijkAfmeldenJaartallenContainer.add(tijdelijkAfmeldenJaartallen);
+		tijdelijkAfmeldenJaartallenContainer.setVisible(false);
+	}
+
+	private void setTijdelijkAfmeldenJaartallenContainerVisible(AjaxRequestTarget target, ColonAfmelding afmelding)
+	{
+		boolean voorwaardeBijTijdelijk = AfmeldingType.TIJDELIJK.equals(afmelding.getType()) && ClientContactManier.DIRECT.equals(afmelding.getManier());
+		tijdelijkAfmeldenJaartallenContainer.setVisible(voorwaardeBijTijdelijk);
+		target.add(tijdelijkAfmeldenJaartallenContainer);
+	}
+
+	@Override
+	protected WebMarkupContainer vulEnGetExtraAfmeldOptiesContainer(WebMarkupContainer extraOptiesContainer)
+	{
+		tijdelijkAfmeldenJaartallenContainer = extraOptiesContainer;
+		setTijdelijkAfmeldenJaartalContainer(clientModel.getObject());
+
+		return tijdelijkAfmeldenJaartallenContainer;
+	}
+
 	@Override
 	protected IModel<ColonAfmelding> getAfmeldingModel(List<Object> extraPanelParams)
 	{
-		IModel<ColonAfmelding> afmeldingModel = ModelUtil.cModel(new ColonAfmelding());
+		IModel<ColonAfmelding> afmeldingModel = ModelUtil.ccModel(new ColonAfmelding());
 		ColonAfmelding afmelding = afmeldingModel.getObject();
-		afmelding.setReden(ColonAfmeldingReden.GEEN_REDEN);
-		afmelding.setAfmeldingStatus((AanvraagBriefStatus) extraPanelParams.stream().filter(p -> p instanceof AanvraagBriefStatus).findFirst().orElse(null));
+		afmelding.setAfmeldingStatus((AanvraagBriefStatus) extraPanelParams.stream().filter(AanvraagBriefStatus.class::isInstance).findFirst().orElse(null));
 		return afmeldingModel;
 	}
 
 	@Override
 	protected void setRedenenContainerVisible(AjaxRequestTarget target, ColonAfmelding afmelding)
 	{
-		boolean voorwaardeBijEenmalig = AfmeldingType.EENMALIG.equals(afmelding.getType());
-		boolean voorwaardeBijDefinitief = AfmeldingType.DEFINITIEF.equals(afmelding.getType()) && ClientContactManier.DIRECT.equals(afmelding.getManier());
-		redenenContainer.setVisible(voorwaardeBijEenmalig || voorwaardeBijDefinitief);
+		redenenContainer.setVisible(false);
+		setTijdelijkAfmeldenJaartallenContainerVisible(target, afmelding);
 		target.add(redenenContainer);
-
 	}
 
 	@Override
 	protected IModel<List<ColonAfmeldingReden>> getRedenenModel()
 	{
-		List<ColonAfmeldingReden> afmeldredenen = new ArrayList<ColonAfmeldingReden>(Arrays.asList(ColonAfmeldingReden.values()));
+		List<ColonAfmeldingReden> afmeldredenen = new ArrayList<>(Arrays.asList(ColonAfmeldingReden.values()));
 		afmeldredenen.remove(ColonAfmeldingReden.PROEF_BEVOLKINGSONDERZOEK);
 		afmeldredenen.remove(ColonAfmeldingReden.ONTERECHT);
 
@@ -94,5 +145,17 @@ public class ColonClientContactAfmeldenPanel extends AbstractClientContactAfmeld
 	protected List<AfmeldingType> getAvailableAfmeldopties(IModel<Client> client)
 	{
 		return clientContactService.getAvailableAfmeldoptiesColon(client.getObject(), false);
+	}
+
+	@Override
+	public Map<ExtraOpslaanKey, Object> getOpslaanObjecten()
+	{
+		var obslaanObjecten = super.getOpslaanObjecten();
+		if (gekozenJaartalTijdelijkAfmelden != null)
+		{
+			var afmelding = (ColonAfmelding) obslaanObjecten.get(ExtraOpslaanKey.AFMELDING);
+			afmelding.setTijdelijkAfmeldenTotJaartal(gekozenJaartalTijdelijkAfmelden);
+		}
+		return obslaanObjecten;
 	}
 }

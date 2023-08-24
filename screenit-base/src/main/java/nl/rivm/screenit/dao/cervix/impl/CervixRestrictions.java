@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,7 @@ import java.time.LocalDate;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import nl.rivm.screenit.huisartsenportaal.dto.LocatieDto;
 import nl.rivm.screenit.model.cervix.CervixBrief;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
@@ -37,6 +38,7 @@ import nl.rivm.screenit.util.query.DateRestrictions;
 import nl.rivm.screenit.util.query.ScreenitRestrictions;
 
 import org.hibernate.Criteria;
+import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
@@ -125,5 +127,18 @@ public class CervixRestrictions
 			)
 		);
 		return criteria;
+	}
+
+	public static Conjunction createLocatieCompleetRestriction(String locatieAlias)
+	{
+		locatieAlias = ScreenitRestrictions.fixAlias(locatieAlias);
+		return Restrictions.and(
+			Restrictions.ne(locatieAlias + "naam", ""),
+			Restrictions.ne(locatieAlias + "iban", ""),
+			Restrictions.ne(locatieAlias + "ibanTenaamstelling", ""),
+			Restrictions.ne(locatieAlias + "zorgmailklantnummer", ""),
+			Restrictions.ne(locatieAlias + "naam", LocatieDto.EMPTY_VALUE),
+			Restrictions.ne(locatieAlias + "iban", LocatieDto.EMPTY_VALUE),
+			Restrictions.ne(locatieAlias + "ibanTenaamstelling", LocatieDto.EMPTY_VALUE));
 	}
 }

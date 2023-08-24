@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -20,14 +20,13 @@
  */
 import {Dispatch} from "redux"
 import ScreenitBackend from "../utils/Backend"
-import {getUA} from "react-device-detect"
 import {setLoggedInAction, setUnauthorizedAction} from "../actions/AuthenticatieAction"
 import {AxiosError} from "axios"
 import HttpStatusCode from "../datatypes/HttpStatus"
 
 export const processLogin = () => (dispatch: Dispatch) => {
 	ScreenitBackend.put("/login", {
-		userAgent: getUA,
+		userAgent: navigator.userAgent,
 	}).catch((error: AxiosError) => {
 		if (error?.response?.status === HttpStatusCode.UNAUTHORIZED) {
 			dispatch(setUnauthorizedAction(true))

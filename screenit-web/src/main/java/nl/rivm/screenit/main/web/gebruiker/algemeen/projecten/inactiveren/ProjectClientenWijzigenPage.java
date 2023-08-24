@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.inactiveren;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -121,7 +121,7 @@ public class ProjectClientenWijzigenPage extends ProjectBasePage
 
 		RadioChoice<ProjectBestandType> bestandTypeRadio = new RadioChoice<>("type", projectBestandTypes,
 			new EnumChoiceRenderer<>(this));
-		bestandTypeRadio.setPrefix("<label class=\"radio\" style=\"padding-left:5px\">");
+		bestandTypeRadio.setPrefix("<label class=\"radio padding-left-5px\">");
 		bestandTypeRadio.setSuffix("</label>");
 		bestandTypeRadio.setOutputMarkupId(true);
 		bestandTypeRadio.setRequired(true);

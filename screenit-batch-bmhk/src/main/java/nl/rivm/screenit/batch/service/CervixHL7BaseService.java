@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,7 +25,9 @@ import nl.rivm.screenit.batch.model.HL7v24ResponseWrapper;
 import nl.rivm.screenit.batch.model.ScreenITHL7MessageContext;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.cervix.CervixMonster;
+import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.app.Connection;
@@ -37,13 +39,17 @@ import ca.uhn.hl7v2.model.v24.segment.PID;
 public interface CervixHL7BaseService
 {
 
-	HL7v24ResponseWrapper sendHL7Message(String hl7Bericht, BMHKLaboratorium bmhkLaboratorium);
+	HL7v24ResponseWrapper sendHL7Message(String hl7Bericht, BMHKLaboratorium laboratorium, OrganisatieParameterKey hostKey, OrganisatieParameterKey portKey);
 
 	MSH buildMessageHeader(MSH mshSegment, String namespaceId) throws DataTypeException;
 
 	PID buildPIDSegment(PID pidSegment, Client client) throws DataTypeException;
 
-	OBR buildOBRSegment(OBR obrSegment, CervixMonster monster) throws DataTypeException;
+	PID buildPIDSegmentWithForcedGender(PID pidSegment, Client client, Geslacht forcedGender) throws DataTypeException;
 
-	Connection openConnection(BMHKLaboratorium laboratorium, int pogingen, ScreenITHL7MessageContext messageContext) throws HL7Exception;
+	OBR buildOBRSegment(OBR obrSegment, CervixMonster monster, boolean postfix) throws DataTypeException;
+
+	Connection openConnection(String laboratoriumNaam, int pogingen, ScreenITHL7MessageContext messageContext) throws HL7Exception;
+
+	String getCurrentDateTimeString();
 }

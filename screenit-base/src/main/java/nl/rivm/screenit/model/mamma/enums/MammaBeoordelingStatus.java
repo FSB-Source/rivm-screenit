@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.mamma.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -102,7 +102,7 @@ public enum MammaBeoordelingStatus implements INaam
 
 	public static List<MammaBeoordelingStatus> annulerenNietMogelijkStatussen()
 	{
-		return Arrays.asList(EERSTE_LEZING, EERSTE_LEZING_OPGESLAGEN, UITSLAG_ONGUNSTIG, GEANNULEERD, OPGESCHORT_MET_AFSPRAAK);
+		return Arrays.asList(UITSLAG_ONGUNSTIG, GEANNULEERD, OPGESCHORT_MET_AFSPRAAK);
 	}
 
 	public static boolean isAnnulerenMogelijk(MammaBeoordelingStatus status)

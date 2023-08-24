@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.f
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -97,7 +97,7 @@ public class MammaFotobesprekingBesprekenHuidigeRondePanel extends MammaKwalitei
 			{
 				LogGebeurtenis logGebeurtenis = ID_BESPROKEN.equals(id) ? LogGebeurtenis.FOTOBESPREKING_BESPROKEN
 					: ID_OPNIEUW_BEOORDELEN.equals(id) ? LogGebeurtenis.FOTOBESPREKING_OPNIEUW_BEOORDELEN
-						: null;
+					: null;
 				if (logGebeurtenis != null)
 				{
 					logService.logGebeurtenis(
@@ -112,7 +112,7 @@ public class MammaFotobesprekingBesprekenHuidigeRondePanel extends MammaKwalitei
 			protected boolean skipConfirmation()
 			{
 				return bevestigingNietNodig;
-			};
+			}
 
 		};
 
@@ -127,7 +127,7 @@ public class MammaFotobesprekingBesprekenHuidigeRondePanel extends MammaKwalitei
 				button.setVisible(heeftImsDesktopSyncRecht
 					&& (ID_BESPROKEN.equals(id) || (!MammaBeoordelingStatus.UITSLAG_ONGUNSTIG.equals(fotobesprekingOnderzoek.getBeoordeling().getStatus())))
 					&& (ID_BESPROKEN.equals(id)
-						|| (ID_OPNIEUW_BEOORDELEN.equals(id) && !MammaBeoordelingStatus.GEANNULEERD.equals(fotobesprekingOnderzoek.getBeoordeling().getStatus()))));
+					|| (ID_OPNIEUW_BEOORDELEN.equals(id) && !MammaBeoordelingStatus.GEANNULEERD.equals(fotobesprekingOnderzoek.getBeoordeling().getStatus()))));
 				break;
 			default:
 				button.setVisible(false);
@@ -151,7 +151,7 @@ public class MammaFotobesprekingBesprekenHuidigeRondePanel extends MammaKwalitei
 			try
 			{
 				kwaliteitscontroleService.herbeoordeelFotobesprekingOnderzoek(fotobesprekingOnderzoekModel.getObject());
-				((AbstractMammaBeoordelenPage) getPage()).volgendeVerslag(target);
+				((AbstractMammaBeoordelenPage) getPage()).volgendeBeoordeling(target);
 			}
 			catch (Exception e)
 			{
@@ -165,7 +165,7 @@ public class MammaFotobesprekingBesprekenHuidigeRondePanel extends MammaKwalitei
 		else
 		{
 			kwaliteitscontroleService.wijzigOnderzoekStatus(fotobesprekingOnderzoekModel.getObject(), nieuweOnderzoekStatus);
-			((AbstractMammaBeoordelenPage) getPage()).volgendeVerslag(target);
+			((AbstractMammaBeoordelenPage) getPage()).volgendeBeoordeling(target);
 		}
 	}
 

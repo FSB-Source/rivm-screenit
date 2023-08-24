@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,8 @@ package nl.rivm.screenit.service.mamma.impl;
  */
 
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.model.mamma.MammaAfmelding;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
@@ -42,10 +43,6 @@ import nl.rivm.screenit.service.mamma.enums.MammaTestTimeLineDossierTijdstip;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.joda.time.DateTime;
-import org.joda.time.Days;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -55,10 +52,9 @@ import com.google.common.primitives.Ints;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
+@Slf4j
 public class MammaBaseTestTimelineTimeServiceImpl implements MammaBaseTestTimelineTimeService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaBaseTestTimelineTimeServiceImpl.class);
-
 	@Autowired
 	private HibernateService hibernateService;
 
@@ -126,6 +122,8 @@ public class MammaBaseTestTimelineTimeServiceImpl implements MammaBaseTestTimeli
 		{
 			rekenBriefTerug(brief, aantalDagen);
 		}
+
+		ronde.getFollowUpVerslagen().forEach(verslag -> baseTestTimelineService.rekenObjectTerug(verslag, aantalDagen));
 
 		for (MammaAfmelding afmelding : ronde.getAfmeldingen())
 		{
@@ -209,13 +207,6 @@ public class MammaBaseTestTimelineTimeServiceImpl implements MammaBaseTestTimeli
 		default:
 			return 1;
 		}
-	}
-
-	public int overgeblevenDagen(Date date, int aantalDagen)
-	{
-		DateTime aantdagenReverse = new DateTime().minusDays(aantalDagen);
-		Days dagen = Days.daysBetween(aantdagenReverse.toLocalDate(), new DateTime(date).toLocalDate());
-		return Math.max(dagen.getDays(), 0);
 	}
 
 }

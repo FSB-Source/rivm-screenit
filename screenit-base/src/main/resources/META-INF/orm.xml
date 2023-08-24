@@ -3,7 +3,7 @@
   ========================LICENSE_START=================================
   screenit-base
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -38,7 +38,15 @@
             metadata-complete="false">
         <table schema="gedeeld"/>
         <inheritance strategy="SINGLE_TABLE"/>
+        <attributes>
+            <one-to-one mapped-by="patient" name="persoon" target-entity="nl.rivm.screenit.model.GbaPersoon">
+                <cascade>
+                    <cascade-all/>
+                </cascade>
+            </one-to-one>
+        </attributes>
     </entity>
+
     <entity class="nl.topicuszorg.patientregistratie.persoonsgegevens.model.Persoon"
             metadata-complete="false">
         <table schema="gedeeld"/>
@@ -48,6 +56,13 @@
             </basic>
             <basic name="voornaam">
                 <column length="255"/>
+            </basic>
+            <basic name="emailadres">
+                <column length="100"/>
+            </basic>
+            <basic name="overlijdensdatum">
+                <column nullable="true"/>
+                <temporal>DATE</temporal>
             </basic>
             <many-to-many name="adressen">
                 <join-table schema="algemeen" name="pat_persoon_adressen"/>
@@ -142,6 +157,9 @@
             <id name="id">
                 <generated-value strategy="AUTO"/>
             </id>
+            <basic name="startTime"></basic>
+            <many-to-one name="location" target-entity="nl.rivm.screenit.model.colon.Kamer">
+            </many-to-one>
         </attributes>
     </entity>
 

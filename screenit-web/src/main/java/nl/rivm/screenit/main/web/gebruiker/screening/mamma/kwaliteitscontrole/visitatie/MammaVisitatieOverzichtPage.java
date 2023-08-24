@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.v
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,14 +25,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaVisitatieOnderzoekenWerklijstZoekObject;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaVisitatieWerklijstZoekObject;
 import nl.rivm.screenit.main.web.ScreenitSession;
-import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
+import nl.rivm.screenit.main.web.component.modal.IDialog;
+import nl.rivm.screenit.main.web.component.table.AjaxImageCellPanel;
 import nl.rivm.screenit.main.web.component.table.AjaxLinkTableCellPanel;
 import nl.rivm.screenit.main.web.component.table.EnumPropertyColumn;
 import nl.rivm.screenit.main.web.component.table.GebruikerColumn;
+import nl.rivm.screenit.main.web.component.table.NotClickableAbstractColumn;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.component.table.UploadDocumentDownloadColumn;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
@@ -44,7 +48,6 @@ import nl.rivm.screenit.model.mamma.MammaVisitatie;
 import nl.rivm.screenit.model.mamma.enums.MammaVisitatieStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
 
@@ -60,10 +63,9 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wicketstuff.shiro.ShiroConstraint;
 
+@Slf4j
 @SecurityConstraint(
 	constraint = ShiroConstraint.HasPermission,
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.MAMMA },
@@ -72,13 +74,8 @@ import org.wicketstuff.shiro.ShiroConstraint;
 public class MammaVisitatieOverzichtPage extends MammaVisitatieBasePage
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(MammaVisitatieOverzichtPage.class);
-
 	@SpringBean
 	private ICurrentDateSupplier dateSupplier;
-
-	@SpringBean
-	private HibernateService hibernateService;
 
 	private final boolean isKwaliteitsplatform = ScreenitSession.get().getInstelling().getOrganisatieType().equals(OrganisatieType.KWALITEITSPLATFORM);
 
@@ -96,13 +93,13 @@ public class MammaVisitatieOverzichtPage extends MammaVisitatieBasePage
 
 	private void createAanmakenButton()
 	{
-		add(new IndicatingAjaxLink<Object>("visitatieToevoegen")
+		add(new IndicatingAjaxLink<>("visitatieToevoegen")
 		{
 
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				IModel<MammaVisitatie> model = ModelUtil.cModel(new MammaVisitatie());
+				IModel<MammaVisitatie> model = ModelUtil.ccModel(new MammaVisitatie());
 				MammaVisitatie visitatie = model.getObject();
 				visitatie.setAangemaaktDoor(ScreenitSession.get().getLoggedInInstellingGebruiker());
 				visitatie.setAangemaaktOp(dateSupplier.getDate());
@@ -145,7 +142,7 @@ public class MammaVisitatieOverzichtPage extends MammaVisitatieBasePage
 			}
 			else
 			{
-				statussen.addAll(Arrays.asList(MammaVisitatieStatus.values()));
+				statussen.addAll(Arrays.asList(MammaVisitatieStatus.VRIJGEGEVEN, MammaVisitatieStatus.INGEPLAND));
 			}
 		}
 	}
@@ -166,13 +163,13 @@ public class MammaVisitatieOverzichtPage extends MammaVisitatieBasePage
 
 		if (!ScreenitSession.get().getInstelling().getOrganisatieType().equals(OrganisatieType.RIVM))
 		{
-			columns.add(new AbstractColumn<MammaVisitatie, String>(Model.of(""))
+			columns.add(new AbstractColumn<>(Model.of(""))
 			{
 
 				@Override
 				public void populateItem(Item<ICellPopulator<MammaVisitatie>> cellItem, String componentId, IModel<MammaVisitatie> rowModel)
 				{
-					cellItem.add(new AjaxLinkTableCellPanel<MammaVisitatie>(componentId, rowModel, "button.open.visitatie")
+					cellItem.add(new AjaxLinkTableCellPanel<>(componentId, rowModel, "button.open.visitatie")
 					{
 
 						@Override
@@ -188,8 +185,13 @@ public class MammaVisitatieOverzichtPage extends MammaVisitatieBasePage
 				}
 			});
 		}
+
+		if (!isKwaliteitsplatform && ScreenitSession.get().checkPermission(Recht.GEBRUIKER_VISITATIE, Actie.VERWIJDEREN))
+		{
+			columns.add(getVerwijderenColumn());
+		}
 		MammaVisitatieProvider dataProvider = new MammaVisitatieProvider(zoekModel);
-		overzicht = new ScreenitDataTable<MammaVisitatie, String>("werklijst", columns, dataProvider,
+		overzicht = new ScreenitDataTable<>("werklijst", columns, dataProvider,
 			Model.of("visitatie(s)"))
 		{
 			@Override
@@ -201,7 +203,7 @@ public class MammaVisitatieOverzichtPage extends MammaVisitatieBasePage
 				{
 					if (MammaVisitatieStatus.UITGEVOERD != model.getObject().getStatus())
 					{
-						openEditPopupPanel(target, ModelUtil.cModel(model.getObject()));
+						openEditPopupPanel(target, ModelUtil.ccModel(model.getObject()));
 					}
 					else
 					{
@@ -215,9 +217,38 @@ public class MammaVisitatieOverzichtPage extends MammaVisitatieBasePage
 
 	}
 
+	private IColumn<MammaVisitatie, String> getVerwijderenColumn()
+	{
+		return new NotClickableAbstractColumn<>(Model.of(""))
+		{
+			@Override
+			public void populateItem(Item<ICellPopulator<MammaVisitatie>> cellItem, String componentId, IModel<MammaVisitatie> rowModel)
+			{
+				cellItem.add(new AjaxImageCellPanel<>(componentId, rowModel, "icon-trash")
+				{
+
+					@Override
+					protected void onClick(AjaxRequestTarget target)
+					{
+						MammaVisitatie visitatie = getModelObject();
+						dialog.openWith(target, new MammaVisitatieVerwijderenPopupPanel(IDialog.CONTENT_ID, ModelUtil.csModel(visitatie))
+						{
+							@Override
+							protected void onOpslaanSuccesvol(AjaxRequestTarget target)
+							{
+								dialog.close(target);
+								target.add(overzicht);
+							}
+						});
+					}
+				});
+			}
+		};
+	}
+
 	private void openEditPopupPanel(AjaxRequestTarget target, IModel<MammaVisitatie> model)
 	{
-		dialog.openWith(target, new MammaVisitatieEditPopupPanel(BootstrapDialog.CONTENT_ID, model)
+		dialog.openWith(target, new MammaVisitatieEditPopupPanel(IDialog.CONTENT_ID, model)
 		{
 
 			@Override

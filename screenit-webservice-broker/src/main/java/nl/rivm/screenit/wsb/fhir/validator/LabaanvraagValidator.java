@@ -4,7 +4,7 @@ package nl.rivm.screenit.wsb.fhir.validator;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,9 +24,14 @@ package nl.rivm.screenit.wsb.fhir.validator;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
-import nl.rivm.screenit.dao.cervix.CervixHuisartsBaseDao;
+import lombok.extern.slf4j.Slf4j;
+
+import nl.rivm.screenit.dao.cervix.CervixHuisartsLocatieDao;
+import nl.rivm.screenit.huisartsenportaal.enums.CervixLocatieStatus;
+import nl.rivm.screenit.huisartsenportaal.util.CervixLocatieUtil;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
@@ -43,23 +48,24 @@ import nl.rivm.screenit.wsb.fhir.mapper.LabaanvraagMapper;
 import nl.rivm.screenit.wsb.fhir.resource.dstu3.v1.CodeSystem;
 import nl.rivm.screenit.wsb.fhir.resource.dstu3.v1.LabaanvraagBundle;
 import nl.rivm.screenit.wsb.fhir.resource.dstu3.v1.LabaanvraagResource;
+import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.spring.injection.SpringBeanProvider;
 import nl.topicuszorg.util.bsn.BsnUtils;
 
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.Hibernate;
 import org.hl7.fhir.dstu3.model.CodeableConcept;
 import org.hl7.fhir.dstu3.model.OperationOutcome;
 import org.hl7.fhir.dstu3.model.StringType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class LabaanvraagValidator
 {
-	private Logger LOG = LoggerFactory.getLogger(LabaanvraagValidator.class);
+	private final HibernateService hibernateSerice;
 
 	private final ClientService clientService;
 
-	private final CervixHuisartsBaseDao huisartsBaseDao;
+	private final CervixHuisartsLocatieDao locatieDao;
 
 	private final CervixMonsterService monsterService;
 
@@ -74,11 +80,12 @@ public class LabaanvraagValidator
 	public LabaanvraagValidator()
 	{
 		validated = false;
-		this.clientService = SpringBeanProvider.getInstance().getBean(ClientService.class);
-		this.huisartsBaseDao = SpringBeanProvider.getInstance().getBean(CervixHuisartsBaseDao.class);
-		this.monsterService = SpringBeanProvider.getInstance().getBean(CervixMonsterService.class);
-		this.screeningRondeService = SpringBeanProvider.getInstance().getBean(CervixBaseScreeningrondeService.class);
-		this.currentDateSupplier = SpringBeanProvider.getInstance().getBean(ICurrentDateSupplier.class);
+		clientService = SpringBeanProvider.getInstance().getBean(ClientService.class);
+		locatieDao = SpringBeanProvider.getInstance().getBean(CervixHuisartsLocatieDao.class);
+		monsterService = SpringBeanProvider.getInstance().getBean(CervixMonsterService.class);
+		screeningRondeService = SpringBeanProvider.getInstance().getBean(CervixBaseScreeningrondeService.class);
+		currentDateSupplier = SpringBeanProvider.getInstance().getBean(ICurrentDateSupplier.class);
+		hibernateSerice = SpringBeanProvider.getInstance().getBean(HibernateService.class);
 
 	}
 
@@ -129,8 +136,8 @@ public class LabaanvraagValidator
 	{
 
 		if (Stream.of(labformulier.isAspectCervixNietGezien(),
-			labformulier.isAspectCervixNormaal(),
-			labformulier.isAspectCervixAbnormaalOfVerdachtePortio())
+				labformulier.isAspectCervixNormaal(),
+				labformulier.isAspectCervixAbnormaalOfVerdachtePortio())
 			.filter(el -> el)
 			.count() != 1)
 		{
@@ -172,10 +179,10 @@ public class LabaanvraagValidator
 	private void validateAnticonceptieContent(CervixLabformulier labformulier)
 	{
 		if (Stream.of(labformulier.isAnticonceptieGeen(),
-			labformulier.isAnticonceptiePil(),
-			labformulier.isAnticonceptieIudKoper(),
-			labformulier.isAnticonceptieIudMirena(),
-			labformulier.isAnticonceptieAnders())
+				labformulier.isAnticonceptiePil(),
+				labformulier.isAnticonceptieIudKoper(),
+				labformulier.isAnticonceptieIudMirena(),
+				labformulier.isAnticonceptieAnders())
 			.filter(el -> el)
 			.count() != 1)
 		{
@@ -186,9 +193,9 @@ public class LabaanvraagValidator
 	private void validateMenstruatieContent(CervixLabformulier labformulier)
 	{
 		if (Stream.of(labformulier.isMenstruatieNormaal(),
-			labformulier.isMenstruatieMenopauze(),
-			labformulier.isMenstruatiePostmenopauze(),
-			labformulier.isMenstruatieGeenMenstruatie())
+				labformulier.isMenstruatieMenopauze(),
+				labformulier.isMenstruatiePostmenopauze(),
+				labformulier.isMenstruatieGeenMenstruatie())
 			.filter(el -> el)
 			.count() != 1)
 		{
@@ -296,11 +303,16 @@ public class LabaanvraagValidator
 
 	private void validateTekstMapping(String inputTekst, String mappedTekst, CodeSystem codeSystem)
 	{
-		if (inputTekst != null
-			&& (!inputTekst.equalsIgnoreCase(mappedTekst.trim())
-				|| inputTekst.length() > 240))
+		if (inputTekst != null)
 		{
-			addQuestionIssue(codeSystem);
+			if (!inputTekst.equalsIgnoreCase(mappedTekst.trim()))
+			{
+				addQuestionIssue(codeSystem);
+			}
+			else if (inputTekst.length() > 240)
+			{
+				addQuestionIssue(codeSystem, ": de maximum lengte is 240 karakters");
+			}
 		}
 	}
 
@@ -351,11 +363,11 @@ public class LabaanvraagValidator
 	private long getNumberOfMappedKlachten(CervixLabformulier labformulier)
 	{
 		return Stream.of(
-			labformulier.isKlachtenContactbloedingen(),
-			labformulier.isKlachtenKlachtenVanAbnormaleFluorZonderDuidelijkeOorzaak(),
-			labformulier.isKlachtenIntermenstrueelBloedverlies(),
-			labformulier.isKlachtenPostmenopauzaalBloedverlies(),
-			labformulier.isKlachtenAndersNamelijk())
+				labformulier.isKlachtenContactbloedingen(),
+				labformulier.isKlachtenKlachtenVanAbnormaleFluorZonderDuidelijkeOorzaak(),
+				labformulier.isKlachtenIntermenstrueelBloedverlies(),
+				labformulier.isKlachtenPostmenopauzaalBloedverlies(),
+				labformulier.isKlachtenAndersNamelijk())
 			.filter(Boolean.TRUE::equals)
 			.count();
 	}
@@ -363,9 +375,9 @@ public class LabaanvraagValidator
 	private long getNumberOfMappedHormonenGebruik(CervixLabformulier labformulier)
 	{
 		return Stream.of(
-			labformulier.isGebruikHormonenJaVanwegeBorstkanker(),
-			labformulier.isGebruikHormonenJaVanwegeOvergangsklachten(),
-			labformulier.isGebruikHormonenJaVanwege())
+				labformulier.isGebruikHormonenJaVanwegeBorstkanker(),
+				labformulier.isGebruikHormonenJaVanwegeOvergangsklachten(),
+				labformulier.isGebruikHormonenJaVanwege())
 			.filter(Boolean.TRUE::equals)
 			.count();
 	}
@@ -416,8 +428,13 @@ public class LabaanvraagValidator
 
 	private void addQuestionIssue(CodeSystem question)
 	{
+		addQuestionIssue(question, "");
+	}
+
+	private void addQuestionIssue(CodeSystem question, String extraMessage)
+	{
 		addErrorOperationOutcomeIssueComponent(OperationOutcome.IssueType.EXCEPTION,
-			new RequiredPropertyException(String.format("Er heeft zich een probleem voorgedaan met de vraag %s [%s]", question.name(), question.getCode())));
+			new RequiredPropertyException(String.format("Er heeft zich een probleem voorgedaan met de vraag %s [%s]%s", question.name(), question.getCode(), extraMessage)));
 	}
 
 	private void addClientNotFoundIssues()
@@ -427,6 +444,7 @@ public class LabaanvraagValidator
 
 	private void validateScreeningRonde(CervixUitstrijkje uitstrijkje, String bsn)
 	{
+		uitstrijkje = (CervixUitstrijkje) Hibernate.unproxy(uitstrijkje);
 		CervixScreeningRonde ontvangstRonde = uitstrijkje.getOntvangstScreeningRonde();
 		if (ontvangstRonde == null)
 		{
@@ -439,6 +457,7 @@ public class LabaanvraagValidator
 		}
 
 		uitstrijkje.setOntvangstScreeningRonde(ontvangstRonde);
+		hibernateSerice.saveOrUpdate(uitstrijkje);
 	}
 
 	private void validateMonsterGerelateerdeData(LabaanvraagResource resource)
@@ -536,7 +555,7 @@ public class LabaanvraagValidator
 
 	private void validateIndividueleAgb(LabaanvraagResource resource)
 	{
-		CervixHuisarts huisarts = huisartsBaseDao.getActieveHuisarts(resource.getIndividueleAgb());
+		CervixHuisarts huisarts = getActieveHuisartsMetEenActieveLocatie(resource.getIndividueleAgb());
 		if (huisarts == null
 			&& resource.getPraktijkAgb() != null)
 		{
@@ -544,20 +563,41 @@ public class LabaanvraagValidator
 		}
 		else if (huisarts != null)
 		{
+			validateActieveGoedIngevuldeLocatie(huisarts);
 			validateGemeenteGekoppeldAanBmhkLaboratorium(resource);
 		}
 	}
 
 	private void validatePraktijkAgb(LabaanvraagResource resource)
 	{
-		CervixHuisarts huisarts = huisartsBaseDao.getActieveHuisarts(resource.getPraktijkAgb());
+		CervixHuisarts huisarts = getActieveHuisartsMetEenActieveLocatie(resource.getPraktijkAgb());
 		if (huisarts == null)
 		{
 			addBusinessRuleErrorOperationOutcomeIssueComponent(ValidationMessage.AGB_CODE_ONBEKEND);
 		}
 		else
 		{
+			validateActieveGoedIngevuldeLocatie(huisarts);
 			validateGemeenteGekoppeldAanBmhkLaboratorium(resource);
+		}
+	}
+
+	private CervixHuisarts getActieveHuisartsMetEenActieveLocatie(String agbcode)
+	{
+		return locatieDao.getActieveHuisartsMetEenActieveLocatie(agbcode);
+	}
+
+	private void validateActieveGoedIngevuldeLocatie(CervixHuisarts huisarts)
+	{
+		boolean huisartsHeeftGeenGoedIngevuldeActieveLocatie = huisarts
+			.getHuisartsLocaties()
+			.stream()
+			.noneMatch(locatie -> locatie.getStatus() == CervixLocatieStatus.ACTIEF && CervixLocatieUtil.isLocatieCompleet(locatie));
+
+		if (huisartsHeeftGeenGoedIngevuldeActieveLocatie)
+		{
+			addErrorOperationOutcomeIssueComponent(OperationOutcome.IssueType.EXCEPTION,
+				new RequiredPropertyException(String.format("Voor huisarts met AGB code %s is geen actieve en/of goed ingevulde locatie gevonden.", huisarts.getAgbcode())));
 		}
 	}
 
@@ -566,10 +606,15 @@ public class LabaanvraagValidator
 		if (resource instanceof LabaanvraagBundle)
 		{
 			LabaanvraagBundle bundle = (LabaanvraagBundle) resource;
-			if (bundle.getLaboratorium() == null)
-			{
-				addErrorOperationOutcomeIssueComponent(OperationOutcome.IssueType.EXCEPTION,
-					new RequiredPropertyException("De gemeente waar de huisarts is gevestigd is (nog) niet aan een laboratorium gekoppeld. Neem contact op met BVO-NL!"));
+			try {
+				if (bundle.getLaboratorium() == null)
+				{
+					addErrorOperationOutcomeIssueComponent(OperationOutcome.IssueType.EXCEPTION,
+						new RequiredPropertyException("De gemeente waar de huisarts is gevestigd is (nog) niet aan een laboratorium gekoppeld. Neem contact op met BVO-NL!"));
+				}
+			}
+			catch (NoSuchElementException e) {
+				LOG.error(e.getMessage());
 			}
 		}
 	}

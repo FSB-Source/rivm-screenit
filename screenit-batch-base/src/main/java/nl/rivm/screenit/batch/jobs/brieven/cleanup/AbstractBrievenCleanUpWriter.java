@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.brieven.cleanup;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -44,7 +44,7 @@ public class AbstractBrievenCleanUpWriter<T extends MergedBrieven<?>> extends Ba
 		getHibernateService().saveOrUpdate(item);
 		if (uploadDocument != null)
 		{
-			uploadDocumentService.delete(uploadDocument, true);
+			uploadDocumentService.delete(uploadDocument);
 		}
 	}
 

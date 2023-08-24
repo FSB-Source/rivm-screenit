@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -52,6 +52,7 @@ import nl.rivm.screenit.model.enums.MergeField;
 import nl.rivm.screenit.model.formulieren.ScreenitFormulierInstantie;
 import nl.rivm.screenit.model.project.ProjectAttribuut;
 import nl.rivm.screenit.service.AsposeService;
+import nl.rivm.screenit.service.BarcodeService;
 import nl.rivm.screenit.service.UploadDocumentService;
 
 import org.apache.commons.lang.StringUtils;
@@ -67,13 +68,11 @@ import org.ghost4j.renderer.RendererException;
 import org.ghost4j.util.DiskStore;
 import org.krysalis.barcode4j.impl.AbstractBarcodeBean;
 import org.krysalis.barcode4j.impl.code128.Code128Bean;
-import org.krysalis.barcode4j.output.bitmap.BitmapCanvasProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.aspose.words.Document;
 import com.aspose.words.FieldMergingArgs;
-import com.aspose.words.FontSettings;
 import com.aspose.words.IFieldMergingCallback;
 import com.aspose.words.ImageFieldMergingArgs;
 import com.aspose.words.License;
@@ -93,6 +92,9 @@ public class AsposeServiceImpl implements AsposeService
 {
 	@Autowired
 	private UploadDocumentService uploadDocumentService;
+
+	@Autowired
+	private BarcodeService barcodeService;
 
 	@Autowired
 	private String asposeLicence;
@@ -152,7 +154,6 @@ public class AsposeServiceImpl implements AsposeService
 
 	private void processDocument(Document document, MailMergeContext context, boolean replaceMergeFieldIfNull) throws Exception
 	{
-		setFontsFolder();
 
 		String veldnaam = null;
 		try
@@ -248,11 +249,6 @@ public class AsposeServiceImpl implements AsposeService
 			}
 		}
 		return mergeField;
-	}
-
-	private void setFontsFolder()
-	{
-		FontSettings.getDefaultInstance().setFontsFolder(locatieFilestore + File.separator + "fonts", false);
 	}
 
 	private static class EPSRenderer extends AbstractRemoteRenderer
@@ -377,7 +373,7 @@ public class AsposeServiceImpl implements AsposeService
 				Entry<ProjectAttribuut, String> entry = (Entry<ProjectAttribuut, String>) afdrukObject;
 				if (entry.getKey().isBarcode())
 				{
-					barcodeMerger(field, (entry).getValue(), null, new Code128Bean());
+					field.setImageStream(barcodeService.maakBarcodeInputStreamVoorBrief((entry).getValue(), new Code128Bean()));
 				}
 			}
 			if (afdrukObject instanceof MergeField)
@@ -392,7 +388,7 @@ public class AsposeServiceImpl implements AsposeService
 				if (mergeField.isBarcode())
 				{
 					AbstractBarcodeBean abstractBarcodeBean = mergeField.getBarcodeType().getConstructor().newInstance();
-					barcodeMerger(field, mergeFieldValue.toString(), mergeField.getBarcodeHeight(), abstractBarcodeBean);
+					field.setImageStream(barcodeService.maakBarcodeInputStreamVoorBrief(mergeFieldValue.toString(), mergeField.getBarcodeHeight(), abstractBarcodeBean));
 				}
 				else if (mergeField.isQRcode())
 				{
@@ -480,36 +476,6 @@ public class AsposeServiceImpl implements AsposeService
 				catch (WriterException | IOException e)
 				{
 					LOG.error(e.getMessage());
-				}
-			}
-
-			InputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
-			field.setImageStream(inputStream);
-		}
-
-		private void barcodeMerger(ImageFieldMergingArgs field, String message, Double barcodeHeight, AbstractBarcodeBean barcodeBean) throws IOException
-		{
-
-			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-			if (StringUtils.isNotBlank(message))
-			{
-				BitmapCanvasProvider canvas = new BitmapCanvasProvider(outputStream, "image/x-png", 300, BufferedImage.TYPE_BYTE_BINARY, false, 0);
-				if (barcodeBean == null)
-				{
-					barcodeBean = new Code128Bean();
-				}
-				if (barcodeHeight != null)
-				{
-					barcodeBean.setBarHeight(barcodeHeight);
-				}
-				try
-				{
-					barcodeBean.generateBarcode(canvas, message);
-					canvas.finish();
-				}
-				catch (IllegalArgumentException iae)
-				{
-					LOG.error(iae.getMessage(), iae);
 				}
 			}
 

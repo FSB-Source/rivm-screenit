@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.verslag;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,9 +23,9 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.verslag;
 
 import nl.rivm.screenit.main.service.mamma.MammaBeoordelingService;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.MammaReadOnlyLezingPanel;
+import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaLezing;
-import nl.rivm.screenit.model.mamma.enums.MammaLezingType;
 
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -51,7 +51,7 @@ public class MammaVerslagKiesUitgangssituatiePanel extends GenericPanel<MammaBeo
 
 	private MammaReadOnlyLezingPanel maakLezingPanel(IModel<MammaBeoordeling> model, String id, MammaLezing lezing)
 	{
-		final MammaReadOnlyLezingPanel result = new MammaReadOnlyLezingPanel(id, model.getObject(), lezing, false, false);
+		final MammaReadOnlyLezingPanel result = new MammaReadOnlyLezingPanel(id, model.getObject(), lezing, false, false, true);
 		result.add(createClickEvent(result));
 		return result;
 	}
@@ -64,8 +64,9 @@ public class MammaVerslagKiesUitgangssituatiePanel extends GenericPanel<MammaBeo
 			protected void onEvent(AjaxRequestTarget target)
 			{
 				MammaVerslagRondePanel verslagRondePanel = result.findMammaVerslagPanel();
+				var toonAfwijkingSliceButtons = MammaOnderzoekType.TOMOSYNTHESE == getModelObject().getOnderzoek().getOnderzoekType();
 				MammaVerslagVerfijnenPanel verslagVerfijnenPanel = new MammaVerslagVerfijnenPanel(verslagRondePanel, "verslagPanel", result.maakVerslagLezing(),
-					getModelObject().getOnderzoek().getAmputatie());
+					getModelObject().getOnderzoek().getAmputatie(), toonAfwijkingSliceButtons);
 				verslagVerfijnenPanel.setOutputMarkupId(true);
 				verslagRondePanel.replaceRonde(target, verslagVerfijnenPanel);
 			}

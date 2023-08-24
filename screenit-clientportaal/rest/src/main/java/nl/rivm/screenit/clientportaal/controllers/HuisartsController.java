@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.controllers;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,7 +31,9 @@ import nl.rivm.screenit.clientportaal.model.HuisartsZoekDto;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActieType;
 import nl.rivm.screenit.model.EnovationHuisarts;
+import nl.rivm.screenit.service.ClientContactService;
 import nl.rivm.screenit.service.EnovationHuisartsService;
+import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -49,20 +51,23 @@ import org.springframework.web.bind.annotation.RestController;
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class HuisartsController extends AbstractController
 {
+	private final HibernateService hibernateService;
+
+	private final ClientContactService clientContactService;
 
 	private final EnovationHuisartsService huisartsService;
 
 	private final HuisartsMapper huisartsMapper;
 
-	private final static int MAX_AANTAL_HUISARTSEN_PER_CALL = 10;
+	private static final int MAX_AANTAL_HUISARTSEN_PER_CALL = 10;
 
 	@PostMapping
 	public ResponseEntity<List<HuisartsDto>> getHuisartsen(Authentication authentication, @RequestParam Integer paginaNummer, @RequestBody HuisartsZoekDto huisartsZoekobject)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.MAMMA_HUISARTS_WIJZIGEN)
-			|| aanvraagIsToegestaneActie(client, ClientContactActieType.COLON_HUISARTS_WIJZIGEN))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.MAMMA_HUISARTS_WIJZIGEN)
+			|| clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.COLON_HUISARTS_WIJZIGEN))
 		{
 			List<EnovationHuisarts> enovationHuisartsen = huisartsService.zoekHuisartsen(
 				huisartsMapper.zoekDtoToHuisarts(huisartsZoekobject),

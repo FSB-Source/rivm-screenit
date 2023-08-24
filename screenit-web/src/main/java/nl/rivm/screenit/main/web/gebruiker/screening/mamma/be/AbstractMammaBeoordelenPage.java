@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,8 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.main.model.mamma.MammaImsUserSessionType;
 import nl.rivm.screenit.main.model.mamma.beoordeling.BeoordelingenReserveringResult;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaBeWerklijstZoekObject;
@@ -37,14 +39,12 @@ import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.enums.MammaBeLezerSoort;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.model.mamma.enums.MammobridgeFocusMode;
-import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -53,7 +53,6 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
-import org.apache.wicket.markup.head.PriorityHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -68,6 +67,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	constraint = ShiroConstraint.HasPermission,
 	recht = { Recht.GEBRUIKER_SCREENING_MAMMA_BEOORDELING_WERKLIJST, Recht.GEBRUIKER_FOTOBESPREKING, Recht.GEBRUIKER_VISITATIE, Recht.GEBRUIKER_AD_HOC_MEEMKIJKVERZOEK_WERKLIJST },
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.MAMMA })
+@Slf4j
 public abstract class AbstractMammaBeoordelenPage extends AbstractMammaBePage
 {
 	@SpringBean
@@ -82,9 +82,6 @@ public abstract class AbstractMammaBeoordelenPage extends AbstractMammaBePage
 	@SpringBean
 	protected MammaImsService imsService;
 
-	@SpringBean
-	private LogService logService;
-
 	private IModel<MammaBeoordeling> beoordelingModel;
 
 	private List<Long> volgendeGereserveerdeBeoordelingenIds;
@@ -95,7 +92,7 @@ public abstract class AbstractMammaBeoordelenPage extends AbstractMammaBePage
 
 	protected final WebMarkupContainer dossierContainer;
 
-	private Long initieleBeoordelingId;
+	private final Long initieleBeoordelingId;
 
 	protected AbstractMammaBeoordelenPage(Long initieleBeoordelingId, List<Long> beoordelingenIds, Class<? extends MammaScreeningBasePage> werklijstPageClass)
 	{
@@ -113,6 +110,20 @@ public abstract class AbstractMammaBeoordelenPage extends AbstractMammaBePage
 	{
 		super.onInitialize();
 		openInitieleBeoordeling(initieleBeoordelingId);
+	}
+
+	@Override
+	protected void onConfigure()
+	{
+		super.onConfigure();
+
+		var huidigeBeoordeling = getModelObject();
+		if (huidigeBeoordeling != null && !beoordelingReserveringService.gereserveerdVoorGebruiker(huidigeBeoordeling.getId(), getIngelogdeGebruiker(), getLezerSoort()))
+		{
+			LOG.info("beoordelingId: '{}' niet gereserveerd voor ingelogde gebruiker (waarschijnlijk terugknop browser gebruikt)", huidigeBeoordeling.getId());
+			ScreenitSession.get().warn("Onderzoek kan niet meer geopend worden via terugknop");
+			throw new RestartResponseException(werklijstPageClass);
+		}
 	}
 
 	protected void openInitieleBeoordeling(Long initieleBeoordelingId)
@@ -136,11 +147,10 @@ public abstract class AbstractMammaBeoordelenPage extends AbstractMammaBePage
 
 	private void updateBeoordelingModel(BeoordelingenReserveringResult reserveringResult)
 	{
-		beoordelingModel = ModelUtil.cModel(hibernateService.get(MammaBeoordeling.class, reserveringResult.getEersteGereserveerdeBeoordelingId()));
+		beoordelingModel = ModelUtil.ccModel(hibernateService.get(MammaBeoordeling.class, reserveringResult.getEersteGereserveerdeBeoordelingId()));
 		volgendeGereserveerdeBeoordelingenIds = reserveringResult.getVolgendeGereserveerdeBeoordelingenIds();
 
-		logService.logGebeurtenis(LogGebeurtenis.MAMMA_BEOORDELING_INGEZIEN, getIngelogdeGebruiker(), baseBeoordelingService.getClientVanBeoordeling(beoordelingModel.getObject()),
-			Bevolkingsonderzoek.MAMMA);
+		logBeoordelingIngezien();
 
 		if (getModelObject().getStatus() == MammaBeoordelingStatus.EERSTE_LEZING_OPGESLAGEN || getModelObject().getStatus() == MammaBeoordelingStatus.TWEEDE_LEZING_OPGESLAGEN)
 		{
@@ -148,15 +158,20 @@ public abstract class AbstractMammaBeoordelenPage extends AbstractMammaBePage
 		}
 	}
 
+	protected void logBeoordelingIngezien()
+	{
+		beoordelingService.logBeoordelingIngezien(beoordelingModel.getObject(), getIngelogdeGebruiker(), false);
+	}
+
 	@Override
 	public void renderHead(IHeaderResponse response)
 	{
 		super.renderHead(response);
-		response.render(new PriorityHeaderItem(JavaScriptHeaderItem.forScript(createImsDesktopSyncCommand(), null)));
-		response.render(new PriorityHeaderItem(JavaScriptHeaderItem.forScript(createImsOpenWebsocketCommand(), null)));
-		response.render(new PriorityHeaderItem(JavaScriptHeaderItem.forScript(createImsUpdateBsnCommand(), null)));
-		response.render(new PriorityHeaderItem(JavaScriptHeaderItem.forScript(createImsAllImagesSeenCommand(), null)));
-		response.render(new PriorityHeaderItem(JavaScriptHeaderItem.forScript(createEventListenerBeforeUnload(), null)));
+		response.render(JavaScriptHeaderItem.forScript(createImsDesktopSyncCommand(), null));
+		response.render(JavaScriptHeaderItem.forScript(createImsOpenWebsocketCommand(), null));
+		response.render(JavaScriptHeaderItem.forScript(createImsUpdateBsnCommand(), null));
+		response.render(JavaScriptHeaderItem.forScript(createImsAllImagesSeenCommand(), null));
+		response.render(JavaScriptHeaderItem.forScript(createEventListenerBeforeUnload(), null));
 	}
 
 	@Override
@@ -262,7 +277,7 @@ public abstract class AbstractMammaBeoordelenPage extends AbstractMammaBePage
 		return ScreenitSession.get().getLoggedInInstellingGebruiker();
 	}
 
-	public void gaNaarVerslag(Long beoordelingId, AjaxRequestTarget target)
+	public void gaNaarBeoordeling(Long beoordelingId, AjaxRequestTarget target)
 	{
 		BeoordelingenReserveringResult reserveringResult = beoordelingService.openBeschikbareBeoordeling(beoordelingId, beoordelingenIds, getIngelogdeGebruiker(), getLezerSoort());
 
@@ -292,13 +307,13 @@ public abstract class AbstractMammaBeoordelenPage extends AbstractMammaBePage
 		target.prependJavaScript(createImsAllImagesSeenCommand());
 	}
 
-	public void volgendeVerslag(AjaxRequestTarget target)
+	public void volgendeBeoordeling(AjaxRequestTarget target)
 	{
 		zetBeoordeeldeLezingenInWerklijstfilter();
 
 		Long volgendeBeoordelingId = beoordelingService.getVolgendeBeoordelingId(huidigeBeoordelingId(), beoordelingenIds);
 
-		gaNaarVerslag(volgendeBeoordelingId, target);
+		gaNaarBeoordeling(volgendeBeoordelingId, target);
 	}
 
 	private void zetBeoordeeldeLezingenInWerklijstfilter()

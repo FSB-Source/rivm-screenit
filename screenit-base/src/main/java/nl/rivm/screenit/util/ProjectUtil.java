@@ -4,7 +4,7 @@ package nl.rivm.screenit.util;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ProjectParameter;
 import nl.rivm.screenit.model.ProjectParameterKey;
@@ -39,12 +42,9 @@ import nl.rivm.screenit.model.project.ProjectType;
 
 import org.apache.commons.lang.StringUtils;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ProjectUtil
 {
-
-	private ProjectUtil()
-	{
-	}
 
 	public static Boolean isClientActiefInProject(ProjectClient client, Date date)
 	{
@@ -64,7 +64,7 @@ public class ProjectUtil
 		{
 			return ProjectStatus.NOG_TE_STARTEN;
 		}
-		else if (referentieDatum.after(project.getStartDatum()) && referentieDatum.before(project.getEindDatum()))
+		else if (!referentieDatum.before(project.getStartDatum()) && referentieDatum.before(project.getEindDatum()))
 		{
 			return ProjectStatus.ACTIEF;
 		}

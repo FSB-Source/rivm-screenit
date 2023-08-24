@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,93 +21,135 @@
 var dataTransfer = {}; 
 
 function dragstart(ev) {
-    dataTransfer.src = ev.target.src;
-    dataTransfer.deltaX = ev.offsetX; 
-    dataTransfer.deltaY = ev.offsetY; 
-    ev.dataTransfer.effectAllowed = 'move';
+	dataTransfer.src = ev.target.src;
+	dataTransfer.deltaX = ev.offsetX; 
+	dataTransfer.deltaY = ev.offsetY; 
+	ev.dataTransfer.effectAllowed = 'move';
 }
 
 function preventDragStart(ev) {
-    ev.preventDefault();
+	ev.preventDefault();
 }
 
 function drop(ev, tgt, welkeBorst, welkeDoorsnede) {
-    const isAmputatie = tgt.getAttribute("x-amputatie");
-    const lezingId = getLezingId(tgt);
-    if(isAmputatie !== "true") {
-        if (!laesiesAlleenInzien[lezingId]) {
-            let xPx = parseInt(ev.offsetX - dataTransfer.deltaX + 2);
-            let yPx = parseInt(ev.offsetY - dataTransfer.deltaY + 2);
-            if (ev.target.className === 'laesieImg') { 
-                xPx += parseInt(ev.target.style.left.split('px')[0]);
-                yPx += parseInt(ev.target.style.top.split('px')[0]);
-            }
-            const src = dataTransfer.src;
-            const laesieImg = createLaesieImg(src, tgt, false);
-            laesieImg.style.left = xPx + 'px';
-            laesieImg.style.top = yPx + 'px';
-            const laesieIcoon = createLaesieIcoon(laesieImg, welkeBorst, welkeDoorsnede, lezingId);
-            const laesie = laesieIcoon2laesie.get(laesieIcoon);
-            createNummerDiv(laesieImg, lezingId, false);
-            const laesiesVanZelfdeBorstEnType = laesies[lezingId][laesie.welkeBorst][laesie.laesietype];
-            hernummerLaesies(laesiesVanZelfdeBorstEnType);
-            laesieIconenOpslaan(lezingId);
-        }
-    }
-    ev.preventDefault();
+	const isAmputatie = tgt.attr("x-amputatie");
+	const lezingId = getLezingId(tgt);
+	if (isAmputatie !== "true") {
+		if (!laesiesAlleenInzien[lezingId]) {
+			let xPx = parseInt(ev.offsetX - dataTransfer.deltaX + 2);
+			let yPx = parseInt(ev.offsetY - dataTransfer.deltaY + 2);
+			if (ev.target.className === 'laesieImg') { 
+				xPx += parseInt(ev.target.style.left.split('px')[0]);
+				yPx += parseInt(ev.target.style.top.split('px')[0]);
+			}
+			const src = dataTransfer.src;
+			const laesieImg = createLaesieImg(src, tgt, false);
+			laesieImg.style.left = xPx + 'px';
+			laesieImg.style.top = yPx + 'px';
+			const laesieIcoon = createLaesieIcoon(laesieImg, welkeBorst, welkeDoorsnede, lezingId);
+			const laesie = laesieIcoon2laesie.get(laesieIcoon);
+			createNummerDiv(laesieImg, lezingId, false);
+			const laesiesVanZelfdeBorstEnType = laesies[lezingId][laesie.welkeBorst][laesie.laesietype];
+			hernummerLaesies(laesiesVanZelfdeBorstEnType);
+			laesieIconenOpslaan(lezingId);
+		}
+	}
+	ev.preventDefault();
 }
 
 function dragover(ev) {
-    ev.preventDefault(); 
+	ev.preventDefault(); 
 }
 
 function mouseDown(ev) {
-    const lezingId = getLezingId(ev.target);
-    if (!laesiesAlleenInzien[lezingId]) {
-        draggedLaesieImg = ev.target;
-        draggedLaesieImgSize = {width: draggedLaesieImg.offsetWidth, height: draggedLaesieImg.offsetHeight};
-        laesieMouseOffset = {x: ev.clientX - parseInt(draggedLaesieImg.style.left, 10), y: ev.clientY - parseInt(draggedLaesieImg.style.top, 10)};
-    }
+	const lezingId = getLezingId($(ev.target));
+	if (!laesiesAlleenInzien[lezingId]) {
+		draggedLaesieImg = ev.target;
+		draggedLaesieImgSize = {width: draggedLaesieImg.offsetWidth, height: draggedLaesieImg.offsetHeight};
+		laesieMouseOffset = {x: ev.clientX - parseInt(draggedLaesieImg.style.left, 10), y: ev.clientY - parseInt(draggedLaesieImg.style.top, 10)};
+	}
 }
 
 function mouseUpLaesie() {
-    if (draggedLaesieImg) {
-        const lezingId = getLezingId(draggedLaesieImg);
-        finishDragExistingLeasieIcoon(lezingId);
-    }
+	if (draggedLaesieImg) {
+		const lezingId = getLezingId(draggedLaesieImg);
+		finishDragExistingLeasieIcoon(lezingId);
+	}
 }
 
 function finishDragExistingLeasieIcoon(lezingId) {
-    if (draggedLaesieImg.style.display === 'none') { 
-        removeLaesie(lezingId, draggedLaesieImg);
-    }
-    draggedLaesieImg = undefined;
-    laesieMouseOffset = undefined;
-    draggedLaesieImgSize = undefined;
-    laesieIconenOpslaan(lezingId);
+	if (draggedLaesieImg.style.display === 'none') { 
+		removeLaesie(lezingId, draggedLaesieImg);
+	}
+	draggedLaesieImg = undefined;
+	laesieMouseOffset = undefined;
+	draggedLaesieImgSize = undefined;
+	laesieIconenOpslaan(lezingId);
 }
 
 function mouseMoveLaesie(ev) {
-    if (draggedLaesieImg) {
-        const lezingId = getLezingId(draggedLaesieImg);
-        if (ev.buttons) {
-            const xPx = ev.clientX - laesieMouseOffset.x;
-            draggedLaesieImg.style.left = xPx + 'px';
-            const yPx = ev.clientY - laesieMouseOffset.y;
-            draggedLaesieImg.style.top = yPx + 'px';
-            const dbCoordinates = px2dbCoordinates(xPx, yPx, draggedLaesieImg);
-            const icoon = laesieImg2icoon.get(draggedLaesieImg);
-            icoon.x = dbCoordinates.x;
-            icoon.y = dbCoordinates.y;
-            const backgroundImg = draggedLaesieImg.parentElement.children[0];
-            draggedLaesieImg.style.display = moetLaesieIcoonZichtbaarZijn(icoon, backgroundImg) ? 'block' : 'none';
-            setLaesienummerpositie(icoon, draggedLaesieImg);
-        } else {
-            finishDragExistingLeasieIcoon(lezingId);
-        }
-    }
+	if (draggedLaesieImg) {
+		const lezingId = getLezingId(draggedLaesieImg);
+		if (ev.buttons) {
+			const xPx = ev.clientX - laesieMouseOffset.x;
+			draggedLaesieImg.style.left = xPx + 'px';
+			const yPx = ev.clientY - laesieMouseOffset.y;
+			draggedLaesieImg.style.top = yPx + 'px';
+			const dbCoordinates = px2dbCoordinates(xPx, yPx, draggedLaesieImg);
+			const icoon = laesieImg2icoon.get(draggedLaesieImg);
+			icoon.x = dbCoordinates.x;
+			icoon.y = dbCoordinates.y;
+			const backgroundImg = draggedLaesieImg.parentElement.children[0];
+			draggedLaesieImg.style.display = moetLaesieIcoonZichtbaarZijn(icoon, backgroundImg) ? 'block' : 'none';
+			setLaesienummerpositie(icoon, draggedLaesieImg);
+		} else {
+			finishDragExistingLeasieIcoon(lezingId);
+		}
+	}
 }
 
+function mammaDragFunctions() {
+	$(".js-drag-architectuur-verstoring").each(function (index) {
+		$(this).on("dragstart", (event) => {
+			dragstart(event.originalEvent);
+
+		});
+	})
+
+	$(".js-drag-asymmetrie").each(function (index) {
+		$(this).on("dragstart", (event) => {
+			dragstart(event.originalEvent);
+
+		});
+	})
+
+	$(".js-drag-calcificaties").each(function (index) {
+		$(this).on("dragstart", (event) => {
+			dragstart(event.originalEvent);
+		});
+	})
+
+	$(".js-drag-massa").each(function (index) {
+		$(this).on("dragstart", (event) => {
+			dragstart(event.originalEvent);
+		});
+	})
+
+	$(".js-mamma-icon-mouse-move").each(function (index) {
+		$(this).on("mousemove", (event) => {
+			mouseMoveLaesie(event);
+		});
+		$(this).on("mouseup", (event) => {
+			mouseUpLaesie();
+		});
+	})
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+	mammaDragFunctions()
+});
+
 function getLezingId(target) {
-    return target.closest(".afbeeldingPanel").getAttribute("x-lezing-id");
+	let afbeeldingPanel = $(target.closest('.afbeeldingPanel'))
+	return afbeeldingPanel.attr("x-lezing-id");
 }

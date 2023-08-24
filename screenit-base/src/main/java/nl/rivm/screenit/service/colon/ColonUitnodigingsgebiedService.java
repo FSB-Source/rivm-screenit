@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.service.colon;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,28 +24,30 @@ package nl.rivm.screenit.service.colon;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.PostcodeGebied;
 import nl.rivm.screenit.model.UitnodigingsGebied;
+import nl.rivm.screenit.model.colon.CapaciteitsPercWijziging;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.ColoscopieCentrumColonCapaciteitVerdeling;
-import nl.rivm.screenit.model.colon.CapaciteitsPercWijziging;
 
 public interface ColonUitnodigingsgebiedService
 {
-
 	List<PostcodeGebied> findOverlappendePostcodeGebieden(PostcodeGebied postcode);
 
 	List<CapaciteitsPercWijziging> bepaalCapaciteitsWijzigingen(UitnodigingsGebied uitnodigingsGebied, Map<String, Integer> newAdherentiePercentages,
-																List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeItems);
+		List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeItems);
 
-	BigDecimal getIfobtFactorVoorGebied(UitnodigingsGebied uitnodigingsGebied, Integer percLandelijkIfobtRetour, Integer percLandelijkIfobtOngunstige);
+	BigDecimal getFitFactorVoorGebied(UitnodigingsGebied uitnodigingsGebied);
 
 	void wijzigingenDoorvoeren(UitnodigingsGebied uitnodiginsgebied, Map<String, Integer> newAdherentiePercentages,
 		List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeItems, List<CapaciteitsPercWijziging> capaciteitsPercWijzigingen, InstellingGebruiker ingelogdeGebruiker);
 
 	List<UitnodigingsGebied> getAllUitnodigingsgebieden();
+
+	String valideerAdherentieVanGewijzigdeGebieden(Set<UitnodigingsGebied> gewijzigdeGebieden);
 
 	void wijzigingenDoorvoeren(ColoscopieCentrum intakelocatie, List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeItems,
 		List<CapaciteitsPercWijziging> capaciteitsPercWijzigingen, InstellingGebruiker loggedInInstellingGebruiker);

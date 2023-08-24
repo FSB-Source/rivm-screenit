@@ -4,7 +4,7 @@ package nl.rivm.screenit.util;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,70 +21,72 @@ package nl.rivm.screenit.util;
  * =========================LICENSE_END==================================
  */
 
+import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.Period;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.Temporal;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
 
 import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeConstants;
-import org.joda.time.Days;
-import org.joda.time.Interval;
-import org.joda.time.Months;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Range;
+import com.google.common.primitives.Ints;
+
+@Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class DateUtil
 {
-	private static final Logger LOG = LoggerFactory.getLogger(DateUtil.class);
-
 	public static final ZoneId SCREENIT_DEFAULT_ZONE = ZoneId.of("Europe/Amsterdam");
 
-	public static DateTimeFormatter LOCAL_DATE_FORMAT = DateTimeFormatter.ofPattern(Constants.DEFAULT_DATE_FORMAT);
+	public static final DateTimeFormatter LOCAL_DATE_FORMAT = DateTimeFormatter.ofPattern(Constants.DEFAULT_DATE_FORMAT);
 
-	public static DateTimeFormatter LOCAL_TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
+	public static final DateTimeFormatter LOCAL_TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
 
-	public static DateTimeFormatter LOCAL_DATE_TIME_FORMAT = DateTimeFormatter.ofPattern(Constants.DEFAULT_DATE_FORMAT + " HH:mm");
+	public static final DateTimeFormatter LOCAL_DATE_TIME_FORMAT = DateTimeFormatter.ofPattern(Constants.DEFAULT_DATE_FORMAT + " HH:mm");
 
-	public static DateTimeFormatter LOCAL_DATE_UITGEBREID_DAG_UITEGEBREID_MAAND_FORMAT = DateTimeFormatter.ofPattern("EEEE dd MMMM yyyy", Constants.LOCALE_NL);
+	public static final DateTimeFormatter LOCAL_DATE_UITGEBREID_DAG_UITEGEBREID_MAAND_FORMAT = DateTimeFormatter.ofPattern("EEEE dd MMMM yyyy", Constants.LOCALE_NL);
 
-	public static DateTimeFormatter LOCAL_DATE_DAG_UITGEBREID_MAAND_FORMAT = DateTimeFormatter.ofPattern("dd MMMM yyyy", Constants.LOCALE_NL);
+	public static final DateTimeFormatter LOCAL_DATE_DAG_UITGEBREID_MAAND_FORMAT = DateTimeFormatter.ofPattern("dd MMMM yyyy", Constants.LOCALE_NL);
 
-	public static DateTimeFormatter LOCAL_DATE_TIME_WEERGAVE_CLIENTPORTAAL_FORMAT_INCL_DAG = DateTimeFormatter.ofPattern("EEEE d MMMM HH:mm", Constants.LOCALE_NL);
+	public static final DateTimeFormatter LOCAL_DATE_TIME_WEERGAVE_CLIENTPORTAAL_FORMAT_INCL_DAG = DateTimeFormatter.ofPattern("EEEE d MMMM HH:mm", Constants.LOCALE_NL);
 
-	public static DateTimeFormatter LOCAL_DATE_WEERGAVE_CLIENTPORTAAL_FORMAT = DateTimeFormatter.ofPattern("d MMMM yyyy", Constants.LOCALE_NL);
+	public static final DateTimeFormatter LOCAL_DATE_WEERGAVE_CLIENTPORTAAL_FORMAT = DateTimeFormatter.ofPattern("d MMMM yyyy", Constants.LOCALE_NL);
 
-	private DateUtil()
+	public static Date plusWerkdagen(Date nu, Integer werkdagen)
 	{
-
-	}
-
-	public static DateTime plusWerkdagen(DateTime nu, Integer werkdagen)
-	{
+		var dateTime = DateUtil.toLocalDateTime(nu);
 		while (werkdagen > 0)
 		{
-			nu = nu.plusDays(1);
-			if (nu.getDayOfWeek() != DateTimeConstants.SATURDAY && nu.getDayOfWeek() != DateTimeConstants.SUNDAY)
+			dateTime = dateTime.plusDays(1);
+			if (isWerkdag(dateTime.toLocalDate()))
 			{
 				werkdagen--;
 			}
 		}
-		return nu;
+		return toUtilDate(dateTime);
+	}
+
+	public static boolean isWerkdag(LocalDate datum)
+	{
+		return datum != null && !List.of(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY).contains(datum.getDayOfWeek());
 	}
 
 	public static LocalDate plusWerkdagen(LocalDate datum, long aantal)
@@ -92,30 +94,12 @@ public final class DateUtil
 		while (aantal > 0)
 		{
 			datum = datum.plusDays(1);
-			switch (datum.getDayOfWeek())
+			if (isWerkdag(datum))
 			{
-			case MONDAY:
-			case TUESDAY:
-			case WEDNESDAY:
-			case THURSDAY:
-			case FRIDAY:
 				aantal--;
 			}
 		}
 		return datum;
-	}
-
-	public static DateTime minusWerkdagen(DateTime nu, Integer werkdagen)
-	{
-		while (werkdagen > 0)
-		{
-			nu = nu.minusDays(1);
-			if (nu.getDayOfWeek() != DateTimeConstants.SATURDAY && nu.getDayOfWeek() != DateTimeConstants.SUNDAY)
-			{
-				werkdagen--;
-			}
-		}
-		return nu;
 	}
 
 	public static LocalDate minusWerkdagen(LocalDate datum, int aantal)
@@ -123,22 +107,17 @@ public final class DateUtil
 		while (aantal > 0)
 		{
 			datum = datum.minusDays(1);
-			switch (datum.getDayOfWeek())
+			if (isWerkdag(datum))
 			{
-			case MONDAY:
-			case TUESDAY:
-			case WEDNESDAY:
-			case THURSDAY:
-			case FRIDAY:
 				aantal--;
 			}
 		}
 		return datum;
 	}
 
-	public static DateTime roundMinutes(DateTime startTime)
+	public static LocalDateTime roundMinutes(LocalDateTime startTime)
 	{
-		int minutes = startTime.getMinuteOfHour();
+		int minutes = startTime.getMinute();
 		int modulo = minutes % 5;
 
 		if (modulo <= 2)
@@ -152,56 +131,24 @@ public final class DateUtil
 
 		if (minutes != 60)
 		{
-			return startTime.withMinuteOfHour(minutes);
+			return startTime.withMinute(minutes);
 		}
 
-		return startTime.plusHours(1).withMinuteOfHour(0);
+		return startTime.plusHours(1).withMinute(0);
 	}
 
-	public static Interval roundMinutes(Interval interval)
+	public static List<Range<Date>> disjunct(Range<Date> target, Range<Date> disjunct)
 	{
-		DateTime start = interval.getStart();
-		DateTime end = interval.getEnd();
-		int minutes = start.getMinuteOfHour();
-		int modulo = minutes % 5;
-
-		if (modulo > 0)
+		List<Range<Date>> disjunctionResult = new ArrayList<>();
+		if (overlaps(target, disjunct))
 		{
-			minutes += 5 - modulo;
-			if (minutes != 60)
+			if (target.lowerEndpoint().before(disjunct.lowerEndpoint()))
 			{
-				start = start.withMinuteOfHour(minutes);
+				disjunctionResult.add(Range.closed(target.lowerEndpoint(), disjunct.lowerEndpoint()));
 			}
-			else
+			if (target.upperEndpoint().after(disjunct.upperEndpoint()))
 			{
-				start = start.plusHours(1).withMinuteOfHour(0);
-			}
-		}
-
-		minutes = end.getMinuteOfHour();
-		modulo = minutes % 5;
-
-		if (modulo > 0)
-		{
-			minutes -= modulo;
-			end = end.withMinuteOfHour(minutes);
-		}
-
-		return new Interval(start, end);
-	}
-
-	public static List<Interval> disjunct(Interval target, Interval disjunct)
-	{
-		List<Interval> disjunctionResult = new ArrayList<>();
-		if (target.overlaps(disjunct))
-		{
-			if (target.getStart().isBefore(disjunct.getStart()))
-			{
-				disjunctionResult.add(new Interval(target.getStart(), disjunct.getStart()));
-			}
-			if (target.getEnd().isAfter(disjunct.getEnd()))
-			{
-				disjunctionResult.add(new Interval(disjunct.getEnd(), target.getEnd()));
+				disjunctionResult.add(Range.closed(disjunct.upperEndpoint(), target.upperEndpoint()));
 			}
 		}
 		else
@@ -219,20 +166,26 @@ public final class DateUtil
 			startDate = endDate;
 			endDate = temp;
 		}
-		DateTime start = new DateTime(startDate);
-		DateTime end = new DateTime(endDate);
+		var start = DateUtil.toLocalDate(startDate);
+		var end = DateUtil.toLocalDate(endDate);
 
-		Months months = Months.monthsBetween(start, end);
-		if (start.plusMonths(months.getMonths()).isBefore(end))
+		var months = getPeriodeTussenTweeDatums(start, end, ChronoUnit.MONTHS);
+
+		if (start.plusMonths(months).isBefore(end))
 		{
-			months = months.plus(1);
+			months++;
 		}
 
-		return months.getMonths();
+		return months;
 
 	}
 
-	public static int getDaysBetweenIgnoreWeekends(DateTime startDate, DateTime endDate, boolean ignoreTimeOfDay)
+	public static int getDaysBetweenIgnoreWeekends(Date startDate, Date endDate, boolean ignoreTimeOfDay)
+	{
+		return getDaysBetweenIgnoreWeekends(toLocalDateTime(startDate), toLocalDateTime(endDate), ignoreTimeOfDay);
+	}
+
+	public static int getDaysBetweenIgnoreWeekends(LocalDateTime startDate, LocalDateTime endDate, boolean ignoreTimeOfDay)
 	{
 
 		if (startDate.equals(endDate))
@@ -244,36 +197,36 @@ public final class DateUtil
 			return 0;
 		}
 
-		int dayOfWeekStartDateNumber = startDate.getDayOfWeek();
+		var dayOfWeekStartDate = startDate.getDayOfWeek();
 
-		if (dayOfWeekStartDateNumber == 6 || dayOfWeekStartDateNumber == 7)
+		if (dayOfWeekStartDate == DayOfWeek.SATURDAY || dayOfWeekStartDate == DayOfWeek.SUNDAY)
 		{
-			int DaysToAdd = 8 - dayOfWeekStartDateNumber;
-			startDate = startDate.plusDays(DaysToAdd);
-			dayOfWeekStartDateNumber = startDate.dayOfWeek().get();
+			int daysToAdd = 8 - dayOfWeekStartDate.getValue();
+			startDate = startDate.plusDays(daysToAdd);
+			dayOfWeekStartDate = startDate.getDayOfWeek();
 		}
 
-		int days;
+		long days;
 		if (ignoreTimeOfDay)
 		{
-			days = Days.daysBetween(startDate.toLocalDate(), endDate.toLocalDate()).getDays();
+			days = ChronoUnit.DAYS.between(startDate.toLocalDate(), endDate.toLocalDate());
 		}
 		else
 		{
-			days = Days.daysBetween(startDate, endDate).getDays();
+			days = ChronoUnit.DAYS.between(startDate, endDate);
 		}
 
-		int weeks = days / 7;
+		var weeks = days / 7;
 
-		int excess = days % 7;
+		var excess = days % 7;
 
-		if (excess + dayOfWeekStartDateNumber >= 6)
+		if (excess + dayOfWeekStartDate.getValue() >= 6)
 		{
 
-			return weeks * 5 + excess - 2;
+			return (int) (weeks * 5 + excess - 2);
 		}
 
-		return weeks * 5 + excess;
+		return (int) (weeks * 5 + excess);
 	}
 
 	public static LocalDate toLocalDate(Date utilDate)
@@ -374,15 +327,6 @@ public final class DateUtil
 		return toUtilDate(localDate);
 	}
 
-	public static Date toUtilDateMidnight(LocalDateTime localDateTime)
-	{
-		if (localDateTime == null)
-		{
-			return null;
-		}
-		return toUtilDate(localDateTime.toLocalDate());
-	}
-
 	public static Date toUtilDateMidnight(Date date)
 	{
 		return toUtilDate(toLocalDate(date));
@@ -396,6 +340,16 @@ public final class DateUtil
 	public static Date startDag(Date date)
 	{
 		return toUtilDate(toLocalDate(date).atStartOfDay());
+	}
+
+	public static Date startMinuut(Date date)
+	{
+		return toUtilDate(toLocalDateTime(date).withSecond(0).withNano(0));
+	}
+
+	public static Date startSeconde(Date date)
+	{
+		return toUtilDate(toLocalDateTime(date).withNano(0));
 	}
 
 	public static Date eindDag(Date date)
@@ -433,14 +387,14 @@ public final class DateUtil
 		return "";
 	}
 
-	public static boolean isZelfdeDag(LocalDate date1, Date date2)
+	public static boolean isZelfdeDag(Date date1, Date date2)
 	{
 		return DateUtil.toUtilDateMidnight(date1).compareTo(DateUtil.toUtilDateMidnight(date2)) == 0;
 	}
 
-	public static boolean isZelfdeDag(LocalDate date1, LocalDate date2)
+	public static boolean isZelfdeDag(LocalDate date1, Date date2)
 	{
-		return date1.toEpochDay() == date2.toEpochDay();
+		return DateUtil.toUtilDateMidnight(date1).compareTo(DateUtil.toUtilDateMidnight(date2)) == 0;
 	}
 
 	public static boolean isGeboortedatumGelijk(LocalDate geboortedatum, Client client)
@@ -474,10 +428,9 @@ public final class DateUtil
 		return LocalDate.parse(date, df);
 	}
 
-	public static LocalDateTime parseLocalDateTimeForPattern(String date, String pattern)
+	public static Date parseZonedIsoDatum(String date)
 	{
-		DateTimeFormatter df = DateTimeFormatter.ofPattern(pattern);
-		return LocalDateTime.parse(date, df);
+		return Date.from(ZonedDateTime.parse(date, DateTimeFormatter.ISO_DATE_TIME).toInstant());
 	}
 
 	public static boolean isWithinRange(LocalDate start, LocalDate end, LocalDate testDate)
@@ -536,22 +489,67 @@ public final class DateUtil
 		return StringUtils.capitalize(weergaveDatum);
 	}
 
+	public static Date minDagen(Date datum, int hoeveelheid)
+	{
+		return minusTijdseenheid(datum, hoeveelheid, ChronoUnit.DAYS);
+	}
+
 	public static Date minusTijdseenheid(Date datum, int hoeveelheid, ChronoUnit tijdseenheid)
+	{
+		return minusTijdseenheid(datum, (long) hoeveelheid, tijdseenheid);
+	}
+
+	public static Date minusTijdseenheid(Date datum, long hoeveelheid, ChronoUnit tijdseenheid)
 	{
 		return toUtilDate(toLocalDateTime(datum).minus(hoeveelheid, tijdseenheid));
 	}
 
+	public static Date plusDagen(Date datum, int hoeveelheid)
+	{
+		return plusTijdseenheid(datum, hoeveelheid, ChronoUnit.DAYS);
+	}
+
 	public static Date plusTijdseenheid(Date datum, int hoeveelheid, ChronoUnit tijdseenheid)
+	{
+		return plusTijdseenheid(datum, (long) hoeveelheid, tijdseenheid);
+	}
+
+	public static Date plusTijdseenheid(Date datum, long hoeveelheid, ChronoUnit tijdseenheid)
 	{
 		return toUtilDate(toLocalDateTime(datum).plus(hoeveelheid, tijdseenheid));
 	}
 
-	public static int getAantalJaarTussenTweeDatums(LocalDate start, LocalDate eind)
+	public static int getLeeftijd(LocalDate geboortedatum, LocalDate peilDatum)
+	{
+		return DateUtil.getPeriodeTussenTweeDatums(geboortedatum, peilDatum, ChronoUnit.YEARS);
+	}
+
+	public static int getPeriodeTussenTweeDatums(Temporal start, Temporal eind, ChronoUnit tijdseenheid)
 	{
 		if (start == null || eind == null)
 		{
 			return 0;
 		}
-		return Period.between(start, eind).getYears();
+		return Ints.checkedCast(tijdseenheid.between(start, eind));
 	}
+
+	public static boolean overlaps(Range<Date> a, Range<Date> b)
+	{
+		if (!a.isConnected(b))
+		{
+			return false;
+		}
+
+		var intersection = a.intersection(b);
+
+		boolean intersects = !intersection.isEmpty();
+		if (intersection.hasLowerBound() && intersection.hasUpperBound())
+		{
+
+			intersects = intersection.lowerEndpoint().equals(intersection.upperEndpoint());
+		}
+
+		return !intersects;
+	}
+
 }

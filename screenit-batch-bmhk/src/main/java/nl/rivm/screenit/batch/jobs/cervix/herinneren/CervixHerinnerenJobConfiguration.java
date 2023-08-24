@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.herinneren;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,9 @@ package nl.rivm.screenit.batch.jobs.cervix.herinneren;
 import nl.rivm.screenit.batch.jobs.AbstractJobConfiguration;
 import nl.rivm.screenit.batch.jobs.cervix.herinneren.allsteps.CervixHerinnerenWriter;
 import nl.rivm.screenit.batch.jobs.cervix.herinneren.uitstrijkjestep.CervixUitstrijkjeHerinnerenReader;
-import nl.rivm.screenit.batch.jobs.cervix.herinneren.zasstep.CervixZasHerinnerenReader;
+import nl.rivm.screenit.batch.jobs.cervix.herinneren.zasnonresponderstep.CervixZasNonResponderHerinnerenReader;
+import nl.rivm.screenit.batch.jobs.cervix.herinneren.zaspustep.CervixZasPrimaireUitnodigingHerinnerenReader;
+import nl.rivm.screenit.batch.jobs.cervix.herinneren.zasstep.CervixAangevraagdeZasHerinnerenReader;
 import nl.rivm.screenit.model.enums.JobType;
 
 import org.springframework.batch.core.Job;
@@ -37,17 +39,20 @@ public class CervixHerinnerenJobConfiguration extends AbstractJobConfiguration
 {
 
 	@Bean
-	public Job herinnerenJob(CervixHerinnerenJobListener listener, Step herinnerenZasStep, Step herinnerenUitstrijkjeStep)
+	public Job herinnerenJob(CervixHerinnerenJobListener listener, Step herinnerenZasStep, Step herinnerenUitstrijkjeStep, Step herinnerenZasNonresponderStep,
+		Step herinnerenZasPuStep)
 	{
 		return jobBuilderFactory.get(JobType.CERVIX_HERINNEREN.name())
 			.listener(listener)
 			.start(herinnerenZasStep)
 			.next(herinnerenUitstrijkjeStep)
+			.next(herinnerenZasPuStep)
+			.next(herinnerenZasNonresponderStep)
 			.build();
 	}
 
 	@Bean
-	public Step herinnerenZasStep(CervixZasHerinnerenReader reader, CervixHerinnerenWriter writer)
+	public Step herinnerenZasStep(CervixAangevraagdeZasHerinnerenReader reader, CervixHerinnerenWriter writer)
 	{
 		return stepBuilderFactory.get("herinnerenZasStep")
 			.transactionManager(transactionManager)
@@ -61,6 +66,28 @@ public class CervixHerinnerenJobConfiguration extends AbstractJobConfiguration
 	public Step herinnerenUitstrijkjeStep(CervixUitstrijkjeHerinnerenReader reader, CervixHerinnerenWriter writer)
 	{
 		return stepBuilderFactory.get("herinnerenUitstrijkjeStep")
+			.transactionManager(transactionManager)
+			.<Long, Long> chunk(10)
+			.reader(reader)
+			.writer(writer)
+			.build();
+	}
+
+	@Bean
+	public Step herinnerenZasNonresponderStep(CervixZasNonResponderHerinnerenReader reader, CervixHerinnerenWriter writer)
+	{
+		return stepBuilderFactory.get("herinnerenZasNonresponderStep")
+			.transactionManager(transactionManager)
+			.<Long, Long> chunk(10)
+			.reader(reader)
+			.writer(writer)
+			.build();
+	}
+
+	@Bean
+	public Step herinnerenZasPuStep(CervixZasPrimaireUitnodigingHerinnerenReader reader, CervixHerinnerenWriter writer)
+	{
+		return stepBuilderFactory.get("herinnerenZasPuStep")
 			.transactionManager(transactionManager)
 			.<Long, Long> chunk(10)
 			.reader(reader)

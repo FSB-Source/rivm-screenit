@@ -39,14 +39,15 @@ export default class SignalerenView extends Component<SignalerenViewStateProps &
 	render(): JSX.Element {
 		const client: Client = this.props.client
 		const afspraak: Afspraak = this.props.afspraak
-		return <div className="tabpagina">
-			<div className="row">
-				<div className="onderzoek-heading">
+		return <div>
+			<Row>
+				<div className="onderzoek-heading page-heading-fixed">
 					<h1 className="float-left">Signaleren</h1>
 					{this.props.afspraak.status !== "BEEINDIGD" &&
 						<AutorisatieButton
 							id="afrondenButton" label={"Afronden"} heeftRecht={this.props.magSignaleren}
 							online={this.props.online} rechtNaam={"Signaleren op SE"}
+							className={"float-right btn btn-primary-se ml-3"}
 							onClick={(): void => {
 								this.props.onVolgende(afspraak, this.props.client, this.props.onderzoek, this.props.signalering, this.props.aanvullendeInformatieForm)
 							}}/>
@@ -55,7 +56,7 @@ export default class SignalerenView extends Component<SignalerenViewStateProps &
 						<AutorisatieButton
 							id="opslaanButton" label={"Opslaan"} rechtNaam={"Signaleren op SE"}
 							heeftRecht={this.props.magSignaleren}
-							className="float-right btn btn-primary-se"
+							className="float-right btn btn-primary-se ml-3"
 							onClick={(): void => {
 								this.props.onVolgende(afspraak, this.props.client, this.props.onderzoek, this.props.signalering, this.props.aanvullendeInformatieForm, true)
 							}}/>
@@ -65,24 +66,28 @@ export default class SignalerenView extends Component<SignalerenViewStateProps &
 					}}>Vorige
 					</button>
 				</div>
+			</Row>
+			<div className="onderzoek-content">
+				<div className="tabpagina">
+					<Row>
+						<PaspoortContainer client={client} afspraak={afspraak}/>
+					</Row>
+					<Row className="do-not-select">
+						<AfwijkingenContainer afspraakId={this.props.afspraak.id} signalering={this.props.signalering}
+											  isEditable={this.props.isEditable && this.props.magSignaleren}
+											  amputatie={this.props.onderzoek.amputatie}/>
+					</Row>
+					<Row className="onderzoek-row do-not-select">
+						<Col md={2}/>
+						<Col md={4}>
+							<MbbSignaleringContainer disabled={!this.props.magSignaleren}/>
+						</Col>
+						<Col md={4}>
+							<AanvullendeInformatieContainer disabled={!this.props.magSignaleren}/>
+						</Col>
+					</Row>
+				</div>
 			</div>
-			<Row>
-				<PaspoortContainer client={client} afspraak={afspraak}/>
-			</Row>
-			<Row className="do-not-select">
-				<AfwijkingenContainer afspraakId={this.props.afspraak.id} signalering={this.props.signalering}
-									  isEditable={this.props.isEditable && this.props.magSignaleren}
-									  amputatie={this.props.onderzoek.amputatie}/>
-			</Row>
-			<Row className="onderzoek-row do-not-select">
-				<Col md={2}/>
-				<Col md={4}>
-					<MbbSignaleringContainer disabled={!this.props.magSignaleren}/>
-				</Col>
-				<Col md={4}>
-					<AanvullendeInformatieContainer disabled={!this.props.magSignaleren}/>
-				</Col>
-			</Row>
 		</div>
 	}
 

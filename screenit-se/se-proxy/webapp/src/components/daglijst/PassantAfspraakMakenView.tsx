@@ -77,7 +77,7 @@ export default class PassantAfspraakMakenView extends Component<PassantAfspraakM
 						</FormGroup>
 					</Col>
 					<Col md={2}>
-						<AutorisatieButton id="afspraakButton" label={"Maak afspraak"} online={this.props.online}
+						<AutorisatieButton id="afspraakButton" label={"Toon afspraak"} online={this.props.online}
 										   heeftRecht={this.props.heeftInschrijvenRecht} rechtNaam={"inschrijven"}
 										   onClick={(): void => {
 											   this.props.maakAfspraak(this.props.passantAfspraakMakenForm)

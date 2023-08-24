@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.cervix.facturatie;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,6 +29,9 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.IActief;
 import nl.rivm.screenit.model.SingleTableHibernateObject;
 
@@ -40,6 +43,8 @@ import org.hibernate.envers.Audited;
 @Table(schema = "cervix", name = "tarief")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 @Audited
+@Getter
+@Setter
 public abstract class CervixTarief extends SingleTableHibernateObject implements IActief
 {
 
@@ -53,36 +58,4 @@ public abstract class CervixTarief extends SingleTableHibernateObject implements
 	@Column(nullable = true)
 	@Temporal(TemporalType.DATE)
 	private Date geldigTotenmetDatum;
-
-	public Date getGeldigVanafDatum()
-	{
-		return geldigVanafDatum;
-	}
-
-	public void setGeldigVanafDatum(Date geldigVanafDatum)
-	{
-		this.geldigVanafDatum = geldigVanafDatum;
-	}
-
-	public Date getGeldigTotenmetDatum()
-	{
-		return geldigTotenmetDatum;
-	}
-
-	public void setGeldigTotenmetDatum(Date geldigTotenmetDatum)
-	{
-		this.geldigTotenmetDatum = geldigTotenmetDatum;
-	}
-
-	@Override
-	public Boolean getActief()
-	{
-		return actief;
-	}
-
-	@Override
-	public void setActief(Boolean actief)
-	{
-		this.actief = actief;
-	}
 }

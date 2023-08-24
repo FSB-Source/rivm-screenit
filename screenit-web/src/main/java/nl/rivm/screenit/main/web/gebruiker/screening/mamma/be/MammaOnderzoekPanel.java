@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -50,7 +50,7 @@ public class MammaOnderzoekPanel extends AbstractBEAccordionPanel<MammaOnderzoek
 	protected void onInitialize()
 	{
 		super.onInitialize();
-		panelContainer.add(new AttributeAppender("style", Model.of("padding: 0;"), " "));
+		panelContainer.add(new AttributeAppender("class", Model.of("onderzoek-accordion"), " "));
 		List<KeyValue> rows = baseOnderzoekService.vorigeRondeTeksten(getModelObject(), false);
 		RepeatingView tableView = new RepeatingView("rows");
 		for (KeyValue row : rows)

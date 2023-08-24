@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,15 +23,19 @@ package nl.rivm.screenit.service.colon.impl;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.colon.ColonUitnodigingsgebiedDao;
@@ -46,50 +50,39 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
-import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonUitnodigingService;
 import nl.rivm.screenit.service.colon.ColonUitnodigingsgebiedService;
 import nl.rivm.screenit.util.BigDecimalUtil;
+import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.PercentageUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.joda.time.DateTime;
-import org.joda.time.Days;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+@RequiredArgsConstructor
 public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebiedService
 {
 
-	public static final Logger LOG = LoggerFactory.getLogger(ColonUitnodigingsgebiedServiceImpl.class);
+	private final ColonUitnodigingsgebiedDao uitnodigingsGebiedDao;
 
-	@Autowired
-	private ColonUitnodigingsgebiedDao uitnodigingsGebiedDao;
+	private final SimplePreferenceService simplePreferenceService;
 
-	@Autowired
-	private SimplePreferenceService simplePreferenceService;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final LogService logService;
 
-	@Autowired
-	private LogService logService;
-
-	@Autowired
-	private ColonDossierBaseService dossierService;
-
-	@Autowired
-	private ColonUitnodigingService uitnodigingService;
+	private final ColonUitnodigingService uitnodigingService;
 
 	@Override
 	public List<PostcodeGebied> findOverlappendePostcodeGebieden(PostcodeGebied postcode)
@@ -98,475 +91,493 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 	}
 
 	@Override
-	public List<CapaciteitsPercWijziging> bepaalCapaciteitsWijzigingen(UitnodigingsGebied uitnodigingsGebied, Map<String, Integer> newAdherentiePercentages,
-		List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeItems)
+	public List<CapaciteitsPercWijziging> bepaalCapaciteitsWijzigingen(UitnodigingsGebied uitnodigingsGebied, Map<String, Integer> nieuweAdherentiePercentages,
+		List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeKoppelingen)
 	{
-		List<CapaciteitsPercWijziging> capaciteitsWijzigingen = new ArrayList<>();
+		var wijzigingen = new ArrayList<CapaciteitsPercWijziging>();
+		var benodigdeIntakecapaciteiten = new HashMap<Long, BigDecimal>();
 
-		Map<Long, BigDecimal> benodigdeIntakecapaciteiten = new HashMap<>();
+		var totaal = nieuweAdherentiePercentages.values().stream().reduce(0, Integer::sum);
 
-		Integer percLandelijkIfobtRetour = simplePreferenceService.getInteger(PreferenceKey.PERCENTAGEIFOBTRETOUR.name());
-		if (percLandelijkIfobtRetour == null)
-		{
-			throw new IllegalStateException("Landelijk IfobtRetourPercentage is niet gezet");
-		}
-
-		Integer percLandelijkIfobtOngunstige = simplePreferenceService.getInteger(PreferenceKey.PERCENTGAGEIFOBTONGUSTIG.name());
-		if (percLandelijkIfobtOngunstige == null)
-		{
-			throw new IllegalStateException("Landelijk IfobtOngunstigePercentage is niet gezet");
-		}
-
-		Integer totaal = Integer.valueOf(0);
-
-		for (Integer value : newAdherentiePercentages.values())
-		{
-			totaal += value;
-		}
-		if (!totaal.equals(Integer.valueOf(10000)) && !totaal.equals(Integer.valueOf(0)))
+		if (totaal != 10000 && totaal != 0)
 		{
 			throw new IllegalStateException("error.totaal.adherentie.niet.100.of.0.procent");
 		}
 
-		for (ColoscopieCentrumColonCapaciteitVerdeling verdeling : uitnodigingsGebied.getVerdeling())
+		for (var koppelingMetIntakelocatie : uitnodigingsGebied.getVerdeling())
 		{
-			if (verwijderdeItems.contains(verdeling)
-				|| !verdeling.getPercentageAdherentie().equals(newAdherentiePercentages.get(ColonRestrictions.getUniekIdOf(verdeling))))
+			if (verwijderdeKoppelingen.contains(koppelingMetIntakelocatie)
+				|| !koppelingMetIntakelocatie.getPercentageAdherentie().equals(nieuweAdherentiePercentages.get(ColonRestrictions.getUniekIdOf(koppelingMetIntakelocatie))))
 			{
-				ColoscopieCentrum intakelocatie = verdeling.getColoscopieCentrum();
-				berekenVerschil(newAdherentiePercentages, verwijderdeItems, capaciteitsWijzigingen, benodigdeIntakecapaciteiten, percLandelijkIfobtRetour,
-					percLandelijkIfobtOngunstige, intakelocatie.getCapaciteitVerdeling());
+				bepaalWijzigingen(nieuweAdherentiePercentages, verwijderdeKoppelingen, wijzigingen, benodigdeIntakecapaciteiten,
+					koppelingMetIntakelocatie.getColoscopieCentrum().getCapaciteitVerdeling());
 			}
 		}
 
-		if (capaciteitsWijzigingen.isEmpty() && uitnodigingsGebied.getVerdeling().size() > verwijderdeItems.size())
+		if (wijzigingen.isEmpty() && uitnodigingsGebied.getVerdeling().size() > verwijderdeKoppelingen.size())
 		{
 			throw new IllegalStateException("error.adherentie.geen.wijzigingen");
 		}
 
-		Collections.sort(capaciteitsWijzigingen, new Comparator<CapaciteitsPercWijziging>()
-		{
-			@Override
-			public int compare(CapaciteitsPercWijziging o1, CapaciteitsPercWijziging o2)
-			{
-				int result = o1.getUitnodigingsgebied().compareTo(o2.getUitnodigingsgebied());
-				if (result == 0)
-				{
-					result = o1.getIntakelocatie().compareTo(o2.getIntakelocatie());
-				}
-				return result;
-			}
-
-		});
-		return capaciteitsWijzigingen;
+		Collections.sort(wijzigingen, Comparator.comparing(CapaciteitsPercWijziging::getUitnodigingsgebied).thenComparing(CapaciteitsPercWijziging::getIntakelocatie));
+		return wijzigingen;
 	}
 
-	private BigDecimal berekenBenodigdeIntakecapaciteitVoorGebied(UitnodigingsGebied uitnodigingsGebied, Integer adherentie, Map<Long, BigDecimal> benodigdeIntakecapaciteiten,
-		Integer percLandelijkIfobtRetour, Integer percLandelijkIfobtOngunstige)
+	private BigDecimal berekenBenodigdeIntakecapaciteitVoorGebied(UitnodigingsGebied uitnodigingsGebied, Integer adherentie, Map<Long, BigDecimal> benodigdeIntakecapaciteiten)
 	{
-		Integer minimaleLeeftijd = simplePreferenceService.getInteger(PreferenceKey.MINIMALE_LEEFTIJD_COLON.name());
+		var minimaleLeeftijd = simplePreferenceService.getInteger(PreferenceKey.MINIMALE_LEEFTIJD_COLON.name());
 		if (minimaleLeeftijd == null)
 		{
 			throw new IllegalStateException("Minimale leeftijd colonscreening op de parameterisatie pagina is niet gezet.");
 		}
 
-		Integer maximaleLeeftijd = simplePreferenceService.getInteger(PreferenceKey.MAXIMALE_LEEFTIJD_COLON.name());
+		var maximaleLeeftijd = simplePreferenceService.getInteger(PreferenceKey.MAXIMALE_LEEFTIJD_COLON.name());
 		if (maximaleLeeftijd == null)
 		{
 			throw new IllegalStateException("Maximale leeftijd colonscreening op de parameterisatie pagina is niet gezet");
 		}
 
-		Integer uitnodigingsInterval = simplePreferenceService.getInteger(PreferenceKey.UITNODIGINGSINTERVAL.name());
+		var uitnodigingsInterval = simplePreferenceService.getInteger(PreferenceKey.UITNODIGINGSINTERVAL.name());
 		if (uitnodigingsInterval == null)
 		{
 			throw new IllegalStateException("Spreidingsperiode op de parameterisatie pagina is niet gezet");
 		}
 
-		BigDecimal totaalBenodigdeIntakecapaciteit = benodigdeIntakecapaciteiten.get(uitnodigingsGebied.getId());
+		var totaalBenodigdeIntakecapaciteit = benodigdeIntakecapaciteiten.get(uitnodigingsGebied.getId());
 		if (totaalBenodigdeIntakecapaciteit == null)
 		{
 
-			LocalDate vandaag = currentDateSupplier.getLocalDate();
-			LocalDate laatsteDagVanHuidigJaar = vandaag.with(TemporalAdjusters.lastDayOfYear());
-			Set<Integer> alleGeboortejarenTotMetHuidigJaar = uitnodigingService.getAlleGeboortejarenTotMetHuidigJaar();
+			var vandaag = currentDateSupplier.getLocalDate();
+			var laatsteDagVanHuidigJaar = vandaag.with(TemporalAdjusters.lastDayOfYear());
+			var alleGeboortejarenTotMetHuidigJaar = uitnodigingService.getAlleGeboortejarenTotMetHuidigJaar();
 
-			long aantalClienten = uitnodigingsGebiedDao.countPersonenInUitnodigingsGebied(uitnodigingsGebied, minimaleLeeftijd, maximaleLeeftijd + 1, uitnodigingsInterval,
+			var aantalClienten = uitnodigingsGebiedDao.countPersonenInUitnodigingsGebied(uitnodigingsGebied, minimaleLeeftijd, maximaleLeeftijd + 1, uitnodigingsInterval,
 				laatsteDagVanHuidigJaar, alleGeboortejarenTotMetHuidigJaar);
-			BigDecimal ifobtFactor = getIfobtFactorVoorGebied(uitnodigingsGebied, percLandelijkIfobtRetour, percLandelijkIfobtOngunstige);
-			LOG.info("Uitnodigingsgebied " + uitnodigingsGebied.getNaam() + ": aantal clienten " + aantalClienten);
-			totaalBenodigdeIntakecapaciteit = BigDecimal.valueOf(aantalClienten).divide(ifobtFactor, 4, RoundingMode.HALF_UP);
+			var fitFactor = getFitFactorVoorGebied(uitnodigingsGebied);
+			LOG.info("Uitnodigingsgebied {}: aantal clienten {}", uitnodigingsGebied.getNaam(), aantalClienten);
+			totaalBenodigdeIntakecapaciteit = BigDecimal.valueOf(aantalClienten).divide(fitFactor, 4, RoundingMode.HALF_UP);
 			benodigdeIntakecapaciteiten.put(uitnodigingsGebied.getId(), totaalBenodigdeIntakecapaciteit);
 		}
 
-		BigDecimal benodigdeIntakecapaciteit = totaalBenodigdeIntakecapaciteit.multiply(new BigDecimal(adherentie)).divide(BigDecimal.valueOf(10000), 4, RoundingMode.HALF_UP);
-		return benodigdeIntakecapaciteit;
+		return totaalBenodigdeIntakecapaciteit.multiply(new BigDecimal(adherentie)).divide(BigDecimal.valueOf(10000), 4, RoundingMode.HALF_UP);
 	}
 
 	@Override
-	public BigDecimal getIfobtFactorVoorGebied(UitnodigingsGebied uitnodigingsGebied, Integer percLandelijkIfobtRetour, Integer percLandelijkIfobtOngunstige)
+	public BigDecimal getFitFactorVoorGebied(UitnodigingsGebied uitnodigingsGebied)
 	{
-		Integer percIfobtRetour = percLandelijkIfobtRetour;
+		var percLandelijkFitRetour = simplePreferenceService.getInteger(PreferenceKey.PERCENTAGEIFOBTRETOUR.name());
+		if (percLandelijkFitRetour == null)
+		{
+			throw new IllegalStateException("Landelijk IfobtRetourPercentage is niet gezet");
+		}
+
+		var percLandelijkFitOngunstige = simplePreferenceService.getInteger(PreferenceKey.PERCENTGAGEIFOBTONGUSTIG.name());
+		if (percLandelijkFitOngunstige == null)
+		{
+			throw new IllegalStateException("Landelijk IfobtOngunstigePercentage is niet gezet");
+		}
+
+		var percFitRetour = percLandelijkFitRetour;
 
 		if (uitnodigingsGebied.getGemeente().getScreeningOrganisatie() != null && uitnodigingsGebied.getGemeente().getScreeningOrganisatie().getIfobtRetourPercentage() != null)
 		{
-			percIfobtRetour = uitnodigingsGebied.getGemeente().getScreeningOrganisatie().getIfobtRetourPercentage();
+			percFitRetour = uitnodigingsGebied.getGemeente().getScreeningOrganisatie().getIfobtRetourPercentage();
 		}
 
 		if (uitnodigingsGebied.getPercentageIFobtRetour() != null)
 		{
-			percIfobtRetour = uitnodigingsGebied.getPercentageIFobtRetour();
+			percFitRetour = uitnodigingsGebied.getPercentageIFobtRetour();
 		}
 
-		BigDecimal ifobtRetourFactor = BigDecimal.ZERO;
-		if (percIfobtRetour != null && percIfobtRetour > 0)
+		var fitRetourFactor = BigDecimal.ZERO;
+		if (percFitRetour != null && percFitRetour > 0)
 		{
-			ifobtRetourFactor = BigDecimal.valueOf(10000).divide(BigDecimal.valueOf(percIfobtRetour), 4, RoundingMode.HALF_UP);
+			fitRetourFactor = berekenFITFactor(percFitRetour);
 		}
 
-		LOG.info("Uitnodigingsgebied " + uitnodigingsGebied.getNaam() + ": Fit Retour "
-			+ BigDecimalUtil.decimalToString(BigDecimal.valueOf(percIfobtRetour).divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)) + "% => factor "
-			+ BigDecimalUtil.decimalToString(ifobtRetourFactor));
+		LOG.info("Uitnodigingsgebied {}: FIT Retour {} => factor {}", uitnodigingsGebied.getNaam(),
+			PercentageUtil.percentageToString(percFitRetour),
+			BigDecimalUtil.decimalToString(fitRetourFactor));
 
-		Integer percIfobtOngunstig = percLandelijkIfobtOngunstige;
+		var percFitOngunstig = percLandelijkFitOngunstige;
 
 		if (uitnodigingsGebied.getPercentageOngunstigeIfobt() != null)
 		{
-			percIfobtOngunstig = uitnodigingsGebied.getPercentageOngunstigeIfobt();
+			percFitOngunstig = uitnodigingsGebied.getPercentageOngunstigeIfobt();
 		}
 
-		BigDecimal ifobtOngunstigFactor = BigDecimal.ZERO;
-		if (percIfobtOngunstig != null && percIfobtOngunstig > 0)
+		var fitOngunstigFactor = BigDecimal.ZERO;
+		if (percFitOngunstig != null && percFitOngunstig > 0)
 		{
-			ifobtOngunstigFactor = BigDecimal.valueOf(10000).divide(BigDecimal.valueOf(percIfobtOngunstig), 4, RoundingMode.HALF_UP);
+			fitOngunstigFactor = berekenFITFactor(percFitOngunstig);
 		}
 
-		LOG.info("Uitnodigingsgebied " + uitnodigingsGebied.getNaam() + ": Fit Ongunstig "
-			+ BigDecimalUtil.decimalToString(BigDecimal.valueOf(percIfobtOngunstig).divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)) + "% => factor "
-			+ BigDecimalUtil.decimalToString(ifobtOngunstigFactor));
+		LOG.info("Uitnodigingsgebied {}: FIT Ongunstig {} => factor {}", uitnodigingsGebied.getNaam(),
+			PercentageUtil.percentageToString(percFitOngunstig),
+			BigDecimalUtil.decimalToString(fitOngunstigFactor));
 
-		BigDecimal gebiedsFactor = ifobtRetourFactor.multiply(ifobtOngunstigFactor);
-		LOG.info("Uitnodigingsgebied " + uitnodigingsGebied.getNaam() + ": Totaal factor " + BigDecimalUtil.decimalToString(gebiedsFactor));
+		var gebiedsFactor = fitRetourFactor.multiply(fitOngunstigFactor);
+		LOG.info("Uitnodigingsgebied {}: Totaal factor {}", uitnodigingsGebied.getNaam(), BigDecimalUtil.decimalToString(gebiedsFactor));
 
 		return gebiedsFactor;
 	}
 
+	@NotNull
+	private static BigDecimal berekenFITFactor(Integer percFitRetour)
+	{
+		return BigDecimal.valueOf(10000).divide(BigDecimal.valueOf(percFitRetour), 4, RoundingMode.HALF_UP);
+	}
+
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void wijzigingenDoorvoeren(UitnodigingsGebied uitnodigingsgebied, Map<String, Integer> newAdherentiePercentages,
-		List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeItems, List<CapaciteitsPercWijziging> capaciteitsPercWijzigingen, InstellingGebruiker ingelogdeGebruiker)
+	public void wijzigingenDoorvoeren(UitnodigingsGebied uitnodigingsgebied, Map<String, Integer> nieuweAdherentiePercentages,
+		List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeKoppelingen, List<CapaciteitsPercWijziging> wijzigingen, InstellingGebruiker ingelogdeGebruiker)
 	{
-		String melding = "Gewijzigde capaciteitspercentages:<br>";
-		String adherentieMelding = "Adherentieverdeling gewijzigd voor gebied: " + uitnodigingsgebied.getNaam() + "<br>";
-		for (CapaciteitsPercWijziging wijziging : capaciteitsPercWijzigingen)
+		var melding = "Gewijzigde capaciteitspercentages:<br>";
+		var adherentieMelding = "Adherentieverdeling gewijzigd voor gebied: " + uitnodigingsgebied.getNaam() + "<br>";
+		for (var wijziging : wijzigingen)
 		{
-			ColoscopieCentrumColonCapaciteitVerdeling verdelingToChange = getVerdelingToChange(wijziging, uitnodigingsgebied);
-			if (verdelingToChange != null)
+			var koppelingToChange = getKoppelingToChange(wijziging, uitnodigingsgebied);
+			if (koppelingToChange != null)
 			{
-				if (wijziging.getNieuwCapPer().compareTo(verdelingToChange.getPercentageCapaciteit()) != 0)
-				{
-					melding += verdelingToChange.getUitnodigingsGebied().getNaam() + "/" + verdelingToChange.getColoscopieCentrum().getNaam() + ": "
-						+ PercentageUtil.percentageToString(verdelingToChange.getPercentageCapaciteit()) + "->";
-
-					verdelingToChange.setPercentageCapaciteit(wijziging.getNieuwCapPer());
-
-					melding += PercentageUtil.percentageToString(verdelingToChange.getPercentageCapaciteit());
-					if (verdelingToChange.getId() == null)
-					{
-						melding += "(nieuw)";
-					}
-					melding += "<br>";
-				}
-				Integer percentageAdherentie = newAdherentiePercentages.get(ColonRestrictions.getUniekIdOf(verdelingToChange));
-				if (percentageAdherentie != null)
-				{
-					adherentieMelding += verdelingToChange.getColoscopieCentrum().getNaam() + ": " + PercentageUtil.percentageToString(verdelingToChange.getPercentageAdherentie())
-						+ "->";
-					verdelingToChange.setPercentageAdherentie(percentageAdherentie);
-					adherentieMelding += PercentageUtil.percentageToString(verdelingToChange.getPercentageAdherentie()) + "<br>";
-				}
-				hibernateService.saveOrUpdate(verdelingToChange);
+				melding = wijzigKoppeling(koppelingToChange, wijziging, melding);
 			}
 		}
 
 		hibernateService.saveOrUpdate(uitnodigingsgebied);
 
-		for (ColoscopieCentrumColonCapaciteitVerdeling verwijderdeItem : verwijderdeItems)
+		for (var verwijderdeKoppeling : verwijderdeKoppelingen)
 		{
-			melding += verwijderdeItem.getUitnodigingsGebied().getNaam() + "/" + verwijderdeItem.getColoscopieCentrum().getNaam() + " verwijderd";
-			ColoscopieCentrum intakelocatie = verwijderdeItem.getColoscopieCentrum();
-			uitnodigingsgebied.getVerdeling().remove(verwijderdeItem);
+			var intakelocatie = verwijderdeKoppeling.getColoscopieCentrum();
+			melding += verwijderdeKoppeling.getUitnodigingsGebied().getNaam() + "/" + intakelocatie.getNaam() + " verwijderd";
+			uitnodigingsgebied.getVerdeling().remove(verwijderdeKoppeling);
 			hibernateService.saveOrUpdate(uitnodigingsgebied);
-			intakelocatie.getCapaciteitVerdeling().remove(verwijderdeItem);
-			hibernateService.delete(verwijderdeItem);
+			intakelocatie.getCapaciteitVerdeling().remove(verwijderdeKoppeling);
+			hibernateService.delete(verwijderdeKoppeling);
 			hibernateService.saveOrUpdate(intakelocatie);
 		}
 
 		logService.logGebeurtenis(LogGebeurtenis.ADHERENTIE_AANEGEPAST, ingelogdeGebruiker, adherentieMelding + melding, Bevolkingsonderzoek.COLON);
 		hibernateService.getHibernateSession().flush();
+		adherentieMelding = valideerAdherentieVanGewijzigdeGebieden(Set.of(uitnodigingsgebied));
+		if (StringUtils.isNotBlank(adherentieMelding))
+		{
+			throw new IllegalStateException(adherentieMelding);
+		}
 	}
 
-	private ColoscopieCentrumColonCapaciteitVerdeling getVerdelingToChange(CapaciteitsPercWijziging wijziging, UitnodigingsGebied uitnodigingsgebied)
+	@Override
+	public String valideerAdherentieVanGewijzigdeGebieden(Set<UitnodigingsGebied> gewijzigdeGebieden)
 	{
-		ColoscopieCentrumColonCapaciteitVerdeling verdelingToChange = null;
-		main:
-		for (ColoscopieCentrumColonCapaciteitVerdeling verdeling : uitnodigingsgebied.getVerdeling())
+		var melding = "";
+		for (var gebied : gewijzigdeGebieden)
 		{
-			verdelingToChange = getVerdelingToChange(wijziging, verdeling);
-			if (verdelingToChange != null)
+			var koppelingen = gebied.getVerdeling();
+			var totaalAdherentie = koppelingen.stream().map(ColoscopieCentrumColonCapaciteitVerdeling::getPercentageAdherentie).reduce(0, Integer::sum);
+			var aantalVerdelingen = koppelingen.size();
+			if ((aantalVerdelingen > 0 || totaalAdherentie > 0) && (aantalVerdelingen == 0 || totaalAdherentie < 10000))
+			{
+				melding += "<br>" + gebied.getNaam() + ": " + PercentageUtil.percentageToString(totaalAdherentie);
+			}
+		}
+		if (!melding.isEmpty())
+		{
+			melding = "<br>Uitnodigingsgebieden minder dan 100% (>0 koppelingen) of meer dan 0% (0 koppelingen) adherentie:" + melding;
+		}
+		return melding;
+	}
+
+	private ColoscopieCentrumColonCapaciteitVerdeling getKoppelingToChange(CapaciteitsPercWijziging wijziging, UitnodigingsGebied uitnodigingsgebied)
+	{
+		ColoscopieCentrumColonCapaciteitVerdeling koppelingToChange = null;
+		main:
+		for (var koppeling : uitnodigingsgebied.getVerdeling())
+		{
+			koppelingToChange = getKoppelingToChange(wijziging, koppeling);
+			if (koppelingToChange != null)
 			{
 				break;
 			}
-			for (ColoscopieCentrumColonCapaciteitVerdeling innerVerdeling : verdeling.getColoscopieCentrum().getCapaciteitVerdeling())
+			for (var innerKoppeling : koppeling.getColoscopieCentrum().getCapaciteitVerdeling())
 			{
-				verdelingToChange = getVerdelingToChange(wijziging, innerVerdeling);
-				if (verdelingToChange != null)
+				koppelingToChange = getKoppelingToChange(wijziging, innerKoppeling);
+				if (koppelingToChange != null)
 				{
 					break main;
 				}
 			}
 		}
-		return verdelingToChange;
+		return koppelingToChange;
 	}
 
-	private ColoscopieCentrumColonCapaciteitVerdeling getVerdelingToChange(CapaciteitsPercWijziging wijziging, ColoscopieCentrumColonCapaciteitVerdeling verdeling)
+	private ColoscopieCentrumColonCapaciteitVerdeling getKoppelingToChange(CapaciteitsPercWijziging wijziging, ColoscopieCentrumColonCapaciteitVerdeling koppeling)
 	{
-		ColoscopieCentrumColonCapaciteitVerdeling verdelingToChange = null;
-		if (verdeling.getId() != null)
+		ColoscopieCentrumColonCapaciteitVerdeling koppelingToChange = null;
+		if (koppeling.getId() != null)
 		{
-			if (verdeling.getId().equals(wijziging.getIlUgId()))
+			if (koppeling.getId().equals(wijziging.getIlUgId()))
 			{
-				verdelingToChange = verdeling;
+				koppelingToChange = koppeling;
 			}
 		}
-		else if (verdeling.getUitnodigingsGebied().getId().equals(wijziging.getUgId()) && verdeling.getColoscopieCentrum().getId().equals(wijziging.getIlId()))
+		else if (koppeling.getUitnodigingsGebied().getId().equals(wijziging.getUgId()) && koppeling.getColoscopieCentrum().getId().equals(wijziging.getIlId()))
 		{
-			verdelingToChange = verdeling;
+			koppelingToChange = koppeling;
 		}
-		return verdelingToChange;
+		return koppelingToChange;
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void wijzigingenDoorvoeren(ColoscopieCentrum intakelocatie, List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeItems,
-		List<CapaciteitsPercWijziging> capaciteitsPercWijzigingen, InstellingGebruiker ingelogdeGebruiker)
+	public void wijzigingenDoorvoeren(ColoscopieCentrum intakelocatie, List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeKoppelingen,
+		List<CapaciteitsPercWijziging> wijzigingen, InstellingGebruiker ingelogdeGebruiker)
 	{
-		String melding = "";
-		String adherentieMelding = "Verdeling gewijzigd voor intakelocatie: " + intakelocatie.getNaam() + "<br>";
-		for (CapaciteitsPercWijziging wijziging : capaciteitsPercWijzigingen)
+		var melding = "";
+		var adherentieMelding = "Verdeling gewijzigd voor intakelocatie: " + intakelocatie.getNaam() + "<br>";
+		var uitnodigingsGebiedenTeControlerenOpAdherentie = new HashSet<UitnodigingsGebied>();
+		for (var wijziging : wijzigingen)
 		{
-			ColoscopieCentrumColonCapaciteitVerdeling verdelingToChange = null;
-			for (ColoscopieCentrumColonCapaciteitVerdeling verdeling : intakelocatie.getCapaciteitVerdeling())
+			ColoscopieCentrumColonCapaciteitVerdeling koppelingToChange = null;
+			for (var koppeling : intakelocatie.getCapaciteitVerdeling())
 			{
-				verdelingToChange = getVerdelingToChange(wijziging, verdeling);
+				koppelingToChange = getKoppelingToChange(wijziging, koppeling);
 
-				if (verdelingToChange == null)
+				if (koppelingToChange == null)
 				{
-					verdelingToChange = getVerdelingToChange(wijziging, verdeling.getUitnodigingsGebied());
+					koppelingToChange = getKoppelingToChange(wijziging, koppeling.getUitnodigingsGebied());
 				}
-				if (verdelingToChange != null)
+				if (koppelingToChange != null)
 				{
-					if (verwijderdeItems.contains(verdelingToChange))
+					if (verwijderdeKoppelingen.contains(koppelingToChange))
 					{
-						verdelingToChange = null;
+						koppelingToChange = null;
 					}
 					break;
 				}
 			}
-			if (verdelingToChange != null)
+			if (koppelingToChange != null)
 			{
-				if (wijziging.getNieuwCapPer().compareTo(verdelingToChange.getPercentageCapaciteit()) != 0)
-				{
-					melding += "Capaciteit: " + verdelingToChange.getUitnodigingsGebied().getNaam() + "/" + verdelingToChange.getColoscopieCentrum().getNaam() + ": "
-						+ PercentageUtil.percentageToString(verdelingToChange.getPercentageCapaciteit()) + "->";
-
-					verdelingToChange.setPercentageCapaciteit(wijziging.getNieuwCapPer());
-
-					melding += PercentageUtil.percentageToString(verdelingToChange.getPercentageCapaciteit());
-					if (verdelingToChange.getId() == null)
-					{
-						melding += "(nieuw)";
-					}
-					melding += "<br>";
-				}
-				if (wijziging.getNieuwAdhPer().compareTo(verdelingToChange.getPercentageAdherentie()) != 0)
-				{
-					melding += "Adherentie: " + verdelingToChange.getUitnodigingsGebied().getNaam() + "/" + verdelingToChange.getColoscopieCentrum().getNaam() + ": "
-						+ PercentageUtil.percentageToString(verdelingToChange.getPercentageAdherentie()) + "->";
-
-					verdelingToChange.setPercentageAdherentie(wijziging.getNieuwAdhPer());
-
-					melding += PercentageUtil.percentageToString(verdelingToChange.getPercentageAdherentie());
-					if (verdelingToChange.getId() == null)
-					{
-						melding += "(nieuw)";
-					}
-					melding += "<br>";
-				}
-				hibernateService.saveOrUpdate(verdelingToChange);
+				melding = wijzigKoppeling(koppelingToChange, wijziging, melding);
+				uitnodigingsGebiedenTeControlerenOpAdherentie.add(koppelingToChange.getUitnodigingsGebied());
 			}
 		}
 
 		hibernateService.saveOrUpdate(intakelocatie);
 		hibernateService.getHibernateSession().flush();
 
-		for (ColoscopieCentrumColonCapaciteitVerdeling verwijderdeItem : verwijderdeItems)
+		for (var verwijderdeKoppeling : verwijderdeKoppelingen)
 		{
-			melding += verwijderdeItem.getUitnodigingsGebied().getNaam() + "/" + verwijderdeItem.getColoscopieCentrum().getNaam() + " verwijderd";
-			UitnodigingsGebied uitnodigingsGebied = verwijderdeItem.getUitnodigingsGebied();
-			intakelocatie.getCapaciteitVerdeling().remove(verwijderdeItem);
+			var uitnodigingsGebied = verwijderdeKoppeling.getUitnodigingsGebied();
+			melding += uitnodigingsGebied.getNaam() + "/" + verwijderdeKoppeling.getColoscopieCentrum().getNaam() + " verwijderd";
+			intakelocatie.getCapaciteitVerdeling().remove(verwijderdeKoppeling);
 			hibernateService.saveOrUpdate(intakelocatie);
-			uitnodigingsGebied.getVerdeling().remove(verwijderdeItem);
-			hibernateService.delete(verwijderdeItem);
+			uitnodigingsGebied.getVerdeling().remove(verwijderdeKoppeling);
+			hibernateService.delete(verwijderdeKoppeling);
 			hibernateService.saveOrUpdate(uitnodigingsGebied);
+			uitnodigingsGebiedenTeControlerenOpAdherentie.add(uitnodigingsGebied);
 		}
 
 		logService.logGebeurtenis(LogGebeurtenis.ADHERENTIE_AANEGEPAST, ingelogdeGebruiker, adherentieMelding + melding, Bevolkingsonderzoek.COLON);
 		hibernateService.getHibernateSession().flush();
+		uitnodigingsGebiedenTeControlerenOpAdherentie.forEach(ug ->
+		{
+			var validatieMelding = valideerAdherentieVanGewijzigdeGebieden(Set.of(ug));
+			if (StringUtils.isNotBlank(validatieMelding))
+			{
+				throw new IllegalStateException(validatieMelding);
+			}
+		});
+	}
+
+	private String wijzigKoppeling(ColoscopieCentrumColonCapaciteitVerdeling koppelingToChange, CapaciteitsPercWijziging wijziging, String melding)
+	{
+		var uitnodigingsGebied = koppelingToChange.getUitnodigingsGebied();
+		var intakelocatieNaam = koppelingToChange.getColoscopieCentrum().getNaam();
+		var oudeCapaciteitPer = koppelingToChange.getPercentageCapaciteit();
+		if (wijziging.getNieuwCapPer().compareTo(oudeCapaciteitPer) != 0)
+		{
+			melding += "Capaciteit: " + uitnodigingsGebied.getNaam() + "/" + intakelocatieNaam + ": " + PercentageUtil.percentageToString(oudeCapaciteitPer) + "->";
+
+			koppelingToChange.setPercentageCapaciteit(wijziging.getNieuwCapPer());
+
+			melding = voegPercentageToeAanMelding(melding, koppelingToChange, oudeCapaciteitPer);
+		}
+		var oudeAdherentiePer = koppelingToChange.getPercentageAdherentie();
+		if (wijziging.getNieuwAdhPer().compareTo(oudeAdherentiePer) != 0)
+		{
+			melding += "Adherentie: " + uitnodigingsGebied.getNaam() + "/" + intakelocatieNaam + ": " + PercentageUtil.percentageToString(oudeAdherentiePer) + "->";
+
+			koppelingToChange.setPercentageAdherentie(wijziging.getNieuwAdhPer());
+
+			melding = voegPercentageToeAanMelding(melding, koppelingToChange, oudeAdherentiePer);
+		}
+		hibernateService.saveOrUpdate(koppelingToChange);
+		return melding;
+	}
+
+	@NotNull
+	private static String voegPercentageToeAanMelding(String melding, ColoscopieCentrumColonCapaciteitVerdeling koppelingToChange, Integer percentage)
+	{
+		melding += PercentageUtil.percentageToString(percentage);
+		if (koppelingToChange.getId() == null)
+		{
+			melding += "(nieuw)";
+		}
+		melding += "<br>";
+		return melding;
 	}
 
 	@Override
-	public List<CapaciteitsPercWijziging> bepaalCapaciteitsWijzigingen(ColoscopieCentrum intakelocatieMain, Map<String, Integer> newAdherentiePercentages,
-		List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeItems)
+	public List<CapaciteitsPercWijziging> bepaalCapaciteitsWijzigingen(ColoscopieCentrum intakelocatie, Map<String, Integer> nieuweAdherentiePercentages,
+		List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeKoppelingen)
 	{
-		List<CapaciteitsPercWijziging> capaciteitsWijzigingen = new ArrayList<>();
+		var wijzigingen = new ArrayList<CapaciteitsPercWijziging>();
 
-		Map<Long, BigDecimal> benodigdeIntakecapaciteiten = new HashMap<>();
+		var benodigdeIntakecapaciteiten = new HashMap<Long, BigDecimal>();
 
-		Integer percLandelijkIfobtRetour = simplePreferenceService.getInteger(PreferenceKey.PERCENTAGEIFOBTRETOUR.name());
-		if (percLandelijkIfobtRetour == null)
+		var eenGebied = intakelocatie.getCapaciteitVerdeling().size() == 1
+			&& intakelocatie.getCapaciteitVerdeling().get(0).getUitnodigingsGebied().getVerdeling().size() == 1;
+		var onzichtbareAdherentieWijzigingen = new ArrayList<String>();
+
+		for (var koppelingMetGebied : intakelocatie.getCapaciteitVerdeling())
 		{
-			throw new IllegalStateException("Landelijk IfobtRetourPercentage is niet gezet");
-		}
+			var nieuweAdherentie = getAdherentiePercentage(koppelingMetGebied, verwijderdeKoppelingen, nieuweAdherentiePercentages);
 
-		Integer percLandelijkIfobtOngunstige = simplePreferenceService.getInteger(PreferenceKey.PERCENTGAGEIFOBTONGUSTIG.name());
-		if (percLandelijkIfobtOngunstige == null)
-		{
-			throw new IllegalStateException("Landelijk IfobtOngunstigePercentage is niet gezet");
-		}
-
-		boolean eenGebied = intakelocatieMain.getCapaciteitVerdeling().size() == 1
-			&& intakelocatieMain.getCapaciteitVerdeling().get(0).getUitnodigingsGebied().getVerdeling().size() == 1;
-		List<String> invisibleAdherentieChanges = new ArrayList<>();
-
-		for (ColoscopieCentrumColonCapaciteitVerdeling verdelingIntakelocatie : intakelocatieMain.getCapaciteitVerdeling())
-		{
-			Integer adherentie = getAdherentiePercentage(newAdherentiePercentages, verwijderdeItems, verdelingIntakelocatie);
-
-			if (eenGebied && !adherentie.equals(Integer.valueOf(10000)) && !adherentie.equals(Integer.valueOf(0)))
+			if (eenGebied && nieuweAdherentie != 10000 && nieuweAdherentie != 0)
 			{
 				throw new IllegalStateException("error.totaal.adherentie.niet.100.of.0.procent");
 			}
-			Integer adherentieVerschil = verdelingIntakelocatie.getPercentageAdherentie() - adherentie;
-			if (!adherentieVerschil.equals(Integer.valueOf(0)))
+			var adherentieVerschil = koppelingMetGebied.getPercentageAdherentie() - nieuweAdherentie;
+			if (adherentieVerschil != 0)
 			{
-				UitnodigingsGebied uitnodigingsGebied = verdelingIntakelocatie.getUitnodigingsGebied();
-
-				Integer totaalAdherentie = Integer.valueOf(0);
-				for (ColoscopieCentrumColonCapaciteitVerdeling subSubverdeling : uitnodigingsGebied.getVerdeling())
-				{
-					if (!intakelocatieMain.equals(subSubverdeling.getColoscopieCentrum()))
-					{
-						totaalAdherentie += subSubverdeling.getPercentageAdherentie();
-					}
-				}
-				if (totaalAdherentie.equals(Integer.valueOf(0)) && !adherentieVerschil.equals(Integer.valueOf(-10000)))
-				{
-					throw new IllegalStateException("error.adherentie.kan.niet.verdelen," + uitnodigingsGebied.getNaam());
-				}
-				for (ColoscopieCentrumColonCapaciteitVerdeling subSubverdeling : uitnodigingsGebied.getVerdeling())
-				{
-					if (!intakelocatieMain.equals(subSubverdeling.getColoscopieCentrum()))
-					{
-						Integer huidigeAdherentiePercentage = getAdherentiePercentage(newAdherentiePercentages, verwijderdeItems, subSubverdeling);
-						BigDecimal newAdherentie = BigDecimal.valueOf(huidigeAdherentiePercentage).add(BigDecimal.valueOf(huidigeAdherentiePercentage)
-							.multiply(BigDecimal.valueOf(adherentieVerschil)).divide(BigDecimal.valueOf(totaalAdherentie), RoundingMode.HALF_UP));
-						newAdherentiePercentages.put(ColonRestrictions.getUniekIdOf(subSubverdeling), newAdherentie.intValue());
-						invisibleAdherentieChanges.add(ColonRestrictions.getUniekIdOf(subSubverdeling));
-					}
-				}
-				for (ColoscopieCentrumColonCapaciteitVerdeling subVerdeling : uitnodigingsGebied.getVerdeling())
-				{
-					ColoscopieCentrum intakelocatieSub = subVerdeling.getColoscopieCentrum();
-
-					berekenVerschil(newAdherentiePercentages, verwijderdeItems, capaciteitsWijzigingen, benodigdeIntakecapaciteiten, percLandelijkIfobtRetour,
-						percLandelijkIfobtOngunstige, intakelocatieSub.getCapaciteitVerdeling());
-				}
+				var uitnodigingsGebied = koppelingMetGebied.getUitnodigingsGebied();
+				herberekenAdherentieVoorAndereIntakelocaties(intakelocatie, nieuweAdherentiePercentages, verwijderdeKoppelingen, wijzigingen,
+					benodigdeIntakecapaciteiten, onzichtbareAdherentieWijzigingen, adherentieVerschil, uitnodigingsGebied);
 			}
 		}
 
-		if (capaciteitsWijzigingen.isEmpty())
+		if (wijzigingen.isEmpty())
 		{
 			throw new IllegalStateException("error.adherentie.geen.wijzigingen");
 		}
 
-		Collections.sort(capaciteitsWijzigingen, new Comparator<CapaciteitsPercWijziging>()
+		Collections.sort(wijzigingen, Comparator.comparing(CapaciteitsPercWijziging::getUitnodigingsgebied).thenComparing(CapaciteitsPercWijziging::getIntakelocatie));
+		for (String onzichtbareAdherentieWijziging : onzichtbareAdherentieWijzigingen)
 		{
-			@Override
-			public int compare(CapaciteitsPercWijziging o1, CapaciteitsPercWijziging o2)
-			{
-				int result = o1.getUitnodigingsgebied().compareTo(o2.getUitnodigingsgebied());
-				if (result == 0)
-				{
-					result = o1.getIntakelocatie().compareTo(o2.getIntakelocatie());
-				}
-				return result;
-			}
-
-		});
-		for (String invisibleAdherentie : invisibleAdherentieChanges)
-		{
-			newAdherentiePercentages.remove(invisibleAdherentie);
+			nieuweAdherentiePercentages.remove(onzichtbareAdherentieWijziging);
 		}
-		return capaciteitsWijzigingen;
+		return wijzigingen;
 	}
 
-	private Integer getAdherentiePercentage(Map<String, Integer> newAdherentiePercentages, List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeItems,
-		ColoscopieCentrumColonCapaciteitVerdeling verdelingIntakelocatie)
+	private void herberekenAdherentieVoorAndereIntakelocaties(ColoscopieCentrum intakelocatieRoot, Map<String, Integer> nieuweAdherentiePercentages,
+		List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeKoppelingen, List<CapaciteitsPercWijziging> wijzigingen,
+		Map<Long, BigDecimal> benodigdeIntakecapaciteiten, List<String> onzichtbareAdherentieWijzigingen, int adherentieVerschil, UitnodigingsGebied uitnodigingsGebied)
 	{
-		Integer adherentie = newAdherentiePercentages.get(ColonRestrictions.getUniekIdOf(verdelingIntakelocatie));
-		if (adherentie == null)
+		var totaalOverigeAdherentie = bepaalAdherentieVanAndereIntakelocaties(intakelocatieRoot, adherentieVerschil, uitnodigingsGebied);
+		var nieuwTotaalAdherentieGewijzigdGebied = 0;
+		for (var koppelingNaarAndereIntakelocatie : uitnodigingsGebied.getVerdeling())
 		{
-			adherentie = verdelingIntakelocatie.getPercentageAdherentie();
+			if (!intakelocatieRoot.equals(koppelingNaarAndereIntakelocatie.getColoscopieCentrum()))
+			{
+				var huidigeAdherentiePercentage = getAdherentiePercentage(koppelingNaarAndereIntakelocatie, verwijderdeKoppelingen, nieuweAdherentiePercentages);
+				var nieuweAdherentiePercentage = BigDecimal.valueOf(huidigeAdherentiePercentage).add(BigDecimal.valueOf(huidigeAdherentiePercentage)
+					.multiply(BigDecimal.valueOf(adherentieVerschil)).divide(BigDecimal.valueOf(totaalOverigeAdherentie), RoundingMode.HALF_UP));
+				var uniekIdOfKoppelingAndereIntakelocatie = ColonRestrictions.getUniekIdOf(koppelingNaarAndereIntakelocatie);
+				nieuweAdherentiePercentages.put(uniekIdOfKoppelingAndereIntakelocatie, nieuweAdherentiePercentage.intValue());
+				onzichtbareAdherentieWijzigingen.add(uniekIdOfKoppelingAndereIntakelocatie);
+				nieuwTotaalAdherentieGewijzigdGebied += nieuweAdherentiePercentage.intValue();
+			}
+			else
+			{
+				nieuwTotaalAdherentieGewijzigdGebied += getAdherentiePercentage(koppelingNaarAndereIntakelocatie, verwijderdeKoppelingen, nieuweAdherentiePercentages);
+			}
 		}
-		if (verwijderdeItems.contains(verdelingIntakelocatie))
+		corrigeerAdherentie(nieuweAdherentiePercentages, verwijderdeKoppelingen, uitnodigingsGebied, nieuwTotaalAdherentieGewijzigdGebied);
+		uitnodigingsGebied.getVerdeling().forEach(koppelingNaarIntakelocatie ->
+			bepaalWijzigingen(nieuweAdherentiePercentages, verwijderdeKoppelingen, wijzigingen, benodigdeIntakecapaciteiten,
+				koppelingNaarIntakelocatie.getColoscopieCentrum().getCapaciteitVerdeling()));
+	}
+
+	private void corrigeerAdherentie(Map<String, Integer> nieuweAdherentiePercentages, List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeKoppelingen,
+		UitnodigingsGebied uitnodigingsGebied, int nieuwTotaalAdherentieGewijzigdGebied)
+	{
+		if (nieuwTotaalAdherentieGewijzigdGebied != 0 && nieuwTotaalAdherentieGewijzigdGebied != 10000)
 		{
-			adherentie = 0;
+			var afwijking = 10000 - nieuwTotaalAdherentieGewijzigdGebied;
+			var koppelingMetHoogsteAdherentieOptional = uitnodigingsGebied.getVerdeling().stream()
+				.max(Comparator.comparing(koppeling -> getAdherentiePercentage(koppeling, verwijderdeKoppelingen, nieuweAdherentiePercentages)));
+			koppelingMetHoogsteAdherentieOptional.ifPresent(
+				koppeling -> nieuweAdherentiePercentages.put(ColonRestrictions.getUniekIdOf(koppeling),
+					getAdherentiePercentage(koppeling, verwijderdeKoppelingen, nieuweAdherentiePercentages) + afwijking));
+		}
+	}
+
+	private static int bepaalAdherentieVanAndereIntakelocaties(ColoscopieCentrum intakelocatieRoot, int adherentieVerschil, UitnodigingsGebied uitnodigingsGebied)
+	{
+		var totaalAdherentie = 0;
+		for (var koppelingAndereIntakelocatie : uitnodigingsGebied.getVerdeling())
+		{
+			if (!intakelocatieRoot.equals(koppelingAndereIntakelocatie.getColoscopieCentrum()))
+			{
+				totaalAdherentie += koppelingAndereIntakelocatie.getPercentageAdherentie();
+			}
+		}
+		if (totaalAdherentie == 0 && adherentieVerschil != -10000)
+		{
+			throw new IllegalStateException("error.adherentie.kan.niet.verdelen," + uitnodigingsGebied.getNaam());
+		}
+		LOG.info("Totaal overige adherentie in UG '{}' (behalve voor IL '{}'): {}", uitnodigingsGebied.getNaam(), intakelocatieRoot.getNaam(), totaalAdherentie);
+		return totaalAdherentie;
+	}
+
+	private Integer getAdherentiePercentage(ColoscopieCentrumColonCapaciteitVerdeling koppeling,
+		List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeVerdelingen, Map<String, Integer> nieuweAdherentiePercentages)
+	{
+		Integer adherentie = 0;
+		if (!verwijderdeVerdelingen.contains(koppeling))
+		{
+			adherentie = nieuweAdherentiePercentages.get(ColonRestrictions.getUniekIdOf(koppeling));
+			if (adherentie == null)
+			{
+				adherentie = koppeling.getPercentageAdherentie();
+			}
 		}
 		return adherentie;
 	}
 
-	private void berekenVerschil(Map<String, Integer> newAdherentiePercentages, List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeItems,
-		List<CapaciteitsPercWijziging> capaciteitsWijzigingen, Map<Long, BigDecimal> benodigdeIntakecapaciteiten, Integer percLandelijkIfobtRetour,
-		Integer percLandelijkIfobtOngunstige, List<ColoscopieCentrumColonCapaciteitVerdeling> verdeling)
+	private void bepaalWijzigingen(Map<String, Integer> nieuweAdherentiePercentages, List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeKoppelingen,
+		List<CapaciteitsPercWijziging> wijzigingen, Map<Long, BigDecimal> benodigdeIntakecapaciteiten, List<ColoscopieCentrumColonCapaciteitVerdeling> koppelingen)
 	{
-		Map<Long, BigDecimal> benodigdeIntakecapaciteitenInLocatie = new HashMap<>();
-		BigDecimal totaalIntakecapaciteitIntakelocatie = BigDecimal.ZERO;
-		for (ColoscopieCentrumColonCapaciteitVerdeling subVerdeling : verdeling)
+		var benodigdeIntakecapaciteitenPerGebied = new HashMap<Long, BigDecimal>();
+		var totaalIntakecapaciteitIntakelocatie = BigDecimal.ZERO;
+		for (var koppeling : koppelingen)
 		{
-			Integer adherentie = getAdherentiePercentage(newAdherentiePercentages, verwijderdeItems, subVerdeling);
-			BigDecimal berekendeBenodigdeIntakecapaciteitVoorGebied = berekenBenodigdeIntakecapaciteitVoorGebied(subVerdeling.getUitnodigingsGebied(), adherentie,
-				benodigdeIntakecapaciteiten, percLandelijkIfobtRetour, percLandelijkIfobtOngunstige);
+			var adherentie = getAdherentiePercentage(koppeling, verwijderdeKoppelingen, nieuweAdherentiePercentages);
+			var berekendeBenodigdeIntakecapaciteitVoorGebied = berekenBenodigdeIntakecapaciteitVoorGebied(koppeling.getUitnodigingsGebied(), adherentie,
+				benodigdeIntakecapaciteiten);
 			totaalIntakecapaciteitIntakelocatie = totaalIntakecapaciteitIntakelocatie.add(berekendeBenodigdeIntakecapaciteitVoorGebied);
-			benodigdeIntakecapaciteitenInLocatie.put(subVerdeling.getUitnodigingsGebied().getId(), berekendeBenodigdeIntakecapaciteitVoorGebied);
+			benodigdeIntakecapaciteitenPerGebied.put(koppeling.getUitnodigingsGebied().getId(), berekendeBenodigdeIntakecapaciteitVoorGebied);
 		}
 
-		for (ColoscopieCentrumColonCapaciteitVerdeling subVerdeling : verdeling)
+		for (var koppeling : koppelingen)
 		{
-			CapaciteitsPercWijziging wijziging = new CapaciteitsPercWijziging();
-			wijziging.setIlUgId(subVerdeling.getId());
-			wijziging.setUgId(subVerdeling.getUitnodigingsGebied().getId());
-			wijziging.setUitnodigingsgebied(subVerdeling.getUitnodigingsGebied().getNaam());
-			ColoscopieCentrum subIntakelocatie = subVerdeling.getColoscopieCentrum();
-			wijziging.setIlId(subIntakelocatie.getId());
-			wijziging.setIntakelocatie(subIntakelocatie.getNaam());
-			wijziging.setOudCapPer(subVerdeling.getPercentageCapaciteit());
+			var intakelocatie = koppeling.getColoscopieCentrum();
+			var uitnodigingsGebied = koppeling.getUitnodigingsGebied();
 
-			wijziging.setOudBerekendeIntakes(berekenBenodigdeIntakecapaciteitVoorGebied(subVerdeling.getUitnodigingsGebied(), subVerdeling.getPercentageAdherentie(),
-				benodigdeIntakecapaciteiten, percLandelijkIfobtRetour, percLandelijkIfobtOngunstige));
+			var wijziging = new CapaciteitsPercWijziging();
+			wijziging.setIlUgId(koppeling.getId());
+			wijziging.setUgId(uitnodigingsGebied.getId());
+			wijziging.setUitnodigingsgebied(uitnodigingsGebied.getNaam());
+			wijziging.setIlId(intakelocatie.getId());
+			wijziging.setIntakelocatie(intakelocatie.getNaam());
+			wijziging.setOudCapPer(koppeling.getPercentageCapaciteit());
 
-			BigDecimal berekendeBenodigdeIntakecapaciteitVoorGebied = benodigdeIntakecapaciteitenInLocatie.get(subVerdeling.getUitnodigingsGebied().getId());
+			wijziging.setOudBerekendeIntakes(berekenBenodigdeIntakecapaciteitVoorGebied(uitnodigingsGebied, koppeling.getPercentageAdherentie(),
+				benodigdeIntakecapaciteiten));
 
-			BigDecimal nieuweCapaciteitspercentage = BigDecimal.ZERO;
+			var berekendeBenodigdeIntakecapaciteitVoorGebied = benodigdeIntakecapaciteitenPerGebied.get(uitnodigingsGebied.getId());
+
+			var nieuweCapaciteitspercentage = BigDecimal.ZERO;
 			if (totaalIntakecapaciteitIntakelocatie.compareTo(BigDecimal.ZERO) > 0)
 			{
 				nieuweCapaciteitspercentage = berekendeBenodigdeIntakecapaciteitVoorGebied.multiply(BigDecimal.valueOf(10000)).divide(totaalIntakecapaciteitIntakelocatie, 4,
@@ -575,27 +586,34 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 
 			wijziging.setNieuwCapPer(nieuweCapaciteitspercentage.intValue());
 			wijziging.setNieuwBerekendeIntakes(berekendeBenodigdeIntakecapaciteitVoorGebied);
-			wijziging.setOudAdhPer(subVerdeling.getPercentageAdherentie());
-			wijziging.setNieuwAdhPer(getAdherentiePercentage(newAdherentiePercentages, verwijderdeItems, subVerdeling));
-			Integer aantalGeprognostiseerdeRoosterblokken = subIntakelocatie.getAantalGeprognostiseerdeRoosterblokken();
+			wijziging.setOudAdhPer(koppeling.getPercentageAdherentie());
+			wijziging.setNieuwAdhPer(getAdherentiePercentage(koppeling, verwijderdeKoppelingen, nieuweAdherentiePercentages));
+			Integer aantalGeprognostiseerdeRoosterblokken = intakelocatie.getAantalGeprognostiseerdeRoosterblokken();
 			if (aantalGeprognostiseerdeRoosterblokken != null)
 			{
-
-				DateTime nu = currentDateSupplier.getDateTimeMidnight();
-				DateTime startYear = nu.withDayOfYear(1);
-				int daysInCurYear = Days.daysBetween(startYear, startYear.plusYears(1)).getDays();
-				int restDaysInCurYear = Days.daysBetween(nu, startYear.plusYears(1)).getDays();
-				BigDecimal prognose = new BigDecimal(aantalGeprognostiseerdeRoosterblokken).multiply(new BigDecimal(restDaysInCurYear)).divide(new BigDecimal(daysInCurYear), 2,
-					RoundingMode.HALF_UP);
+				var prognoseVanRestVanJaar = bepaalPrognoseVoorRestVanJaar(aantalGeprognostiseerdeRoosterblokken);
 
 				wijziging
-					.setOudIntakesProg(prognose.multiply(BigDecimal.valueOf(subVerdeling.getPercentageCapaciteit())).divide(BigDecimal.valueOf(10000), 2, RoundingMode.HALF_UP));
-				wijziging.setNieuwIntakesProg(prognose.multiply(nieuweCapaciteitspercentage).divide(BigDecimal.valueOf(10000), 2, RoundingMode.HALF_UP));
+					.setOudIntakesProg(
+						prognoseVanRestVanJaar.multiply(BigDecimal.valueOf(koppeling.getPercentageCapaciteit())).divide(BigDecimal.valueOf(10000), 2, RoundingMode.HALF_UP));
+				wijziging.setNieuwIntakesProg(prognoseVanRestVanJaar.multiply(nieuweCapaciteitspercentage).divide(BigDecimal.valueOf(10000), 2, RoundingMode.HALF_UP));
 			}
 
-			capaciteitsWijzigingen.remove(wijziging);
-			capaciteitsWijzigingen.add(wijziging);
+			wijzigingen.remove(wijziging);
+			wijzigingen.add(wijziging);
 		}
+		wijzigingen.forEach(w -> LOG.info(ToStringBuilder.reflectionToString(w, ToStringStyle.SHORT_PREFIX_STYLE)));
+	}
+
+	@NotNull
+	private BigDecimal bepaalPrognoseVoorRestVanJaar(Integer aantalGeprognostiseerdeRoosterblokken)
+	{
+		var vandaag = currentDateSupplier.getLocalDate();
+		var eersteDagVanHuidigJaar = vandaag.with(TemporalAdjusters.firstDayOfYear());
+		var aantalDagenInHuidigJaar = DateUtil.getPeriodeTussenTweeDatums(eersteDagVanHuidigJaar, eersteDagVanHuidigJaar.plusYears(1), ChronoUnit.DAYS);
+		var aantalResterendeDagenInHuidigJaar = DateUtil.getPeriodeTussenTweeDatums(vandaag, eersteDagVanHuidigJaar.plusYears(1), ChronoUnit.DAYS);
+		return new BigDecimal(aantalGeprognostiseerdeRoosterblokken).multiply(new BigDecimal(aantalResterendeDagenInHuidigJaar))
+			.divide(new BigDecimal(aantalDagenInHuidigJaar), 2, RoundingMode.HALF_UP);
 	}
 
 	@Override

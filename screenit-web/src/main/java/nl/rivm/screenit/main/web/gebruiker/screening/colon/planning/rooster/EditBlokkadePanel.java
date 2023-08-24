@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.rooster;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,15 +21,14 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.rooster;
  * =========================LICENSE_END==================================
  */
 
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.TimeZone;
 
-import nl.rivm.screenit.dao.colon.AfspraakDefinitieDao;
 import nl.rivm.screenit.main.model.RecurrenceOption;
-import nl.rivm.screenit.main.service.colon.RoosterService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
@@ -47,7 +46,6 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.planning.model.appointment.recurrence.AbstractRecurrence;
 import nl.topicuszorg.wicket.planning.model.appointment.recurrence.NoRecurrence;
-import nl.topicuszorg.wicket.planning.services.ScheduleService;
 import nl.topicuszorg.wicket.planning.web.component.DatePickerHelper;
 import nl.topicuszorg.wicket.planning.web.component.DateTimeField;
 import nl.topicuszorg.wicket.planning.web.component.TimeField;
@@ -75,24 +73,12 @@ import org.hibernate.Hibernate;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeFieldType;
 import org.joda.time.DateTimeZone;
-import org.joda.time.LocalDate;
 import org.joda.time.MutableDateTime;
 import org.wicketstuff.wiquery.ui.datepicker.DateOption;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
 public abstract class EditBlokkadePanel extends AbstractEditTijdSlotPanel<ColonBlokkade>
 {
-
-	private static final long serialVersionUID = 1L;
-
-	@SpringBean
-	private ScheduleService scheduleService;
-
-	@SpringBean
-	private AfspraakDefinitieDao afspraakDefinitieDao;
-
-	@SpringBean
-	private RoosterService roosterService;
 
 	@SpringBean
 	private LogService logService;
@@ -169,9 +155,6 @@ public abstract class EditBlokkadePanel extends AbstractEditTijdSlotPanel<ColonB
 		alleKamersCheckbox.setVisible(isNieuw);
 		alleKamersCheckbox.add(new AjaxFormComponentUpdatingBehavior("change")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
@@ -195,9 +178,6 @@ public abstract class EditBlokkadePanel extends AbstractEditTijdSlotPanel<ColonB
 
 		final TimeField endTimeField = new TimeField("endTime")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void convertInput()
 			{
@@ -243,9 +223,6 @@ public abstract class EditBlokkadePanel extends AbstractEditTijdSlotPanel<ColonB
 		form.add(endTimeField);
 		final ScreenITDateTimeField startTimeField = new ScreenITDateTimeField("startTime")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public String getDatePickerLabel()
 			{
@@ -259,7 +236,7 @@ public abstract class EditBlokkadePanel extends AbstractEditTijdSlotPanel<ColonB
 				Date endTime = form.getModelObject().getEndTime();
 				if (endTime != null && !heleDag.getObject())
 				{
-					form.getModelObject().setEndTime(DateUtil.toUtilDate(DateUtil.toLocalDateTime(startTime).plusMinutes(duurAfspraakInMinuten)));
+					form.getModelObject().setEndTime(DateUtil.plusTijdseenheid(startTime, duurAfspraakInMinuten, ChronoUnit.MINUTES));
 					target.add(endTimeField);
 				}
 
@@ -288,9 +265,6 @@ public abstract class EditBlokkadePanel extends AbstractEditTijdSlotPanel<ColonB
 
 		startTimeField.add(new AjaxFormSubmitBehavior("change")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -376,9 +350,6 @@ public abstract class EditBlokkadePanel extends AbstractEditTijdSlotPanel<ColonB
 		herhalingContainer.setEnabled(magAanpassen);
 		HerhalingPanel herhalingPanel = new HerhalingPanel("herhaling", getRecurrence())
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onChangeHerhalingType(AjaxRequestTarget target, boolean showHerhalingEind)
 			{
@@ -394,9 +365,6 @@ public abstract class EditBlokkadePanel extends AbstractEditTijdSlotPanel<ColonB
 
 		form.add(new AbstractFormValidator()
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void validate(Form<?> form)
 			{
@@ -404,7 +372,7 @@ public abstract class EditBlokkadePanel extends AbstractEditTijdSlotPanel<ColonB
 				if (startDatumTijd != null)
 				{
 					Date herhalingDatum = herhalingDatePicker.getConvertedInput();
-					if (herhalingDatum != null && new LocalDate(herhalingDatum).isBefore(new LocalDate(startDatumTijd)))
+					if (herhalingDatum != null && DateUtil.startDag(herhalingDatum).before(DateUtil.startDag(startDatumTijd)))
 					{
 						form.error(getString("error.herhaling.voor.startdatum"));
 					}
@@ -522,7 +490,7 @@ public abstract class EditBlokkadePanel extends AbstractEditTijdSlotPanel<ColonB
 		if (unsavedObject != null && unsavedObject.getStartTime() != null && unsavedObject.getEndTime() != null)
 		{
 			periodeTekst = DateUtil.formatShortDate(unsavedObject.getStartTime()) + " ";
-			if (!DateUtil.toLocalDate(unsavedObject.getEndTime()).equals(DateUtil.toLocalDate(unsavedObject.getStartTime())))
+			if (!DateUtil.isZelfdeDag(unsavedObject.getEndTime(), unsavedObject.getStartTime()))
 			{
 				periodeTekst += "hele dag";
 			}

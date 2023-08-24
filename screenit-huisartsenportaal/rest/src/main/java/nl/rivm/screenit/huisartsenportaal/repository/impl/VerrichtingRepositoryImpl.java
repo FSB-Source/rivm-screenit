@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal.repository.impl;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ package nl.rivm.screenit.huisartsenportaal.repository.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -41,13 +42,11 @@ import nl.rivm.screenit.huisartsenportaal.model.Locatie;
 import nl.rivm.screenit.huisartsenportaal.model.Locatie_;
 import nl.rivm.screenit.huisartsenportaal.model.Verrichting;
 import nl.rivm.screenit.huisartsenportaal.model.Verrichting_;
-import nl.rivm.screenit.huisartsenportaal.repository.LocatieRepository;
 import nl.rivm.screenit.huisartsenportaal.repository.VerrichtingCriteriaRepository;
+import nl.rivm.screenit.huisartsenportaal.util.DateUtil;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,14 +54,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public class VerrichtingRepositoryImpl extends BaseCustomRepositoryImpl<Verrichting> implements VerrichtingCriteriaRepository
 {
-	@Autowired
-	private LocatieRepository locatieRepository;
 
 	private CriteriaQuery<?> whereVerrichtingen(CriteriaQuery<?> query, Root<Verrichting> verrichtingRoot, Huisarts huisarts,
 		VerrichtingZoekObjectDto object)
 	{
 		CriteriaBuilder cb = getCriteriaBuilder();
-		List<Predicate> condities = new ArrayList<Predicate>();
+		List<Predicate> condities = new ArrayList<>();
 
 		condities.add(cb.equal(verrichtingRoot.get(Verrichting_.huisarts), huisarts));
 
@@ -84,8 +81,8 @@ public class VerrichtingRepositoryImpl extends BaseCustomRepositoryImpl<Verricht
 			}
 			if (filterDto.getVerrichtingsDatumTotenmet() != null)
 			{
-				condities
-					.add(cb.lessThanOrEqualTo(verrichtingRoot.get(Verrichting_.verrichtingsDatum), new DateTime(filterDto.getVerrichtingsDatumTotenmet()).plusDays(1).toDate()));
+				condities.add(cb.lessThanOrEqualTo(verrichtingRoot.get(Verrichting_.verrichtingsDatum),
+					DateUtil.plusTijdseenheid(filterDto.getVerrichtingsDatumTotenmet(), 1, ChronoUnit.DAYS)));
 			}
 			if (filterDto.getDatumUitstrijkje() != null)
 			{

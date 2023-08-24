@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,8 +29,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import nl.rivm.screenit.dao.cervix.CervixHuisartsLocatieDao;
-import nl.rivm.screenit.main.service.MedewerkerService;
-import nl.rivm.screenit.main.service.cervix.CervixHuisartsService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitListMultipleChoice;
@@ -52,10 +50,7 @@ import nl.rivm.screenit.model.cervix.enums.CervixHuisartsLocatieMutatieSoort;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
-import nl.rivm.screenit.security.IScreenitRealm;
 import nl.rivm.screenit.service.AutorisatieService;
-import nl.rivm.screenit.service.LogService;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.SimpleListHibernateModel;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -76,34 +71,15 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.joda.time.DateTime;
+import org.jetbrains.annotations.NotNull;
 import org.wicketstuff.shiro.ShiroConstraint;
-
-import com.google.common.primitives.Ints;
 
 @SecurityConstraint(actie = Actie.INZIEN, checkScope = true, constraint = ShiroConstraint.HasPermission, recht = { Recht.GEBRUIKER_SCREENINGS_ORG_BEHEER,
 	Recht.GEBRUIKER_BMHK_LABORATORIA_BEHEER }, bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX })
 public class GekoppeldeUitstrijkendArtsenPage extends OrganisatieBeheer
 {
 
-	private static final long serialVersionUID = 1L;
-
 	private IModel<List<Gemeente>> gemeentesUitOrganisatie = new SimpleListHibernateModel<>(new ArrayList<>());
-
-	@SpringBean
-	private HibernateService hibernateService;
-
-	@SpringBean
-	private LogService logService;
-
-	@SpringBean
-	private IScreenitRealm realm;
-
-	@SpringBean
-	private MedewerkerService medewerkerService;
-
-	@SpringBean
-	private CervixHuisartsService cervixUitstrijkendArtsService;
 
 	@SpringBean
 	private CervixHuisartsLocatieDao cervixHuisartsLocatieDao;
@@ -144,7 +120,7 @@ public class GekoppeldeUitstrijkendArtsenPage extends OrganisatieBeheer
 		zoekForm.add(new TextField<>("zoekAgbCode", new PropertyModel<>(this, "zoekAgbCode")));
 		zoekForm.add(
 			new ScreenitListMultipleChoice<>("zoekGemeente", new PropertyModel<List<Gemeente>>(this, "zoekGemeente"), gemeentesUitOrganisatie,
-				new ChoiceRenderer<Gemeente>("naam", "code")
+				new ChoiceRenderer<>("naam", "code")
 				{
 					@Override
 					public Object getDisplayValue(Gemeente object)
@@ -152,12 +128,7 @@ public class GekoppeldeUitstrijkendArtsenPage extends OrganisatieBeheer
 						Object gemeente = super.getDisplayValue(object);
 						if (object.getCode() != null)
 						{
-							StringBuilder sb = new StringBuilder();
-							sb.append(gemeente);
-							sb.append(" (");
-							sb.append(object.getCode());
-							sb.append(")");
-							return sb.toString();
+							return gemeente + " (" + object.getCode() + ")";
 						}
 						else
 						{
@@ -166,19 +137,16 @@ public class GekoppeldeUitstrijkendArtsenPage extends OrganisatieBeheer
 					}
 				}));
 
-		ComponentHelper.addTextField(zoekForm, "zoekMutatiedatumVanaf", false, 10, Date.class, false).setModel(new PropertyModel<Date>(this, "zoekMutatiedatumVanaf"));
-		ComponentHelper.addTextField(zoekForm, "zoekMutatiedatumTot", false, 10, Date.class, false).setModel(new PropertyModel<Date>(this, "zoekMutatiedatumTot"));
+		ComponentHelper.addTextField(zoekForm, "zoekMutatiedatumVanaf", false, 10, Date.class, false).setModel(new PropertyModel<>(this, "zoekMutatiedatumVanaf"));
+		ComponentHelper.addTextField(zoekForm, "zoekMutatiedatumTot", false, 10, Date.class, false).setModel(new PropertyModel<>(this, "zoekMutatiedatumTot"));
 		List<CervixHuisartsLocatieMutatieSoort> mutatieSoorten = Arrays.asList(CervixHuisartsLocatieMutatieSoort.values());
 		ScreenitListMultipleChoice<CervixHuisartsLocatieMutatieSoort> multiSoortSelect = new ScreenitListMultipleChoice<CervixHuisartsLocatieMutatieSoort>("mutatiesoort",
 			new PropertyModel<List<CervixHuisartsLocatieMutatieSoort>>(this, "zoekMutatieSoort"),
-			mutatieSoorten, new EnumChoiceRenderer<CervixHuisartsLocatieMutatieSoort>());
+			mutatieSoorten, new EnumChoiceRenderer<>());
 		multiSoortSelect.setRequired(true);
 		zoekForm.add(multiSoortSelect);
 		zoekForm.add(new AjaxSubmitLink("zoeken", zoekForm)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -188,14 +156,14 @@ public class GekoppeldeUitstrijkendArtsenPage extends OrganisatieBeheer
 		});
 
 		List<IColumn<CervixHuisartsLocatie, String>> columns = new ArrayList<IColumn<CervixHuisartsLocatie, String>>();
-		columns.add(new PropertyColumn<CervixHuisartsLocatie, String>(Model.of("Naam"), "huisarts.naam"));
-		columns.add(new PropertyColumn<CervixHuisartsLocatie, String>(Model.of("Naam locatie"), "naam"));
-		columns.add(new PropertyColumn<CervixHuisartsLocatie, String>(Model.of("AGB-code"), "huisarts.agbcode"));
-		columns.add(new PropertyColumn<CervixHuisartsLocatie, String>(Model.of("Locatie id"), "id"));
-		columns.add(new PropertyColumn<CervixHuisartsLocatie, String>(Model.of("Postadres"), "locatieAdres"));
-		columns.add(new PropertyColumn<CervixHuisartsLocatie, String>(Model.of("Plaats"), "locatieAdres.woonplaats.naam"));
-		columns.add(new PropertyColumn<CervixHuisartsLocatie, String>(Model.of("Gemeente"), "locatieAdres.woonplaats.gemeente.naam"));
-		columns.add(new PropertyColumn<CervixHuisartsLocatie, String>(Model.of("Mutatiedatum"), "mutatiedatum", "mutatiedatum")
+		columns.add(new PropertyColumn<>(Model.of("Naam"), "huisarts.naam"));
+		columns.add(new PropertyColumn<>(Model.of("Naam locatie"), "naam"));
+		columns.add(new PropertyColumn<>(Model.of("AGB-code"), "huisarts.agbcode"));
+		columns.add(new PropertyColumn<>(Model.of("Locatie id"), "id"));
+		columns.add(new PropertyColumn<>(Model.of("Postadres"), "locatieAdres"));
+		columns.add(new PropertyColumn<>(Model.of("Plaats"), "locatieAdres.woonplaats.naam"));
+		columns.add(new PropertyColumn<>(Model.of("Gemeente"), "locatieAdres.woonplaats.gemeente.naam"));
+		columns.add(new PropertyColumn<>(Model.of("Mutatiedatum"), "mutatiedatum", "mutatiedatum")
 		{
 			@Override
 			public void populateItem(Item<ICellPopulator<CervixHuisartsLocatie>> item, String componentId, IModel<CervixHuisartsLocatie> rowModel)
@@ -214,20 +182,14 @@ public class GekoppeldeUitstrijkendArtsenPage extends OrganisatieBeheer
 		columns.add(new EnumPropertyColumn<CervixHuisartsLocatie, String, CervixHuisartsLocatieMutatieSoort>(Model.of("Mutatiesoort"), "mutatieSoort", "mutatieSoort"));
 		if (ScreenitSession.get().checkPermission(OrganisatieType.HUISARTS.getRecht(), Actie.INZIEN))
 		{
-			columns.add(new PropertyColumn<CervixHuisartsLocatie, String>(Model.of(""), null)
+			columns.add(new PropertyColumn<>(Model.of(""), null)
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				public void populateItem(Item<ICellPopulator<CervixHuisartsLocatie>> item, String componentId, IModel<CervixHuisartsLocatie> rowModel)
 				{
 					IModel<CervixHuisarts> cervixHuisartsIModel = ModelUtil.cModel(rowModel.getObject().getHuisarts());
-					item.add(new NavigeerNaarCellPanel<CervixHuisarts>(componentId, cervixHuisartsIModel)
+					item.add(new NavigeerNaarCellPanel<>(componentId, cervixHuisartsIModel)
 					{
-
-						private static final long serialVersionUID = 1L;
-
 						@Override
 						protected boolean magNavigerenNaar(IModel<CervixHuisarts> rowModel)
 						{
@@ -247,11 +209,8 @@ public class GekoppeldeUitstrijkendArtsenPage extends OrganisatieBeheer
 		IModel<String> totaalLabel = new Model<>("BMHK arts(en)");
 
 		ScreenitDataTable<CervixHuisartsLocatie, String> dataTable = new ScreenitDataTable<CervixHuisartsLocatie, String>("organisaties", columns,
-			new SortableDataProvider<CervixHuisartsLocatie, String>()
+			new SortableDataProvider<>()
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				public Iterator<? extends CervixHuisartsLocatie> iterator(long first, long count)
 				{
@@ -263,60 +222,31 @@ public class GekoppeldeUitstrijkendArtsenPage extends OrganisatieBeheer
 						sortProperty = getSort().getProperty();
 						asc = getSort().isAscending();
 					}
-					Gemeente[] gemeentes = {};
-					if (getZoekGemeente().isEmpty())
-					{
-						List<Gemeente> gemeentesVanOrganisatie = gemeentesUitOrganisatie.getObject();
-						gemeentes = Arrays.copyOf(gemeentesVanOrganisatie.toArray(), gemeentesVanOrganisatie.size(), Gemeente[].class);
-					}
-					else
-					{
-						gemeentes = Arrays.copyOf(getZoekGemeente().toArray(), getZoekGemeente().size(), Gemeente[].class);
-					}
-					DateTime filterMutatiedatumVanaf = null;
-					DateTime filterMutatiedatumTot = null;
-					if (zoekMutatiedatumVanaf != null)
-					{
-						filterMutatiedatumVanaf = new DateTime(zoekMutatiedatumVanaf);
-					}
-					if (zoekMutatiedatumTot != null)
-					{
-						filterMutatiedatumTot = new DateTime(zoekMutatiedatumTot);
-					}
-					Iterator<CervixHuisartsLocatie> cervixHuisartsLocatieIterator = cervixHuisartsLocatieDao
-						.getHuisartsLocaties(Ints.checkedCast(first), Ints.checkedCast(count), sortProperty, asc, zoekAgbCode, zoekMutatieSoort, filterMutatiedatumVanaf,
-							filterMutatiedatumTot,
-							gemeentes)
+					return cervixHuisartsLocatieDao
+						.getHuisartsLocaties(first, count, sortProperty, asc, zoekAgbCode, zoekMutatieSoort, zoekMutatiedatumVanaf, zoekMutatiedatumTot, getGemeentes())
 						.iterator();
-					return cervixHuisartsLocatieIterator;
 				}
 
 				@Override
 				public long size()
 				{
-					List<Gemeente> gemeentesVanOrganisatie = gemeentesUitOrganisatie.getObject();
+					return cervixHuisartsLocatieDao.countHuisartsLocaties(zoekAgbCode, zoekMutatieSoort, zoekMutatiedatumVanaf, zoekMutatiedatumTot, getGemeentes());
 
-					Gemeente[] gemeentes = {};
+				}
+
+				@NotNull
+				private List<Gemeente> getGemeentes()
+				{
+					List<Gemeente> gemeentes = new ArrayList<>();
 					if (getZoekGemeente().isEmpty())
 					{
-						gemeentes = Arrays.copyOf(gemeentesVanOrganisatie.toArray(), gemeentesVanOrganisatie.size(), Gemeente[].class);
+						gemeentes.addAll(gemeentesUitOrganisatie.getObject());
 					}
 					else
 					{
-						gemeentes = Arrays.copyOf(getZoekGemeente().toArray(), getZoekGemeente().size(), Gemeente[].class);
+						gemeentes.addAll(getZoekGemeente());
 					}
-					DateTime filterMutatiedatumVanaf = null;
-					DateTime filterMutatiedatumTot = null;
-					if (zoekMutatiedatumVanaf != null)
-					{
-						filterMutatiedatumVanaf = new DateTime(zoekMutatiedatumVanaf);
-					}
-					if (zoekMutatiedatumTot != null)
-					{
-						filterMutatiedatumTot = new DateTime(zoekMutatiedatumTot);
-					}
-					return cervixHuisartsLocatieDao.countHuisartsLocaties(zoekAgbCode, zoekMutatieSoort, filterMutatiedatumVanaf, filterMutatiedatumTot, gemeentes);
-
+					return gemeentes;
 				}
 
 				@Override

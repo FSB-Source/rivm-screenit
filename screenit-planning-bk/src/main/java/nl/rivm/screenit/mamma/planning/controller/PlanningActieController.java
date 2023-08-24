@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.controller;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,10 +34,10 @@ import nl.rivm.screenit.exceptions.DryRunException;
 import nl.rivm.screenit.exceptions.OpslaanAfsprakenBuitenStandplaatsPeriodeException;
 import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
 import nl.rivm.screenit.exceptions.SeTijdBlokOverlapException;
-import nl.rivm.screenit.mamma.planning.dao.PlanningReadModelDao;
 import nl.rivm.screenit.mamma.planning.index.PlanningScreeningsOrganisatieIndex;
 import nl.rivm.screenit.mamma.planning.index.PlanningStatusIndex;
 import nl.rivm.screenit.mamma.planning.service.PlanningConceptOpslaanService;
+import nl.rivm.screenit.mamma.planning.service.PlanningConceptmodelService;
 import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningDoorrekenenManager;
 import nl.rivm.screenit.model.mamma.enums.MammaMeldingNiveau;
 import nl.rivm.screenit.model.mamma.enums.MammaPlanningStatus;
@@ -46,9 +46,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -57,19 +58,18 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor
 public class PlanningActieController
 {
-
-	private final PlanningReadModelDao readModelDao;
+	private final PlanningConceptmodelService conceptModelService;
 
 	private final PlanningConceptOpslaanService conceptOpslaanService;
 
 	@Transactional(propagation = Propagation.REQUIRED)
-	@RequestMapping(value = "/" + PlanningRestConstants.C_READMODEL, method = RequestMethod.POST)
+	@PostMapping(value = "/" + PlanningRestConstants.C_READMODEL)
 	public void readModel()
 	{
 		PlanningStatusIndex.set(MammaPlanningStatus.RESET_MODEL);
 		try
 		{
-			readModelDao.readDataModel();
+			conceptModelService.resetConceptmodel();
 			PlanningDoorrekenenManager.run();
 			PlanningStatusIndex.set(MammaPlanningStatus.OPERATIONEEL);
 		}
@@ -80,9 +80,9 @@ public class PlanningActieController
 		}
 	}
 
-	@RequestMapping(value = "/conceptOpslaan/{screeningOrganisatieId}/{runDry}", method = RequestMethod.GET)
+	@GetMapping(value = "/conceptOpslaan/{screeningOrganisatieId}/{runDry}")
 	@ResponseBody
-	public PlanningConceptMeldingenDto conceptOpslaan(@PathVariable Long screeningOrganisatieId, @PathVariable Boolean runDry)
+	public PlanningConceptMeldingenDto conceptOpslaan(@PathVariable Long screeningOrganisatieId, @PathVariable boolean runDry)
 	{
 		try
 		{
@@ -146,13 +146,13 @@ public class PlanningActieController
 	}
 
 	@Transactional(propagation = Propagation.REQUIRED)
-	@RequestMapping(value = "/conceptAnnuleren/{screeningOrganisatieId}", method = RequestMethod.POST)
+	@PostMapping(value = "/conceptAnnuleren/{screeningOrganisatieId}")
 	public void conceptAnnueleren(@PathVariable Long screeningOrganisatieId)
 	{
 		try
 		{
 			PlanningStatusIndex.set(MammaPlanningStatus.CONCEPT_ANNULEREN, screeningOrganisatieId);
-			readModelDao.reset(PlanningScreeningsOrganisatieIndex.get(screeningOrganisatieId));
+			conceptModelService.annuleerConceptmodelWijzigingen(PlanningScreeningsOrganisatieIndex.get(screeningOrganisatieId));
 			conceptOpslaanService.slaConceptOpVoorAlleScreeningsOrganisaties();
 
 			PlanningStatusIndex.set(MammaPlanningStatus.OPERATIONEEL);
@@ -164,13 +164,13 @@ public class PlanningActieController
 		}
 	}
 
-	@RequestMapping(value = "/conceptGewijzigdDoor/{instellingGebruikerId}/{screeningOrganisatieId}", method = RequestMethod.POST)
+	@PostMapping(value = "/conceptGewijzigdDoor/{instellingGebruikerId}/{screeningOrganisatieId}")
 	public void conceptGewijzigdDoor(@PathVariable Long instellingGebruikerId, @PathVariable Long screeningOrganisatieId)
 	{
 		PlanningScreeningsOrganisatieIndex.get(screeningOrganisatieId).conceptGewijzigdDoor(instellingGebruikerId);
 	}
 
-	@RequestMapping(value = "/conceptGewijzigdDoor/{screeningOrganisatieId}", method = RequestMethod.GET)
+	@GetMapping(value = "/conceptGewijzigdDoor/{screeningOrganisatieId}")
 	public ResponseEntity<Long[]> getConceptGewijzigdDoor(@PathVariable Long screeningOrganisatieId)
 	{
 		return new ResponseEntity<>(PlanningScreeningsOrganisatieIndex.get(screeningOrganisatieId).getConceptGewijzigdDoor().toArray(new Long[] {}), HttpStatus.OK);

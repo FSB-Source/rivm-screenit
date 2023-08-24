@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.service.impl;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ package nl.rivm.screenit.mamma.planning.service.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -42,7 +43,6 @@ import nl.rivm.screenit.dto.mamma.planning.PlanningConceptMeldingenDto.PlanningM
 import nl.rivm.screenit.exceptions.DryRunException;
 import nl.rivm.screenit.exceptions.OpslaanAfsprakenBuitenStandplaatsPeriodeException;
 import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
-import nl.rivm.screenit.mamma.planning.dao.PlanningReadModelDao;
 import nl.rivm.screenit.mamma.planning.exception.MaxMeldingenVoorSeBereiktException;
 import nl.rivm.screenit.mamma.planning.index.PlanningBlokIndex;
 import nl.rivm.screenit.mamma.planning.index.PlanningScreeningsOrganisatieIndex;
@@ -54,6 +54,7 @@ import nl.rivm.screenit.mamma.planning.model.PlanningScreeningsOrganisatie;
 import nl.rivm.screenit.mamma.planning.model.PlanningStandplaatsPeriode;
 import nl.rivm.screenit.mamma.planning.model.PlanningStandplaatsRonde;
 import nl.rivm.screenit.mamma.planning.service.PlanningConceptOpslaanService;
+import nl.rivm.screenit.mamma.planning.service.PlanningConceptmodelService;
 import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningDoorrekenenManager;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
@@ -95,17 +96,17 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 
 	private final MammaBaseAfspraakDao baseAfspraakDao;
 
-	private final PlanningReadModelDao readModelDao;
+	private final PlanningConceptmodelService conceptModelService;
 
 	private final ICurrentDateSupplier currentDateSupplier;
 
 	public PlanningConceptOpslaanServiceImpl(HibernateService hibernateService, MammaBaseAfspraakService baseAfspraakService,
-		MammaBaseAfspraakDao baseAfspraakDao, @Lazy PlanningReadModelDao readModelDao, ICurrentDateSupplier currentDateSupplier)
+		MammaBaseAfspraakDao baseAfspraakDao, @Lazy PlanningConceptmodelService conceptModelService, ICurrentDateSupplier currentDateSupplier)
 	{
 		this.hibernateService = hibernateService;
 		this.baseAfspraakService = baseAfspraakService;
 		this.baseAfspraakDao = baseAfspraakDao;
-		this.readModelDao = readModelDao;
+		this.conceptModelService = conceptModelService;
 		this.currentDateSupplier = currentDateSupplier;
 	}
 
@@ -175,7 +176,7 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 		}
 		if (!runDry && meldingenDto.niveau != MammaMeldingNiveau.PROBLEEM)
 		{
-			screeningsOrganisatie.restConceptGewijzigdDoor();
+			screeningsOrganisatie.resetConceptGewijzigdDoor();
 			nieuweBlokken.forEach((k, v) -> v.setId(k));
 		}
 		else
@@ -285,7 +286,7 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 				PlanningStandplaatsRondeIndex.put(standplaatsRonde);
 				standplaatsRonde.setId(persistentStandplaatsRonde.getId());
 				standplaatsPeriode.setId(persistentStandplaatsPeriode.getId());
-				readModelDao.addStandplaatsPeriode(standplaatsPeriode);
+				conceptModelService.addStandplaatsPeriode(standplaatsPeriode);
 				if (verplaatsAfspraken)
 				{
 					meldingenDto.afsprakenTeVerplaatsen.put(persistentStandplaatsPeriode.getId(),
@@ -302,7 +303,7 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 	{
 		boolean verplaatsAfspraken = false;
 
-		if (teVerplaatsenAfsprakenVoorActieveStandplaatsPeriode.size() > 0)
+		if (!teVerplaatsenAfsprakenVoorActieveStandplaatsPeriode.isEmpty())
 		{
 			verplaatsAfspraken = true;
 			addMelding(meldingenDto, standplaatsPeriode.getScreeningsEenheid(),
@@ -320,8 +321,8 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 		if (isActieveStandplaatsPeriodeVerkort)
 		{
 			teVerplaatsenAfsprakenVoorActieveStandplaatsPeriode.addAll(baseAfspraakService.getAfspraken(persistentStandplaatsPeriode.getScreeningsEenheid(),
-				DateUtil.toUtilDate(standplaatsPeriode.getTotEnMet().plusDays(1)),
-				persistentStandplaatsPeriode.getTotEnMet(), MammaAfspraakStatus.GEPLAND));
+				standplaatsPeriode.getTotEnMet().plusDays(1), DateUtil.toLocalDate(persistentStandplaatsPeriode.getTotEnMet()),
+				MammaAfspraakStatus.GEPLAND));
 		}
 		return verplaatsAfspraken;
 	}
@@ -518,24 +519,21 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 		if (eersteStandplaatsPeriodeMetPrognose != null && eersteStandplaatsPeriodeMetPrognose.getId() != null)
 		{
 			MammaStandplaatsPeriode persistentStandplaatsPeriode = hibernateService.get(MammaStandplaatsPeriode.class, eersteStandplaatsPeriodeMetPrognose.getId());
-			Date conceptTotEnMet = DateUtil.toUtilDate(eersteStandplaatsPeriodeMetPrognose.getTotEnMet().plusDays(1));
-			Date persistentTotEnMet = DateUtil.toUtilDate(DateUtil.toLocalDate(persistentStandplaatsPeriode.getTotEnMet()).plusDays(1));
+			LocalDate conceptTotEnMet = eersteStandplaatsPeriodeMetPrognose.getTotEnMet();
+			LocalDate persistentTotEnMet = DateUtil.toLocalDate(persistentStandplaatsPeriode.getTotEnMet());
 			if (conceptTotEnMet.compareTo(persistentTotEnMet) != 0)
 			{
-				List<Date> totEnMetDatumList = Arrays.asList(conceptTotEnMet, persistentTotEnMet);
-				Date[] eersteEnLaatsteAfspraakVanaf = baseAfspraakDao.getEersteEnLaatsteAfspraakDatum(persistentStandplaatsPeriode.getId(),
-					Collections.min(totEnMetDatumList), Collections.max(totEnMetDatumList), MammaAfspraakStatus.GEPLAND);
+				var oudeEnNieuweStandplaatsPeriodeTotEnMetDatum = Arrays.asList(conceptTotEnMet, persistentTotEnMet);
+				var zoekAfsprakenVanafDatum = Collections.min(oudeEnNieuweStandplaatsPeriodeTotEnMetDatum).plusDays(1);
+				var zoekAfsprakenTotEnMetDatum = Collections.max(oudeEnNieuweStandplaatsPeriodeTotEnMetDatum);
+				var eersteEnLaatsteAfspraakVanaf = baseAfspraakDao.getEersteEnLaatsteAfspraakMomenten(persistentStandplaatsPeriode.getId(),
+					zoekAfsprakenVanafDatum, zoekAfsprakenTotEnMetDatum, MammaAfspraakStatus.GEPLAND);
 
 				if (eersteEnLaatsteAfspraakVanaf[0] != null)
 				{
 					String melding = "Concept kan niet worden opgeslagen voor SE " + persistentScreeningsEenheid.getNaam() + ". Standplaatsperiode "
-						+ eersteStandplaatsPeriodeMetPrognose.getId() + " heeft afspraken op " + DateUtil.formatShortDate(eersteEnLaatsteAfspraakVanaf[0]);
-
-					if (eersteEnLaatsteAfspraakVanaf[1] != null)
-					{
-						melding += " t/m " + DateUtil.formatShortDate(eersteEnLaatsteAfspraakVanaf[1]);
-					}
-
+						+ eersteStandplaatsPeriodeMetPrognose.getId() + " heeft afspraken op " + DateUtil.formatShortDate(eersteEnLaatsteAfspraakVanaf[0]) + (" t/m "
+						+ DateUtil.formatShortDate(eersteEnLaatsteAfspraakVanaf[1]));
 					LOG.warn(melding);
 					afsprakenBuitenStandplaatsPeriodeMap.put(persistentScreeningsEenheid.getId(), eersteEnLaatsteAfspraakVanaf);
 				}

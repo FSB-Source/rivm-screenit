@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.validators;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,13 +38,13 @@ public class TijdelijkAdresValidator
 
 	private final static String HUISNUMMER_PATTERN = "^[0-9]*$";
 
-	public static void validateTijdelijkAdres(TijdelijkAdres nieuwAdres, TijdelijkAdres vorigAdres)
+	public static void validateTijdelijkAdres(TijdelijkAdres nieuwAdres, TijdelijkAdres vorigAdres, LocalDate vandaag)
 	{
 		if (!verplichteVeldenZijnGevuld(nieuwAdres, vorigAdres))
 		{
 			throw new IllegalStateException("Niet alle verplichte velden zijn gevuld");
 		}
-		if ((vorigAdres != null && !nieuwAdres.getStartDatum().equals(vorigAdres.getStartDatum())) && !startdatumLigtInToekomst(nieuwAdres.getStartDatum()))
+		if ((vorigAdres != null && !nieuwAdres.getStartDatum().equals(vorigAdres.getStartDatum())) && !startdatumLigtInToekomst(nieuwAdres.getStartDatum(), vandaag))
 		{
 			throw new IllegalStateException("Startdatum ligt in het verleden");
 		}
@@ -89,9 +89,9 @@ public class TijdelijkAdresValidator
 		return DateUtil.compareAfter(einddatum, startdatum);
 	}
 
-	private static boolean startdatumLigtInToekomst(Date startdatum)
+	private static boolean startdatumLigtInToekomst(Date startdatum, LocalDate vandaag)
 	{
-		return DateUtil.compareAfter(startdatum, DateUtil.toUtilDate(LocalDate.now()));
+		return DateUtil.compareAfter(startdatum, DateUtil.toUtilDate(vandaag));
 	}
 
 	private static boolean postcodeIsCorrect(String postcode)

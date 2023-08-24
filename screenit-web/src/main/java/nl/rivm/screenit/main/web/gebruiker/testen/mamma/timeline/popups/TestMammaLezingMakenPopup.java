@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.popups;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,6 +34,7 @@ import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.MammaTestTimelinePage;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaLezing;
 import nl.rivm.screenit.model.mamma.enums.MammaBIRADSWaarde;
@@ -77,6 +78,10 @@ public class TestMammaLezingMakenPopup extends TestMammaAbstractPopupPanel
 		huidigeOnderzoeksStatus = beoordeling.getStatus();
 
 		lezingModel = maakLezingModel(beoordeling);
+		if (MammaOnderzoekType.TOMOSYNTHESE == beoordeling.getOnderzoek().getOnderzoekType())
+		{
+			lezingModel.getObject().setTomosyntheseRelevantVoorBeoordeling(false);
+		}
 
 		List<Long> exclIds = new ArrayList<>();
 		switch (huidigeOnderzoeksStatus)
@@ -263,6 +268,10 @@ public class TestMammaLezingMakenPopup extends TestMammaAbstractPopupPanel
 		clone.setBeoordelaar(lezing.getBeoordelaar());
 		clone.setLezingType(lezing.getLezingType());
 		clone.setOnervarenRadioloog(!beoordelingService.isBevoegdVoorArbitrage(lezing.getBeoordelaar()));
+		if (MammaOnderzoekType.TOMOSYNTHESE == beoordeling.getOnderzoek().getOnderzoekType() && MammaLezingType.VERSLAG_LEZING != lezing.getLezingType())
+		{
+			clone.setTomosyntheseRelevantVoorBeoordeling(false);
+		}
 		return clone;
 	}
 

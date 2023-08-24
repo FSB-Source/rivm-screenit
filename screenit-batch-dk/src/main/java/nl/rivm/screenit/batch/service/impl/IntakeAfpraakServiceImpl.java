@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -246,7 +246,7 @@ public class IntakeAfpraakServiceImpl implements IntakeAfpraakService
 		{
 			for (var intakelocatie : intakeLocaties)
 			{
-				for (var vrijSlot : planningService.getBeschikbaarheid(DateUtil.toUtilDate(beginDatum), DateUtil.toUtilDate(eindDatum), intakelocatie))
+				for (var vrijSlot : planningService.getBeschikbaarheid(beginDatum, eindDatum, intakelocatie))
 				{
 					LOGGER.trace(vrijSlot.toString());
 					var postcodeCoordinaten = intakelocatie.getPostcodeCoordinaten();

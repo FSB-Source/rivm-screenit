@@ -88,7 +88,7 @@ const mapDispatchToProps = (dispatch: Dispatch): VisueleInspectieViewDispatchPro
 		}
 	},
 	onVolgende(afspraak: Afspraak, client: Client, onderzoek: Onderzoek, afbeelding: AnnotatieAfbeelding, magSignaleren: boolean, form: Form, alleenOpslaan: boolean): void {
-		if (onderzoek.onvolledigOnderzoek === null && onderzoek.onderbrokenOnderzoek === null) {
+		if (!onderzoek.onvolledigOnderzoek && !onderzoek.onderbrokenOnderzoek) {
 			onderzoek.status = "AFGEROND"
 		}
 

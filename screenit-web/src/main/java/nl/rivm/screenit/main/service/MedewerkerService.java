@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,6 +24,7 @@ package nl.rivm.screenit.main.service;
 import java.util.List;
 import java.util.Map;
 
+import nl.rivm.screenit.dto.InstellingGebruikerRolDto;
 import nl.rivm.screenit.model.Functie;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Instelling;
@@ -50,7 +51,7 @@ public interface MedewerkerService
 
 	void addOrganisatieMedewerker(Instelling organisatie, Gebruiker medewerker);
 
-	void saveOrUpdateRollen(InstellingGebruiker instellingGebruiker);
+	void saveOrUpdateRollen(InstellingGebruiker ingelogdeGebruiker, List<InstellingGebruikerRolDto> initieleRollen, InstellingGebruiker instellingGebruiker);
 
 	boolean saveOrUpdateGebruiker(Gebruiker medewerker, boolean isBestaande, boolean wordGeblokkeerd);
 

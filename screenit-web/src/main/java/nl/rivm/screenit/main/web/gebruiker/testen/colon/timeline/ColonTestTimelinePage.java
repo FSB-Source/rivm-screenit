@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.colon.timeline;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -88,7 +88,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.wicketstuff.shiro.ShiroConstraint;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
@@ -215,7 +214,7 @@ public class ColonTestTimelinePage extends TestenBasePage
 
 		container.add(new DropDownChoice<Gemeente>("gemeente",
 			ModelUtil.listRModel(
-				hibernateService.getHibernateSession().createCriteria(Gemeente.class).add(Restrictions.isNotNull("screeningOrganisatie")).addOrder(Order.asc("naam")).list(),
+				hibernateService.getHibernateSession().createCriteria(Gemeente.class).addOrder(Order.asc("naam")).list(),
 				false),
 			new ChoiceRenderer<>("naam")));
 

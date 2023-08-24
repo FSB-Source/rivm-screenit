@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
+import nl.rivm.screenit.dao.mamma.MammaBaseAfspraakDao;
 import nl.rivm.screenit.dto.alg.client.contact.DeelnamewensDto;
 import nl.rivm.screenit.main.dao.mamma.MammaScreeningsEenheidDao;
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenissen;
@@ -60,6 +61,7 @@ import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaAnnotatieAfbeelding;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
@@ -185,6 +187,9 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 
 	@Autowired
 	private MammaVolgendeUitnodigingService volgendeUitnodigingService;
+
+	@Autowired
+	private MammaBaseAfspraakDao baseAfspraakDao;
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS)
@@ -487,7 +492,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 
 	@Override
 	public void rondOnderzoekAf(MammaAfspraak afspraak, InstellingGebruiker instellingGebruiker, boolean verstuurHl7Berichten, OnvolledigOnderzoekOption onvolledigOnderzoekOption,
-		OnderbrokenOnderzoekOption onderbrokenOnderzoekOption, boolean afwijkingGesignaleerd)
+		OnderbrokenOnderzoekOption onderbrokenOnderzoekOption, MammaOnderzoekType onderzoeksType, boolean afwijkingGesignaleerd)
 	{
 		MammaOnderzoek onderzoek = afspraak.getOnderzoek();
 		Client client = afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient();
@@ -504,16 +509,8 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 		EnovationHuisarts huisarts = enovationHuisartsService.zoekHuisartsen(new EnovationHuisarts(), "achternaam", true, 0, 1).iterator().next();
 		ronde.setHuisarts(huisarts);
 		ronde.setDatumVastleggenHuisarts(currentDateSupplier.getDate());
-		if (onderzoek.getOnvolledigOnderzoek() == null && onvolledigOnderzoekOption != null)
-		{
-			onderzoek.setOnvolledigOnderzoek(onvolledigOnderzoekOption);
-			onderzoek.setStatus(MammaOnderzoekStatus.ONVOLLEDIG);
-		}
-		else if (onderzoek.getOnderbrokenOnderzoek() == null && onderbrokenOnderzoekOption != null)
-		{
-			onderzoek.setOnderbrokenOnderzoek(onderbrokenOnderzoekOption);
-			onderzoek.setStatus(MammaOnderzoekStatus.ONDERBROKEN);
-		}
+		verwerkOnvolledigOfOnderbrokenOnderzoek(onvolledigOnderzoekOption, onderbrokenOnderzoekOption, onderzoek);
+		onderzoek.setOnderzoekType(onderzoeksType);
 		setSignalerenVoorOnderzoek(instellingGebruiker, onderzoek, afwijkingGesignaleerd);
 
 		if (afspraak.getStatus() != MammaAfspraakStatus.BEEINDIGD)
@@ -527,6 +524,27 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 		hibernateService.saveOrUpdateAll(afspraak, onderzoek);
 	}
 
+	private static void verwerkOnvolledigOfOnderbrokenOnderzoek(OnvolledigOnderzoekOption onvolledigOnderzoekOption, OnderbrokenOnderzoekOption onderbrokenOnderzoekOption,
+		MammaOnderzoek onderzoek)
+	{
+		if (onderzoek.getOnvolledigOnderzoek() != null || onvolledigOnderzoekOption != null)
+		{
+			onderzoek.setStatus(MammaOnderzoekStatus.ONVOLLEDIG);
+			if (onderzoek.getOnvolledigOnderzoek() == null)
+			{
+				onderzoek.setOnvolledigOnderzoek(onvolledigOnderzoekOption);
+			}
+		}
+		if (onderzoek.getOnderbrokenOnderzoek() != null || onderbrokenOnderzoekOption != null)
+		{
+			onderzoek.setStatus(MammaOnderzoekStatus.ONDERBROKEN);
+			if (onderzoek.getOnderbrokenOnderzoek() == null)
+			{
+				onderzoek.setOnderbrokenOnderzoek(onderbrokenOnderzoekOption);
+			}
+		}
+	}
+
 	private MammaOnderzoek onderzoekStarten(MammaAfspraak afspraak, InstellingGebruiker instellingGebruiker, boolean verstuurHl7Berichten)
 	{
 		MammaScreeningRonde screeningRonde = afspraak.getUitnodiging().getScreeningRonde();
@@ -535,6 +553,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 		MammaOnderzoek onderzoek = maakOnderzoek(afspraak, afspraak.getStandplaatsPeriode().getScreeningsEenheid());
 		afspraak.setIngeschrevenDoor(instellingGebruiker);
 		afspraak.setIngeschrevenOp(currentDateSupplier.getDate());
+		afspraak.setStatus(MammaAfspraakStatus.ONDERZOEK);
 		onderzoek.setDoorgevoerd(false);
 		screeningRonde.setLaatsteOnderzoek(onderzoek);
 		if (verstuurHl7Berichten)
@@ -570,6 +589,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 		onderzoek.setOperatieLinks(Boolean.FALSE);
 		onderzoek.setAmputatie(null);
 		onderzoek.setDoorgevoerd(false);
+		onderzoek.setOnderzoekType(MammaOnderzoekType.MAMMOGRAFIE);
 
 		afspraak.setOnderzoek(onderzoek);
 
@@ -601,7 +621,16 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 	@Override
 	public void voegLezingToe(MammaBeoordeling beoordeling, MammaLezing lezing, InstellingGebruiker gebruiker, boolean verstuurHl7Berichten)
 	{
-		baseBeoordelingService.slaLezingOpEnVerwerkStatus(beoordeling, lezing, gebruiker, b -> "Niet opgeschort");
+		if (MammaBeoordelingStatus.VERSLAG_MAKEN != beoordeling.getStatus())
+		{
+			baseBeoordelingService.slaLezingOpEnVerwerkStatus(beoordeling, lezing, gebruiker, b -> "Niet opgeschort");
+		}
+		else
+		{
+			baseBeoordelingService.slaLezingOp(beoordeling, lezing);
+			baseBeoordelingService.setStatusNaarVerslagGereed(beoordeling);
+		}
+
 		baseBeoordelingService.bevestigLezing(beoordeling, verstuurHl7Berichten);
 	}
 
@@ -907,7 +936,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 		try
 		{
 			MammaScreeningRonde screeningRonde = afspraak.getUitnodiging().getScreeningRonde();
-			onderzoekService.ontvangBeeldenVoorOnderzoek(screeningRonde.getDossier().getClient(), screeningRonde);
+			onderzoekService.ontvangBeeldenVoorOnderzoek(screeningRonde.getDossier().getClient(), screeningRonde, afspraak.getOnderzoek().getOnderzoekType());
 		}
 		catch (HL7Exception e)
 		{
@@ -982,5 +1011,73 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 		DeelnamewensDto dto = deelnamemodusService.getDeelnamewensDto(client);
 		dto.setDeelnamewensBk(true);
 		deelnamemodusDossierService.pasDeelnamewensToe(client, dto, null);
+	}
+
+	@Override
+	public void sluitAlleDagenTotEnMetGisteren(MammaScreeningsEenheid screeningsEenheid, InstellingGebruiker ingelogdeGebruiker) throws IllegalStateException
+	{
+		var afspraken = baseAfspraakDao.readAfsprakenWaarvanOnderzoekNietIsDoorgevoerd(currentDateSupplier.getLocalDate(), screeningsEenheid.getCode());
+
+		var nietAfgerondeAfspraken = new ArrayList<MammaAfspraak>();
+		for (var afspraak : afspraken)
+		{
+			try
+			{
+				setMammaAfspraakStatusGeplandOfVoerOnderzoekDoor(afspraak, ingelogdeGebruiker);
+			}
+			catch (Exception e)
+			{
+				LOG.error("Afsluiten van dagen ging niet goed door client met id: {}", afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient().getId(), e);
+				nietAfgerondeAfspraken.add(afspraak);
+			}
+		}
+		if (!nietAfgerondeAfspraken.isEmpty())
+		{
+			var bsns = nietAfgerondeAfspraken.stream().map(a -> a.getUitnodiging().getScreeningRonde().getDossier().getClient().getPersoon().getBsn())
+				.collect(Collectors.joining(","));
+			throw new IllegalStateException("Afsluiten van dagen ging niet goed door de volgende BSN's: " + bsns);
+		}
+	}
+
+	private void setMammaAfspraakStatusGeplandOfVoerOnderzoekDoor(MammaAfspraak afspraak, InstellingGebruiker ingelogdeGebruiker)
+	{
+		var onderzoek = afspraak.getOnderzoek();
+
+		if (onderzoek == null)
+		{
+			afspraak.setStatus(MammaAfspraakStatus.GEPLAND);
+			hibernateService.saveOrUpdate(afspraak);
+		}
+		else
+		{
+			if (onderzoek.getStatus() == MammaOnderzoekStatus.ACTIEF || afspraak.getStatus() != MammaAfspraakStatus.BEEINDIGD)
+			{
+				var afwijkingGesignaleerd = isAfwijkingGesignaleerd(onderzoek);
+				var onderzoeker = bepaalOnderzoeker(afspraak, ingelogdeGebruiker);
+				rondOnderzoekAf(afspraak, onderzoeker, false, onderzoek.getOnvolledigOnderzoek(), onderzoek.getOnderbrokenOnderzoek(), onderzoek.getOnderzoekType(),
+					afwijkingGesignaleerd);
+			}
+			doorvoerenOnderzoek(afspraak);
+		}
+
+	}
+
+	private static boolean isAfwijkingGesignaleerd(MammaOnderzoek onderzoek)
+	{
+		return onderzoek.getSignaleren() != null && onderzoek.getSignaleren().getHeeftAfwijkingen();
+	}
+
+	private static InstellingGebruiker bepaalOnderzoeker(MammaAfspraak afspraak, InstellingGebruiker ingelogdeGebruiker)
+	{
+		var mammografie = afspraak.getOnderzoek().getMammografie();
+		if (mammografie != null && mammografie.getAfgerondDoor() != null)
+		{
+			return mammografie.getAfgerondDoor();
+		}
+		else if (afspraak.getIngeschrevenDoor() != null)
+		{
+			return afspraak.getIngeschrevenDoor();
+		}
+		return ingelogdeGebruiker;
 	}
 }

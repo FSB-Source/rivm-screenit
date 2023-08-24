@@ -4,7 +4,7 @@ package nl.rivm.screenit.util;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,15 +21,14 @@ package nl.rivm.screenit.util;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
-import nl.rivm.screenit.model.OnbekendeHuisarts;
 import nl.rivm.screenit.model.TijdelijkAdres;
 import nl.rivm.screenit.model.TijdelijkGbaAdres;
 import nl.rivm.screenit.model.cervix.CervixHuisartsAdres;
@@ -39,10 +38,9 @@ import nl.topicuszorg.util.postcode.PostcodeFormatter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Hibernate;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Range;
 
 public final class AdresUtil
 {
@@ -110,35 +108,6 @@ public final class AdresUtil
 		}
 
 		return adres.getPlaats();
-	}
-
-	public static String getAdres(OnbekendeHuisarts onbekendeHuisarts)
-	{
-		StringBuilder adresString = new StringBuilder();
-		if (onbekendeHuisarts != null)
-		{
-			if (StringUtils.isNotBlank(onbekendeHuisarts.getPraktijkAdres()))
-			{
-				adresString.append(onbekendeHuisarts.getPraktijkAdres());
-			}
-			if (StringUtils.isNotBlank(onbekendeHuisarts.getPraktijkPostcode()))
-			{
-				if (adresString.length() > 0)
-				{
-					adresString.append(" ");
-				}
-				adresString.append(PostcodeFormatter.formatPostcode(onbekendeHuisarts.getPraktijkPostcode(), true));
-			}
-			if (StringUtils.isNotBlank(onbekendeHuisarts.getPraktijkPlaats()))
-			{
-				if (adresString.length() > 0)
-				{
-					adresString.append(" ");
-				}
-				adresString.append(onbekendeHuisarts.getPraktijkPlaats());
-			}
-		}
-		return adresString.toString();
 	}
 
 	public static String getHuisnummerVolledig(Adres adres)
@@ -260,23 +229,23 @@ public final class AdresUtil
 		return straatString.toString();
 	}
 
-	public static boolean isTijdelijkAdres(GbaPersoon persoon, DateTime date)
+	public static boolean isTijdelijkAdres(GbaPersoon persoon, LocalDate date)
 	{
 		return getAdres(persoon, date) instanceof TijdelijkAdres;
 	}
 
-	public static Adres getAdres(GbaPersoon persoon, DateTime date)
+	public static Adres getAdres(GbaPersoon persoon, LocalDate date)
 	{
 		Adres adres;
-		TijdelijkAdres tijdelijkAdres = persoon.getTijdelijkAdres();
+		var tijdelijkAdres = persoon.getTijdelijkAdres();
 		if (tijdelijkAdres == null)
 		{
 			adres = persoon.getGbaAdres();
 		}
 		else
 		{
-			Date startDatum = tijdelijkAdres.getStartDatum();
-			Date eindDatum = tijdelijkAdres.getEindDatum();
+			var startDatum = DateUtil.toLocalDate(tijdelijkAdres.getStartDatum());
+			var eindDatum = DateUtil.toLocalDate(tijdelijkAdres.getEindDatum());
 
 			if (StringUtils.isBlank(tijdelijkAdres.getPostcode()) || tijdelijkAdres.getHuisnummer() == null)
 			{
@@ -290,15 +259,15 @@ public final class AdresUtil
 			{
 				adres = persoon.getGbaAdres();
 			}
-			else if (startDatum != null && eindDatum == null && startDatum.after(date.toDate()))
+			else if (startDatum != null && eindDatum == null && startDatum.isAfter(date))
 			{
 				adres = persoon.getGbaAdres();
 			}
-			else if (startDatum == null && eindDatum != null && new DateTime(eindDatum).plusDays(1).withTimeAtStartOfDay().isBefore(date))
+			else if (startDatum == null && eindDatum.isBefore(date))
 			{
 				adres = persoon.getGbaAdres();
 			}
-			else if (!new Interval(new DateTime(startDatum).withTimeAtStartOfDay(), new DateTime(eindDatum).plusDays(1).withTimeAtStartOfDay()).contains(date))
+			else if (startDatum != null && eindDatum != null && !Range.closed(startDatum, eindDatum).contains(date))
 			{
 				adres = persoon.getGbaAdres();
 			}
@@ -313,29 +282,6 @@ public final class AdresUtil
 			adres = tijdelijkGbaAdres;
 		}
 		return adres;
-	}
-
-	public static String getOnbekendeHuisartsAdres(OnbekendeHuisarts oha)
-	{
-		StringBuilder adresString = new StringBuilder();
-		if (oha != null)
-		{
-			if (StringUtils.isNotBlank(oha.getPraktijkAdres()))
-			{
-				adresString.append(oha.getPraktijkAdres());
-				adresString.append(", ");
-			}
-			if (StringUtils.isNotBlank(oha.getPraktijkPostcode()))
-			{
-				adresString.append(oha.getPraktijkPostcode());
-				adresString.append(" ");
-			}
-			if (StringUtils.isNotBlank(oha.getPraktijkPlaats()))
-			{
-				adresString.append(oha.getPraktijkPlaats());
-			}
-		}
-		return adresString.toString();
 	}
 
 	public static boolean isOnvolledigAdres(Adres adres)
@@ -409,7 +355,7 @@ public final class AdresUtil
 
 	public static boolean isVolledigAdresVoorInpakcentrum(Client client)
 	{
-		Adres adres = getAdres(client.getPersoon(), new DateTime());
+		Adres adres = getAdres(client.getPersoon(), LocalDate.now());
 		return adres != null && postcodeWoonplaatsVolledig(adres) && (straatHuisnummerVolledig(adres) || locatiebeschrijvingGevuld(adres));
 	}
 

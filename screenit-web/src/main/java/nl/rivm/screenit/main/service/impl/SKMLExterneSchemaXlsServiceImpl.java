@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,8 +26,10 @@ import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.main.comparator.SKMLExterneSchemaComparator;
 import nl.rivm.screenit.main.dao.SKMLExternSchemaDao;
@@ -36,6 +38,7 @@ import nl.rivm.screenit.main.model.SKMLSchemaMapping;
 import nl.rivm.screenit.main.service.SKMLExterneSchemaXlsService;
 import nl.rivm.screenit.main.util.SKMLXlsUtil;
 import nl.rivm.screenit.model.colon.SKMLExternSchema;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -44,37 +47,35 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
+@Slf4j
+@AllArgsConstructor
 public class SKMLExterneSchemaXlsServiceImpl implements SKMLExterneSchemaXlsService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(SKMLExterneSchemaXlsServiceImpl.class);
 
-	@Autowired
-	private SKMLExternSchemaDao skmlDao;
+	private final SKMLExternSchemaDao skmlDao;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
+
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	public SKMLImportVoortgang importSchemaXls(InputStream inputStream, boolean allesOverschrijven)
 	{
 		LOG.info("Start met import xls SKML Extern Schema");
 		SKMLImportVoortgang voortgang = new SKMLImportVoortgang();
-		voortgang.setStart(new Date());
+		voortgang.setStart(currentDateSupplier.getDate());
 		List<SKMLExternSchema> schemaLijst = new ArrayList<>();
 		Workbook workbook = maakWorkBook(inputStream);
 		voortgang = verwerkWorkbook(workbook, schemaLijst, voortgang);
 		Collections.sort(schemaLijst, new SKMLExterneSchemaComparator());
 		voortgang = verwerkSchemas(schemaLijst, allesOverschrijven, voortgang);
-		voortgang.setEind(new Date());
+		voortgang.setEind(currentDateSupplier.getDate());
 		LOG.info("Klaar met import xls SKML Extern Schema");
 		return voortgang;
 	}

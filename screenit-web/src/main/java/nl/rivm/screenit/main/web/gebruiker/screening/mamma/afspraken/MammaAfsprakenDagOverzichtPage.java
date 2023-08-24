@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.afspraken;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -61,7 +61,6 @@ import nl.rivm.screenit.model.mamma.enums.MammaCapaciteitBlokType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.service.mamma.MammaBaseCapaciteitsBlokService;
-import nl.rivm.screenit.service.mamma.MammaBaseConceptPlanningsApplicatie;
 import nl.rivm.screenit.util.BigDecimalUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
@@ -96,8 +95,6 @@ import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.MAMMA })
 public class MammaAfsprakenDagOverzichtPage extends MammaAfsprakenBasePage
 {
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private MammaScreeningsEenheidDao screeningsEenheidDao;
 
@@ -117,35 +114,30 @@ public class MammaAfsprakenDagOverzichtPage extends MammaAfsprakenBasePage
 	private MammaBaseStandplaatsPeriodeDao baseStandplaatsPeriodeDao;
 
 	@SpringBean
-	private MammaBaseConceptPlanningsApplicatie baseConceptPlanningsApplicatie;
-
-	@SpringBean
 	private SimplePreferenceService preferenceService;
 
 	@SpringBean
 	private ICurrentDateSupplier dateSupplier;
 
-	private IModel<MammaScreeningsEenheid> screeningsEenheidModel;
+	private final IModel<MammaScreeningsEenheid> screeningsEenheidModel;
 
-	private IModel<List<MammaScreeningsEenheid>> screeningsEenhedenModel;
+	private final IModel<List<MammaScreeningsEenheid>> screeningsEenhedenModel;
 
-	private IModel<Date> datumModel;
+	private final IModel<Date> datumModel;
 
-	private HibernateCheckBoxListContainer<MammaAfspraak> selectedAfspraken = new HibernateCheckBoxListContainer<>();
+	private final HibernateCheckBoxListContainer<MammaAfspraak> selectedAfspraken = new HibernateCheckBoxListContainer<>();
 
-	private BootstrapDialog dialog;
+	private BootstrapDialog localDialog;
 
-	private Form form;
+	private Form<Void> form;
 
 	private WebMarkupContainer capaciteitContainer;
 
-	private boolean magVerzetten;
+	private final boolean magVerzetten;
 
-	private boolean magBulkVerzetten;
+	private final boolean magBulkVerzetten;
 
-	private Component volledigDagLabel;
-
-	private WebMarkupContainer metaInfo;
+	private final WebMarkupContainer metaInfo;
 
 	public MammaAfsprakenDagOverzichtPage(IModel<MammaScreeningsEenheid> screeningsEenheidModel, Date startDatum)
 	{
@@ -153,7 +145,7 @@ public class MammaAfsprakenDagOverzichtPage extends MammaAfsprakenBasePage
 		magBulkVerzetten = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_MAMMA_AFSPRAAK_BULK_VERZETTEN, Actie.AANPASSEN) && ingelogdNamensRegio;
 
 		ScreeningOrganisatie sessionSO = ScreenitSession.get().getScreeningOrganisatie();
-		this.screeningsEenheidModel = ModelUtil.cRModel(screeningsEenheidModel.getObject());
+		this.screeningsEenheidModel = ModelUtil.csModel(screeningsEenheidModel.getObject());
 
 		setDefaultModel(this.screeningsEenheidModel);
 
@@ -220,11 +212,11 @@ public class MammaAfsprakenDagOverzichtPage extends MammaAfsprakenBasePage
 
 	private void addNavigation()
 	{
-		dialog = new BootstrapDialog("dialog");
-		dialog.setCloseCallback(new DefaultDialogCloseCallback());
-		add(dialog);
+		localDialog = new BootstrapDialog("dialog");
+		localDialog.setCloseCallback(new DefaultDialogCloseCallback());
+		add(localDialog);
 
-		form = new ScreenitForm<Void>("form");
+		form = new ScreenitForm<>("form");
 		form.setOutputMarkupId(true);
 		add(form);
 
@@ -234,9 +226,6 @@ public class MammaAfsprakenDagOverzichtPage extends MammaAfsprakenBasePage
 
 		add(new AjaxLink<Void>("terug")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -251,37 +240,40 @@ public class MammaAfsprakenDagOverzichtPage extends MammaAfsprakenBasePage
 		RepeatingView blokken = new RepeatingView("calendar");
 
 		Date datum = datumModel.getObject();
-		volledigDagLabel = DateLabel.forDatePattern("dag", Model.of(datum), "EEEE dd MMMM yyyy").setOutputMarkupId(true);
+		Component volledigDagLabel = DateLabel.forDatePattern("dag", Model.of(datum), "EEEE dd MMMM yyyy").setOutputMarkupId(true);
 		addOrReplace(volledigDagLabel);
 		addMetaInfo();
 
-		LocalDate currentDay = DateUtil.toLocalDate(datum);
+		LocalDate gekozenDag = DateUtil.toLocalDate(datum);
 		LocalDate minimaleDagVoorBulkVerzetten = dateSupplier.getLocalDate()
 			.minusWeeks(preferenceService.getInteger(PreferenceKey.MAMMA_BULK_VERZETTEN_IN_VERLEDEN_AANTAL_WEKEN.name(), 2));
 
-		boolean magNuVerzetten = magVerzetten && !currentDay.isBefore(minimaleDagVoorBulkVerzetten);
-		boolean magNuBulkVerzetten = magBulkVerzetten && !currentDay.isBefore(minimaleDagVoorBulkVerzetten);
+		boolean magNuVerzetten = magVerzetten && !gekozenDag.isBefore(minimaleDagVoorBulkVerzetten);
+		boolean magNuBulkVerzetten = magBulkVerzetten && !gekozenDag.isBefore(minimaleDagVoorBulkVerzetten);
 
 		MammaScreeningsEenheid screeningsEenheid = screeningsEenheidModel.getObject();
 
-		Date vanaf = DateUtil.toUtilDate(currentDay);
-		Date totEnMet = DateUtil.toUtilDate(currentDay.plusDays(1));
+		Date vanaf = DateUtil.toUtilDate(gekozenDag);
+		Date totEnMet = DateUtil.toUtilDate(gekozenDag.plusDays(1));
 
-		long aantalAfspraken = baseAfspraakService.countAfspraken(screeningsEenheid, vanaf, totEnMet, MammaAfspraakStatus.NIET_GEANNULEERD.toArray(new MammaAfspraakStatus[0]));
+		long aantalAfspraken = baseAfspraakService.countAfspraken(screeningsEenheid, gekozenDag, gekozenDag,
+			MammaAfspraakStatus.NIET_GEANNULEERD.toArray(new MammaAfspraakStatus[0]));
 		capaciteitContainer.addOrReplace(new Label("aantalAfspraken", Model.of(aantalAfspraken)));
 
-		List<MammaAfspraak> afspraken = baseAfspraakService.getAfspraken(screeningsEenheid, vanaf, totEnMet, MammaAfspraakStatus.GEPLAND);
+		List<MammaAfspraak> afspraken = baseAfspraakService.getAfspraken(screeningsEenheid, gekozenDag, gekozenDag, MammaAfspraakStatus.GEPLAND);
 		List<MammaCapaciteitBlok> capaciteitsBlokken = baseCapaciteitsBlokService.getCapaciteitsBlokken(screeningsEenheid, vanaf, totEnMet, true,
 			Arrays.asList(MammaCapaciteitBlokType.REGULIER, MammaCapaciteitBlokType.TEHUIS));
 
-		blokken.add(new MammaAfsprakenZonderBlokPanel(blokken.newChildId(), screeningsEenheidModel, currentDay, selectedAfspraken, dialog, magNuVerzetten, magNuBulkVerzetten,
-			afspraken.stream().filter(afspraak -> afspraak.getCapaciteitBlok() == null).collect(Collectors.toList())));
+		blokken.add(
+			new MammaAfsprakenZonderBlokPanel(blokken.newChildId(), screeningsEenheidModel, gekozenDag, selectedAfspraken, localDialog, magNuVerzetten, magNuBulkVerzetten,
+				afspraken.stream().filter(afspraak -> afspraak.getCapaciteitBlok() == null).collect(Collectors.toList())));
 
 		BigDecimal vrijeCapaciteit = BigDecimal.ZERO;
 		BigDecimal beschikbareCapaciteit = BigDecimal.ZERO;
 		for (MammaCapaciteitBlok blok : capaciteitsBlokken)
 		{
-			blokken.add(new MammaBlokMetAfsprakenPanel(blokken.newChildId(), ModelUtil.cRModel(blok), selectedAfspraken, currentDay, dialog, magNuVerzetten, magNuBulkVerzetten));
+			blokken.add(
+				new MammaBlokMetAfsprakenPanel(blokken.newChildId(), ModelUtil.csModel(blok), selectedAfspraken, gekozenDag, localDialog, magNuVerzetten, magNuBulkVerzetten));
 			vrijeCapaciteit = vrijeCapaciteit.add(blok.getVrijeCapaciteit());
 			beschikbareCapaciteit = beschikbareCapaciteit.add(blok.getBeschikbareCapaciteit());
 		}
@@ -297,9 +289,6 @@ public class MammaAfsprakenDagOverzichtPage extends MammaAfsprakenBasePage
 
 		IndicatingAjaxSubmitLink bulkVerzetten = new IndicatingAjaxSubmitLink("bulkVerzetten", form)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -319,14 +308,14 @@ public class MammaAfsprakenDagOverzichtPage extends MammaAfsprakenBasePage
 				}
 				else
 				{
-					dialog.openWith(target, new MammaBulkVerzettenPopup(IDialog.CONTENT_ID, afspraken, screeningsEenheidModel, datumModel,
+					localDialog.openWith(target, new MammaBulkVerzettenPopup(IDialog.CONTENT_ID, afspraken, screeningsEenheidModel, datumModel,
 						ModelUtil.sModel(baseStandplaatsPeriodeDao.getStandplaatsPeriode(screeningsEenheidModel.getObject(), datum)), standplaatsPeriodesVoorBulkVerzetten)
 					{
 						@Override
 						protected void verzettenAfgerond(AjaxRequestTarget target)
 						{
 							success(getString("afspraken.verzet"));
-							dialog.close(target);
+							localDialog.close(target);
 							refreshKalender(target);
 						}
 					});
@@ -389,7 +378,7 @@ public class MammaAfsprakenDagOverzichtPage extends MammaAfsprakenBasePage
 		add(blokkadesLabel);
 		if (!blokkadesStringList.isEmpty())
 		{
-			blokkadesLabel.add(new AttributeAppender("class", Model.of("blokkades")));
+			blokkadesLabel.add(new AttributeAppender("class", Model.of(" blokkades")));
 		}
 		else
 		{

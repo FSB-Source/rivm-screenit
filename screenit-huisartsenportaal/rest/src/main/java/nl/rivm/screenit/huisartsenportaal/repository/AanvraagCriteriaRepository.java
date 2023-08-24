@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal.repository;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,7 @@ package nl.rivm.screenit.huisartsenportaal.repository;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 import nl.rivm.screenit.huisartsenportaal.dto.TableResultOptionsDto;
@@ -34,7 +34,7 @@ public interface AanvraagCriteriaRepository
 
 	List<LabformulierAanvraag> findByHuisarts(Huisarts huisarts, TableResultOptionsDto tableResultOptionsDto);
 
-	List<LabformulierAanvraag> findByLocatieAndAanvraagDatumBetween(Locatie locatie, Date datum1, Date datum2);
+	List<LabformulierAanvraag> findByLocatieAndAanvraagDatumBetween(Locatie locatie, LocalDate datum1, LocalDate datum2);
 
 	List<LabformulierAanvraag> findByLocatie(Locatie locatie);
 

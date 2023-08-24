@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.services.impl;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -52,14 +52,14 @@ public class HeraanmeldenServiceImpl implements HeraanmeldenService
 		switch (bevolkingsonderzoek)
 		{
 		case COLON:
-			afmelding = AfmeldingUtil.getVerwerkteAfmelding(client.getColonDossier());
+			afmelding = AfmeldingUtil.getHeraanmeldbareAfmelding(client.getColonDossier());
 			afmelding.setClientWilNieuweUitnodiging(clientWilNieuweUitnodiging);
 			break;
 		case MAMMA:
-			afmelding = AfmeldingUtil.getVerwerkteAfmelding(client.getMammaDossier());
+			afmelding = AfmeldingUtil.getHeraanmeldbareAfmelding(client.getMammaDossier());
 			break;
 		case CERVIX:
-			afmelding = AfmeldingUtil.getVerwerkteAfmelding(client.getCervixDossier());
+			afmelding = AfmeldingUtil.getHeraanmeldbareAfmelding(client.getCervixDossier());
 			break;
 		default:
 			throw new IllegalStateException("Unexpected value: " + bevolkingsonderzoek);

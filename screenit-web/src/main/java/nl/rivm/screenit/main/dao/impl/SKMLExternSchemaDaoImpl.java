@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.dao.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,6 +29,7 @@ import java.util.List;
 import nl.rivm.screenit.main.dao.SKMLExternSchemaDao;
 import nl.rivm.screenit.model.colon.SKMLExternSchema;
 import nl.rivm.screenit.model.colon.SKMLExterneControleBarcode;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.apache.commons.lang3.StringUtils;
@@ -36,7 +37,6 @@ import org.hibernate.Criteria;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
-import org.joda.time.DateTime;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,7 +76,7 @@ public class SKMLExternSchemaDaoImpl extends AbstractAutowiredDao implements SKM
 		Criteria crit = maakCriteria(zoekObject);
 		crit.setProjection(Projections.countDistinct("id"));
 		List<Long> countResult = crit.list();
-		return countResult.get(0).longValue();
+		return countResult.get(0);
 	}
 
 	@Override
@@ -125,7 +125,7 @@ public class SKMLExternSchemaDaoImpl extends AbstractAutowiredDao implements SKM
 	@Override
 	public SKMLExternSchema haalEerstvolgendeSchemaOp(Date deadline)
 	{
-		Date exacteDeadline = new DateTime(deadline).withTimeAtStartOfDay().toDate();
+		Date exacteDeadline = DateUtil.startDag(deadline);
 		SKMLExternSchema schema = null;
 		Criteria criteria = getSession().createCriteria(SKMLExternSchema.class);
 		criteria.add(Restrictions.eq("actief", true));
@@ -144,13 +144,11 @@ public class SKMLExternSchemaDaoImpl extends AbstractAutowiredDao implements SKM
 	@Override
 	public List<SKMLExternSchema> haalSchemasVanafDeadlineDatum(Date deadline)
 	{
-		Date exacteDeadline = new DateTime(deadline).withTimeAtStartOfDay().toDate();
-		List<SKMLExternSchema> resultaten = new ArrayList<>();
+		Date exacteDeadline = DateUtil.startDag(deadline);
 		Criteria criteria = getSession().createCriteria(SKMLExternSchema.class);
 		criteria.add(Restrictions.ge("deadline", exacteDeadline));
 		criteria.add(Restrictions.eq("actief", true));
-		resultaten.addAll(criteria.list());
-		return resultaten;
+		return new ArrayList<>(criteria.list());
 	}
 
 	@SuppressWarnings("unchecked")

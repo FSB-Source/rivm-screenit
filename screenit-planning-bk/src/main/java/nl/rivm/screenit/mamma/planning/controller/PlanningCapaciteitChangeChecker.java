@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.controller;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,6 +24,7 @@ package nl.rivm.screenit.mamma.planning.controller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -38,9 +39,9 @@ import nl.rivm.screenit.mamma.planning.index.PlanningScreeningsEenheidIndex;
 import nl.rivm.screenit.mamma.planning.model.PlanningBlok;
 import nl.rivm.screenit.mamma.planning.model.PlanningScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.enums.MammaCapaciteitBlokType;
+import nl.rivm.screenit.util.DateUtil;
 
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
+import com.google.common.collect.Range;
 
 public class PlanningCapaciteitChangeChecker
 {
@@ -67,33 +68,33 @@ public class PlanningCapaciteitChangeChecker
 
 	public static void magCapaciteitOpslaanVerwijderen(PlanningCapaciteitBlokDto blok, boolean wijzigen) throws OpslaanVerwijderenTijdBlokException
 	{
-		DateTime viewStartDateTime = null;
-		DateTime viewEndTime = null;
+		Date viewStartDateTime;
+		Date viewEndTime;
 
 		if (blok.conceptId != null)
 		{
-			viewStartDateTime = new DateTime(blok.vanaf).withTimeAtStartOfDay().toDateTime();
-			viewEndTime = new DateTime(viewStartDateTime).plusDays(1).withTimeAtStartOfDay().toDateTime();
+			viewStartDateTime = DateUtil.startDag(blok.vanaf);
+			viewEndTime = DateUtil.plusDagen(viewStartDateTime, 1);
 		}
 		else
 		{
-			viewStartDateTime = new DateTime(blok.vanaf);
-			viewEndTime = new DateTime(blok.tot);
+			viewStartDateTime = blok.vanaf;
+			viewEndTime = blok.tot;
 		}
 
-		Interval currentViewInterval = new Interval(viewStartDateTime.withSecondOfMinute(0).withMillisOfSecond(0), viewEndTime.withSecondOfMinute(0).withMillisOfSecond(0));
+		var currentViewRange = Range.closed(DateUtil.startMinuut(viewStartDateTime), DateUtil.startMinuut(viewEndTime));
 
-		List<Interval> nieuweBlokken = getNieuweBlokken(blok, currentViewInterval);
+		var nieuweBlokken = getNieuweBlokken(blok, currentViewRange);
 
 		List<Object[]> overlapteBlokken = null;
 		if (wijzigen || blok.conceptId == null) 
 		{
-			overlapteBlokken = getBlokTijden(nieuweBlokken, blok, currentViewInterval);
+			overlapteBlokken = getBlokTijden(nieuweBlokken, blok);
 		}
 
 		if (blok.conceptId == null) 
 		{
-			if (overlapteBlokken != null && !overlapteBlokken.isEmpty())
+			if (!overlapteBlokken.isEmpty())
 			{
 
 				throw new SeTijdBlokOverlapException(getProps().getProperty("blok.heeft.overlap"), overlapteBlokken, blok.screeningsEenheidId);
@@ -101,18 +102,17 @@ public class PlanningCapaciteitChangeChecker
 		}
 		else if (wijzigen)
 		{
-			List<Interval> echteOverlapteBlokken = new ArrayList<>();
+			List<Range<Date>> echteOverlapteBlokken = new ArrayList<>();
 
 			Set<UUID> idsVanBestaandeBlokken = new HashSet<>();
 			idsVanBestaandeBlokken.add(blok.conceptId);
 
 			for (Object[] overlapteBlokItem : overlapteBlokken)
 			{
-				Object[] blokItemTijden = overlapteBlokItem;
-				DateTime startDateTimeBestaand = new DateTime(blokItemTijden[0]).withSecondOfMinute(0).withMillisOfSecond(0);
-				DateTime endDateTimeBestaand = new DateTime(blokItemTijden[1]).withSecondOfMinute(0).withMillisOfSecond(0);
-				Interval overlapteBlok = new Interval(startDateTimeBestaand, endDateTimeBestaand);
-				UUID blokItemId = (UUID) blokItemTijden[2];
+				var startDateTimeBestaand = DateUtil.startMinuut((Date) overlapteBlokItem[0]);
+				var endDateTimeBestaand = DateUtil.startMinuut((Date) overlapteBlokItem[1]);
+				var overlapteBlok = Range.closed(startDateTimeBestaand, endDateTimeBestaand);
+				UUID blokItemId = (UUID) overlapteBlokItem[2];
 
 				if (!idsVanBestaandeBlokken.contains(blokItemId))
 				{
@@ -128,7 +128,7 @@ public class PlanningCapaciteitChangeChecker
 		}
 	}
 
-	private static List<Object[]> getBlokTijden(List<Interval> nieuweBlokken, PlanningCapaciteitBlokDto blokDto, Interval currentViewInterval)
+	private static List<Object[]> getBlokTijden(List<Range<Date>> nieuweBlokken, PlanningCapaciteitBlokDto blokDto)
 	{
 		List<Object[]> overlappendeBlokken = new ArrayList<>();
 		PlanningBlok changedBlok = PlanningBlokIndex.get(blokDto.conceptId);
@@ -145,18 +145,18 @@ public class PlanningCapaciteitChangeChecker
 		{
 			if (!PlanningBlokIndex.getBlokDeletedSet(screeningsEenheid).contains(blok))
 			{
-				for (Interval intervalToCheck : nieuweBlokken)
+				for (var rangeToCheck : nieuweBlokken)
 				{
-					DateTime tot = new DateTime(blok.getDateTot());
-					DateTime vanaf = new DateTime(blok.getDateVanaf());
-					Interval interval = new Interval(vanaf, tot);
-					if (intervalToCheck.overlaps(interval))
+					var tot = blok.getDateTot();
+					var vanaf = blok.getDateVanaf();
+					var range = Range.closed(vanaf, tot);
+					if (DateUtil.overlaps(rangeToCheck, range))
 					{
 						if (aantalMammografen == null || (aantalMammografen == 1
 							|| aantalMammografen > 1 && (blokDto.blokType.equals(MammaCapaciteitBlokType.GEEN_SCREENING) || blokDto.blokType.equals(blok.getCapaciteitBlokType())
-								|| blok.getCapaciteitBlokType().equals(MammaCapaciteitBlokType.GEEN_SCREENING))))
+							|| blok.getCapaciteitBlokType().equals(MammaCapaciteitBlokType.GEEN_SCREENING))))
 						{
-							Object[] items = new Object[] { vanaf.toDate(), tot.toDate(), blok.getConceptId() };
+							Object[] items = new Object[] { vanaf, tot, blok.getConceptId() };
 							overlappendeBlokken.add(items);
 						}
 					}
@@ -167,19 +167,17 @@ public class PlanningCapaciteitChangeChecker
 		return overlappendeBlokken;
 	}
 
-	private static List<Interval> getNieuweBlokken(PlanningCapaciteitBlokDto blok, Interval currentViewInterval)
+	private static List<Range<Date>> getNieuweBlokken(PlanningCapaciteitBlokDto blok, Range<Date> currentViewRange)
 	{
-		List<Interval> nieuweBlokken = new ArrayList<>();
-
-		addNieuwBlok(blok, currentViewInterval, nieuweBlokken);
+		List<Range<Date>> nieuweBlokken = new ArrayList<>();
+		addNieuwBlok(blok, currentViewRange, nieuweBlokken);
 		return nieuweBlokken;
 	}
 
-	private static void addNieuwBlok(PlanningCapaciteitBlokDto blok, Interval currentViewInterval, List<Interval> nieuweBlokken)
+	private static void addNieuwBlok(PlanningCapaciteitBlokDto blok, Range<Date> currentViewRange, List<Range<Date>> nieuweBlokken)
 	{
-		Interval nieuwBlok = new Interval(new DateTime(blok.vanaf).withSecondOfMinute(0).withMillisOfSecond(0),
-			new DateTime(blok.tot).withSecondOfMinute(0).withMillisOfSecond(0));
-		if (currentViewInterval.overlaps(nieuwBlok) && !nieuweBlokken.contains(nieuwBlok))
+		var nieuwBlok = Range.closed(DateUtil.startMinuut(blok.vanaf), DateUtil.startMinuut(blok.tot));
+		if (DateUtil.overlaps(currentViewRange, nieuwBlok) && !nieuweBlokken.contains(nieuwBlok))
 		{
 			nieuweBlokken.add(nieuwBlok);
 		}

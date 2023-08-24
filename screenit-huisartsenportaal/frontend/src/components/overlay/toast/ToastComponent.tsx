@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,7 @@ import classNames from "classnames"
 import styles from "./ToastComponent.module.scss"
 import {Toast, ToastType} from "../../../state/datatypes/Toast"
 import {useDispatch} from "react-redux"
-import {useCallback, useEffect, useState} from "react"
+import React, {useCallback, useEffect, useState} from "react"
 import {createActionHideToast} from "../../../state/ToastsState"
 
 export interface ToastComponentProps {

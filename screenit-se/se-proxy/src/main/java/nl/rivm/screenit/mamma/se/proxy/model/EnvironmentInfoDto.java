@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.model;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -48,6 +48,8 @@ public class EnvironmentInfoDto
 
 	private int dagenDaglijstOphalenLimiet;
 
+	private boolean tomosyntheseMogelijk;
+
 	public Boolean isNfcEnabled()
 	{
 		return nfcEnabled;
@@ -56,5 +58,19 @@ public class EnvironmentInfoDto
 	public void setNfcEnabled(String nfcEnabled)
 	{
 		this.nfcEnabled = nfcEnabled.equals("true");
+	}
+
+	public EnvironmentInfoDto(EnvironmentInfoDto environmentInfoDto)
+	{
+		this.version = environmentInfoDto.version;
+		this.environment = environmentInfoDto.environment;
+		this.timestamp = environmentInfoDto.timestamp;
+		this.nfcEnabled = environmentInfoDto.nfcEnabled;
+		this.huidigWerkstationIpAdres = environmentInfoDto.huidigWerkstationIpAdres;
+		this.magUpdaten = environmentInfoDto.magUpdaten;
+		this.dagenInDaglijstCache = environmentInfoDto.dagenInDaglijstCache;
+		this.cacheVulling = environmentInfoDto.cacheVulling;
+		this.dagenDaglijstOphalenLimiet = environmentInfoDto.dagenDaglijstOphalenLimiet;
+		this.tomosyntheseMogelijk = environmentInfoDto.tomosyntheseMogelijk;
 	}
 }

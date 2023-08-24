@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.model.mamma;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,7 +25,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -64,12 +63,12 @@ public class MammaAfspraakWijzigenFilterDto implements IMammaAfspraakWijzigenFil
 
 	private MammaVerzettenReden verzettenReden;
 
-	public static MammaAfspraakWijzigenFilterDto filterVoorOphalenAfsprakenBinnenVrijgegevenPeriode(Client client, String plaats, String afstand, LocalDate vanaf, LocalDate vrijgegevenTotEnMet)
+	public static MammaAfspraakWijzigenFilterDto filterVoorOphalenAfsprakenBinnenPeriode(Client client, String plaats, String afstand, LocalDate vanaf, LocalDate totEnMet)
 	{
 		MammaAfspraakWijzigenFilterDto filterDto = new MammaAfspraakWijzigenFilterDto();
 		filterDto.setClient(client);
 		filterDto.setVanaf(vanaf);
-		filterDto.setTotEnMet(vrijgegevenTotEnMet);
+		filterDto.setTotEnMet(totEnMet);
 		if (StringUtils.isNotBlank(plaats))
 		{
 			filterDto.setPlaats(plaats);

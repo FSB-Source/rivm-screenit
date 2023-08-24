@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,7 +25,6 @@ import java.io.IOException;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.exception.HL7CreateMessageException;
-import nl.rivm.screenit.batch.exception.HL7SendMessageException;
 import nl.rivm.screenit.batch.model.HL7v24ResponseWrapper;
 import nl.rivm.screenit.batch.model.ScreenITHL7MessageContext;
 import nl.rivm.screenit.batch.model.enums.MammaHL7Connectie;
@@ -35,6 +34,7 @@ import nl.rivm.screenit.batch.service.MammaHL7v24SendService;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24AdtBerichtTriggerDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetClientDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto;
+import nl.rivm.screenit.exceptions.HL7SendMessageException;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.berichten.ScreenITResponseV24MessageWrapper;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7ADTBerichtType;
@@ -222,7 +222,10 @@ public class MammaHL7v24SendServiceImpl implements MammaHL7v24SendService
 			port = hl7ImsOrmIlmPort;
 			host = hl7IMSHost;
 		}
-		sendMessageService.openConnection(hl7Connection.getConnectieNaam(), host, port, 3, hl7Connection.getMessageContext());
+		ScreenITHL7MessageContext messageContext = hl7Connection.getMessageContext();
+		messageContext.setHost(host);
+		messageContext.setPort(Integer.valueOf(port));
+		sendMessageService.openConnection(hl7Connection.getConnectieNaam(), 3, messageContext);
 	}
 
 	private HL7v24ResponseWrapper sendMammaHL7Message(Message hl7Bericht, MammaHL7Connectie messageConnection)
@@ -243,9 +246,7 @@ public class MammaHL7v24SendServiceImpl implements MammaHL7v24SendService
 		else
 		{
 			LOG.warn("HL7 berichten versturen staat uit.");
-			HL7v24ResponseWrapper responseWrapper = new HL7v24ResponseWrapper();
-			responseWrapper.setSuccess(true);
-			return responseWrapper;
+			return new HL7v24ResponseWrapper();
 		}
 		return messageContext.getResponseWrapper();
 	}

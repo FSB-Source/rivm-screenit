@@ -4,7 +4,7 @@ package nl.rivm.screenit.service;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,7 +30,7 @@ import nl.rivm.screenit.model.InstellingGebruiker;
 public interface AuthenticatieService
 {
 
-	Map<Gebruiker, Boolean> requestNewPassword(Gebruiker searchObject);
+	Gebruiker requestNewPassword(String gebruikersnaam, String emailextra);
 
 	Map<Gebruiker, Boolean> accountGeblokkeerd(Gebruiker searchObject);
 
@@ -43,4 +43,5 @@ public interface AuthenticatieService
 	void foutieveInlogpoging(Gebruiker gebruiker);
 
 	void sendUziEmail(Gebruiker gebruiker);
+
 }

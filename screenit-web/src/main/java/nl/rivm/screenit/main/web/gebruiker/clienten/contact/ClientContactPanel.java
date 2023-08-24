@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +58,7 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaUitstel;
 import nl.rivm.screenit.service.ClientContactService;
 import nl.rivm.screenit.service.ClientService;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseDossierService;
 import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.util.ExceptionConverter;
@@ -120,6 +120,9 @@ public class ClientContactPanel extends GenericPanel<Client>
 
 	@SpringBean
 	private MammaBaseDossierService mammaBaseDossierService;
+
+	@SpringBean
+	private ICurrentDateSupplier currentDateSupplier;
 
 	private IModel<ClientDossierFilter> zoekObjectModel;
 
@@ -682,7 +685,7 @@ public class ClientContactPanel extends GenericPanel<Client>
 			}
 			client.getContacten().add(contact);
 			contact.setClient(client);
-			contact.setDatum(new Date());
+			contact.setDatum(currentDateSupplier.getDate());
 			List<ClientContactActie> acties = new ArrayList<>();
 			Map<ClientContactActieType, Map<ExtraOpslaanKey, Object>> extraOpslaanObjecten = new HashMap<>();
 			try

@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.mappers;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,8 +21,10 @@ package nl.rivm.screenit.clientportaal.mappers;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.clientportaal.mappers.config.ScreenitMapperConfig;
+import java.util.Date;
+
 import nl.rivm.screenit.clientportaal.model.ClientDto;
+import nl.rivm.screenit.mappers.config.ScreenitMapperConfig;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.DateUtil;
@@ -49,7 +51,8 @@ public interface ClientMapper
 		@Mapping(source = "persoon.tijdelijkAdres", target = "tijdelijkAdres"),
 		@Mapping(source = "persoon.aanhef", target = "aanhef"),
 		@Mapping(source = "persoon.telefoonnummer1", target = "telefoonnummer1"),
-		@Mapping(source = "persoon.telefoonnummer2", target = "telefoonnummer2")
+		@Mapping(source = "persoon.telefoonnummer2", target = "telefoonnummer2"),
+		@Mapping(source = "persoon.datumVertrokkenUitNederland", target = "vertrokkenUitNederland", qualifiedByName = "booleanVertrokkenNederland")
 	})
 	ClientDto clientToDto(Client client);
 
@@ -77,4 +80,9 @@ public interface ClientMapper
 		return AdresUtil.getVolledigeAdresString(adres);
 	}
 
+	@Named("booleanVertrokkenNederland")
+	default Boolean booleanVertrokkenNederland(Date datumVertrokken)
+	{
+		return datumVertrokken != null;
+	}
 }

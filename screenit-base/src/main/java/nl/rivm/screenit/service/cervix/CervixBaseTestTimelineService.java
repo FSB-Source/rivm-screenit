@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -53,6 +53,8 @@ public interface CervixBaseTestTimelineService
 
 	CervixUitnodiging nieuweRonde(Client client);
 
+	CervixUitnodiging nieuweRonde(Client client, boolean metVooraankondiging);
+
 	void uitstelVoorZwangerschap(CervixScreeningRonde ronde);
 
 	void nieuweCISRonde0(Client client, Date creatieDatum);
@@ -65,7 +67,7 @@ public interface CervixBaseTestTimelineService
 
 	CervixBaseTestTimelineService vervolgonderzoekBrief(CervixScreeningRonde ronde);
 
-	CervixBaseTestTimelineService maakZas(Client modelObject, Account account, CervixTestTimeLineDossierTijdstip tijdStip);
+	CervixBaseTestTimelineService maakZasMonster(Client client, Account account, CervixTestTimeLineDossierTijdstip tijdStip, boolean isNieuwTypeZas);
 
 	CervixBaseTestTimelineService zetMonsterId(CervixUitnodiging uitnodiging, String monsterId);
 

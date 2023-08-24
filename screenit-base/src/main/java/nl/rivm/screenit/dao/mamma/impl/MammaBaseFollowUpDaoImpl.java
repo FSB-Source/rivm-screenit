@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,12 +33,12 @@ import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
+import nl.rivm.screenit.model.berichten.enums.VerslagType;
 import nl.rivm.screenit.model.enums.MammaFollowUpDoorverwezenFilterOptie;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaFollowUpRadiologieVerslag;
 import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
-import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
@@ -46,7 +46,6 @@ import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.hibernate.Criteria;
-import org.hibernate.criterion.CriteriaSpecification;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
@@ -137,6 +136,10 @@ public class MammaBaseFollowUpDaoImpl extends AbstractAutowiredDao implements Ma
 		case NIET_DOORVERWEZEN:
 			radiologieVerslagLaatsteBeoordelingMetUitslag.add(Restrictions.eq("beoordeling.status", MammaBeoordelingStatus.UITSLAG_GUNSTIG));
 			break;
+		case ALLES:
+			break;
+		default:
+			throw new IllegalStateException("Unexpected value: " + doorverwezenFilterOptie);
 		}
 
 		return radiologieVerslagLaatsteBeoordelingMetUitslag;
@@ -167,26 +170,30 @@ public class MammaBaseFollowUpDaoImpl extends AbstractAutowiredDao implements Ma
 	@Override
 	public List<MammaFollowUpRadiologieVerslag> zoekDossiersMetOpenstaandePaVerslagen(Instelling instelling, int first, int count, SortState<String> sortState)
 	{
-		Criteria crit = createOpenstaandePaVerslagenCriteria(instelling);
+		Criteria criteria = createOpenstaandePaVerslagenCriteria(instelling);
+		addSortAndPaging(criteria, sortState, first, count);
+		return criteria.list();
+	}
+
+	private void addSortAndPaging(Criteria criteria, SortState<String> sortState, int first, int count)
+	{
 		String sortProperty = sortState.getSortParam();
 		if (sortProperty != null)
 		{
-
 			if (sortState.isAsc())
 			{
-				crit.addOrder(Order.asc(sortProperty));
+				criteria.addOrder(Order.asc(sortProperty));
 			}
 			else
 			{
-				crit.addOrder(Order.desc(sortProperty));
+				criteria.addOrder(Order.desc(sortProperty));
 			}
 		}
-		crit.setFirstResult(Math.max(first, 0));
+		criteria.setFirstResult(Math.max(first, 0));
 		if (count > 0)
 		{
-			crit.setMaxResults(count);
+			criteria.setMaxResults(count);
 		}
-		return crit.list();
 	}
 
 	@Override
@@ -200,26 +207,9 @@ public class MammaBaseFollowUpDaoImpl extends AbstractAutowiredDao implements Ma
 	@Override
 	public List<MammaBeoordeling> zoekOpenstaandeFollowUpConclusies(ScreeningOrganisatie regio, int first, int count, SortState<String> sortState)
 	{
-		Criteria crit = createOpenstaandeFollowUpConclusiesCriteria(regio);
-		String sortProperty = sortState.getSortParam();
-		if (sortProperty != null)
-		{
-
-			if (sortState.isAsc())
-			{
-				crit.addOrder(Order.asc(sortProperty));
-			}
-			else
-			{
-				crit.addOrder(Order.desc(sortProperty));
-			}
-		}
-		crit.setFirstResult(Math.max(first, 0));
-		if (count > 0)
-		{
-			crit.setMaxResults(count);
-		}
-		return crit.list();
+		var criteria = createOpenstaandeFollowUpConclusiesCriteria(regio);
+		addSortAndPaging(criteria, sortState, first, count);
+		return criteria.list();
 	}
 
 	@Override
@@ -240,7 +230,8 @@ public class MammaBaseFollowUpDaoImpl extends AbstractAutowiredDao implements Ma
 		openstaandeFollowUpConclusieDossier.createAlias("afspraak.uitnodiging", "uitnodiging");
 		openstaandeFollowUpConclusieDossier.createAlias("uitnodiging.screeningRonde", "screeningRonde");
 
-		openstaandeFollowUpConclusieDossier.createAlias("screeningRonde.followUpVerslagen", "followUpVerslag", JoinType.LEFT_OUTER_JOIN);
+		openstaandeFollowUpConclusieDossier.createAlias("screeningRonde.followUpVerslagen", "followUpVerslag", JoinType.LEFT_OUTER_JOIN,
+			Restrictions.eq("followUpVerslag.type", VerslagType.MAMMA_PA_FOLLOW_UP));
 		openstaandeFollowUpConclusieDossier.createAlias("screeningRonde.followUpRadiologieVerslagen", "followUpRadiologieVerslag", JoinType.LEFT_OUTER_JOIN);
 
 		openstaandeFollowUpConclusieDossier.add(Restrictions.eq("dossier.id", dossier.getId()));
@@ -351,6 +342,7 @@ public class MammaBaseFollowUpDaoImpl extends AbstractAutowiredDao implements Ma
 		DetachedCriteria screeningRondesMetAfgerondPaVerslag = DetachedCriteria.forClass(MammaFollowUpVerslag.class, "paVerslag");
 		screeningRondesMetAfgerondPaVerslag.add(Restrictions.eqProperty("paVerslag.screeningRonde", "radVerslagRonde.id"));
 		screeningRondesMetAfgerondPaVerslag.add(Restrictions.eq("paVerslag.status", VerslagStatus.AFGEROND));
+		screeningRondesMetAfgerondPaVerslag.add(Restrictions.eq("paVerslag.type", VerslagType.MAMMA_PA_FOLLOW_UP));
 		screeningRondesMetAfgerondPaVerslag.setProjection(Projections.property("paVerslag.id"));
 
 		return screeningRondesMetAfgerondPaVerslag;

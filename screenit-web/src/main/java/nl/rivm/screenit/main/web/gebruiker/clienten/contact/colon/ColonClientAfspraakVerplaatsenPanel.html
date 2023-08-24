@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -125,53 +125,60 @@
                 </div>
                 <div class="row-fluid">
                     <div class="span6">
-                        <div wicket:id="datumTijdBuitenRoosterContainer">
-                            <div class="control-group value">
-                                <label class="control-label">Nieuwe datum/tijd</label>
+						<div wicket:id="datumTijdBuitenRoosterContainer">
+							<div class="control-group value">
+								<label class="control-label">Nieuwe datum/tijd</label>
 
-                                <div class="controls">
-                                    <div wicket:id="datumTijdBuitenRooster"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div wicket:id="briefTegenhoudenContainer">
-                            <div class="control-group value">
-                                <label class="control-label">Nieuwe brief tegenhouden</label>
+								<div class="controls">
+									<div wicket:id="datumTijdBuitenRooster"></div>
+								</div>
+							</div>
+						</div>
+						<div wicket:id="briefTegenhoudenContainer">
+							<div class="control-group value">
+								<label class="control-label">Nieuwe brief tegenhouden</label>
 
-                                <div class="controls">
-                                    <input wicket:id="briefTegenhouden" type="checkbox"/>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </fieldset>
-        </div>
+								<div class="controls">
+									<input wicket:id="briefTegenhouden" type="checkbox"/>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</fieldset>
+		</div>
+		<div wicket:id="isVerwezenMedischeRedenenContainer">
+			<fieldset>
+				<h3>Betreft dit een medische verwijzing?</h3>
+				<div class="row-fluid">
+					<span wicket:id="isVerwezenMedischeRedenen"/>
+				</div>
+			</fieldset>
+		</div>
+		<div wicket:id="momentZoekenContainer">
+			<fieldset class="column-afspraak-zoeken">
+				<h3>Moment zoeken</h3>
 
-        <div wicket:id="momentZoekenContainer">
-            <fieldset class="column-afspraak-zoeken">
-                <h3>Moment zoeken</h3>
-
-                <form wicket:id="filterForm" class="form-inline">
-                    <div class="row-fluid">
-                        <div wicket:id="vanafTotEnMetContainer">
-                            <div class="span6">
-                                <div class="controls size-normal">
-                                    <label class="control-label label-inline">Datum</label>
+				<form wicket:id="filterForm" class="form-inline">
+					<div class="row-fluid">
+						<div wicket:id="vanafTotEnMetContainer">
+							<div class="span6">
+								<div class="controls size-normal">
+									<label class="control-label label-inline">Datum</label>
 
                                     <div class="input-append">
-                                        <input type="text" class="datum form-control" wicket:id="vanaf"/>
-                                        <a href="javascript:void(0);" class="btn"
-                                           onclick="$(this).prev().datepicker('show');"><i
-                                                class="icon-calendar"></i></a>
-                                    </div>
+										<input type="text" class="datum form-control" wicket:id="vanaf"/>
+										<a  class="btn js-datepicker-show"
+										><i
+												class="icon-calendar"></i></a>
+									</div>
                                     t/m
-                                    <div class="input-append">
-                                        <input type="text" class="datum form-control" wicket:id="totEnMet"/>
-                                        <a href="javascript:void(0);" class="btn"
-                                           onclick="$(this).prev().datepicker('show');"><i
-                                                class="icon-calendar"></i></a>
-                                    </div>
+									<div class="input-append">
+										<input type="text" class="datum form-control" wicket:id="totEnMet"/>
+										<a  class="btn js-datepicker-show"
+										><i
+												class="icon-calendar"></i></a>
+									</div>
                                 </div>
                             </div>
                         </div>

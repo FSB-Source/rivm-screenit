@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.gevolgenlabprocesverwerken.step;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,8 +21,6 @@ package nl.rivm.screenit.batch.jobs.cervix.gevolgenlabprocesverwerken.step;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
-
 import javax.annotation.Nullable;
 
 import lombok.AllArgsConstructor;
@@ -35,7 +33,7 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.cervix.CervixAfmelding;
 import nl.rivm.screenit.model.cervix.CervixBrief;
-import nl.rivm.screenit.model.cervix.CervixLabformulier;
+import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
@@ -49,7 +47,6 @@ import nl.rivm.screenit.model.enums.BezwaarType;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.HuisartsBerichtType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
-import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BezwaarService;
@@ -62,12 +59,12 @@ import nl.rivm.screenit.service.cervix.CervixMailService;
 import nl.rivm.screenit.service.cervix.CervixVervolgService;
 import nl.rivm.screenit.service.cervix.impl.CervixOmissiesLabproces;
 import nl.rivm.screenit.service.cervix.impl.CervixVervolg;
-import nl.rivm.screenit.util.BriefUtil;
+import nl.rivm.screenit.util.AfmeldingUtil;
 import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.joda.time.DateTime;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
@@ -115,22 +112,24 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 		catch (IllegalStateException | NullPointerException e)
 		{
 			logService.logGebeurtenis(LogGebeurtenis.CERVIX_GEVOLGEN_LABPROCES_VERWERKEN_VERVOLG_BEPALEN_MISLUKT,
-				new LogEvent("Er kon geen vervolg worden bepaald voor monster-id " + monster.getMonsterId()), null,
-				monster.getOntvangstScreeningRonde().getDossier().getClient(), Bevolkingsonderzoek.CERVIX);
-			LOG.error(
-				"Er kon geen vervolg worden bepaald voor client met id: " + monster.getOntvangstScreeningRonde().getDossier().getClient().getId() + " monster-id: "
-					+ monster.getMonsterId(),
-				e);
+				monster.getOntvangstScreeningRonde().getDossier().getClient(),
+				"Er kon geen vervolg worden bepaald voor monster-id " + monster.getMonsterId(),
+				Bevolkingsonderzoek.CERVIX);
+			LOG.error("Er kon geen vervolg worden bepaald voor client (id: '{}') monster-id: {}",
+				monster.getOntvangstScreeningRonde().getDossier().getClient().getId(),
+				monster.getMonsterId(), e);
 			return;
 		}
 
 		if (monster.getOntvangstScreeningRonde() != null
 			&& monster.getOntvangstScreeningRonde().getControleUitstrijkjeDatum() == null
 			&& monster.getOntvangstdatum() != null
-			&& vervolg.getIntervalControleUitstrijkje() != null)
+			&& vervolg.getIntervalControleUitstrijkje() != null
+			&& monster instanceof CervixUitstrijkje
+			&& ((CervixUitstrijkje) monster).getCytologieVerslag() != null)
 		{
 			monster.getOntvangstScreeningRonde()
-				.setControleUitstrijkjeDatum(DateUtil.toLocalDate(monster.getOntvangstdatum())
+				.setControleUitstrijkjeDatum(DateUtil.toLocalDate(((CervixUitstrijkje) monster).getCytologieVerslag().getDatumVerwerkt())
 					.plusMonths(vervolg.getIntervalControleUitstrijkje()));
 		}
 
@@ -152,23 +151,20 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 				{
 					aantalContextOphogen(CervixGevolgenLabprocesVerwerkenConstants.AANTAL_IN_LABPROCES_KEY);
 				}
+				else if (omissie.getBriefType() == null)
+				{
+					aantalContextOphogen(CervixGevolgenLabprocesVerwerkenConstants.AANTAL_IN_LABPROCES_KEY);
+
+					var uitstrijkjeOntbreektHuisartsBericht = omissie.getUitstrijkjeOntbreektHuisartsBericht();
+					if (uitstrijkjeOntbreektHuisartsBericht != null)
+					{
+						aantallenContextOphogen(CervixGevolgenLabprocesVerwerkenConstants.TOTAAL_AANTAL_HUISARTSBERICHTEN_KEY,
+							CervixGevolgenLabprocesVerwerkenConstants.HUISARTSBERICHT_TYPE_KEY, uitstrijkjeOntbreektHuisartsBericht.getBerichtType());
+					}
+				}
 				else
 				{
-					if (omissie.getBriefType() == null)
-					{
-						aantalContextOphogen(CervixGevolgenLabprocesVerwerkenConstants.AANTAL_IN_LABPROCES_KEY);
-
-						var uitstrijkjeOntbreektHuisartsBericht = omissie.getUitstrijkjeOntbreektHuisartsBericht();
-						if (uitstrijkjeOntbreektHuisartsBericht != null)
-						{
-							aantallenContextOphogen(CervixGevolgenLabprocesVerwerkenConstants.TOTAAL_AANTAL_HUISARTSBERICHTEN_KEY,
-								CervixGevolgenLabprocesVerwerkenConstants.HUISARTSBERICHT_TYPE_KEY, uitstrijkjeOntbreektHuisartsBericht.getBerichtType());
-						}
-					}
-					else
-					{
-						labprocesAfronden(monster, omissie);
-					}
+					labprocesAfronden(monster, omissie);
 				}
 			}
 			else
@@ -179,7 +175,7 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 		}
 		catch (Exception e)
 		{
-			LOG.error("Exceptie voor client(id:" + monster.getOntvangstScreeningRonde().getDossier().getClient().getId() + ") monster-id: " + monster.getMonsterId());
+			LOG.error("Exceptie voor client (id: '{}') monster-id: {}", monster.getOntvangstScreeningRonde().getDossier().getClient().getId(), monster.getMonsterId());
 			throw e;
 		}
 	}
@@ -187,8 +183,8 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 	private void labprocesAfronden(CervixMonster monster, CervixVervolg vervolg)
 	{
 		volgendeRondeVanaf(monster, vervolg);
-		var heraanmeldenTekstKey = heraanmelden(monster);
-		var brief = brief(monster, vervolg, heraanmeldenTekstKey);
+		var heraanmeldTekstKey = bepaalHeraanmeldKeyEnMeldOpnieuwAan(monster);
+		var brief = brief(monster, vervolg, heraanmeldTekstKey);
 		huisartsbericht(monster, vervolg);
 		uitnodiging(monster, brief);
 		vervolgonderzoek(monster, vervolg);
@@ -199,8 +195,8 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 
 	private void labprocesAfronden(CervixMonster monster, CervixOmissiesLabproces.Omissie omissie)
 	{
-		PreferenceKey heraanmeldenTekstKey = heraanmelden(monster);
-		CervixBrief brief = brief(monster, omissie, heraanmeldenTekstKey);
+		var heraanmeldTekstKey = bepaalHeraanmeldKeyEnMeldOpnieuwAan(monster);
+		var brief = brief(monster, omissie, heraanmeldTekstKey);
 		huisartsbericht(monster, omissie);
 		uitnodiging(monster, brief);
 		verwerkBezwaar(monster);
@@ -231,25 +227,25 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 
 	private void huisartsOnbekendBrief(CervixMonster monster)
 	{
-		if (monster instanceof CervixUitstrijkje)
+		if (CervixMonsterUtil.isUitstrijkje(monster))
 		{
 
-			CervixUitstrijkje uitstrijkje = (CervixUitstrijkje) monster;
+			var uitstrijkje = CervixMonsterUtil.getUitstrijkje(monster);
 			if (uitstrijkje.getUitstrijkjeStatus() != CervixUitstrijkjeStatus.NIET_ONTVANGEN)
 			{
-				CervixLabformulier labformulier = uitstrijkje.getLabformulier();
+				var labformulier = uitstrijkje.getLabformulier();
 				if (labformulier != null && labformulier.getStatus() == CervixLabformulierStatus.HUISARTS_ONBEKEND && labformulier.getHuisartsOnbekendBrief() == null)
 				{
-					CervixScreeningRonde ontvangstRonde = monster.getOntvangstScreeningRonde();
+					var ontvangstRonde = monster.getOntvangstScreeningRonde();
 
 					if (ontvangstRonde.getUitstrijkjeCytologieUitslag() == null && ontvangstRonde.getMonsterHpvUitslag() != null
 						&& ontvangstRonde.getMonsterHpvUitslag().getLaatsteHpvBeoordeling().getHpvUitslag() == CervixHpvBeoordelingWaarde.POSITIEF
 						|| ontvangstRonde.getUitstrijkjeVervolgonderzoekUitslag() == null && ontvangstRonde.getInVervolgonderzoekDatum() != null
 						&& uitstrijkje.getOntvangstdatum().after(ontvangstRonde.getInVervolgonderzoekDatum()))
 					{
-						PreferenceKey heraanmeldenTekstKey = heraanmelden(monster);
-						CervixBrief huisartsOnbekendBrief = briefService.maakBvoBrief(ontvangstRonde, BriefType.CERVIX_HUISARTS_ONBEKEND);
-						huisartsOnbekendBrief.setHeraanmeldenTekstKey(heraanmeldenTekstKey);
+						var heraanmeldTekstKey = bepaalHeraanmeldKeyEnMeldOpnieuwAan(monster);
+						var huisartsOnbekendBrief = briefService.maakBvoBrief(ontvangstRonde, BriefType.CERVIX_HUISARTS_ONBEKEND);
+						huisartsOnbekendBrief.setHeraanmeldenTekstKey(heraanmeldTekstKey);
 						huisartsOnbekendBrief.setLabformulier(labformulier);
 						labformulier.setHuisartsOnbekendBrief(huisartsOnbekendBrief);
 
@@ -268,7 +264,7 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 		if (leeftijdcategorieVolgendeRonde != null)
 		{
 			var dossier = monster.getOntvangstScreeningRonde().getDossier();
-			var geboortedatum = new DateTime(dossier.getClient().getPersoon().getGeboortedatum());
+			var geboortedatum = DateUtil.toLocalDate(dossier.getClient().getPersoon().getGeboortedatum());
 
 			var volgendeRondeVanaf = geboortedatum.plusYears(leeftijdcategorieVolgendeRonde.getLeeftijd());
 			if (geboortedatum.getDayOfMonth() != volgendeRondeVanaf.getDayOfMonth())
@@ -276,43 +272,61 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 
 				volgendeRondeVanaf = volgendeRondeVanaf.plusDays(1);
 			}
-			dossier.setVolgendeRondeVanaf(volgendeRondeVanaf.toDate());
+			dossier.setVolgendeRondeVanaf(DateUtil.toUtilDate(volgendeRondeVanaf));
 
 			hibernateService.saveOrUpdate(dossier);
 		}
 	}
 
-	private PreferenceKey heraanmelden(CervixMonster monster)
+	private PreferenceKey bepaalHeraanmeldKeyEnMeldOpnieuwAan(CervixMonster monster)
 	{
 		PreferenceKey heraanmeldenTekstKey = null;
 
-		if (!afgemeldNaOntvangstMonster(monster))
-		{
-			CervixAfmelding afmelding = null;
+		var ontvangstRonde = monster.getOntvangstScreeningRonde();
+		var dossier = ontvangstRonde.getDossier();
 
-			var ontvangstRonde = monster.getOntvangstScreeningRonde();
-			var dossier = ontvangstRonde.getDossier();
-			if (!dossier.getAangemeld())
-			{
-				afmelding = dossier.getLaatsteAfmelding();
-				aantalContextOphogen(CervixGevolgenLabprocesVerwerkenConstants.AANTAL_DEFINITIEF_HERAANGEMELD_KEY);
-				heraanmeldenTekstKey = PreferenceKey.CERVIX_DEFINITIEF_HERAANMELDEN_TEKST;
-			}
-			else
-			{
-				if (!ontvangstRonde.getAangemeld())
-				{
-					afmelding = ontvangstRonde.getLaatsteAfmelding();
-					aantalContextOphogen(CervixGevolgenLabprocesVerwerkenConstants.AANTAL_EENMALIG_HERAANGEMELD_KEY);
-					heraanmeldenTekstKey = PreferenceKey.CERVIX_EENMALIG_HERAANMELDEN_TEKST;
-				}
-			}
-			if (afmelding != null)
-			{
-				baseAfmeldService.heraanmeldenZonderVervolg(afmelding);
-			}
+		if (ontvangstRonde.equals(dossier.getLaatsteScreeningRonde()) && AfmeldingUtil.isEenmaligOfDefinitefAfgemeld(dossier))
+		{
+			heraanmeldenTekstKey = bepaalTekstKeyActieveAfmelding(ontvangstRonde, dossier);
+			heraanmeldenVoordatUitslagGemaaktWordt(monster);
 		}
 		return heraanmeldenTekstKey;
+	}
+
+	private static PreferenceKey bepaalTekstKeyActieveAfmelding(CervixScreeningRonde ontvangstRonde, CervixDossier dossier)
+	{
+		PreferenceKey heraanmeldenTekstKey = null;
+		if (AfmeldingUtil.isAfgerondeDefinitieveAfmelding(dossier.getLaatsteAfmelding()))
+		{
+			heraanmeldenTekstKey = PreferenceKey.CERVIX_DEFINITIEF_HERAANMELDEN_TEKST;
+		}
+		else if (AfmeldingUtil.isAfgerondeEenmaligeAfmelding(ontvangstRonde.getLaatsteAfmelding()))
+		{
+			heraanmeldenTekstKey = PreferenceKey.CERVIX_EENMALIG_HERAANMELDEN_TEKST;
+		}
+		return heraanmeldenTekstKey;
+	}
+
+	private void heraanmeldenVoordatUitslagGemaaktWordt(CervixMonster monster)
+	{
+		CervixAfmelding afmelding = null;
+
+		var ontvangstRonde = monster.getOntvangstScreeningRonde();
+		var dossier = ontvangstRonde.getDossier();
+		if (AfmeldingUtil.isAfgerondeDefinitieveAfmelding(dossier.getLaatsteAfmelding()))
+		{
+			afmelding = dossier.getLaatsteAfmelding();
+			aantalContextOphogen(CervixGevolgenLabprocesVerwerkenConstants.AANTAL_DEFINITIEF_HERAANGEMELD_KEY);
+		}
+		else if (AfmeldingUtil.isAfgerondeEenmaligeAfmelding(ontvangstRonde.getLaatsteAfmelding()))
+		{
+			afmelding = ontvangstRonde.getLaatsteAfmelding();
+			aantalContextOphogen(CervixGevolgenLabprocesVerwerkenConstants.AANTAL_EENMALIG_HERAANGEMELD_KEY);
+		}
+		if (afmelding != null)
+		{
+			baseAfmeldService.heraanmeldenZonderVervolg(afmelding);
+		}
 	}
 
 	private CervixBrief brief(CervixMonster monster, CervixVervolg vervolg, PreferenceKey heraanmeldenTekstKey)
@@ -332,11 +346,6 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 		brief.setMonster(monster);
 		brief.setHeraanmeldenTekstKey(heraanmeldenTekstKey);
 		brief.setOmissieType(omissieType);
-
-		if (afgemeldNaOntvangstMonster(monster))
-		{
-			hibernateService.saveOrUpdate(BriefUtil.setTegenhouden(brief, true));
-		}
 
 		hibernateService.saveOrUpdate(monster);
 		hibernateService.saveOrUpdate(brief);
@@ -400,29 +409,5 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 			hibernateService.saveOrUpdate(ontvangstRonde);
 			aantalContextOphogen(CervixGevolgenLabprocesVerwerkenConstants.AANTAL_RONDEN_GESLOTEN_KEY);
 		}
-	}
-
-	private boolean afgemeldNaOntvangstMonster(CervixMonster monster)
-	{
-		var ontvangstRonde = monster.getOntvangstScreeningRonde();
-		if (!ontvangstRonde.getAangemeld())
-		{
-			Date peildatum = monster.getOntvangstdatum();
-			if (monster instanceof CervixUitstrijkje)
-			{
-				var labformulier = ((CervixUitstrijkje) monster).getLabformulier();
-				if (labformulier != null
-					&& (peildatum == null || labformulier.getScanDatum().before(peildatum))
-					&& (labformulier.getStatus() == CervixLabformulierStatus.GECONTROLEERD
-					|| labformulier.getStatus() == CervixLabformulierStatus.GECONTROLEERD_CYTOLOGIE
-					|| labformulier.getStatus() == CervixLabformulierStatus.HUISARTS_ONBEKEND))
-				{
-					peildatum = labformulier.getScanDatum();
-				}
-			}
-
-			return DateUtil.compareAfter(ontvangstRonde.getLaatsteAfmelding().getAfmeldDatum(), peildatum);
-		}
-		return false;
 	}
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.kwaliteitscontrole.r
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.kwaliteitscontrole.r
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,6 +32,7 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.KwaliteitscontroleService;
 import nl.rivm.screenit.service.LogService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -40,7 +40,6 @@ import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxButton;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
@@ -66,6 +65,9 @@ public class SentinelControlesPage extends KwaliteitscontroleBasePage
 
 	@SpringBean
 	private LogService logService;
+
+	@SpringBean
+	private ICurrentDateSupplier currentDateSupplier;
 
 	public SentinelControlesPage()
 	{
@@ -95,15 +97,12 @@ public class SentinelControlesPage extends KwaliteitscontroleBasePage
 
 			add(new IndicatingAjaxButton("opslaan")
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected void onSubmit(AjaxRequestTarget target)
 				{
 					for (SKMLSentineelControleBarcode cup : allSentineelsModels.getObject())
 					{
-						cup.setDatum(new Date());
+						cup.setDatum(currentDateSupplier.getDate());
 						hibernateService.saveOrUpdate(cup);
 					}
 					logService.logGebeurtenis(LogGebeurtenis.SENTINEL_BARCODES_GEWIJZIGD, ScreenitSession.get().getLoggedInAccount(), Bevolkingsonderzoek.COLON);

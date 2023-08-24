@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -141,7 +141,7 @@ public class BaseVerslagServiceImpl implements BaseVerslagService
 			ColonScreeningRonde colonScreeningRonde = paVerslag.getScreeningRonde();
 			colonScreeningRonde.getVerslagen().remove(paVerslag);
 		}
-		else if (type == VerslagType.MAMMA_PA_FOLLOW_UP)
+		else if (type == VerslagType.MAMMA_PA_FOLLOW_UP || type == VerslagType.MAMMA_PA_FOLLOW_UP_MONITOR)
 		{
 			MammaFollowUpVerslag followupVerslag = (MammaFollowUpVerslag) HibernateHelper.deproxy(verslag);
 			MammaScreeningRonde mammaScreeningRonde = followupVerslag.getScreeningRonde();

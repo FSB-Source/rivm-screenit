@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,11 +22,11 @@ package nl.rivm.screenit.batch.service;
  */
 
 import nl.rivm.screenit.batch.exception.HL7CreateMessageException;
-import nl.rivm.screenit.batch.exception.HL7SendMessageException;
 import nl.rivm.screenit.batch.model.enums.MammaHL7Connectie;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24AdtBerichtTriggerDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetClientDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto;
+import nl.rivm.screenit.exceptions.HL7SendMessageException;
 
 import ca.uhn.hl7v2.HL7Exception;
 

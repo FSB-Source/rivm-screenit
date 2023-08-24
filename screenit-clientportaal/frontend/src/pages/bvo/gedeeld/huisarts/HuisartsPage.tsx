@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -43,7 +43,7 @@ import {getString} from "../../../../utils/TekstPropertyUtil"
 import {useRegio, useSelectedBvo} from "../../../../utils/Hooks"
 import {getBvoBaseUrl, getContactUrl} from "../../../../utils/UrlUtil"
 import ActieBasePage from "../../../ActieBasePage"
-import {Field, Formik} from "formik"
+import {Formik} from "formik"
 import * as Yup from "yup"
 import bvoStyle from "../../../../components/BvoStyle.module.scss"
 import HuisartsHintComponent from "./HuisartsHintComponent"
@@ -57,10 +57,9 @@ import BigUrlButton from "../../../../components/bigUrlButton/BigUrlButton"
 import AdvancedSearchLinkComponent from "../../../../components/form/AdvancedSearchLinkComponent"
 import SearchResultHuisarts from "../../../../components/search_results/SearchResultHuisarts"
 import SubmitForm from "../../../../components/form/SubmitForm"
-import {FormControl, FormControlLabel, Radio} from "@material-ui/core"
-import {RadioGroup} from "formik-material-ui"
+import {FormControl, FormControlLabel, Radio, RadioGroup} from "@mui/material"
 import SearchForm from "../../../../components/form/SearchForm"
-import {useNavigate} from "react-router-dom"
+import {useLocation, useNavigate} from "react-router-dom"
 import {showToast} from "../../../../utils/ToastUtil"
 
 const HuisartsPage = () => {
@@ -69,6 +68,7 @@ const HuisartsPage = () => {
 	const regio = useRegio()
 	const properties = require("./HuisartsPage.json")
 	const navigate = useNavigate()
+	const location = useLocation()
 
 	const [gekozenHuisarts, setGekozenHuisarts] = useState<Huisarts | undefined>(undefined)
 	const [wiltHuisartsVerwijderen, setWiltHuisartsVerwijderen] = useState<boolean>(false)
@@ -76,7 +76,7 @@ const HuisartsPage = () => {
 	const [disableZoekMeerButton, setDisableZoekMeerButton] = useState<boolean>(true)
 	const [zoekObject, setZoekObject] = useState<HuisartsZoekobject>(leegHuisartsZoekobject)
 	const [zoekResultaten, setZoekResultaten] = useState<Huisarts[]>(geenHuisartsZoekresultaten)
-	const [wilZoeken, setWilZoeken] = useState<boolean>(false)
+	const [wilZoeken, setWilZoeken] = useState<boolean>(location.pathname.includes("zoeken"))
 	const [gezocht, setGezocht] = useState<boolean>(false)
 	const [isAdvancedSearch, setAdvancedSearch] = useState<boolean>(false)
 
@@ -150,6 +150,7 @@ const HuisartsPage = () => {
 			dispatch(createShowToastAction({
 				title: getString(properties.gedeeld.toasts.zelfde.title),
 				description: getString(properties.gedeeld.toasts.zelfde.description),
+				alGetoond: false
 			}))
 		} else {
 			setGekozenHuisarts(huisarts)
@@ -186,7 +187,7 @@ const HuisartsPage = () => {
 	function toonKeuzePagina() {
 		if (!wilZoeken && !huidigeHuisarts && !mammaHuidigeGeenHuisartsOptie && (vorigeHuisarts || mammaVorigeGeenHuisartsOptie)) {
 			return (
-				<ActieBasePage className={styles.keuzePagina}
+                <ActieBasePage className={styles.keuzePagina}
 							   bvoName={bevolkingsonderzoekNaam}
 							   title={getString(properties.gedeeld.title)}
 							   description={
@@ -205,13 +206,11 @@ const HuisartsPage = () => {
 						{formikProps => (<SubmitForm title={properties.gedeeld.tussenpagina.form.title}
 													 formikProps={formikProps}
 													 buttonLabel={getString(properties.gedeeld.tussenpagina.form.submit)}>
-							<FormControl
-								required
-								component="fieldset">
+							<FormControl variant="standard" required component="fieldset">
 								<p className={styles.errorLabel}>{formikProps.errors.keuze}</p>
-								<Field
+								<RadioGroup
 									name="keuze"
-									component={RadioGroup}
+									onChange={formikProps.handleChange}
 									value={formikProps.values.keuze}>
 									<ul>
 										<li className={styles.radioGroup}>
@@ -229,12 +228,12 @@ const HuisartsPage = () => {
 												label={getString(properties.gedeeld.tussenpagina.form.radiobuttons.annuleren)}/>
 										</li>
 									</ul>
-								</Field>
+								</RadioGroup>
 							</FormControl>
 						</SubmitForm>)}
 					</Formik>
 				</ActieBasePage>
-			)
+            )
 		} else {
 			return toonZoekpagina()
 		}
@@ -349,22 +348,22 @@ const HuisartsPage = () => {
 						<HuisartsBevestigingsPopup
 							huisarts={gekozenHuisarts}
 							type={HuisartsBevestigingsPopupType.BEVESTIGEN}
-							onSuccess={() => {
+							onPrimaireKnop={() => {
 								showToast(getString(properties.gedeeld.toasts.opgeslagen.title), getString(properties.gedeeld.toasts.opgeslagen.description))
 								navigate(getBvoBaseUrl(bvo))
 							}}
-							onClose={() => setGekozenHuisarts(undefined)}
+							onSecundaireKnop={() => setGekozenHuisarts(undefined)}
 						/>)
 					|| (wiltHuisartsVerwijderen && (huidigeHuisarts || mammaHuidigeGeenHuisartsOptie) &&
 						<HuisartsBevestigingsPopup
 							huisarts={huidigeHuisarts}
 							geenHuisartsOpie={mammaHuidigeGeenHuisartsOptie ? properties[mammaHuidigeGeenHuisartsOptie] : undefined}
 							type={HuisartsBevestigingsPopupType.VERWIJDEREN}
-							onSuccess={() => {
+							onPrimaireKnop={() => {
 								showToast(getString(properties.gedeeld.toasts.geen.title), getString(properties.gedeeld.toasts.geen.description))
 								navigate(getBvoBaseUrl(bvo))
 							}}
-							onClose={() => setWiltHuisartsVerwijderen(false)}
+							onSecundaireKnop={() => setWiltHuisartsVerwijderen(false)}
 						/>)
 				}
 			</BasePage>

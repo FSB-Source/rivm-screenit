@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -213,8 +213,15 @@ public class MammaBaseTehuisClientenDaoImpl extends AbstractAutowiredDao impleme
 		if (sortProperty != null)
 		{
 			orderString += " order by " + sortProperty;
-			orderString += isAscending ? " asc" : " desc";
+			orderString += Boolean.TRUE.equals(isAscending) ? " asc" : " desc";
+
+			if ("gba_adres.straat".equals(sortProperty))
+			{
+				orderString = voegHuisnummersorteringBijAdresToe(isAscending, orderString);
+			}
 		}
+
+		orderString = voegAltijdSorteringOpPersoonIdToeBijSelect(sortProperty, orderString, count);
 
 		NativeQuery query = getSession().createNativeQuery(selectString + fromString + whereString + orderString);
 
@@ -234,6 +241,39 @@ public class MammaBaseTehuisClientenDaoImpl extends AbstractAutowiredDao impleme
 		}
 
 		return query;
+	}
+
+	private String voegHuisnummersorteringBijAdresToe(Boolean isAscending, String orderString)
+	{
+		var orderStringNieuw = orderString;
+		var oplopendOfAflopendSorteren = Boolean.TRUE.equals(isAscending) ? " asc" : " desc";
+
+		orderStringNieuw += ", gba_adres.huisnummer";
+		orderStringNieuw += oplopendOfAflopendSorteren;
+
+		orderStringNieuw += ", gba_adres.huisletter";
+		orderStringNieuw += oplopendOfAflopendSorteren;
+
+		orderStringNieuw += ", gba_adres.huisnummer_toevoeging";
+		orderStringNieuw += oplopendOfAflopendSorteren;
+
+		return orderStringNieuw;
+	}
+
+	private String voegAltijdSorteringOpPersoonIdToeBijSelect(String sortProperty, String orderString, boolean count)
+	{
+		var orderStringNieuw = orderString;
+
+		if (sortProperty != null)
+		{
+			orderStringNieuw += ", persoon.id";
+		}
+		else if (!count)
+		{
+			orderStringNieuw += " order by persoon.id";
+		}
+
+		return orderStringNieuw;
 	}
 
 	@Override

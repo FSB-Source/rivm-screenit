@@ -5,7 +5,7 @@ package nl.rivm.screenit.dao.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -494,7 +494,7 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 		Criteria crit = getSession().createCriteria(Project.class);
 		crit.createAlias("projectBriefActies", "acties");
 
-		crit.add(Restrictions.ge("eindDatum", currentDateSupplier.getDateTimeMidnight().toDate()));
+		crit.add(Restrictions.ge("eindDatum", currentDateSupplier.getDateMidnight()));
 		crit.add(Restrictions.eq("acties.briefType", type));
 
 		crit.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
@@ -524,8 +524,8 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 
 		crit.add(
 			Restrictions.or(
-				Restrictions.isNull("vragenlijstAntwoorden.status"), 
-				Restrictions.ne("vragenlijstAntwoorden.status", ProjectVragenlijstStatus.AFGEROND) 
+				Restrictions.isNull("vragenlijstAntwoorden.status"),
+				Restrictions.ne("vragenlijstAntwoorden.status", ProjectVragenlijstStatus.AFGEROND)
 			));
 
 		DetachedCriteria subqueryAlVerstuurd = DetachedCriteria.forClass(ProjectBrief.class);
@@ -658,7 +658,7 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 		criteria.add(Restrictions.gt("populatie", Integer.valueOf(0)));
 		criteria.add(Restrictions.eq("parameters.key", ProjectParameterKey.COLON_UITNODIGEN_PRIORITEIT));
 		criteria.add(Restrictions.isNotNull("parameters.value"));
-		criteria.addOrder(new Order("parameters.value", true)
+		criteria.addOrder(new Order("parameters.value", false)
 		{
 			@Override
 			public String toSqlString(Criteria criteria, CriteriaQuery criteriaQuery)
@@ -690,8 +690,11 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 				return fragment.toString();
 			}
 		});
-		criteria.addOrder(Order.asc("uitnodigenVoorDKvoor"));
+		criteria.addOrder(Order.asc("project.startDatum"));
+		criteria.addOrder(Order.asc("project.id"));
 		criteria.addOrder(Order.asc("actiefDatum"));
+		criteria.addOrder(Order.asc("uitnodigenVoorDKvoor"));
+		criteria.addOrder(Order.asc("id"));
 		List list = criteria.list();
 
 		return list;
@@ -875,7 +878,7 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 	public void resetWachtOpStartProject(Bevolkingsonderzoek bvo)
 	{
 		String sql = String.format("update %s.%s set wacht_op_start_project = false where wacht_op_start_project = true or wacht_op_start_project is null",
-				getSchema(bvo), getDossierTable(bvo));
+			getSchema(bvo), getDossierTable(bvo));
 		Query query = getSession().createSQLQuery(sql);
 		int aantal = query.executeUpdate();
 		LOG.debug("Aantal gereset " + aantal);
@@ -886,18 +889,18 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 	public void setNieuwWachtOpStartProject(Bevolkingsonderzoek bvo, Date nu)
 	{
 		String sql = String.format("update %s.%s set wacht_op_start_project = true WHERE id in "
-			+ "(select dossier_.id as y0_ " +
-						"from gedeeld.project_client projectClient_ " +
-						"inner join gedeeld.pat_patient patient_ on projectClient_.client=patient_.id " +
-						"inner join %s.%s dossier_ on patient_.%s=dossier_.id " +
-						"inner join gedeeld.project_groep groep1_ on projectClient_.groep=groep1_.id " +
-						"inner join algemeen.project project2_ on groep1_.project=project2_.id " +
-						"inner join algemeen.project_bevolkingsonderzoeken projectBevolkingsonderzoeken3_ on project2_.id=projectBevolkingsonderzoeken3_.project " +
-						"where project2_.type='PROJECT' " +
-						"and (project2_.start_datum>:startDatum or (project2_.eind_datum>:eindDatum and groep1_.actief=false)) " +
-						"and projectClient_.actief=true " +
-						"and projectBevolkingsonderzoeken3_.bevolkingsonderzoeken='%s')",
-				getSchema(bvo), getDossierTable(bvo), getSchema(bvo), getDossierTable(bvo), getJoinColumn(bvo), bvo.name());
+				+ "(select dossier_.id as y0_ " +
+				"from gedeeld.project_client projectClient_ " +
+				"inner join gedeeld.pat_patient patient_ on projectClient_.client=patient_.id " +
+				"inner join %s.%s dossier_ on patient_.%s=dossier_.id " +
+				"inner join gedeeld.project_groep groep1_ on projectClient_.groep=groep1_.id " +
+				"inner join algemeen.project project2_ on groep1_.project=project2_.id " +
+				"inner join algemeen.project_bevolkingsonderzoeken projectBevolkingsonderzoeken3_ on project2_.id=projectBevolkingsonderzoeken3_.project " +
+				"where project2_.type='PROJECT' " +
+				"and (project2_.start_datum>:startDatum or (project2_.eind_datum>:eindDatum and groep1_.actief=false)) " +
+				"and projectClient_.actief=true " +
+				"and projectBevolkingsonderzoeken3_.bevolkingsonderzoeken='%s')",
+			getSchema(bvo), getDossierTable(bvo), getSchema(bvo), getDossierTable(bvo), getJoinColumn(bvo), bvo.name());
 		Query query = getSession().createSQLQuery(sql);
 		query.setDate("startDatum", nu);
 		query.setDate("eindDatum", nu);
@@ -909,14 +912,14 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 	{
 		switch (bvo)
 		{
-			case CERVIX:
-				return "cervix";
-			case COLON:
-				return "colon";
-			case MAMMA:
-				return "mamma";
-			default:
-				throw new IllegalStateException();
+		case CERVIX:
+			return "cervix";
+		case COLON:
+			return "colon";
+		case MAMMA:
+			return "mamma";
+		default:
+			throw new IllegalStateException();
 		}
 	}
 
@@ -924,14 +927,14 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 	{
 		switch (bvo)
 		{
-			case CERVIX:
-				return "dossier";
-			case COLON:
-				return "colon_dossier";
-			case MAMMA:
-				return "dossier";
-			default:
-				throw new IllegalStateException();
+		case CERVIX:
+			return "dossier";
+		case COLON:
+			return "colon_dossier";
+		case MAMMA:
+			return "dossier";
+		default:
+			throw new IllegalStateException();
 		}
 	}
 
@@ -939,14 +942,14 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 	{
 		switch (bvo)
 		{
-			case CERVIX:
-				return "cervix_dossier";
-			case COLON:
-				return "colon_dossier";
-			case MAMMA:
-				return "mamma_dossier";
-			default:
-				throw new IllegalStateException();
+		case CERVIX:
+			return "cervix_dossier";
+		case COLON:
+			return "colon_dossier";
+		case MAMMA:
+			return "mamma_dossier";
+		default:
+			throw new IllegalStateException();
 		}
 	}
 

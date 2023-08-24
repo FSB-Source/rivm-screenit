@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.monster;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,17 +24,18 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.monster;
 import java.util.ArrayList;
 import java.util.List;
 
+import nl.rivm.screenit.main.service.cervix.CervixUitnodigingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.table.ClientColumn;
 import nl.rivm.screenit.main.web.component.table.EnumPropertyColumn;
 import nl.rivm.screenit.main.web.component.table.GeboortedatumColumn;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
-import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
+import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -48,13 +49,17 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public abstract class CervixUitnodigingenPanel extends Panel
 {
 
+	@SpringBean
+	private CervixUitnodigingService uitnodigingService;
+
 	private Panel uitnodigingenPanel;
 
-	public CervixUitnodigingenPanel(String id)
+	protected CervixUitnodigingenPanel(String id)
 	{
 		super(id);
 		uitnodigingenPanel = new EmptyPanel("uitnodigingenPanel");
@@ -64,24 +69,23 @@ public abstract class CervixUitnodigingenPanel extends Panel
 
 	void replaceUitnodigingenPanel(AjaxRequestTarget target, List<CervixUitnodiging> uitnodigingen)
 	{
-		ScreenitSession.get().setZoekObject(this.getClass(), Model.of(uitnodigingen));
+		ScreenitSession.get().setZoekObject(this.getClass(), ModelUtil.listRModel(uitnodigingen));
 
-		CervixUitnodigingenProvider uitnodigingenProvider = new CervixUitnodigingenProvider(uitnodigingen);
-		List<IColumn<CervixUitnodiging, String>> columns = new ArrayList<>();
+		var uitnodigingenProvider = new CervixUitnodigingenProvider(uitnodigingen);
+		var columns = new ArrayList<IColumn<CervixUitnodiging, String>>();
 		columns.add(new PropertyColumn<>(Model.of("Monster-id"), "monster.monsterId"));
 		columns.add(new EnumPropertyColumn<>(Model.of("Type monster"), "monsterType"));
-		columns.add(new AbstractColumn<CervixUitnodiging, String>(Model.of("Verzenddatum"))
+		columns.add(new AbstractColumn<>(Model.of("Verzenddatum"))
 		{
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void populateItem(Item<ICellPopulator<CervixUitnodiging>> cellItem, String componentId, IModel<CervixUitnodiging> uitnodigingModel)
 			{
-				CervixUitnodiging uitnodiging = uitnodigingModel.getObject();
+				var uitnodiging = uitnodigingModel.getObject();
 				switch (uitnodiging.getMonsterType())
 				{
 				case UITSTRIJKJE:
-					MergedBrieven<?> mergedBrieven = BriefUtil.getMergedBrieven(uitnodiging.getBrief());
+					var mergedBrieven = BriefUtil.getMergedBrieven(uitnodiging.getBrief());
 					if (mergedBrieven != null)
 					{
 						cellItem.add(new Label(componentId, mergedBrieven.getPrintDatum()));
@@ -92,28 +96,26 @@ public abstract class CervixUitnodigingenPanel extends Panel
 					}
 					break;
 				case ZAS:
-					CervixZas zas = (CervixZas) HibernateHelper.deproxy(uitnodiging.getMonster());
+					var zas = (CervixZas) HibernateHelper.deproxy(uitnodiging.getMonster());
 					cellItem.add(new Label(componentId, zas.getVerstuurd()));
 					break;
 				}
 			}
 		});
-		columns.add(new AbstractColumn<CervixUitnodiging, String>(Model.of("Status monster"))
+		columns.add(new AbstractColumn<>(Model.of("Status monster"))
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<CervixUitnodiging>> item, String id, IModel<CervixUitnodiging> uitnodigingModel)
 			{
-				CervixUitnodiging uitnodiging = uitnodigingModel.getObject();
+				var uitnodiging = uitnodigingModel.getObject();
 				switch (uitnodiging.getMonsterType())
 				{
 				case UITSTRIJKJE:
-					CervixUitstrijkje uitstrijkje = (CervixUitstrijkje) HibernateHelper.deproxy(uitnodiging.getMonster());
+					var uitstrijkje = (CervixUitstrijkje) HibernateHelper.deproxy(uitnodiging.getMonster());
 					item.add(new EnumLabel<>(id, uitstrijkje.getUitstrijkjeStatus()));
 					break;
 				case ZAS:
-					CervixZas zas = (CervixZas) HibernateHelper.deproxy(uitnodiging.getMonster());
+					var zas = (CervixZas) HibernateHelper.deproxy(uitnodiging.getMonster());
 					item.add(new EnumLabel<>(id, zas.getZasStatus()));
 					break;
 				}
@@ -122,15 +124,22 @@ public abstract class CervixUitnodigingenPanel extends Panel
 		columns.add(new ClientColumn<>("screeningRonde.dossier.client"));
 		columns.add(new GeboortedatumColumn<>("screeningRonde.dossier.client.persoon"));
 
-		ScreenitDataTable<CervixUitnodiging, String> newUitnodigingenPanel = new ScreenitDataTable<CervixUitnodiging, String>("uitnodigingenPanel", columns, uitnodigingenProvider,
+		var newUitnodigingenPanel = new ScreenitDataTable<>("uitnodigingenPanel", columns, uitnodigingenProvider,
 			100, null, false)
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<CervixUitnodiging> uitnodigingModel)
 			{
-				CervixUitnodigingenPanel.this.setUitnodiging(target, uitnodigingModel.getObject());
+				var uitnodiging = uitnodigingModel.getObject();
+				var ingelogdNamensOrganisatie = ScreenitSession.get().getInstelling();
+				if (uitnodigingService.magMonsterVerwerktWordenDoorLab(ingelogdNamensOrganisatie, uitnodiging))
+				{
+					setUitnodiging(target, uitnodiging);
+				}
+				else
+				{
+					error(String.format(getString("zas.mag.niet.verwerkt.worden"), ingelogdNamensOrganisatie.getNaam()));
+				}
 			}
 		};
 		newUitnodigingenPanel.setOutputMarkupId(true);
@@ -139,6 +148,6 @@ public abstract class CervixUitnodigingenPanel extends Panel
 		target.add(uitnodigingenPanel);
 	}
 
-	abstract protected void setUitnodiging(AjaxRequestTarget target, CervixUitnodiging uitnodiging);
+	protected abstract void setUitnodiging(AjaxRequestTarget target, CervixUitnodiging uitnodiging);
 
 }

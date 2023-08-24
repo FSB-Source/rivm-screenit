@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.selectie.selectiestep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,7 +29,7 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.enums.Deelnamemodus;
-import nl.rivm.screenit.service.InstellingService;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.util.query.ScreenitRestrictions;
 import nl.rivm.screenit.util.query.SmartSQLProjection;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -49,16 +49,16 @@ public class CervixSelectieReader extends BaseScrollableResultReader
 
 	private final CervixSelectieRestrictionsService selectieRestrictionsService;
 
-	private final InstellingService instellingService;
+	private final OrganisatieParameterService organisatieParameterService;
 
 	private final HibernateService hibernateService;
 
-	public CervixSelectieReader(CervixSelectieRestrictionsService selectieRestrictionsService, InstellingService instellingService,
+	public CervixSelectieReader(CervixSelectieRestrictionsService selectieRestrictionsService, OrganisatieParameterService organisatieParameterService,
 		HibernateService hibernateService)
 	{
 		super.setFetchSize(50);
 		this.selectieRestrictionsService = selectieRestrictionsService;
-		this.instellingService = instellingService;
+		this.organisatieParameterService = organisatieParameterService;
 		this.hibernateService = hibernateService;
 	}
 
@@ -98,7 +98,7 @@ public class CervixSelectieReader extends BaseScrollableResultReader
 	{
 		var stepContext = getStepExecutionContext();
 		var bmhkLab = hibernateService.get(BMHKLaboratorium.class, (Long) stepContext.get(CervixLabPartitioner.KEY_BMHK_LAB));
-		return instellingService.getOrganisatieParameter(bmhkLab, OrganisatieParameterKey.CERVIX_MAX_AANTAL_CLIENTEN_SELECTIE);
+		return organisatieParameterService.getOrganisatieParameter(bmhkLab, OrganisatieParameterKey.CERVIX_MAX_AANTAL_CLIENTEN_SELECTIE);
 	}
 
 	@Override

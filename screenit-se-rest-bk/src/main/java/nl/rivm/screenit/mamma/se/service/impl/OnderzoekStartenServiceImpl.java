@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.service.impl;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,12 +27,12 @@ import nl.rivm.screenit.mamma.se.dto.actions.OnderzoekStartenDto;
 import nl.rivm.screenit.mamma.se.service.MammaAfspraakService;
 import nl.rivm.screenit.mamma.se.service.OnderzoekStartenService;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
-import nl.rivm.screenit.model.mamma.enums.MammaAmputatie;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
 import nl.rivm.screenit.service.BerichtToBatchService;
@@ -70,7 +70,7 @@ public class OnderzoekStartenServiceImpl implements OnderzoekStartenService
 	{
 		final MammaAfspraak afspraak = afspraakService.getOfMaakLaatsteAfspraakVanVandaag(action.getAfspraakId(), gebruiker);
 		zetAfspraakInOnderzoek(afspraak);
-		maakOnderzoek(afspraak, screeningsEenheid, action.getAmputatie(), transactieDatumTijd);
+		maakOnderzoek(afspraak, screeningsEenheid, action, transactieDatumTijd);
 		volgendeUitnodigingService.updateVolgendeUitnodigingNaDeelname(afspraak.getUitnodiging().getScreeningRonde().getDossier());
 		hl7BerichtenToBatchService.queueMammaHL7v24BerichtUitgaand(afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient(), MammaHL7v24ORMBerichtStatus.STARTED);
 	}
@@ -81,7 +81,7 @@ public class OnderzoekStartenServiceImpl implements OnderzoekStartenService
 		hibernateService.saveOrUpdate(afspraak);
 	}
 
-	private void maakOnderzoek(MammaAfspraak afspraak, MammaScreeningsEenheid screeningsEenheid, MammaAmputatie amputatie, LocalDateTime transactieDatumTijd)
+	private void maakOnderzoek(MammaAfspraak afspraak, MammaScreeningsEenheid screeningsEenheid, OnderzoekStartenDto action, LocalDateTime transactieDatumTijd)
 	{
 		if (afspraak.getOnderzoek() == null)
 		{
@@ -92,7 +92,8 @@ public class OnderzoekStartenServiceImpl implements OnderzoekStartenService
 			onderzoek.setStatus(MammaOnderzoekStatus.ACTIEF);
 			onderzoek.setOperatieRechts(Boolean.FALSE);
 			onderzoek.setOperatieLinks(Boolean.FALSE);
-			onderzoek.setAmputatie(amputatie);
+			onderzoek.setAmputatie(action.getAmputatie());
+			onderzoek.setOnderzoekType(action.getOnderzoekType() != null ? action.getOnderzoekType() : MammaOnderzoekType.MAMMOGRAFIE);
 
 			afspraak.setOnderzoek(onderzoek);
 

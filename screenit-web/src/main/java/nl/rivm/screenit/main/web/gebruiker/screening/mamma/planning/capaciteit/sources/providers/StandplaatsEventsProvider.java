@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit.
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +22,8 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit.
  */
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Date;
 
 import nl.rivm.screenit.dto.mamma.planning.PlanningStandplaatsPeriodeDto;
 import nl.rivm.screenit.main.util.StandplaatsPeriodeUtil;
@@ -35,7 +37,6 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.joda.time.DateTime;
 
 public class StandplaatsEventsProvider extends AbstractScreenITEventProvider
 {
@@ -55,7 +56,7 @@ public class StandplaatsEventsProvider extends AbstractScreenITEventProvider
 	}
 
 	@Override
-	void createEvents(DateTime start, DateTime end)
+	void createEvents(Date start, Date end)
 	{
 		for (PlanningStandplaatsPeriodeDto standplaatsPeriodeDto : screenITEventSourceFactory.getWeekDto().standplaatsPeriodes)
 		{
@@ -69,11 +70,11 @@ public class StandplaatsEventsProvider extends AbstractScreenITEventProvider
 				StandplaatsPeriodeUtil.getStandplaatsPeriodeNaam(standplaatsPeriodeDto, standplaats) +
 					maakMeldingIcoon(tooltipId, standplaatsPeriodeDto.meldingenDto.niveau.getCssClass()) +
 					maakPeriodeTekst(standplaatsPeriodeDto.vanaf, standplaatsPeriodeDto.totEnMet));
-			event.setStart(new DateTime(
+			event.setStart(LocalDateTime.of(
 				standplaatsPeriodeDto.vanaf.getYear(),
 				standplaatsPeriodeDto.vanaf.getMonthValue(),
 				standplaatsPeriodeDto.vanaf.getDayOfMonth(), 0, 0));
-			event.setEnd(new DateTime(
+			event.setEnd(LocalDateTime.of(
 				standplaatsPeriodeDto.totEnMet.getYear(),
 				standplaatsPeriodeDto.totEnMet.getMonthValue(),
 				standplaatsPeriodeDto.totEnMet.getDayOfMonth(), 0, 0));
@@ -85,14 +86,14 @@ public class StandplaatsEventsProvider extends AbstractScreenITEventProvider
 
 	private String maakMeldingIcoon(String tooltipId, String cssClass)
 	{
-		return "<span class=\"icon-warning-sign "
+		return "<span class=\"icon-warning-sign margin-left-5px "
 			+ cssClass + "\" data-tooltip=\"" + tooltipId
-			+ "\" style=\"margin-left : 5px;\"></span>";
+			+ "\"></span>";
 	}
 
 	private String maakPeriodeTekst(LocalDate startDatum, LocalDate eindDatum)
 	{
-		return "<span style=\"margin-left : 5px;\">" + DateUtil.formatShortDate(DateUtil.toUtilDate(startDatum))
+		return "<span class=\"margin-left-5px;\">" + DateUtil.formatShortDate(DateUtil.toUtilDate(startDatum))
 			+ " t/m " + DateUtil.formatShortDate(DateUtil.toUtilDate(eindDatum)) + "</span>";
 	}
 

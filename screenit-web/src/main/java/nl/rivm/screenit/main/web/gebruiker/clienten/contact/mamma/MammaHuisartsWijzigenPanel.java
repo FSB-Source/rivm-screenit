@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -53,18 +53,18 @@ public class MammaHuisartsWijzigenPanel extends AbstractClientContactActiePanel<
 	@SpringBean
 	private MammaHuisartsService huisartsService;
 
-	private IModel<MammaScreeningRonde> screeningRondeModel;
+	private final IModel<MammaScreeningRonde> screeningRondeModel;
 
-	private BootstrapDialog dialog;
+	private final BootstrapDialog dialog;
 
-	private WebMarkupContainer huisartsContainer;
+	private final WebMarkupContainer huisartsContainer;
 
 	public MammaHuisartsWijzigenPanel(String id, IModel<ClientContactActie> model, IModel<Client> clientModel, List<Object> extraPanelParams)
 	{
 		super(id, model);
-		screeningRondeModel = ModelUtil.cModel(clientModel.getObject().getMammaDossier().getLaatsteScreeningRonde());
+		screeningRondeModel = ModelUtil.ccModel(clientModel.getObject().getMammaDossier().getLaatsteScreeningRonde());
 
-		dialog = (BootstrapDialog) extraPanelParams.stream().filter(p -> p instanceof BootstrapDialog).findFirst().orElse(null);
+		dialog = (BootstrapDialog) extraPanelParams.stream().filter(BootstrapDialog.class::isInstance).findFirst().orElse(null);
 
 		huisartsContainer = new WebMarkupContainer("huisartsContainer");
 		huisartsContainer.setOutputMarkupId(true);
@@ -116,11 +116,10 @@ public class MammaHuisartsWijzigenPanel extends AbstractClientContactActiePanel<
 	{
 		super.validate();
 		MammaScreeningRonde screeningRonde = screeningRondeModel.getObject();
-		boolean diffHuisarts = StringUtils.isNotBlank(EntityAuditUtil.getDiffFieldToLatestVersion(screeningRonde, "huisarts", hibernateService.getHibernateSession()));
-		boolean diffGeenHuisartsOptie = StringUtils
-			.isNotBlank(EntityAuditUtil.getDiffFieldToLatestVersion(screeningRonde, "geenHuisartsOptie", hibernateService.getHibernateSession()));
+		var isHuisartsGewijzigd = StringUtils.isNotBlank(
+			EntityAuditUtil.getDiffFieldsToLatestVersion(screeningRonde, hibernateService.getHibernateSession(), "geenHuisartsOptie", "huisarts"));
 
-		if (!diffHuisarts && !diffGeenHuisartsOptie)
+		if (!isHuisartsGewijzigd)
 		{
 			error(getString("huisarts.niet.gewijzigd"));
 		}

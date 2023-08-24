@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.stub.configuration;
  * ========================LICENSE_START=================================
  * se-mammograaf-stub
  * %%
- * Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by

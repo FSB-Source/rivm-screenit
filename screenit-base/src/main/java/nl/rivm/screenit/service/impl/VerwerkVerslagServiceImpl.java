@@ -5,7 +5,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -110,6 +110,7 @@ public class VerwerkVerslagServiceImpl implements VerwerkVerslagService
 			cervixVerwerkVerslagService.verwerkInDossier((CervixCytologieVerslag) verslag);
 			break;
 		case MAMMA_PA_FOLLOW_UP:
+		case MAMMA_PA_FOLLOW_UP_MONITOR:
 			mammaVerwerkVerslagService.verwerkVerslagInDossier((MammaFollowUpVerslag) verslag);
 			break;
 		}
@@ -131,6 +132,7 @@ public class VerwerkVerslagServiceImpl implements VerwerkVerslagService
 			cervixVerwerkVerslagService.onAfterVerwerkVerslagContent((CervixCytologieVerslag) verslag);
 			break;
 		case MAMMA_PA_FOLLOW_UP:
+		case MAMMA_PA_FOLLOW_UP_MONITOR:
 			mammaVerwerkVerslagService.onAfterVerwerkVerslagContent((MammaFollowUpVerslag) verslag);
 			break;
 		}
@@ -147,6 +149,7 @@ public class VerwerkVerslagServiceImpl implements VerwerkVerslagService
 		case CERVIX_CYTOLOGIE:
 			break;
 		case MAMMA_PA_FOLLOW_UP:
+		case MAMMA_PA_FOLLOW_UP_MONITOR:
 			return mammaVerwerkVerslagService.getValideScreeningsRonde(client, onderzoeksdatum);
 		}
 		return null;
@@ -168,6 +171,8 @@ public class VerwerkVerslagServiceImpl implements VerwerkVerslagService
 		case MAMMA_PA_FOLLOW_UP:
 			mammaVerwerkVerslagService.valideerVerslagVoorAfronden((MammaFollowUpVerslag) verslag, instellingGebruiker);
 			break;
+		default:
+			throw new IllegalStateException("Unexpected value: " + verslag.getType());
 		}
 	}
 

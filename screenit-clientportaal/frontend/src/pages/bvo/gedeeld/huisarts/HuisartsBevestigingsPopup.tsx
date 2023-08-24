@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,7 +27,6 @@ import styles from "./HuisartsBevestigingsPopup.module.scss"
 import {useSelectedBvo} from "../../../../utils/Hooks"
 import {BevolkingsonderzoekStyle} from "../../../../datatypes/Bevolkingsonderzoek"
 import {useThunkDispatch} from "../../../../index"
-import {getString} from "../../../../utils/TekstPropertyUtil"
 import VerticalDividerComponent from "../../../../components/vectors/VerticalDividerComponent"
 import {Huisarts} from "../../../../datatypes/Huisarts"
 import {koppelHuisarts, ontkoppelHuisarts} from "../../../../api/HuisartsThunkAction"
@@ -37,16 +36,18 @@ import {ArrowType} from "../../../../components/vectors/ArrowIconComponent"
 import SubmitButton from "../../../../components/input/SubmitButton"
 
 export type HuisartsBevestigingsPopupProps = {
-    huisarts?: Huisarts,
-    geenHuisartsOpie?: string
-    type: HuisartsBevestigingsPopupType,
-    onSuccess?: () => void,
-    onClose: () => void
+	huisarts?: Huisarts,
+	geenHuisartsOpie?: string
+	type: HuisartsBevestigingsPopupType,
+	onPrimaireKnop?: () => void,
+	onSecundaireKnop: () => void,
+	onTertiaireKnop?: () => void
 }
 
 export enum HuisartsBevestigingsPopupType {
     "BEVESTIGEN",
-    "VERWIJDEREN"
+	"VERWIJDEREN",
+	"DOORGEVEN"
 }
 
 export const HuisartsBevestigingsPopup = (props: HuisartsBevestigingsPopupProps) => {
@@ -58,34 +59,37 @@ export const HuisartsBevestigingsPopup = (props: HuisartsBevestigingsPopupProps)
             case HuisartsBevestigingsPopupType.VERWIJDEREN:
                 dispatch(ontkoppelHuisarts(bvo)).then(
                     () => {
-                        props.onSuccess && props.onSuccess()
+						props.onPrimaireKnop && props.onPrimaireKnop()
                     },
-                    () => {
-                        props.onClose()
-                    },
-                )
-                break
-            case HuisartsBevestigingsPopupType.BEVESTIGEN:
-                if (props.huisarts) {
-                    dispatch(koppelHuisarts(props.huisarts, bvo)).then(
-                        () => {
-                            props.onSuccess && props.onSuccess()
-                        },
-                        () => {
-                            props.onClose()
-                        },
-                    )
-                }
-                break
-        }
-    }
+					() => {
+						props.onSecundaireKnop()
+					},
+				)
+				break
+			case HuisartsBevestigingsPopupType.BEVESTIGEN:
+				if (props.huisarts) {
+					dispatch(koppelHuisarts(props.huisarts, bvo)).then(
+						() => {
+							props.onPrimaireKnop && props.onPrimaireKnop()
+						},
+						() => {
+							props.onSecundaireKnop()
+						},
+					)
+				}
+				break
+			case HuisartsBevestigingsPopupType.DOORGEVEN:
+				props.onPrimaireKnop!()
+				break
+		}
+	}
 
-    return (
+	return (
 
-        <BasePopup title={props.type === HuisartsBevestigingsPopupType.BEVESTIGEN ? getString(properties.bevestigen.title) : getString(properties.verwijderen.title)}
-                   description={props.type === HuisartsBevestigingsPopupType.BEVESTIGEN ? getString(properties.bevestigen.description) : getString(properties.verwijderen.description)}
-                   children={
-                       <div>
+		<BasePopup title={bepaalTitel()}
+				   description={bepaalOmschrijving()}
+				   children={
+					   <div>
 						   <div className={classNames(BevolkingsonderzoekStyle[bvo!], styles.huisartsDiv)}>
 							   <VerticalDividerComponent className={styles.verticalRectangle} heightSubtraction={1}/>
 							   {props.huisarts ? <Row className={styles.huisartsGegevens}>
@@ -107,17 +111,65 @@ export const HuisartsBevestigingsPopup = (props: HuisartsBevestigingsPopupProps)
 						   </div>
 						   <div className={styles.buttons}>
 							   <SubmitButton displayArrow={ArrowType.ARROW_RIGHT}
-											 label={props.type === HuisartsBevestigingsPopupType.BEVESTIGEN ? getString(properties.bevestigen.button_bevestigen) : getString(properties.verwijderen.button_bevestigen)}
+											 label={bepaalHoofdKnopTekst()}
 											 onClick={() => {
 												 bevestigHuisarts()
 											 }}/>
-							   <NavLink onClick={props.onClose} className={styles.andereHuisarts}>
-								   {props.type === HuisartsBevestigingsPopupType.BEVESTIGEN ? getString(properties.bevestigen.button_annuleren) : getString(properties.verwijderen.button_annuleren)}
+							   <NavLink onClick={props.onSecundaireKnop} className={styles.andereHuisarts}>
+								   {bepaalAlternatieveLinkTekst()}
 							   </NavLink>
+							   {HuisartsBevestigingsPopupType.DOORGEVEN === props.type && props.huisarts &&
+								   <NavLink onClick={props.onTertiaireKnop} className={styles.andereHuisarts}>
+									   {properties.doorgeven.bekend.button_annuleren}
+								   </NavLink>}
 						   </div>
 					   </div>
-                   }/>
+				   }/>
 
-    )
+	)
+
+	function bepaalTitel(): string {
+		switch (props.type) {
+			case HuisartsBevestigingsPopupType.BEVESTIGEN:
+				return properties.bevestigen.title
+			case HuisartsBevestigingsPopupType.VERWIJDEREN:
+				return properties.verwijderen.title
+			case HuisartsBevestigingsPopupType.DOORGEVEN:
+				return props.huisarts ? properties.doorgeven.bekend.title : properties.doorgeven.onbekend.title
+		}
+	}
+
+	function bepaalOmschrijving(): string {
+		switch (props.type) {
+			case HuisartsBevestigingsPopupType.BEVESTIGEN:
+				return properties.bevestigen.description
+			case HuisartsBevestigingsPopupType.VERWIJDEREN:
+				return properties.verwijderen.description
+			case HuisartsBevestigingsPopupType.DOORGEVEN:
+				return props.huisarts ? properties.doorgeven.bekend.description : properties.doorgeven.onbekend.description
+		}
+	}
+
+	function bepaalHoofdKnopTekst(): string {
+		switch (props.type) {
+			case HuisartsBevestigingsPopupType.BEVESTIGEN:
+				return properties.bevestigen.button_bevestigen
+			case HuisartsBevestigingsPopupType.VERWIJDEREN:
+				return properties.verwijderen.button_bevestigen
+			case HuisartsBevestigingsPopupType.DOORGEVEN:
+				return props.huisarts ? properties.doorgeven.bekend.button_bevestigen : properties.doorgeven.onbekend.button_bevestigen
+		}
+	}
+
+	function bepaalAlternatieveLinkTekst(): string {
+		switch (props.type) {
+			case HuisartsBevestigingsPopupType.BEVESTIGEN:
+				return properties.bevestigen.button_annuleren
+			case HuisartsBevestigingsPopupType.VERWIJDEREN:
+				return properties.verwijderen.button_annuleren
+			case HuisartsBevestigingsPopupType.DOORGEVEN:
+				return props.huisarts ? properties.doorgeven.bekend.button_andere_huisarts : properties.doorgeven.onbekend.button_annuleren
+		}
+	}
 
 }

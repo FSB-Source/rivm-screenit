@@ -4,7 +4,7 @@ package nl.rivm.screenit.model;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -63,6 +63,10 @@ import org.hibernate.envers.NotAudited;
 public class GbaPersoon extends Persoon
 {
 	private static final long serialVersionUID = 1L;
+
+	public static final int MAX_EMAIL_LENGTH = 100;
+
+	public static final int MAX_PHONE_LENGTH = 20;
 
 	@Column(unique = true)
 	private String anummer;

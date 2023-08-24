@@ -4,7 +4,7 @@ package nl.rivm.screenit.util.cervix.hpv_berichtgenerator;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.model.cervix.berichten.CervixHpvResultCode;
 import nl.rivm.screenit.model.cervix.berichten.CervixHpvResultValue;
+import nl.rivm.screenit.model.cervix.enums.CervixHpvResultaatBerichtBron;
 
 import org.apache.commons.io.IOUtils;
 
@@ -122,13 +123,13 @@ public class CervixHpvBerichtGenerator
 
 	public static String geefHL7BerichtTekst(CervixHpvBerichtGeneratorWrapper wrapper)
 	{
-		String monsterTemplate = getMonsterTemplate();
-		String analyseTemplate = getAnalyseTemplate();
+		String monsterTemplate = getMonsterTemplate(wrapper.getResultaatBerichtBron());
+		String analyseTemplate = getAnalyseTemplate(wrapper.getResultaatBerichtBron());
 
 		StringBuilder berichtTekst = new StringBuilder(getHeaderTemplate());
 		for (CervixHpvBerichtGeneratorMonsterWrapper monsterWrapper : wrapper.getMonsterWrappers())
 		{
-			berichtTekst.append(monsterSnippet(monsterWrapper, monsterTemplate, analyseTemplate));
+			berichtTekst.append(monsterSnippet(monsterWrapper, monsterTemplate, analyseTemplate, getStartRepetitionIndex(wrapper)));
 		}
 
 		var result = vulAlgemeneWaardes(berichtTekst.toString(), wrapper);
@@ -136,12 +137,12 @@ public class CervixHpvBerichtGenerator
 		return result;
 	}
 
-	private static String monsterSnippet(CervixHpvBerichtGeneratorMonsterWrapper monsterWrapper, String monsterTemplate, String analyseTemplate)
+	private static String monsterSnippet(CervixHpvBerichtGeneratorMonsterWrapper monsterWrapper, String monsterTemplate, String analyseTemplate, int startRepetitionIndex)
 	{
 		var monsterSnippet = monsterTemplate
-			+ analyseSnippet(1, monsterWrapper.getAnalysecode1(), monsterWrapper.getAnalyseresultaat1(), analyseTemplate)
-			+ analyseSnippet(2, monsterWrapper.getAnalysecode2(), monsterWrapper.getAnalyseresultaat2(), analyseTemplate)
-			+ analyseSnippet(3, monsterWrapper.getAnalysecode3(), monsterWrapper.getAnalyseresultaat3(), analyseTemplate);
+			+ analyseSnippet(startRepetitionIndex, monsterWrapper.getAnalysecode1(), monsterWrapper.getAnalyseresultaat1(), analyseTemplate)
+			+ analyseSnippet(startRepetitionIndex + 1, monsterWrapper.getAnalysecode2(), monsterWrapper.getAnalyseresultaat2(), analyseTemplate)
+			+ analyseSnippet(startRepetitionIndex + 2, monsterWrapper.getAnalysecode3(), monsterWrapper.getAnalyseresultaat3(), analyseTemplate);
 
 		return monsterSnippet
 			.replace(BARCODE, monsterWrapper.getBarcode())
@@ -155,7 +156,7 @@ public class CervixHpvBerichtGenerator
 		if (analysecode != null || analyseresultaat != null)
 		{
 			return analyseTemplate
-				.replace(ANALYSE_ID, String.valueOf(analyseId + 1))
+				.replace(ANALYSE_ID, String.valueOf(analyseId))
 				.replace(RESULT_CODE, analysecode != null ? analysecode.getBerichtWaarde() : "")
 				.replace(RESULT_VALUE, analyseresultaat != null ? analyseresultaat.getBerichtWaarde() : "");
 		}
@@ -170,28 +171,49 @@ public class CervixHpvBerichtGenerator
 			.replace("\n", "\r\n"); 
 	}
 
+	private static int getStartRepetitionIndex(CervixHpvBerichtGeneratorWrapper wrapper)
+	{
+		return CervixHpvResultaatBerichtBron.ROCHE == wrapper.getResultaatBerichtBron() ? 2 : 1;
+	}
+
 	private static String getHeaderTemplate()
 	{
 		return "MSH|^~\\&|cobas 4800 software 2.2.0.1509^{INSTRUMENTID}^M|{LABNAAM}|LIS|LIS Facility|20151217151241+0100||OUL^R22^OUL_R22|{MESSAGEID}|P|2.5.1|||ER|AL||"
 			+ "UNICODE UTF-8|||LAB-29^IHE\n";
 	}
 
-	private static String getMonsterTemplate()
+	private static String getMonsterTemplate(CervixHpvResultaatBerichtBron berichtType)
 	{
-		return "SPM|1|{BARCODE}&ROCHE||PCYT^^99ROC|||||||P^^HL70369\n"
-			+ "SAC|||{BARCODE}\n"
-			+ "OBR||\"\"||{ANALYSETYPE}^{ANALYSETYPE}^99ROC||20151217122946\n"
-			+ "ORC|SC||||CM\n"
-			+ "OBX|1|DR|RunTimeRange^Run Execution Time Range^99ROC^S_OTHER^Other_Supplemental^IHELAW|1.0|{ANALYSEDATUM}^{AUTORISATIEDATUM}|||\"\"|||F|||||FSE||C4800^Roche~{INSTRUMENTID}^Roche|{AUTORISATIEDATUM}\n";
+		if (CervixHpvResultaatBerichtBron.ROCHE == berichtType)
+		{
+			return "SPM|1|{BARCODE}&ROCHE||PCYT^^99ROC|||||||P^^HL70369\n"
+				+ "SAC|||{BARCODE}\n"
+				+ "OBR||\"\"||{ANALYSETYPE}^{ANALYSETYPE}^99ROC||20151217122946\n"
+				+ "ORC|SC||||CM\n"
+				+ "OBX|1|DR|RunTimeRange^Run Execution Time Range^99ROC^S_OTHER^Other_Supplemental^IHELAW|1.0|{ANALYSEDATUM}^{AUTORISATIEDATUM}|||\"\"|||F|||||FSE||C4800^Roche~{INSTRUMENTID}^Roche|{AUTORISATIEDATUM}\n";
+		}
+		else
+		{
+			return "SPM|1|{BARCODE}||PCYT^Monster^SCT\n"
+				+ "OBR|1|{BARCODE}^ScreenIT|5348543^LabNOZW|02HPVGEN^HPV Genotypering^SCREENIT|||{ANALYSEDATUM}|||||||||||||||{AUTORISATIEDATUM}|||F\n"
+				+ "ORC|SC|{BARCODE}^ScreenIT|5348543^LabNOZW||CM||||{ANALYSEDATUM}|||87654321^Arts&H^H^^^^^^^^87654321\n";
+		}
 	}
 
-	private static String getAnalyseTemplate()
+	private static String getAnalyseTemplate(CervixHpvResultaatBerichtBron berichtType)
 	{
-		return "OBX|{ANALYSE_ID}|ST|{RESULT_CODE}^{RESULT_CODE}^99ROC|1.1|{RESULT_VALUE}|||Full^^99ROC|||F|||||FSE||C4800^Roche~{INSTRUMENTID}^Roche|{AUTORISATIEDATUM}\n"
-			+ "INV|\"\"|OK^^HL70383|OT^^HL70384|MwpId^^99ROC|AD1005007^^99ROC|C01^^99ROC\n"
-			+ "INV|\"\"|OK^^HL70383|OT^^HL70384|DwpId^^99ROC|AA1005007^^99ROC\n"
-			+ "NTE|1||F;M7\n"
-			+ "NTE|2||\n"
-			+ "NTE|3||\n";
+		if (CervixHpvResultaatBerichtBron.ROCHE == berichtType)
+		{
+			return "OBX|{ANALYSE_ID}|ST|{RESULT_CODE}^{RESULT_CODE}^99ROC|1.1|{RESULT_VALUE}|||Full^^99ROC|||F|||||FSE||C4800^Roche~{INSTRUMENTID}^Roche|{AUTORISATIEDATUM}\n"
+				+ "INV|\"\"|OK^^HL70383|OT^^HL70384|MwpId^^99ROC|AD1005007^^99ROC|C01^^99ROC\n"
+				+ "INV|\"\"|OK^^HL70383|OT^^HL70384|DwpId^^99ROC|AA1005007^^99ROC\n"
+				+ "NTE|1||F;M7\n"
+				+ "NTE|2||\n"
+				+ "NTE|3||\n";
+		}
+		else
+		{
+			return "OBX|{ANALYSE_ID}|ST|{RESULT_CODE}^{RESULT_CODE}^ScreenIT||{RESULT_VALUE}||||||F|||||||{INSTRUMENTID}\n";
+		}
 	}
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.model;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ package nl.rivm.screenit.model;
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -46,10 +47,10 @@ import org.hibernate.envers.Audited;
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 @Audited
-public abstract class ScreeningRonde<D extends Dossier<?, ?>, B extends ClientBrief<?, ?, ?>, AF extends Afmelding<?, ?, ?>, U extends Uitnodiging<?>> extends
+public abstract class ScreeningRonde<D extends Dossier<?, ?>, B extends ClientBrief<?, ?, ?>, AF extends Afmelding<?, ?, ?>, U extends Uitnodiging<?>>
+	extends
 	TablePerClassHibernateObject
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@Temporal(TemporalType.TIMESTAMP)
@@ -70,6 +71,11 @@ public abstract class ScreeningRonde<D extends Dossier<?, ?>, B extends ClientBr
 	public abstract D getDossier();
 
 	public abstract void setDossier(D dossier);
+
+	public List<? extends DigitaalClientBericht> getBerichten()
+	{
+		return new ArrayList<>();
+	}
 
 	public Date getCreatieDatum()
 	{

@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.filter;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -51,6 +51,7 @@ import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 
 import nl.rivm.screenit.huisartsenportaal.model.Huisarts;
+import nl.rivm.screenit.huisartsenportaal.util.SafeStringUtil;
 
 import org.apache.commons.io.output.TeeOutputStream;
 import org.slf4j.Logger;
@@ -76,7 +77,7 @@ public class HuisartsportaalLoggingFilter implements Filter
 		HttpServletResponse httpServletResponse = (HttpServletResponse) response;
 
 		Map<String, String> requestMap = getTypesafeRequestMap(httpServletRequest);
-		BufferedRequestWrapper bufferedReqest = new BufferedRequestWrapper(httpServletRequest);
+		BufferedRequestWrapper bufferedRequest = new BufferedRequestWrapper(httpServletRequest);
 		BufferedResponseWrapper bufferedResponse = new BufferedResponseWrapper(httpServletResponse);
 
 		SecurityContext context = SecurityContextHolder.getContext();
@@ -87,27 +88,28 @@ public class HuisartsportaalLoggingFilter implements Filter
 			Huisarts huisarts = (Huisarts) context.getAuthentication().getPrincipal();
 			huisartsId = String.valueOf(huisarts.getHuisartsportaalId());
 		}
-
+		var requestBodySafe = SafeStringUtil.maakUserInputStringVeiligVoorLogging(bufferedRequest.getRequestBody());
 		try
 		{
-			if (doesNotContainPassword(httpServletRequest, bufferedReqest, bufferedResponse))
+
+			if (doesNotContainPassword(httpServletRequest, bufferedRequest, bufferedResponse))
 			{
 				LOG.info("Start request: HuisartsId:" + huisartsId + "|Method:" + httpServletRequest.getMethod() + "|URI:" + httpServletRequest.getPathInfo() + "/" + requestMap
-						+ "|Request:"
-						+ bufferedReqest.getRequestBody());
+					+ "|Request:"
+					+ requestBodySafe);
 			}
-			chain.doFilter(bufferedReqest, bufferedResponse);
-			if (doesNotContainPassword(httpServletRequest, bufferedReqest, bufferedResponse))
+			chain.doFilter(bufferedRequest, bufferedResponse);
+			if (doesNotContainPassword(httpServletRequest, bufferedRequest, bufferedResponse))
 			{
 				LOG.info("HuisartsId:" + huisartsId + "|Method:" + httpServletRequest.getMethod() + "|URI:" + httpServletRequest.getRequestURI() + "/" + requestMap + "|Request:"
-						+ bufferedReqest.getRequestBody()
-						+ "|Response: " + bufferedResponse.getContent() + "|Status:" + bufferedResponse.getStatus() + "|RemoteAddr:" + httpServletRequest.getRemoteAddr());
+					+ requestBodySafe
+					+ "|Response: " + bufferedResponse.getContent() + "|Status:" + bufferedResponse.getStatus() + "|RemoteAddr:" + httpServletRequest.getRemoteAddr());
 			}
 		}
 		catch (Exception e)
 		{
 			LOG.info("HuisartsId:" + huisartsId + "|Method:" + httpServletRequest.getMethod() + "|URI:" + httpServletRequest.getRequestURI() + "/" + requestMap + "|Request:"
-				+ bufferedReqest.getRequestBody()
+				+ requestBodySafe
 				+ "|RemoteAddr:" + httpServletRequest.getRemoteAddr());
 			LOG.error("Error in request: ", e);
 			throw e;
@@ -131,12 +133,13 @@ public class HuisartsportaalLoggingFilter implements Filter
 
 	private Map<String, String> getTypesafeRequestMap(HttpServletRequest request)
 	{
-		Map<String, String> typesafeRequestMap = new HashMap<String, String>();
+		Map<String, String> typesafeRequestMap = new HashMap<>();
 		Enumeration<?> requestParamNames = request.getParameterNames();
 		while (requestParamNames.hasMoreElements())
 		{
-			String requestParamName = (String) requestParamNames.nextElement();
-			String requestParamValue = request.getParameter(requestParamName);
+			var requestParamName = SafeStringUtil.maakUserInputStringVeiligVoorLogging((String) requestParamNames.nextElement());
+			var requestParamValue = SafeStringUtil.maakUserInputStringVeiligVoorLogging(request.getParameter(requestParamName));
+
 			typesafeRequestMap.put(requestParamName, requestParamValue);
 		}
 		return typesafeRequestMap;

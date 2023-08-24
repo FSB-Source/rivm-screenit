@@ -4,7 +4,7 @@ package nl.rivm.screenit.model;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -82,6 +82,8 @@ public enum ClientContactActieType
 	MAMMA_AFSPRAAK_MAKEN_FORCEREN(new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA }),
 
 	MAMMA_AFSPRAAK_WIJZIGEN(new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA }),
+
+	MAMMA_UITSTELLEN(new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA }),
 
 	MAMMA_AFMELDEN(new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA }),
 

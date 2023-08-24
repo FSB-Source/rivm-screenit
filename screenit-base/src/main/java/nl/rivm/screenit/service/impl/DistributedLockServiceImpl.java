@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,7 @@ package nl.rivm.screenit.service.impl;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -70,6 +71,33 @@ public class DistributedLockServiceImpl implements DistributedLockService
 		lock(lockKey);
 
 		LOG.debug("Lock on '" + lockKey + "' acquired in " + eindtijdStopwatch(stopWatch) + " ms");
+	}
+
+	@Override
+	public boolean verkrijgLockIndienBeschikbaar(String locknaam)
+	{
+		var lockKey = new DistributedLockKey(createLocknaamVoorOmgeving(locknaam));
+		var zooKeeper = getZooKeeperClient();
+		var lock = new InterProcessSemaphoreMutex(zooKeeper, "/" + lockKey.getLocknaam());
+
+		try
+		{
+			LOG.debug("Try to lock: '" + lockKey + "'");
+			var lockVerkregen = lock.acquire(3, TimeUnit.MILLISECONDS);
+
+			if (lockVerkregen)
+			{
+				locks.put(lockKey, lock);
+			}
+
+			LOG.debug(String.format("Lock met naam %s is %s verkregen", lockKey, lockVerkregen ? "wel" : "niet"));
+
+			return lockVerkregen;
+		}
+		catch (Exception e)
+		{
+			throw new RuntimeException("Onbekende fout bij locken van " + lockKey, e);
+		}
 	}
 
 	private synchronized void lock(DistributedLockKey lockKey)

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.colo
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,6 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.colo
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenis;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.AbstractGebeurtenisDetailPanel;
 import nl.rivm.screenit.model.EnovationHuisarts;
-import nl.rivm.screenit.model.OnbekendeHuisarts;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.NaamUtil;
@@ -47,7 +46,6 @@ public class ColonHuisartsInzienPanel extends AbstractGebeurtenisDetailPanel
 		super.onInitialize();
 		ColonScreeningRonde ronde = getModelObject().getScreeningsRonde();
 		EnovationHuisarts enovationHuisarts = ronde.getColonHuisarts();
-		OnbekendeHuisarts onbekendeHuisarts = ronde.getOnbekendeHuisarts();
 
 		if (enovationHuisarts != null)
 		{
@@ -64,17 +62,6 @@ public class ColonHuisartsInzienPanel extends AbstractGebeurtenisDetailPanel
 			add(new Label("klantnummer", enovationHuisarts.getKlantnummer()));
 			add(new Label("ediadres", enovationHuisarts.getOorspronkelijkEdiadres()));
 			add(new Label("communicatieadres", enovationHuisarts.getEdiadres()));
-		}
-		else if (onbekendeHuisarts != null)
-		{
-			add(new Label("huisartsNaam", onbekendeHuisarts.getHuisartsNaam()));
-			add(new Label("praktijkNaam", onbekendeHuisarts.getPraktijkNaam()));
-			add(new Label("praktijkAdres", AdresUtil.getOnbekendeHuisartsAdres(onbekendeHuisarts)));
-			add(new Label("huisartsAgb", Model.of("")));
-			add(new Label("weergaveNaam", Model.of("")));
-			add(new Label("klantnummer", Model.of("")));
-			add(new Label("ediadres", Model.of("")));
-			add(new Label("communicatieadres", Model.of("")));
 		}
 		else
 		{

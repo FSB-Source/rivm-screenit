@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -81,8 +81,6 @@ public abstract class CervixMonster extends SingleTableHibernateObject
 {
 	@OneToMany(mappedBy = "monster", fetch = FetchType.LAZY)
 	private List<CervixVerrichting> verrichtingen;
-
-	private static final long serialVersionUID = 1L;
 
 	@OneToOne(mappedBy = "monster", optional = false, fetch = FetchType.LAZY)
 	private CervixUitnodiging uitnodiging;

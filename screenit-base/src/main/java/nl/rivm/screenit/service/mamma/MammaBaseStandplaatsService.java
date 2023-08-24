@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,10 +32,6 @@ import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
-import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
-
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 public interface MammaBaseStandplaatsService
 {
@@ -45,9 +41,9 @@ public interface MammaBaseStandplaatsService
 	List<MammaStandplaatsPeriodeMetAfstandDto> getStandplaatsPeriodeMetAfstandDtos(Client client, IMammaAfspraakWijzigenFilter filter,
 		boolean validatieUitvoeren);
 
-	List<String> getStandplaatsPlaatsenVanActivePeriodes(IMammaAfspraakWijzigenFilter filter, boolean verzetten);
+	List<String> getStandplaatsPlaatsenVanActievePeriodes(IMammaAfspraakWijzigenFilter filter, boolean uitstellen);
 
-	List<MammaStandplaatsPeriodeMetAfstandDto> getStandplaatsPeriodeMetAfstandDtos(IMammaAfspraakWijzigenFilter filter, boolean verzetten);
+	List<MammaStandplaatsPeriodeMetAfstandDto> getStandplaatsPeriodeMetAfstandDtos(IMammaAfspraakWijzigenFilter filter, boolean uitstellen);
 
 	MammaStandplaats getStandplaatsMetPostcode(Client client);
 
@@ -63,5 +59,5 @@ public interface MammaBaseStandplaatsService
 
 	Date getMaximaleVrijgegevenTotEnMetDatum(List<MammaStandplaatsPeriode> standplaatsPerioden);
 
-	MammaStandplaatsRonde getStandplaatsRondeVanStandplaats(MammaStandplaats standplaats);
+	MammaStandplaatsPeriode huidigeStandplaatsPeriodeInRouteVanStandplaats(MammaStandplaats standplaats);
 }

@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,6 +32,7 @@ import {createActionPushToast} from "../../../state/ToastsState"
 import {ToastType} from "../../../state/datatypes/Toast"
 import {loadingThunkAction} from "../../../api/LoadingThunkAction"
 import {wachtwoordValidatie} from "../../../util/ValidatieUtil"
+import React from "react"
 
 export interface WachtwoordWijzigenModalProps {
 	show: boolean;
@@ -57,7 +58,7 @@ const WachtwoordWijzigenModal = (props: WachtwoordWijzigenModalProps) => {
 				nieuweWachtwoord: wachtwoordValidatie(getString(properties.form.fields.nieuweWachtwoord))
 					.required(getString(validatieProperties.required)),
 				nieuweWachtwoordControle: Yup.string()
-					.oneOf([Yup.ref("nieuweWachtwoord"), null], getString(validatieProperties.wachtwoordControle))
+					.oneOf([Yup.ref("nieuweWachtwoord"), undefined], getString(validatieProperties.wachtwoordControle))
 					.required(getString(validatieProperties.required)),
 			})}
 			onSubmit={wachtwoordDto => {

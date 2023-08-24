@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -20,8 +20,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
-
-import static nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.afbeelding.MammaLaesiesAfbeeldingPanel.UNSAVED_DEFAULT_LEZING_ID;
 
 import java.util.List;
 
@@ -40,6 +38,7 @@ import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.dto.LaesieDtoMappe
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.popup.LezingPdfDialogPanel;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaLezing;
 import nl.rivm.screenit.model.mamma.enums.MammaAmputatie;
 import nl.rivm.screenit.model.mamma.enums.MammaLezingType;
@@ -50,6 +49,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxButton;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.RadioChoice;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
@@ -60,10 +60,10 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import static nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.afbeelding.MammaLaesiesAfbeeldingPanel.UNSAVED_DEFAULT_LEZING_ID;
+
 public class MammaLezingPanel extends GenericPanel<MammaLezing>
 {
-	private GenericPanel parentPanel;
-
 	private final ScreenitForm<MammaLezing> form;
 
 	private MammaLaesiesAfbeeldingPanel mammaAfbeeldingPanel;
@@ -71,9 +71,7 @@ public class MammaLezingPanel extends GenericPanel<MammaLezing>
 	@SpringBean
 	private MammaBeoordelingService beoordelingService;
 
-	private LaesieDtoMapper laesieDtoMapper = new LaesieDtoMapper();
-
-	private IndicatingAjaxButton overnemenBtn;
+	private final LaesieDtoMapper laesieDtoMapper = new LaesieDtoMapper();
 
 	private IndicatingAjaxButton arbitrageBtn;
 
@@ -81,10 +79,9 @@ public class MammaLezingPanel extends GenericPanel<MammaLezing>
 
 	private final BootstrapDialog dialog;
 
-	public MammaLezingPanel(GenericPanel parentPanel, String id, IModel<MammaLezing> lezingModel, MammaLezingParameters lezingParameters)
+	public MammaLezingPanel(GenericPanel<MammaBeoordeling> parentPanel, String id, IModel<MammaLezing> lezingModel, MammaLezingParameters lezingParameters)
 	{
 		super(id, lezingModel);
-		this.parentPanel = parentPanel;
 
 		addLaesiesAfbeelding(getModel(), lezingParameters.isInzien(), lezingParameters.isMetAfbeelding(), lezingParameters.getAmputatie());
 
@@ -105,6 +102,9 @@ public class MammaLezingPanel extends GenericPanel<MammaLezing>
 		form.add(new Label("textboxname", "Opmerking").setVisible(lezingParameters.isToonBiradsOpmerkingVeld()));
 		ComponentHelper.addTextArea(form, "biradsOpmerking", false, 255, lezingParameters.isInzien()).setVisible(lezingParameters.isToonBiradsOpmerkingVeld());
 		form.add(new BeperktBeoordeelbaarPanel("beperktBeoordeelbaarPanel", lezingModel, true));
+
+		var tomosyntheseRelevantVoorBeoordeling = maakTomosyntheseRelevantVoorBeoordeling(lezingParameters, getHuidigePanelType(lezingModel));
+		form.add(tomosyntheseRelevantVoorBeoordeling);
 
 		dialog = new BootstrapDialog("dialog");
 		add(dialog);
@@ -133,9 +133,20 @@ public class MammaLezingPanel extends GenericPanel<MammaLezing>
 		add(form);
 	}
 
+	private RadioChoice<Boolean> maakTomosyntheseRelevantVoorBeoordeling(MammaLezingParameters lezingParameters, MammaLezingType lezingType)
+	{
+		var tomosyntheseRelevantVoorBeoordeling = ComponentHelper.addHorizontaleBooleanRadioChoice("tomosyntheseRelevantVoorBeoordeling");
+		tomosyntheseRelevantVoorBeoordeling.setSuffix("<span class=\"checkmark\"></span></label>");
+
+		tomosyntheseRelevantVoorBeoordeling.setVisible(lezingParameters.isToonTomosyntheseSlicesRadioButtons() && MammaLezingType.VERSLAG_LEZING != lezingType);
+		tomosyntheseRelevantVoorBeoordeling.setEnabled(!lezingParameters.isInzien());
+		tomosyntheseRelevantVoorBeoordeling.setRequired(true);
+		return tomosyntheseRelevantVoorBeoordeling;
+	}
+
 	private void createOvernemenButton(DiscrepantieArbitrageLezingenContainer parentPanel, MammaLezingParameters lezingParameters)
 	{
-		overnemenBtn = new IndicatingAjaxButton("overnemen")
+		var overnemenBtn = new IndicatingAjaxButton("overnemen")
 		{
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
@@ -173,7 +184,7 @@ public class MammaLezingPanel extends GenericPanel<MammaLezing>
 
 	private void createVerslagButton(MammaLezingType lezingType, MammaLezingParameters lezingParameters)
 	{
-		IndicatingAjaxLink<Void> pdfBtn = new IndicatingAjaxLink<Void>("verslagPdf")
+		var pdfBtn = new IndicatingAjaxLink<Void>("verslagPdf")
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target)
@@ -253,7 +264,7 @@ public class MammaLezingPanel extends GenericPanel<MammaLezing>
 			}
 		};
 		afrondenBtn.setOutputMarkupId(true);
-		afrondenBtn.setVisible(!lezingParameters.isInzien() && !lezingParameters.getVerbergAfrondKnop()
+		afrondenBtn.setVisible(!lezingParameters.isInzien() && !lezingParameters.isVerbergAfrondKnop()
 			&& ScreenitSession.get().checkPermission(Recht.GEBRUIKER_SCREENING_MAMMA_IMS_KOPPELING, Actie.INZIEN));
 		form.add(afrondenBtn);
 	}
@@ -262,6 +273,7 @@ public class MammaLezingPanel extends GenericPanel<MammaLezing>
 	{
 		LaesieDtoMapper mapper = new LaesieDtoMapper();
 		IModel<List<LaesieDto>> result = new ListModel<>(mapper.lezingToLaesieDtos(lezingModel.getObject()));
+
 		mammaAfbeeldingPanel = new MammaLaesiesAfbeeldingPanel("afbeelding", result, alleenLezen, lezingModel.getObject().getId(), false, amputatie);
 		add(mammaAfbeeldingPanel.setVisible(metAfbeelding));
 	}

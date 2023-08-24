@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -19,15 +19,15 @@
  * =========================LICENSE_END==================================
  */
 .select2-container {
-    margin: 0;
-    position: relative;    
-    display: table;
-	float: left;
-	width: 100%;
-	table-layout: fixed;
-    zoom: 1;
-    *display: inline;
-    vertical-align: middle;
+  margin: 0;
+  position: relative;
+  display: table;
+  float: left;
+  width: 100%;
+  table-layout: fixed;
+  zoom: 1;
+  *display: inline;
+  vertical-align: middle;
 }
 
 .select2-container,

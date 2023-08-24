@@ -36,7 +36,7 @@ export default class DagStatistiekenView extends React.Component<DagStatistieken
 						Dagcapaciteit
 					</td>
 					<td>
-						{this.props.dagverslag && this.props.dagverslag.dagPlanningSamenvatting.dagCapaciteit}
+						{this.props.dagverslag?.dagPlanningSamenvatting?.dagCapaciteit}
 					</td>
 				</tr>
 				<tr>
@@ -44,7 +44,7 @@ export default class DagStatistiekenView extends React.Component<DagStatistieken
 						Beschikbaar
 					</td>
 					<td>
-						{this.props.dagverslag && this.props.dagverslag.dagPlanningSamenvatting.beschikbaarheid}
+						{this.props.dagverslag?.dagPlanningSamenvatting?.beschikbaarheid}
 					</td>
 				</tr>
 				<tr>
@@ -52,7 +52,7 @@ export default class DagStatistiekenView extends React.Component<DagStatistieken
 						Starttijd
 					</td>
 					<td>
-						{this.props.dagverslag && tijdFormaat(this.props.dagverslag.dagPlanningSamenvatting.starttijd)}
+						{this.props.dagverslag?.dagPlanningSamenvatting && tijdFormaat(this.props.dagverslag.dagPlanningSamenvatting.starttijd)}
 					</td>
 				</tr>
 				<tr className="dagverslag-paneel-scheiding">
@@ -60,7 +60,7 @@ export default class DagStatistiekenView extends React.Component<DagStatistieken
 						Eindtijd
 					</td>
 					<td>
-						{this.props.dagverslag && tijdFormaat(this.props.dagverslag.dagPlanningSamenvatting.eindtijd)}
+						{this.props.dagverslag?.dagPlanningSamenvatting && tijdFormaat(this.props.dagverslag.dagPlanningSamenvatting.eindtijd)}
 					</td>
 				</tr>
 				<tr>

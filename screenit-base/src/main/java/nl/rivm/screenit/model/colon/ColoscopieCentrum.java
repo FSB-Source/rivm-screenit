@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.model.colon;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,23 +33,27 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
 
+import lombok.Getter;
+import lombok.Setter;
+
+import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.PostcodeCoordinaten;
 import nl.rivm.screenit.model.helper.HibernateMagicNumber;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.organisatie.model.Adres;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
-import org.joda.time.MutableDateTime;
 
 @Entity
 @Audited
+@Getter
+@Setter
 public class ColoscopieCentrum extends Instelling
 {
-
-	private static final long serialVersionUID = 1L;
 
 	@OneToMany(mappedBy = "coloscopieCentrum")
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
@@ -71,70 +74,6 @@ public class ColoscopieCentrum extends Instelling
 	private Integer aantalGeprognostiseerdeRoosterblokken;
 
 	private Integer aantalGeprognostiseerdeRoosterblokkenVolgendJaar;
-
-	public List<ColoscopieCentrumColonCapaciteitVerdeling> getCapaciteitVerdeling()
-	{
-		return capaciteitVerdeling;
-	}
-
-	public void setCapaciteitVerdeling(List<ColoscopieCentrumColonCapaciteitVerdeling> capaciteitVerdeling)
-	{
-		this.capaciteitVerdeling = capaciteitVerdeling;
-	}
-
-	@Transient
-	public Date getOpeningVan()
-	{
-		MutableDateTime openingVan = new MutableDateTime(2010, 3, 28, 8, 0, 0, 0);
-		return openingVan.toDate();
-	}
-
-	@Transient
-	public Date getOpeningTot()
-	{
-		MutableDateTime openingTot = new MutableDateTime(2010, 3, 28, 18, 0, 0, 0);
-		return openingTot.toDate();
-	}
-
-	public List<Kamer> getKamers()
-	{
-		return kamers;
-	}
-
-	public void setKamers(List<Kamer> kamers)
-	{
-		this.kamers = kamers;
-	}
-
-	public PostcodeCoordinaten getPostcodeCoordinaten()
-	{
-		return postcodeCoordinaten;
-	}
-
-	public void setPostcodeCoordinaten(PostcodeCoordinaten postcodeCoordinaten)
-	{
-		this.postcodeCoordinaten = postcodeCoordinaten;
-	}
-
-	public String getLocatieBeschrijving()
-	{
-		return locatieBeschrijving;
-	}
-
-	public void setLocatieBeschrijving(String locatieBeschrijving)
-	{
-		this.locatieBeschrijving = locatieBeschrijving;
-	}
-
-	public Integer getAantalGeprognostiseerdeRoosterblokken()
-	{
-		return aantalGeprognostiseerdeRoosterblokken;
-	}
-
-	public void setAantalGeprognostiseerdeRoosterblokken(Integer aantalGeprognostiseerdeRoosterblokken)
-	{
-		this.aantalGeprognostiseerdeRoosterblokken = aantalGeprognostiseerdeRoosterblokken;
-	}
 
 	public Adres getEersteAdres()
 	{
@@ -157,16 +96,6 @@ public class ColoscopieCentrum extends Instelling
 			plaats = adres.getPlaats();
 		}
 		return plaats;
-	}
-
-	public Integer getAantalGeprognostiseerdeRoosterblokkenVolgendJaar()
-	{
-		return aantalGeprognostiseerdeRoosterblokkenVolgendJaar;
-	}
-
-	public void setAantalGeprognostiseerdeRoosterblokkenVolgendJaar(Integer aantalGeprognostiseerdeRoosterblokkenVolgendJaar)
-	{
-		this.aantalGeprognostiseerdeRoosterblokkenVolgendJaar = aantalGeprognostiseerdeRoosterblokkenVolgendJaar;
 	}
 
 }

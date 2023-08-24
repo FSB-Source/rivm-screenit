@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,7 @@ package nl.rivm.screenit.model.enums;
  * =========================LICENSE_END==================================
  */
 
-import java.math.BigDecimal;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -30,24 +30,28 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.WerkDagHelper;
 import nl.rivm.screenit.model.Aanhef;
+import nl.rivm.screenit.model.AfmeldingType;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.Brief;
 import nl.rivm.screenit.model.CentraleEenheid;
 import nl.rivm.screenit.model.ClientBrief;
+import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.Functie;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Gemeente;
+import nl.rivm.screenit.model.InpakbareUitnodiging;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.InstellingGebruikerRol;
@@ -72,11 +76,11 @@ import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.cervix.enums.CervixNietAnalyseerbaarReden;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
-import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdrachtRegel;
-import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdrachtRegelSpecificatie;
 import nl.rivm.screenit.model.cervix.verslag.cytologie.CervixCytologieCytologieUitslagBvoBmhkTbvHuisarts;
+import nl.rivm.screenit.model.colon.ColonAfmelding;
 import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
+import nl.rivm.screenit.model.colon.ColonVolgendeUitnodiging;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaBrief;
@@ -91,6 +95,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaAmputatie;
 import nl.rivm.screenit.model.mamma.enums.MammaBeperktBeoordeelbaarReden;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
+import nl.rivm.screenit.model.mamma.enums.MammaUitstelReden;
 import nl.rivm.screenit.model.mamma.enums.MammaVerzettenReden;
 import nl.rivm.screenit.model.mamma.enums.MammaZijde;
 import nl.rivm.screenit.model.overeenkomsten.AbstractAfgeslotenOvereenkomst;
@@ -99,17 +104,20 @@ import nl.rivm.screenit.model.overeenkomsten.AfgeslotenMedewerkerOvereenkomst;
 import nl.rivm.screenit.model.project.ProjectBrief;
 import nl.rivm.screenit.model.project.ProjectBriefActieType;
 import nl.rivm.screenit.model.project.ProjectVragenlijstUitzettenVia;
+import nl.rivm.screenit.service.BarcodeService;
 import nl.rivm.screenit.service.HeraanmeldenMergeVeldService;
 import nl.rivm.screenit.service.ProjectService;
+import nl.rivm.screenit.service.cervix.CervixBaseBetalingService;
 import nl.rivm.screenit.service.cervix.impl.CervixMonsterIdBarcode;
 import nl.rivm.screenit.service.cervix.impl.CervixMonsterIdLabelBarcode;
-import nl.rivm.screenit.service.cervix.impl.CervixUitnodigingIdBarcode;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
+import nl.rivm.screenit.service.impl.UitnodigingIdBarcode;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.MammaBaseLaesieService;
 import nl.rivm.screenit.service.mamma.MammaMergeFieldService;
 import nl.rivm.screenit.util.AdresUtil;
+import nl.rivm.screenit.util.AfmeldingUtil;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.EntityAuditUtil;
@@ -126,10 +134,10 @@ import nl.topicuszorg.spring.injection.SpringBeanProvider;
 import nl.topicuszorg.util.postcode.PostcodeFormatter;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.envers.query.AuditEntity;
-import org.joda.time.DateTime;
 import org.krysalis.barcode4j.impl.AbstractBarcodeBean;
 import org.krysalis.barcode4j.impl.code128.Code128Bean;
 import org.krysalis.barcode4j.impl.fourstate.RoyalMailCBCBean;
@@ -137,11 +145,13 @@ import org.springframework.beans.support.PropertyComparator;
 
 import com.google.common.base.Strings;
 
+import static nl.rivm.screenit.Constants.INLINE_ID_SO_LOGO_EMAIL;
 import static nl.rivm.screenit.model.enums.MergeFieldFlag.NIET_IN_HUISARTSBERICHT;
 import static nl.rivm.screenit.model.enums.MergeFieldFlag.NIET_NAAR_INPAKCENTRUM;
 import static nl.rivm.screenit.model.enums.MergeFieldFlag.QR_CODE;
 import static nl.rivm.screenit.model.enums.MergeFieldFlag.WAARDE_NIET_TRIMMEN;
 
+@Slf4j
 public enum MergeField
 {
 
@@ -202,6 +212,14 @@ public enum MergeField
 					return screeningOrganisatie.getLogoBrief();
 				}
 				return null;
+			}
+		},
+	SO_LOGO_EMAIL("_SO_LOGO_EMAIL", MergeFieldTestType.ZORGINSTELLING, String.class, "")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				return "<img src='cid:" + INLINE_ID_SO_LOGO_EMAIL + "'>";
 			}
 		},
 
@@ -1645,6 +1663,34 @@ public enum MergeField
 
 		},
 
+	COLON_LAATSTE_RONDE_TEKST(
+		"_COLON_LAATSTE_RONDE_TEKST",
+		MergeFieldTestType.OVERIGE,
+		String.class,
+		"",
+		MergeFieldFlag.NIET_IN_HUISARTSBERICHT)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				var maximaleLeeftijd = getSimplePreferenceService().getInteger(PreferenceKey.MAXIMALE_LEEFTIJD_COLON.name());
+				var volgendeUitnodigingsDatum = getBean(ColonDossierBaseService.class).getDatumVolgendeUitnodiging(context.getClient().getColonDossier());
+
+				if (volgendeUitnodigingsDatum != null)
+				{
+					if (!volgendeUitnodigingsDatum.isBefore(DateUtil.toLocalDate(context.getClient().getPersoon().getGeboortedatum()).plusYears(maximaleLeeftijd + 1L)))
+					{
+						return getSimplePreferenceService().getString(PreferenceKey.COLON_LAATSTE_RONDE_BRIEF_TEKST.name());
+					}
+					else
+					{
+						return getSimplePreferenceService().getString(PreferenceKey.COLON_VOLGENDE_RONDE_BRIEF_TEKST.name());
+					}
+				}
+				return null;
+			}
+		},
+
 	ZI_ADRES("_ZI_ADRES", MergeFieldTestType.ZORGINSTELLING, String.class, "xxxx")
 		{
 			@Override
@@ -2361,47 +2407,63 @@ public enum MergeField
 
 		},
 
-	UITNODIGINGSID("_UITNODIGINGSID", CervixUitnodigingIdBarcode.class, null, MergeFieldTestType.OVERIGE, "cervixUitnodiging.uitnodigingsId", String.class)
+	UITNODIGINGSID("_UITNODIGINGSID", UitnodigingIdBarcode.class, null, MergeFieldTestType.OVERIGE, "cervixUitnodiging.uitnodigingsId", String.class)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				String id = null;
-
+				InpakbareUitnodiging<?> inpakbareUitnodiging = null;
 				if (context.getColonUitnodiging() != null)
 				{
-					id = context.getColonUitnodiging().getUitnodigingsId().toString();
+					inpakbareUitnodiging = context.getColonUitnodiging();
 				}
 				else if (context.getCervixUitnodiging() != null)
 				{
-					id = context.getCervixUitnodiging().getUitnodigingsId().toString();
+					inpakbareUitnodiging = context.getCervixUitnodiging();
 				}
-
-				return id;
+				if (inpakbareUitnodiging != null)
+				{
+					return inpakbareUitnodiging.getUitnodigingsId().toString();
+				}
+				return null;
 			}
 
 		},
 
-	MAMMA_UITNODIGINGSNUMMER("_BK_UITNODIGINGSNUMMER", CervixUitnodigingIdBarcode.class, null, MergeFieldTestType.OVERIGE, String.class, "123456789")
+	MAMMA_UITNODIGINGSNUMMER("_BK_UITNODIGINGSNUMMER", UitnodigingIdBarcode.class, null, MergeFieldTestType.OVERIGE, String.class, "123456789")
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				String id = null;
-
-				Object brief = HibernateHelper.deproxy(context.getBrief());
-				if (brief instanceof MammaBrief)
-				{
-					MammaBrief mammaBrief = (MammaBrief) brief;
-					if (mammaBrief.getScreeningRonde() != null)
-					{
-						id = mammaBrief.getScreeningRonde().getUitnodigingsNr().toString();
-					}
-				}
-
-				return id;
+				return getMammaUitnodigingsNummer(context);
 			}
 
+		},
+	MAMMA_UITNODIGINGSNUMMER_EMAIL_BARCODE("_BK_UITNODIGINGSNUMMER_EMAIL_BARCODE", UitnodigingIdBarcode.class, null, MergeFieldTestType.OVERIGE, String.class,
+		"<img src='data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAMYAAADRAQAAAAC/M/DTAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAEnRFWHRTb2Z0d2FyZQBCYXJjb2RlNEryjnYuAAAAvUlEQVR4Xu3QMQ6CQBQE0G8s6OQIexO5knRUgrGg5EoYC6+BN8Buiw0jW7jyk68JnSYzBcnwks3sCoCwK+SYDfO39O4EKfv4UygUCoVCoVAoFAqFQqFQfkjM/Iv4HI0tw3aSwpR+E8SZch78Pjel8xVaU1wocVspCPV68fWHBfDzPlse84pUlNwxuVSUXBGKVJS0ccMrSnKM77KU4HCxRV1HyRjPM0WNVqJGK+ni86QspZFKMlNEDqtFh/JVnk4BQA0jieC8AAAAAElFTkSuQmCC' alt='barcode 22'>")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				String uitnodigingsNummer = getMammaUitnodigingsNummer(context);
+				if (uitnodigingsNummer != null)
+				{
+					var barcodeBean = new UitnodigingIdBarcode();
+					BarcodeService barcodeService = getBean(BarcodeService.class);
+					try (var barcodeInputStream = barcodeService.maakBarcodeInputStreamVoorEmail(uitnodigingsNummer, barcodeBean))
+					{
+						var bytes = IOUtils.toByteArray(barcodeInputStream);
+						var barcodeBase64String = Base64.getEncoder().encodeToString(bytes);
+						return String.format("<img src='data:image/png;base64, %s' alt='barcode %s'/>", barcodeBase64String, uitnodigingsNummer);
+					}
+					catch (IOException e)
+					{
+
+						LOG.warn("Fout bij maken e-mail barcode voor BK uitnodigingsnummer: {}", uitnodigingsNummer, e);
+					}
+				}
+				return null;
+			}
 		},
 
 	ZV_ACHTERNAAM("_ZV_ACHTERNAAM", MergeFieldTestType.ZORGVERLENER, "overeenkomst.gebruiker.achternaam", String.class)
@@ -3180,9 +3242,9 @@ public enum MergeField
 					{
 						brief = (CervixBrief) BriefUtil.getHerdruk(brief);
 					}
-					DateTime ontvangstdatum = new DateTime(brief.getLabformulier().getUitstrijkje().getOntvangstdatum());
-					Integer wachttijdHuisartsDoorgeven = getSimplePreferenceService().getInteger(PreferenceKey.CERVIX_WACHTTIJD_HUISARTS_DOORGEVEN.toString());
-					return new SimpleDateFormat("dd-MM-yyyy").format(WerkDagHelper.plusBusinessDays(ontvangstdatum, wachttijdHuisartsDoorgeven).toDate());
+					var ontvangstdatum = brief.getLabformulier().getUitstrijkje().getOntvangstdatum();
+					var wachttijdHuisartsDoorgeven = getSimplePreferenceService().getInteger(PreferenceKey.CERVIX_WACHTTIJD_HUISARTS_DOORGEVEN.toString());
+					return new SimpleDateFormat("dd-MM-yyyy").format(DateUtil.plusWerkdagen(ontvangstdatum, wachttijdHuisartsDoorgeven));
 				}
 				return null;
 			}
@@ -3197,7 +3259,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixBetaalopdracht betaalopdracht = MergeField.getBetaalopdracht(context);
+				var betaalopdracht = MergeField.getBetaalopdracht(context);
 				if (betaalopdracht != null)
 				{
 					return betaalopdracht.getOmschrijving();
@@ -3215,7 +3277,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixBetaalopdracht betaalopdracht = MergeField.getBetaalopdracht(context);
+				var betaalopdracht = MergeField.getBetaalopdracht(context);
 				if (betaalopdracht != null)
 				{
 					return betaalopdracht.getBetalingskenmerk();
@@ -3233,11 +3295,10 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixBetaalopdracht betaalopdracht = MergeField.getBetaalopdracht(context);
+				var betaalopdracht = MergeField.getBetaalopdracht(context);
 				if (betaalopdracht != null)
 				{
-					BigDecimal totaalBedrag = betaalopdracht.getBetaalopdrachtRegels().stream().map(CervixBetaalopdrachtRegel::getBedrag).reduce(BigDecimal::add)
-						.orElse(BigDecimal.ZERO);
+					var totaalBedrag = getBean(CervixBaseBetalingService.class).totaalBedragInBetaalopdracht(betaalopdracht);
 					return NumberFormat.getCurrencyInstance().format(totaalBedrag);
 				}
 				return null;
@@ -3253,11 +3314,10 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixBetaalopdracht betaalopdracht = MergeField.getBetaalopdracht(context);
+				var betaalopdracht = MergeField.getBetaalopdracht(context);
 				if (betaalopdracht != null)
 				{
-					BigDecimal totaalBedrag = betaalopdracht.getBetaalopdrachtRegels().stream().filter(b -> b.getLaboratorium() != null).map(CervixBetaalopdrachtRegel::getBedrag)
-						.reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
+					var totaalBedrag = getBean(CervixBaseBetalingService.class).totaalBedragLaboratoriumBoekRegelsInBetaalopdracht(betaalopdracht);
 					return NumberFormat.getCurrencyInstance().format(totaalBedrag);
 				}
 				return null;
@@ -3265,27 +3325,73 @@ public enum MergeField
 
 		},
 
-	CERVIX_BETAALOPDRACHT_AANTAL_UITSTRIJKJES(
-		"_BTO_AANTAL_UITSTRIJKJES",
+	CERVIX_BETAALOPDRACHT_HA_AANTAL_UITSTRIJKJES(
+		"_BTO_HA_AANTAL_UITSTRIJKJES",
 		MergeFieldFlag.NIET_IN_HUISARTSBERICHT,
 		NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixBetaalopdracht betaalopdracht = getBetaalopdracht(context);
+				var betaalopdracht = getBetaalopdracht(context);
 				if (betaalopdracht != null)
 				{
-					long aantal = betaalopdracht.getBetaalopdrachtRegels().stream().filter(b -> b.getHuisartsLocatie() != null).map(CervixBetaalopdrachtRegel::getSpecificaties)
-						.flatMap(Collection::stream)
-						.mapToInt(CervixBetaalopdrachtRegelSpecificatie::getAantalBetaalRegels).sum();
-					return Long.toString(aantal);
+					return getBean(CervixBaseBetalingService.class).totaalAantalHuisartsBoekRegelsInBetaalopdracht(betaalopdracht, false);
 				}
 				return null;
 			}
 
 		},
-
+	CERVIX_BETAALOPDRACHT_HA_TOTAALBEDRAG_UITSTRIJKJES(
+		"_BTO_HA_TOTAALBEDRAG_UITSTRIJKJES",
+		MergeFieldFlag.NIET_IN_HUISARTSBERICHT,
+		NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				var betaalopdracht = MergeField.getBetaalopdracht(context);
+				if (betaalopdracht != null)
+				{
+					var totaalBedrag = getBean(CervixBaseBetalingService.class).totaalBedragHuisartsBoekRegelsInBetaalopdracht(betaalopdracht, false);
+					return NumberFormat.getCurrencyInstance().format(totaalBedrag);
+				}
+				return null;
+			}
+		},
+	CERVIX_BETAALOPDRACHT_HA_TOTAALBEDRAG_CORRECTIES(
+		"_BTO_HA_TOTAALBEDRAG_CORRECTIES",
+		MergeFieldFlag.NIET_IN_HUISARTSBERICHT,
+		NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				var betaalopdracht = MergeField.getBetaalopdracht(context);
+				if (betaalopdracht != null)
+				{
+					var totaalBedrag = getBean(CervixBaseBetalingService.class).totaalBedragHuisartsBoekRegelsInBetaalopdracht(betaalopdracht, true);
+					return NumberFormat.getCurrencyInstance().format(totaalBedrag);
+				}
+				return null;
+			}
+		},
+	CERVIX_BETAALOPDRACHT_HA_AANTAL_CORRECTIES(
+		"_BTO_HA_AANTAL_CORRECTIES",
+		MergeFieldFlag.NIET_IN_HUISARTSBERICHT,
+		NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				var betaalopdracht = MergeField.getBetaalopdracht(context);
+				if (betaalopdracht != null)
+				{
+					return getBean(CervixBaseBetalingService.class).totaalAantalHuisartsBoekRegelsInBetaalopdracht(betaalopdracht, true) * -1;
+				}
+				return null;
+			}
+		},
 	CERVIX_BETAALOPDRACHT_HA_TOTAALBEDRAG(
 		"_BTO_HA_TOTAALBEDRAG",
 		MergeFieldFlag.NIET_IN_HUISARTSBERICHT,
@@ -3294,11 +3400,10 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixBetaalopdracht betaalopdracht = MergeField.getBetaalopdracht(context);
+				var betaalopdracht = MergeField.getBetaalopdracht(context);
 				if (betaalopdracht != null)
 				{
-					BigDecimal totaalBedrag = betaalopdracht.getBetaalopdrachtRegels().stream().filter(b -> b.getHuisartsLocatie() != null)
-						.map(CervixBetaalopdrachtRegel::getBedrag).reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
+					var totaalBedrag = getBean(CervixBaseBetalingService.class).totaalBedragHuisartsBoekRegelsInBetaalopdracht(betaalopdracht);
 					return NumberFormat.getCurrencyInstance().format(totaalBedrag);
 				}
 				return null;
@@ -3329,7 +3434,7 @@ public enum MergeField
 				MammaAfspraak afspraak = getLaatsteMammaAfspraak(context);
 				if (afspraak != null)
 				{
-					return DateUtil.toLocalDate(afspraak.getVanaf()).format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+					return getFormattedDateMetDagnaam(afspraak.getVanaf());
 				}
 				return null;
 			}
@@ -3798,6 +3903,35 @@ public enum MergeField
 			}
 		},
 
+	MAMMA_UITGESTELD_TEKST(
+		"_BK_UITGESTELD_TEKST",
+		MergeFieldTestType.OVERIGE,
+		String.class, getStringValueFromPreference(PreferenceKey.MAMMA_UITNODIGING_NA_UITSTEL_TEKST),
+		NIET_NAAR_INPAKCENTRUM, NIET_IN_HUISARTSBERICHT)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				var brief = getHerdrukOfOrigineleMammaBrief(context);
+				if (brief != null)
+				{
+					var uitnodiging = brief.getUitnodiging();
+					if (uitnodigingGevolgVanClientUitstel(uitnodiging))
+					{
+						return getStringValueFromPreference(PreferenceKey.MAMMA_UITNODIGING_NA_UITSTEL_TEKST);
+					}
+				}
+				return null;
+			}
+
+			private boolean uitnodigingGevolgVanClientUitstel(MammaUitnodiging uitnodiging)
+			{
+				return uitnodiging != null && uitnodiging.getScreeningRonde() != null &&
+					uitnodiging.getScreeningRonde().getUitstellen().stream().filter(uitstel -> uitstel.getUitstelReden() == MammaUitstelReden.CLIENT_CONTACT)
+						.anyMatch(uitstel -> uitnodiging.equals(uitstel.getUitnodiging()));
+			}
+		},
+
 	CLIENT_SIGNALERING_GENDER("_CLIENT_SIGNALERING_GENDER", MergeFieldTestType.OVERIGE, String.class, "", NIET_NAAR_INPAKCENTRUM, NIET_IN_HUISARTSBERICHT)
 		{
 			@Override
@@ -3817,6 +3951,58 @@ public enum MergeField
 					}
 				}
 				return getStringValueFromPreference(PreferenceKey.CLIENT_GENDERIDENTITEITSWIJZIGING_TEKST);
+			}
+		},
+
+	BEVESTIGING_AFMELDING_TEKST_DK("_BEVESTIGING_AFMELDING_TEKST_DK")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				var dossier = context.getClient().getColonDossier();
+				ColonAfmelding afmelding;
+
+				if (DossierStatus.INACTIEF == dossier.getStatus())
+				{
+					afmelding = AfmeldingUtil.getHeraanmeldbareAfmelding(dossier);
+				}
+				else
+				{
+					afmelding = AfmeldingUtil.getLaatsteDefinitieveOfTijdelijkeHeraangemeldeAfmelding(dossier);
+				}
+
+				if (AfmeldingType.DEFINITIEF == afmelding.getType())
+				{
+					return getStringValueFromPreference(PreferenceKey.COLON_DEFINITIEVE_AFMELDING_BEVESTIGING_TEKST);
+				}
+				else if (AfmeldingType.TIJDELIJK == afmelding.getType())
+				{
+					var tekstMetJaarInsert = getStringValueFromPreference(PreferenceKey.COLON_TIJDELIJKE_AFMELDING_BEVESTIGING_TEKST);
+					String uitstellenTotJaartal;
+
+					var volgendeUitnodiging = dossier.getVolgendeUitnodiging();
+					if (volgendeUitnodiging.getDatumVolgendeRonde() == null)
+					{
+						var vorigeVolgendeUitnodigingVersies = EntityAuditUtil.getEntityHistory(volgendeUitnodiging, MergeField.getHibernateSession(),
+							true);
+						for (Object[] entiteitGeschiedenis : vorigeVolgendeUitnodigingVersies)
+						{
+							var vorigeRevisieVolgendeUitnodiging = (ColonVolgendeUitnodiging) entiteitGeschiedenis[0];
+							if (vorigeRevisieVolgendeUitnodiging.getDatumVolgendeRonde() != null)
+							{
+								volgendeUitnodiging = vorigeRevisieVolgendeUitnodiging;
+								break;
+							}
+						}
+					}
+					uitstellenTotJaartal = String.valueOf(volgendeUitnodiging.getDatumVolgendeRonde().getYear());
+
+					if (tekstMetJaarInsert != null)
+					{
+						return tekstMetJaarInsert.replace("{jaar}", uitstellenTotJaartal);
+					}
+				}
+				return null;
 			}
 		};
 
@@ -4088,7 +4274,7 @@ public enum MergeField
 	{
 		GbaPersoon persoon = context.getClient().getPersoon();
 
-		return AdresUtil.getAdres(persoon, new DateTime());
+		return AdresUtil.getAdres(persoon, LocalDate.now());
 	}
 
 	private static Instelling getZorginstellingBijKwaliteitsOvereenkomst(AfgeslotenMedewerkerOvereenkomst afgeslotenOvereenkomst)
@@ -4380,6 +4566,21 @@ public enum MergeField
 		return afspraakService.getMammaStandplaatsLocatieUitnodiging(uitnodiging);
 	}
 
+	private static String getMammaUitnodigingsNummer(MailMergeContext context)
+	{
+		var mammaBrief = getOrigineleMammaBrief(context);
+		if (mammaBrief != null && mammaBrief.getScreeningRonde() != null)
+		{
+			return mammaBrief.getScreeningRonde().getUitnodigingsNr().toString();
+		}
+		var laatsteAfspraak = getLaatsteMammaAfspraak(context);
+		if (laatsteAfspraak != null)
+		{
+			return laatsteAfspraak.getUitnodiging().getScreeningRonde().getUitnodigingsNr().toString();
+		}
+		return null;
+	}
+
 	private static CentraleEenheid getMammaCentraleEenheid(MailMergeContext context)
 	{
 		return context.getValue(MailMergeContext.CONTEXT_MAMMA_CE);
@@ -4541,6 +4742,26 @@ public enum MergeField
 	{
 		return laatsteUitnodiging.getAfspraken().stream().filter(a -> a.getId() != null && !a.getId().equals(laatsteUitnodiging.getLaatsteAfspraak().getId()))
 			.max(Comparator.comparing(MammaAfspraak::getCreatiedatum)).orElse(null);
+	}
+
+	private static MammaBrief getOrigineleMammaBrief(MailMergeContext context)
+	{
+		var brief = BriefUtil.getOrigineleBrief(context.getBrief());
+		if (brief instanceof MammaBrief)
+		{
+			return (MammaBrief) brief;
+		}
+		return null;
+	}
+
+	private static MammaBrief getHerdrukOfOrigineleMammaBrief(MailMergeContext context)
+	{
+		var brief = getOrigineleMammaBrief(context);
+		if (brief != null)
+		{
+			return BriefUtil.isHerdruk(brief) ? (MammaBrief) BriefUtil.getHerdruk(brief) : brief;
+		}
+		return null;
 	}
 
 	private static CervixLeeftijdcategorie getCervixLeeftijdcategorie(MailMergeContext context)

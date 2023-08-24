@@ -4,7 +4,7 @@ package nl.rivm.screenit.wsb.fhir.provider.dstu3.v1;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -44,6 +45,7 @@ import nl.rivm.screenit.wsb.fhir.validator.ValidationMessage;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.spring.injection.SpringBeanProvider;
 
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.exception.GenericJDBCException;
 import org.hl7.fhir.dstu3.model.CodeableConcept;
 import org.hl7.fhir.dstu3.model.OperationOutcome;
@@ -133,7 +135,7 @@ public class BundleProvider extends BaseResourceProvider
 			String melding = String.format("Er is een onbekende fout opgetreden. Neem contact op met de helpdesk. (FQDN:%s)", fqdnProvider.getCurrentFQDN());
 			logGebeurtenis(Level.WARNING, melding, melding, null);
 			LOG.error("Er is een onbekende fout opgetreden.", e);
-			throw new UnprocessableEntityException("Er is een onbekende fout opgetreden. Neem contact op met het FSB.", e);
+			throw new UnprocessableEntityException("Er is een onbekende fout opgetreden. Neem contact op met " + Constants.NAAM_BEHEER_ORGANISATIE + ".", e);
 		}
 	}
 
@@ -206,12 +208,16 @@ public class BundleProvider extends BaseResourceProvider
 
 	private String getGegevensMeldingPart(LabaanvraagBundle bundle)
 	{
-		return String.format("gegevens[BSN: %s, AGB individueel: %s, AGB praktijk: %s, Monster-id: %s, Controleletters: %s]. (FQDN:%s)",
+		var zorgDomeinID = bundle.getZorgDomeinID();
+		var zorgDomeinLogString = StringUtils.isNotBlank(zorgDomeinID) ? String.format(", ZorgDomeinID: %s", zorgDomeinID) : "";
+
+		return String.format("gegevens[BSN: %s, AGB individueel: %s, AGB praktijk: %s, Monster-id: %s, Controleletters: %s%s]. (FQDN:%s)",
 			bundle.getClientBsn(),
 			bundle.getIndividueleAgb(),
 			bundle.getPraktijkAgb(),
 			bundle.getMonsterId(),
 			bundle.getControleLetters(),
+			zorgDomeinLogString,
 			fqdnProvider.getCurrentFQDN());
 	}
 

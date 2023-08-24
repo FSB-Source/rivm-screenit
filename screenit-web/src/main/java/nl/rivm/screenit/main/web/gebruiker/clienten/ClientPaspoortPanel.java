@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,6 +29,7 @@ import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaDossier;
+import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.DateUtil;
@@ -44,10 +45,11 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class ClientPaspoortPanel extends GenericPanel<Client>
 {
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private ICurrentDateSupplier dateSupplier;
+
+	@SpringBean
+	private ClientService clientService;
 
 	@SpringBean
 	private DeelnamemodusService deelnamemodusService;
@@ -69,12 +71,12 @@ public class ClientPaspoortPanel extends GenericPanel<Client>
 		add(new Label("persoon.bsn"));
 		add(new Label("geboortenaam", NaamUtil.getGeboorteTussenvoegselEnAchternaam(persoon)));
 
-		add(new Label("persoon.geboortedatum", DateUtil.getGeboortedatum(persoon)));
+		add(new Label("persoon.geboortedatum", DateUtil.getGeboortedatum(persoon) + " (" + clientService.getLeeftijd(client) + " jaar)"));
 		add(new Label("persoon.overlijdensdatum").setVisible(persoon.getOverlijdensdatum() != null));
 		add(new Label("gbaLocatiebeschrijving", AdresUtil.getAdres(persoon.getGbaAdres())));
 		add(new Label("persoon.gbaAdres.postcode"));
 		add(new Label("persoon.gbaAdres.plaats"));
-		if (AdresUtil.isTijdelijkAdres(persoon, dateSupplier.getDateTime()))
+		if (AdresUtil.isTijdelijkAdres(persoon, dateSupplier.getLocalDate()))
 		{
 			add(new Label("tijdelijkadres", getString("message.letop.tijdelijkadres")));
 		}

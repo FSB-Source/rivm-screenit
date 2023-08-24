@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.component;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,9 +31,12 @@ import java.util.Set;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.component.form.PostcodeField;
 import nl.rivm.screenit.model.INaam;
+import nl.rivm.screenit.util.DateUtil;
+import nl.topicuszorg.wicket.input.radiochoice.BooleanRadioChoice;
 import nl.topicuszorg.wicket.planning.web.component.DatePickerHelper;
 
 import org.apache.wicket.Application;
@@ -59,8 +62,6 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.validation.validator.DateValidator;
 import org.apache.wicket.validation.validator.StringValidator;
-import org.joda.time.DateTime;
-import org.joda.time.MutableDateTime;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker.ShowOnEnum;
 import org.wicketstuff.wiquery.ui.datepicker.DatePickerYearRange;
@@ -125,7 +126,7 @@ public final class ComponentHelper
 			DatePicker<Date> newDatePicker = DatePickerHelper.newDatePicker(fieldNaam)
 				.setYearRange(new DatePickerYearRange((short) -80, Short.parseShort(Integer.toString(Calendar.getInstance().get(Calendar.YEAR) + 10)))).setChangeMonth(true);
 
-			textField = (FormComponent<T>) newDatePicker.add(DateValidator.maximum(new DateTime(9999, 12, 31, 0, 0).toDate()));
+			textField = (FormComponent<T>) newDatePicker.add(DateValidator.maximum(DateUtil.startDag(DateUtil.parseDateForPattern("31-12-9999", Constants.DEFAULT_DATE_FORMAT))));
 		}
 
 		else if (type != null && !type.equals(String.class))
@@ -314,11 +315,25 @@ public final class ComponentHelper
 
 	public static <T extends Enum<T>> RadioChoice<T> addRadioChoice(WebMarkupContainer webMarkupContainer, String id, Class<T> enumClass)
 	{
-		var radioChoice = new RadioChoice<>(id, Arrays.asList(enumClass.getEnumConstants()), new EnumChoiceRenderer<>(webMarkupContainer));
+		return addRadioChoice(webMarkupContainer, id, null, enumClass);
+	}
+
+	public static <T extends Enum<T>> RadioChoice<T> addRadioChoice(WebMarkupContainer webMarkupContainer, String id, IModel<T> model, Class<T> enumClass)
+	{
+		var radioChoice = new RadioChoice<>(id, model, Arrays.asList(enumClass.getEnumConstants()), new EnumChoiceRenderer<>(webMarkupContainer));
 		radioChoice.setPrefix("<label class=\"radio\">");
 		radioChoice.setSuffix("</label>");
 		radioChoice.setRequired(true);
 		webMarkupContainer.add(radioChoice);
+		return radioChoice;
+	}
+
+	public static BooleanRadioChoice addHorizontaleBooleanRadioChoice(String id)
+	{
+		var radioChoice = new BooleanRadioChoice(id);
+
+		radioChoice.setPrefix("<label class=\"radio horizontalBooleanRadioButton\">");
+		radioChoice.setSuffix("</label>");
 		return radioChoice;
 	}
 
@@ -392,14 +407,9 @@ public final class ComponentHelper
 
 	public static DateValidator newDbRangeValidator()
 	{
-		MutableDateTime minimum = new MutableDateTime();
-		minimum.setDate(1753, 1, 1);
-		minimum.setTime(0);
-		minimum.setYear(1753);
-		MutableDateTime maximum = new MutableDateTime(minimum);
-		maximum.setYear(9998);
-
-		return DateValidator.range(minimum.toDate(), maximum.toDate());
+		var minimum = DateUtil.startDag(DateUtil.parseDateForPattern("01-01-1753", Constants.DEFAULT_DATE_FORMAT));
+		var maximum = DateUtil.startDag(DateUtil.parseDateForPattern("01-01-9998", Constants.DEFAULT_DATE_FORMAT));
+		return DateValidator.range(minimum, maximum);
 	}
 
 	public static TextField<String> newPostcodeTextField(WebMarkupContainer parent, String id, boolean required, boolean inzien)

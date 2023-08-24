@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal.dto;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal-commons
  * %%
- * Copyright (C) 2016 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2016 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,11 +26,20 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
+import lombok.Getter;
+import lombok.Setter;
+
+import nl.rivm.screenit.huisartsenportaal.ICervixHuisartsLocatie;
+
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @JsonSerialize
-public class LocatieDto extends AbstractDtoReferenceObject
+@Getter
+@Setter
+public class LocatieDto extends AbstractDtoReferenceObject implements ICervixHuisartsLocatie
 {
+	public static final String EMPTY_VALUE = "<empty>";
+
 	@NotNull(message = "IBAN is verplicht.")
 	@Size(max = 34)
 	private String iban;
@@ -62,103 +71,4 @@ public class LocatieDto extends AbstractDtoReferenceObject
 
 	private Boolean moetVerifierenVoorActivatie = false;
 
-	public String getIban()
-	{
-		return iban;
-	}
-
-	public void setIban(String iban)
-	{
-		this.iban = iban;
-	}
-
-	public String getIbanTenaamstelling()
-	{
-		return ibanTenaamstelling;
-	}
-
-	public void setIbanTenaamstelling(String ibanTenaamstelling)
-	{
-		this.ibanTenaamstelling = ibanTenaamstelling;
-	}
-
-	public AdresDto getLocatieAdres()
-	{
-		return locatieAdres;
-	}
-
-	public void setLocatieAdres(AdresDto locatieAdres)
-	{
-		this.locatieAdres = locatieAdres;
-	}
-
-	public String getNaam()
-	{
-		return naam;
-	}
-
-	public void setNaam(String naam)
-	{
-		this.naam = naam;
-	}
-
-	public String getZorgmailklantnummer()
-	{
-		return zorgmailklantnummer;
-	}
-
-	public void setZorgmailklantnummer(String zorgmailklantnummer)
-	{
-		this.zorgmailklantnummer = zorgmailklantnummer;
-	}
-
-	public Long getHuisartsId()
-	{
-		return huisartsId;
-	}
-
-	public void setHuisartsId(Long huisartsId)
-	{
-		this.huisartsId = huisartsId;
-	}
-
-	public String getStatus()
-	{
-		return status;
-	}
-
-	public void setStatus(String status)
-	{
-		this.status = status;
-	}
-
-	public String getVerificatieCode()
-	{
-		return verificatieCode;
-	}
-
-	public void setVerificatieCode(String verificatieCode)
-	{
-		this.verificatieCode = verificatieCode;
-	}
-
-	public Boolean getHerzendVerificatieMail()
-	{
-		return herzendVerificatieMail;
-	}
-
-	public void setHerzendVerificatieMail(Boolean herzendVerificatieMail)
-	{
-		this.herzendVerificatieMail = herzendVerificatieMail;
-	}
-
-	public Boolean getMoetVerifierenVoorActivatie()
-	{
-		return moetVerifierenVoorActivatie;
-	}
-
-	public void setMoetVerifierenVoorActivatie(Boolean moetVerifierenVoorActivatie)
-	{
-		this.moetVerifierenVoorActivatie = moetVerifierenVoorActivatie;
-	}
 }

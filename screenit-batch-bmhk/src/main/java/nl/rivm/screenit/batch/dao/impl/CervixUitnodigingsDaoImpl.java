@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.dao.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,7 +32,7 @@ import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.InstellingService;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.util.query.ScreenitRestrictions;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
@@ -42,6 +42,7 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
@@ -55,12 +56,13 @@ public class CervixUitnodigingsDaoImpl extends AbstractAutowiredDao implements C
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Autowired
-	private InstellingService instellingService;
+	private OrganisatieParameterService organisatieParameterService;
 
 	@Override
 	public List<Long> getTeVersturenZasUitnodigingen()
 	{
 		Criteria criteria = getSession().createCriteria(CervixUitnodiging.class);
+		criteria.createAlias("brief", "brief");
 		criteria.createAlias("screeningRonde", "screeningRonde");
 		criteria.createAlias("screeningRonde.dossier", "dossier");
 		criteria.createAlias("dossier.client", "client");
@@ -78,16 +80,10 @@ public class CervixUitnodigingsDaoImpl extends AbstractAutowiredDao implements C
 		criteria.add(Restrictions.eq("monsterType", CervixMonsterType.ZAS));
 		criteria.add(Restrictions.isNull("geannuleerdDatum"));
 
-		DetachedCriteria subQuery = DetachedCriteria.forClass(CervixDossier.class);
-		subQuery.createAlias("laatsteScreeningRonde", "ronde");
-		subQuery.createAlias("ronde.uitnodigingen", "uitnodigingen");
-		subQuery.createAlias("uitnodigingen.brief", "brief");
-		subQuery.createAlias("brief.mergedBrieven", "mergedbrief");
-		subQuery.add(Restrictions.eq("mergedbrief.geprint", true));
-		subQuery.add(Restrictions.in("brief.briefType", BriefType.getCervixUitnodigingen()));
-		subQuery.setProjection(Projections.distinct(Projections.property("ronde.id")));
+		criteria.add(Restrictions.or(
+			Subqueries.propertyIn("screeningRonde.id", maakSubQueryZasPasVersturenAlsPrimaireUitnodigingIsVerstuurd()),
+			Restrictions.eq("brief.briefType", BriefType.CERVIX_ZAS_COMBI_UITNODIGING_30)));
 
-		criteria.add(Subqueries.propertyIn("screeningRonde.id", subQuery));
 		Integer maxAantalZasUitnodigingen = getMaxAantalZasUitnodigingen();
 		if (maxAantalZasUitnodigingen != null)
 		{
@@ -105,9 +101,23 @@ public class CervixUitnodigingsDaoImpl extends AbstractAutowiredDao implements C
 
 	}
 
+	@NotNull
+	private static DetachedCriteria maakSubQueryZasPasVersturenAlsPrimaireUitnodigingIsVerstuurd()
+	{
+		DetachedCriteria subQuery = DetachedCriteria.forClass(CervixDossier.class);
+		subQuery.createAlias("laatsteScreeningRonde", "ronde");
+		subQuery.createAlias("ronde.uitnodigingen", "uitnodigingen");
+		subQuery.createAlias("uitnodigingen.brief", "brief");
+		subQuery.createAlias("brief.mergedBrieven", "mergedbrief");
+		subQuery.add(Restrictions.eq("mergedbrief.geprint", true));
+		subQuery.add(Restrictions.in("brief.briefType", BriefType.getCervixUitnodigingen()));
+		subQuery.setProjection(Projections.distinct(Projections.property("ronde.id")));
+		return subQuery;
+	}
+
 	private Integer getMaxAantalZasUitnodigingen()
 	{
-		return instellingService.getOrganisatieParameter(null, OrganisatieParameterKey.CERVIX_MAX_AANTAL_ZAS_NAAR_INPAKCENTRUM);
+		return organisatieParameterService.getOrganisatieParameter(null, OrganisatieParameterKey.CERVIX_MAX_AANTAL_ZAS_NAAR_INPAKCENTRUM);
 	}
 
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.model.mamma.beoordeling;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,64 +21,45 @@ package nl.rivm.screenit.main.model.mamma.beoordeling;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Date;
+
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.enums.MammaConclusieReviewFilterOptie;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
+
 import org.apache.wicket.model.IDetachable;
 import org.apache.wicket.model.IModel;
 
+@Getter
+@Setter
 public class MammaConclusieReviewZoekObject implements IDetachable
 {
-    private IModel<InstellingGebruiker> instellingGebruiker;
+	private IModel<InstellingGebruiker> instellingGebruiker;
 
-    private MammaConclusieReviewFilterOptie filterOptie = MammaConclusieReviewFilterOptie.ALLES;
+	private MammaConclusieReviewFilterOptie filterOptie = MammaConclusieReviewFilterOptie.ALLES;
 
-    private Boolean gezienTonen = false;
+	private Boolean gezienTonen = false;
 
-    private Boolean voorDashboard = false;
+	private Boolean voorDashboard = false;
 
-    public InstellingGebruiker getInstellingGebruiker()
-    {
-        return ModelUtil.nullSafeGet(instellingGebruiker);
-    }
+	private Date zoekenVanafEindconclusieDatum;
 
-    public void setInstellingGebruiker(InstellingGebruiker instellingGebruiker)
-    {
-        this.instellingGebruiker = ModelUtil.sModel(instellingGebruiker);
-    }
+	public InstellingGebruiker getInstellingGebruiker()
+	{
+		return ModelUtil.nullSafeGet(instellingGebruiker);
+	}
 
-    public MammaConclusieReviewFilterOptie getFilterOptie()
-    {
-        return filterOptie;
-    }
+	public void setInstellingGebruiker(InstellingGebruiker instellingGebruiker)
+	{
+		this.instellingGebruiker = ModelUtil.sModel(instellingGebruiker);
+	}
 
-    public void setFilterOptie(MammaConclusieReviewFilterOptie filterOptie)
-    {
-        this.filterOptie = filterOptie;
-    }
-
-    public Boolean getGezienTonen()
-    {
-        return gezienTonen;
-    }
-
-    public void setGezienTonen(boolean gezienTonen)
-    {
-        this.gezienTonen = gezienTonen;
-    }
-
-    public Boolean getVoorDashboard()
-    {
-        return voorDashboard;
-    }
-
-    public void setVoorDashboard(Boolean voorDashboard)
-    {
-        this.voorDashboard = voorDashboard;
-    }
-
-    @Override public void detach()
-    {
-        ModelUtil.nullSafeDetach(instellingGebruiker);
-    }
+	@Override
+	public void detach()
+	{
+		ModelUtil.nullSafeDetach(instellingGebruiker);
+	}
 }

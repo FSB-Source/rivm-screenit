@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.review;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,6 +30,7 @@ import nl.rivm.screenit.main.web.gebruiker.screening.mamma.MammaScreeningBasePag
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.AbstractMammaBeoordelenPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.AbstractMammaRondePanel;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.panels.MammaKwaliteitscontroleHuidigeRondePanel;
+import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaConclusieReview;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
@@ -48,14 +49,18 @@ public class MammaConclusieReviewenPage extends AbstractMammaBeoordelenPage
 	@SpringBean
 	private MammaConclusieReviewService conclusieReviewService;
 
-	private List<Long> beoordelingIds;
+	private final List<Long> beoordelingIds;
+
+	private final IModel<InstellingGebruiker> radioloogModel;
 
 	private MammaKwaliteitscontroleHuidigeRondePanel huidigeRondePanel;
 
-	public MammaConclusieReviewenPage(Long initieleBeoordelingId, List<Long> beoordelingIds, Class<? extends MammaScreeningBasePage> werklijstPageClass)
+	public MammaConclusieReviewenPage(Long initieleBeoordelingId, List<Long> beoordelingIds, Class<? extends MammaScreeningBasePage> werklijstPageClass,
+		IModel<InstellingGebruiker> radioloogModel)
 	{
 		super(initieleBeoordelingId, beoordelingIds, werklijstPageClass);
 		this.beoordelingIds = beoordelingIds;
+		this.radioloogModel = radioloogModel;
 	}
 
 	@Override
@@ -64,9 +69,10 @@ public class MammaConclusieReviewenPage extends AbstractMammaBeoordelenPage
 		List<AbstractMammaRondePanel> rondePanels = new ArrayList<>();
 		MammaScreeningRonde screeningRonde = baseBeoordelingService.getScreeningRonde(beoordelingModel.getObject());
 
-		MammaConclusieReview conclusieReview = conclusieReviewService.getConclusieReview(screeningRonde, ScreenitSession.get().getLoggedInInstellingGebruiker());
+		MammaConclusieReview conclusieReview = conclusieReviewService.getConclusieReview(screeningRonde, radioloogModel.getObject());
 
-		huidigeRondePanel = new MammaConclusieReviewHuidigeRondePanel("rondeItem", ModelUtil.sModel(beoordelingModel.getObject()), ModelUtil.ccModel(conclusieReview));
+		huidigeRondePanel = new MammaConclusieReviewHuidigeRondePanel("rondeItem", ModelUtil.sModel(beoordelingModel.getObject()), ModelUtil.ccModel(conclusieReview),
+			ModelUtil.sModel(screeningRonde));
 		rondePanels.add(huidigeRondePanel);
 
 		addRondeHistorie(rondePanels);
@@ -81,7 +87,7 @@ public class MammaConclusieReviewenPage extends AbstractMammaBeoordelenPage
 	@Override
 	protected Panel getMiniWerklijst(String id)
 	{
-		return new MammaConclusieReviewMiniWerklijstPanel(id, this, huidigeBeoordelingId(), beoordelingIds);
+		return new MammaConclusieReviewMiniWerklijstPanel(id, this, huidigeBeoordelingId(), beoordelingIds, radioloogModel);
 	}
 
 	@Override
@@ -93,7 +99,21 @@ public class MammaConclusieReviewenPage extends AbstractMammaBeoordelenPage
 	@Override
 	protected void handleImsError(AjaxRequestTarget target, String errorMessage, Long onderzoekId)
 	{
-		error(imsService.handleError(errorMessage, ScreenitSession.get().getLoggedInInstellingGebruiker(), (b) -> getString((String) b), onderzoekId));
+		error(imsService.handleError(errorMessage, ScreenitSession.get().getLoggedInInstellingGebruiker(), b -> getString((String) b), onderzoekId));
 		huidigeRondePanel.blokeerButtons(target);
+	}
+
+	@Override
+	protected void logBeoordelingIngezien()
+	{
+		beoordelingService.logBeoordelingIngezien(getModel().getObject(), getIngelogdeGebruiker(),
+			!ScreenitSession.get().getLoggedInInstellingGebruiker().equals(radioloogModel.getObject()));
+	}
+
+	@Override
+	public void onDetach()
+	{
+		super.onDetach();
+		ModelUtil.nullSafeDetach(radioloogModel);
 	}
 }

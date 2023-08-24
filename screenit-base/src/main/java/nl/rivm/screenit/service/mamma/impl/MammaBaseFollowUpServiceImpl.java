@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,6 +24,7 @@ package nl.rivm.screenit.service.mamma.impl;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import nl.rivm.screenit.dao.mamma.MammaBaseFollowUpDao;
 import nl.rivm.screenit.dto.mamma.MammaFollowUpInstellingDto;
@@ -31,10 +32,12 @@ import nl.rivm.screenit.dto.mamma.MammaFollowUpInstellingRadiologieDto;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.SortState;
+import nl.rivm.screenit.model.berichten.enums.VerslagType;
 import nl.rivm.screenit.model.enums.MammaFollowUpDoorverwezenFilterOptie;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaFollowUpRadiologieVerslag;
+import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.service.mamma.MammaBaseFollowUpService;
 import nl.rivm.screenit.util.DateUtil;
@@ -121,7 +124,7 @@ public class MammaBaseFollowUpServiceImpl implements MammaBaseFollowUpService
 	@Override
 	public LocalDate getEersteAutorisatieDatumPaVerslag(MammaScreeningRonde screeningRonde)
 	{
-		return screeningRonde.getFollowUpVerslagen()
+		return getFollowUpVerslagenZonderLandelijkeMonitor(screeningRonde)
 			.stream()
 			.filter(v -> v.getVerslagContent() != null && v.getVerslagContent().getPathologieMedischeObservatie() != null
 				&& v.getVerslagContent().getPathologieMedischeObservatie().getDatumAutorisatieUitslag() != null)
@@ -129,5 +132,11 @@ public class MammaBaseFollowUpServiceImpl implements MammaBaseFollowUpService
 			.map(DateUtil::toLocalDate)
 			.min(Comparator.naturalOrder())
 			.orElse(null);
+	}
+
+	@Override
+	public List<MammaFollowUpVerslag> getFollowUpVerslagenZonderLandelijkeMonitor(MammaScreeningRonde screeningRonde)
+	{
+		return screeningRonde.getFollowUpVerslagen().stream().filter(pa -> pa.getType() != VerslagType.MAMMA_PA_FOLLOW_UP_MONITOR).collect(Collectors.toList());
 	}
 }

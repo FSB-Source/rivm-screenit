@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,6 +27,7 @@ import java.util.List;
 
 import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.model.colon.ClientCategorieEntry;
+import nl.rivm.screenit.service.colon.IFobtService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.hibernate.Session;
@@ -59,6 +60,9 @@ public abstract class AbstractClientSelectieReader implements ItemReader<ClientC
 
 	@Autowired
 	protected SimplePreferenceService preferenceService;
+
+	@Autowired
+	protected IFobtService fitService;
 
 	@Autowired
 	protected ClientDao clientDao;

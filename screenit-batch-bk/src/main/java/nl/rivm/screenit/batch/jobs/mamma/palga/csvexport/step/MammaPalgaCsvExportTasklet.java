@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.palga.csvexport.step;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -192,7 +192,7 @@ public class MammaPalgaCsvExportTasklet implements Tasklet
 			zipDocument.setContentType("application/zip");
 			for (UploadDocument document : export)
 			{
-				uploadDocumentService.delete(document, true);
+				uploadDocumentService.delete(document);
 			}
 			palgaService.saveOrUpdateExport(zipDocument);
 		}

@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.base;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -62,11 +62,40 @@ public abstract class BasePage extends WebPage
 	{
 		super.renderHead(response);
 		response.render(new PriorityHeaderItem(StringHeaderItem.forString("<meta charset=\"utf-8\" />")));
-		response.render(new PriorityHeaderItem(JavaScriptHeaderItem.forReference(JQueryResourceReference.getV3())));
+
+		response.render(JavaScriptHeaderItem.forReference(JQueryResourceReference.getV3()));
+		response.render(JavaScriptHeaderItem.forReference(getApplication().getJavaScriptLibrarySettings().getWicketAjaxReference()));
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/libs/qtip/jquery.qtip.min.js"));
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/scripts.js"));
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/scripts-medewerkerportaal.js"));
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/libs/select2/select2.min.js"));
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/bootstrap.min.js"));
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/radio/biradsKeuze.js"));
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/borst.js"));
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/checkbox/checkboxOnderzoeken.js"));
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/checkbox/checkboxSelectAll.js"));
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/checkbox/check-all.js"));
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/datepicker/datepickerShow.js"));
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/laesieiconen/mouseevents.js"));
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/laadEvents.js"));
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/brieventemplates/brieventemplatesUitklappen.js"));
+
+		response.render(CssHeaderItem.forUrl("assets/js/libs/select2/select2.css"));
+		response.render(CssHeaderItem.forUrl("assets/css/colonis-ui/jquery-ui-1.8.16.custom.css"));
+		response.render(CssHeaderItem.forUrl("assets/js/libs/qtip/jquery.qtip.min.css"));
+		response.render(CssHeaderItem.forUrl("assets/css/bootstrap/bootstrap.min.css"));
+		response.render(CssHeaderItem.forUrl("assets/css/base_styles.css"));
+
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/datepicker/datepickerShow.js"));
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/datepicker/datepickerFilterDatum.js"));
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/datepicker/datepickerBooleanJaarEnMaand.js"));
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/datepicker/datepickerVandaag.js"));
+
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/button/buttonFormValues.js"));
 
 		if (Boolean.TRUE.equals(testModus))
 		{
-			response.render(new PriorityHeaderItem(CssHeaderItem.forUrl("assets/css/test.css")));
+			response.render(CssHeaderItem.forUrl("assets/css/test.css"));
 		}
 
 		String bevatFormulieren;

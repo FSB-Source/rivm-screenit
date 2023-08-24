@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,9 +23,10 @@ package nl.rivm.screenit.main.service.impl;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+
+import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.main.dao.VragenlijstDao;
 import nl.rivm.screenit.main.service.FormulierService;
@@ -40,30 +41,29 @@ import nl.rivm.screenit.model.project.ProjectVragenlijstUitzettenVia;
 import nl.rivm.screenit.model.vragenlijsten.Vragenlijst;
 import nl.rivm.screenit.model.vragenlijsten.VragenlijstAntwoorden;
 import nl.rivm.screenit.model.vragenlijsten.VragenlijstAntwoordenHolder;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
+@AllArgsConstructor
 public class VragenlijstServiceImpl implements VragenlijstService
 {
-	@Autowired
-	private VragenlijstDao vragenlijstDao;
+	private final VragenlijstDao vragenlijstDao;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private FormulierService formulierService;
+	private final FormulierService formulierService;
 
-	@Autowired
-	private UploadDocumentService uploadDocumentService;
+	private final UploadDocumentService uploadDocumentService;
+
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
@@ -73,7 +73,7 @@ public class VragenlijstServiceImpl implements VragenlijstService
 
 		try
 		{
-			vragenlijst.setLaatstGewijzigd(new Date());
+			vragenlijst.setLaatstGewijzigd(currentDateSupplier.getDate());
 			if (vragenlijst.getActief() == null)
 			{
 				vragenlijst.setActief(Boolean.TRUE);
@@ -141,7 +141,7 @@ public class VragenlijstServiceImpl implements VragenlijstService
 		{
 			if (oldFormulierInstantie.getTemplateVanGebruiker() != null)
 			{
-				uploadDocumentService.delete(oldFormulierInstantie.getTemplateVanGebruiker(), true);
+				uploadDocumentService.delete(oldFormulierInstantie.getTemplateVanGebruiker());
 			}
 			hibernateService.delete(oldFormulierInstantie);
 		}
@@ -180,7 +180,7 @@ public class VragenlijstServiceImpl implements VragenlijstService
 		hibernateService.saveOrUpdate(formulierInstantie);
 		if (templateVanGebruiker != null)
 		{
-			uploadDocumentService.delete(templateVanGebruiker, true);
+			uploadDocumentService.delete(templateVanGebruiker);
 		}
 	}
 }

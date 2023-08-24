@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.technischbeheer;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import nl.rivm.screenit.main.model.Parameterisatie;
 import nl.rivm.screenit.main.model.mamma.IMSConfiguratie;
 import nl.rivm.screenit.main.service.ParameterisatieService;
 import nl.rivm.screenit.model.colon.ColonUitnodigingsinterval;
@@ -43,21 +42,23 @@ public class TechnischeParametersPage extends TechnischBeheerPage
 
 	public TechnischeParametersPage()
 	{
-		Parameterisatie parameterisatie = parameterisatieService.loadParameterisatie();
+		var parameterisatie = parameterisatieService.loadParameterisatie();
 		add(new TechnischeParametersPanel("parameters", new Model<>(parameterisatie)));
 
 		IModel<IMSConfiguratie> imsConfiguratieModel = Model.of(parameterisatieService.getIMSConfiguratie());
 		add(new TechnischBeheerIMSPanel("imsConfiguratie", imsConfiguratieModel));
 
-		add(new TechnischBeheerXdsPanel("xdsParameters", new Model<>(parameterisatieService.loadParameterisatie())));
+		add(new TechnischBeheerXdsPanel("xdsParameters", new Model<>(parameterisatie)));
 
-		add(new TechnischBeheerZorgIdPanel("zorgIdParameters", new Model<>(parameterisatieService.loadParameterisatie())));
+		add(new TechnischBeheerZorgIdPanel("zorgIdParameters", new Model<>(parameterisatie)));
 
-		add(new TechnischBeheerOpenIDConnectPanel("openIdConnectParameters", new Model<>(parameterisatieService.loadParameterisatie())));
+		add(new TechnischBeheerOpenIDConnectPanel("openIdConnectParameters", new Model<>(parameterisatie)));
 
-		add(new TechnischBeheerPostcodeNlPanel("postcodeNlParameters", new Model<>(parameterisatieService.loadParameterisatie())));
+		add(new TechnischBeheerPostcodeNlPanel("postcodeNlParameters", new Model<>(parameterisatie)));
 
-		add(new TechnischBeheerSopClassesPanel("sopClassesParameters", new Model<>(parameterisatieService.loadParameterisatie())));
+		add(new TechnischBeheerSopClassesPanel("sopClassesParameters", new Model<>(parameterisatie)));
+
+		add(new TechnischBeheerSeParametersPanel("seSocketParameters", new Model<>(parameterisatie)));
 
 		List<ColonUitnodigingsinterval> colonIntervalParameters = new ArrayList<>(parameterisatieService.getColonIntervalParameters());
 		colonIntervalParameters.sort(Comparator.comparing(o -> o.getType().ordinal()));

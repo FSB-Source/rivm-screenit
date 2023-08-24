@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jms.listener;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -42,6 +43,7 @@ import nl.rivm.screenit.model.enums.JobStartParameter;
 import nl.rivm.screenit.model.enums.JobType;
 import nl.rivm.screenit.model.enums.MailPriority;
 import nl.rivm.screenit.service.MailService;
+import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5Session;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.activemq.command.ActiveMQObjectMessage;
@@ -57,12 +59,13 @@ import org.springframework.batch.core.launch.NoSuchJobExecutionException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.jms.listener.SessionAwareMessageListener;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 
 @Slf4j
-public class JMSStartJobListener implements SessionAwareMessageListener<ActiveMQObjectMessage>, ApplicationListener<ContextRefreshedEvent>
+@EnableScheduling
+public class JMSStartJobListener implements SessionAwareMessageListener<ActiveMQObjectMessage>
 {
 	private static final String JMS_MESSAGE_ID = "JMSMessageId";
 
@@ -97,67 +100,57 @@ public class JMSStartJobListener implements SessionAwareMessageListener<ActiveMQ
 		this.batchApplicationType = batchApplicationType;
 	}
 
-	private boolean doInit = true;
+	private int heartbeatCount = 0;
 
-	@Override
-	public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent)
-	{
-		if (doInit)
-		{
-			LOG.info("startJobDequeueThread");
-			try
-			{
-				startJobDequeueThread();
-			}
-			catch (Exception e)
-			{
-				LOG.error("Fout bij opstarten", e);
-			}
-			finally
-			{
-				doInit = false;
-			}
+	private boolean mailGestuurdNaError = false;
 
-		}
-	}
+	private static final long JOBS_STARTEN_PROBLEMEN_DELAY = TimeUnit.SECONDS.toMillis(10);
 
+	private static final long JOBS_STARTEN_PROBLEMEN_MAX_DELAY = TimeUnit.MINUTES.toMillis(2);
+
+	private boolean erZijnBatchProblemen = false;
+
+	private boolean laatsteIteratieZonderProblemen = true;
+
+	private int batchProblemenCount = 0;
+
+	@Scheduled(fixedDelay = 3000)
 	private void startJobDequeueThread()
 	{
-		Executors.newSingleThreadExecutor().submit(() ->
+		try
 		{
-			var i = 0;
-			var stop = false;
-			while (!stop)
+			wachtBijOnverwachteProblemen();
+
+			JobType jobType;
+			do
 			{
-				try
+				if (heartbeatCount <= 0)
 				{
-					if (i % 20 == 0) 
-					{
-						LOG.info("Heartbeat jobDequeueThread");
-					}
-					i++;
-					var jobType = batchJobService.getHeadOfBatchJobQueue(batchApplicationType);
-					if (jobType != null)
-					{
-						voerJobUit(jobType);
-					}
-					else
-					{
-						Thread.sleep(3000L);
-					}
+					LOG.info("Heartbeat jobDequeueThread");
+					heartbeatCount = 20;
 				}
-				catch (InterruptedException e)
+				heartbeatCount--;
+
+				jobType = batchJobService.getHeadOfBatchJobQueue(batchApplicationType);
+				if (jobType != null)
 				{
-					LOG.error("InterruptException in queue polling", e);
-					Thread.currentThread().interrupt();
-					stop = true;
-				}
-				catch (Exception e)
-				{
-					LOG.error("Fout tijdens queue polling", e);
+					voerJobUit(jobType);
 				}
 			}
-		});
+			while (jobType != null);
+
+			checkHersteldVanError();
+		}
+		catch (InterruptedException interruptedException)
+		{
+			LOG.error("InterruptException in queue polling", interruptedException);
+			Thread.currentThread().interrupt();
+		}
+		catch (Exception e)
+		{
+			LOG.error("Fout tijdens queue polling", e);
+			sendErrorEmail();
+		}
 	}
 
 	private void voerJobUit(JobType jobType)
@@ -332,22 +325,61 @@ public class JMSStartJobListener implements SessionAwareMessageListener<ActiveMQ
 		}
 	}
 
+	private void checkHersteldVanError()
+	{
+		if (laatsteIteratieZonderProblemen)
+		{
+			if (erZijnBatchProblemen)
+			{
+				LOG.info("Herstelt van onbekende fout.");
+				mailGestuurdNaError = false;
+				batchProblemenCount = 0;
+			}
+			erZijnBatchProblemen = false;
+		}
+		laatsteIteratieZonderProblemen = true;
+	}
+
+	private void wachtBijOnverwachteProblemen() throws InterruptedException
+	{
+		if (erZijnBatchProblemen && batchProblemenCount > 0)
+		{
+			var wachttijd = batchProblemenCount * JOBS_STARTEN_PROBLEMEN_DELAY;
+			LOG.info("Er zijn problemen met de JMSStartJobListener, wacht {} seconden extra.", wachttijd / 1000);
+			Thread.sleep(wachttijd);
+		}
+	}
+
 	private void sendErrorEmail()
 	{
-		try
+		laatsteIteratieZonderProblemen = false;
+		erZijnBatchProblemen = true;
+		if ((batchProblemenCount * JOBS_STARTEN_PROBLEMEN_DELAY) < JOBS_STARTEN_PROBLEMEN_MAX_DELAY)
 		{
-			var emailadressen = simplePreferenceService.getString(PreferenceKey.DASHBOARDEMAIL.name());
-			if (emailadressen != null)
-			{
-				var subject = String.format("ScreenIT batchservice %s gefaald op %s", batchApplicationType, applicationEnvironment);
-				var content = String.format("Er is een onbekende fout opgetreden in de batchservice van %s op %s. Neem contact op met de Topicus helpdesk om dit op te lossen.",
-					batchApplicationType, applicationEnvironment);
-				mailService.queueMail(emailadressen, subject, content, MailPriority.HIGH);
-			}
+			batchProblemenCount++;
 		}
-		catch (Exception e)
+
+		if (!mailGestuurdNaError)
 		{
-			LOG.error("Kon geen mail sturen: ", e);
+			try
+			{
+				AtomicReference<String> emailadressen = new AtomicReference<>();
+				OpenHibernate5Session.withoutTransaction().run(() ->
+					emailadressen.set(simplePreferenceService.getString(PreferenceKey.DASHBOARDEMAIL.name()))
+				);
+				if (emailadressen.get() != null)
+				{
+					var subject = String.format("ScreenIT batchservice %s gefaald op %s", batchApplicationType, applicationEnvironment);
+					var content = String.format("Er is een onbekende fout opgetreden in de batchservice van %s op %s. Neem contact op met de Topicus helpdesk om dit op te lossen.",
+						batchApplicationType, applicationEnvironment);
+					mailService.queueMailAanProfessional(emailadressen.get(), subject, content, MailPriority.HIGH);
+					mailGestuurdNaError = true;
+				}
+			}
+			catch (Exception e)
+			{
+				LOG.error("Kon geen mail sturen: ", e);
+			}
 		}
 	}
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -64,18 +64,7 @@ public class UploadDocumentServiceImpl implements UploadDocumentService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void delete(UploadDocument document)
 	{
-		delete(document, false);
-	}
-
-	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
-	public void delete(UploadDocument document, boolean deleteFile)
-	{
-		if (deleteFile)
-		{
-			fileService.delete(getFullFilePath(document));
-		}
-
+		fileService.delete(getFullFilePath(document));
 		uploadDocumentDao.delete(document);
 	}
 
@@ -188,7 +177,7 @@ public class UploadDocumentServiceImpl implements UploadDocumentService
 		try
 		{
 			documents.removeIf(uplDoc -> uplDoc.getId().equals(document.getId()));
-			delete(document, true);
+			delete(document);
 		}
 		catch (Exception e)
 		{

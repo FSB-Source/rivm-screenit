@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,6 +31,8 @@ import {BrowserRouter} from "react-router-dom"
 import createCache from "@emotion/cache"
 import {CacheProvider} from "@emotion/react"
 import {createRoot} from "react-dom/client"
+import IdleTimerWrapper from "./components/IdleTimerWrapper"
+import {NonceProvider} from "react-select"
 
 export const store = configureStore({
 	reducer: RootReducer,
@@ -41,11 +43,6 @@ store.subscribe(() => {
 	saveState()
 })
 
-const emotionCache = createCache({
-	key: "emotion-cache",
-	nonce: document.querySelector("meta[property=\"csp-nonce\"]")?.content || "",
-})
-
 export type AppState = ReturnType<typeof store.getState>
 type AppDispatch = typeof store.dispatch
 export type AppThunkDispatch = ThunkDispatch<AppState, any, AnyAction>;
@@ -54,13 +51,23 @@ export const useAppSelector: TypedUseSelectorHook<AppState> = useSelector
 export const useAppDispatch = () => useDispatch<AppDispatch>()
 export const useAppThunkDispatch = () => useDispatch<AppThunkDispatch>()
 
+interface NonceElement extends Element {
+	content: string
+}
+
+const nonce = (document.querySelector("meta[property=\"csp-nonce\"]") as NonceElement).content || ""
+
 const root = createRoot(document.getElementById("root")!)
-root.render(<Provider store={store}>
-	<CacheProvider value={emotionCache}>
-		<BrowserRouter>
-			<App>
-				<AppRoutes/>
-			</App>
-		</BrowserRouter>
-	</CacheProvider>
-</Provider>)
+root.render(
+	<Provider store={store}>
+		<NonceProvider nonce={nonce} cacheKey={"emotion-cache"}>
+			<BrowserRouter>
+				<IdleTimerWrapper>
+					<App>
+						<AppRoutes/>
+					</App>
+				</IdleTimerWrapper>
+			</BrowserRouter>
+		</NonceProvider>
+	</Provider>
+)

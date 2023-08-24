@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,6 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -31,28 +30,20 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep.ColonClientSelectieContext.CohortUitnodiging;
+import nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep.ColonClientSelectieContext.EersteRondeUitnodiging;
 import nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep.ColonClientSelectieContext.ProjectGroupUitnodiging;
 import nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep.ColonClientSelectieContext.UitnodigingsTaak;
 import nl.rivm.screenit.batch.service.impl.ColonUitnodigingsgebiedSelectieContext;
-import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.UitnodigingsGebied;
 import nl.rivm.screenit.model.colon.ClientCategorieEntry;
 import nl.rivm.screenit.model.colon.UitnodigingCohortGeboortejaren;
-import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 
-import org.apache.commons.lang.NotImplementedException;
-import org.hibernate.Criteria;
-import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 
 @Slf4j
 public class ClientSelectieMetCapaciteitPerGebiedItemCursor implements Iterator<ClientCategorieEntry>
 {
-
-	private ColonUitnodigingCategorie uitnodigingscategorie = ColonUitnodigingCategorie.U2;
 
 	private ColonUitnodigingsgebiedSelectieContext uitnodigingsgebiedContext;
 
@@ -62,7 +53,7 @@ public class ClientSelectieMetCapaciteitPerGebiedItemCursor implements Iterator<
 
 	private int cursorCount;
 
-	private int huidigeTaak = 0;
+	private int huidigeTaak = -1;
 
 	private final List<ColonClientSelectieContext.UitnodigingsTaak> taken = new ArrayList<>();
 
@@ -74,22 +65,19 @@ public class ClientSelectieMetCapaciteitPerGebiedItemCursor implements Iterator<
 
 	private UitnodigingsGebied cachedUitnodigingsgebied = null;
 
-	private final LocalDate vandaag;
-
-	public ClientSelectieMetCapaciteitPerGebiedItemCursor(ColonClientSelectieContext selectieContext, ColonUitnodigingsgebiedSelectieContext gebiedContext, LocalDate vandaag)
+	public ClientSelectieMetCapaciteitPerGebiedItemCursor(ColonClientSelectieContext selectieContext, ColonUitnodigingsgebiedSelectieContext gebiedContext)
 	{
 		this.selectieContext = selectieContext;
 		this.uitnodigingsgebiedContext = gebiedContext;
-		this.vandaag = vandaag;
 		synchronized (selectieContext.exclusieGroepIds)
 		{
-			this.exclusieGroepIds.addAll(selectieContext.exclusieGroepIds);
+			exclusieGroepIds.addAll(selectieContext.exclusieGroepIds);
 		}
 		synchronized (selectieContext.taken)
 		{
-			this.taken.addAll(selectieContext.taken);
+			selectieContext.taken.forEach(taak -> taken.add(taak.cloneTaak()));
 		}
-		maakOfVerversCursor();
+		eersteTaakVoorbereiden();
 	}
 
 	@Override
@@ -100,100 +88,26 @@ public class ClientSelectieMetCapaciteitPerGebiedItemCursor implements Iterator<
 			return false;
 		}
 		boolean hasNext = true;
-		while (!huidigeGebiedHeeftCapaciteitOver() || !cursor.next())
+		boolean heeftGebiedGeenCapaciteitOver = !heeftGebiedCapaciteitOver();
+		while (heeftGebiedGeenCapaciteitOver || isMaxAantalClientenVoorHuidigeTaakBereikt() || !cursor.next())
 		{
-			if (LOG.isDebugEnabled())
-			{
-				LOG.debug((cursorClosed ? "" : "cursorNext?=" + cursor.next() + ", ") + this);
-			}
+			logClientenGeselecteerd();
 			if (cursorClosed)
 			{
 				hasNext = false;
 				break;
 			}
-			boolean gebiedKlaar = false;
-			if (huidigeGebiedHeeftCapaciteitOver())
-			{
-				if (uitnodigingscategorie == ColonUitnodigingCategorie.U2)
-				{
-					if (LOG.isDebugEnabled())
-					{
-						UitnodigingsGebied uitnodigingsgebied = getUitnodigingsgebied();
-						LOG.debug("Categorie: " + uitnodigingscategorie.name() + ", Gebied: " + uitnodigingsgebied.getNaam() + ". # clienten geselecteerd: " + cursorCount);
-					}
-					cursorCount = 0;
-					uitnodigingscategorie = ColonUitnodigingCategorie.U1;
-					prepareTaak();
-				}
-				else if (uitnodigingscategorie == ColonUitnodigingCategorie.U1)
-				{
-					if (heeftMeerTaken())
-					{
-						huidigeTaak++;
-						prepareTaak();
-					}
-					else
-					{
-						gebiedKlaar = true;
-					}
-				}
-			}
-			else
-			{
-				gebiedKlaar = true;
-			}
+			boolean gebiedKlaar = heeftGebiedGeenCapaciteitOver || !volgendeTaak();
 			if (gebiedKlaar)
 			{
-				if (LOG.isDebugEnabled())
-				{
-					UitnodigingsGebied uitnodigingsgebied = getUitnodigingsgebied();
-					LOG.debug("Categorie: " + uitnodigingscategorie.name() + ", Gebied: " + uitnodigingsgebied.getNaam() + ". # clienten geselecteerd: " + cursorCount);
-				}
 				hasNext = false;
 				break;
 			}
 			close();
 			maakOfVerversCursor();
 		}
-		if (LOG.isDebugEnabled())
-		{
-			LOG.debug("hasNext=" + hasNext + ", " + this);
-		}
+		logHasNext(hasNext);
 		return hasNext;
-	}
-
-	UitnodigingsGebied getUitnodigingsgebied()
-	{
-		if (cachedUitnodigingsgebied == null)
-		{
-			cachedUitnodigingsgebied = selectieContext.getHibernateSession().load(UitnodigingsGebied.class,
-				uitnodigingsgebiedContext.getUitnodigingsgebiedId());
-		}
-		return cachedUitnodigingsgebied;
-	}
-
-	private void prepareTaak()
-	{
-		if (LOG.isDebugEnabled())
-		{
-			UitnodigingsGebied uitnodigingsgebied = getUitnodigingsgebied();
-			LOG.debug("Categorie: " + uitnodigingscategorie.name() + ", Gebied: " + uitnodigingsgebied.getNaam() + ". Prepare taak " + taken.get(huidigeTaak));
-		}
-		close();
-
-		UitnodigingsTaak uitnodigingsTaak = taken.get(huidigeTaak);
-		uitnodigingsgebiedContext.setTotaalAntalClienten(uitnodigingsTaak.getMaxAantalClienten(uitnodigingsgebiedContext));
-
-	}
-
-	private boolean heeftMeerTaken()
-	{
-		return huidigeTaak + 1 < taken.size();
-	}
-
-	private boolean huidigeGebiedHeeftCapaciteitOver()
-	{
-		return uitnodigingsgebiedContext != null && uitnodigingsgebiedContext.isGenoegUitnodigingscapaciteitOver();
 	}
 
 	@Override
@@ -202,47 +116,126 @@ public class ClientSelectieMetCapaciteitPerGebiedItemCursor implements Iterator<
 
 		if (!cursorClosed)
 		{
-			Object[] data = cursor.get();
-			Client client = (Client) data[0];
+			var data = cursor.get();
+			var client = (Client) data[0];
 
-			Gemeente gemeente = client.getPersoon().getGbaAdres().getGbaGemeente();
+			var gemeente = client.getPersoon().getGbaAdres().getGbaGemeente();
 
-			List<Client> clientenOpAdres = selectieContext.clientDao.getClientenOpAdres(client.getPersoon().getGbaAdres(), selectieContext.minimaleLeeftijd,
-				selectieContext.maximaleLeeftijd, selectieContext.uitnodigingsInterval);
-			Client andereClient = ColonRestrictions.getAndereClient(clientenOpAdres, client);
+			var andereClientMetActieveFit = selectieContext.fitService.getAndereClientOpZelfdeAdresEnActieveFit(client, selectieContext.uitgenodigdeClientIds);
 
-			boolean geenAndereClientMetZelfdeAdresEnActieveIfobt = clientenOpAdres.size() != 2
-				|| !ColonRestrictions.isIfobtActief(andereClient, selectieContext.uitgenodigdeClientIds)
-				|| ColonRestrictions.isWachttijdOpPakketVerstreken(andereClient, selectieContext.wachttijdVerzendenPakket, selectieContext.uitgenodigdeClientIds, vandaag);
-			if (geenAndereClientMetZelfdeAdresEnActieveIfobt)
+			var uitnodigingsTaak = getHuidigeUitnodigingsTaak();
+			if (andereClientMetActieveFit == null)
 			{
 				cursorCount++;
 
+				uitnodigingsTaak.clientGeselecteerd();
 				uitnodigingsgebiedContext.consumeUitnodigingscapaciteit();
 
 				selectieContext.uitgenodigdeClientIds.add(client.getId());
 
-				UitnodigingsTaak uitnodigingsTaak = taken.get(huidigeTaak);
 				Long projectGroepId = null;
-				if (uitnodigingsTaak instanceof ProjectGroupUitnodiging && ColonUitnodigingCategorie.U1.equals(uitnodigingscategorie))
+				if (uitnodigingsTaak instanceof ProjectGroupUitnodiging)
 				{
 					projectGroepId = ((ProjectGroupUitnodiging) uitnodigingsTaak).projectGroupId;
 				}
-				LOG.info("clientId (" + client.getId() + ") geselecteerd.");
-				return new ClientCategorieEntry(client.getId(), uitnodigingscategorie, gemeente.getScreeningOrganisatie().getId(), projectGroepId);
-			}
-			else if (andereClient != null)
-			{
-				uitnodigingsgebiedContext.tweeClientenOpEenAdres();
-				LOG.info("clientId (" + client.getId() + ") overgeslagen omdat ook een ander clientId (" + andereClient.getId()
-					+ ") op zelfde adres met lopende FIT woont");
+				LOG.info("{}Client (id: '{}') geselecteerd.", getDebugLogPrefix(), client.getId());
+				return new ClientCategorieEntry(client.getId(), uitnodigingsTaak.getCategorie(), gemeente.getScreeningOrganisatie().getId(), projectGroepId);
 			}
 			else
 			{
-				LOG.info("clientId (" + client.getId() + ") helemaal overgeslagen.");
+
+				uitnodigingsTaak.clientGeselecteerd();
+				LOG.info("{}Client (id: '{}') overgeslagen omdat ook een ander client (id: '{}') op zelfde adres met actieve FIT woont", getDebugLogPrefix(), client.getId(),
+					andereClientMetActieveFit.getId());
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public void remove()
+	{
+		throw new UnsupportedOperationException("remove is not supported");
+	}
+
+	private void eersteTaakVoorbereiden()
+	{
+		if (heeftGebiedCapaciteitOver())
+		{
+			volgendeTaak();
+			if (huidigeTaak < taken.size())
+			{
+				maakOfVerversCursor();
+			}
+		}
+		else
+		{
+			LOG.info("'{}'. Geen capaciteit in uitnodigingsgebied. Niets te doen.", uitnodigingsgebiedContext.getUitnodigingsgebiedNaam());
+		}
+	}
+
+	private boolean volgendeTaak()
+	{
+		boolean heeftVolgendeTaak;
+		do
+		{
+			if (heeftMeerTaken())
+			{
+				huidigeTaak++;
+				uitnodigingsTaakVoorbereiden();
+				heeftVolgendeTaak = true;
+			}
+			else
+			{
+				heeftVolgendeTaak = false;
+				break;
+			}
+		}
+		while (isMaxAantalClientenVoorHuidigeTaakBereikt());
+		return heeftVolgendeTaak;
+	}
+
+	private boolean heeftMeerTaken()
+	{
+		return huidigeTaak + 1 < taken.size();
+	}
+
+	private UitnodigingsTaak getHuidigeUitnodigingsTaak()
+	{
+		return taken.get(huidigeTaak);
+	}
+
+	private void uitnodigingsTaakVoorbereiden()
+	{
+		var uitnodigingsTaak = getHuidigeUitnodigingsTaak();
+		if (LOG.isDebugEnabled())
+		{
+			LOG.debug("{}Start taak.", getDebugLogPrefix());
+		}
+		close();
+
+		uitnodigingsTaak.fetchMaxAantalClienten(uitnodigingsgebiedContext.getUitnodigingsgebiedId());
+
+	}
+
+	private boolean isMaxAantalClientenVoorHuidigeTaakBereikt()
+	{
+		return getHuidigeUitnodigingsTaak().isMaxAantalClientenBereikt();
+	}
+
+	private UitnodigingsGebied getUitnodigingsgebied()
+	{
+		if (cachedUitnodigingsgebied == null)
+		{
+			cachedUitnodigingsgebied = selectieContext.hibernateService.load(UitnodigingsGebied.class,
+				uitnodigingsgebiedContext.getUitnodigingsgebiedId());
+		}
+		return cachedUitnodigingsgebied;
+	}
+
+	private boolean heeftGebiedCapaciteitOver()
+	{
+		return uitnodigingsgebiedContext != null && uitnodigingsgebiedContext.isGenoegUitnodigingscapaciteitOver();
 	}
 
 	public void close()
@@ -256,66 +249,65 @@ public class ClientSelectieMetCapaciteitPerGebiedItemCursor implements Iterator<
 
 	private void maakOfVerversCursor()
 	{
-
-		UitnodigingsGebied uitnodigingsgebied = getUitnodigingsgebied();
-
+		var uitnodigingsgebied = getUitnodigingsgebied();
 		Long projectGroupId = null;
 		List<Integer> geboorteJaren = null;
-		if (taken.size() > huidigeTaak && uitnodigingscategorie == ColonUitnodigingCategorie.U1)
-		{
-			UitnodigingsTaak uitnodigingsTaak = taken.get(huidigeTaak);
+		var uitnodigingsTaak = getHuidigeUitnodigingsTaak();
 
-			if (uitnodigingsTaak instanceof ProjectGroupUitnodiging)
+		if (uitnodigingsTaak instanceof ProjectGroupUitnodiging)
+		{
+			projectGroupId = ((ProjectGroupUitnodiging) uitnodigingsTaak).projectGroupId;
+		}
+		var uitnodigingsDao = selectieContext.uitnodigingsDao;
+		if (uitnodigingsTaak instanceof EersteRondeUitnodiging)
+		{
+			var cohortJaar = ((EersteRondeUitnodiging) uitnodigingsTaak).cohortJaar;
+			geboorteJaren = uitnodigingsDao.getUitnodigingCohort(cohortJaar).getGeboortejaren().stream()
+				.map(UitnodigingCohortGeboortejaren::getGeboortejaren)
+				.collect(Collectors.toList());
+			geboorteJaren.removeAll(verwerkteGeboortjaren);
+			verwerkteGeboortjaren.addAll(geboorteJaren);
+			if (geboorteJaren.isEmpty())
 			{
-				projectGroupId = ((ProjectGroupUitnodiging) uitnodigingsTaak).projectGroupId;
-			}
-			if (uitnodigingsTaak instanceof CohortUitnodiging)
-			{
-				Integer cohortJaar = ((CohortUitnodiging) uitnodigingsTaak).cohortJaar;
-				geboorteJaren = selectieContext.uitnodigingsDao.getUitnodigingCohort(cohortJaar).getGeboortejaren().stream()
-					.map(UitnodigingCohortGeboortejaren::getGeboortejaren)
-					.collect(Collectors.toList());
-				geboorteJaren.removeAll(verwerkteGeboortjaren);
-				verwerkteGeboortjaren.addAll(geboorteJaren);
-				if (geboorteJaren.isEmpty())
-				{
-					geboorteJaren.add(4000);
-				}
+				geboorteJaren.add(4000); 
 			}
 		}
 
-		Criteria crit;
+		cursor = uitnodigingsDao.getUitnodigingsCursor(uitnodigingsTaak.getCategorie(), uitnodigingsgebied, geboorteJaren, selectieContext.minimaleLeeftijd,
+			selectieContext.maximaleLeeftijd, projectGroupId, exclusieGroepIds, selectieContext.fetchSize);
 
-		switch (uitnodigingscategorie)
-		{
-		case U1:
-			crit = ColonRestrictions.getQueryVooraankondigen(selectieContext.getHibernateSession(), uitnodigingsgebied, geboorteJaren, false,
-				selectieContext.minimaleLeeftijd, selectieContext.maximaleLeeftijd, projectGroupId, exclusieGroepIds, vandaag);
-			break;
-		case U2:
-			crit = ColonRestrictions.getQueryU2(selectieContext.getHibernateSession(), uitnodigingsgebied, selectieContext.minimaleLeeftijd,
-				selectieContext.maximaleLeeftijd, vandaag);
-			break;
-		default:
-			throw new NotImplementedException("Niet bekende categorie");
-		}
-		cursor = crit.setFetchSize(selectieContext.fetchSize).scroll(ScrollMode.FORWARD_ONLY);
 		cursorClosed = false;
 
 	}
 
-	@Override
-	public void remove()
+	private void logHasNext(boolean hasNext)
 	{
-		throw new UnsupportedOperationException("remove is not supported");
+		if (LOG.isDebugEnabled())
+		{
+			LOG.debug("hasNext={}, {}", hasNext, this);
+		}
+	}
+
+	private void logClientenGeselecteerd()
+	{
+		if (LOG.isDebugEnabled())
+		{
+			LOG.debug("{}{} client(en) geselecteerd in taak. cursorNext={}, heeftGebiedCapaciteitOver={}, isMaxAantalClientenVoorHuidigeTaakBereikt={}",
+				getDebugLogPrefix(), getHuidigeUitnodigingsTaak().getClientenGeselecteerd(), (cursorClosed ? "closed" : cursor.next()), heeftGebiedCapaciteitOver(),
+				isMaxAantalClientenVoorHuidigeTaakBereikt());
+		}
+	}
+
+	private String getDebugLogPrefix()
+	{
+		return String.format("Gebied: '%s', %s, ", uitnodigingsgebiedContext.getUitnodigingsgebiedNaam(), getHuidigeUitnodigingsTaak());
 	}
 
 	@Override
 	public String toString()
 	{
-		return "Cursor [" + (uitnodigingscategorie != null ? "UC=" + uitnodigingscategorie + ", " : "")
-			+ (uitnodigingsgebiedContext != null ? uitnodigingsgebiedContext + ", " : "") + "Cover?=" + huidigeGebiedHeeftCapaciteitOver() + ", "
-			+ "closed=" + cursorClosed + ", count=" + cursorCount + ", " + "cHT=" + huidigeTaak
-			+ (huidigeTaak >= 0 && huidigeTaak < taken.size() ? " (" + taken.get(huidigeTaak) + ")" : "") + "]";
+		var taak = getHuidigeUitnodigingsTaak();
+		return "Cursor [" + taak + ", " + (uitnodigingsgebiedContext != null ? uitnodigingsgebiedContext + ", " : "") + "Cover?=" + heeftGebiedCapaciteitOver() + ", " + "closed="
+			+ cursorClosed + ", cc=" + cursorCount + ", " + "tc=" + (huidigeTaak + 1) + "]";
 	}
 }

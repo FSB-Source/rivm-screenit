@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.nieuws;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -37,6 +37,7 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.nieuws.NieuwsItem;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.NieuwsService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -46,7 +47,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.joda.time.DateTime;
 import org.wicketstuff.shiro.ShiroConstraint;
 
 @SecurityConstraint(actie = Actie.VERWIJDEREN, constraint = ShiroConstraint.HasPermission, recht = Recht.NIEUWS_WIJZIGEN, bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON,
@@ -93,9 +93,6 @@ public class BeheerNieuwsPage extends AlgemeenPage
 
 	private class EditForm extends ScreenitForm<NieuwsItem>
 	{
-
-		private static final long serialVersionUID = 1L;
-
 		private Label gewijzigd;
 
 		public EditForm(String id, IModel<NieuwsItem> model)
@@ -132,7 +129,7 @@ public class BeheerNieuwsPage extends AlgemeenPage
 				{
 					NieuwsItem formNieuwsItem = (NieuwsItem) getForm().getModelObject();
 
-					if (new DateTime(formNieuwsItem.getPublicerenVanaf()).withTimeAtStartOfDay().isBefore(currentDateSupplier.getDateTimeMidnight()))
+					if (DateUtil.startDag(formNieuwsItem.getPublicerenVanaf()).before(currentDateSupplier.getDateMidnight()))
 					{
 						error("Publiceren in het verleden is niet mogelijk.");
 					}

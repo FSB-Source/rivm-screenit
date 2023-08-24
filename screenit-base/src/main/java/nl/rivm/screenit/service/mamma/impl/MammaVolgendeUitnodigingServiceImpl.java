@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,6 @@ package nl.rivm.screenit.service.mamma.impl;
  */
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,15 +30,9 @@ import java.util.stream.Stream;
 
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.Instelling;
-import nl.rivm.screenit.model.Rivm;
 import nl.rivm.screenit.model.Uitnodiging;
-import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.mamma.MammaUitnodigingsinterval;
 import nl.rivm.screenit.model.mamma.MammaVolgendeUitnodiging;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
@@ -271,36 +264,6 @@ public class MammaVolgendeUitnodigingServiceImpl implements MammaVolgendeUitnodi
 			.min(Comparator.naturalOrder())
 			.map(DateUtil::toLocalDate)
 			.orElse(null);
-	}
-
-	@Override
-	public MammaUitnodiging geefNieuweRondeVoorVolgendeUitnodiging(Client client)
-	{
-		var dossier = client.getMammaDossier();
-
-		var standplaats = standplaatsService.getStandplaatsMetPostcode(client);
-		if (standplaats == null)
-		{
-			var dashboardIntstellingen = new ArrayList<>(clientService.getScreeningOrganisatieVan(client));
-			dashboardIntstellingen.add(instellingService.getActieveInstellingen(Rivm.class).get(0));
-			logService.logGebeurtenis(LogGebeurtenis.MAMMA_UITNODIGEN_FOUT, dashboardIntstellingen, null, client,
-				"Intervaluitnodiging mislukt: geen standplaats gekoppeld aan postcode van client", Bevolkingsonderzoek.MAMMA);
-			return null;
-		}
-		var standplaatsRondeVanStandplaats = standplaatsService.getStandplaatsRondeVanStandplaats(standplaats);
-		if (standplaatsRondeVanStandplaats == null)
-		{
-			var dashboardIntstellingen = new ArrayList<Instelling>();
-			dashboardIntstellingen.add(standplaats.getRegio());
-			dashboardIntstellingen.add(instellingService.getActieveInstellingen(Rivm.class).get(0));
-			var melding = String.format("Intervaluitnodiging mislukt: standplaats '%s' niet gevonden in een route", standplaats.getNaam());
-			logService.logGebeurtenis(LogGebeurtenis.MAMMA_UITNODIGEN_FOUT, dashboardIntstellingen, null, client, melding, Bevolkingsonderzoek.MAMMA);
-			return null;
-		}
-
-		var ronde = baseFactory.maakRonde(dossier, standplaatsRondeVanStandplaats, false);
-		var briefType = screeningrondeService.bepaalBriefTypeVoorOpenUitnodiging(isSuspect(dossier), dossier.getDoelgroep());
-		return baseFactory.maakUitnodiging(ronde, ronde.getStandplaatsRonde(), briefType);
 	}
 
 	@Override

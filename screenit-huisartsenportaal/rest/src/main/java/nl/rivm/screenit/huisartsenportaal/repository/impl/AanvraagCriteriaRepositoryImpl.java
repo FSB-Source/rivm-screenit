@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal.repository.impl;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,8 +21,8 @@ package nl.rivm.screenit.huisartsenportaal.repository.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -42,6 +42,7 @@ import nl.rivm.screenit.huisartsenportaal.model.Locatie;
 import nl.rivm.screenit.huisartsenportaal.model.Locatie_;
 import nl.rivm.screenit.huisartsenportaal.model.enums.AanvraagStatus;
 import nl.rivm.screenit.huisartsenportaal.repository.AanvraagCriteriaRepository;
+import nl.rivm.screenit.huisartsenportaal.util.DateUtil;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -122,7 +123,7 @@ public class AanvraagCriteriaRepositoryImpl extends BaseCustomRepositoryImpl<Lab
 	}
 
 	@Override
-	public List<LabformulierAanvraag> findByLocatieAndAanvraagDatumBetween(Locatie locatie, Date datum1, Date datum2)
+	public List<LabformulierAanvraag> findByLocatieAndAanvraagDatumBetween(Locatie locatie, LocalDate datum1, LocalDate datum2)
 	{
 		CriteriaBuilder cb = getCriteriaBuilder();
 		CriteriaQuery<LabformulierAanvraag> query = cb.createQuery(LabformulierAanvraag.class);
@@ -131,10 +132,10 @@ public class AanvraagCriteriaRepositoryImpl extends BaseCustomRepositoryImpl<Lab
 
 		query.select(labformulierAanvraagRoot);
 
-		List<Predicate> condities = new ArrayList<Predicate>();
+		List<Predicate> condities = new ArrayList<>();
 		condities.add(cb.equal(labformulierAanvraagRoot.get(LabformulierAanvraag_.locatie), locatie));
 		condities.add(cb.notEqual(labformulierAanvraagRoot.get(LabformulierAanvraag_.status), AanvraagStatus.VERWIJDERD));
-		condities.add(cb.between(labformulierAanvraagRoot.get(LabformulierAanvraag_.aanvraagDatum), datum1, datum2));
+		condities.add(cb.between(labformulierAanvraagRoot.get(LabformulierAanvraag_.aanvraagDatum), DateUtil.toUtilDate(datum1), DateUtil.toUtilDate(datum2)));
 
 		if (CollectionUtils.isNotEmpty(condities))
 		{

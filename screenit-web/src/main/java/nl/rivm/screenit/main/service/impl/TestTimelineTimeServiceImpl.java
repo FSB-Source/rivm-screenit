@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,8 +21,11 @@ package nl.rivm.screenit.main.service.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.main.model.testen.TestTimeLineDossierTijdstip;
@@ -40,12 +43,9 @@ import nl.rivm.screenit.model.colon.ColonVooraankondiging;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.service.BaseTestTimelineService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.joda.time.DateTime;
-import org.joda.time.Days;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -53,10 +53,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
+@Slf4j
 public class TestTimelineTimeServiceImpl implements TestTimelineTimeService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(TestTimelineTimeService.class);
-
 	@Autowired
 	private SimplePreferenceService preferenceService;
 
@@ -90,7 +89,7 @@ public class TestTimelineTimeServiceImpl implements TestTimelineTimeService
 	public Date getVooraankondigingsPeriodeDatum()
 	{
 		int vooraankondigingsPeriode = preferenceService.getInteger(PreferenceKey.VOORAANKONDIGINSPERIODE.name());
-		return currentDateSupplier.getDateTime().plusDays(vooraankondigingsPeriode).toDate();
+		return DateUtil.plusDagen(currentDateSupplier.getDate(), vooraankondigingsPeriode);
 	}
 
 	private int aantalDagenCalculator(ColonDossier dossier, TestTimeLineDossierTijdstip tijdstip)
@@ -124,9 +123,7 @@ public class TestTimelineTimeServiceImpl implements TestTimelineTimeService
 		case INTAKE_AFSPRAAK_CONCLUSIE:
 			ColonScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
 			ColonIntakeAfspraak afspraak = ronde.getLaatsteAfspraak();
-			int dagen = Days.daysBetween(currentDateSupplier.getDateTime(), new DateTime(afspraak.getStartTime())).getDays();
-			dagen = dagen + 3;
-			return dagen;
+			return 3 + DateUtil.getPeriodeTussenTweeDatums(currentDateSupplier.getLocalDate(), DateUtil.toLocalDate(afspraak.getStartTime()), ChronoUnit.DAYS);
 		case MDL_VERSLAG:
 			return 30;
 		default:
@@ -148,11 +145,11 @@ public class TestTimelineTimeServiceImpl implements TestTimelineTimeService
 		return eersteTest;
 	}
 
-	public int overgeblevenDagen(Date date, int aantalDagen)
+	private int overgeblevenDagen(Date date, int aantalDagen)
 	{
-		DateTime aantdagenReverse = new DateTime().minusDays(aantalDagen);
-		Days dagen = Days.daysBetween(aantdagenReverse.toLocalDate(), new DateTime(date).toLocalDate());
-		return dagen.getDays() > 0 ? dagen.getDays() : 0;
+		var aantalDagenReverse = currentDateSupplier.getLocalDate().minusDays(aantalDagen);
+		var dagen = DateUtil.getPeriodeTussenTweeDatums(aantalDagenReverse, DateUtil.toLocalDate(date), ChronoUnit.DAYS);
+		return Math.max(dagen, 0);
 	}
 
 	private void rekenAlleColonScreeningRondesTerug(ColonDossier dossier, int dagen)

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.inzien;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,7 @@ import nl.rivm.screenit.main.web.gebruiker.gedeeld.MammaDoelgroepIndicatorPanel;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.DateUtil;
@@ -47,6 +48,9 @@ public class ClientPaspoortHorizontaal extends GenericPanel<Client>
 {
 	@SpringBean
 	private ICurrentDateSupplier dateSupplier;
+
+	@SpringBean
+	private ClientService clientService;
 
 	@SpringBean
 	private DeelnamemodusService deelnamemodusService;
@@ -73,13 +77,16 @@ public class ClientPaspoortHorizontaal extends GenericPanel<Client>
 
 	private void vulPersoonsGegevens()
 	{
-		add(new Label("volledigeNaam", NaamUtil.titelVoorlettersTussenvoegselEnAanspreekAchternaam(getModelObject())));
-		add(new MammaDoelgroepIndicatorPanel("doelgroep", getModelObject().getMammaDossier(), true));
+		var client = getModelObject();
+		var persoon = client.getPersoon();
+
+		add(new Label("volledigeNaam", NaamUtil.titelVoorlettersTussenvoegselEnAanspreekAchternaam(client)));
+		add(new MammaDoelgroepIndicatorPanel("doelgroep", client.getMammaDossier(), true));
 
 		add(new Label("persoon.bsn"));
 		add(new Label("persoon.anummer").setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_INZIEN_A_NUMMER, Actie.INZIEN)));
 		add(new EnumLabel<>("persoon.geslacht").setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_TOON_GENDERINDETITEIT, Actie.INZIEN)));
-		add(new Label("persoon.achternaam", NaamUtil.getGeboorteTussenvoegselEnAchternaam(getModelObject().getPersoon())));
+		add(new Label("persoon.achternaam", NaamUtil.getGeboorteTussenvoegselEnAchternaam(persoon)));
 
 		add(new Label("persoon.telefoonnummer1").setVisible(metTelefoonnummer));
 		add(new Label("persoon.telefoonnummer2").setVisible(metTelefoonnummer));
@@ -94,26 +101,25 @@ public class ClientPaspoortHorizontaal extends GenericPanel<Client>
 			}
 		});
 
-		add(new Label("persoon.geboortedatum", DateUtil.getGeboortedatum(getModelObject())));
+		add(new Label("persoon.geboortedatum", DateUtil.getGeboortedatum(persoon) + " (" + clientService.getLeeftijd(client) + " jaar)"));
 
 		add(new Label("gbaLocatiebeschrijving", (IModel<Object>) () ->
 		{
 			String locatiebeschrijving = "";
-			if (checkIfGbaPersoonIsNotNull())
+			if (getModelObject().getPersoon().getGbaAdres() != null)
 			{
 				locatiebeschrijving = AdresUtil.getAdres(getModelObject().getPersoon().getGbaAdres());
 			}
 			return locatiebeschrijving;
 		}));
 		add(new PostcodeLabel("gbaPostcode", true,
-			(IModel<Object>) () -> checkIfGbaPersoonIsNotNull() && StringUtils.isNotBlank(getModelObject().getPersoon().getGbaAdres().getPostcode())
+			(IModel<Object>) () -> getModelObject().getPersoon().getGbaAdres() != null && StringUtils.isNotBlank(getModelObject().getPersoon().getGbaAdres().getPostcode())
 				? getModelObject().getPersoon().getGbaAdres().getPostcode()
 				: ""));
-		add(new Label("gbaWoonplaats", (IModel<Object>) () -> checkIfGbaPersoonIsNotNull()
+		add(new Label("gbaWoonplaats", (IModel<Object>) () -> getModelObject().getPersoon().getGbaAdres() != null
 			&& StringUtils.isNotBlank(getModelObject().getPersoon().getGbaAdres().getPlaats()) ? getModelObject().getPersoon().getGbaAdres().getPlaats() : ""));
 
-		if (getModelObject() != null && getModelObject().getPersoon() != null
-			&& AdresUtil.isTijdelijkAdres(getModelObject().getPersoon(), dateSupplier.getDateTime()))
+		if (AdresUtil.isTijdelijkAdres(persoon, dateSupplier.getLocalDate()))
 		{
 			add(new Label("tijdelijkadres", getString("message.letop.tijdelijkadres")));
 		}
@@ -122,17 +128,13 @@ public class ClientPaspoortHorizontaal extends GenericPanel<Client>
 			add(new Label("tijdelijkadres", Model.of("Nee")));
 		}
 
-		addSelectieblokkadeIndicator();
+		addSelectieblokkadeIndicator(client);
 	}
 
-	private void addSelectieblokkadeIndicator()
+	private void addSelectieblokkadeIndicator(Client client)
 	{
-		var selectieblokkadeTekst = deelnamemodusService.selectieblokkadeTekst(getModelObject());
+		var selectieblokkadeTekst = deelnamemodusService.selectieblokkadeTekst(client);
 		add(new Label("selectieblokkade", selectieblokkadeTekst).setVisible(StringUtils.isNotBlank(selectieblokkadeTekst)));
 	}
 
-	private boolean checkIfGbaPersoonIsNotNull()
-	{
-		return getModelObject() != null && getModelObject().getPersoon() != null && getModelObject().getPersoon().getGbaAdres() != null;
-	}
 }

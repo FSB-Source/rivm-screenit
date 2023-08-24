@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.controller;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,7 +23,6 @@ package nl.rivm.screenit.mamma.planning.controller;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.NavigableSet;
 import java.util.Optional;
@@ -47,10 +46,11 @@ import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController()
@@ -109,7 +109,7 @@ public class PlanningRouteController
 		return highestPeriode;
 	}
 
-	@RequestMapping(value = "/{screeningsEenheidId}", method = RequestMethod.GET)
+	@GetMapping(value = "/{screeningsEenheidId}")
 	public List<PlanningStandplaatsPeriodeDto> get(@PathVariable Long screeningsEenheidId)
 	{
 		List<PlanningStandplaatsPeriodeDto> standplaatsPeriodeDtoList = new ArrayList<>();
@@ -120,11 +120,11 @@ public class PlanningRouteController
 		return standplaatsPeriodeDtoList;
 	}
 
-	@RequestMapping(method = RequestMethod.PUT)
+	@PutMapping
 	public void put(@RequestBody PlanningRouteWijzigenDto gewijzigdeStandplaatsPeriodeDto)
 	{
 		PlanningScreeningsEenheid screeningsEenheidNaar = PlanningScreeningsEenheidIndex.get(gewijzigdeStandplaatsPeriodeDto.screeningsEenheidId);
-		PlanningStandplaatsPeriode standplaatsPeriode = null;
+		PlanningStandplaatsPeriode standplaatsPeriode;
 		PlanningStandplaatsPeriode gewijzigdVanafPeriode = null;
 		if (gewijzigdeStandplaatsPeriodeDto.standplaatsPeriodeConceptId == null)
 		{
@@ -192,14 +192,14 @@ public class PlanningRouteController
 				screeningsEenheidNaar.getStandplaatsPeriodeNavigableSet().add(standplaatsPeriode);
 				standplaatsPeriode.setScreeningsEenheid(screeningsEenheidNaar);
 			}
-			gewijzigdVanafPeriode = getHighestPeriode(Arrays.asList(standplaatsPeriode), gewijzigdVanafPeriode);
+			gewijzigdVanafPeriode = getHighestPeriode(List.of(standplaatsPeriode), gewijzigdVanafPeriode);
 		}
 		PlanningWijzigingen.getWijzigingenRoute(screeningsEenheidNaar).setVanafStandplaatsPeriode(gewijzigdVanafPeriode);
 
 		PlanningDoorrekenenManager.run();
 	}
 
-	@RequestMapping(value = "/splitsStandplaatsPeriode/{standplaatsPeriodeConceptId}", method = RequestMethod.PUT)
+	@PutMapping(value = "/splitsStandplaatsPeriode/{standplaatsPeriodeConceptId}")
 	public void splitsStandplaatsPeriode(@PathVariable UUID standplaatsPeriodeConceptId)
 	{
 		PlanningStandplaatsPeriode standplaatsPeriode = PlanningStandplaatsPeriodeIndex.get(standplaatsPeriodeConceptId);
@@ -249,12 +249,10 @@ public class PlanningRouteController
 	private Optional<PlanningStandplaatsPeriode> getEersteStandplaatsPeriodeMetPrognoseGeenAfspraken(PlanningScreeningsEenheid screeningsEenheid)
 	{
 		NavigableSet<PlanningStandplaatsPeriode> standplaatsPeriodeNavigableSet = screeningsEenheid.getStandplaatsPeriodeNavigableSet();
-		Optional<PlanningStandplaatsPeriode> eersteStandplaatsPeriodeMetPrognoseOptional = standplaatsPeriodeNavigableSet.stream()
+		return standplaatsPeriodeNavigableSet.stream()
 			.filter(standplaatsPeriode -> standplaatsPeriode.getPrognose()
 				&& (standplaatsPeriode.getId() == null || baseAfspraakService.countAfspraken(standplaatsPeriode.getId(), MammaAfspraakStatus.GEPLAND) == 0))
 			.findFirst();
-
-		return eersteStandplaatsPeriodeMetPrognoseOptional;
 	}
 
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -55,7 +55,7 @@ import org.hibernate.envers.Audited;
 @Table(
 	schema = "mamma",
 	name = "conclusie_review",
-	uniqueConstraints = @UniqueConstraint(columnNames = { "screening_ronde", "radioloog" }))
+	uniqueConstraints = @UniqueConstraint(columnNames = { "screening_ronde", "radioloog", "reviewAlsCoordinerendRadioloog" }))
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "mamma.cache")
 public class MammaConclusieReview extends AbstractHibernateObject
 {
@@ -64,6 +64,9 @@ public class MammaConclusieReview extends AbstractHibernateObject
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	private InstellingGebruiker radioloog;
+
+	@Column(nullable = false)
+	private Boolean reviewAlsCoordinerendRadioloog = false;
 
 	@Column
 	private LocalDateTime reviewMoment;

@@ -1,0 +1,40 @@
+@import "src/scss/colors";
+
+.onderkant {
+	display: flex;
+
+	.terugknop {
+		text-align: left;
+		float: left;
+		width: 20%;
+	}
+
+	.terugknop:hover {
+		color: $blauw-400;
+		cursor: pointer;
+	}
+
+	.filler {
+		text-align: left;
+		float: left;
+		width: 20%;
+	}
+
+	.progressieBollen {
+		text-align: center;
+		width: 60%;
+
+		.bol {
+			height: 25px;
+			width: 25px;
+			border-radius: 50%;
+			display: inline-block;
+			margin-right: 5px;
+			border: 1px solid $blauw-base;
+		}
+
+		.bol.actief {
+			background-color: $blauw-300;
+		}
+	}
+}

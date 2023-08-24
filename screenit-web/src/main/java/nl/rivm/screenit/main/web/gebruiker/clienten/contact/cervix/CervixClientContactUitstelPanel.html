@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -37,8 +37,8 @@
                 <div class="controls">
                     <div class="input-append">
                         <input wicket:id="datum" class="datum uitstellenTotDatum" type="text" value="">
-                        <a href="javascript:void(0);" class="btn" onclick="$(this).parent().find('.uitstellenTotDatum').datepicker('show');return false;" title="Datum"
-                           tabindex="-1"><i class="icon-calendar"></i></a>
+                        <a class="btn js-datepicker-show"
+						   tabindex="-1"><i class="icon-calendar"></i></a>
                     </div>
                 </div>
             </div>

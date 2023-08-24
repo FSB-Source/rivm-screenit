@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,6 +29,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.text.ParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -50,6 +51,8 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.batch.service.VerwerkCdaBerichtContentService;
 import nl.rivm.screenit.dao.VerslagDao;
@@ -66,6 +69,7 @@ import nl.rivm.screenit.model.verslag.NullFlavourQuantity;
 import nl.rivm.screenit.model.verslag.Quantity;
 import nl.rivm.screenit.model.verslag.VerslagContent;
 import nl.rivm.screenit.model.verslag.VraagElement;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.object.model.HibernateObject;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -73,10 +77,6 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
-import org.joda.time.Period;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -91,10 +91,9 @@ import au.com.bytecode.opencsv.CSVReader;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
+@Slf4j
 public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtContentService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(VerwerkCdaBerichtContentServiceImpl.class);
-
 	private static final Map<String, String> XPATH_MAPPING = new HashMap<>();
 
 	private static final Map<String, String> CONCEPT_MAPPING = new HashMap<>();
@@ -105,7 +104,7 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 	@Autowired
 	private HibernateService hibernateService;
 
-	private class ConceptExceptionContext
+	private static class ConceptExceptionContext
 	{
 		private final VerslagDao verslagDao;
 
@@ -151,29 +150,29 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 	{
 
 		PROTOCOL_COLON_BIOPT_PER_POLIEP("hl7:act/hl7:specimen/hl7:specimenRole/hl7:id/@extension")
-		{
-			@Override
-			Map<String, String> getAlternatives()
 			{
-				Map<String, String> map = new HashMap<>();
-				MapUtils.putAll(map,
-					new String[][] { { 
+				@Override
+				Map<String, String> getAlternatives()
+				{
+					Map<String, String> map = new HashMap<>();
+					MapUtils.putAll(map,
+						new String[][] { { 
 
-						"/hl7:ClinicalDocument/hl7:component/hl7:structuredBody/" + "hl7:component[hl7:section[hl7:templateId[@root='2.16.840.1.113883.2.4.3.36.10.211']]]/"
-							+ "hl7:section/hl7:entry[hl7:organizer[hl7:templateId[@root='2.16.840.1.113883.2.4.3.36.10.551']]]",
+							"/hl7:ClinicalDocument/hl7:component/hl7:structuredBody/" + "hl7:component[hl7:section[hl7:templateId[@root='2.16.840.1.113883.2.4.3.36.10.211']]]/"
+								+ "hl7:section/hl7:entry[hl7:organizer[hl7:templateId[@root='2.16.840.1.113883.2.4.3.36.10.551']]]",
 
-						"hl7:organizer/hl7:specimen/hl7:specimenRole/hl7:id/@extension", 
-					}, {
+							"hl7:organizer/hl7:specimen/hl7:specimenRole/hl7:id/@extension", 
+						}, {
 
-						"/hl7:ClinicalDocument/hl7:component/hl7:structuredBody/" + "hl7:component[hl7:section[hl7:templateId[@root='2.16.840.1.113883.2.4.3.36.10.212']]]/"
-							+ "hl7:section/hl7:entry[hl7:organizer[hl7:templateId[@root='2.16.840.1.113883.2.4.3.36.10.315']]]",
+							"/hl7:ClinicalDocument/hl7:component/hl7:structuredBody/" + "hl7:component[hl7:section[hl7:templateId[@root='2.16.840.1.113883.2.4.3.36.10.212']]]/"
+								+ "hl7:section/hl7:entry[hl7:organizer[hl7:templateId[@root='2.16.840.1.113883.2.4.3.36.10.315']]]",
 
-						"hl7:organizer/hl7:specimen/hl7:specimenRole/hl7:id/@extension" 
-					}, 
-					});
-				return map;
-			}
-		};
+							"hl7:organizer/hl7:specimen/hl7:specimenRole/hl7:id/@extension" 
+						}, 
+						});
+					return map;
+				}
+			};
 
 		private final String xpathReferenceValue;
 
@@ -193,90 +192,88 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 	private enum ConceptExceptionHandler
 	{
 		MDL_DUURVERRICHTING("125051", VerslagGeneratie.V1)
-		{
-
-			@Override
-			Object getValue(ConceptExceptionContext context) throws XPathExpressionException
 			{
-				String xpathValueAanvang = XPATH_MAPPING.get(CdaOID.CONCEPTS_ROOT_OID + ".1.125030").split("\\|")[0];
-				String xpathValueEinde = XPATH_MAPPING.get(CdaOID.CONCEPTS_ROOT_OID + ".1.125050").split("\\|")[0];
-				Date dateAanvang = getDateValue(context.node, context.xpath, xpathValueAanvang);
-				Date dateEinde = getDateValue(context.node, context.xpath, xpathValueEinde);
-				if (dateAanvang == null || dateEinde == null)
+				@Override
+				Object getValue(ConceptExceptionContext context) throws XPathExpressionException
 				{
-					return null;
-				}
-				else
-				{
-					Quantity duur = new Quantity();
-					duur.setValue(Math.abs(new Period(new DateTime(dateEinde), new DateTime(dateAanvang)).getMinutes()) + "");
-					duur.setUnit("min");
-					return duur;
-				}
-			}
-
-		},
-		MDL_TNUMMER("145162")
-		{
-			@Override
-			Object getValue(ConceptExceptionContext context) throws XPathExpressionException
-			{
-				return context.xpath.compile("@extension").evaluate(context.node);
-			}
-
-		},
-		MDL_OPDRACHTNUMMER("145161")
-		{
-			@Override
-			Object getValue(ConceptExceptionContext context) throws XPathExpressionException
-			{
-				return context.xpath.compile("@extension").evaluate(context.node);
-			}
-
-		},
-		MDL_EINDCONCLUSIE("140160", VerslagGeneratie.V1)
-		{
-
-			@Override
-			Object getValue(ConceptExceptionContext context) throws XPathExpressionException
-			{
-				DSValueSet dsValueSet = context.field.getAnnotation(DSValueSet.class);
-				DSValue dsZoekObject = new DSValue();
-				Object nodeSet = context.xpath.compile(context.xpathValue).evaluate(context.node, XPathConstants.NODESET);
-
-				String dsValueCode = null;
-				Node dsValueNode = null;
-				if (nodeSet instanceof NodeList)
-				{
-					NodeList nodeList = (NodeList) nodeSet;
-					for (int i = 0; i < nodeList.getLength(); i++)
+					String xpathValueAanvang = XPATH_MAPPING.get(CdaOID.CONCEPTS_ROOT_OID + ".1.125030").split("\\|")[0];
+					String xpathValueEinde = XPATH_MAPPING.get(CdaOID.CONCEPTS_ROOT_OID + ".1.125050").split("\\|")[0];
+					Date dateAanvang = getDateValue(context.node, context.xpath, xpathValueAanvang);
+					Date dateEinde = getDateValue(context.node, context.xpath, xpathValueEinde);
+					if (dateAanvang == null || dateEinde == null)
 					{
-						Node dsNode = nodeList.item(i);
-						String foundDsValueCode = context.xpath.compile("@code").evaluate(dsNode);
-						if (StringUtils.isBlank(foundDsValueCode))
-						{
-							foundDsValueCode = context.xpath.compile("@nullFlavor").evaluate(dsNode);
-						}
-						if (dsValueCode == null || StringUtils.isNotBlank(foundDsValueCode)
-							&& MDL_EINDCONCLUSIE_ORDER.valueOf("_" + foundDsValueCode).ordinal() < MDL_EINDCONCLUSIE_ORDER.valueOf("_" + dsValueCode).ordinal())
-						{
-							dsValueNode = dsNode;
-							dsValueCode = foundDsValueCode;
-						}
-
+						return null;
+					}
+					else
+					{
+						Quantity duur = new Quantity();
+						duur.setValue(Math.abs(DateUtil.getPeriodeTussenTweeDatums(DateUtil.toLocalDate(dateEinde), DateUtil.toLocalDate(dateAanvang), ChronoUnit.MINUTES)) + "");
+						duur.setUnit("min");
+						return duur;
 					}
 				}
-				DSValue dsValue = null;
-				if (dsValueCode != null)
+
+			},
+		MDL_TNUMMER("119")
+			{
+				@Override
+				Object getValue(ConceptExceptionContext context) throws XPathExpressionException
 				{
-					dsZoekObject.setCode(dsValueCode);
-					dsZoekObject.setCodeSystem(context.xpath.compile("@codeSystem").evaluate(dsValueNode));
-					dsZoekObject.setValueSetName(dsValueSet.name());
-					dsValue = (DSValue) zoekDsValue(context.xpath, dsValueNode, dsZoekObject, context.verslagDao);
+					return context.xpath.compile("@extension").evaluate(context.node);
 				}
-				return dsValue;
-			}
-		};
+
+			},
+		MDL_OPDRACHTNUMMER("118")
+			{
+				@Override
+				Object getValue(ConceptExceptionContext context) throws XPathExpressionException
+				{
+					return context.xpath.compile("@extension").evaluate(context.node);
+				}
+
+			},
+		MDL_EINDCONCLUSIE("140160", VerslagGeneratie.V1)
+			{
+				@Override
+				Object getValue(ConceptExceptionContext context) throws XPathExpressionException
+				{
+					DSValueSet dsValueSet = context.field.getAnnotation(DSValueSet.class);
+					DSValue dsZoekObject = new DSValue();
+					Object nodeSet = context.xpath.compile(context.xpathValue).evaluate(context.node, XPathConstants.NODESET);
+
+					String dsValueCode = null;
+					Node dsValueNode = null;
+					if (nodeSet instanceof NodeList)
+					{
+						NodeList nodeList = (NodeList) nodeSet;
+						for (int i = 0; i < nodeList.getLength(); i++)
+						{
+							Node dsNode = nodeList.item(i);
+							String foundDsValueCode = context.xpath.compile("@code").evaluate(dsNode);
+							if (StringUtils.isBlank(foundDsValueCode))
+							{
+								foundDsValueCode = context.xpath.compile("@nullFlavor").evaluate(dsNode);
+							}
+							if (dsValueCode == null || StringUtils.isNotBlank(foundDsValueCode)
+								&& MDL_EINDCONCLUSIE_ORDER.valueOf("_" + foundDsValueCode).ordinal() < MDL_EINDCONCLUSIE_ORDER.valueOf("_" + dsValueCode).ordinal())
+							{
+								dsValueNode = dsNode;
+								dsValueCode = foundDsValueCode;
+							}
+
+						}
+					}
+					DSValue dsValue = null;
+					if (dsValueCode != null)
+					{
+						dsZoekObject.setCode(dsValueCode);
+						dsZoekObject.setCodeSystem(context.xpath.compile("@codeSystem").evaluate(dsValueNode));
+						dsZoekObject.setValueSetName(dsValueSet.name());
+						dsValue = (DSValue) zoekDsValue(context.xpath, dsValueNode, dsZoekObject, context.verslagDao);
+					}
+					return dsValue;
+				}
+			};
 
 		private final String shortConceptId;
 
@@ -308,15 +305,14 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 	private enum PostConceptValueConverter
 	{
 		DUMMY("", null)
-		{
-
-			@Override
-			Object getValue(Object value)
 			{
-				return value;
-			}
+				@Override
+				Object getValue(Object value)
+				{
+					return value;
+				}
 
-		},
+			},
 
 		;
 
@@ -362,7 +358,7 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 		}
 	}
 
-	private void loadXpathMapping(String resource) throws IOException, FileNotFoundException
+	private void loadXpathMapping(String resource) throws IOException
 	{
 		try (CSVReader reader = new CSVReader(new InputStreamReader(VerwerkCdaBerichtContentServiceImpl.class.getResourceAsStream(resource)), ','))
 		{
@@ -401,7 +397,8 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 	{
 		try
 		{
-			DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
+
+			DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance("com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl", null);
 			domFactory.setNamespaceAware(true);
 			DocumentBuilder builder = domFactory.newDocumentBuilder();
 			Document doc = builder.parse(IOUtils.toInputStream(verslag.getOntvangenBericht().getXmlBericht()));
@@ -412,7 +409,7 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 
 			VerslagGeneratie generatie = VerslagProjectVersionMapping.get().getGeneratie(verslag.getOntvangenBericht().getProjectVersion(), verslag.getType());
 
-			VerslagContent verslagContent = maakEnFullVerlagDeel(doc, xpath, rootClazz, verslag, "", verslag.getType(), generatie);
+			VerslagContent verslagContent = maakEnVulVerslagDeel(doc, xpath, rootClazz, verslag, "", verslag.getType(), generatie);
 			VerslagContent oldVerslagContent = verslag.getVerslagContent();
 			if (oldVerslagContent != null)
 			{
@@ -424,7 +421,7 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 			verslagContent.setVerslag(verslag);
 		}
 		catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException | SAXException | IOException | ParserConfigurationException
-			| XPathExpressionException e)
+			   | XPathExpressionException e)
 		{
 			LOG.error("Fout bij vertaling van bericht naar model classes", e);
 			throw new IllegalArgumentException("Fout bij vertaling van CDA bericht naar verslag in DB");
@@ -432,7 +429,7 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private <T, S> T maakEnFullVerlagDeel(Node node, XPath xpath, Class<T> rootClazz, S parent, String rootXPath, VerslagType verslagType, VerslagGeneratie generatie)
+	private <T, S> T maakEnVulVerslagDeel(Node node, XPath xpath, Class<T> rootClazz, S parent, String rootXPath, VerslagType verslagType, VerslagGeneratie generatie)
 		throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, XPathExpressionException
 	{
 		T verslagDeel = rootClazz.newInstance();
@@ -448,7 +445,7 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 				XPathMapping xpathMapping = getXpathMapping(vraagElement, verslagType, generatie);
 				if (declaredField.isAnnotationPresent(OneToOne.class))
 				{
-					PropertyUtils.setProperty(verslagDeel, fieldName, maakEnFullVerlagDeel(node, xpath, declaringType, verslagDeel, rootXPath, verslagType, generatie));
+					PropertyUtils.setProperty(verslagDeel, fieldName, maakEnVulVerslagDeel(node, xpath, declaringType, verslagDeel, rootXPath, verslagType, generatie));
 
 				}
 				else if (declaredField.isAnnotationPresent(OneToMany.class) || declaredField.isAnnotationPresent(ManyToMany.class))
@@ -495,7 +492,7 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 									}
 									else
 									{
-										list.add(maakEnFullVerlagDeel(itemNode, xpath, paramType, verslagDeel, nieuwRootXPath, verslagType, generatie));
+										list.add(maakEnVulVerslagDeel(itemNode, xpath, paramType, verslagDeel, nieuwRootXPath, verslagType, generatie));
 									}
 								}
 							}
@@ -507,7 +504,7 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 					}
 					else
 					{
-						LOG.warn("geen xpath voor " + declaredField + " code " + vraagElement.code() + " verslagType " + verslagType.name());
+						LOG.warn("xToMany: geen xpath voor " + declaredField + " code " + vraagElement.code() + " verslagType " + verslagType.name());
 					}
 				}
 				else if (declaredField.isAnnotationPresent(ManyToOne.class))
@@ -552,27 +549,17 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 		{
 			String conceptIdFromCurrentVersion = vraagElement.code();
 			conceptIdFromCurrentVersion = conceptIdFromCurrentVersion.replace("-group", "");
-			String xpath = XPATH_MAPPING.get(conceptIdFromCurrentVersion);
+
+			String xpath;
 			if (generatie != null && !generatie.isHuidigeGeneratie(verslagType))
 			{
-				String conceptId = conceptIdFromCurrentVersion;
-				String conceptIdForGeneratie = verslagType.getConceptRootOid() + "." + generatie.getVersionInConceptId() + conceptId.substring(conceptId.lastIndexOf("."));
-				xpath = XPATH_MAPPING.get(conceptIdForGeneratie);
-				if (StringUtils.isBlank(xpath))
-				{
-					do
-					{
-						conceptId = CONCEPT_MAPPING.get(conceptId);
-					}
-					while (conceptId != null && !conceptId.equals(Constants.NO_OLD_CONCEPT) && isConceptIdVanNieuwereGeneratie(verslagType, generatie, conceptId));
-
-					if (conceptId == null && CONCEPT_MAPPING.containsKey(conceptIdFromCurrentVersion))
-					{
-						conceptId = conceptIdFromCurrentVersion;
-					}
-					xpath = XPATH_MAPPING.get(conceptId);
-				}
+				xpath = getXpathVanOudeGeneratie(conceptIdFromCurrentVersion, verslagType, generatie);
 			}
+			else
+			{
+				xpath = XPATH_MAPPING.get(conceptIdFromCurrentVersion);
+			}
+
 			if (xpath != null)
 			{
 				mapping = new XPathMapping();
@@ -586,6 +573,29 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 			}
 		}
 		return mapping;
+	}
+
+	private String getXpathVanOudeGeneratie(String conceptIdFromCurrentVersion, VerslagType verslagType, VerslagGeneratie generatie)
+	{
+		String conceptId = conceptIdFromCurrentVersion;
+		String xpath;
+		do
+		{
+			String conceptIdForGeneratie = verslagType.getConceptRootOid() + "." + generatie.getVersionInConceptId() + conceptId.substring(conceptId.lastIndexOf("."));
+			xpath = XPATH_MAPPING.get(conceptIdForGeneratie);
+			conceptId = CONCEPT_MAPPING.get(conceptId);
+		}
+		while (xpath == null && conceptId != null && !conceptId.equals(Constants.NO_OLD_CONCEPT) && isConceptIdVanNieuwereGeneratie(verslagType, generatie, conceptId));
+
+		if (xpath == null)
+		{
+			if (conceptId == null && CONCEPT_MAPPING.containsKey(conceptIdFromCurrentVersion))
+			{
+				conceptId = conceptIdFromCurrentVersion;
+			}
+			xpath = XPATH_MAPPING.get(conceptId);
+		}
+		return xpath;
 	}
 
 	private boolean isConceptIdVanNieuwereGeneratie(VerslagType verslagType, VerslagGeneratie generatie, String conceptId)
@@ -638,7 +648,8 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 			{
 				boolean correctionSuccess = false;
 
-				top: for (XpathAlternativeMapping mapping : XpathAlternativeMapping.values())
+				top:
+				for (XpathAlternativeMapping mapping : XpathAlternativeMapping.values())
 				{
 					Map<String, String> alternatives = mapping.getAlternatives();
 					for (Entry<String, String> altMapping : alternatives.entrySet())
@@ -835,7 +846,7 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 		if (zoekValue.getCode() != null)
 		{
 			VraagElement vraagElement = declaredField.getAnnotation(VraagElement.class);
-			if (vraagElement.code().equals(getFullConceptId("145070", verslagType)))
+			if (vraagElement.code().equals(getFullConceptId("129", verslagType)))
 			{
 
 				switch (zoekValue.getCode())
@@ -849,7 +860,7 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 					break;
 				}
 			}
-			else if (vraagElement.code().equals(getFullConceptId("125070", verslagType)))
+			else if (vraagElement.code().equals(getFullConceptId("75", verslagType)))
 			{
 
 				switch (zoekValue.getCode())
@@ -863,7 +874,7 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 					break;
 				}
 			}
-			else if (vraagElement.code().equals(getFullConceptId("155050", verslagType)))
+			else if (vraagElement.code().equals(getFullConceptId("162", verslagType)))
 			{
 
 				switch (zoekValue.getCode())
@@ -874,7 +885,7 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 					break;
 				}
 			}
-			else if (vraagElement.code().equals(getFullConceptId("140150", verslagType)))
+			else if (vraagElement.code().equals(getFullConceptId("110", verslagType)))
 			{
 
 				switch (zoekValue.getCode())
@@ -890,7 +901,7 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 					break;
 				}
 			}
-			else if (vraagElement.code().equals(getFullConceptId("145040", verslagType)))
+			else if (vraagElement.code().equals(getFullConceptId("130", verslagType)))
 			{
 
 				switch (zoekValue.getCode())
@@ -914,7 +925,7 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 
 				}
 			}
-			else if (vraagElement.code().equals(getFullConceptId("125010", verslagType)))
+			else if (vraagElement.code().equals(getFullConceptId("70", verslagType)))
 			{
 
 				switch (zoekValue.getCode())
@@ -934,7 +945,7 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 					break;
 				}
 			}
-			else if (vraagElement.code().equals(getFullConceptId("155053", verslagType)))
+			else if (vraagElement.code().equals(getFullConceptId("164", verslagType)))
 			{
 
 				switch (zoekValue.getCode())

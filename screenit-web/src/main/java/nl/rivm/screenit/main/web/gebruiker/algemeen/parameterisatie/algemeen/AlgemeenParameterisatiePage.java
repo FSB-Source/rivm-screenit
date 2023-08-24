@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie.algemeen;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -48,6 +48,7 @@ public class AlgemeenParameterisatiePage extends ParameterisatieBasePage
 	public AlgemeenParameterisatiePage()
 	{
 		Parameterisatie parameterisatie = parameterisatieService.loadParameterisatie();
+		add(new DagdeelParametersPanel("dagdeelTijden", new Model<>(parameterisatie)));
 		add(new BewaartermijnenPrimaireParametersPanel("bewaartermijnen", new Model<>(parameterisatie)));
 		add(new AlgemeenSamenvoegveldenPanel("samenvoegvelden", new Model<>(parameterisatie)));
 	}

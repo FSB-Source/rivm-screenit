@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.rooster;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.rooster;
  * =========================LICENSE_END==================================
  */
 
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -31,11 +32,8 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.planning.model.IAppointment;
 import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
 
-import org.joda.time.DateTime;
-
 public class CalendarRefresher<T extends AbstractAppointment>
 {
-
 	private final boolean verwijderd;
 
 	private final List<T> aangepast;
@@ -54,7 +52,6 @@ public class CalendarRefresher<T extends AbstractAppointment>
 		this.verwijderd = verwijderd;
 		this.aangepast = aangepasteTijdSloten;
 		this.recurrenceOption = recurrenceOption;
-
 	}
 
 	public boolean isVerwijderd()
@@ -88,7 +85,7 @@ public class CalendarRefresher<T extends AbstractAppointment>
 		afspraken.addAll(getAangepast());
 		for (T aangepast : getAangepast())
 		{
-			Date end = new DateTime(aangepast.getStartTime()).plusWeeks(1).toDate();
+			Date end = DateUtil.plusTijdseenheid(aangepast.getStartTime(), 1, ChronoUnit.WEEKS);
 			Date start = aangepast.getStartTime();
 
 			if (RecurrenceOption.WIJZIG_OF_VERWIJDER_TOT.equals(recurrenceOption) && aangepastTot != null && aangepastTot.before(end))
@@ -97,7 +94,7 @@ public class CalendarRefresher<T extends AbstractAppointment>
 			}
 			if (RecurrenceOption.WIJZIG_OF_VERWIJDER_HELE_SERIE.equals(recurrenceOption))
 			{
-				start = new DateTime(start).plusWeeks(-1).toDate();
+				start = DateUtil.minusTijdseenheid(start, 1, ChronoUnit.WEEKS);
 			}
 			else if (!verwijderd)
 			{

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.verlatedeelnamecovid;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,7 +39,7 @@ import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.rivm.screenit.model.project.ProjectStatus;
 import nl.rivm.screenit.model.project.ProjectType;
-import nl.rivm.screenit.service.InstellingService;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.ProjectService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -53,7 +53,7 @@ import org.springframework.stereotype.Component;
 public class CervixVerlateDeelnameCovidJobListener extends BaseLogListener
 {
 	@Autowired
-	private InstellingService instellingService;
+	private OrganisatieParameterService organisatieParameterService;
 
 	@Autowired
 	private ProjectService projectService;
@@ -73,7 +73,7 @@ public class CervixVerlateDeelnameCovidJobListener extends BaseLogListener
 	protected void beforeStarting(JobExecution jobExecution)
 	{
 		super.beforeStarting(jobExecution);
-		projectNaam = instellingService.getOrganisatieParameter(null, OrganisatieParameterKey.CERVIX_PROJECT_VERLATE_DEELNAME);
+		projectNaam = organisatieParameterService.getOrganisatieParameter(null, OrganisatieParameterKey.CERVIX_PROJECT_VERLATE_DEELNAME);
 		if (StringUtils.isNotBlank(projectNaam))
 		{
 			var zoekObject = new Project();

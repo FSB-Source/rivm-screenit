@@ -4,7 +4,7 @@ package nl.rivm.screenit.model;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -43,7 +43,6 @@ import nl.rivm.screenit.model.colon.planning.AfspraakDefinitie;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.colon.planning.ITijdObject;
 import nl.rivm.screenit.model.colon.planning.RoosterItem;
-import nl.rivm.screenit.model.helper.HibernateMagicNumber;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.topicuszorg.hibernate.object.annot.Range;
 import nl.topicuszorg.hibernate.object.annot.Range.RangeCondition;
@@ -105,9 +104,6 @@ public class Afspraak extends Action<Client> implements Cloneable, IActief, ITij
 	private Date ingevoerd = new Date();
 
 	private Date datumLaatsteWijziging;
-
-	@Column(length = HibernateMagicNumber.L4000)
-	private String afzegreden;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	private RoosterItem roosterItem;
@@ -354,16 +350,6 @@ public class Afspraak extends Action<Client> implements Cloneable, IActief, ITij
 	public void setDatumLaatsteWijziging(Date datumLaatsteWijziging)
 	{
 		this.datumLaatsteWijziging = datumLaatsteWijziging;
-	}
-
-	public String getAfzegreden()
-	{
-		return afzegreden;
-	}
-
-	public void setAfzegreden(String afzegreden)
-	{
-		this.afzegreden = afzegreden;
 	}
 
 	@Override

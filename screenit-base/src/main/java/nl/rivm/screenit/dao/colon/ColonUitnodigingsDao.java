@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,7 +23,11 @@ package nl.rivm.screenit.dao.colon;
 
 import java.util.List;
 
+import nl.rivm.screenit.model.UitnodigingsGebied;
 import nl.rivm.screenit.model.colon.UitnodigingCohort;
+import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
+
+import org.hibernate.ScrollableResults;
 
 public interface ColonUitnodigingsDao
 {
@@ -32,5 +36,9 @@ public interface ColonUitnodigingsDao
 
 	List<Integer> getUitnodigingCohorten();
 
-	UitnodigingCohort getUitnodigingCohort(Integer jaar);
+	UitnodigingCohort getUitnodigingCohort(int jaar);
+
+	ScrollableResults getUitnodigingsCursor(ColonUitnodigingCategorie uitnodigingscategorie, UitnodigingsGebied uitnodigingsgebied, List<Integer> geboorteJaren,
+		Integer minimaleLeeftijd, Integer maximaleLeeftijd, Long projectGroupId, List<Long> exclusieGroepIds, int fetchSize);
+
 }

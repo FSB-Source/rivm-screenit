@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -47,10 +47,10 @@
             <label class="control-label"><wicket:message key="mamma.uitstel.steefdatum.label">Streefdatum</wicket:message></label>
         	<div class="controls">
         		<div class="input-append">
-		            <input wicket:id="streefDatum" class="datum streefDatum" type="text" value="">
-		            <a href="javascript:void(0);" class="btn" onclick="$(this).parent().find('.streefDatum').datepicker('show');return false;" title="Datum"
-				    	tabindex="-1"><i class="icon-calendar"></i></a>
-			    </div>
+					<input wicket:id="streefDatum" class="datum" type="text" value="">
+					<a class="btn js-datepicker-show" title="Datum"
+					   tabindex="-1"><i class="icon-calendar"></i></a>
+				</div>
 		   	</div>
         </div>
         <wicket:enclosure child="clientContact">

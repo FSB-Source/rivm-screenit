@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.controller;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -46,6 +46,7 @@ import nl.rivm.screenit.mamma.se.proxy.services.TransactionQueueService;
 import nl.rivm.screenit.mamma.se.proxy.services.WebSocketProxyService;
 import nl.rivm.screenit.mamma.se.proxy.util.Constants;
 import nl.rivm.screenit.mamma.se.proxy.util.DateUtil;
+import nl.rivm.screenit.mamma.se.proxy.util.SafeStringUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -157,10 +158,8 @@ public class AuthenticatieProxyController
 		}
 
 		webSocketProxyService.broadCastTijdUpdateNaarWerkstations("Login");
-
 		return response;
 	}
-
 	private ResponseEntity<String> meenemenLogischeSessie(String yubikeyIdentificatie, String yubikey, HttpSession httpSession) throws JsonProcessingException
 	{
 		ResponseEntity<String> response;
@@ -229,6 +228,7 @@ public class AuthenticatieProxyController
 		logischeSessie.setLoginAntwoord(responseEntity);
 		verwerkLoginResponse(httpSession, true, logischeSessie);
 		updateLaatstSuccesvolleOtp(yubikey, responseEntity.getStatusCode(), logischeSessie.getYubikeyIdentificatie());
+		seRestSocketService.verversPingEnPongConfig();
 
 		return responseEntity;
 	}
@@ -341,11 +341,12 @@ public class AuthenticatieProxyController
 	public ResponseEntity<String> identificeer(@RequestBody String yubikeyIdentificatie, HttpSession httpSession)
 	{
 		LogischeSessie logischeSessie = logischeSessieService.getLogischeSessieMetIdentificatie(yubikeyIdentificatie);
+		String safeYubikeyIdentificatie = SafeStringUtil.maakStringMetUserInputVeiligVoorLogging(yubikeyIdentificatie);
 		if (logischeSessie == null)
 		{
 			if (yubikeyIdentificatie.equals(Constants.GEEN_IDENTIFICATIE) || yubikeyIdentificatie.equals(Constants.GEEN_OTP))
 			{
-				LOG.info("Identificeerpoging zonder Yubikey identificatie: {}", yubikeyIdentificatie);
+				LOG.info("Identificeerpoging zonder Yubikey identificatie: {}", safeYubikeyIdentificatie);
 				return ResponseEntity.status(HttpStatus.OK).body(responseJson("Geen Yubikey gedetecteerd", "YUBIKEY_AFWEZIG"));
 			}
 			else
@@ -353,14 +354,15 @@ public class AuthenticatieProxyController
 				return ResponseEntity.status(HttpStatus.OK).body(responseJson("Onbekende Yubikey gedetecteerd", "YUBIKEY_ONBEKEND"));
 			}
 		}
+
 		if (logischeSessieService.isVerlopen(logischeSessie))
 		{
 			logischeSessieService.verwijderLogischeSessie(logischeSessie);
-			LOG.info("Identificeerpoging met verlopen logische sessie: {}", yubikeyIdentificatie);
+			LOG.info("Identificeerpoging met verlopen logische sessie: {}", safeYubikeyIdentificatie);
 			return ResponseEntity.status(HttpStatus.OK).body(responseJson("Verlopen sessie", "YUBIKEY_VERLOPEN"));
 		}
 
-		LOG.info("Er bestaat een logische sessie voor aangeboden Yubikey {}, geef positief signaal terug aan client.", yubikeyIdentificatie);
+		LOG.info("Er bestaat een logische sessie voor aangeboden Yubikey {}, geef positief signaal terug aan client.", safeYubikeyIdentificatie);
 		return ResponseEntity.status(HttpStatus.OK).body(responseJson("Yubikey herkend", "YUBIKEY_HERKEND"));
 	}
 
@@ -373,7 +375,8 @@ public class AuthenticatieProxyController
 	@RequestMapping(value = "/uitloggen", method = RequestMethod.POST)
 	public ResponseEntity<String> logout(@RequestBody String yubikeyIdentificatie, @RequestHeader("accountId") String accountId, HttpSession httpSession)
 	{
-		LOG.debug("Identification:\t" + yubikeyIdentificatie);
+		String safeYubikeyIdentificatie = SafeStringUtil.maakStringMetUserInputVeiligVoorLogging(yubikeyIdentificatie);
+		LOG.debug("Identification:\t" + safeYubikeyIdentificatie);
 
 		LogischeSessie logischeSessie = logischeSessieService.getLogischeSessieMetIdentificatie(yubikeyIdentificatie);
 		logischeSessieService.verwijderLogischeSessie(logischeSessie);

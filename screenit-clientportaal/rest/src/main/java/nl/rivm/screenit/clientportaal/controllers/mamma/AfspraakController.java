@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.controllers.mamma;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,7 +23,7 @@ package nl.rivm.screenit.clientportaal.controllers.mamma;
 
 import java.time.LocalDate;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,6 +32,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.clientportaal.controllers.AbstractController;
+import nl.rivm.screenit.clientportaal.model.mamma.MammaAfspraakBevestigingDto;
 import nl.rivm.screenit.clientportaal.model.mamma.MammaAfspraakOptieDto;
 import nl.rivm.screenit.clientportaal.model.mamma.MammaAfspraakWijzigenFilterDto;
 import nl.rivm.screenit.clientportaal.model.mamma.MammaAfspraakZoekFilterDto;
@@ -44,15 +45,22 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContact;
 import nl.rivm.screenit.model.ClientContactActie;
 import nl.rivm.screenit.model.ClientContactActieType;
+import nl.rivm.screenit.model.enums.BevestigingsType;
 import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
+import nl.rivm.screenit.model.enums.SmsStatus;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.service.ClientContactService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
+import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.util.EmailUtil;
+import nl.rivm.screenit.util.TelefoonnummerUtil;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
+import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -72,11 +80,13 @@ import org.springframework.web.bind.annotation.RestController;
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class AfspraakController extends AbstractController
 {
+	private final HibernateService hibernateService;
+
+	private final ClientContactService clientContactService;
+
 	private final MammaBaseStandplaatsService standplaatsService;
 
 	private final MammaBaseAfspraakService baseAfspraakService;
-
-	private final ClientContactService clientContactService;
 
 	private final MammaAfspraakService afspraakService;
 
@@ -87,10 +97,10 @@ public class AfspraakController extends AbstractController
 	@GetMapping("/standplaatsPlaatsen")
 	public ResponseEntity<List<String>> getStandplaatsPlaatsen(Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.MAMMA_AFSPRAAK_MAKEN)
-			|| aanvraagIsToegestaneActie(client, ClientContactActieType.MAMMA_AFSPRAAK_WIJZIGEN))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.MAMMA_AFSPRAAK_MAKEN)
+			|| clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.MAMMA_AFSPRAAK_WIJZIGEN))
 		{
 			MammaAfspraakWijzigenFilterDto plaatsFilter = new MammaAfspraakWijzigenFilterDto();
 			plaatsFilter.setClient(client);
@@ -101,7 +111,7 @@ public class AfspraakController extends AbstractController
 			long start = System.currentTimeMillis();
 			try
 			{
-				return ResponseEntity.ok(standplaatsService.getStandplaatsPlaatsenVanActivePeriodes(plaatsFilter, true));
+				return ResponseEntity.ok(standplaatsService.getStandplaatsPlaatsenVanActievePeriodes(plaatsFilter, false));
 			}
 			finally
 			{
@@ -141,10 +151,10 @@ public class AfspraakController extends AbstractController
 
 	private ResponseEntity<List<LocalDate>> getResponseMetBeschikbareDagen(Authentication authentication, String plaats, String afstand)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.MAMMA_AFSPRAAK_MAKEN)
-			|| aanvraagIsToegestaneActie(client, ClientContactActieType.MAMMA_AFSPRAAK_WIJZIGEN))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.MAMMA_AFSPRAAK_MAKEN)
+			|| clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.MAMMA_AFSPRAAK_WIJZIGEN))
 		{
 			return ResponseEntity.ok().body(afspraakService.getAlleDatumsMetBeschikbareAfspraken(client, plaats, afstand));
 		}
@@ -160,10 +170,10 @@ public class AfspraakController extends AbstractController
 			return ResponseEntity.badRequest().build();
 		}
 
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.MAMMA_AFSPRAAK_MAKEN)
-			|| aanvraagIsToegestaneActie(client, ClientContactActieType.MAMMA_AFSPRAAK_WIJZIGEN))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.MAMMA_AFSPRAAK_MAKEN)
+			|| clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.MAMMA_AFSPRAAK_WIJZIGEN))
 		{
 			MammaAfspraakWijzigenFilterDto filter = afspraakService.toAfspraakFilter(body, client, false);
 
@@ -172,7 +182,7 @@ public class AfspraakController extends AbstractController
 			{
 				return ResponseEntity.ok()
 					.body(baseAfspraakService.getKandidaatAfspraken(client, filter).stream().distinct()
-						.map(kandidaatAfspraak -> afspraakService.toMammaKandidaatOptie(kandidaatAfspraak))
+						.map(afspraakDto -> afspraakService.toMammaKandidaatOptie(afspraakDto, client))
 						.sorted(Comparator.comparing(MammaAfspraakOptieDto::getDatumTijd)).collect(Collectors.toList()));
 			}
 			finally
@@ -185,12 +195,12 @@ public class AfspraakController extends AbstractController
 
 	@PostMapping("/maak")
 
-	public ResponseEntity<String> maakAfspraak(Authentication authentication, @RequestBody MammaAfspraakOptieDto body)
+	public ResponseEntity<String> maakAfspraak(Authentication authentication, @RequestBody MammaAfspraakOptieDto afspraakOptie)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.MAMMA_AFSPRAAK_MAKEN)
-			|| aanvraagIsToegestaneActie(client, ClientContactActieType.MAMMA_AFSPRAAK_WIJZIGEN))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.MAMMA_AFSPRAAK_MAKEN)
+			|| clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.MAMMA_AFSPRAAK_WIJZIGEN))
 		{
 			ClientContactActie actie = new ClientContactActie();
 			actie.setType(ClientContactActieType.MAMMA_AFSPRAAK_WIJZIGEN);
@@ -198,44 +208,128 @@ public class AfspraakController extends AbstractController
 			contact.getActies().add(actie);
 			contact.setClient(client);
 
-			Map<ExtraOpslaanKey, Object> opslaanObjecten = new HashMap<>();
-			opslaanObjecten.put(ExtraOpslaanKey.MAMMA_BRIEF_AANMAKEN, body.isBevestigingsBrief());
-			opslaanObjecten.put(ExtraOpslaanKey.AFSPRAAK, afspraakService.toAfspraak(body, client));
-			opslaanObjecten.put(ExtraOpslaanKey.MAMMA_AFSPRAAK_FILTER, afspraakService.toAfspraakFilter(body.getFilter(), client, false));
+			var opslaanObjecten = maakExtraOpslaanObjectenMakenAfspraak(afspraakOptie, client);
 
-			try
+			var laatstMogelijkeAfspraakDatum = baseAfspraakService.laatstMogelijkeAfspraakDatum(client.getMammaDossier());
+			if (laatstMogelijkeAfspraakDatum == null || !afspraakOptie.getDatumTijd().toLocalDate().isAfter(laatstMogelijkeAfspraakDatum))
 			{
-				clientContactService.mammaAfspraakMakenWijzigen(actie, client, opslaanObjecten, null, false, false);
-				return ResponseEntity.ok().body(body.getPlaats());
-			}
-			catch (MammaTijdNietBeschikbaarException e)
-			{
-				return ResponseEntity.status(HttpStatus.CONFLICT).body("tijd.niet.beschikbaar");
-			}
-			catch (RuntimeException e)
-			{
-				LOG.error(e.getMessage(), e);
-				return ResponseEntity.badRequest().body("afspraak.wijzigen.niet.mogelijk");
+				try
+				{
+					clientContactService.mammaAfspraakMakenWijzigen(actie, client, opslaanObjecten, null, false, false);
+					return ResponseEntity.ok().body(((Long) opslaanObjecten.get(ExtraOpslaanKey.MAMMA_NIEUWE_AFSPRAAK_ID)).toString());
+				}
+				catch (MammaTijdNietBeschikbaarException e)
+				{
+					return ResponseEntity.status(HttpStatus.CONFLICT).body("tijd.niet.beschikbaar");
+				}
+				catch (RuntimeException e)
+				{
+					LOG.error(e.getMessage(), e);
+					return ResponseEntity.badRequest().body("afspraak.wijzigen.niet.mogelijk");
+				}
 			}
 		}
 		return createForbiddenResponse();
 	}
 
+	@NotNull
+	private Map<ExtraOpslaanKey, Object> maakExtraOpslaanObjectenMakenAfspraak(MammaAfspraakOptieDto afspraakOptie, Client client)
+	{
+		Map<ExtraOpslaanKey, Object> opslaanObjecten = new EnumMap<>(ExtraOpslaanKey.class);
+
+		opslaanObjecten.put(ExtraOpslaanKey.AFSPRAAK, afspraakService.toAfspraak(afspraakOptie, client));
+		opslaanObjecten.put(ExtraOpslaanKey.MAMMA_AFSPRAAK_FILTER, afspraakService.toAfspraakFilter(afspraakOptie.getFilter(), client, false));
+		if (baseAfspraakService.briefKanNogVerzondenWorden(DateUtil.toUtilDate(afspraakOptie.getDatumTijd())))
+		{
+			opslaanObjecten.put(ExtraOpslaanKey.BEVESTIGINGS_TYPE, BevestigingsType.BRIEF);
+		}
+		return opslaanObjecten;
+	}
+
+	@PostMapping("/bevestiging")
+	public ResponseEntity<String> maakAfspraakBevestiging(Authentication authentication, @RequestBody MammaAfspraakBevestigingDto afspraakBevestiging)
+	{
+		Client client = getClient(authentication, hibernateService);
+		try
+		{
+			var opslaanObjecten = maakAfspraakBevestigingOpslaanObjecten(afspraakBevestiging, client);
+			clientContactService.mammaAfspraakBevestigingMakenVanuitClientPortaal(client, opslaanObjecten);
+			return ResponseEntity.ok().build();
+		}
+		catch (RuntimeException rte)
+		{
+			LOG.error(rte.getMessage(), rte);
+			return ResponseEntity.badRequest().body("afspraak.bevestiging.niet.mogelijk");
+		}
+	}
+
+	private Map<ExtraOpslaanKey, Object> maakAfspraakBevestigingOpslaanObjecten(MammaAfspraakBevestigingDto afspraakBevestiging, Client client)
+	{
+		var opslaanObjecten = new EnumMap<>(ExtraOpslaanKey.class);
+		var laatsteAfspraakClient = MammaScreeningRondeUtil.getLaatsteAfspraak(client.getMammaDossier().getLaatsteScreeningRonde());
+		if (laatsteAfspraakClient != null && afspraakBevestiging.getAfspraakId().equals(laatsteAfspraakClient.getId()))
+		{
+			opslaanObjecten.put(ExtraOpslaanKey.MAMMA_NIEUWE_AFSPRAAK_ID, afspraakBevestiging.getAfspraakId());
+		}
+		else
+		{
+			throw new IllegalStateException("Afspraak ID matcht niet met laatste afspraak van laatste ronde client");
+		}
+
+		if (BevestigingsType.BRIEF == afspraakBevestiging.getBevestigingsType() && baseAfspraakService.briefKanNogVerzondenWorden(laatsteAfspraakClient.getVanaf()))
+		{
+			opslaanObjecten.put(ExtraOpslaanKey.BEVESTIGINGS_TYPE, BevestigingsType.BRIEF);
+		}
+		else if (BevestigingsType.MAIL == afspraakBevestiging.getBevestigingsType())
+		{
+			valideerMail(afspraakBevestiging.getClientNieuwEmailAdres());
+			opslaanObjecten.put(ExtraOpslaanKey.BEVESTIGINGS_TYPE, BevestigingsType.MAIL);
+			opslaanObjecten.put(ExtraOpslaanKey.AFSPRAAK_BEVESTIGING_MAIL_ADRES, afspraakBevestiging.getClientNieuwEmailAdres());
+		}
+		else
+		{
+			opslaanObjecten.put(ExtraOpslaanKey.BEVESTIGINGS_TYPE, BevestigingsType.GEEN);
+		}
+
+		if (afspraakBevestiging.isWilHerinneringsSms())
+		{
+			valideerMobielNummer(afspraakBevestiging.getClientNieuwMobielNummer());
+			opslaanObjecten.put(ExtraOpslaanKey.SMS_STATUS, SmsStatus.TE_VERSTUREN);
+			opslaanObjecten.put(ExtraOpslaanKey.AFSPRAAK_HERINNERING_TELEFOONNUMMER, afspraakBevestiging.getClientNieuwMobielNummer());
+		}
+		else
+		{
+			opslaanObjecten.put(ExtraOpslaanKey.SMS_STATUS, SmsStatus.GEEN);
+		}
+		return opslaanObjecten;
+	}
+
+	private void valideerMail(String mailAdres)
+	{
+		if (!EmailUtil.isCorrectEmailadres(mailAdres))
+		{
+			throw new IllegalStateException("Emailadres is niet correct gevalideerd");
+		}
+	}
+
+	private void valideerMobielNummer(String mobielNummer)
+	{
+		if (!TelefoonnummerUtil.isCorrectNederlandsMobielNummer(mobielNummer))
+		{
+			throw new IllegalStateException("Mobiel nummer is niet correct gevalideerd");
+		}
+	}
+
 	@GetMapping("/huidige")
 	public ResponseEntity<MammaHuidigeAfspraakDto> getHuidigeAfspraak(Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 		MammaAfspraak huidigeAfspraak = MammaScreeningRondeUtil.getLaatsteAfspraak(client.getMammaDossier().getLaatsteScreeningRonde());
 
-		if (huidigeAfspraak != null)
+		if (huidigeAfspraak != null && huidigeAfspraak.getStatus().equals(MammaAfspraakStatus.GEPLAND) && huidigeAfspraak.getVanaf().compareTo(currentDateSupplier.getDate()) >= 0)
 		{
-			if (huidigeAfspraak.getStatus().equals(MammaAfspraakStatus.GEPLAND)
-				&& huidigeAfspraak.getVanaf().compareTo(currentDateSupplier.getDate()) >= 0)
-			{
-				return ResponseEntity.ok(afspraakService.toHuidigeAfspraakDto(huidigeAfspraak));
-			}
+			return ResponseEntity.ok(afspraakService.toHuidigeAfspraakDto(huidigeAfspraak));
 		}
 		return ResponseEntity.ok().build();
 	}
-
 }

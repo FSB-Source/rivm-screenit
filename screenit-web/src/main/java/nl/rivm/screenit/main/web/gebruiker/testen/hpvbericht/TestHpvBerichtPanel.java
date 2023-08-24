@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.hpvbericht;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,9 +28,10 @@ import nl.rivm.screenit.dao.cervix.CervixBMHKLaboratoriumDao;
 import nl.rivm.screenit.main.service.cervix.HpvSendingMessageService;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.model.berichten.ScreenITResponseV251MessageWrapper;
-import nl.rivm.screenit.model.cervix.berichten.CervixHpvResultValue;
 import nl.rivm.screenit.model.cervix.berichten.CervixHpvOrderCode;
 import nl.rivm.screenit.model.cervix.berichten.CervixHpvResultCode;
+import nl.rivm.screenit.model.cervix.berichten.CervixHpvResultValue;
+import nl.rivm.screenit.model.cervix.enums.CervixHpvResultaatBerichtBron;
 import nl.rivm.screenit.util.cervix.hpv_berichtgenerator.CervixHpvBerichtGenerator;
 import nl.rivm.screenit.util.cervix.hpv_berichtgenerator.CervixHpvBerichtGeneratorMonsterWrapper;
 import nl.rivm.screenit.util.cervix.hpv_berichtgenerator.CervixHpvBerichtGeneratorWrapper;
@@ -57,13 +58,13 @@ public class TestHpvBerichtPanel extends GenericPanel<CervixHpvBerichtGeneratorW
 {
 	private static final long serialVersionUID = 1L;
 
+	private WebMarkupContainer uitslagenContainer;
+
 	@SpringBean
 	private CervixBMHKLaboratoriumDao cervixBMHKLaboratoriumDao;
 
 	@SpringBean
 	private HpvSendingMessageService hpvSendingMessageService;
-
-	WebMarkupContainer uitslagenContainer;
 
 	public TestHpvBerichtPanel(String id)
 	{
@@ -77,6 +78,7 @@ public class TestHpvBerichtPanel extends GenericPanel<CervixHpvBerichtGeneratorW
 		ComponentHelper.addTextField(form, "messageId", true, 100, false);
 		ComponentHelper.addTextField(form, "instrumentId", true, 100, false);
 		ComponentHelper.addTextField(form, "labNaam", true, 100, false);
+		ComponentHelper.addDropDownChoice(form, "resultaatBerichtBron", true, Arrays.asList(CervixHpvResultaatBerichtBron.values()), false);
 
 		uitslagenContainer = getUitslagenContainer();
 		form.add(uitslagenContainer);

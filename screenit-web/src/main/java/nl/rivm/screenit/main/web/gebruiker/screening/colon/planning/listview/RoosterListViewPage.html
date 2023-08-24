@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -34,27 +34,25 @@
             <div class="view-werklijst">
                 <fieldset class="form-inline">
                     <form wicket:id="form">
-                        <div class="btn-group">
-                            <button class="btn" wicket:id="status">
-                                <wicket:container wicket:id="label">Alle blokken</wicket:container>
-                            </button>
-                        </div>
-                        <div class="btn-group periode-filter">
-                            <div class="input-append">
-                                <input wicket:id="startDatum" type="text" placeholder="dd-mm-jjjj" size="16" class="input-small three-months filterDatum startDatum">
-                                <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum"><i class="icon-calendar"></i></a>
-                            </div>
-                            <span style="font-size:12px; vertical-align: middle; padding: 4px 12px;"> t/m </span>
-                            <div class="input-append">
-                                <input wicket:id="endDatum" type="text" placeholder="dd-mm-jjjj" size="16" class="input-small three-months filterDatum endDatum">
-                                <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum"><i class="icon-calendar"></i></a>
-                            </div>
-                        </div>
-                        <a href="javascript:void(0);" onclick="$('.filterDatum').datepicker('setDate', new Date());$('.filterDatum').change();return false;" class="btn">Vandaag</a>
-                        <a href="javascript:void(0);"
-                           onclick="$('.filterDatum.startDatum').datepicker('setDate', new Date(new Date().getFullYear(), 0, 1));$('.filterDatum.endDatum').datepicker('setDate', new Date(new Date().getFullYear(), 11, 31));$('.filterDatum').change();return false;"
-                           class="btn">Kalenderjaar</a>
-                    </form>
+						<div class="btn-group">
+							<button class="btn" wicket:id="status">
+								<wicket:container wicket:id="label">Alle blokken</wicket:container>
+							</button>
+						</div>
+						<div class="btn-group periode-filter">
+							<div class="input-append start-datum">
+								<input wicket:id="startDatum" type="text" placeholder="dd-mm-jjjj" size="16" class="input-small three-months filterDatum startDatum">
+								<a class="btn js-datepicker-show" title="Datum"><i class="icon-calendar"></i></a>
+							</div>
+							<span class="span-rooster-list rooster-tm"> t/m </span>
+							<div class="input-append">
+								<input wicket:id="endDatum" type="text" placeholder="dd-mm-jjjj" size="16" class="input-small three-months filterDatum endDatum">
+								<a class="btn js-datepicker-show" title="Datum"><i class="icon-calendar"></i></a>
+							</div>
+						</div>
+						<a  class="btn js-datepicker-filter-datum-vandaag">Vandaag</a>
+						<a  class="btn js-datepicker-filter-datum-jaar">Kalenderjaar</a>
+					</form>
                 </fieldset>
 
                 <fieldset>

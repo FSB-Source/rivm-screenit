@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.model.cervix.sepa;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,10 +21,9 @@ package nl.rivm.screenit.main.model.cervix.sepa;
  * =========================LICENSE_END==================================
  */
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import java.io.OutputStream;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -59,18 +58,20 @@ import nl.rivm.screenit.generated.sepa.PaymentMethod3Code;
 import nl.rivm.screenit.generated.sepa.PaymentTypeInformation19;
 import nl.rivm.screenit.generated.sepa.RemittanceInformation5;
 import nl.rivm.screenit.generated.sepa.ServiceLevel8Choice;
+import nl.rivm.screenit.util.DateUtil;
 
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 public class SEPACreditTransfer
 {
 
-	private static Pattern bicRegex = Pattern.compile("([a-zA-Z]{4}[a-zA-Z]{2}[a-zA-Z0-9]{2}([a-zA-Z0-9]{3})?)");
+	private static final Pattern bicRegex = Pattern.compile("([a-zA-Z]{4}[a-zA-Z]{2}[a-zA-Z0-9]{2}([a-zA-Z0-9]{3})?)");
 
-	private Document document = new Document();
+	private final Document document = new Document();
 
-	private CustomerCreditTransferInitiationV03 customerCreditTransferInitiation;
+	private final CustomerCreditTransferInitiationV03 customerCreditTransferInitiation;
 
 	private GroupHeader32 groupHeader;
 
@@ -135,7 +136,7 @@ public class SEPACreditTransfer
 		paymentTypeInformation.setSvcLvl(serviceLevel8Choice);
 		paymentInstructionInformation.setPmtTpInf(paymentTypeInformation);
 
-		paymentInstructionInformation.setReqdExctnDt(createXMLGregorianCalendarDate(reqdExctnDt.toDate()));
+		paymentInstructionInformation.setReqdExctnDt(createXMLGregorianCalendarDate(DateUtil.toUtilDate(reqdExctnDt)));
 
 		paymentInstructionInformation.setDbtr(createParty(debtorNm));
 

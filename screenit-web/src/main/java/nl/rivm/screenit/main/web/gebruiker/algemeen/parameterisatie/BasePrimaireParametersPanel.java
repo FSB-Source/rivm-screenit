@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,11 +21,12 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie;
  * =========================LICENSE_END==================================
  */
 
-import static nl.rivm.screenit.main.web.base.BasePage.markeerFormulierenOpgeslagen;
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.main.model.Parameterisatie;
 import nl.rivm.screenit.main.service.ParameterisatieService;
 import nl.rivm.screenit.main.web.ScreenitSession;
+import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.ScreenITDoubleConverter;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -36,21 +37,17 @@ import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import static nl.rivm.screenit.main.web.base.BasePage.markeerFormulierenOpgeslagen;
+
+@Slf4j
 public abstract class BasePrimaireParametersPanel extends GenericPanel<Parameterisatie>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(BasePrimaireParametersPanel.class);
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private ParameterisatieService parameterisatieService;
 
@@ -90,29 +87,13 @@ public abstract class BasePrimaireParametersPanel extends GenericPanel<Parameter
 
 	protected void addTextAreaField(Form<Parameterisatie> form, String id)
 	{
-		final TextArea<String> tekstField = new TextArea<String>(id)
-		{
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public String getMarkupId()
-			{
-				return id;
-			}
-
-		};
-		tekstField.setOutputMarkupId(true);
-		tekstField.setRequired(true);
-		form.add(tekstField);
+		ComponentHelper.addTextArea(form, id, true, 4000, false);
 	}
 
 	protected TextField<Double> createDoubleTextField(String id)
 	{
-		return new TextField<Double>(id, Double.class)
+		return new TextField<>(id, Double.class)
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public <C> IConverter<C> getConverter(Class<C> type)
 			{

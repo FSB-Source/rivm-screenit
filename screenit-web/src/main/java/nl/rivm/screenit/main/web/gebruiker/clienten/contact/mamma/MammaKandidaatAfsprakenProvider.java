@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,12 +21,14 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import nl.rivm.screenit.dto.mamma.afspraken.MammaKandidaatAfspraakDto;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.MammaDagEnDagdeelFilter;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -44,30 +46,42 @@ public class MammaKandidaatAfsprakenProvider extends SortableDataProvider<MammaK
 	@SpringBean
 	private MammaBaseAfspraakService baseAfspraakService;
 
-	private IModel<Client> clientModel;
+	private final IModel<Client> clientModel;
 
-	private IModel<MammaAfspraakWijzigenFilter> filterModel;
+	private final IModel<MammaAfspraakWijzigenFilter> filterModel;
+
+	private final MammaDagEnDagdeelFilter dagEnDagdeelFilter;
 
 	private List<MammaKandidaatAfspraakDto> kandidaatAfspraken;
 
-	public MammaKandidaatAfsprakenProvider(IModel<Client> clientModel, IModel<MammaAfspraakWijzigenFilter> filterModel)
+	private List<MammaKandidaatAfspraakDto> kandidaatAfsprakenCache = new ArrayList<>();
+
+	private boolean lijstBehouden = false;
+
+	public MammaKandidaatAfsprakenProvider(IModel<Client> clientModel, IModel<MammaAfspraakWijzigenFilter> filterModel, MammaDagEnDagdeelFilter dagEnDagdeelFilter)
 	{
 		Injector.get().inject(this);
 		this.filterModel = filterModel;
 		this.clientModel = clientModel;
+		this.dagEnDagdeelFilter = dagEnDagdeelFilter;
 	}
 
 	@Override
 	public Iterator<? extends MammaKandidaatAfspraakDto> iterator(long first, long count)
 	{
 		return kandidaatAfspraken.subList((int) first, (int) (first + count)).iterator();
-
 	}
 
 	@Override
 	public long size()
 	{
-		kandidaatAfspraken = baseAfspraakService.getKandidaatAfspraken(clientModel.getObject(), filterModel.getObject()).stream().distinct().sorted().collect(Collectors.toList());
+		if (!lijstBehouden)
+		{
+			kandidaatAfsprakenCache = baseAfspraakService.getKandidaatAfspraken(clientModel.getObject(), filterModel.getObject()).stream().distinct().sorted()
+				.collect(Collectors.toList());
+		}
+		lijstBehouden = false;
+		kandidaatAfspraken = baseAfspraakService.filterKandidaatAfsprakenOpDagEnDagdeel(kandidaatAfsprakenCache, dagEnDagdeelFilter);
 		return kandidaatAfspraken.size();
 	}
 
@@ -82,5 +96,10 @@ public class MammaKandidaatAfsprakenProvider extends SortableDataProvider<MammaK
 	{
 		ModelUtil.nullSafeDetach(filterModel);
 		ModelUtil.nullSafeDetach(clientModel);
+	}
+
+	public void setLijstBehouden(boolean lijstBehouden)
+	{
+		this.lijstBehouden = lijstBehouden;
 	}
 }

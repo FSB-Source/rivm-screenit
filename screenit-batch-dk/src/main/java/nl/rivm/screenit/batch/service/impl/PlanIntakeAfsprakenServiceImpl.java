@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,24 +34,12 @@ import org.optaplanner.core.api.solver.SolverFactory;
 import org.optaplanner.core.config.solver.SolverConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
 public class PlanIntakeAfsprakenServiceImpl implements PlanIntakeAfsprakenService
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlanIntakeAfsprakenServiceImpl.class);
-
-	@Autowired
-	@Qualifier("maximumSecondsSpend")
-	private Long maximumSecondsSpend = 120L;
-
-	@Override
-	public List<ClientAfspraak> planIntakeAfspraken(List<ClientAfspraak> clienten, List<VrijSlot> vrijeSloten, StringBuilder planningResultaat)
-	{
-		return planIntakeAfspraken(clienten, vrijeSloten, planningResultaat, this.maximumSecondsSpend);
-	}
 
 	@Override
 	public List<ClientAfspraak> planIntakeAfspraken(List<ClientAfspraak> clienten, List<VrijSlot> vrijeSloten, StringBuilder planningResultaat, Long maximumSecondsSpend)

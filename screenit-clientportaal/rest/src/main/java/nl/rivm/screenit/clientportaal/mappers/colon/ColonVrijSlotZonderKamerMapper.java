@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.mappers.colon;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,8 +21,8 @@ package nl.rivm.screenit.clientportaal.mappers.colon;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.clientportaal.mappers.config.ScreenitMapperConfig;
 import nl.rivm.screenit.clientportaal.model.colon.ColonVrijSlotZonderKamerDto;
+import nl.rivm.screenit.mappers.config.ScreenitMapperConfig;
 import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamer;
 
 import org.mapstruct.Mapper;

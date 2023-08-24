@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,7 @@
 import styles from "./LocatieVerificatieMeldingComponent.module.scss"
 import {useAppSelector} from "../../../index"
 import {Col, Row} from "react-bootstrap"
-import {useState} from "react"
+import React, {useState} from "react"
 import {LocatieVerificatieDto} from "../../../state/datatypes/dto/LocatieVerificatieDto"
 import LocatieVerificatieModal from "./LocatieVerificatieModal"
 import properties from "./LocatieVerificatieMeldingComponent.json"

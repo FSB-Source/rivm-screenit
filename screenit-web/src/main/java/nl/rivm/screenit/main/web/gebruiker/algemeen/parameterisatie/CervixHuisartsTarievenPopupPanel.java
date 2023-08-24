@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -65,7 +65,7 @@ public abstract class CervixHuisartsTarievenPopupPanel extends GenericPanel<Cerv
 		super(id, ModelUtil.ccModel(new CervixHuisartsTarief()));
 
 		CervixHuisartsTarief tarief = getModelObject();
-		CervixHuisartsTarief latest = verrichtingDao.getLatestCervixHuisartsTarief();
+		CervixHuisartsTarief latest = verrichtingDao.getLatestHuisartsTarief();
 		if (latest != null)
 		{
 			tarief.setTarief(latest.getTarief());
@@ -94,7 +94,7 @@ public abstract class CervixHuisartsTarievenPopupPanel extends GenericPanel<Cerv
 			protected void onSubmit(AjaxRequestTarget target)
 			{
 				CervixHuisartsTarief tarief = (CervixHuisartsTarief) ModelProxyHelper.deproxy(form.getModelObject());
-				if (verrichtingDao.getCervixHuisartsTarief(tarief.getGeldigVanafDatum()) != null)
+				if (verrichtingDao.getHuisartsTarief(tarief.getGeldigVanafDatum()) != null)
 				{
 					error("Er is al een tarief met dezelfde geldig vanaf datum, selecteer een andere datum.");
 				}

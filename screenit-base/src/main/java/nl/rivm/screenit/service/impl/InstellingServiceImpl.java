@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,22 +22,14 @@ package nl.rivm.screenit.service.impl;
  */
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.Nonnull;
 
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.CoordinatenDao;
 import nl.rivm.screenit.dao.InstellingDao;
 import nl.rivm.screenit.dto.mamma.planning.PlanningScreeningsOrganisatieDto;
@@ -47,14 +39,11 @@ import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.OrganisatieParameter;
-import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.PostcodeCoordinaten;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.ZASRetouradres;
-import nl.rivm.screenit.model.colon.AntedateerRange;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.IFobtLaboratorium;
 import nl.rivm.screenit.model.colon.Kamer;
@@ -64,12 +53,12 @@ import nl.rivm.screenit.model.colon.planning.TypeAfspraak;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.repository.ScreeningOrganisatieRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseConceptPlanningsApplicatie;
-import nl.rivm.screenit.util.BigDecimalUtil;
 import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.rivm.screenit.util.MedewerkerUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -80,20 +69,21 @@ import nl.topicuszorg.wicket.planning.model.appointment.definition.ActionType;
 import nl.topicuszorg.wicket.planning.model.schedule.ScheduleSet;
 
 import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import ca.uhn.hl7v2.util.StringUtil;
-
 @Slf4j
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class InstellingServiceImpl implements InstellingService
 {
+
+	private static final String GEEN_WAARDE = "(geen waarde)";
+
 	@Autowired
 	private InstellingDao instellingDao;
 
@@ -114,6 +104,9 @@ public class InstellingServiceImpl implements InstellingService
 
 	@Autowired(required = false)
 	private MammaBaseConceptPlanningsApplicatie baseConceptPlanningsApplicatie;
+
+	@Autowired
+	private ScreeningOrganisatieRepository screeningOrganisatieRepository;
 
 	@Override
 	public List<CentraleEenheid> getMogelijkeCentraleEenheden(Instelling instelling)
@@ -138,7 +131,7 @@ public class InstellingServiceImpl implements InstellingService
 	}
 
 	@Override
-	public List<InstellingGebruiker> getActieveInstellingGebruikers(Gebruiker medewerker)
+	public List<InstellingGebruiker> getActieveInstellingGebruikers(@NotNull Gebruiker medewerker)
 	{
 		return instellingDao.getActieveInstellingGebruikers(medewerker);
 	}
@@ -210,11 +203,11 @@ public class InstellingServiceImpl implements InstellingService
 		screeningsOrganisatieDto.minimaleDagCapaciteitMinderValideAfspraken = screeningOrganisatie.getMinimaleDagCapaciteitMinderValideAfspraken();
 		baseConceptPlanningsApplicatie.updateScreeningsOrganisatie(screeningsOrganisatieDto);
 
-		String oudeAfspraakDrempelBk = EntityAuditUtil.getDiffFieldToLatestVersion(screeningOrganisatie, "afspraakDrempelBk", hibernateService.getHibernateSession());
+		String oudeAfspraakDrempelBk = EntityAuditUtil.getDiffFieldsToLatestVersion(screeningOrganisatie, hibernateService.getHibernateSession(), "afspraakDrempelBk");
 		if (!oudeAfspraakDrempelBk.equals(""))
 		{
 			oudeAfspraakDrempelBk = oudeAfspraakDrempelBk.split(" -> ")[0].split(": ")[1];
-			if (!"(geen waarde)".equals(oudeAfspraakDrempelBk))
+			if (!GEEN_WAARDE.equals(oudeAfspraakDrempelBk))
 			{
 				oudeAfspraakDrempelBk += "%";
 			}
@@ -226,7 +219,7 @@ public class InstellingServiceImpl implements InstellingService
 			}
 			else
 			{
-				nieuweAfspraakDrempelBk = "(geen waarde)";
+				nieuweAfspraakDrempelBk = GEEN_WAARDE;
 			}
 
 			if (!oudeAfspraakDrempelBk.equals(nieuweAfspraakDrempelBk))
@@ -247,7 +240,7 @@ public class InstellingServiceImpl implements InstellingService
 		if (organisatie instanceof ColoscopieCentrum)
 		{
 			ColoscopieCentrum coloscopieCentrum = (ColoscopieCentrum) organisatie;
-			if (coloscopieCentrum.getAfspraakDefinities().size() == 0)
+			if (coloscopieCentrum.getAfspraakDefinities().isEmpty())
 			{
 				List<Discipline> disciplines = hibernateService.loadAll(Discipline.class);
 
@@ -312,7 +305,7 @@ public class InstellingServiceImpl implements InstellingService
 	@Override
 	public List<ScreeningOrganisatie> getAllActiefScreeningOrganisaties()
 	{
-		return instellingDao.getActieveInstellingen(ScreeningOrganisatie.class);
+		return screeningOrganisatieRepository.findAllByActiefTrueOrderByNaam();
 	}
 
 	@Override
@@ -337,7 +330,6 @@ public class InstellingServiceImpl implements InstellingService
 			for (InstellingGebruiker instellingGebruiker : instelling.getOrganisatieMedewerkers())
 			{
 				final Gebruiker medewerker = instellingGebruiker.getMedewerker();
-				final Date now = currentDateSupplier.getDate();
 				if (BooleanUtils.isNotFalse(instellingGebruiker.getActief()) && MedewerkerUtil.isMedewerkerActief(medewerker, currentDateSupplier.getDate())
 					&& !gebruikers.contains(medewerker))
 				{
@@ -350,7 +342,7 @@ public class InstellingServiceImpl implements InstellingService
 	}
 
 	@Override
-	public List<Instelling> getPathologieLabs(Instelling instelling)
+	public List<Instelling> getPathologieLabs(@NotNull Instelling instelling)
 	{
 		return instellingDao.getPathologieLabs(instelling);
 	}
@@ -408,127 +400,9 @@ public class InstellingServiceImpl implements InstellingService
 	}
 
 	@Override
-	public boolean isErEenOverlappendeAntedateerRange(AntedateerRange nieuweRange)
+	public ScreeningOrganisatie getScreeningOrganisatie(long screeningOrganisatieId)
 	{
-		return instellingDao.isErEenOverlappendeAntedateerRange(nieuweRange);
+		return screeningOrganisatieRepository.findById(screeningOrganisatieId).orElseThrow();
 	}
 
-	@Override
-	public <T> T getOrganisatieParameter(Instelling organisatie, OrganisatieParameterKey parameterKey)
-	{
-		return getOrganisatieParameter(organisatie, parameterKey, null);
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public <T> T getOrganisatieParameter(Instelling organisatie, OrganisatieParameterKey parameterKey, T defaultValue)
-	{
-		Map<String, Object> queryParams = new HashMap<>();
-		queryParams.put("key", parameterKey);
-
-		if (organisatie == null)
-		{
-			List<Instelling> organisaties = getInstellingByOrganisatieTypes(List.of(parameterKey.getOrganisatieType()));
-			if (!organisaties.isEmpty())
-			{
-				organisatie = organisaties.get(0);
-			}
-		}
-		if (organisatie != null)
-		{
-			queryParams.put("organisatie", organisatie.getId());
-		}
-
-		OrganisatieParameter orgParam = hibernateService.getUniqueByParameters(OrganisatieParameter.class, queryParams);
-		T value = null;
-		if (orgParam != null && orgParam.getValue() != null)
-		{
-			String orgParamValue = orgParam.getValue();
-			Class<?> valueType = parameterKey.getValueType();
-			if (valueType.equals(Integer.class) && StringUtils.isNumeric(orgParamValue))
-			{
-				value = (T) Integer.valueOf(orgParamValue);
-			}
-			else if (valueType.equals(BigDecimal.class))
-			{
-				value = (T) BigDecimalUtil.stringToBigDecimal(orgParamValue, Constants.LOCALE_NL);
-			}
-			else if (valueType.equals(String.class))
-			{
-				value = (T) orgParamValue;
-			}
-			else if (valueType.equals(Boolean.class))
-			{
-				value = (T) Boolean.valueOf(orgParamValue);
-			}
-			else
-			{
-				throw new IllegalArgumentException("Type " + valueType + " not supported");
-			}
-		}
-		if (value == null)
-		{
-			value = defaultValue;
-		}
-		return value;
-	}
-
-	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
-	public void saveOrUpdateOrganisatieParameters(List<OrganisatieParameter> parameters, InstellingGebruiker loggedInInstellingGebruiker)
-	{
-		Set<Instelling> instellingenToSave = new HashSet<>();
-		Set<Bevolkingsonderzoek> bvos = new HashSet<>();
-		List<String> nieuweValues = new ArrayList<>();
-		for (OrganisatieParameter parameter : parameters)
-		{
-			String value = parameter.getValue();
-			if (parameter.getId() == null)
-			{
-				value = nieuwValue(instellingenToSave, parameter, value);
-			}
-			else
-			{
-				value = updateBestaandeValue(parameter, value);
-			}
-			if (value != null)
-			{
-				nieuweValues.add("'" + parameter.getParameterNaam() + "' -> '" + value + "' voor '" + parameter.getOrganisatie().getNaam() + "'");
-			}
-			bvos.addAll(Arrays.asList(parameter.getKey().getBevolkingsonderzoeken()));
-
-		}
-		hibernateService.saveOrUpdateAll(parameters);
-		hibernateService.saveOrUpdateAll(instellingenToSave);
-		if (nieuweValues.size() > 0)
-		{
-			logService.logGebeurtenis(LogGebeurtenis.PARAMETERISATIE_WIJZIG, loggedInInstellingGebruiker, "Nieuwe waarde(n): " + StringUtils.join(nieuweValues, ", "),
-				bvos.toArray(new Bevolkingsonderzoek[bvos.size()]));
-		}
-	}
-
-	private String updateBestaandeValue(OrganisatieParameter parameter, String value)
-	{
-		String diffFieldToLatestVersion = EntityAuditUtil.getDiffFieldToLatestVersion(parameter, "value", hibernateService.getHibernateSession());
-		if (StringUtil.isBlank(diffFieldToLatestVersion))
-		{
-			value = null;
-		}
-		else if (StringUtils.isBlank(value))
-		{
-			value = "(geen waarde)";
-		}
-		return value;
-	}
-
-	private String nieuwValue(Set<Instelling> instellingenToSave, OrganisatieParameter parameter, String value)
-	{
-		parameter.getOrganisatie().getParameters().add(parameter);
-		instellingenToSave.add(parameter.getOrganisatie());
-		if (StringUtils.isBlank(value))
-		{
-			value = "(geen waarde)";
-		}
-		return value;
-	}
 }

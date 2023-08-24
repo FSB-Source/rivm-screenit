@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.batch.jobs.cervix.brieven.client.genererenstep;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,6 +29,7 @@ import nl.rivm.screenit.model.cervix.CervixBrief;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.hibernate.Criteria;
@@ -67,7 +67,7 @@ public class CervixBrievenGenererenReader extends AbstractBrievenGenererenReader
 		case CERVIX_VOLGEND_MONSTER_CYTOLOGIE_AFWIJKING:
 		case CERVIX_CONTROLEUITSTRIJKJE_AFWIJKING:
 			crit.add(Restrictions.le("creatieDatum",
-				currentDateSupplier.getDateTime().minusDays(preferenceService.getInteger(PreferenceKey.CERVIX_UITSTEL_UITSLAGBRIEF_PAP3A2_OF_HOGER.toString())).toDate()));
+				DateUtil.minDagen(currentDateSupplier.getDate(), preferenceService.getInteger(PreferenceKey.CERVIX_UITSTEL_UITSLAGBRIEF_PAP3A2_OF_HOGER.toString()))));
 			break;
 		}
 

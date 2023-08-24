@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,6 +32,7 @@ import java.util.Map;
 
 import nl.rivm.screenit.model.AanvraagBriefStatus;
 import nl.rivm.screenit.model.Afmelding;
+import nl.rivm.screenit.model.AfmeldingType;
 import nl.rivm.screenit.model.BezwaarMoment;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientGebeurtenis;
@@ -72,11 +73,12 @@ import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaUitstelReden;
 import nl.rivm.screenit.service.BaseClientGebeurtenisService;
 import nl.rivm.screenit.service.BaseDossierAuditService;
+import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.util.BezwaarUtil;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.IFOBTTestUtil;
+import nl.rivm.screenit.util.FITTestUtil;
 
 import org.hibernate.envers.query.AuditEntity;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,6 +97,9 @@ public class BaseClientGebeurtenisServiceImpl implements BaseClientGebeurtenisSe
 
 	@Autowired
 	private BaseDossierAuditService dossierAuditService;
+
+	@Autowired
+	private ColonDossierBaseService colonDossierBaseService;
 
 	@Override
 	public List<ClientGebeurtenis> getClientColonGebeurtenissen(Client client)
@@ -165,7 +170,7 @@ public class BaseClientGebeurtenisServiceImpl implements BaseClientGebeurtenisSe
 						gebeurtenissen.add(gebeurtenis);
 					}
 				}
-				IFOBTTest buis = IFOBTTestUtil.getIfobtTest(colonUitnodiging);
+				IFOBTTest buis = FITTestUtil.getFITTest(colonUitnodiging);
 				if (buis != null && IFOBTTestStatus.VERLOREN.equals(buis.getStatus()) && colonUitnodiging.getRetourzendingReden() == null)
 				{
 					ClientGebeurtenis gebeurtenis = new ClientGebeurtenis();
@@ -210,6 +215,7 @@ public class BaseClientGebeurtenisServiceImpl implements BaseClientGebeurtenisSe
 			}
 
 			clientEenmaligeAfmeldingGebeurtenissen(gebeurtenissen, colonScreeningRonde);
+			clientTijdelijkeAfmeldingGebeurtenissen(gebeurtenissen, colonScreeningRonde);
 		}
 		clientDefinitiefAfmeldingGebeurtenissen(gebeurtenissen, colonDossier);
 		clientBezwaarGebeurtenissen(client, gebeurtenissen, Bevolkingsonderzoek.COLON);
@@ -421,19 +427,57 @@ public class BaseClientGebeurtenisServiceImpl implements BaseClientGebeurtenisSe
 	{
 		for (A afmelding : screeningRonde.getAfmeldingen())
 		{
-			if (!Boolean.TRUE.equals(afmelding.getImplicieteAfmelding()))
+			if (AfmeldingType.EENMALIG.equals(afmelding.getType()))
 			{
-				ClientGebeurtenis gebeurtenis = new ClientGebeurtenis();
-				gebeurtenis.setType(ClientGebeurtenisType.EENMALIGE_AFMELDING);
-				gebeurtenis.setDatum(afmelding.getAfmeldDatum());
-				gebeurtenissen.add(gebeurtenis);
+				if (Boolean.FALSE.equals(afmelding.getImplicieteAfmelding()))
+				{
+					ClientGebeurtenis gebeurtenis = new ClientGebeurtenis();
+					gebeurtenis.setType(ClientGebeurtenisType.EENMALIGE_AFMELDING);
+					gebeurtenis.setDatum(afmelding.getAfmeldDatum());
+					gebeurtenissen.add(gebeurtenis);
+				}
+				if (afmelding.getHeraanmeldDatum() != null && Boolean.FALSE.equals(afmelding.getImplicieteHeraanmelding()))
+				{
+					ClientGebeurtenis gebeurtenis = new ClientGebeurtenis();
+					gebeurtenis.setType(ClientGebeurtenisType.HERAANMELDING);
+					gebeurtenis.setDatum(afmelding.getHeraanmeldDatum());
+					gebeurtenissen.add(gebeurtenis);
+				}
 			}
-			if (afmelding.getHeraanmeldDatum() != null && !Boolean.TRUE.equals(afmelding.getImplicieteHeraanmelding()))
+		}
+	}
+
+	private <A extends Afmelding<?, ?, ?>, S extends ScreeningRonde<?, ?, A, ?>> void clientTijdelijkeAfmeldingGebeurtenissen(List<ClientGebeurtenis> gebeurtenissen,
+		S screeningRonde)
+	{
+		var dossier = (ColonDossier) screeningRonde.getDossier();
+		for (A afmelding : screeningRonde.getAfmeldingen())
+		{
+			if (AfmeldingType.TIJDELIJK.equals(afmelding.getType()))
 			{
-				ClientGebeurtenis gebeurtenis = new ClientGebeurtenis();
-				gebeurtenis.setType(ClientGebeurtenisType.HERAANMELDING);
-				gebeurtenis.setDatum(afmelding.getHeraanmeldDatum());
-				gebeurtenissen.add(gebeurtenis);
+				if (Boolean.FALSE.equals(afmelding.getImplicieteAfmelding()) && afmelding.getAfmeldingStatus() == AanvraagBriefStatus.VERWERKT)
+				{
+					var gebeurtenis = new ClientGebeurtenis();
+					gebeurtenis.setType(ClientGebeurtenisType.TIJDELIJKE_AFMELDING);
+					gebeurtenis.setDatum(afmelding.getAfmeldDatum());
+					if (dossier.getVolgendeUitnodiging() != null && dossier.getVolgendeUitnodiging().getDatumVolgendeRonde() != null)
+					{
+						gebeurtenis.setExtraParam(
+							"</br>U krijgt automatisch een nieuwe uitnodiging in " + dossier.getVolgendeUitnodiging().getDatumVolgendeRonde().getYear() + ".");
+					}
+					else
+					{
+						gebeurtenis.setExtraParam("</br>");
+					}
+					gebeurtenissen.add(gebeurtenis);
+				}
+				if (afmelding.getHeraanmeldDatum() != null && Boolean.FALSE.equals(afmelding.getImplicieteHeraanmelding()))
+				{
+					var gebeurtenis = new ClientGebeurtenis();
+					gebeurtenis.setType(ClientGebeurtenisType.HERAANMELDING);
+					gebeurtenis.setDatum(afmelding.getHeraanmeldDatum());
+					gebeurtenissen.add(gebeurtenis);
+				}
 			}
 		}
 	}

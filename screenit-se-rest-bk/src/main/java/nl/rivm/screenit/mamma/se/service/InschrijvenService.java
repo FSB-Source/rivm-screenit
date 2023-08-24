@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.service;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,12 +28,13 @@ import nl.rivm.screenit.mamma.se.dto.MammaHuisartsDto;
 import nl.rivm.screenit.mamma.se.dto.actions.InschrijvenDto;
 import nl.rivm.screenit.mamma.se.dto.actions.SetEmailAdresDto;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 
 public interface InschrijvenService
 {
-	void inschrijven(InschrijvenDto action, InstellingGebruiker instellingGebruiker, LocalDateTime transactieDatumTijd);
+	void inschrijven(InschrijvenDto action, InstellingGebruiker instellingGebruiker, LocalDateTime transactieDatumTijd, MammaScreeningsEenheid screeningsEenheid);
 
-	void inschrijvingWijzigen(InschrijvenDto action, InstellingGebruiker instellingGebruiker);
+	void inschrijvingWijzigen(InschrijvenDto action, InstellingGebruiker instellingGebruiker, LocalDateTime transactieDatumTijd, MammaScreeningsEenheid screeningsEenheid);
 
 	List<MammaHuisartsDto> getAllHuisartsen();
 

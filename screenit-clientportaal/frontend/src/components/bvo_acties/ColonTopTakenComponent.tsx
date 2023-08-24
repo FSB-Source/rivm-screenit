@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,25 +35,31 @@ import AfspraakIcon from "../../scss/media/icons_toptaken/AfspraakIcon/AfspraakI
 import HuisartsIcon from "../../scss/media/icons_toptaken/HuisartsIcon/HuisartsIcon"
 
 export type ColonTopTakenComponentProps = {
-    className?: string
-    getTekstHuisartsToptaak: (huisartsHuidigeRondeIsBekend: boolean, huisartsVorigeRondeIsBekend: boolean) => "controleren" | "wijzigen" | "opgeven"
-    beschikbareActies: ClientContactActieType[]
+	className?: string
+	getTekstHuisartsToptaak: (huisartsHuidigeRondeIsBekend: boolean, huisartsVorigeRondeIsBekend: boolean) => "controleren" | "wijzigen" | "opgeven"
+	beschikbareActies: ClientContactActieType[]
 }
 
 const ColonTopTakenComponent = (props: ColonTopTakenComponentProps) => {
 
-    const dispatch = useThunkDispatch()
-    const huisartsVorigeRondeIsBekend = useSelector((state: State) => !!state.client.colonDossier.huisartsVorigeRonde)
-    const huisartsHuidigeRondeIsBekend = useSelector((state: State) => !!state.client.colonDossier.huisartsHuidigeRonde)
+	const dispatch = useThunkDispatch()
+	const huisartsVorigeRondeIsBekend = useSelector((state: State) => !!state.client.colonDossier.huisartsVorigeRonde)
+	const huisartsHuidigeRondeIsBekend = useSelector((state: State) => !!state.client.colonDossier.huisartsHuidigeRonde)
+	const persoon = useSelector((state: State) => state.client.persoon)
+	const magNieuweAfspraakMaken = useSelector((state: State) =>
+		props.beschikbareActies.includes(ClientContactActieType.COLON_NIEUWE_AFSPRAAK_AANMAKEN)
+		&& (state.client.colonDossier.intakeAfspraak?.afspraakAfgezegd
+			|| state.client.colonDossier.intakeAfspraak?.andereIntakelocatieOpVerzoekClient),
+	)
 
-    useEffect(() => {
-        dispatch(getVorigeHuisarts(Bevolkingsonderzoek.COLON))
-        dispatch(getHuidigeHuisarts(Bevolkingsonderzoek.COLON))
-    }, [dispatch])
+	useEffect(() => {
+		dispatch(getVorigeHuisarts(Bevolkingsonderzoek.COLON))
+		dispatch(getHuidigeHuisarts(Bevolkingsonderzoek.COLON))
+	}, [dispatch])
 
-    return (
-        <Row className={props.className}>
-			{props.beschikbareActies.includes(ClientContactActieType.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN) && <Col lg={4}>
+	return (
+		<Row className={props.className}>
+			{props.beschikbareActies.includes(ClientContactActieType.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN) && persoon.vertrokkenUitNederland === false && <Col lg={4}>
 				<TopTaakComponent icon={<AfspraakIcon/>}
 								  link="/colon/afspraak-wijzigen/"
 								  titel={getString(properties.afspraak.verzetten)}/>
@@ -63,6 +69,12 @@ const ColonTopTakenComponent = (props: ColonTopTakenComponentProps) => {
 								  link="/colon/afzeggen/"
 								  titel={getString(properties.afspraak.afzeggen)}/>
 			</Col>}
+			{magNieuweAfspraakMaken &&
+				<Col lg={4}>
+					<TopTaakComponent icon={<AfspraakIcon/>}
+									  link="/colon/afspraak-maken/"
+									  titel={getString(properties.afspraak.aanmaken)}/>
+				</Col>}
 			{props.beschikbareActies.includes(ClientContactActieType.COLON_HERAANMELDEN) && <Col lg={4}>
 				<TopTaakComponent icon={<HeraanmeldenIcon/>}
 								  link="/colon/heraanmelden/"
@@ -79,7 +91,7 @@ const ColonTopTakenComponent = (props: ColonTopTakenComponentProps) => {
 								  titel={getString(properties.fit_aanvragen)}/>
 			</Col>}
 		</Row>
-    )
+	)
 }
 
 export default ColonTopTakenComponent

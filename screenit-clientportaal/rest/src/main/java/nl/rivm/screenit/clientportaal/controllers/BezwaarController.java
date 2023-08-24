@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.controllers;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.mappers.BezwaarMapper;
 import nl.rivm.screenit.clientportaal.model.BezwaarDto;
 import nl.rivm.screenit.clientportaal.services.BezwaarValidatieService;
@@ -34,8 +36,9 @@ import nl.rivm.screenit.model.ClientContactActieType;
 import nl.rivm.screenit.model.algemeen.BezwaarGroupViewWrapper;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.service.BezwaarService;
+import nl.rivm.screenit.service.ClientContactService;
+import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -50,24 +53,26 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("bezwaar")
+@AllArgsConstructor
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class BezwaarController extends AbstractController
 {
-	@Autowired
-	private BezwaarService bezwaarService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private BezwaarValidatieService bezwaarValidatieService;
+	private final ClientContactService clientContactService;
 
-	@Autowired
-	private BezwaarMapper mapper;
+	private final BezwaarService bezwaarService;
+
+	private final BezwaarValidatieService bezwaarValidatieService;
+
+	private final BezwaarMapper mapper;
 
 	@GetMapping(value = "/{bevolkingsonderzoek}")
 	public ResponseEntity<List<BezwaarDto>> getBezwaren(@PathVariable Bevolkingsonderzoek bevolkingsonderzoek, Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.BEZWAAR))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.BEZWAAR))
 		{
 			bezwaarValidatieService.valideerOfClientBehoortTotDoelgroep(client, bevolkingsonderzoek);
 
@@ -90,9 +95,9 @@ public class BezwaarController extends AbstractController
 	public ResponseEntity<List<BezwaarDto>> saveBezwaren(@PathVariable Bevolkingsonderzoek bevolkingsonderzoek, @RequestBody BezwaarDto[] bezwaarDtos,
 		Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.BEZWAAR))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.BEZWAAR))
 		{
 			bezwaarValidatieService.valideerOfClientBehoortTotDoelgroep(client, bevolkingsonderzoek);
 			bezwaarValidatieService.valideerBezwaarType(bezwaarDtos);

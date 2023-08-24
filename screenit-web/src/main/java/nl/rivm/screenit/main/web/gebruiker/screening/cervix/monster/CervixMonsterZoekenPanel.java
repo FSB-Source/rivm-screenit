@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.monster;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,22 +22,18 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.monster;
  */
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
-import nl.rivm.screenit.dao.cervix.CervixMonsterDao;
+import nl.rivm.screenit.main.service.cervix.CervixUitnodigingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.TablePerClassHibernateObject;
-import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
-import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.LogService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.input.validator.BSNValidator;
@@ -57,16 +53,11 @@ import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
 public abstract class CervixMonsterZoekenPanel extends Panel
 {
-	private static final long serialVersionUID = 1L;
-
-	@SpringBean
-	private ClientService clientService;
-
 	@SpringBean
 	private LogService logService;
 
 	@SpringBean
-	private CervixMonsterDao monsterDao;
+	private CervixUitnodigingService monstersZoekenService;
 
 	private CervixUitnodigingenPanel uitnodigingenPanel;
 
@@ -82,10 +73,10 @@ public abstract class CervixMonsterZoekenPanel extends Panel
 
 	private DatePicker<Date> geboortedatumField;
 
-	public CervixMonsterZoekenPanel(String id)
+	protected CervixMonsterZoekenPanel(String id)
 	{
 		super(id);
-		Form form = new Form<>("form");
+		var form = new Form<>("form");
 		add(form);
 
 		monsterIdField = new TextField<>("monsterId", monsterIdModel);
@@ -113,109 +104,28 @@ public abstract class CervixMonsterZoekenPanel extends Panel
 
 		AjaxSubmitLink zoekenButton = new AjaxSubmitLink("zoeken")
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
+				var monsterId = monsterIdModel.getObject();
+				var bsn = bsnModel.getObject();
+				var geboortedatum = geboortedatumModel.getObject();
 
-				final String monsterId = monsterIdModel.getObject();
-				final String bsn = bsnModel.getObject();
-				final Date geboortedatum = geboortedatumModel.getObject();
-
-				final int aantalIngevuldeVelden = (StringUtils.isBlank(monsterId) ? 0 : 1) + (StringUtils.isBlank(bsn) ? 0 : 1) + (geboortedatum == null ? 0 : 1);
-				if (aantalIngevuldeVelden < 2)
+				var uitnodigingen = new ArrayList<CervixUitnodiging>();
+				var melding = monstersZoekenService.zoekMonsters(ScreenitSession.get().getInstelling(), monsterId, bsn, geboortedatum, uitnodigingen, this::getString);
+				if (StringUtils.isNotBlank(melding))
 				{
-					error(getString("minstens.2.velden"));
-					return;
+					error(melding);
 				}
-
-				if (StringUtils.isNotBlank(monsterId))
-				{
-					if (monsterId.charAt(0) == 'Z')
-					{
-						final String monsterNummer = monsterId.substring(1);
-						if (!StringUtils.isNumeric(monsterNummer))
-						{
-							error(getString("nummer.invullen.na.z"));
-							return;
-						}
-					}
-					else if (!StringUtils.isNumeric(monsterId))
-					{
-						error(getString("nummer.invullen"));
-						return;
-					}
-				}
-				if (StringUtils.isNotBlank(bsn) && !StringUtils.isNumeric(bsn))
-				{
-					error(getString("bsn.geen.nummer"));
-					return;
-				}
-
-				if (StringUtils.isNotBlank(monsterId))
-				{
-					CervixMonster monster = monsterDao.getMonsterByMonsterId(monsterId);
-					if (monster == null)
-					{
-						error(getString("geen.met.monster.id"));
-						return;
-					}
-					final Client client = monster.getUitnodiging().getScreeningRonde().getDossier().getClient();
-					final GbaPersoon persoon = client.getPersoon();
-					if (StringUtils.isNotBlank(bsn) && !bsn.equals(persoon.getBsn()))
-					{
-						error(getString("geen.met.monster.id.en.bsn"));
-						return;
-					}
-					if (geboortedatum != null && !geboortedatum.equals(persoon.getGeboortedatum()))
-					{
-						error(getString("geen.met.monster.id.en.geboortedatum"));
-						return;
-					}
-					toonUitnodigingen(target, client, Arrays.asList(monster.getUitnodiging()));
-					return;
-				}
-
-				Client client = clientService.getClientByBsn(bsn);
-				if (client == null)
-				{
-					error(getString("bsn.onbekend"));
-					return;
-				}
-				else if (!client.getPersoon().getGeboortedatum().equals(geboortedatum))
-				{
-					error(getString("geen.met.bsn.en.geboortedatum"));
-					return;
-				}
-				else
-				{
-					List<CervixUitnodiging> uitnodigingen = new ArrayList<>();
-					if (client.getCervixDossier() != null && client.getCervixDossier().getLaatsteScreeningRonde() != null
-						&& client.getCervixDossier().getLaatsteScreeningRonde().getUitnodigingen() != null)
-					{
-
-						for (CervixUitnodiging uitnodiging : client.getCervixDossier().getLaatsteScreeningRonde().getUitnodigingen())
-						{
-							if (uitnodiging.getMonster() != null)
-							{
-								uitnodigingen.add(uitnodiging);
-							}
-						}
-					}
-					toonUitnodigingen(target, client, uitnodigingen);
-					return;
-				}
+				toonUitnodigingen(target, uitnodigingen);
 			}
+
 		};
 		form.add(zoekenButton);
 		form.setDefaultButton(zoekenButton);
 
 		add(new AjaxLink<Void>("close")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -224,12 +134,16 @@ public abstract class CervixMonsterZoekenPanel extends Panel
 		});
 	}
 
-	private void toonUitnodigingen(AjaxRequestTarget target, Client client, List<CervixUitnodiging> uitnodigingen)
+	private void toonUitnodigingen(AjaxRequestTarget target, List<CervixUitnodiging> uitnodigingen)
 	{
 		uitnodigingen.sort(Comparator.comparing(TablePerClassHibernateObject::getId));
 		uitnodigingenPanel.replaceUitnodigingenPanel(target, uitnodigingen);
-		logService.logGebeurtenis(LogGebeurtenis.CERVIX_UITNODIGINGEN_INGEZIEN, ScreenitSession.get().getLoggedInAccount(), client, getString("titel"),
-			Bevolkingsonderzoek.CERVIX);
+		if (!uitnodigingen.isEmpty())
+		{
+			Client client = uitnodigingen.get(0).getScreeningRonde().getDossier().getClient();
+			logService.logGebeurtenis(LogGebeurtenis.CERVIX_UITNODIGINGEN_INGEZIEN, ScreenitSession.get().getLoggedInAccount(), client, getString("titel"),
+				Bevolkingsonderzoek.CERVIX);
+		}
 	}
 
 	public abstract void setUitnodiging(AjaxRequestTarget target, CervixUitnodiging uitnodiging);

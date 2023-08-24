@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.intake.afsprakenmakenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -56,11 +56,11 @@ import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonHuisartsBerichtService;
 import nl.rivm.screenit.util.BigDecimalUtil;
 import nl.rivm.screenit.util.ColonScreeningRondeUtil;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.item.ItemWriter;
@@ -114,7 +114,7 @@ public class IntakeAfsprakenMakenWriter implements ItemWriter<ClientAfspraak>
 
 			intakeafspraakperiode = AANTAL_DAGEN; 
 		}
-		DateTime nuPlusIntake = currentDateSupplier.getDateTime().plusDays(intakeafspraakperiode);
+		var nuPlusIntake = currentDateSupplier.getLocalDateTime().plusDays(intakeafspraakperiode);
 
 		var executionContext = stepExecution.getJobExecution().getExecutionContext();
 		var intakeMelding = (IntakeMakenLogEvent) executionContext.get(IntakeAfsprakenMakenConstants.RAPPORTAGEKEYINTAKE);
@@ -152,7 +152,7 @@ public class IntakeAfsprakenMakenWriter implements ItemWriter<ClientAfspraak>
 						var gbaGemeente = persoon.getGbaAdres().getGbaGemeente();
 
 						var newAfspraak = new ColonIntakeAfspraak();
-						DateTime startDatumTijd = new DateTime(vrijSlot.getStartTijd());
+						var startDatumTijd = DateUtil.toLocalDateTime(vrijSlot.getStartTijd());
 						LOG.trace("Voor client wordt een intake afspraak gemaakt (id " + clientId + ")");
 						newAfspraak.setColonScreeningRonde(screeningRonde);
 						newAfspraak.setClient(client);

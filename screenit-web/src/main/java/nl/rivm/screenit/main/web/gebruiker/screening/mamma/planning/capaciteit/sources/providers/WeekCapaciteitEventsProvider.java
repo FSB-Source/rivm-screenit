@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit.
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,22 +22,19 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit.
  */
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 import nl.rivm.screenit.dto.mamma.planning.PlanningCapaciteitBlokDto;
 import nl.rivm.screenit.main.web.component.fullcalendar.event.Event;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit.sources.ScreenITEventSourceFactory;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.util.BigDecimalUtil;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
-
-import org.joda.time.DateTime;
 
 public class WeekCapaciteitEventsProvider extends AbstractScreenITEventProvider
 {
-
-	private static final long serialVersionUID = 1L;
-
-	private ScreenITEventSourceFactory screenITEventSourceFactory;
+	private final ScreenITEventSourceFactory screenITEventSourceFactory;
 
 	public WeekCapaciteitEventsProvider(ScreenITEventSourceFactory screenITEventSourceFactory)
 	{
@@ -45,7 +42,7 @@ public class WeekCapaciteitEventsProvider extends AbstractScreenITEventProvider
 	}
 
 	@Override
-	public void createEvents(DateTime start, DateTime end)
+	public void createEvents(Date start, Date end)
 	{
 		screenITEventSourceFactory.resetCapaciteit(start);
 		ScreeningOrganisatie regio = (ScreeningOrganisatie) HibernateHelper
@@ -62,12 +59,12 @@ public class WeekCapaciteitEventsProvider extends AbstractScreenITEventProvider
 			switch (blok.blokType)
 			{
 			case REGULIER:
-				topRight = "<span class=\"label pull-right\" style=\"background-color:#540272\">" + blok.aantalOnderzoeken + "</span>";
+				topRight = "<span class=\"label pull-right background-paars\" >" + blok.aantalOnderzoeken + "</span>";
 				break;
 			case TEHUIS:
-				topRight = "<span class=\"label pull-right\" style=\"background-color:#540272;\">"
+				topRight = "<span class=\"label pull-right background-paars\">"
 					+ BigDecimalUtil.decimalToString(regio.getFactorDubbeleTijdBk().multiply(new BigDecimal(blok.aantalOnderzoeken)))
-					+ "</span><span class=\"label pull-right\" style=\"background-color:#8E7B00; margin-right:2px;\">" + blok.aantalOnderzoeken + "</span>";
+					+ "</span><span class=\"label pull-right week-capaciteit-tehuis\">" + blok.aantalOnderzoeken + "</span>";
 				break;
 			case GEEN_SCREENING:
 				title = blok.opmerkingen;
@@ -76,8 +73,8 @@ public class WeekCapaciteitEventsProvider extends AbstractScreenITEventProvider
 
 			boolean inConcept = blok.conceptId != null;
 
-			event.setStart(new DateTime(blok.vanaf));
-			event.setEnd(new DateTime(blok.tot));
+			event.setStart(DateUtil.toLocalDateTime(blok.vanaf));
+			event.setEnd(DateUtil.toLocalDateTime(blok.tot));
 			event.setTopRight(topRight);
 			event.setTitle(title);
 			event.setEditable(inConcept);

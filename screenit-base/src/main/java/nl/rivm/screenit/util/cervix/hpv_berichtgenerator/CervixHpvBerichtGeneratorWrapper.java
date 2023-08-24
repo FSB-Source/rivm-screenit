@@ -4,7 +4,7 @@ package nl.rivm.screenit.util.cervix.hpv_berichtgenerator;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,8 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
+import nl.rivm.screenit.model.cervix.enums.CervixHpvResultaatBerichtBron;
+
 @Getter
 @Setter
 public class CervixHpvBerichtGeneratorWrapper implements Serializable
@@ -39,5 +41,7 @@ public class CervixHpvBerichtGeneratorWrapper implements Serializable
 	private String labNaam;
 
 	private String messageId;
+
+	private CervixHpvResultaatBerichtBron resultaatBerichtBron = CervixHpvResultaatBerichtBron.ROCHE;
 
 }

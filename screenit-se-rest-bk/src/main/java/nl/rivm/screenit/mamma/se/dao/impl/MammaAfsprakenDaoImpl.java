@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.dao.impl;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,6 @@ package nl.rivm.screenit.mamma.se.dao.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDate;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -31,17 +30,13 @@ import java.util.Map;
 import nl.rivm.screenit.mamma.se.dao.ClientIdentificatie;
 import nl.rivm.screenit.mamma.se.dao.MammaAfsprakenDao;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
-import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaIdentificatiesoort;
-import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.hibernate.Query;
-import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -109,28 +104,5 @@ public class MammaAfsprakenDaoImpl extends AbstractAutowiredDao implements Mamma
 			result.put((Long) instellingGebruikerIdEnCount[0], ((Long) instellingGebruikerIdEnCount[1]).intValue());
 		}
 		return result;
-	}
-
-	@Override
-	public Date readDatumVanOudsteNietAfgeslotenOnderzoek(LocalDate vandaag, String seCode)
-	{
-		return (Date) hibernateService.getHibernateSession().createCriteria(MammaAfspraak.class, "afspraak")
-			.createAlias("afspraak.standplaatsPeriode", "standplaatsPeriode")
-			.createAlias("standplaatsPeriode.screeningsEenheid", "screeningsEenheid")
-			.createAlias("afspraak.onderzoek", "onderzoek", JoinType.LEFT_OUTER_JOIN)
-			.add(Restrictions.or(
-				Restrictions.eq("afspraak.status", MammaAfspraakStatus.INGESCHREVEN),
-				Restrictions.eq("afspraak.status", MammaAfspraakStatus.ONDERZOEK),
-				Restrictions.eq("afspraak.status", MammaAfspraakStatus.SIGNALEREN),
-				Restrictions.and(
-					Restrictions.isNotNull("onderzoek"),
-					Restrictions.eq("onderzoek.isDoorgevoerd", false))))
-			.add(Restrictions.eq("screeningsEenheid.code", seCode))
-			.add(Restrictions.gt("vanaf", DateUtil.toUtilDate(vandaag.minusMonths(2))))
-			.add(Restrictions.lt("vanaf", DateUtil.toUtilDate(vandaag)))
-			.addOrder(Order.asc("vanaf"))
-			.setProjection(Projections.property("vanaf"))
-			.setMaxResults(1)
-			.uniqueResult();
 	}
 }

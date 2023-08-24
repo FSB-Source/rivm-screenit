@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -43,7 +43,7 @@ export const saveZasAanvraag = () => (dispatch: Dispatch) => {
 		})
 		.catch((error: AxiosResponse) => {
 			if (error.status === HttpStatusCode.CONFLICT) {
-				dispatch(createShowToastAction({description: getString(properties.error.zas_request), type: ToastMessageType.ERROR}))
+				dispatch(createShowToastAction({description: getString(properties.error.zas_request), type: ToastMessageType.ERROR, alGetoond: false}))
 			}
 		})
 }
@@ -57,7 +57,7 @@ export const saveZasAanvraagMetUitstel = (verzendenUitstellen: boolean, uitstell
 		})
 		.catch((error: AxiosResponse) => {
 			if (error.status === HttpStatusCode.CONFLICT) {
-				dispatch(createShowToastAction({description: getString(properties.error.zas_request), type: ToastMessageType.ERROR}))
+				dispatch(createShowToastAction({description: getString(properties.error.zas_request), type: ToastMessageType.ERROR, alGetoond: false}))
 			}
 		})
 }

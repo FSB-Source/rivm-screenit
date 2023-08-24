@@ -24,6 +24,7 @@ import {readMammografenStatus} from "./MammografenStatusRestclient"
 import {isAuthorized} from "../util/AutorisatieUtil"
 import {AutorisatieDto} from "../datatypes/AutorisatieDto"
 import {navigateToConnectiestatus} from "../util/NavigationUtil"
+import {readEnvironmentInfo} from "./EnvironmentInfoRestclient"
 
 export const GEEN_OTP = "GEEN_OTP"
 export const GEEN_IDENTIFICATIE = "GEEN_IDENTIFICATIE"
@@ -76,7 +77,7 @@ export const login = (username: string, password: string, yubikeyIdentificatie: 
 
 	dispatchActions(store.dispatch, createActionLoginActive())
 	getVersie().then((versieResponse) => {
-		const credentials = Buffer.from(`${username}:${password}`).toString("base64")
+		const credentials = btoa(`${username}:${password}`)
 		const loginHeader = new Headers({
 			Authorization: `Basic ${credentials}`,
 			yubikeyIdentificatie: yubikeyIdentificatie,
@@ -162,6 +163,7 @@ function verwerkSuccesvolleLogin(response: any, yubikeyIdentificatie: string): P
 			leesZorginstellingen()
 			readSeGebruikers()
 		}
+		readEnvironmentInfo()
 	})
 }
 

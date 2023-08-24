@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.actions;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,13 +24,12 @@ package nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.actions;
 import java.util.List;
 
 import nl.rivm.screenit.main.service.cervix.CervixTestTimelineService;
-import nl.rivm.screenit.main.service.mamma.MammaTestTimelineService;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.TestCervixVervolgKeuzeAction;
-import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.TestMammaVervolgKeuzeAction;
 import nl.rivm.screenit.model.Client;
-
 import nl.rivm.screenit.service.cervix.CervixBaseTestTimelineService;
-import nl.rivm.screenit.service.mamma.MammaBaseTestTimelineService;
+import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
+
+import org.hibernate.Hibernate;
 
 public class TestCervixNieuweRondeAction extends TestCervixVervolgKeuzeAction
 {
@@ -44,7 +43,7 @@ public class TestCervixNieuweRondeAction extends TestCervixVervolgKeuzeAction
 	{
 		for (Client client : clienten)
 		{
-			cervixBaseTestTimelineService.nieuweRonde(client);
+			cervixBaseTestTimelineService.nieuweRonde((Client) Hibernate.unproxy(ModelProxyHelper.deproxy(client)));
 		}
 	}
 }

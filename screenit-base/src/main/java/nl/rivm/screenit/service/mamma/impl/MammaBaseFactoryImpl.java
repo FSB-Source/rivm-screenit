@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,6 +34,7 @@ import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.model.enums.SmsStatus;
 import nl.rivm.screenit.model.mamma.MammaAdhocMeekijkverzoek;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaAnnotatieAfbeelding;
@@ -148,7 +149,7 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 		ronde.setDossier(dossier);
 		ronde.setStandplaatsRonde(standplaatsRonde);
 		ronde.setUitnodigingsNr(getNextUniqueMammaUitnodigingsNr());
-		ronde.setIsGeforceerd(isGeforceerd);
+		ronde.setGeforceerd(isGeforceerd);
 		ronde.setPostcode(postcode);
 		ronde.setMinderValideOnderzoekZiekenhuis(false);
 
@@ -231,7 +232,7 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 	@Override
 	public MammaAfspraak maakAfspraak(MammaScreeningRonde screeningRonde, MammaCapaciteitBlok capaciteitBlok, Date vanaf, MammaStandplaatsPeriode standplaatsPeriode,
 		MammaVerzettenReden verzettenReden, boolean notificeerBetrokkenSe, boolean stuurBerichtNaarSectra,
-		boolean isGeforceerdeAfspraak)
+		boolean isGeforceerdeAfspraak, SmsStatus smsStatus)
 	{
 		hibernateService.getHibernateSession().setFlushMode(FlushModeType.COMMIT);
 		String postcode = SpringBeanProvider.getInstance().getBean(ClientService.class).getGbaPostcode(screeningRonde.getDossier().getClient());
@@ -249,6 +250,7 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 		afspraak.setPostcode(postcode);
 		afspraak.setOpkomstkans(opkomstkans);
 		afspraak.setGeforceerdeAfspraak(isGeforceerdeAfspraak);
+		afspraak.setSmsStatus(smsStatus);
 		opkomstkans.setAfspraak(afspraak);
 
 		MammaUitnodiging laatsteUitnodiging = screeningRonde.getLaatsteUitnodiging();

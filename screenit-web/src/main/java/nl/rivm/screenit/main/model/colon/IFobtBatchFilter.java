@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.model.colon;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,6 +23,9 @@ package nl.rivm.screenit.main.model.colon;
 
 import java.util.Date;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.colon.IFobtLaboratorium;
 import nl.rivm.screenit.model.colon.enums.IFOBTBestandStatus;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -31,10 +33,10 @@ import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import org.apache.wicket.model.IDetachable;
 import org.apache.wicket.model.IModel;
 
+@Getter
+@Setter
 public class IFobtBatchFilter implements IDetachable
 {
-
-	private static final long serialVersionUID = 1L;
 
 	private IFOBTBestandStatus status;
 
@@ -45,36 +47,6 @@ public class IFobtBatchFilter implements IDetachable
 	private IModel<IFobtLaboratorium> lab;
 
 	private boolean analyseDatum;
-
-	public IFOBTBestandStatus getStatus()
-	{
-		return status;
-	}
-
-	public void setStatus(IFOBTBestandStatus status)
-	{
-		this.status = status;
-	}
-
-	public Date getDatumVan()
-	{
-		return datumVan;
-	}
-
-	public void setDatumVan(Date datumVan)
-	{
-		this.datumVan = datumVan;
-	}
-
-	public Date getDatumTot()
-	{
-		return datumTot;
-	}
-
-	public void setDatumTot(Date datumTot)
-	{
-		this.datumTot = datumTot;
-	}
 
 	public IFobtLaboratorium getLab()
 	{
@@ -90,16 +62,6 @@ public class IFobtBatchFilter implements IDetachable
 	public void detach()
 	{
 		ModelUtil.nullSafeDetach(lab);
-	}
-
-	public boolean isAnalyseDatum()
-	{
-		return analyseDatum;
-	}
-
-	public void setAnalyseDatum(boolean analyseDatum)
-	{
-		this.analyseDatum = analyseDatum;
 	}
 
 }

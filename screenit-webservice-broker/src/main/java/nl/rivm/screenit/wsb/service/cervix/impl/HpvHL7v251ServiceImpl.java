@@ -4,7 +4,7 @@ package nl.rivm.screenit.wsb.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,8 +39,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.UncategorizedJmsException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import ca.uhn.hl7v2.AcknowledgmentCode;
 import ca.uhn.hl7v2.HL7Exception;
@@ -49,7 +47,6 @@ import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v251.message.OUL_R22;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
 public class HpvHL7v251ServiceImpl extends BaseHL7v2Service<OUL_R22> implements HpvHL7v251Service
 {
 	private static final Logger LOG = LoggerFactory.getLogger(HpvHL7v251ServiceImpl.class);

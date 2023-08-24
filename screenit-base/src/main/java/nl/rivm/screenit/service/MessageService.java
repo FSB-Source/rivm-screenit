@@ -4,7 +4,7 @@ package nl.rivm.screenit.service;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,8 @@ package nl.rivm.screenit.service;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
+
 import nl.rivm.screenit.model.messagequeue.Message;
 import nl.rivm.screenit.model.messagequeue.MessageType;
 
@@ -28,11 +30,21 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 public interface MessageService
 {
-	void queueMessage(MessageType type, Object content) throws JsonProcessingException;
+	void queueMessage(MessageType type, Object content);
+
+	void queueMessage(MessageType type, Object content, String context);
 
 	void dequeueMessage(Message message);
 
 	Message getOldestMessage(MessageType type);
 
-	<T> T getContent(Message message);
+	List<Message> fetchMessages(MessageType type, int maxFetchSize);
+
+	List<Message> fetchMessages(MessageType type, String context, int maxFetchSize);
+
+	<T> T getContent(Message message) throws JsonProcessingException;
+
+	Long fetchQueueSize(MessageType hpvOrder);
+
+	Long fetchQueueSize(MessageType type, String context);
 }

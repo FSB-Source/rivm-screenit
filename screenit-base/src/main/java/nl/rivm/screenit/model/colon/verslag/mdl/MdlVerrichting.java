@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.colon.verslag.mdl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -56,7 +56,7 @@ public class MdlVerrichting
 	private MdlVerslagContent verslagContent;
 
 	@Column(length = 255)
-	@VraagElement(displayName = "Identificatie onderzoek", extraTekst = "Identificatie onderzoek", code = "2.16.840.1.113883.2.4.3.36.77.2.10.125001", isVerplicht = true)
+	@VraagElement(displayName = "Identificatie onderzoek", extraTekst = "Identificatie onderzoek", code = "2.16.840.1.113883.2.4.3.36.77.2.11.69", isVerplicht = true)
 	private String identificatieOnderzoek;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -64,21 +64,21 @@ public class MdlVerrichting
 		@DSValueSetValue(code = "444783004:246513007=261423007", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "444783004:246513007=134433005", codeSystem = "2.16.840.1.113883.6.96")
 	})
-	@VraagElement(displayName = "Indicatie verrichting", extraTekst = "", code = "2.16.840.1.113883.2.4.3.36.77.2.10.125010", isVerplicht = true)
+	@VraagElement(displayName = "Indicatie verrichting", extraTekst = "", code = "2.16.840.1.113883.2.4.3.36.77.2.11.70", isVerplicht = true)
 	private DSValue indicatieVerrichting;
 
 	@Temporal(TemporalType.DATE)
 	@Column
-	@VraagElement(displayName = "Aanvang verrichting", extraTekst = "", code = "2.16.840.1.113883.2.4.3.36.77.2.10.125030", isVerplicht = true)
+	@VraagElement(displayName = "Aanvang verrichting", extraTekst = "", code = "2.16.840.1.113883.2.4.3.36.77.2.11.72", isVerplicht = true)
 	private Date aanvangVerrichting;
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "verrichting", cascade = CascadeType.ALL)
-	@VraagElement(displayName = "Incident/complicatie", extraTekst = "", code = "2.16.840.1.113883.2.4.3.36.77.2.10.125059", isReference = true)
+	@VraagElement(displayName = "Incident/complicatie", extraTekst = "", code = "2.16.840.1.113883.2.4.3.36.77.2.11.74", isReference = true)
 	private List<MdlIncidentcomplicatie> incidentcomplicatie = new ArrayList<>();
 
 	@Temporal(TemporalType.DATE)
 	@Column
-	@VraagElement(displayName = "Autorisatiedatum verslag", extraTekst = "Datum waarop uitslag is doorgegeven aan de (aanvragende/verwijzende) zorgverlener. In het geval van pathologie gaat het om de autorisatiedatum.", code = "2.16.840.1.113883.2.4.3.36.77.2.10.125085", isVerplicht = true)
+	@VraagElement(displayName = "Autorisatiedatum verslag", extraTekst = "Datum waarop uitslag is doorgegeven aan de (aanvragende/verwijzende) zorgverlener. In het geval van pathologie gaat het om de autorisatiedatum.", code = "2.16.840.1.113883.2.4.3.36.77.2.11.79", isVerplicht = true)
 	private Date autorisatiedatumVerslag;
 
 	public MdlVerslagContent getVerslagContent()

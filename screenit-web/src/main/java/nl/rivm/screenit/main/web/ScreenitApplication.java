@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -80,6 +80,8 @@ import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.coop.CrossOriginOpenerPolicyConfiguration;
 import org.apache.wicket.core.request.handler.PageProvider;
 import org.apache.wicket.core.util.crypt.KeyInSessionSunJceCryptFactory;
+import org.apache.wicket.csp.CSPDirective;
+import org.apache.wicket.csp.CSPDirectiveSrcValue;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.feedback.FeedbackMessages;
 import org.apache.wicket.markup.html.pages.ExceptionErrorPage;
@@ -103,8 +105,6 @@ import com.googlecode.wicket.jquery.ui.settings.JQueryUILibrarySettings;
 @org.springframework.stereotype.Component
 public class ScreenitApplication extends WebApplication
 {
-	private static final int AANTAL_REQUESTS = 3000;
-
 	private static final Logger LOG = LoggerFactory.getLogger(ScreenitApplication.class);
 
 	public static final String UITWISSELPORTAAL_MOUNT = "uitwisselportaal";
@@ -131,7 +131,12 @@ public class ScreenitApplication extends WebApplication
 		getPageSettings().setRecreateBookmarkablePagesAfterExpiry(false);
 
 		getRequestCycleListeners().add(new ScreenITCsrfRequestCycleListener());
-		getCspSettings().blocking().disabled();
+
+		getCspSettings().blocking().strict().remove(CSPDirective.DEFAULT_SRC)
+			.add(CSPDirective.DEFAULT_SRC, CSPDirectiveSrcValue.SELF)
+			.add(CSPDirective.OBJECT_SRC, CSPDirectiveSrcValue.SELF)
+			.add(CSPDirective.STYLE_SRC, CSPDirectiveSrcValue.SELF)
+			.add(CSPDirective.FRAME_ANCESTORS, CSPDirectiveSrcValue.SELF);
 		getSecuritySettings().setCrossOriginOpenerPolicyConfiguration(CrossOriginOpenerPolicyConfiguration.CoopMode.SAME_ORIGIN_ALLOW_POPUPS);
 
 		ScreenitAnnotationsShiroAuthorizationStrategy authz = new ScreenitAnnotationsShiroAuthorizationStrategy();
@@ -183,6 +188,7 @@ public class ScreenitApplication extends WebApplication
 					{
 						target.appendJavaScript("initNullFlavourFields()");
 					}
+					target.appendJavaScript("laadEventListeners()");
 				}
 			}
 
@@ -270,8 +276,7 @@ public class ScreenitApplication extends WebApplication
 		RequestLoggerSettings reqLogger = getRequestLoggerSettings();
 		reqLogger.setRequestLoggerEnabled(true);
 		reqLogger.setRecordSessionSize(false);
-
-		reqLogger.setRequestsWindowSize(AANTAL_REQUESTS);
+		reqLogger.setRequestsWindowSize(0);
 	}
 
 	public String getVersionString()

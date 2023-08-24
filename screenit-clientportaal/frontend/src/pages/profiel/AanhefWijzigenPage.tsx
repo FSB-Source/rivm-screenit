@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,13 +26,12 @@ import {getString} from "../../utils/TekstPropertyUtil"
 import {useSelector} from "react-redux"
 import {State} from "../../datatypes/State"
 import properties from "./AanhefWijzigenPage.json"
-import {Field, Formik} from "formik"
+import {Formik} from "formik"
 import SubmitForm from "../../components/form/SubmitForm"
 import {useNavigate} from "react-router-dom"
 import {showToast} from "../../utils/ToastUtil"
 import {saveAanhef} from "../../api/AanspreekvormWijzigenThunkAction"
-import {RadioGroup} from "formik-material-ui"
-import {FormControl, FormControlLabel, Radio} from "@material-ui/core"
+import {FormControl, FormControlLabel, Radio, RadioGroup} from "@mui/material"
 import {AanhefType} from "../../datatypes/aanhef/AanhefType"
 import {Persoon} from "../../datatypes/Persoon"
 import {Geslacht} from "../../datatypes/Geslacht"
@@ -51,7 +50,7 @@ const AanhefWijzigenPage = () => {
 	})
 
 	return (
-		<ActieBasePage
+        <ActieBasePage
 			bvoName={""}
 			title={getString(properties.page.title)}
 			description={getString(properties.page.description)}>
@@ -70,12 +69,10 @@ const AanhefWijzigenPage = () => {
 								formikProps={formikProps}
 								buttonLabel={getString(properties.form.button)}>
 
-						<FormControl
-							required
-							component="fieldset">
-							<Field
+						<FormControl variant="standard" required component="fieldset">
+							<RadioGroup
 								name="aanhef"
-								component={RadioGroup}
+								onChange={formikProps.handleChange}
 								value={formikProps.values.aanhef || ""}>
 								<ul>
 									<li>
@@ -98,12 +95,12 @@ const AanhefWijzigenPage = () => {
 										label={getString(properties.form.radiobutton.geachte_mevrouw, [persoon.aanspreekTussenvoegselEnAchternaam])}/>
 									</li>
 								</ul>
-							</Field>
+							</RadioGroup>
 						</FormControl>
 					</SubmitForm>)}
 			</Formik>
 		</ActieBasePage>
-	)
+    );
 
 	function gekozenAanhef(persoon: Persoon) {
 		let aanhef = persoon.aanhef

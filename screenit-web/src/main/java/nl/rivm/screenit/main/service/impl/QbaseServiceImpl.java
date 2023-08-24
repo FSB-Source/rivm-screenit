@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -45,17 +45,16 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class QbaseServiceImpl implements QbaseService
 {
-
 	private static final String PERCENTAGE_TUSSEN = "3285";
 
 	private static final String PERCENTAGE_LAAG = "3286";
@@ -172,10 +171,10 @@ public class QbaseServiceImpl implements QbaseService
 			Map<Date, List<IFOBTUitslag>> clientUitslagenPerDag = new HashMap<>();
 			for (IFOBTUitslag uitslag : clientUitslagen)
 			{
-				Date analyseDatum = new DateTime(uitslag.getAnalyseDatum()).toLocalDate().toDate();
+				Date analyseDatum = DateUtil.startDag(uitslag.getAnalyseDatum());
 				if (!clientUitslagenPerDag.containsKey(analyseDatum))
 				{
-					clientUitslagenPerDag.put(analyseDatum, new ArrayList<IFOBTUitslag>());
+					clientUitslagenPerDag.put(analyseDatum, new ArrayList<>());
 				}
 				List<IFOBTUitslag> lijst = clientUitslagenPerDag.get(analyseDatum);
 				lijst.add(uitslag);

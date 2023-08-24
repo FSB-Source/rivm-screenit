@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ package nl.rivm.screenit.dao.mamma.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -31,11 +32,16 @@ import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaCapaciteitBlokType;
+import nl.rivm.screenit.util.DateUtil;
+import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.hibernate.Criteria;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.sql.JoinType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +53,10 @@ import com.google.common.collect.Range;
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MammaBaseAfspraakDaoImpl extends AbstractAutowiredDao implements MammaBaseAfspraakDao
 {
+
+	@Autowired
+	private HibernateService hibernateService;
+
 	@Override
 	public List<MammaAfspraak> getNietGekoppeldeAfspraken(MammaCapaciteitBlok capaciteitsBlok)
 	{
@@ -72,19 +82,19 @@ public class MammaBaseAfspraakDaoImpl extends AbstractAutowiredDao implements Ma
 	}
 
 	@Override
-	public List<MammaAfspraak> getAfspraken(MammaScreeningsEenheid screeningsEenheid, Date vanaf, Date totEnMet, MammaAfspraakStatus... afspraakStatussen)
+	public List<MammaAfspraak> getAfspraken(MammaScreeningsEenheid screeningsEenheid, LocalDate vanaf, LocalDate totEnMet, MammaAfspraakStatus... afspraakStatussen)
 	{
 		return createAfsprakenCriteria(screeningsEenheid, vanaf, totEnMet, true, afspraakStatussen).list();
 	}
 
 	@Override
-	public List<MammaAfspraak> getAfspraken(String seCode, Date vanaf, Date totEnMet, MammaAfspraakStatus... afspraakStatussen)
+	public List<MammaAfspraak> getAfspraken(String seCode, LocalDate vanaf, LocalDate totEnMet, MammaAfspraakStatus... afspraakStatussen)
 	{
 		return createAfsprakenCriteria(seCode, vanaf, totEnMet, false, afspraakStatussen).list();
 	}
 
 	@Override
-	public Date[] getEersteEnLaatsteAfspraakDatum(long standplaatsPeriodeId, Date vanaf, Date totEnMet, MammaAfspraakStatus... afspraakStatussen)
+	public Date[] getEersteEnLaatsteAfspraakMomenten(long standplaatsPeriodeId, LocalDate vanaf, LocalDate totEnMet, MammaAfspraakStatus... afspraakStatussen)
 	{
 		Criteria afsprakenCriteria = createAfsprakenCriteria(standplaatsPeriodeId, vanaf, totEnMet, false, afspraakStatussen);
 		afsprakenCriteria.setProjection(Projections.projectionList().add(Projections.min("afspraak.vanaf")).add(Projections.max("afspraak.vanaf")));
@@ -93,21 +103,9 @@ public class MammaBaseAfspraakDaoImpl extends AbstractAutowiredDao implements Ma
 	}
 
 	@Override
-	public long countAfspraken(MammaStandplaats standplaats, Date vanaf, Date totEnMet, MammaAfspraakStatus... afspraakStatussen)
+	public long countAfspraken(MammaStandplaats standplaats, LocalDate vanaf, LocalDate totEnMet, MammaAfspraakStatus... afspraakStatussen)
 	{
 		return count(createAfsprakenCriteria(standplaats, vanaf, totEnMet, false, afspraakStatussen));
-	}
-
-	@Override
-	public long countAfspraken(MammaStandplaats standplaats, Range<Date> periode, MammaAfspraakStatus... afspraakStatussen)
-	{
-		return count(createAfsprakenCriteria(standplaats, periode, false, afspraakStatussen));
-	}
-
-	@Override
-	public List<MammaAfspraak> getAfspraken(MammaStandplaats standplaats, Date vanaf, Date totEnMet, MammaAfspraakStatus... afspraakStatussen)
-	{
-		return createAfsprakenCriteria(standplaats, vanaf, totEnMet, false, afspraakStatussen).list();
 	}
 
 	@Override
@@ -123,9 +121,44 @@ public class MammaBaseAfspraakDaoImpl extends AbstractAutowiredDao implements Ma
 	}
 
 	@Override
-	public long countAfspraken(MammaScreeningsEenheid screeningsEenheid, Date vanaf, Date totEnMet, MammaAfspraakStatus... afspraakStatussen)
+	public long countAfspraken(MammaScreeningsEenheid screeningsEenheid, LocalDate vanaf, LocalDate totEnMet, MammaAfspraakStatus... afspraakStatussen)
 	{
 		return count(createAfsprakenCriteria(screeningsEenheid, vanaf, totEnMet, false, afspraakStatussen));
+	}
+
+	@Override
+	public Date readDatumVanOudsteNietAfgeslotenOnderzoek(LocalDate vandaag, String seCode)
+	{
+		return (Date) getAlleNietAfgeslotenOnderzoekenCriteria(vandaag, seCode)
+			.addOrder(Order.asc("vanaf"))
+			.setProjection(Projections.property("vanaf"))
+			.setMaxResults(1)
+			.uniqueResult();
+	}
+
+	@Override
+	public List<MammaAfspraak> readAfsprakenWaarvanOnderzoekNietIsDoorgevoerd(LocalDate vandaag, String seCode)
+	{
+		var criteria = getAlleNietAfgeslotenOnderzoekenCriteria(vandaag, seCode);
+		return criteria.list();
+	}
+
+	private Criteria getAlleNietAfgeslotenOnderzoekenCriteria(LocalDate vandaag, String seCode)
+	{
+		return hibernateService.getHibernateSession().createCriteria(MammaAfspraak.class, "afspraak")
+			.createAlias("afspraak.standplaatsPeriode", "standplaatsPeriode")
+			.createAlias("standplaatsPeriode.screeningsEenheid", "screeningsEenheid")
+			.createAlias("afspraak.onderzoek", "onderzoek", JoinType.LEFT_OUTER_JOIN)
+			.add(Restrictions.or(
+				Restrictions.eq("afspraak.status", MammaAfspraakStatus.INGESCHREVEN),
+				Restrictions.eq("afspraak.status", MammaAfspraakStatus.ONDERZOEK),
+				Restrictions.eq("afspraak.status", MammaAfspraakStatus.SIGNALEREN),
+				Restrictions.and(
+					Restrictions.isNotNull("onderzoek"),
+					Restrictions.eq("onderzoek.isDoorgevoerd", false))))
+			.add(Restrictions.eq("screeningsEenheid.code", seCode))
+			.add(Restrictions.gt("vanaf", DateUtil.toUtilDate(vandaag.minusMonths(2))))
+			.add(Restrictions.lt("vanaf", DateUtil.toUtilDate(vandaag)));
 	}
 
 	private long count(Criteria crit)
@@ -134,7 +167,7 @@ public class MammaBaseAfspraakDaoImpl extends AbstractAutowiredDao implements Ma
 		return (Long) crit.uniqueResult();
 	}
 
-	private Criteria createAfsprakenCriteria(MammaScreeningsEenheid screeningsEenheid, Date vanaf, Date totEnMet, boolean bepaalBenodigdeCapaciteit,
+	private Criteria createAfsprakenCriteria(MammaScreeningsEenheid screeningsEenheid, LocalDate vanaf, LocalDate totEnMet, boolean bepaalBenodigdeCapaciteit,
 		MammaAfspraakStatus... afspraakStatussen)
 	{
 		Criteria crit = createAfsprakenCriteria(screeningsEenheid, bepaalBenodigdeCapaciteit);
@@ -143,7 +176,7 @@ public class MammaBaseAfspraakDaoImpl extends AbstractAutowiredDao implements Ma
 		return crit;
 	}
 
-	private Criteria createAfsprakenCriteria(String seCode, Date vanaf, Date totEnMet, boolean bepaalBenodigdeCapaciteit, MammaAfspraakStatus... afspraakStatussen)
+	private Criteria createAfsprakenCriteria(String seCode, LocalDate vanaf, LocalDate totEnMet, boolean bepaalBenodigdeCapaciteit, MammaAfspraakStatus... afspraakStatussen)
 	{
 		Criteria crit = createAfsprakenCriteria(seCode, bepaalBenodigdeCapaciteit);
 		vanafTotEnMet(crit, vanaf, totEnMet);
@@ -151,7 +184,8 @@ public class MammaBaseAfspraakDaoImpl extends AbstractAutowiredDao implements Ma
 		return crit;
 	}
 
-	private Criteria createAfsprakenCriteria(MammaStandplaats standplaats, Date vanaf, Date totEnMet, boolean bepaalBenodigdeCapaciteit, MammaAfspraakStatus... afspraakStatussen)
+	private Criteria createAfsprakenCriteria(MammaStandplaats standplaats, LocalDate vanaf, LocalDate totEnMet, boolean bepaalBenodigdeCapaciteit,
+		MammaAfspraakStatus... afspraakStatussen)
 	{
 		Criteria crit = createAfsprakenCriteria(standplaats, bepaalBenodigdeCapaciteit);
 		vanafTotEnMet(crit, vanaf, totEnMet);
@@ -174,7 +208,8 @@ public class MammaBaseAfspraakDaoImpl extends AbstractAutowiredDao implements Ma
 		return crit;
 	}
 
-	private Criteria createAfsprakenCriteria(long standplaatsPeriodeId, Date vanaf, Date totEnMet, boolean bepaalBenodigdeCapaciteit, MammaAfspraakStatus... afspraakStatussen)
+	private Criteria createAfsprakenCriteria(long standplaatsPeriodeId, LocalDate vanaf, LocalDate totEnMet, boolean bepaalBenodigdeCapaciteit,
+		MammaAfspraakStatus... afspraakStatussen)
 	{
 		Criteria crit = createAfsprakenCriteria(standplaatsPeriodeId, bepaalBenodigdeCapaciteit);
 		vanafTotEnMet(crit, vanaf, totEnMet);
@@ -208,15 +243,15 @@ public class MammaBaseAfspraakDaoImpl extends AbstractAutowiredDao implements Ma
 		}
 	}
 
-	private void vanafTotEnMet(Criteria crit, Date vanaf, Date totEnMet)
+	private void vanafTotEnMet(Criteria crit, LocalDate vanaf, LocalDate totEnMet)
 	{
 		if (vanaf != null)
 		{
-			crit.add(Restrictions.ge("afspraak.vanaf", vanaf));
+			crit.add(Restrictions.ge("afspraak.vanaf", DateUtil.toUtilDate(vanaf)));
 		}
 		if (totEnMet != null)
 		{
-			crit.add(Restrictions.le("afspraak.vanaf", totEnMet));
+			crit.add(Restrictions.le("afspraak.vanaf", DateUtil.eindDag(DateUtil.toUtilDate(totEnMet))));
 		}
 	}
 

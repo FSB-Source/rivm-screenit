@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,7 @@ package nl.rivm.screenit.main.service.mamma;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Instelling;
@@ -45,6 +46,12 @@ public interface MammaUitwisselportaalService
 	long countVerzoeken(MammaDownloadOnderzoekenVerzoek searchObject);
 
 	void resetDownloadVerzoek(MammaDownloadOnderzoekenVerzoek object) throws IOException;
+
+	Optional<MammaDownloadOnderzoekenVerzoek> geldigDownloadVerzoekVoorIngelogdeGebruiker(long downloadVerzoekid, InstellingGebruiker instellingGebruiker);
+
+	MammaDownloadOnderzoekenVerzoek maakDownloadVerzoekFilter(InstellingGebruiker instellingGebruiker);
+
+	boolean zipKanGedownloadWorden(MammaDownloadOnderzoekenVerzoek downloadOnderzoekenVerzoek);
 
 	List<MammaDownloadOnderzoekenVerzoek> getDownloadVerzoekenGedownload(MammaOnderzoek onderzoek);
 

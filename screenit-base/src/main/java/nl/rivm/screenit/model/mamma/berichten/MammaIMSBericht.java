@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.mamma.berichten;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,7 +32,11 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.berichten.enums.BerichtStatus;
+import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
@@ -46,6 +50,8 @@ import org.hibernate.envers.NotAudited;
 @Table(schema = "mamma", name = "ims_bericht")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 @Audited
+@Getter
+@Setter
 public class MammaIMSBericht extends AbstractHibernateObject
 {
 
@@ -73,77 +79,10 @@ public class MammaIMSBericht extends AbstractHibernateObject
 	@Column(nullable = false)
 	private Long accessionNumber;
 
+	@Column(nullable = false)
+	@Enumerated(EnumType.STRING)
+	private MammaOnderzoekType onderzoekType;
+
 	@Column(nullable = false, unique = true)
 	private String messageId;
-
-	public Date getOntvangstDatum()
-	{
-		return ontvangstDatum;
-	}
-
-	public void setOntvangstDatum(Date ontvangen)
-	{
-		this.ontvangstDatum = ontvangen;
-	}
-
-	public BerichtStatus getBerichtStatus()
-	{
-		return berichtStatus;
-	}
-
-	public void setBerichtStatus(BerichtStatus status)
-	{
-		this.berichtStatus = status;
-	}
-
-	public String getHl7Bericht()
-	{
-		return hl7Bericht;
-	}
-
-	public void setHl7Bericht(String hl7Bericht)
-	{
-		this.hl7Bericht = hl7Bericht;
-	}
-
-	public MammaHL7v24ORMBerichtStatus getOrmStatus()
-	{
-		return ormStatus;
-	}
-
-	public void setOrmStatus(MammaHL7v24ORMBerichtStatus ormStatus)
-	{
-		this.ormStatus = ormStatus;
-	}
-
-	public String getBsn()
-	{
-		return bsn;
-	}
-
-	public void setBsn(String bsn)
-	{
-		this.bsn = bsn;
-	}
-
-	public Long getAccessionNumber()
-	{
-		return accessionNumber;
-	}
-
-	public void setAccessionNumber(Long accessionNumber)
-	{
-		this.accessionNumber = accessionNumber;
-	}
-
-	public String getMessageId()
-	{
-		return messageId;
-	}
-
-	public void setMessageId(String messageId)
-	{
-		this.messageId = messageId;
-	}
-
 }

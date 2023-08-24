@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -76,7 +76,7 @@ const HeraanmeldenPage = () => {
 					dispatch(saveHeraanmeldVerzoekEnGeefBeschikbareActies(selectedBvo, false, dispatch))
 						.then(() => {
 							showToast(undefined, afspraakMaken ? getString(properties["toast"][selectedBvo]["afspraak"]) : getString(properties["toast"][selectedBvo]["algemeen"]))
-							navigate(afspraakMaken ? "/colon/afspraak-maken" : getBvoBaseUrl(selectedBvo))
+							navigate(afspraakMaken ? "/colon/afspraak-maken-heraanmelding/" : getBvoBaseUrl(selectedBvo))
 						})
 				}}/>}
 
@@ -92,7 +92,7 @@ const HeraanmeldenPage = () => {
 		</ActieBasePage>
 	)
 
-	function getDescription() {
+	function getDescription(): string {
 		if (heraanmeldenOpties.magColonUitnodigingAanvragen) {
 			return getString(properties.afmeldenText) + "<br><br>" + getString(properties.COLON.uitnodiging.infoText) + getString(properties.COLON.uitnodiging.hintText)
 		}
@@ -102,7 +102,7 @@ const HeraanmeldenPage = () => {
 		if (selectedBvo === Bevolkingsonderzoek.MAMMA) {
 			return getString(properties.afmeldenText)
 		} else {
-			return getString(properties.afmeldenText) + "<br><br>" + getString(properties.uitnodigingText)
+			return getString(properties.afmeldenText) + "<br><br>" + getString(selectedBvo === Bevolkingsonderzoek.CERVIX ? properties.uitnodigingText_bmhk : properties.uitnodigingText_dk_bk)
 		}
 	}
 }

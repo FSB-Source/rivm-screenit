@@ -1,0 +1,5 @@
+# Set the default behavior, in case people don't have core.autocrlf set.
+* text=auto
+
+#initialisatie voor localStack container moet linux line endings hebben anders krijg je een file-not-found exceptie
+docker/init-aws.sh text eol=lf

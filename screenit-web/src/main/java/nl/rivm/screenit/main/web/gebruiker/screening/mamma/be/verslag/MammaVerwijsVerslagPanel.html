@@ -3,7 +3,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -24,24 +24,24 @@
 <body>
 <wicket:panel>
     <div class="accordion-inner">
-        <form class="row-fluid" wicket:id="verwijsverslagForm" style="height: calc(100vh - 225px)">
-            <div class="row-fluid" style="height: 95%">
-                <div class="span12" style="height: 100%">
-                    <wicket:container wicket:id="verslagPdf"></wicket:container>
-                </div>
-            </div>
-            <div class="row-fluid">
-                <div class="span12">
-                    <button class="btn btn-primary" wicket:id="terugNaarVerslagVerfijnen">
-                        Terug
-                    </button>
-                    <button class="btn btn-primary pull-right" wicket:id="verstuurVerslag">
-                        Versturen
-                    </button>
-                </div>
-            </div>
-        </form>
-    </div>
+		<form class="row-fluid height-calc" wicket:id="verwijsverslagForm">
+			<div class="row-fluid height-95procent">
+				<div class="span12 height-100procent">
+					<wicket:container wicket:id="verslagPdf"></wicket:container>
+				</div>
+			</div>
+			<div class="row-fluid">
+				<div class="span12">
+					<button class="btn btn-primary" wicket:id="terugNaarVerslagVerfijnen">
+						Terug
+					</button>
+					<button class="btn btn-primary pull-right" wicket:id="verstuurVerslag">
+						Versturen
+					</button>
+				</div>
+			</div>
+		</form>
+	</div>
 </wicket:panel>
 </body>
 </html>

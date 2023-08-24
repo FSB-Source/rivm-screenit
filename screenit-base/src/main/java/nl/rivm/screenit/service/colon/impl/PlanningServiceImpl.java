@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ package nl.rivm.screenit.service.colon.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -46,10 +47,10 @@ import nl.rivm.screenit.service.colon.VrijSlotFactory;
 import nl.rivm.screenit.service.impl.PersoonCoordinaten;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.BigDecimalUtil;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang3.ObjectUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,13 +77,13 @@ public class PlanningServiceImpl<T extends VrijSlot> implements PlanningService<
 	private VrijSlotFactory<T> factory;
 
 	@Override
-	public List<T> getBeschikbaarheid(Date startTime, Date endTime, ColoscopieCentrum intakelocatie)
+	public List<T> getBeschikbaarheid(LocalDate startDatum, LocalDate eindDatum, ColoscopieCentrum intakelocatie)
 	{
 		List<T> returnValues = new ArrayList<T>();
 
 		RoosterListViewFilter filter = new RoosterListViewFilter();
-		filter.setStartDatum(startTime);
-		filter.setEndDatum(endTime);
+		filter.setStartDatum(DateUtil.toUtilDate(startDatum));
+		filter.setEndDatum(DateUtil.toUtilDate(eindDatum));
 		filter.setStatus(RoosterItemStatus.VRIJ_TE_VERPLAATSEN);
 		filter.setRekeningHoudenMetCapaciteitMeeBepaald(false);
 		Iterator<RoosterItemListViewWrapper> roosterBlokken = roosterDao.getRoosterBlokken("startTime", true, -1, -1, filter, intakelocatie);
@@ -184,7 +185,7 @@ public class PlanningServiceImpl<T extends VrijSlot> implements PlanningService<
 		Map<Long, Double> tijdelijkAdresAfstandenMap = new HashMap<>();
 		for (VrijSlotZonderKamer vrijSlotZonderKamer : vrijeSlotenZonderKamer)
 		{
-			if (AdresUtil.isTijdelijkAdres(persoon, new DateTime(vrijSlotZonderKamer.getStartTijd())) && persoonCoordinaten.vanTijdelijkAdres != null)
+			if (AdresUtil.isTijdelijkAdres(persoon, DateUtil.toLocalDate(vrijSlotZonderKamer.getStartTijd())) && persoonCoordinaten.vanTijdelijkAdres != null)
 			{
 				if (!tijdelijkAdresAfstandenMap.containsKey(vrijSlotZonderKamer.getIntakeLocatieId()))
 				{

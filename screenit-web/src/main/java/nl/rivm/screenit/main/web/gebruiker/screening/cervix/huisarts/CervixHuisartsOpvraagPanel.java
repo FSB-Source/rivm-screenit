@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.huisarts;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.huisarts;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.dao.cervix.CervixHuisartsBaseDao;
+import nl.rivm.screenit.main.dao.cervix.CervixHuisartsDao;
 import nl.rivm.screenit.main.service.cervix.CervixHuisartsService;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
@@ -41,10 +41,10 @@ public abstract class CervixHuisartsOpvraagPanel extends Panel
 	private static final long serialVersionUID = 1L;
 
 	@SpringBean
-	private CervixHuisartsService cervixUitstrijkendArtsService;
+	private CervixHuisartsService huisartsService;
 
 	@SpringBean
-	private CervixHuisartsBaseDao uitstrijkendArtsBaseDao;
+	private CervixHuisartsDao huisartsDao;
 
 	private String agbCode;
 
@@ -82,11 +82,11 @@ public abstract class CervixHuisartsOpvraagPanel extends Panel
 				CervixHuisarts arts = null;
 				if (onbekendeArtsNieuweAanmaken)
 				{
-					arts = cervixUitstrijkendArtsService.getUitstrijkendArtsMetAgb(agbCodeFormatted);
+					arts = huisartsService.getUitstrijkendArtsMetAgb(agbCodeFormatted);
 				}
 				else
 				{
-					arts = uitstrijkendArtsBaseDao.getHuisarts(agbCodeFormatted);
+					arts = huisartsDao.getHuisarts(agbCodeFormatted);
 				}
 				agbCode = null;
 				target.add(agbCodeField);

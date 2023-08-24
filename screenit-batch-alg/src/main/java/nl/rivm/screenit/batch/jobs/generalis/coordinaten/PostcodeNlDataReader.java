@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.generalis.coordinaten;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,8 +31,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.batch.service.impl.PostcodeNlProductCode;
 import nl.rivm.screenit.batch.service.impl.PostcodeNlRestService;
+import nl.rivm.screenit.model.PostcodeNlProductCode;
+import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5Session;
 
 import org.apache.commons.io.FileUtils;
 import org.springframework.batch.item.ExecutionContext;
@@ -79,26 +80,30 @@ public class PostcodeNlDataReader implements ItemReader<String>, ItemStream
 	public void open(ExecutionContext executionContext)
 	{
 		LOG.info("Inputstream voor " + productCode + " wordt geopend en ingelezen.");
-		try
+		OpenHibernate5Session.withoutTransaction().run(() ->
 		{
-			InputStream inputStream = postcodeNlRestService.getDelivery(PostcodeNlProductCode.valueOf(productCode));
-			if (inputStream != null)
+			try
 			{
-				tempFile = File.createTempFile(productCode, ".zip");
-				FileUtils.copyInputStreamToFile(inputStream, tempFile);
-				reader = new BufferedReader(new FileReader(tempFile));
+				InputStream inputStream = postcodeNlRestService.getDelivery(PostcodeNlProductCode.valueOf(productCode));
+				if (inputStream != null)
+				{
+					tempFile = File.createTempFile(productCode, ".zip");
+					FileUtils.copyInputStreamToFile(inputStream, tempFile);
+					reader = new BufferedReader(new FileReader(tempFile));
+				}
+				else
+				{
+					LOG.info("Geen input voor " + productCode + " gevonden");
+				}
 			}
-			else
+			catch (IOException e)
 			{
-				LOG.info("Geen input voor " + productCode + " gevonden");
+				close();
+				LOG.error("Error bij openen inputstream: " + e.getMessage());
+				throw new ItemStreamException(e);
 			}
-		}
-		catch (IOException e)
-		{
-			close();
-			LOG.error("Error bij openen inputstream: " + e.getMessage());
-			throw new ItemStreamException(e);
-		}
+
+		});
 	}
 
 	@Override

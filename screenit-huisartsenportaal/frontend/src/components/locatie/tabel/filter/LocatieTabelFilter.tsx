@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ import {LocatieStatus} from "../../../../state/datatypes/dto/LocatieDto"
 import {useAppThunkDispatch} from "../../../../index"
 import {loadingThunkAction} from "../../../../api/LoadingThunkAction"
 import {fetchLocaties} from "../../../../api/LocatieThunkAction"
+import React from "react"
 
 const locatieStatusOptions: LocatieStatusDropdownChoice[] = [
 	{value: LocatieStatus.ACTIEF, label: "actief"},
@@ -33,7 +34,7 @@ const locatieStatusOptions: LocatieStatusDropdownChoice[] = [
 ]
 
 const LocatieTabelFilter = () => {
-	const dispatch = useAppThunkDispatch();
+	const dispatch = useAppThunkDispatch()
 
 	return <Row>
 		<Col md={7}/>

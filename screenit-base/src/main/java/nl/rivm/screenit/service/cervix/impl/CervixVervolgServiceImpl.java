@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,19 +22,35 @@ package nl.rivm.screenit.service.cervix.impl;
  */
 
 import java.time.LocalDate;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.cervix.CervixBepaalVervolgDao;
+import nl.rivm.screenit.model.BMHKLaboratorium;
+import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixMonster;
+import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
+import nl.rivm.screenit.model.cervix.CervixZas;
 import nl.rivm.screenit.model.cervix.CervixZasHoudbaarheid;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
+import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
+import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
+import nl.rivm.screenit.model.cervix.enums.CervixZasStatus;
+import nl.rivm.screenit.model.messagequeue.MessageType;
+import nl.rivm.screenit.model.messagequeue.dto.CervixHL7v24HpvOrderTriggerDto;
 import nl.rivm.screenit.service.BaseHoudbaarheidService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.MessageService;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.cervix.CervixMonsterService;
 import nl.rivm.screenit.service.cervix.CervixVervolgService;
 import nl.rivm.screenit.service.cervix.enums.CervixVervolgTekst;
+import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
+import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
@@ -43,6 +59,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class CervixVervolgServiceImpl implements CervixVervolgService
@@ -64,6 +81,12 @@ public class CervixVervolgServiceImpl implements CervixVervolgService
 
 	@Autowired
 	private HibernateService hibernateService;
+
+	@Autowired
+	private OrganisatieParameterService organisatieParameterService;
+
+	@Autowired
+	private MessageService messageService;
 
 	@Override
 	public CervixVervolg bepaalVervolg(CervixMonster monster, LocalDate startdatumGenotypering)
@@ -119,6 +142,99 @@ public class CervixVervolgServiceImpl implements CervixVervolgService
 			digitaalLabformulierKlaarVoorCytologie(vervolgTekst, labformulier);
 		}
 
+	}
+
+	@Override
+	public void sendHpvOrder(CervixMonster monster, CervixVervolgTekst vervolgTekst, BMHKLaboratorium bmhkLaboratorium)
+	{
+		boolean triggerHpvOrder = false;
+		var cancelOrder = new AtomicBoolean(true);
+		if (organisatieParameterService.getOrganisatieParameter(getBmhkLaboratorium(monster, bmhkLaboratorium), OrganisatieParameterKey.CERVIX_HPV_ORDER_NIEUW, Boolean.FALSE))
+		{
+			if (monster.getUitnodiging().getMonsterType() == CervixMonsterType.UITSTRIJKJE)
+			{
+				triggerHpvOrder = triggerHpvOrderVoorUitstrijkje(monster, vervolgTekst, cancelOrder);
+			}
+			else
+			{
+				triggerHpvOrder = triggerHpvOrderVoorZAS(monster, vervolgTekst, cancelOrder);
+			}
+		}
+		if (triggerHpvOrder)
+		{
+			maakEnQueueHpvOrderMessageTrigger(monster, bmhkLaboratorium, cancelOrder.get());
+		}
+
+	}
+
+	private boolean triggerHpvOrderVoorZAS(CervixMonster monster, CervixVervolgTekst vervolgTekst, AtomicBoolean cancelOrder)
+	{
+		boolean triggerHpvOrder = false;
+		CervixZas zas = CervixMonsterUtil.getZAS(monster);
+		var vorigeZasVersie = EntityAuditUtil.getPreviousVersionOfEntity(zas, hibernateService.getHibernateSession());
+		CervixZasStatus vorigeZasStatus = null;
+		if (vorigeZasVersie != null)
+		{
+			vorigeZasStatus = vorigeZasVersie.getZasStatus();
+		}
+		CervixZasStatus nieuweZasStatus = zas.getZasStatus();
+		LOG.debug("Monster status change {}, {}=>{}", zas.getMonsterId(), vorigeZasStatus, nieuweZasStatus);
+		if ((vorigeZasStatus == null || nieuweZasStatus != vorigeZasStatus) && nieuweZasStatus == CervixZasStatus.ONTVANGEN && vervolgTekst.isVoorHpvOrder())
+		{
+			cancelOrder.set(false);
+			triggerHpvOrder = true;
+		}
+		else if (vorigeZasStatus != null && vorigeZasStatus == CervixZasStatus.ONTVANGEN &&
+			(nieuweZasStatus == CervixZasStatus.VERSTUURD || nieuweZasStatus == CervixZasStatus.NIET_ANALYSEERBAAR))
+		{
+			triggerHpvOrder = true;
+		}
+		return triggerHpvOrder;
+	}
+
+	private boolean triggerHpvOrderVoorUitstrijkje(CervixMonster monster, CervixVervolgTekst vervolgTekst, AtomicBoolean cancelOrder)
+	{
+		boolean triggerHpvOrder = false;
+		CervixUitstrijkje uitstrijkje = CervixMonsterUtil.getUitstrijkje(monster);
+		var vorigeUitstrijkjeVersie = EntityAuditUtil.getPreviousVersionOfEntity(uitstrijkje, hibernateService.getHibernateSession());
+		CervixUitstrijkjeStatus vorigeUitstrijkjeStatus = null;
+		if (vorigeUitstrijkjeVersie != null)
+		{
+			vorigeUitstrijkjeStatus = vorigeUitstrijkjeVersie.getUitstrijkjeStatus();
+		}
+		CervixUitstrijkjeStatus nieuweUitstrijkjeStatus = uitstrijkje.getUitstrijkjeStatus();
+		LOG.debug("Monster status change {}, {}=>{}", uitstrijkje.getMonsterId(), vorigeUitstrijkjeStatus, nieuweUitstrijkjeStatus);
+		if ((vorigeUitstrijkjeStatus == null || nieuweUitstrijkjeStatus != vorigeUitstrijkjeStatus) && nieuweUitstrijkjeStatus == CervixUitstrijkjeStatus.ONTVANGEN
+			&& vervolgTekst.isVoorHpvOrder())
+		{
+			cancelOrder.set(false);
+			triggerHpvOrder = true;
+		}
+		else if (vorigeUitstrijkjeStatus != null && vorigeUitstrijkjeStatus == CervixUitstrijkjeStatus.ONTVANGEN &&
+			(nieuweUitstrijkjeStatus == CervixUitstrijkjeStatus.NIET_ONTVANGEN || nieuweUitstrijkjeStatus == CervixUitstrijkjeStatus.NIET_ANALYSEERBAAR))
+		{
+			triggerHpvOrder = true;
+		}
+		return triggerHpvOrder;
+	}
+
+	private void maakEnQueueHpvOrderMessageTrigger(CervixMonster monster, BMHKLaboratorium bmhkLaboratorium, boolean cancelOrder)
+	{
+		CervixHL7v24HpvOrderTriggerDto triggerDto = new CervixHL7v24HpvOrderTriggerDto();
+		triggerDto.setClazz(((CervixMonster) HibernateHelper.deproxy(monster)).getClass());
+		triggerDto.setMonsterId(monster.getId());
+		triggerDto.setCancelOrder(cancelOrder);
+		bmhkLaboratorium = getBmhkLaboratorium(monster, bmhkLaboratorium);
+		messageService.queueMessage(MessageType.HPV_ORDER, triggerDto, bmhkLaboratorium.getId().toString());
+	}
+
+	private static BMHKLaboratorium getBmhkLaboratorium(CervixMonster monster, BMHKLaboratorium bmhkLaboratorium)
+	{
+		if (bmhkLaboratorium == null)
+		{
+			bmhkLaboratorium = monster.getLaboratorium();
+		}
+		return bmhkLaboratorium;
 	}
 
 	private void digitaalLabformulierKlaarVoorCytologie(CervixVervolgTekst vervolgTekst, CervixLabformulier labformulier)

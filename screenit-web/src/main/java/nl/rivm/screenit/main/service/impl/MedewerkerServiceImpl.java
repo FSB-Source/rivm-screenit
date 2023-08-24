@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,10 +22,16 @@ package nl.rivm.screenit.main.service.impl;
  */
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.StringJoiner;
+
+import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.PreferenceKey;
+import nl.rivm.screenit.dto.InstellingGebruikerRolDto;
 import nl.rivm.screenit.main.dao.MedewerkerDao;
 import nl.rivm.screenit.main.service.MedewerkerService;
 import nl.rivm.screenit.model.Functie;
@@ -37,45 +43,43 @@ import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.Rol;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.InlogMethode;
+import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.AuthenticatieService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.MailService;
 import nl.rivm.screenit.service.UploadDocumentService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
+@AllArgsConstructor
 public class MedewerkerServiceImpl implements MedewerkerService
 {
 
-	@Autowired
-	private MedewerkerDao medewerkerDao;
+	private final MedewerkerDao medewerkerDao;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private AuthenticatieService authenticatieService;
+	private final AuthenticatieService authenticatieService;
 
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final SimplePreferenceService preferenceService;
 
-	@Autowired
-	private MailService mailService;
+	private final MailService mailService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
-	private UploadDocumentService uploadDocumentService;
+	private final UploadDocumentService uploadDocumentService;
+
+	private final LogService logService;
 
 	@Override
 	public List<Gebruiker> searchMedewerkers(Gebruiker searchObject, List<Functie> selectedFuncties, List<Rol> selectedRollen,
@@ -148,14 +152,70 @@ public class MedewerkerServiceImpl implements MedewerkerService
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void saveOrUpdateRollen(InstellingGebruiker instellingGebruiker)
+	public void saveOrUpdateRollen(InstellingGebruiker ingelogdeInstellingGebruiker, List<InstellingGebruikerRolDto> initieleRollen, InstellingGebruiker instellingGebruiker)
 	{
 		medewerkerDao.saveOrUpdateInstellingGebruiker(instellingGebruiker);
-		for (var rol : instellingGebruiker.getRollen())
+		instellingGebruiker.getRollen().forEach(rol -> saveLogInformatieVoorGewijzigdeRol(ingelogdeInstellingGebruiker, initieleRollen, rol, instellingGebruiker));
+		hibernateService.saveOrUpdateAll(instellingGebruiker.getRollen());
+	}
+
+	private void saveLogInformatieVoorGewijzigdeRol(InstellingGebruiker ingelogdeInstellingGebruiker, List<InstellingGebruikerRolDto> initieleRollen, InstellingGebruikerRol rol,
+		InstellingGebruiker instellingGebruiker)
+	{
+		var huidigeBevolkingsonderzoeken = Bevolkingsonderzoek.getAfkortingen(rol.getBevolkingsonderzoeken());
+
+		var melding = String.format("Medewerker: %s. Organisatie: %s. Rol '%s' met BVO('s) %s, beginDatum %s, eindDatum %s en status %s ",
+			instellingGebruiker.getMedewerker().getNaamVolledig(), instellingGebruiker.getOrganisatie().getNaam(), rol.getRol().getNaam(), huidigeBevolkingsonderzoeken,
+			maakRolDatumString(rol.getBeginDatum()), maakRolDatumString(rol.getEindDatum()), rol.getActief() ? "actief" : "inactief");
+
+		var initieleRolOptional = initieleRollen.stream().filter(r -> Objects.equals(r.getId(), rol.getId())).findFirst();
+
+		if (initieleRolOptional.isEmpty())
 		{
-			hibernateService.saveOrUpdate(rol);
+			melding += "toegevoegd";
+			logService.logGebeurtenis(LogGebeurtenis.MEDEWERKER_WIJZIG, ingelogdeInstellingGebruiker, melding);
+			return;
 		}
 
+		var initieleRol = initieleRolOptional.get();
+		var initieleBevolkingsonderzoeken = Bevolkingsonderzoek.getAfkortingen(initieleRol.getBevolkingsonderzoeken());
+
+		if (!isRolGewijzigd(initieleRol, initieleBevolkingsonderzoeken, rol, huidigeBevolkingsonderzoeken))
+		{
+			return;
+		}
+		melding += "gewijzigd ";
+		var wijzigingen = new StringJoiner(", ", "(", ")");
+
+		if (!huidigeBevolkingsonderzoeken.equals(initieleBevolkingsonderzoeken))
+		{
+			wijzigingen.add(String.format("Bevolkingsonderzoeken: %s -> %s", initieleBevolkingsonderzoeken, huidigeBevolkingsonderzoeken));
+		}
+		if (!Objects.equals(rol.getBeginDatum(), initieleRol.getBeginDatum()))
+		{
+			wijzigingen.add(String.format("Begindatum: %s -> %s", maakRolDatumString(initieleRol.getBeginDatum()), maakRolDatumString(rol.getBeginDatum())));
+		}
+		if (!Objects.equals(rol.getEindDatum(), initieleRol.getEindDatum()))
+		{
+			wijzigingen.add(String.format("Einddatum: %s -> %s", maakRolDatumString(initieleRol.getEindDatum()), maakRolDatumString(rol.getEindDatum())));
+		}
+		if (rol.getActief() != initieleRol.getActief())
+		{
+			wijzigingen.add(String.format("Status: %s -> %s", initieleRol.getActief() ? "actief" : "inactief", rol.getActief() ? "actief" : "inactief"));
+		}
+		melding += wijzigingen.toString();
+		logService.logGebeurtenis(LogGebeurtenis.MEDEWERKER_WIJZIG, ingelogdeInstellingGebruiker, melding);
+	}
+
+	private boolean isRolGewijzigd(InstellingGebruikerRolDto initieleRol, String initieleBevolkingsonderzoeken, InstellingGebruikerRol rol, String huidigeBevolkingsonderzoeken)
+	{
+		return !huidigeBevolkingsonderzoeken.equals(initieleBevolkingsonderzoeken) || !Objects.equals(rol.getBeginDatum(), initieleRol.getBeginDatum())
+			|| !Objects.equals(rol.getEindDatum(), initieleRol.getEindDatum()) || rol.getActief() != initieleRol.getActief();
+	}
+
+	private String maakRolDatumString(Date date)
+	{
+		return date == null ? "(leeg)" : DateUtil.formatShortDate(date);
 	}
 
 	@Override
@@ -169,7 +229,7 @@ public class MedewerkerServiceImpl implements MedewerkerService
 			medewerker.setHandtekening(null);
 			if (handtekening.getId() != null)
 			{
-				uploadDocumentService.delete(handtekening, true);
+				uploadDocumentService.delete(handtekening);
 			}
 		}
 		if (isBestaande)
@@ -247,36 +307,21 @@ public class MedewerkerServiceImpl implements MedewerkerService
 				inactiverenemail = inactiverenemail.replaceAll("\\{tussenvoegsel\\}", tussenvoegsel);
 				inactiverenemail = inactiverenemail.replaceAll("\\{voorletters\\}", voorletters);
 				var inactiverensubject = preferenceService.getString(PreferenceKey.INACTIVERENSUBJECT.name(), "ScreenIT - Gebruiker account ge\u00EFnactiveerd");
-				mailService.queueMail(medewerker.getEmailextra(), inactiverensubject, inactiverenemail);
+				mailService.queueMailAanProfessional(medewerker.getEmailextra(), inactiverensubject, inactiverenemail);
 			}
 		}
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public boolean resetWachtwoord(Gebruiker medewerker)
+	public boolean resetWachtwoord(Gebruiker gebruiker)
 	{
-		medewerker.setWachtwoord(null);
-		hibernateService.saveOrUpdate(medewerker);
-		var requestMedewerker = new Gebruiker();
-		requestMedewerker.setGebruikersnaam(medewerker.getGebruikersnaam());
-		var medewerkerMap = authenticatieService.requestNewPassword(requestMedewerker);
-		var gelukt = false;
+		gebruiker.setWachtwoord(null);
+		hibernateService.saveOrUpdate(gebruiker);
 
-		medewerker = null;
-		if (medewerkerMap.size() > 0)
-		{
-			var entry = medewerkerMap.entrySet().iterator().next();
-			medewerker = entry.getKey();
-			gelukt = !Boolean.FALSE.equals(entry.getValue());
-		}
+		var geresetGebruiker = authenticatieService.requestNewPassword(gebruiker.getGebruikersnaam(), gebruiker.getEmailextra());
 
-		if (medewerker != null)
-		{
-			hibernateService.saveOrUpdate(medewerker);
-		}
-
-		return gelukt;
+		return geresetGebruiker != null;
 	}
 
 	@Override

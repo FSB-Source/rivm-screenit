@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -44,8 +44,9 @@ import MammaAfspraakMakenPage from "../pages/bvo/mamma/afspraak/MammaAfspraakMak
 import HuisartsPage from "../pages/bvo/gedeeld/huisarts/HuisartsPage"
 import MammaAfspraakUitstellenPage from "../pages/bvo/mamma/afspraak/MammaAfspraakUitstellenPage"
 import AutoLoginPage from "../pages/authentication/AutoLoginPage"
-import {capitalize} from "@material-ui/core"
+import {capitalize} from "@mui/material"
 import AanhefWijzigenPage from "../pages/profiel/AanhefWijzigenPage"
+import EmailWijzigenPage from "../pages/profiel/email/EmailWijzigenPage"
 
 export type RoutePath =
 	"/"
@@ -65,6 +66,7 @@ export type RoutePath =
 
 	| "/colon/"
 	| "/colon/afmelden/"
+	| "/colon/afspraak-maken-heraanmelding/"
 	| "/colon/afspraak-maken/"
 	| "/colon/afspraak-wijzigen/"
 	| "/colon/afzeggen/"
@@ -79,12 +81,14 @@ export type RoutePath =
 	| "/mamma/bezwaar/"
 	| "/mamma/heraanmelden/"
 	| "/mamma/huisarts/"
+	| "/mamma/huisarts/zoeken/"
 	| "/mamma/uitstellen/"
 
 	| "/profiel/"
 	| "/profiel/adres/"
 	| "/profiel/telefoonnummer/"
 	| "/profiel/aanspreekvorm/"
+	| "/profiel/email/"
 
 export type RouteDef = RouteProps & {
 	name: string
@@ -153,6 +157,15 @@ const routes: RouteDef[] = [
 	},
 	{
 		private: true,
+		path: "/mamma/huisarts/zoeken/",
+		name: "",
+		component: HuisartsPage,
+		bvo: Bevolkingsonderzoek.MAMMA,
+		requiredContactActions: [ClientContactActieType.MAMMA_HUISARTS_WIJZIGEN],
+		redirectPage: "/mamma/",
+	},
+	{
+		private: true,
 		path: "/cervix/",
 		name: capitalize(BevolkingsonderzoekNaam[Bevolkingsonderzoek.CERVIX]),
 		component: BvoLandingPageController,
@@ -180,7 +193,7 @@ const routes: RouteDef[] = [
 	{
 		private: true,
 		path: "/cervix/herdrukken/",
-		name: "Nieuwe uitnodigingsbrief aanvragen",
+		name: "Nieuwe uitnodiging aanvragen",
 		component: CervixHerdrukAanvragenPage,
 		bvo: Bevolkingsonderzoek.CERVIX,
 		requiredContactActions: [ClientContactActieType.CERVIX_HERDRUK],
@@ -317,6 +330,14 @@ const routes: RouteDef[] = [
 	},
 	{
 		private: true,
+		path: "/profiel/email/",
+		name: "E-mailadres",
+		component: EmailWijzigenPage,
+		requiredContactActions: [ClientContactActieType.INZAGE_PERSOONSGEGEVENS],
+		redirectPage: "/profiel/",
+	},
+	{
+		private: true,
 		path: "/profiel/adres/",
 		name: "Tijdelijk adres",
 		component: TijdelijkAdresWijzigenPage,
@@ -345,7 +366,7 @@ const routes: RouteDef[] = [
 		name: "Onderzoek uitstellen",
 		component: MammaAfspraakUitstellenPage,
 		bvo: Bevolkingsonderzoek.MAMMA,
-		requiredContactActions: [ClientContactActieType.MAMMA_AFSPRAAK_WIJZIGEN, ClientContactActieType.MAMMA_AFSPRAAK_MAKEN],
+		requiredContactActions: [ClientContactActieType.MAMMA_UITSTELLEN],
 	},
 	{
 		private: true,
@@ -354,6 +375,15 @@ const routes: RouteDef[] = [
 		component: ColonAfspraakMakenPage,
 		bvo: Bevolkingsonderzoek.COLON,
 		requiredContactActions: [ClientContactActieType.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN],
+		redirectPage: "/colon/",
+	},
+	{
+		private: true,
+		path: "/colon/afspraak-maken-heraanmelding/",
+		name: "Afspraak maken",
+		component: ColonAfspraakMakenPage,
+		bvo: Bevolkingsonderzoek.COLON,
+		requiredContactActions: [ClientContactActieType.COLON_NIEUWE_AFSPRAAK_AANMAKEN],
 		redirectPage: "/colon/",
 	},
 	{

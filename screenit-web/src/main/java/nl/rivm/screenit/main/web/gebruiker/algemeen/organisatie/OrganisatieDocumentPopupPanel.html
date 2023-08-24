@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -21,27 +21,27 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <form wicket:id="uploadForm">
-        <div class="modal hide fade in" id="modalOvereenkomst" role="dialog"
-             style="display: block;" aria-hidden="false">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">x</button>
-                <h3>Document toevoegen</h3>
-            </div>
-            <div class="modal-body">
-                <fieldset class="form-horizontal">
-                    <div class="control-group">
-                        <label class="control-label">Document upload</label>
-                        <div class="controls">
-                            <input wicket:id="fileUpload" type="file">
-                        </div>
-                    </div>
-                </fieldset>
-            </div>
-            <div class="modal-footer">
-                <button class="btn" data-dismiss="modal">Annuleren</button>
-                <button wicket:id="toevoegen" class="btn btn-primary" data-dismiss="modal" type="submit">Toevoegen
-                </button>
-            </div>
+		<div class="modal hide fade in display-block" id="modalOvereenkomst" role="dialog"
+			 aria-hidden="false">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal">x</button>
+				<h3>Document toevoegen</h3>
+			</div>
+			<div class="modal-body">
+				<fieldset class="form-horizontal">
+					<div class="control-group">
+						<label class="control-label">Document upload</label>
+						<div class="controls">
+							<input wicket:id="fileUpload" type="file">
+						</div>
+					</div>
+				</fieldset>
+			</div>
+			<div class="modal-footer">
+				<button class="btn" data-dismiss="modal">Annuleren</button>
+				<button wicket:id="toevoegen" class="btn btn-primary" data-dismiss="modal" type="submit">Toevoegen
+				</button>
+			</div>
         </div>
     </form>
 </wicket:panel>

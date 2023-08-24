@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.kansberekening.afspraken;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,24 +23,25 @@ package nl.rivm.screenit.batch.jobs.mamma.kansberekening.afspraken;
 
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.batch.jobs.mamma.kansberekening.MammaAbstractEventReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 
 import org.hibernate.Criteria;
+import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class MammaAfspraakEventReader extends MammaAbstractEventReader
+public class MammaAfspraakEventReader extends BaseScrollableResultReader
 {
 	private final ICurrentDateSupplier dateSupplier;
 
 	@Override
-	public Criteria getCriteria(StatelessSession session)
+	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
 		var criteria = session.createCriteria(MammaAfspraak.class, "afspraak");
 

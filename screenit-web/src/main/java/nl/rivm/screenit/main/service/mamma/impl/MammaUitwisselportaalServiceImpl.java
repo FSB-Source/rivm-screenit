@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,7 +29,10 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.dao.mamma.MammaUitwisselportaalDao;
@@ -40,6 +43,8 @@ import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.BestandStatus;
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.BezwaarType;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaDossier;
@@ -56,41 +61,36 @@ import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
+import nl.rivm.screenit.util.BezwaarUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@AllArgsConstructor
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MammaUitwisselportaalServiceImpl implements MammaUitwisselportaalService
 {
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final ICurrentDateSupplier dateSupplier;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private BerichtToBatchService berichtToBatchService;
+	private final BerichtToBatchService berichtToBatchService;
 
-	@Autowired
-	private MammaBaseBeoordelingService beoordelingService;
+	private final MammaBaseBeoordelingService beoordelingService;
 
-	@Autowired
-	private UploadDocumentService uploadDocumentService;
+	private final UploadDocumentService uploadDocumentService;
 
-	@Autowired
-	private MammaUitwisselportaalDao uitwisselportaalDao;
+	private final MammaUitwisselportaalDao uitwisselportaalDao;
 
-	@Autowired
-	private LogService logService;
+	private final LogService logService;
 
-	@Autowired
-	private MammaBaseScreeningrondeService screeningrondeService;
+	private final MammaBaseScreeningrondeService screeningrondeService;
+
+	private final MammaBaseBeoordelingService baseBeoordelingService;
 
 	private static final OrganisatieType[] RADIOLOGIE_VERSLAG_ORGANISATIE_TYPES = new OrganisatieType[] { OrganisatieType.ZORGINSTELLING, OrganisatieType.MAMMAPOLI,
 		OrganisatieType.RADIOLOGIEAFDELING };
@@ -176,6 +176,55 @@ public class MammaUitwisselportaalServiceImpl implements MammaUitwisselportaalSe
 				hibernateService.saveOrUpdate(onderzoek);
 			}
 		}
+	}
+
+	@Override
+	public Optional<MammaDownloadOnderzoekenVerzoek> geldigDownloadVerzoekVoorIngelogdeGebruiker(long downloadVerzoekId, InstellingGebruiker instellingGebruiker)
+	{
+		if (downloadVerzoekId <= 0 || instellingGebruiker == null)
+		{
+			return Optional.empty();
+		}
+
+		var verzoekFilter = maakDownloadVerzoekFilter(instellingGebruiker);
+		verzoekFilter.setId(downloadVerzoekId);
+
+		if (countVerzoeken(verzoekFilter) != 1)
+		{
+			return Optional.empty();
+		}
+
+		var downloadVerzoek = hibernateService.load(MammaDownloadOnderzoekenVerzoek.class, downloadVerzoekId);
+
+		return zipKanGedownloadWorden(downloadVerzoek) ? Optional.of(downloadVerzoek) : Optional.empty();
+	}
+
+	@Override
+	public MammaDownloadOnderzoekenVerzoek maakDownloadVerzoekFilter(InstellingGebruiker instellingGebruiker)
+	{
+		var verzoekFilter = new MammaDownloadOnderzoekenVerzoek();
+		if (instellingGebruiker.getOrganisatie().getOrganisatieType() != OrganisatieType.RIVM)
+		{
+			verzoekFilter.setAangemaaktDoor(instellingGebruiker);
+		}
+		return verzoekFilter;
+	}
+
+	@Override
+	public boolean zipKanGedownloadWorden(MammaDownloadOnderzoekenVerzoek downloadOnderzoekenVerzoek)
+	{
+		var status = downloadOnderzoekenVerzoek.getStatus();
+		return (status == BestandStatus.VERWERKT || status == BestandStatus.CRASH) && !heeftClientBezwaarTegenUitwisseling(downloadOnderzoekenVerzoek);
+	}
+
+	private boolean heeftClientBezwaarTegenUitwisseling(MammaDownloadOnderzoekenVerzoek downloadOnderzoekenVerzoek)
+	{
+		if (downloadOnderzoekenVerzoek.getOnderzoeken() != null && !downloadOnderzoekenVerzoek.getOnderzoeken().isEmpty())
+		{
+			Client client = baseBeoordelingService.getClientVanBeoordeling(downloadOnderzoekenVerzoek.getOnderzoeken().get(0).getOnderzoek().getLaatsteBeoordeling());
+			return BezwaarUtil.isBezwaarActiefVoor(client, BezwaarType.GEEN_DIGITALE_UITWISSELING_MET_HET_ZIEKENHUIS, Bevolkingsonderzoek.MAMMA);
+		}
+		return false;
 	}
 
 	@Override

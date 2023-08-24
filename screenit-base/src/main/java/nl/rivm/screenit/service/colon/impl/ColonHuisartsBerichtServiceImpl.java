@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -37,10 +37,8 @@ import nl.rivm.screenit.model.enums.HuisartsBerichtType;
 import nl.rivm.screenit.service.colon.ColonEdiService;
 import nl.rivm.screenit.service.colon.ColonHuisartsBerichtService;
 import nl.rivm.screenit.util.BezwaarUtil;
-import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,39 +47,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class ColonHuisartsBerichtServiceImpl implements ColonHuisartsBerichtService
 {
-
 	@Autowired(required = false)
 	private HuisartsBerichtDao berichtDao;
 
 	@Autowired
-	private SimplePreferenceService simplePreferenceService;
-
-	@Autowired
 	private ColonEdiService ediService;
-
-	@Autowired
-	@Qualifier(value = "smtpAuthUsername")
-	private String username;
-
-	@Autowired
-	@Qualifier(value = "smtpAuthPassword")
-	private String password;
-
-	@Autowired
-	@Qualifier(value = "mailRelayIp")
-	private String host;
-
-	@Autowired
-	@Qualifier(value = "mailRelayPort")
-	private Integer port;
-
-	@Autowired
-	@Qualifier(value = "smtpOverSsl")
-	private Boolean ssl;
-
-	@Autowired
-	@Qualifier("afzendEmailadres")
-	private String afzendEmailadres;
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS)

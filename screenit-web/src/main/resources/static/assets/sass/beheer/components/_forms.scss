@@ -1,5 +1,11 @@
 @charset "utf-8";
 
+
+.controls.geen-padding > .radio:first-child {
+	padding-top: 0;
+}
+
+
 .btn-group > .btn:hover, .btn-group > .btn:focus, .btn-group > .btn:active, .btn-group > .btn.active {
 	z-index: 1 !important;
 }
@@ -74,10 +80,24 @@
 .form-horizontal .control-group {
 	margin-bottom: 5px;
 
+	.so-volledig-zichtbaar {
+		width: auto;
+		min-width: 225px;
+	}
+}
+
+.form-horizontal .control-group-left {
+	margin-bottom: 5px;
+	float: left;
+	padding-right: 20px;
 }
 
 .form-horizontal .controls {
 	line-height: 30px;
+}
+
+.form-horizontal .no-overflow {
+	overflow: hidden;
 }
 
 .form-horizontal.page-filter .form-actions {
@@ -230,4 +250,35 @@ div.vragenlijstinzien .row-fluid .span6 {
 	select {
 		width: auto;
 	}
+}
+
+.control-label-small {
+	float: left;
+	padding-top: 5px;
+	width: 85px;
+}
+
+.controls-small {
+	line-height: 25px;
+}
+
+.enum-checkbox-renderer {
+	.renderer-horizontaal {
+		float: left;
+		width: 60px;
+		margin-right: 40px;
+	}
+}
+
+.radio.horizontalBooleanRadioButton {
+	float: left;
+	margin-right: 30px;
+}
+
+.lezing-form-container i.icon-asterisk.icon-purple {
+	display: none;
+}
+
+.lezing i.icon-asterisk.icon-purple {
+	display: none;
 }

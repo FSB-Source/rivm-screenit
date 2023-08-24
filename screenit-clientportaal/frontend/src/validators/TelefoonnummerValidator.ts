@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,18 +28,26 @@ const telefoonnummerCheck = (telefoonnummer: string): boolean => {
 	return telefoonnummer === "" || isVastNlNummer(telefoonnummer) || isMobielNlNummer(telefoonnummer) || isBuitenlandsNummer(telefoonnummer) || isInformatieNlNummer(telefoonnummer)
 }
 
+export const isMobielnummerValid = (telefoonnummer: string | undefined): boolean => {
+	return !telefoonnummer || mobielnummerCheck(telefoonnummer)
+}
+
+const mobielnummerCheck = (telefoonnummer: string): boolean => {
+	return telefoonnummer === "" || isMobielNlNummer(telefoonnummer)
+}
+
 const isVastNlNummer = (telefoonnummer: string): boolean => {
-	return exactMatch(telefoonnummer, /^(0[0-9]{9})|(0[0-9]{2}( |-)[0-9]{7})|(0[0-9]{3}( |-)[0-9]{6})$/)
+	return exactMatch(telefoonnummer, /^(0[0-9]{9})|(0[0-9]{2}[- ][0-9]{7})|(0[0-9]{3}[- ][0-9]{6})$/)
 }
 
 const isMobielNlNummer = (telefoonnummer: string): boolean => {
-	return exactMatch(telefoonnummer, /^(06( |-)?[0-9]{8})$/)
+	return exactMatch(telefoonnummer, /^(06|\+316|00316)[- ]?\d{8}$/)
 }
 
 const isInformatieNlNummer = (telefoonnummer: string): boolean => {
-	return exactMatch(telefoonnummer, /^(0(8|9)00( |-)?\d{4}(\d{3})?$)$/)
+	return exactMatch(telefoonnummer, /^0[89]00[- ]?\d{4}(\d{3})?$/)
 }
 
 const isBuitenlandsNummer = (telefoonnummer: string): boolean => {
-	return exactMatch(telefoonnummer, /^(\+|00)[0-9 -]{4,15}$/)
+	return exactMatch(telefoonnummer, /^(\+|00)[0-9 -]{4,15}$/);
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.uitstel.step;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.batch.jobs.cervix.uitstel.CervixUitstelConstants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
+import nl.rivm.screenit.model.cervix.CervixBrief;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstel;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -32,6 +33,7 @@ import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.cervix.CervixFactory;
+import nl.rivm.screenit.service.cervix.impl.CervixBaseScreeningrondeServiceImpl;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.stereotype.Component;
@@ -49,6 +51,8 @@ public class CervixUitstelWriter extends BaseWriter<CervixUitstel>
 	private final BaseBriefService briefService;
 
 	private final ICurrentDateSupplier dateSupplier;
+
+	private final CervixBaseScreeningrondeServiceImpl screeningrondeService;
 
 	@Override
 	protected void write(CervixUitstel uitstel) throws Exception
@@ -76,7 +80,16 @@ public class CervixUitstelWriter extends BaseWriter<CervixUitstel>
 				{
 					factory.updateDossierMetVolgendeRondeDatum(dossier, dateSupplier.getLocalDateTime());
 				}
-				var brief = briefService.maakBvoBrief(ronde, ronde.getLeeftijdcategorie().getUitnodigingsBrief());
+				CervixBrief brief;
+				if (ronde.getLaatsteUitnodiging() != null && ronde.getLaatsteUitnodiging().getBrief() != null && !screeningrondeService.nieuweUitnodigingVoorClientMoetPUZijn(
+					ronde))
+				{
+					brief = briefService.maakBvoBrief(ronde, ronde.getLaatsteUitnodiging().getBrief().getBriefType());
+				}
+				else
+				{
+					brief = briefService.maakBvoBrief(ronde, ronde.getLeeftijdcategorie().getUitnodigingsBrief());
+				}
 
 				var laatsteUitnodiging = clientService.getLaatstVerstuurdeUitnodiging(ronde, false);
 				if (laatsteUitnodiging != null)
@@ -87,7 +100,7 @@ public class CervixUitstelWriter extends BaseWriter<CervixUitstel>
 					hibernateService.saveOrUpdate(brief);
 				}
 
-				uitnodiging = factory.maakUitnodiging(ronde, brief, herinneren, true);
+				uitnodiging = factory.maakUitnodigingMetVoorEnNaBmhk2023HerinnerenCheck(ronde, brief, herinneren);
 			}
 
 			uitnodiging.setUitgesteld(true);

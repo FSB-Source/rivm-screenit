@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -49,6 +49,7 @@ import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.HuisartsBerichtType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.MailPriority;
+import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaBrief;
@@ -56,9 +57,11 @@ import nl.rivm.screenit.model.mamma.MammaLezing;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.enums.MammaBIRADSWaarde;
 import nl.rivm.screenit.model.mamma.enums.MammaBeLezerSoort;
+import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingOpschortenReden;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaLezingType;
+import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaZijde;
 import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.BaseBriefService;
@@ -281,6 +284,10 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 			lezing.setBiradsLinks(baseBeoordelingService.defaultBiradsWaarde(beoordeling, MammaZijde.LINKER_BORST));
 			lezing.setBeoordelaar(beoordelaar);
 			lezing.setOnervarenRadioloog(onervarenRadioloog);
+			if (MammaOnderzoekType.TOMOSYNTHESE == beoordeling.getOnderzoek().getOnderzoekType() && lezing.getTomosyntheseRelevantVoorBeoordeling() == null)
+			{
+				lezing.setTomosyntheseRelevantVoorBeoordeling(false);
+			}
 		}
 		return lezing;
 	}
@@ -310,6 +317,10 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 			lezing.setOnervarenRadioloog(!isBevoegdVoorArbitrage(gebruiker));
 			lezing.setBiradsLinks(baseBeoordelingService.defaultBiradsWaarde(beoordeling, MammaZijde.LINKER_BORST));
 			lezing.setBiradsRechts(baseBeoordelingService.defaultBiradsWaarde(beoordeling, MammaZijde.RECHTER_BORST));
+			if (MammaOnderzoekType.TOMOSYNTHESE == beoordeling.getOnderzoek().getOnderzoekType() && lezing.getTomosyntheseRelevantVoorBeoordeling() == null)
+			{
+				lezing.setTomosyntheseRelevantVoorBeoordeling(false);
+			}
 		}
 		return lezing;
 	}
@@ -380,7 +391,7 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 	public void radioloogHeeftGeenHandtekening(Gebruiker medewerker)
 	{
 		var email = preferenceService.getString(PreferenceKey.DASHBOARDEMAIL.name());
-		mailService.queueMail(email,
+		mailService.queueMailAanProfessional(email,
 			"Handtekening van radioloog (BK) mist!!!",
 			"De radioloog met gebruikersnaam '" + medewerker.getGebruikersnaam()
 				+ "' wilde gaan screenen/beoordelen. Echter mist de handtekening en kan derhalve nu niet aan het werk. Dit moet zsm. opgelost worden iom. de regio.",
@@ -646,6 +657,42 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 	public boolean isBevoegdVoorArbitrage(InstellingGebruiker gebruiker)
 	{
 		return autorisatieService.getToegangLevel(gebruiker, Actie.TOEVOEGEN, true, Recht.GEBRUIKER_SCREENING_MAMMA_ARBITRAGE_WERKLIJST) != null;
+	}
+
+	@Override
+	public List<MammaBeoordelingOpschortenReden> getMogelijkeOpschortRedenen(MammaBeoordeling beoordeling, MammaLezingType lezingType)
+	{
+		var onderzoek = beoordeling.getOnderzoek();
+		var mogelijkeOpschortRedenen = new ArrayList<MammaBeoordelingOpschortenReden>();
+		mogelijkeOpschortRedenen.add(MammaBeoordelingOpschortenReden.NIET_OPSCHORTEN);
+
+		if (lezingType == MammaLezingType.EERSTE_LEZING && onderzoek.getStatus() == MammaOnderzoekStatus.AFGEROND)
+		{
+			mogelijkeOpschortRedenen.add(MammaBeoordelingOpschortenReden.AANVULLENDE_BEELDEN_NODIG_SE);
+		}
+		if (onderzoek.getEerderMammogramZorginstelling() != null)
+		{
+			mogelijkeOpschortRedenen.add(MammaBeoordelingOpschortenReden.PRIORS_VAN_BUITEN_BVO);
+		}
+		return mogelijkeOpschortRedenen;
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void logBeoordelingIngezien(MammaBeoordeling beoordeling, InstellingGebruiker ingelogdeGebruiker, boolean isCoordinerendRadioloog)
+	{
+		if (isCoordinerendRadioloog)
+		{
+			logService.logGebeurtenis(LogGebeurtenis.MAMMA_BEOORDELING_INGEZIEN, ingelogdeGebruiker,
+				baseBeoordelingService.getClientVanBeoordeling(beoordeling), "Co\u00F6rdinerend radioloog: inzage ronde review",
+				Bevolkingsonderzoek.MAMMA);
+		}
+		else
+		{
+			logService.logGebeurtenis(LogGebeurtenis.MAMMA_BEOORDELING_INGEZIEN, ingelogdeGebruiker,
+				baseBeoordelingService.getClientVanBeoordeling(beoordeling),
+				Bevolkingsonderzoek.MAMMA);
+		}
 	}
 
 }

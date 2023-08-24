@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.verslag;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -41,18 +41,19 @@ class MammaVerwijsVerslagPanel extends GenericPanel<MammaLezing>
 	@SpringBean
 	private MammaBaseBeoordelingService baseBeoordelingService;
 
-	MammaVerwijsVerslagPanel(String id, MammaVerslagRondePanel verslagPanel, IModel<MammaLezing> verslagLezingModel, MammaAmputatie amputatie)
+	MammaVerwijsVerslagPanel(String id, MammaVerslagRondePanel verslagPanel, IModel<MammaLezing> verslagLezingModel, MammaAmputatie amputatie, boolean toonAfwijkingSliceButtons)
 	{
 		super(id, verslagLezingModel);
 
-		Form form = new Form("verwijsverslagForm");
+		var form = new Form<Void>("verwijsverslagForm");
 		form.add(new MammaBeoordelingPdfTonenPanel("verslagPdf", verslagPanel.getModel()));
 		form.add(new IndicatingAjaxButton("terugNaarVerslagVerfijnen")
 		{
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				MammaVerslagVerfijnenPanel verslagVerfijnenPanel = new MammaVerslagVerfijnenPanel(verslagPanel, "verslagPanel", verslagLezingModel, amputatie);
+				MammaVerslagVerfijnenPanel verslagVerfijnenPanel = new MammaVerslagVerfijnenPanel(verslagPanel, "verslagPanel", verslagLezingModel, amputatie,
+					toonAfwijkingSliceButtons);
 				verslagVerfijnenPanel.setOutputMarkupId(true);
 				verslagPanel.replaceRonde(target, verslagVerfijnenPanel);
 			}
@@ -66,7 +67,7 @@ class MammaVerwijsVerslagPanel extends GenericPanel<MammaLezing>
 				InstellingGebruiker beoordelaar = ScreenitSession.get().getLoggedInInstellingGebruiker();
 				verslagPanel.getModelObject().getVerslagLezing().setBeoordelaar(beoordelaar);
 				baseBeoordelingService.setStatusNaarVerslagGereed(verslagPanel.getModelObject());
-				((AbstractMammaBeoordelenPage) getPage()).volgendeVerslag(target);
+				((AbstractMammaBeoordelenPage) getPage()).volgendeBeoordeling(target);
 			}
 		});
 		add(form);

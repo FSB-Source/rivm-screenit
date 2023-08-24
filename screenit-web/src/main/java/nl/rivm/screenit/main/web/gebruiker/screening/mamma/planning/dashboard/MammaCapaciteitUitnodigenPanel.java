@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.dashboard;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.dashboard;
  * =========================LICENSE_END==================================
  */
 
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -41,13 +42,11 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseConceptPlanningsApplicatie;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.mamma.MammaPlanningUtil;
-import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxButton;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.util.ListModel;
@@ -55,12 +54,10 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.ValidationError;
 import org.apache.wicket.validation.validator.DateValidator;
-import org.joda.time.DateTime;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
 public abstract class MammaCapaciteitUitnodigenPanel extends GenericPanel<MammaScreeningsEenheid>
 {
-
 	@SpringBean
 	private MammaScreeningsEenheidService screeningsEenheidService;
 
@@ -96,15 +93,15 @@ public abstract class MammaCapaciteitUitnodigenPanel extends GenericPanel<MammaS
 		{
 			uitnodigenTotEnMetKalender.add(DateValidator.minimum(screeningsEenheid.getUitgenodigdTotEnMet()));
 		}
-		DateTime vandaag = dateSupplier.getDateTime();
+		var vandaag = dateSupplier.getDate();
 		uitnodigenTotEnMetKalender.add(new VrijgegevenTotEnMetUitnodigenTotEnMetDatumValidator(standplaatsPeriodes));
-		uitnodigenTotEnMetKalender.add(DateValidator.maximum(vandaag.plusMonths(2).toDate()));
+		uitnodigenTotEnMetKalender.add(DateValidator.maximum(DateUtil.plusTijdseenheid(vandaag, 2, ChronoUnit.MONTHS)));
 
 		DatePicker<Date> vrijgegevenTotEnMetKalender = ComponentHelper.newYearDatePicker("vrijgegevenTotEnMet");
 		vrijgegevenTotEnMetKalender.setDisabled(!magAanpassen);
 		form.add(vrijgegevenTotEnMetKalender);
 		vrijgegevenTotEnMetKalender.add(new VrijgegevenTotEnMetUitnodigenTotEnMetDatumValidator(standplaatsPeriodes));
-		vrijgegevenTotEnMetKalender.add(DateValidator.range(vandaag.minusDays(1).toDate(), vandaag.plusMonths(6).toDate()));
+		vrijgegevenTotEnMetKalender.add(DateValidator.range(DateUtil.minDagen(vandaag, 1), DateUtil.plusTijdseenheid(vandaag, 6, ChronoUnit.MONTHS)));
 
 		IndicatingAjaxButton opslaanknop = new IndicatingAjaxButton("opslaan")
 		{
@@ -152,9 +149,6 @@ public abstract class MammaCapaciteitUitnodigenPanel extends GenericPanel<MammaS
 
 		form.add(new AjaxLink<Void>("close")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{

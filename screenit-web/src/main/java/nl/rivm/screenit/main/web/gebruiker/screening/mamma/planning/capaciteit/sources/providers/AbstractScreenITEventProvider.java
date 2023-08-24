@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit.
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +22,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit.
  */
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,17 +31,13 @@ import nl.rivm.screenit.main.web.component.fullcalendar.event.EventNotFoundExcep
 import nl.rivm.screenit.main.web.component.fullcalendar.event.EventProvider;
 
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
 
 public abstract class AbstractScreenITEventProvider implements EventProvider
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private Map<String, Event> events = new HashMap<>();
 
 	@Override
-	public final Collection<Event> getEvents(DateTime start, DateTime end)
+	public final Collection<Event> getEvents(Date start, Date end)
 	{
 		events.clear();
 		createEvents(start, end);
@@ -70,7 +67,7 @@ public abstract class AbstractScreenITEventProvider implements EventProvider
 			+ " not found");
 	}
 
-	abstract void createEvents(DateTime start, DateTime end);
+	abstract void createEvents(Date start, Date end);
 
 	abstract ScreenITEventSourceType getSourceType();
 

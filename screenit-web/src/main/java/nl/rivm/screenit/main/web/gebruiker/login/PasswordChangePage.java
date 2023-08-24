@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.login;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,8 +21,7 @@ package nl.rivm.screenit.main.web.gebruiker.login;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
-import java.util.Iterator;
+import java.time.Duration;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,9 +32,11 @@ import nl.rivm.screenit.main.web.component.ScreenitWachtwoordField;
 import nl.rivm.screenit.main.web.component.validator.ScreenITWachtwoordValidator;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.repository.GebruikerRepository;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.WachtwoordService;
-import nl.topicuszorg.hibernate.spring.dao.HibernateSearchService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.input.behavior.FocusBehavior;
@@ -51,15 +52,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.joda.time.DateTime;
-import org.joda.time.Period;
 
 @Slf4j
 public class PasswordChangePage extends LoginBasePage
 {
-
-	@SpringBean
-	private HibernateSearchService hibernateSearchService;
 
 	@SpringBean
 	private LogService logService;
@@ -69,6 +65,12 @@ public class PasswordChangePage extends LoginBasePage
 
 	@SpringBean
 	private WachtwoordService wachtwoordService;
+
+	@SpringBean
+	private ICurrentDateSupplier currentDateSupplier;
+
+	@SpringBean
+	private GebruikerRepository gebruikerRepository;
 
 	private final String gebruikersnaam;
 
@@ -86,29 +88,27 @@ public class PasswordChangePage extends LoginBasePage
 		changeCode = pageParameters.get("code").toString();
 		gebruikersnaam = pageParameters.get("user").toString();
 
-		Gebruiker searchObject = new Gebruiker();
-		searchObject.setWachtwoordChangeCode(changeCode);
-
-		if (hibernateSearchService.count(searchObject) == 1)
+		var gebruiker = gebruikerRepository.findByWachtwoordChangeCode(changeCode).orElse(null);
+		if (gebruiker != null)
 		{
-			Iterator<Gebruiker> gebruikerIter = hibernateSearchService.search(searchObject, -1, -1, "id", true);
-			medewerker = ModelUtil.sModel(gebruikerIter.next());
+			var gebruikerByGebruikersnaam = gebruikerRepository.findByGebruikersnaam(gebruikersnaam);
 
-			if (ModelUtil.nullSafeGet(medewerker) != null)
+			if (gebruikerByGebruikersnaam.isPresent() && gebruikerByGebruikersnaam.get().equals(gebruiker))
 			{
+				medewerker = ModelUtil.sModel(gebruiker);
 				if (!isValidChangeCode())
 				{
-					error(getLocalizer().getString("error.code.niet.meer.geldig", this));
+					error(getString("error.code.niet.meer.geldig"));
 				}
 			}
 			else
 			{
-				error(getLocalizer().getString("error.password.change.wrong.username", this));
+				error(getString("error.password.change.wrong.username"));
 			}
 		}
 		else
 		{
-			error(getLocalizer().getString("error.code.incorrect", this));
+			error(getString("error.code.incorrect"));
 		}
 
 		final ScreenitForm<PasswordChangePage> form = new ScreenitForm<>("requestForm", new CompoundPropertyModel<>(this));
@@ -189,14 +189,12 @@ public class PasswordChangePage extends LoginBasePage
 
 	private boolean isValidChangeCode()
 	{
-		DateTime now = new DateTime(new Date());
-		Gebruiker gebruiker = ModelUtil.nullSafeGet(medewerker);
+		var nu = currentDateSupplier.getLocalDateTime();
+		var gebruiker = ModelUtil.nullSafeGet(medewerker);
 		if (gebruiker != null)
 		{
-			DateTime aanvraagDatum = new DateTime(gebruiker.getDatumWachtwoordAanvraag());
-
-			Period period = new Period(aanvraagDatum, now);
-			return period.getDays() < 1;
+			var aanvraagDatum = gebruiker.getDatumWachtwoordAanvraag();
+			return Duration.between(DateUtil.toLocalDateTime(aanvraagDatum), nu).toDays() < 1;
 		}
 		else
 		{

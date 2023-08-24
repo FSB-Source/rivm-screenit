@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.dao;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,11 +25,13 @@ import nl.rivm.screenit.mamma.se.proxy.model.SeConfiguratieKey;
 
 public interface ConfiguratieDao
 {
-    String getConfiguratieValue(SeConfiguratieKey key);
+	String getConfiguratieValue(SeConfiguratieKey key);
 
-    Integer getConfiguratieIntegerValue(SeConfiguratieKey key);
+	Integer getConfiguratieIntegerValue(SeConfiguratieKey key);
 
-    void insertOrUpdateConfiguratieValue(SeConfiguratieKey key, String value);
+	boolean getConfiguratieBooleanValue(SeConfiguratieKey key);
 
-    void updateConfiguratieValue(SeConfiguratieKey key, String value);
+	void insertOrUpdateConfiguratieValue(SeConfiguratieKey key, String value);
+
+	void updateConfiguratieValue(SeConfiguratieKey key, String value);
 }

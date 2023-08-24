@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jms.listener;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -42,8 +42,8 @@ public class JMSVerwerkHpvBerichtListener implements SessionAwareMessageListener
 	@Override
 	public void onMessage(ActiveMQObjectMessage message, Session session)
 	{
-
 		var berichten = verwerkHpvBerichtService.getAlleNietVerwerkteHpvBerichten();
+		LOG.info("Aantal berichten in queue: {}", berichten.size());
 		for (var bericht : berichten)
 		{
 			try

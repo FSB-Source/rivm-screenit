@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -73,7 +73,6 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	constraint = ShiroConstraint.HasPermission)
 public class ColonParameterisatiePage extends ParameterisatieBasePage
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@SpringBean
@@ -91,7 +90,6 @@ public class ColonParameterisatiePage extends ParameterisatieBasePage
 
 	private class CohortenForm extends Form<Parameterisatie>
 	{
-
 		private static final long serialVersionUID = 1L;
 
 		private ToegangLevel level;
@@ -119,7 +117,6 @@ public class ColonParameterisatiePage extends ParameterisatieBasePage
 
 			PropertyListView<UitnodigingCohortGeboortejarenDto> uitnodigingCohorten = new PropertyListView<UitnodigingCohortGeboortejarenDto>("cohorten", cohorten)
 			{
-
 				private static final long serialVersionUID = 1L;
 
 				@Override
@@ -127,7 +124,6 @@ public class ColonParameterisatiePage extends ParameterisatieBasePage
 				{
 					FormComponent<List<Integer>> geboorteJaren = new TextField<List<Integer>>("geboortejaren")
 					{
-
 						private static final long serialVersionUID = 1L;
 
 						private static final int GELDIGE_SPLITS_WAARDEN = 4;
@@ -140,7 +136,6 @@ public class ColonParameterisatiePage extends ParameterisatieBasePage
 							{
 								return (IConverter<C>) new IConverter<List<Integer>>()
 								{
-
 									private static final long serialVersionUID = 1L;
 
 									@Override
@@ -184,7 +179,6 @@ public class ColonParameterisatiePage extends ParameterisatieBasePage
 
 			add(new AjaxLink<Parameterisatie>("voegCohortToe", model)
 			{
-
 				private static final long serialVersionUID = 1L;
 
 				@Override
@@ -211,7 +205,6 @@ public class ColonParameterisatiePage extends ParameterisatieBasePage
 
 			cohortenContainer.add(new AjaxSubmitLink("opslaan")
 			{
-
 				private static final long serialVersionUID = 1L;
 
 				@Override

@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -54,7 +54,6 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
@@ -91,33 +90,13 @@ public class CervixVerrichtingDaoImpl extends AbstractAutowiredDao implements Ce
 		{
 			crit.add(Restrictions.in("type", CervixTariefType.values()));
 		}
-		if (StringUtils.isNotEmpty(zoekObject.getBsn()))
-		{
-			crit.add(Restrictions.eq("persoon.bsn", zoekObject.getBsn()));
-		}
-		if (zoekObject.getGeboortedatum() != null)
-		{
-			crit.add(Restrictions.eq("persoon.geboortedatum", zoekObject.getGeboortedatum()));
-		}
-		if (StringUtils.isNotEmpty(zoekObject.getPostcode()))
-		{
-			crit.add(Restrictions.eq("adres.postode", zoekObject.getPostcode()));
-		}
-		if (zoekObject.getHuisnummer() != null)
-		{
-			crit.add(Restrictions.eq("adres.huisnummer", zoekObject.getHuisnummer()));
-		}
 		if (zoekObject.getVerrichtingsdatumTotEnMet() != null)
 		{
-			crit.add(Restrictions.lt("verrichtingsDatum", new DateTime(zoekObject.getVerrichtingsdatumTotEnMet()).plusDays(1).toDate()));
+			crit.add(Restrictions.lt("verrichtingsDatum", DateUtil.plusDagen(zoekObject.getVerrichtingsdatumTotEnMet(), 1)));
 		}
 		if (zoekObject.getScreeningOrganisatieId() != null)
 		{
 			crit.add(Restrictions.eq("regio.id", zoekObject.getScreeningOrganisatieId()));
-		}
-		if (zoekObject.getMonsterId() != null)
-		{
-			crit.add(Restrictions.eq("monster.monsterId", zoekObject.getMonsterId()));
 		}
 		crit.add(Restrictions.isNull("boekRegel.specificatie"));
 		return crit;
@@ -255,7 +234,7 @@ public class CervixVerrichtingDaoImpl extends AbstractAutowiredDao implements Ce
 		}
 		if (verrichtingenCriteria.getVerrichtingsDatumTotenmet() != null)
 		{
-			criteria.add(Restrictions.lt("verrichting.verrichtingsDatum", new DateTime(verrichtingenCriteria.getVerrichtingsDatumTotenmet()).plusDays(1).toDate()));
+			criteria.add(Restrictions.lt("verrichting.verrichtingsDatum", DateUtil.plusDagen(verrichtingenCriteria.getVerrichtingsDatumTotenmet(), 1)));
 		}
 		if (StringUtils.isNotBlank(verrichtingenCriteria.getBetalingskenmerk()))
 		{
@@ -326,7 +305,7 @@ public class CervixVerrichtingDaoImpl extends AbstractAutowiredDao implements Ce
 	}
 
 	@Override
-	public List<CervixHuisartsTarief> getCervixHuisartsTarieven(CervixHuisartsTarief tarief, long first, long count, SortState<String> sortState)
+	public List<CervixHuisartsTarief> getHuisartsTarieven(CervixHuisartsTarief tarief, long first, long count, SortState<String> sortState)
 	{
 		Criteria crit = getSession().createCriteria(CervixHuisartsTarief.class);
 		crit.add(Restrictions.eq("actief", Boolean.TRUE));
@@ -351,7 +330,7 @@ public class CervixVerrichtingDaoImpl extends AbstractAutowiredDao implements Ce
 	}
 
 	@Override
-	public CervixHuisartsTarief getLatestCervixHuisartsTarief()
+	public CervixHuisartsTarief getLatestHuisartsTarief()
 	{
 		Criteria crit = getSession().createCriteria(CervixHuisartsTarief.class);
 		crit.add(Restrictions.eq("actief", Boolean.TRUE));
@@ -360,7 +339,7 @@ public class CervixVerrichtingDaoImpl extends AbstractAutowiredDao implements Ce
 	}
 
 	@Override
-	public CervixLabTarief getLatestCervixLabTarief(BMHKLaboratorium lab)
+	public CervixLabTarief getLatestLabTarief(BMHKLaboratorium lab)
 	{
 		Criteria crit = getSession().createCriteria(CervixLabTarief.class);
 		crit.add(Restrictions.eq("actief", Boolean.TRUE));
@@ -370,7 +349,7 @@ public class CervixVerrichtingDaoImpl extends AbstractAutowiredDao implements Ce
 	}
 
 	@Override
-	public Long countCervixHuisartsTarieven(CervixHuisartsTarief tarief)
+	public Long countHuisartsTarieven(CervixHuisartsTarief tarief)
 	{
 		Criteria crit = getSession().createCriteria(CervixHuisartsTarief.class);
 		crit.add(Restrictions.eq("actief", Boolean.TRUE));
@@ -379,7 +358,7 @@ public class CervixVerrichtingDaoImpl extends AbstractAutowiredDao implements Ce
 	}
 
 	@Override
-	public CervixHuisartsTarief getCervixHuisartsTarief(Date datum)
+	public CervixHuisartsTarief getHuisartsTarief(Date datum)
 	{
 		Criteria crit = getSession().createCriteria(CervixHuisartsTarief.class);
 		crit.add(Restrictions.eq("geldigVanafDatum", datum));
@@ -388,7 +367,7 @@ public class CervixVerrichtingDaoImpl extends AbstractAutowiredDao implements Ce
 	}
 
 	@Override
-	public CervixLabTarief getCervixLaboratoriumTarief(CervixLabTarief tarief)
+	public CervixLabTarief getLaboratoriumTarief(CervixLabTarief tarief)
 	{
 
 		Criteria crit = getSession().createCriteria(CervixLabTarief.class);
@@ -399,7 +378,7 @@ public class CervixVerrichtingDaoImpl extends AbstractAutowiredDao implements Ce
 	}
 
 	@Override
-	public List<CervixHuisartsTarief> getCervixHuisartsTarievenZonderEinddatum()
+	public List<CervixHuisartsTarief> getHuisartsTarievenZonderEinddatum()
 	{
 		Date vandaag = currentDateSupplier.getDate();
 		Criteria crit = getSession().createCriteria(CervixHuisartsTarief.class);
@@ -411,7 +390,7 @@ public class CervixVerrichtingDaoImpl extends AbstractAutowiredDao implements Ce
 	}
 
 	@Override
-	public List<CervixLabTarief> getCervixLabTarievenZonderEinddatum(BMHKLaboratorium lab)
+	public List<CervixLabTarief> getLabTarievenZonderEinddatum(BMHKLaboratorium lab)
 	{
 		Date vandaag = currentDateSupplier.getDate();
 		Criteria crit = getSession().createCriteria(CervixLabTarief.class);
@@ -435,7 +414,7 @@ public class CervixVerrichtingDaoImpl extends AbstractAutowiredDao implements Ce
 	}
 
 	@Override
-	public List<CervixLabTarief> getCervixLabTarieven(CervixLabTarief zoekobject, long first, long count, SortState<String> sortState)
+	public List<CervixLabTarief> getLabTarieven(CervixLabTarief zoekobject, long first, long count, SortState<String> sortState)
 	{
 		Criteria crit = getBaseCervixLabTarievenCriteria(zoekobject);
 		if (!sortState.isAsc())
@@ -460,7 +439,7 @@ public class CervixVerrichtingDaoImpl extends AbstractAutowiredDao implements Ce
 	}
 
 	@Override
-	public Long countCervixLabTarieven(CervixLabTarief zoekobject)
+	public Long countLabTarieven(CervixLabTarief zoekobject)
 	{
 		Criteria crit = getBaseCervixLabTarievenCriteria(zoekobject);
 		crit.setProjection(Projections.rowCount());
@@ -487,9 +466,10 @@ public class CervixVerrichtingDaoImpl extends AbstractAutowiredDao implements Ce
 	}
 
 	@Override
-	public List<CervixBetaalopdracht> getCervixBetaalopdrachten(ScreeningOrganisatie organisatie, SortState<String> sortState, long first, long count)
+	public List<CervixBetaalopdracht> getBetaalOpdrachten(SortState<String> sortState, long first, long count)
 	{
 		Criteria crit = getSession().createCriteria(CervixBetaalopdracht.class);
+		crit.createAlias("screeningOrganisatie", "screeningOrganisatie");
 		if (!sortState.isAsc())
 		{
 			crit.addOrder(Order.desc(sortState.getSortParam()));
@@ -507,16 +487,14 @@ public class CervixVerrichtingDaoImpl extends AbstractAutowiredDao implements Ce
 		{
 			crit.setFirstResult((int) first);
 		}
-		crit.add(Restrictions.eq("screeningOrganisatie", organisatie));
 		crit.add(Restrictions.ne("status", BestandStatus.VERWIJDERD));
 		return crit.list();
 	}
 
 	@Override
-	public Long countCervixBetaalOpdrachten(ScreeningOrganisatie organisatie)
+	public Long countBetaalOpdrachten()
 	{
 		Criteria crit = getSession().createCriteria(CervixBetaalopdracht.class);
-		crit.add(Restrictions.eq("screeningOrganisatie", organisatie));
 		crit.add(Restrictions.ne("status", BestandStatus.VERWIJDERD));
 		crit.setProjection(Projections.rowCount());
 		return ((Number) crit.uniqueResult()).longValue();
@@ -525,13 +503,12 @@ public class CervixVerrichtingDaoImpl extends AbstractAutowiredDao implements Ce
 	@Override
 	public List<CervixBetaalopdracht> getVandaagGemaakteBetaalOpdrachten()
 	{
-		DateTime nu = currentDateSupplier.getDateTimeMidnight();
+		var nu = currentDateSupplier.getLocalDate();
 		Criteria crit = getSession().createCriteria(CervixBetaalopdracht.class);
-		crit.add( 
-			Restrictions.and( 
-				Restrictions.gt("statusDatum", nu.toDate()),
-				Restrictions.lt("statusDatum", nu.plusDays(1).toDate())));
-
+		crit.add(
+			Restrictions.and(
+				Restrictions.gt("statusDatum", DateUtil.toUtilDate(nu)),
+				Restrictions.lt("statusDatum", DateUtil.toUtilDate(nu.plusDays(1)))));
 		return crit.list();
 	}
 

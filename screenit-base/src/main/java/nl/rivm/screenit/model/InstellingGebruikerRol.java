@@ -4,7 +4,7 @@ package nl.rivm.screenit.model;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,6 +38,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
@@ -47,11 +50,10 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @Entity
 @Table(schema = "algemeen")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "organisatie.cache")
+@Getter
+@Setter
 public class InstellingGebruikerRol extends AbstractHibernateObject implements IActief, IBevolkingsonderzoek
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(nullable = false)
 	private InstellingGebruiker instellingGebruiker;
@@ -72,48 +74,6 @@ public class InstellingGebruikerRol extends AbstractHibernateObject implements I
 	private Date eindDatum;
 
 	private Boolean actief = true;
-
-	public Rol getRol()
-	{
-		return this.rol;
-	}
-
-	public void setRol(Rol rol)
-	{
-		this.rol = rol;
-	}
-
-	@Override
-	public List<Bevolkingsonderzoek> getBevolkingsonderzoeken()
-	{
-		return bevolkingsonderzoeken;
-	}
-
-	@Override
-	public void setBevolkingsonderzoeken(List<Bevolkingsonderzoek> bevolkingsonderzoeken)
-	{
-		this.bevolkingsonderzoeken = bevolkingsonderzoeken;
-	}
-
-	public Date getBeginDatum()
-	{
-		return this.beginDatum;
-	}
-
-	public void setBeginDatum(Date beginDatum)
-	{
-		this.beginDatum = beginDatum;
-	}
-
-	public Date getEindDatum()
-	{
-		return this.eindDatum;
-	}
-
-	public void setEindDatum(Date eindDatum)
-	{
-		this.eindDatum = eindDatum;
-	}
 
 	@Deprecated
 	@Transient
@@ -140,28 +100,6 @@ public class InstellingGebruikerRol extends AbstractHibernateObject implements I
 		}
 
 		return !Boolean.FALSE.equals(isActief);
-	}
-
-	public InstellingGebruiker getInstellingGebruiker()
-	{
-		return instellingGebruiker;
-	}
-
-	public void setInstellingGebruiker(InstellingGebruiker instellingGebruiker)
-	{
-		this.instellingGebruiker = instellingGebruiker;
-	}
-
-	@Override
-	public Boolean getActief()
-	{
-		return actief;
-	}
-
-	@Override
-	public void setActief(Boolean actief)
-	{
-		this.actief = actief;
 	}
 
 	@Override

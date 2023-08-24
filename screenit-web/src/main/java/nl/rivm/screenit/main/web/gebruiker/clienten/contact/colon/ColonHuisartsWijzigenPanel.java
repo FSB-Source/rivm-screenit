@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,6 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon;
 import java.util.List;
 import java.util.Map;
 
-import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.AbstractClientContactActiePanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon.huisarts.HuisartsPanel;
@@ -33,6 +32,7 @@ import nl.rivm.screenit.model.ClientContactActie;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BezwaarType;
+import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.util.BezwaarUtil;
 import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -48,15 +48,13 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 public class ColonHuisartsWijzigenPanel extends AbstractClientContactActiePanel<ClientContactActie>
 {
 
-	private static final long serialVersionUID = 1L;
-
 	protected IModel<ColonScreeningRonde> colonScreeningRonde;
 
-	private IModel<Boolean> huisartsBerichtenVerzenden = Model.of(Boolean.FALSE);
+	private final IModel<Boolean> huisartsBerichtenVerzenden = Model.of(Boolean.FALSE);
 
-	private BootstrapDialog dialog;
+	private final BootstrapDialog dialog;
 
-	private WebMarkupContainer huisartsContainer;
+	private final WebMarkupContainer huisartsContainer;
 
 	@SpringBean
 	private HibernateService hibernateService;
@@ -64,9 +62,9 @@ public class ColonHuisartsWijzigenPanel extends AbstractClientContactActiePanel<
 	public ColonHuisartsWijzigenPanel(String id, IModel<ClientContactActie> model, IModel<Client> clientModel, List<Object> extraPanelParams)
 	{
 		super(id, model);
-		colonScreeningRonde = ModelUtil.cModel(clientModel.getObject().getColonDossier().getLaatsteScreeningRonde());
+		colonScreeningRonde = ModelUtil.ccModel(clientModel.getObject().getColonDossier().getLaatsteScreeningRonde());
 
-		dialog = (BootstrapDialog) extraPanelParams.stream().filter(p -> p instanceof BootstrapDialog).findFirst().orElse(null);
+		dialog = (BootstrapDialog) extraPanelParams.stream().filter(BootstrapDialog.class::isInstance).findFirst().orElse(null);
 
 		huisartsContainer = new WebMarkupContainer("huisartsContainer");
 		huisartsContainer.setOutputMarkupId(true);
@@ -115,10 +113,11 @@ public class ColonHuisartsWijzigenPanel extends AbstractClientContactActiePanel<
 	{
 		super.validate();
 		ColonScreeningRonde screeningRonde = colonScreeningRonde.getObject();
-		String diffColonHuisarts = EntityAuditUtil.getDiffFieldToLatestVersion(screeningRonde, "colonHuisarts", hibernateService.getHibernateSession());
-		String diffOnbekendeHuisarts = EntityAuditUtil.getDiffFieldToLatestVersion(screeningRonde, "onbekendeHuisarts", hibernateService.getHibernateSession());
 
-		if (StringUtils.isBlank(diffColonHuisarts) && StringUtils.isBlank(diffOnbekendeHuisarts))
+		var isHuisartsGewijzigd = StringUtils.isNotBlank(
+			EntityAuditUtil.getDiffFieldsToLatestVersion(screeningRonde, hibernateService.getHibernateSession(), "colonHuisarts"));
+
+		if (!isHuisartsGewijzigd)
 		{
 			error("Er is geen wijziging doorgevoerd in de huisarts darmkanker vastleggen contact actie.");
 		}

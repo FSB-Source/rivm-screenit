@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -32,7 +32,7 @@
                 </label>
                 <div class="controls">
                     <input type="text" class="not-tracked-for-changes-on-page" wicket:id="tarief"/>
-                    <i class="icon-asterisk icon-purple" style="vertical-align: middle; margin-left: 3px;"></i>
+                    <i class="icon-asterisk icon-purple vertical-align-middle margin-left-3px"></i>
                 </div>
             </div>
             <div class="control-group">
@@ -41,21 +41,21 @@
                 </label>
 
                 <div class="controls">
-                    <div class="input-append date">
-                        <input wicket:id="geldigVanafDatum" type="text"
-                               placeholder="dd-mm-jaar" size="16"
-                               class="input-small three-months not-tracked-for-changes-on-page"/>
-                        <a href="javascript:void(0);" class="btn"
-                           onclick="$(this).prev().datepicker('show');return false;" title="Datum"><i
-                                class="icon-calendar"></i></a>
-                        <i class="icon-asterisk icon-purple" style="vertical-align: middle; margin-left: 3px;"></i>
-                    </div>
+					<div class="input-append date">
+						<input wicket:id="geldigVanafDatum" type="text"
+							   placeholder="dd-mm-jaar" size="16"
+							   class="input-small three-months not-tracked-for-changes-on-page"/>
+						<a  class="btn js-datepicker-show"
+						   title="Datum"><i
+								class="icon-calendar"></i></a>
+						<i class="icon-asterisk icon-purple vertical-align-middle margin-left-3px"></i>
+					</div>
                 </div>
             </div>
         </div>
         <div class="modal-footer">
             <a class="btn" data-dismiss="modal">Annuleren</a>
-            <a href="javascript:void(0);" class="btn btn-primary" wicket:id="opslaan">Opslaan</a>
+            <a  class="btn btn-primary" wicket:id="opslaan">Opslaan</a>
         </div>
     </form>
 </wicket:panel>

@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.model.mamma;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -40,27 +40,31 @@ public class MammaAfspraakOptieDto extends ClientportaalBaseDto
 
     private LocalDateTime datumTijd;
 
-    private Long standplaatsPeriodeId;
+	private Long standplaatsPeriodeId;
 
-    private Double afstand;
+	private Double afstand;
 
-    private String adres;
+	private String adres;
 
-    private String postcode;
+	private String postcode;
 
-    private String plaats;
+	private String plaats;
 
-    private boolean bevestigingsBrief;
+	private String clientEmailAdres;
+
+	private String clientMobielNummer;
 
 	private boolean toonBevestigingsBriefOptie;
 
-    private MammaAfspraakZoekFilterDto filter;
+	private boolean toonSmsHerinneringOptie;
 
-    public MammaAfspraakOptieDto(MammaKandidaatAfspraakDto kandidaatAfspraakDto)
-    {
-        this.capaciteitBlokId = kandidaatAfspraakDto.getCapaciteitBlokId();
-        this.datumTijd = kandidaatAfspraakDto.getTijd().atDate(kandidaatAfspraakDto.getDatum());
-        this.standplaatsPeriodeId = kandidaatAfspraakDto.getStandplaatsPeriodeId();
-        this.afstand = kandidaatAfspraakDto.getAfstand();
-    }
+	private MammaAfspraakZoekFilterDto filter;
+
+	public MammaAfspraakOptieDto(MammaKandidaatAfspraakDto kandidaatAfspraakDto)
+	{
+		this.capaciteitBlokId = kandidaatAfspraakDto.getCapaciteitBlokId();
+		this.datumTijd = kandidaatAfspraakDto.getTijd().atDate(kandidaatAfspraakDto.getDatum());
+		this.standplaatsPeriodeId = kandidaatAfspraakDto.getStandplaatsPeriodeId();
+		this.afstand = kandidaatAfspraakDto.getAfstand();
+	}
 }

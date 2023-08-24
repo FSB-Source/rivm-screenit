@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,10 +31,10 @@ import {getRegio} from "../api/RegioThunkAction"
 import {getBeschikbareContactActies} from "../api/ContactActiesThunkAction"
 import {assertUnreachable} from "./EnumUtil"
 import {refreshCervixDossier, refreshColonDossier, refreshMammaDossier} from "../api/RefreshDossierActions"
-import {createHideAllToastsAction} from "../actions/ToastAction"
 import {createSetEnvironmentInfoAction} from "../actions/EnvironmentInfoAction"
+import {createHideAllToastsAction} from "../actions/ToastAction"
 
-export const useSelectedBvo = () => {
+export const useSelectedBvo = (): Bevolkingsonderzoek | undefined => {
 	const location = useLocation()
 
 	if (location.pathname.startsWith("/mamma")) {
@@ -136,10 +136,10 @@ export const useRedirectAfterSeconds = (url: string, timeoutSeconds: number) => 
 export const useHideAllToasts = () => {
 	const dispatch = useDispatch()
 	const location = useLocation()
-
+	const {pathname} = location
 	useEffect(() => {
 		dispatch(createHideAllToastsAction())
-	}, [location.pathname, dispatch])
+	}, [pathname, dispatch])
 }
 
 export const useGotoPageTop = () => {

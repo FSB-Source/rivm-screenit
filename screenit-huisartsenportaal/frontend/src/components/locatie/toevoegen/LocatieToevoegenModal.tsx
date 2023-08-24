@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,7 +28,7 @@ import {Field, Form, Formik} from "formik"
 import * as Yup from "yup"
 import FormTextField from "../../form/text/FormTextField"
 import BaseFormField from "../../form/BaseFormField"
-import {useState} from "react"
+import React, {useState} from "react"
 import classNames from "classnames"
 import FormHuisnummerToevoegingField from "../../form/adres/FormHuisnummerToevoegingField"
 import FormWoonplaatsSelectField from "../../form/adres/FormWoonplaatsSelectField"

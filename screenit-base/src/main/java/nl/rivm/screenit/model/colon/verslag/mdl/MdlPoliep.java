@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.colon.verslag.mdl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -64,7 +64,7 @@ public class MdlPoliep
 		@AttributeOverride(name = "value", column = @Column(name = "diameterPoliepValue")),
 		@AttributeOverride(name = "unit", column = @Column(name = "diameterPoliepUnit"))
 	})
-	@VraagElement(displayName = "Diameter poliep", extraTekst = "Diameter van de poliep zoals vastgesteld door endoscopist", code = "2.16.840.1.113883.2.4.3.36.77.2.10.145020", isVerplicht = true, unit = {
+	@VraagElement(displayName = "Diameter poliep", extraTekst = "Diameter van de poliep zoals vastgesteld door endoscopist", code = "2.16.840.1.113883.2.4.3.36.77.2.11.133", isVerplicht = true, unit = {
 		@VraagElementUnit(unit = "mm")
 	})
 	private Quantity diameterPoliep;
@@ -79,7 +79,7 @@ public class MdlPoliep
 		@DSValueSetValue(code = "6", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.29"),
 		@DSValueSetValue(code = "UNK", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(displayName = "Morfologie", extraTekst = "Beschrijving morfologie van de poliep", code = "2.16.840.1.113883.2.4.3.36.77.2.10.145030", isVerplicht = true)
+	@VraagElement(displayName = "Morfologie", extraTekst = "Beschrijving morfologie van de poliep", code = "2.16.840.1.113883.2.4.3.36.77.2.11.134", isVerplicht = true)
 	private DSValue morfologie;
 
 	@ManyToMany(fetch = FetchType.LAZY)
@@ -96,7 +96,7 @@ public class MdlPoliep
 		@DSValueSetValue(code = "9", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.34"),
 		@DSValueSetValue(code = "OTH", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(displayName = "Manier van verwijderen", extraTekst = "Manier waarop de poliep of anderszins is weggehaald", code = "2.16.840.1.113883.2.4.3.36.77.2.10.145080", isVerplicht = true)
+	@VraagElement(displayName = "Manier van verwijderen", extraTekst = "Manier waarop de poliep of anderszins is weggehaald", code = "2.16.840.1.113883.2.4.3.36.77.2.11.135", isVerplicht = true)
 	private List<DSValue> manierVanVerwijderen = new ArrayList<>();
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -110,7 +110,7 @@ public class MdlPoliep
 	private DSValue volledigheidWegnameMateriaal;
 
 	@Column(length = 4096)
-	@VraagElement(displayName = "Overige manier van verwijderen", extraTekst = "Overige manier van verwijderen", code = "2.16.840.1.113883.2.4.3.36.77.2.10.145081", isVerplicht = true)
+	@VraagElement(displayName = "Overige manier van verwijderen", extraTekst = "Overige manier van verwijderen", code = "2.16.840.1.113883.2.4.3.36.77.2.11.136", isVerplicht = true)
 	private String overigeManierVanVerwijderen;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -118,7 +118,7 @@ public class MdlPoliep
 		@DSValueSetValue(code = "255619001", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "2", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.35")
 	})
-	@VraagElement(displayName = "Methode van verwijderen", extraTekst = "Methode van verwijderen", code = "2.16.840.1.113883.2.4.3.36.77.2.10.145091", isVerplicht = true)
+	@VraagElement(displayName = "Methode van verwijderen", extraTekst = "Methode van verwijderen", code = "2.16.840.1.113883.2.4.3.36.77.2.11.137", isVerplicht = true)
 	private DSValue methodeVanVerwijderen;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -126,7 +126,7 @@ public class MdlPoliep
 		@DSValueSetValue(code = "255612005", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "255599008", codeSystem = "2.16.840.1.113883.6.96")
 	})
-	@VraagElement(displayName = "Resultaat verwijdering", extraTekst = "Resultaat verwijdering", code = "2.16.840.1.113883.2.4.3.36.77.2.10.145093", isVerplicht = true)
+	@VraagElement(displayName = "Resultaat verwijdering", extraTekst = "Resultaat verwijdering", code = "2.16.840.1.113883.2.4.3.36.77.2.11.138", isVerplicht = true)
 	private DSValue resultaatVerwijdering;
 
 	public MdlLaesiecoloscopiecentrum getLaesiecoloscopiecentrum()

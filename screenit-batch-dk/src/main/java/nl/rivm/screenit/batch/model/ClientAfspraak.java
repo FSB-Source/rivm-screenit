@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.model;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +22,8 @@ package nl.rivm.screenit.batch.model;
  */
 
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 import nl.rivm.screenit.batch.VrijSlotComparator;
@@ -30,8 +32,6 @@ import nl.rivm.screenit.util.BigDecimalUtil;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
 import org.optaplanner.core.api.domain.entity.PlanningEntity;
 import org.optaplanner.core.api.domain.variable.PlanningVariable;
 
@@ -154,7 +154,7 @@ public class ClientAfspraak implements Cloneable
 			return cachedWachttijd;
 		}
 
-		long wachttijd = new Interval(new DateTime(analyseDatum), new DateTime(vrijSlot.getStartTijd())).toDuration().getStandardHours();
+		long wachttijd = Duration.of(vrijSlot.getStartTijd().getTime() - analyseDatum.getTime(), ChronoUnit.MILLIS).toHours();
 
 		cachedWachttijd = (int) Math.pow(wachttijd * wachttijdNormering, 2.0);
 		return cachedWachttijd;

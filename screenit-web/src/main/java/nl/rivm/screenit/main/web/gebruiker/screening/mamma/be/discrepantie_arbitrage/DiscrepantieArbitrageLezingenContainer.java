@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.discrepantie_arbi
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,6 +30,7 @@ import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.MammaLezingPanel;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.MammaLezingParameters;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.dto.LaesieDto;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaLezing;
 import nl.rivm.screenit.model.mamma.enums.MammaBeLezerSoort;
@@ -79,7 +80,10 @@ public class DiscrepantieArbitrageLezingenContainer extends AbstractBEAccordionP
 		InstellingGebruiker gebruiker = ScreenitSession.get().getLoggedInInstellingGebruiker();
 		huidigeLezingModel = ModelUtil.cModel(beoordelingService.getOrCreateDiscrepantieOfArbitrageLezing(getModelObject(), huidigeLezingType(), gebruiker));
 
-		MammaLezingParameters mammaLezingParameters = MammaLezingParameters.maakAlleenInzien().setMetAfbeelding(true).setToonOvernemenKnop(!isDezeBeoordelingAlleenInzien())
+		MammaLezingParameters mammaLezingParameters = MammaLezingParameters.maakAlleenInzien()
+			.setMetAfbeelding(true)
+			.setToonOvernemenKnop(!isDezeBeoordelingAlleenInzien())
+			.setToonTomosyntheseSlicesRadioButtons(MammaOnderzoekType.TOMOSYNTHESE == getModelObject().getOnderzoek().getOnderzoekType())
 			.setAmputatie(getModelObject().getOnderzoek().getAmputatie());
 		panelContainer.add(new MammaLezingPanel(this, "eersteLezing", eersteLezing, mammaLezingParameters));
 		panelContainer.add(new MammaLezingPanel(this, "tweedeLezing", tweedeLezing, mammaLezingParameters));
@@ -98,13 +102,15 @@ public class DiscrepantieArbitrageLezingenContainer extends AbstractBEAccordionP
 
 	private MammaLezingParameters parametersHuidigeLezing()
 	{
+		var onderzoek = getModelObject().getOnderzoek();
 		return new MammaLezingParameters()
 			.setInzien(isDezeBeoordelingAlleenInzien())
 			.setMetAfbeelding(true)
-			.setAmputatie(getModelObject().getOnderzoek().getAmputatie())
+			.setAmputatie(onderzoek.getAmputatie())
 			.setVerwijzenRechtsVerplicht(baseBeoordelingService.isDiscrepantieVerwijzingVerplicht(getModelObject(), MammaZijde.RECHTER_BORST))
 			.setVerwijzenLinksVerplicht(baseBeoordelingService.isDiscrepantieVerwijzingVerplicht(getModelObject(), MammaZijde.LINKER_BORST))
-			.setToonBiradsOpmerkingVeld(true);
+			.setToonBiradsOpmerkingVeld(true)
+			.setToonTomosyntheseSlicesRadioButtons(MammaOnderzoekType.TOMOSYNTHESE == onderzoek.getOnderzoekType());
 	}
 
 	private void toonDiscrepantieopmerkingIndienVanToepassing(IModel<MammaLezing> discrepantieLezing, IModel<MammaLezing> eersteLezing)

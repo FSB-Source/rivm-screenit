@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.gedeeld;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,6 +29,7 @@ import nl.rivm.screenit.main.util.GebeurtenisUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.enums.Actie;
+import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.BriefHerdrukkenService;
 import nl.rivm.screenit.util.BriefUtil;
@@ -75,12 +76,8 @@ public class BriefOpnieuwAanmakenPanel extends GenericPanel<ClientBrief<?, ?, ?>
 
 		WebMarkupContainer nietOpnieuw = new WebMarkupContainer("nietOpnieuw");
 		nietOpnieuw.setOutputMarkupId(true);
-		String melding = getString("message.nietmogelijkbriefopnieuw");
-		if (BriefUtil.isHerdruk(brief))
-		{
-			melding = getString("message.briefisaleenherdruk");
-		}
-		nietOpnieuw.add(new Label("tekstNietOpnieuw", Model.of(melding)));
+
+		nietOpnieuw.add(new Label("tekstNietOpnieuw", Model.of(geefBriefNietOpnieuwAanmakenTekst(brief))));
 		nietOpnieuw.setVisible(!magOpnieuwAanvragen);
 
 		opnieuwMogelijkContainer.add(DateLabel.forDatePattern("brief.creatieDatum", Model.of(datum), "dd-MM-yyyy"));
@@ -105,5 +102,24 @@ public class BriefOpnieuwAanmakenPanel extends GenericPanel<ClientBrief<?, ?, ?>
 
 		opnieuwContainer.add(nietOpnieuw);
 		add(opnieuwContainer);
+	}
+
+	private String geefBriefNietOpnieuwAanmakenTekst(ClientBrief<?, ?, ?> brief)
+	{
+		String melding;
+		if (BriefUtil.isHerdruk(brief))
+		{
+			melding = getString("message.briefisaleenherdruk");
+		}
+		else if (BriefType.getCervixUitnodigingen().contains(brief.getBriefType()) || BriefType.getCervixZasBrieven().contains(brief.getBriefType()))
+		{
+			melding = getString("message.cervixuitnodiging");
+		}
+		else
+		{
+			melding = getString("message.nietmogelijkbriefopnieuw");
+		}
+
+		return melding;
 	}
 }

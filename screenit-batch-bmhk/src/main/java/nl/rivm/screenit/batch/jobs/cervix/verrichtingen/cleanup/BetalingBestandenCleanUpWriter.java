@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.verrichtingen.cleanup;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -53,12 +53,12 @@ public class BetalingBestandenCleanUpWriter extends BaseWriter<CervixBetaalopdra
 		if (specificatie != null)
 		{
 			item.setSepaSpecificatiePdf(null);
-			uploadDocumentService.delete(specificatie, true);
+			uploadDocumentService.delete(specificatie);
 		}
 		if (sepa != null)
 		{
 			item.setSepaDocument(null);
-			uploadDocumentService.delete(sepa, true);
+			uploadDocumentService.delete(sepa);
 		}
 		item.setStatus(BestandStatus.VERWIJDERD);
 		item.setStatusDatum(currentDateSupplier.getDate());

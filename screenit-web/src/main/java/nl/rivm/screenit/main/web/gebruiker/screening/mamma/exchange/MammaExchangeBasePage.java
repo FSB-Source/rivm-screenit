@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.exchange;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,18 +26,19 @@ import java.util.List;
 
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.MammaClientZoekenBasePage;
+import nl.rivm.screenit.main.web.gebruiker.screening.mamma.exchange.download.MammaExchangeDownloadPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.exchange.followup.MammaFollowUpRadiologieVerslagPage;
 import nl.rivm.screenit.model.Client;
 
 public abstract class MammaExchangeBasePage extends MammaClientZoekenBasePage
 {
 
-	public MammaExchangeBasePage()
+	protected MammaExchangeBasePage()
 	{
 		super();
 	}
 
-	public MammaExchangeBasePage(Client client)
+	protected MammaExchangeBasePage(Client client)
 	{
 		super(client);
 	}

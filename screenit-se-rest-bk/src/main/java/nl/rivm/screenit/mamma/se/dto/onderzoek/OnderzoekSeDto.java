@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.dto.onderzoek;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,7 +23,11 @@ package nl.rivm.screenit.mamma.se.dto.onderzoek;
 
 import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.mamma.se.dto.SeDto;
+import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.mamma.enums.ExtraFotosReden;
 import nl.rivm.screenit.model.mamma.enums.MammaAmputatie;
 import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekRedenFotobespreking;
@@ -32,6 +36,8 @@ import nl.rivm.screenit.model.mamma.enums.OnderbrokenOnderzoekOption;
 import nl.rivm.screenit.model.mamma.enums.OnvolledigOnderzoekOption;
 import nl.rivm.screenit.model.mamma.enums.SuboptimaleInsteltechniek;
 
+@Getter
+@Setter
 public class OnderzoekSeDto extends SeDto
 {
 
@@ -65,165 +71,7 @@ public class OnderzoekSeDto extends SeDto
 
 	private List<ExtraFotosReden> extraFotosRedenen;
 
+	private MammaOnderzoekType onderzoekType;
+
 	private String adviesHuisarts;
-
-	public Long getExtraMedewerkerId()
-	{
-		return extraMedewerkerId;
-	}
-
-	public void setExtraMedewerkerId(Long extraMedewerkerId)
-	{
-		this.extraMedewerkerId = extraMedewerkerId;
-	}
-
-	public Integer getEerderMammogramJaartal()
-	{
-		return eerderMammogramJaartal;
-	}
-
-	public void setEerderMammogramJaartal(Integer eerderMammogramJaartal)
-	{
-		this.eerderMammogramJaartal = eerderMammogramJaartal;
-	}
-
-	public Long getEerderMammogramZorginstellingId()
-	{
-		return eerderMammogramZorginstellingId;
-	}
-
-	public void setEerderMammogramZorginstellingId(Long eerderMammogramZorginstellingId)
-	{
-		this.eerderMammogramZorginstellingId = eerderMammogramZorginstellingId;
-	}
-
-	public SuboptimaleInsteltechniek getSuboptimaleInsteltechniek()
-	{
-		return suboptimaleInsteltechniek;
-	}
-
-	public void setSuboptimaleInsteltechniek(SuboptimaleInsteltechniek suboptimaleInsteltechniek)
-	{
-		this.suboptimaleInsteltechniek = suboptimaleInsteltechniek;
-	}
-
-	public MammaOnderzoekRedenFotobespreking getRedenFotobespreking()
-	{
-		return redenFotobespreking;
-	}
-
-	public void setRedenFotobespreking(MammaOnderzoekRedenFotobespreking redenFotobespreking)
-	{
-		this.redenFotobespreking = redenFotobespreking;
-	}
-
-	public String getOpmerkingMbber()
-	{
-		return opmerkingMbber;
-	}
-
-	public void setOpmerkingMbber(String opmerkingMbber)
-	{
-		this.opmerkingMbber = opmerkingMbber;
-	}
-
-	public String getOpmerkingVoorRadioloog()
-	{
-		return opmerkingVoorRadioloog;
-	}
-
-	public void setOpmerkingVoorRadioloog(String opmerkingVoorRadioloog)
-	{
-		this.opmerkingVoorRadioloog = opmerkingVoorRadioloog;
-	}
-
-	public boolean getOperatieRechts()
-	{
-		return operatieRechts;
-	}
-
-	public void setOperatieRechts(boolean operatieRechts)
-	{
-		this.operatieRechts = operatieRechts;
-	}
-
-	public boolean getOperatieLinks()
-	{
-		return operatieLinks;
-	}
-
-	public void setOperatieLinks(boolean operatieLinks)
-	{
-		this.operatieLinks = operatieLinks;
-	}
-
-	public String getAanvullendeInformatieOperatie()
-	{
-		return aanvullendeInformatieOperatie;
-	}
-
-	public void setAanvullendeInformatieOperatie(String aanvullendeInformatieOperatie)
-	{
-		this.aanvullendeInformatieOperatie = aanvullendeInformatieOperatie;
-	}
-
-	public MammaOnderzoekStatus getStatus()
-	{
-		return status;
-	}
-
-	public void setStatus(MammaOnderzoekStatus status)
-	{
-		this.status = status;
-	}
-
-	public OnvolledigOnderzoekOption getOnvolledigOnderzoek()
-	{
-		return onvolledigOnderzoek;
-	}
-
-	public void setOnvolledigOnderzoek(OnvolledigOnderzoekOption onvolledigOnderzoek)
-	{
-		this.onvolledigOnderzoek = onvolledigOnderzoek;
-	}
-
-	public OnderbrokenOnderzoekOption getOnderbrokenOnderzoek()
-	{
-		return onderbrokenOnderzoek;
-	}
-
-	public void setOnderbrokenOnderzoek(OnderbrokenOnderzoekOption onderbrokenOnderzoek)
-	{
-		this.onderbrokenOnderzoek = onderbrokenOnderzoek;
-	}
-
-	public List<ExtraFotosReden> getExtraFotosRedenen()
-	{
-		return extraFotosRedenen;
-	}
-
-	public void setExtraFotosRedenen(List<ExtraFotosReden> extraFotosRedenen)
-	{
-		this.extraFotosRedenen = extraFotosRedenen;
-	}
-
-	public String getAdviesHuisarts()
-	{
-		return adviesHuisarts;
-	}
-
-	public void setAdviesHuisarts(String adviesHuisarts)
-	{
-		this.adviesHuisarts = adviesHuisarts;
-	}
-
-	public MammaAmputatie getAmputatie()
-	{
-		return amputatie;
-	}
-
-	public void setAmputatie(MammaAmputatie amputatie)
-	{
-		this.amputatie = amputatie;
-	}
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.f
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,46 +21,41 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.f
  * =========================LICENSE_END==================================
  */
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.main.service.mamma.MammaKwaliteitscontroleService;
-import nl.rivm.screenit.main.web.component.ScreenitForm;
 import nl.rivm.screenit.model.mamma.MammaFotobespreking;
 import nl.rivm.screenit.util.NaamUtil;
-import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public abstract class MammaFotobesprekingVerwijderenPopupPanel extends GenericPanel<MammaFotobespreking>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaFotobesprekingVerwijderenPopupPanel.class);
-
 	@SpringBean
 	private MammaKwaliteitscontroleService kwaliteitscontroleService;
 
-	public MammaFotobesprekingVerwijderenPopupPanel(String id, IModel<MammaFotobespreking> fotobesprekingModel)
+	protected MammaFotobesprekingVerwijderenPopupPanel(String id, IModel<MammaFotobespreking> fotobesprekingModel)
 	{
 		super(id, fotobesprekingModel);
-		Form<MammaFotobespreking> form = new ScreenitForm<>("form", fotobesprekingModel);
-		form.add(new Label("omschrijving"));
-		form.add(new Label("aangemaaktDoor.medewerker.achternaam", NaamUtil.getNaamGebruiker(getModelObject().getAangemaaktDoor().getMedewerker())));
-		form.add(createSubmitLink());
-		add(form);
+		add(new Label("omschrijving"));
+		add(new Label("aangemaaktDoor.medewerker.achternaam", NaamUtil.getNaamGebruiker(getModelObject().getAangemaaktDoor().getMedewerker())));
+		add(createLink());
 	}
 
-	private IndicatingAjaxSubmitLink createSubmitLink()
+	private IndicatingAjaxLink<Void> createLink()
 	{
-		return new IndicatingAjaxSubmitLink("submit")
+		return new IndicatingAjaxLink<>("verwijder")
 		{
 			@Override
-			protected void onSubmit(AjaxRequestTarget target)
+			public void onClick(AjaxRequestTarget target)
 			{
-				MammaFotobespreking fotobespreking = getModelObject();
+				MammaFotobespreking fotobespreking = MammaFotobesprekingVerwijderenPopupPanel.this.getModelObject();
 				try
 				{
 					kwaliteitscontroleService.deleteFotobespreking(fotobespreking);

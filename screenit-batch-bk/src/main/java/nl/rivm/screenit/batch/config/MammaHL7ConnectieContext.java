@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.config;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,7 +32,6 @@ import nl.rivm.screenit.model.mamma.MammaHL7v24Message;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType.IMS_ADT;
 import static nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType.IMS_ORM;
@@ -43,7 +42,6 @@ import static nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType.IMS_ORM_UPL
 
 public class MammaHL7ConnectieContext
 {
-	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	private final Map<MammaHL7BerichtType, MammaHL7Connectie> connectieMap = new HashMap<>();
 

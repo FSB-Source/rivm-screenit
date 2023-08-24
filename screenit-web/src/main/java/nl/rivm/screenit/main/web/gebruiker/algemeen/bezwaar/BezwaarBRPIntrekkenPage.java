@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.bezwaar;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,7 +31,6 @@ import nl.rivm.screenit.main.web.gebruiker.algemeen.AlgemeenPage;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
-import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.FileType;
@@ -131,16 +130,10 @@ public class BezwaarBRPIntrekkenPage extends AlgemeenPage
 				if (files.getObject().size() == 1)
 				{
 
-					FileUpload fileUpload = files.getObject().get(0);
-
 					try
 					{
 
-						UploadDocument uploadDocument = new UploadDocument();
-						uploadDocument.setActief(Boolean.TRUE);
-						uploadDocument.setContentType(fileUpload.getContentType());
-						uploadDocument.setFile(fileUpload.writeToTempFile());
-						uploadDocument.setNaam(fileUpload.getClientFileName());
+						var uploadDocument = ScreenitSession.get().fileUploadToUploadDocument(files.getObject().get(0));
 
 						bezwaarService.bezwaarBRPIntrekken(ScreenitSession.get().getLoggedInAccount(), client, uploadDocument);
 

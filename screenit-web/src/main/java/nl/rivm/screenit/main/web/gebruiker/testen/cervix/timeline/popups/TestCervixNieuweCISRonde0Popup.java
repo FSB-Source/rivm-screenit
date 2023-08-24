@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.popups;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,30 +24,32 @@ package nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.popups;
 import java.util.Date;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
+@Slf4j
 public class TestCervixNieuweCISRonde0Popup extends TestCervixAbstractPopupPanel
 {
 
-	private static final long serialVersionUID = 1L;
+	@SpringBean
+	private ICurrentDateSupplier currentDateSupplier;
 
-	private IModel<Date> creatiedatum = Model.of(new Date());
-
-	private static final Logger LOG = LoggerFactory.getLogger(TestCervixNieuweCISRonde0Popup.class);
+	private final IModel<Date> creatiedatum;
 
 	public TestCervixNieuweCISRonde0Popup(String id, IModel<List<Client>> clientModel)
 	{
 		super(id, clientModel);
-		DatePicker<Date> creatiedatumDatePicker = ComponentHelper.newDatePicker("creatiedatum",
-			creatiedatum);
+		this.creatiedatum = Model.of(currentDateSupplier.getDate());
+		DatePicker<Date> creatiedatumDatePicker = ComponentHelper.newDatePicker("creatiedatum", creatiedatum);
 		add(creatiedatumDatePicker);
 	}
 

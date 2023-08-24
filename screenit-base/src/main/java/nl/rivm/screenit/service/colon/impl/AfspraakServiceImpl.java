@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,13 +29,15 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.dao.colon.AfspraakDao;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Afspraak;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Gemeente;
+import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.MailMergeContext;
-import nl.rivm.screenit.model.NieuweIntakeAfspraakMakenReden;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.colon.ColonConclusie;
@@ -50,7 +52,6 @@ import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
-import nl.rivm.screenit.model.colon.enums.RedenAfspraakAfzeggen;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -68,30 +69,27 @@ import nl.rivm.screenit.service.colon.ColonHuisartsBerichtService;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.ColonScreeningRondeUtil;
 import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.IFOBTTestUtil;
+import nl.rivm.screenit.util.FITTestUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
-import nl.topicuszorg.hibernate.object.model.HibernateObject;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.planning.model.IAppointment;
 import nl.topicuszorg.planning.model.IParticipant;
 import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
 import nl.topicuszorg.wicket.planning.model.appointment.Location;
 
-import org.joda.time.Interval;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.support.PropertyComparator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-@Transactional(propagation = Propagation.SUPPORTS)
+import com.google.common.collect.Range;
+
+@Slf4j
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 @Service
 public class AfspraakServiceImpl implements AfspraakService
 {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(AfspraakServiceImpl.class);
 
 	@Autowired
 	private AfspraakDao afspraakDao;
@@ -216,10 +214,6 @@ public class AfspraakServiceImpl implements AfspraakService
 				{
 					screeningRonde.setStatus(ScreeningRondeStatus.AFGEROND);
 					screeningRonde.setStatusDatum(DateUtil.toUtilDate(nu));
-					if (intakeAfspraak.getRedenAfzeggen() != null)
-					{
-						screeningRonde.setAfgerondReden(intakeAfspraak.getRedenAfzeggen().toString());
-					}
 				}
 			}
 			else
@@ -229,11 +223,6 @@ public class AfspraakServiceImpl implements AfspraakService
 				uitnodiging.setDatum(null);
 				uitnodiging.setAfspraak(null);
 				hibernateService.saveOrUpdate(uitnodiging);
-			}
-			RedenAfspraakAfzeggen redenAfzeggen = intakeAfspraak.getRedenAfzeggen();
-			if (redenAfzeggen != null)
-			{
-				afzegReden = " (Reden: " + redenAfzeggen + ")";
 			}
 		}
 		afspraakDao.saveOrUpdate(afspraak);
@@ -298,12 +287,6 @@ public class AfspraakServiceImpl implements AfspraakService
 	}
 
 	@Override
-	public Date getLaatsteWijzigingsdatumAfspraak(HibernateObject entity)
-	{
-		return afspraakDao.getLaatsteWijzigingsdatumAfspraak(entity);
-	}
-
-	@Override
 	public List<? extends IAppointment> getAppointmentsMetFilter(Location locatie, Date startTijd, Date eindTijd, AbstractAppointment filter)
 	{
 		List<Location> locaties = null;
@@ -331,7 +314,8 @@ public class AfspraakServiceImpl implements AfspraakService
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void verplaatsAfspraak(ColonIntakeAfspraak nieuweAfspraak, Account account, BriefType briefType, boolean briefTegenhouden, boolean binnenRooster)
+	public void verplaatsAfspraak(ColonIntakeAfspraak nieuweAfspraak, Account account, BriefType briefType, boolean briefTegenhouden, boolean binnenRooster,
+		boolean verwezenMedischeRedenenDoorInfolijn)
 	{
 		ColonScreeningRonde colonScreeningRonde = nieuweAfspraak.getColonScreeningRonde();
 
@@ -345,7 +329,7 @@ public class AfspraakServiceImpl implements AfspraakService
 
 		laatsteAfspraak.setNieuweAfspraak(nieuweAfspraak);
 		nieuweAfspraak.setOudeAfspraak(laatsteAfspraak);
-		setAfspraakStatus(laatsteAfspraak, AfspraakStatus.VERPLAATST);
+		setStatus(nieuweAfspraak, account, laatsteAfspraak, verwezenMedischeRedenenDoorInfolijn);
 
 		Client client = laatsteAfspraak.getClient();
 		client.getAfspraken().add(nieuweAfspraak);
@@ -395,6 +379,30 @@ public class AfspraakServiceImpl implements AfspraakService
 		}
 	}
 
+	private void setStatus(ColonIntakeAfspraak nieuweAfspraak, Account account, ColonIntakeAfspraak laatsteAfspraak, boolean verwezenMedischeRedenenDoorInfolijn)
+	{
+		account = (Account) HibernateHelper.deproxy(account);
+		boolean lijktOpEenVerwijzing = laatsteAfspraak.getConclusie() == null
+			&& DateUtil.compareBefore(laatsteAfspraak.getStartTime(), currentDateSupplier.getDate())
+			&& account instanceof InstellingGebruiker
+			&& !laatsteAfspraak.getLocation().getColoscopieCentrum().equals(nieuweAfspraak.getLocation().getColoscopieCentrum());
+		if (lijktOpEenVerwijzing && verwezenMedischeRedenenDoorInfolijn)
+		{
+			ColonConclusie conclusie = new ColonConclusie();
+			conclusie.setType(ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM);
+			conclusie.setDatum(currentDateSupplier.getDate());
+			conclusie.setDoorverwijzingBevestigd(false);
+			conclusie.setInstellingGebruiker((InstellingGebruiker) account);
+			hibernateService.saveOrUpdate(conclusie);
+			laatsteAfspraak.setConclusie(conclusie);
+			setAfspraakStatus(laatsteAfspraak, AfspraakStatus.UITGEVOERD);
+		}
+		else
+		{
+			setAfspraakStatus(laatsteAfspraak, AfspraakStatus.VERPLAATST);
+		}
+	}
+
 	protected void verstuurWijzigingsberichtNaarHA(ColonIntakeAfspraak nieuweAfspraak, ColonIntakeAfspraak laatsteAfspraak, Client client)
 	{
 
@@ -426,13 +434,13 @@ public class AfspraakServiceImpl implements AfspraakService
 		}
 		catch (Exception e)
 		{
-			LOGGER.error("Huisarts Bericht kon niet worden aangemaakt. ", e);
+			LOG.error("Huisarts Bericht kon niet worden aangemaakt. ", e);
 		}
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void maakNieuweAfspraak(Client client, NieuweIntakeAfspraakMakenReden reden, ColonIntakeAfspraak nieuweAfspraak, boolean briefTegenhouden, boolean binnenRooster,
+	public void maakNieuweAfspraak(Client client, ColonIntakeAfspraak nieuweAfspraak, boolean briefTegenhouden, boolean binnenRooster,
 		BriefType briefType, Account account)
 	{
 		OpenUitnodiging openUitnodiging;
@@ -442,7 +450,6 @@ public class AfspraakServiceImpl implements AfspraakService
 		nieuweAfspraak.setColonScreeningRonde(laatsteScreeningRonde);
 		nieuweAfspraak.setClient(client);
 		nieuweAfspraak.setDatumLaatsteWijziging(DateUtil.toUtilDate(nu.plus(100, ChronoUnit.MILLIS)));
-		nieuweAfspraak.setNieuweAfspraakMakenReden(reden);
 		RoosterItem roosterItem;
 		if (binnenRooster)
 		{
@@ -487,6 +494,12 @@ public class AfspraakServiceImpl implements AfspraakService
 		laatsteScreeningRonde.getAfspraken().add(nieuweAfspraak);
 		ColonIntakeAfspraak laatsteAfspraak = laatsteScreeningRonde.getLaatsteAfspraak();
 		laatsteScreeningRonde.setLaatsteAfspraak(nieuweAfspraak);
+		if (heeftOnafgerondeVerwijzingOmMedischeRedenen(laatsteAfspraak))
+		{
+			laatsteAfspraak.setNieuweAfspraak(nieuweAfspraak);
+			nieuweAfspraak.setOudeAfspraak(laatsteAfspraak);
+			hibernateService.saveOrUpdateAll(nieuweAfspraak, laatsteAfspraak);
+		}
 		client.getAfspraken().add(nieuweAfspraak);
 		hibernateService.saveOrUpdate(client);
 		ColonBrief brief;
@@ -495,25 +508,6 @@ public class AfspraakServiceImpl implements AfspraakService
 		{
 			brief = briefService.maakBvoBrief(laatsteScreeningRonde, BriefType.COLON_BEVESTIGING_INTAKE_AFSRPAAK_NA_OPEN_UITNODIGING, creatieDatumColonBrief);
 			brief.setIntakeAfspraak(nieuweAfspraak);
-		}
-		else if (NieuweIntakeAfspraakMakenReden.HANDMATIG_INPLANNEN.equals(reden))
-		{
-			if (briefType != null)
-			{
-				brief = briefService.maakBvoBrief(laatsteScreeningRonde, briefType, creatieDatumColonBrief);
-
-				if (BriefType.COLON_UITNODIGING_INTAKE.equals(briefType))
-				{
-					brief.setIfobtTest(ColonScreeningRondeUtil.getEersteOngunstigeTest(laatsteScreeningRonde));
-				}
-			}
-			else
-			{
-				brief = briefService.maakBvoBrief(laatsteScreeningRonde, BriefType.COLON_UITNODIGING_INTAKE, creatieDatumColonBrief);
-				brief.setIfobtTest(ColonScreeningRondeUtil.getEersteOngunstigeTest(laatsteScreeningRonde));
-			}
-			brief.setIntakeAfspraak(nieuweAfspraak);
-
 		}
 		else
 		{
@@ -526,7 +520,6 @@ public class AfspraakServiceImpl implements AfspraakService
 			{
 				brief = briefService.maakBvoBrief(laatsteScreeningRonde, BriefType.COLON_INTAKE_GEWIJZIGD, creatieDatumColonBrief);
 				brief.setIntakeAfspraak(nieuweAfspraak);
-
 			}
 		}
 		if (briefTegenhouden)
@@ -580,7 +573,7 @@ public class AfspraakServiceImpl implements AfspraakService
 		}
 		catch (Exception e)
 		{
-			LOGGER.error("Huisarts Bericht kon niet worden aangemaakt. ", e);
+			LOG.error("Huisarts Bericht kon niet worden aangemaakt. ", e);
 		}
 	}
 
@@ -635,7 +628,11 @@ public class AfspraakServiceImpl implements AfspraakService
 				boolean clientWilAndereIntakeLocatie = AfspraakStatus.UITGEVOERD.equals(laatsteAfspraak.getStatus()) && conclusie != null
 					&& ColonConclusieType.CLIENT_WIL_ANDERE_INTAKELOKATIE.equals(conclusie.getType());
 
-				return clientWilAndereIntakeLocatie || AfspraakStatus.isGeannuleerd(laatsteAfspraak.getStatus()) && !isErEenOpenUitnodigingReactie;
+				boolean clientWordtDoorverwezenMedischeReden = heeftOnafgerondeVerwijzingOmMedischeRedenen(laatsteAfspraak);
+
+				return clientWilAndereIntakeLocatie
+					|| AfspraakStatus.isGeannuleerd(laatsteAfspraak.getStatus()) && !isErEenOpenUitnodigingReactie
+					|| clientWordtDoorverwezenMedischeReden;
 			}
 
 			else if (!isErEenOpenUitnodigingReactie)
@@ -649,9 +646,9 @@ public class AfspraakServiceImpl implements AfspraakService
 					return true;
 				}
 				IFOBTTest ifobtTest = laatsteScreeningRonde.getLaatsteIFOBTTest();
-				boolean isIfobtUitslagOngunstig = IFOBTTestUtil.isOngunstig(ifobtTest);
+				boolean isIfobtUitslagOngunstig = FITTestUtil.isOngunstig(ifobtTest);
 
-				if (!isIfobtUitslagOngunstig && !IFOBTTestUtil.isGunstig(ifobtTest))
+				if (!isIfobtUitslagOngunstig && !FITTestUtil.isGunstig(ifobtTest))
 				{
 
 					ifobtTest = null;
@@ -664,7 +661,7 @@ public class AfspraakServiceImpl implements AfspraakService
 							Date vroegsteAnalyseDatum = null;
 							for (IFOBTTest test : ronde.getIfobtTesten())
 							{
-								if (IFOBTTestUtil.isOngunstig(test) && (vroegsteAnalyseDatum == null || vroegsteAnalyseDatum.after(test.getAnalyseDatum())))
+								if (FITTestUtil.isOngunstig(test) && (vroegsteAnalyseDatum == null || vroegsteAnalyseDatum.after(test.getAnalyseDatum())))
 								{
 									ifobtTest = test;
 									isIfobtUitslagOngunstig = true;
@@ -694,9 +691,26 @@ public class AfspraakServiceImpl implements AfspraakService
 	}
 
 	@Override
-	public List<Object> getAfsprakenKamersInIntervals(Kamer location, List<Interval> verwijderdeIntervals)
+	public boolean heeftOnafgerondeVerwijzingOmMedischeRedenen(Afspraak afspraak)
 	{
-		return afspraakDao.getAfsprakenInIntervals(location, verwijderdeIntervals);
+		afspraak = (Afspraak) HibernateHelper.deproxy(afspraak);
+
+		if (afspraak instanceof ColonIntakeAfspraak)
+		{
+			ColonIntakeAfspraak intakeAfspraak = (ColonIntakeAfspraak) afspraak;
+			ColonConclusie conclusie = intakeAfspraak.getConclusie();
+			return conclusie != null
+				&& conclusie.getType() == ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM
+				&& Boolean.TRUE.equals(conclusie.getDoorverwijzingBevestigd())
+				&& intakeAfspraak.getNieuweAfspraak() == null;
+		}
+		return false;
+	}
+
+	@Override
+	public List<Object> getAfsprakenKamersInRanges(Kamer location, List<Range<Date>> verwijderdeRanges)
+	{
+		return afspraakDao.getAfsprakenInRanges(location, verwijderdeRanges);
 	}
 
 	@Override
@@ -706,9 +720,9 @@ public class AfspraakServiceImpl implements AfspraakService
 	}
 
 	@Override
-	public List<Object> getRoosterItemsBezetMetAfspraak(Long roosterItemId, Interval currentViewInterval)
+	public List<Object> getRoosterItemsBezetMetAfspraak(Long roosterItemId, Range<Date> currentViewRanges)
 	{
-		return afspraakDao.getRoosterItemsBezetMetAfspraak(roosterItemId, currentViewInterval);
+		return afspraakDao.getRoosterItemsBezetMetAfspraak(roosterItemId, currentViewRanges);
 	}
 
 	@Override
@@ -717,4 +731,48 @@ public class AfspraakServiceImpl implements AfspraakService
 		return afspraakDao.getVrijRoosterBlokVoorAfspraak(newAfspraak);
 	}
 
+	@Override
+	public boolean isDoorverwezenOmMedischeRedenenZonderNieuweAfspraak(Client client)
+	{
+		ColonIntakeAfspraak laatsteAfspraak = client.getColonDossier().getLaatsteScreeningRonde().getLaatsteAfspraak();
+		if (laatsteAfspraak != null)
+		{
+			return heeftOnafgerondeVerwijzingOmMedischeRedenen(laatsteAfspraak);
+		}
+		return false;
+	}
+
+	@Override
+	public boolean isAfspraakVerwezenOmMedischeRedenen(ColonIntakeAfspraak afspraak)
+	{
+		boolean isVerwezen = isAfspraakMedischeVerwijzing(afspraak) && afspraak.getNieuweAfspraak() != null;
+		var oudeAfspraak = zoekBevestigdeDoorverwijzendeAfspraak(afspraak);
+		if (oudeAfspraak != null)
+		{
+			isVerwezen = true;
+		}
+		return isVerwezen;
+	}
+
+	@Override
+	public ColonIntakeAfspraak zoekBevestigdeDoorverwijzendeAfspraak(ColonIntakeAfspraak afspraak)
+	{
+		var oudeAfspraak = (ColonIntakeAfspraak) HibernateHelper.deproxy(afspraak.getOudeAfspraak());
+		while (oudeAfspraak != null)
+		{
+			if (isAfspraakMedischeVerwijzing(oudeAfspraak))
+			{
+				return oudeAfspraak;
+			}
+			oudeAfspraak = (ColonIntakeAfspraak) HibernateHelper.deproxy(oudeAfspraak.getOudeAfspraak());
+		}
+		return null;
+	}
+
+	private boolean isAfspraakMedischeVerwijzing(ColonIntakeAfspraak afspraak)
+	{
+		var conclusie = afspraak.getConclusie();
+		return conclusie != null && ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM.equals(conclusie.getType()) && Boolean.TRUE.equals(
+			conclusie.getDoorverwijzingBevestigd());
+	}
 }

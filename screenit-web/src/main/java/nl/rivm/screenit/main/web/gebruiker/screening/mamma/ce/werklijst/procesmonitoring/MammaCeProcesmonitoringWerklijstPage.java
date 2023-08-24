@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.ce.werklijst.procesm
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -96,6 +96,7 @@ public class MammaCeProcesmonitoringWerklijstPage extends AbstractMammaCeWerklij
 		columns.add(getSeColumn());
 		columns.add(getBeColumn());
 		columns.add(getStatusColumn());
+		columns.add(getTypeOnderzoekColumn());
 
 		resultatenContainer.add(new ScreenitDataTable<MammaBeoordeling, String>("resultaten", columns, dataProvider, 10, Model.of("beoordeling(en)"))
 		{

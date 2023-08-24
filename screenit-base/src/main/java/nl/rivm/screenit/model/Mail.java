@@ -4,7 +4,7 @@ package nl.rivm.screenit.model;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,12 +22,16 @@ package nl.rivm.screenit.model;
  */
 
 import java.time.LocalDateTime;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.Lob;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import lombok.AllArgsConstructor;
@@ -36,6 +40,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import nl.rivm.screenit.model.enums.MailPriority;
+import nl.rivm.screenit.model.enums.MailServerKeuze;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Type;
@@ -69,4 +74,12 @@ public class Mail extends AbstractHibernateObject
 	@Column(nullable = false)
 	@Enumerated(EnumType.ORDINAL)
 	private MailPriority priority = MailPriority.NORMAL;
+
+	@Column(nullable = false)
+	@Enumerated(EnumType.STRING)
+	private MailServerKeuze mailserver;
+
+	@OneToMany(mappedBy = "mail", cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
+	private List<MailAttachment> attachments;
+
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,6 +33,7 @@ import nl.rivm.screenit.model.enums.MammaFollowUpDoorverwezenFilterOptie;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaFollowUpRadiologieVerslag;
+import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 
 public interface MammaBaseFollowUpService
@@ -59,4 +60,6 @@ public interface MammaBaseFollowUpService
 	void refreshUpdateFollowUpConclusie(MammaDossier dossier);
 
 	LocalDate getEersteAutorisatieDatumPaVerslag(MammaScreeningRonde screeningRonde);
+
+	List<MammaFollowUpVerslag> getFollowUpVerslagenZonderLandelijkeMonitor(MammaScreeningRonde screeningRonde);
 }

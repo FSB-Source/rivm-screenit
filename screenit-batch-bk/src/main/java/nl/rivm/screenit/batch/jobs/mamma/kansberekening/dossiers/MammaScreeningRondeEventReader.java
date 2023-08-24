@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.kansberekening.dossiers;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,7 @@ import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.batch.jobs.mamma.kansberekening.MammaAbstractEventReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -36,20 +36,21 @@ import nl.topicuszorg.hibernate.restrictions.NvlRestrictions;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.hibernate.Criteria;
+import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class MammaScreeningRondeEventReader extends MammaAbstractEventReader
+public class MammaScreeningRondeEventReader extends BaseScrollableResultReader
 {
 	private final ICurrentDateSupplier dateSupplier;
 
 	private final SimplePreferenceService preferenceService;
 
 	@Override
-	protected Criteria getCriteria(StatelessSession session)
+	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
 		var criteria = session.createCriteria(MammaDossier.class, "dossier");
 		criteria.createAlias("dossier.client", "client");
@@ -71,4 +72,5 @@ public class MammaScreeningRondeEventReader extends MammaAbstractEventReader
 
 		return criteria;
 	}
+
 }

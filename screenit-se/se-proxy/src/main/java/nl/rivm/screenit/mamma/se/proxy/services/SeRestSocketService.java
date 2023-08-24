@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.services;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,6 +24,8 @@ package nl.rivm.screenit.mamma.se.proxy.services;
 public interface SeRestSocketService
 {
 	void initRestSocketService();
+
+	void verversPingEnPongConfig();
 
 	void closeSocket();
 

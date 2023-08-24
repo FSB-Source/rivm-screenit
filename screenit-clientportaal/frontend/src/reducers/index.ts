@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,6 +32,7 @@ import ToastsReducer from "./ToastsReducer"
 import ContactActiesReducer from "./ContactActiesReducer"
 import regioReducer from "./RegioReducer"
 import EnvironmentInfoReducer from "./EnvironmentInfoReducer"
+import SpinnerCounterReducer from "./SpinnerCounterReducer"
 
 const cpReducers = combineReducers({
 	authenticatie: AuthenticatieReducer,
@@ -47,6 +48,7 @@ const cpReducers = combineReducers({
 	}),
 	landingOverzicht: LandingOverzichtReducer,
 	toasts: ToastsReducer,
+	requestMinusResponseCounter: SpinnerCounterReducer,
 })
 
 const rootReducer = (state: any, action: any | RootActions) => {

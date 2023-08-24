@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -18,9 +18,4 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
-export enum ColonAfmeldingReden {
-    GEEN_TIJD_ZIN = "GEEN_TIJD_ZIN",
-    MEDISCHE_REDEN = "MEDISCHE_REDEN",
-    ANDERS = "ANDERS",
-    GEEN_REDEN = "GEEN_REDEN",
-}
+export type ColonAfmeldingReden = null

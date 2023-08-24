@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.model;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ package nl.rivm.screenit.main.model;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.AbstractGebeurtenisDetailPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.AntwoordformulierOntvangenPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.BriefKlaargezetPanel;
+import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.DigitaalClientBerichtVerzondenPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.IFobtVerslagPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.cervix.CervixCytologieVerslagInzienPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.cervix.CervixExtraHuisartsberichtDetailsPanel;
@@ -65,6 +66,14 @@ public enum TypeGebeurtenis
 
 	BRIEF_HERDRUK(BriefKlaargezetPanel.class),
 
+	MAIL_VERZONDEN(DigitaalClientBerichtVerzondenPanel.class),
+
+	MAIL_OPNIEUW_VERZONDEN(DigitaalClientBerichtVerzondenPanel.class),
+
+	SMS_VERZONDEN(DigitaalClientBerichtVerzondenPanel.class),
+
+	SMS_VERSTUREN_GEFAALD,
+
 	ANTWOORDFORMULIERONTVANGEN(AntwoordformulierOntvangenPanel.class),
 
 	AFNAMEDATUM_INGEVULD_OP_PORTAAL(),
@@ -97,7 +106,9 @@ public enum TypeGebeurtenis
 
 	UITSLAGPATHOLOGIEONTVANGEN(),
 
-	AFMELDING(),
+	AFMELDING_EENMALIG(),
+
+	AFMELDING_TIJDELIJK(),
 
 	HERAANMELDING(),
 
@@ -192,6 +203,8 @@ public enum TypeGebeurtenis
 	BMHK_HUISARTSBERICHT_VERSTUURD_EXTRA_HUISARTS(CervixExtraHuisartsberichtDetailsPanel.class),
 
 	BMHK_ORDER_VERSTUURD,
+
+	BMHK_ZAS_AANGEMAAKT(BriefKlaargezetPanel.class),
 
 	BMHK_ZAS_AANGEVRAAGD(BriefKlaargezetPanel.class),
 

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.huisartsberichten.huisartsbepalenstep
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.cervix.huisartsberichten.huisartsbepalenstep
  * =========================LICENSE_END==================================
  */
 
+import java.time.temporal.ChronoUnit;
+
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.PreferenceKey;
@@ -30,11 +32,10 @@ import nl.rivm.screenit.model.cervix.CervixHuisartsBericht;
 import nl.rivm.screenit.model.cervix.enums.CervixHuisartsBerichtStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.joda.time.DateTime;
-import org.joda.time.Days;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -50,9 +51,9 @@ public class CervixHuisartsBepalenWriter extends BaseWriter<CervixHuisartsBerich
 	@Override
 	protected void write(CervixHuisartsBericht huisartsBericht) throws Exception
 	{
-		Integer wachtOpHuisartsBekend = preferenceService.getInteger(PreferenceKey.PERIODE_UITSLAG_NAAR_HUISARTS.toString());
-		Days daysBetween = Days.daysBetween(new DateTime(huisartsBericht.getAanmaakDatum()), dateSupplier.getDateTime());
-		if (daysBetween.isLessThan(Days.days(wachtOpHuisartsBekend)))
+		var dagenWachtOpHuisartsBekend = preferenceService.getInteger(PreferenceKey.PERIODE_UITSLAG_NAAR_HUISARTS.toString());
+		var dagenGeledenBerichtAangemaakt = ChronoUnit.DAYS.between(DateUtil.toLocalDate(huisartsBericht.getAanmaakDatum()), dateSupplier.getLocalDate());
+		if (dagenGeledenBerichtAangemaakt < dagenWachtOpHuisartsBekend)
 		{
 			var labformulier = huisartsBericht.getUitstrijkje().getLabformulier();
 			if (labformulier != null && labformulier.getHuisartsLocatie() != null

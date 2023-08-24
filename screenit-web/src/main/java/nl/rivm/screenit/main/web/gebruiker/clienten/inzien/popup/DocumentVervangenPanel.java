@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.inzien.popup;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,9 +21,9 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.inzien.popup;
  * =========================LICENSE_END==================================
  */
 
-import java.io.File;
 import java.util.List;
 
+import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ConfirmingIndicatingAjaxSubmitLink;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.validator.FileValidator;
@@ -48,8 +48,6 @@ public abstract class DocumentVervangenPanel extends Panel
 	private IModel<List<FileUpload>> files = new ListModel<>();
 
 	private UploadDocument uploadDocument;
-
-	private File tempFile;
 
 	protected DocumentVervangenPanel(String id)
 	{
@@ -79,8 +77,6 @@ public abstract class DocumentVervangenPanel extends Panel
 					FileUpload fileUpload = files.getObject().get(0);
 					try
 					{
-						tempFile = fileUpload.writeToTempFile();
-						tempFile.deleteOnExit();
 						maakUploadDocument(fileUpload);
 					}
 					catch (Exception e)
@@ -102,23 +98,8 @@ public abstract class DocumentVervangenPanel extends Panel
 			}
 
 			@Override
-			public void onNoClick(AjaxRequestTarget target)
-			{
-				super.onNoClick(target);
-				tempFile.delete();
-			}
-
-			@Override
-			public void onCloseClick(AjaxRequestTarget target)
-			{
-				super.onCloseClick(target);
-				tempFile.delete();
-			}
-
-			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				uploadDocument.setFile(tempFile);
 				vervangDocument(uploadDocument, target);
 			}
 		});
@@ -128,12 +109,9 @@ public abstract class DocumentVervangenPanel extends Panel
 
 	protected abstract void vervangDocument(UploadDocument uploadDocument, AjaxRequestTarget target);
 
-	private void maakUploadDocument(FileUpload fileUpload)
+	private void maakUploadDocument(FileUpload fileUpload) throws Exception
 	{
-		uploadDocument = new UploadDocument();
-		uploadDocument.setActief(Boolean.TRUE);
-		uploadDocument.setContentType(fileUpload.getContentType());
-		uploadDocument.setNaam(fileUpload.getClientFileName());
+		uploadDocument = ScreenitSession.get().fileUploadToUploadDocument(fileUpload);
 	}
 
 	@Override

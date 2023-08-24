@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.followup.followupcon
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,9 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.followup.followupcon
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.table.ClientColumn;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
@@ -30,18 +33,17 @@ import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
-import nl.rivm.screenit.util.NaamUtil;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.wicketstuff.shiro.ShiroConstraint;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @SecurityConstraint(
 	constraint = ShiroConstraint.HasPermission,
@@ -52,6 +54,13 @@ import java.util.List;
 public class MammaFollowUpConclusieWerklijst extends AbstractMammaFollowUpPage
 {
 	private WebMarkupContainer refreshContainer;
+
+	@Override
+	public void renderHead(IHeaderResponse response)
+	{
+		super.renderHead(response);
+		response.render(CssHeaderItem.forUrl("assets/font-awesome/css/font-awesome.min.css"));
+	}
 
 	@Override
 	protected void onInitialize()
@@ -66,7 +75,7 @@ public class MammaFollowUpConclusieWerklijst extends AbstractMammaFollowUpPage
 
 		List<IColumn<MammaBeoordeling, String>> columns = new ArrayList<>();
 		columns.add(new PropertyColumn<>(Model.of("Onderzoeksdatum SE"), "onderzoek.creatieDatum", "onderzoek.creatieDatum"));
-        columns.add(new ClientColumn<>("onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client"));
+		columns.add(new ClientColumn<>("onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client"));
 		columns.add(new PropertyColumn<>(Model.of("Geboortedatum"), "onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon.geboortedatum"));
 		columns.add(new PropertyColumn<>(Model.of("Bsn"), "onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon.bsn"));
 

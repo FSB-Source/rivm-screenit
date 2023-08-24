@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.dao.colon;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,7 +37,7 @@ import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamerFilter;
 import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
 import nl.topicuszorg.wicket.planning.util.Periode;
 
-import org.joda.time.Interval;
+import com.google.common.collect.Range;
 
 public interface RoosterDao
 {
@@ -47,13 +46,13 @@ public interface RoosterDao
 
 	List<RoosterItem> getOneindigeItems();
 
-	List<Object> getRoosterTijden(List<Interval> intervals, RoosterItem roosteritem, Interval totaalInterval);
+	List<Object> getRoosterTijden(List<Range<Date>> intervals, RoosterItem roosteritem, Range<Date> totaalInterval);
 
 	Iterator<RoosterItemListViewWrapper> getRoosterBlokken(String sortProperty, boolean asc, long first, long count, RoosterListViewFilter filter, ColoscopieCentrum intakeLocatie);
 
 	long getRoosterBlokkenCount(RoosterListViewFilter filter, ColoscopieCentrum intakeLocatie);
 
-	List<Object> getCurrentRoosterBlokken(Kamer kamer, Interval periode);
+	List<Object> getCurrentRoosterBlokken(Kamer kamer, Range<Date> periode);
 
 	List<ColonBlokkade> getBlokkades(Kamer kamer, Date startTime, Date endTime);
 

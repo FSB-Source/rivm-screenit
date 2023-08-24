@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,15 +24,20 @@ package nl.rivm.screenit.dao.colon.impl;
 import java.util.List;
 
 import nl.rivm.screenit.dao.colon.ColonUitnodigingsDao;
+import nl.rivm.screenit.model.UitnodigingsGebied;
 import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
 import nl.rivm.screenit.model.colon.UitnodigingCohort;
+import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.query.ScreenitRestrictions;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.hibernate.Criteria;
+import org.hibernate.ScrollMode;
+import org.hibernate.ScrollableResults;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
@@ -85,11 +90,33 @@ public class ColonUitnodigingsDaoImpl extends AbstractAutowiredDao implements Co
 	}
 
 	@Override
-	public UitnodigingCohort getUitnodigingCohort(Integer jaar)
+	public UitnodigingCohort getUitnodigingCohort(int jaar)
 	{
 		Criteria crit = this.getSession().createCriteria(UitnodigingCohort.class);
 		crit.add(Restrictions.eq("jaar", jaar));
 		return (UitnodigingCohort) crit.uniqueResult();
+	}
+
+	@Override
+	public ScrollableResults getUitnodigingsCursor(ColonUitnodigingCategorie uitnodigingscategorie, UitnodigingsGebied uitnodigingsgebied, List<Integer> geboorteJaren,
+		Integer minimaleLeeftijd, Integer maximaleLeeftijd, Long projectGroupId, List<Long> exclusieGroepIds, int fetchSize)
+	{
+		Criteria crit;
+
+		switch (uitnodigingscategorie)
+		{
+		case U1:
+			crit = ColonRestrictions.getQueryVooraankondigen(getSession(), uitnodigingsgebied, geboorteJaren, false, minimaleLeeftijd, maximaleLeeftijd, projectGroupId,
+				exclusieGroepIds, currentDateSupplier.getLocalDate());
+			break;
+		case U2:
+			crit = ColonRestrictions.getQueryU2(getSession(), uitnodigingsgebied, minimaleLeeftijd, maximaleLeeftijd, false, projectGroupId, exclusieGroepIds,
+				currentDateSupplier.getLocalDate());
+			break;
+		default:
+			throw new NotImplementedException("Onbekende categorie");
+		}
+		return crit.setFetchSize(fetchSize).scroll(ScrollMode.FORWARD_ONLY);
 	}
 
 }

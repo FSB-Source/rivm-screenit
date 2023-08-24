@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,12 +23,10 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-import nl.rivm.screenit.service.ClientContactService;
-import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.component.validator.FileValidator;
 import nl.rivm.screenit.model.AanvraagBriefStatus;
@@ -38,7 +36,9 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActie;
 import nl.rivm.screenit.model.ClientContactManier;
 import nl.rivm.screenit.model.UploadDocument;
+import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.model.enums.FileType;
+import nl.rivm.screenit.service.ClientContactService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -62,27 +62,29 @@ public abstract class AbstractClientContactAfmeldenPanel<A extends Afmelding, E 
 	@SpringBean
 	protected ClientContactService clientContactService;
 
+	private WebMarkupContainer container;
+
 	protected IModel<A> afmeldingModel;
 
 	protected IModel<Client> clientModel;
 
 	private IModel<UploadDocument> afmeldHandtekeningUploadDocumentModel;
 
-	private IModel<List<FileUpload>> files = new ListModel<>();
+	private final IModel<List<FileUpload>> files = new ListModel<>();
 
-	private WebMarkupContainer manierContainer;
+	private final WebMarkupContainer manierContainer;
 
-	private WebMarkupContainer bestandSelecterenContainer;
+	private final WebMarkupContainer bestandSelecterenContainer;
 
 	protected WebMarkupContainer redenenContainer;
 
-	public AbstractClientContactAfmeldenPanel(String id, IModel<ClientContactActie> clientContactActieModel, IModel<Client> clientModel, List<Object> extraPanelParams)
+	protected AbstractClientContactAfmeldenPanel(String id, IModel<ClientContactActie> clientContactActieModel, IModel<Client> clientModel, List<Object> extraPanelParams)
 	{
 		super(id, clientContactActieModel);
 		this.clientModel = clientModel;
 
 		afmeldingModel = getAfmeldingModel(extraPanelParams);
-		WebMarkupContainer container = new WebMarkupContainer("container", afmeldingModel);
+		container = new WebMarkupContainer("container", afmeldingModel);
 		add(container);
 
 		List<AfmeldingType> availableAfmeldopties = getAvailableAfmeldopties(clientModel);
@@ -99,7 +101,7 @@ public abstract class AbstractClientContactAfmeldenPanel<A extends Afmelding, E 
 				A afmelding = AbstractClientContactAfmeldenPanel.this.afmeldingModel.getObject();
 
 				afmelding.setManier(null);
-				manierContainer.setVisible(AfmeldingType.DEFINITIEF.equals(afmelding.getType()));
+				manierContainer.setVisible(AfmeldingType.DEFINITIEF.equals(afmelding.getType()) || AfmeldingType.TIJDELIJK.equals(afmelding.getType()));
 				target.add(manierContainer);
 
 				bestandSelecterenContainer.setVisible(false);
@@ -146,11 +148,14 @@ public abstract class AbstractClientContactAfmeldenPanel<A extends Afmelding, E 
 
 		redenenContainer = getRedenenContainer();
 		container.add(redenenContainer);
+
+		var extraAfmeldOptiesContainer = new WebMarkupContainer("extraAfmeldOptiesContainer");
+		container.add(vulEnGetExtraAfmeldOptiesContainer(extraAfmeldOptiesContainer));
 	}
 
 	private WebMarkupContainer getRedenenContainer()
 	{
-		RadioChoice<E> reden = new RadioChoice<E>("reden", getRedenenModel(), new EnumChoiceRenderer<E>(this));
+		RadioChoice<E> reden = new RadioChoice<>("reden", getRedenenModel(), new EnumChoiceRenderer<>(this));
 		reden.setPrefix("<label class=\"radio\">");
 		reden.setSuffix("</label>");
 		reden.setRequired(true);
@@ -168,23 +173,25 @@ public abstract class AbstractClientContactAfmeldenPanel<A extends Afmelding, E 
 	@Override
 	public Map<ExtraOpslaanKey, Object> getOpslaanObjecten()
 	{
-		Map<ExtraOpslaanKey, Object> objecten = new HashMap<>();
+		var extraOpslaanObjecten = new EnumMap<>(ExtraOpslaanKey.class);
 		A afmelding = afmeldingModel.getObject();
 
 		if (AfmeldingType.EENMALIG.equals(afmelding.getType()))
 		{
 			afmelding.setManier(ClientContactManier.DIRECT);
 		}
-		else if (AfmeldingType.DEFINITIEF.equals(afmelding.getType()) && ClientContactManier.DIRECT.equals(afmelding.getManier()) && afmeldHandtekeningUploadDocumentModel != null)
+		else if (ClientContactManier.DIRECT.equals(afmelding.getManier()) && afmeldHandtekeningUploadDocumentModel != null
+			&& !AfmeldingType.EENMALIG.equals(afmelding.getType()))
 		{
 			afmelding.setAfmeldingStatus(AanvraagBriefStatus.BRIEF);
 			UploadDocument document = afmeldHandtekeningUploadDocumentModel.getObject();
 			afmelding.setHandtekeningDocumentAfmelding(document);
-			objecten.put(ExtraOpslaanKey.AFMELDING_BEVESTIGING_DOCUMENT, document);
+			extraOpslaanObjecten.put(ExtraOpslaanKey.AFMELDING_BEVESTIGING_DOCUMENT, document);
 		}
 
-		objecten.put(ExtraOpslaanKey.AFMELDING, afmelding);
-		return objecten;
+		extraOpslaanObjecten.put(ExtraOpslaanKey.AFMELDING, afmelding);
+
+		return extraOpslaanObjecten;
 	}
 
 	@Override
@@ -202,7 +209,7 @@ public abstract class AbstractClientContactAfmeldenPanel<A extends Afmelding, E 
 				document.setContentType(upload.getContentType());
 				document.setFile(definitieFile);
 				document.setNaam(upload.getClientFileName());
-				afmeldHandtekeningUploadDocumentModel = ModelUtil.cModel(document);
+				afmeldHandtekeningUploadDocumentModel = ModelUtil.ccModel(document);
 			}
 		}
 		catch (Exception e)
@@ -225,4 +232,11 @@ public abstract class AbstractClientContactAfmeldenPanel<A extends Afmelding, E 
 	protected abstract IModel<A> getAfmeldingModel(List<Object> extraPanelParams);
 
 	protected abstract void setRedenenContainerVisible(AjaxRequestTarget target, A afmelding);
+
+	protected WebMarkupContainer vulEnGetExtraAfmeldOptiesContainer(WebMarkupContainer extraOptiesContainer)
+	{
+		extraOptiesContainer.setVisible(false);
+
+		return extraOptiesContainer;
+	}
 }

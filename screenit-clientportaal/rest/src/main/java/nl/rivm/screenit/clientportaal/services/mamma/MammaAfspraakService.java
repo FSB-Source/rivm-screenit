@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.services.mamma;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,9 @@ package nl.rivm.screenit.clientportaal.services.mamma;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+import java.util.List;
+
 import nl.rivm.screenit.clientportaal.model.mamma.MammaAfspraakOptieDto;
 import nl.rivm.screenit.clientportaal.model.mamma.MammaAfspraakWijzigenFilterDto;
 import nl.rivm.screenit.clientportaal.model.mamma.MammaAfspraakZoekFilterDto;
@@ -28,9 +31,6 @@ import nl.rivm.screenit.dto.mamma.afspraken.MammaHuidigeAfspraakDto;
 import nl.rivm.screenit.dto.mamma.afspraken.MammaKandidaatAfspraakDto;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
-
-import java.time.LocalDate;
-import java.util.List;
 
 public interface MammaAfspraakService
 {
@@ -40,7 +40,7 @@ public interface MammaAfspraakService
 
 	MammaAfspraak toAfspraak(MammaAfspraakOptieDto kandidaatAfspraakDto, Client client);
 
-    MammaAfspraakOptieDto toMammaKandidaatOptie(MammaKandidaatAfspraakDto kandidaatAfspraakDto);
+	MammaAfspraakOptieDto toMammaKandidaatOptie(MammaKandidaatAfspraakDto kandidaatAfspraakDto, Client client);
 
     MammaHuidigeAfspraakDto toHuidigeAfspraakDto(MammaAfspraak huidigeAfspraak);
 }

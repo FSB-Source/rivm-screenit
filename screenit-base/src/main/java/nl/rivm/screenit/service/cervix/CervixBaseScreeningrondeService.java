@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -42,9 +42,9 @@ public interface CervixBaseScreeningrondeService
 
 	boolean heeftUitslagOfHeeftGehad(CervixUitnodiging cervixUitnodiging);
 
-	void verwijderCervixScreeningRondes(CervixDossier dossier);
+	void verwijderScreeningRondes(CervixDossier dossier);
 
-	void verwijderCervixScreeningRonde(CervixScreeningRonde ronde);
+	void verwijderScreeningRonde(CervixScreeningRonde ronde);
 
 	boolean heeftUitnodigingMetMonsterInLabproces(CervixScreeningRonde ronde);
 
@@ -55,4 +55,8 @@ public interface CervixBaseScreeningrondeService
 	boolean heeftMaxAantalZASsenBereikt(CervixScreeningRonde laatsteScreeningRonde, boolean aangevraagdDoorClient);
 
 	Integer getMaxAantalZASAanvragen(boolean aangevraagdDoorClient);
+
+	boolean nieuweUitnodigingVoorClientMoetPUZijn(CervixScreeningRonde screeningRonde);
+
+	boolean clientHeeftAanOnderzoekMeegedaanInRonde(CervixScreeningRonde screeningRonde);
 }

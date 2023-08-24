@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,10 +35,14 @@ import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
+import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.HL7Util;
+import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
+import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,28 +70,32 @@ public class CervixHL7BaseServiceImpl implements CervixHL7BaseService
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
 
+	@Autowired
+	private OrganisatieParameterService organisatieParameterService;
+
 	@Override
-	public Connection openConnection(BMHKLaboratorium laboratorium, int pogingen, ScreenITHL7MessageContext messageContext) throws HL7Exception
+	public Connection openConnection(String laboratoriumNaam, int pogingen, ScreenITHL7MessageContext messageContext) throws HL7Exception
 	{
-		if (laboratorium.getOrderPort() == null || laboratorium.getOrderHost() == null)
+		if (messageContext.getPort() == null || messageContext.getHost() == null)
 		{
-			String melding = "Voor laboratorium " + laboratorium.getNaam() + " zijn geen hl7 host en port gespecificeerd.";
+			String melding = "Voor laboratorium " + laboratoriumNaam + " zijn geen HL7v2 host en/of port gespecificeerd.";
 			messageContext.getResponseWrapper().setMelding(melding);
 			throw new IllegalStateException(melding);
 		}
 
-		sendMessageService.openConnection("BMHK Laboratiorium " + laboratorium.getNaam(), laboratorium.getOrderHost(), laboratorium.getOrderPort(), pogingen,
-			messageContext);
+		sendMessageService.openConnection("'" + laboratoriumNaam + "'", pogingen, messageContext);
 		return messageContext.getConnection();
 	}
 
 	@Override
-	public HL7v24ResponseWrapper sendHL7Message(String hl7Bericht, BMHKLaboratorium bmhkLaboratorium)
+	public HL7v24ResponseWrapper sendHL7Message(String hl7Bericht, BMHKLaboratorium laboratorium, OrganisatieParameterKey hostKey, OrganisatieParameterKey portKey)
 	{
 		ScreenITHL7MessageContext messageContext = new ScreenITHL7MessageContext(HapiContextType.UTF_8);
 		try
 		{
-			openConnection(bmhkLaboratorium, 1, messageContext);
+			messageContext.setHost(organisatieParameterService.getOrganisatieParameter(laboratorium, hostKey));
+			messageContext.setPort(organisatieParameterService.getOrganisatieParameter(laboratorium, portKey));
+			openConnection(laboratorium.getNaam(), 1, messageContext);
 			sendMessageService.sendHL7Message(hl7Bericht, messageContext);
 			sendMessageService.discardConnection(messageContext);
 		}
@@ -116,6 +124,12 @@ public class CervixHL7BaseServiceImpl implements CervixHL7BaseService
 	@Override
 	public PID buildPIDSegment(PID pid, Client client) throws DataTypeException
 	{
+		return buildPIDSegmentWithForcedGender(pid, client, null);
+	}
+
+	@Override
+	public PID buildPIDSegmentWithForcedGender(PID pid, Client client, Geslacht forcedGender) throws DataTypeException
+	{
 		GbaPersoon persoon = client.getPersoon();
 		BagAdres persoonAdres = persoon.getGbaAdres();
 
@@ -139,7 +153,14 @@ public class CervixHL7BaseServiceImpl implements CervixHL7BaseService
 
 		if (persoon.getGeslacht() != null)
 		{
-			pid.getAdministrativeSex().setValue(HL7Util.getGeslachtFormat(persoon.getGeslacht()));
+			if (forcedGender != null)
+			{
+				pid.getAdministrativeSex().setValue(HL7Util.getGeslachtFormat(forcedGender));
+			}
+			else
+			{
+				pid.getAdministrativeSex().setValue(HL7Util.getGeslachtFormat(persoon.getGeslacht()));
+			}
 		}
 
 		XAD omlAdres1 = pid.getPatientAddress(0);
@@ -161,17 +182,16 @@ public class CervixHL7BaseServiceImpl implements CervixHL7BaseService
 	}
 
 	@Override
-	public OBR buildOBRSegment(OBR obrSegment, CervixMonster monster) throws DataTypeException
+	public OBR buildOBRSegment(OBR obrSegment, CervixMonster monster, boolean postfix) throws DataTypeException
 	{
 		obrSegment.getSetIDOBR().setValue("1");
-		obrSegment.getObr4_UniversalServiceIdentifier().getCe1_Identifier().setValue("Cervixcytologie");
-		obrSegment.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().setValue(StringUtils.leftPad(monster.getMonsterId(), 9, "0"));
+		obrSegment.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().setValue(CervixMonsterUtil.getMonsterEntityIdentifier(monster, postfix));
 		obrSegment.getObr2_PlacerOrderNumber().getNamespaceID().setValue("ScreenIT");
-		obrSegment.getRequestedDateTime().getTs1_TimeOfAnEvent().setValue(getCurrentDateTimeString());
 		return obrSegment;
 	}
 
-	private String getCurrentDateTimeString()
+	@Override
+	public String getCurrentDateTimeString()
 	{
 		return currentDateSupplier.getLocalDateTime().format(DateTimeFormatter.ofPattern(Constants.DATE_FORMAT_YYYYMMDDHHMMSS));
 	}

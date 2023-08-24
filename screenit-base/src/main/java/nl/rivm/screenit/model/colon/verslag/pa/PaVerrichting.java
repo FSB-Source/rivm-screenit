@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.colon.verslag.pa;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -50,12 +50,12 @@ public class PaVerrichting
 
 	@Temporal(TemporalType.DATE)
 	@Column
-	@VraagElement(displayName = "Aanvang verrichting", extraTekst = "", code = "2.16.840.1.113883.2.4.3.36.77.2.10.125030", isVerplicht = true)
+	@VraagElement(displayName = "Aanvang verrichting", extraTekst = "", code = "2.16.840.1.113883.2.4.3.36.77.2.11.72", isVerplicht = true)
 	private Date aanvangVerrichting;
 
 	@Temporal(TemporalType.DATE)
 	@Column
-	@VraagElement(displayName = "Einde verrichting", extraTekst = "", code = "2.16.840.1.113883.2.4.3.36.77.2.10.125050", isVerplicht = true)
+	@VraagElement(displayName = "Einde verrichting", extraTekst = "", code = "2.16.840.1.113883.2.4.3.36.77.2.11.73", isVerplicht = true)
 	private Date eindeVerrichting;
 
 	public PaVerslagContent getVerslagContent()

@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,12 +22,16 @@ package nl.rivm.screenit.service.cervix.impl;
  */
 
 import nl.rivm.screenit.dao.cervix.CervixMonsterDao;
+import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.cervix.CervixHpvAnalyseresultaten;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
 import nl.rivm.screenit.model.cervix.berichten.CervixHpvResultValue;
+import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
+import nl.rivm.screenit.model.cervix.enums.CervixZasStatus;
 import nl.rivm.screenit.service.cervix.CervixMonsterService;
+import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -80,5 +84,20 @@ public class CervixMonsterServiceImpl implements CervixMonsterService
 
 		return analyseresultaten != null && !CervixHpvResultValue.POS_HPV16.equals(analyseresultaten.getHpv16()) && !CervixHpvResultValue.POS_HPV18.equals(
 			analyseresultaten.getHpv18()) && CervixHpvResultValue.POS_OTHER_HR_HPV.equals(analyseresultaten.getHpvohr());
+	}
+
+	@Override
+	public boolean magInstellingMonsterInzien(Instelling instelling, CervixMonster monster)
+	{
+		boolean isMonsterNietOntvangen;
+		if (CervixMonsterUtil.isUitstrijkje(monster))
+		{
+			isMonsterNietOntvangen = CervixUitstrijkjeStatus.NIET_ONTVANGEN == CervixMonsterUtil.getUitstrijkje(monster).getUitstrijkjeStatus();
+		}
+		else
+		{
+			isMonsterNietOntvangen = CervixZasStatus.VERSTUURD == CervixMonsterUtil.getZAS(monster).getZasStatus();
+		}
+		return isMonsterNietOntvangen || instelling.equals(monster.getLaboratorium());
 	}
 }

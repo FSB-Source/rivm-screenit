@@ -4,7 +4,7 @@ package nl.rivm.screenit.util.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,6 @@ package nl.rivm.screenit.util.cervix;
  */
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
@@ -79,7 +78,8 @@ public class CervixTariefUtil
 		}
 		else
 		{
-			tariefTekst += Arrays.asList(CervixTariefType.getAlleLabTariefTypes()).stream()
+			tariefTekst += CervixTariefType.getAlleLabTariefTypes().stream()
+				.filter(t -> t.getBedragVanTarief(tarief).compareTo(BigDecimal.valueOf(0)) > 0)
 				.map(t -> t.getNaam() + ": tarief " + t.getBedragStringVanTarief(tarief))
 				.collect(Collectors.joining(", "));
 		}
@@ -106,4 +106,37 @@ public class CervixTariefUtil
 		return logMelding;
 	}
 
+	public static void vulTarief(CervixLabTarief tarief, CervixLabTarief laatste)
+	{
+		if (laatste != null)
+		{
+
+			tarief.setHpvAnalyseZasTarief(laatste.getHpvAnalyseZasTarief());
+			tarief.setHpvAnalyseUitstrijkjeTarief(laatste.getHpvAnalyseUitstrijkjeTarief());
+			tarief.setCytologieNaHpvUitstrijkjeTarief(laatste.getCytologieNaHpvUitstrijkjeTarief());
+			tarief.setCytologieNaHpvZasTarief(laatste.getCytologieNaHpvZasTarief());
+			tarief.setCytologieVervolguitstrijkjeTarief(laatste.getCytologieVervolguitstrijkjeTarief());
+
+			tarief.setLogistiekTarief(laatste.getLogistiekTarief());
+			tarief.setMonsterontvangstEnMonsterverwerkingZasTarief(laatste.getMonsterontvangstEnMonsterverwerkingZasTarief());
+			tarief.setHpvAnalyseKlinischEnZelfAfgenomenTarief(laatste.getHpvAnalyseKlinischEnZelfAfgenomenTarief());
+			tarief.setCervixcytologieManueelScreenenTarief(laatste.getCervixcytologieManueelScreenenTarief());
+			tarief.setCervixcytologieMetCosTarief(laatste.getCervixcytologieMetCosTarief());
+		}
+		else
+		{
+
+			tarief.setHpvAnalyseZasTarief(BigDecimal.ZERO);
+			tarief.setHpvAnalyseUitstrijkjeTarief(BigDecimal.ZERO);
+			tarief.setCytologieNaHpvUitstrijkjeTarief(BigDecimal.ZERO);
+			tarief.setCytologieNaHpvZasTarief(BigDecimal.ZERO);
+			tarief.setCytologieVervolguitstrijkjeTarief(BigDecimal.ZERO);
+
+			tarief.setLogistiekTarief(BigDecimal.ZERO);
+			tarief.setMonsterontvangstEnMonsterverwerkingZasTarief(BigDecimal.ZERO);
+			tarief.setHpvAnalyseKlinischEnZelfAfgenomenTarief(BigDecimal.ZERO);
+			tarief.setCervixcytologieManueelScreenenTarief(BigDecimal.ZERO);
+			tarief.setCervixcytologieMetCosTarief(BigDecimal.ZERO);
+		}
+	}
 }

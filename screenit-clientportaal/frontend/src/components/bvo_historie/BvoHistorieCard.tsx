@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,7 @@ import React from "react"
 import classNames from "classnames"
 
 import styles from "./BvoHistorieCard.module.scss"
-import {BevolkingsonderzoekStyle} from "../../datatypes/Bevolkingsonderzoek"
+import {Bevolkingsonderzoek, BevolkingsonderzoekStyle} from "../../datatypes/Bevolkingsonderzoek"
 import {useSelectedBvo} from "../../utils/Hooks"
 import {Col, Row} from "react-bootstrap"
 import {getString} from "../../utils/TekstPropertyUtil"
@@ -48,10 +48,19 @@ const BvoHistorieCard = (props: BvoHistorieCardProps) => {
 				<span>{formatTime(props.datumTijd)} uur</span>
 			</Col>
 			<Col md={10} className={styles.tekst}>
-				<SpanWithHtml value={getString(properties[props.tekstKey], props.extraParameters)}/>
+				<SpanWithHtml value={getHistorieTekst(props.tekstKey)}/>
 			</Col>
 		</Row>
-    )
-};
+	)
 
-export default BvoHistorieCard;
+	function getHistorieTekst(tekstKey: string): string {
+		if ("EENMALIGE_AFMELDING" === tekstKey) {
+			return selectedBvo === Bevolkingsonderzoek.MAMMA ? getString(properties["EENMALIGE_AFMELDING_BK"]) : getString(properties["EENMALIGE_AFMELDING_DK_BMHK"])
+		} else {
+			return getString(properties[props.tekstKey], props.extraParameters)
+		}
+	}
+
+}
+
+export default BvoHistorieCard

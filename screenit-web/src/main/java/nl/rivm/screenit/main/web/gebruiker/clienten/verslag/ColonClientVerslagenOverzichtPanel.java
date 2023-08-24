@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.verslag;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -37,28 +37,23 @@ import org.apache.wicket.model.IModel;
 
 public class ColonClientVerslagenOverzichtPanel extends ClientVerslagenOverzichtPanel<ColonVerslag<?>>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	public ColonClientVerslagenOverzichtPanel(String id, IModel<Client> model)
 	{
 		super(id, model);
 	}
 
 	@Override
-	protected IModel<? extends ColonVerslag<?>> getVerslagFilter()
+	protected IModel<ColonVerslag<?>> getVerslagFilter()
 	{
-		IModel<ColonVerslag<?>> model = ModelUtil.cModel(new ColonVerslag<>());
-		ColonVerslag<?> verslag = model.getObject();
+		var dossier = new ColonDossier();
+		var screeningRonde = new ColonScreeningRonde();
+		var verslag = new ColonVerslag<>();
 
-		verslag.setScreeningRonde(new ColonScreeningRonde());
-
-		ColonScreeningRonde screeningRonde = verslag.getScreeningRonde();
-		screeningRonde.setDossier(new ColonDossier());
-		ColonDossier dossier = screeningRonde.getDossier();
+		verslag.setScreeningRonde(screeningRonde);
+		screeningRonde.setDossier(dossier);
 		dossier.setClient(getModelObject());
 
-		return model;
+		return ModelUtil.ccModel(verslag);
 	}
 
 	@Override
@@ -69,7 +64,7 @@ public class ColonClientVerslagenOverzichtPanel extends ClientVerslagenOverzicht
 		IModel<Client> clientModel = getModel();
 		return (bevolkingsonderzoeken.contains(Bevolkingsonderzoek.COLON)
 			&& (ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_UITSLAGCOLOSCOPIEONTVANGEN, Actie.INZIEN, clientModel.getObject())
-				|| ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_UITSLAGPATHOLOGIEONTVANGEN, Actie.INZIEN, clientModel.getObject())));
+			|| ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_UITSLAGPATHOLOGIEONTVANGEN, Actie.INZIEN, clientModel.getObject())));
 	}
 
 }

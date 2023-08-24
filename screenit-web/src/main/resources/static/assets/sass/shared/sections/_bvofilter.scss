@@ -1,0 +1,11 @@
+@charset "utf-8";
+.bvoForm {
+	margin-left: 5px;
+	label {
+		display: inline;
+	}
+}
+
+.bvoForm.bvo-selectie-page {
+	margin-left: 0;
+}

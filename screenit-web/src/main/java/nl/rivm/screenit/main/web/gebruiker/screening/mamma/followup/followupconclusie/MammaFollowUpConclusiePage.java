@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.followup.followupcon
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,10 +22,10 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.followup.followupcon
  */
 
 import java.util.Arrays;
+import java.util.List;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.model.mamma.MammaFollowUpConclusieChoice;
-import nl.rivm.screenit.main.service.mamma.MammaConclusieReviewService;
 import nl.rivm.screenit.main.service.mamma.MammaFollowUpService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.AjaxButtonGroup;
@@ -36,7 +36,6 @@ import nl.rivm.screenit.main.web.gebruiker.screening.mamma.followup.AbstractMamm
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.followup.followuppathologie.MammaFollowUpPathologieVerslagInzienPanel;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.followup.followupradiologie.MammaFollowUpRadiologieVerslagInzienPanel;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
-import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
@@ -57,13 +56,14 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -82,12 +82,16 @@ public class MammaFollowUpConclusiePage extends AbstractMammaFollowUpPage
 	@SpringBean
 	private MammaFollowUpService followUpService;
 
-	@SpringBean
-	private MammaConclusieReviewService conclusieReviewService;
-
 	private IModel<MammaFollowUpConclusieChoice> conclusieEnumModel;
 
-	private IModel<MammaScreeningRonde> screeningRondeModel;
+	private final IModel<MammaScreeningRonde> screeningRondeModel;
+
+	@Override
+	public void renderHead(IHeaderResponse response)
+	{
+		super.renderHead(response);
+		response.render(CssHeaderItem.forUrl("assets/font-awesome/css/font-awesome.min.css"));
+	}
 
 	public MammaFollowUpConclusiePage(MammaScreeningRonde screeningRonde)
 	{
@@ -107,33 +111,7 @@ public class MammaFollowUpConclusiePage extends AbstractMammaFollowUpPage
 		ScreenitForm<MammaScreeningRonde> conclusieForm = new ScreenitForm<>("conclusieForm");
 		add(conclusieForm);
 
-		MammaFollowUpConclusieChoice conclusieEnum;
-		MammaFollowUpConclusieStatus conclusieStatus = screeningRonde.getFollowUpConclusieStatus();
-		if (conclusieStatus == null)
-		{
-			conclusieEnum = null;
-		}
-		else
-		{
-			switch (conclusieStatus)
-			{
-			case TRUE_POSITIVE:
-			case FALSE_NEGATIVE:
-				conclusieEnum = MammaFollowUpConclusieChoice.POSITIEF;
-				break;
-			case TRUE_NEGATIVE:
-			case FALSE_POSITIVE:
-				conclusieEnum = MammaFollowUpConclusieChoice.NEGATIEF;
-				break;
-			case NIET_TE_VERWACHTEN:
-				conclusieEnum = MammaFollowUpConclusieChoice.NIET_TE_VERWACHTEN;
-				break;
-			default:
-				conclusieEnum = null;
-			}
-		}
-
-		conclusieEnumModel = new Model<>(conclusieEnum);
+		conclusieEnumModel = new Model<>(initieleConclusieKeuze(screeningRonde));
 
 		WebMarkupContainer statusContainer = new WebMarkupContainer("conclusieContainer");
 		statusContainer.setOutputMarkupId(true);
@@ -177,7 +155,7 @@ public class MammaFollowUpConclusiePage extends AbstractMammaFollowUpPage
 			protected AjaxLink<String> createButton(String id, IModel<MammaFollowUpConclusieChoice> model)
 			{
 				AjaxLink<String> button = super.createButton(id, model);
-				if (MammaFollowUpConclusieChoice.POSITIEF.equals(model.getObject()) && screeningRondeModel.getObject().getFollowUpVerslagen().isEmpty())
+				if (MammaFollowUpConclusieChoice.POSITIEF.equals(model.getObject()) && teTonenPaVerslagen().isEmpty())
 				{
 					button.setEnabled(false);
 				}
@@ -209,26 +187,46 @@ public class MammaFollowUpConclusiePage extends AbstractMammaFollowUpPage
 		});
 	}
 
+	private MammaFollowUpConclusieChoice initieleConclusieKeuze(MammaScreeningRonde screeningRonde)
+	{
+		var conclusieStatus = screeningRonde.getFollowUpConclusieStatus();
+		if (conclusieStatus == null)
+		{
+			return null;
+		}
+
+		switch (conclusieStatus)
+		{
+		case TRUE_POSITIVE:
+		case FALSE_NEGATIVE:
+			return MammaFollowUpConclusieChoice.POSITIEF;
+		case TRUE_NEGATIVE:
+		case FALSE_POSITIVE:
+			return MammaFollowUpConclusieChoice.NEGATIEF;
+		case NIET_TE_VERWACHTEN:
+			return MammaFollowUpConclusieChoice.NIET_TE_VERWACHTEN;
+		default:
+			return null;
+		}
+	}
+
 	private void voegFollowUpVerslagenToe()
 	{
-		ListView<MammaFollowUpVerslag> followUpVerslagList = new ListView<>("followUpVerslagen")
+		ListView<MammaFollowUpVerslag> followUpVerslagList = new ListView<>("followUpVerslagen", ModelUtil.listRModel(teTonenPaVerslagen()))
 		{
 			@Override
 			protected void populateItem(ListItem<MammaFollowUpVerslag> followUpVerslagListItem)
 			{
-				if (followUpVerslagListItem.getModelObject().getStatus().equals(VerslagStatus.AFGEROND))
-				{
-					followUpVerslagListItem.add(new MammaFollowUpPathologieVerslagInzienPanel("paVerslag", followUpVerslagListItem.getModel()));
-				}
-				else
-				{
-					followUpVerslagListItem.add(new EmptyPanel("paVerslag").setVisible(false));
-				}
-
+				followUpVerslagListItem.add(new MammaFollowUpPathologieVerslagInzienPanel("paVerslag", followUpVerslagListItem.getModel()));
 			}
 		};
 		add(followUpVerslagList);
 
+	}
+
+	private List<MammaFollowUpVerslag> teTonenPaVerslagen()
+	{
+		return followUpService.getAfgerondeFollowUpPathologieVerslagen(screeningRondeModel.getObject());
 	}
 
 	private void voegRadiologieVerslagenToe()
@@ -262,7 +260,7 @@ public class MammaFollowUpConclusiePage extends AbstractMammaFollowUpPage
 		biradsContainer.add(new Label("biradsRechts",
 			biradsRechts != null ? MammaScreeningRondeUtil.bepaalNaamBiradsWaarde(MammaZijde.RECHTER_BORST, biradsRechts) : ""));
 
-		biradsContainer.setVisible(onderzoek != null && verslagLezing != null);
+		biradsContainer.setVisible(verslagLezing != null);
 		add(biradsContainer);
 	}
 

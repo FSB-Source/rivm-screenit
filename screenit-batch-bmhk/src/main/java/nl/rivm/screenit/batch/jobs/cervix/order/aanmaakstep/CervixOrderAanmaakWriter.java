@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.order.aanmaakstep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,7 +31,7 @@ import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.cervix.order.CervixOrderConstants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
-import nl.rivm.screenit.batch.service.CervixHpvOrderBerichtService;
+import nl.rivm.screenit.batch.service.CervixOrderBerichtService;
 import nl.rivm.screenit.dao.cervix.CervixBepaalVervolgDao;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
@@ -56,7 +56,7 @@ public class CervixOrderAanmaakWriter extends BaseWriter<CervixUitstrijkje>
 
 	private LogService logService;
 
-	private CervixHpvOrderBerichtService hpvOrderBerichtService;
+	private CervixOrderBerichtService orderBerichtService;
 
 	private CervixFactory factory;
 
@@ -74,7 +74,7 @@ public class CervixOrderAanmaakWriter extends BaseWriter<CervixUitstrijkje>
 		try
 		{
 			var cytologieReden = getCytologieReden(uitstrijkje);
-			factory.maakCytologieOrder(uitstrijkje, cytologieReden, maakHl7v2Bericht(uitstrijkje, cytologieReden));
+			factory.maakCytologieOrder(uitstrijkje, cytologieReden, maakHL7v2Bericht(uitstrijkje, cytologieReden));
 
 			aantalContextOphogen(CervixOrderConstants.KEY_ORDER_AANGEMAAKT);
 		}
@@ -84,9 +84,9 @@ public class CervixOrderAanmaakWriter extends BaseWriter<CervixUitstrijkje>
 		}
 	}
 
-	private String maakHl7v2Bericht(CervixUitstrijkje uitstrijkje, CervixCytologieReden cytologieReden)
+	private String maakHL7v2Bericht(CervixUitstrijkje uitstrijkje, CervixCytologieReden cytologieReden)
 	{
-		return hpvOrderBerichtService.maakOrderTextBericht(uitstrijkje, cytologieReden);
+		return orderBerichtService.maakCytologieOrderTextBericht(uitstrijkje, cytologieReden);
 	}
 
 	private CervixCytologieReden getCytologieReden(CervixUitstrijkje uitstrijkje) throws IllegalStateException

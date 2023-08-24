@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.berichten;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,7 +29,7 @@ import ca.uhn.hl7v2.model.v24.segment.ERR;
 import ca.uhn.hl7v2.model.v24.segment.MSA;
 import ca.uhn.hl7v2.util.StringUtil;
 
-public class ScreenITResponseV24MessageWrapper implements HL7TestMessageWrapper
+public class ScreenITResponseV24MessageWrapper implements ScreenITResponseHL7v2MessageWrapper
 {
 
 	private static final long serialVersionUID = 1L;

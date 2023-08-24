@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.algemeen.logging;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +21,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.logging;
  * =========================LICENSE_END==================================
  */
 
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -50,6 +50,7 @@ import nl.rivm.screenit.model.logging.LoggingZoekCriteria;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.OrganisatieZoekService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
@@ -91,9 +92,6 @@ import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 		Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA })
 public class LoggingInzienPage extends AlgemeenPage
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private ICurrentDateSupplier currentDateSupplier;
 
@@ -116,9 +114,9 @@ public class LoggingInzienPage extends AlgemeenPage
 		else
 		{
 			LoggingZoekCriteria criteria = new LoggingZoekCriteria();
-			criteria.setVanaf(currentDateSupplier.getDateTimeMidnight().minusWeeks(4).toDate());
-			criteria.setTot(currentDateSupplier.getDateTimeMidnight().plusDays(1).toDate());
-			logZoekCriteria = new Model<LoggingZoekCriteria>(criteria);
+			criteria.setVanaf(DateUtil.minusTijdseenheid(currentDateSupplier.getDateMidnight(), 4, ChronoUnit.WEEKS));
+			criteria.setTot(DateUtil.plusDagen(currentDateSupplier.getDateMidnight(), 1));
+			logZoekCriteria = new Model<>(criteria);
 		}
 
 		refreshContainer = new WebMarkupContainer("refreshContainer");
@@ -128,22 +126,16 @@ public class LoggingInzienPage extends AlgemeenPage
 		add(new FilterForm("form", logZoekCriteria));
 
 		List<IColumn<LogRegel, String>> columns = new ArrayList<>();
-		columns.add(new AbstractColumn<LogRegel, String>(Model.of("BVO"))
+		columns.add(new AbstractColumn<>(Model.of("BVO"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<LogRegel>> cellItem, String componentId, IModel<LogRegel> rowModel)
 			{
 				cellItem.add(new Label(componentId, rowModel.getObject().getAfkortingen()));
 			}
 		});
-		columns.add(new AbstractColumn<LogRegel, String>(Model.of("Regio"))
+		columns.add(new AbstractColumn<>(Model.of("Regio"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<LogRegel>> cellItem, String componentId, IModel<LogRegel> rowModel)
 			{
@@ -182,50 +174,38 @@ public class LoggingInzienPage extends AlgemeenPage
 		});
 		if (ScreenitSession.get().getOnderzoeken().contains(Bevolkingsonderzoek.MAMMA))
 		{
-			columns.add(new PropertyColumn<LogRegel, String>(Model.of("SE"), "screeningsEenheid.naam"));
+			columns.add(new PropertyColumn<>(Model.of("SE"), "screeningsEenheid.naam"));
 		}
 		columns.add(new EnumPropertyColumn<LogRegel, String, LogGebeurtenis>(new SimpleStringResourceModel("label.gebeurtenis"), "logGebeurtenis", "logGebeurtenis")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<LogRegel>> item, String componentId, IModel<LogRegel> rowModel)
 			{
 				super.populateItem(item, componentId, rowModel);
-				item.add(new AttributeAppender("class", new Model<String>("column-gebeurtenis")));
+				item.add(new AttributeAppender("class", new Model<>("column-gebeurtenis")));
 			}
 		});
-		columns.add(new DateTimePropertyColumn<LogRegel, String>(new SimpleStringResourceModel("label.datumtijd"), "gebeurtenisDatum", "gebeurtenisDatum",
+		columns.add(new DateTimePropertyColumn<>(new SimpleStringResourceModel("label.datumtijd"), "gebeurtenisDatum", "gebeurtenisDatum",
 			Constants.getDateTimeSecondsFormat())
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<LogRegel>> item, String componentId, IModel<LogRegel> rowModel)
 			{
 				super.populateItem(item, componentId, rowModel);
-				item.add(new AttributeAppender("class", new Model<String>("column-datum-tijd"), " "));
+				item.add(new AttributeAppender("class", new Model<>("column-datum-tijd"), " "));
 			}
 		});
-		columns.add(new PropertyColumn<LogRegel, String>(new SimpleStringResourceModel("label.gebruiker"), "gebruiker.gebruikersnaam", "gebruiker.gebruikersnaam")
+		columns.add(new PropertyColumn<>(new SimpleStringResourceModel("label.gebruiker"), "gebruiker.gebruikersnaam", "gebruiker.gebruikersnaam")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<LogRegel>> item, String componentId, IModel<LogRegel> rowModel)
 			{
 				super.populateItem(item, componentId, rowModel);
-				item.add(new AttributeAppender("class", new Model<String>("column-gebruiker")));
+				item.add(new AttributeAppender("class", new Model<>("column-gebruiker")));
 			}
 		});
-		columns.add(new PropertyColumn<LogRegel, String>(new SimpleStringResourceModel("label.client"), "persoon.achternaam", "client")
+		columns.add(new PropertyColumn<>(new SimpleStringResourceModel("label.client"), "persoon.achternaam", "client")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public IModel<?> getDataModel(IModel<LogRegel> rowModel)
 			{
@@ -236,20 +216,17 @@ public class LoggingInzienPage extends AlgemeenPage
 			public void populateItem(final Item<ICellPopulator<LogRegel>> item, final String componentId, final IModel<LogRegel> rowModel)
 			{
 				super.populateItem(item, componentId, rowModel);
-				item.add(new AttributeAppender("class", new Model<String>("column-bsn")));
+				item.add(new AttributeAppender("class", new Model<>("column-bsn")));
 			}
 
 		});
-		columns.add(new PropertyColumn<LogRegel, String>(new SimpleStringResourceModel("label.event.melding"), "logEvent", "logEvent.melding")
+		columns.add(new PropertyColumn<>(new SimpleStringResourceModel("label.event.melding"), "logEvent", "logEvent.melding")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(final Item<ICellPopulator<LogRegel>> item, final String componentId, final IModel<LogRegel> rowModel)
 			{
 				item.add(new Label(componentId, getDataModel(rowModel)).setEscapeModelStrings(false));
-				item.add(new AttributeAppender("class", new Model<String>("column-melding")));
+				item.add(new AttributeAppender("class", new Model<>("column-melding")));
 			}
 		});
 
@@ -258,9 +235,6 @@ public class LoggingInzienPage extends AlgemeenPage
 
 	private class FilterForm extends Form<LoggingZoekCriteria>
 	{
-
-		private static final long serialVersionUID = 1L;
-
 		public FilterForm(String id, IModel<LoggingZoekCriteria> model)
 		{
 			super(id, new CompoundPropertyModel<>(model));
@@ -271,30 +245,24 @@ public class LoggingInzienPage extends AlgemeenPage
 
 			DateTimeField vanaf = new DateTimeField("vanaf")
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected DatePicker<Date> newDatePicker(String wicketId, IModel<Date> model)
 				{
 					DatePicker<Date> datePicker = super.newDatePicker(wicketId, model);
-					datePicker.setLabel(new Model<String>("Datum/tijd vanaf"));
+					datePicker.setLabel(new Model<>("Datum/tijd vanaf"));
 					return datePicker;
 				}
 
 				@Override
 				protected TimeField newTimeField(String wicketId, IModel<Date> model)
 				{
-					TimeField timeField = new TimeField(wicketId, model)
+					return new TimeField(wicketId, model)
 					{
-
-						private static final long serialVersionUID = 1L;
-
 						@Override
 						protected TextField<Integer> getHoursField()
 						{
 							TextField<Integer> hours = super.getHoursField();
-							hours.setLabel(new Model<String>("Datum/tijd vanaf uren"));
+							hours.setLabel(new Model<>("Datum/tijd vanaf uren"));
 							return hours;
 						}
 
@@ -302,7 +270,7 @@ public class LoggingInzienPage extends AlgemeenPage
 						protected TextField<Integer> getMinutesField()
 						{
 							TextField<Integer> minutes = super.getMinutesField();
-							minutes.setLabel(new Model<String>("Datum/tijd vanaf minuten"));
+							minutes.setLabel(new Model<>("Datum/tijd vanaf minuten"));
 							return minutes;
 						}
 
@@ -323,36 +291,29 @@ public class LoggingInzienPage extends AlgemeenPage
 							super.convertInput();
 						}
 					};
-					return timeField;
 				}
 
 			};
 			DateTimeField tot = new DateTimeField("tot")
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected DatePicker<Date> newDatePicker(String wicketId, IModel<Date> model)
 				{
 					DatePicker<Date> datePicker = super.newDatePicker(wicketId, model);
-					datePicker.setLabel(new Model<String>("Datum/tijd tot"));
+					datePicker.setLabel(new Model<>("Datum/tijd tot"));
 					return datePicker;
 				}
 
 				@Override
 				protected TimeField newTimeField(String wicketId, IModel<Date> model)
 				{
-					TimeField timeField = new TimeField(wicketId, model)
+					return new TimeField(wicketId, model)
 					{
-
-						private static final long serialVersionUID = 1L;
-
 						@Override
 						protected TextField<Integer> getHoursField()
 						{
 							TextField<Integer> hours = super.getHoursField();
-							hours.setLabel(new Model<String>("Datum/tijd tot uren"));
+							hours.setLabel(new Model<>("Datum/tijd tot uren"));
 							return hours;
 						}
 
@@ -360,7 +321,7 @@ public class LoggingInzienPage extends AlgemeenPage
 						protected TextField<Integer> getMinutesField()
 						{
 							TextField<Integer> minutes = super.getMinutesField();
-							minutes.setLabel(new Model<String>("Datum/tijd tot minuten"));
+							minutes.setLabel(new Model<>("Datum/tijd tot minuten"));
 							return minutes;
 						}
 
@@ -382,7 +343,6 @@ public class LoggingInzienPage extends AlgemeenPage
 						}
 
 					};
-					return timeField;
 				}
 			};
 			add(tot, vanaf);
@@ -402,7 +362,7 @@ public class LoggingInzienPage extends AlgemeenPage
 
 			add(filterButton);
 
-			add(new ScreenitListMultipleChoice<Level>("level", Arrays.asList(Level.values()), new EnumChoiceRenderer<Level>()));
+			add(new ScreenitListMultipleChoice<>("level", Arrays.asList(Level.values()), new EnumChoiceRenderer<>()));
 
 			List<MammaScreeningsEenheid> screeningsEenheden = screeningsEenheidService.getActieveScreeningsEenheden();
 			List<Long> seIds = screeningsEenheden.stream().map(AbstractHibernateObject::getId).collect(Collectors.toList());
@@ -412,16 +372,15 @@ public class LoggingInzienPage extends AlgemeenPage
 			screeningsEenheidDropdown.setVisible(ScreenitSession.get().getOnderzoeken().contains(Bevolkingsonderzoek.MAMMA));
 			add(screeningsEenheidDropdown);
 
-			add(new ScreenitListMultipleChoice<LogGebeurtenis>("gebeurtenis", Arrays.asList(LogGebeurtenis.values()), new EnumChoiceRenderer<LogGebeurtenis>()));
+			add(new ScreenitListMultipleChoice<>("gebeurtenis", Arrays.asList(LogGebeurtenis.values()), new EnumChoiceRenderer<>()));
 
-			add(new ScreenitListMultipleChoice<Bevolkingsonderzoek>("bevolkingsonderzoeken", ScreenitSession.get().getOnderzoeken(),
-				new EnumChoiceRenderer<Bevolkingsonderzoek>()));
+			add(new ScreenitListMultipleChoice<>("bevolkingsonderzoeken", ScreenitSession.get().getOnderzoeken(), new EnumChoiceRenderer<>()));
 
 			add(new DependantDateValidator(vanaf, tot, Operator.AFTER));
 
 			List<Instelling> soLijst = organisatieZoekService.getAllActieveOrganisatiesWithType(ScreeningOrganisatie.class);
 
-			add(new ScreenitDropdown<Long>("regio", soLijst.stream().map(Organisatie::getId).collect(Collectors.toList()),
+			add(new ScreenitDropdown<>("regio", soLijst.stream().map(Organisatie::getId).collect(Collectors.toList()),
 				new HibernateIdChoiceRenderer(soLijst, "naam")).setNullValid(true));
 		}
 	}

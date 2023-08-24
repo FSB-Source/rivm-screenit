@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,20 +23,16 @@ import React, {useEffect} from "react"
 import ActieBasePage from "../../ActieBasePage"
 import {Bevolkingsonderzoek, BevolkingsonderzoekNaam} from "../../../datatypes/Bevolkingsonderzoek"
 import {getString} from "../../../utils/TekstPropertyUtil"
-import {getHuidigeIntakeAfspraak, saveColonAfzegReden} from "../../../api/ColonAfspraakAfzeggenThunkAction"
+import {getHuidigeIntakeAfspraak} from "../../../api/ColonAfspraakAfzeggenThunkAction"
 import {useSelector} from "react-redux"
 import {State} from "../../../datatypes/State"
 import properties from "./ColonAfspraakAfzeggenPage.json"
 import LadenComponent from "../../../components/laden/LadenComponent"
 import {splitAdresString} from "../../../utils/StringUtil"
 import ColonAfspraakAfzeggenForm from "../../../components/form/colon/ColonAfspraakAfzeggenForm"
-import RedenAfspraakAfzeggen from "../../../datatypes/colon/RedenAfspraakAfzeggen"
-import {useNavigate} from "react-router-dom"
-import {showToast} from "../../../utils/ToastUtil"
 
 const ColonAfspraakAfzeggenPage = () => {
 	const dispatch = useThunkDispatch()
-	const navigate = useNavigate()
 	const huidigeIntakeAfspraak = useSelector((state: State) => state.client.colonDossier.intakeAfspraak)
 
 	useEffect(() => {
@@ -47,20 +43,13 @@ const ColonAfspraakAfzeggenPage = () => {
 		return <LadenComponent/>
 	}
 
-	function afspraakAfzeggen(redenAfspraakAfzeggen: RedenAfspraakAfzeggen) {
-		dispatch(saveColonAfzegReden(redenAfspraakAfzeggen)).then(() => {
-			showToast(getString(properties.toast.title), getString(properties.toast.description))
-			navigate("/colon")
-		})
-	}
-
 	return (
 		<ActieBasePage bvoName={BevolkingsonderzoekNaam[Bevolkingsonderzoek.COLON]}
 					   title={getString(properties.page.title)}
 					   description={getString(properties.page.description)}
 					   hintBegin={getString(properties.huidige_afspraak, [huidigeIntakeAfspraak.weergaveAfspraakmoment, huidigeIntakeAfspraak.naamInstelling, splitAdresString(huidigeIntakeAfspraak.adresString)])}>
 
-			<ColonAfspraakAfzeggenForm onSubmitSucces={afspraakAfzeggen}/>
+			<ColonAfspraakAfzeggenForm/>
 
 		</ActieBasePage>
 	)

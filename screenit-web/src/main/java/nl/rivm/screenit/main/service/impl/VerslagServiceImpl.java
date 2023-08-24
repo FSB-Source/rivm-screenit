@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.service.impl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -145,7 +144,7 @@ public class VerslagServiceImpl implements VerslagService
 			LOG.error("Error in correctValues: ", e);
 		}
 
-		Verslag verslag = verslagContent.getVerslag();
+		var verslag = verslagContent.getVerslag();
 
 		for (Antwoord<?> antwoord : resultaat.getAntwoorden())
 		{
@@ -175,7 +174,7 @@ public class VerslagServiceImpl implements VerslagService
 						{
 							PalgaNumberAntwoord palgaNumberAntwoord = (PalgaNumberAntwoord) antwoord;
 							PalgaNumber palgaNumber = palgaNumberAntwoord.getValue();
-							Integer waarde = Integer.valueOf(0);
+							Integer waarde = 0;
 							int start = 0;
 							if (palgaNumber != null)
 							{
@@ -244,7 +243,7 @@ public class VerslagServiceImpl implements VerslagService
 										{
 											hibernateService.delete(medicatiemiddel);
 										}
-										medicatie.setMedicatiemiddel(new ArrayList<MdlMedicatiemiddel>());
+										medicatie.setMedicatiemiddel(new ArrayList<>());
 									}
 									medicatie.setMateVanSedatie(null);
 								}
@@ -265,7 +264,7 @@ public class VerslagServiceImpl implements VerslagService
 									{
 										hibernateService.delete(laesie);
 									}
-									mdlVerslagContent.setLaesiecoloscopiecentrum(new ArrayList<MdlLaesiecoloscopiecentrum>());
+									mdlVerslagContent.setLaesiecoloscopiecentrum(new ArrayList<>());
 								}
 							}
 						}
@@ -284,7 +283,7 @@ public class VerslagServiceImpl implements VerslagService
 									{
 										hibernateService.delete(incidentcomplicatie);
 									}
-									mdlVerslagContent.getVerrichting().setIncidentcomplicatie(new ArrayList<MdlIncidentcomplicatie>());
+									mdlVerslagContent.getVerrichting().setIncidentcomplicatie(new ArrayList<>());
 								}
 							}
 						}
@@ -356,6 +355,10 @@ public class VerslagServiceImpl implements VerslagService
 			{
 				logService.logGebeurtenis(LogGebeurtenis.MAMMA_VERSLAG_FOLLOW_UP_WIJZIG, instellingGebruiker, client, createMelding, Bevolkingsonderzoek.MAMMA);
 			}
+		}
+		else if (verslag.getType() == VerslagType.MAMMA_PA_FOLLOW_UP_MONITOR)
+		{
+			throw new IllegalStateException("BK PA Landelijke Monitor verslagen mogen niet handmatig ingevoerd of aangepast worden");
 		}
 	}
 
@@ -429,7 +432,7 @@ public class VerslagServiceImpl implements VerslagService
 		{
 			GebruikerAntwoord antwoord = new GebruikerAntwoord();
 			antwoord.setValue(verslag.getUitvoerderMedewerker());
-			String uitvoerderMedewerkerKey = null;
+			String uitvoerderMedewerkerKey;
 			if (verslag.getType().equals(VerslagType.MDL))
 			{
 				uitvoerderMedewerkerKey = VRAAG_ENDOSCOPIST;
@@ -481,7 +484,7 @@ public class VerslagServiceImpl implements VerslagService
 			if (mdlVerslagContent.getColoscopieMedischeObservatie() != null && mdlVerslagContent.getColoscopieMedischeObservatie().getMedicatie() != null
 				&& mdlVerslagContent.getColoscopieMedischeObservatie().getMedicatie().getMedicatiemiddel() != null)
 			{
-				antwoord.setValue(mdlVerslagContent.getColoscopieMedischeObservatie().getMedicatie().getMedicatiemiddel().size() > 0);
+				antwoord.setValue(!mdlVerslagContent.getColoscopieMedischeObservatie().getMedicatie().getMedicatiemiddel().isEmpty());
 			}
 
 			VraagInstantieImpl<Boolean> vraagInstatie = formulierService.findVraagInstantieByIdentifier(formulierResultaat.getFormulierInstantie(), VRAAG_SEDATIE_JA_NEE);
@@ -494,7 +497,7 @@ public class VerslagServiceImpl implements VerslagService
 
 			if (mdlVerslagContent.getLaesiecoloscopiecentrum() != null)
 			{
-				antwoord.setValue(mdlVerslagContent.getLaesiecoloscopiecentrum().size() > 0);
+				antwoord.setValue(!mdlVerslagContent.getLaesiecoloscopiecentrum().isEmpty());
 			}
 
 			VraagInstantieImpl<Boolean> vraagInstatie = formulierService.findVraagInstantieByIdentifier(formulierResultaat.getFormulierInstantie(), Constants.VRAAG_LAESIE_JA_NEE);
@@ -507,7 +510,7 @@ public class VerslagServiceImpl implements VerslagService
 
 			if (mdlVerslagContent.getVerrichting() != null && mdlVerslagContent.getVerrichting().getIncidentcomplicatie() != null)
 			{
-				antwoord.setValue(mdlVerslagContent.getVerrichting().getIncidentcomplicatie().size() > 0);
+				antwoord.setValue(!mdlVerslagContent.getVerrichting().getIncidentcomplicatie().isEmpty());
 			}
 
 			VraagInstantieImpl<Boolean> vraagInstatie = formulierService.findVraagInstantieByIdentifier(formulierResultaat.getFormulierInstantie(),
@@ -515,36 +518,36 @@ public class VerslagServiceImpl implements VerslagService
 			antwoord.setVraagInstantie(vraagInstatie);
 			formulierResultaat.getAntwoorden().add(antwoord);
 		}
-			Date datumOnderzoek = verslag.getDatumOnderzoek();
-			if (datumOnderzoek != null)
-			{
-				DateAntwoord antwoord = new DateAntwoord();
-				antwoord.setValue(datumOnderzoek);
+		Date datumOnderzoek = verslag.getDatumOnderzoek();
+		if (datumOnderzoek != null)
+		{
+			DateAntwoord antwoord = new DateAntwoord();
+			antwoord.setValue(datumOnderzoek);
 
-				VraagInstantieImpl<Date> vraagInstatie = formulierService.findVraagInstantieByIdentifier(formulierResultaat.getFormulierInstantie(),
-					Constants.VRAAG_DATUM_VERRICHTING);
-				vraagInstatie.setVerplichting(new VerplichtingImpl());
-				antwoord.setVraagInstantie(vraagInstatie);
-				formulierResultaat.getAntwoorden().add(antwoord);
-			}
-			String patientnummer = mdlVerslag.getPatientnummer();
-			if (StringUtils.isNotBlank(patientnummer))
-			{
-				StringAntwoord antwoord = new StringAntwoord();
-				antwoord.setValue(patientnummer);
+			VraagInstantieImpl<Date> vraagInstatie = formulierService.findVraagInstantieByIdentifier(formulierResultaat.getFormulierInstantie(),
+				Constants.VRAAG_DATUM_VERRICHTING);
+			vraagInstatie.setVerplichting(new VerplichtingImpl());
+			antwoord.setVraagInstantie(vraagInstatie);
+			formulierResultaat.getAntwoorden().add(antwoord);
+		}
+		String patientnummer = mdlVerslag.getPatientnummer();
+		if (StringUtils.isNotBlank(patientnummer))
+		{
+			StringAntwoord antwoord = new StringAntwoord();
+			antwoord.setValue(patientnummer);
 
-				VraagInstantieImpl<String> vraagInstatie = formulierService.findVraagInstantieByIdentifier(formulierResultaat.getFormulierInstantie(), PATIENTNUMMER);
-				vraagInstatie.setVerplichting(new VerplichtingImpl());
-				antwoord.setVraagInstantie(vraagInstatie);
-				formulierResultaat.getAntwoorden().add(antwoord);
-			}
-			break;
+			VraagInstantieImpl<String> vraagInstatie = formulierService.findVraagInstantieByIdentifier(formulierResultaat.getFormulierInstantie(), PATIENTNUMMER);
+			vraagInstatie.setVerplichting(new VerplichtingImpl());
+			antwoord.setVraagInstantie(vraagInstatie);
+			formulierResultaat.getAntwoorden().add(antwoord);
+		}
+		break;
 		case PA_LAB:
 			PaVerslagContent paVerslagContent = (PaVerslagContent) HibernateHelper.deproxy(verslag.getVerslagContent());
 		{
 			List<PaPathologieProtocolColonbioptperPoliep> potjes = paVerslagContent.getPathologieProtocolColonbioptperPoliep();
 			PalgaNumberAntwoord antwoord = new PalgaNumberAntwoord();
-			Integer start = Integer.valueOf(40);
+			var start = 40;
 			for (PaPathologieProtocolColonbioptperPoliep potje : potjes)
 			{
 				String nummerPotjeMateriaal = potje.getNummerPotjeMateriaal();
@@ -553,7 +556,7 @@ public class VerslagServiceImpl implements VerslagService
 					nummerPotjeMateriaal = "1";
 				}
 
-				Integer potjeNummer = Integer.valueOf(nummerPotjeMateriaal);
+				var potjeNummer = Integer.valueOf(nummerPotjeMateriaal);
 				if (start > potjeNummer)
 				{
 					start = potjeNummer;
@@ -573,11 +576,10 @@ public class VerslagServiceImpl implements VerslagService
 				formulierResultaat.getAntwoorden().add(antwoord);
 			}
 		}
-
-			break;
+		break;
 		case CERVIX_CYTOLOGIE:
-			break;
 		case MAMMA_PA_FOLLOW_UP:
+		case MAMMA_PA_FOLLOW_UP_MONITOR:
 			break;
 		}
 	}
@@ -629,7 +631,7 @@ public class VerslagServiceImpl implements VerslagService
 	@Override
 	public void berichtenOpnieuwVerwerken(List<Long> ids, Bevolkingsonderzoek bvo)
 	{
-		if (ids.size() > 0)
+		if (!ids.isEmpty())
 		{
 			verslagDao.setBerichtenOpnieuwVerwerken(ids);
 			cdaBerichtToBatchService.queueCDABericht(bvo);
@@ -642,7 +644,7 @@ public class VerslagServiceImpl implements VerslagService
 		berichtenOpnieuwVerwerken(Arrays.asList(ontvangenCdaBericht.getId()), ontvangenCdaBericht.getBerichtType().getBevolkingsonderzoek());
 	}
 
-	private void refreshUpdateFollowUpConclusie(Verslag verslag)
+	private void refreshUpdateFollowUpConclusie(Verslag<?, ?> verslag)
 	{
 		if (verslag.getType().equals(VerslagType.MAMMA_PA_FOLLOW_UP))
 		{

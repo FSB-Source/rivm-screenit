@@ -6,6 +6,7 @@
   "wachtwoordControle": "Dit veld moet overeenkomen met het vorige veld",
   "email": "Dit veld moet minimaal een @ en een punt bevatten",
   "min": "De minimale waarde moet hoger dan ${min} zijn",
+  "max": "De maximale waarde mag niet hoger zijn dan ${max}",
   "postcode": "Zorg dat de postcode 4 cijfers en 2 letters bevat",
   "zorgmailklantnummer": "Het zorgmail klantnummer kan alleen cijfers bevatten",
   "iban": "Geef een geldige IBAN op",

@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.controllers.mamma;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,6 +32,7 @@ import nl.rivm.screenit.model.EnovationHuisarts;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaGeenHuisartsOption;
+import nl.rivm.screenit.service.ClientContactService;
 import nl.rivm.screenit.service.mamma.MammaHuisartsService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -52,19 +53,21 @@ import org.springframework.web.bind.annotation.RestController;
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MammaHuisartsController extends AbstractController
 {
+	private final HibernateService hibernateService;
+
+	private final ClientContactService clientContactService;
+
 	private final MammaHuisartsService mammaHuisartsService;
 
 	private final HuisartsMapper huisartsMapper;
-
-	private final HibernateService hibernateService;
 
 	@PostMapping
 	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<Void> koppelMammaHuisarts(Authentication authentication, @RequestParam long id)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.MAMMA_HUISARTS_WIJZIGEN))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.MAMMA_HUISARTS_WIJZIGEN))
 		{
 			EnovationHuisarts huisarts = hibernateService.get(EnovationHuisarts.class, id);
 
@@ -86,9 +89,9 @@ public class MammaHuisartsController extends AbstractController
 	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<Void> ontkoppelMammaHuisarts(Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.MAMMA_HUISARTS_WIJZIGEN))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.MAMMA_HUISARTS_WIJZIGEN))
 		{
 			if (client != null)
 			{
@@ -115,9 +118,9 @@ public class MammaHuisartsController extends AbstractController
 	@GetMapping(path = "/magverwijderen")
 	public ResponseEntity<Boolean> magMammaHuisartsVerwijderen(Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.MAMMA_HUISARTS_WIJZIGEN))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.MAMMA_HUISARTS_WIJZIGEN))
 		{
 			if (client != null && client.getMammaDossier() != null)
 			{
@@ -137,7 +140,7 @@ public class MammaHuisartsController extends AbstractController
 	public ResponseEntity<HuisartsDto> getVorigeMammaHuisarts(Authentication authentication)
 	{
 
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 		if (client != null && client.getMammaDossier() != null)
 		{
 			MammaScreeningRonde laatsteScreeningRonde = client.getMammaDossier().getLaatsteScreeningRonde();
@@ -150,7 +153,7 @@ public class MammaHuisartsController extends AbstractController
 	@GetMapping(path = "/huidige")
 	public ResponseEntity<HuisartsDto> getHuidigeMammaHuisarts(Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 		if (client != null && client.getMammaDossier() != null)
 		{
 			MammaScreeningRonde laatsteScreeningRonde = client.getMammaDossier().getLaatsteScreeningRonde();
@@ -166,7 +169,7 @@ public class MammaHuisartsController extends AbstractController
 	@GetMapping(path = "/vorige/geen")
 	public ResponseEntity<MammaGeenHuisartsOption> getVorigeMammaGeenHuisartsOptie(Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 		if (client != null && client.getMammaDossier() != null)
 		{
 			MammaScreeningRonde laatsteScreeningRonde = client.getMammaDossier().getLaatsteScreeningRonde();
@@ -179,7 +182,7 @@ public class MammaHuisartsController extends AbstractController
 	@GetMapping(path = "/huidige/geen")
 	public ResponseEntity<MammaGeenHuisartsOption> getHuidigeMammaGeenHuisartsOptie(Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 		if (client != null && client.getMammaDossier() != null)
 		{
 			MammaScreeningRonde laatsteScreeningRonde = client.getMammaDossier().getLaatsteScreeningRonde();
@@ -196,9 +199,9 @@ public class MammaHuisartsController extends AbstractController
 	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<Void> bevestigVorigeMammaHuisarts(Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.MAMMA_HUISARTS_WIJZIGEN))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.MAMMA_HUISARTS_WIJZIGEN))
 		{
 			if (client != null && client.getMammaDossier() != null)
 			{

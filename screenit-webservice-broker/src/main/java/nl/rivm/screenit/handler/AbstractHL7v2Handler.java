@@ -4,7 +4,7 @@ package nl.rivm.screenit.handler;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,17 +21,14 @@ package nl.rivm.screenit.handler;
  * =========================LICENSE_END==================================
  */
 
+import java.util.concurrent.atomic.AtomicReference;
+
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.service.TechnischeBerichtenLoggingSaverService;
+import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5Session;
 import nl.topicuszorg.hl7v2.services.server.impl.TypedHL7BerichtTypeHandlerImpl;
 import nl.topicuszorg.spring.injection.SpringBeanProvider;
-
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.orm.hibernate5.SessionFactoryUtils;
-import org.springframework.orm.hibernate5.SessionHolder;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.app.ApplicationException;
@@ -39,53 +36,30 @@ import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v24.datatype.MSG;
 import ca.uhn.hl7v2.model.v24.segment.MSH;
 
+@Slf4j
 public abstract class AbstractHL7v2Handler<T extends Message> extends TypedHL7BerichtTypeHandlerImpl<T>
 {
+	private final TechnischeBerichtenLoggingSaverService technischeBerichtenLoggingSaverService;
 
-	private static final Logger LOG = LoggerFactory.getLogger(AbstractHL7v2Handler.class);
-
-	private Session hibernateSession;
-
-	private boolean unbindSessionFromThread = false;
-
-	private SessionFactory sessionFactory;
-
-	private TechnischeBerichtenLoggingSaverService technischeBerichtenLoggingSaverService;
-
-	public AbstractHL7v2Handler(Class<T> berichtType)
+	protected AbstractHL7v2Handler(Class<T> berichtType)
 	{
 		super(berichtType);
-		this.sessionFactory = SpringBeanProvider.getInstance().getBean(SessionFactory.class);
 		this.technischeBerichtenLoggingSaverService = SpringBeanProvider.getInstance().getBean(TechnischeBerichtenLoggingSaverService.class);
 	}
 
 	@Override
 	public Message processTypedMessage(T message) throws ApplicationException, HL7Exception
 	{
-		try
-		{
-			hibernateSession = sessionFactory.openSession();
-			if (!TransactionSynchronizationManager.hasResource(sessionFactory))
+		AtomicReference<Message> response = new AtomicReference<>();
+		OpenHibernate5Session.withoutTransaction().run(() ->
 			{
-				TransactionSynchronizationManager.bindResource(sessionFactory, new SessionHolder(hibernateSession));
-				unbindSessionFromThread = true;
+				long exchangeId = technischeBerichtenLoggingSaverService.logRequest("HL7V2_REQ_IN", getBerichtType().getSimpleName(), message.toString());
+				response.set(verwerkTypedMessage(message));
+				technischeBerichtenLoggingSaverService.logResponse("HL7V2_RESP_OUT", exchangeId, response.toString());
 			}
-			long exchangeId = technischeBerichtenLoggingSaverService.logRequest("HL7V2_REQ_IN", getBerichtType().getSimpleName(), message.toString());
+		);
+		return response.get();
 
-			Message response = verwerkTypedMessage(message);
-
-			technischeBerichtenLoggingSaverService.logResponse("HL7V2_RESP_OUT", exchangeId, response.toString());
-
-			return response;
-		}
-		finally
-		{
-			if (unbindSessionFromThread)
-			{
-				TransactionSynchronizationManager.unbindResource(sessionFactory);
-				SessionFactoryUtils.closeSession(hibernateSession);
-			}
-		}
 	}
 
 	abstract Message verwerkTypedMessage(T message) throws ApplicationException, HL7Exception;

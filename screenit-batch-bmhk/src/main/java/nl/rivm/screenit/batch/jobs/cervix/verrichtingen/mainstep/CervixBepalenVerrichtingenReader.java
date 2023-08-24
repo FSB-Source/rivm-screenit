@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.verrichtingen.mainstep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,38 +21,31 @@ package nl.rivm.screenit.batch.jobs.cervix.verrichtingen.mainstep;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.cervix.CervixMonster;
-import nl.rivm.screenit.model.cervix.enums.CervixHuisartsBerichtStatus;
-import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
+import nl.rivm.screenit.specification.cervix.CervixMonsterSpecification;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import static nl.rivm.screenit.batch.jobs.cervix.verrichtingen.CervixBepalenVerrichtingenJobConfiguration.CERVIX_BEPALEN_VERRICHTINGEN_JOB_FETCH_SIZE;
 
 @Component
-public class CervixBepalenVerrichtingenReader extends BaseScrollableResultReader
+public class CervixBepalenVerrichtingenReader extends BaseSpecificationScrollableResultReader<CervixMonster, Long>
 {
-
 	public CervixBepalenVerrichtingenReader()
 	{
 		super.setFetchSize(CERVIX_BEPALEN_VERRICHTINGEN_JOB_FETCH_SIZE);
 	}
 
-	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	public Specification<CervixMonster> createSpecification()
 	{
-		var criteria = session.createCriteria(CervixMonster.class, "monster");
-		criteria.createAlias("monster.huisartsBericht", "huisartsbericht", JoinType.LEFT_OUTER_JOIN);
-		criteria.add(Restrictions.or(Restrictions.isNull("huisartsbericht.status"), Restrictions.ne("huisartsbericht.status", CervixHuisartsBerichtStatus.AANGEMAAKT)));
-		criteria.add(Restrictions.or(Restrictions.isNull("uitstrijkjeStatus"), Restrictions.ne("uitstrijkjeStatus", CervixUitstrijkjeStatus.NIET_ONTVANGEN)));
-		criteria.add(Restrictions.isNotNull("monster.brief"));
-		criteria.add(Restrictions.isEmpty("verrichtingen"));
-		return criteria;
+		return CervixMonsterSpecification.heeftBrief()
+			.and(CervixMonsterSpecification.heeftGeenVerrichtingen())
+			.and(
+				CervixMonsterSpecification.isOntvangenUitstrijkje()
+					.and(CervixMonsterSpecification.heeftGeenOntvangenHuisartsBericht())
+					.or(CervixMonsterSpecification.isZas())
+			);
 	}
 }

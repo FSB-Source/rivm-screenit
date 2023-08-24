@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,9 +21,12 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling;
  * =========================LICENSE_END==================================
  */
 
+import java.time.temporal.ChronoUnit;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.mamma.MammaLezing;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.DateUtil;
 
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Projections;
@@ -38,7 +41,7 @@ public abstract class MammaBaseBeoordelingReader extends BaseScrollableResultRea
 	protected DetachedCriteria getRadiologenDieAanHetWerkZijn(int uren)
 	{
 		DetachedCriteria subQueryRadiologenAanHetWerk = DetachedCriteria.forClass(MammaLezing.class);
-		subQueryRadiologenAanHetWerk.add(Restrictions.ge("beoordelingDatum", currentDateSupplier.getDateTime().minusHours(uren).toDate()));
+		subQueryRadiologenAanHetWerk.add(Restrictions.ge("beoordelingDatum", DateUtil.minusTijdseenheid(currentDateSupplier.getDate(), uren, ChronoUnit.HOURS)));
 
 		subQueryRadiologenAanHetWerk.setProjection(Projections.distinct(Projections.property("beoordelaar.id")));
 

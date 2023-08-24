@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.cerv
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,7 +35,6 @@ import nl.rivm.screenit.model.cervix.CervixHuisartsBericht;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.enums.CervixHuisartsBerichtStatus;
-import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -330,9 +329,7 @@ public class CervixHuisartsberichtDetailsPanel extends AbstractGebeurtenisDetail
 	private void koppelHuisartsEtc(CervixHuisartsBericht huisartsBericht)
 	{
 		huisartsBericht.setHuisartsLocatie(getSelectedHuisartsLocatie());
-		cervixVerrichtingFactory.maakHuisartsVerrichting(huisartsBericht.getUitstrijkje(), CervixTariefType.HUISARTS_UITSTRIJKJE,
-			currentDateSupplier.getDate(),
-			getSelectedHuisartsLocatie());
+		cervixVerrichtingFactory.maakHuisartsVerrichting(huisartsBericht.getUitstrijkje(), currentDateSupplier.getDate(), getSelectedHuisartsLocatie());
 		huisartsBericht.setStatus(CervixHuisartsBerichtStatus.AANGEMAAKT);
 		hibernateService.saveOrUpdate(huisartsBericht);
 	}

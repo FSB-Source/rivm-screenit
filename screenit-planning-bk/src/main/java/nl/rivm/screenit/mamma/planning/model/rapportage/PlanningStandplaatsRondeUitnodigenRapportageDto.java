@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.model.rapportage;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,209 +21,50 @@ package nl.rivm.screenit.mamma.planning.model.rapportage;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaStandplaatsRondeRapportageStatus;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
+
+import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaStandplaatsRondeRapportageStatus;
+
+@Getter
+@Setter
 public class PlanningStandplaatsRondeUitnodigenRapportageDto
 {
 	private Long standplaatsRondeId;
 
 	private final List<PlanningStandplaatsPeriodeUitnodigenRapportageDto> standplaatsPeriodeUitnodigenRapportages = new ArrayList<>();
 
-	private Long totaalTotaal = -1L;
+	private Long totaalTotaal;
 
-	private Long totaalVervolgRonde = -1L;
+	private Long totaalVervolgRonde;
 
-	private Long totaalEersteRonde = -1L;
+	private Long totaalEersteRonde;
 
-	private Long totaalDubbeleTijd = -1L;
+	private Long totaalDubbeleTijd;
 
-	private Long totaalMinderValide = -1L;
+	private Long totaalMinderValide;
 
-	private Long totaalTehuis = -1L;
+	private Long totaalTehuis;
 
-	private Long totaalSuspect = -1L;
+	private Long totaalSuspect;
 
-	private Long uitTeNodigenTotaal = -1L;
+	private Long uitTeNodigenTotaal;
 
-	private Long uitTeNodigenVervolgRonde = -1L;
+	private Long uitTeNodigenVervolgRonde;
 
-	private Long uitTeNodigenEersteRonde = -1L;
+	private Long uitTeNodigenEersteRonde;
 
-	private Long uitTeNodigenDubbeleTijd = -1L;
+	private Long uitTeNodigenDubbeleTijd;
 
-	private Long uitTeNodigenMinderValide = -1L;
+	private Long uitTeNodigenMinderValide;
 
-	private Long uitTeNodigenTehuis = -1L;
+	private Long uitTeNodigenTehuis;
 
-	private Long uitTeNodigenSuspect = -1L;
+	private Long uitTeNodigenSuspect;
 
 	private MammaStandplaatsRondeRapportageStatus status;
 
-	public Long getStandplaatsRondeId()
-	{
-		return standplaatsRondeId;
-	}
-
-	public void setStandplaatsRondeId(Long standplaatsRondeId)
-	{
-		this.standplaatsRondeId = standplaatsRondeId;
-	}
-
-	public List<PlanningStandplaatsPeriodeUitnodigenRapportageDto> getStandplaatsPeriodeUitnodigenRapportages()
-	{
-		return standplaatsPeriodeUitnodigenRapportages;
-	}
-
-	public Long getTotaalTotaal()
-	{
-		return totaalTotaal;
-	}
-
-	public void setTotaalTotaal(Long totaalTotaal)
-	{
-		this.totaalTotaal = totaalTotaal;
-	}
-
-	public Long getTotaalVervolgRonde()
-	{
-		return totaalVervolgRonde;
-	}
-
-	public void setTotaalVervolgRonde(Long totaalVervolgRonde)
-	{
-		this.totaalVervolgRonde = totaalVervolgRonde;
-	}
-
-	public Long getTotaalEersteRonde()
-	{
-		return totaalEersteRonde;
-	}
-
-	public void setTotaalEersteRonde(Long totaalEersteRonde)
-	{
-		this.totaalEersteRonde = totaalEersteRonde;
-	}
-
-	public Long getTotaalDubbeleTijd()
-	{
-		return totaalDubbeleTijd;
-	}
-
-	public void setTotaalDubbeleTijd(Long totaalDubbeleTijd)
-	{
-		this.totaalDubbeleTijd = totaalDubbeleTijd;
-	}
-
-	public Long getTotaalMinderValide()
-	{
-		return totaalMinderValide;
-	}
-
-	public void setTotaalMinderValide(Long totaalMinderValide)
-	{
-		this.totaalMinderValide = totaalMinderValide;
-	}
-
-	public Long getTotaalTehuis()
-	{
-		return totaalTehuis;
-	}
-
-	public void setTotaalTehuis(Long totaalTehuis)
-	{
-		this.totaalTehuis = totaalTehuis;
-	}
-
-	public Long getTotaalSuspect()
-	{
-		return totaalSuspect;
-	}
-
-	public void setTotaalSuspect(Long totaalSuspect)
-	{
-		this.totaalSuspect = totaalSuspect;
-	}
-
-	public Long getUitTeNodigenTotaal()
-	{
-		return uitTeNodigenTotaal;
-	}
-
-	public void setUitTeNodigenTotaal(Long uitTeNodigenTotaal)
-	{
-		this.uitTeNodigenTotaal = uitTeNodigenTotaal;
-	}
-
-	public Long getUitTeNodigenVervolgRonde()
-	{
-		return uitTeNodigenVervolgRonde;
-	}
-
-	public void setUitTeNodigenVervolgRonde(Long uitTeNodigenVervolgRonde)
-	{
-		this.uitTeNodigenVervolgRonde = uitTeNodigenVervolgRonde;
-	}
-
-	public Long getUitTeNodigenEersteRonde()
-	{
-		return uitTeNodigenEersteRonde;
-	}
-
-	public void setUitTeNodigenEersteRonde(Long uitTeNodigenEersteRonde)
-	{
-		this.uitTeNodigenEersteRonde = uitTeNodigenEersteRonde;
-	}
-
-	public Long getUitTeNodigenDubbeleTijd()
-	{
-		return uitTeNodigenDubbeleTijd;
-	}
-
-	public void setUitTeNodigenDubbeleTijd(Long uitTeNodigenDubbeleTijd)
-	{
-		this.uitTeNodigenDubbeleTijd = uitTeNodigenDubbeleTijd;
-	}
-
-	public Long getUitTeNodigenMinderValide()
-	{
-		return uitTeNodigenMinderValide;
-	}
-
-	public void setUitTeNodigenMinderValide(Long uitTeNodigenMinderValide)
-	{
-		this.uitTeNodigenMinderValide = uitTeNodigenMinderValide;
-	}
-
-	public Long getUitTeNodigenTehuis()
-	{
-		return uitTeNodigenTehuis;
-	}
-
-	public void setUitTeNodigenTehuis(Long uitTeNodigenTehuis)
-	{
-		this.uitTeNodigenTehuis = uitTeNodigenTehuis;
-	}
-
-	public Long getUitTeNodigenSuspect()
-	{
-		return uitTeNodigenSuspect;
-	}
-
-	public void setUitTeNodigenSuspect(Long uitTeNodigenSuspect)
-	{
-		this.uitTeNodigenSuspect = uitTeNodigenSuspect;
-	}
-
-	public MammaStandplaatsRondeRapportageStatus getStatus()
-	{
-		return status;
-	}
-
-	public void setStatus(MammaStandplaatsRondeRapportageStatus status)
-	{
-		this.status = status;
-	}
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline;
 
 import java.io.File;
 import java.math.BigDecimal;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -62,6 +63,7 @@ import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseTestService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.TestBsnGenerator;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
@@ -166,7 +168,7 @@ public class MammaTestTimelinePage extends TestenBasePage
 
 		TestTimelineModel testTimelineModel = new TestTimelineModel();
 		testTimelineModel.setGeslacht(Geslacht.VROUW);
-		testTimelineModel.setGeboortedatum(dateSupplier.getDateTime().minusYears(50).toDate());
+		testTimelineModel.setGeboortedatum(DateUtil.minusTijdseenheid(dateSupplier.getDate(), 50, ChronoUnit.YEARS));
 		testTimelineModel.setDeelnamekans(BigDecimal.valueOf(1));
 		testTimelineModel.setDoelgroep(MammaDoelgroep.REGULIER);
 		testTimelineModel.setPostcode("1234AA");
@@ -254,6 +256,8 @@ public class MammaTestTimelinePage extends TestenBasePage
 		add(pocClienten);
 
 		add(new MammaTestBulkDeelnamekansPanel("deelnamekansen"));
+
+		add(new MammaTestSluitDagenSEPanel("sluitDagenSE"));
 	}
 
 	private WebMarkupContainer getFormComponentsContainer()

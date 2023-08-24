@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,7 +31,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import nl.rivm.screenit.PreferenceKey;
+import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.dao.colon.IFobtDao;
+import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
+import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ProjectParameterKey;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.UploadDocument;
@@ -61,7 +64,7 @@ import nl.rivm.screenit.service.colon.IFobtService;
 import nl.rivm.screenit.util.AfmeldingUtil;
 import nl.rivm.screenit.util.ColonScreeningRondeUtil;
 import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.IFOBTTestUtil;
+import nl.rivm.screenit.util.FITTestUtil;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
@@ -112,6 +115,9 @@ public class IFobtServiceImpl implements IFobtService
 	@Autowired
 	private ColonStudietestService studietestService;
 
+	@Autowired
+	private ClientDao clientDao;
+
 	@Override
 	public IFOBTTest getIfobtTest(String barcode)
 	{
@@ -124,7 +130,7 @@ public class IFobtServiceImpl implements IFobtService
 		boolean isUitslagBriefVerstuurd = false;
 		for (IFOBTTest ifobtTest : ronde.getIfobtTesten())
 		{
-			if (IFOBTTestStatus.ACTIEF.equals(ifobtTest.getStatus()) || IFOBTTestUtil.isOngunstig(ifobtTest))
+			if (IFOBTTestStatus.ACTIEF.equals(ifobtTest.getStatus()) || FITTestUtil.isOngunstig(ifobtTest))
 			{
 				allesAfgerondEnGunstig = false;
 				break;
@@ -156,7 +162,7 @@ public class IFobtServiceImpl implements IFobtService
 		{
 			buis.setNormWaarde(normWaarde);
 		}
-		if (buis.getStatus() != IFOBTTestStatus.DOETNIETMEE && buis.getStatus() != IFOBTTestStatus.VERWIJDERD)
+		if (buis.getStatus() != IFOBTTestStatus.VERWIJDERD)
 		{
 			checkVervaldatumVerlopen(buis);
 		}
@@ -174,7 +180,7 @@ public class IFobtServiceImpl implements IFobtService
 		ColonDossier dossier = fitMetUitslag.getColonScreeningRonde().getDossier();
 		ProjectClient projectClient = ProjectUtil.getHuidigeProjectClient(dossier.getClient(), currentDateSupplier.getDate());
 		BigDecimal normWaardeGold = getIFOBTNormWaarde(projectClient);
-		ColonUitnodiging uitnodiging = IFOBTTestUtil.getUitnodiging(fitMetUitslag);
+		ColonUitnodiging uitnodiging = FITTestUtil.getUitnodiging(fitMetUitslag);
 
 		if (!fitMetUitslag.getColonScreeningRonde().equals(dossier.getLaatsteScreeningRonde()))
 		{
@@ -190,7 +196,7 @@ public class IFobtServiceImpl implements IFobtService
 		boolean briefGemaakt = maakBuitenDoelgroepBriefIndienNodig(screeningRonde, fitMetUitslag);
 		if (fitMetUitslag.getStatus() != IFOBTTestStatus.VERVALDATUMVERLOPEN)
 		{
-			if (IFOBTTestUtil.isOngunstig(fitMetUitslag) || fitMetUitslag.getStatus() != IFOBTTestStatus.VERWIJDERD)
+			if (FITTestUtil.isOngunstig(fitMetUitslag) || fitMetUitslag.getStatus() != IFOBTTestStatus.VERWIJDERD)
 			{
 				setStatus(uitnodiging, IFOBTTestStatus.UITGEVOERD);
 			}
@@ -203,6 +209,7 @@ public class IFobtServiceImpl implements IFobtService
 		}
 		else
 		{
+			studietestService.projectClientInactiverenBijVergelijkendOnderzoek(screeningRonde);
 			saveOrUpdateBuis(uitnodiging);
 			if (!briefGemaakt)
 			{
@@ -240,11 +247,11 @@ public class IFobtServiceImpl implements IFobtService
 				{
 					if (test.getStatus() == IFOBTTestStatus.UITGEVOERD)
 					{
-						if (IFOBTTestUtil.isGunstig(test) && test.getType().equals(IFOBTType.GOLD))
+						if (FITTestUtil.isGunstig(test) && test.getType().equals(IFOBTType.GOLD))
 						{
 							hadGunstigeUitslag = true;
 						}
-						if (IFOBTTestUtil.isOngunstig(test))
+						if (FITTestUtil.isOngunstig(test))
 						{
 							hadOngunstigeUitslag = true;
 						}
@@ -258,8 +265,8 @@ public class IFobtServiceImpl implements IFobtService
 					if (!heeftEerderUitslagGehad)
 					{
 
-						heeftEerderUitslagGehad = hadGunstigeUitslag && IFOBTTestUtil.isGunstig(nieuweBuisMetUitslag)
-							|| hadOngunstigeUitslag && IFOBTTestUtil.isOngunstig(nieuweBuisMetUitslag);
+						heeftEerderUitslagGehad = hadGunstigeUitslag && FITTestUtil.isGunstig(nieuweBuisMetUitslag)
+							|| hadOngunstigeUitslag && FITTestUtil.isOngunstig(nieuweBuisMetUitslag);
 					}
 					if (!heeftEerderUitslagGehad)
 					{
@@ -271,7 +278,7 @@ public class IFobtServiceImpl implements IFobtService
 					if (!heeftEerderUitslagGehad)
 					{
 
-						boolean hadGunstigeUitslagZonderBrief = hadGunstigeUitslag && IFOBTTestUtil.isOngunstig(nieuweBuisMetUitslag)
+						boolean hadGunstigeUitslagZonderBrief = hadGunstigeUitslag && FITTestUtil.isOngunstig(nieuweBuisMetUitslag)
 							&& ronde.getBrieven().stream().noneMatch(b -> b.getBriefType() == BriefType.COLON_GUNSTIGE_UITSLAG);
 						heeftEerderUitslagGehad = hadGunstigeUitslagZonderBrief;
 						buisVoorBrief = ColonScreeningRondeUtil.getEersteGunstigeTest(ronde);
@@ -292,7 +299,7 @@ public class IFobtServiceImpl implements IFobtService
 
 		if (screeningsrondeService.isRondeStatusBuitenDoelgroep(ronde))
 		{
-			if (IFOBTTestUtil.isOngunstig(buisVoorBrief))
+			if (FITTestUtil.isOngunstig(buisVoorBrief))
 			{
 				maakBriefEnKoppelAanTest(ronde, buisVoorBrief, BriefType.COLON_UITSLAGBRIEF_ONGUNSTIGE_BUITEN_DOELGROEP);
 				briefGemaakt = true;
@@ -431,7 +438,7 @@ public class IFobtServiceImpl implements IFobtService
 	@Override
 	public void checkVervaldatumVerlopen(IFOBTTest buis)
 	{
-		if (buis != null && IFOBTTestUtil.isGunstig(buis) && buis.getStatus() != IFOBTTestStatus.VERVALDATUMVERLOPEN)
+		if (buis != null && FITTestUtil.isGunstig(buis) && buis.getStatus() != IFOBTTestStatus.VERVALDATUMVERLOPEN)
 		{
 			if (!houdbaarheidService.isHoudbaar(IFOBTVervaldatum.class, buis.getBarcode()))
 			{
@@ -482,7 +489,7 @@ public class IFobtServiceImpl implements IFobtService
 			LOG.trace("verwijderScannedAntwoordFormulier " + logMessage + ")");
 		}
 		ScannedAntwoordFormulier antwoordFormulier = uitnodiging.getAntwoordFormulier();
-		IFOBTTest buis = IFOBTTestUtil.getIfobtTest(uitnodiging);
+		IFOBTTest buis = FITTestUtil.getFITTest(uitnodiging);
 
 		hibernateService.saveOrUpdate(buis);
 
@@ -498,7 +505,7 @@ public class IFobtServiceImpl implements IFobtService
 		{
 			LOG.trace("verwijderUitslag " + buis.getBarcode());
 		}
-		ColonUitnodiging uitnodiging = IFOBTTestUtil.getUitnodiging(buis);
+		ColonUitnodiging uitnodiging = FITTestUtil.getUitnodiging(buis);
 		ColonScreeningRonde ronde = buis.getColonScreeningRonde();
 		IFOBTTest fobGold = uitnodiging.getGekoppeldeTest();
 		IFOBTTest extra = uitnodiging.getGekoppeldeExtraTest();
@@ -607,13 +614,17 @@ public class IFobtServiceImpl implements IFobtService
 		ColonAfmelding colonAfmelding = AfmeldingUtil.getLaatsteAfmelding(screeningRonde, dossier);
 		PreferenceKey heraanmeldenTekstKey = null;
 
-		if (AfmeldingUtil.isActieveDefinitieveAfmelding(colonAfmelding))
+		if (AfmeldingUtil.isAfgerondeDefinitieveAfmelding(colonAfmelding))
 		{
 			heraanmeldenTekstKey = PreferenceKey.COLON_DEFINITIEF_HERAANMELDEN_TEKST;
 		}
-		else if (AfmeldingUtil.isActieveEenmaligeAfmelding(colonAfmelding))
+		else if (AfmeldingUtil.isAfgerondeEenmaligeAfmelding(colonAfmelding))
 		{
 			heraanmeldenTekstKey = PreferenceKey.COLON_EENMALIG_HERAANMELDEN_TEKST;
+		}
+		else if (AfmeldingUtil.isAfgerondeTijdelijkeAfmelding(colonAfmelding))
+		{
+			heraanmeldenTekstKey = PreferenceKey.COLON_TIJDELIJK_HERAANMELDEN_TEKST;
 		}
 		ifobtTest.setHeraanmeldenTekstKey(heraanmeldenTekstKey);
 	}
@@ -623,7 +634,7 @@ public class IFobtServiceImpl implements IFobtService
 	{
 		if (test != null && !IFOBTTestStatus.isUnmutableEindStatus(test.getStatus()) && !IFOBTTestStatus.isMutableEindStatus(test.getStatus()))
 		{
-			ColonUitnodiging uitnodiging = IFOBTTestUtil.getUitnodiging(test);
+			ColonUitnodiging uitnodiging = FITTestUtil.getUitnodiging(test);
 			setStatus(uitnodiging, IFOBTTestStatus.VERLOREN);
 			saveOrUpdateBuis(uitnodiging);
 		}
@@ -645,5 +656,44 @@ public class IFobtServiceImpl implements IFobtService
 	public void setCurrentDateSupplier(ICurrentDateSupplier currentDateSupplier)
 	{
 		this.currentDateSupplier = currentDateSupplier;
+	}
+
+	@Override
+	public Client getAndereClientOpZelfdeAdresEnActieveFit(Client client, List<Long> uitgenodigdeClientIds)
+	{
+		Integer uitnodigingsInterval = simplePreferenceService.getInteger(PreferenceKey.UITNODIGINGSINTERVAL.name());
+		if (uitnodigingsInterval == null)
+		{
+			throw new IllegalStateException("Spreidingsperiode op de parameterisatie pagina is niet gezet");
+		}
+		Integer minimaleLeeftijd = simplePreferenceService.getInteger(PreferenceKey.MINIMALE_LEEFTIJD_COLON.name());
+		if (minimaleLeeftijd == null)
+		{
+			throw new IllegalStateException("Minimale leeftijd colonscreening op de parameterisatie pagina is niet gezet.");
+		}
+
+		Integer maximaleLeeftijd = simplePreferenceService.getInteger(PreferenceKey.MAXIMALE_LEEFTIJD_COLON.name());
+		if (maximaleLeeftijd == null)
+		{
+			throw new IllegalStateException("Maximale leeftijd colonscreening op de parameterisatie pagina is niet gezet");
+		}
+		Integer wachttijdVerzendenPakket = simplePreferenceService.getInteger(PreferenceKey.WACHTTIJD_VERZENDEN_PAKKET_TWEE_OP_EEN_ADRES.name());
+		if (wachttijdVerzendenPakket == null)
+		{
+			throw new IllegalStateException("Wachttijd verzenden pakket bij 2 op 1 adres op de parameterisatie pagina is niet gezet");
+		}
+
+		var clientenOpAdres = clientDao.getClientenOpAdresMetLimiet(client.getPersoon().getGbaAdres(), minimaleLeeftijd,
+			maximaleLeeftijd, uitnodigingsInterval);
+		var andereClient = ColonRestrictions.getAndereClient(clientenOpAdres, client);
+
+		if (clientenOpAdres.size() == 2
+			&& ColonRestrictions.isIfobtActief(andereClient, uitgenodigdeClientIds)
+			&& !ColonRestrictions.isWachttijdOpPakketVerstreken(andereClient, wachttijdVerzendenPakket, uitgenodigdeClientIds,
+			currentDateSupplier.getLocalDate()))
+		{
+			return andereClient;
+		}
+		return null;
 	}
 }

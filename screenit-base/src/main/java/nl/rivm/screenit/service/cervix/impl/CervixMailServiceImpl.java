@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,9 +27,7 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
-import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.MailService;
@@ -59,72 +57,101 @@ public class CervixMailServiceImpl implements CervixMailService
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
 
+	private static final String BASIC_LOGMELDING_VERSTUURD_SUFFIX = " verstuurd voor monsterId '%s'";
+
 	@Override
 	public void sendBMHKBezwaarLichaamsmateriaalMailAsync(CervixMonster monster)
 	{
-		final String mailContent = getBaseMailContent(PreferenceKey.CERVIX_BEZWAAR_WETENSCHAPPELIJK_GEBRUIK_LICHAAMSMATERIAAL, monster);
-		final String subject = preferenceService.getString(PreferenceKey.CERVIX_BEZWAAR_WETENSCHAPPELIJK_GEBRUIK_LICHAAMSMATERIAAL_SUBJECT.name());
-		mailService.queueMail(monster.getLaboratorium().getBmhkLabWarnMail(), subject, mailContent);
-		LogEvent logevent = new LogEvent(String.format("Nieuwe bezwaarmail verstuurd voor monsterID %s", monster.getMonsterId()), Level.INFO);
-		logService.logGebeurtenis(LogGebeurtenis.CERVIX_MAIL_VERSTUURD, logevent, getClientVanMonster(monster), Bevolkingsonderzoek.CERVIX);
+		final var content = getBaseMailContent(PreferenceKey.CERVIX_BEZWAAR_WETENSCHAPPELIJK_GEBRUIK_LICHAAMSMATERIAAL, monster);
+		final var subject = preferenceService.getString(PreferenceKey.CERVIX_BEZWAAR_WETENSCHAPPELIJK_GEBRUIK_LICHAAMSMATERIAAL_SUBJECT.name());
+
+		var basicMelding = "Nieuwe bezwaarmail" + BASIC_LOGMELDING_VERSTUURD_SUFFIX;
+		stuurMailEnLog(subject, content, basicMelding, monster);
 	}
 
 	@Override
 	public void sendBMHKBezwaarControlleVerwijsAdviesMail(CervixMonster monster)
 	{
-		final String mailContent = getBaseMailContent(PreferenceKey.CERVIX_BEZWAAR_CONTROLE_VERVOLG_VERWIJSADVIES, monster);
-		final String subject = preferenceService.getString(PreferenceKey.CERVIX_BEZWAAR_CONTROLE_VERVOLG_VERWIJSADVIES_SUBJECT.name());
-		mailService.queueMail(monster.getLaboratorium().getBmhkLabWarnMail(), subject, mailContent);
-		LogEvent logevent = new LogEvent(String.format("Nieuwe bezwaarmail (controle verwijs advies) verstuurd voor monsterID %s", monster.getMonsterId()), Level.INFO);
-		logService.logGebeurtenis(LogGebeurtenis.CERVIX_MAIL_VERSTUURD, logevent, getClientVanMonster(monster), Bevolkingsonderzoek.CERVIX);
+		final var content = getBaseMailContent(PreferenceKey.CERVIX_BEZWAAR_CONTROLE_VERVOLG_VERWIJSADVIES, monster);
+		final var subject = preferenceService.getString(PreferenceKey.CERVIX_BEZWAAR_CONTROLE_VERVOLG_VERWIJSADVIES_SUBJECT.name());
+
+		var basicMelding = "Nieuwe bezwaarmail (controle verwijs advies)" + BASIC_LOGMELDING_VERSTUURD_SUFFIX;
+		stuurMailEnLog(subject, content, basicMelding, monster);
 	}
 
 	@Override
 	public void sendOnbeoordeelbaarMaarTochOntvangstBeoordeling(CervixUitstrijkje uitstrijkje)
 	{
-		String content = getBaseMailContent(PreferenceKey.CERVIX_OMMISSIE_VERSTREKEN_ALSNOG_BEOORDELING_ONTVANGEN_MAIL, uitstrijkje);
-		final String subject = preferenceService.getString(PreferenceKey.CERVIX_OMMISSIE_VERSTREKEN_ALSNOG_BEOORDELING_ONTVANGEN_MAIL_SUBJECT.name());
-		mailService.queueMail(uitstrijkje.getLaboratorium().getBmhkLabWarnMail(), subject, content);
-		LogEvent logevent = new LogEvent(String.format("Beoordeling ontvangen na verlopen omissie mail verstuurd. Voor monster id: %s", uitstrijkje.getMonsterId()), Level.INFO);
-		logService.logGebeurtenis(LogGebeurtenis.CERVIX_MAIL_VERSTUURD, logevent, getClientVanMonster(uitstrijkje), Bevolkingsonderzoek.CERVIX);
+		var content = getBaseMailContent(PreferenceKey.CERVIX_OMISSIE_VERSTREKEN_ALSNOG_BEOORDELING_ONTVANGEN_MAIL, uitstrijkje);
+		final var subject = preferenceService.getString(PreferenceKey.CERVIX_OMISSIE_VERSTREKEN_ALSNOG_BEOORDELING_ONTVANGEN_MAIL_SUBJECT.name());
+
+		var basicMelding = "Beoordeling ontvangen na verlopen omissie mail" + BASIC_LOGMELDING_VERSTUURD_SUFFIX;
+		stuurMailEnLog(subject, content, basicMelding, uitstrijkje);
 	}
 
 	@Override
 	public void sendWachttijdVerstrekenMetHuisartsOnbekend(CervixUitstrijkje uitstrijkje)
 	{
-		String content = getBaseMailContent(PreferenceKey.CERVIX_OMMISSIE_VERSTREKEN_HA_ONBEKEND_MAIL, uitstrijkje);
-		String subject = preferenceService.getString(PreferenceKey.CERVIX_OMMISSIE_VERSTREKEN_HA_ONBEKEND_MAIL_SUBJECT.name());
-		mailService.queueMail(uitstrijkje.getLaboratorium().getBmhkLabWarnMail(), subject, content);
-		LogEvent logevent = new LogEvent(String.format("Wachttijd verstreken voor uitstrijkje mail verstuurd voor monster id: %s", uitstrijkje.getMonsterId()), Level.INFO);
-		logService.logGebeurtenis(LogGebeurtenis.CERVIX_MAIL_VERSTUURD, logevent, getClientVanMonster(uitstrijkje), Bevolkingsonderzoek.CERVIX);
+		var content = getBaseMailContent(PreferenceKey.CERVIX_OMISSIE_VERSTREKEN_HA_ONBEKEND_MAIL, uitstrijkje);
+		var subject = preferenceService.getString(PreferenceKey.CERVIX_OMISSIE_VERSTREKEN_HA_ONBEKEND_MAIL_SUBJECT.name());
+
+		var basicMelding = "Wachttijd verstreken voor uitstrijkje mail" + BASIC_LOGMELDING_VERSTUURD_SUFFIX;
+		stuurMailEnLog(subject, content, basicMelding, uitstrijkje);
 	}
 
 	@Override
 	public void sendHuisartsGekoppeldAanUitstrijkjeMail(CervixUitstrijkje uitstrijkje)
 	{
-		String content = getBaseMailContent(PreferenceKey.CERVIX_HUISARTS_AAN_UITSTRIJKJE_GEKOPPELD_MAIL, uitstrijkje);
-		String subject = preferenceService.getString(PreferenceKey.CERVIX_HUISARTS_AAN_UITSTRIJKJE_GEKOPPELD_MAIL_SUBJECT.name());
+		var content = getBaseMailContent(PreferenceKey.CERVIX_HUISARTS_AAN_UITSTRIJKJE_GEKOPPELD_MAIL, uitstrijkje);
+		var subject = preferenceService.getString(PreferenceKey.CERVIX_HUISARTS_AAN_UITSTRIJKJE_GEKOPPELD_MAIL_SUBJECT.name());
 		CervixOmissiesLabproces omissie = appContext.getBean(CervixOmissiesLabproces.class, uitstrijkje);
-		content = content.replaceAll("\\{aantalWerkdagenTotInsturen}", String.valueOf(omissie.omissieWachtOpCytologieUitslag().bepaalWerkdagenTotOmissie()));
-		mailService.queueMail(uitstrijkje.getLaboratorium().getBmhkLabWarnMail(), subject, content);
-		LogEvent logevent = new LogEvent(String.format("Huisarts gekoppeld aan uitstrijkje mail is verstuurd voor monster id: %s", uitstrijkje.getMonsterId()),
-			Level.INFO);
-		logService.logGebeurtenis(LogGebeurtenis.CERVIX_MAIL_VERSTUURD, logevent, getClientVanMonster(uitstrijkje), Bevolkingsonderzoek.CERVIX);
+		content = content.replace("{aantalWerkdagenTotInsturen}", String.valueOf(omissie.omissieWachtOpCytologieUitslag().bepaalWerkdagenTotOmissie()));
+
+		var basicMelding = "Huisarts gekoppeld aan uitstrijkje mail is" + BASIC_LOGMELDING_VERSTUURD_SUFFIX;
+		stuurMailEnLog(subject, content, basicMelding, uitstrijkje);
+	}
+
+	@Override
+	public void sendWachtOpCytologieUitslagMail(CervixMonster monster)
+	{
+		var content = getBaseMailContent(PreferenceKey.CERVIX_OMISSIE_ONTBREKEND_CYTOLOGIEVERSLAG_MAIL, monster);
+		var subject = preferenceService.getString(PreferenceKey.CERVIX_OMISSIE_ONTBREKEND_CYTOLOGIEVERSLAG_SUBJECT.name());
+		var wachtOp = preferenceService.getInteger(PreferenceKey.CERVIX_WACHTTIJD_WACHT_OP_CYTOLOGIE_UITSLAG.name());
+		var wachtOpWaarschuwing = preferenceService.getInteger(PreferenceKey.CERVIX_WACHTTIJD_WACHT_OP_WAARSCHUWING_CYTOLOGIE_UITSLAG.name());
+		content = content.replace("{wachtOpCytoUitslag}", wachtOp.toString());
+		content = content.replace("{wachtOpWaarschuwingCytoUitslag}", wachtOpWaarschuwing.toString());
+
+		var basicMelding = "Wacht op cytologie uitslag mail is" + BASIC_LOGMELDING_VERSTUURD_SUFFIX;
+		stuurMailEnLog(subject, content, basicMelding, monster);
+	}
+
+	private void stuurMailEnLog(String mailSubject, String mailContent, String logMeldingNaMail, CervixMonster monster)
+	{
+		mailService.queueMailAanProfessional(monster.getLaboratorium().getBmhkLabWarnMail(), mailSubject, mailContent);
+		logMailGestuurd(logMeldingNaMail, monster);
+	}
+
+	private void logMailGestuurd(String logMelding, CervixMonster monster)
+	{
+		var logMeldingVolledig = String.format(logMelding, monster.getMonsterId());
+		logService.logGebeurtenis(LogGebeurtenis.CERVIX_MAIL_VERSTUURD, getClientVanMonster(monster), logMeldingVolledig, Bevolkingsonderzoek.CERVIX);
 	}
 
 	private String getBaseMailContent(PreferenceKey mailKey, CervixMonster monster)
 	{
-		String content = preferenceService.getString(mailKey.name());
-		content = content.replaceAll("\\\\u00eb", "&euml;");
-		content = content.replaceAll("\\u00eb", "&euml;");
-		content = content.replaceAll("\\{monsterID}", monster.getMonsterId());
-		content = content.replaceAll("\\{ordernummer}", monster.getMonsterId());
-		content = content.replaceAll("\\{monsterOntvangst}", Constants.getDateFormat().format(monster.getOntvangstdatum()));
-		content = content.replaceAll("\\{orderVerstuurd}", orderVerstuurdMergeField(monster));
-		content = content.replaceAll("\\{datumverslag}", datumVerslagMergeField(monster));
-		content = content.replaceAll("\\{gebdatum}", getGeboortedatumClient(monster));
-		content = content.replaceAll("\\{datumOnbeoordeelbaarBrief}", getBriefDatumMergeField(monster));
-		content = content.replaceAll("\\{huidigeDatum}", Constants.getDateFormat().format(currentDateSupplier.getDate()));
+		var content = preferenceService.getString(mailKey.name());
+
+		content = content.replace("\\u00eb", "&euml;");
+		content = content.replace("u00eb", "&euml;");
+		content = content.replace("{monsterID}", monster.getMonsterId());
+		content = content.replace("{ordernummer}", monster.getMonsterId());
+		content = content.replace("{monsterOntvangst}", Constants.getDateFormat().format(monster.getOntvangstdatum()));
+		content = content.replace("{orderVerstuurd}", orderVerstuurdMergeField(monster));
+		content = content.replace("{datumverslag}", datumVerslagMergeField(monster));
+		content = content.replace("{gebdatum}", getGeboortedatumClient(monster));
+		content = content.replace("{datumOnbeoordeelbaarBrief}", getBriefDatumMergeField(monster));
+		content = content.replace("{huidigeDatum}", Constants.getDateFormat().format(currentDateSupplier.getDate()));
+		content = content.replace("{labNaam}", monster.getLaboratorium().getNaam());
 		return content;
 	}
 

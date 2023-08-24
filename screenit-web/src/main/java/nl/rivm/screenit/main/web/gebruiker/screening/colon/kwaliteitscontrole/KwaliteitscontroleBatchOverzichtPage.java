@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.kwaliteitscontrole;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,6 +30,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.model.colon.IFobtBatchFilter;
 import nl.rivm.screenit.main.service.QbaseService;
@@ -52,7 +54,9 @@ import nl.rivm.screenit.model.colon.enums.IFOBTBestandStatus;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.InstellingService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.input.radiochoice.BooleanRadioChoice;
 import nl.topicuszorg.wicket.input.simplechoice.SimpleChoiceRenderer;
@@ -85,11 +89,9 @@ import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ContentDisposition;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wicketstuff.shiro.ShiroConstraint;
 
+@Slf4j
 @SecurityConstraint(
 	actie = Actie.INZIEN,
 	checkScope = true,
@@ -100,12 +102,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	organisatieTypeScopes = { OrganisatieType.LABORATORIUM, OrganisatieType.KWALITEITSPLATFORM, OrganisatieType.RIVM })
 public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabBasePage
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(KwaliteitscontroleBatchOverzichtPage.class);
-
-	private static final long serialVersionUID = 1L;
-
-	private ScreenitDataTable<IFOBTBestand, String> table;
+	private final ScreenitDataTable<IFOBTBestand, String> table;
 
 	@SpringBean
 	private InstellingService instellingService;
@@ -116,27 +113,28 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 	@SpringBean
 	private QbaseService qbaseService;
 
+	@SpringBean
+	private ICurrentDateSupplier currentDateSupplier;
+
 	private final IModel<HibernateCheckBoxListContainer<IFOBTBestand>> checkBoxListContainer = Model.of(new HibernateCheckBoxListContainer<>());
 
-	private TransparentWebMarkupContainer statusIconFragmentContainer;
+	private final TransparentWebMarkupContainer statusIconFragmentContainer;
 
-	private IfobtBestandenDataProvider ifobtBestandenDataProvider;
+	private final IfobtBestandenDataProvider ifobtBestandenDataProvider;
 
 	public KwaliteitscontroleBatchOverzichtPage()
 	{
 		final IModel<IFobtBatchFilter> zoekModel = new CompoundPropertyModel<>(new IFobtBatchFilter());
 		IFobtBatchFilter filter = zoekModel.getObject();
 		filter.setStatus(IFOBTBestandStatus.INGELEZEN);
-		filter.setDatumTot(new Date());
-		filter.setDatumVan(new DateTime().minusDays(7).toDate());
+		filter.setDatumTot(currentDateSupplier.getDate());
+		filter.setDatumVan(DateUtil.minDagen(currentDateSupplier.getDate(), 7));
 		filter.setAnalyseDatum(true);
 
 		ifobtBestandenDataProvider = new IfobtBestandenDataProvider(zoekModel);
 
-		table = new ScreenitDataTable<IFOBTBestand, String>("tabel", createColumns(), ifobtBestandenDataProvider, 30, Model.of(""))
+		table = new ScreenitDataTable<>("tabel", createColumns(), ifobtBestandenDataProvider, 30, Model.of(""))
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onBeforeRender()
@@ -167,38 +165,28 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 
 		analyseDatum.add(new AjaxFormChoiceComponentUpdatingBehavior()
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
 				target.add(table);
 			}
-
 		});
 		form.add(analyseDatum);
-		form.add(new AjaxButtonGroup<IFOBTBestandStatus>("status",
-			new ListModel<IFOBTBestandStatus>(Arrays.asList(new IFOBTBestandStatus[] { null, IFOBTBestandStatus.INGELEZEN })), new SimpleChoiceRenderer<IFOBTBestandStatus>()
-			{
-
-				private static final long serialVersionUID = 1;
-
-				@Override
-				public Object getDisplayValue(IFOBTBestandStatus object)
-				{
-					if (IFOBTBestandStatus.INGELEZEN.equals(object))
-					{
-						return "Niet geautoriseerd";
-					}
-					return "Alles";
-				}
-
-			})
+		form.add(new AjaxButtonGroup<>("status",
+			new ListModel<>(Arrays.asList(null, IFOBTBestandStatus.INGELEZEN)), new SimpleChoiceRenderer<>()
 		{
+			@Override
+			public Object getDisplayValue(IFOBTBestandStatus object)
+			{
+				if (IFOBTBestandStatus.INGELEZEN.equals(object))
+				{
+					return "Niet geautoriseerd";
+				}
+				return "Alles";
+			}
 
-			private static final long serialVersionUID = 1L;
-
+		})
+		{
 			@Override
 			protected void onSelectionChanged(IFOBTBestandStatus selection, AjaxRequestTarget target, String markupId)
 			{
@@ -210,9 +198,6 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 		datumVan.setType(Date.class);
 		datumVan.add(new AjaxFormComponentUpdatingBehavior("change")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
@@ -225,9 +210,6 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 		datumTot.setType(Date.class);
 		datumTot.add(new AjaxFormComponentUpdatingBehavior("change")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
@@ -266,9 +248,6 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 			.setNullValid(true).setVisible(!isLabMedewerker);
 		labDropDown.add(new AjaxFormComponentUpdatingBehavior("change")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
@@ -283,9 +262,6 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 	{
 		final Component beoordelen = new ResourceLink<Void>("beoordelen", new AbstractResource()
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected ResourceResponse newResourceResponse(Attributes attributes)
 			{
@@ -297,7 +273,6 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 
 				response.setWriteCallback(new WriteCallback()
 				{
-
 					@Override
 					public void writeData(Attributes attributes)
 					{
@@ -310,7 +285,7 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 								lijst.add(iterator.next());
 							}
 							try (InputStream writer = IOUtils.toInputStream(qbaseService.maakQbaseBestand(lijst, ScreenitSession.get().getLoggedInAccount()));
-								OutputStream outputStream = attributes.getResponse().getOutputStream();)
+								OutputStream outputStream = attributes.getResponse().getOutputStream())
 							{
 								IOUtils.copy(writer, outputStream);
 							}
@@ -323,12 +298,8 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 				});
 				return response;
 			}
-
 		})
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onConfigure()
 			{
@@ -349,9 +320,6 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 	{
 		Component verwijderen = new ConfirmingIndicatingAjaxSubmitLink<Void>("verwijderen", buttonForm, dialog, "confirm.ifobt.bestanden.verwijderen")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -371,9 +339,6 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 	{
 		Component autoriseer = new ConfirmingIndicatingAjaxLink<Void>("autoriseer", dialog, "confirm.ifobt.bestanden.autoriseren")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -397,8 +362,6 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 		{
 			columns.add(new HibernateObjectCheckBoxUpdatingColumn<IFOBTBestand, String>(Model.of(""), "", checkBoxListContainer.getObject(), true, false)
 			{
-
-				private static final long serialVersionUID = 1L;
 
 				@Override
 
@@ -433,11 +396,8 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 		}
 		columns.add(new DateTimePropertyColumn<IFOBTBestand, String>(Model.of("Datum ingelezen"), "statusDatum", "statusDatum", new SimpleDateFormat("dd-MM-yyyy"))
 			.setCssClass("table-col-datum"));
-		columns.add(new ClickablePropertyColumn<IFOBTBestand, String>(Model.of("Datum/tijd van"), "statusDatum")
+		columns.add(new ClickablePropertyColumn<>(Model.of("Datum/tijd van"), "statusDatum")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public IModel<Object> getDataModel(IModel<IFOBTBestand> rowModel)
 			{
@@ -456,7 +416,6 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 				}
 				return new Model(Constants.getDateTimeSecondsFormat().format(datumFrom));
 			}
-
 			@Override
 			public String getCssClass()
 			{
@@ -464,11 +423,8 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 			}
 
 		});
-		columns.add(new ClickablePropertyColumn<IFOBTBestand, String>(Model.of("Datum/tijd tot"), "statusDatum")
+		columns.add(new ClickablePropertyColumn<>(Model.of("Datum/tijd tot"), "statusDatum")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public IModel<Object> getDataModel(IModel<IFOBTBestand> rowModel)
 			{
@@ -495,11 +451,8 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 			}
 
 		});
-		columns.add(new ClickablePropertyColumn<IFOBTBestand, String>(Model.of("Aantal client uitslagen"), "uitslagen.size")
+		columns.add(new ClickablePropertyColumn<>(Model.of("Aantal client uitslagen"), "uitslagen.size")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public IModel<Object> getDataModel(IModel<IFOBTBestand> rowModel)
 			{
@@ -517,13 +470,10 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 
 		});
 		columns.add(new ClickablePropertyColumn<IFOBTBestand, String>(Model.of("Aantal controle uitslagen"), "aantalControleUitslagen").setCssClass("table-col-aantal"));
-		columns.add(new ClickablePropertyColumn<IFOBTBestand, String>(Model.of("Lab"), "laboratorium.naam", "laboratorium.naam"));
-		columns.add(new ClickablePropertyColumn<IFOBTBestand, String>(Model.of("Bestand"), "naamBestand", "naamBestand"));
-		columns.add(new ClickablePropertyColumn<IFOBTBestand, String>(Model.of("Geautoriseerd"), "status", "status")
+		columns.add(new ClickablePropertyColumn<>(Model.of("Lab"), "laboratorium.naam", "laboratorium.naam"));
+		columns.add(new ClickablePropertyColumn<>(Model.of("Bestand"), "naamBestand", "naamBestand"));
+		columns.add(new ClickablePropertyColumn<>(Model.of("Geautoriseerd"), "status", "status")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<IFOBTBestand>> cellItem, String componentId, IModel<IFOBTBestand> rowModel)
 			{
@@ -548,9 +498,6 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 
 	private class StatusIconFragment extends Fragment
 	{
-
-		private static final long serialVersionUID = 1L;
-
 		public StatusIconFragment(String id, IFOBTBestandStatus status)
 		{
 			super(id, "statusIconFragment", statusIconFragmentContainer);

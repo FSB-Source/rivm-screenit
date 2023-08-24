@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,7 @@ import java.util.Map;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon.ColonClientNieuweAfspraakMakenPanel;
 import nl.rivm.screenit.model.AanvraagBriefStatus;
 import nl.rivm.screenit.model.Afmelding;
+import nl.rivm.screenit.model.AfmeldingType;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.ClientContactActie;
@@ -90,10 +91,16 @@ public abstract class AbstractClientContactHeraanmeldenPanel<D extends Dossier<?
 			for (A afmelding : dossier.getLaatsteScreeningRonde().getAfmeldingen())
 			{
 
-				if (AanvraagBriefStatus.VERWERKT.equals(afmelding.getAfmeldingStatus()) && afmelding.getHeraanmeldStatus() == null)
+				if (afmelding.getHeraanmeldStatus() == null &&
+					(AanvraagBriefStatus.VERWERKT.equals(afmelding.getAfmeldingStatus())
+						|| AanvraagBriefStatus.BRIEF.equals(afmelding.getAfmeldingStatus())
+						&& AfmeldingType.TIJDELIJK.equals(afmelding.getType())))
 				{
 					herAanTeMeldenAfmelding = afmelding;
-					break;
+					if (AfmeldingType.TIJDELIJK.equals(herAanTeMeldenAfmelding.getType()))
+					{
+						break;
+					}
 				}
 			}
 		}
@@ -131,6 +138,11 @@ public abstract class AbstractClientContactHeraanmeldenPanel<D extends Dossier<?
 
 	}
 
+	protected Client getClient()
+	{
+		return clientModel.getObject();
+	}
+
 	private boolean magColonNieuweUitnodigingAanvragen(D dossier)
 	{
 		return dossier.getBevolkingsonderzoek() == Bevolkingsonderzoek.COLON && clientContactService.magNieuweUitnodigingAanvragen(dossier, true);
@@ -161,4 +173,5 @@ public abstract class AbstractClientContactHeraanmeldenPanel<D extends Dossier<?
 	}
 
 	protected abstract D getDossier(Client client);
+
 }

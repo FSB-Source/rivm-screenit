@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.heroverwegers;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,7 +29,7 @@ import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.cervix.cis.CervixCISHistorie;
 import nl.rivm.screenit.model.cervix.enums.CervixAfmeldingReden;
 import nl.rivm.screenit.model.enums.Deelnamemodus;
-import nl.rivm.screenit.service.InstellingService;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.util.query.ScreenitRestrictions;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -45,16 +45,16 @@ public class CervixHeroverwegersReader extends BaseScrollableResultReader
 
 	private final CervixSelectieRestrictionsService selectieRestrictionsService;
 
-	private final InstellingService instellingService;
+	private final OrganisatieParameterService organisatieParameterService;
 
 	private final HibernateService hibernateService;
 
-	public CervixHeroverwegersReader(CervixSelectieRestrictionsService selectieRestrictionsService, InstellingService instellingService,
+	public CervixHeroverwegersReader(CervixSelectieRestrictionsService selectieRestrictionsService, OrganisatieParameterService organisatieParameterService,
 		HibernateService hibernateService)
 	{
 		super.setFetchSize(50);
 		this.selectieRestrictionsService = selectieRestrictionsService;
-		this.instellingService = instellingService;
+		this.organisatieParameterService = organisatieParameterService;
 		this.hibernateService = hibernateService;
 	}
 
@@ -95,7 +95,7 @@ public class CervixHeroverwegersReader extends BaseScrollableResultReader
 	private Integer getMaxAantalWekenVertraging(Long bmhkLabId)
 	{
 		var bmhkLab = hibernateService.get(BMHKLaboratorium.class, bmhkLabId);
-		return instellingService.getOrganisatieParameter(bmhkLab, OrganisatieParameterKey.CERVIX_MAX_AANTAL_HEROVERWEGERS, 0);
+		return organisatieParameterService.getOrganisatieParameter(bmhkLab, OrganisatieParameterKey.CERVIX_MAX_AANTAL_HEROVERWEGERS, 0);
 	}
 
 }

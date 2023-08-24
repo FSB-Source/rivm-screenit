@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.service.impl;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -40,6 +40,7 @@ import nl.rivm.screenit.mamma.se.service.dtomapper.AfspraakDtoMapper;
 import nl.rivm.screenit.mamma.se.service.dtomapper.VorigOnderzoekDtoMapper;
 import nl.rivm.screenit.mamma.se.websocket.socket.SeProxyWebsocket;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.MailPriority;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
@@ -55,7 +56,7 @@ import nl.rivm.screenit.service.MailService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.MammaBaseDossierService;
 import nl.rivm.screenit.service.mamma.MammaBaseOnderzoekService;
-import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,15 +106,18 @@ public class DaglijstServiceImpl implements DaglijstService
 	@Autowired
 	private SeProxyWebsocket seProxyWebsocket;
 
-	private AfspraakDtoMapper afspraakDtoMapper = new AfspraakDtoMapper();
+	@Autowired
+	private MammaBaseScreeningrondeService baseScreeningrondeService;
 
-	private VorigOnderzoekDtoMapper vorigOnderzoekDtoMapper = new VorigOnderzoekDtoMapper();
+	private final AfspraakDtoMapper afspraakDtoMapper = new AfspraakDtoMapper();
+
+	private final VorigOnderzoekDtoMapper vorigOnderzoekDtoMapper = new VorigOnderzoekDtoMapper();
 
 	@Override
 	public List<AfspraakSeDto> readDaglijst(LocalDate datum, String seCode)
 	{
 		var afspraakDtos = baseAfspraakDao
-			.getAfspraken(seCode, DateUtil.toUtilDate(datum), DateUtil.toUtilDate(datum.plusDays(1)), MammaAfspraakStatus.NIET_GEANNULEERD.toArray(new MammaAfspraakStatus[] {}))
+			.getAfspraken(seCode, datum, datum, MammaAfspraakStatus.NIET_GEANNULEERD.toArray(new MammaAfspraakStatus[] {}))
 			.stream()
 			.filter(afspraak -> afspraak.getId().equals(afspraak.getUitnodiging().getLaatsteAfspraak().getId()))
 			.map(this::createAfspraakDto)
@@ -148,6 +152,7 @@ public class DaglijstServiceImpl implements DaglijstService
 		var dossier = afspraak.getUitnodiging().getScreeningRonde().getDossier();
 		var daglijstSe = afspraak.getStandplaatsPeriode().getScreeningsEenheid();
 
+		clientSeDto.setJaarLaatsteVerwijzing(baseScreeningrondeService.getJaarLaatsteVerwijzing(dossier.getClient()));
 		clientSeDto.setVorigeOnderzoeken(
 			baseDossierService.laatste3AfgerondeRondesMetOnderzoek(dossier)
 				.map(ronde -> createVorigOnderzoekDto(ronde, daglijstSe))
@@ -184,7 +189,8 @@ public class DaglijstServiceImpl implements DaglijstService
 		var seCode = daglijstSe != null ? daglijstSe.getCode() : "onbekende SE";
 		LOG.error(String.format("Fout tijdens opbouwen vorig onderzoek (ronde %s) van client: %s in %s", ronde.getId(), clientId, seCode));
 		sendErrorEmail(seCode);
-		logService.logGebeurtenis(LogGebeurtenis.MAMMA_SE_DAGLIJST_OPBOUWEN_ERROR, daglijstSe, null, client, "Neem contact op met Topicus", currentDateSupplier.getLocalDateTime());
+		logService.logGebeurtenis(LogGebeurtenis.MAMMA_SE_DAGLIJST_OPBOUWEN_ERROR, daglijstSe, null, client, "Neem contact op met Topicus", currentDateSupplier.getLocalDateTime(),
+			Bevolkingsonderzoek.MAMMA);
 	}
 
 	private void sendErrorEmail(String se)
@@ -197,7 +203,7 @@ public class DaglijstServiceImpl implements DaglijstService
 				"Dit heeft tot gevolg dat de historische rondes bij een onderzoek niet getoond konden worden. <br />" + 
 				"Controleer in de applicatielogging van ScreenIT welke client het betreft en neem contact op met Topicus. <br />" +
 				"Zoek op 'Fout tijdens vorig onderzoek opbouwen' als gebeurtenis in algemeen>logging inzien", se);
-			mailService.queueMail(emailadressen, subject, content, MailPriority.HIGH);
+			mailService.queueMailAanProfessional(emailadressen, subject, content, MailPriority.HIGH);
 		}
 	}
 

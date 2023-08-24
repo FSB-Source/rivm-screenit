@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.dao.impl;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -72,7 +72,7 @@ public class AuthenticatieDaoImpl extends BaseDaoImpl implements AuthenticatieDa
 		}
 		catch (SQLException e)
 		{
-			LOG.warn("Er is een probleem met het ophalen van een ingelogde gebruiker met gebruikersnaam " + loginContext.getGebruikersnaam() + ": " + e.getMessage());
+			LOG.warn("Er is een probleem met het ophalen van een ingelogde gebruiker met gebruikersnaam {}: {}", loginContext.getGebruikersnaam(), e.getMessage());
 			throw new IllegalStateException("Ophalen van ingelogde gebruiker ging fout.");
 		}
 		return ingelogdeGebruiker;
@@ -105,7 +105,8 @@ public class AuthenticatieDaoImpl extends BaseDaoImpl implements AuthenticatieDa
 		}
 		catch (SQLException e)
 		{
-			LOG.warn("Er ging iets fout bij toevoegen van een ingelogde gebruiker met gebruikersnaam " + ingelogdeGebruikerDto.getGebruikersnaam() + ": " + e.getMessage());
+			LOG.warn("Er ging iets fout bij toevoegen van een ingelogde gebruiker met gebruikersnaam {}: {}, na het draaien van de lokale filler moet je handmatig de"
+				+ " tabel ingelogde_gebruiker legen in de SE database in bestand se-proxy/db/screenit-se.db", ingelogdeGebruikerDto.getGebruikersnaam(), e.getMessage());
 			throw new IllegalStateException("Toevoegen van ingelogde gebruiker ging fout.");
 		}
 	}
@@ -130,7 +131,8 @@ public class AuthenticatieDaoImpl extends BaseDaoImpl implements AuthenticatieDa
 		}
 		catch (SQLException e)
 		{
-			LOG.warn("Er ging iets fout bij updaten van een ingelogde gebruiker met gebruikersnaam " + ingelogdeGebruikerDto.getGebruikersnaam() + ": " + e.getMessage());
+			LOG.warn("Er ging iets fout bij updaten van een ingelogde gebruiker met gebruikersnaam {}: {}",
+				ingelogdeGebruikerDto.getGebruikersnaam(), e.getMessage());
 			throw new IllegalStateException("Updaten van ingelogde gebruiker ging fout.");
 		}
 	}
@@ -154,7 +156,7 @@ public class AuthenticatieDaoImpl extends BaseDaoImpl implements AuthenticatieDa
 		}
 		catch (SQLException e)
 		{
-			LOG.warn("Er is een probleem met het ophalen van een ingelogde gebruiker met gebruikersnaam " + gebruikersnaam + ": " + e.getMessage());
+			LOG.warn("Er is een probleem met het ophalen van een ingelogde gebruiker met gebruikersnaam {}: {}", gebruikersnaam, e.getMessage());
 			throw new IllegalStateException("Ophalen van ingelogde gebruiker ging fout.");
 		}
 		return null;
@@ -174,7 +176,7 @@ public class AuthenticatieDaoImpl extends BaseDaoImpl implements AuthenticatieDa
 		}
 		catch (SQLException e)
 		{
-			LOG.error("Er is een probleem met het verwijderen van de oude ingelogde gebruikers: " + e.getMessage());
+			LOG.error("Er is een probleem met het verwijderen van de oude ingelogde gebruikers: {}", e.getMessage());
 		}
 	}
 

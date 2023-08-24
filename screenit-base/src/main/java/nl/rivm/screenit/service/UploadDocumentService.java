@@ -4,7 +4,7 @@ package nl.rivm.screenit.service;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,8 +31,6 @@ import nl.rivm.screenit.model.enums.FileStoreLocation;
 public interface UploadDocumentService
 {
 	void delete(UploadDocument document);
-
-	void delete(UploadDocument document, boolean deleteFile);
 
 	File load(UploadDocument uploadDocument);
 

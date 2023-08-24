@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -37,7 +37,7 @@ class CervixBepaalGevolgenLabproces
 		this.vervolg = vervolg;
 	}
 
-	void bepaalGevolgenUitstijkjeVervolgonderzoekUitslag()
+	void bepaalGevolgenUitstrijkjeVervolgonderzoekUitslag()
 	{
 		switch (context.vervolgonderzoekUitslag)
 		{
@@ -59,7 +59,7 @@ class CervixBepaalGevolgenLabproces
 		}
 	}
 
-	void bepaalGevolgenUitstijkjeReedsVervolgonderzoekUitslag()
+	void bepaalGevolgenUitstrijkjeReedsVervolgonderzoekUitslag()
 	{
 		switch (context.vervolgonderzoekUitslag)
 		{
@@ -79,7 +79,7 @@ class CervixBepaalGevolgenLabproces
 		}
 	}
 
-	void bepaalGevolgenUitstijkjeVervolgonderzoekOnbeoordeelbaar()
+	void bepaalGevolgenUitstrijkjeVervolgonderzoekOnbeoordeelbaar()
 	{
 		if (!context.bepaalVervolgDao.anderUitstrijkjeOnbeoordeelbaar(context.huidigUitstrijkje))
 		{
@@ -91,7 +91,7 @@ class CervixBepaalGevolgenLabproces
 		}
 	}
 
-	void bepaalGevolgenUitstijkjeCytologieUitslag()
+	void bepaalGevolgenUitstrijkjeCytologieUitslag()
 	{
 		switch (context.cytologieUitslag)
 		{
@@ -99,13 +99,13 @@ class CervixBepaalGevolgenLabproces
 			if (context.huidigeMonster.equals(context.monsterHpvUitslag))
 			{
 				vervolg.setVervolg(BriefType.CERVIX_CYTOLOGIE_NEGATIEF, HuisartsBerichtType.CERVIX_UITSTRIJKJE_CYTOLOGIE_UITSLAG, DateUtil.toUtilDate(context.nu)); 
-				vervolg.setIntervalControleUitstrijkje(context.intervalControleUitstrijkje);
 			}
 			else
 			{
 				vervolg.setVervolg(BriefType.CERVIX_VOLGEND_MONSTER_CYTOLOGIE_NEGATIEF, HuisartsBerichtType.CERVIX_UITSTRIJKJE_CYTOLOGIE_UITSLAG,
 					DateUtil.toUtilDate(context.nu)); 
 			}
+			vervolg.setIntervalControleUitstrijkje(context.intervalControleUitstrijkje);
 			break;
 		case PAP2:
 		case PAP3A1:
@@ -126,14 +126,13 @@ class CervixBepaalGevolgenLabproces
 				{
 					vervolg.setVervolg(BriefType.CERVIX_CYTOLOGIE_LICHTE_AFWIJKING_HPVOTHER, HuisartsBerichtType.CERVIX_UITSTRIJKJE_CYTOLOGIE_UITSLAG,
 						DateUtil.toUtilDate(context.nu));
-					vervolg.setIntervalControleUitstrijkje(context.intervalControleUitstrijkje);
 				}
 				else
 				{
 					vervolg.setVervolg(BriefType.CERVIX_VOLGEND_MONSTER_CYTOLOGIE_LICHTE_AFWIJKING_HPVOTHER, HuisartsBerichtType.CERVIX_UITSTRIJKJE_CYTOLOGIE_UITSLAG,
 						DateUtil.toUtilDate(context.nu));
-					vervolg.setIntervalControleUitstrijkje(context.intervalControleUitstrijkje);
 				}
+				vervolg.setIntervalControleUitstrijkje(context.intervalControleUitstrijkje);
 			}
 			break;
 		case PAP3A2:
@@ -154,9 +153,30 @@ class CervixBepaalGevolgenLabproces
 		}
 	}
 
-	void bepaalGevolgenUitstijkjeReedsCytologieUitslag()
+	void bepaalGevolgenUitstrijkjeReedsCytologieUitslag()
 	{
-		vervolg.setVervolg(BriefType.CERVIX_ZAS_NA_CYTOLOGIE_POSITIEF, HuisartsBerichtType.CERVIX_UITSLAG_REEDS_BEKEND); 
+		switch (context.cytologieUitslag)
+		{
+		case PAP1:
+			vervolg.setVervolg(BriefType.CERVIX_ZAS_NA_CYTOLOGIE_NEGATIEF, HuisartsBerichtType.CERVIX_UITSLAG_REEDS_BEKEND, true); 
+			break;
+		case PAP2:
+		case PAP3A1:
+			if (isStartdatumGenotyperingVerstreken() && context.monsterService.monsterHeeftHpvBeoordelingMetGenotypeOther(context.monsterHpvUitslag))
+			{
+				vervolg.setVervolg(BriefType.CERVIX_ZAS_NA_CYTOLOGIE_POSITIEF_HPVOTHER, HuisartsBerichtType.CERVIX_VERVOLGONDERZOEK_CYTOLOGIE_UITSLAG); 
+				break;
+			}
+		case PAP3A2:
+		case PAP3B:
+		case PAP4:
+		case PAP5:
+			vervolg.setVervolg(BriefType.CERVIX_ZAS_NA_CYTOLOGIE_POSITIEF, HuisartsBerichtType.CERVIX_UITSLAG_REEDS_BEKEND, true); 
+			break;
+		case PAP0:
+		default:
+			throw new IllegalStateException();
+		}
 	}
 
 	void bepaalGevolgenUitstrijkjeCytologieOnbeoordeelbaar()
@@ -219,7 +239,7 @@ class CervixBepaalGevolgenLabproces
 		}
 	}
 
-	void bepaalGevolgenUitstijkjeInVervolgonderzoekNietAnalyseerbaar()
+	void bepaalGevolgenUitstrijkjeInVervolgonderzoekNietAnalyseerbaar()
 	{
 		vervolg.setVervolg(BriefType.CERVIX_UITSTRIJKJE_NIET_ANALYSEERBAAR_OF_CYTOLOGIE_ONBEOORDEELBAAR, HuisartsBerichtType.CERVIX_UITSTRIJKJE_NIET_ANALYSEERBAAR); 
 	}

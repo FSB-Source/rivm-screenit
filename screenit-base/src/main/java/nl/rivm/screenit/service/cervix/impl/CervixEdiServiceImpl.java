@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,9 +24,10 @@ package nl.rivm.screenit.service.cervix.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.edi.model.MedVryOut;
 import nl.rivm.screenit.edi.model.OutboundMessageData;
-import nl.rivm.screenit.huisartsenportaal.enums.CervixLocatieStatus;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
@@ -44,10 +45,9 @@ import nl.rivm.screenit.service.cervix.CervixEdiService;
 import nl.rivm.screenit.service.cervix.enums.CervixEdiVerstuurStatus;
 import nl.rivm.screenit.service.impl.EdiServiceBaseImpl;
 import nl.rivm.screenit.util.NaamUtil;
+import nl.rivm.screenit.util.cervix.CervixLocatieUtil;
 
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -55,11 +55,10 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 @Transactional(propagation = Propagation.SUPPORTS)
 public class CervixEdiServiceImpl extends EdiServiceBaseImpl implements CervixEdiService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(CervixEdiServiceImpl.class);
-
 	@Autowired
 	@Qualifier(value = "ediAfleverAdres")
 	private String ediAfleverAdres;
@@ -68,7 +67,7 @@ public class CervixEdiServiceImpl extends EdiServiceBaseImpl implements CervixEd
 	public void verstuurMedVry(CervixHuisartsBericht huisartsBericht, Account loggedInAccount)
 	{
 		CervixHuisartsLocatie locatie = huisartsBericht.getHuisartsLocatie();
-		if (klantnummerNietGeverifieerd(locatie))
+		if (CervixLocatieUtil.klantnummerNietGeverifieerd(locatie))
 		{
 			huisartsBericht.setStatus(CervixHuisartsBerichtStatus.KLANTNUMMER_NIET_GEVERIFIEERD);
 			hibernateService.saveOrUpdate(huisartsBericht);
@@ -98,7 +97,7 @@ public class CervixEdiServiceImpl extends EdiServiceBaseImpl implements CervixEd
 	@Override
 	public CervixEdiVerstuurStatus verstuurMedVryNaarExtraHuisartsLocatie(CervixHuisartsBericht huisartsBericht, CervixHuisartsLocatie extraLocatie, Account loggedInAccount)
 	{
-		if (klantnummerNietGeverifieerd(extraLocatie))
+		if (CervixLocatieUtil.klantnummerNietGeverifieerd(extraLocatie))
 		{
 			return CervixEdiVerstuurStatus.KLANTNUMMER_NIET_GEVERIFIEERD;
 		}
@@ -145,12 +144,6 @@ public class CervixEdiServiceImpl extends EdiServiceBaseImpl implements CervixEd
 		String melding = getLoggingTekst(huisartsBericht.getHuisartsLocatie(), huisartsBericht.getBerichtType(), foutmelding,
 			huisartsBericht.getScreeningsOrganisatie().getEnovationEdiAdres(), medVry.getReceiverId());
 		schrijfLogGebeurtenis(logGebeurtenis, huisartsBericht, melding, null);
-	}
-
-	private boolean klantnummerNietGeverifieerd(CervixHuisartsLocatie locatie)
-	{
-		return CervixLocatieStatus.KLANTNUMMER_NIET_GEVERIFIEERD.equals(locatie.getStatus())
-			|| Boolean.TRUE.equals(locatie.getMoetVerifierenVoorActivatie()) && CervixLocatieStatus.INACTIEF.equals(locatie.getStatus());
 	}
 
 	private String maakBerichtInhoud(CervixHuisartsBericht huisartsBericht)

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jms.listener;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jms.listener;
  * =========================LICENSE_END==================================
  */
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import javax.jms.Session;
 
 import lombok.AllArgsConstructor;
@@ -28,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.service.MammaCStoreService;
+import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5Session;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.activemq.command.ActiveMQTextMessage;
@@ -51,7 +54,11 @@ public class JMSUploadBeeldenBerichtListener implements SessionAwareMessageListe
 	{
 		LOG.info("Uploaden van beelden is getriggerd.");
 
-		String sopClasses = preferenceService.getString(PreferenceKey.MAMMA_DICOM_SOP_CONFIG.name());
-		uploadBeeldenService.getOpenstaandeUploadVerzoeken().forEach(uploadBeeldenVerzoek -> uploadBeeldenService.verstuurBeelden(uploadBeeldenVerzoek, sopClasses));
+		AtomicReference<String> sopClasses = new AtomicReference<>();
+		OpenHibernate5Session.withoutTransaction().run(() ->
+			sopClasses.set(preferenceService.getString(PreferenceKey.MAMMA_DICOM_SOP_CONFIG.name()))
+		);
+
+		uploadBeeldenService.getOpenstaandeUploadVerzoeken().forEach(uploadBeeldenVerzoek -> uploadBeeldenService.verstuurBeelden(uploadBeeldenVerzoek, sopClasses.get()));
 	}
 }

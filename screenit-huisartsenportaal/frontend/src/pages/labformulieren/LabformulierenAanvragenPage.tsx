@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,12 +38,16 @@ import {loadingThunkAction} from "../../api/LoadingThunkAction"
 import {validatingRequest} from "../../util/Backend"
 import {createActionPushToast} from "../../state/ToastsState"
 import {ToastType} from "../../state/datatypes/Toast"
+import React from "react"
 import {formatDateTime} from "../../util/DateUtil"
+import TabelPagineringComponent from "../../components/tabel/TabelPagineringComponent"
 
 const LabformulierenAanvragenPage = () => {
 	const dispatch = useAppThunkDispatch()
 	const huisarts = useAppSelector((state) => state.huisarts)!
-	const locaties = useAppSelector((state) => state.huisarts)?.locaties.filter(locatie => locatie.status === LocatieStatus.ACTIEF) || []
+	const locaties = useAppSelector((state) => state.locaties)?.values.locaties.filter(locatie => locatie.status === LocatieStatus.ACTIEF) || []
+
+	dispatch(createActionPushToast({type: ToastType.INFO, message: getString(properties.algemeneMeldingen.digitaalLabformulier)}))
 
 	return <BasePage title={getString(properties.title)} description={getString(properties.description)}>
 		<div className={styles.style}>
@@ -76,7 +80,19 @@ const LabformulierenAanvragenPage = () => {
 								</tbody>
 							</table>
 						</div>
-						<span>{getString(properties.table.totaal)} <b>{props.results?.aantalAanvragen || 0}</b></span>
+						<Row>
+							<Col md={6}>
+								<span>{getString(properties.table.totaal)} <b>{props.results?.aantalAanvragen || 0}</b></span>
+							</Col>
+							<Col md={6}>
+								<Row>
+									<TabelPagineringComponent
+										pageCount={Math.ceil(Math.max(1, props.results?.aantalAanvragen || 0) / 10)} page={props.page}
+										setPage={props.setPage}
+									/>
+								</Row>
+							</Col>
+						</Row>
 						<Formik<NieuweAanvraagDto>
 							initialValues={{
 								aantal: 0,
@@ -85,6 +101,7 @@ const LabformulierenAanvragenPage = () => {
 							validationSchema={Yup.object({
 								aantal: Yup.number()
 									.min(10, getString(validatieProperties.min, [getString(properties.form.labels.aantal)]))
+									.max(25, getString(validatieProperties.max, [getString(properties.form.labels.aantal)]))
 									.required(getString(validatieProperties.required)),
 								locatie: Yup.mixed().required(getString(validatieProperties.required)),
 							})}

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.login;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -45,6 +45,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.wicket.Application;
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
@@ -72,6 +74,14 @@ public class OvereenkomstAccoderenPage extends LoginBasePage
 
 	@SpringBean
 	private AsposeService asposeService;
+
+	@Override
+	public void renderHead(IHeaderResponse response)
+	{
+		super.renderHead(response);
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/checkbox/checkboxAkkoord.js"));
+
+	}
 
 	public OvereenkomstAccoderenPage(IModel<InstellingGebruiker> instellingGebruiker)
 	{

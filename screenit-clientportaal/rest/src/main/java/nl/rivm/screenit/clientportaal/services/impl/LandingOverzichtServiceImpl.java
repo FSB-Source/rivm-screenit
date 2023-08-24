@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.services.impl;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -77,7 +77,7 @@ public class LandingOverzichtServiceImpl implements LandingOverzichtService
 	private BvoParametersDto getCervixParameters()
 	{
 		return new BvoParametersDto(
-			CervixLeeftijdcategorie._30.getLeeftijd(),
+			CervixLeeftijdcategorie.minimumLeeftijd(),
 			CervixLeeftijdcategorie._60.getLeeftijd(),
 			preferenceService.getString(PreferenceKey.CERVIX_CLIENTPORTAAL_TIJDELIJKE_MELDING.name()),
 			preferenceService.getBoolean(PreferenceKey.CERVIX_CLIENTPORTAAL_TOON_VERVANGENDE_TEKST.name(), false),

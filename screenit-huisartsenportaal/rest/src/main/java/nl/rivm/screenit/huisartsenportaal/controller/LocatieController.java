@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal.controller;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -86,7 +86,8 @@ public class LocatieController extends BaseController
 		}
 		var arts = getIngelogdeHuisarts();
 		var allLocatiesFromHuisartsInDto = locatieService.getAllLocatiesFromHuisartsInDto(arts);
-		var locatie = locatieService.setLocatie(arts, locatieDto);
+		var locatie = locatieService.updateAndGetLocatie(arts, locatieDto);
+		locatieService.nietVerstuurdeLabformulierenVerwijderen(locatieDto);
 		syncService.syncLocatie(arts, locatie, locatieDto.getHerzendVerificatieMail());
 		return new ResponseEntity<>(allLocatiesFromHuisartsInDto, HttpStatus.OK);
 	}
@@ -100,7 +101,8 @@ public class LocatieController extends BaseController
 		}
 
 		Huisarts arts = getIngelogdeHuisarts();
-		Locatie locatie = locatieService.setLocatie(arts, locatieDto);
+		Locatie locatie = locatieService.updateAndGetLocatie(arts, locatieDto);
+		locatieService.nietVerstuurdeLabformulierenVerwijderen(locatieDto);
 		syncService.syncLocatie(arts, locatie, locatieDto.getHerzendVerificatieMail());
 		return ResponseEntity.ok().body(locatieService.getLocatieDto(locatie));
 	}

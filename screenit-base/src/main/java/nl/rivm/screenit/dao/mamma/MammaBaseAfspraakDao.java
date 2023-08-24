@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ package nl.rivm.screenit.dao.mamma;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -36,22 +37,21 @@ public interface MammaBaseAfspraakDao
 {
 	List<MammaAfspraak> getNietGekoppeldeAfspraken(MammaCapaciteitBlok capaciteitsBlok);
 
-	List<MammaAfspraak> getAfspraken(MammaScreeningsEenheid screeningsEenheid, Date vanaf, Date totEnMet, MammaAfspraakStatus... afspraakStatussen);
+	List<MammaAfspraak> getAfspraken(MammaScreeningsEenheid screeningsEenheid, LocalDate vanaf, LocalDate totEnMet, MammaAfspraakStatus... afspraakStatussen);
 
-	List<MammaAfspraak> getAfspraken(String seCode, Date vanaf, Date totEnMet, MammaAfspraakStatus... afspraakStatussen);
+	List<MammaAfspraak> getAfspraken(String seCode, LocalDate vanaf, LocalDate totEnMet, MammaAfspraakStatus... afspraakStatussen);
 
 	long countAfspraken(long standplaatsPeriodeId, MammaAfspraakStatus... afspraakStatussen);
 
-	Date[] getEersteEnLaatsteAfspraakDatum(long standplaatsPeriodeiId, Date vanaf, Date totEnMet, MammaAfspraakStatus... afspraakStatussen);
+	Date[] getEersteEnLaatsteAfspraakMomenten(long standplaatsPeriodeiId, LocalDate vanaf, LocalDate totEnMet, MammaAfspraakStatus... afspraakStatussen);
 
-	long countAfspraken(MammaStandplaats standplaats, Date vanaf, Date totEnMet, MammaAfspraakStatus... afspraakStatussen);
+	long countAfspraken(MammaStandplaats standplaats, LocalDate vanaf, LocalDate totEnMet, MammaAfspraakStatus... afspraakStatussen);
 
-	long countAfspraken(MammaStandplaats standplaats, Range<Date> periode, MammaAfspraakStatus... afspraakStatussen);
-
-	long countAfspraken(MammaScreeningsEenheid screeningsEenheid, Date vanaf, Date totEnMet, MammaAfspraakStatus... afspraakStatussen);
-
-	List<MammaAfspraak> getAfspraken(MammaStandplaats standplaats, Date vanaf, Date totEnMet, MammaAfspraakStatus... afspraakStatussen);
+	long countAfspraken(MammaScreeningsEenheid screeningsEenheid, LocalDate vanaf, LocalDate totEnMet, MammaAfspraakStatus... afspraakStatussen);
 
 	List<MammaAfspraak> getAfspraken(MammaStandplaats standplaats, Range<Date> periode, MammaAfspraakStatus... afspraakStatussen);
 
+	Date readDatumVanOudsteNietAfgeslotenOnderzoek(LocalDate vandaag, String seCode);
+
+	List<MammaAfspraak> readAfsprakenWaarvanOnderzoekNietIsDoorgevoerd(LocalDate vandaag, String seCode);
 }

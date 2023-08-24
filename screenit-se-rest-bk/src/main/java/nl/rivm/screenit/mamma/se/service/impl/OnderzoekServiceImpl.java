@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.service.impl;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -46,7 +46,9 @@ import nl.rivm.screenit.model.ClientContactActie;
 import nl.rivm.screenit.model.ClientContactActieType;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.ZorgInstelling;
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
@@ -108,11 +110,12 @@ public class OnderzoekServiceImpl implements OnderzoekService
 			onderzoekSeDto.getExtraMedewerkerId() == null ? null : hibernateService.get(InstellingGebruiker.class, onderzoekSeDto.getExtraMedewerkerId()));
 		onderzoek.setOpmerkingMbber(onderzoekSeDto.getOpmerkingMbber());
 		onderzoek.setOpmerkingVoorRadioloog(onderzoekSeDto.getOpmerkingVoorRadioloog());
-		onderzoek.setOperatieRechts(onderzoekSeDto.getOperatieRechts());
-		onderzoek.setOperatieLinks(onderzoekSeDto.getOperatieLinks());
+		onderzoek.setOperatieRechts(onderzoekSeDto.isOperatieRechts());
+		onderzoek.setOperatieLinks(onderzoekSeDto.isOperatieLinks());
 		onderzoek.setAmputatie(onderzoekSeDto.getAmputatie());
 		onderzoek.setAanvullendeInformatieOperatie(onderzoekSeDto.getAanvullendeInformatieOperatie());
 		onderzoek.setStatus(onderzoekSeDto.getStatus());
+		onderzoek.setOnderzoekType(onderzoekSeDto.getOnderzoekType() != null ? onderzoekSeDto.getOnderzoekType() : MammaOnderzoekType.MAMMOGRAFIE);
 
 		onderzoek.setOnvolledigOnderzoek(onderzoekSeDto.getOnvolledigOnderzoek());
 		onderzoek.setOnderbrokenOnderzoek(onderzoekSeDto.getOnderbrokenOnderzoek());
@@ -211,7 +214,7 @@ public class OnderzoekServiceImpl implements OnderzoekService
 	public List<ZorginstellingDto> getBKZorginstellingen()
 	{
 		ZorginstellingDtoMapper mapper = new ZorginstellingDtoMapper();
-		return zorginstellingenDao.getBKZorginstellingen().stream().map(instelling -> mapper.createZorginstellingDto(instelling)).collect(Collectors.toList());
+		return zorginstellingenDao.getBKZorginstellingen().stream().map(mapper::createZorginstellingDto).collect(Collectors.toList());
 	}
 
 	private void maakLoggebeurtenisDoelgroepGewijzigd(MammaAfspraak afspraak, InstellingGebruiker account, LocalDateTime transactieDatumTijd)
@@ -227,10 +230,10 @@ public class OnderzoekServiceImpl implements OnderzoekService
 		actie.setContact(contact);
 		hibernateService.saveOrUpdateAll(contact, actie);
 
-		String diffFieldToLatestVersion = EntityAuditUtil.getDiffFieldToLatestVersion(afspraak.getUitnodiging().getScreeningRonde().getDossier(), "doelgroep",
-			hibernateService.getHibernateSession());
+		String diffFieldToLatestVersion = EntityAuditUtil.getDiffFieldsToLatestVersion(afspraak.getUitnodiging().getScreeningRonde().getDossier(),
+			hibernateService.getHibernateSession(), "doelgroep");
 		logService.logGebeurtenis(LogGebeurtenis.MAMMA_DOELGROEP_GEWIJZIGD, afspraak.getStandplaatsPeriode().getScreeningsEenheid(), account, client, diffFieldToLatestVersion,
-			transactieDatumTijd);
+			transactieDatumTijd, Bevolkingsonderzoek.MAMMA);
 	}
 
 	private boolean moetDoelgroepUpdaten(MaakDubbeleTijdDto action, MammaDossier dossier)

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.inzien;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -55,9 +55,7 @@ import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
-import nl.topicuszorg.wicket.input.validator.TelefoonnummerValidator;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -68,8 +66,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.CompoundPropertyModel;
@@ -143,15 +139,10 @@ public class ClientInzienPanel extends GenericPanel<Client>
 		laatsteGbaMutatie.setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_GBA_AANVRAGEN, null));
 
 		add(new ClientPaspoortHorizontaal("paspoort", getModel()));
-		add(new DateLabel("laatstAangevraagd", new IModel<>()
+		add(new DateLabel("laatstAangevraagd", (IModel<Date>) () ->
 		{
-			@Override
-			public Date getObject()
-			{
-				List<GbaVraag> gbaVragen = new ArrayList<>(getModelObject().getGbaVragen());
-
-				return gbaVragen.stream().filter(v -> v.getVraagType() == GbaVraagType.VERWIJDER_INDICATIE).map(GbaVraag::getDatum).max(Comparator.naturalOrder()).orElse(null);
-			}
+			List<GbaVraag> gbaVragen = new ArrayList<>(getModelObject().getGbaVragen());
+			return gbaVragen.stream().filter(v -> v.getVraagType() == GbaVraagType.VERWIJDER_INDICATIE).map(GbaVraag::getDatum).max(Comparator.naturalOrder()).orElse(null);
 		}, new PatternDateConverter("dd-MM-yyyy HH:mm:ss", true))
 		{
 
@@ -164,33 +155,7 @@ public class ClientInzienPanel extends GenericPanel<Client>
 
 		});
 
-		Form<Client> telefoonNummerForm = new Form<>("telefoonform", getModel());
-		WebMarkupContainer telefoonnummers = new WebMarkupContainer("telefoonnummers");
-		final boolean magTelNummerRegistreren = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_TELEFOONNUMMER_REGISTREREN, Actie.AANPASSEN, getModelObject());
-
-		TextField<String> telefoonnummer1 = new TextField<>("persoon.telefoonnummer1");
-		telefoonnummer1.setVisible(magTelNummerRegistreren || StringUtils.isNotBlank(getModelObject().getPersoon().getTelefoonnummer1()));
-		telefoonnummer1.setEnabled(magTelNummerRegistreren);
-		telefoonnummer1.add(TelefoonnummerValidator.alle());
-		telefoonnummers.add(telefoonnummer1);
-
-		TextField<String> telefoonnummer2 = new TextField<>("persoon.telefoonnummer2");
-		telefoonnummer2.setVisible(magTelNummerRegistreren || StringUtils.isNotBlank(getModelObject().getPersoon().getTelefoonnummer2()));
-		telefoonnummer2.setEnabled(magTelNummerRegistreren);
-		telefoonnummer2.add(TelefoonnummerValidator.alle());
-		telefoonnummers.add(telefoonnummer2);
-		telefoonnummers.add(new IndicatingAjaxSubmitLink("opslaantelefoon")
-		{
-			@Override
-			protected void onSubmit(AjaxRequestTarget target)
-			{
-				Client client = (Client) getForm().getModelObject();
-				hibernateService.saveOrUpdate(client);
-				info("Telefoonnummer succesvol opgeslagen");
-			}
-		}.setVisible(magTelNummerRegistreren));
-		telefoonNummerForm.add(telefoonnummers);
-		add(telefoonNummerForm);
+		add(new ClientContactGegevensPanel("contactGegevens", getModel()));
 
 		IModel<String> laatseBekendeRegioBijRni = laatseBekendeRegioBijRni(getModelObject().getPersoon().getGbaAdres());
 		add(new Label("persoon.gbaAdres.gbaGemeente.screeningOrganisatie.naam", laatseBekendeRegioBijRni));

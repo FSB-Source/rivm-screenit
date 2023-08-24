@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.config;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -37,6 +37,8 @@ public class IntakePlannerConfig
 
 	private Long maximumRetrySecondsSpend;
 
+	private Long aantalSecondenPerClient;
+
 	private Integer afstandFactorRetry;
 
 	@Bean
@@ -49,6 +51,12 @@ public class IntakePlannerConfig
 	public Long maximumRetrySecondsSpend()
 	{
 		return maximumRetrySecondsSpend;
+	}
+
+	@Bean
+	public Long aantalSecondenPerClient()
+	{
+		return aantalSecondenPerClient;
 	}
 
 	@Bean

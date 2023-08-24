@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,25 +21,31 @@ package nl.rivm.screenit.batch.service.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.List;
+
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.service.MailSenderService;
 import nl.rivm.screenit.model.Mail;
+import nl.rivm.screenit.model.MailAttachment;
 import nl.rivm.screenit.model.MailVerzenden;
 import nl.rivm.screenit.model.enums.MailPriority;
+import nl.rivm.screenit.model.enums.MailServerKeuze;
 import nl.rivm.screenit.repository.MailRepository;
-import nl.rivm.screenit.service.LogService;
-import nl.topicuszorg.loginformatie.model.Gebeurtenis;
-import nl.topicuszorg.loginformatie.services.ILogInformatieService;
+import nl.rivm.screenit.service.MailService;
+import nl.rivm.screenit.util.mail.LoggingJavaMailSender;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang.StringUtils;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.MailException;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -47,64 +53,59 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
+@AllArgsConstructor
 public class MailSenderServiceImpl implements MailSenderService
 {
-	private final JavaMailSender mailSender;
+	private final LoggingJavaMailSender mailSenderProfessional;
 
-	private final String afzendEmailadres;
+	private final LoggingJavaMailSender mailSenderClient;
 
 	private final SimplePreferenceService simplePreferenceService;
 
 	private final MailRepository mailRepository;
 
-	public MailSenderServiceImpl(JavaMailSender mailSender, String afzendEmailadres, SimplePreferenceService simplePreferenceService,
-		MailRepository mailRepository)
-	{
-		this.mailSender = mailSender;
-		this.afzendEmailadres = afzendEmailadres;
-		this.simplePreferenceService = simplePreferenceService;
-		this.mailRepository = mailRepository;
-	}
+	private final MailService mailService;
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public void verzendEnVerwijderQueuedMail(Mail mail) throws MessagingException, MailException
 	{
-		if (sendEmail(mail.getRecipient(), mail.getSubject(), mail.getContent(), mail.getPriority()))
+		if (sendEmail(mail.getRecipient(), mail.getSubject(), mail.getContent(), mail.getPriority(), mail.getMailserver(), mail.getAttachments()))
 		{
 			mailRepository.delete(mail);
 		}
 	}
 
-	private boolean sendEmail(String to, String subject, String message, MailPriority priority) throws MessagingException, MailException
+	private boolean sendEmail(String to, String subject, String message, MailPriority priority, MailServerKeuze mailserver, List<MailAttachment> mailAttachment) throws MessagingException, MailException
 	{
 		if (StringUtils.isNotBlank(to))
 		{
 			var emailAdressen = to.split("[\\s;,]");
-			sendEmail(emailAdressen, subject, message, priority);
+			sendEmail(emailAdressen, subject, message, priority, mailserver, mailAttachment);
 			return true;
 		}
 		return false;
 	}
 
-	private void sendEmail(String[] to, String subject, String message, MailPriority priority) throws MessagingException, MailException
+	private void sendEmail(String[] to, String subject, String message, MailPriority priority, MailServerKeuze mailserver, List<MailAttachment> mailAttachment) throws MessagingException, MailException
 	{
-		var mailVerzenden = mailVerzenden();
+		var mailVerzenden = mailService.getMailVerzenden();
 		if (MailVerzenden.ALTERNATIEF_ADRES.equals(mailVerzenden))
 		{
 			subject += " (" + StringUtils.join(to, "; ") + ")";
 			var alternatiefAdres = simplePreferenceService.getString(PreferenceKey.ALTERNATIEF_ADRES.name());
-			for (int i = 0; i < to.length; i++)
+			if (StringUtils.isNotBlank(alternatiefAdres))
 			{
-				to[i] = alternatiefAdres;
+				Arrays.fill(to, alternatiefAdres);
 			}
 		}
 
 		if (!MailVerzenden.UIT.equals(mailVerzenden))
 		{
+			var mailSender = getMailSender(mailserver);
 			var mimeMessage = mailSender.createMimeMessage();
 
-			var helper = createMimeMessageHelper(mimeMessage, subject, message, priority);
+			var helper = createMimeMessageHelper(mimeMessage, subject, message, priority, mailSender.getFromAddress(), mailAttachment);
 			helper.setTo(to);
 			mailSender.send(mimeMessage);
 		}
@@ -114,26 +115,53 @@ public class MailSenderServiceImpl implements MailSenderService
 		}
 	}
 
-	private MimeMessageHelper createMimeMessageHelper(MimeMessage mimeMessage, String subject, String message, MailPriority priority) throws MessagingException
+	private LoggingJavaMailSender getMailSender(MailServerKeuze mailserver)
+	{
+		return mailserver == MailServerKeuze.CLIENT ? mailSenderClient : mailSenderProfessional;
+	}
+
+	private MimeMessageHelper createMimeMessageHelper(MimeMessage mimeMessage, String subject, String message, MailPriority priority, String fromAddress, List<MailAttachment> mailAttachmentList) throws MessagingException
 	{
 		var helper = new MimeMessageHelper(mimeMessage, true);
-		helper.setFrom(afzendEmailadres);
+		helper.setFrom(fromAddress);
 		helper.setSubject(subject);
 		helper.setText(message, true);
+
+		voegAttachmentToeAanEmail(mailAttachmentList, helper);
+
 		if (priority != null)
 		{
 			helper.setPriority(priority.getPriority());
 		}
+
 		return helper;
 	}
 
-	private MailVerzenden mailVerzenden()
+	private void voegAttachmentToeAanEmail(List<MailAttachment> mailAttachmentList, MimeMessageHelper helper) throws MessagingException
 	{
-		var verzendenPreferences = simplePreferenceService.getEnum(PreferenceKey.MAIL_VERZENDEN.toString(), MailVerzenden.class);
-		if (verzendenPreferences == null)
+		if (mailAttachmentList != null)
 		{
-			return MailVerzenden.AAN;
+			for (var mailAttachment : mailAttachmentList)
+			{
+				var decodedContent = getDecodedContent(mailAttachment.getContent());
+
+				if (mailAttachment.getInlineContentId() != null)
+				{
+					helper.getMimeMessage().setHeader("CONTENT-ID", mailAttachment.getInlineContentId());
+					helper.addInline(mailAttachment.getInlineContentId(), new ByteArrayResource(decodedContent), mailAttachment.getContentType());
+
+					helper.getMimeMultipart().getBodyPart("<" + mailAttachment.getInlineContentId() + ">").setFileName(mailAttachment.getFileName());
+				}
+				else
+				{
+					helper.addAttachment(mailAttachment.getFileName(), new ByteArrayResource(decodedContent), mailAttachment.getContentType());
+				}
+			}
 		}
-		return verzendenPreferences;
+	}
+
+	private static byte[] getDecodedContent(String content)
+	{
+		return Base64.getDecoder().decode(content);
 	}
 }

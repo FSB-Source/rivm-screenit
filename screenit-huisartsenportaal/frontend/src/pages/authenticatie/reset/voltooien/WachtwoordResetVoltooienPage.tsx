@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,9 +30,9 @@ import {useNavigate} from "react-router"
 import FormPasswordTextField from "../../../../components/form/text/FormPasswordTextField"
 import {WachtwoordWijzigenDto} from "../../../../state/datatypes/dto/WachtwoordWijzigenDto"
 import {wachtwoordWijzigen} from "../../../../api/WachtwoordThunkAction"
-import React from "react"
 import * as Yup from "yup"
 import {afmelden} from "../../../../api/AfmeldenThunkAction"
+import React from "react"
 import {wachtwoordValidatie} from "../../../../util/ValidatieUtil"
 
 const WachtwoordResetVoltooienPage = () => {
@@ -52,7 +52,7 @@ const WachtwoordResetVoltooienPage = () => {
 				nieuweWachtwoord: wachtwoordValidatie(getString(properties.form.labels.nieuweWachtwoord))
 					.required(getString(validatieProperties.required)),
 				nieuweWachtwoordControle: Yup.string()
-					.oneOf([Yup.ref("nieuweWachtwoord"), null], getString(validatieProperties.wachtwoordControle))
+					.oneOf([Yup.ref("nieuweWachtwoord"), undefined], getString(validatieProperties.wachtwoordControle))
 					.required(getString(validatieProperties.required)),
 			})}
 			onSubmit={(wijzigenDto => {

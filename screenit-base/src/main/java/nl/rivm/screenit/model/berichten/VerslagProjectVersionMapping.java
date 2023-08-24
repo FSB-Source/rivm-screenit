@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.berichten;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -50,7 +50,8 @@ public class VerslagProjectVersionMapping
 		addProjectVersion("2.16.840.1.113883.2.4.3.36.77.0.1.2018-12-19T11:16:40", VerslagGeneratie.V7, VerslagType.MDL, VerslagType.PA_LAB, VerslagType.CERVIX_CYTOLOGIE);
 		addProjectVersion("2.16.840.1.113883.2.4.3.36.77.0.1.2019-11-17T20:43:52", VerslagGeneratie.V8, VerslagType.MDL, VerslagType.PA_LAB, VerslagType.CERVIX_CYTOLOGIE);
 		addProjectVersion("2.16.840.1.113883.2.4.3.36.77.0.1.2021-12-07T13:10:09", VerslagGeneratie.V10, VerslagType.MDL, VerslagType.PA_LAB, VerslagType.CERVIX_CYTOLOGIE);
-		addProjectVersion("2.16.840.1.113883.2.4.3.36.77.0.1.2022-06-28T15:43:05", VerslagGeneratie.V2, VerslagType.MAMMA_PA_FOLLOW_UP);
+		addProjectVersion("2.16.840.1.113883.2.4.3.36.77.0.1.2023-01-12T11:59:05", VerslagGeneratie.V11, VerslagType.MDL, VerslagType.PA_LAB, VerslagType.CERVIX_CYTOLOGIE);
+		addProjectVersion("2.16.840.1.113883.2.4.3.36.77.0.1.2022-09-13T14:46:06", VerslagGeneratie.V2, VerslagType.MAMMA_PA_FOLLOW_UP);
 	}
 
 	public void addProjectVersion(String projectVersion, VerslagGeneratie generatie, VerslagType... types)

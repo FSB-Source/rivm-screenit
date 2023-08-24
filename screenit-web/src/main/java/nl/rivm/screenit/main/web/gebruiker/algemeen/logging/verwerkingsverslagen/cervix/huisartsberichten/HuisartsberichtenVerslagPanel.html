@@ -3,7 +3,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -45,23 +45,23 @@
                 <col width="80px"/>
                 <tr>
                     <td>Aantal berichten waarvoor huisarts bepaald</td>
-                    <td style="text-align: right"><span wicket:id="aantalHuisartsBepaald"/></td>
+                    <td class="text-right"><span wicket:id="aantalHuisartsBepaald"/></td>
                 </tr>
                 <tr>
                     <td>Aantal berichten waarvoor huisarts niet kon worden bepaald</td>
-                    <td style="text-align: right"><span wicket:id="aantalHuisartsKonNietWordenBepaald"/></td>
+					<td class="text-right"><span wicket:id="aantalHuisartsKonNietWordenBepaald"/></td>
                 </tr>
                 <tr>
                     <td>Aantal geregistreerd als huisarts onbekend</td>
-                    <td style="text-align: right"><span wicket:id="aantalHuisartsOnbekend"/></td>
+					<td class="text-right"><span wicket:id="aantalHuisartsOnbekend"/></td>
                 </tr>
                 <tr>
                     <td>Aantal berichten verstuurd</td>
-                    <td style="text-align: right"><span wicket:id="aantalVerstuud"/></td>
+					<td class="text-right"><span wicket:id="aantalVerstuud"/></td>
                 </tr>
                 <tr>
                     <td>Aantal berichten versturen mislukt</td>
-                    <td style="text-align: right"><span wicket:id="aantalVersturenMislukt"/></td>
+					<td class="text-right"><span wicket:id="aantalVersturenMislukt"/></td>
                 </tr>
             </table>
         </div>
@@ -77,11 +77,11 @@
                     <td>Verstuurd</td>
                     <td>Mislukt</td>
                 </tr>
-                <tr wicket:id="entries">
-                    <td wicket:id="huisartsBerichtType"/>
-                    <td wicket:id="aantalVerstuurd" style="text-align: right"/>
-                    <td wicket:id="aantalVersturenMislukt" style="text-align: right"/>
-                </tr>
+				<tr wicket:id="entries">
+					<td wicket:id="huisartsBerichtType"/>
+					<td wicket:id="aantalVerstuurd" class="text-right"/>
+					<td wicket:id="aantalVersturenMislukt" class="text-right"/>
+				</tr>
             </table>
         </div>
     </div>

@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,8 @@ package nl.rivm.screenit.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.HuisartsBerichtTemplateDao;
@@ -43,6 +45,7 @@ import nl.rivm.screenit.model.enums.HuisartsBerichtType;
 import nl.rivm.screenit.model.enums.MergeField;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.MailService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.NaamGebruik;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Patient;
@@ -50,15 +53,12 @@ import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Persoon;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+@Slf4j
 public abstract class EdiServiceBaseImpl
 {
-	private static final Logger LOG = LoggerFactory.getLogger(EdiServiceBaseImpl.class);
-
 	@Autowired
 	protected EdiMessageService ediMessageService;
 
@@ -72,10 +72,13 @@ public abstract class EdiServiceBaseImpl
 	protected LogService logService;
 
 	@Autowired
-	protected SimplePreferenceService simplePreferenceService;
+	private SimplePreferenceService simplePreferenceService;
 
 	@Autowired
 	private HuisartsBerichtTemplateDao templateDao;
+
+	@Autowired
+	private MailService mailService;
 
 	@Autowired
 	@Qualifier("afzendEmailadres")
@@ -195,17 +198,20 @@ public abstract class EdiServiceBaseImpl
 
 	protected MailVerzenden manipulateEmailadressen(InstellingGebruiker sender, OutboundMessageData<MedVryOut> outboundMessageData)
 	{
-		MailVerzenden mailVerzendOptie = simplePreferenceService.getEnum(PreferenceKey.MAIL_VERZENDEN.toString(), MailVerzenden.class);
-		if (mailVerzendOptie == null)
-		{
-			mailVerzendOptie = MailVerzenden.AAN;
-		}
+		var mailVerzendOptie = mailService.getMailVerzenden();
+
 		if (MailVerzenden.ALTERNATIEF_ADRES.equals(mailVerzendOptie))
 		{
+			var gewensteEmailAdres = simplePreferenceService.getString(PreferenceKey.ALTERNATIEF_ADRES.name());
 			outboundMessageData.setSubject(outboundMessageData.getSubject() + " (Orig. TO: " + outboundMessageData.getAddress() + ", orig. FROM: " + sender.getEmail() + ")");
-			outboundMessageData.setAddress(simplePreferenceService.getString(PreferenceKey.ALTERNATIEF_ADRES.name()));
+			outboundMessageData.setAddress(gewensteEmailAdres);
 			sender.setEmail(afzendEmailadres);
 			LOG.info("Er wordt een huisartsbericht naar het alternatieve email adres gestuurd.");
+		}
+		else if (MailVerzenden.UIT.equals(mailVerzendOptie))
+		{
+			LOG.warn("Mail versturen staat uit. To: " + outboundMessageData.getAddress() + " | Subject: " + outboundMessageData.getSubject() + " | Message: "
+				+ outboundMessageData.getData());
 		}
 		return mailVerzendOptie;
 	}

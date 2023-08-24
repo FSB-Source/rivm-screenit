@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.inzien.popup.afmelding;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -214,6 +214,12 @@ public abstract class AfmeldformulierInzienPopupPanel<A extends Afmelding> exten
 	private void addButtons()
 	{
 		ClientBrief laatsteBrief = getLaatsteBrief();
+		var dossier = getModelObject().getDossier();
+
+		if (dossier == null)
+		{
+			dossier = getModelObject().getScreeningRonde().getDossier();
+		}
 		add(new AjaxLink<Void>("nogmaalsVersturen")
 		{
 			@Override
@@ -226,7 +232,7 @@ public abstract class AfmeldformulierInzienPopupPanel<A extends Afmelding> exten
 				close(target);
 			}
 
-		}.setVisible(DossierStatus.INACTIEF.equals(getModelObject().getDossier().getStatus()) && !isAfmeldingUitCISHistorie(getModelObject())));
+		}.setVisible(DossierStatus.INACTIEF.equals(dossier.getStatus()) && !isAfmeldingUitCISHistorie(getModelObject())));
 
 		boolean magTegenhouden = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_BRIEVEN_TEGENHOUDEN, Actie.AANPASSEN);
 		add(new AjaxLink<Void>("tegenhouden")

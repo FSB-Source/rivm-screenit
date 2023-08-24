@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -81,7 +81,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -321,8 +320,7 @@ public class RetourzendingServiceImpl implements RetourzendingService
 	private <U extends InpakbareUitnodiging<S>, S extends ScreeningRonde<?, ?, ?, ?>> void verwerkRetourzending(RetourzendingLogEvent logEvent, U uitnodiging,
 		RetourredenAfhandeling afhandeling, RetourzendingWijze wijze)
 	{
-		DateTime nu = currentDateSupplier.getDateTime();
-		uitnodiging.setRetourOntvangen(nu.toDate());
+		uitnodiging.setRetourOntvangen(currentDateSupplier.getDate());
 		uitnodiging.setRetourzendingReden(afhandeling.getRetourReden());
 		uitnodiging.setRetourzendingWijze(wijze);
 		logEvent.incrRegels(afhandeling.getAfhandeling());

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.component.table;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,35 +21,21 @@ package nl.rivm.screenit.main.web.component.table;
  * =========================LICENSE_END==================================
  */
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.main.web.component.AjaxDownload;
 import nl.rivm.screenit.model.UploadDocument;
-import nl.rivm.screenit.service.UploadDocumentService;
-import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.apache.wicket.util.resource.AbstractResourceStreamWriter;
-import org.apache.wicket.util.resource.IResourceStream;
+import org.jetbrains.annotations.NotNull;
 
 @Slf4j
 public class UploadDocumentDownloadLinkPanel extends GenericPanel<UploadDocument>
 {
 	private final IModel<String> fileNameToLog;
-
-	@SpringBean
-	private UploadDocumentService uploadDocumentService;
 
 	public UploadDocumentDownloadLinkPanel(String id, IModel<UploadDocument> model)
 	{
@@ -66,77 +52,33 @@ public class UploadDocumentDownloadLinkPanel extends GenericPanel<UploadDocument
 	protected void onInitialize()
 	{
 		super.onInitialize();
-		final AjaxDownload download = new AjaxDownload()
-		{
-			@Override
-			protected IResourceStream getResourceStream()
-			{
-				return new AbstractResourceStreamWriter()
-				{
-
-					@Override
-					public void write(OutputStream output)
-					{
-
-						try
-						{
-							File file = uploadDocumentService.load(UploadDocumentDownloadLinkPanel.this.getModelObject());
-
-							try (FileInputStream fis = new FileInputStream(file))
-							{
-								IOUtils.copy(fis, output);
-							}
-						}
-						catch (IOException e)
-						{
-							LOG.error("Fout bij het opleveren van upload document: " + e.getMessage(), e);
-						}
-						finally
-						{
-							close(output);
-						}
-					}
-
-					private void close(Closeable closable)
-					{
-						if (closable != null)
-						{
-							try
-							{
-								closable.close();
-							}
-							catch (IOException e)
-							{
-								LOG.error("Fout bij het sluiten van stream: " + e.getMessage(), e);
-							}
-						}
-					}
-				};
-			}
-
-			@Override
-			protected String getFileName()
-			{
-				return getModelObject().getNaam();
-			}
-
-			@Override
-			protected String getFileNameToLog()
-			{
-				return ModelUtil.nullSafeGet(fileNameToLog);
-			}
-
-		};
-		getPage().add(download);
 		add(new IndicatingAjaxLink<>("download", getModel())
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
 				UploadDocumentDownloadLinkPanel.this.onBeforeDownloadClick(target);
-				download.initiate(target);
+				getAjaxDownload().initiate(target);
 			}
 		});
+	}
+
+	@NotNull
+	private AjaxDownload getAjaxDownload()
+	{
+		verwijderDubbeleDownloadBehavioursVanDePage();
+		var download = new UploadDocumentDownloadBehavior(fileNameToLog, getModel());
+		getPage().add(download);
+		return download;
+	}
+
+	private void verwijderDubbeleDownloadBehavioursVanDePage()
+	{
+
+		var id = getModelObject().getId();
+		getPage().getBehaviors(UploadDocumentDownloadBehavior.class)
+			.stream().filter(b -> b.getUploadDocumentId().equals(id))
+			.forEach(b -> getPage().remove(b));
 	}
 
 	protected void onBeforeDownloadClick(AjaxRequestTarget target)

@@ -4,7 +4,7 @@ package nl.rivm.screenit.service;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,12 +31,9 @@ import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.OrganisatieParameter;
-import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.UploadDocument;
-import nl.rivm.screenit.model.colon.AntedateerRange;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.IFobtLaboratorium;
 
@@ -89,11 +86,5 @@ public interface InstellingService
 
 	ScreeningOrganisatie getScreeningOrganisatie(String regioCode);
 
-	boolean isErEenOverlappendeAntedateerRange(AntedateerRange nieuweRange);
-
-	<T> T getOrganisatieParameter(Instelling organisatie, OrganisatieParameterKey parameterKey);
-
-	<T> T getOrganisatieParameter(Instelling organisatie, OrganisatieParameterKey parameterKey, T defaultValue);
-
-	void saveOrUpdateOrganisatieParameters(List<OrganisatieParameter> parameters, InstellingGebruiker loggedInInstellingGebruiker);
+	ScreeningOrganisatie getScreeningOrganisatie(long screeningOrganisatieId);
 }

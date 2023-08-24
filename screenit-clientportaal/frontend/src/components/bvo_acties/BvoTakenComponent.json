@@ -10,7 +10,8 @@
     },
     "afmelden": {
       "algemeen": "afmelden",
-      "definitief": "definitief afmelden"
+      "definitief": "definitief afmelden",
+      "definitiefOfTijdelijk": "tijdelijk of definitief afmelden"
     },
     "adres": {
       "doorgeven": "een tijdelijk adres doorgeven",

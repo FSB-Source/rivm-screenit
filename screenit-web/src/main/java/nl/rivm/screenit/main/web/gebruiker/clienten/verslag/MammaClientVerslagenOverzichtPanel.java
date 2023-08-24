@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.verslag;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ import java.util.List;
 
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.berichten.enums.VerslagType;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
@@ -38,27 +39,24 @@ import org.apache.wicket.model.IModel;
 
 public class MammaClientVerslagenOverzichtPanel extends ClientVerslagenOverzichtPanel<MammaVerslag<?>>
 {
-	private static final long serialVersionUID = 1L;
-
 	public MammaClientVerslagenOverzichtPanel(String id, IModel<Client> model)
 	{
 		super(id, model);
 	}
 
 	@Override
-	protected IModel<? extends MammaVerslag<?>> getVerslagFilter()
+	protected IModel<MammaVerslag<?>> getVerslagFilter()
 	{
-		IModel<MammaFollowUpVerslag> model = ModelUtil.cModel(new MammaFollowUpVerslag());
-		MammaFollowUpVerslag mammaVerslag = model.getObject();
+		var dossier = new MammaDossier();
+		var screeningRonde = new MammaScreeningRonde();
+		var verslag = new MammaFollowUpVerslag();
 
-		mammaVerslag.setScreeningRonde(new MammaScreeningRonde());
-
-		MammaScreeningRonde screeningRonde = mammaVerslag.getScreeningRonde();
-		screeningRonde.setDossier(new MammaDossier());
-		MammaDossier dossier = screeningRonde.getDossier();
+		verslag.setType(VerslagType.MAMMA_PA_FOLLOW_UP);
+		verslag.setScreeningRonde(screeningRonde);
+		screeningRonde.setDossier(dossier);
 		dossier.setClient(getModelObject());
 
-		return model;
+		return ModelUtil.ccModel(verslag);
 	}
 
 	@Override

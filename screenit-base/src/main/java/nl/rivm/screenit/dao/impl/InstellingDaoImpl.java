@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.dao.impl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,12 +34,12 @@ import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.model.colon.AntedateerRange;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.ColoscopieLocatie;
 import nl.rivm.screenit.model.colon.IFobtLaboratorium;
 import nl.rivm.screenit.model.colon.PaLaboratorium;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.restrictions.NvlRestrictions;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
@@ -113,7 +112,7 @@ public class InstellingDaoImpl extends AbstractAutowiredDao implements Instellin
 	public Criterion getActieveRolCriterion(String igRolAlias, String rolAlias)
 	{
 		Date nu = currentDateSupplier.getDate();
-		Date gisteren = currentDateSupplier.getDateTime().minusDays(1).toDate();
+		Date gisteren = DateUtil.minDagen(currentDateSupplier.getDate(), 1);
 
 		return Restrictions.and(
 			NvlRestrictions.le(igRolAlias + ".beginDatum", nu, Constants.BEGIN_OF_TIME),
@@ -215,24 +214,4 @@ public class InstellingDaoImpl extends AbstractAutowiredDao implements Instellin
 		crit.add(Restrictions.eq("actief", true));
 		return (ScreeningOrganisatie) crit.uniqueResult();
 	}
-
-	@Override
-	public boolean isErEenOverlappendeAntedateerRange(AntedateerRange nieuweRange)
-	{
-		Criteria crit = getSession().createCriteria(AntedateerRange.class);
-		Date startDate = nieuweRange.getVanaf();
-		Date eindDate = nieuweRange.getTot();
-
-		crit.add(Restrictions.eq("ifobtLab", nieuweRange.getIfobtLab()));
-		crit.add(Restrictions.eq("actief", Boolean.TRUE));
-
-		Criterion overlapRestriction1 = Restrictions.and(Restrictions.le("vanaf", startDate), Restrictions.ge("tot", eindDate));
-		Criterion overlapRestriction2 = Restrictions.and(Restrictions.le("vanaf", eindDate), Restrictions.ge("tot", startDate));
-		crit.add(Restrictions.or(overlapRestriction1, overlapRestriction2));
-
-		crit.setProjection(Projections.rowCount());
-
-		return (long) crit.uniqueResult() > 0;
-	}
-
 }

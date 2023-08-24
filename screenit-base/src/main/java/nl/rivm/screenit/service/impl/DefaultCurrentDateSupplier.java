@@ -5,7 +5,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,59 +28,32 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Date;
 
-import nl.rivm.screenit.service.ICurrentDateSupplier;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
-import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.DateUtil;
+
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service(value = "currentDateSuplier")
 public class DefaultCurrentDateSupplier implements ICurrentDateSupplier
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(DefaultCurrentDateSupplier.class);
-
+	@Getter
 	private Duration offset = Duration.ZERO;
-
-	@Override
-	@Deprecated
-	public DateTime getDateTime()
-	{
-		LocalDateTime localDateTime = getLocalDateTime();
-		return new DateTime(localDateTime.getYear(), localDateTime.getMonthValue(), localDateTime.getDayOfMonth(), localDateTime.getHour(), localDateTime.getMinute(),
-			localDateTime.getSecond(), localDateTime.getNano() / 1000000);
-	}
 
 	@Override
 	public Date getDate()
 	{
-		return getDateTime().toDate();
+		return DateUtil.toUtilDate(getLocalDateTime());
 	}
 
 	@Override
 	public Date getDateMidnight()
 	{
-		return getDateTime().withTimeAtStartOfDay().toDate();
-	}
-
-	@Override
-	public DateTime getDateTimeMidnight()
-	{
-		return getDateTime().withTimeAtStartOfDay();
-	}
-
-	public Duration getOffset()
-	{
-		return offset;
-	}
-
-	public void setOffset(Duration offset)
-	{
-		LOG.debug("'Nu' gewijzigd van " + LocalDateTime.now().plus(this.offset) + " naar "
-			+ LocalDateTime.now().plus(offset));
-
-		this.offset = offset;
+		return DateUtil.toUtilDate(getLocalDate());
 	}
 
 	@Override
@@ -100,6 +73,14 @@ public class DefaultCurrentDateSupplier implements ICurrentDateSupplier
 	public LocalTime getLocalTime()
 	{
 		return getLocalDateTime().toLocalTime();
+	}
+
+	public void setOffset(Duration offset)
+	{
+		LOG.debug("'Nu' gewijzigd van " + LocalDateTime.now().plus(this.offset) + " naar "
+			+ LocalDateTime.now().plus(offset));
+
+		this.offset = offset;
 	}
 
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatiemedewerker;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -137,8 +137,7 @@ public abstract class OrganisatieMedewerkerKoppelPage extends AlgemeenPage
 				String rollen = "";
 				boolean first = true;
 
-				List<InstellingGebruikerRol> rollenLijst = new ArrayList<>();
-				rollenLijst = organisatieMedewerker.getRollen();
+				var rollenLijst = organisatieMedewerker.getRollen();
 				InstellingGebruikerRolComparator comparator = new InstellingGebruikerRolComparator();
 				Collections.sort(rollenLijst, comparator);
 
@@ -357,7 +356,7 @@ public abstract class OrganisatieMedewerkerKoppelPage extends AlgemeenPage
 			{
 				if (magKoppelingenBeheren)
 				{
-					dialog.setContent(new OrganisatieMedewerkerRollenPanel(IDialog.CONTENT_ID, ModelUtil.cModel(model.getObject()), dialog, medewerkerContainer));
+					dialog.setContent(new OrganisatieMedewerkerRollenPanel(IDialog.CONTENT_ID, ModelUtil.csModel(model.getObject()), dialog, medewerkerContainer));
 					dialog.add(new AttributeAppender("class", Model.of("dialog-large"), " "));
 					dialog.open(target);
 				}

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,7 +23,6 @@ package nl.rivm.screenit.main.service.cervix.impl;
 
 import java.util.Date;
 
-import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.cervix.CervixHuisartsSyncDao;
 import nl.rivm.screenit.huisartsenportaal.dto.AanvraagDto;
 import nl.rivm.screenit.huisartsenportaal.dto.AdresDto;
@@ -57,11 +56,9 @@ import nl.rivm.screenit.service.impl.DefaultCurrentDateSupplier;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.rivm.screenit.util.cervix.CervixHuisartsToDtoUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,7 +69,10 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 {
 
 	@Autowired
-	private CervixHuisartsSyncDao cervixHuisartsSyncDao;
+	private CervixHuisartsSyncDao huisartsSyncDao;
+
+	@Autowired
+	private MailService mailService;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -84,20 +84,10 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 	private BaseBriefService briefService;
 
 	@Autowired
-	private SimplePreferenceService preferenceService;
-
-	@Autowired
-	private MailService mailService;
-
-	@Autowired
 	private LogService logService;
 
 	@Autowired
 	private CervixHuisartsBerichtService huisartsBerichtService;
-
-	@Autowired
-	@Qualifier(value = "huisartsPortaalUrl")
-	private String huisartsPortaalUrl;
 
 	@Autowired
 	private HuisartsenportaalSyncService huisartsenportaalSyncService;
@@ -118,7 +108,7 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public CervixHuisarts setHuisarts(HuisartsDto dto, Date mutatieDatum)
+	public CervixHuisarts updateAndGetHuisarts(HuisartsDto dto, Date mutatieDatum)
 	{
 		CervixHuisarts huisarts = null;
 		if (dto.getScreenitId() != null)
@@ -127,7 +117,7 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 		}
 		if (huisarts == null && dto.getHuisartsportaalId() != null)
 		{
-			huisarts = cervixHuisartsSyncDao.huisartsFindByHuisartsportaalId(dto.getHuisartsportaalId());
+			huisarts = huisartsSyncDao.huisartsFindByHuisartsportaalId(dto.getHuisartsportaalId());
 		}
 		if (huisarts == null)
 		{
@@ -181,7 +171,7 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 		medewerker.setWachtwoordChangeCode(inlogCode);
 		if (CervixHuisartsAanmeldStatus.GEREGISTREERD.equals(huisarts.getAanmeldStatus()) && StringUtils.isNotBlank(inlogCode))
 		{
-			sendPasswordResetMail(huisarts);
+			mailService.sendPasswordResetMail(huisarts);
 		}
 		return huisarts;
 	}
@@ -195,7 +185,7 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 		}
 		if (locatie == null && dto.getHuisartsportaalId() != null)
 		{
-			locatie = cervixHuisartsSyncDao.locatieFindByHuisartsportaalId(dto.getHuisartsportaalId());
+			locatie = huisartsSyncDao.locatieFindByHuisartsportaalId(dto.getHuisartsportaalId());
 		}
 		if (locatie == null)
 		{
@@ -268,7 +258,7 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 		}
 		if (adres == null && dto.getHuisartsportaalId() != null)
 		{
-			adres = cervixHuisartsSyncDao.adresFindByHuisartsportaalId(dto.getHuisartsportaalId());
+			adres = huisartsSyncDao.adresFindByHuisartsportaalId(dto.getHuisartsportaalId());
 		}
 		if (adres == null)
 		{
@@ -309,7 +299,7 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 	public void updateHuisarts(HuisartsDto huisartsDto)
 	{
 		var mutatieDatum = currentDateSupplier.getDate();
-		CervixHuisarts arts = setHuisarts(huisartsDto, mutatieDatum);
+		CervixHuisarts arts = updateAndGetHuisarts(huisartsDto, mutatieDatum);
 	}
 
 	@Override
@@ -324,7 +314,7 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 		}
 		if (locatie == null && aanvraagDto.getLocatie() != null && aanvraagDto.getLocatie().getHuisartsportaalId() != null)
 		{
-			locatie = cervixHuisartsSyncDao.locatieFindByHuisartsportaalId(aanvraagDto.getLocatie().getHuisartsportaalId());
+			locatie = huisartsSyncDao.locatieFindByHuisartsportaalId(aanvraagDto.getLocatie().getHuisartsportaalId());
 		}
 		if (locatie != null)
 		{
@@ -368,71 +358,6 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 	}
 
 	@Override
-	public void sendPasswordResetMail(CervixHuisarts huisarts)
-	{
-		if (huisarts != null && StringUtils.isNotBlank(huisarts.getEmail()))
-		{
-			var defaultPasswordResetMail = "Geachte {aanhef}{tussenvoegsel}{achternaam} <br><br>"
-				+ "U heeft een nieuw wachtwoord aangevraagd. U kunt via deze {link} en inlogcode: {code} uw wachtwoord opnieuw instellen. <br><br> Met vriendelijke groet, <br> Het ScreenIT-team";
-			var passwordResetMail = preferenceService.getString(PreferenceKey.HUISARTS_WACHTWOORD_EMAIL.name(), defaultPasswordResetMail);
-
-			var medewerker = huisarts.getOrganisatieMedewerkers().get(0).getMedewerker();
-			var aanhef = "";
-			if (medewerker.getAanhef() != null)
-			{
-				aanhef = " " + medewerker.getAanhef().getNaam();
-			}
-
-			var titel = "";
-			if (medewerker.getTitel() != null)
-			{
-				titel = " " + medewerker.getTitel().getNaam();
-			}
-
-			var achternaam = "";
-			if (StringUtils.isNotBlank(medewerker.getAchternaam()))
-			{
-				achternaam = " " + medewerker.getAchternaam();
-			}
-
-			var tussenvoegsel = "";
-			if (StringUtils.isNotBlank(medewerker.getTussenvoegsel()))
-			{
-				tussenvoegsel = " " + medewerker.getTussenvoegsel();
-			}
-
-			var voorletters = "";
-			if (StringUtils.isNotBlank(medewerker.getVoorletters()))
-			{
-				voorletters = " " + medewerker.getVoorletters();
-			}
-
-			var code = "";
-			if (StringUtils.isNotBlank(medewerker.getWachtwoordChangeCode()))
-			{
-				code = medewerker.getWachtwoordChangeCode();
-			}
-
-			var link = "";
-			if (StringUtils.isNotBlank(huisartsPortaalUrl))
-			{
-				link = "<a href=\"" + huisartsPortaalUrl + "#/wachtwoordvergeten/registreren/\">link</a>";
-
-			}
-			passwordResetMail = passwordResetMail.replaceAll("\\{aanhef\\}", aanhef);
-			passwordResetMail = passwordResetMail.replaceAll("\\{titel\\}", titel);
-			passwordResetMail = passwordResetMail.replaceAll("\\{achternaam\\}", achternaam);
-			passwordResetMail = passwordResetMail.replaceAll("\\{tussenvoegsel\\}", tussenvoegsel);
-			passwordResetMail = passwordResetMail.replaceAll("\\{voorletters\\}", voorletters);
-			passwordResetMail = passwordResetMail.replaceAll("\\{link\\}", link);
-			passwordResetMail = passwordResetMail.replaceAll("\\{code\\}", code);
-
-			var passwordResetMailSubject = preferenceService.getString(PreferenceKey.HUISARTS_WACHTWOORD_EMAILSUBJECT.name(), "Huisartsenportaal - Wachtwoord vergeten");
-			mailService.queueMail(huisarts.getEmail(), passwordResetMailSubject, passwordResetMail);
-		}
-	}
-
-	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void updateLocatie(LocatieDto locatieDto)
 	{
@@ -456,7 +381,7 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 		}
 		else if (aanvraag == null && aanvraagDto.getHuisartsportaalId() != null)
 		{
-			aanvraag = cervixHuisartsSyncDao.aanvraagFindByHuisartsportaalId(aanvraagDto.getHuisartsportaalId());
+			aanvraag = huisartsSyncDao.aanvraagFindByHuisartsportaalId(aanvraagDto.getHuisartsportaalId());
 		}
 		if (aanvraag == null)
 		{

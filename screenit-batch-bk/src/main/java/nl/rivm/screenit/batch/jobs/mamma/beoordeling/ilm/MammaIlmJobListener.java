@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,7 +39,7 @@ import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.model.logging.MammaIlmLogEvent;
 import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaIlmBeeldenStatusRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaIlmBeeldenStatusRapportageEntry;
-import nl.rivm.screenit.service.InstellingService;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -70,7 +70,7 @@ public class MammaIlmJobListener extends BaseLogListener
 
 	private final HibernateService hibernateService;
 
-	private final InstellingService instellingService;
+	private final OrganisatieParameterService organisatieParameterService;
 
 	@Override
 	protected void beforeStarting(JobExecution jobExecution)
@@ -192,12 +192,12 @@ public class MammaIlmJobListener extends BaseLogListener
 
 	private void putOrganisatieParametersInExecutionContext(OrganisatieParameterKey key)
 	{
-		getJobExecution().getExecutionContext().put(key.name(), instellingService.getOrganisatieParameter(null, key));
+		getJobExecution().getExecutionContext().put(key.name(), organisatieParameterService.getOrganisatieParameter(null, key));
 	}
 
 	private void putTimeInExecutionContext()
 	{
-		Integer minutes = instellingService.getOrganisatieParameter(null, OrganisatieParameterKey.MAMMA_ILM_MAX_TIJD_MINUTEN);
+		Integer minutes = organisatieParameterService.getOrganisatieParameter(null, OrganisatieParameterKey.MAMMA_ILM_MAX_TIJD_MINUTEN);
 
 		if (minutes != null)
 		{

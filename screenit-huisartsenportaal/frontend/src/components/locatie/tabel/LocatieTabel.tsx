@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -18,11 +18,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
+import React, {useState} from "react"
 import styles from "./LocatieTabel.module.scss"
 import properties from "./LocatieTabel.json"
 import {getString} from "../../../util/TekstPropertyUtil"
 import {useAppSelector, useAppThunkDispatch} from "../../../index"
-import {useState} from "react"
 import {LocatieDto, LocatieStatus} from "../../../state/datatypes/dto/LocatieDto"
 import LocatieStatusComponent from "../status/LocatieStatusComponent"
 import LocatieVerwijderenModal from "../verwijderen/LocatieVerwijderenModal"

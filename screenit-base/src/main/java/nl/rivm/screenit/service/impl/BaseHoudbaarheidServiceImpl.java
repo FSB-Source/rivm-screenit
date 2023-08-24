@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.service.impl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +21,7 @@ package nl.rivm.screenit.service.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.util.Date;
 
 import nl.rivm.screenit.PreferenceKey;
@@ -29,9 +29,9 @@ import nl.rivm.screenit.dao.BaseHoudbaarheidDao;
 import nl.rivm.screenit.model.AbstractHoudbaarheid;
 import nl.rivm.screenit.service.BaseHoudbaarheidService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -59,18 +59,17 @@ public class BaseHoudbaarheidServiceImpl implements BaseHoudbaarheidService
 	}
 
 	@Override
-	public DateTime getMinstensHoudbaarTotMet(DateTime nu, PreferenceKey minimaleHoudbaarheidMonstersVoorControleKey)
+	public LocalDate getMinstensHoudbaarTotMet(LocalDate vandaag, PreferenceKey minimaleHoudbaarheidMonstersVoorControleKey)
 	{
 		Integer periodeMinimaleHoudbaarheidIfobtMonstersVoorControle = simplePreferenceService.getInteger(minimaleHoudbaarheidMonstersVoorControleKey.name());
 		if (periodeMinimaleHoudbaarheidIfobtMonstersVoorControle == null)
 		{
-			periodeMinimaleHoudbaarheidIfobtMonstersVoorControle = Integer.valueOf(61);
+			periodeMinimaleHoudbaarheidIfobtMonstersVoorControle = 61;
 		}
 		else
 		{
 			periodeMinimaleHoudbaarheidIfobtMonstersVoorControle++;
 		}
-		DateTime minstensHoudbaarTotMet = nu.plusDays(periodeMinimaleHoudbaarheidIfobtMonstersVoorControle).withTimeAtStartOfDay().toDateTime();
-		return minstensHoudbaarTotMet;
+		return vandaag.plusDays(periodeMinimaleHoudbaarheidIfobtMonstersVoorControle);
 	}
 }

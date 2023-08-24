@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.review;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,11 +24,12 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.review;
 import java.util.List;
 
 import nl.rivm.screenit.main.service.mamma.MammaConclusieReviewService;
-import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.AbstractMammaBeoordelenPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.werklijst.MiniWerklijstPanel;
+import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaConclusieReview;
+import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.model.IModel;
@@ -40,9 +41,13 @@ public class MammaConclusieReviewMiniWerklijstPanel extends MiniWerklijstPanel
 	@SpringBean
 	private MammaConclusieReviewService conclusieReviewService;
 
-	public MammaConclusieReviewMiniWerklijstPanel(String id, AbstractMammaBeoordelenPage parent, Long huidigeBeoordelingId, List<Long> beoordelingenIds)
+	private final IModel<InstellingGebruiker> radioloogModel;
+
+	public MammaConclusieReviewMiniWerklijstPanel(String id, AbstractMammaBeoordelenPage parent, Long huidigeBeoordelingId, List<Long> beoordelingenIds,
+		IModel<InstellingGebruiker> radioloog)
 	{
 		super(id, parent, huidigeBeoordelingId, beoordelingenIds);
+		this.radioloogModel = radioloog;
 	}
 
 	@Override
@@ -54,9 +59,16 @@ public class MammaConclusieReviewMiniWerklijstPanel extends MiniWerklijstPanel
 			public IModel<String> getDataModel(IModel<MammaBeoordeling> beoordelingModel)
 			{
 				MammaConclusieReview conclusieReview = conclusieReviewService.getConclusieReview(beoordelingModel.getObject().getOnderzoek().getAfspraak().getUitnodiging()
-					.getScreeningRonde(), ScreenitSession.get().getLoggedInInstellingGebruiker());
+					.getScreeningRonde(), radioloogModel.getObject());
 				return conclusieReview.getReviewMoment() != null ? Model.of(getString("conclusie.gezien.status")) : Model.of(getString("conclusie.niet.gezien.status"));
 			}
 		};
+	}
+
+	@Override
+	public void onDetach()
+	{
+		super.onDetach();
+		ModelUtil.nullSafeDetach(radioloogModel);
 	}
 }

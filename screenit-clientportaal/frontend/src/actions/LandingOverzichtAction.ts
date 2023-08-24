@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,4 +29,4 @@ export type LandingOverzichtAction = { type: 'LANDING_OVERZICHT', overzicht: Lan
 export const createLandingOverzichtAction = (overzicht: LandingOverzicht): LandingOverzichtAction => ({
     type: LANDING_OVERZICHT,
     overzicht: overzicht
-}) as LandingOverzichtAction;
+} as LandingOverzichtAction);

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.dossier;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -43,9 +43,7 @@ import nl.rivm.screenit.main.web.gebruiker.clienten.verslag.ClientVerslagPage;
 import nl.rivm.screenit.main.web.gebruiker.clienten.verslag.ClientVerslagenPage;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
-import nl.rivm.screenit.model.berichten.Verslag;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -53,7 +51,6 @@ import nl.rivm.screenit.model.enums.GebeurtenisBron;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.project.ProjectClient;
-import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
@@ -98,9 +95,6 @@ public class ClientDossierPanel extends GenericPanel<Client>
 	private HibernateService hibernateService;
 
 	@SpringBean
-	private AutorisatieService autorisatieService;
-
-	@SpringBean
 	private ClientService clientService;
 
 	private final BootstrapDialog dialog;
@@ -119,7 +113,7 @@ public class ClientDossierPanel extends GenericPanel<Client>
 
 		InstellingGebruiker loggedInInstellingGebruiker = ScreenitSession.get().getLoggedInInstellingGebruiker();
 
-		IModel<ClientDossierFilter> zoekObjectModel = null;
+		IModel<ClientDossierFilter> zoekObjectModel;
 		if (!ScreenitSession.get().isZoekObjectGezetForComponent(ClientPage.class))
 		{
 			List<Bevolkingsonderzoek> bevolkingsonderzoeken = loggedInInstellingGebruiker.getBevolkingsonderzoeken();
@@ -147,7 +141,7 @@ public class ClientDossierPanel extends GenericPanel<Client>
 		add(contactBvoFilter);
 		add(new ClientPaspoortPanel("passpoort", model));
 
-		IndicatingAjaxLink<Void> contactAanmaken = new IndicatingAjaxLink<Void>("contactAanmaken")
+		IndicatingAjaxLink<Void> contactAanmaken = new IndicatingAjaxLink<>("contactAanmaken")
 		{
 
 			@Override
@@ -176,7 +170,7 @@ public class ClientDossierPanel extends GenericPanel<Client>
 	{
 		dossierModel = new DetachableListModel<>(dossierService.getScreeningRondeGebeurtenissen((Client) ClientDossierPanel.this.getDefaultModelObject(), clientDossierFilter));
 
-		ListView<ScreeningRondeGebeurtenissen> listView = new ListView<ScreeningRondeGebeurtenissen>("rondes", dossierModel)
+		ListView<ScreeningRondeGebeurtenissen> rondeListView = new ListView<>("rondes", dossierModel)
 		{
 
 			@Override
@@ -208,14 +202,14 @@ public class ClientDossierPanel extends GenericPanel<Client>
 				item.add(new Label("gepusht", "Gepusht").setVisible(gepushtbadge));
 			}
 		};
-		listView.setOutputMarkupId(true);
-		return listView;
+		rondeListView.setOutputMarkupId(true);
+		return rondeListView;
 	}
 
 	private void maakColonGebeurtenissen(final ClientDossierFilter clientDossierFilter, ListItem<ScreeningRondeGebeurtenissen> item)
 	{
-		item.add(new PropertyListView<ScreeningRondeGebeurtenis>("gebeurtenissen",
-			new SortingListModel<ScreeningRondeGebeurtenis>(new PropertyModel<List<ScreeningRondeGebeurtenis>>(item.getModel(), "gebeurtenissen"), new GebeurtenisComparator()))
+		item.add(new PropertyListView<>("gebeurtenissen",
+			new SortingListModel<>(new PropertyModel<>(item.getModel(), "gebeurtenissen"), new GebeurtenisComparator()))
 		{
 
 			@Override
@@ -237,11 +231,11 @@ public class ClientDossierPanel extends GenericPanel<Client>
 					|| (gebeurtenis.equals(TypeGebeurtenis.UITSLAGCOLOSCOPIEONTVANGEN) || gebeurtenis.equals(TypeGebeurtenis.UITSLAGPATHOLOGIEONTVANGEN))
 					&& ScreenitSession.get().getAuthorizationStrategy().isInstantiationAuthorized(ClientVerslagenPage.class))
 				{
-					item.add(new AttributeAppender("class", new Model<String>("badge-clickable"), " "));
+					item.add(new AttributeAppender("class", new Model<>("badge-clickable"), " "));
 				}
 				else
 				{
-					item.add(new AttributeAppender("class", new Model<String>("badge-not-clickable"), " "));
+					item.add(new AttributeAppender("class", new Model<>("badge-not-clickable"), " "));
 				}
 
 				addExtraOmschrijvingItem(item);
@@ -309,7 +303,7 @@ public class ClientDossierPanel extends GenericPanel<Client>
 
 	private void maakCervixGebeurtenissen(final ClientDossierFilter clientDossierFilter, ListItem<ScreeningRondeGebeurtenissen> item)
 	{
-		item.add(new PropertyListView<ScreeningRondeGebeurtenis>("gebeurtenissen",
+		item.add(new PropertyListView<>("gebeurtenissen",
 			new SortingListModel<>(new PropertyModel<>(item.getModel(), "gebeurtenissen"), new GebeurtenisComparator()))
 		{
 			@Override
@@ -358,7 +352,7 @@ public class ClientDossierPanel extends GenericPanel<Client>
 						}
 					});
 				}
-				ScreeningRonde cervixScreeningRonde = screeningRondeGebeurtenis.getScreeningRondeGebeurtenissen().getScreeningRonde();
+				var cervixScreeningRonde = screeningRondeGebeurtenis.getScreeningRondeGebeurtenissen().getScreeningRonde();
 				if (gebeurtenis.equals(TypeGebeurtenis.AFGEROND))
 				{
 					item.add(new AttributeAppender("class", " badge-inverse"));
@@ -373,7 +367,7 @@ public class ClientDossierPanel extends GenericPanel<Client>
 
 	private void maakMammaGebeurtenissen(final ClientDossierFilter clientDossierFilter, ListItem<ScreeningRondeGebeurtenissen> item)
 	{
-		item.add(new PropertyListView<ScreeningRondeGebeurtenis>("gebeurtenissen",
+		item.add(new PropertyListView<>("gebeurtenissen",
 			new SortingListModel<>(new PropertyModel<>(item.getModel(), "gebeurtenissen"), new GebeurtenisComparator()))
 		{
 			@Override
@@ -442,7 +436,7 @@ public class ClientDossierPanel extends GenericPanel<Client>
 					});
 				}
 
-				ScreeningRonde mammaScreeningRonde = screeningRondeGebeurtenis.getScreeningRondeGebeurtenissen().getScreeningRonde();
+				var mammaScreeningRonde = screeningRondeGebeurtenis.getScreeningRondeGebeurtenissen().getScreeningRonde();
 				if (gebeurtenis.equals(TypeGebeurtenis.AFGEROND))
 				{
 					item.add(new AttributeAppender("class", " badge-inverse"));
@@ -463,7 +457,7 @@ public class ClientDossierPanel extends GenericPanel<Client>
 			@Override
 			protected void onEvent(AjaxRequestTarget target)
 			{
-				Verslag verslag = item.getModelObject().getVerslag();
+				var verslag = item.getModelObject().getVerslag();
 				setResponsePage(new ClientVerslagPage(ModelUtil.dModel(verslag)));
 			}
 		});

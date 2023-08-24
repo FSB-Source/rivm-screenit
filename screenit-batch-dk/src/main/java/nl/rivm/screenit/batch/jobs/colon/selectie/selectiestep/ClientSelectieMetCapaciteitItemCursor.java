@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,6 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -52,16 +51,12 @@ public class ClientSelectieMetCapaciteitItemCursor implements ClientSelectieItem
 
 	private final ColonClientSelectieContext selectieContext;
 
-	private final LocalDate vandaag;
-
 	private CountDownLatch latch = null;
 
-	public ClientSelectieMetCapaciteitItemCursor(ColonClientSelectieContext selectieContext, Collection<ColonUitnodigingsgebiedSelectieContext> uitnodigingsgebieden,
-		LocalDate vandaag)
+	public ClientSelectieMetCapaciteitItemCursor(ColonClientSelectieContext selectieContext, Collection<ColonUitnodigingsgebiedSelectieContext> uitnodigingsgebieden)
 	{
 		this.selectieContext = selectieContext;
 		this.alleUitnodigingsgebieden = uitnodigingsgebieden;
-		this.vandaag = vandaag;
 
 		startSelectieThreads(uitnodigingsgebieden);
 	}
@@ -83,13 +78,12 @@ public class ClientSelectieMetCapaciteitItemCursor implements ClientSelectieItem
 
 	private void selecteerClientenVoorUitnodigingsgebied(ColonUitnodigingsgebiedSelectieContext uitnodigingsgebied)
 	{
-		String ugNaam = "(" + uitnodigingsgebied.getUitnodigingsgebiedId() + ")";
+		String uitnodigingsgebiedNaam = uitnodigingsgebied.getUitnodigingsgebiedNaam();
+		LOG.info("Selectie voor uitnodigingsgebied '{}' (id: '{}') is gestart.", uitnodigingsgebiedNaam, uitnodigingsgebied.getUitnodigingsgebiedId());
 		ClientSelectieMetCapaciteitPerGebiedItemCursor cursor = null;
 		try
 		{
-			cursor = new ClientSelectieMetCapaciteitPerGebiedItemCursor(selectieContext, uitnodigingsgebied, vandaag);
-			ugNaam = cursor.getUitnodigingsgebied().getNaam() + " " + ugNaam;
-			LOG.info("Selectie voor uitnodigingsgebied " + ugNaam + " is gestart.");
+			cursor = new ClientSelectieMetCapaciteitPerGebiedItemCursor(selectieContext, uitnodigingsgebied);
 
 			ClientCategorieEntry clientCategorieEntry;
 			while (cursor.hasNext() && !cursorClosed)
@@ -112,7 +106,7 @@ public class ClientSelectieMetCapaciteitItemCursor implements ClientSelectieItem
 		}
 		catch (Exception e)
 		{
-			LOG.error("Fout in selectie voor uitnodigingsgebied " + ugNaam, e);
+			LOG.error("Fout in selectie voor uitnodigingsgebied '{}'", uitnodigingsgebiedNaam, e);
 		}
 		finally
 		{
@@ -120,7 +114,7 @@ public class ClientSelectieMetCapaciteitItemCursor implements ClientSelectieItem
 			{
 				cursor.close();
 			}
-			LOG.info("Selectie voor uitnodigingsgebied " + ugNaam + " is afgerond.");
+			LOG.info("Selectie voor uitnodigingsgebied '{}' is afgerond.", uitnodigingsgebiedNaam);
 		}
 	}
 
@@ -210,6 +204,7 @@ public class ClientSelectieMetCapaciteitItemCursor implements ClientSelectieItem
 	@Override
 	public void saveState(ExecutionContext context)
 	{
+
 	}
 
 	@Override

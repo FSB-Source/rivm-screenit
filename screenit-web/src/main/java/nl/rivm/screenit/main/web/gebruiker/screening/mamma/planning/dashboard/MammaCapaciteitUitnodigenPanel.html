@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -39,16 +39,15 @@
                         <div class="controls">
                             <div class="btn-group periode-filter">
                                 <div class="input-append">
-                                    <input name="uitnodigenTotEnMet" wicket:id="uitnodigenTotEnMet" type="text"
-                                           placeholder="dd-mm-jaar" size="16" id="uitnodigenTotEnMet"
-                                           class="input-small datum datum three-months"/>
-                                    <a href="javascript:void(0);" class="add-on"
-                                       onclick="$(this).prev().datepicker('show');"
-                                       title="UitnodigenTotEnMet"
-                                       tabindex="-1">
-                                        <i class="icon-calendar"></i>
-                                    </a>
-                                </div>
+									<input name="uitnodigenTotEnMet" wicket:id="uitnodigenTotEnMet" type="text"
+										   placeholder="dd-mm-jaar" size="16" id="uitnodigenTotEnMet"
+										   class="input-small datum datum three-months"/>
+									<a  class="add-on js-datepicker-show"
+									   title="UitnodigenTotEnMet"
+									   tabindex="-1">
+										<i class="icon-calendar"></i>
+									</a>
+								</div>
                             </div>
                         </div>
                     </div>
@@ -60,12 +59,11 @@
                                     <input name="vrijgevenTotEnMet" wicket:id="vrijgegevenTotEnMet" type="text"
                                            placeholder="dd-mm-jaar" size="16" id="vrijgevenTotEnMet"
                                            class="input-small datum datum three-months"/>
-                                    <a href="javascript:void(0);" class="add-on"
-                                       onclick="$(this).prev().datepicker('show');"
-                                       title="VrijgevenTotEnMet"
-                                       tabindex="-1">
-                                        <i class="icon-calendar"></i>
-                                    </a>
+									<a  class="add-on js-datepicker-show"
+									   title="VrijgevenTotEnMet"
+									   tabindex="-1">
+										<i class="icon-calendar"></i>
+									</a>
                                 </div>
                             </div>
                         </div>

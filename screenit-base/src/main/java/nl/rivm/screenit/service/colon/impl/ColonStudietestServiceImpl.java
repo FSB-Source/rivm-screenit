@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -42,7 +42,7 @@ import nl.rivm.screenit.service.colon.ColonStudietestService;
 import nl.rivm.screenit.service.colon.ColonUitnodigingService;
 import nl.rivm.screenit.service.colon.IFobtService;
 import nl.rivm.screenit.service.impl.ProjectUitslagenUploadException;
-import nl.rivm.screenit.util.IFOBTTestUtil;
+import nl.rivm.screenit.util.FITTestUtil;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -80,7 +80,7 @@ public class ColonStudietestServiceImpl implements ColonStudietestService
 	public Boolean studietestHeraanmeldenIndienNodig(IFOBTTest studietest)
 	{
 		boolean clientIsHeraangemeld = false;
-		ColonUitnodiging uitnodiging = IFOBTTestUtil.getUitnodiging(studietest);
+		ColonUitnodiging uitnodiging = FITTestUtil.getUitnodiging(studietest);
 
 		if (uitnodiging != null)
 		{
@@ -133,7 +133,7 @@ public class ColonStudietestServiceImpl implements ColonStudietestService
 
 	private void geefFoutAlsFITNietVerwerktIs(IFOBTTest studietest) throws ProjectUitslagenUploadException
 	{
-		ColonUitnodiging uitnodiging = IFOBTTestUtil.getUitnodiging(studietest);
+		ColonUitnodiging uitnodiging = FITTestUtil.getUitnodiging(studietest);
 		IFOBTTest reguliereTest = uitnodiging.getGekoppeldeTest();
 
 		if (!reguliereTest.getStatus().equals(IFOBTTestStatus.UITGEVOERD))
@@ -165,9 +165,9 @@ public class ColonStudietestServiceImpl implements ColonStudietestService
 	private void geefFoutAlsOngunstigeUitslagVerstuurdIs(IFOBTTest studietest) throws ProjectUitslagenUploadException
 	{
 		ColonIntakeAfspraak afspraak = studietest.getColonScreeningRonde().getLaatsteAfspraak();
-		ColonUitnodiging uitnodiging = IFOBTTestUtil.getUitnodiging(studietest);
+		ColonUitnodiging uitnodiging = FITTestUtil.getUitnodiging(studietest);
 		IFOBTTest reguliereTest = uitnodiging.getGekoppeldeTest();
-		if (IFOBTTestUtil.isGunstig(reguliereTest) && afspraak != null)
+		if (FITTestUtil.isGunstig(reguliereTest) && afspraak != null)
 		{
 			throw new ProjectUitslagenUploadException("De intake afspraak is ingepland, de uitslag van de studietest kan niet gewijzigd worden");
 		}
@@ -175,7 +175,7 @@ public class ColonStudietestServiceImpl implements ColonStudietestService
 
 	private void geefFoutBijVerstrekenWachttijd(IFOBTTest studietest) throws ProjectUitslagenUploadException
 	{
-		ColonUitnodiging uitnodiging = IFOBTTestUtil.getUitnodiging(studietest);
+		ColonUitnodiging uitnodiging = FITTestUtil.getUitnodiging(studietest);
 		if (uitnodiging != null && uitnodiging.getUitgesteldeUitslagDatum() != null && uitnodiging.getUitgesteldeUitslagDatum().before(currentDateSupplier.getDate()))
 		{
 			throw new ProjectUitslagenUploadException("De wachtperiode is verstreken");

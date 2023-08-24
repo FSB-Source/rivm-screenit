@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.popups;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.popups;
 import java.util.List;
 
 import nl.rivm.screenit.dao.cervix.CervixBaseTestTimelineDao;
-import nl.rivm.screenit.dao.cervix.CervixHuisartsBaseDao;
+import nl.rivm.screenit.main.dao.cervix.CervixHuisartsDao;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
@@ -56,10 +56,10 @@ public class TestCervixHuisartsKoppelenPopup extends TestCervixUitnodigingenPopu
 	private WebMarkupContainer agbCodeContainer;
 
 	@SpringBean
-	private CervixHuisartsBaseDao cervixHuisartsBaseDao;
+	private CervixHuisartsDao huisartsDao;
 
 	@SpringBean
-	private CervixBaseTestTimelineDao cervixBaseTestTimelineDao;
+	private CervixBaseTestTimelineDao testTimelineDao;
 
 	@SpringBean
 	private HibernateService hiberateService;
@@ -124,7 +124,7 @@ public class TestCervixHuisartsKoppelenPopup extends TestCervixUitnodigingenPopu
 			CervixLabformulier formulier = uitstrijkje.getLabformulier();
 			if (eersteHuisartsCheckModel.getObject())
 			{
-				List<CervixHuisartsLocatie> locaties = cervixBaseTestTimelineDao.getFirstCervixHuisartsLocatie();
+				List<CervixHuisartsLocatie> locaties = testTimelineDao.getFirstCervixHuisartsLocatie();
 				if (CollectionUtils.isEmpty(locaties))
 				{
 					error("Er zit op dit moment geen actieve huisarts met locatie in de database, maak er een aan.");
@@ -135,15 +135,15 @@ public class TestCervixHuisartsKoppelenPopup extends TestCervixUitnodigingenPopu
 			}
 			else
 			{
-				CervixHuisarts huisarts = cervixHuisartsBaseDao.getHuisarts(agbCodeModel.getObject());
+				CervixHuisarts huisarts = huisartsDao.getHuisarts(agbCodeModel.getObject());
 				if (huisarts == null)
 				{
 					error("Geen huisarts gevonden met deze agbcode.");
 					return;
 				}
-				if (CollectionUtils.isEmpty(huisarts.getHuisartsLocaties()))
+				if (huisartsDao.getActieveHuisartsLocatiesVanHuisarts(huisarts).isEmpty())
 				{
-					error("Er zijn nog geen locaties aan deze huisarts gekoppeld, voeg deze toe.");
+					error("Er zijn (nog) geen (active) locaties aan deze huisarts gekoppeld, voeg deze toe.");
 					return;
 				}
 				formulier.setHuisartsLocatie(huisarts.getHuisartsLocaties().get(0));

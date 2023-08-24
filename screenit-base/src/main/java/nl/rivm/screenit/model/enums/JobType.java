@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -97,7 +97,8 @@ public enum JobType
 	CERVIX_HERINNEREN(
 		BatchApplicationType.CERVIX,
 		new Bevolkingsonderzoek[] { CERVIX },
-		new OrganisatieParameterKey[] { OrganisatieParameterKey.CERVIX_MAX_AANTAL_HERINNERINGEN_UITSTRIJKJE, OrganisatieParameterKey.CERVIX_MAX_AANTAL_HERINNERINGEN_ZAS }),
+		new OrganisatieParameterKey[] { OrganisatieParameterKey.CERVIX_MAX_AANTAL_HERINNERINGEN_UITSTRIJKJE, OrganisatieParameterKey.CERVIX_MAX_AANTAL_HERINNERINGEN_ZAS,
+			OrganisatieParameterKey.CERVIX_MAX_AANTAL_HERINNERINGEN_ZAS_NON_RESPONDER, OrganisatieParameterKey.CERVIX_MAX_AANTAL_HERINNERINGEN_ZAS_PU }),
 
 	CERVIX_HUISARTSBERICHTEN(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }),
 
@@ -128,6 +129,11 @@ public enum JobType
 		BatchApplicationType.CERVIX,
 		new Bevolkingsonderzoek[] { CERVIX },
 		new OrganisatieParameterKey[] { OrganisatieParameterKey.CERVIX_MAX_AANTAL_CLIENTEN_VERLATE_DEELNAME, OrganisatieParameterKey.CERVIX_PROJECT_VERLATE_DEELNAME }),
+
+	CERVIX_OUDE_NIET_INGESTUURDE_ZAS(
+		BatchApplicationType.CERVIX,
+		new Bevolkingsonderzoek[] { CERVIX },
+		new OrganisatieParameterKey[] { OrganisatieParameterKey.CERVIX_MAX_AANTAL_CLIENTEN_OUDE_ZAS, OrganisatieParameterKey.CERVIX_PROJECT_OUDE_ZAS }),
 
 	CERVIX_CONTROLE_MISSENDE_UITSLAGEN(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX },
 		new OrganisatieParameterKey[] { OrganisatieParameterKey.CERVIX_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN }),
@@ -184,9 +190,12 @@ public enum JobType
 
 	ILM_ALGEMENE_GEGEVENS_VERWIJDEREN(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { COLON, CERVIX, MAMMA }),
 
+	WACHTWOORD_VERLOOPT_HERINNERING(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { COLON, CERVIX, MAMMA }),
+
 	ENOVATION_HUISARTSEN_BATCH(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { COLON, MAMMA }),
 
 	SIGNALERING_GENDER(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { CERVIX, MAMMA }),
+
 	;
 
 	private static Set<JobType> getJobTypes(BatchApplicationType batchApplicationType)

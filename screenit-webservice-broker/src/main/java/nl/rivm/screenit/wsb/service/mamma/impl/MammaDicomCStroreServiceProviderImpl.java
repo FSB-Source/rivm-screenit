@@ -4,7 +4,7 @@ package nl.rivm.screenit.wsb.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,7 +30,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-import javax.annotation.PostConstruct;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.model.enums.BestandStatus;
@@ -40,6 +41,7 @@ import nl.rivm.screenit.model.mamma.dicom.SCPConfig;
 import nl.rivm.screenit.service.mamma.MammaBaseUitwisselportaalService;
 import nl.topicuszorg.hibernate.criteria.BaseCriteria;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5Session;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang.StringUtils;
@@ -66,21 +68,20 @@ import org.dcm4che3.util.StreamUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.orm.hibernate5.SessionHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+@Slf4j
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
-public class MammaDicomCStroreServiceProviderImpl
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+public class MammaDicomCStroreServiceProviderImpl implements ApplicationListener<ContextRefreshedEvent>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaDicomCStroreServiceProviderImpl.class);
-
 	@Autowired
 	private SessionFactory sessionFactory;
 
@@ -93,13 +94,22 @@ public class MammaDicomCStroreServiceProviderImpl
 	@Autowired
 	private MammaBaseUitwisselportaalService uitwisselPortaalService;
 
-	@PostConstruct
-	public void init()
+	private boolean doInit = true;
+
+	@Override
+	public void onApplicationEvent(@NonNull ContextRefreshedEvent contextRefreshedEvent)
 	{
-		String connectionString = preferenceService.getString(PreferenceKey.INTERNAL_MAMMA_IMS_DICOM_CMOVE_CONFIG.toString(),
-			"DICOM_QR_SCP@localhost:11114,SIT_STORE_SCP@localhost:11113");
-		CMoveConfig moveConfig = CMoveConfig.parse(connectionString);
-		startWachtenOpDicomBeelden(moveConfig.getStore());
+		if (doInit)
+		{
+			OpenHibernate5Session.withoutTransaction().run(() ->
+			{
+				String connectionString = preferenceService.getString(PreferenceKey.INTERNAL_MAMMA_IMS_DICOM_CMOVE_CONFIG.toString(),
+					"DICOM_QR_SCP@localhost:11114,SIT_STORE_SCP@localhost:11113");
+				CMoveConfig moveConfig = CMoveConfig.parse(connectionString);
+				startWachtenOpDicomBeelden(moveConfig.getStore());
+			});
+			doInit = false;
+		}
 	}
 
 	private void startWachtenOpDicomBeelden(SCPConfig storeSCPConfig)

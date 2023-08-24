@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.mamma.berichten;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,13 +21,21 @@ package nl.rivm.screenit.model.mamma.berichten;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import lombok.Setter;
+
+import nl.rivm.screenit.model.enums.MammaOnderzoekType;
+import nl.rivm.screenit.model.mamma.enums.MammaHL7OnderzoeksCode;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
+
+import org.apache.commons.lang.StringUtils;
 
 import ca.uhn.hl7v2.model.v24.message.ORM_O01;
 
+@Getter
+@Setter
 public class MammaHL7OntvangenBerichtWrapper
 {
-
 	private String bsn;
 
 	private Long accessionNumber;
@@ -37,6 +45,8 @@ public class MammaHL7OntvangenBerichtWrapper
 	private ORM_O01 message;
 
 	private MammaHL7v24ORMBerichtStatus status;
+
+	private MammaOnderzoekType onderzoekType;
 
 	public MammaHL7OntvangenBerichtWrapper(ORM_O01 message)
 	{
@@ -48,58 +58,32 @@ public class MammaHL7OntvangenBerichtWrapper
 	{
 		bsn = message.getPATIENT().getPID().getPid3_PatientIdentifierList(0).getCx1_ID().getValue();
 		accessionNumber = Long.valueOf(message.getORDER().getORDER_DETAIL().getOBR().getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().getValue());
-		String statusString = message.getORDER().getORDER_DETAIL().getOBR().getObr25_ResultStatus().getValue();
+		var statusString = message.getORDER().getORDER_DETAIL().getOBR().getObr25_ResultStatus().getValue();
 		status = MammaHL7v24ORMBerichtStatus.getEnumForLabel(statusString);
 		messageId = message.getMSH().getMessageControlID().getValue();
+		onderzoekType = parseOnderzoekType(message);
 	}
 
-	public void setBsn(String bsn)
+	private MammaOnderzoekType parseOnderzoekType(ORM_O01 message)
 	{
-		this.bsn = bsn;
-	}
+		var onderzoeksCodeString = message.getORDER().getORDER_DETAIL().getOBR().getObr4_UniversalServiceIdentifier().getCe1_Identifier().getValue();
+		if (StringUtils.isBlank(onderzoeksCodeString))
+		{
+			return null; 
+		}
 
-	public String getBsn()
-	{
-		return bsn;
-	}
+		var onderzoeksCode = MammaHL7OnderzoeksCode.valueOf(onderzoeksCodeString);
+		switch (onderzoeksCode)
+		{
+		case SCREENDBT:
+			return MammaOnderzoekType.TOMOSYNTHESE;
 
-	public void setAccessionNumber(Long accessionNumber)
-	{
-		this.accessionNumber = accessionNumber;
-	}
+		case ZHOND:
+		case MAMMO:
+			return MammaOnderzoekType.MAMMOGRAFIE;
 
-	public Long getAccessionNumber()
-	{
-		return accessionNumber;
-	}
-
-	public ORM_O01 getMessage()
-	{
-		return message;
-	}
-
-	public void setMessage(ORM_O01 message)
-	{
-		this.message = message;
-	}
-
-	public MammaHL7v24ORMBerichtStatus getStatus()
-	{
-		return status;
-	}
-
-	public void setStatus(MammaHL7v24ORMBerichtStatus status)
-	{
-		this.status = status;
-	}
-
-	public String getMessageId()
-	{
-		return messageId;
-	}
-
-	public void setMessageId(String messageId)
-	{
-		this.messageId = messageId;
+		default:
+			throw new IllegalArgumentException("Ongeldige onderzoekscode: " + onderzoeksCode);
+		}
 	}
 }

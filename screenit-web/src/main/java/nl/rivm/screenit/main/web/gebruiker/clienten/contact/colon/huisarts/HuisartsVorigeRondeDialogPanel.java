@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon.huisarts;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -121,10 +121,6 @@ public abstract class HuisartsVorigeRondeDialogPanel extends GenericPanel<ColonS
 				EnovationHuisarts ha = getGeselecteerdModel().getObject();
 				ColonScreeningRonde laatsteRonde = getModelObject();
 				laatsteRonde.setColonHuisarts(ha);
-				if (laatsteRonde.getOnbekendeHuisarts() != null)
-				{
-					laatsteRonde.setOnbekendeHuisarts(null);
-				}
 				getHuisartsWijzigenPanel().verversHuisarts(target);
 				close(target);
 			}

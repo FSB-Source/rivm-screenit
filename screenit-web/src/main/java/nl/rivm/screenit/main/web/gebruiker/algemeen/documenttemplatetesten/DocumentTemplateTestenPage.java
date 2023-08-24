@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,11 +24,9 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.form.FilterBvoFormPanel;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
@@ -40,6 +38,8 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.MergeFieldTestType;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.service.colon.afmeldbrief.ColonAfmeldDocumentCreator;
+import nl.rivm.screenit.util.EnumStringUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
@@ -103,19 +103,15 @@ public class DocumentTemplateTestenPage extends BaseDocumentTemplateTestenPage
 			visibleBriefTypes.remove(BriefType.CLIENT_BEZWAAR_AANVRAAG);
 			visibleBriefTypes.remove(BriefType.CLIENT_BEZWAAR_BEVESTIGING);
 			visibleBriefTypes.remove(BriefType.CLIENT_BEZWAAR_HANDTEKENING);
-			Comparator<BriefType> com = new Comparator<BriefType>()
+			Comparator<BriefType> com = (o1, o2) ->
 			{
-				@Override
-				public int compare(BriefType o1, BriefType o2)
-				{
-					String key1 = EnumStringUtil.getPropertyString(o1);
-					String key2 = EnumStringUtil.getPropertyString(o2);
-					String string1 = Bevolkingsonderzoek.getAfkortingen(o1.getOnderzoeken()) + " - " + getString(key1, null);
-					String string2 = Bevolkingsonderzoek.getAfkortingen(o2.getOnderzoeken()) + " - " + getString(key2, null);
-					return string1.compareTo(string2);
-				}
+				String key1 = EnumStringUtil.getPropertyString(o1);
+				String key2 = EnumStringUtil.getPropertyString(o2);
+				String string1 = Bevolkingsonderzoek.getAfkortingen(o1.getOnderzoeken()) + " - " + getString(key1, null);
+				String string2 = Bevolkingsonderzoek.getAfkortingen(o2.getOnderzoeken()) + " - " + getString(key2, null);
+				return string1.compareTo(string2);
 			};
-			Collections.sort(visibleBriefTypes, com);
+			visibleBriefTypes.sort(com);
 		}
 		return visibleBriefTypes;
 	}
@@ -129,6 +125,11 @@ public class DocumentTemplateTestenPage extends BaseDocumentTemplateTestenPage
 	@Override
 	protected Document proccesDocument(MailMergeContext context, File briefTemplate) throws Exception
 	{
+		if (context.getBrief() != null && (BriefType.COLON_AFMELDING_AANVRAAG == context.getBrief().getBriefType() || BriefType.COLON_AFMELDING_HANDTEKENING == context.getBrief()
+			.getBriefType()))
+		{
+			return asposeService.processDocumentWithCreator(context, briefTemplate, new ColonAfmeldDocumentCreator(List.of(2025, 2026)), true);
+		}
 		return asposeService.processDocument(briefTemplate, context);
 	}
 }

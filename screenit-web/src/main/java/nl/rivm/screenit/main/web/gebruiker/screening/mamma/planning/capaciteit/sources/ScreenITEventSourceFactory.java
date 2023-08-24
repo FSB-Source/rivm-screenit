@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit.
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -45,7 +45,6 @@ import nl.rivm.screenit.model.mamma.MammaCapaciteitBlok;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.enums.MammaCapaciteitBlokType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.service.mamma.MammaBaseCapaciteitsBlokService;
 import nl.rivm.screenit.service.mamma.MammaBaseConceptPlanningsApplicatie;
 import nl.rivm.screenit.util.DateUtil;
@@ -53,12 +52,9 @@ import nl.rivm.screenit.util.DateUtil;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.joda.time.DateTime;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class ScreenITEventSourceFactory implements Serializable
 {
-	private static final long serialVersionUID = 1L;
 
 	@SpringBean
 	private ICurrentDateSupplier dateSupplier;
@@ -69,10 +65,7 @@ public class ScreenITEventSourceFactory implements Serializable
 	@SpringBean
 	private MammaBaseCapaciteitsBlokService baseCapaciteitsBlokService;
 
-	@Autowired
-	private MammaBaseAfspraakService baseAfspraakService;
-
-	private IModel<MammaScreeningsEenheid> screeningsEenheidModel;
+	private final IModel<MammaScreeningsEenheid> screeningsEenheidModel;
 
 	private PlanningWeekDto weekDto;
 
@@ -123,25 +116,26 @@ public class ScreenITEventSourceFactory implements Serializable
 		return blokkades;
 	}
 
-	public void resetCapaciteit(DateTime weekStart)
+	public void resetCapaciteit(Date weekStart)
 	{
 		MammaScreeningsEenheid screeningsEenheid = screeningsEenheidModel.getObject();
 		weekDto = baseConceptPlanningsApplicatie.getWeek(screeningsEenheid, weekStart);
 
 		LocalDateTime nu = dateSupplier.getLocalDateTime();
-		Date start = weekStart.toDate();
-		if (nu.isAfter(DateUtil.toLocalDateTime(start)))
+		if (nu.isAfter(DateUtil.toLocalDateTime(weekStart)))
 		{
-			Date to = Collections.min(Arrays.asList(DateUtil.toUtilDate(nu), weekStart.plusDays(7).toDate()));
+			Date to = Collections.min(Arrays.asList(DateUtil.toUtilDate(nu), DateUtil.plusDagen(weekStart, 7)));
 
-			List<MammaCapaciteitBlok> blokken = baseCapaciteitsBlokService.getCapaciteitsBlokken(screeningsEenheid, start, to, true,
+			List<MammaCapaciteitBlok> blokken = baseCapaciteitsBlokService.getCapaciteitsBlokken(screeningsEenheid, weekStart, to, true,
 				Arrays.asList(MammaCapaciteitBlokType.values()));
 
 			final LocalDate prognoseVanafDatum = nu.toLocalTime().isBefore(Constants.BK_EINDTIJD_DAG) ? nu.toLocalDate() : nu.toLocalDate().plusDays(1);
 
-			weekDto.dagen.stream().filter(dagDto -> dagDto.datum.isBefore(prognoseVanafDatum)).forEach(dagDto -> {
+			weekDto.dagen.stream().filter(dagDto -> dagDto.datum.isBefore(prognoseVanafDatum)).forEach(dagDto ->
+			{
 				final AtomicLong totaalAantalOnderzoeken = new AtomicLong();
-				blokken.stream().filter(blok -> DateUtil.toLocalDate(blok.getVanaf()).equals(dagDto.datum)).forEach(blok -> {
+				blokken.stream().filter(blok -> DateUtil.toLocalDate(blok.getVanaf()).equals(dagDto.datum)).forEach(blok ->
+				{
 					PlanningCapaciteitBlokDto blokDto = new PlanningCapaciteitBlokDto();
 					blokDto.id = blok.getId();
 					blokDto.blokType = blok.getBlokType();

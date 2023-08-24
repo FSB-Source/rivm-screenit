@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.facturatie;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,26 +23,31 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.facturatie;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.cervix.CervixVerrichtingDao;
 import nl.rivm.screenit.dto.cervix.facturatie.CervixBetalingsZoekObject;
-import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
+import nl.rivm.screenit.main.web.component.HibernateIdChoiceRenderer;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
+import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
 import nl.rivm.screenit.main.web.gebruiker.gedeeld.cervix.CervixHerindexeringWaarschuwingPanel;
 import nl.rivm.screenit.main.web.gebruiker.screening.cervix.CervixScreeningBasePage;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.OrganisatieType;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.service.DistributedLockService;
+import nl.rivm.screenit.service.InstellingService;
+import nl.topicuszorg.organisatie.model.Organisatie;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -56,13 +61,19 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	constraint = ShiroConstraint.HasPermission,
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.CERVIX },
 	recht = { Recht.GEBRUIKER_SCREENING_BETALINGEN_BMHK },
-	organisatieTypeScopes = { OrganisatieType.SCREENINGSORGANISATIE },
+	organisatieTypeScopes = { OrganisatieType.RIVM },
 	checkScope = true)
 public class CervixBetalingPage extends CervixScreeningBasePage
 {
 
 	@SpringBean
 	private CervixVerrichtingDao verrichtingDao;
+
+	@SpringBean
+	private DistributedLockService lockService;
+
+	@SpringBean
+	private InstellingService instellingService;
 
 	private IModel<CervixBetalingsZoekObject> zoekObjectModel;
 
@@ -72,8 +83,6 @@ public class CervixBetalingPage extends CervixScreeningBasePage
 		zoekObject.setVerrichtingenHuisarts(true);
 		zoekObject.setVerrichtingenLaboratorium(true);
 		zoekObjectModel = new CompoundPropertyModel<>(zoekObject);
-		ScreeningOrganisatie organisatie = ScreenitSession.get().getScreeningOrganisatie();
-		zoekObjectModel.getObject().setScreeningOrganisatie(organisatie);
 
 		add(getFilterForm());
 	}
@@ -90,6 +99,40 @@ public class CervixBetalingPage extends CervixScreeningBasePage
 		form.add(verrichtingenLaboratoriumCheckbox);
 		CheckBox verrichtingenHuisartsCheckbox = ComponentHelper.newCheckBox("verrichtingenHuisarts");
 		form.add(verrichtingenHuisartsCheckbox);
+
+		var betalenButton = new IndicatingAjaxSubmitLink("betalen")
+		{
+			@Override
+			protected void onSubmit(AjaxRequestTarget target)
+			{
+				navigeerNaarBetalingOverzichtPaginaIndienNiemandAndersBezigIs();
+			}
+		};
+
+		betalenButton.setVisible(false);
+		betalenButton.setOutputMarkupPlaceholderTag(true);
+
+		form.add(betalenButton);
+
+		var teKiezenScreeningOrganisaties = instellingService.getAllActiefScreeningOrganisaties();
+
+		var screeningOrganisatieDropdown = new ScreenitDropdown<>("screeningOrganisatieId",
+			teKiezenScreeningOrganisaties.stream()
+				.map(Organisatie::getId)
+				.collect(Collectors.toList()),
+			new HibernateIdChoiceRenderer(teKiezenScreeningOrganisaties, "naam"));
+
+		screeningOrganisatieDropdown.add(new AjaxFormComponentUpdatingBehavior("change")
+		{
+			@Override
+			protected void onUpdate(AjaxRequestTarget target)
+			{
+				betalenButton.setVisible(zoekObjectModel.getObject().getScreeningOrganisatieId() != null);
+				target.add(betalenButton);
+			}
+		});
+
+		form.add(screeningOrganisatieDropdown);
 
 		form.add(new AbstractFormValidator()
 		{
@@ -111,30 +154,35 @@ public class CervixBetalingPage extends CervixScreeningBasePage
 			}
 		});
 
-		form.add(new IndicatingAjaxSubmitLink("betalen")
+		return form;
+	}
+
+	private void navigeerNaarBetalingOverzichtPaginaIndienNiemandAndersBezigIs()
+	{
+		if (lockService.verkrijgLockIndienBeschikbaar(Constants.BMHK_BETALING_GENEREREN_LOCKNAAM))
 		{
-			@Override
-			protected void onSubmit(AjaxRequestTarget target)
+			try
 			{
-				List<CervixBoekRegel> boekregels = verrichtingDao.getVerrichtingenVoorBetaling(zoekObjectModel.getObject(), null, -1, -1);
-				if (boekregels.size() == 0)
+				var boekregels = verrichtingDao.getVerrichtingenVoorBetaling(zoekObjectModel.getObject(), null, -1, -1);
+				if (boekregels.isEmpty())
 				{
 					info("Er zijn op dit moment geen verrichtingen meer die uitbetaald moeten worden.");
 				}
 				else
 				{
-					setResponsePage(new CervixBetalingOverzichtPage(boekregels));
+					setResponsePage(new CervixBetalingOverzichtPage(boekregels, zoekObjectModel.getObject().getScreeningOrganisatieId()));
+
 				}
 			}
-
-			@Override
-			public boolean isVisible()
+			finally
 			{
-				return zoekObjectModel.getObject().getScreeningOrganisatieId() != null;
+				lockService.unlock(Constants.BMHK_BETALING_GENEREREN_LOCKNAAM);
 			}
-		});
-
-		return form;
+		}
+		else
+		{
+			info(getString("info.bmhk.overzicht.genereren.al.in.gebruik"));
+		}
 	}
 
 	@Override

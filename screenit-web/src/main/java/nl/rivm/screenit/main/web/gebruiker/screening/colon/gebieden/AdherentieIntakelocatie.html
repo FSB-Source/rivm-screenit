@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -32,10 +32,11 @@
                         <div class="row-fluid">
                             <div class="span12 ">
                                 <div class="btn-top pull-right gebruiker">
-                                    <button style="margin:0 0 0 10px;" class="nieuweAdherentie btn btn-primary pull-right" wicket:id="toevoegen">Uitnodigingsgebied koppelen
-                                    </button>
-                                    <select class="nieuweAdherentie" wicket:id="gebieden"></select>
-                                </div>
+									<button class="nieuweAdherentie btn btn-primary pull-right margin-left-10px" wicket:id="toevoegen">
+										Uitnodigingsgebied koppelen
+									</button>
+									<select class="nieuweAdherentie" wicket:id="gebieden"></select>
+								</div>
                                 <legend>Adherentie</legend>
                             </div>
                         </div>
@@ -104,7 +105,7 @@
         <wicket:fragment wicket:id="controleResultaatFragment">
             <br>
             <div wicket:id="tooltipContainter">
-                <div wicket:id="tooltip" style="display: none;"></div>
+				<div wicket:id="tooltip" class="display-none"></div>
             </div>
             <div class="row-fluid">
                 <div class="span12">
@@ -119,7 +120,7 @@
                     <table class="table table-bordered table-condensed static">
                         <thead>
                         <tr>
-                            <th style="text-align:right">Intakelocaties</th>
+							<th class="text-right">Intakelocaties</th>
                             <th colspan=2 wicket:id="intakelocaties">
                                 <wicket:container wicket:id="naam"></wicket:container>
                             </th>
@@ -137,7 +138,7 @@
                         </thead>
                         <tbody>
                         <tr wicket:id="gebieden">
-                            <td style="vertical-align: top;" wicket:id="naam">Gebied 1</td>
+							<td class="vertical-align-top" wicket:id="naam">Gebied 1</td>
                             <wicket:container wicket:id="intakelocaties">
                                 <td wicket:id="verschilOud"></td>
                                 <td wicket:id="verschilNieuw"></td>

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jms.listener;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,9 +23,10 @@ package nl.rivm.screenit.batch.jms.listener;
 
 import javax.jms.Session;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import nl.rivm.screenit.batch.service.MammaAfgebrokenDownloadOnderzoekCleanupService;
 import nl.rivm.screenit.batch.service.MammaVerzamelDownloadOnderzoekDataService;
 
 import org.apache.activemq.command.ActiveMQTextMessage;
@@ -37,10 +38,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS)
 @Slf4j
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class JMSVerzamelOnderzoekDataBerichtListener implements SessionAwareMessageListener<ActiveMQTextMessage>
 {
 	private final MammaVerzamelDownloadOnderzoekDataService verzamelDownloadOnderzoekDataService;
+
+	private final MammaAfgebrokenDownloadOnderzoekCleanupService cleanupService;
+
+	private boolean cleanupServiceGedraaid = false;
 
 	@Override
 	public void onMessage(ActiveMQTextMessage message, Session session)
@@ -48,11 +53,22 @@ public class JMSVerzamelOnderzoekDataBerichtListener implements SessionAwareMess
 		LOG.info("Verzamelen van onderzoekensdata is getriggerd.");
 		try
 		{
+			draaiCleanupServiceBijEersteAanroep();
+
 			verzamelDownloadOnderzoekDataService.getAlleVerzamelDownloadOnderzoekDataVerzoeken().forEach(verzamelDownloadOnderzoekDataService::verzamelOnderzoekData);
 		}
 		catch (Exception e)
 		{
 			LOG.error("Fout bij afwerken van downloadverzoeken", e);
+		}
+	}
+
+	private void draaiCleanupServiceBijEersteAanroep()
+	{
+		if (!cleanupServiceGedraaid)
+		{
+			cleanupService.checkAfgebrokenDownloadOnderzoekenVerzoekEnRuimOp();
+			cleanupServiceGedraaid = true;
 		}
 	}
 

@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -89,7 +89,7 @@ public class MammaBaseVerslagServiceImpl implements MammaBaseVerslagService
 	}
 
 	@Override
-	public void verslagNaarFileStoreSchrijven(MammaBeoordeling beoordeling) throws Exception
+	public void  verslagNaarFileStoreSchrijven(MammaBeoordeling beoordeling) throws Exception
 	{
 		File tmpVerslag = maakFileVoorPdfViewer(beoordeling);
 		UploadDocument document = new UploadDocument();
@@ -101,7 +101,7 @@ public class MammaBaseVerslagServiceImpl implements MammaBaseVerslagService
 		hibernateService.saveOrUpdateAll(document, beoordeling);
 		if (tmpVerslag.exists() && !tmpVerslag.delete())
 		{
-			uploadDocumentService.delete(document, true);
+			uploadDocumentService.delete(document);
 			LOG.error("Kon geen verslag wegschrijven naar de filestore voor beoordeling {}", beoordeling.getId());
 			throw new RuntimeException("Kon tijdelijk bestand niet verwijderen");
 		}

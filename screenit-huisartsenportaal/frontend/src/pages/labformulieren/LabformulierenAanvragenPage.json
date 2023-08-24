@@ -22,5 +22,8 @@
     "toast": {
       "success": "De laboratoriumformulieren zijn succesvol aangevraagd"
     }
+  },
+  "algemeneMeldingen": {
+    "digitaalLabformulier": "Bevolkingsonderzoek Nederland is voor het bevolkingsonderzoek baarmoederhalskanker overgestapt op digitaal aanvragen. Wilt u weten hoe u kunt overstappen? Kijk voor meer informatie op onze website."
   }
 }

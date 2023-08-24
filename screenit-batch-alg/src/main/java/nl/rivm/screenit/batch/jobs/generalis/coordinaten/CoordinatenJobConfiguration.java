@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.generalis.coordinaten;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,7 +32,7 @@ import nl.rivm.screenit.batch.jobs.generalis.coordinaten.postcodekoppelstep.Post
 import nl.rivm.screenit.batch.jobs.generalis.coordinaten.postcodekoppelstep.PostcodeCoordinatenIntakeLocatieKoppelWriter;
 import nl.rivm.screenit.batch.jobs.generalis.coordinaten.postcodekoppelstep.PostcodeCoordinatenStandplaatsKoppelReader;
 import nl.rivm.screenit.batch.jobs.generalis.coordinaten.postcodekoppelstep.PostcodeCoordinatenStandplaatsKoppelWriter;
-import nl.rivm.screenit.batch.service.impl.PostcodeNlProductCode;
+import nl.rivm.screenit.model.PostcodeNlProductCode;
 import nl.rivm.screenit.model.enums.JobType;
 
 import org.springframework.batch.core.Job;

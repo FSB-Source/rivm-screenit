@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,7 @@ import nl.rivm.screenit.dto.mamma.MammaPalgaCsvImportDto;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.batch.popupconfig.MammaPalgaExportConfig;
+import nl.rivm.screenit.model.batch.popupconfig.MammaPalgaGrondslag;
 
 public interface MammaPalgaService
 {
@@ -49,5 +50,5 @@ public interface MammaPalgaService
 
 	MammaPalgaCsvImportMapping maakImportDtoMapping(String[] row);
 
-	String verwerkImportDto(MammaPalgaCsvImportDto dto) throws Exception;
+	String verwerkImportDto(MammaPalgaCsvImportDto dto, MammaPalgaGrondslag grondslag) throws NoSuchFieldException;
 }

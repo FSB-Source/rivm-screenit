@@ -12,8 +12,14 @@ import type {SeAction} from "../../actions/SeAction"
 import {RootState} from "../../Store"
 import {Dispatch} from "redux"
 import {navigateToOnderzoek} from "../../util/NavigationUtil"
+import {OnderzoekType} from "../../datatypes/OnderzoekType"
 
-export const vorigeOnderzoekenConfirmBtnKind = (afspraak: Afspraak): VorigeOnderzoekenConfirmBtnKind => afspraak.status === "INGESCHREVEN" ? "Onderzoek starten" : "Volgende"
+export const vorigeOnderzoekenVervolgBtnKind = (afspraak: Afspraak, tomosyntheseMogelijk: boolean): VorigeOnderzoekenConfirmBtnKind => {
+	if (afspraak.status === "INGESCHREVEN") {
+		return tomosyntheseMogelijk ? "Mammografie starten" : "Onderzoek starten"
+	}
+	return "Volgende"
+}
 
 export type VorigeOnderzoekenContainerProps = {
 	afspraak: Afspraak;
@@ -23,21 +29,25 @@ export type VorigeOnderzoekenContainerProps = {
 };
 
 const mapStateToProps = (state: RootState, ownProps: VorigeOnderzoekenContainerProps): VorigeOnderzoekenViewStateProps => {
+	const tomosyntheseMogelijk: boolean = true === state.environmentInfo?.tomosyntheseMogelijk
 	return {
 		...ownProps,
 		magOnderzoeken: state.autorisatie.onderzoeken,
+		tomosyntheseMogelijk: tomosyntheseMogelijk,
+		kanTomosyntheseStarten: tomosyntheseMogelijk && "INGESCHREVEN" === ownProps.afspraak.status,
 	}
 }
 
 const mapDispatchToProps = (dispatch: Dispatch): VorigeOnderzoekenViewDispatchProps => {
 	return {
-		onConfirm(client: Client, afspraak: Afspraak): void {
-			switch (vorigeOnderzoekenConfirmBtnKind(afspraak)) {
+		onVervolgButton(client: Client, afspraak: Afspraak, onderzoekType: OnderzoekType, confirmBtnKind: VorigeOnderzoekenConfirmBtnKind): void {
+			switch (confirmBtnKind) {
+				case "Mammografie starten":
 				case "Onderzoek starten":
 					disablePrimarySeKnop()
 					const actions: Array<SeAction> = []
 					const amputatie = client.vorigeOnderzoeken && client.vorigeOnderzoeken[0] && client.vorigeOnderzoeken[0].onderzoek?.amputatie
-					const onderzoekStartenAction = createActionOnderzoekStarten(afspraak.id, amputatie)
+					const onderzoekStartenAction = createActionOnderzoekStarten(afspraak.id, amputatie, onderzoekType)
 					actions.push(onderzoekStartenAction)
 					dispatchActions(dispatch, ...actions)
 					navigateToOnderzoek(dispatch, client.id, afspraak.id, "Visuele inspectie")

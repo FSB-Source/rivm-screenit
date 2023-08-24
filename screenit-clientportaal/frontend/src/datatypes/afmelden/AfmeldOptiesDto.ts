@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,15 +21,19 @@
 import {AfmeldType} from "./AfmeldType"
 
 export type AfmeldOptiesDto = {
-    afmeldOpties: AfmeldType[];
-    afmeldRedenenEenmalig: string[];
-    afmeldRedenenDefinitief: string[];
-    heeftOpenColonIntakeAfspraak: boolean;
+	afmeldOpties: AfmeldType[];
+	afmeldRedenenEenmalig: string[];
+	afmeldRedenenTijdelijk: string[];
+	afmeldRedenenDefinitief: string[];
+	mogelijkeAfmeldJaren: number[];
+	heeftOpenColonIntakeAfspraak: boolean;
 }
 
 export const geenAfmeldOpties: AfmeldOptiesDto = {
-    afmeldOpties: [],
-    afmeldRedenenEenmalig: [],
-    afmeldRedenenDefinitief: [],
-    heeftOpenColonIntakeAfspraak: false,
+	afmeldOpties: [],
+	afmeldRedenenEenmalig: [],
+	afmeldRedenenTijdelijk: [],
+	afmeldRedenenDefinitief: [],
+	mogelijkeAfmeldJaren: [],
+	heeftOpenColonIntakeAfspraak: false,
 }

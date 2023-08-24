@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -40,20 +40,21 @@
                     </div>
                     <div class="span10">
                         <div class="control-group full-width">
-                            <label style="font-style: italic" wicket:for="vervangendeTekst">Op de landingspagina van het bevolkingsonderzoek wordt uitsluitend onderstaande vervangende tekst getoond. Er kunnen
-                                geen acties en taken worden uitgevoerd zolang deze optie is aangevinkt.</label>
-                            <textarea class="textarea-full-width" style="width: 95%" wicket:id="vervangendeTekst" rows="6"></textarea>
-                        </div>
+							<label class="font-italic" wicket:for="vervangendeTekst">Op de landingspagina van het bevolkingsonderzoek wordt
+								uitsluitend onderstaande vervangende tekst getoond. Er kunnen
+								geen acties en taken worden uitgevoerd zolang deze optie is aangevinkt.</label>
+							<textarea class="textarea-full-width width-95procent" wicket:id="vervangendeTekst" rows="6"></textarea>
+						</div>
                     </div>
-                    <div>
-                        <div class="control-group full-width">
-                            <label>Extra tekst landingspagina</label>
-                            <label style="font-style: italic" wicket:for="tijdelijkeMelding">Onderstaande tekst wordt als grijs tekstblok op de landingspagina van het
-                                bevolkingsonderzoek getoond als extra informatie. Het wordt alleen getoond indien het veld gevuld is en mag geen tekstopmaak of hyperlinks bevatten.
-                                Taken en functies blijven normaal beschikbaar.</label>
-                            <textarea class="textarea-full-width" style="width: 96%" wicket:id="tijdelijkeMelding" rows="6"></textarea>
-                        </div>
-                    </div>
+					<div>
+						<div class="control-group full-width">
+							<label>Extra tekst landingspagina</label>
+							<label class="font-italic" wicket:for="tijdelijkeMelding">Onderstaande tekst wordt als grijs tekstblok op de landingspagina van het
+								bevolkingsonderzoek getoond als extra informatie. Het wordt alleen getoond indien het veld gevuld is en mag geen tekstopmaak of hyperlinks bevatten.
+								Taken en functies blijven normaal beschikbaar.</label>
+							<textarea class="textarea-full-width width-96procent" wicket:id="tijdelijkeMelding" rows="6"></textarea>
+						</div>
+					</div>
                     <br>
                     <br>
                     <wicket:enclosure child="mammaOnderzoekscapaciteitNietBeschikbaarBinnenWerkdagen">

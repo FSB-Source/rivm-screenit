@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.model.mamma.verslag.followup;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -131,9 +130,9 @@ public class MammaFollowUpFollowupPa
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@DSValueSet(name = "TypeInvasieveTumorWHO_bk", values = {
+		@DSValueSetValue(code = "22694002", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "82711006", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "127575007", codeSystem = "2.16.840.1.113883.6.96"),
-		@DSValueSetValue(code = "22694002", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "79143006", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "30156004", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "89740008", codeSystem = "2.16.840.1.113883.6.96"),
@@ -148,6 +147,12 @@ public class MammaFollowUpFollowupPa
 		@DSValueSetValue(code = "703578005", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "55937004", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "156691000146102", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "703595002", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "703594003", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "734075007", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "14799000", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "128928004", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "UNK", codeSystem = "2.16.840.1.113883.5.1008"),
 		@DSValueSetValue(code = "OTH", codeSystem = "2.16.840.1.113883.5.1008")
 	})
 	@VraagElement(displayName = "Type invasieve tumor (WHO) + overige", extraTekst = "", code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.320637")

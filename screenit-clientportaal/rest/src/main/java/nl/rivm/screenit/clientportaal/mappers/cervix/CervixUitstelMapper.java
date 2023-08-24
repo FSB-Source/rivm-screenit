@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.mappers.cervix;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,13 +21,13 @@ package nl.rivm.screenit.clientportaal.mappers.cervix;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.clientportaal.mappers.config.ScreenitMapperConfig;
 import nl.rivm.screenit.clientportaal.model.cervix.CervixUitstelDto;
+import nl.rivm.screenit.mappers.config.ScreenitMapperConfig;
 import nl.rivm.screenit.model.cervix.CervixUitstel;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
-import org.mapstruct.ReportingPolicy;
 
 @Mapper(config = ScreenitMapperConfig.class)
 public interface CervixUitstelMapper

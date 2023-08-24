@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.bmhklaboratoriu
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -52,14 +52,14 @@ public class CervixLaboratoriumTarievenDataProvider extends SortableDataProvider
 	@Override
 	public Iterator<? extends CervixLabTarief> iterator(long first, long count)
 	{
-		return cervixVerrichtingDao.getCervixLabTarieven(ModelUtil.nullSafeGet(zoekObject), first, count, new SortState<String>(getSort().getProperty(), getSort().isAscending()))
+		return cervixVerrichtingDao.getLabTarieven(ModelUtil.nullSafeGet(zoekObject), first, count, new SortState<String>(getSort().getProperty(), getSort().isAscending()))
 			.iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return cervixVerrichtingDao.countCervixLabTarieven(ModelUtil.nullSafeGet(zoekObject));
+		return cervixVerrichtingDao.countLabTarieven(ModelUtil.nullSafeGet(zoekObject));
 	}
 
 	@Override

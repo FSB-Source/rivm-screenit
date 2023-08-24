@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -85,14 +85,9 @@ public class ColonConclusie extends AbstractHibernateObject
 	@Column(nullable = true)
 	private ColonGeenOnderzoekReden geenOnderzoekReden;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = true)
-	private Kamer locatieNieuweAfspraak;
-
-	@Temporal(TemporalType.TIMESTAMP)
-	@Column(nullable = true)
-	private Date datumTijdNieuweAfspraak;
-
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(nullable = true)
 	private Date noShowBericht;
+
+	private Boolean doorverwijzingBevestigd;
 }

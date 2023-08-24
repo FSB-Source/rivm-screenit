@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,7 @@ package nl.rivm.screenit.service.cervix;
 
 import java.time.LocalDate;
 
+import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.service.cervix.enums.CervixVervolgTekst;
 import nl.rivm.screenit.service.cervix.impl.CervixVervolg;
@@ -38,4 +39,5 @@ public interface CervixVervolgService
 
 	void digitaalLabformulierKlaarVoorCytologie(CervixMonster monster, CervixVervolgTekst vervolgTekst);
 
+	void sendHpvOrder(CervixMonster monster, CervixVervolgTekst vervolgTekst, BMHKLaboratorium bmhkLaboratorium);
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.beoordelen;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -106,8 +106,8 @@ public class MammaBeoordelenHuidigeRondePanel extends AbstractMammaRondePanel
 		}
 		koppelNieuweLaesiesAanLezing(lezingModel, laesieDtos);
 		baseBeoordelingService.slaLezingOpEnVerwerkStatus(getModelObject(), lezingModel.getObject(), ScreenitSession.get().getLoggedInInstellingGebruiker(),
-			(b) -> getString(EnumStringUtil.getPropertyString(((MammaBeoordeling) b).getOpschortReden())));
-		((AbstractMammaBeoordelenPage) getPage()).volgendeVerslag(target);
+			b -> getString(EnumStringUtil.getPropertyString(((MammaBeoordeling) b).getOpschortReden())));
+		((AbstractMammaBeoordelenPage) getPage()).volgendeBeoordeling(target);
 	}
 
 	private void koppelNieuweLaesiesAanLezing(IModel<MammaLezing> lezingModel, List<LaesieDto> laesieDtos)
@@ -138,7 +138,7 @@ public class MammaBeoordelenHuidigeRondePanel extends AbstractMammaRondePanel
 	private IModel<MammaLezing> createModel(MammaBeoordeling beoordeling, MammaLezing lezing, InstellingGebruiker beoordelaar)
 	{
 
-		IModel<MammaLezing> model = ModelUtil.cModel(lezing);
+		IModel<MammaLezing> model = ModelUtil.ccModel(lezing);
 		if ((MammaBeoordelingStatus.EERSTE_LEZING.equals(beoordeling.getStatus()) ||
 			MammaBeoordelingStatus.EERSTE_LEZING_OPGESLAGEN.equals(beoordeling.getStatus())) &&
 			beoordeling.getEersteLezing() != null)
@@ -188,7 +188,7 @@ public class MammaBeoordelenHuidigeRondePanel extends AbstractMammaRondePanel
 
 	private void createVisueleInspectiePanel(WebMarkupContainer panelContainer)
 	{
-		visueleInspectiePanel = new MammaVisueleInspectiePanel("visueleInspectiePanel", ModelUtil.cRModel(getModelObject().getOnderzoek()), getVisueleInspectiePanelSize());
+		visueleInspectiePanel = new MammaVisueleInspectiePanel("visueleInspectiePanel", ModelUtil.csModel(getModelObject().getOnderzoek()), getVisueleInspectiePanelSize());
 		panelContainer.add(visueleInspectiePanel);
 	}
 

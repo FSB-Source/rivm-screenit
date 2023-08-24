@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,6 +36,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Scanner;
 
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +62,7 @@ import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.rivm.screenit.model.project.ProjectInactiveerDocument;
 import nl.rivm.screenit.service.DossierFactory;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.TestService;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
@@ -109,6 +111,9 @@ public class TestServiceImpl implements TestService
 
 	@Autowired
 	private UploadDocumentService uploadDocumentService;
+
+	@Autowired
+	private ICurrentDateSupplier currentDateSupplier;
 
 	private static String getValue2(String value)
 	{
@@ -163,6 +168,7 @@ public class TestServiceImpl implements TestService
 	{
 		Client client = geefClient(filter.getBsn(), filter.getGeboortedatum(), filter.getOverlijdensdatum(), filter.getGeslacht());
 		geefAdres(client, filter.getGbaAdres());
+
 		hibernateService.saveOrUpdate(client.getPersoon());
 		return client;
 	}
@@ -351,6 +357,8 @@ public class TestServiceImpl implements TestService
 			{
 				gemeente = getGemeenteMetScreeningOrganisatie();
 			}
+
+			setDatumVertrokkenNederland(client, gemeente);
 			gbaAdres.setGbaGemeente(gemeente);
 			gbaAdres.setPlaats(gemeente.getNaam());
 			gbaAdres.setStraat("Teststraat");
@@ -365,11 +373,26 @@ public class TestServiceImpl implements TestService
 		}
 		else if (bagAdres.getGbaGemeente() != null)
 		{
+			setDatumVertrokkenNederland(client, gemeente);
 			gbaAdres.setGbaGemeente(bagAdres.getGbaGemeente());
 			gbaAdres.setPlaats(bagAdres.getGbaGemeente().getNaam());
+
 			hibernateService.saveOrUpdate(gbaAdres);
 		}
 		return gbaAdres;
+	}
+
+	private void setDatumVertrokkenNederland(Client client, Gemeente gemeente)
+	{
+		if (Objects.equals(gemeente.getCode(), Gemeente.RNI_CODE) && client.getPersoon().getDatumVertrokkenUitNederland() == null)
+		{
+			var datumGisteren = DateUtil.toUtilDate(currentDateSupplier.getLocalDateTime().minusDays(1));
+			client.getPersoon().setDatumVertrokkenUitNederland(datumGisteren);
+		}
+		else if (!Objects.equals(gemeente.getCode(), Gemeente.RNI_CODE) && client.getPersoon().getDatumVertrokkenUitNederland() != null)
+		{
+			client.getPersoon().setDatumVertrokkenUitNederland(null);
+		}
 	}
 
 	@Override

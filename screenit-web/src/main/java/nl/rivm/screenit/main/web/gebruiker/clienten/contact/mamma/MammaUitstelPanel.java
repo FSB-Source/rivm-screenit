@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,8 +31,10 @@ import java.util.List;
 import java.util.Map;
 
 import nl.rivm.screenit.main.web.component.ComponentHelper;
+import nl.rivm.screenit.main.web.component.validator.WerkdagValidator;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.AbstractClientContactActiePanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.ClientContactPanel;
+import nl.rivm.screenit.model.enums.BevestigingsType;
 import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie;
@@ -78,7 +80,6 @@ public class MammaUitstelPanel extends AbstractClientContactActiePanel<MammaUits
 
 		this.standplaatsPeriodeModel = ModelUtil.sModel(standplaatsPeriode);
 	}
-
 	@Override
 	protected void onInitialize()
 	{
@@ -125,7 +126,7 @@ public class MammaUitstelPanel extends AbstractClientContactActiePanel<MammaUits
 		add(new WebMarkupContainer("tijdelijk").setVisible(locatie.getTijdelijk()));
 		add(new Label("locatiebeschrijving", locatie.getLocatieBeschrijving()));
 
-		add(ComponentHelper.newDatePicker("streefDatum").setRequired(true));
+		add(ComponentHelper.newDatePicker("streefDatum").setRequired(true).add(new WerkdagValidator()));
 
 		boolean vanuitPlanning = getPage().getMetaData(ClientContactPanel.CREATE_CONTEXT_KEY).bkVanuitPlanning;
 		Component clientContactCheckBox = ComponentHelper.newCheckBox("clientContact", clientContact).setVisible(vanuitPlanning);
@@ -183,7 +184,14 @@ public class MammaUitstelPanel extends AbstractClientContactActiePanel<MammaUits
 		Map<ExtraOpslaanKey, Object> opslaanObjecten = new HashMap<>();
 
 		opslaanObjecten.put(ExtraOpslaanKey.MAMMA_UITSTEL, ModelProxyHelper.deproxy(getModelObject()));
-		opslaanObjecten.put(ExtraOpslaanKey.MAMMA_BRIEF_AANMAKEN, briefAanmaken.getObject());
+		if (Boolean.TRUE.equals(briefAanmaken.getObject()))
+		{
+			opslaanObjecten.put(ExtraOpslaanKey.BEVESTIGINGS_TYPE, BevestigingsType.BRIEF);
+		}
+		else
+		{
+			opslaanObjecten.put(ExtraOpslaanKey.BEVESTIGINGS_TYPE, BevestigingsType.GEEN);
+		}
 		return opslaanObjecten;
 	}
 

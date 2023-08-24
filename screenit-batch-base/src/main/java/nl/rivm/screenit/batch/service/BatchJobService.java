@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,5 +39,4 @@ public interface BatchJobService
 	void waitForJobLock(JobType jobType);
 
 	void unlockJob(JobType jobType);
-
 }

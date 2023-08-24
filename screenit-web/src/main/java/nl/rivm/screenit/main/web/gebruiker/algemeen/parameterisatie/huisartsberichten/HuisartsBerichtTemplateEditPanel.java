@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie.huisartsber
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,6 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie.huisartsber
  */
 
 import java.util.Arrays;
-import java.util.Date;
 
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
@@ -37,6 +36,7 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
 import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.HuisartsBerichtTemplateService;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -54,9 +54,6 @@ import org.apache.wicket.validation.validator.StringValidator;
 
 public class HuisartsBerichtTemplateEditPanel extends GenericPanel<HuisartsBerichtTemplate>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private HuisartsBerichtTemplateService templateService;
 
@@ -65,6 +62,9 @@ public class HuisartsBerichtTemplateEditPanel extends GenericPanel<HuisartsBeric
 
 	@SpringBean
 	private LogService logService;
+
+	@SpringBean
+	private ICurrentDateSupplier currentDateSupplier;
 
 	private IModel<MergeField> mergeFieldModel;
 
@@ -82,13 +82,13 @@ public class HuisartsBerichtTemplateEditPanel extends GenericPanel<HuisartsBeric
 		inzien = !isMinimumActie(actie, Actie.AANPASSEN);
 
 		ScreenitForm<HuisartsBerichtTemplate> form = new ScreenitForm<HuisartsBerichtTemplate>("templateForm", getModel());
-		setMergeFieldModel(new CompoundPropertyModel<>(new Model<MergeField>()));
+		setMergeFieldModel(new CompoundPropertyModel<>(new Model<>()));
 
 		WebMarkupContainer mergeFieldContainer = new WebMarkupContainer("mergeFieldContainer");
 		mergeFieldContainer.setVisible(!inzien);
 		form.add(mergeFieldContainer);
 
-		mergeFieldContainer.add(new ScreenitDropdown<MergeField>("mergefield", getMergeFieldModel(), Arrays.asList(MergeField.values()), new ChoiceRenderer<MergeField>()
+		mergeFieldContainer.add(new ScreenitDropdown<>("mergefield", getMergeFieldModel(), Arrays.asList(MergeField.values()), new ChoiceRenderer<MergeField>()
 		{
 
 			private static final long serialVersionUID = 1L;
@@ -101,9 +101,6 @@ public class HuisartsBerichtTemplateEditPanel extends GenericPanel<HuisartsBeric
 		}).setNullValid(false));
 		mergeFieldContainer.add(new AjaxSubmitLink("invoegen", form)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
@@ -116,7 +113,7 @@ public class HuisartsBerichtTemplateEditPanel extends GenericPanel<HuisartsBeric
 				}
 			}
 		});
-		TextArea<String> berichtInhoud = new TextArea<String>("berichtInhoud");
+		TextArea<String> berichtInhoud = new TextArea<>("berichtInhoud");
 		berichtInhoud.setOutputMarkupId(true);
 		berichtInhoud.add(new StringValidator(1, 5000));
 		berichtInhoud.setRequired(true);
@@ -124,14 +121,11 @@ public class HuisartsBerichtTemplateEditPanel extends GenericPanel<HuisartsBeric
 		form.add(berichtInhoud);
 		form.add(new ScreenitIndicatingAjaxSubmitLink("opslaan", form)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
 				HuisartsBerichtTemplate template = form.getModelObject();
-				template.setAangepast(new Date());
+				template.setAangepast(currentDateSupplier.getDate());
 				getTemplateService().saveOrUpdate(template);
 				logService.logGebeurtenis(LogGebeurtenis.PARAMETERISATIE_WIJZIG, ScreenitSession.get().getLoggedInAccount(),
 					"Huisartsbericht template: '" + template.getBerichtType().getNaam() + "' aangepast.", Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX);

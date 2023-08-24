@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.batch.popupconfig;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,19 +21,16 @@ package nl.rivm.screenit.model.batch.popupconfig;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+@AllArgsConstructor
 public enum MammaPalgaExportGewensteUitslag
 {
 	ALLEEN_ONGUNSTIG("2225"),
 	ALLEEN_GUNSTIG("2226"),
-	GUNSTIG_EN_ONGUNSTIG("ALLE");
+	GUNSTIG_EN_ONGUNSTIG("2225");
 
 	@Getter
 	private final String codeInFilePrefix;
-
-	MammaPalgaExportGewensteUitslag(String codeInFilePrefix)
-	{
-		this.codeInFilePrefix = codeInFilePrefix;
-	}
 }

@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -49,11 +49,11 @@
                             <div class="controls">
                                 <div class="btn-group periode-filter">
                                     <div class="input-append">
-                                        <input name="geboortedatum" wicket:id="vanaf" type="text" placeholder="dd-mm-jaar" size="16" id="vanaf"
-                                               class="input-small datum datum three-months"/>
-                                        <a href="javascript:void(0);" class="add-on" onclick="$(this).prev().datepicker({ changeMonth: true, changeYear: true});" title="Datum"
-                                           tabindex="-1"> <i class="icon-calendar"></i></a>
-                                    </div>
+										<input name="geboortedatum" wicket:id="vanaf" type="text" placeholder="dd-mm-jaar" size="16" id="vanaf"
+											   class="input-small datum datum three-months"/>
+										<a class="add-on js-datepicker-change-month-and-year" title="Datum"
+										   tabindex="-1"> <i class="icon-calendar"></i></a>
+									</div>
                                 </div>
                                 <i class="icon-asterisk icon-purple"></i>
                             </div>
@@ -65,8 +65,8 @@
                                     <div class="input-append">
                                         <input name="geboortedatum" wicket:id="totEnMet" type="text" placeholder="dd-mm-jaar" size="16" id="totEnMet"
                                                class="input-small datum datum three-months"/>
-                                        <a href="javascript:void(0);" class="add-on" onclick="$(this).prev().datepicker({ changeMonth: true, changeYear: true});" title="Datum"
-                                           tabindex="-1"> <i class="icon-calendar"></i></a>
+										<a class="add-on js-datepicker-change-month-and-year" title="Datum"
+										   tabindex="-1"> <i class="icon-calendar"></i></a>
                                     </div>
                                 </div>
                                 <i class="icon-asterisk icon-purple"></i>

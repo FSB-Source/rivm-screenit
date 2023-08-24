@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -21,40 +21,40 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:extend>
     <form wicket:id="testForm" class="form-container form-horizontal">
-        <div class="alert alert-danger" style="position: relative; left: 0px; width: 95%; margin-left: 0px; z-index: 0;">
-            <h4>Waarschuwing!</h4>
-            Bij het gebruiken van deze pagina kan geen garantie worden gegeven dat de clienten gegevens consistent blijven/zijn!
-        </div>
-        <h1>Teststatuspagina DK:</h1>
-        <div class="control-group">
-            <label for="bsn1" class="control-label span2">Burgerservicenummer (alleen valide bsn):<i class="icon-asterisk icon-purple"></i></label>
-            <div class="controls">
-                <div class="input-append">
-                    <input class="form-control" type="text" wicket:id="bsn">
-                    <a class="add-on" wicket:id="bsnGenereren">Genereer BSN</a>
-                </div>
-            </div>
-        </div>
-        <div class='span12'>
-            Bij bestaande burgers worden de gemeente en geboortedatum vervangen door hieronder ingevulde gegeven (mits ingevuld):
-        </div>
-        <div class="control-group">
-            <label for="gemeente" class="control-label span2">Gemeente (default: eerst beste gemeente die gekoppeld is aan een SO):</label>
-            <div class="controls">
-                <select wicket:id="gemeente" id="gemeente" class="form-control"></select>
-            </div>
-        </div>
+		<div class="alert alert-danger colon-test-form">
+			<h4>Waarschuwing!</h4>
+			Bij het gebruiken van deze pagina kan geen garantie worden gegeven dat de clienten gegevens consistent blijven/zijn!
+		</div>
+		<h1>Teststatuspagina DK:</h1>
+		<div class="control-group">
+			<label for="bsn1" class="control-label span2">Burgerservicenummer (alleen valide bsn):<i class="icon-asterisk icon-purple"></i></label>
+			<div class="controls">
+				<div class="input-append">
+					<input class="form-control" type="text" wicket:id="bsn">
+					<a class="add-on" wicket:id="bsnGenereren">Genereer BSN</a>
+				</div>
+			</div>
+		</div>
+		<div class='span12'>
+			Bij bestaande burgers worden de gemeente en geboortedatum vervangen door hieronder ingevulde gegeven (mits ingevuld):
+		</div>
+		<div class="control-group">
+			<label for="gemeente" class="control-label span2">Gemeente (default: eerst beste gemeente die gekoppeld is aan een SO):</label>
+			<div class="controls">
+				<select wicket:id="gemeente" id="gemeente" class="form-control"></select>
+			</div>
+		</div>
 
-        <div class="control-group">
-            <label for="geboortedatum" class="control-label span2">Geboortedatum (default: 1-1-1950):</label>
-            <div class="controls">
-                <input class="form-control" type="text" id="geboortedatum" wicket:id="geboortedatum">
-            </div>
-        </div>
-        <div class="control-group">
-            <label for="geslacht" class="control-label span2">Genderidentiteit</label>
+		<div class="control-group">
+			<label for="geboortedatum" class="control-label span2">Geboortedatum (default: 1-1-1950):</label>
+			<div class="controls">
+				<input class="form-control" type="text" id="geboortedatum" wicket:id="geboortedatum">
+			</div>
+		</div>
+		<div class="control-group">
+			<label for="geslacht" class="control-label span2">Genderidentiteit</label>
 
-            <div class="controls">
+			<div class="controls">
                 <select id="geslacht" wicket:id="geslacht" class="form-control"></select>
             </div>
         </div>
@@ -82,20 +82,20 @@
                             <wicket:container wicket:id="label">Opnieuw aanvragen cli&euml;ntgegevens</wicket:container>
                         </label>
 						</span>
-                </div>
-            </div>
-        </fieldset>
-        <button class="btn btn-primary" type="button"
-                value="Client aanmakent" wicket:id="submit">Client aanmaken
-        </button>
-    </form>
+				</div>
+			</div>
+		</fieldset>
+		<button class="btn btn-primary" type="button"
+				value="Client aanmakent" wicket:id="submit">Client aanmaken
+		</button>
+	</form>
 
-    <div style="margin-top: 20px;">
-        <button class="btn btn-primary" type="button"
-                value="markeren" wicket:id="uitnodigingenDoorzetten">DK uitnodigingen, die klaarstaan om naar Inpakcentrum verstuurd te worden, markeren als wel verstuurd
-        </button>
-        <label wicket:id="aantalGemarkeerdeUitnodigingen"/>
-    </div>
+	<div class="margin-top-20px">
+		<button class="btn btn-primary" type="button"
+				value="markeren" wicket:id="uitnodigingenDoorzetten">DK uitnodigingen, die klaarstaan om naar Inpakcentrum verstuurd te worden, markeren als wel verstuurd
+		</button>
+		<label wicket:id="aantalGemarkeerdeUitnodigingen"/>
+	</div>
 
 </wicket:extend>
 </html>

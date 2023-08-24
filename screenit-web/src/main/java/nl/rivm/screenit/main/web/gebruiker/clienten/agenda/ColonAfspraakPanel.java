@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.clienten.agenda;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,8 +21,6 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.agenda;
  * =========================LICENSE_END==================================
  */
 
-import java.util.List;
-
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.model.Afspraak;
 import nl.rivm.screenit.model.Client;
@@ -34,8 +31,8 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -44,12 +41,10 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public abstract class ColonAfspraakPanel extends GenericPanel<Client>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private HibernateService hibernateService;
 
@@ -61,12 +56,11 @@ public abstract class ColonAfspraakPanel extends GenericPanel<Client>
 		super(id, model);
 
 		hibernateService.reload(model.getObject());
+		var container = new WebMarkupContainer("headerWijzigen");
+		add(container);
 
-		ListView<Afspraak> afspraken = new ListView<Afspraak>("afspraken", new PropertyModel<List<Afspraak>>(model, "afspraken"))
+		ListView<Afspraak> afspraken = new ListView<Afspraak>("afspraken", new PropertyModel<>(model, "afspraken"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void populateItem(ListItem<Afspraak> item)
 			{
@@ -78,11 +72,11 @@ public abstract class ColonAfspraakPanel extends GenericPanel<Client>
 				item.add(new Label("location.coloscopieCentrum.adressen[0].postcode"));
 				item.add(new Label("location.coloscopieCentrum.adressen[0].plaats"));
 				item.add(new Label("location.coloscopieCentrum.locatieBeschrijving"));
+				Afspraak afspraak = item.getModelObject();
+				boolean heeftOnafgerondeVerwijzingOmMedischeRedenen = afspraakService.heeftOnafgerondeVerwijzingOmMedischeRedenen(afspraak);
+				item.setVisible(afspraakService.magWijzigenAfzeggen(afspraak) || heeftOnafgerondeVerwijzingOmMedischeRedenen);
 				AjaxLink<Afspraak> afzeggen = new IndicatingAjaxLink<Afspraak>("afzeggen", item.getModel())
 				{
-
-					private static final long serialVersionUID = 1L;
-
 					@Override
 					public void onClick(AjaxRequestTarget target)
 					{
@@ -90,13 +84,11 @@ public abstract class ColonAfspraakPanel extends GenericPanel<Client>
 					}
 
 				};
-				Afspraak afspraak = item.getModelObject();
-				item.setVisible(afspraakService.magWijzigenAfzeggen(afspraak));
+				afzeggen.setVisible(!heeftOnafgerondeVerwijzingOmMedischeRedenen);
+
 				item.add(afzeggen);
 				AjaxLink<Afspraak> tijdstipWijzigen = new IndicatingAjaxLink<Afspraak>("tijdstipWijzigen", item.getModel())
 				{
-
-					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target)
@@ -105,11 +97,12 @@ public abstract class ColonAfspraakPanel extends GenericPanel<Client>
 					}
 
 				};
+
+				tijdstipWijzigen.setVisible(!heeftOnafgerondeVerwijzingOmMedischeRedenen);
+
 				item.add(tijdstipWijzigen);
 				AjaxLink<Afspraak> locatieWijzigen = new IndicatingAjaxLink<Afspraak>("locatieWijzigen", item.getModel())
 				{
-
-					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target)
@@ -119,6 +112,7 @@ public abstract class ColonAfspraakPanel extends GenericPanel<Client>
 
 				};
 				item.add(locatieWijzigen);
+				zetLocatieEnTijdstipInvisible(tijdstipWijzigen, locatieWijzigen, container, model);
 			}
 		};
 		add(afspraken);
@@ -128,4 +122,22 @@ public abstract class ColonAfspraakPanel extends GenericPanel<Client>
 	public abstract void afspraakWijzigen(AjaxRequestTarget target, Afspraak afspraak, boolean locatieWijzigen);
 
 	public abstract void afspraakAfzeggen(AjaxRequestTarget target, Afspraak afspraak);
+
+	private void zetLocatieEnTijdstipInvisible(AjaxLink<Afspraak> tijdstipWijzigen, AjaxLink<Afspraak> locatieWijzigen, WebMarkupContainer containerHeaderWijzigen,
+		IModel<Client> model)
+	{
+		var vertrokkenUitNederland = model.getObject().getPersoon().getDatumVertrokkenUitNederland();
+		if (vertrokkenUitNederland != null)
+		{
+			tijdstipWijzigen.setVisible(false);
+			locatieWijzigen.setVisible(false);
+			containerHeaderWijzigen.setVisible(false);
+		}
+		else
+		{
+			tijdstipWijzigen.setVisible(true);
+			locatieWijzigen.setVisible(true);
+			containerHeaderWijzigen.setVisible(true);
+		}
+	}
 }

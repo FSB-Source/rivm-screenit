@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,7 +31,7 @@ import FormTextField from "../../../components/form/text/FormTextField"
 import FormPasswordTextField from "../../../components/form/text/FormPasswordTextField"
 import {Col, Row} from "react-bootstrap"
 import styles from "./LoginPage.module.scss"
-import {useEffect} from "react"
+import React, {useEffect} from "react"
 
 export const LoginPage = () => {
 	const dispatch = useAppThunkDispatch()

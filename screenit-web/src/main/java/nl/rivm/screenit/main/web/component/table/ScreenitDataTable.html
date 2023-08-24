@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -23,16 +23,16 @@
 <wicket:panel>
     <div class="row-fluid">
         <table class="table table-striped table-bordered table-condensed">
-            <caption wicket:id="caption"></caption>
-            <thead wicket:id="topToolbars">
-            <wicket:container wicket:id="toolbars"></wicket:container>
-            </thead>
-            <tbody wicket:id="body">
-            <tr wicket:id="rows">
-                <td wicket:id="cells" valign="top"><span wicket:id="cell">[cell]</span>
-                </td>
-            </tr>
-            </tbody>
+			<caption wicket:id="caption"></caption>
+			<thead wicket:id="topToolbars">
+			<wicket:container wicket:id="toolbars"></wicket:container>
+			</thead>
+			<tbody wicket:id="body">
+			<tr wicket:id="rows">
+				<td wicket:id="cells" valign="top"><span wicket:id="cell">[cell]</span>
+				</td>
+			</tr>
+			</tbody>
             <tfoot wicket:id="bottomToolbars">
             <wicket:container wicket:id="toolbars"></wicket:container>
             </tfoot>
@@ -48,11 +48,11 @@
         </div>
         <div class="pagination right">
             <ul>
-                <li><a wicket:id="vorige" href="javascript:void(0);">Vorige</a></li>
+                <li><a wicket:id="vorige" >Vorige</a></li>
                 <wicket:container wicket:id="navigation">
                     <li wicket:id="container"><a wicket:id="pageLink" href="#"><span wicket:id="pageNumber">5</span></a></li>
                 </wicket:container>
-                <li><a wicket:id="volgende" href="javascript:void(0);">Volgende</a></li>
+                <li><a wicket:id="volgende" >Volgende</a></li>
             </ul>
         </div>
     </div>

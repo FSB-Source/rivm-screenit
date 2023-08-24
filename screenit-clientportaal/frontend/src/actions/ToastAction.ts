@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
-import {ToastMessage} from "../datatypes/toast/ToastMessage";
+import {ToastMessage} from "../datatypes/toast/ToastMessage"
 
 export type ToastActions = ShowToastAction | HideToastAction | HideAllToastsAction
 
@@ -26,22 +26,22 @@ export const SHOW_TOAST = "SHOW_TOAST"
 export const HIDE_TOAST = "HIDE_TOAST"
 export const HIDE_ALL_TOASTS = "HIDE_ALL_TOASTS"
 
-export type ShowToastAction = { type: 'SHOW_TOAST', toast: ToastMessage }
+export type ShowToastAction = { type: "SHOW_TOAST", toast: ToastMessage }
 
 export const createShowToastAction = (toast: ToastMessage): ShowToastAction => ({
-    type: SHOW_TOAST,
-    toast: toast
+	type: SHOW_TOAST,
+	toast: toast,
 })
 
-export type HideToastAction = { type: 'HIDE_TOAST', index: number }
+export type HideToastAction = { type: "HIDE_TOAST", index: number }
 
 export const createHideToastAction = (index: number): HideToastAction => ({
-    type: HIDE_TOAST,
-    index: index
+	type: HIDE_TOAST,
+	index: index,
 })
 
-export type HideAllToastsAction = { type: 'HIDE_ALL_TOASTS' }
+export type HideAllToastsAction = { type: "HIDE_ALL_TOASTS" }
 
-export const createHideAllToastsAction = () : HideAllToastsAction => ({
-    type: HIDE_ALL_TOASTS,
+export const createHideAllToastsAction = (): HideAllToastsAction => ({
+	type: HIDE_ALL_TOASTS,
 })

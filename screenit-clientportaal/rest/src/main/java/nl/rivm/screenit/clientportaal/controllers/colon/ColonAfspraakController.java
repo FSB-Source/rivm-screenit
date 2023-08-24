@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.controllers.colon;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,13 +36,14 @@ import nl.rivm.screenit.clientportaal.services.colon.ColonAfspraakService;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActieType;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.enums.RedenAfspraakAfzeggen;
 import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamer;
 import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamerFilter;
+import nl.rivm.screenit.service.ClientContactService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.colon.AfspraakService;
 import nl.rivm.screenit.service.colon.PlanningService;
 import nl.rivm.screenit.util.ExceptionConverter;
+import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -50,7 +51,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -67,6 +67,10 @@ import static nl.rivm.screenit.model.enums.BriefType.COLON_INTAKE_GEWIJZIGD;
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class ColonAfspraakController extends AbstractController
 {
+	private final HibernateService hibernateService;
+
+	private final ClientContactService clientContactService;
+
 	private final ColonAfspraakService colonAfspraakService;
 
 	private final AfspraakService afspraakService;
@@ -77,9 +81,9 @@ public class ColonAfspraakController extends AbstractController
 
 	private final ColonAfspraakZoekFilterMapper colonAfspraakZoekFilterMapper;
 
-	private static int MAX_RESULTS_PER_SEARCH_ITERATION = 100;
+	private static final int MAX_RESULTS_PER_SEARCH_ITERATION = 100;
 
-	private static int DEFAULT_RESULTS_PER_SEARCH_ITERATION = 10;
+	private static final int DEFAULT_RESULTS_PER_SEARCH_ITERATION = 10;
 
 	private boolean controleerFilterWaarde(ColonAfspraakZoekFilterDto filter)
 	{
@@ -110,9 +114,9 @@ public class ColonAfspraakController extends AbstractController
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<List<ColonVrijSlotZonderKamerDto>> zoekKanditaatAfspraken(Authentication authentication, @RequestBody ColonAfspraakZoekFilterDto filter)
 	{
-		Client client = getClient(authentication);
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN)
-			|| aanvraagIsToegestaneActie(client, ClientContactActieType.COLON_NIEUWE_AFSPRAAK_AANMAKEN))
+		Client client = getClient(authentication, hibernateService);
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN)
+			|| clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.COLON_NIEUWE_AFSPRAAK_AANMAKEN))
 		{
 			if (controleerFilterWaarde(filter))
 			{
@@ -128,8 +132,8 @@ public class ColonAfspraakController extends AbstractController
 					resultsSearchIteration = DEFAULT_RESULTS_PER_SEARCH_ITERATION;
 				}
 
-				Integer maxPerPageTotal = filter.getPagecount() * resultsSearchIteration;
-				Long maxCount = planningService.getVrijeSlotenZonderKamerCount(zoekOpFilter, client);
+				var maxPerPageTotal = filter.getPagecount() * resultsSearchIteration;
+				var maxCount = planningService.getVrijeSlotenZonderKamerCount(zoekOpFilter, client);
 
 				List<VrijSlotZonderKamer> filterResults = planningService.getVrijeSlotenZonderKamer("startTime", true, 0,
 					Math.min(maxCount, maxPerPageTotal), zoekOpFilter, client);
@@ -149,23 +153,24 @@ public class ColonAfspraakController extends AbstractController
 	@GetMapping("/huidig")
 	public ResponseEntity<ColonIntakeAfspraakDto> getHuidigeIntakeAfspraak(Authentication authentication)
 	{
-		ColonIntakeAfspraak huidigeIntakeAfspraak = colonAfspraakService.getHuidigeIntakeAfspraak(getClient(authentication));
-
-		if (huidigeIntakeAfspraak != null)
+		var client = getClient(authentication, hibernateService);
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN)
+			|| clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.COLON_NIEUWE_AFSPRAAK_AANMAKEN))
 		{
+			var huidigeIntakeAfspraak = colonAfspraakService.getHuidigeIntakeAfspraak(client);
 			return ResponseEntity.ok(new ColonIntakeAfspraakDto(huidigeIntakeAfspraak));
 		}
 		return ResponseEntity.ok().build();
 	}
 
-	@PutMapping("/afzeggen/{redenAfzeggen}")
+	@PutMapping("/afzeggen")
 
-	public ResponseEntity<Void> zegIntakeAfspraakAf(@PathVariable RedenAfspraakAfzeggen redenAfzeggen, Authentication authentication)
+	public ResponseEntity<Void> zegIntakeAfspraakAf(Authentication authentication)
 	{
-		Client client = getClient(authentication);
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN))
+		Client client = getClient(authentication, hibernateService);
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN))
 		{
-			colonAfspraakService.intakeAfspraakAfzeggen(client, redenAfzeggen);
+			colonAfspraakService.intakeAfspraakAfzeggen(client);
 			return ResponseEntity.ok().build();
 		}
 		return createForbiddenResponse();
@@ -175,9 +180,9 @@ public class ColonAfspraakController extends AbstractController
 
 	public ResponseEntity<String> verplaatsIntakeAfspraak(Authentication authentication, @RequestBody ColonVrijSlotZonderKamerDto verplaatsAfspraak)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN))
 		{
 			return maakOfVerplaatsAfspraakIndienMogelijk(verplaatsAfspraak, client, ClientContactActieType.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN);
 		}
@@ -188,9 +193,9 @@ public class ColonAfspraakController extends AbstractController
 
 	public ResponseEntity<String> maakIntakeAfspraak(Authentication authentication, @RequestBody ColonVrijSlotZonderKamerDto maakAfspraak)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.COLON_NIEUWE_AFSPRAAK_AANMAKEN))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.COLON_NIEUWE_AFSPRAAK_AANMAKEN))
 		{
 			return maakOfVerplaatsAfspraakIndienMogelijk(maakAfspraak, client, ClientContactActieType.COLON_NIEUWE_AFSPRAAK_AANMAKEN);
 		}
@@ -200,8 +205,8 @@ public class ColonAfspraakController extends AbstractController
 	private ResponseEntity<String> maakOfVerplaatsAfspraakIndienMogelijk(ColonVrijSlotZonderKamerDto verplaatsAfspraak, Client client,
 		ClientContactActieType contactActieType)
 	{
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN)
-			|| aanvraagIsToegestaneActie(client, ClientContactActieType.COLON_NIEUWE_AFSPRAAK_AANMAKEN))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN)
+			|| clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.COLON_NIEUWE_AFSPRAAK_AANMAKEN))
 		{
 			ColonIntakeAfspraak vorigeAfspraak = colonAfspraakService.getHuidigeIntakeAfspraak(client);
 
@@ -218,11 +223,11 @@ public class ColonAfspraakController extends AbstractController
 				{
 					if (ClientContactActieType.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN.equals(contactActieType))
 					{
-						afspraakService.verplaatsAfspraak(nieuweIntakeAfspraak, client, COLON_INTAKE_GEWIJZIGD, false, true);
+						afspraakService.verplaatsAfspraak(nieuweIntakeAfspraak, client, COLON_INTAKE_GEWIJZIGD, false, true, false);
 					}
 					if (ClientContactActieType.COLON_NIEUWE_AFSPRAAK_AANMAKEN.equals(contactActieType))
 					{
-						afspraakService.maakNieuweAfspraak(client, null, nieuweIntakeAfspraak, false, true, null, client);
+						afspraakService.maakNieuweAfspraak(client, nieuweIntakeAfspraak, false, true, null, client);
 					}
 				}
 				return ResponseEntity.ok().build();

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.tehuis;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -84,6 +84,8 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
@@ -103,7 +105,6 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.MAMMA })
 public class MammaTehuisEditPage extends MammaPlanningBasePage
 {
-
 	private static final long serialVersionUID = 1L;
 
 	private final boolean magTehuisAanpassen;
@@ -139,6 +140,13 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 	private AjaxLink<Gebruiker> uitnodigenBtn;
 
 	private MammaTehuisOpmerkingenPanel opmerkingenPanel;
+
+	@Override
+	public void renderHead(IHeaderResponse response)
+	{
+		super.renderHead(response);
+		response.render(CssHeaderItem.forUrl("assets/font-awesome/css/font-awesome.min.css"));
+	}
 
 	private final WebMarkupContainer persistentContainer = new WebMarkupContainer("persistentContainer")
 	{
@@ -309,8 +317,7 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 				openAdresDialog(target, tehuisAdressenContainer, tehuisAdres);
 			}
 		};
-		persistentContainer.add(adresToevoegenBtn.setOutputMarkupId(true).setVisible(magTehuisAanpassen));
-
+		persistentContainer.add(adresToevoegenBtn.setOutputMarkupId(true).setVisible(magTehuisAanpassen && getTehuis().getActief()));
 	}
 
 	private void openAdresDialog(AjaxRequestTarget target, WebMarkupContainer tehuisAdressenContainer, MammaTehuisAdres adres)
@@ -407,19 +414,19 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 		});
 		columns.add(
 			new DateTimePropertyColumn<>(Model.of("Laatste afspraak"), "mammaDossier.laatsteScreeningRonde.laatsteUitnodiging.laatsteAfspraak.vanaf", Constants.getDateTimeFormat())
-		{
-			@Override
-			public IModel<Object> getDataModel(IModel<Client> embeddedModel)
 			{
-				IModel<Object> vanafStringModel = super.getDataModel(embeddedModel);
-				if (StringUtils.isNotBlank(vanafStringModel.getObject().toString()) && MammaAfspraakStatus
-					.isGeannuleerd(embeddedModel.getObject().getMammaDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging().getLaatsteAfspraak().getStatus()))
+				@Override
+				public IModel<Object> getDataModel(IModel<Client> embeddedModel)
 				{
-					return new Model("");
+					IModel<Object> vanafStringModel = super.getDataModel(embeddedModel);
+					if (StringUtils.isNotBlank(vanafStringModel.getObject().toString()) && MammaAfspraakStatus
+						.isGeannuleerd(embeddedModel.getObject().getMammaDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging().getLaatsteAfspraak().getStatus()))
+					{
+						return new Model("");
+					}
+					return vanafStringModel;
 				}
-				return vanafStringModel;
-			}
-		});
+			});
 		columns.add(new NotClickablePropertyColumn<>(Model.of(""), "")
 		{
 			@Override
@@ -439,6 +446,7 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 				final boolean isGekoppeld = gekoppeldeTehuis != null;
 				String header = "Koppelen aan tehuis";
 				String content = "Weet u zeker dat u deze cliënt wilt koppelen?";
+
 				if (isGekoppeld)
 				{
 					header = "Ontkoppelen van tehuis";
@@ -448,6 +456,10 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 				if (isGekoppeld && !gekoppeldeTehuis.getId().equals(getTehuis().getId()))
 				{
 					error(getString("error.client.al.gekoppeld.aan.ander.tehuis"));
+				}
+				else if (!getTehuis().getActief() && !isGekoppeld)
+				{
+					error(getString("error.client.toevoegen.aan.inactief.tehuis"));
 				}
 				else
 				{
@@ -489,6 +501,7 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 				return super.isRowClickable(rowModel) && magTehuisAanpassen;
 			}
 		};
+
 		tehuisClientenContainer.add(tehuisClientenTabel);
 
 		IndicatingAjaxSubmitLink zoekenButton = new IndicatingAjaxSubmitLink("clientZoekenBtn", clientZoekenForm)
@@ -553,7 +566,7 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 				super.onConfigure();
 				boolean magInActiveren = getTehuis().getId() != null && ScreenitSession.get().checkPermission(Recht.GEBRUIKER_SCREENING_MAMMA_TEHUIS, Actie.VERWIJDEREN)
 					&& ingelogdNamensRegio;
-				boolean isEnabled = getTehuis().getDossiers().size() == 0;
+				boolean isEnabled = getTehuis().getDossiers().isEmpty() || !getTehuis().getActief();
 				inActiverenBtn.setEnabled(isEnabled);
 				inActiverenBtn.add(new AttributeToggleModifier("title", Model.of(getString("inactiveren.title")))
 				{

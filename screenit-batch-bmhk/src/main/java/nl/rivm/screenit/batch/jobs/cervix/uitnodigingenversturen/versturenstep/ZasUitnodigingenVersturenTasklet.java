@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.uitnodigingenversturen.versturenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import nl.dm_ict.photo._358.MERGEDATA.UITNODIGING;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.dao.CervixUitnodigingsDao;
 import nl.rivm.screenit.batch.jobs.cervix.uitnodigingenversturen.ProjectCounterHolder;
@@ -48,7 +49,7 @@ import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.MergeField;
 import nl.rivm.screenit.model.logging.LogEvent;
-import nl.rivm.screenit.model.project.ProjectClient;
+import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.InstellingService;
@@ -58,6 +59,7 @@ import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -65,6 +67,10 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class ZasUitnodigingenVersturenTasklet extends AbstractUitnodigingenVersturenTasklet<CervixUitnodiging>
 {
+
+	private static final String ZAS_TYPE_COMBI = "COMBI";
+
+	private static final String ZAS_TYPE_STANDAARD = "STANDAARD";
 
 	private final LogService logService;
 
@@ -98,14 +104,14 @@ public class ZasUitnodigingenVersturenTasklet extends AbstractUitnodigingenVerst
 	@Override
 	protected void setMergedBrieven(CervixUitnodiging uitnodiging, UploadDocument uploadDocument, BriefDefinitie briefDefinitie)
 	{
-		var cervixBrief = uitnodiging.getBrief();
-		var cervixMergedBrieven = new CervixMergedBrieven();
-		cervixMergedBrieven.setMergedBrieven(uploadDocument);
-		cervixMergedBrieven.setCreatieDatum(currentDateSupplier.getDate());
-		cervixMergedBrieven.setBriefType(cervixBrief.getBriefType());
-		cervixBrief.setMergedBrieven(cervixMergedBrieven);
-		cervixBrief.setBriefDefinitie(briefDefinitie);
-		hibernateService.saveOrUpdateAll(cervixMergedBrieven, cervixBrief);
+		var brief = uitnodiging.getBrief();
+		var mergedBrieven = new CervixMergedBrieven();
+		mergedBrieven.setMergedBrieven(uploadDocument);
+		mergedBrieven.setCreatieDatum(currentDateSupplier.getDate());
+		mergedBrieven.setBriefType(brief.getBriefType());
+		brief.setMergedBrieven(mergedBrieven);
+		brief.setBriefDefinitie(briefDefinitie);
+		hibernateService.saveOrUpdateAll(mergedBrieven, brief);
 	}
 
 	@Override
@@ -119,6 +125,10 @@ public class ZasUitnodigingenVersturenTasklet extends AbstractUitnodigingenVerst
 	@Override
 	protected void setMergeContext(CervixUitnodiging uitnodiging, MailMergeContext mailMergeContext)
 	{
+		if (uitnodiging.getGecombineerdeUitstrijkje() != null)
+		{
+			uitnodiging = uitnodiging.getGecombineerdeUitstrijkje();
+		}
 		mailMergeContext.setBrief(uitnodiging.getBrief());
 		mailMergeContext.setCervixUitnodiging(uitnodiging);
 	}
@@ -132,18 +142,20 @@ public class ZasUitnodigingenVersturenTasklet extends AbstractUitnodigingenVerst
 	@Override
 	protected synchronized void updateCounts(CervixUitnodiging uitnodiging)
 	{
-		Long aantalVerstuurd = getExecutionContext().getLong(uitnodiging.getBrief().getBriefType().name());
+		long aantalVerstuurd = getExecutionContext().getLong(uitnodiging.getBrief().getBriefType().name());
 		getExecutionContext().put(uitnodiging.getBrief().getBriefType().name(), aantalVerstuurd + 1);
 
-		var client = uitnodiging.getScreeningRonde().getDossier().getClient();
-		List<BriefType> briefTypes = new ArrayList<>();
-		briefTypes.add(BriefType.CERVIX_ZAS_UITNODIGING);
-		briefTypes.add(BriefType.CERVIX_ZAS_NIET_ANALYSEERBAAR_OF_ONBEOORDEELBAAR);
+		updateProjectenCounts(uitnodiging);
+	}
 
-		List<ProjectClient> projectClienten = ProjectUtil.getHuidigeProjectClienten(client, currentDateSupplier.getDate(), true);
-		if (briefTypes.contains(uitnodiging.getBrief().getBriefType()) && client != null && client.getProjecten() != null && projectClienten.size() > 0)
+	private void updateProjectenCounts(CervixUitnodiging uitnodiging)
+	{
+		var client = uitnodiging.getScreeningRonde().getDossier().getClient();
+
+		var projectClienten = ProjectUtil.getHuidigeProjectClienten(client, currentDateSupplier.getDate(), true);
+		if (BriefType.getCervixZasBrieven().contains(uitnodiging.getBrief().getBriefType()) && client != null && client.getProjecten() != null && !projectClienten.isEmpty())
 		{
-			List<ProjectCounterHolder> projectCounterHolders = (List<ProjectCounterHolder>) getExecutionContext().get(ZasUitnodigingenVersturenConstants.PROJECTENCOUNTERS);
+			var projectCounterHolders = getProjectCounterHolders();
 			for (var projectClient : projectClienten)
 			{
 				boolean projectInList = false;
@@ -160,9 +172,20 @@ public class ZasUitnodigingenVersturenTasklet extends AbstractUitnodigingenVerst
 				{
 					projectCounterHolders.add(new ProjectCounterHolder(projectClient.getGroep().getId(), 1L));
 				}
-				getExecutionContext().put(ZasUitnodigingenVersturenConstants.PROJECTENCOUNTERS, projectCounterHolders);
 			}
 		}
+	}
+
+	@NotNull
+	private List<ProjectCounterHolder> getProjectCounterHolders()
+	{
+		var projectCounterHolders = (List<ProjectCounterHolder>) getExecutionContext().get(ZasUitnodigingenVersturenConstants.PROJECTENCOUNTERS);
+		if (projectCounterHolders == null)
+		{
+			projectCounterHolders = new ArrayList<>();
+			getExecutionContext().put(ZasUitnodigingenVersturenConstants.PROJECTENCOUNTERS, projectCounterHolders);
+		}
+		return projectCounterHolders;
 	}
 
 	@Override
@@ -174,7 +197,7 @@ public class ZasUitnodigingenVersturenTasklet extends AbstractUitnodigingenVerst
 	@Override
 	protected void logMislukt(Long uitnodigingsId)
 	{
-		String melding = String.format("Fout bij het versturen van uitnodiging met uitnodigingsId: %s", uitnodigingsId);
+		var melding = String.format("Fout bij het versturen van uitnodiging met uitnodigingsId: '%s'", uitnodigingsId);
 		logService.logGebeurtenis(LogGebeurtenis.CERVIX_ZAS_UITNODIGING_VERSTUREN_NAAR_INPAKCENTRUM_MISLUKT, null, melding, Bevolkingsonderzoek.COLON);
 	}
 
@@ -199,22 +222,22 @@ public class ZasUitnodigingenVersturenTasklet extends AbstractUitnodigingenVerst
 		if (melding.length() > 0)
 		{
 			melding.append("ZAS uitnodiging niet verstuurd naar inpakcentrum!");
-			LOG.warn("clientId " + client.getId() + ": " + melding);
+			LOG.warn("client (id '{}'): {}", client.getId(), melding);
 			logService.logGebeurtenis(LogGebeurtenis.CERVIX_FOUT_RETOURADRES_BMHK_LAB, client, null, melding.toString(), Bevolkingsonderzoek.CERVIX);
 			return false;
 		}
 		if (!AdresUtil.isVolledigAdresVoorInpakcentrum(client))
 		{
 			var onvolledigAdresMelding = "De cliënt heeft een onvolledig adres, dit is geconstateerd bij het aanmaken. De volgende gegevens ontbreken: "
-				+ AdresUtil.bepaalMissendeAdresgegevensString(AdresUtil.getAdres(client.getPersoon(), currentDateSupplier.getDateTime())) + ".";
+				+ AdresUtil.bepaalMissendeAdresgegevensString(AdresUtil.getAdres(client.getPersoon(), currentDateSupplier.getLocalDate())) + ".";
 			int dagen = simplePreferenceService.getInteger(PreferenceKey.INTERNAL_HERINNERINGSPERIODE_LOGREGEL_ONVOLLEDIG_ADRES.name());
 			if (logService.heeftGeenBestaandeLogregelBinnenPeriode(Collections.singletonList(LogGebeurtenis.CERVIX_ADRES_ONVOLLEDIG_VOOR_INPAKCENTRUM),
 				client.getPersoon().getBsn(),
 				onvolledigAdresMelding, dagen))
 			{
 				melding.append(onvolledigAdresMelding);
-				LOG.warn("clientId " + client.getId() + ": " + melding);
-				List<Instelling> dashboardOrganisaties = addLandelijkBeheerInstelling(new ArrayList<>());
+				LOG.warn("client (id '{}'): {}", client.getId(), melding);
+				var dashboardOrganisaties = addLandelijkBeheerInstelling(new ArrayList<>());
 				dashboardOrganisaties.addAll(clientService.getScreeningOrganisatieVan(client));
 				logService.logGebeurtenis(LogGebeurtenis.CERVIX_ADRES_ONVOLLEDIG_VOOR_INPAKCENTRUM, dashboardOrganisaties, null, client, melding.toString(),
 					Bevolkingsonderzoek.CERVIX);
@@ -240,6 +263,16 @@ public class ZasUitnodigingenVersturenTasklet extends AbstractUitnodigingenVerst
 			.setParameter("datum", currentDateSupplier.getDate())
 			.setParameter("uitnodigingIds", uitnodigingIds)
 			.executeUpdate();
+	}
+
+	@Override
+	protected void vulMetaData(UITNODIGING inpakcentrumUitnodiging, ProjectBriefActie briefActie, MailMergeContext mailMergeContext, int uitnodigingVolgnummer,
+		UploadDocument uploadDocument)
+	{
+		super.vulMetaData(inpakcentrumUitnodiging, briefActie, mailMergeContext, uitnodigingVolgnummer, uploadDocument);
+		var mergefieldContainer = inpakcentrumUitnodiging.getMERGEFIELDS().getMERGEFIELD();
+		var uitnodiging = mailMergeContext.getCervixUitnodiging();
+		addMergeFieldValue(mergefieldContainer, "_TYPE", uitnodiging.getGecombineerdeZas() != null ? ZAS_TYPE_COMBI : ZAS_TYPE_STANDAARD);
 	}
 
 	private List<Instelling> addLandelijkBeheerInstelling(List<Instelling> list)

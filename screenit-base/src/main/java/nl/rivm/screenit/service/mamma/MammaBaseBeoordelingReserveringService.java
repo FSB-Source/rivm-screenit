@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,9 +31,11 @@ public interface MammaBaseBeoordelingReserveringService
 {
 	List<Long> reserveerBeoordelingen(Long startBeoordelingId, List<Long> beoordelingenIds, InstellingGebruiker ingelogdeGebruiker, MammaBeLezerSoort lezerSoort);
 
-    boolean gereserveerdDoorIemandAnders(InstellingGebruiker ingelogdeGebruiker, MammaBeoordeling beoordeling);
+	boolean gereserveerdDoorIemandAnders(InstellingGebruiker ingelogdeGebruiker, MammaBeoordeling beoordeling);
 
-    void reserveringenVrijgeven(InstellingGebruiker ingelogdeGebruiker);
+	boolean gereserveerdVoorGebruiker(long beoordelingId, InstellingGebruiker ingelogdeGebruiker, MammaBeLezerSoort lezerSoort);
+
+	void reserveringenVrijgeven(InstellingGebruiker ingelogdeGebruiker);
 
 	void geefBeoordelingVrij(MammaBeoordeling beoordeling);
 }

@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,7 +33,7 @@ import FormHuisnummerToevoegingField from "../form/adres/FormHuisnummerToevoegin
 import * as Yup from "yup"
 import {loadingThunkAction} from "../../api/LoadingThunkAction"
 import {controleerHuisarts, saveHuisarts} from "../../api/HuisartsThunkAction"
-import {useCallback, useEffect, useState} from "react"
+import React, {useCallback, useEffect, useState} from "react"
 import LocatieTabel from "../locatie/tabel/LocatieTabel"
 import LocatieToevoegenModal from "../locatie/toevoegen/LocatieToevoegenModal"
 import {AuthenticationScope} from "../../state/datatypes/enums/AuthenticationScope"
@@ -78,7 +78,7 @@ const GegevensWijzigenFormComponent = () => {
 				wachtwoord: wachtwoordValidatie(getString(properties.agbNaw.fields.wachtwoord))
 					.required(getString(validatieProperties.required)),
 				wachtwoordControle: Yup.string()
-					.oneOf([Yup.ref("wachtwoord"), null], getString(validatieProperties.wachtwoordControle))
+					.oneOf([Yup.ref("wachtwoord"), undefined], getString(validatieProperties.wachtwoordControle))
 					.required(getString(validatieProperties.required)),
 			},
 			email: Yup.string()
@@ -154,7 +154,6 @@ const GegevensWijzigenFormComponent = () => {
 						gemeente: huisarts.postadres?.woonplaats?.gemeente || "",
 					},
 				},
-				locaties: huisarts.locaties || [],
 
 			}}
 			validationSchema={validationSchema}

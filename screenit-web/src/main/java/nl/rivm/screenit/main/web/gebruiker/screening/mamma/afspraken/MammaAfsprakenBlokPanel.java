@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.afspraken;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,8 +25,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.web.gebruiker.clienten.ClientContactActieTypeWrapper;
 import nl.rivm.screenit.main.web.gebruiker.gedeeld.MammaDoelgroepIndicatorPanel;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.formatter.TelefoonnummersFormatter;
@@ -41,15 +41,16 @@ import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.AfmeldingUtil;
 import nl.rivm.screenit.util.BigDecimalUtil;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.HibernateCheckBoxListContainer;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -60,6 +61,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public class MammaAfsprakenBlokPanel extends GenericPanel<List<MammaAfspraak>>
 {
@@ -137,7 +139,7 @@ public class MammaAfsprakenBlokPanel extends GenericPanel<List<MammaAfspraak>>
 				};
 				MammaAfspraak laatsteAfspraak = laatsteScreeningRonde.getLaatsteUitnodiging().getLaatsteAfspraak();
 				verzetten.setVisible(magVerzetten && laatsteAfspraak != null && laatsteAfspraak.equals(afspraak)
-					&& !AfmeldingUtil.isAfgemeld(laatsteAfspraak.getUitnodiging().getScreeningRonde().getDossier()));
+					&& !AfmeldingUtil.isEenmaligOfDefinitefAfgemeld(laatsteAfspraak.getUitnodiging().getScreeningRonde().getDossier()));
 				item.add(verzetten);
 			}
 		});
@@ -159,7 +161,7 @@ public class MammaAfsprakenBlokPanel extends GenericPanel<List<MammaAfspraak>>
 				&& laatsteAfspraak.equals(afspraak)
 				&& dossier.getTehuis() == null
 				&& !dossier.getDoelgroep().equals(MammaDoelgroep.MINDER_VALIDE)
-				&& !AfmeldingUtil.isAfgemeld(dossier)
+				&& !AfmeldingUtil.isEenmaligOfDefinitefAfgemeld(dossier)
 				&& !MammaScreeningRondeUtil.heeftActiefUitstel(laatsteScreeningRonde)
 				&& persoon.getOverlijdensdatum() == null
 				&& persoon.getDatumVertrokkenUitNederland() == null

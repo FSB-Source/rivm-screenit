@@ -4,7 +4,7 @@ package nl.rivm.screenit.wsb.labformulier;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ package nl.rivm.screenit.wsb.labformulier;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -39,7 +40,6 @@ import lombok.extern.slf4j.Slf4j;
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.cervix.CervixBMHKLaboratoriumDao;
-import nl.rivm.screenit.dao.cervix.CervixHuisartsBaseDao;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
@@ -50,6 +50,7 @@ import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.cervix.CervixLabformulierService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.ws.labformulier.Labformulier;
 import nl.rivm.screenit.ws.labformulier.LabformulierDate;
 import nl.rivm.screenit.ws.labformulier.LabformulierService;
@@ -57,8 +58,6 @@ import nl.rivm.screenit.ws.labformulier.LabformulierServiceException_Exception;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.joda.time.DateTime;
-import org.joda.time.IllegalFieldValueException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,8 +75,6 @@ public class LabformulierServiceImpl implements LabformulierService
 	private final CervixLabformulierService labformulierService;
 
 	private final CervixBMHKLaboratoriumDao bmhkLaboratoriumDao;
-
-	private final CervixHuisartsBaseDao huisartsDao;
 
 	private final ICurrentDateSupplier dateSupplier;
 
@@ -260,7 +257,7 @@ public class LabformulierServiceImpl implements LabformulierService
 					dag = null;
 				}
 			}
-			catch (NullPointerException | NumberFormatException e)
+			catch (NullPointerException | NumberFormatException ignored)
 			{
 			}
 		}
@@ -313,7 +310,7 @@ public class LabformulierServiceImpl implements LabformulierService
 						dag = datumDag;
 					}
 				}
-				catch (NullPointerException | IndexOutOfBoundsException | NumberFormatException e)
+				catch (NullPointerException | IndexOutOfBoundsException | NumberFormatException ignored)
 				{
 				}
 			}
@@ -328,7 +325,7 @@ public class LabformulierServiceImpl implements LabformulierService
 						maand = datumMaand;
 					}
 				}
-				catch (NullPointerException | IndexOutOfBoundsException | NumberFormatException e)
+				catch (NullPointerException | IndexOutOfBoundsException | NumberFormatException ignored)
 				{
 				}
 			}
@@ -343,7 +340,7 @@ public class LabformulierServiceImpl implements LabformulierService
 						jaar = datumJaar;
 					}
 				}
-				catch (NullPointerException | IndexOutOfBoundsException | NumberFormatException e)
+				catch (NullPointerException | IndexOutOfBoundsException | NumberFormatException ignored)
 				{
 				}
 			}
@@ -353,9 +350,9 @@ public class LabformulierServiceImpl implements LabformulierService
 		{
 			try
 			{
-				return new DateTime(jaar, maand, dag, 0, 0).toDate();
+				return DateUtil.toUtilDate(LocalDateTime.of(jaar, maand, dag, 0, 0));
 			}
-			catch (IllegalFieldValueException e)
+			catch (Exception ignored)
 			{
 			}
 		}

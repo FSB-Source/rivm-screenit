@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -23,13 +23,13 @@
 <wicket:extend>
     <div class="row-fluid">
         <form wicket:id="form">
-            <div class="span8" style="margin-left: 0;">
-                <h2 class="pageTitle">Selecteer instelling</h2>
-                <select wicket:id="gedownloadDoorZiekenhuizen"></select>
-                <div class="pull-right">
-                    <a class="btn btn-success" wicket:id="maakVerzoek">Maak uploadverzoek</a>
-                </div>
-            </div>
+            <div class="span8 selecteer-instelling-uploadverzoek">
+				<h2 class="pageTitle">Selecteer instelling</h2>
+				<select wicket:id="gedownloadDoorZiekenhuizen"></select>
+				<div class="pull-right">
+					<a class="btn btn-success" wicket:id="maakVerzoek">Maak uploadverzoek</a>
+				</div>
+			</div>
         </form>
         <div class="span4 pull-right">
             <div wicket:id="paspoort"></div>

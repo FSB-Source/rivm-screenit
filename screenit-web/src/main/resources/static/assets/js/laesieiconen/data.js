@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,7 +33,7 @@ var draggedLaesieImgSize;
 var laesiesAlleenInzien = []; 
 
 function initialiseerLaesieLijsten(lezingId) {
-    laesies[lezingId] = {RECHTER_BORST: legeLaesielijstenVanEenBorst(), LINKER_BORST: legeLaesielijstenVanEenBorst()};
+	laesies[lezingId] = {RECHTER_BORST: legeLaesielijstenVanEenBorst(), LINKER_BORST: legeLaesielijstenVanEenBorst()};
 }
 
 function clearLaesies(lezingId) {
@@ -103,18 +103,18 @@ function removeLaesie(lezingId, laesieImg) {
 }
 
 function removeLaesieIcoon(img) {
-    const icoon = laesieImg2icoon.get(img);
-    const laesie = laesieIcoon2laesie.get(icoon);
-    const lezingId = laesieImg2lezingId.get(img);
-    const welkeDoorsnede = icoon2welkeDoorsnede(icoon, laesie);
-    laesieIcoon2laesie.delete(icoon);
-    laesieImg2icoon.delete(img);
-    if (laesie[andereDoorsnede(welkeDoorsnede)]) {
-        laesie[welkeDoorsnede] = undefined;
-    } else {
-        const laesiesVanDezeBorstEnType = laesies[lezingId][laesie.welkeBorst][laesie.laesietype];
-        laesiesVanDezeBorstEnType.splice(laesiesVanDezeBorstEnType.indexOf(laesie), 1);
-    }
+	const icoon = laesieImg2icoon.get(img);
+	const laesie = laesieIcoon2laesie.get(icoon);
+	const lezingId = laesieImg2lezingId.get(img);
+	const welkeDoorsnede = icoon2welkeDoorsnede(icoon, laesie);
+	laesieIcoon2laesie.delete(icoon);
+	laesieImg2icoon.delete(img);
+	if (laesie[andereDoorsnede(welkeDoorsnede)]) {
+		laesie[welkeDoorsnede] = undefined;
+	} else {
+		const laesiesVanDezeBorstEnType = laesies[lezingId][laesie.welkeBorst][laesie.laesietype];
+		laesiesVanDezeBorstEnType.splice(laesiesVanDezeBorstEnType.indexOf(laesie), 1);
+	}
 }
 
 function src2laesietype(img) {
@@ -158,8 +158,8 @@ function backgroundImgLayout(backgroundImg) {
 }
 
 function px2dbCoordinates(xPx, yPx, laesieImg) {
-    const backgroundImg = laesieImg.parentElement.children[0];
-    const bgImgLayout = backgroundImgLayout(backgroundImg);
+    const backgroundImg = laesieImg.parentNode.children[0];
+	const bgImgLayout = backgroundImgLayout(backgroundImg);
     const xPxCenter = xPx - bgImgLayout.paddingLeft + laesieImg.width / 2;
     const yPxCenter = yPx - bgImgLayout.paddingTop + laesieImg.height / 2;
     return {x: 100 * xPxCenter / bgImgLayout.width, y: 100 * yPxCenter / bgImgLayout.width};

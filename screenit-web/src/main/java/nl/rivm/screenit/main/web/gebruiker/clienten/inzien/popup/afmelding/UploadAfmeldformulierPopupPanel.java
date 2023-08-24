@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.inzien.popup.afmelding;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,6 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.inzien.popup.afmelding;
  * =========================LICENSE_END==================================
  */
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,10 +35,10 @@ import nl.rivm.screenit.main.util.BriefOmschrijvingUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.validator.FileValidator;
 import nl.rivm.screenit.model.Afmelding;
+import nl.rivm.screenit.model.AfmeldingType;
 import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.Dossier;
 import nl.rivm.screenit.model.DossierStatus;
-import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.cervix.enums.CervixAfmeldingReden;
 import nl.rivm.screenit.model.colon.ColonAfmelding;
 import nl.rivm.screenit.model.colon.enums.ColonAfmeldingReden;
@@ -55,11 +54,13 @@ import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BriefHerdrukkenService;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.colon.ColonTijdelijkAfmeldenJaartallenService;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 
 import org.apache.shiro.util.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -99,6 +100,11 @@ public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> exten
 	@SpringBean
 	private BriefHerdrukkenService briefHerdrukkenService;
 
+	@SpringBean
+	private ColonTijdelijkAfmeldenJaartallenService colonTijdelijkAfmeldenJaartallenService;
+
+	private WebMarkupContainer formulierAanwezig;
+
 	public UploadAfmeldformulierPopupPanel(final String id, IModel<A> model)
 	{
 		super(id, new CompoundPropertyModel<>(model));
@@ -111,7 +117,12 @@ public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> exten
 
 		boolean magTegenhouden = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_BRIEVEN_TEGENHOUDEN, Actie.AANPASSEN);
 
-		Dossier dossier = getModelObject().getDossier();
+		var dossier = getModelObject().getDossier();
+
+		if (dossier == null)
+		{
+			dossier = getModelObject().getScreeningRonde().getDossier();
+		}
 
 		IModel<List<FileUpload>> files = new ListModel<>();
 
@@ -119,7 +130,7 @@ public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> exten
 
 		uploadForm.add(new Label("title", getString(getTitleResourceString())));
 
-		WebMarkupContainer formulierAanwezig = new WebMarkupContainer("formulierAanwezigContainer");
+		formulierAanwezig = new WebMarkupContainer("formulierAanwezigContainer");
 		uploadForm.add(formulierAanwezig);
 
 		FileUploadField upload = new FileUploadField("fileUpload", files);
@@ -142,16 +153,17 @@ public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> exten
 					try
 					{
 						A afmelding = UploadAfmeldformulierPopupPanel.this.getModelObject();
+						var dossier = afmelding.getDossier();
+						if (dossier == null)
+						{
+							dossier = afmelding.getScreeningRonde().getDossier();
+						}
+						var client = dossier.getClient();
 
-						File definitieFile = fileUpload.writeToTempFile();
-						UploadDocument document = new UploadDocument();
-						document.setActief(Boolean.TRUE);
-						document.setContentType(fileUpload.getContentType());
-						document.setFile(definitieFile);
-						document.setNaam(fileUpload.getClientFileName());
+						var document = ScreenitSession.get().fileUploadToUploadDocument(fileUpload);
 						afmelding.setHandtekeningDocumentAfmelding(document);
-						baseAfmeldService.afmelden(afmelding.getDossier().getClient(), afmelding, ScreenitSession.get().getLoggedInInstellingGebruiker());
-						logService.logGebeurtenis(LogGebeurtenis.AFMELDEN, ScreenitSession.get().getLoggedInAccount(), afmelding.getDossier().getClient(),
+						baseAfmeldService.afmelden(client, afmelding, ScreenitSession.get().getLoggedInInstellingGebruiker());
+						logService.logGebeurtenis(LogGebeurtenis.AFMELDEN, ScreenitSession.get().getLoggedInAccount(), client,
 							"Type: " + afmelding.getType().name().toLowerCase(), afmelding.getBevolkingsonderzoek());
 						close(target);
 
@@ -221,8 +233,16 @@ public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> exten
 			public void onClick(AjaxRequestTarget target)
 			{
 				A afmelding = UploadAfmeldformulierPopupPanel.this.getModelObject();
-
-				baseAfmeldService.definitieveAfmeldingAanvragen(afmelding.getDossier().getClient(), afmelding, true, ScreenitSession.get().getLoggedInInstellingGebruiker());
+				var dossier = afmelding.getDossier();
+				if (dossier != null)
+				{
+					baseAfmeldService.definitieveAfmeldingAanvragen(dossier.getClient(), afmelding, true, ScreenitSession.get().getLoggedInInstellingGebruiker());
+				}
+				else
+				{
+					dossier = afmelding.getScreeningRonde().getDossier();
+					baseAfmeldService.tijdelijkeAfmeldingAanvragen(dossier.getClient(), afmelding, true, ScreenitSession.get().getLoggedInInstellingGebruiker());
+				}
 
 				info(getString("info.afmeldinghandtekeningverstuurd"));
 				close(target);
@@ -250,6 +270,9 @@ public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> exten
 			colonAfmeldingReden.setOutputMarkupId(true);
 			colonAfmeldingReden.setEnabled(DossierStatus.ACTIEF == dossier.getStatus());
 			formulierAanwezig.add(colonAfmeldingReden);
+
+			addTeKiezenAfmeldingChoiceEnTijdelijkAfmeldJaartallen(dossier);
+
 			break;
 		case CERVIX:
 			List<CervixAfmeldingReden> cervixAfmeldingRedenen = new ArrayList<>(Arrays.asList(CervixAfmeldingReden.values()));
@@ -258,6 +281,9 @@ public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> exten
 			cervixAfmeldingReden.setSuffix("</label>");
 			cervixAfmeldingReden.setOutputMarkupId(true);
 			formulierAanwezig.add(cervixAfmeldingReden);
+
+			addOngebruikteContainers();
+
 			break;
 		case MAMMA:
 			RadioChoice<MammaAfmeldingReden> mammaAfmeldingReden = new RadioChoice<>("reden", MammaAfmeldingReden.definitieveRedenen(), new EnumChoiceRenderer<>(this));
@@ -266,6 +292,9 @@ public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> exten
 			mammaAfmeldingReden.setOutputMarkupId(true);
 			mammaAfmeldingReden.setRequired(true);
 			formulierAanwezig.add(mammaAfmeldingReden);
+
+			addOngebruikteContainers();
+
 			break;
 		default:
 			break;
@@ -273,9 +302,72 @@ public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> exten
 		add(uploadForm);
 	}
 
+	private void addTeKiezenAfmeldingChoiceEnTijdelijkAfmeldJaartallen(Dossier<?, ?> dossier)
+	{
+		var tijdelijkAfmeldenJaartallenContainer = new WebMarkupContainer("tijdelijkAfmeldenTotJaartalContainer");
+
+		var beschikbareJaartallenTijdelijkAfmelden = colonTijdelijkAfmeldenJaartallenService.bepaalMogelijkeAfmeldJaren(dossier.getClient());
+		boolean kanTijdelijkeAfmeldingAanvragen = !beschikbareJaartallenTijdelijkAfmelden.isEmpty();
+
+		tijdelijkAfmeldenJaartallenContainer.setVisible(AfmeldingType.TIJDELIJK.equals(getModelObject().getType()) && kanTijdelijkeAfmeldingAanvragen);
+		tijdelijkAfmeldenJaartallenContainer.setOutputMarkupPlaceholderTag(true);
+		tijdelijkAfmeldenJaartallenContainer.setOutputMarkupId(true);
+
+		formulierAanwezig.add(tijdelijkAfmeldenJaartallenContainer);
+
+		RadioChoice<Integer> tijdelijkAfmeldenJaartallen = new RadioChoice<>("tijdelijkAfmeldenTotJaartal", beschikbareJaartallenTijdelijkAfmelden);
+
+		tijdelijkAfmeldenJaartallen.setPrefix("<label class=\"radio\">");
+		tijdelijkAfmeldenJaartallen.setSuffix("</label>");
+		tijdelijkAfmeldenJaartallen.setRequired(true);
+
+		tijdelijkAfmeldenJaartallenContainer.add(tijdelijkAfmeldenJaartallen);
+
+		var typeContainer = new WebMarkupContainer("typeContainer");
+		typeContainer.setVisible(kanTijdelijkeAfmeldingAanvragen);
+
+		List<AfmeldingType> teKiezenAfmeldingTypen = new ArrayList<>(List.of(AfmeldingType.DEFINITIEF, AfmeldingType.TIJDELIJK));
+
+		RadioChoice<AfmeldingType> afmeldingType = new RadioChoice<>("type", teKiezenAfmeldingTypen, new EnumChoiceRenderer<>(this));
+
+		afmeldingType.add(new AjaxFormChoiceComponentUpdatingBehavior()
+		{
+			@Override
+			protected void onUpdate(AjaxRequestTarget ajaxRequestTarget)
+			{
+				tijdelijkAfmeldenJaartallenContainer.setVisible(AfmeldingType.TIJDELIJK.equals(getModel().getObject().getType()) && kanTijdelijkeAfmeldingAanvragen);
+				ajaxRequestTarget.add(tijdelijkAfmeldenJaartallenContainer);
+			}
+		});
+		afmeldingType.setPrefix("<label class=\"radio\">");
+		afmeldingType.setSuffix("</label>");
+		afmeldingType.setOutputMarkupId(true);
+		afmeldingType.setEnabled(DossierStatus.ACTIEF == dossier.getStatus());
+
+		typeContainer.add(afmeldingType);
+		formulierAanwezig.add(typeContainer);
+	}
+
+	private void addOngebruikteContainers()
+	{
+		var tijdelijkAfmeldenJaartallenContainer = new WebMarkupContainer("tijdelijkAfmeldenTotJaartalContainer");
+		tijdelijkAfmeldenJaartallenContainer.setVisible(false);
+		var typeContainer = new WebMarkupContainer("typeContainer");
+		typeContainer.setVisible(false);
+
+		formulierAanwezig.add(tijdelijkAfmeldenJaartallenContainer, typeContainer);
+	}
+
 	private String getTitleResourceString()
 	{
-		return "title.aanvraag.afmelden";
+		if (AfmeldingType.DEFINITIEF.equals(getModelObject().getType()))
+		{
+			return "title.aanvraag.afmelden.definitief";
+		}
+		else
+		{
+			return "title.aanvraag.afmelden.tijdelijk";
+		}
 	}
 
 	private String getWijzeVanAfmeldingTekst(A afmelding)

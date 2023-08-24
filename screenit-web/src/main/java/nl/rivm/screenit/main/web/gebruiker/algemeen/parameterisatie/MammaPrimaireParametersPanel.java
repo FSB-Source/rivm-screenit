@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,9 +39,6 @@ import org.apache.wicket.validation.validator.RangeValidator;
 
 public class MammaPrimaireParametersPanel extends BasePrimaireParametersPanel
 {
-
-	private static final long serialVersionUID = 1L;
-
 	public MammaPrimaireParametersPanel(String id, Model<Parameterisatie> model)
 	{
 		super(id, model);
@@ -58,6 +55,8 @@ public class MammaPrimaireParametersPanel extends BasePrimaireParametersPanel
 		form.add(new TextField<>("mammaMinimaleIntervalUitnodigingen", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
 		form.add(new TextField<>("mammaAfspraakBijUitnodigenVanafAantalWerkdagen", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
 		form.add(new TextField<>("mammaAfspraakVerzettenZonderClientContactVanafAantalWerkdagen", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
+		form.add(new TextField<>("mammaAfspraakZoekenStandaardFilterEinddatumDagenInToekomst", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
+		form.add(new TextField<>("mammaAfspraakZoekenAantalMinutenInToekomst", Integer.class).add(RangeValidator.minimum(0)).add(RangeValidator.maximum(1440)).setRequired(true));
 		form.add(new TextField<>("mammaCapaciteitVolledigBenutTotEnMetAantalWerkdagen", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
 		form.add(new TextField<>("mammaBevestigingsbriefNietVerzendenBinnenAantalWerkdagen", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
 		form.add(new TextField<>("mammaBulkVerzettenInVerledenAantalWeken", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
@@ -73,8 +72,11 @@ public class MammaPrimaireParametersPanel extends BasePrimaireParametersPanel
 		addTextAreaField(form, "mammaBulkVerzettenVerledenAfspraakTekst");
 		addTextAreaField(form, "mammaBulkVerzettenToekomstAfspraakTekst");
 		addTextAreaField(form, "mammaAfspraakLocatieWijzigingTekst");
+		addTextAreaField(form, "mammaUitnodigingNaUitstelTekst");
 		form.add(new TextField<>("mammaMeekijkverzoekMailAdres", String.class).add(EmailAddressValidator.getInstance()).setRequired(true));
 		form.add(new CheckBox("mammaAnnoteerEersteRonde"));
+		form.add(new CheckBox("mammaBulkVerzettenAlleenBrief"));
+		form.add(new TextField<>("mammaAfspraakSmsHerinneringTermijn", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
 		return form;
 	}
 
@@ -83,13 +85,9 @@ public class MammaPrimaireParametersPanel extends BasePrimaireParametersPanel
 	{
 		return new IndicatingAjaxSubmitLink("landelijkeParametersOpslaan")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-
 				Parameterisatie parameterisatie = getModelObject();
 				Map<PreferenceKey, Object> oudeParameters = getOudParameterObject().getParameters();
 
@@ -119,5 +117,4 @@ public class MammaPrimaireParametersPanel extends BasePrimaireParametersPanel
 			}
 		};
 	}
-
 }

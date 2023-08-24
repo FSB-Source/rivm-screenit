@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,8 +34,8 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogRegel;
 import nl.rivm.screenit.service.DashboardService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.stereotype.Service;
@@ -56,7 +56,7 @@ public class CervixDossierServiceImpl implements CervixDossierService
 
 	private final DashboardService dashboardService;
 
-	private final InstellingService instellingService;
+	private final OrganisatieParameterService organisatieParameterService;
 
 	private final CervixMonsterDao cervixMonsterDao;
 
@@ -69,7 +69,8 @@ public class CervixDossierServiceImpl implements CervixDossierService
 		var dossier = logRegel.getClient().getCervixDossier();
 		var nu = currentDateSupplier.getLocalDate();
 		var signalerenVanaf = nu.minusDays(MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN);
-		var minimaleSignaleringsDatum = nu.minusDays(instellingService.getOrganisatieParameter(null, OrganisatieParameterKey.CERVIX_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN, 30));
+		var minimaleSignaleringsDatum = nu.minusDays(
+			organisatieParameterService.getOrganisatieParameter(null, OrganisatieParameterKey.CERVIX_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN, 30));
 		var laatsteMonsterZonderUitslag = cervixMonsterDao.getLaatsteMonsterMetMissendeUitslagVanDossier(dossier, signalerenVanaf, minimaleSignaleringsDatum);
 		var status = dashboardService.updateLogRegelMetDashboardStatus(logRegel, medewerker.getMedewerker().getGebruikersnaam(), dashboardStatus);
 

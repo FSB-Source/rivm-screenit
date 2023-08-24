@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -28,7 +28,7 @@
     <form wicket:id="form">
         <div class="modal-body">
             <fieldset class="hero-unit">
-                <h2 class="form-title" style="margin: 0;" wicket:id="client.persoon.achternaam"></h2>
+                <h2 class="form-title margin-0" wicket:id="client.persoon.achternaam"></h2>
             </fieldset>
             <fieldset class="form-horizontal fieldset-last">            	
             	<div wicket:id="eersteVraag"></div>
@@ -39,7 +39,7 @@
 		                   <label class="control-label">ASA-score</label>
 		                   <div class="controls">
 		                   		<div class="btn-group">
-			                   		<a href="javascript:void(0);" wicket:id="conclusie.asaScore" class="btn">
+			                   		<a  wicket:id="conclusie.asaScore" class="btn">
 		                                <wicket:container wicket:id="label"></wicket:container>
 		                            </a>
 		                         </div>
@@ -68,6 +68,12 @@
 							<label class="control-label">Datum/Tijd conclusie</label>
 							<div class="controls" wicket:id="conclusie.datum"></div>
 						</div>
+						<wicket:enclosure child="verwezenDoor">
+							<div class="control-group value">
+								<label class="control-label">Verwezen door</label>
+								<div class="controls" wicket:id="verwezenDoor"></div>
+							</div>
+						</wicket:enclosure>
 					</div>
 				</div>
 
@@ -77,7 +83,7 @@
 						<label class="control-label span5">Bezwaar gegevensuitwisseling met SO</label>
 						<div class="controls span7">
 							<div class="btn-group">
-								<a href="javascript:void(0);" wicket:id="bezwaar" class="btn">
+								<a  wicket:id="bezwaar" class="btn">
 									<wicket:container wicket:id="label"></wicket:container>
 								</a>
 							</div>
@@ -99,7 +105,9 @@
 				</div>
 				<div class="span3">
 					<a class="btn" data-dismiss="modal">Annuleren</a>
-					<a class="btn btn-primary" wicket:id="conclusieOpslaan">Opslaan</a>
+					<a class="btn btn-primary" wicket:id="conclusieOpslaan">
+						<wicket:container wicket:id="opslaanTekst">Opslaan</wicket:container>
+					</a>
 				</div>
 			</div>
 		</div>
@@ -112,7 +120,7 @@
 					<label class="control-label"></label>
 					<div class="controls">
 						<div class="btn-group">
-							<a href="javascript:void(0);" wicket:id="conclusie.type" class="btn">
+							<a  wicket:id="conclusie.type" class="btn">
 								<wicket:container wicket:id="label"></wicket:container>
 							</a>
 						</div>
@@ -129,7 +137,7 @@
 					<label class="control-label">Reden (optioneel)</label>
 					<div class="controls">
 						<div class="btn-group">
-							<a href="javascript:void(0);" wicket:id="conclusie.onHoldReden" class="btn">
+							<a  wicket:id="conclusie.onHoldReden" class="btn">
 								<wicket:container wicket:id="label"></wicket:container>
 							</a>
 						</div>
@@ -147,6 +155,17 @@
 
 		</div>
 	</wicket:fragment>
+	<wicket:fragment wicket:id="belInfolijnVoorAfspraak">
+		<hr>
+		<fieldset class="form-horizontal">
+			<h3>Bel de informatielijn voor een nieuwe afspraak</h3>
+			<div>
+				Bevolkingsonderzoek Nederland
+				:
+				<wicket:container wicket:id="location.coloscopieCentrum.regio.telefoon"></wicket:container>
+			</div>
+		</fieldset>
+	</wicket:fragment>
 	<wicket:fragment wicket:id="vraagFragment">
 		<div class="row-fluid">
 			<div class="span12">
@@ -154,7 +173,7 @@
 					<label class="control-label" wicket:id="vraag">Vraag?</label>
 					<div class="controls span4">
 						<div class="btn-group">
-							<a href="javascript:void(0);" wicket:id="antwoord" class="btn">
+							<a  wicket:id="antwoord" class="btn">
 								<wicket:container wicket:id="label"></wicket:container>
 							</a>
 						</div>
@@ -162,34 +181,67 @@
 				</div>
 			</div>
 		</div>
-       <div wicket:id="vervolg"></div>
-    </wicket:fragment>
-    <wicket:fragment wicket:id="terugNaarScreeningFragment">
+		<div wicket:id="vervolg"></div>
+	</wicket:fragment>
+	<wicket:fragment wicket:id="terugNaarScreeningFragment">
 		<div class="row-fluid">
-           <div class="span12">
-               <div class="control-group">
-                   <label class="control-label">Hoeveel jaar na uitslag ontlastingstest?</label>
-                   <div class="controls span4">
-                        <div class="btn-group">
-                            <a href="javascript:void(0);" wicket:id="jaar" class="btn">
-                                <wicket:container wicket:id="label"></wicket:container>
-                            </a>
-                        </div>
-                    </div>
-               </div>
-           </div>
-       </div>      
-    </wicket:fragment>
-    <wicket:fragment wicket:id="gevolgFragment">
+			<div class="span12">
+				<div class="control-group">
+					<label class="control-label">Hoeveel jaar na uitslag ontlastingstest?</label>
+					<div class="controls span4">
+						<div class="btn-group">
+							<a  wicket:id="jaar" class="btn">
+								<wicket:container wicket:id="label"></wicket:container>
+							</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</wicket:fragment>
+	<wicket:fragment wicket:id="gevolgFragment">
 		<div class="row-fluid">
-           <div class="span12">
-               <div class="control-group">
-                   <label class="control-label">Gevolg</label>
-                   <div class="controls" wicket:id="gevolg"></div>
-               </div>
-           </div>
-       </div>      
-    </wicket:fragment>
+			<div class="span12">
+				<div class="control-group">
+					<label class="control-label">Gevolg</label>
+					<div class="controls" wicket:id="gevolg"></div>
+				</div>
+			</div>
+		</div>
+	</wicket:fragment>
+	<wicket:fragment wicket:id="verwijzingFragment">
+		<div class="row-fluid">
+			<div class="span12">
+				<div class="control-group">
+					<div wicket:id="begeleidendTekst"></div>
+				</div>
+				<div class="control-group">
+					<div>
+						<fieldset class="form-horizontal">
+							<h3>Nieuwe afspraak</h3>
+							<div class="control-group value">
+								<label class="control-label">Locatie</label>
+								<div class="controls">
+									<span wicket:id="nieuweAfspraak.location.coloscopieCentrum.naam">Coloscopiecentrum 1</span> <span
+										wicket:id="nieuweAfspraak.location.name">Kamer 1</span>
+								</div>
+							</div>
+
+							<div>
+								<div class="control-group value">
+									<label class="control-label">Datum/tijd</label>
+
+									<div class="controls">
+										<span wicket:id="nieuweAfspraak.startTime"></span>
+									</div>
+								</div>
+							</div>
+						</fieldset>
+					</div>
+				</div>
+			</div>
+		</div>
+	</wicket:fragment>
 </wicket:panel>
 </body>
 </html>

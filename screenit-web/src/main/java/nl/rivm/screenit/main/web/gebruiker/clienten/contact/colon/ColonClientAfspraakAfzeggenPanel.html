@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -20,49 +20,38 @@
   -->
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div id="afspraakAfzeggen">
-        <fieldset class="form-horizontal hero-unit">
-            <h3>Huidige afspraak afzeggen</h3>
-            <div class="row-fluid">
-                <div class="span6">
-                    <div class="control-group value">
-                        <label class="control-label">Betreft</label>
-                        <div class="controls" wicket:id="title">Intake coloscopie</div>
-                    </div>
-                    <div class="control-group value">
-                        <label class="control-label">Datum/tijd</label>
-                        <div class="controls" wicket:id="startTime">24-04-2013 14:00</div>
-                    </div>
-                </div>
-                <div class="span6">
-                    <div class="control-group value">
-                        <label class="control-label">Intakelocatie</label>
-                        <div class="controls" wicket:id="location.coloscopieCentrum.naam">Coloscopiecentrum 1</div>
-                    </div>
-                </div>
-            </div>
-        </fieldset>
-        <fieldset class="form-horizontal">
-            <p wicket:id="clientPortaal">
-                Als u de afspraak voor het intakegesprek afzegt, betekent dit dat u op dit moment niet verder wilt deelnemen aan het bevolkingsonderzoek darmkanker.<br>
-                U ontvangt twee jaar na de datum van de uitslag een nieuwe uitnodiging om mee te doen aan het bevolkingsonderzoek.
-            </p>
-            <div class="control-group">
-                <label class="control-label">Reden afzeggen</label>
-                <div class="controls" wicket:id="redenAfzeggen">
-                    <label class="radio"> <input type="radio" name="reden_afzeggen" id=""> Cli&euml;nt wil niet deelnemen</label>
-                    <label class="radio"> <input type="radio" name="reden_afzeggen" id=""> Huisarts adviseert annulering</label>
-                </div>
-            </div>
-            <wicket:enclosure child="briefTegenhouden">
-                <div class="control-group">
-                    <label class="control-label">Nieuwe brief tegenhouden</label>
-                    <div class="controls">
-                        <input wicket:id="briefTegenhouden" type="checkbox"/>
-                    </div>
-                </div>
-            </wicket:enclosure>
-        </fieldset>
-    </div>
+	<div id="afspraakAfzeggen">
+		<fieldset class="form-horizontal hero-unit">
+			<h3>Huidige afspraak afzeggen</h3>
+			<div class="row-fluid">
+				<div class="span6">
+					<div class="control-group value">
+						<label class="control-label">Betreft</label>
+						<div class="controls" wicket:id="title">Intake coloscopie</div>
+					</div>
+					<div class="control-group value">
+						<label class="control-label">Datum/tijd</label>
+						<div class="controls" wicket:id="startTime">24-04-2013 14:00</div>
+					</div>
+				</div>
+				<div class="span6">
+					<div class="control-group value">
+						<label class="control-label">Intakelocatie</label>
+						<div class="controls" wicket:id="location.coloscopieCentrum.naam">Coloscopiecentrum 1</div>
+					</div>
+				</div>
+			</div>
+		</fieldset>
+		<wicket:enclosure child="briefTegenhouden">
+			<fieldset class="form-horizontal">
+				<div class="control-group">
+					<label class="control-label">Nieuwe brief tegenhouden</label>
+					<div class="controls">
+						<input wicket:id="briefTegenhouden" type="checkbox"/>
+					</div>
+				</div>
+			</fieldset>
+		</wicket:enclosure>
+	</div>
 </wicket:panel>
 </html>

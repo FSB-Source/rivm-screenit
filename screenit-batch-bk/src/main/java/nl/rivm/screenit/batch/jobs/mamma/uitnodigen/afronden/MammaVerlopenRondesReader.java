@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.uitnodigen.afronden;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -20,6 +20,9 @@ package nl.rivm.screenit.batch.jobs.mamma.uitnodigen.afronden;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
+
+import java.time.LocalDate;
+import java.util.Date;
 
 import lombok.AllArgsConstructor;
 
@@ -52,10 +55,9 @@ public class MammaVerlopenRondesReader extends BaseScrollableResultReader
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		var currentDate = currentDateSupplier.getLocalDate();
+		var vandaag = currentDateSupplier.getLocalDate();
 
-		var maxLeeftijd = DateUtil.toUtilDate(currentDate.minusYears(preferenceService.getInteger(PreferenceKey.MAMMA_MAXIMALE_LEEFTIJD.name())));
-		var maxLengteRonde = DateUtil.toUtilDate(currentDate.minusMonths(Constants.BK_GELDIGHEID_RONDE_MAANDEN));
+		var maxLengteRonde = DateUtil.toUtilDate(vandaag.minusMonths(Constants.BK_GELDIGHEID_RONDE_MAANDEN));
 
 		var criteria = session.createCriteria(MammaScreeningRonde.class, "ronde");
 		criteria.createAlias("ronde.dossier", "dossier");
@@ -66,7 +68,7 @@ public class MammaVerlopenRondesReader extends BaseScrollableResultReader
 
 		criteria.add(Restrictions.eq("status", ScreeningRondeStatus.LOPEND));
 		criteria.add(Restrictions.or(
-			Restrictions.lt("persoon.geboortedatum", maxLeeftijd),
+			Restrictions.le("persoon.geboortedatum", maximaleGeboortedatum(vandaag)),
 			Restrictions.eq("dossier.deelnamemodus", Deelnamemodus.SELECTIEBLOKKADE)
 		));
 		criteria.add(Restrictions.lt("ronde.creatieDatum", maxLengteRonde));
@@ -77,8 +79,14 @@ public class MammaVerlopenRondesReader extends BaseScrollableResultReader
 				Restrictions.isNotNull("afspraak.id"),
 				Restrictions.or(
 					Restrictions.ne("afspraak.status", MammaAfspraakStatus.GEPLAND),
-					Restrictions.lt("afspraak.vanaf", DateUtil.toUtilDate(currentDate))))));
+					Restrictions.lt("afspraak.vanaf", DateUtil.toUtilDate(vandaag))))));
 
 		return criteria;
+	}
+
+	private Date maximaleGeboortedatum(LocalDate currentDate)
+	{
+		var totEnMetLeeftijd = preferenceService.getInteger(PreferenceKey.MAMMA_MAXIMALE_LEEFTIJD.name());
+		return DateUtil.toUtilDate(currentDate.minusYears(totEnMetLeeftijd + 1L));
 	}
 }

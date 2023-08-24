@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.services;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,17 +21,19 @@ package nl.rivm.screenit.mamma.se.proxy.services;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.mamma.se.proxy.model.SeConfiguratieKey;
-
 import java.util.Map;
+
+import nl.rivm.screenit.mamma.se.proxy.model.SeConfiguratieKey;
 
 public interface ConfiguratieService
 {
-    String getConfiguratieValue(SeConfiguratieKey key);
+	String getConfiguratieValue(SeConfiguratieKey key);
 
-    Integer getConfiguratieIntegerValue(SeConfiguratieKey key);
+	Integer getConfiguratieIntegerValue(SeConfiguratieKey key);
 
-    void insertOrUpdateConfiguratieValue(SeConfiguratieKey key, String value);
+	Boolean getConfiguratieBooleanValue(SeConfiguratieKey key);
 
-    void insertOrUpdateConfiguratieValues(Map<SeConfiguratieKey, String> parameters);
+	void insertOrUpdateConfiguratieValue(SeConfiguratieKey key, String value);
+
+	void insertOrUpdateConfiguratieValues(Map<SeConfiguratieKey, String> parameters);
 }

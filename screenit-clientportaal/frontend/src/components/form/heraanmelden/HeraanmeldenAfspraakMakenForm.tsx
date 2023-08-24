@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,11 +21,10 @@
 import React from "react"
 import * as Yup from "yup"
 import {getString} from "../../../utils/TekstPropertyUtil"
-import {Field, Formik} from "formik"
+import {Formik} from "formik"
 import SubmitForm from "../SubmitForm"
-import {FormControl, FormControlLabel, Radio} from "@material-ui/core"
+import {FormControl, FormControlLabel, Radio, RadioGroup} from "@mui/material"
 import styles from "./HeraanmeldenAfspraakMakenForm.module.scss"
-import {RadioGroup} from "formik-material-ui"
 import properties from "../../../pages/bvo/gedeeld/HeraanmeldenPage.json"
 
 export type HeraanmeldenAfspraakMakenFormProps = {
@@ -54,15 +53,13 @@ const HeraanmeldenAfspraakMakenForm = (props: HeraanmeldenAfspraakMakenFormProps
 					title={getString(properties.form.title.COLON.afspraak)}
 												formikProps={formikProps}
 												buttonLabel={getString(properties.form.button)}>
-					<FormControl
-						required
-						component="fieldset">
+					<FormControl variant="standard" required component="fieldset">
 
 						<p data-testid={"error_geen_keuze"} className={styles.errorLabel}>{formikProps.errors.afspraakMaken}</p>
 
-						<Field
+						<RadioGroup
 							name="afspraakMaken"
-							component={RadioGroup}>
+							onChange={formikProps.handleChange}>
 							<ul className={styles.radioGroup}>
 								<FormControlLabel
 									className={styles.bevestigenRadioButton}
@@ -76,11 +73,11 @@ const HeraanmeldenAfspraakMakenForm = (props: HeraanmeldenAfspraakMakenFormProps
 									control={<Radio/>}
 									label={getString(properties.form.radio_button.nee)}/>
 							</ul>
-						</Field>
+						</RadioGroup>
 					</FormControl>
 				</SubmitForm>)}
 		</Formik>
-	</>
+	</>;
 }
 
 export default HeraanmeldenAfspraakMakenForm

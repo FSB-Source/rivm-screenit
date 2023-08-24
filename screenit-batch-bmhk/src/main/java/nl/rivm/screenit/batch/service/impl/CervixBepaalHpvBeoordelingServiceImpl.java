@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -100,16 +100,18 @@ public class CervixBepaalHpvBeoordelingServiceImpl implements CervixBepaalHpvBeo
 		{
 			if (isGenotyperingAnalyseGestart())
 			{
-				int positieven = resultValues.stream().filter(w -> CervixHpvBeoordelingWaarde.POSITIEF.equals(w.getResultaatType())).collect(Collectors.toList()).size();
-				int negatieven = resultValues.stream().filter(w -> CervixHpvBeoordelingWaarde.NEGATIEF.equals(w.getResultaatType())).collect(Collectors.toList()).size();
-				int ongeldige = resultValues.stream().filter(w -> CervixHpvBeoordelingWaarde.ONGELDIG.equals(w.getResultaatType())).collect(Collectors.toList()).size();
+				var positieven = geefAantalResultaten(resultValues, CervixHpvBeoordelingWaarde.POSITIEF);
+				var negatieven = geefAantalResultaten(resultValues, CervixHpvBeoordelingWaarde.NEGATIEF);
+				var ongeldige = geefAantalResultaten(resultValues, CervixHpvBeoordelingWaarde.ONGELDIG);
+				var alleenHpvOtherPositiefRestOngeldig = alleenHpvOtherPositiefRestOngeldig(resultValues);
+
 				if ((positieven + negatieven + ongeldige) == 3)
 				{
 					if (negatieven == 3)
 					{
 						beoordeling = CervixHpvBeoordelingWaarde.NEGATIEF;
 					}
-					else if (positieven == 1 && (negatieven == 2 || ongeldige == 2))
+					else if (positieven == 1 && (negatieven == 2 || ongeldige == 2) && !alleenHpvOtherPositiefRestOngeldig)
 					{
 						beoordeling = CervixHpvBeoordelingWaarde.POSITIEF;
 					}
@@ -121,7 +123,7 @@ public class CervixBepaalHpvBeoordelingServiceImpl implements CervixBepaalHpvBeo
 					{
 						beoordeling = CervixHpvBeoordelingWaarde.POSITIEF;
 					}
-					else if (ongeldige == 3)
+					else if (ongeldige == 3 || alleenHpvOtherPositiefRestOngeldig)
 					{
 						beoordeling = CervixHpvBeoordelingWaarde.ONGELDIG;
 					}
@@ -133,6 +135,18 @@ public class CervixBepaalHpvBeoordelingServiceImpl implements CervixBepaalHpvBeo
 			throw new IllegalStateException();
 		}
 		return beoordeling;
+	}
+
+	private boolean alleenHpvOtherPositiefRestOngeldig(Set<CervixHpvResultValue> resultValues)
+	{
+		return resultValues.stream()
+			.filter(waarde -> waarde.getResultaatType() == CervixHpvBeoordelingWaarde.POSITIEF && waarde.getResultCode() == CervixHpvResultCode.OHR)
+			.count() == 1 && geefAantalResultaten(resultValues, CervixHpvBeoordelingWaarde.ONGELDIG) == 2;
+	}
+
+	private int geefAantalResultaten(Set<CervixHpvResultValue> resultValues, CervixHpvBeoordelingWaarde beoordelingWaarde)
+	{
+		return (int) resultValues.stream().filter(resultaat -> resultaat.getResultaatType() == beoordelingWaarde).count();
 	}
 
 	private CervixHpvBeoordelingWaarde bepaalPanBeoordeling(Set<CervixHpvResultValue> resultValues, Set<CervixHpvResultCode> resultCodes)

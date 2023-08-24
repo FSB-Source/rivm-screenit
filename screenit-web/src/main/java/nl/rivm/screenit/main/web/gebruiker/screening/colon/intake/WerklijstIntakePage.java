@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.intake;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -53,7 +53,6 @@ import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.ConclusieTypeFilter;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
-import nl.rivm.screenit.model.colon.enums.ColonConclusieOnHoldReden;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.enums.Actie;
@@ -80,12 +79,11 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
-import org.apache.wicket.markup.html.basic.EnumLabel;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
@@ -95,10 +93,8 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.joda.time.DateTime;
 import org.wicketstuff.shiro.ShiroConstraint;
 
 @SecurityConstraint(
@@ -113,11 +109,19 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 
 	private final ScreenitDataTable<ColonIntakeAfspraak, String> table;
 
-	private final IModel<WerklijstIntakeFilter> zoekModel;
+	protected final IModel<WerklijstIntakeFilter> zoekModel;
 
-	private final Form<WerklijstIntakeFilter> bsnForm;
+	protected final Form<WerklijstIntakeFilter> bsnForm;
 
-	private final Form<WerklijstIntakeFilter> form;
+	protected final Form<WerklijstIntakeFilter> form;
+
+	protected WebMarkupContainer datepickerVandaag;
+
+	protected ScreenitDropdown<ConclusieTypeFilter> conclusieType;
+
+	protected Form<WerklijstIntakeFilter> bsnGebroortedatumForm;
+
+	protected ExportToCsvLink<ColonIntakeAfspraak, String> exportToCsvLink;
 
 	@SpringBean
 	private ICurrentDateSupplier dateSupplier;
@@ -133,27 +137,31 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 
 	private Label aantalLabel;
 
+	private static final int AANTAL_PER_PAGINA = 10;
+
 	protected WerklijstIntakePage(AfspraakStatus filterStatus)
+	{
+		this(filterStatus, "title." + EnumStringUtil.getPropertyString(filterStatus, AfspraakStatus.class));
+	}
+
+	protected WerklijstIntakePage(AfspraakStatus filterStatus, String titleProperty)
 	{
 		ColoscopieCentrum intakelocatie = ScreenitSession.get().getColoscopieCentrum();
 		add(new Label("intakelocatie", intakelocatie.getNaam()));
-		add(new Label("title", getString("title." + EnumStringUtil.getPropertyString(filterStatus, AfspraakStatus.class))));
+		add(new Label("title", getString(titleProperty)));
 		final BootstrapDialog dialog = new BootstrapDialog("dialog");
 		add(dialog);
 		zoekModel = getNewWerkLijstIntakeFilter(filterStatus);
 		setDefaultModel(zoekModel);
 
-		WerklijstIntakeDataProvider werklijstIntakeDataProvider = new WerklijstIntakeDataProvider(zoekModel, intakelocatie);
-		if (this instanceof ColonOpenstaanteIntakesWerklijstPage)
+		var werklijstIntakeDataProvider = getWerklijstIntakeDataProvider(intakelocatie, AANTAL_PER_PAGINA);
+		table = new ScreenitDataTable<>("tabel", getColumns(), werklijstIntakeDataProvider, AANTAL_PER_PAGINA, Model.of("afspraken"))
 		{
-			werklijstIntakeDataProvider.setSort("volgendeUitnodiging.peildatum", SortOrder.ASCENDING);
-		}
-		if (this instanceof ColonAfgerondeIntakesWerklijstPage)
-		{
-			werklijstIntakeDataProvider.setSort("startTime", SortOrder.DESCENDING);
-		}
-		table = new ScreenitDataTable<>("tabel", getColumns(), werklijstIntakeDataProvider, 10, Model.of("afspraken"))
-		{
+			@Override
+			protected boolean getValuesFromSession()
+			{
+				return false;
+			}
 
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<ColonIntakeAfspraak> model)
@@ -213,8 +221,13 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 			}
 		});
 
+		addExtraValidators(vanaf, totEnMet);
+
+		datepickerVandaag = new WebMarkupContainer("datepickerVandaag");
+		form.add(datepickerVandaag);
+
 		List<ConclusieTypeFilter> values = getFilterOpties();
-		ScreenitDropdown<ConclusieTypeFilter> conclusieType = ComponentHelper.newDropDownChoice("conclusieTypeFilter", new ListModel<>(values), new EnumChoiceRenderer<>(this),
+		conclusieType = ComponentHelper.newDropDownChoice("conclusieTypeFilter", new ListModel<>(values), new EnumChoiceRenderer<>(this),
 			false);
 		conclusieType.setOutputMarkupId(true);
 		conclusieType.setNullValid(true);
@@ -257,12 +270,22 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 
 		addBsnGeboortedatumForm(afgerondeAfspraken);
 
-		add(new ExportToCsvLink<>("csv", "Intake Afspraken", table.getDataProvider(), getColumns()).setVisible(!afgerondeAfspraken));
+		exportToCsvLink = new ExportToCsvLink<>("csv", "Intake Afspraken", table.getDataProvider(), getColumns());
+		add(exportToCsvLink);
+	}
+
+	protected void addExtraValidators(FormComponent<Date> vanaf, FormComponent<Date> totEnMet)
+	{
+	}
+
+	protected SortableDataProvider<ColonIntakeAfspraak, String> getWerklijstIntakeDataProvider(ColoscopieCentrum intakelocatie, int aantalPerPagina)
+	{
+		return new WerklijstIntakeDataProvider(zoekModel, intakelocatie);
 	}
 
 	private void addBsnGeboortedatumForm(boolean afgerondeAfspraken)
 	{
-		Form<WerklijstIntakeFilter> bsnGebroortedatumForm = new Form<>("bsnGebroortedatumForm", zoekModel);
+		bsnGebroortedatumForm = new Form<>("bsnGebroortedatumForm", zoekModel);
 		bsnGebroortedatumForm.setOutputMarkupId(true);
 		add(bsnGebroortedatumForm);
 		FormComponent<String> bsn = ComponentHelper.addTextField(bsnGebroortedatumForm, "bsn", true, 10, String.class, false);
@@ -290,7 +313,7 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 		bsnGebroortedatumForm.setVisible(afgerondeAfspraken);
 	}
 
-	private List<IColumn<ColonIntakeAfspraak, String>> getColumns()
+	protected List<IColumn<ColonIntakeAfspraak, String>> getColumns()
 	{
 		List<IColumn<ColonIntakeAfspraak, String>> columns = new ArrayList<>();
 		columns.add(new DateTimePropertyColumn<>(Model.of("Intakeafspraak"), "startTime", "startTime", new SimpleDateFormat("dd-MM-yyyy HH:mm"))
@@ -319,7 +342,7 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 			{
 				GbaPersoon persoon = rowModel.getObject().getClient().getPersoon();
 
-				Adres adres = AdresUtil.getAdres(persoon, new DateTime());
+				Adres adres = AdresUtil.getAdres(persoon, dateSupplier.getLocalDate());
 				return new Model<>(AdresUtil.getAdres(adres));
 			}
 		});
@@ -332,11 +355,15 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 			{
 				GbaPersoon persoon = rowModel.getObject().getClient().getPersoon();
 
-				Adres adres = AdresUtil.getAdres(persoon, new DateTime());
+				Adres adres = AdresUtil.getAdres(persoon, dateSupplier.getLocalDate());
 				return new Model<>(PostcodeFormatter.formatPostcode(adres.getPostcode(), true) + " " + adres.getPlaats());
 			}
 		});
+		return columns;
+	}
 
+	protected void addDatumBriefAfspraakColumn(List<IColumn<ColonIntakeAfspraak, String>> columns)
+	{
 		columns.add(new AbstractExportableColumn<>(Model.of("Datum brief afspraak"))
 		{
 
@@ -398,7 +425,10 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 				return new Model<>(getBriefAfgedrukt(rowModel));
 			}
 		});
+	}
 
+	protected void addHuisartsColumn(List<IColumn<ColonIntakeAfspraak, String>> columns)
+	{
 		columns.add(new PropertyColumn<>(Model.of("Huisarts"), "client.huisarts")
 		{
 			@Override
@@ -411,66 +441,112 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 				{
 					huisarts = NaamUtil.getNaamHuisarts(ronde.getColonHuisarts());
 				}
-				else if (ronde != null && ronde.getOnbekendeHuisarts() != null)
-				{
-					huisarts = NaamUtil.getNaamOnbekendeHuisarts(ronde.getOnbekendeHuisarts());
-				}
 
 				return new Model<>(huisarts);
 			}
 		});
-		if (this instanceof ColonOpenstaanteIntakesWerklijstPage)
-		{
-			columns.add(new PropertyColumn<>(Model.of("#dagen tot nieuwe BVO uitnodiging"), "volgendeUitnodiging.peildatum",
-				"client.colonDossier.volgendeUitnodiging")
-			{
+	}
 
-				@Override
-				public IModel<String> getDataModel(IModel<ColonIntakeAfspraak> rowModel)
-				{
-					LocalDate datumVolgendeUitnodiging = dossierBaseService.getDatumVolgendeUitnodiging(rowModel.getObject().getClient().getColonDossier());
-					String aantalDagenToGo = "";
-					if (datumVolgendeUitnodiging != null)
-					{
-						aantalDagenToGo = "" + ChronoUnit.DAYS.between(dateSupplier.getLocalDate(), datumVolgendeUitnodiging);
-					}
-					return new Model<>(aantalDagenToGo);
-				}
-			});
-		}
-		if (!(this instanceof ColonGeplandeIntakesWerklijstPage))
+	protected void addDagenTotVolgendeUitnodigingColumn(List<IColumn<ColonIntakeAfspraak, String>> columns)
+	{
+		columns.add(new PropertyColumn<>(Model.of("#dagen tot nieuwe BVO uitnodiging"), "volgendeUitnodiging.peildatum",
+			"client.colonDossier.volgendeUitnodiging")
 		{
-			columns.add(new AbstractColumn<>(Model.of("Conclusie"), "conclusie.type")
-			{
-				@Override
-				public void populateItem(Item<ICellPopulator<ColonIntakeAfspraak>> cellItem, String componentId, IModel<ColonIntakeAfspraak> rowModel)
-				{
 
-					var conclusie = rowModel.getObject().getConclusie();
-					if (conclusie != null)
-					{
-						if (ColonConclusieType.ON_HOLD.equals(conclusie.getType()) && conclusie.getOnHoldReden() != null)
-						{
-							cellItem.add(new EnumLabel<ColonConclusieOnHoldReden>(componentId, new PropertyModel<>(rowModel, "conclusie.onHoldReden")));
-						}
-						else
-						{
-							cellItem.add(new EnumLabel<ColonConclusieType>(componentId, new PropertyModel<>(rowModel, "conclusie.type")));
-						}
-					}
-					else
-					{
-						cellItem.add(new Label(componentId, ""));
-					}
+			@Override
+			public IModel<String> getDataModel(IModel<ColonIntakeAfspraak> rowModel)
+			{
+				LocalDate datumVolgendeUitnodiging = dossierBaseService.getDatumVolgendeUitnodiging(rowModel.getObject().getClient().getColonDossier());
+				String aantalDagenToGo = "";
+				if (datumVolgendeUitnodiging != null)
+				{
+					aantalDagenToGo = "" + ChronoUnit.DAYS.between(dateSupplier.getLocalDate(), datumVolgendeUitnodiging);
 				}
-			});
-		}
-		return columns;
+				return new Model<>(aantalDagenToGo);
+			}
+		});
+	}
+
+	protected void addStatusColumn(List<IColumn<ColonIntakeAfspraak, String>> columns)
+	{
+		columns.add(new EnumPropertyColumn<ColonIntakeAfspraak, String, ColonConclusieType>(Model.of("Status"), "conclusie.type")
+					{
+						@Override
+						public IModel<?> getDataModel(IModel<ColonIntakeAfspraak> rowModel)
+						{
+							var status = getStatusTekst(rowModel);
+							return Model.of(getString(status, rowModel, status));
+						}
+
+						private String getStatusTekst(IModel<ColonIntakeAfspraak> rowModel)
+						{
+							var afspraak = rowModel.getObject();
+							var conclusie = afspraak.getConclusie();
+							if (conclusie != null)
+							{
+								if (ColonConclusieType.ON_HOLD.equals(conclusie.getType()))
+								{
+									if (conclusie.getOnHoldReden() != null)
+									{
+										return EnumStringUtil.getPropertyString(conclusie.getOnHoldReden());
+
+									}
+									else
+									{
+										return EnumStringUtil.getPropertyString(conclusie.getType());
+									}
+								}
+								else if (ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM.equals(conclusie.getType()))
+								{
+									if (afspraak.getNieuweAfspraak() != null && Boolean.FALSE.equals(
+										conclusie.getDoorverwijzingBevestigd()))
+									{
+										return "doorverwezen.wacht.op.bevestiging";
+									}
+									else if (afspraak.getNieuweAfspraak() == null && Boolean.TRUE.equals(
+										conclusie.getDoorverwijzingBevestigd()))
+									{
+										return "doorverwijzen.bel.infolijn";
+									}
+									else if (afspraak.getNieuweAfspraak() != null && Boolean.TRUE.equals(
+										conclusie.getDoorverwijzingBevestigd()))
+									{
+										return "doorverwezen.medische.redenen";
+									}
+									else
+									{
+										return "";
+									}
+								}
+								else
+								{
+									return EnumStringUtil.getPropertyString(conclusie.getType());
+								}
+							}
+							else
+							{
+								return "Geen conclusie ingevuld";
+							}
+						}
+					}
+		);
+	}
+
+	protected void addVerwezenColumn(List<IColumn<ColonIntakeAfspraak, String>> columns)
+	{
+		columns.add(new AbstractExportableColumn<>(Model.of("Verwezen"))
+		{
+			@Override
+			public IModel<?> getDataModel(IModel<ColonIntakeAfspraak> iModel)
+			{
+				return Model.of(afspraakService.isAfspraakVerwezenOmMedischeRedenen(iModel.getObject()) ? "Ja" : "Nee");
+			}
+		});
 	}
 
 	protected abstract List<ConclusieTypeFilter> getFilterOpties();
 
-	private IModel<WerklijstIntakeFilter> getNewWerkLijstIntakeFilter(AfspraakStatus afspraakStatus)
+	protected IModel<WerklijstIntakeFilter> getNewWerkLijstIntakeFilter(AfspraakStatus afspraakStatus)
 	{
 		ScreenitSession session = ScreenitSession.get();
 		IModel<WerklijstIntakeFilter> intakeFilter;
@@ -493,6 +569,7 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 		}
 		filter.setInterval(uitnodigingsInterval);
 		filter.setMaxLeeftijd(maximaleLeeftijd);
+
 		return intakeFilter;
 	}
 
@@ -522,6 +599,7 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 		}
 		target.add(table);
 		target.add(form);
+		target.appendJavaScript("datepickerVandaag()");
 		ScreenitSession.get().setZoekObject(this.getClass(), zoekModel);
 	}
 
@@ -561,6 +639,7 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 
 		});
 		contextMenuItems.add(new GebruikerMenuItem("label.werklijst.afgeronde", ColonAfgerondeIntakesWerklijstPage.class));
+		contextMenuItems.add(new GebruikerMenuItem("label.werklijst.missende", ColonMissendeMdlVerslagenWerklijstPage.class));
 		return contextMenuItems;
 	}
 }

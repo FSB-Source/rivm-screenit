@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.rooster;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -51,7 +51,6 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.planning.model.ILocation;
-import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
@@ -98,9 +97,6 @@ public abstract class AbstractEditTijdSlotPanel<T extends AbstractAppointment> e
 
 	@SpringBean
 	private HibernateService hibernateService;
-
-	@SpringBean
-	private SimplePreferenceService preferenceService;
 
 	@SpringBean
 	private LogService logService;
@@ -531,7 +527,7 @@ public abstract class AbstractEditTijdSlotPanel<T extends AbstractAppointment> e
 			ok = false;
 		}
 
-		if (appointment.getId() != null && !appointment.equals(startTime) && startTime.before(new Date()))
+		if (appointment.getId() != null && !appointment.equals(startTime) && startTime.before(currentDateSupplier.getDate()))
 		{
 			error(getString("nieuwe.start.in.verleden"));
 			ok = false;

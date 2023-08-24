@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal.validator;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,6 +31,7 @@ import nl.rivm.screenit.huisartsenportaal.model.Locatie;
 import nl.rivm.screenit.huisartsenportaal.model.enums.AanmeldStatus;
 import nl.rivm.screenit.huisartsenportaal.repository.LocatieCriteriaRepository;
 import nl.rivm.screenit.huisartsenportaal.repository.LocatieRepository;
+import nl.rivm.screenit.huisartsenportaal.util.CervixLocatieUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -58,13 +59,11 @@ public class HuisartsValidator extends BaseValidator<HuisartsDto>
 			errors.reject("error.locaties.min", "Minimaal 1 locatie nodig om de registratie af te ronden.");
 		}
 
-		String empty = "<empty>";
 		if (!CollectionUtils.isEmpty(locaties))
 		{
 			for (Locatie locatie : locaties)
 			{
-				if (!locatie.getStatus().equals(CervixLocatieStatus.INACTIEF)
-					&& (empty.equals(locatie.getIban()) || empty.equals(locatie.getNaam()) || empty.equals(locatie.getIbanTenaamstelling())))
+				if (!locatie.getStatus().equals(CervixLocatieStatus.INACTIEF) && !CervixLocatieUtil.isLocatieCompleet(locatie))
 				{
 					errors.reject("error.locaties.bulk", "Er zijn nog lege velden bij een locatie, wijzig deze eerst.");
 					break;

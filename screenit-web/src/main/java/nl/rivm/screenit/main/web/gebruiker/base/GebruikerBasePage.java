@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.base;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -75,7 +75,6 @@ import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
-import org.apache.wicket.markup.head.PriorityHeaderItem;
 import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -98,7 +97,7 @@ import org.wicketstuff.wiquery.core.javascript.JsStatement;
 
 public abstract class GebruikerBasePage extends BasePage
 {
-	private static final String FADE_ALERT_SUCCES_SCRIPT = "setTimeout(\"jQuery(document.getElementsByClassName('alert-success')).fadeOut('slow')\", 1500);";
+	private static final String FADE_ALERT_SUCCES_SCRIPT = "fadeAlertSucces()";
 
 	public static final String IMS_DESKTOPSYNC_JS_SOURCE = "assets/js/imsintegratie/ims-desktopsync.js";
 
@@ -310,6 +309,8 @@ public abstract class GebruikerBasePage extends BasePage
 		response.render(JavaScriptHeaderItem.forReference(TimeoutResponseJsResourceReference.get()));
 		response.render(JavaScriptHeaderItem.forReference(TimeoutJsResourceReference.get()));
 
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/libs/daypilot/daypilot-all.min.js"));
+
 		int timeoutMillis = ((ServletWebRequest) RequestCycle.get().getRequest()).getContainerRequest().getSession().getMaxInactiveInterval() * 1000;
 
 		int meldingTimeoutMillis = timeoutMillis - (5 * 60 + 10) * 1000;
@@ -325,12 +326,12 @@ public abstract class GebruikerBasePage extends BasePage
 		response.render(OnDomReadyHeaderItem.forScript(jsStatement.render()));
 		if (heeftImsKoppelingRecht)
 		{
-			response.render(new PriorityHeaderItem(JavaScriptHeaderItem.forScript(createImsErrorAfhandeling(), null)));
-			response.render(new PriorityHeaderItem(JavaScriptHeaderItem.forUrl(IMS_DESKTOPSYNC_JS_SOURCE)));
-			response.render(new PriorityHeaderItem(JavaScriptHeaderItem.forUrl(IMS_KEYPAD_JS_SOURCE)));
+			response.render(JavaScriptHeaderItem.forScript(createImsErrorAfhandeling(), null));
+			response.render(JavaScriptHeaderItem.forUrl(IMS_DESKTOPSYNC_JS_SOURCE));
+			response.render(JavaScriptHeaderItem.forUrl(IMS_KEYPAD_JS_SOURCE));
 			if (loginIms)
 			{
-				response.render(new PriorityHeaderItem(JavaScriptHeaderItem.forScript(createImsLogonCommand(), null)));
+				response.render(JavaScriptHeaderItem.forScript(createImsLogonCommand(), null));
 			}
 		}
 	}
@@ -372,7 +373,7 @@ public abstract class GebruikerBasePage extends BasePage
 		add(container);
 
 		InstellingGebruiker gebruiker = ScreenitSession.get().getLoggedInInstellingGebruiker();
-		List<Bevolkingsonderzoek> onderzoeken = autorisatieService.getBevolkingsonderzoeken(gebruiker);
+		List<Bevolkingsonderzoek> onderzoeken = Bevolkingsonderzoek.sort(autorisatieService.getBevolkingsonderzoeken(gebruiker));
 		if (onderzoeken.size() < 2)
 		{
 			container.setVisible(false);
@@ -387,7 +388,6 @@ public abstract class GebruikerBasePage extends BasePage
 			return;
 		}
 		container.setVisible(true);
-		Bevolkingsonderzoek.sort(onderzoeken);
 		Form<InstellingGebruiker> bvoForm = new Form<>("bvoForm", ModelUtil.cModel(gebruiker));
 		CheckBoxMultipleChoice<Bevolkingsonderzoek> keuzemaken = new CheckBoxMultipleChoice<>("bevolkingsonderzoeken", onderzoeken,
 			new ChoiceRenderer<Bevolkingsonderzoek>()

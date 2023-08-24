@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.dao.colon.impl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,6 +30,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.dao.colon.IntakelocatieVanTotEnMetFilter;
 import nl.rivm.screenit.dao.colon.RoosterDao;
@@ -71,23 +72,19 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
 import org.hibernate.transform.Transformers;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 
 @Repository
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+@Slf4j
 public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 {
-	private static final Logger LOG = LoggerFactory.getLogger(RoosterDaoImpl.class);
-
 	public static final String[] HERVERWERKING_MARKERS = new String[] { "zonder conclusie", "zonder passende screeningsronde", "geen ongunstige uitslag" };
 
 	@Autowired
@@ -109,8 +106,7 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 	private <T extends AbstractAppointment> BaseCriteria<T> createCriteria(Periode periode, Class<T> type)
 	{
 		BaseCriteria<T> criteria = new BaseCriteria<>(type);
-
-		criteria.add(RangeCriteriaBuilder.closedOpen("startTime", "endTime").overlaps(new Interval(new DateTime(periode.getT()), new DateTime(periode.getU()))));
+		criteria.add(RangeCriteriaBuilder.closedOpen("startTime", "endTime").overlaps(Range.closed(periode.getT(), periode.getU())));
 		return criteria;
 	}
 
@@ -137,14 +133,14 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 	}
 
 	@Override
-	public List<Object> getRoosterTijden(List<Interval> intervals, RoosterItem roosteritem, Interval totaalInterval)
+	public List<Object> getRoosterTijden(List<Range<Date>> ranges, RoosterItem roosteritem, Range<Date> totaalInterval)
 	{
 		Criteria criteria = getSession().createCriteria(RoosterItem.class);
 
 		Disjunction disjunction = Restrictions.disjunction();
-		for (Interval interval : intervals)
+		for (var range : ranges)
 		{
-			disjunction.add(RangeCriteriaBuilder.closedOpen("startTime", "endTime").overlaps(interval));
+			disjunction.add(RangeCriteriaBuilder.closedOpen("startTime", "endTime").overlaps(range));
 		}
 		criteria.add(disjunction);
 		criteria.addOrder(Order.asc("startTime"));
@@ -158,8 +154,8 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 			conjunction.add(Restrictions.eq("recurrence", recurrence));
 			if (totaalInterval != null)
 			{
-				conjunction.add(Restrictions.ge("startTime", totaalInterval.getStart().toDate()));
-				conjunction.add(Restrictions.lt("endTime", totaalInterval.getEnd().toDate()));
+				conjunction.add(Restrictions.ge("startTime", totaalInterval.lowerEndpoint()));
+				conjunction.add(Restrictions.lt("endTime", totaalInterval.upperEndpoint()));
 			}
 			disjunction.add(conjunction);
 		}
@@ -168,11 +164,10 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 			disjunction.add(Restrictions.eq("id", roosteritem.getId()));
 		}
 
-		ProjectionList projectionList = Projections.projectionList() 
-			.add(Projections.property("startTime")) 
-			.add(Projections.property("endTime")) 
-			.add(Projections.property("id"))
-		;
+		ProjectionList projectionList = Projections.projectionList()
+			.add(Projections.property("startTime"))
+			.add(Projections.property("endTime"))
+			.add(Projections.property("id"));
 
 		criteria.setProjection(projectionList);
 
@@ -412,13 +407,18 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 
 			querySB.append(" and pa.start_time>:vanaf and pa.start_time<:totEnMet");
 			params.put("vanaf", filter.getVanaf());
-			params.put("totEnMet", new DateTime(filter.getTotEnMet()).plusDays(1).toDate());
+			params.put("totEnMet", DateUtil.plusDagen(filter.getTotEnMet(), 1));
 			params.put("vanaf1", filter.getVanaf());
-			params.put("totEnMet1", new DateTime(filter.getTotEnMet()).plusDays(1).toDate());
+			params.put("totEnMet1", DateUtil.plusDagen(filter.getTotEnMet(), 1));
 			if (filter.getIntakeLocatieId() != null)
 			{
 				querySB.append(" and cc.id = :intakeLocatieId");
 				params.put("intakeLocatieId", filter.getIntakeLocatieId());
+			}
+			if (filter.getNietIntakeLocatieId() != null)
+			{
+				querySB.append(" and cc.id != :nietIntakeLocatieId");
+				params.put("nietIntakeLocatieId", filter.getNietIntakeLocatieId());
 			}
 		}
 
@@ -514,7 +514,7 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 	}
 
 	@Override
-	public List<Object> getCurrentRoosterBlokken(Kamer kamer, Interval periode)
+	public List<Object> getCurrentRoosterBlokken(Kamer kamer, Range<Date> periode)
 	{
 		Criteria criteria = getSession().createCriteria(RoosterItem.class);
 		criteria.createAlias("location", "location");
@@ -536,7 +536,7 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 		Date tot = currentDateSupplier.getDate();
 		if (intakeVanTotEnMetFilter.getTotEnMet() != null)
 		{
-			tot = new DateTime(intakeVanTotEnMetFilter.getTotEnMet()).plusDays(1).toDate();
+			tot = DateUtil.plusDagen(intakeVanTotEnMetFilter.getTotEnMet(), 1);
 		}
 
 		BaseCriteria<Date> subQuery1 = new BaseCriteria<>(MeldingOngeldigCdaBericht.class);
@@ -588,8 +588,8 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 
 	private BaseCriteria<ColonBlokkade> createCriteria(RoosterListViewFilter filter, ColoscopieCentrum intakelocatie)
 	{
-		BaseCriteria<ColonBlokkade> criteria = createCriteria(new Periode(filter.getStartDatum(), new DateTime(filter.getEndDatum()).withTimeAtStartOfDay().plusDays(1).toDate()),
-			ColonBlokkade.class);
+		BaseCriteria<ColonBlokkade> criteria = createCriteria(
+			new Periode(filter.getStartDatum(), DateUtil.plusDagen(DateUtil.startDag(filter.getEndDatum()), 1)), ColonBlokkade.class);
 		criteria.createAlias("location", "kamer");
 		criteria.add(Restrictions.eq("kamer.actief", true));
 		criteria.add(Restrictions.eq("kamer.coloscopieCentrum", intakelocatie));

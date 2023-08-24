@@ -4,7 +4,7 @@ package nl.rivm.screenit.service;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,13 +21,30 @@ package nl.rivm.screenit.service;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
+
 import javax.annotation.Nonnull;
 
+import nl.rivm.screenit.dto.alg.client.contact.MailAttachmentDto;
+import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Gebruiker;
+import nl.rivm.screenit.model.MailVerzenden;
+import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.enums.MailPriority;
 
 public interface MailService
 {
-	void queueMail(String to, String subject, String content);
+	void queueMailAanProfessional(String to, String subject, String content);
 
-	void queueMail(String to, String subject, String content, @Nonnull MailPriority priority);
+	void queueMailAanProfessional(String to, String subject, String content, @Nonnull MailPriority priority);
+
+	void queueMailAanClient(Client client, String subject, String content, List<MailAttachmentDto> mailAttachments);
+
+	MailVerzenden getMailVerzenden();
+
+	void sendRegistratieMail(CervixHuisarts huisarts);
+
+	void sendPasswordResetMail(CervixHuisarts huisarts);
+
+	void sendWachwoordVerlooptHerinneringMail(Gebruiker gebruiker);
 }

@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,15 +23,19 @@ import {cpStore} from "../index"
 import {transformDates} from "./DateTransformUtil"
 
 export const loadState = (): State => {
-    try {
-        const cpState = sessionStorage.getItem('cpState');
-        if (!cpState) {
-            return legeState;
-        }
-		return transformDates(JSON.parse(cpState))
-    } catch (err) {
-        return legeState;
-    }
+	try {
+		const cpState = sessionStorage.getItem("cpState")
+		if (!cpState) {
+			return legeState
+		}
+		const parsedState = transformDates(JSON.parse(cpState))
+		return {
+			...parsedState,
+			requestMinusResponseCounter: 0,
+		}
+	} catch (err) {
+		return legeState
+	}
 };
 
 export const saveState = () => {

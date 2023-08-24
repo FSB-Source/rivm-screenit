@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -53,10 +53,10 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.cervix.Cervix2023StartBepalingService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
 import nl.rivm.screenit.service.cervix.CervixVervolgService;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
-import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.slf4j.Logger;
@@ -102,7 +102,8 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 	@Autowired
 	private CervixVervolgService vervolgService;
 
-	private boolean isGenotyperingAnalyseGestart;
+	@Autowired
+	private Cervix2023StartBepalingService cervix2023StartBepalingService;
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
@@ -151,7 +152,7 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 							ronde.setMonsterHpvUitslag(monster);
 							hibernateService.saveOrUpdate(ronde);
 						}
-						else if (monster.getHpvBeoordelingen().size() == 1)
+						else if (monster.getHpvBeoordelingen().size() == 1 && !cervix2023StartBepalingService.isBmhk2023Laboratorium(monster.getLaboratorium()))
 						{
 							String melding = "Eerste ongeldige hrHPV-analyseresultaat(en) van monster. Monster dient nogmaals op HPV beoordeeld te worden.";
 							logging(LogGebeurtenis.CERVIX_HPV_UITSLAG_VERWERKT, opDashboardVanOrganisaties, Level.INFO, melding, sample, monster);
@@ -251,32 +252,53 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 
 	private void setMonsterInVolgendeStatus(CervixMonster monster)
 	{
-		monster = (CervixMonster) HibernateHelper.deproxy(monster);
 		if (monster instanceof CervixUitstrijkje)
 		{
-			CervixUitstrijkje uitstrijkje = CervixMonsterUtil.getUitstrijkje(monster);
-			if (CervixUitstrijkjeStatus.ONTVANGEN == uitstrijkje.getUitstrijkjeStatus())
-			{
-				uitstrijkje.setUitstrijkjeStatus(CervixUitstrijkjeStatus.GEANALYSEERD_OP_HPV_POGING_1);
-			}
-			else if (CervixUitstrijkjeStatus.GEANALYSEERD_OP_HPV_POGING_1 == uitstrijkje.getUitstrijkjeStatus())
-			{
-				uitstrijkje.setUitstrijkjeStatus(CervixUitstrijkjeStatus.GEANALYSEERD_OP_HPV_POGING_2);
-			}
+			setUitstrijkjeInVolgendeStatus(CervixMonsterUtil.getUitstrijkje(monster));
 		}
 		else
 		{
-			CervixZas zas = CervixMonsterUtil.getZAS(monster);
-			if (CervixZasStatus.ONTVANGEN == zas.getZasStatus())
+			setZasInVolgendeStatus(CervixMonsterUtil.getZAS(monster));
+		}
+		monster.setStatusDatum(currentDateSupplier.getDate());
+	}
+
+	private void setUitstrijkjeInVolgendeStatus(CervixUitstrijkje uitstrijkje)
+	{
+		if (uitstrijkje.getUitstrijkjeStatus() == CervixUitstrijkjeStatus.ONTVANGEN)
+		{
+			if (cervix2023StartBepalingService.isBmhk2023Laboratorium(uitstrijkje.getLaboratorium()))
 			{
-				zas.setZasStatus(CervixZasStatus.GEANALYSEERD_OP_HPV_POGING_1);
+				uitstrijkje.setUitstrijkjeStatus(CervixUitstrijkjeStatus.GEANALYSEERD_OP_HPV_POGING_2);
 			}
-			else if (CervixZasStatus.GEANALYSEERD_OP_HPV_POGING_1 == zas.getZasStatus())
+			else
+			{
+				uitstrijkje.setUitstrijkjeStatus(CervixUitstrijkjeStatus.GEANALYSEERD_OP_HPV_POGING_1);
+			}
+		}
+		else if (uitstrijkje.getUitstrijkjeStatus() == CervixUitstrijkjeStatus.GEANALYSEERD_OP_HPV_POGING_1)
+		{
+			uitstrijkje.setUitstrijkjeStatus(CervixUitstrijkjeStatus.GEANALYSEERD_OP_HPV_POGING_2);
+		}
+	}
+
+	private void setZasInVolgendeStatus(CervixZas zas)
+	{
+		if (zas.getZasStatus() == CervixZasStatus.ONTVANGEN)
+		{
+			if (cervix2023StartBepalingService.isBmhk2023Laboratorium(zas.getLaboratorium()))
 			{
 				zas.setZasStatus(CervixZasStatus.GEANALYSEERD_OP_HPV_POGING_2);
 			}
+			else
+			{
+				zas.setZasStatus(CervixZasStatus.GEANALYSEERD_OP_HPV_POGING_1);
+			}
 		}
-		monster.setStatusDatum(currentDateSupplier.getDate());
+		else if (zas.getZasStatus() == CervixZasStatus.GEANALYSEERD_OP_HPV_POGING_1)
+		{
+			zas.setZasStatus(CervixZasStatus.GEANALYSEERD_OP_HPV_POGING_2);
+		}
 	}
 
 	private void validatieAnalyseDatumEnAutorisatieDatum(CervixMonster monster, CervixHpvMonsterWrapper sample, List<Instelling> opDashboardVanOrganisaties)

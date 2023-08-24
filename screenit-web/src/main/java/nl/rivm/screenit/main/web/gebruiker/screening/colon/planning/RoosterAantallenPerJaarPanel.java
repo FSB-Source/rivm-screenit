@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,37 +21,38 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning;
  * =========================LICENSE_END==================================
  */
 
+import java.time.temporal.TemporalAdjusters;
+
 import nl.rivm.screenit.main.service.colon.RoosterService;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.DateUtil;
 
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
+
+import com.google.common.collect.Range;
 
 public class RoosterAantallenPerJaarPanel extends GenericPanel<ColoscopieCentrum>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private RoosterService roosterService;
+
+	@SpringBean
+	private ICurrentDateSupplier dateSupplier;
 
 	public RoosterAantallenPerJaarPanel(String id, IModel<ColoscopieCentrum> model)
 	{
 		super(id, model);
 		setOutputMarkupId(true);
 		add(new Label("aantalGeprognostiseerdeRoosterblokken"));
-		DateTime firstDayOfThisYear = new DateTime().dayOfYear().withMinimumValue().withTimeAtStartOfDay();
-		final Interval periode = new Interval(firstDayOfThisYear, firstDayOfThisYear.plusYears(1));
+		var firstDayOfThisYear = dateSupplier.getLocalDate().with(TemporalAdjusters.firstDayOfYear());
+		final var periode = Range.closed(DateUtil.toUtilDate(firstDayOfThisYear), DateUtil.toUtilDate(firstDayOfThisYear.plusYears(1)));
 
 		add(new Label("currentAantalBlokken", 0)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onConfigure()
 			{

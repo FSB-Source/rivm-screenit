@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,17 +23,14 @@ package nl.rivm.screenit.batch.service.impl;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.config.MammaHL7ConnectieContext;
 import nl.rivm.screenit.batch.dao.MammaHL7v24SendBerichtenQueueDao;
 import nl.rivm.screenit.batch.exception.HL7CreateMessageException;
-import nl.rivm.screenit.batch.exception.HL7SendMessageException;
 import nl.rivm.screenit.batch.model.enums.MammaHL7Connectie;
 import nl.rivm.screenit.batch.service.HL7BaseSendMessageService;
 import nl.rivm.screenit.batch.service.MammaHL7v24SendService;
@@ -41,9 +38,9 @@ import nl.rivm.screenit.dto.mamma.MammaHL7v24AdtBerichtTriggerDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24BerichtTriggerDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetClientDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto;
+import nl.rivm.screenit.exceptions.HL7SendMessageException;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.model.logging.MammaHl7v24BerichtLogEvent;
@@ -54,25 +51,23 @@ import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.hibernate5.SessionFactoryUtils;
 import org.springframework.orm.hibernate5.SessionHolder;
-import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ca.uhn.hl7v2.HL7Exception;
 
-@Service
+@Slf4j
+@Configuration
+@EnableScheduling
 public class HL7v24BerichtenQueueSenderServiceImpl
 {
-	private static final Logger LOG = LoggerFactory.getLogger(HL7v24BerichtenQueueSenderServiceImpl.class);
-
-	private static final long MILLIS_WAIT_TIME = TimeUnit.SECONDS.toMillis(10);
-
 	@Autowired
 	private MammaHL7v24SendService hl7SendService;
 
@@ -94,24 +89,91 @@ public class HL7v24BerichtenQueueSenderServiceImpl
 	@Autowired
 	private LogService logService;
 
-	private final ObjectMapper objectMapper = new ObjectMapper();
+	private static final ObjectMapper objectMapper = new ObjectMapper();
 
-	private final static int MAMMA_IMS_QUEUE_VERWERK_SIZE = 500;
+	private static final int MAMMA_IMS_QUEUE_VERWERK_SIZE = 500;
+
+	private static final long VERSTUURPROBLEMEN_DELAY = TimeUnit.SECONDS.toMillis(10);
+
+	private static final long VERSTUURPROBLEMEN_MAX_DELAY = TimeUnit.MINUTES.toMillis(2);
 
 	private int queueWarningThreshold;
 
+	private static final ThreadLocal<Boolean> bindSessionOnThread = new ThreadLocal<>();
+
 	private boolean queueSizeWarning = false;
 
-	private boolean verstuurProblemen = false;
+	private boolean erZijnVerstuurProblemen = false;
+
+	private int verstuurProblemenCount = 0;
 
 	private long imsSendRunCounter;
 
-	@PostConstruct
-	public void init()
+	private boolean doInit = true;
+
+	private boolean mailGestuurdBijError = false;
+
+	private boolean laatsteRunZonderProblemen = true;
+
+	@Scheduled(fixedDelay = 10000)
+	public void handleHL7v24Berichten()
 	{
-		LOG.info("Starting HL7 berichten queue verwerker");
-		loadPreferences();
-		handleHL7v24Berichten();
+		MammaHL7ConnectieContext connectieContext = null;
+		try
+		{
+			wachtBijRuntimeProblemen();
+			onInit();
+			connectieContext = new MammaHL7ConnectieContext();
+
+			boolean nogBerichtenOpQueue;
+
+			do
+			{
+				bindSession();
+				nogBerichtenOpQueue = verwerkIMSBerichtenQueue(connectieContext);
+				unbindSessionFactory();
+			}
+			while (nogBerichtenOpQueue);
+
+			closeHl7Connections(connectieContext);
+
+			imsSendRunCounter++;
+			if (imsSendRunCounter >= 6)
+			{
+				LOG.info("Running HL7 berichten queue");
+				bindSession();
+				loadPreferences();
+				unbindSessionFactory();
+				imsSendRunCounter = 0;
+			}
+			logVerstuurProblemenOpgelost();
+		}
+		catch (InterruptedException interruptedException)
+		{
+			LOG.error("InterruptException in berichten behandelen", interruptedException);
+			Thread.currentThread().interrupt();
+		}
+		catch (Exception exception)
+		{
+			if (connectieContext != null)
+			{
+				closeHl7Connections(connectieContext);
+			}
+			handleRuntimeException(exception);
+		}
+	}
+
+	private void onInit()
+	{
+		if (doInit)
+		{
+			LOG.info("Starting HL7 berichten queue verwerker");
+			bindSession();
+			loadPreferences();
+			unbindSessionFactory();
+
+			doInit = false;
+		}
 	}
 
 	private void loadPreferences()
@@ -120,68 +182,23 @@ public class HL7v24BerichtenQueueSenderServiceImpl
 		hl7SendService.verversConfiguratie();
 	}
 
-	private void handleHL7v24Berichten()
+	private void bindSession()
 	{
-		ExecutorService executorService = Executors.newSingleThreadExecutor();
-		executorService.submit(() -> {
-			while (true)
-			{
-				MammaHL7ConnectieContext connectieContext = new MammaHL7ConnectieContext();
-
-				try
-				{
-					boolean skipWait;
-
-					Session session = this.sessionFactory.openSession();
-					TransactionSynchronizationManager.bindResource(this.sessionFactory, new SessionHolder(session));
-					skipWait = verwerkIMSBerichtenQueue(connectieContext);
-					unbindSessionFactory();
-
-					if (!skipWait)
-					{
-						closeHl7Connections(connectieContext);
-
-						imsSendRunCounter++;
-						if (imsSendRunCounter % 6 == 0)
-						{
-							LOG.info("Running HL7 berichten queue");
-							loadPreferences();
-						}
-						try
-						{
-							Thread.sleep(MILLIS_WAIT_TIME);
-						}
-						catch (InterruptedException e)
-						{
-							LOG.error(String.format("HL7 berichten queue error: %s", e.getMessage()), e);
-						}
-					}
-
-				}
-				catch (Exception e)
-				{
-					LOG.error("Runtime exceptie tijden het versturen van HL7v24 berichten.", e);
-					LogEvent logEvent = new LogEvent();
-					logEvent.setLevel(Level.ERROR);
-					logEvent.setMelding("Er is een onbekende fout opgetreden tijden het versturen van HL7v24 berichten, neem contact op met Topicus.");
-					logService.logGebeurtenis(LogGebeurtenis.MAMMA_HL7_BERICHT_BATCH_GESTOPT, logEvent, Bevolkingsonderzoek.MAMMA);
-					return;
-				}
-				finally
-				{
-					closeHl7Connections(connectieContext);
-				}
-			}
-		});
-
+		if (!Boolean.TRUE.equals(bindSessionOnThread.get()))
+		{
+			Session session = sessionFactory.openSession();
+			TransactionSynchronizationManager.bindResource(sessionFactory, new SessionHolder(session));
+			bindSessionOnThread.set(true);
+		}
 	}
 
 	private void unbindSessionFactory()
 	{
-		if (this.sessionFactory != null)
+		if (Boolean.TRUE.equals(bindSessionOnThread.get()))
 		{
-			SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.unbindResource(this.sessionFactory);
+			SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.unbindResource(sessionFactory);
 			SessionFactoryUtils.closeSession(sessionHolder.getSession());
+			bindSessionOnThread.remove();
 		}
 	}
 
@@ -202,7 +219,7 @@ public class HL7v24BerichtenQueueSenderServiceImpl
 			}
 		}
 		logQueueSizeProblemen(queueSize);
-		return !verstuurProblemen && queueSize > MAMMA_IMS_QUEUE_VERWERK_SIZE;
+		return !erZijnVerstuurProblemen && queueSize > MAMMA_IMS_QUEUE_VERWERK_SIZE;
 	}
 
 	private void verstuurBerichten(List<MammaHL7v24Message> hl7v24Messages, MammaHL7ConnectieContext connectionContext)
@@ -251,7 +268,6 @@ public class HL7v24BerichtenQueueSenderServiceImpl
 			}
 
 		}
-		logVerstuurProblemenOpgelost();
 	}
 
 	private void closeHl7Connections(MammaHL7ConnectieContext connectionContext)
@@ -267,42 +283,46 @@ public class HL7v24BerichtenQueueSenderServiceImpl
 
 	private void logVerstuurProblemenOpgelost()
 	{
-		if (verstuurProblemen)
+		if (laatsteRunZonderProblemen)
 		{
-			MammaHl7v24BerichtLogEvent logEvent = new MammaHl7v24BerichtLogEvent();
-			logEvent.setLevel(Level.INFO);
-			logEvent.setMelding("IMS berichten worden weer succesvol verstuurd");
-			logService.logGebeurtenis(LogGebeurtenis.MAMMA_HL7_BERICHT_VERBINDING_HERSTELD, logEvent, Bevolkingsonderzoek.MAMMA);
+			if (erZijnVerstuurProblemen)
+			{
+				String melding = "IMS berichten worden weer succesvol verstuurd.";
+				LOG.info(melding);
+
+				logService.logGebeurtenis(LogGebeurtenis.MAMMA_HL7_BERICHT_VERBINDING_HERSTELD, null, melding, Bevolkingsonderzoek.MAMMA);
+				mailGestuurdBijError = false;
+				verstuurProblemenCount = 0;
+			}
+			erZijnVerstuurProblemen = false;
 		}
-		verstuurProblemen = false;
+		laatsteRunZonderProblemen = true;
 	}
 
 	private void logVerstuurProblemen(HL7Exception exception)
 	{
-		if (!verstuurProblemen)
+		if (!erZijnVerstuurProblemen)
 		{
 			LOG.error(exception.getMessage(), exception);
-			LogEvent logEvent = new LogEvent();
-			logEvent.setLevel(Level.ERROR);
-			logEvent.setMelding("Onbekende fout bij het ophalen van het te versturen HL7v24 bericht");
-			logService.logGebeurtenis(LogGebeurtenis.MAMMA_HL7_BERICHT_VERSTUREN_MISLUKT, logEvent, Bevolkingsonderzoek.MAMMA);
+			String melding = "Onbekende fout bij het ophalen van het te versturen HL7v24 bericht";
+
+			maakEnLogErrorLogEvent(LogGebeurtenis.MAMMA_HL7_BERICHT_VERSTUREN_MISLUKT, melding);
 		}
-		verstuurProblemen = true;
+		erZijnVerstuurProblemen = true;
+		laatsteRunZonderProblemen = false;
 	}
 
 	private void logVerstuurProblemen(MammaHL7v24Message mammaHL7v24Message, MammaHL7v24BerichtTriggerDto hl7BerichtTriggerDto, Exception e)
 	{
-		if (!verstuurProblemen)
+		if (!erZijnVerstuurProblemen)
 		{
 			String messageStructure = e instanceof HL7SendMessageException ? ((HL7SendMessageException) e).getHl7Message() : "";
-			MammaHl7v24BerichtLogEvent logEvent = new MammaHl7v24BerichtLogEvent();
-			logEvent.setClient(getClient(hl7BerichtTriggerDto));
-			logEvent.setHl7MessageStructure(messageStructure);
-			logEvent.setLevel(Level.ERROR);
-			logEvent.setMelding(String.format("IMS bericht kon niet worden afgeleverd. %s. %s", mammaHL7v24Message.getHl7BerichtType(), e.getMessage()));
-			logService.logGebeurtenis(LogGebeurtenis.MAMMA_HL7_BERICHT_VERSTUREN_MISLUKT, logEvent, null, getClient(hl7BerichtTriggerDto), Bevolkingsonderzoek.MAMMA);
+			String melding = String.format("IMS bericht kon niet worden afgeleverd. %s. %s", mammaHL7v24Message.getHl7BerichtType(), e.getMessage());
+
+			maakEnLogErrorLogEvent(getClient(hl7BerichtTriggerDto), messageStructure, LogGebeurtenis.MAMMA_HL7_BERICHT_VERSTUREN_MISLUKT, melding);
 		}
-		verstuurProblemen = true;
+		erZijnVerstuurProblemen = true;
+		laatsteRunZonderProblemen = false;
 	}
 
 	private Client getClient(MammaHL7v24BerichtTriggerDto triggerDto)
@@ -339,4 +359,57 @@ public class HL7v24BerichtenQueueSenderServiceImpl
 		}
 	}
 
+	private void handleRuntimeException(Exception e)
+	{
+		setVerstuurProblemenEnCount();
+
+		LOG.error("Runtime exceptie tijden het versturen van HL7v24 berichten.", e);
+
+		String logMelding = "Er is een onbekende fout opgetreden tijden het versturen van HL7v24 berichten, neem contact op met Topicus. Het systeem probeert zichzelf te herstellen.";
+		bindSession();
+		maakEnLogErrorLogEvent(LogGebeurtenis.MAMMA_HL7_BERICHT_BATCH_GESTOPT, logMelding);
+
+		unbindSessionFactory();
+	}
+
+	private void setVerstuurProblemenEnCount()
+	{
+		erZijnVerstuurProblemen = true;
+		if ((verstuurProblemenCount * VERSTUURPROBLEMEN_DELAY) < VERSTUURPROBLEMEN_MAX_DELAY)
+		{
+			verstuurProblemenCount++;
+		}
+	}
+
+	private void wachtBijRuntimeProblemen() throws InterruptedException
+	{
+		if (erZijnVerstuurProblemen && verstuurProblemenCount > 0)
+		{
+			var wachttijd = verstuurProblemenCount * VERSTUURPROBLEMEN_DELAY;
+			LOG.info("Er zijn problemen met de verwerking van de HL7v24 berichten, wacht {} seconden extra.", wachttijd / 1000);
+			Thread.sleep(wachttijd);
+		}
+	}
+
+	private void maakEnLogErrorLogEvent(Client client, String messageStructure, LogGebeurtenis logGebeurtenis, String melding)
+	{
+		if (!mailGestuurdBijError)
+		{
+			var logEvent = new MammaHl7v24BerichtLogEvent();
+			logEvent.setHl7MessageStructure(messageStructure);
+			logEvent.setMelding(melding);
+
+			logService.logGebeurtenis(logGebeurtenis, logEvent, null, client, Bevolkingsonderzoek.MAMMA);
+			mailGestuurdBijError = true;
+		}
+	}
+
+	private void maakEnLogErrorLogEvent(LogGebeurtenis logGebeurtenis, String melding)
+	{
+		if (!mailGestuurdBijError)
+		{
+			logService.logGebeurtenis(logGebeurtenis, null, melding, Bevolkingsonderzoek.MAMMA);
+			mailGestuurdBijError = true;
+		}
+	}
 }

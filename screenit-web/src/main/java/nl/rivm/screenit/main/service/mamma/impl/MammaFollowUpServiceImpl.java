@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -183,7 +183,7 @@ public class MammaFollowUpServiceImpl implements MammaFollowUpService
 	@Override
 	public List<MammaFollowUpVerslag> getAfgerondeFollowUpPathologieVerslagen(MammaScreeningRonde screeningRonde)
 	{
-		return screeningRonde.getFollowUpVerslagen().stream()
+		return baseFollowUpService.getFollowUpVerslagenZonderLandelijkeMonitor(screeningRonde).stream()
 			.filter(v -> v.getStatus().equals(VerslagStatus.AFGEROND))
 			.sorted(Comparator.comparing(MammaVerslag::getDatumVerwerkt, Comparator.reverseOrder()))
 			.collect(Collectors.toList());
@@ -193,12 +193,9 @@ public class MammaFollowUpServiceImpl implements MammaFollowUpService
 	{
 		if (MammaFollowUpConclusieStatus.TRUE_NEGATIVE == screeningRonde.getFollowUpConclusieStatus())
 		{
-			getTeVerwijderenVerslagen(screeningRonde).forEach(verslag -> verslagService.verwijderVerslag(verslag, null, false));
+			getAfgerondeFollowUpPathologieVerslagen(screeningRonde).stream()
+				.filter(verslagService::isElektronischPalgaVerslag)
+				.forEach(verslag -> verslagService.verwijderVerslag(verslag, null, false));
 		}
-	}
-
-	private List<MammaFollowUpVerslag> getTeVerwijderenVerslagen(MammaScreeningRonde screeningRonde)
-	{
-		return getAfgerondeFollowUpPathologieVerslagen(screeningRonde).stream().filter(verslag -> verslagService.isElektronischPalgaVerslag(verslag)).collect(Collectors.toList());
 	}
 }

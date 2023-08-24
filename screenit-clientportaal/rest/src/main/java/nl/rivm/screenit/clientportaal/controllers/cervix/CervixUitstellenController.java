@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.controllers.cervix;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,6 +30,9 @@ import nl.rivm.screenit.clientportaal.model.cervix.CervixUitstellenStatusDto;
 import nl.rivm.screenit.clientportaal.services.cervix.CervixUitstellenService;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActieType;
+import nl.rivm.screenit.service.ClientContactService;
+import nl.rivm.screenit.util.BriefUtil;
+import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -47,15 +50,18 @@ import org.springframework.web.bind.annotation.RestController;
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class CervixUitstellenController extends AbstractController
 {
+	private final HibernateService hibernateService;
+
+	private final ClientContactService clientContactService;
 
 	private final CervixUitstellenService uitstellenService;
 
 	@GetMapping("huidig")
 	public ResponseEntity<CervixUitstelDto> getHuidigeCervixUitstel(Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.CERVIX_UITSTEL))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.CERVIX_UITSTEL))
 		{
 			return ResponseEntity.ok(uitstellenService.getHuidigeCervixUitstel(client));
 		}
@@ -65,9 +71,9 @@ public class CervixUitstellenController extends AbstractController
 	@GetMapping("status")
 	public ResponseEntity<CervixUitstellenStatusDto> getCervixUitstelStatus(Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.CERVIX_UITSTEL))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.CERVIX_UITSTEL))
 		{
 			return ResponseEntity.ok(uitstellenService.getUitstelStatus(client));
 		}
@@ -78,9 +84,9 @@ public class CervixUitstellenController extends AbstractController
 	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<CervixUitstelDto> vraagUitstelAan(@RequestBody CervixUitstelDto uitstellenDto, Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.CERVIX_UITSTEL))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.CERVIX_UITSTEL))
 		{
 			if (uitstellenDto.getUitstellenTotDatum() != null)
 			{

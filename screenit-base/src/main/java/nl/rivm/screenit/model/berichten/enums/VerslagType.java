@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.berichten.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,7 +36,7 @@ public enum VerslagType
 	MDL(
 		Bevolkingsonderzoek.COLON,
 		TypeFormulier.MDL,
-		VerslagGeneratie.V10,
+		VerslagGeneratie.V11,
 		CdaOID.CONCEPTS_ROOT_OID,
 		LogGebeurtenis.MDL_VERSLAG_VERWIJDERD,
 		LogGebeurtenis.MDL_VERSLAG_HEROPEND,
@@ -45,7 +45,7 @@ public enum VerslagType
 	PA_LAB(
 		Bevolkingsonderzoek.COLON,
 		TypeFormulier.PALGA,
-		VerslagGeneratie.V10,
+		VerslagGeneratie.V11,
 		CdaOID.CONCEPTS_ROOT_OID,
 		LogGebeurtenis.PA_VERSLAG_VERWIJDERD,
 		LogGebeurtenis.PA_VERSLAG_HEROPEND,
@@ -54,7 +54,7 @@ public enum VerslagType
 	CERVIX_CYTOLOGIE(
 		Bevolkingsonderzoek.CERVIX,
 		TypeFormulier.CYTOLOGIE,
-		VerslagGeneratie.V10,
+		VerslagGeneratie.V11,
 		CdaOID.CONCEPTS_ROOT_OID,
 		null,
 		null,

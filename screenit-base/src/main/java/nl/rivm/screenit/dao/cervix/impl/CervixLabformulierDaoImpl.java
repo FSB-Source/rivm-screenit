@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,6 +32,7 @@ import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.cervix.enums.CervixHuisartsBerichtStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.criteria.BaseCriteria;
 import nl.topicuszorg.hibernate.criteria.ListCriteria;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
@@ -41,7 +42,6 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
-import org.joda.time.DateTime;
 import org.springframework.stereotype.Repository;
 
 import com.google.common.primitives.Ints;
@@ -101,7 +101,7 @@ public class CervixLabformulierDaoImpl extends AbstractAutowiredDao implements C
 
 		if (filter.getMonsterId() != null)
 		{
-			baseCriteria.add(Restrictions.eq("labformulier.barcode", filter.getMonsterId().toString()));
+			baseCriteria.add(Restrictions.eq("labformulier.barcode", filter.getMonsterId()));
 		}
 
 		if (!filter.getLabformulierStatussen().isEmpty())
@@ -121,7 +121,7 @@ public class CervixLabformulierDaoImpl extends AbstractAutowiredDao implements C
 
 		if (filter.getScanDatumTotEnMet() != null)
 		{
-			baseCriteria.add(Restrictions.lt("labformulier.scanDatum", new DateTime(filter.getScanDatumTotEnMet()).plusDays(1).toDateMidnight().toDate()));
+			baseCriteria.add(Restrictions.lt("labformulier.scanDatum", DateUtil.plusDagen(DateUtil.startDag(filter.getScanDatumTotEnMet()), 1)));
 		}
 
 		if (filter.getGeboortedatum() != null)
@@ -156,8 +156,8 @@ public class CervixLabformulierDaoImpl extends AbstractAutowiredDao implements C
 			baseCriteria.createAlias("monster.laatsteHpvBeoordeling", "hpvBeoordeling");
 
 			baseCriteria.add(Restrictions.eq("hpvBeoordeling.hpvUitslag", CervixHpvBeoordelingWaarde.POSITIEF));
-			baseCriteria.add(Restrictions.in("uitstrijkje.uitstrijkjeStatus", new CervixUitstrijkjeStatus[] { CervixUitstrijkjeStatus.ONTVANGEN,
-				CervixUitstrijkjeStatus.GEANALYSEERD_OP_HPV_POGING_1, CervixUitstrijkjeStatus.GEANALYSEERD_OP_HPV_POGING_2 }));
+			baseCriteria.add(Restrictions.in("uitstrijkje.uitstrijkjeStatus", List.of(CervixUitstrijkjeStatus.ONTVANGEN,
+				CervixUitstrijkjeStatus.GEANALYSEERD_OP_HPV_POGING_1, CervixUitstrijkjeStatus.GEANALYSEERD_OP_HPV_POGING_2)));
 			baseCriteria.or(Restrictions.isNull("ontvangstScreeningRonde.uitstrijkjeCytologieUitslag"),
 				Restrictions.and(Restrictions.isNotNull("ontvangstScreeningRonde.inVervolgonderzoekDatum"),
 					Restrictions.geProperty("uitstrijkje.ontvangstdatum", "ontvangstScreeningRonde.inVervolgonderzoekDatum"),

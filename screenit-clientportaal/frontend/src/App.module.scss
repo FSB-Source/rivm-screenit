@@ -1,9 +1,12 @@
 @import "src/scss/colors";
 @import "src/scss/media-mixins";
 
-.app {
-  min-height: 100vh;
+
+.appErrorBoundary {
+	min-height: 100vh;
+	background-color: $grijs-base;
 }
+
 
 .appBody {
 	min-height: calc(100vh - 100px);

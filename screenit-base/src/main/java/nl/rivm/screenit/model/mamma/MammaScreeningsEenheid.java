@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -60,9 +60,10 @@ import org.hibernate.envers.NotAudited;
 @Table(schema = "mamma", name = "screenings_eenheid")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "mamma.cache")
 @Audited
+@Getter
+@Setter
 public class MammaScreeningsEenheid extends AbstractHibernateObject implements IActief
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@Column(length = HibernateMagicNumber.L255)
@@ -79,6 +80,9 @@ public class MammaScreeningsEenheid extends AbstractHibernateObject implements I
 
 	@Column(nullable = false)
 	private Boolean heeftLift;
+
+	@Column(nullable = false)
+	private Boolean tomosyntheseMogelijk;
 
 	@Column(nullable = false)
 	private Boolean actief;
@@ -154,138 +158,6 @@ public class MammaScreeningsEenheid extends AbstractHibernateObject implements I
 	@SkipFieldForDiff
 	private MammaScreeningsEenheidStatus status;
 
-	public String getNaam()
-	{
-		return naam;
-	}
-
-	public void setNaam(String naam)
-	{
-		this.naam = naam;
-	}
-
-	public String getCode()
-	{
-		return code;
-	}
-
-	public void setCode(String code)
-	{
-		this.code = code;
-	}
-
-	public String getIpAdres()
-	{
-		return ipAdres;
-	}
-
-	public void setIpAdres(String ipAdres)
-	{
-		this.ipAdres = ipAdres;
-	}
-
-	public Boolean getIsMobiel()
-	{
-		return isMobiel;
-	}
-
-	public void setIsMobiel(Boolean isMobiel)
-	{
-		this.isMobiel = isMobiel;
-	}
-
-	public Boolean getHeeftLift()
-	{
-		return heeftLift;
-	}
-
-	public void setHeeftLift(Boolean heeftLift)
-	{
-		this.heeftLift = heeftLift;
-	}
-
-	@Override
-	public Boolean getActief()
-	{
-		return this.actief;
-	}
-
-	@Override
-	public void setActief(Boolean actief)
-	{
-		this.actief = actief;
-	}
-
-	public List<MammaBlokkade> getBlokkades()
-	{
-		return blokkades;
-	}
-
-	public void setBlokkades(List<MammaBlokkade> blokkades)
-	{
-		this.blokkades = blokkades;
-	}
-
-	public List<MammaStandplaatsPeriode> getStandplaatsPerioden()
-	{
-		return standplaatsPerioden;
-	}
-
-	public void setStandplaatsPerioden(List<MammaStandplaatsPeriode> standplaatsPerioden)
-	{
-		this.standplaatsPerioden = standplaatsPerioden;
-	}
-
-	public Date getUitgenodigdTotEnMet()
-	{
-		return uitgenodigdTotEnMet;
-	}
-
-	public void setUitgenodigdTotEnMet(Date uitgenodigdTotEnMet)
-	{
-		this.uitgenodigdTotEnMet = uitgenodigdTotEnMet;
-	}
-
-	public Date getUitnodigenTotEnMet()
-	{
-		return uitnodigenTotEnMet;
-	}
-
-	public void setUitnodigenTotEnMet(Date uitnodigenTotEnMet)
-	{
-		this.uitnodigenTotEnMet = uitnodigenTotEnMet;
-	}
-
-	public Date getVrijgegevenTotEnMet()
-	{
-		return vrijgegevenTotEnMet;
-	}
-
-	public void setVrijgegevenTotEnMet(Date vrijgegevenTotEnMet)
-	{
-		this.vrijgegevenTotEnMet = vrijgegevenTotEnMet;
-	}
-
-	public BeoordelingsEenheid getBeoordelingsEenheid()
-	{
-		return beoordelingsEenheid;
-	}
-
-	public void setBeoordelingsEenheid(BeoordelingsEenheid beoordelingsEenheid)
-	{
-		this.beoordelingsEenheid = beoordelingsEenheid;
-	}
-
-	public BigDecimal getInterval()
-	{
-		return interval;
-	}
-
-	public void setInterval(BigDecimal interval)
-	{
-		this.interval = interval;
-	}
-
 	@Transient
 	public PlanningScreeningsEenheidMetaDataDto getMetaDataDto()
 	{
@@ -296,105 +168,5 @@ public class MammaScreeningsEenheid extends AbstractHibernateObject implements I
 	public void setMetaDataDto(PlanningScreeningsEenheidMetaDataDto metaDataDto)
 	{
 		this.metaDataDto = metaDataDto;
-	}
-
-	public Date getHerhalingsWeek()
-	{
-		return herhalingsWeek;
-	}
-
-	public void setHerhalingsWeek(Date herhalingsWeek)
-	{
-		this.herhalingsWeek = herhalingsWeek;
-	}
-
-	public List<MammaMammograaf> getMammografen()
-	{
-		return mammografen;
-	}
-
-	public void setMammografen(List<MammaMammograaf> mammografen)
-	{
-		this.mammografen = mammografen;
-	}
-
-	public BeoordelingsEenheid getTijdelijkeBeoordelingsEenheid()
-	{
-		return tijdelijkeBeoordelingsEenheid;
-	}
-
-	public void setTijdelijkeBeoordelingsEenheid(BeoordelingsEenheid tijdelijkeBeoordelingsEenheid)
-	{
-		this.tijdelijkeBeoordelingsEenheid = tijdelijkeBeoordelingsEenheid;
-	}
-
-	public Date getTijdelijkeBeVanafDatum()
-	{
-		return tijdelijkeBeVanafDatum;
-	}
-
-	public void setTijdelijkeBeVanafDatum(Date tijdelijkeBeVanafDatum)
-	{
-		this.tijdelijkeBeVanafDatum = tijdelijkeBeVanafDatum;
-	}
-
-	public Date getTijdelijkeBeTotEnMetDatum()
-	{
-		return tijdelijkeBeTotEnMetDatum;
-	}
-
-	public void setTijdelijkeBeTotEnMetDatum(Date tijdelijkeBeTotEnMetDatum)
-	{
-		this.tijdelijkeBeTotEnMetDatum = tijdelijkeBeTotEnMetDatum;
-	}
-
-	public MammaDuurMinderValideAfspraak getDuurMinderValideAfspraak()
-	{
-		return duurMinderValideAfspraak;
-	}
-
-	public void setDuurMinderValideAfspraak(MammaDuurMinderValideAfspraak duurMinderValideAfspraak)
-	{
-		this.duurMinderValideAfspraak = duurMinderValideAfspraak;
-	}
-
-	public Date getMinderValidePeriode1Vanaf()
-	{
-		return minderValidePeriode1Vanaf;
-	}
-
-	public void setMinderValidePeriode1Vanaf(Date minderValidePeriode1Vanaf)
-	{
-		this.minderValidePeriode1Vanaf = minderValidePeriode1Vanaf;
-	}
-
-	public Date getMinderValidePeriode1TotEnMet()
-	{
-		return minderValidePeriode1TotEnMet;
-	}
-
-	public void setMinderValidePeriode1TotEnMet(Date minderValidePeriode1TotEnMet)
-	{
-		this.minderValidePeriode1TotEnMet = minderValidePeriode1TotEnMet;
-	}
-
-	public Date getMinderValidePeriode2Vanaf()
-	{
-		return minderValidePeriode2Vanaf;
-	}
-
-	public void setMinderValidePeriode2Vanaf(Date minderValidePeriode2Vanaf)
-	{
-		this.minderValidePeriode2Vanaf = minderValidePeriode2Vanaf;
-	}
-
-	public Date getMinderValidePeriode2TotEnMet()
-	{
-		return minderValidePeriode2TotEnMet;
-	}
-
-	public void setMinderValidePeriode2TotEnMet(Date minderValidePeriode2TotEnMet)
-	{
-		this.minderValidePeriode2TotEnMet = minderValidePeriode2TotEnMet;
 	}
 }

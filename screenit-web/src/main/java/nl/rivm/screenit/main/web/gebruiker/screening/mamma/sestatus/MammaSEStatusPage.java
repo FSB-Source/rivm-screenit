@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.sestatus;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.sestatus;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -123,7 +124,20 @@ public class MammaSEStatusPage extends GebruikerBasePage
 				IModel<?> model = super.getDataModel(rowModel);
 				return StringUtils.isBlank((String) model.getObject()) ? model
 					: Model.of(Arrays.stream(((String) model.getObject()).split(", "))
-						.map(date -> LocalDate.parse(date, DateTimeFormatter.ISO_DATE).format(DateUtil.LOCAL_DATE_FORMAT)).collect(Collectors.joining(", ")));
+					.map(this::getFormattedDate).collect(Collectors.joining(", ")));
+			}
+
+			private String getFormattedDate(String isoDate)
+			{
+				try
+				{
+					var date = LocalDate.parse(isoDate, DateTimeFormatter.ISO_DATE);
+					return date.format(DateUtil.LOCAL_DATE_FORMAT);
+				}
+				catch (DateTimeParseException e)
+				{
+					return "?";
+				}
 			}
 		});
 		columns.add(new ScreenitDateTimePropertyColumn<>(Model.of("Laatste check"), "status.statusMoment", "status.statusMoment"));

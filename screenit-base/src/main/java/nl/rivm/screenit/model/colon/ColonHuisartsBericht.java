@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,7 +36,6 @@ import lombok.Setter;
 
 import nl.rivm.screenit.model.EnovationHuisarts;
 import nl.rivm.screenit.model.HuisartsBericht;
-import nl.rivm.screenit.model.OnbekendeHuisarts;
 
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
@@ -50,14 +49,9 @@ public class ColonHuisartsBericht extends HuisartsBericht
 {
 	private static final long serialVersionUID = 1L;
 
-	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, optional = true)
+	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, optional = false)
 	@NotAudited
 	private EnovationHuisarts huisarts;
-
-	@Deprecated
-	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, optional = true)
-	@NotAudited
-	private OnbekendeHuisarts onbekendeHuisarts;
 
 	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, optional = false)
 	private ColonScreeningRonde screeningsRonde;

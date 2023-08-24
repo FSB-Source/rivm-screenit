@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.service.impl;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -66,7 +66,7 @@ import nl.rivm.screenit.service.mamma.MammaBaseKandidaatAfsprakenDeterminatiePer
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
 import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
 import nl.rivm.screenit.service.mamma.MammaBaseUitstelService;
-import nl.rivm.screenit.service.mamma.impl.MammaKandidaatAfspraak;
+import nl.rivm.screenit.service.mamma.afspraakzoeken.MammaKandidaatAfspraak;
 import nl.rivm.screenit.service.mamma.impl.MammaOnvoldoendeVrijeCapaciteitException;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;

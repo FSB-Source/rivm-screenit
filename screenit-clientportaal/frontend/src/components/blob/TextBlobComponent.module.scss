@@ -36,9 +36,10 @@
 }
 
 .arrow {
-  path {
-    fill: $blauw-base;
-  }
+	padding-left: 3px;
+	path {
+		fill: $blauw-base;
+	}
 }
 
 .outerBox {

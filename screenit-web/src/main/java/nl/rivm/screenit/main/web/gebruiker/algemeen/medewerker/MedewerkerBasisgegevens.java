@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.medewerker;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -41,7 +41,6 @@ import nl.rivm.screenit.main.web.component.ScreenitDateTextField;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
 import nl.rivm.screenit.main.web.component.ScreenitIndicatingAjaxSubmitLink;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
-import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.modal.IDialog;
 import nl.rivm.screenit.main.web.component.validator.AchternaamValidator;
 import nl.rivm.screenit.main.web.component.validator.TussenvoegselValidator;
@@ -90,6 +89,7 @@ import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -133,8 +133,6 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 	@SpringBean
 	private AuthenticatieService authenticatieService;
 
-	private BootstrapDialog dialog;
-
 	private Label bigNummerLabel;
 
 	private Component bigNummer;
@@ -142,6 +140,10 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 	private WebMarkupContainer yubiContainer;
 
 	private WebMarkupContainer uziContainer;
+
+	private WebMarkupContainer geenWachtwoordContainer;
+
+	private WebMarkupContainer laatsteWachtwoordWijzigingContainer;
 
 	public MedewerkerBasisgegevens()
 	{
@@ -179,10 +181,6 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 		}
 
 		add(new MedewerkerEditForm("medewerkerForm", model));
-
-		dialog = new BootstrapDialog("dialog");
-		add(dialog);
-
 	}
 
 	private void logAction(LogGebeurtenis gebeurtenis, Gebruiker medewerker)
@@ -235,7 +233,7 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 				medewerker.setAdressen(new ArrayList<>());
 				adressen = medewerker.getAdressen();
 			}
-			if (adressen.size() == 0)
+			if (adressen.isEmpty())
 			{
 				adressen.add(new Adres());
 			}
@@ -252,7 +250,7 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 			addVerwijderenButton(medewerker);
 			addAnnulerenButton();
 
-			Map<String, Object> restrictions = new HashMap<String, Object>();
+			Map<String, Object> restrictions = new HashMap<>();
 			restrictions.put("actief", Boolean.TRUE);
 
 			ComponentHelper.addTextField(this, "achternaam", true, 100, inzien).add(new AchternaamValidator()).setLabel(Model.of("Achternaam"));
@@ -280,25 +278,26 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 			add(bigNummerLabel);
 
 			bigNummer = ComponentHelper.addTextField(this, "bignummer", false, 11, inzien)
-				.add(new UniqueFieldValidator<Gebruiker, String>(Gebruiker.class, medewerker.getId(), "bignummer", hibernateService)).setVisible(isZorgverlener);
+				.add(new UniqueFieldValidator<>(Gebruiker.class, medewerker.getId(), "bignummer", hibernateService)).setVisible(isZorgverlener);
 			bigNummer.setOutputMarkupPlaceholderTag(true);
 			DateTextField geboortedatum = new ScreenitDateTextField("geboortedatum");
 			geboortedatum.setOutputMarkupId(true);
+			geboortedatum.setEnabled(!inzien);
 			add(geboortedatum);
 			uziContainer = new WebMarkupContainer("uzi-container");
 			uziContainer.setOutputMarkupPlaceholderTag(true);
 			ComponentHelper.addTextField(uziContainer, "uzinummer", false, 9, inzien)
-				.add(new UniqueFieldValidator<Gebruiker, String>(Gebruiker.class, medewerker.getId(), "uzinummer", hibernateService)).add(new PatternValidator("[0-9]*"));
+				.add(new UniqueFieldValidator<>(Gebruiker.class, medewerker.getId(), "uzinummer", hibernateService)).add(new PatternValidator("[0-9]*"));
 			add(uziContainer);
 
-			ComponentHelper.addTextField(this, "patholoogId", false, 25, inzien).setEnabled(true);
+			ComponentHelper.addTextField(this, "patholoogId", false, 25, inzien).setEnabled(!inzien);
 
 			Component zorgverlenerCheckbox = new CheckBox("zorgverlener").add(new OnChangeAjaxBehavior()
 			{
 				@Override
 				protected void onUpdate(AjaxRequestTarget target)
 				{
-					if (getModelObject().getZorgverlener())
+					if (Boolean.TRUE.equals(getModelObject().getZorgverlener()))
 					{
 						isZorgverlener = Boolean.TRUE;
 					}
@@ -321,13 +320,13 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 			ComponentHelper.addTextField(this, "telefoonnummerwerk", false, 25, inzien);
 			ComponentHelper.addTextField(this, "telefoonnummerextra", false, 25, inzien);
 
-			ComponentHelper.addTextField(this, "emailextra", false, 255, inzien).add(EmailAddressValidator.getInstance()).setLabel(Model.of("Email priv\u00e9"))
-				.add(new UniqueFieldValidator<Gebruiker, String>(Gebruiker.class, medewerker.getId(), "emailextra", hibernateService, restrictions));
+			ComponentHelper.addTextField(this, "emailextra", false, 255, inzien).add(EmailAddressValidator.getInstance()).setLabel(Model.of("E-mailadres"))
+				.add(new UniqueFieldValidator<>(Gebruiker.class, medewerker.getId(), "emailextra", hibernateService, restrictions));
 			ComponentHelper.addTextField(this, "adressen[0].plaats", false, 80, inzien);
 			ComponentHelper.addTextField(this, "telefoonnummerprive", false, 25, inzien);
 
 			yubiContainer = new WebMarkupContainer("yubi-container");
-			yubiContainer.add(new PasswordTextField("privateYubiIdentity", new PropertyModel<String>(MedewerkerEditForm.this, "privateYubiIdentity")).setRequired(false)
+			yubiContainer.add(new PasswordTextField("privateYubiIdentity", new PropertyModel<>(MedewerkerEditForm.this, "privateYubiIdentity")).setRequired(false)
 				.setOutputMarkupId(true).setEnabled(!inzien && isBeheerder).add(StringValidator.maximumLength(18)));
 			ComponentHelper.addTextField(yubiContainer, "yubiKey.secretKey", false, 48, inzien || !isBeheerder);
 			yubiContainer.setOutputMarkupPlaceholderTag(true);
@@ -356,6 +355,12 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 			gebruikersnaam.add(new UniqueFieldValidator<>(Gebruiker.class, medewerker.getId(), "gebruikersnaam", hibernateService, true));
 			gebruikersnaam.setLabel(Model.of("Gebruikersnaam"));
 
+			geenWachtwoordContainer = new WebMarkupContainer("geenWachtwoord");
+			geenWachtwoordContainer.setOutputMarkupPlaceholderTag(true);
+			setZichtbaarheidGeenWachtwoordTekst(medewerker.getWachtwoord(), medewerker.getInlogMethode());
+
+			add(geenWachtwoordContainer);
+
 			ScreenitDropdown<InlogMethode> inlogMethode = ComponentHelper.newDropDownChoice("inlogMethode", new ListModel<>(Arrays.asList(InlogMethode.values())),
 				new EnumChoiceRenderer<>(), true);
 
@@ -364,26 +369,27 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 				@Override
 				protected void onUpdate(AjaxRequestTarget target)
 				{
-					InlogMethode inlogmethode = getModelObject().getInlogMethode();
-					switch (inlogmethode)
+					var gekozenInlogmethode = getModelObject().getInlogMethode();
+					switch (gekozenInlogmethode)
 					{
 					case YUBIKEY:
 						yubiContainer.setVisible(true);
 						uziContainer.setVisible(false);
-						target.add(yubiContainer, uziContainer);
 						break;
 					case GEBRUIKERSNAAM_WACHTWOORD:
 						yubiContainer.setVisible(false);
 						uziContainer.setVisible(false);
-						target.add(yubiContainer, uziContainer);
 						break;
 					case UZIPAS:
 						yubiContainer.setVisible(false);
 						uziContainer.setVisible(true);
-						target.add(yubiContainer, uziContainer);
+						break;
 					default:
 						break;
 					}
+					setZichtbaarheidGeenWachtwoordTekst(getModelObject().getWachtwoord(), gekozenInlogmethode);
+					setZichtbaarheidLaatsteWachtwoordWijziging(gekozenInlogmethode);
+					target.add(yubiContainer, uziContainer, geenWachtwoordContainer, laatsteWachtwoordWijzigingContainer);
 
 				}
 
@@ -417,8 +423,18 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 			blokkeerContainer.add(blokkeer);
 			add(blokkeerContainer);
 
-			add(ComponentHelper.newDatePicker("actiefVanaf"));
-			add(ComponentHelper.newDatePicker("actiefTotEnMet"));
+			add(ComponentHelper.newDatePicker("actiefVanaf").setEnabled(!inzien));
+			add(ComponentHelper.newDatePicker("actiefTotEnMet").setEnabled(!inzien));
+
+			laatsteWachtwoordWijzigingContainer = new WebMarkupContainer("laatsteWachtwoordWijzigingContainer");
+			var laatsteWachtwoordWijziging = new TextField<>("laatsteWachtwoordWijziging", Model.of(DateUtil.formatShortDateTime(medewerker.getLaatsteKeerWachtwoordGewijzigd())));
+			laatsteWachtwoordWijziging.setEnabled(false);
+
+			laatsteWachtwoordWijzigingContainer.add(laatsteWachtwoordWijziging);
+			laatsteWachtwoordWijzigingContainer.setOutputMarkupPlaceholderTag(true);
+			setZichtbaarheidLaatsteWachtwoordWijziging(medewerker.getInlogMethode());
+
+			add(laatsteWachtwoordWijzigingContainer);
 
 			IndicatingAjaxLink<Object> resetWachtwoord = new IndicatingAjaxLink<>("resetWachtwoord")
 			{
@@ -462,6 +478,17 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 			};
 			changeWachtwoord.setVisible(isBestaande && eigenGegevens);
 			add(changeWachtwoord);
+		}
+
+		private void setZichtbaarheidGeenWachtwoordTekst(String wachtwoord, InlogMethode inlogMethode)
+		{
+			var wachtwoordTextTonen = StringUtils.isBlank(wachtwoord) && InlogMethode.UZIPAS != inlogMethode;
+			geenWachtwoordContainer.setVisible(wachtwoordTextTonen);
+		}
+
+		private void setZichtbaarheidLaatsteWachtwoordWijziging(InlogMethode inlogMethode)
+		{
+			laatsteWachtwoordWijzigingContainer.setVisible(InlogMethode.UZIPAS != inlogMethode);
 		}
 
 		private void addVerwijderenButton(Gebruiker medewerker)

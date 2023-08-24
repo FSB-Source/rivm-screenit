@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.dto.actions;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,37 +21,24 @@ package nl.rivm.screenit.mamma.se.dto.actions;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.mamma.se.dto.onderzoek.OnderzoekSeDto;
+import lombok.Getter;
+import lombok.Setter;
 
+import nl.rivm.screenit.mamma.se.dto.onderzoek.OnderzoekSeDto;
+import nl.rivm.screenit.model.enums.MammaOnderzoekType;
+
+@Getter
+@Setter
 public class OnderzoekOpslaanDto extends AbstractActionDto
 {
-
 	private long afspraakId;
 
 	private OnderzoekSeDto onderzoek;
 
+	private MammaOnderzoekType onderzoekType;
+
 	public OnderzoekOpslaanDto()
 	{
 		super(SEActieType.ONDERZOEK_OPSLAAN);
-	}
-
-	public void setAfspraakId(long afspraakId)
-	{
-		this.afspraakId = afspraakId;
-	}
-
-	public long getAfspraakId()
-	{
-		return afspraakId;
-	}
-
-	public OnderzoekSeDto getOnderzoek()
-	{
-		return onderzoek;
-	}
-
-	public void setOnderzoek(OnderzoekSeDto onderzoek)
-	{
-		this.onderzoek = onderzoek;
 	}
 }

@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -51,7 +51,7 @@ import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.colon.IFobtService;
 import nl.rivm.screenit.util.EnumStringUtil;
-import nl.rivm.screenit.util.IFOBTTestUtil;
+import nl.rivm.screenit.util.FITTestUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -170,7 +170,7 @@ public class AntwoordformulierOntvangenPanel extends AbstractGebeurtenisDetailPa
 
 				magVerwijderen &= false;
 			}
-			IFOBTTest buis = IFOBTTestUtil.getIfobtTest(uitnodiging);
+			IFOBTTest buis = FITTestUtil.getFITTest(uitnodiging);
 			if (buis != null)
 			{
 				IFOBTTestStatus testStatus = buis.getStatus();
@@ -249,7 +249,7 @@ public class AntwoordformulierOntvangenPanel extends AbstractGebeurtenisDetailPa
 
 		private String getIfobtStatus(ColonUitnodiging uitnodiging)
 		{
-			IFOBTTest test = IFOBTTestUtil.getIfobtTest(uitnodiging);
+			IFOBTTest test = FITTestUtil.getFITTest(uitnodiging);
 			return getString(EnumStringUtil.getPropertyString(test.getStatus()));
 		}
 	}

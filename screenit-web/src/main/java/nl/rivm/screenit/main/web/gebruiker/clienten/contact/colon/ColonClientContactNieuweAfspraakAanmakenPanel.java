@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,18 +23,13 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 import nl.rivm.screenit.dao.colon.AfspraakDefinitieDao;
-import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
-import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.AbstractClientContactActiePanel;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActie;
-import nl.rivm.screenit.model.NieuweIntakeAfspraakMakenReden;
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
@@ -43,24 +37,19 @@ import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.ColoscopieCentrumWrapper;
 import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.planning.AfspraakDefinitie;
+import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.OrganisatieZoekService;
+import nl.rivm.screenit.service.colon.AfspraakService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.wicket.hibernate.CglibHibernateModel;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
-import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class ColonClientContactNieuweAfspraakAanmakenPanel extends AbstractClientContactActiePanel<ClientContactActie>
 {
-
-	private static final long serialVersionUID = 1L;
-
-	private NieuweIntakeAfspraakMakenReden reden = null;
-
 	private ColonClientNieuweAfspraakMakenPanel afspraakMakenPanel = null;
 
 	@SpringBean
@@ -71,6 +60,12 @@ public class ColonClientContactNieuweAfspraakAanmakenPanel extends AbstractClien
 
 	@SpringBean
 	private HibernateService hibernateService;
+
+	@SpringBean
+	private ICurrentDateSupplier currentDateSupplier;
+
+	@SpringBean
+	AfspraakService afspraakService;
 
 	public ColonClientContactNieuweAfspraakAanmakenPanel(String id, IModel<ClientContactActie> model, IModel<Client> client, List<Object> extraPanelParams)
 	{
@@ -85,7 +80,7 @@ public class ColonClientContactNieuweAfspraakAanmakenPanel extends AbstractClien
 			ColonIntakeAfspraak laatsteAfspraak = laatsteScreeningRonde.getLaatsteAfspraak();
 			if (laatsteAfspraak != null)
 			{
-				afspraakModel = ModelUtil.sModel(laatsteAfspraak);
+				afspraakModel = ModelUtil.csModel(laatsteAfspraak);
 			}
 			else
 			{
@@ -110,7 +105,7 @@ public class ColonClientContactNieuweAfspraakAanmakenPanel extends AbstractClien
 				}
 				AfspraakDefinitie afspraakDefinitie = afspraakDefinities.get(0);
 
-				afspraak.setStartTime(new Date());
+				afspraak.setStartTime(currentDateSupplier.getDate());
 				BigDecimal afstand = intakeLocatieWrapper.getAfstand();
 				if (afstand == null)
 				{
@@ -120,14 +115,11 @@ public class ColonClientContactNieuweAfspraakAanmakenPanel extends AbstractClien
 				afspraak.setDefinition(afspraakDefinitie);
 				afspraak.addDiscipline(afspraakDefinitie.getDisciplines().get(0));
 				afspraak.setBezwaar(false);
-				afspraakModel = new CglibHibernateModel<>(afspraak);
+				afspraakModel = ModelUtil.ccModel(afspraak);
 			}
 		}
 		afspraakMakenPanel = new ColonClientNieuweAfspraakMakenPanel("afspraakMaken", afspraakModel);
 		add(afspraakMakenPanel);
-
-		add(new ScreenitDropdown<>("reden", new PropertyModel<NieuweIntakeAfspraakMakenReden>(this, "reden"), Arrays.asList(NieuweIntakeAfspraakMakenReden.values()),
-			new EnumChoiceRenderer<NieuweIntakeAfspraakMakenReden>()));
 	}
 
 	@Override
@@ -138,7 +130,6 @@ public class ColonClientContactNieuweAfspraakAanmakenPanel extends AbstractClien
 		{
 			opslaanObjecten.putAll(afspraakMakenPanel.getOpslaanObjecten());
 		}
-		opslaanObjecten.put(ExtraOpslaanKey.REDEN_NIEUWE_AFSPRAAK, reden);
 		return opslaanObjecten;
 	}
 

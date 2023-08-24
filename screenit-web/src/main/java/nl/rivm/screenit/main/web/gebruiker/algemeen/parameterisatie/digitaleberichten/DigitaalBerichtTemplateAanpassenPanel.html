@@ -1,0 +1,64 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+	<div class="row-fluid form-horizontal">
+		<form wicket:id="form">
+			<div class="row-fluid">
+				<div class="span12">
+					<wicket:enclosure child="mergefield">
+						<div class="control-group">
+							<label class="control-label">Merge velden</label>
+							<div class="controls">
+								<div class="select2-container multiselect digitaal-bericht-dropdown">
+									<select wicket:id="mergefield"></select>
+								</div>
+								<a wicket:id="invoegen" class="btn">Invoegen</a>
+							</div>
+						</div>
+					</wicket:enclosure>
+					<wicket:enclosure child="subject">
+						<div class="control-group">
+							<label class="control-label">Bericht onderwerp</label>
+							<div class="controls">
+								<div class="select2-container multiselect bericht-subject-container">
+									<input wicket:id="subject" type="text" class="text bericht-subject">
+								</div>
+							</div>
+						</div>
+					</wicket:enclosure>
+					<div class="control-group full-width">
+						<label class="control-label">Bericht inhoud</label>
+						<div class="controls">
+							<textarea wicket:id="body" class="textarea-full-width bericht-body" cols="10" rows="10"></textarea>
+							<br>
+							<div wicket:id="smsMaxTekensTekst"></div>
+						</div>
+					</div>
+					<div class="buttons">
+						<a class="btn btn-primary" wicket:id="opslaan">Opslaan</a>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</wicket:panel>
+</html>

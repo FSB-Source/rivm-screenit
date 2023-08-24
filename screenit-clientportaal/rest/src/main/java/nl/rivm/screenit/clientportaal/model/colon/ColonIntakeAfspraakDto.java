@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.model.colon;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,30 +28,41 @@ import lombok.Setter;
 
 import nl.rivm.screenit.clientportaal.model.ClientportaalBaseDto;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.enums.RedenAfspraakAfzeggen;
+import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
+import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.DateUtil;
 
 @Getter
 @Setter
-@AllArgsConstructor()
+@AllArgsConstructor
 @NoArgsConstructor
 public class ColonIntakeAfspraakDto extends ClientportaalBaseDto
 {
 
 	private String weergaveAfspraakmoment;
 
-	private RedenAfspraakAfzeggen redenAfzeggen;
-
 	private String naamInstelling;
 
 	private String adresString;
 
+	private boolean afspraakAfgezegd;
+
+	private boolean andereIntakelocatieOpVerzoekClient;
+
 	public ColonIntakeAfspraakDto(ColonIntakeAfspraak intakeAfspraak)
 	{
 		this.weergaveAfspraakmoment = DateUtil.getWeergaveDatumClientportaal(DateUtil.toLocalDateTime(intakeAfspraak.getStartTime()));
-		this.redenAfzeggen = intakeAfspraak.getRedenAfzeggen();
 		this.naamInstelling = intakeAfspraak.getLocation().getColoscopieCentrum().getNaam();
+		this.afspraakAfgezegd = intakeAfspraak.getAfzegDatum() != null;
 		this.adresString = AdresUtil.getVolledigeAdresString(intakeAfspraak.getLocation().getColoscopieCentrum().getEersteAdres());
+		this.andereIntakelocatieOpVerzoekClient = bepaalAndereIntakeLocatieOpVerzoekClient(intakeAfspraak);
+	}
+
+	private boolean bepaalAndereIntakeLocatieOpVerzoekClient(ColonIntakeAfspraak afspraak)
+	{
+		var conclusie = afspraak.getConclusie();
+		return afspraak.getStatus() == AfspraakStatus.UITGEVOERD && conclusie != null
+			&& conclusie.getType() == ColonConclusieType.CLIENT_WIL_ANDERE_INTAKELOKATIE;
 	}
 }

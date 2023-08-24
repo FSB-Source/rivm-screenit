@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.helpers;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,10 +30,10 @@ import org.hibernate.StatelessSession;
 public abstract class BaseSqlScrollableResultReader extends BaseIdScrollableResultReader
 {
 
-	public abstract SQLQuery createCriteria(StatelessSession session) throws HibernateException;
+	protected abstract SQLQuery createCriteria(StatelessSession session) throws HibernateException;
 
 	@Override
-	public ScrollableResults createScrollableResults(StatelessSession session)
+	protected ScrollableResults createScrollableResults(StatelessSession session)
 	{
 		return createCriteria(session).setFetchSize(fetchSize).scroll(ScrollMode.FORWARD_ONLY);
 	}

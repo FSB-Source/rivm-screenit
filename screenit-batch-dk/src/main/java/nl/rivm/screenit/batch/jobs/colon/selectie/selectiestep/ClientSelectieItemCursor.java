@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,11 +29,11 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.jobs.colon.selectie.SelectieConstants;
-import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.colon.ClientCategorieEntry;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
+import nl.rivm.screenit.service.colon.IFobtService;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.hibernate.Criteria;
@@ -61,32 +61,20 @@ public class ClientSelectieItemCursor implements ClientSelectieItemIterator
 
 	private ExecutionContext context;
 
-	private final Integer minimaleLeeftijd;
-
-	private final Integer maximaleLeeftijd;
-
-	private final Integer wachttijdVerzendenPakket;
-
-	private final ClientDao clientDao;
-
 	private final List<Long> uitgenodigdeClientIds;
-
-	private Integer uitnodigingsInterval;
 
 	private final LocalDate vandaag;
 
-	public ClientSelectieItemCursor(Session hibernateSession, int fetchSize, Integer uitnodigingsInterval, ExecutionContext context, Integer minimaleLeeftijd,
-		Integer maximaleLeeftijd, List<Long> uitgenodigdeClientIds, Integer wachttijdVerzendenPakket, ClientDao clientDao, LocalDate vandaag)
+	private final IFobtService fitService;
+
+	public ClientSelectieItemCursor(Session hibernateSession, int fetchSize, ExecutionContext context, List<Long> uitgenodigdeClientIds, IFobtService fitService,
+		LocalDate vandaag)
 	{
 		this.hibernateSession = hibernateSession;
 		this.fetchSize = fetchSize;
-		this.uitnodigingsInterval = uitnodigingsInterval;
 		this.context = context;
-		this.minimaleLeeftijd = minimaleLeeftijd;
-		this.maximaleLeeftijd = maximaleLeeftijd;
 		this.uitgenodigdeClientIds = uitgenodigdeClientIds;
-		this.wachttijdVerzendenPakket = wachttijdVerzendenPakket;
-		this.clientDao = clientDao;
+		this.fitService = fitService;
 		this.vandaag = vandaag;
 
 		initialiseCursor(context);
@@ -123,34 +111,29 @@ public class ClientSelectieItemCursor implements ClientSelectieItemIterator
 					Map<Long, String> map = (Map<Long, String>) context.get(SelectieConstants.GEMEENTE_ZONDER_SCREENING_ORGANISATIES);
 					map.put(gemeente.getId(), gemeente.getNaam());
 					context.put(SelectieConstants.GEMEENTE_ZONDER_SCREENING_ORGANISATIES, map);
-					LOG.warn("Gemeente " + gemeente.getNaam() + " (" + gemeente.getId()
-						+ ") niet is gekoppeld aan een screeningsorganisatie. Daardoor kon er geen uitnodiging worden verstuurd naar Geen uitnodiging verstuurd naar client (id "
-						+ client.getId() + ")");
+					LOG.warn("Gemeente {} ({}) niet is gekoppeld aan een screeningsorganisatie. Daardoor kon er geen uitnodiging worden verstuurd naar Geen uitnodiging verstuurd "
+						+ "naar client (id {})", gemeente.getNaam(), gemeente.getId(), client.getId());
 					return next();
 				}
 
-				var clientenOpAdres = clientDao.getClientenOpAdres(adres, minimaleLeeftijd, maximaleLeeftijd, uitnodigingsInterval);
-				var andereClient = ColonRestrictions.getAndereClient(clientenOpAdres, client);
+				var andereClientMetActieveFit = fitService.getAndereClientOpZelfdeAdresEnActieveFit(client, uitgenodigdeClientIds);
 
-				boolean geenAndereClientMetZelfdeAdresEnActieveIfobt = clientenOpAdres.size() != 2
-					|| !ColonRestrictions.isIfobtActief(andereClient, uitgenodigdeClientIds)
-					|| ColonRestrictions.isWachttijdOpPakketVerstreken(andereClient, wachttijdVerzendenPakket, uitgenodigdeClientIds, vandaag);
-				if (geenAndereClientMetZelfdeAdresEnActieveIfobt)
+				if (andereClientMetActieveFit == null)
 				{
 					cursorCount++;
 
 					if (LOG.isDebugEnabled() && cursor.isLast())
 					{
-						LOG.debug("Categorie: " + colonUitnodigingCategorie.name() + " aantal clienten geselecteerd: " + cursorCount);
+						LOG.debug("Categorie: {} aantal clienten geselecteerd: {}", colonUitnodigingCategorie.name(), cursorCount);
 					}
 					uitgenodigdeClientIds.add(client.getId());
 
 					return new ClientCategorieEntry(client.getId(), colonUitnodigingCategorie, adres.getGbaGemeente().getScreeningOrganisatie().getId());
 				}
-				else if (andereClient != null)
+				else
 				{
-					LOG.info(
-						"Client(id: " + client.getId() + ") overgeslagen omdat ook een andere client (id: " + andereClient.getId() + ") op zelfde adres met lopende FIT woont");
+					LOG.info("Client(id: '{}') overgeslagen omdat ook een andere client (id: '{}') op zelfde adres met lopende FIT woont", client.getId(),
+						andereClientMetActieveFit.getId());
 					return next();
 				}
 			}

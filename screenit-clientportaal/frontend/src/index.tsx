@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -37,6 +37,9 @@ import {datadogRum} from "@datadog/browser-rum"
 import AuthenticationWrapper from "./wrapper/AuthenticationWrapper"
 import {setLoggingOutAction} from "./actions/AuthenticatieAction"
 import {createRoot} from "react-dom/client"
+import createCache from "@emotion/cache"
+import {CacheProvider} from "@emotion/react"
+import ErrorBoundary from "./components/error_boundary/ErrorBoundary"
 
 export type ReduxThunkDispatch = ThunkDispatch<State, any, Action>;
 
@@ -71,6 +74,10 @@ if (process.env.NODE_ENV !== "production") {
 	datadogRum.startSessionReplayRecording()
 }
 
+const emotionCache = createCache({
+	key: "emotion-cache",
+	nonce: document.querySelector("meta[property=\"csp-nonce\"]")?.content || "",
+})
 const component = document.getElementById("root")
 const root = createRoot(component!)
 
@@ -80,15 +87,19 @@ root.render(
 		initOptions={{checkLoginIframe: false, pkceMethod: "S256"}}
 		onEvent={automaticLogout}>
 		<React.StrictMode>
-			<Provider store={cpStore}>
-				<BrowserRouter>
-					<AuthenticationWrapper>
-						<IdleTimerWrapper>
-							<App/>
-						</IdleTimerWrapper>
-					</AuthenticationWrapper>
-				</BrowserRouter>
-			</Provider>
+			<ErrorBoundary>
+				<Provider store={cpStore}>
+					<CacheProvider value={emotionCache}>
+						<BrowserRouter>
+							<AuthenticationWrapper>
+								<IdleTimerWrapper>
+									<App/>
+								</IdleTimerWrapper>
+							</AuthenticationWrapper>
+						</BrowserRouter>
+					</CacheProvider>
+				</Provider>
+			</ErrorBoundary>
 		</React.StrictMode>
 	</ReactKeycloakProvider>)
 

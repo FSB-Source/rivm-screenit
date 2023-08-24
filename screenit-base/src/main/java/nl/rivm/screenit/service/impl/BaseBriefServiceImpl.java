@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -78,10 +78,11 @@ import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.util.AdresUtil;
+import nl.rivm.screenit.util.AfmeldingUtil;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.util.JavaScriptPdfHelper;
@@ -139,7 +140,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	private SimplePreferenceService simplePreferenceService;
 
 	@Autowired
-	private InstellingService instellingService;
+	private OrganisatieParameterService organisatieParameterService;
 
 	@Override
 	public BriefDefinitie getBriefDefinitie(BriefType briefType, Date geldigOp)
@@ -329,7 +330,9 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public <B extends ClientBrief<?, A, ?>, A extends Afmelding<?, ?, B>> B maakBvoBrief(A afmelding, BriefType type, Date creatieMoment, boolean vervangendeProjectBrief)
 	{
-		B brief = maakBvoBrief(afmelding.getDossier().getClient(), type, creatieMoment, false, vervangendeProjectBrief);
+		Client client = AfmeldingUtil.getClientFromAfmelding(afmelding);
+
+		B brief = maakBvoBrief(client, type, creatieMoment, false, vervangendeProjectBrief);
 		brief.setAfmelding(afmelding);
 		afmelding.getBrieven().add(brief);
 
@@ -393,7 +396,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 		brief.setClient(client);
 		brief.setGegenereerd(gegenereerd);
 		hibernateService.saveOrUpdate(brief);
-		LOG.info("Brief klaargezet met type " + type + " (clientId: " + client.getId() + ")");
+		LOG.info("Brief klaargezet met type " + type + " voor client (id: '" + client.getId() + "')");
 		if (!vervangendeProjectBrief)
 		{
 			checkVoorProjectClient(brief, client);
@@ -496,7 +499,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 					Client client = getClientFromBrief(brief);
 					if (client != null && !AdresUtil.isVolledigAdresVoorInpakcentrum(client))
 					{
-						Adres clientAdres = AdresUtil.getAdres(client.getPersoon(), currentDateSupplier.getDateTime());
+						Adres clientAdres = AdresUtil.getAdres(client.getPersoon(), currentDateSupplier.getLocalDate());
 						String onvolledigAdresMelding = "De cliënt heeft een onvolledig adres, dit is geconstateerd bij het aanmaken van: " + brief.getBriefType()
 							+ ". De volgende gegevens ontbreken: " + AdresUtil.bepaalMissendeAdresgegevensString(clientAdres) + ".";
 						int dagen = simplePreferenceService.getInteger(PreferenceKey.INTERNAL_HERINNERINGSPERIODE_LOGREGEL_ONVOLLEDIG_ADRES.name());
@@ -673,7 +676,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	{
 		UploadDocument huidigePdfMetMergedBrievenContainer = mergedBrieven.getMergedBrieven();
 		File huidigePdfMetMergedBrieven = uploadDocumentService.load(huidigePdfMetMergedBrievenContainer);
-		Integer maxMergedBrievenPdfSizeMB = instellingService.getOrganisatieParameter(mergedBrieven.getScreeningOrganisatie(),
+		Integer maxMergedBrievenPdfSizeMB = organisatieParameterService.getOrganisatieParameter(mergedBrieven.getScreeningOrganisatie(),
 			OrganisatieParameterKey.MAX_MERGED_BRIEVEN_PDF_SIZE_MB);
 		if (maxMergedBrievenPdfSizeMB != null && huidigePdfMetMergedBrieven.length() + nieuwPdfMetMergedBrieven.length() > maxMergedBrievenPdfSizeMB * BYTES_TO_MBS)
 		{
@@ -887,5 +890,11 @@ public class BaseBriefServiceImpl implements BaseBriefService
 		hibernateService.saveOrUpdate(BriefUtil.setTegenhouden(brief, false));
 		logService.logGebeurtenis(LogGebeurtenis.BRIEF_DOORVOEREN, account, brief.getClient(), BriefUtil.getBriefTypeNaam(brief) + " was tegengehouden en wordt nu doorgevoerd.",
 			BriefUtil.getOnderzoekenUitBriefType(brief));
+	}
+
+	@Override
+	public boolean briefTypeGemaaktInDezeRonde(ScreeningRonde<?, ?, ?, ?> ronde, Collection<BriefType> briefTypes)
+	{
+		return ronde.getBrieven().stream().anyMatch(brief -> briefTypes.contains(brief.getBriefType()));
 	}
 }

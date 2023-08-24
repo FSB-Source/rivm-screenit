@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -36,22 +36,22 @@
 					<fieldset class="hero-unit form-horizontal edit-bk-capaciteit">
 						<h2>Bron</h2>
 						<div class="control-group">
-							<label style="width: 140px;" class="control-label">Kopieër van dag<i class="icon-asterisk icon-purple"></i></label>
+							<label class="control-label planning-kopieren">Kopieër van dag<i class="icon-asterisk icon-purple"></i></label>
 							<div class="controls">
 								<div class="input-append">
-									<input maxlength="0" style="width: 120px;" wicket:id="bronDag" type="text" class="input-large three-months">
-									<a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;"><i class="icon-calendar"></i></a>
+									<input maxlength="0" wicket:id="bronDag" type="text" class="input-large three-months datepicker-120px-breed">
+									<a  class="btn js-datepicker-show"><i class="icon-calendar"></i></a>
 								</div>
 							</div>
 						</div>
 						<div class="control-group">
-							<label style="width: 140px;" class="control-label">Start</label>
+							<label class="control-label planning-kopieren">Start</label>
 							<div class="controls">
 								<wicket:container wicket:id="bronTijdVan"></wicket:container>
 							</div>
 						</div>
 						<div class="control-group">
-							<label style="width: 140px;" class="control-label">Eind tot</label>
+							<label class="control-label planning-kopieren">Eind tot</label>
 							<div class="controls">
 								<wicket:container wicket:id="bronTijdTot"></wicket:container>
 							</div>
@@ -62,22 +62,22 @@
 					<fieldset class="hero-unit form-horizontal edit-bk-capaciteit">
 						<h2>Doel</h2>
 						<div class="control-group">
-							<label style="width: 140px;" class="control-label">Screeningseenheid<i class="icon-asterisk icon-purple"></i></label>
+							<label class="control-label planning-kopieren">Screeningseenheid<i class="icon-asterisk icon-purple"></i></label>
 							<div class="controls">
 								<select wicket:id="doelScreeningsEenheid"></select>
 							</div>
 						</div>
 						<div class="control-group">
-							<label style="width: 140px;" class="control-label">Plak over dag<i class="icon-asterisk icon-purple"></i></label>
+							<label class="control-label planning-kopieren">Plak over dag<i class="icon-asterisk icon-purple"></i></label>
 							<div class="controls">
 								<div class="input-append">
-									<input maxlength="0" style="width: 120px;" wicket:id="doelDag" type="text" class="input-large three-months">
-									<a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;"><i class="icon-calendar"></i></a>
+									<input maxlength="0" wicket:id="doelDag" type="text" class="input-large three-months datepicker-120px-breed">
+									<a  class="btn js-datepicker-show"><i class="icon-calendar"></i></a>
 								</div>
 							</div>
 						</div>
 						<div class="control-group">
-							<label style="width: 140px;" class="control-label">Doel openen</label>
+							<label class="control-label planning-kopieren">Doel openen</label>
 							<div class="controls">
 								<input type="checkbox" name="doelOpenen" wicket:id="doelOpenen">
 							</div>
@@ -87,7 +87,7 @@
 			</div>
 		</div>
 		<div class="modal-footer">
-			<a href="javascript:void(0);" class="btn btn-info" wicket:id="opslaan" type="button">Onthouden</a>
+			<a  class="btn btn-info" wicket:id="opslaan" type="button">Onthouden</a>
 		</div>
 	</form>
 

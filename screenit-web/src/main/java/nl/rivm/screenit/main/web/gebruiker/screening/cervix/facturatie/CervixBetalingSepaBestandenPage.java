@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.facturatie;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,10 +25,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.service.cervix.CervixBetalingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.SimpleStringResourceModel;
-import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.modal.ConfirmPanel;
 import nl.rivm.screenit.main.web.component.modal.DefaultConfirmCallback;
 import nl.rivm.screenit.main.web.component.modal.IDialog;
@@ -36,15 +36,14 @@ import nl.rivm.screenit.main.web.component.table.AjaxImageCellPanel;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
 import nl.rivm.screenit.main.web.gebruiker.screening.cervix.CervixScreeningBasePage;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.BestandStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.service.DistributedLockService;
 import nl.rivm.screenit.service.LogService;
-import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -59,8 +58,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 public class CervixBetalingSepaBestandenPage extends CervixScreeningBasePage
 {
 	@SpringBean
@@ -69,21 +66,15 @@ public class CervixBetalingSepaBestandenPage extends CervixScreeningBasePage
 	@SpringBean
 	private LogService logService;
 
-	private IModel<ScreeningOrganisatie> screeningOrganisatieModel;
+	@SpringBean
+	private DistributedLockService lockService;
 
 	private WebMarkupContainer betalingOpdrachtenContainer;
 
-	private final BootstrapDialog dialog;
-
 	public CervixBetalingSepaBestandenPage()
 	{
-		screeningOrganisatieModel = ModelUtil.sModel(ScreenitSession.get().getScreeningOrganisatie());
-
 		betalingOpdrachtenContainer = getCervixBetalingopdrachtTabelContainer();
 		add(betalingOpdrachtenContainer);
-
-		dialog = new BootstrapDialog("dialog");
-		add(dialog);
 	}
 
 	private WebMarkupContainer getCervixBetalingopdrachtTabelContainer()
@@ -97,6 +88,7 @@ public class CervixBetalingSepaBestandenPage extends CervixScreeningBasePage
 		betaalOpdrachtColumns.add(new DateTimePropertyColumn<>(Model.of("Status datum"), "statusDatum", "statusDatum", simpleDateFormat));
 		betaalOpdrachtColumns.add(new PropertyColumn<>(Model.of("Betalingskenmerk"), "betalingskenmerk", "betalingskenmerk"));
 		betaalOpdrachtColumns.add(new PropertyColumn<>(Model.of("Omschrijving"), "omschrijving", "omschrijving"));
+		betaalOpdrachtColumns.add(new PropertyColumn<>(Model.of("Screeningorganisatie"), "screeningOrganisatie.naam", "screeningOrganisatie.naam"));
 		betaalOpdrachtColumns.add(new AbstractColumn<>(Model.of("Status"))
 		{
 
@@ -106,20 +98,35 @@ public class CervixBetalingSepaBestandenPage extends CervixScreeningBasePage
 				BestandStatus status = rowModel.getObject().getStatus();
 				if (BestandStatus.CRASH.equals(status))
 				{
-					cellItem.add(new AjaxImageCellPanel(componentId, rowModel, "icon-refresh")
+					cellItem.add(new AjaxImageCellPanel<>(componentId, rowModel, "icon-refresh")
 					{
 						@Override
 						protected void onClick(AjaxRequestTarget target)
 						{
-							cervixBetalingService.opslaanBetaalopdracht(rowModel.getObject());
-							cervixBetalingService.genereerCervixBetalingsSpecificatieEnSepaBestand(rowModel.getObject().getId());
+							if (lockService.verkrijgLockIndienBeschikbaar(Constants.BMHK_BETALING_GENEREREN_LOCKNAAM))
+							{
+								try
+								{
+									cervixBetalingService.opslaanBetaalopdracht(rowModel.getObject());
+									cervixBetalingService.genereerCervixBetalingsSpecificatieEnSepaBestand(rowModel.getObject().getId());
 
-							WebMarkupContainer container = getCervixBetalingopdrachtTabelContainer();
-							betalingOpdrachtenContainer.replaceWith(container);
-							betalingOpdrachtenContainer = container;
-							target.add(betalingOpdrachtenContainer);
+									WebMarkupContainer container = getCervixBetalingopdrachtTabelContainer();
+									betalingOpdrachtenContainer.replaceWith(container);
+									betalingOpdrachtenContainer = container;
+									target.add(betalingOpdrachtenContainer);
 
-							info("Bestanden worden opnieuw gegenereerd.");
+									info("Bestanden worden opnieuw gegenereerd.");
+								}
+								catch (RuntimeException rte)
+								{
+									lockService.unlock(Constants.BMHK_BETALING_GENEREREN_LOCKNAAM);
+									throw rte;
+								}
+							}
+							else
+							{
+								info(getString("info.bmhk.sepa.genereren.al.in.gebruik"));
+							}
 						}
 					});
 				}
@@ -178,17 +185,17 @@ public class CervixBetalingSepaBestandenPage extends CervixScreeningBasePage
 							dialog.openWith(target,
 								new ConfirmPanel(IDialog.CONTENT_ID, new SimpleStringResourceModel("betaalOpdrachtVerwijderen"), Model.of(getString("sepa.bestand.verwijderen")),
 									new DefaultConfirmCallback()
-								{
-
-									private static final long serialVersionUID = 1L;
-
-									@Override
-									public void onYesClick(AjaxRequestTarget target)
 									{
-										verwijderBetaalOpdracht(getModel(), target);
-									}
 
-								}, dialog));
+										private static final long serialVersionUID = 1L;
+
+										@Override
+										public void onYesClick(AjaxRequestTarget target)
+										{
+											verwijderBetaalOpdracht(getModel(), target);
+										}
+
+									}, dialog));
 
 						}
 					};
@@ -206,7 +213,7 @@ public class CervixBetalingSepaBestandenPage extends CervixScreeningBasePage
 			});
 		}
 		ScreenitDataTable<CervixBetaalopdracht, String> dataTable = new ScreenitDataTable<>("sepaBestandTable", betaalOpdrachtColumns,
-			new CervixBetalingSepaBestandenDataProvider(screeningOrganisatieModel), Model.of("Betalingsopdrachten"));
+			new CervixBetalingSepaBestandenDataProvider(), Model.of("Betalingsopdrachten"));
 
 		container.add(dataTable);
 		return container;
@@ -216,9 +223,9 @@ public class CervixBetalingSepaBestandenPage extends CervixScreeningBasePage
 	{
 		try
 		{
-			cervixBetalingService.verwijderSepaBestanden(model.getObject(), ScreenitSession.get().getLoggedInInstellingGebruiker());
+			cervixBetalingService.verwijderSepaBestanden(model.getObject());
 		}
-		catch (JsonProcessingException e)
+		catch (IllegalArgumentException e)
 		{
 			error(getString(e.getMessage()));
 		}
@@ -239,6 +246,5 @@ public class CervixBetalingSepaBestandenPage extends CervixScreeningBasePage
 	protected void onDetach()
 	{
 		super.onDetach();
-		ModelUtil.nullSafeDetach(screeningOrganisatieModel);
 	}
 }

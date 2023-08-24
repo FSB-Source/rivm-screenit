@@ -8,8 +8,16 @@ import {createActionClearStopIdentificerenTotYubikeyEraf} from "../actions/Login
 const NFC_POLL_INTERVAL = 1000
 export const AANTAL_INTERVALLEN_VOOR_LOGOUT = 2
 let vorigePublicId: string | undefined
+let eerstePollPoging = true
 
-export const startPollingNfc = (resterendeIntervallenVoorLogout: number): void => {
+export const startPollingNfc = (): void => {
+	if (eerstePollPoging) {
+		pollNfc(AANTAL_INTERVALLEN_VOOR_LOGOUT)
+		eerstePollPoging = false
+	}
+}
+
+function pollNfc(resterendeIntervallenVoorLogout: number): void {
 	window.setTimeout(() => {
 		if (store.getState().dubbeleInstantie) {
 			console.warn("Dubbele ScreenIT instantie gedetecteerd op werkstation: stop pollen NFC ")
@@ -60,7 +68,7 @@ function leesEnVerwerkNfcStatus(resterendeIntervallenVoorLogout: number): void {
 		}
 
 		vorigePublicId = publicId
-		startPollingNfc(volgendeResterendeIntervallen)
+		pollNfc(volgendeResterendeIntervallen)
 	}).catch((error: any) => {
 		nfcServiceCommunicatiefout(error)
 	})
@@ -77,7 +85,7 @@ function nfcServiceCommunicatiefout(error: Error): void {
 	}
 
 	showNfcErrorToast()
-	startPollingNfc(AANTAL_INTERVALLEN_VOOR_LOGOUT)
+	pollNfc(AANTAL_INTERVALLEN_VOOR_LOGOUT)
 }
 
 function getIngelogdePublicId(): string | undefined {

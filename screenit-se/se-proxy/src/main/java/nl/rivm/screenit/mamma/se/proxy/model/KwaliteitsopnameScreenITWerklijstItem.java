@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.model;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,8 +32,6 @@ public class KwaliteitsopnameScreenITWerklijstItem extends ScreenITWerklijstItem
 	private String seCode;
 
 	private String accessionNumber;
-
-	private String onderzoekscode;
 
 	private LocalDateTime startMoment;
 
@@ -77,16 +75,6 @@ public class KwaliteitsopnameScreenITWerklijstItem extends ScreenITWerklijstItem
 	public void setAccessionNumber(String accessionNumber)
 	{
 		this.accessionNumber = accessionNumber;
-	}
-
-	public String getOnderzoekscode()
-	{
-		return onderzoekscode;
-	}
-
-	public void setOnderzoekscode(String onderzoekscode)
-	{
-		this.onderzoekscode = onderzoekscode;
 	}
 
 	public LocalDateTime getStartMoment()

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.model;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,13 +21,22 @@ package nl.rivm.screenit.batch.model;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import lombok.Setter;
+
 import ca.uhn.hl7v2.app.Connection;
 
+@Getter
+@Setter
 public class ScreenITHL7MessageContext
 {
-	private HapiContextType type;
+	private final HapiContextType type;
 
-	private HL7v24ResponseWrapper responseWrapper = new HL7v24ResponseWrapper();
+	private String host;
+
+	private Integer port;
+
+	private final HL7v24ResponseWrapper responseWrapper = new HL7v24ResponseWrapper();
 
 	private Connection connection = null;
 
@@ -35,25 +44,4 @@ public class ScreenITHL7MessageContext
 	{
 		this.type = type;
 	}
-
-	public HapiContextType getType()
-	{
-		return type;
-	}
-
-	public HL7v24ResponseWrapper getResponseWrapper()
-	{
-		return responseWrapper;
-	}
-
-	public Connection getConnection()
-	{
-		return connection;
-	}
-
-	public void setConnection(Connection connection)
-	{
-		this.connection = connection;
-	}
-
 }

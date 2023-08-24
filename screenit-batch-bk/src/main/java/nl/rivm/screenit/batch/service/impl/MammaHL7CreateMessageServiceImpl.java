@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,6 +31,8 @@ import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetClientDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
+import nl.rivm.screenit.model.enums.MammaOnderzoekType;
+import nl.rivm.screenit.model.mamma.enums.MammaHL7OnderzoeksCode;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
@@ -243,19 +245,18 @@ public class MammaHL7CreateMessageServiceImpl implements MammaHL7CreateMessageSe
 			obr,
 			triggerDto.getStatus(),
 			triggerDto.getAccessionNumber(),
-			triggerDto.isUploaded() ? "ZHOND" : "MAMMO",
-			triggerDto.isUploaded() ? "Ziekenhuis" : "Mammografie",
+			getOnderzoeksCode(triggerDto),
 			triggerDto.getLaatsteOnderzoekAfgerondOpDatum(),
 			triggerDto.getLaatsteAfspraakDatum(),
 			triggerDto.getScreeningseenheidCode());
 	}
 
-	private void buildOBRSegment(OBR obr, MammaHL7v24ORMBerichtStatus status, String accessionNumber, String onderzoekscode, String onderzoeksnaam,
-		LocalDateTime onderzoekAfgerondOp, LocalDateTime laatsteAfspraakDatum, String screeningseenheidCode) throws DataTypeException
+	private void buildOBRSegment(OBR obr, MammaHL7v24ORMBerichtStatus status, String accessionNumber, MammaHL7OnderzoeksCode onderzoeksCode, LocalDateTime onderzoekAfgerondOp,
+		LocalDateTime laatsteAfspraakDatum, String screeningseenheidCode) throws DataTypeException
 	{
 		obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().setValue(accessionNumber);
-		obr.getObr4_UniversalServiceIdentifier().getCe1_Identifier().setValue(onderzoekscode);
-		obr.getObr4_UniversalServiceIdentifier().getCe2_Text().setValue(onderzoeksnaam);
+		obr.getObr4_UniversalServiceIdentifier().getCe1_Identifier().setValue(onderzoeksCode.name());
+		obr.getObr4_UniversalServiceIdentifier().getCe2_Text().setValue(onderzoeksCode.getBeschrijving());
 		obr.getObr5_Priority().setValue("R");
 		if (onderzoekAfgerondOp != null)
 		{
@@ -287,4 +288,18 @@ public class MammaHL7CreateMessageServiceImpl implements MammaHL7CreateMessageSe
 
 	}
 
+	private MammaHL7OnderzoeksCode getOnderzoeksCode(MammaHL7v24OrmBerichtTriggerMetClientDto triggerDto)
+	{
+		if (triggerDto.isUploaded())
+		{
+			return MammaHL7OnderzoeksCode.ZHOND;
+		}
+
+		if (triggerDto.getOnderzoekType() == MammaOnderzoekType.TOMOSYNTHESE)
+		{
+			return MammaHL7OnderzoeksCode.SCREENDBT;
+		}
+
+		return MammaHL7OnderzoeksCode.MAMMO;
+	}
 }

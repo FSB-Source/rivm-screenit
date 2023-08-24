@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit.
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,25 +21,24 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit.
  * =========================LICENSE_END==================================
  */
 
+import java.util.Date;
+
 import nl.rivm.screenit.main.web.component.fullcalendar.event.Event;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit.sources.ScreenITEventSourceFactory;
 import nl.rivm.screenit.model.mamma.MammaBlokkade;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.joda.time.DateTime;
 
 public class BlokkadeEventsProvider extends AbstractScreenITEventProvider
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private HibernateService hibernateService;
 
-	private ScreenITEventSourceFactory screenITEventSourceFactory;
+	private final ScreenITEventSourceFactory screenITEventSourceFactory;
 
 	public BlokkadeEventsProvider(ScreenITEventSourceFactory screenITEventSourceFactory)
 	{
@@ -48,7 +47,7 @@ public class BlokkadeEventsProvider extends AbstractScreenITEventProvider
 	}
 
 	@Override
-	void createEvents(DateTime start, DateTime end)
+	void createEvents(Date start, Date end)
 	{
 		for (Long blokkadeId : screenITEventSourceFactory.getWeekDto().blokkadesIds)
 		{
@@ -70,8 +69,8 @@ public class BlokkadeEventsProvider extends AbstractScreenITEventProvider
 
 			Event event = new Event();
 			event.setTitle(blokkadetitel);
-			event.setStart(new DateTime(blokkade.getVanaf()));
-			event.setEnd(new DateTime(blokkade.getTotEnMet()));
+			event.setStart(DateUtil.toLocalDateTime(blokkade.getVanaf()));
+			event.setEnd(DateUtil.toLocalDateTime(blokkade.getTotEnMet()));
 			event.setAllDay(true);
 			event.setEditable(false);
 			if (StringUtils.isNotBlank(blokkade.getReden()))

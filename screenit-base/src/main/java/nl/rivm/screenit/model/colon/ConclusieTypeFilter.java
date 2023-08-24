@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,7 +33,9 @@ public enum ConclusieTypeFilter
 
 	ON_HOLD(ColonConclusieType.ON_HOLD),
 
-	ANDERE_BVO_INTAKELOCATIE(ColonConclusieType.CLIENT_WIL_ANDERE_INTAKELOKATIE, ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM),
+	CLIENT_WIL_ANDERE_INTAKELOKATIE(ColonConclusieType.CLIENT_WIL_ANDERE_INTAKELOKATIE),
+
+	DOORVERWIJZEN_NAAR_ANDER_CENTRUM(ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM),
 
 	NO_SHOW(ColonConclusieType.NO_SHOW),
 
@@ -43,12 +45,12 @@ public enum ConclusieTypeFilter
 
 	public static ConclusieTypeFilter[] getOpenstaandeAfspraken()
 	{
-		return new ConclusieTypeFilter[] { GEEN_CONCLUSIE, ON_HOLD };
+		return new ConclusieTypeFilter[] { GEEN_CONCLUSIE, ON_HOLD, DOORVERWIJZEN_NAAR_ANDER_CENTRUM };
 	}
 
 	public static ConclusieTypeFilter[] getAfgerondeAfspraken()
 	{
-		return new ConclusieTypeFilter[] { ANDERE_BVO_INTAKELOCATIE, NO_SHOW, COLOSCOPIE, CT_COLOGRAFIE, GEEN_VERVOLGONDERZOEK, GEEN_CONCLUSIE, ON_HOLD };
+		return new ConclusieTypeFilter[] { CLIENT_WIL_ANDERE_INTAKELOKATIE, NO_SHOW, COLOSCOPIE, CT_COLOGRAFIE, GEEN_VERVOLGONDERZOEK, GEEN_CONCLUSIE, ON_HOLD };
 	}
 
 	ConclusieTypeFilter(ColonConclusieType... conclusieTypes)

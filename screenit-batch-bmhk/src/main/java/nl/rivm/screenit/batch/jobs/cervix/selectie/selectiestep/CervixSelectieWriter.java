@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.selectie.selectiestep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -52,13 +52,12 @@ public class CervixSelectieWriter extends BaseWriter<Client>
 		if (CervixLeeftijdcategorie._30.equals(leeftijdcategorie) && laatsteScreeningRonde != null)
 		{
 			factory.updateDossierMetVolgendeRondeDatum(dossier, dateSupplier.getLocalDateTime());
-			factory.maakUitnodiging(laatsteScreeningRonde, laatsteScreeningRonde.getLeeftijdcategorie().getUitnodigingsBrief(), true, false);
 		}
 		else
 		{
-			var ronde = factory.maakRonde(dossier);
-			factory.maakUitnodiging(ronde, ronde.getLeeftijdcategorie().getUitnodigingsBrief(), true, false);
+			laatsteScreeningRonde = factory.maakRonde(dossier);
 		}
+		factory.maakUitnodiging(laatsteScreeningRonde, laatsteScreeningRonde.getLeeftijdcategorie().getUitnodigingsBrief(), true, false);
 
 		aantalContextOphogen(CervixSelectieConstants.SELECTIE_AANTAL_KEY);
 	}

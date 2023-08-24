@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.component.validator;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,11 +23,12 @@ package nl.rivm.screenit.main.web.component.validator;
 
 import lombok.NoArgsConstructor;
 
-import org.apache.curator.shaded.com.google.common.primitives.Ints;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.apache.wicket.validation.validator.StringValidator;
+
+import com.google.common.primitives.Ints;
 
 @NoArgsConstructor
 public class StringIsIntegerValidator extends StringValidator implements IValidator<String>

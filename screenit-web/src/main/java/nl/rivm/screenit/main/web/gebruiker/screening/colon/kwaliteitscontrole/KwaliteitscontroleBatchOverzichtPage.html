@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -40,10 +40,10 @@
                         <div class="controls">
                             <div class="btn-group periode-filter">
                                 <div class="input-append">
-                                    <input wicket:id="datumVan" type="text" placeholder="dd-mm-jaar" size="16" class="input-small datum">
-                                    <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum" tabindex="-1"><i
-                                            class="icon-calendar"></i></a>
-                                </div>
+									<input wicket:id="datumVan" type="text" placeholder="dd-mm-jaar" size="16" class="input-small datum">
+									<a  class="btn js-datepicker-show" title="Datum" tabindex="-1"><i
+											class="icon-calendar"></i></a>
+								</div>
                             </div>
                         </div>
                     </div>
@@ -53,8 +53,8 @@
                             <div class="btn-group periode-filter">
                                 <div class="input-append">
                                     <input wicket:id="datumTot" type="text" placeholder="dd-mm-jaar" size="16" class="input-small datum">
-                                    <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum" tabindex="-1"><i
-                                            class="icon-calendar"></i></a>
+									<a  class="btn js-datepicker-show" title="Datum" tabindex="-1"><i
+											class="icon-calendar"></i></a>
                                 </div>
                             </div>
                         </div>
@@ -88,11 +88,11 @@
             <div wicket:id="tabel" class="table table-bordered table-condensed">
             </div>
             <div class="buttons">
-                <a href="javascript:void(0);" class="btn btn-danger pull-left" wicket:id="verwijderen">Verwijderen</a>
+                <a  class="btn btn-danger pull-left" wicket:id="verwijderen">Verwijderen</a>
 				<span wicket:id="beoordelenContainer">
-					<a href="javascript:void(0);" class="btn" wicket:id="beoordelen"><i class="icon-download"></i> Beoordelen (QBase)</a>
+					<a  class="btn" wicket:id="beoordelen"><i class="icon-download"></i> Beoordelen (QBase)</a>
 				</span>
-                <a href="javascript:void(0);" class="btn btn-primary" wicket:id="autoriseer">Autoriseer</a>
+                <a  class="btn btn-primary" wicket:id="autoriseer">Autoriseer</a>
             </div>
         </form>
     </fieldset>

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.cerv
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,6 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.cerv
  * =========================LICENSE_END==================================
  */
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -92,8 +91,6 @@ public class CervixCytologieVerslagInzienPanel extends AbstractGebeurtenisDetail
 
 	private UploadDocument uploadDocument;
 
-	private File tmpFile;
-
 	private Form uploadForm;
 
 	private IndicatingAjaxSubmitLink formUploadBtn;
@@ -136,10 +133,7 @@ public class CervixCytologieVerslagInzienPanel extends AbstractGebeurtenisDetail
 					FileUpload fileUpload = file.getObject().get(0);
 					try
 					{
-						tmpFile = fileUpload.writeToTempFile();
-						tmpFile.deleteOnExit();
 						maakUploadDocument(fileUpload);
-						uploadDocument.setFile(tmpFile);
 						uploadDocumentService.saveOrUpdate(uploadDocument, FileStoreLocation.CERVIX_UITSLAG_VERWIJDEREN_CLIENT_BRIEF, getClientVanVerslag().getId());
 						cervixUitnodigingService.vervangVerwijderdDocument(getVerslag().getUitstrijkje(), uploadDocument);
 						setResponsePage(new ClientDossierPage(ModelUtil.sModel(getClientVanVerslag())));
@@ -186,8 +180,6 @@ public class CervixCytologieVerslagInzienPanel extends AbstractGebeurtenisDetail
 					FileUpload fileUpload = file.getObject().get(0);
 					try
 					{
-						tmpFile = fileUpload.writeToTempFile();
-						tmpFile.deleteOnExit();
 						maakUploadDocument(fileUpload);
 					}
 					catch (Exception e)
@@ -207,26 +199,11 @@ public class CervixCytologieVerslagInzienPanel extends AbstractGebeurtenisDetail
 			}
 
 			@Override
-			public void onNoClick(AjaxRequestTarget target)
-			{
-				super.onNoClick(target);
-				tmpFile.delete();
-			}
-
-			@Override
-			public void onCloseClick(AjaxRequestTarget target)
-			{
-				super.onCloseClick(target);
-				tmpFile.delete();
-			}
-
-			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
 				CervixUitnodiging uitnodiging = (CervixUitnodiging) CervixCytologieVerslagInzienPanel.this.getModelObject().getUitnodiging();
 				try
 				{
-					uploadDocument.setFile(tmpFile);
 					uploadDocumentService.saveOrUpdate(uploadDocument, FileStoreLocation.CERVIX_UITSLAG_VERWIJDEREN_CLIENT_BRIEF, getClientVanVerslag().getId());
 				}
 				catch (IOException e)
@@ -254,12 +231,9 @@ public class CervixCytologieVerslagInzienPanel extends AbstractGebeurtenisDetail
 			&& monster.equals(cervixUitnodigingService.getUitnodigingMagVerwijderdWorden(ontvangstRonde));
 	}
 
-	private void maakUploadDocument(FileUpload fileUpload)
+	private void maakUploadDocument(FileUpload fileUpload) throws Exception
 	{
-		uploadDocument = new UploadDocument();
-		uploadDocument.setActief(Boolean.TRUE);
-		uploadDocument.setContentType(fileUpload.getContentType());
-		uploadDocument.setNaam(fileUpload.getClientFileName());
+		uploadDocument = ScreenitSession.get().fileUploadToUploadDocument(fileUpload);
 	}
 
 	@Override

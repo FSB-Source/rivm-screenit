@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -20,29 +20,29 @@
   -->
 <html xmlns:wicket="http://wicket.apache.org/">
 <wicket:extend>
-    <h1 class="pageTitle">CE - Geen beoordeling mogelijk</h1>
+	<h1 class="pageTitle">CE - Geen beoordeling mogelijk</h1>
 
-    <wicket:container wicket:id="paspoort"></wicket:container>
+	<wicket:container wicket:id="paspoort"></wicket:container>
 
-    <div class="row-fluid" style="height: calc(100vh - 225px)">
-        <div class="span6" style="height: 100%;">
-            <div class="span6" style="width: 100%;height: inherit;">
-                <wicket:container wicket:id="pdf"></wicket:container>
-            </div>
-        </div>
-        <div class="span6" style="height: 60%">
+	<div class="row-fluid height-calc">
+		<div class="span6 height-100procent">
+			<div class="span6 mamma-ce-geen-beoordeling-page">
+				<wicket:container wicket:id="pdf"></wicket:container>
+			</div>
+		</div>
+		<div class="span6 height-60procent">
 
-            <div class="hero-unit" style="padding-bottom: 45px;height: 100%">
-                <h2>Reden(en) waarom er geen beoordeling mogelijk is</h2>
-                <div class="control-group value span12" style="height: 100%">
-                    <textarea class="span12" wicket:id="RedenWaaromErGeenBeoordelingMogelijkIs" style="height: 100%"></textarea>
-                </div>
-            </div>
+			<div class="hero-unit hero-unit-height-padding">
+				<h2>Reden(en) waarom er geen beoordeling mogelijk is</h2>
+				<div class="control-group value span12 height-100procent">
+					<textarea class="span12 height-100procent" wicket:id="RedenWaaromErGeenBeoordelingMogelijkIs"></textarea>
+				</div>
+			</div>
 
-            <div class="pull-right" wicket:id="verslagActies">
-                <a class="btn btn-success" wicket:id="afgehandeld">Afgehandeld</a>
-            </div>
-        </div>
+			<div class="pull-right" wicket:id="verslagActies">
+				<a class="btn btn-success" wicket:id="afgehandeld">Afgehandeld</a>
+			</div>
+		</div>
     </div>
 </wicket:extend>
 </html>

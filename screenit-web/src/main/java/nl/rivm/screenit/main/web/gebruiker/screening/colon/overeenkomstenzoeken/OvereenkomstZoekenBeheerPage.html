@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -62,7 +62,7 @@
                                 <div class="btn-group periode-filter">
                                     <div class="input-append">
                                         <input wicket:id="lopendeDatum" type="text" placeholder="dd-mm-jaar" size="16" class="input-small datum">
-                                        <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum" tabindex="-1"><i
+                                        <a  class="btn js-datepicker-show" title="Datum" tabindex="-1"><i
                                                 class="icon-calendar"></i></a>
                                     </div>
                                 </div>
@@ -101,7 +101,7 @@
                 <div class="row-fluid">
                     <div class="span12">
                         <div class="form-actions clearfix">
-                            <button class="btn btn-primary" onclick="javascript:void();" wicket:id="zoeken"><i class="icon-search icon-white"></i> Zoeken</button>
+                            <button class="btn btn-primary" wicket:id="zoeken"><i class="icon-search icon-white"></i> Zoeken</button>
                         </div>
                     </div>
                 </div>

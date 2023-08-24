@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.controllers.colon;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,8 @@ import nl.rivm.screenit.clientportaal.model.colon.ColonFitStatusDto;
 import nl.rivm.screenit.clientportaal.services.colon.ColonFitService;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActieType;
+import nl.rivm.screenit.service.ClientContactService;
+import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -44,14 +46,18 @@ import org.springframework.web.bind.annotation.RestController;
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class ColonFitAanvragenController extends AbstractController
 {
+	private final HibernateService hibernateService;
+
+	private final ClientContactService clientContactService;
+
 	private final ColonFitService fitService;
 
 	@GetMapping("status")
 	public ResponseEntity<ColonFitStatusDto> getFitStatus(Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.COLON_AANVRAGEN_NIEUWE_IFOBT))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.COLON_AANVRAGEN_NIEUWE_IFOBT))
 		{
 			return ResponseEntity.ok(fitService.getFitStatus(client));
 		}
@@ -62,9 +68,9 @@ public class ColonFitAanvragenController extends AbstractController
 	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<Void> vraagFitAan(Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.COLON_AANVRAGEN_NIEUWE_IFOBT))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.COLON_AANVRAGEN_NIEUWE_IFOBT))
 		{
 			fitService.vraagFitAan(client);
 			return ResponseEntity.ok().build();

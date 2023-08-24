@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,22 +21,23 @@ package nl.rivm.screenit.service.colon.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.colon.ComplicatieDao;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.colon.Complicatie;
 import nl.rivm.screenit.model.SortState;
+import nl.rivm.screenit.model.colon.Complicatie;
 import nl.rivm.screenit.model.colon.MdlVerslag;
 import nl.rivm.screenit.model.enums.ComplicatieMoment;
 import nl.rivm.screenit.service.colon.ComplicatieService;
-
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -76,16 +77,16 @@ public class ComplicatieServiceImpl implements ComplicatieService
 	{
 		if (verslag != null && verslag.getDatumOnderzoek() != null)
 		{
-			DateTime onderzoekDatum = new DateTime(verslag.getDatumOnderzoek());
-			if (complicatieDatum.before(onderzoekDatum.plusDays(1).toDate()) || complicatieDatum.equals(onderzoekDatum.plusDays(1).toDate()))
+			var onderzoekDatum = verslag.getDatumOnderzoek();
+			if (!DateUtil.compareAfter(complicatieDatum, DateUtil.plusDagen(onderzoekDatum, 1)))
 			{
 				return ComplicatieMoment.BINNEN_24_UUR;
 			}
-			else if (complicatieDatum.before(onderzoekDatum.plusWeeks(1).toDate()) || complicatieDatum.equals(onderzoekDatum.plusWeeks(1).toDate()))
+			else if (!DateUtil.compareAfter(complicatieDatum, DateUtil.plusTijdseenheid(onderzoekDatum, 1, ChronoUnit.WEEKS)))
 			{
 				return ComplicatieMoment.BINNEN_1_WEEK;
 			}
-			else if (complicatieDatum.before(onderzoekDatum.plusMonths(1).toDate()) || complicatieDatum.equals(onderzoekDatum.plusMonths(1).toDate()))
+			else if (!DateUtil.compareAfter(complicatieDatum, DateUtil.plusTijdseenheid(onderzoekDatum, 1, ChronoUnit.MONTHS)))
 			{
 				return ComplicatieMoment.BINNEN_1_MAAND;
 			}
@@ -96,8 +97,7 @@ public class ComplicatieServiceImpl implements ComplicatieService
 	@Override
 	public boolean magComplicatieVastleggen(Date checkDate)
 	{
-		DateTime stopDatum = DateTimeFormat.forPattern("yyyyMMdd")
-			.parseDateTime(preferenceService.getString(PreferenceKey.INTERNAL_COLON_COMPLICATIE_VERWERKING_STOP.name()));
-		return checkDate.before(stopDatum.toDate());
+		var stopDatum = DateUtil.parseDateForPattern(preferenceService.getString(PreferenceKey.INTERNAL_COLON_COMPLICATIE_VERWERKING_STOP.name()), Constants.DATE_FORMAT_YYYYMMDD);
+		return checkDate.before(stopDatum);
 	}
 }

@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -111,10 +111,10 @@
                                 <label class="control-label span3" for="vanafDatum">Vanaf onderzoeksdatum</label>
                                 <div class="controls">
                                     <div class="input-append">
-                                        <input class="input" type="text" placeholder="dd-mm-yyyy" id="vanafDatum" wicket:id="tijdelijkeBeVanafDatum">
-                                        <a href="javascript:void(0);" class="add-on" onclick="$(this).prev().datepicker({ changeMonth: true, changeYear: true});" title="Datum"
-                                           tabindex="-1"> <i class="icon-calendar"></i></a>
-                                    </div>
+										<input class="input" type="text" placeholder="dd-mm-yyyy" id="vanafDatum" wicket:id="tijdelijkeBeVanafDatum">
+										<a class="add-on js-datepicker-change-month-and-year" title="Datum"
+										   tabindex="-1"> <i class="icon-calendar"></i></a>
+									</div>
                                 </div>
                             </div>
                         </div>
@@ -126,8 +126,8 @@
                                 <div class="controls">
                                     <div class="input-append">
                                         <input class="input" placeholder="dd-mm-yyyy" type="text" id="totEnMetDatum" wicket:id="tijdelijkeBeTotEnMetDatum">
-                                        <a href="javascript:void(0);" class="add-on" onclick="$(this).prev().datepicker({ changeMonth: true, changeYear: true});" title="Datum"
-                                           tabindex="-1"> <i class="icon-calendar"></i></a>
+										<a class="add-on js-datepicker-change-month-and-year" title="Datum"
+										   tabindex="-1"> <i class="icon-calendar"></i></a>
                                     </div>
                                 </div>
                             </div>
@@ -135,38 +135,51 @@
                     </div>
                 </fieldset>
                 <fieldset>
-                    <div class="row-fluid">
-                        <div class="span12">
-                            <legend>Eigenschappen</legend>
-                        </div>
-                    </div>
-                    <div class="row-fluid">
-                        <div class="span9">
-                            <div class="control-group">
-                                <label class="control-label span4">Mobiliteit</label>
-                                <div class="controls">
-                                    <select wicket:id="isMobiel">
-                                        <option>Mobiel</option>
-                                        <option>Vast</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row-fluid">
-                        <div class="span9">
-                            <div class="control-group">
-                                <label class="control-label span4">Lift</label>
-                                <div class="controls">
-                                    <select wicket:id="heeftLift">
-                                        <option>Ja</option>
-                                        <option>Nee</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </fieldset>
+					<div class="row-fluid">
+						<div class="span12">
+							<legend>Eigenschappen</legend>
+						</div>
+					</div>
+					<div class="row-fluid">
+						<div class="span9">
+							<div class="control-group">
+								<label class="control-label span4">Mobiliteit</label>
+								<div class="controls">
+									<select wicket:id="isMobiel">
+										<option>Mobiel</option>
+										<option>Vast</option>
+									</select>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="row-fluid">
+						<div class="span9">
+							<div class="control-group">
+								<label class="control-label span4">Lift</label>
+								<div class="controls">
+									<select wicket:id="heeftLift">
+										<option>Ja</option>
+										<option>Nee</option>
+									</select>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="row-fluid">
+						<div class="span9">
+							<div class="control-group">
+								<label class="control-label span4">Tomosynthese</label>
+								<div class="controls">
+									<select wicket:id="tomosyntheseMogelijk">
+										<option>Ja</option>
+										<option>Nee</option>
+									</select>
+								</div>
+							</div>
+						</div>
+					</div>
+				</fieldset>
 
                 <fieldset>
                     <div class="row-fluid">

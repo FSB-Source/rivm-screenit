@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.brieven;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -42,7 +42,6 @@ import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.FileType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
@@ -51,15 +50,15 @@ import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectBriefActieType;
 import nl.rivm.screenit.model.project.ProjectType;
-import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.UploadDocumentService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.EnumStringUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
 
-import org.apache.wicket.Application;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -72,7 +71,6 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.apache.wicket.util.lang.Classes;
 import org.wicketstuff.shiro.ShiroConstraint;
 
 @SecurityConstraint(
@@ -306,48 +304,40 @@ public class ProjectBriefActiePage extends ProjectBasePage
 
 	private String getMomentText(ProjectBriefActie projectBriefActie)
 	{
-		String momentTekst = "";
-		ProjectBriefActieType type = projectBriefActie.getType();
+		var momentTekst = "";
+		var type = projectBriefActie.getType();
 
-		if (ProjectBriefActieType.DATUM.equals(type))
+		switch (type)
 		{
-			SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
-
-			momentTekst = format.format(projectBriefActie.getDatum());
-		}
-		else if (ProjectBriefActieType.XDAGENNAY.equals(type))
-		{
+		case DATUM:
+		case VANAF_DATUM:
+			momentTekst = DateUtil.formatShortDate(projectBriefActie.getDatum());
+			break;
+		case XDAGENNAY:
 			momentTekst = projectBriefActie.getAantalDagen() + " dagen na ";
-			BriefType briefType = projectBriefActie.getBriefType();
-			if (briefType != null)
-			{
-				momentTekst += getBriefNaam(briefType);
-			}
-		}
-		else if (ProjectBriefActieType.XMETY.equals(type))
-		{
+			momentTekst += getBriefNaam(projectBriefActie);
+			break;
+		case XMETY:
 			momentTekst = "Tegelijk met ";
-			BriefType briefType = projectBriefActie.getBriefType();
-			if (briefType != null)
-			{
-				momentTekst += getBriefNaam(briefType);
-			}
-		}
-		else if (ProjectBriefActieType.VERVANGENDEBRIEF.equals(type))
-		{
-			BriefType briefType = projectBriefActie.getBriefType();
-			if (briefType != null)
-			{
-				momentTekst += getBriefNaam(briefType);
-			}
+			momentTekst += getBriefNaam(projectBriefActie);
+			break;
+		case VERVANGENDEBRIEF:
+			momentTekst += getBriefNaam(projectBriefActie);
+			break;
+		default:
 		}
 		return momentTekst;
 	}
 
-	private String getBriefNaam(BriefType briefType)
+	private String getBriefNaam(ProjectBriefActie briefActie)
 	{
-		String key = Classes.simpleName(briefType.getDeclaringClass()) + '.' + briefType.name();
-		return Application.get().getResourceSettings().getLocalizer().getString(key, null);
+		var naam = "";
+		var briefType = briefActie.getBriefType();
+		if (briefType != null)
+		{
+			naam = getString(EnumStringUtil.getPropertyString(briefType, null));
+		}
+		return naam;
 	}
 
 	@Override

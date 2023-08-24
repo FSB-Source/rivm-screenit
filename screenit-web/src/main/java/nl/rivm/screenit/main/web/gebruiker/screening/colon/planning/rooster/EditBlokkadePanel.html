@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -45,8 +45,8 @@
                             <div class="control-group">
                                 <label class="control-label">Kamer <i class="icon-asterisk icon-purple"></i></label>
                                 <div class="controls" wicket:id="locationContainer">
-                                    <select wicket:id="location"></select>
-                                </div>
+									<select class="select-kamer" wicket:id="location"></select>
+								</div>
                                 <wicket:enclosure child="alleKamers">
                                 <div class="controls">
                                 	<span>Alle kamers <input type="checkbox" wicket:id="alleKamers"> </span>
@@ -60,11 +60,11 @@
                             	<span>
                                 	<span wicket:id="startTime"></span>
                                 </span>
-                                <span>
-                                	<span style="display: block; padding-bottom: 5px;">Hele dag <input type="checkbox" wicket:id="heleDag"/></span>
-                                	<span style="clear: left;"><span style="padding: 0 10px 0 10px;">tot</span><span wicket:id="endTime">13:30</span></span>
+								<span>
+                                	<span class="hele-dag-selector">Hele dag <input type="checkbox" wicket:id="heleDag"/></span>
+                                	<span class="edit-blokkade-clear-left">tot</span><span wicket:id="endTime">13:30</span>
                                 </span>
-                            </div>
+							</div>
                         </div>
                         <div class="control-group">
                             <label class="control-label">Omschrijving <i class="icon-asterisk icon-purple"></i></label>
@@ -83,11 +83,11 @@
                             </div>
                             <div class="control-group" wicket:id="recurrenceEditEndContainer">
                                 <div class="controls">
-                                    <div class="input-append">
-                                        <input wicket:id="recurrenceEditEnd" type="text"/>
-                                        <a href="javascript:void(0);" class="add-on" onclick="$(this).prev().datepicker('show');return false;" title="Datum" tabindex="-1"><i
-                                                class="icon-calendar"></i></a>
-                                    </div>
+									<div class="input-append">
+										<input wicket:id="recurrenceEditEnd" type="text"/>
+										<a  class="add-on js-datepicker-show" title="Datum" tabindex="-1"><i
+												class="icon-calendar"></i></a>
+									</div>
                                 </div>
                             </div>
                         </fieldset>
@@ -101,8 +101,8 @@
                                     <div class="controls">
                                         <div class="input-append">
                                             <input wicket:id="recurrence.endDate" type="text"/>
-                                            <a href="javascript:void(0);" class="add-on" onclick="$(this).prev().datepicker('show');return false;" title="Datum" tabindex="-1"><i
-                                                    class="icon-calendar"></i></a>
+											<a  class="add-on js-datepicker-show" title="Datum" tabindex="-1"><i
+													class="icon-calendar"></i></a>
                                         </div>
                                     </div>
                                 </div>
@@ -117,7 +117,7 @@
         <button wicket:id="deleteLink" class="btn btn-danger pull-left">
             <span wicket:id="deleteTekst">Verwijderen</span>
         </button>
-        <a wicket:id="deleteSubmit" style="display: none;"></a>
+		<a wicket:id="deleteSubmit" class="display-none"></a>
         <button class="btn" data-dismiss="modal">Annuleren</button>
         <button class="btn btn-primary" wicket:id="opslaanLink" type="submit">
             <span wicket:id="opslaanTekst">Opslaan</span>

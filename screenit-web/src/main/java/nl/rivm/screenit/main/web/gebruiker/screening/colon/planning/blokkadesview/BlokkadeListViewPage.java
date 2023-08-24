@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.blokkadesview;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import nl.rivm.screenit.main.service.colon.RoosterService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.table.ExportToXslLink;
@@ -36,8 +34,8 @@ import nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.PlanningBase
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.RoosterListViewFilter;
 import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
 
 import org.apache.commons.lang.StringUtils;
@@ -55,16 +53,10 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class BlokkadeListViewPage extends PlanningBasePage
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private ScreenitDataTable<ColonBlokkade, String> table;
 
 	@SpringBean
-	private RoosterService roosterService;
-
-	@SpringBean
-	private HibernateService hibernateService;
+	private ICurrentDateSupplier currentDateSupplier;
 
 	public BlokkadeListViewPage()
 	{
@@ -74,8 +66,8 @@ public class BlokkadeListViewPage extends PlanningBasePage
 		add(new Label("coloscopiecentrum", intakelocatie.getNaam()));
 
 		RoosterListViewFilter filter = new RoosterListViewFilter();
-		filter.setStartDatum(new Date());
-		filter.setEndDatum(new Date());
+		filter.setStartDatum(currentDateSupplier.getDate());
+		filter.setEndDatum(currentDateSupplier.getDate());
 		filter.setStatus(null);
 
 		final IModel<RoosterListViewFilter> zoekModel = new Model<RoosterListViewFilter>(filter);
@@ -94,9 +86,6 @@ public class BlokkadeListViewPage extends PlanningBasePage
 
 		startDatum.add(new AjaxFormComponentUpdatingBehavior("change")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
@@ -112,9 +101,6 @@ public class BlokkadeListViewPage extends PlanningBasePage
 
 		eindDatum.add(new AjaxFormComponentUpdatingBehavior("change")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
@@ -135,11 +121,8 @@ public class BlokkadeListViewPage extends PlanningBasePage
 	private void maakTabel(ColoscopieCentrum intakelocatie, final IModel<RoosterListViewFilter> zoekModel)
 	{
 		List<IColumn<ColonBlokkade, String>> columns = new ArrayList<>();
-		columns.add(new DateTimePropertyColumn<ColonBlokkade, String>(Model.of("Datum/tijd"), "startTime", "startTime", new SimpleDateFormat("dd-MM-yyyy HH:mm"))
+		columns.add(new DateTimePropertyColumn<>(Model.of("Datum/tijd"), "startTime", "startTime", new SimpleDateFormat("dd-MM-yyyy HH:mm"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public IModel<Object> getDataModel(IModel<ColonBlokkade> embeddedModel)
 			{
@@ -151,15 +134,12 @@ public class BlokkadeListViewPage extends PlanningBasePage
 			}
 
 		});
-		columns.add(new PropertyColumn<ColonBlokkade, String>(Model.of("Kamer"), "kamer.name", "location.name"));
-		columns.add(new PropertyColumn<ColonBlokkade, String>(Model.of("Omschrijving"), "description", "description"));
+		columns.add(new PropertyColumn<>(Model.of("Kamer"), "kamer.name", "location.name"));
+		columns.add(new PropertyColumn<>(Model.of("Omschrijving"), "description", "description"));
 
-		table = new ScreenitDataTable<ColonBlokkade, String>("tabel", columns, new BlokkadeListViewDataProvider(zoekModel, intakelocatie), 10,
+		table = new ScreenitDataTable<>("tabel", columns, new BlokkadeListViewDataProvider(zoekModel, intakelocatie), 10,
 			Model.of("blokkade(s)"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<ColonBlokkade> model)
 			{

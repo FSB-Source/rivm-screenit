@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.a
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import nl.rivm.screenit.main.service.mamma.MammaImsService;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.MammaScreeningBasePage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.AbstractBEAccordionPanel;
@@ -46,10 +45,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class MammaAdhocMeekijkverzoekOnderzoekInzienPage extends AbstractMammaBeoordelenPage
 {
-
-	@SpringBean
-	private MammaImsService imsService;
-
 	@SpringBean
 	private HibernateService hibernateService;
 
@@ -94,15 +89,15 @@ public class MammaAdhocMeekijkverzoekOnderzoekInzienPage extends AbstractMammaBe
 	}
 
 	@Override
-	public void volgendeVerslag(AjaxRequestTarget target)
+	public void volgendeBeoordeling(AjaxRequestTarget target)
 	{
 		Long volgendeOnderzoekId = beoordelingService.getVolgendeBeoordelingId(huidigeOnderzoekId(), new ArrayList<>(onderzoekenIdMapping.keySet()));
 
-		gaNaarVerslag(volgendeOnderzoekId, target);
+		gaNaarBeoordeling(volgendeOnderzoekId, target);
 	}
 
 	@Override
-	public void gaNaarVerslag(Long onderzoekId, AjaxRequestTarget target)
+	public void gaNaarBeoordeling(Long onderzoekId, AjaxRequestTarget target)
 	{
 		if (onderzoekId != null)
 		{
@@ -134,13 +129,14 @@ public class MammaAdhocMeekijkverzoekOnderzoekInzienPage extends AbstractMammaBe
 	@Override
 	protected MammaBeLezerSoort getLezerSoort()
 	{
-		throw new IllegalStateException("gaNaarVerslag en openInitieleBeoordeling zijn in deze class overridden, waardoor deze methode niet meer aangeroepen zou moeten worden.");
+		throw new IllegalStateException(
+			"gaNaarBeoordeling en openInitieleBeoordeling zijn in deze class overridden, waardoor deze methode niet meer aangeroepen zou moeten worden.");
 	}
 
 	@Override
 	protected void handleImsError(AjaxRequestTarget target, String errorMessage, Long onderzoekId)
 	{
-		error(imsService.handleError(errorMessage, getIngelogdeGebruiker(), (b) -> getString((String) b), onderzoekId));
+		error(imsService.handleError(errorMessage, getIngelogdeGebruiker(), b -> getString((String) b), onderzoekId));
 		huidigeRondePanel.blokeerButtons(target);
 	}
 

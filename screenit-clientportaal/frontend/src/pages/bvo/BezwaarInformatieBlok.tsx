@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -19,19 +19,19 @@
  * =========================LICENSE_END==================================
  */
 import React, {useState} from "react"
-import styles from "./BezwaarPage.module.scss";
-import arrowDown from "../../scss/media/arrow-down.svg";
-import arrowUp from "../../scss/media/arrow-up.svg";
+import styles from "./BezwaarPage.module.scss"
+import arrowDown from "../../scss/media/arrow-down.svg"
+import arrowUp from "../../scss/media/arrow-up.svg"
 
 export type BezwaarInformatieBlokProps = {
-    abstract: string;
-    children?: React.ReactNode
+	abstract: string;
+	children?: React.ReactNode
 }
 
 const BezwaarInformatieBlok = (props: BezwaarInformatieBlokProps) => {
-    const [toonMeerInformatie, setToonMeerInformatie] = useState<boolean>(false);
+	const [toonMeerInformatie, setToonMeerInformatie] = useState<boolean>(false)
 
-    function toggleMeerInformatie() {
+	function toggleMeerInformatie() {
         setToonMeerInformatie(!toonMeerInformatie)
     }
 

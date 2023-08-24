@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,19 +28,28 @@ function updateLine(line, x1, x2, y1, y2)
 
 function createLine(svg, x1, x2, y1, y2, color, thickness)
 {
+
 	var result = document.createElementNS(svg.namespaceURI, 'line');
 	updateLine(result, x1, x2, y1, y2);
-	result.setAttribute('style', 'stroke: ' + color + '; stroke-width: ' + thickness + 'px;');
+
+	result.style.stroke = color;
+	result.style.strokeWidth = thickness + 'px';
+
 	svg.appendChild(result);
 	return result;
 }
 
-function createText(svg, x, y, text)
-{
+function createText(svg, x, y, text) {
 	var result = document.createElementNS(svg.namespaceURI, 'text');
 	result.setAttribute('x', x);
 	result.setAttribute('y', y);
-	result.setAttribute('style', 'font-family: Arial; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;');
+
+	result.style.fontFamily = "Arial";
+	result.style.WebkitUserSelect = "none";
+	result.style.userSelect = "none";
+	result.style.MozUserSelect = "none";
+	result.style.MsUserSelect = "none";
+
 	result.textContent = text;
 	svg.appendChild(result);
 	return result;

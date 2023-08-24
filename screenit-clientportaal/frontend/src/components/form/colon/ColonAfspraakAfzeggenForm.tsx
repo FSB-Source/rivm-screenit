@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -19,76 +19,34 @@
  * =========================LICENSE_END==================================
  */
 import React from "react"
-import * as Yup from "yup"
+import bvoStyle from "../../BvoStyle.module.scss"
+import {ArrowType} from "../../vectors/ArrowIconComponent"
+import SubmitButton from "../../input/SubmitButton"
+import {useNavigate} from "react-router-dom"
+import {saveAfspraakAfzeggen} from "../../../api/ColonAfspraakAfzeggenThunkAction"
+import {useThunkDispatch} from "../../../index"
+import {showToast} from "../../../utils/ToastUtil"
 import {getString} from "../../../utils/TekstPropertyUtil"
 import properties from "../../../pages/bvo/colon/ColonAfspraakAfzeggenPage.json"
-import {Field, Formik} from "formik"
-import SubmitForm from "../SubmitForm"
-import {FormControl, FormControlLabel, Radio} from "@material-ui/core"
-import styles from "./ColonAfspraakAfzeggenForm.module.scss"
-import {RadioGroup} from "formik-material-ui"
-import RedenAfspraakAfzeggen from "../../../datatypes/colon/RedenAfspraakAfzeggen"
 
-export type ColonAfspraakAfzeggenFormProps = {
-	onSubmitSucces: (value: RedenAfspraakAfzeggen) => void
-}
+const ColonAfspraakAfzeggenForm = () => {
+	const dispatch = useThunkDispatch()
+	const navigate = useNavigate()
 
-const ColonAfspraakAfzeggenForm = (props: ColonAfspraakAfzeggenFormProps) => {
-
-	type RedenColonAfspraakAfzeggen = {
-		afzegReden: string
+	const afspraakAfzeggen = () => {
+		dispatch(saveAfspraakAfzeggen).then(() => {
+			showToast(getString(properties.toast.title), getString(properties.toast.description))
+			navigate("/colon")
+		})
 	}
-
-	const initialValues: RedenColonAfspraakAfzeggen = {
-		afzegReden: "",
-	}
-	const validatieSchema: Yup.AnyObjectSchema = Yup.object().shape({
-		afzegReden: Yup.string().required(getString(properties.form.error)),
-	})
 
 	return <>
-
-		<Formik<RedenColonAfspraakAfzeggen> initialValues={initialValues}
-											validationSchema={validatieSchema}
-											onSubmit={(values) => props.onSubmitSucces(values.afzegReden as RedenAfspraakAfzeggen)
-											}>
-			{formikProps => (
-				<SubmitForm<RedenColonAfspraakAfzeggen> title={getString(properties.form.title)}
-														formikProps={formikProps}
-														buttonLabel={getString(properties.form.button)}>
-					<FormControl
-						required
-						component="fieldset">
-
-						<p data-testid={"error_geen_keuze"} className={styles.errorLabel}>{formikProps.errors.afzegReden}</p>
-
-						<Field
-							className={styles.radiobuttons}
-							name="afzegReden"
-							component={RadioGroup}
-							value={formikProps.values.afzegReden || ""}>
-							<ul>
-								<li>
-									<FormControlLabel
-										className={styles.bevestigenRadioButton}
-										value={RedenAfspraakAfzeggen.CLIENT_WIL_NIET_DEELNEMEN}
-										data-testid={"radio_client_wil_niet_deelnemen"}
-										control={<Radio/>}
-										label={getString(properties.form.radiobutton.niet_deelnemen)}/>
-								</li>
-								<li>
-									<FormControlLabel
-										value={RedenAfspraakAfzeggen.HUISARTS_ADVISEERT_ANNULERING}
-										data-testid={"radio_huisart_adviseert_annulering"}
-										control={<Radio/>}
-										label={getString(properties.form.radiobutton.huisarts_advies)}/>
-								</li>
-							</ul>
-						</Field>
-					</FormControl>
-				</SubmitForm>)}
-
-		</Formik>
+		<SubmitButton className={bvoStyle.baseBackgroundColor}
+					  label={"Afspraak afzeggen"}
+					  displayArrow={ArrowType.ARROW_RIGHT}
+					  onClick={() => {
+						  afspraakAfzeggen()
+					  }}/>
 	</>
 }
 

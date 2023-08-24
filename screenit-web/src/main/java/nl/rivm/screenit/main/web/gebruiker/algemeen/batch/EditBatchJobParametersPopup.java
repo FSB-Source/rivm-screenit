@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.batch;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,7 +27,7 @@ import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.EditOrganisatieParametersPanel;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.JobType;
-import nl.rivm.screenit.service.InstellingService;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -42,7 +42,7 @@ public abstract class EditBatchJobParametersPopup extends GenericPanel<JobType>
 {
 
 	@SpringBean
-	private InstellingService instellingService;
+	private OrganisatieParameterService organisatieParameterService;
 
 	public EditBatchJobParametersPopup(String id, JobType jobType)
 	{
@@ -62,7 +62,7 @@ public abstract class EditBatchJobParametersPopup extends GenericPanel<JobType>
 					protected void onSubmit(AjaxRequestTarget target)
 					{
 						super.onSubmit(target);
-						instellingService.saveOrUpdateOrganisatieParameters(getAllParameters(), ScreenitSession.get().getLoggedInInstellingGebruiker());
+						organisatieParameterService.saveOrUpdateOrganisatieParameters(getAllParameters(), ScreenitSession.get().getLoggedInInstellingGebruiker());
 						info("Parameters zijn opgeslagen");
 						EditBatchJobParametersPopup.this.close(target);
 					}

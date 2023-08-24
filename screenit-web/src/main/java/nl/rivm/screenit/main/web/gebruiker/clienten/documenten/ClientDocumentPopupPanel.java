@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.documenten;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.documenten;
 
 import java.util.List;
 
+import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
 import nl.rivm.screenit.main.web.component.validator.FileValidator;
 import nl.rivm.screenit.model.Client;
@@ -42,7 +43,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-public abstract class ClientDocumentPopupPanel extends GenericPanel<UploadDocument>
+public abstract class ClientDocumentPopupPanel extends GenericPanel<Client>
 {
 
 	@SpringBean
@@ -50,16 +51,13 @@ public abstract class ClientDocumentPopupPanel extends GenericPanel<UploadDocume
 
 	private static final long serialVersionUID = 1L;
 
-	private final IModel<Client> selectedClientModel;
-
-	public ClientDocumentPopupPanel(String id, final IModel<UploadDocument> model, IModel<Client> selectedClient, final WebMarkupContainer documentenContainer)
+	public ClientDocumentPopupPanel(String id, IModel<Client> selectedClient, final WebMarkupContainer documentenContainer)
 	{
-		super(id, model);
-		this.selectedClientModel = selectedClient;
+		super(id, selectedClient);
 
 		final IModel<List<FileUpload>> files = new ListModel<>();
 
-		Form<UploadDocument> uploadForm = new ScreenitForm<>("uploadForm", model);
+		Form<UploadDocument> uploadForm = new ScreenitForm<>("uploadForm");
 		uploadForm.add(new FileUploadField("fileUpload", files)
 			.setRequired(true)
 			.add(new FileValidator(FileType.PDF)));
@@ -71,16 +69,10 @@ public abstract class ClientDocumentPopupPanel extends GenericPanel<UploadDocume
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-
-				UploadDocument nieuwDocument = (UploadDocument) getForm().getModelObject();
-				nieuwDocument.setActief(Boolean.TRUE);
 				try
 				{
-					FileUpload fileUpload = files.getObject().get(0);
-					nieuwDocument.setFile(fileUpload.writeToTempFile());
-					nieuwDocument.setNaam(fileUpload.getClientFileName());
-					nieuwDocument.setContentType(fileUpload.getContentType());
-					clientService.saveDocumentForClient(nieuwDocument, ModelUtil.nullSafeGet(selectedClientModel));
+					var nieuwDocument = ScreenitSession.get().fileUploadToUploadDocument(files.getObject().get(0));
+					clientService.saveDocumentForClient(nieuwDocument, ModelUtil.nullSafeGet(ClientDocumentPopupPanel.this.getModel()));
 					close(target);
 					info("Document is succesvol geupload");
 				}
@@ -95,13 +87,6 @@ public abstract class ClientDocumentPopupPanel extends GenericPanel<UploadDocume
 
 		});
 		add(uploadForm);
-	}
-
-	@Override
-	protected void detachModel()
-	{
-		super.detachModel();
-		ModelUtil.nullSafeDetach(selectedClientModel);
 	}
 
 	public abstract void close(AjaxRequestTarget target);

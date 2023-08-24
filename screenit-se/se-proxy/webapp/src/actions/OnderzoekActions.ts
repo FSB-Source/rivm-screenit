@@ -1,5 +1,6 @@
 import type {Amputatie, Onderzoek, Onderzoekstatus} from "../datatypes/Onderzoek"
 import type {AfspraakDto} from "../datatypes/Afspraak"
+import {OnderzoekType} from "../datatypes/OnderzoekType"
 
 export type OnderzoekActions =
 	VulOnderzoekByAfspraakIdAction
@@ -20,12 +21,14 @@ export type OnderzoekStartenAction = {
 	type: "ONDERZOEK_STARTEN";
 	afspraakId: number;
 	amputatie?: Amputatie;
+	onderzoekType: OnderzoekType;
 };
-export const createActionOnderzoekStarten = (afspraakId: number, amputatie: Amputatie | undefined): OnderzoekStartenAction => {
+export const createActionOnderzoekStarten = (afspraakId: number, amputatie: Amputatie | undefined, onderzoekType: OnderzoekType): OnderzoekStartenAction => {
 	return {
 		type: ONDERZOEK_STARTEN,
 		afspraakId: afspraakId,
 		amputatie: amputatie,
+		onderzoekType: onderzoekType,
 	}
 }
 export const ONDERZOEK_OPSLAAN = "ONDERZOEK_OPSLAAN"

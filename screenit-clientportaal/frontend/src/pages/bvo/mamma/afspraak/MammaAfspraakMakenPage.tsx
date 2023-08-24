@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,7 +34,6 @@ import {formatDateWithDayName, formatTime, zoekIndex} from "../../../../utils/Da
 import {FormErrorComponent} from "../../../../components/form_error/FormErrorComponent"
 import Button from "../../../../components/input/Button"
 import {ArrowType} from "../../../../components/vectors/ArrowIconComponent"
-import MammaAfspraakMakenPopup from "./MammaAfspraakMakenPopup"
 import BigUrlButton from "../../../../components/bigUrlButton/BigUrlButton"
 import {getString} from "../../../../utils/TekstPropertyUtil"
 import {getContactUrl} from "../../../../utils/UrlUtil"
@@ -45,6 +44,8 @@ import {AxiosResponse} from "axios"
 import MammaAfspraakMakenForm from "../../../../components/form/mamma/MammaAfspraakMakenForm"
 import {placeNonBreakingSpaceInDate} from "../../../../utils/StringUtil"
 import {compareAsc} from "date-fns"
+import MammaAfspraakBevestigingsWizard from "./bevestigingswizard/MammaAfspraakBevestigingsWizard"
+import {ClientContactActieType} from "../../../../datatypes/ClientContactActieType"
 
 export type AfspraakZoekFilter = {
 	vanaf?: Date,
@@ -69,6 +70,7 @@ const MammaAfspraakMakenPage = () => {
 		meerOpties: false,
 	})
 	const [beschikbareDagen, setBeschikbareDagen] = React.useState<Date[]>([])
+	const beschikbareActies = useSelector((state: State) => state.client.beschikbareActies.beschikbareActies)
 
 	useEffect(() => {
 		ScreenitBackend.get(`/mamma/afspraak/standplaatsPlaatsen`)
@@ -131,9 +133,11 @@ const MammaAfspraakMakenPage = () => {
 												setDagenBeschikbaar(value)
 											}
 											}/>
-					<BigUrlButton title={getString(properties.searchresult.button.header.uitstellen)}
-								  text={getString(properties.searchresult.button.text.uitstellen)}
-								  link={"/mamma/uitstellen"}/>
+					{beschikbareActies.includes(ClientContactActieType.MAMMA_UITSTELLEN) &&
+						<BigUrlButton title={getString(properties.searchresult.button.header.uitstellen)}
+									  text={getString(properties.searchresult.button.text.uitstellen)}
+									  link={"/mamma/uitstellen"}/>}
+
 					<BigUrlButton title={getString(properties.searchresult.button.header.contact)}
 								  text={getString(properties.searchresult.button.text.contact)}
 								  link={getContactUrl(regio)}/>
@@ -201,25 +205,12 @@ const MammaAfspraakMakenPage = () => {
 				</Col>
 			</Row>
 
-			{(gekozenAfspraak && afspraakMakenNietGelukt &&
-				<MammaAfspraakMakenPopup afspraak={gekozenAfspraak}
-										 isBevestigingsPopup={false}
-										 onClose={() => {
-											 setGekozenAfspraak(undefined)
-											 zoekAfspraken(zoekFilter)
-											 setAfspraakMakenNietGelukt(false)
-										 }}/>)}
-
-			{(gekozenAfspraak && !afspraakMakenNietGelukt &&
-				<MammaAfspraakMakenPopup afspraak={gekozenAfspraak}
-										 isBevestigingsPopup={true}
-										 onFailure={() => {
-											 setAfspraakMakenNietGelukt(true)
-										 }}
-										 onClose={() => {
-											 setGekozenAfspraak(undefined)
-											 zoekAfspraken(zoekFilter)
-										 }}/>)}
+			{gekozenAfspraak && <MammaAfspraakBevestigingsWizard setGekozenAfspraak={setGekozenAfspraak}
+																 gekozenAfspraak={gekozenAfspraak}
+																 setAfspraakMakenNietGelukt={setAfspraakMakenNietGelukt}
+																 afspraakMakenNietGelukt={afspraakMakenNietGelukt}
+																 zoekAfspraken={zoekAfspraken}
+																 zoekFilter={zoekFilter}/>}
 
 		</BasePage>
 	)

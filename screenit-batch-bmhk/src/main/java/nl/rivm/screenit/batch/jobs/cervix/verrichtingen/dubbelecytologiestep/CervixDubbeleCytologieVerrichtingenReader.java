@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.verrichtingen.dubbelecytologiestep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -55,8 +55,13 @@ public class CervixDubbeleCytologieVerrichtingenReader extends BaseScrollableRes
 		criteria.add(Restrictions.isNotNull("cytologieVerslag"));
 
 		var verrichtingSubquery = DetachedCriteria.forClass(CervixVerrichting.class);
-		verrichtingSubquery.add(Restrictions.in("type", new CervixTariefType[] { CervixTariefType.LAB_CYTOLOGIE_NA_HPV_ZAS,
-			CervixTariefType.LAB_CYTOLOGIE_NA_HPV_UITSTRIJKJE, CervixTariefType.LAB_CYTOLOGIE_VERVOLGUITSTRIJKJE }));
+		verrichtingSubquery.add(Restrictions.in("type", new CervixTariefType[] {
+			CervixTariefType.LAB_CYTOLOGIE_NA_HPV_ZAS,
+			CervixTariefType.LAB_CYTOLOGIE_NA_HPV_UITSTRIJKJE,
+			CervixTariefType.LAB_CYTOLOGIE_VERVOLGUITSTRIJKJE,
+			CervixTariefType.LAB_CERVIXCYTOLOGIE_MET_COS,
+			CervixTariefType.LAB_CERVIXCYTOLOGIE_MANUEEL_SCREENEN
+		}));
 		verrichtingSubquery.setProjection(Projections.property("monster"));
 
 		criteria.add(Subqueries.propertyNotIn("verrichtingen.monster", verrichtingSubquery));

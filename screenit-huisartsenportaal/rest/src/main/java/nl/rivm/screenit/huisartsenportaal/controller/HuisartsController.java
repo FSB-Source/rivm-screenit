@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal.controller;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -45,10 +45,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -78,7 +79,7 @@ public class HuisartsController extends BaseController
 		binder.addValidators(gebruikersnaamValidator, wachtwoordRegistrerenValidator, huisartsValidator);
 	}
 
-	@RequestMapping(method = RequestMethod.GET)
+	@GetMapping
 	public ResponseEntity<HuisartsDto> getHuisarts()
 	{
 		var arts = getIngelogdeHuisarts();
@@ -95,7 +96,7 @@ public class HuisartsController extends BaseController
 		}
 	}
 
-	@RequestMapping(value = "/controle", method = RequestMethod.PUT)
+	@PutMapping(value = "/controle")
 	public ResponseEntity putControleHuisarts(@Valid @RequestBody HuisartsDto huisartsDto, BindingResult result)
 	{
 		if (result.hasErrors())
@@ -105,7 +106,7 @@ public class HuisartsController extends BaseController
 		return ResponseEntity.ok().body(huisartsDto);
 	}
 
-	@RequestMapping(method = RequestMethod.PUT)
+	@PutMapping
 	public ResponseEntity putHuisarts(@Valid @RequestBody HuisartsDto huisartsDto, BindingResult result)
 	{
 		if (result.hasErrors())
@@ -114,7 +115,7 @@ public class HuisartsController extends BaseController
 		}
 
 		var huisarts = getIngelogdeHuisarts();
-		huisarts = huisartsService.updateHuisarts(huisartsDto, huisarts);
+		huisarts = huisartsService.updateAndGetHuisarts(huisartsDto, huisarts);
 		syncService.syncHuisarts(huisarts);
 
 		var dto = new HuisartsDto();
@@ -123,7 +124,7 @@ public class HuisartsController extends BaseController
 		return new ResponseEntity<>(dto, HttpStatus.OK);
 	}
 
-	@RequestMapping(value = "/currentuser", method = RequestMethod.GET)
+	@GetMapping(value = "/currentuser")
 	public ResponseEntity<MedewerkerDto> getCurrentUser()
 	{
 		var huisarts = getIngelogdeHuisarts();
@@ -158,7 +159,7 @@ public class HuisartsController extends BaseController
 				dto.setRollen(overeenkomstRechten);
 			}
 		}
-		if (huisarts.getRollen().size() == 0 && huisarts.getOvereenkomstGeaccordeerdDatum() == null)
+		if (huisarts.getRollen().isEmpty() && huisarts.getOvereenkomstGeaccordeerdDatum() == null)
 		{
 			dto.setOvereenkomstGetekend(true);
 		}

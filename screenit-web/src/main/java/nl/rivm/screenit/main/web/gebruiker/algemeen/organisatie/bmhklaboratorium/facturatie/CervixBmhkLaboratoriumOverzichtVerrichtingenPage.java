@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.bmhklaboratoriu
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,15 +23,17 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.bmhklaboratoriu
 
 import java.math.BigDecimal;
 import java.text.MessageFormat;
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.dto.cervix.facturatie.CervixVerrichtingenZoekObject;
+import nl.rivm.screenit.main.service.cervix.CervixBetalingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
@@ -75,6 +77,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
@@ -83,6 +86,8 @@ import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.validation.AbstractFormValidator;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
@@ -90,6 +95,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.hibernate.Hibernate;
 import org.wicketstuff.shiro.ShiroConstraint;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
@@ -101,8 +107,11 @@ import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 	checkScope = true,
 	level = ToegangLevel.INSTELLING,
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.CERVIX })
+@Slf4j
 public class CervixBmhkLaboratoriumOverzichtVerrichtingenPage extends OrganisatieBeheer
 {
+	private final static int MAXIMALE_AANTAL_MAANDEN_TUSSEN_VANAF_TOTENMET = 3;
+
 	private IModel<CervixVerrichtingenZoekObject> formCriteria = new CompoundPropertyModel<>(new CervixVerrichtingenZoekObject());
 
 	private CervixLabVerrichtingenDataProvider verrichtingenDataProvider;
@@ -116,17 +125,16 @@ public class CervixBmhkLaboratoriumOverzichtVerrichtingenPage extends Organisati
 	@SpringBean
 	private ICurrentDateSupplier currentDateSupplier;
 
+	@SpringBean
+	private CervixBetalingService betalingService;
+
 	private IModel<ScreeningOrganisatie> screeningOrganisatieModel = new SimpleHibernateModel<>();
 
 	private WebMarkupContainer verrichtingenTableContainer;
 
 	private ScreenitDataTable<CervixBoekRegel, String> bmhkLaboratoriumVerrichtingenTabel;
 
-	private IModel<CervixLaboratoriumVerrichtingTotalenViewObject> verrichtingTotalenModel = new CompoundPropertyModel<>(new CervixLaboratoriumVerrichtingTotalenViewObject());
-
 	private WebMarkupContainer totalenContainer;
-
-	private final static int MAXIMALE_AANTAL_MAANDEN_TUSSEN_VANAF_TOTENMET = 3;
 
 	public CervixBmhkLaboratoriumOverzichtVerrichtingenPage()
 	{
@@ -153,7 +161,8 @@ public class CervixBmhkLaboratoriumOverzichtVerrichtingenPage extends Organisati
 		checkBox.setOutputMarkupId(true);
 		form.add(checkBox);
 
-		List<CervixTariefType> tariefTypes = new ArrayList<>(Arrays.asList(CervixTariefType.getAlleLabTariefTypes()));
+		var organisatie = ScreenitSession.get().getCurrentSelectedOrganisatie();
+		List<CervixTariefType> tariefTypes = new ArrayList<>(betalingService.getTariefTypenVoorLaboratorium((BMHKLaboratorium) Hibernate.unproxy(organisatie)));
 		final ScreenitDropdown<CervixTariefType> tariefTypesDropdown = ComponentHelper.newDropDownChoice("verrichtingsType",
 			new ListModel<>(tariefTypes), new EnumChoiceRenderer<>(), false);
 		tariefTypesDropdown.setNullValid(true);
@@ -179,12 +188,6 @@ public class CervixBmhkLaboratoriumOverzichtVerrichtingenPage extends Organisati
 			}
 
 			@Override
-			protected String resourceKey()
-			{
-				return "DependantDateValidator." + Operator.AFTER.toString().toLowerCase();
-			}
-
-			@Override
 			public void validate(Form<?> form)
 			{
 				Date referenceDate = vanafDatumDatePicker.getConvertedInput();
@@ -200,13 +203,18 @@ public class CervixBmhkLaboratoriumOverzichtVerrichtingenPage extends Organisati
 					}
 					else
 					{
-						if (DateUtil.getMonthsBetweenDates(referenceDate,
-							componentDate) > MAXIMALE_AANTAL_MAANDEN_TUSSEN_VANAF_TOTENMET)
+						if (DateUtil.getMonthsBetweenDates(referenceDate, componentDate) > MAXIMALE_AANTAL_MAANDEN_TUSSEN_VANAF_TOTENMET)
 						{
 							vanafDatumDatePicker.error(MessageFormat.format(getString("teveel.verschil.vanaf.totenmet"), MAXIMALE_AANTAL_MAANDEN_TUSSEN_VANAF_TOTENMET));
 						}
 					}
 				}
+			}
+
+			@Override
+			protected String resourceKey()
+			{
+				return "DependantDateValidator." + Operator.AFTER.toString().toLowerCase();
 			}
 		});
 
@@ -225,12 +233,6 @@ public class CervixBmhkLaboratoriumOverzichtVerrichtingenPage extends Organisati
 			}
 
 			@Override
-			protected String resourceKey()
-			{
-				return "bsn.geboortedatum.niet.ingevuld";
-			}
-
-			@Override
 			public void validate(Form<?> form)
 			{
 				String bsn = bsnField.getConvertedInput();
@@ -242,6 +244,12 @@ public class CervixBmhkLaboratoriumOverzichtVerrichtingenPage extends Organisati
 					error(bsnField);
 				}
 			}
+
+			@Override
+			protected String resourceKey()
+			{
+				return "bsn.geboortedatum.niet.ingevuld";
+			}
 		});
 
 		form.add(new IndicatingAjaxSubmitLink("filteren")
@@ -249,7 +257,6 @@ public class CervixBmhkLaboratoriumOverzichtVerrichtingenPage extends Organisati
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				setVerrichtingTotalenModel();
 				target.add(verrichtingenTableContainer, totalenContainer);
 			}
 		});
@@ -259,7 +266,7 @@ public class CervixBmhkLaboratoriumOverzichtVerrichtingenPage extends Organisati
 
 		add(getVerrichtingenTableContainer());
 
-		add(getTotalenContainer());
+		add(getTotalenContainer(tariefTypes.get(0).isBmhk2023Lab()));
 
 		verrichtingenTableContainer.add(new ExportToXslLink<>("exporteren", "overzicht-betalingen", "Exporteren", bmhkLaboratoriumVerrichtingenTabel));
 	}
@@ -293,44 +300,34 @@ public class CervixBmhkLaboratoriumOverzichtVerrichtingenPage extends Organisati
 		form.add(label);
 	}
 
-	private WebMarkupContainer getTotalenContainer()
+	private WebMarkupContainer getTotalenContainer(boolean nieuwLab)
 	{
+		var totalen = new EnumMap<CervixTariefType, BigDecimal>(CervixTariefType.class);
+		CervixTariefType.getAlleLabTariefTypes(nieuwLab).forEach(tariefType ->
+			totalen.put(tariefType, getTotaalBedrag(tariefType)));
+
 		totalenContainer = new WebMarkupContainer("totalenContainer");
 		totalenContainer.setOutputMarkupId(true);
-		totalenContainer.setDefaultModel(verrichtingTotalenModel);
-		setVerrichtingTotalenModel();
 
-		totalenContainer.add(new Label("hpvAnalyseUitstrijkjeTariefTotaal"));
-		totalenContainer.add(new Label("hpvAnalyseZasTariefTotaal"));
-		totalenContainer.add(new Label("cytologieNaHpvUitstrijkjeTariefTotaal"));
-		totalenContainer.add(new Label("cytologieNaHpvZasTariefTotaal"));
-		totalenContainer.add(new Label("cytologieVervolguitstrijkjeTariefTotaal"));
+		totalenContainer.add(new ListView<>("verrichtingTotaal", CervixTariefType.getAlleLabTariefTypes(nieuwLab))
+		{
+			@Override
+			protected void populateItem(ListItem item)
+			{
+				CervixTariefType tariefType = (CervixTariefType) item.getModelObject();
+				var label = new EnumLabel<CervixTariefType>("label", tariefType);
+				item.add(label);
 
-		totalenContainer.add(new Label("totaalBedrag"));
+				var totaal = new BigDecimalPriceLabel("totaal", totalen.get(tariefType));
+				item.add(totaal);
+			}
+		});
+
+		var totaalBedrag = totalen.values().stream().reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
+
+		totalenContainer.add(new BigDecimalPriceLabel("totaalBedrag", totaalBedrag));
 
 		return totalenContainer;
-	}
-
-	private void setVerrichtingTotalenModel()
-	{
-		CervixLaboratoriumVerrichtingTotalenViewObject verrichtingTotalenViewObject = verrichtingTotalenModel.getObject();
-
-		BigDecimal hpvAnalyseUitstrijkjeBedrag = getTotaalBedrag(CervixTariefType.LAB_HPV_ANALYSE_UITSTRIJKJE);
-		BigDecimal hpvAnalyseZasBedrag = getTotaalBedrag(CervixTariefType.LAB_HPV_ANALYSE_ZAS);
-		BigDecimal cytologieNaHpvUitstrijkje = getTotaalBedrag(CervixTariefType.LAB_CYTOLOGIE_NA_HPV_UITSTRIJKJE);
-		BigDecimal cytologieNaHpvZas = getTotaalBedrag(CervixTariefType.LAB_CYTOLOGIE_NA_HPV_ZAS);
-		BigDecimal cytologieVervolguitstrijkjeTariefTotaal = getTotaalBedrag(CervixTariefType.LAB_CYTOLOGIE_VERVOLGUITSTRIJKJE);
-
-		verrichtingTotalenViewObject.setHpvAnalyseUitstrijkjeTariefTotaal(NumberFormat.getCurrencyInstance().format(hpvAnalyseUitstrijkjeBedrag));
-		verrichtingTotalenViewObject.setHpvAnalyseZasTariefTotaal(NumberFormat.getCurrencyInstance().format(hpvAnalyseZasBedrag));
-		verrichtingTotalenViewObject.setCytologieNaHpvUitstrijkjeTariefTotaal(NumberFormat.getCurrencyInstance().format(cytologieNaHpvUitstrijkje));
-		verrichtingTotalenViewObject.setCytologieNaHpvZasTariefTotaal(NumberFormat.getCurrencyInstance().format(cytologieNaHpvZas));
-		verrichtingTotalenViewObject.setCytologieVervolguitstrijkjeTariefTotaal(NumberFormat.getCurrencyInstance().format(cytologieVervolguitstrijkjeTariefTotaal));
-
-		BigDecimal totaalBedrag = hpvAnalyseUitstrijkjeBedrag.add(hpvAnalyseZasBedrag).add(cytologieNaHpvUitstrijkje).add(cytologieNaHpvZas)
-			.add(cytologieVervolguitstrijkjeTariefTotaal);
-		verrichtingTotalenViewObject.setTotaalBedrag(NumberFormat.getCurrencyInstance().format(totaalBedrag));
-
 	}
 
 	private BigDecimal getTotaalBedrag(CervixTariefType tariefType)
@@ -437,6 +434,5 @@ public class CervixBmhkLaboratoriumOverzichtVerrichtingenPage extends Organisati
 		super.onDetach();
 		ModelUtil.nullSafeDetach(formCriteria);
 		ModelUtil.nullSafeDetach(screeningOrganisatieModel);
-		ModelUtil.nullSafeDetach(verrichtingTotalenModel);
 	}
 }

@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.agenda;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,6 +39,7 @@ import nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -56,8 +57,6 @@ import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public abstract class MammaAfspraakPanel extends GenericPanel<MammaAfspraak>
 {
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private HibernateService hibernateService;
 
@@ -69,6 +68,9 @@ public abstract class MammaAfspraakPanel extends GenericPanel<MammaAfspraak>
 
 	@SpringBean
 	private MammaAfspraakService afspraakService;
+
+	@SpringBean
+	private MammaBaseAfspraakService baseAfspraakService;
 
 	public MammaAfspraakPanel(String id, IModel<Client> model)
 	{
@@ -154,7 +156,7 @@ public abstract class MammaAfspraakPanel extends GenericPanel<MammaAfspraak>
 				}
 
 			};
-			uitstellen.setVisible(magAfspraakWijzigen && afspraakService.magUitstellen(client.getMammaDossier()));
+			uitstellen.setVisible(magAfspraakWijzigen && baseAfspraakService.magUitstellen(client.getMammaDossier()));
 			inhoud.add(uitstellen);
 		}
 		else

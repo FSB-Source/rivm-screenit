@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.popups;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,6 +24,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.popups;
 import java.util.List;
 
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaLezing;
 import nl.rivm.screenit.model.mamma.enums.MammaLezingType;
@@ -57,6 +58,10 @@ public class TestMammaZettenNaarArbitragePopup extends TestMammaAbstractPopupPan
 			discrepantieLezing.setBeoordeling(beoordeling);
 			discrepantieLezing.setBiradsOpmerking("Automatisch doorgezet vanuit test-timeline.");
 			discrepantieLezing.setLezingType(MammaLezingType.DISCREPANTIE_LEZING);
+			if (MammaOnderzoekType.TOMOSYNTHESE == beoordeling.getOnderzoek().getOnderzoekType())
+			{
+				discrepantieLezing.setTomosyntheseRelevantVoorBeoordeling(false);
+			}
 			baseBeoordelingService.discrepantieAfrondenEnNaarArbitrageZetten(beoordeling, discrepantieLezing);
 		}
 	}

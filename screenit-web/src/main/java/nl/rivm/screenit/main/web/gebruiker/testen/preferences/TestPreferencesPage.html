@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -27,25 +27,35 @@
             <div class="control-group">
                 <label class="control-label">Mail verzenden</label>
 
-                <div class="controls" wicket:id="mailVerzenden"></div>
-            </div>
-            <div class="control-group">
-                <label class="control-label">Alternatief adres</label>
+				<div class="controls" wicket:id="mailVerzenden"></div>
+			</div>
+			<div class="control-group" wicket:id="alternatiefAdresContainer">
+				<label class="control-label">Alternatief adres</label>
+				<div class="controls">
+					<input wicket:id="alternatiefAdres"/>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">Sms verzenden</label>
 
-                <div class="controls">
-                    <input wicket:id="alternatiefAdres"/>
-                </div>
-            </div>
-            <div class="control-group">
-                <label class="control-label">Kansberekening BK gebruiken</label>
+				<div class="controls" wicket:id="smsVerzenden"></div>
+			</div>
+			<div class="control-group" wicket:id="alternatiefMobielnummerContainer">
+				<label class="control-label">Alternatief mobielnummer</label>
+				<div class="controls">
+					<input wicket:id="alternatiefMobielnummer"/>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">Kansberekening BK gebruiken</label>
 
-                <div class="controls">
-                    <input type="checkbox" wicket:id="kansberekeningEnabled"/>
-                </div>
-            </div>
-            <div class="control-group">
-                <label class="control-label">Standaard opkomstkans indien kansberekening BK niet gebruikt wordt</label>
-                <div class="controls">
+				<div class="controls">
+					<input type="checkbox" wicket:id="kansberekeningEnabled"/>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">Standaard opkomstkans indien kansberekening BK niet gebruikt wordt</label>
+				<div class="controls">
                     <input type="number" class="form-control input-small" wicket:id="defaultOpkomstkans"/>%
                 </div>
 
@@ -53,6 +63,5 @@
             <a class="btn btn-primary" wicket:id="opslaan">Opslaan</a>
         </div>
     </form>
-    <div wicket:id="dialog"></div>
 </wicket:extend>
 </html>

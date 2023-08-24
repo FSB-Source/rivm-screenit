@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.model;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,15 +21,16 @@ package nl.rivm.screenit.clientportaal.model;
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import nl.rivm.screenit.model.AfmeldingType;
 
-import java.util.ArrayList;
-import java.util.List;
+import nl.rivm.screenit.model.AfmeldingType;
 
 @Getter
 @Setter
@@ -37,11 +38,15 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AfmeldOptiesDto
 {
-    private List<AfmeldingType> afmeldOpties = new ArrayList<>();
+	private List<AfmeldingType> afmeldOpties = new ArrayList<>();
 
-    private List<String> afmeldRedenenEenmalig = new ArrayList<>();
+	private List<String> afmeldRedenenEenmalig = new ArrayList<>();
 
-    private List<String> afmeldRedenenDefinitief = new ArrayList<>();
+	private List<String> afmeldRedenenTijdelijk = new ArrayList<>();
 
-    private boolean heeftOpenColonIntakeAfspraak;
+	private List<String> afmeldRedenenDefinitief = new ArrayList<>();
+
+	private List<Integer> mogelijkeAfmeldJaren = new ArrayList<>();
+
+	private boolean heeftOpenColonIntakeAfspraak;
 }

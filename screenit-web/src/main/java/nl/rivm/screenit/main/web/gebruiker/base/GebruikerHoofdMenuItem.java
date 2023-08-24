@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.base;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -57,6 +57,7 @@ import nl.rivm.screenit.main.web.gebruiker.gedeeld.brievenafdrukken.MammaAfdrukk
 import nl.rivm.screenit.main.web.gebruiker.gedeeld.brievenafdrukken.ProjectAfdrukkenDocumentenPage;
 import nl.rivm.screenit.main.web.gebruiker.rapportage.RapportagePage;
 import nl.rivm.screenit.main.web.gebruiker.screening.cervix.facturatie.CervixBetalingPage;
+import nl.rivm.screenit.main.web.gebruiker.screening.cervix.hl7v2berichten.CervixVerwerkHL7v2FoutBerichtenPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.cervix.houdbaarheid.zasreeks.ZASReeksOverzichtPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.cervix.huisarts.CervixKlaarzettenHuisartsPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.cervix.kwaliteitsborging.CervixBarcodesAfdrukkenPage;
@@ -92,8 +93,8 @@ import nl.rivm.screenit.main.web.gebruiker.screening.mamma.ce.werklijst.opschort
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.ce.werklijst.procesmonitoring.MammaCeProcesmonitoringWerklijstPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.ce.werklijst.uploadbeeldenverzoeken.MammaCeUploadBeeldenVerzoekWerklijstPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.ce.werklijst.verwijsverslag.MammaCeVerwijsVerslagenWerklijstPage;
-import nl.rivm.screenit.main.web.gebruiker.screening.mamma.exchange.MammaExchangeDownloadPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.exchange.MammaExchangeUploadPage;
+import nl.rivm.screenit.main.web.gebruiker.screening.mamma.exchange.download.MammaExchangeDownloadPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.exchange.followup.MammaFollowUpRadiologieVerslagPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.followup.followup.MammaFollowUpNietGedownloadWerklijst;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.followup.followupconclusie.MammaFollowUpConclusieWerklijst;
@@ -153,6 +154,7 @@ public enum GebruikerHoofdMenuItem
 				contextMenuItems.add(new GebruikerMenuItem("menu.cervixscreening.labformulieren-zoeken-voor-cytologie", CervixLabformulierenZoekenVoorCytologiePage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.cervixscreening.labformulieren-huisarts-onbekend", CervixLabformulierenHuisartsOnbekendPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.cervixscreening.orders-verwerken", CervixOrdersVerwerkenPage.class));
+				contextMenuItems.add(new GebruikerMenuItem("menu.cervixscreening.hl7v2-fout-berichten", CervixVerwerkHL7v2FoutBerichtenPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.screening.verwerkenongeldigeberichten", CervixVerwerkOngeldigeBerichtenPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.cervixscreening.betaling", CervixBetalingPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.all.afdrukkendocumenten", CervixAfdrukkenDocumentenPage.class, CervixRegioAfdrukkenDocumentenPage.class));

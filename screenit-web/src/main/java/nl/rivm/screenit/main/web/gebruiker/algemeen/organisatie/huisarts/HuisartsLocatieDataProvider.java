@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.huisarts;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,8 +23,8 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.huisarts;
 
 import java.util.Iterator;
 
-import nl.rivm.screenit.dao.cervix.CervixHuisartsBaseDao;
 import nl.rivm.screenit.huisartsenportaal.enums.CervixLocatieStatus;
+import nl.rivm.screenit.main.dao.cervix.CervixHuisartsDao;
 import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
@@ -40,7 +40,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 public class HuisartsLocatieDataProvider extends SortableDataProvider<CervixHuisartsLocatie, String>
 {
 	@SpringBean
-	private CervixHuisartsBaseDao huisartsDao;
+	private CervixHuisartsDao huisartsDao;
 
 	private IModel<CervixHuisarts> huisartsIModel;
 
@@ -58,7 +58,7 @@ public class HuisartsLocatieDataProvider extends SortableDataProvider<CervixHuis
 	public Iterator<? extends CervixHuisartsLocatie> iterator(long first, long count)
 	{
 		return huisartsDao.getCervixHuisartsLocatieVanHuisarts(getZoekObject(), first, count,
-			new SortState<String>(getSort().getProperty(), getSort().isAscending()));
+			new SortState<>(getSort().getProperty(), getSort().isAscending())).iterator();
 	}
 
 	private CervixHuisartsLocatie getZoekObject()
@@ -91,7 +91,7 @@ public class HuisartsLocatieDataProvider extends SortableDataProvider<CervixHuis
 	@Override
 	public IModel<CervixHuisartsLocatie> model(CervixHuisartsLocatie object)
 	{
-		return ModelUtil.cModel(object);
+		return ModelUtil.ccModel(object);
 	}
 
 	@Override

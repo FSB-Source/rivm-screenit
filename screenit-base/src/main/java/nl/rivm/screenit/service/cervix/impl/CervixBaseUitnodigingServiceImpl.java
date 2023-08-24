@@ -5,7 +5,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,6 +24,8 @@ package nl.rivm.screenit.service.cervix.impl;
 
 import java.util.Date;
 import java.util.List;
+
+import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.dao.cervix.CervixDossierDao;
 import nl.rivm.screenit.model.BMHKLaboratorium;
@@ -45,35 +47,32 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 import nl.rivm.screenit.service.cervix.CervixBaseUitnodigingService;
+import nl.rivm.screenit.service.cervix.CervixLabformulierService;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
+@AllArgsConstructor
 public class CervixBaseUitnodigingServiceImpl implements CervixBaseUitnodigingService
 {
-	@Autowired
 	private LogService logService;
 
-	@Autowired
 	private HibernateService hibernateService;
 
-	@Autowired
 	private ICurrentDateSupplier dateSupplier;
 
-	@Autowired
 	private CervixDossierDao dossierDao;
 
-	@Autowired
 	private CervixBaseScreeningrondeService baseScreeningrondeService;
 
-	@Autowired
+	private CervixLabformulierService labformulierService;
+
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Override
@@ -85,6 +84,7 @@ public class CervixBaseUitnodigingServiceImpl implements CervixBaseUitnodigingSe
 	@Override
 	public void saveMonster(CervixUitstrijkje uitstrijkje, InstellingGebruiker loggedInInstellingGebruiker, String logMessage)
 	{
+
 		saveMonster(uitstrijkje, !CervixUitstrijkjeStatus.NIET_ONTVANGEN.equals(uitstrijkje.getUitstrijkjeStatus()), loggedInInstellingGebruiker, logMessage);
 	}
 
@@ -97,7 +97,9 @@ public class CervixBaseUitnodigingServiceImpl implements CervixBaseUitnodigingSe
 			{
 				monster.setOntvangstdatum(dateSupplier.getDate());
 				monster.setOntvangstScreeningRonde(dossierDao.getOntvangstRonde(monster));
-				monster.setLaboratorium((BMHKLaboratorium) HibernateHelper.deproxy(loggedInInstellingGebruiker.getOrganisatie()));
+				var bmhkLaboratorium = (BMHKLaboratorium) HibernateHelper.deproxy(loggedInInstellingGebruiker.getOrganisatie());
+				monster.setLaboratorium(bmhkLaboratorium);
+				labformulierService.updateLabformulierLaboratoriumNaOntvangstMonster(monster);
 			}
 		}
 		else

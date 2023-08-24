@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,8 @@ package nl.rivm.screenit.service.cervix.impl;
  */
 
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht;
@@ -50,11 +51,6 @@ import nl.rivm.screenit.service.cervix.enums.CervixTestTimeLineDossierTijdstip;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
-import org.joda.time.DateTime;
-import org.joda.time.Days;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -62,10 +58,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
+@Slf4j
 public class CervixTestTimelineTimeServiceImpl implements CervixTestTimelineTimeService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(CervixTestTimelineTimeService.class);
-
 	@Autowired
 	private HibernateService hibernateService;
 
@@ -287,13 +282,6 @@ public class CervixTestTimelineTimeServiceImpl implements CervixTestTimelineTime
 		default:
 			return 1;
 		}
-	}
-
-	public int overgeblevenDagen(Date date, int aantalDagen)
-	{
-		DateTime aantdagenReverse = new DateTime().minusDays(aantalDagen);
-		Days dagen = Days.daysBetween(aantdagenReverse.toLocalDate(), new DateTime(date).toLocalDate());
-		return dagen.getDays() > 0 ? dagen.getDays() : 0;
 	}
 
 }

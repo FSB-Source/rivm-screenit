@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.verrichtingen.mainstep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -46,16 +46,16 @@ public class CervixBepalenVerrichtingenWriter extends CervixAbstractVerrichtinge
 		try
 		{
 			Date hpvAnalyseDatum = null;
-			if (monster.getHpvBeoordelingen().size() > 0)
+			if (monster.getLaatsteHpvBeoordeling() != null)
 			{
-				hpvAnalyseDatum = monster.getHpvBeoordelingen().get(monster.getHpvBeoordelingen().size() - 1).getAutorisatieDatum();
+				hpvAnalyseDatum = monster.getLaatsteHpvBeoordeling().getAutorisatieDatum();
 			}
 			if (CervixMonsterType.UITSTRIJKJE.equals(monster.getUitnodiging().getMonsterType()))
 			{
 				var uitstrijkje = (CervixUitstrijkje) monster;
 				if (!CervixHuisartsBerichtStatus.HUISARTS_ONBEKEND.equals(uitstrijkje.getHuisartsBericht().getStatus()))
 				{
-					verrichtingenFactory.maakHuisartsVerrichting(monster, CervixTariefType.HUISARTS_UITSTRIJKJE, uitstrijkje.getOntvangstdatum(),
+					verrichtingenFactory.maakHuisartsVerrichting(monster, uitstrijkje.getOntvangstdatum(),
 						uitstrijkje.getHuisartsBericht().getHuisartsLocatie());
 					aantalContextOphogen(CervixBepalenVerrichtingenConstants.VERRICHTINGEN_HUISARTS_UITSTRIJKJE_AANTAL_KEY);
 				}

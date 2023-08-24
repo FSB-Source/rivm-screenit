@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.batch.parameterpopuppanel.c
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,21 +24,16 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.batch.parameterpopuppanel.c
 import java.util.Map;
 
 import nl.rivm.screenit.main.web.component.ComponentHelper;
-import nl.rivm.screenit.main.web.gebruiker.algemeen.batch.parameterpopuppanel.IBatchParameterPopupPanel;
+import nl.rivm.screenit.main.web.gebruiker.algemeen.batch.parameterpopuppanel.AbstractParameterPopupPanel;
 import nl.rivm.screenit.model.enums.JobStartParameter;
 
 import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.Model;
 
-public class BatchColonClientSelectieParameterPopupPanel extends GenericPanel<Boolean> implements IBatchParameterPopupPanel
+public class BatchColonClientSelectieParameterPopupPanel extends AbstractParameterPopupPanel<Boolean>
 {
-
-	private static final long serialVersionUID = 1L;
-
-	public BatchColonClientSelectieParameterPopupPanel(String id, Form<?> form)
+	public BatchColonClientSelectieParameterPopupPanel(String id)
 	{
 		super(id, Model.of(Boolean.FALSE));
 

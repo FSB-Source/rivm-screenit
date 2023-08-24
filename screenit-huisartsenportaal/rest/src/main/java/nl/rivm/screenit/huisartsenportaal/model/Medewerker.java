@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal.model;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +22,7 @@ package nl.rivm.screenit.huisartsenportaal.model;
  */
 
 import java.io.Serializable;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -49,9 +50,9 @@ import lombok.Setter;
 
 import nl.rivm.screenit.huisartsenportaal.model.enums.InlogMethode;
 import nl.rivm.screenit.huisartsenportaal.model.enums.Recht;
+import nl.rivm.screenit.huisartsenportaal.util.DateUtil;
 
 import org.hibernate.envers.Audited;
-import org.joda.time.DateTime;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -120,7 +121,7 @@ public abstract class Medewerker implements UserDetails, Serializable
 	public boolean isAccountNonLocked()
 	{
 		return getAttempts() < MAX_ATTEMPS || (getLastAttemptDate() == null ||
-			(getLastAttemptDate() != null && new DateTime().minusMinutes(MAX_LOCKED).isAfter(new DateTime(getLastAttemptDate()))));
+			(getLastAttemptDate() != null && DateUtil.minusTijdseenheid(new Date(), MAX_LOCKED, ChronoUnit.MINUTES).after(getLastAttemptDate())));
 	}
 
 	@Override

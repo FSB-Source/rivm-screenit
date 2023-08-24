@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -41,8 +41,8 @@ import {State} from "../../../datatypes/State"
 import {useThunkDispatch} from "../../../index"
 
 type Props = {
-    dossier: ColonDossier,
-    beschikbareActies: ClientContactActieType[]
+	dossier: ColonDossier,
+	beschikbareActies: ClientContactActieType[]
 }
 
 const ColonLandingPage = (props: Props) => {
@@ -60,43 +60,43 @@ const ColonLandingPage = (props: Props) => {
 		<Container fluid className={styles.content}>
 			<KruimelpadComponent className={bvoStyles.colon}/>
 			<Row className={landingPageStyle.inleiding}>
-                <Col md={8}>
-                    <BvoInleidingComponent/>
-                </Col>
-                <Col md={4}>
-                    {dossier.intakeAfspraak && !dossier.intakeAfspraak.redenAfzeggen && !toonVervangendeTekst ?
-                        <BvoLandingBlobComponent afspraakMoment={dossier.intakeAfspraak.weergaveAfspraakmoment}
-                                                 afspraakLocatie={locatieIntakeAfspraak}/>
-                        : <ImageBlobComponent image={blob_personen}/>}
-                </Col>
-            </Row>
-            {!beschikbareActies.includes(ClientContactActieType.GEEN) &&
-            <ColonTopTakenComponent className={styles.topTaak}
-                                    beschikbareActies={beschikbareActies}
-                                    getTekstHuisartsToptaak={getHuisartsTekst}/>
-            }
+				<Col md={8}>
+					<BvoInleidingComponent/>
+				</Col>
+				<Col md={4}>
+					{dossier.intakeAfspraak && !dossier.intakeAfspraak.afspraakAfgezegd && !toonVervangendeTekst ?
+						<BvoLandingBlobComponent afspraakMoment={dossier.intakeAfspraak.weergaveAfspraakmoment}
+												 afspraakLocatie={locatieIntakeAfspraak}/>
+						: <ImageBlobComponent image={blob_personen}/>}
+				</Col>
+			</Row>
+			{!beschikbareActies.includes(ClientContactActieType.GEEN) &&
+				<ColonTopTakenComponent className={styles.topTaak}
+										beschikbareActies={beschikbareActies}
+										getTekstHuisartsToptaak={getHuisartsTekst}/>
+			}
 
-            {!beschikbareActies.includes(ClientContactActieType.GEEN) &&
-            <BvoTakenComponent beschikbareActies={beschikbareActies}
-                               toonVervangendeTekst={toonVervangendeTekst}/>
-            }
+			{!beschikbareActies.includes(ClientContactActieType.GEEN) &&
+				<BvoTakenComponent beschikbareActies={beschikbareActies}
+								   toonVervangendeTekst={toonVervangendeTekst}/>
+			}
 
-            {!toonVervangendeTekst && <BvoHistorieComponent gebeurtenissen={props.dossier.gebeurtenissenLaatsteRonde}/>}
-            <h5 className={landingPageStyle.sectieHeader}>Mijn onderzoeken</h5>
-            <BvoSelectieComponent/>
-        </Container>
-    )
+			{!toonVervangendeTekst && <BvoHistorieComponent gebeurtenissen={props.dossier.gebeurtenissenLaatsteRonde}/>}
+			<h5 className={landingPageStyle.sectieHeader}>Mijn onderzoeken</h5>
+			<BvoSelectieComponent/>
+		</Container>
+	)
 
-    function getHuisartsTekst(huisartsHuidigeRondeIsBekend: boolean, huisartsVorigeRondeIsBekend: boolean): "controleren" | "wijzigen" | "opgeven" {
-        if (huisartsVorigeRondeIsBekend && !huisartsHuidigeRondeIsBekend) {
-            return "controleren"
-        }
-        if (huisartsHuidigeRondeIsBekend) {
-            return "wijzigen"
-        } else {
-            return "opgeven"
-        }
-    }
+	function getHuisartsTekst(huisartsHuidigeRondeIsBekend: boolean, huisartsVorigeRondeIsBekend: boolean): "controleren" | "wijzigen" | "opgeven" {
+		if (huisartsVorigeRondeIsBekend && !huisartsHuidigeRondeIsBekend) {
+			return "controleren"
+		}
+		if (huisartsHuidigeRondeIsBekend) {
+			return "wijzigen"
+		} else {
+			return "opgeven"
+		}
+	}
 
 }
 

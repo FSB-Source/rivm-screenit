@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,18 +24,19 @@ import {KandidaatAfspraak} from "../datatypes/mamma/KandidaatAfspraak"
 import {ToastMessageType} from "../datatypes/toast/ToastMessage"
 import {getString} from "../utils/TekstPropertyUtil"
 import {setHuidigeMammaAfspraakReduxAction} from "../actions/MammaDossierAction"
-import properties from "../pages/bvo/mamma/afspraak/MammaAfspraakMakenPopup.json"
+import properties from "../pages/bvo/mamma/afspraak/bevestigingswizard/wizard_componenten/MammaAfspraakMakenWizardModuleProperties.json"
 import {Bevolkingsonderzoek} from "../datatypes/Bevolkingsonderzoek"
 import {showToast} from "../utils/ToastUtil"
+import {AxiosResponse} from "axios"
 
-export const maakAfspraak = (bvo: Bevolkingsonderzoek, afspraak: KandidaatAfspraak) => () => {
+export const maakAfspraak = (bvo: Bevolkingsonderzoek, afspraak: KandidaatAfspraak): () => Promise<AxiosResponse<string>> => () => {
 	return ScreenitBackend.post("/mamma/afspraak/maak", afspraak)
-		.then(() => {
-			showToast(getString(properties.toast.title), afspraak.bevestigingsBrief ? getString(properties.toast.brief_melding) : getString(properties.toast.geen_brief))
+		.then(response => {
+			return response
 		})
 		.catch((error) => {
 			if (error.response.data !== "tijd.niet.beschikbaar") {
-				showToast(getString(properties.toast.geen_wijzigingen), getString(properties.toast.error.algemeen), ToastMessageType.ERROR)
+				showToast(getString(properties.afspraak_maken.toast.geen_wijzigingen), getString(properties.afspraak_maken.toast.error.algemeen), ToastMessageType.ERROR)
 			}
 			return Promise.reject(error)
 		})

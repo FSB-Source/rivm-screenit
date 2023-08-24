@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,6 +32,8 @@ import nl.rivm.screenit.dto.mamma.afspraken.MammaKandidaatAfspraakDto;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Brief;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.MammaDagEnDagdeelFilter;
+import nl.rivm.screenit.model.enums.SmsStatus;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaCapaciteitBlok;
 import nl.rivm.screenit.model.mamma.MammaDossier;
@@ -46,11 +48,14 @@ import nl.rivm.screenit.model.mamma.enums.MammaVerzettenReden;
 
 public interface MammaBaseAfspraakService
 {
+
 	List<MammaKandidaatAfspraakDto> getKandidaatAfspraken(Client client, IMammaAfspraakWijzigenFilter filter);
+
+	List<MammaKandidaatAfspraakDto> filterKandidaatAfsprakenOpDagEnDagdeel(List<MammaKandidaatAfspraakDto> afspraken, MammaDagEnDagdeelFilter filter);
 
 	long countAfspraken(long standplaatsPeriodeId, MammaAfspraakStatus... afspraakStatussen);
 
-	long countAfspraken(MammaScreeningsEenheid screeningsEenheid, Date vanaf, Date totEnMet, MammaAfspraakStatus... afspraakStatussen);
+	long countAfspraken(MammaScreeningsEenheid screeningsEenheid, LocalDate vanaf, LocalDate totEnMet, MammaAfspraakStatus... afspraakStatussen);
 
 	int koppelNietGekoppeldeAfspraken(MammaCapaciteitBlok persistentBlok, boolean runDry);
 
@@ -58,15 +63,19 @@ public interface MammaBaseAfspraakService
 
 	LocalDate vroegstMogelijkeUitnodigingsDatum(MammaDossier dossier, LocalDate voorstelDatum, Integer minimaleIntervalMammografieOnderzoeken);
 
-	LocalDate laatstMogelijkeUitnodigingsDatum(MammaDossier dossier);
+	LocalDate laatstMogelijkeAfspraakDatum(MammaDossier dossier);
 
-	List<MammaAfspraak> getAfspraken(MammaScreeningsEenheid screeningsEenheid, Date vanaf, Date totEnMet, MammaAfspraakStatus... afspraakStatussen);
+	List<MammaAfspraak> getAfspraken(MammaScreeningsEenheid screeningsEenheid, LocalDate vanaf, LocalDate totEnMet, MammaAfspraakStatus... afspraakStatussen);
 
 	void bepaalBenodigdeCapaciteit(List<MammaAfspraak> afspraken, MammaScreeningsEenheid screeningsEenheid);
 
 	MammaAfspraak maakAfspraak(MammaScreeningRonde screeningRonde, MammaCapaciteitBlok capaciteitBlok, Date vanaf, MammaStandplaatsPeriode standplaatsPeriode,
 		MammaVerzettenReden verzettenReden, boolean vorigeAfspraakVerzetten, boolean notificeerBetrokkenSe, boolean isBulk, boolean stuurBerichtNaarSectra, boolean logGebeurtenis,
 		Account account, boolean isGeforceerdeAfspraak);
+
+	MammaAfspraak maakAfspraak(MammaScreeningRonde screeningRonde, MammaCapaciteitBlok capaciteitBlok, Date vanaf, MammaStandplaatsPeriode standplaatsPeriode,
+		MammaVerzettenReden verzettenReden, boolean vorigeAfspraakVerzetten, boolean notificeerBetrokkenSe, boolean isBulk, boolean stuurBerichtNaarSectra, boolean logGebeurtenis,
+		Account account, boolean isGeforceerdeAfspraak, SmsStatus smsStatus);
 
 	BigDecimal getBenodigdeCapaciteit(List<MammaAfspraak> afspraken);
 
@@ -86,5 +95,14 @@ public interface MammaBaseAfspraakService
 
 	boolean isNoShow(MammaAfspraakStatus afspraakStatus, LocalDateTime afspraakMoment);
 
-	boolean briefKanNietMeerVerzondenWorden(Date afspraakDatum);
+	boolean briefKanNogVerzondenWorden(Date afspraakDatum);
+
+	boolean smsKanNogVerzondenWorden(LocalDateTime afspraakMoment);
+
+	LocalDate getMinimaleAfspraakDatumBijUitnodigen();
+
+	boolean magUitstellen(MammaDossier dossier);
+
+	boolean magUitstellen(MammaDossier dossier, boolean bijAfspraakForceren);
+
 }

@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.service.colon.impl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +21,9 @@ package nl.rivm.screenit.main.service.colon.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -51,7 +53,6 @@ import nl.rivm.screenit.service.colon.AfspraakService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.planning.model.IAppointment;
-import nl.topicuszorg.planning.model.IRecurrentAppointment;
 import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
 import nl.topicuszorg.wicket.planning.model.appointment.recurrence.AbstractRecurrence;
 import nl.topicuszorg.wicket.planning.model.appointment.recurrence.NoRecurrence;
@@ -59,13 +60,12 @@ import nl.topicuszorg.wicket.planning.services.RecurrenceService;
 import nl.topicuszorg.wicket.planning.util.Periode;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
-import org.joda.time.LocalTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.collect.Range;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
@@ -90,11 +90,10 @@ public class RoosterServiceImpl implements RoosterService
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
 
-	private static void addNieuwTijdslot(AbstractAppointment tijdslot, Interval currentViewInterval, List<Interval> nieuweRoosterBlokken)
+	private static void addNieuwTijdslot(AbstractAppointment tijdslot, Range<Date> currentViewInterval, List<Range<Date>> nieuweRoosterBlokken)
 	{
-		Interval nieuwRoosterBlok = new Interval(new DateTime(tijdslot.getStartTime()).withSecondOfMinute(0).withMillisOfSecond(0),
-			new DateTime(tijdslot.getEndTime()).withSecondOfMinute(0).withMillisOfSecond(0));
-		if (currentViewInterval.overlaps(nieuwRoosterBlok) && !nieuweRoosterBlokken.contains(nieuwRoosterBlok))
+		var nieuwRoosterBlok = Range.closed(DateUtil.startMinuut(tijdslot.getStartTime()), DateUtil.startMinuut(tijdslot.getEndTime()));
+		if (DateUtil.overlaps(currentViewInterval, nieuwRoosterBlok) && !nieuweRoosterBlokken.contains(nieuwRoosterBlok))
 		{
 			nieuweRoosterBlokken.add(nieuwRoosterBlok);
 		}
@@ -114,20 +113,13 @@ public class RoosterServiceImpl implements RoosterService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS)
-	public List<RoosterItem> getOneindigeRoostersItems()
-	{
-		return roosterDao.getOneindigeItems();
-	}
-
-	@Override
 	@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 	public void magRoosterItemOpslaanVerwijderen(RoosterItem roosteritem, RecurrenceOption recurrenceOption, Date recurrenceEditEnd,
 		Date origRecEndDateTime, boolean wijzigen) throws OpslaanVerwijderenTijdBlokException
 	{
-		List<Interval> teVerwijderenRoosterBlokken = new ArrayList<>();
-		DateTime viewStartDateTime = null;
-		DateTime viewEndTime = null;
+		List<Range<Date>> teVerwijderenRoosterBlokken = new ArrayList<>();
+		Date viewStartDateTime = null;
+		Date viewEndTime = null;
 
 		if (roosteritem.getRecurrence() != null && !NoRecurrence.class.isAssignableFrom(roosteritem.getRecurrence().getClass()))
 		{
@@ -136,20 +128,20 @@ public class RoosterServiceImpl implements RoosterService
 				switch (recurrenceOption)
 				{
 				case WIJZIG_OF_VERWIJDER_ALLEEN_DEZE_AFSPRAAK:
-					viewStartDateTime = new DateTime(roosteritem.getStartTime()).withTimeAtStartOfDay().toDateTime();
-					viewEndTime = new DateTime(viewStartDateTime).plusDays(1).withTimeAtStartOfDay().toDateTime();
+					viewStartDateTime = DateUtil.startDag(roosteritem.getStartTime());
+					viewEndTime = DateUtil.plusDagen(viewStartDateTime, 1);
 					break;
 				case WIJZIG_OF_VERWIJDER_HELE_SERIE:
-					viewStartDateTime = currentDateSupplier.getDateTimeMidnight();
-					viewEndTime = new DateTime(origRecEndDateTime);
+					viewStartDateTime = currentDateSupplier.getDateMidnight();
+					viewEndTime = origRecEndDateTime;
 					break;
 				case WIJZIG_OF_VERWIJDER_VANAF_HIER:
-					viewStartDateTime = new DateTime(roosteritem.getStartTime()).withTimeAtStartOfDay().toDateTime();
-					viewEndTime = new DateTime(origRecEndDateTime);
+					viewStartDateTime = DateUtil.startDag(roosteritem.getStartTime());
+					viewEndTime = origRecEndDateTime;
 					break;
 				case WIJZIG_OF_VERWIJDER_TOT:
-					viewStartDateTime = new DateTime(roosteritem.getStartTime()).withTimeAtStartOfDay().toDateTime();
-					viewEndTime = new DateTime(recurrenceEditEnd).plusDays(1).withTimeAtStartOfDay().toDateTime();
+					viewStartDateTime = DateUtil.startDag(roosteritem.getStartTime());
+					viewEndTime = DateUtil.plusDagen(DateUtil.startDag(recurrenceEditEnd), 1);
 					break;
 				default:
 					break;
@@ -157,36 +149,36 @@ public class RoosterServiceImpl implements RoosterService
 			}
 			else
 			{
-				viewStartDateTime = new DateTime(roosteritem.getStartTime());
-				LocalTime endTime = new LocalTime(roosteritem.getEndTime());
+				viewStartDateTime = roosteritem.getStartTime();
+				var endTime = DateUtil.toLocalTime(roosteritem.getEndTime());
 				Date recurenceEndDate = roosteritem.getRecurrence().getEndDate();
 				if (recurenceEndDate == null)
 				{
-					recurenceEndDate = new DateTime().plusMonths(maxRoosterUitrolInMonths).toDate();
+					recurenceEndDate = DateUtil.plusTijdseenheid(currentDateSupplier.getDate(), maxRoosterUitrolInMonths, ChronoUnit.MONTHS);
 				}
-				viewEndTime = new DateTime(recurenceEndDate).withTimeAtStartOfDay().toDateTime().plus(endTime.getMillisOfDay());
+				viewEndTime = DateUtil.toUtilDate(DateUtil.toLocalDate(recurenceEndDate).atTime(endTime));
 			}
 		}
 		else
 		{
 			if (roosteritem.getId() != null)
 			{
-				viewStartDateTime = new DateTime(roosteritem.getStartTime()).withTimeAtStartOfDay().toDateTime();
-				viewEndTime = new DateTime(viewStartDateTime).plusDays(1).withTimeAtStartOfDay().toDateTime();
+				viewStartDateTime = DateUtil.startDag(roosteritem.getStartTime());
+				viewEndTime = DateUtil.plusDagen(viewStartDateTime, 1);
 			}
 			else
 			{
-				viewStartDateTime = new DateTime(roosteritem.getStartTime());
-				viewEndTime = new DateTime(roosteritem.getEndTime());
+				viewStartDateTime = roosteritem.getStartTime();
+				viewEndTime = roosteritem.getEndTime();
 			}
 		}
 
-		Interval currentViewInterval = new Interval(viewStartDateTime.withSecondOfMinute(0).withMillisOfSecond(0), viewEndTime.withSecondOfMinute(0).withMillisOfSecond(0));
+		var currentViewRange = Range.closed(DateUtil.startMinuut(viewStartDateTime), DateUtil.startMinuut(viewEndTime));
 		if (roosteritem.getId() != null)
 		{
 
-			List<Object> afspraken = afspraakService.getRoosterItemsBezetMetAfspraak(roosteritem.getId(), currentViewInterval);
-			if (afspraken.size() > 0)
+			List<Object> afspraken = afspraakService.getRoosterItemsBezetMetAfspraak(roosteritem.getId(), currentViewRange);
+			if (!afspraken.isEmpty())
 			{
 
 				if (wijzigen)
@@ -200,12 +192,12 @@ public class RoosterServiceImpl implements RoosterService
 			}
 		}
 
-		List<Interval> nieuweRoosterBlokken = getNieuweTijdSloten(roosteritem, currentViewInterval);
+		var nieuweRoosterBlokken = getNieuweTijdSloten(roosteritem, currentViewRange);
 
 		List<Object> overlapteRoosterBlokken = null;
 		if (wijzigen || roosteritem.getId() == null) 
 		{
-			overlapteRoosterBlokken = roosterDao.getRoosterTijden(nieuweRoosterBlokken, roosteritem, currentViewInterval);
+			overlapteRoosterBlokken = roosterDao.getRoosterTijden(nieuweRoosterBlokken, roosteritem, currentViewRange);
 		}
 
 		if (roosteritem.getId() == null) 
@@ -218,12 +210,12 @@ public class RoosterServiceImpl implements RoosterService
 		}
 		else if (wijzigen)
 		{
-			List<Interval> echteOverlapteRoosterBlokken = new ArrayList<>();
+			List<Range<Date>> echteOverlapteRoosterBlokken = new ArrayList<>();
 
 			Set<Long> idsVanBestaandeRoosterblokken = new HashSet<>();
 			if (roosteritem.getRecurrence() != null && !NoRecurrence.class.isAssignableFrom(roosteritem.getRecurrence().getClass()))
 			{
-				for (IRecurrentAppointment appointment : roosteritem.getRecurrence().getAppointments())
+				for (var appointment : roosteritem.getRecurrence().getAppointments())
 				{
 					idsVanBestaandeRoosterblokken.add(appointment.getId());
 				}
@@ -236,26 +228,26 @@ public class RoosterServiceImpl implements RoosterService
 			for (Object overlapteRoosterBlokItem : overlapteRoosterBlokken)
 			{
 				Object[] roosterItemTijden = (Object[]) overlapteRoosterBlokItem;
-				DateTime startDateTimeBestaand = new DateTime(roosterItemTijden[0]).withSecondOfMinute(0).withMillisOfSecond(0);
-				DateTime endDateTimeBestaand = new DateTime(roosterItemTijden[1]).withSecondOfMinute(0).withMillisOfSecond(0);
-				Interval overlapteRoosterBlok = new Interval(startDateTimeBestaand, endDateTimeBestaand);
+				var startDateTimeBestaand = DateUtil.startMinuut((Date) roosterItemTijden[0]);
+				var endDateTimeBestaand = DateUtil.startMinuut((Date) roosterItemTijden[1]);
+				var overlapteRoosterBlok = Range.closed(startDateTimeBestaand, endDateTimeBestaand);
 				Long roosterItemId = (Long) roosterItemTijden[2];
 
 				if (idsVanBestaandeRoosterblokken.contains(roosterItemId))
 				{
 
-					Interval teVerwijderRoosterBlok = new Interval(overlapteRoosterBlok);
-					for (Interval nieuwRoosterBlok : nieuweRoosterBlokken)
+					var teVerwijderRoosterBlok = Range.closed(overlapteRoosterBlok.lowerEndpoint(), overlapteRoosterBlok.upperEndpoint());
+					for (var nieuwRoosterBlok : nieuweRoosterBlokken)
 					{
-						if (overlapteRoosterBlok.overlaps(nieuwRoosterBlok))
+						if (DateUtil.overlaps(overlapteRoosterBlok, nieuwRoosterBlok))
 						{
-							if (overlapteRoosterBlok.getStart().isBefore(nieuwRoosterBlok.getStart()))
+							if (overlapteRoosterBlok.lowerEndpoint().before(nieuwRoosterBlok.lowerEndpoint()))
 							{
-								teVerwijderRoosterBlok = teVerwijderRoosterBlok.withEnd(nieuwRoosterBlok.getStart());
+								teVerwijderRoosterBlok = Range.closed(teVerwijderRoosterBlok.lowerEndpoint(), nieuwRoosterBlok.lowerEndpoint());
 							}
-							if (overlapteRoosterBlok.getEnd().isAfter(nieuwRoosterBlok.getEnd()))
+							if (overlapteRoosterBlok.upperEndpoint().after(nieuwRoosterBlok.upperEndpoint()))
 							{
-								teVerwijderRoosterBlok = teVerwijderRoosterBlok.withStart(nieuwRoosterBlok.getEnd());
+								teVerwijderRoosterBlok = Range.closed(nieuwRoosterBlok.upperEndpoint(), teVerwijderRoosterBlok.upperEndpoint());
 							}
 							break;
 						}
@@ -272,7 +264,7 @@ public class RoosterServiceImpl implements RoosterService
 					echteOverlapteRoosterBlokken.add(overlapteRoosterBlok);
 				}
 			}
-			if (echteOverlapteRoosterBlokken.size() > 0)
+			if (!echteOverlapteRoosterBlokken.isEmpty())
 			{
 
 				throw new TijdBlokOverlapException("roosteritem.heeft.overlap", echteOverlapteRoosterBlokken);
@@ -287,8 +279,8 @@ public class RoosterServiceImpl implements RoosterService
 		if (CollectionUtils.isNotEmpty(teVerwijderenRoosterBlokken))
 		{
 
-			List<Object> afspraken = afspraakService.getAfsprakenKamersInIntervals(roosteritem.getLocation(), teVerwijderenRoosterBlokken);
-			if (afspraken.size() > 0)
+			List<Object> afspraken = afspraakService.getAfsprakenKamersInRanges(roosteritem.getLocation(), teVerwijderenRoosterBlokken);
+			if (!afspraken.isEmpty())
 			{
 
 				if (wijzigen)
@@ -309,9 +301,8 @@ public class RoosterServiceImpl implements RoosterService
 	public void magBlokkadeOpslaanVerwijderen(ColonBlokkade blokkade, RecurrenceOption recurrenceOption, Date recurrenceEditEnd, Date origRecEndDateTime, boolean wijzigen,
 		List<Kamer> kamers) throws OpslaanVerwijderenTijdBlokException
 	{
-
-		DateTime viewStartDateTime = null;
-		DateTime viewEndTime = null;
+		Date viewStartDateTime = null;
+		Date viewEndTime = null;
 
 		if (blokkade.getRecurrence() != null && !NoRecurrence.class.isAssignableFrom(blokkade.getRecurrence().getClass()))
 		{
@@ -320,20 +311,20 @@ public class RoosterServiceImpl implements RoosterService
 				switch (recurrenceOption)
 				{
 				case WIJZIG_OF_VERWIJDER_ALLEEN_DEZE_AFSPRAAK:
-					viewStartDateTime = new DateTime(blokkade.getStartTime()).withTimeAtStartOfDay().toDateTime();
-					viewEndTime = new DateTime(viewStartDateTime).plusDays(1).withTimeAtStartOfDay().toDateTime();
+					viewStartDateTime = DateUtil.startDag(blokkade.getStartTime());
+					viewEndTime = DateUtil.plusDagen(viewStartDateTime, 1);
 					break;
 				case WIJZIG_OF_VERWIJDER_HELE_SERIE:
-					viewStartDateTime = currentDateSupplier.getDateTimeMidnight();
-					viewEndTime = new DateTime(origRecEndDateTime);
+					viewStartDateTime = currentDateSupplier.getDateMidnight();
+					viewEndTime = origRecEndDateTime;
 					break;
 				case WIJZIG_OF_VERWIJDER_VANAF_HIER:
-					viewStartDateTime = new DateTime(blokkade.getStartTime()).withTimeAtStartOfDay().toDateTime();
-					viewEndTime = new DateTime(origRecEndDateTime);
+					viewStartDateTime = DateUtil.startDag(blokkade.getStartTime());
+					viewEndTime = origRecEndDateTime;
 					break;
 				case WIJZIG_OF_VERWIJDER_TOT:
-					viewStartDateTime = new DateTime(blokkade.getStartTime()).withTimeAtStartOfDay().toDateTime();
-					viewEndTime = new DateTime(recurrenceEditEnd).plusDays(1).withTimeAtStartOfDay().toDateTime();
+					viewStartDateTime = DateUtil.startDag(blokkade.getStartTime());
+					viewEndTime = DateUtil.plusDagen(DateUtil.startDag(recurrenceEditEnd), 1);
 					break;
 				default:
 					break;
@@ -341,22 +332,22 @@ public class RoosterServiceImpl implements RoosterService
 			}
 			else
 			{
-				viewStartDateTime = new DateTime(blokkade.getStartTime());
-				LocalTime endTime = new LocalTime(blokkade.getEndTime());
-				Date recurenceEndDate = blokkade.getRecurrence().getEndDate();
+				viewStartDateTime = blokkade.getStartTime();
+				var endTime = DateUtil.toLocalTime(blokkade.getEndTime());
+				var recurenceEndDate = blokkade.getRecurrence().getEndDate();
 				if (recurenceEndDate == null)
 				{
-					recurenceEndDate = new DateTime().plusMonths(maxRoosterUitrolInMonths).toDate();
+					recurenceEndDate = DateUtil.plusTijdseenheid(currentDateSupplier.getDate(), maxRoosterUitrolInMonths, ChronoUnit.MONTHS);
 				}
-				int millisOfDayEndTime = endTime.getMillisOfDay();
-				viewEndTime = new DateTime(recurenceEndDate).withTimeAtStartOfDay().toDateTime();
+				int millisOfDayEndTime = endTime.get(ChronoField.MILLI_OF_DAY);
+				viewEndTime = DateUtil.startDag(recurenceEndDate);
 				if (millisOfDayEndTime == 0)
 				{
-					viewEndTime = viewEndTime.plusDays(1);
+					viewEndTime = DateUtil.plusDagen(viewEndTime, 1);
 				}
 				else
 				{
-					viewEndTime = viewEndTime.plus(millisOfDayEndTime);
+					viewEndTime = DateUtil.plusTijdseenheid(viewEndTime, millisOfDayEndTime, ChronoUnit.MILLIS);
 				}
 			}
 		}
@@ -364,25 +355,25 @@ public class RoosterServiceImpl implements RoosterService
 		{
 			if (blokkade.getId() != null)
 			{
-				viewStartDateTime = new DateTime(blokkade.getStartTime()).withTimeAtStartOfDay().toDateTime();
-				viewEndTime = new DateTime(viewStartDateTime).plusDays(1).withTimeAtStartOfDay().toDateTime();
+				viewStartDateTime = DateUtil.startDag(blokkade.getStartTime());
+				viewEndTime = DateUtil.plusDagen(viewStartDateTime, 1);
 			}
 			else
 			{
-				viewStartDateTime = new DateTime(blokkade.getStartTime());
-				viewEndTime = new DateTime(blokkade.getEndTime());
+				viewStartDateTime = blokkade.getStartTime();
+				viewEndTime = blokkade.getEndTime();
 			}
 		}
 
-		Interval currentViewInterval = new Interval(viewStartDateTime.withSecondOfMinute(0).withMillisOfSecond(0), viewEndTime.withSecondOfMinute(0).withMillisOfSecond(0));
-		List<Interval> nieuweBlokkades = getNieuweTijdSloten(blokkade, currentViewInterval);
+		var currentViewRange = Range.closed(DateUtil.startMinuut(viewStartDateTime), DateUtil.startMinuut(viewEndTime));
+		var nieuweBlokkades = getNieuweTijdSloten(blokkade, currentViewRange);
 
 		List<Object> afspraken = new ArrayList<>();
 		for (Kamer kamer : kamers)
 		{
-			afspraken.addAll(afspraakService.getAfsprakenKamersInIntervals(kamer, nieuweBlokkades));
+			afspraken.addAll(afspraakService.getAfsprakenKamersInRanges(kamer, nieuweBlokkades));
 		}
-		if (afspraken.size() > 0)
+		if (!afspraken.isEmpty())
 		{
 			if (blokkade.getId() == null)
 			{
@@ -395,9 +386,9 @@ public class RoosterServiceImpl implements RoosterService
 		}
 	}
 
-	private List<Interval> getNieuweTijdSloten(AbstractAppointment tijdslot, Interval currentViewInterval)
+	private List<Range<Date>> getNieuweTijdSloten(AbstractAppointment tijdslot, Range<Date> currentViewRange)
 	{
-		List<Interval> nieuweRoosterBlokken = new ArrayList<>();
+		List<Range<Date>> nieuweRoosterBlokken = new ArrayList<>();
 
 		AbstractRecurrence recurrence = tijdslot.getRecurrence();
 		if (recurrence != null && !NoRecurrence.class.isAssignableFrom(recurrence.getClass()))
@@ -412,16 +403,16 @@ public class RoosterServiceImpl implements RoosterService
 			recurrence.setFirstAppointment(tijdslot);
 
 			AbstractAppointment next = (AbstractAppointment) recurrence.getFirstOccurrence();
-			addNieuwTijdslot(next, currentViewInterval, nieuweRoosterBlokken);
+			addNieuwTijdslot(next, currentViewRange, nieuweRoosterBlokken);
 			for (int i = 0; i < recurrence.getRecurrenceAmount(); i++)
 			{
 				next = (AbstractAppointment) recurrence.getNextAppointment(next);
-				addNieuwTijdslot(next, currentViewInterval, nieuweRoosterBlokken);
+				addNieuwTijdslot(next, currentViewRange, nieuweRoosterBlokken);
 			}
 		}
 		else
 		{
-			addNieuwTijdslot(tijdslot, currentViewInterval, nieuweRoosterBlokken);
+			addNieuwTijdslot(tijdslot, currentViewRange, nieuweRoosterBlokken);
 		}
 		return nieuweRoosterBlokken;
 	}
@@ -455,7 +446,7 @@ public class RoosterServiceImpl implements RoosterService
 		return roosterDao.getRoosterBlokkenCount(filter, intakeLocatie);
 	}
 
-	private RoosterListViewFilter refineFilterDates(RoosterListViewFilter filter)
+	private void refineFilterDates(RoosterListViewFilter filter)
 	{
 		filter.setEndDatum(DateUtil.toUtilDate(DateUtil.toLocalDate(filter.getEndDatum()).plusDays(1)));
 
@@ -467,7 +458,6 @@ public class RoosterServiceImpl implements RoosterService
 		{
 			filter.setStartDatum(DateUtil.toUtilDateMidnight(filter.getStartDatum()));
 		}
-		return filter;
 	}
 
 	@Override
@@ -475,7 +465,7 @@ public class RoosterServiceImpl implements RoosterService
 	public RoosterItemStatus getRoosterItemStatus(RoosterItem roosterItem)
 	{
 		RoosterItemStatus roosterItemStatus = RoosterItemStatus.VRIJ_TE_VERPLAATSEN;
-		if (roosterDao.getBlokkades(roosterItem.getLocation(), roosterItem.getStartTime(), roosterItem.getEndTime()).size() > 0)
+		if (!roosterDao.getBlokkades(roosterItem.getLocation(), roosterItem.getStartTime(), roosterItem.getEndTime()).isEmpty())
 		{
 			roosterItemStatus = RoosterItemStatus.BLOKKADE;
 		}
@@ -499,7 +489,7 @@ public class RoosterServiceImpl implements RoosterService
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS)
-	public Integer getCurrentAantalRoosterBlokken(ColoscopieCentrum intakeLocatie, Interval periode)
+	public Integer getCurrentAantalRoosterBlokken(ColoscopieCentrum intakeLocatie, Range<Date> periode)
 	{
 		int currentAantalBlokken = 0;
 		for (Kamer kamer : intakeLocatie.getKamers())
@@ -507,23 +497,22 @@ public class RoosterServiceImpl implements RoosterService
 			if (!Boolean.FALSE.equals(kamer.getActief()))
 			{
 				List<Object> roosterBlokken = roosterDao.getCurrentRoosterBlokken(kamer, periode);
-				DateTime firstDayOfThisYear = currentDateSupplier.getDateTime().dayOfYear().withMinimumValue().withTimeAtStartOfDay();
-				List<ColonBlokkade> blokkades = roosterDao.getBlokkades(kamer, firstDayOfThisYear.toDate(), firstDayOfThisYear.plusYears(1).toDate());
+				var firstDayOfThisYear = currentDateSupplier.getLocalDate().with(TemporalAdjusters.firstDayOfYear());
+				List<ColonBlokkade> blokkades = roosterDao.getBlokkades(kamer, DateUtil.toUtilDate(firstDayOfThisYear), DateUtil.toUtilDate(firstDayOfThisYear.plusYears(1)));
 				for (Object object : roosterBlokken)
 				{
 					Object[] roosterBlok = (Object[]) object;
-					Interval baseRoosterBlok = new Interval(new DateTime(roosterBlok[0]), new DateTime(roosterBlok[1]));
-					List<Interval> correctedRoosterBlokken = new ArrayList<>();
+					Range<Date> baseRoosterBlok = Range.closed((Date) roosterBlok[0], (Date) roosterBlok[1]);
+					List<Range<Date>> correctedRoosterBlokken = new ArrayList<>();
 					correctedRoosterBlokken.add(baseRoosterBlok);
-					List<Interval> correctedRoosterBlokkenNew;
+					List<Range<Date>> correctedRoosterBlokkenNew;
 
 					for (IAppointment blokkade : blokkades)
 					{
 						correctedRoosterBlokkenNew = new ArrayList<>();
-						for (Interval roosterBlokToCorrect : correctedRoosterBlokken)
+						for (var roosterBlokToCorrect : correctedRoosterBlokken)
 						{
-							correctedRoosterBlokkenNew
-								.addAll(DateUtil.disjunct(roosterBlokToCorrect, new Interval(new DateTime(blokkade.getStartTime()), new DateTime(blokkade.getEndTime()))));
+							correctedRoosterBlokkenNew.addAll(DateUtil.disjunct(roosterBlokToCorrect, Range.closed(blokkade.getStartTime(), blokkade.getEndTime())));
 						}
 						correctedRoosterBlokken = correctedRoosterBlokkenNew;
 					}

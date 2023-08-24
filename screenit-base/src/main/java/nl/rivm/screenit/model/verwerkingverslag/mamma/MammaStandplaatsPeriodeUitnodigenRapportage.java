@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.verwerkingverslag.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,6 +31,9 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
@@ -40,6 +43,8 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @Entity
 @Table(schema = "mamma", name = "standplaats_periode_uitnodigen_rapportage")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
+@Getter
+@Setter
 public class MammaStandplaatsPeriodeUitnodigenRapportage extends AbstractHibernateObject
 {
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)
@@ -48,128 +53,28 @@ public class MammaStandplaatsPeriodeUitnodigenRapportage extends AbstractHiberna
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)
 	private MammaStandplaatsPeriode standplaatsPeriode;
 
-	@Column(nullable = false)
+	@Column
 	@Temporal(TemporalType.DATE)
 	private Date uitnodigenTotEnMet;
 
-	@Column(nullable = false)
+	@Column
 	private Long uitgenodigdAfspraak = 0L;
 
-	@Column(nullable = false)
+	@Column
 	private Long uitgenodigdOpen = 0L;
 
-	@Column(nullable = false)
+	@Column
 	private Long uitgenodigdMinderValide = 0L;
 
-	@Column(nullable = false)
+	@Column
 	private Long uitgenodigdSuspect = 0L;
 
-	@Column(nullable = false)
+	@Column
 	private Long uitgenodigdNaUitstel = 0L;
 
-	@Column(nullable = false)
+	@Column
 	private Long uitgesteldAchtervangUitstel = 0L;
 
-	@Column(nullable = false)
+	@Column
 	private Long uitgesteldMinderValideUitgewijktUitstel = 0L;
-
-	public MammaStandplaatsRondeUitnodigenRapportage getStandplaatsRondeUitnodigenRapportage()
-	{
-		return standplaatsRondeUitnodigenRapportage;
-	}
-
-	public void setStandplaatsRondeUitnodigenRapportage(MammaStandplaatsRondeUitnodigenRapportage standplaatsRondeUitnodigenRapportage)
-	{
-		this.standplaatsRondeUitnodigenRapportage = standplaatsRondeUitnodigenRapportage;
-	}
-
-	public MammaStandplaatsPeriode getStandplaatsPeriode()
-	{
-		return standplaatsPeriode;
-	}
-
-	public void setStandplaatsPeriode(MammaStandplaatsPeriode standplaatsPeriode)
-	{
-		this.standplaatsPeriode = standplaatsPeriode;
-	}
-
-	public Date getUitnodigenTotEnMet()
-	{
-		return uitnodigenTotEnMet;
-	}
-
-	public void setUitnodigenTotEnMet(Date uitnodigenTotEnMet)
-	{
-		this.uitnodigenTotEnMet = uitnodigenTotEnMet;
-	}
-
-	public Long getUitgenodigdAfspraak()
-	{
-		return uitgenodigdAfspraak;
-	}
-
-	public void setUitgenodigdAfspraak(Long uitgenodigdAfspraak)
-	{
-		this.uitgenodigdAfspraak = uitgenodigdAfspraak;
-	}
-
-	public Long getUitgenodigdOpen()
-	{
-		return uitgenodigdOpen;
-	}
-
-	public void setUitgenodigdOpen(Long uitgenodigdOpen)
-	{
-		this.uitgenodigdOpen = uitgenodigdOpen;
-	}
-
-	public Long getUitgenodigdMinderValide()
-	{
-		return uitgenodigdMinderValide;
-	}
-
-	public void setUitgenodigdMinderValide(Long uitgenodigdMinderValide)
-	{
-		this.uitgenodigdMinderValide = uitgenodigdMinderValide;
-	}
-
-	public Long getUitgenodigdSuspect()
-	{
-		return uitgenodigdSuspect;
-	}
-
-	public void setUitgenodigdSuspect(Long uitgenodigdSuspect)
-	{
-		this.uitgenodigdSuspect = uitgenodigdSuspect;
-	}
-
-	public Long getUitgenodigdNaUitstel()
-	{
-		return uitgenodigdNaUitstel;
-	}
-
-	public void setUitgenodigdNaUitstel(Long uitgenodigdNaUitstel)
-	{
-		this.uitgenodigdNaUitstel = uitgenodigdNaUitstel;
-	}
-
-	public Long getUitgesteldAchtervangUitstel()
-	{
-		return uitgesteldAchtervangUitstel;
-	}
-
-	public void setUitgesteldAchtervangUitstel(Long uitgesteldAchtervangUitstel)
-	{
-		this.uitgesteldAchtervangUitstel = uitgesteldAchtervangUitstel;
-	}
-
-	public Long getUitgesteldMinderValideUitgewijktUitstel()
-	{
-		return uitgesteldMinderValideUitgewijktUitstel;
-	}
-
-	public void setUitgesteldMinderValideUitgewijktUitstel(Long uitgesteldMinderValideUitgewijktUitstel)
-	{
-		this.uitgesteldMinderValideUitgewijktUitstel = uitgesteldMinderValideUitgewijktUitstel;
-	}
 }

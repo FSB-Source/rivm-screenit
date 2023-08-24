@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,6 +29,7 @@ import nl.rivm.screenit.model.colon.ColonMergedBrieven;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.DateUtil;
 
 import org.hibernate.Criteria;
 import org.hibernate.StatelessSession;
@@ -51,7 +52,7 @@ public class UitnodigingenCleanUpServiceImpl implements UitnodigingenCleanUpServ
 
 		crit.add(Restrictions.eq("verwijderd", Boolean.FALSE));
 
-		crit.add(Restrictions.le("creatieDatum", currentDateSupplier.getDateTime().minusDays(minimaleBestaanOpFilestore).toDate()));
+		crit.add(Restrictions.le("creatieDatum", DateUtil.minDagen(currentDateSupplier.getDate(), minimaleBestaanOpFilestore)));
 
 		Bevolkingsonderzoek bevolkingsonderzoek = bepaalBevolkingsonderzoek(mergedBrievenClass);
 		crit.add(Restrictions.in("briefType", BriefType.getBriefTypesMetOrganisatieType(true, OrganisatieType.INPAKCENTRUM, bevolkingsonderzoek)));

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.monster;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,16 +22,20 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.monster;
  */
 
 import nl.rivm.screenit.dao.cervix.CervixMonsterDao;
+import nl.rivm.screenit.main.service.cervix.CervixUitnodigingService;
+import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
-import nl.rivm.screenit.model.cervix.CervixMonster;
+import nl.rivm.screenit.main.web.component.modal.IDialog;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
+import nl.rivm.screenit.service.cervix.CervixMonsterService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.input.behavior.FocusBehavior;
 
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -44,20 +48,33 @@ public abstract class CervixMonsterIdScannenPanel extends Panel
 	@SpringBean
 	private CervixMonsterDao monsterDao;
 
-	private IModel<String> monsterId = Model.of("");
+	@SpringBean
+	private CervixUitnodigingService uitnodigingService;
 
-	private TextField<String> monsterIdField;
+	@SpringBean
+	private CervixMonsterService monsterService;
+
+	private final IModel<String> monsterId = Model.of("");
+
+	private final TextField<String> monsterIdField;
 
 	private final BootstrapDialog dialog;
 
-	public CervixMonsterIdScannenPanel(String id)
+	@Override
+	public void renderHead(IHeaderResponse response)
+	{
+		super.renderHead(response);
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/barcodeScanner.js"));
+	}
+
+	protected CervixMonsterIdScannenPanel(String id)
 	{
 		super(id);
 
 		dialog = new BootstrapDialog("dialog");
 		add(dialog);
 
-		Form form = new Form<>("form");
+		var form = new Form<>("form");
 		add(form);
 
 		monsterIdField = new TextField<>("monsterId", monsterId);
@@ -65,18 +82,29 @@ public abstract class CervixMonsterIdScannenPanel extends Panel
 		monsterIdField.setRequired(true);
 		form.add(monsterIdField);
 
-		AjaxSubmitLink zoekenButton = new AjaxSubmitLink("zoeken")
+		var zoekenButton = new AjaxSubmitLink("zoeken")
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
 				CervixUitnodiging uitnodiging = null;
-				CervixMonster monster = monsterDao.getMonsterByMonsterId(monsterId.getObject());
+				var monster = monsterDao.getMonsterByMonsterId(monsterId.getObject());
 				if (monster != null)
 				{
-					uitnodiging = monster.getUitnodiging();
+					var ingelogdNamensOrganisatie = ScreenitSession.get().getInstelling();
+					if (!monsterService.magInstellingMonsterInzien(ingelogdNamensOrganisatie, monster))
+					{
+						error(String.format(getString("laboratorium.mag.monster.niet.inzien")));
+					}
+					else
+					{
+						uitnodiging = monster.getUitnodiging();
+						if (!uitnodigingService.magMonsterVerwerktWordenDoorLab(ingelogdNamensOrganisatie, uitnodiging))
+						{
+							error(String.format(getString("zas.mag.niet.verwerkt.worden"), ingelogdNamensOrganisatie.getNaam()));
+							uitnodiging = null;
+						}
+					}
 				}
 				else
 				{
@@ -88,12 +116,12 @@ public abstract class CervixMonsterIdScannenPanel extends Panel
 		form.add(zoekenButton);
 		form.setDefaultButton(zoekenButton);
 
-		IndicatingAjaxLink handmatigeInvoerBtn = new IndicatingAjaxLink<Void>("handmatigeInvoerBtn")
+		var handmatigeInvoerBtn = new IndicatingAjaxLink<Void>("handmatigeInvoerBtn")
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				dialog.openWith(target, new CervixMonsterZoekenPanel(BootstrapDialog.CONTENT_ID)
+				dialog.openWith(target, new CervixMonsterZoekenPanel(IDialog.CONTENT_ID)
 				{
 
 					@Override
@@ -106,7 +134,6 @@ public abstract class CervixMonsterIdScannenPanel extends Panel
 			}
 		};
 		form.add(handmatigeInvoerBtn);
-		handmatigeInvoerBtn.add(new AttributeModifier("onclick", "setBarcodescannerMelding('')"));
 	}
 
 	public void leegFormulier(AjaxRequestTarget target)

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.filter;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,13 +34,23 @@ import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.wicket.csp.CSPHeaderConfiguration;
+import org.apache.wicket.csp.CSPHeaderMode;
+import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.http.WebResponse;
+
+import static org.apache.wicket.ThreadContext.getRequestCycle;
 
 @Slf4j
 public class SecurityHeadersFilter implements Filter
 {
-	private static final String DEFAULT_CONTENT_SECURITY_POLICY = "form-action 'self'; frame-ancestors 'self'; default-src 'self'; " +
-		"script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'";
+	private static final String DEFAULT_CONTENT_SECURITY_POLICY_WITH_UNSAFE_SCRIPT_INLINE = "form-action 'self'; frame-ancestors 'self'; default-src 'self'; " +
+		"script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; object-src 'self'";
+
+	public static void allowUnsafeInlineSecurityPolicy(WebResponse response)
+	{
+		response.setHeader("Content-Security-Policy", SecurityHeadersFilter.DEFAULT_CONTENT_SECURITY_POLICY_WITH_UNSAFE_SCRIPT_INLINE);
+	}
 
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException
@@ -55,7 +65,6 @@ public class SecurityHeadersFilter implements Filter
 
 		LOG.debug("Invoking SecurityHeadersFilter for " + request.getRequestURI());
 
-		response.setHeader("Content-Security-Policy", DEFAULT_CONTENT_SECURITY_POLICY);
 		response.setHeader("X-Frame-Options", "sameorigin");
 		response.setHeader("X-XSS-Protection", "1; mode=block");
 		response.setHeader("X-Content-Type-Options", "nosniff");
@@ -66,7 +75,16 @@ public class SecurityHeadersFilter implements Filter
 
 	public static void allowExtraConnectSrcInContentSecurityPolicy(WebResponse response, String extraConnectSrc)
 	{
-		response.setHeader("Content-Security-Policy", SecurityHeadersFilter.DEFAULT_CONTENT_SECURITY_POLICY + "; connect-src 'self' " + extraConnectSrc);
+			var cspSettings = WebApplication.get().getCspSettings();
+			CSPHeaderConfiguration cspHeaderConfiguration = cspSettings.getConfiguration().get(CSPHeaderMode.BLOCKING);
+			String headerValue = cspHeaderConfiguration.renderHeaderValue(cspSettings, getRequestCycle());
+
+			headerValue = headerValue.replace("connect-src 'self'", "");
+			String connectieString = "connect-src 'self' " + extraConnectSrc;
+
+			String cspString = String.join(";", headerValue, connectieString);
+
+			response.setHeader("Content-Security-Policy", cspString);
 	}
 
 	@Override

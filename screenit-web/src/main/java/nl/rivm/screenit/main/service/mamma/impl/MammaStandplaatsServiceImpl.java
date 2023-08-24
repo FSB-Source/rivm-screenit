@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,9 @@ package nl.rivm.screenit.main.service.mamma.impl;
  */
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -376,18 +378,24 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public String controleerUitnodigingenNaVeranderingLocatie(MammaStandplaats standplaats)
 	{
+		var vandaag = dateSupplier.getLocalDate();
+		var aantalAfsprakenVoorStandplaats = baseAfspraakDao.countAfspraken(standplaats, vandaag, null, MammaAfspraakStatus.GEPLAND);
+
 		MammaStandplaatsLocatie tijdelijkAdres = standplaats.getTijdelijkeLocatie();
-		long aantalAfsprakenBinnenLocatie = 0;
+		var aantalAfsprakenTijdensTijdelijkeLocatie = 0L;
 		if (tijdelijkAdres.getStartDatum() != null)
 		{
-			aantalAfsprakenBinnenLocatie += baseAfspraakDao.countAfspraken(standplaats, standplaats.getLocatie().getStartDatum(), tijdelijkAdres.getStartDatum(),
-				MammaAfspraakStatus.GEPLAND);
-			aantalAfsprakenBinnenLocatie += baseAfspraakDao.countAfspraken(standplaats,
-				DateUtil.toUtilDate(DateUtil.toLocalDate(tijdelijkAdres.getEindDatum()).plusDays(1)), null,
-				MammaAfspraakStatus.GEPLAND);
+			var eindDatumTijdelijkeLocatie = DateUtil.toLocalDate(tijdelijkAdres.getEindDatum());
+			if (!eindDatumTijdelijkeLocatie.isBefore(vandaag))
+			{
+				var startDatumTijdelijkeLocatie = DateUtil.toLocalDate(tijdelijkAdres.getStartDatum());
+				var zoekTijdelijkeLocatieVanaf = Collections.max(List.of(startDatumTijdelijkeLocatie, vandaag));
+				aantalAfsprakenTijdensTijdelijkeLocatie = baseAfspraakDao.countAfspraken(standplaats, zoekTijdelijkeLocatieVanaf, eindDatumTijdelijkeLocatie,
+					MammaAfspraakStatus.GEPLAND);
+			}
 		}
 
-		if (aantalAfsprakenBinnenLocatie > 0)
+		if (aantalAfsprakenVoorStandplaats - aantalAfsprakenTijdensTijdelijkeLocatie > 0)
 		{
 			return "zijn.al.uitnodigingen.nieuwe.locatie";
 		}
@@ -398,15 +406,17 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public String controleerUitnodigingenNaVeranderingTijdelijkeLocatie(MammaStandplaats standplaats, String oudeAdres, Range<Date> oudePeriode)
 	{
+
 		MammaStandplaatsLocatie locatie = standplaats.getTijdelijkeLocatie();
-		Date nieuweStartDatum = locatie.getStartDatum() != null ? DateUtil.startDag(locatie.getStartDatum()) : null;
-		Date nieuweEindDatum = locatie.getEindDatum() != null ? DateUtil.eindDag(locatie.getEindDatum()) : null;
+		LocalDate nieuweStartDatum = DateUtil.toLocalDate(locatie.getStartDatum());
+		LocalDate nieuweEindDatum = DateUtil.toLocalDate(locatie.getEindDatum());
 
 		if (oudePeriode != null)
 		{
-			if (!DateUtil.compareEquals(nieuweStartDatum, oudePeriode.lowerEndpoint()) || !DateUtil.compareEquals(nieuweEindDatum, oudePeriode.upperEndpoint()))
+			if (!nieuweStartDatum.isEqual(DateUtil.toLocalDate(oudePeriode.lowerEndpoint())) || !nieuweEindDatum.isEqual(DateUtil.toLocalDate(oudePeriode.upperEndpoint())))
 			{
-				long aantalAfsprakenBinnenOudeLocatie = baseAfspraakDao.countAfspraken(standplaats, oudePeriode.lowerEndpoint(), oudePeriode.upperEndpoint(),
+				long aantalAfsprakenBinnenOudeLocatie = baseAfspraakDao.countAfspraken(standplaats, DateUtil.toLocalDate(oudePeriode.lowerEndpoint()),
+					DateUtil.toLocalDate(oudePeriode.upperEndpoint()),
 					MammaAfspraakStatus.GEPLAND);
 				long aantalAfsprakenBinnenNieuweLocatie = baseAfspraakDao.countAfspraken(standplaats, nieuweStartDatum, nieuweEindDatum, MammaAfspraakStatus.GEPLAND);
 
@@ -422,12 +432,11 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 					}
 				}
 			}
-			if (!AdresUtil.getVolledigeAdresString(locatie).equals(oudeAdres))
+			if (!AdresUtil.getVolledigeAdresString(locatie).equals(oudeAdres)
+				&& baseAfspraakDao.countAfspraken(standplaats, DateUtil.toLocalDate(oudePeriode.lowerEndpoint()), DateUtil.toLocalDate(oudePeriode.upperEndpoint()),
+				MammaAfspraakStatus.GEPLAND) > 0)
 			{
-				if (baseAfspraakDao.countAfspraken(standplaats, oudePeriode.lowerEndpoint(), oudePeriode.upperEndpoint(), MammaAfspraakStatus.GEPLAND) > 0)
-				{
-					return "zijn.al.uitnodigingen.locatie.change";
-				}
+				return "zijn.al.uitnodigingen.locatie.change";
 			}
 		}
 		else

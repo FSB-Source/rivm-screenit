@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal.service.impl;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,8 @@ package nl.rivm.screenit.huisartsenportaal.service.impl;
  * =========================LICENSE_END==================================
  */
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.huisartsenportaal.dto.AdresDto;
 import nl.rivm.screenit.huisartsenportaal.model.Adres;
 import nl.rivm.screenit.huisartsenportaal.repository.AdresRepository;
@@ -32,6 +34,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+
+@Slf4j
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
 public class AdresServiceImpl implements AdresService
@@ -43,8 +50,11 @@ public class AdresServiceImpl implements AdresService
 	@Autowired
 	private AdresRepository adresRepository;
 
+	private static final ObjectMapper objectMapper = new ObjectMapper();
+
 	@Override
-	public Adres setAdres(AdresDto adresDto)
+	@Transactional(propagation = Propagation.REQUIRED)
+	public Adres updateAndGetAdres(AdresDto adresDto)
 	{
 		Adres adres = null;
 		if (adresDto.getHuisartsportaalId() != null)
@@ -71,7 +81,21 @@ public class AdresServiceImpl implements AdresService
 		adres.setHuisnummer(adresDto.getHuisnummer());
 		adres.setHuisnummertoevoeging(adresDto.getHuisnummertoevoeging());
 		adres.setPostcode(adresDto.getPostcode().toUpperCase());
-		adres.setWoonplaats(woonplaatsService.setWoonplaats(adresDto.getWoonplaats()));
+		var woonplaats = woonplaatsService.getWoonplaats(adresDto.getWoonplaats());
+		if (woonplaats == null)
+		{
+			try
+			{
+				ObjectWriter writer = objectMapper.writer();
+				LOG.error("Geen woonplaats gevonden met {}", writer.writeValueAsString(adresDto.getWoonplaats()));
+			}
+			catch (JsonProcessingException e)
+			{
+				LOG.error("Geen woonplaats gevonden", e);
+			}
+			throw new IllegalStateException("Woonplaats onbekend");
+		}
+		adres.setWoonplaats(woonplaats);
 		adresRepository.save(adres);
 		return adres;
 	}

@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,7 @@ package nl.rivm.screenit.service.cervix.impl;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -78,6 +79,8 @@ import nl.rivm.screenit.model.cervix.verslag.cytologie.CervixCytologieVerrichtin
 import nl.rivm.screenit.model.cervix.verslag.cytologie.CervixCytologieVerslagContent;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.OrganisatieParameterService;
+import nl.rivm.screenit.service.cervix.Cervix2023StartBepalingService;
 import nl.rivm.screenit.service.cervix.CervixBaseTestTimelineService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
 import nl.rivm.screenit.service.cervix.CervixMonsterService;
@@ -131,6 +134,12 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 
 	@Autowired
 	private CervixVervolgService vervolgService;
+
+	@Autowired
+	private OrganisatieParameterService organisatieParameterService;
+
+	@Autowired
+	private Cervix2023StartBepalingService cervix2023StartBepalingService;
 
 	@Override
 	public CervixBaseTestTimelineService ontvangen(CervixUitnodiging uitnodiging, BMHKLaboratorium laboratorium)
@@ -211,11 +220,13 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 			hibernateService.saveOrUpdate(ronde);
 		}
 
+		var bmhk2023Lab = cervix2023StartBepalingService.isBmhk2023Laboratorium(monster.getLaboratorium());
+
 		switch (uitnodiging.getMonsterType())
 		{
 		case UITSTRIJKJE:
 			CervixUitstrijkje uitstrijkje = (CervixUitstrijkje) monster;
-			if (uitstrijkje.getUitstrijkjeStatus() == CervixUitstrijkjeStatus.ONTVANGEN)
+			if (uitstrijkje.getUitstrijkjeStatus() == CervixUitstrijkjeStatus.ONTVANGEN && !bmhk2023Lab)
 			{
 				uitstrijkje.setUitstrijkjeStatus(CervixUitstrijkjeStatus.GEANALYSEERD_OP_HPV_POGING_1);
 			}
@@ -229,7 +240,7 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 			break;
 		case ZAS:
 			CervixZas zas = (CervixZas) monster;
-			if (zas.getZasStatus() == CervixZasStatus.ONTVANGEN)
+			if (zas.getZasStatus() == CervixZasStatus.ONTVANGEN && !bmhk2023Lab)
 			{
 				zas.setZasStatus(CervixZasStatus.GEANALYSEERD_OP_HPV_POGING_1);
 			}
@@ -270,6 +281,8 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 		cytologieCytologieUitslagBvoBmhk.setMonsterBmhk(cytologieMonsterBmhk);
 		cytologieCytologieUitslagBvoBmhk.setCnummerLaboratorium("Test c nummer");
 		cytologieCytologieUitslagBvoBmhk.setVersieProtocol("Test versie protocol");
+
+		cytologieMonsterBmhk.setCytologieUitslagBvoBmhk(cytologieCytologieUitslagBvoBmhk);
 
 		CervixCytologieCytologieUitslagBvoBmhkTbvHuisarts cytologieCytologieUitslagBvoBmhkTbvHuisarts = new CervixCytologieCytologieUitslagBvoBmhkTbvHuisarts();
 		cytologieCytologieUitslagBvoBmhkTbvHuisarts.setConclusie("Test conclusie");
@@ -323,6 +336,7 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 		hibernateService.saveOrUpdate(ontvangenCdaBericht);
 		hibernateService.saveOrUpdate(cytologieVerrichting);
 		hibernateService.saveOrUpdate(cytologieCytologieUitslagBvoBmhk);
+		hibernateService.saveOrUpdate(cytologieMonsterBmhk);
 		hibernateService.saveOrUpdate(cytologieCytologieUitslagBvoBmhkTbvHuisarts);
 		hibernateService.saveOrUpdate(cytologieVerslagContent);
 		hibernateService.saveOrUpdate(cytologieVerslag);
@@ -398,51 +412,36 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 	@Override
 	public CervixUitnodiging nieuweRonde(Client client)
 	{
-		CervixDossier dossier = client.getCervixDossier();
-		testTimelineTimeService.rekenDossierTerug(dossier, CervixTestTimeLineDossierTijdstip.NIEUWE_RONDE);
-		CervixScreeningRonde ronde;
-		CervixUitnodiging uitnodiging = null;
+		return nieuweRonde(client, false);
+	}
 
-		LocalDate geboorteDatum = DateUtil.toLocalDate(client.getPersoon().getGeboortedatum());
-		if (CervixLeeftijdcategorie.getLeeftijd(geboorteDatum, dateSupplier.getLocalDate()) < 30)
+	@Override
+	public CervixUitnodiging nieuweRonde(Client client, boolean metVooraankondiging)
+	{
+		var dossier = client.getCervixDossier();
+		if (dossier.getLaatsteScreeningRonde() != null)
 		{
-			ronde = factory.maakRonde(dossier, false);
-			maakVooraankondiging(client, ronde);
+			testTimelineTimeService.rekenDossierTerug(dossier, CervixTestTimeLineDossierTijdstip.NIEUWE_RONDE);
 		}
-		else
+
+		var geboortedatum = DateUtil.toLocalDate(client.getPersoon().getGeboortedatum());
+		int minimumLeeftijd = CervixLeeftijdcategorie.minimumLeeftijd();
+		var jongerDanMinimumLeeftijd = DateUtil.getLeeftijd(geboortedatum, dateSupplier.getLocalDate()) < minimumLeeftijd;
+
+		var ronde = factory.maakRonde(dossier, !jongerDanMinimumLeeftijd);
+		if (jongerDanMinimumLeeftijd || metVooraankondiging)
 		{
-			ronde = factory.maakRonde(dossier);
+			maakVooraankondiging(ronde, metVooraankondiging);
+			testTimelineTimeService.rekenDossierTerug(dossier, berekenAantalDagenDossierTerug(geboortedatum));
+		}
+
+		CervixUitnodiging uitnodiging = null;
+		if (!jongerDanMinimumLeeftijd)
+		{
 			uitnodiging = factory.maakUitnodiging(ronde, ronde.getLeeftijdcategorie().getUitnodigingsBrief(), true, false);
 			verzendLaatsteBrief(ronde);
 		}
 		return uitnodiging;
-	}
-
-	private void maakVooraankondiging(Client client, CervixScreeningRonde ronde)
-	{
-		Integer dagenVoorDeVooraankondiging = preferenceService.getInteger(PreferenceKey.CERVIX_VOORAANKONDIGINGS_PERIODE.name());
-		LocalDate geboortedatumMaximaal = dateSupplier.getLocalDate().minusYears(CervixLeeftijdcategorie._30.getLeeftijd());
-		if (dagenVoorDeVooraankondiging != null)
-		{
-			geboortedatumMaximaal = geboortedatumMaximaal.plusDays(dagenVoorDeVooraankondiging);
-		}
-
-		LocalDate geboortedatum = DateUtil.toLocalDate(client.getPersoon().getGeboortedatum());
-		if (geboortedatum.isBefore(geboortedatumMaximaal.plusDays(1)))
-		{
-			factory.maakVooraankondiging(ronde);
-			verzendLaatsteBrief(ronde);
-		}
-	}
-
-	@Override
-	public void verstuurUitnodiging(CervixScreeningRonde ronde)
-	{
-		Integer dagenVoorDeVooraankondiging = preferenceService.getInteger(PreferenceKey.CERVIX_VOORAANKONDIGINGS_PERIODE.name());
-		testTimelineTimeService.rekenDossierTerug(ronde.getDossier(), dagenVoorDeVooraankondiging);
-		factory.maakUitnodiging(ronde, ronde.getLeeftijdcategorie().getUitnodigingsBrief(), true, false);
-		verzendLaatsteBrief(ronde);
-
 	}
 
 	@Override
@@ -450,36 +449,6 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 	{
 		Date uitstellenTotDatum = DateUtil.toUtilDate(dateSupplier.getLocalDate().plusDays(preferenceService.getInteger(PreferenceKey.UITSTEL_BIJ_ZWANGERSCHAP_CERVIX.name())));
 		factory.maakUitstel(ronde, uitstellenTotDatum, CervixUitstelType.ZWANGERSCHAP);
-	}
-
-	private CervixCISHistorie createCISHistorie(CervixDossier dossier)
-	{
-		CervixCISHistorie cervixCisHistorie = dossier.getCisHistorie();
-		if (cervixCisHistorie == null)
-		{
-			cervixCisHistorie = new CervixCISHistorie();
-			cervixCisHistorie.setDossier(dossier);
-			dossier.setCisHistorie(cervixCisHistorie);
-			hibernateService.saveOrUpdate(cervixCisHistorie);
-			LocalDateTime localDateTime = dateSupplier.getLocalDateTime();
-			addRegel(cervixCisHistorie, "1", "Test Test Test1", localDateTime.plusSeconds(1));
-			addRegel(cervixCisHistorie, "1", "Test Test Test2", localDateTime.plusSeconds(2));
-			addRegel(cervixCisHistorie, "2", "Test Test Test3", localDateTime.plusSeconds(3));
-			addRegel(cervixCisHistorie, "3", "Test Test Test4", localDateTime.plusSeconds(4));
-			hibernateService.saveOrUpdate(dossier);
-		}
-		return cervixCisHistorie;
-	}
-
-	private void addRegel(CervixCISHistorie cervixCisHistorie, String ronde, String tekst, LocalDateTime dateTime)
-	{
-		CervixCISHistorieOngestructureerdRegel regel = new CervixCISHistorieOngestructureerdRegel();
-		regel.setRonde(ronde);
-		regel.setTekst(tekst);
-		regel.setDatum(DateUtil.toUtilDate(dateTime));
-		regel.setCisHistorie(cervixCisHistorie);
-		cervixCisHistorie.getCisHistorieRegels().add(regel);
-		hibernateService.saveOrUpdateAll(regel, cervixCisHistorie);
 	}
 
 	@Override
@@ -515,36 +484,18 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 		return this;
 	}
 
-	private CervixCytologieReden getCytologieReden(CervixUitstrijkje uitstrijkje)
+	@Override
+	public void verstuurUitnodiging(CervixScreeningRonde ronde)
 	{
-		String stringStartdatumGenotypering = preferenceService.getString(PreferenceKey.CERVIX_START_AANLEVERING_GENOTYPERING_EN_INVOERING_TRIAGE.name());
+		var dagenVoorDeVooraankondiging = getDagenVoorDeVooraankondiging();
+		var geboortedatum = DateUtil.toLocalDate(ronde.getDossier().getClient().getPersoon().getGeboortedatum());
+		var dagenTot30isteVerjaardag = Math.abs(
+			DateUtil.getPeriodeTussenTweeDatums(geboortedatum.plusYears(CervixLeeftijdcategorie.minimumLeeftijd()), dateSupplier.getLocalDate(), ChronoUnit.DAYS));
 
-		CervixBepaalVervolgContext vervolgContext = new CervixBepaalVervolgContext(uitstrijkje, false, dateSupplier.getLocalDateTime(),
-			DateUtil.parseLocalDateForPattern(stringStartdatumGenotypering, Constants.DATE_FORMAT_YYYYMMDD), bepaalVervolgDao, monsterService,
-			preferenceService.getInteger(PreferenceKey.CERVIX_INTERVAL_CONTROLE_UITSTRIJKJE.name()));
+		testTimelineTimeService.rekenDossierTerug(ronde.getDossier(), Math.min(dagenVoorDeVooraankondiging, dagenTot30isteVerjaardag));
+		factory.maakUitnodiging(ronde, ronde.getLeeftijdcategorie().getUitnodigingsBrief(), true, false);
+		verzendLaatsteBrief(ronde);
 
-		if (vervolgContext.inVervolgonderzoekDatum != null)
-		{
-			if (bepaalVervolgDao.anderUitstrijkjeOnbeoordeelbaarCytologie(vervolgContext.huidigUitstrijkje))
-			{
-				return CervixCytologieReden.HERHALING_VERVOLGONDERZOEK;
-			}
-			return CervixCytologieReden.VERVOLGONDERZOEK;
-		}
-
-		if (bepaalVervolgDao.anderUitstrijkjeOnbeoordeelbaarCytologie(vervolgContext.huidigUitstrijkje))
-		{
-			return CervixCytologieReden.HERHALING_INITIEEL_NA_ONBEOORDEELBAARHEID;
-		}
-
-		if (vervolgContext.monsterHpvUitslag instanceof CervixUitstrijkje)
-		{
-			return CervixCytologieReden.INITIEEL_ZONDER_ZAS;
-		}
-		else
-		{
-			return CervixCytologieReden.INITIEEL_NA_ZAS;
-		}
 	}
 
 	@Override
@@ -559,36 +510,8 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 		return verzendLaatsteBrief(ronde);
 	}
 
-	private CervixBaseTestTimelineService verzendLaatsteBrief(CervixScreeningRonde ronde)
-	{
-		CervixBrief brief = ronde.getLaatsteBrief();
-		if (brief == null)
-		{
-			return null;
-		}
-
-		CervixMergedBrieven mergedBrieven = new CervixMergedBrieven();
-		mergedBrieven.setCreatieDatum(dateSupplier.getDate());
-		mergedBrieven.setBriefType(ronde.getLeeftijdcategorie().getUitnodigingsBrief());
-		mergedBrieven.setBrieven(new ArrayList<>());
-		mergedBrieven.setGeprint(true);
-		mergedBrieven.setPrintDatum(dateSupplier.getDate());
-		mergedBrieven.setVerwijderd(true);
-		mergedBrieven.setScreeningOrganisatie(ronde.getDossier().getClient().getPersoon().getGbaAdres().getGbaGemeente().getScreeningOrganisatie());
-		brief.setGegenereerd(true);
-		brief.setMergedBrieven(mergedBrieven);
-		UploadDocument fakeMergeDocument = new UploadDocument();
-		fakeMergeDocument.setActief(true);
-		fakeMergeDocument.setNaam("dummy_testservice_brief_niet_openen");
-		hibernateService.saveOrUpdate(fakeMergeDocument);
-		mergedBrieven.setMergedBrieven(fakeMergeDocument);
-		hibernateService.saveOrUpdate(mergedBrieven);
-		hibernateService.saveOrUpdate(brief);
-		return this;
-	}
-
 	@Override
-	public CervixBaseTestTimelineService maakZas(Client client, Account account, CervixTestTimeLineDossierTijdstip tijdstip)
+	public CervixBaseTestTimelineService maakZasMonster(Client client, Account account, CervixTestTimeLineDossierTijdstip tijdstip, boolean isNieuwTypeZas)
 	{
 		CervixDossier dossier = client.getCervixDossier();
 		CervixScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
@@ -611,61 +534,10 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 		case ZAS_SAMENGESTELD:
 			zasAangevraagd(dossier);
 			zasKlaargezet(uitnodiging);
-			zasSamengesteld(uitnodiging);
+			zasSamengesteld(uitnodiging, isNieuwTypeZas);
 			break;
 		}
 		return this;
-	}
-
-	private void zasAangevraagd(CervixDossier dossier)
-	{
-		testTimelineTimeService.rekenDossierTerug(dossier, CervixTestTimeLineDossierTijdstip.ZAS_AANVRAAG);
-	}
-
-	private void zasKlaargezet(CervixUitnodiging uitnodiging)
-	{
-		CervixDossier dossier = uitnodiging.getScreeningRonde().getDossier();
-		testTimelineTimeService.rekenDossierTerug(dossier, CervixTestTimeLineDossierTijdstip.ZAS_KLAARGEZET);
-
-		uitnodiging.setVerstuurd(true);
-		uitnodiging.setVerstuurdDatum(dateSupplier.getDate());
-		uitnodiging.setTemplateNaam("8. Verzendbrief ZAS 20160706_etiket_rechts.docx");
-
-		UploadDocument fakeMergeDocument = new UploadDocument();
-		fakeMergeDocument.setActief(true);
-		fakeMergeDocument.setNaam("dummy_testservice_brief_niet_openen");
-
-		CervixBrief brief = uitnodiging.getBrief();
-
-		CervixMergedBrieven mergedBrieven = new CervixMergedBrieven();
-		mergedBrieven.setCreatieDatum(dateSupplier.getDate());
-		mergedBrieven.setBriefType(uitnodiging.getScreeningRonde().getLeeftijdcategorie().getUitnodigingsBrief());
-		mergedBrieven.setBrieven(new ArrayList<>());
-		mergedBrieven.setGeprint(true);
-		mergedBrieven.setPrintDatum(dateSupplier.getDate());
-		mergedBrieven.setVerwijderd(true);
-		mergedBrieven.setScreeningOrganisatie(dossier.getClient().getPersoon().getGbaAdres().getGbaGemeente().getScreeningOrganisatie());
-		mergedBrieven.setMergedBrieven(fakeMergeDocument);
-
-		brief.setGegenereerd(true);
-		brief.setMergedBrieven(mergedBrieven);
-		mergedBrieven.getBrieven().add(brief);
-
-		hibernateService.saveOrUpdateAll(fakeMergeDocument, mergedBrieven, brief, uitnodiging);
-	}
-
-	private void zasSamengesteld(CervixUitnodiging uitnodiging)
-	{
-		CervixDossier dossier = uitnodiging.getScreeningRonde().getDossier();
-		testTimelineTimeService.rekenDossierTerug(dossier, CervixTestTimeLineDossierTijdstip.ZAS_SAMENGESTELD);
-
-		String zasId = monsterDao.getNextMonsterId().toString();
-		zasId = zasId.substring(Math.max(0, zasId.length() - 8));
-		zasId = "Z" + StringUtils.leftPad(zasId + "", 8, '0');
-		CervixZas zas = factory.maakZas(uitnodiging, zasId);
-		uitnodiging.setVerstuurdDoorInpakcentrum(true);
-		zas.setVerstuurd(dateSupplier.getDate());
-		hibernateService.saveOrUpdate(zas);
 	}
 
 	@Override
@@ -708,5 +580,175 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 		hibernateService.saveOrUpdate(labformulier);
 
 		return this;
+	}
+
+	private int berekenAantalDagenDossierTerug(LocalDate geboortedatum)
+	{
+		var dagenVoorDeVooraankondiging = getDagenVoorDeVooraankondiging();
+		var aantalDagenTotBereikenMinimaleLeeftijd = CervixLeeftijdcategorie.aantalDagenTotBereikenMinimaleLeeftijd(geboortedatum, dateSupplier.getLocalDate());
+		return dagenVoorDeVooraankondiging - aantalDagenTotBereikenMinimaleLeeftijd;
+	}
+
+	private void maakVooraankondiging(CervixScreeningRonde ronde, boolean forceerVooraankondiging)
+	{
+		Integer dagenVoorDeVooraankondiging = getDagenVoorDeVooraankondiging();
+		var geboortedatumMaximaal = dateSupplier.getLocalDate().minusYears(CervixLeeftijdcategorie.minimumLeeftijd());
+		if (dagenVoorDeVooraankondiging != null)
+		{
+			geboortedatumMaximaal = geboortedatumMaximaal.plusDays(dagenVoorDeVooraankondiging);
+		}
+		var client = ronde.getDossier().getClient();
+		var geboortedatum = DateUtil.toLocalDate(client.getPersoon().getGeboortedatum());
+		if (!geboortedatum.isAfter(geboortedatumMaximaal) || forceerVooraankondiging)
+		{
+			factory.maakVooraankondiging(ronde);
+
+			verzendLaatsteBrief(ronde);
+		}
+	}
+
+	private Integer getDagenVoorDeVooraankondiging()
+	{
+		return preferenceService.getInteger(PreferenceKey.CERVIX_VOORAANKONDIGINGS_PERIODE.name(), 30);
+	}
+
+	private CervixCISHistorie createCISHistorie(CervixDossier dossier)
+	{
+		CervixCISHistorie cervixCisHistorie = dossier.getCisHistorie();
+		if (cervixCisHistorie == null)
+		{
+			cervixCisHistorie = new CervixCISHistorie();
+			cervixCisHistorie.setDossier(dossier);
+			dossier.setCisHistorie(cervixCisHistorie);
+			hibernateService.saveOrUpdate(cervixCisHistorie);
+			LocalDateTime localDateTime = dateSupplier.getLocalDateTime();
+			addRegel(cervixCisHistorie, "1", "Test Test Test1", localDateTime.plusSeconds(1));
+			addRegel(cervixCisHistorie, "1", "Test Test Test2", localDateTime.plusSeconds(2));
+			addRegel(cervixCisHistorie, "2", "Test Test Test3", localDateTime.plusSeconds(3));
+			addRegel(cervixCisHistorie, "3", "Test Test Test4", localDateTime.plusSeconds(4));
+			hibernateService.saveOrUpdate(dossier);
+		}
+		return cervixCisHistorie;
+	}
+
+	private void addRegel(CervixCISHistorie cervixCisHistorie, String ronde, String tekst, LocalDateTime dateTime)
+	{
+		CervixCISHistorieOngestructureerdRegel regel = new CervixCISHistorieOngestructureerdRegel();
+		regel.setRonde(ronde);
+		regel.setTekst(tekst);
+		regel.setDatum(DateUtil.toUtilDate(dateTime));
+		regel.setCisHistorie(cervixCisHistorie);
+		cervixCisHistorie.getCisHistorieRegels().add(regel);
+		hibernateService.saveOrUpdateAll(regel, cervixCisHistorie);
+	}
+
+	private CervixCytologieReden getCytologieReden(CervixUitstrijkje uitstrijkje)
+	{
+		String stringStartdatumGenotypering = preferenceService.getString(PreferenceKey.CERVIX_START_AANLEVERING_GENOTYPERING_EN_INVOERING_TRIAGE.name());
+
+		CervixBepaalVervolgContext vervolgContext = new CervixBepaalVervolgContext(uitstrijkje, false, dateSupplier.getLocalDateTime(),
+			DateUtil.parseLocalDateForPattern(stringStartdatumGenotypering, Constants.DATE_FORMAT_YYYYMMDD), bepaalVervolgDao, monsterService,
+			preferenceService.getInteger(PreferenceKey.CERVIX_INTERVAL_CONTROLE_UITSTRIJKJE.name()));
+
+		if (vervolgContext.inVervolgonderzoekDatum != null)
+		{
+			if (bepaalVervolgDao.anderUitstrijkjeOnbeoordeelbaarCytologie(vervolgContext.huidigUitstrijkje))
+			{
+				return CervixCytologieReden.HERHALING_VERVOLGONDERZOEK;
+			}
+			return CervixCytologieReden.VERVOLGONDERZOEK;
+		}
+
+		if (bepaalVervolgDao.anderUitstrijkjeOnbeoordeelbaarCytologie(vervolgContext.huidigUitstrijkje))
+		{
+			return CervixCytologieReden.HERHALING_INITIEEL_NA_ONBEOORDEELBAARHEID;
+		}
+
+		if (vervolgContext.monsterHpvUitslag instanceof CervixUitstrijkje)
+		{
+			return CervixCytologieReden.INITIEEL_ZONDER_ZAS;
+		}
+		else
+		{
+			return CervixCytologieReden.INITIEEL_NA_ZAS;
+		}
+	}
+
+	private CervixBaseTestTimelineService verzendLaatsteBrief(CervixScreeningRonde ronde)
+	{
+		CervixBrief brief = ronde.getLaatsteBrief();
+		if (brief == null)
+		{
+			return null;
+		}
+
+		CervixMergedBrieven mergedBrieven = new CervixMergedBrieven();
+		mergedBrieven.setCreatieDatum(dateSupplier.getDate());
+		mergedBrieven.setBriefType(ronde.getLeeftijdcategorie().getUitnodigingsBrief());
+		mergedBrieven.setBrieven(new ArrayList<>());
+		mergedBrieven.setGeprint(true);
+		mergedBrieven.setPrintDatum(dateSupplier.getDate());
+		mergedBrieven.setVerwijderd(true);
+		mergedBrieven.setScreeningOrganisatie(ronde.getDossier().getClient().getPersoon().getGbaAdres().getGbaGemeente().getScreeningOrganisatie());
+		brief.setGegenereerd(true);
+		brief.setMergedBrieven(mergedBrieven);
+		UploadDocument fakeMergeDocument = new UploadDocument();
+		fakeMergeDocument.setActief(true);
+		fakeMergeDocument.setNaam("dummy_testservice_brief_niet_openen");
+		hibernateService.saveOrUpdate(fakeMergeDocument);
+		mergedBrieven.setMergedBrieven(fakeMergeDocument);
+		hibernateService.saveOrUpdate(mergedBrieven);
+		hibernateService.saveOrUpdate(brief);
+		return this;
+	}
+
+	private void zasAangevraagd(CervixDossier dossier)
+	{
+		testTimelineTimeService.rekenDossierTerug(dossier, CervixTestTimeLineDossierTijdstip.ZAS_AANVRAAG);
+	}
+
+	private void zasKlaargezet(CervixUitnodiging uitnodiging)
+	{
+		CervixDossier dossier = uitnodiging.getScreeningRonde().getDossier();
+		testTimelineTimeService.rekenDossierTerug(dossier, CervixTestTimeLineDossierTijdstip.ZAS_KLAARGEZET);
+
+		uitnodiging.setVerstuurd(true);
+		uitnodiging.setVerstuurdDatum(dateSupplier.getDate());
+		uitnodiging.setTemplateNaam("8. Verzendbrief ZAS 20160706_etiket_rechts.docx");
+
+		UploadDocument fakeMergeDocument = new UploadDocument();
+		fakeMergeDocument.setActief(true);
+		fakeMergeDocument.setNaam("dummy_testservice_brief_niet_openen");
+
+		CervixBrief brief = uitnodiging.getBrief();
+
+		CervixMergedBrieven mergedBrieven = new CervixMergedBrieven();
+		mergedBrieven.setCreatieDatum(dateSupplier.getDate());
+		mergedBrieven.setBriefType(uitnodiging.getScreeningRonde().getLeeftijdcategorie().getUitnodigingsBrief());
+		mergedBrieven.setBrieven(new ArrayList<>());
+		mergedBrieven.setGeprint(true);
+		mergedBrieven.setPrintDatum(dateSupplier.getDate());
+		mergedBrieven.setVerwijderd(true);
+		mergedBrieven.setScreeningOrganisatie(dossier.getClient().getPersoon().getGbaAdres().getGbaGemeente().getScreeningOrganisatie());
+		mergedBrieven.setMergedBrieven(fakeMergeDocument);
+
+		brief.setGegenereerd(true);
+		brief.setMergedBrieven(mergedBrieven);
+		mergedBrieven.getBrieven().add(brief);
+		hibernateService.saveOrUpdateAll(fakeMergeDocument, mergedBrieven, brief, uitnodiging);
+	}
+
+	private void zasSamengesteld(CervixUitnodiging uitnodiging, boolean isNieuwTypeZas)
+	{
+		CervixDossier dossier = uitnodiging.getScreeningRonde().getDossier();
+		testTimelineTimeService.rekenDossierTerug(dossier, CervixTestTimeLineDossierTijdstip.ZAS_SAMENGESTELD);
+
+		String zasId = monsterDao.getNextMonsterId().toString();
+		zasId = zasId.substring(Math.max(0, zasId.length() - 8));
+		zasId = (isNieuwTypeZas ? "C" : "Z") + StringUtils.leftPad(zasId + "", 8, '0');
+		CervixZas zas = factory.maakZasMonster(uitnodiging, zasId);
+		uitnodiging.setVerstuurdDoorInpakcentrum(true);
+		zas.setVerstuurd(dateSupplier.getDate());
+		hibernateService.saveOrUpdate(zas);
 	}
 }

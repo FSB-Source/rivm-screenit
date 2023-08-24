@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.niettebeoordelen;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -70,7 +70,6 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON })
 public class NietTeBeoordelenMonstersPage extends ColonScreeningBasePage
 {
-	private static final long serialVersionUID = 1L;
 
 	@SpringBean
 	private ColonDossierService colonDossierService;
@@ -95,15 +94,14 @@ public class NietTeBeoordelenMonstersPage extends ColonScreeningBasePage
 		panel = new ZoekIfobtMetBarcodePanel("scanForIfobttest")
 		{
 
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void ifobtFound(IFOBTTest ifobtTest, AjaxRequestTarget target)
 			{
 				super.ifobtFound(ifobtTest, target);
 				if (ifobtTest != null)
 				{
-					if (ifobtTest.getUitslag() == null && IFOBTTestStatus.ACTIEF.equals(ifobtTest.getStatus()) && ifobtTest.getType().equals(IFOBTType.GOLD))
+					if (ifobtTest.getUitslag() == null && ifobtTest.getStatus().magWijzigenNaarStatus(IFOBTTestStatus.NIETTEBEOORDELEN, ifobtTest)
+						&& ifobtTest.getType() == IFOBTType.GOLD)
 					{
 						Instelling ingelogdVoorInstelling = ScreenitSession.get().getInstelling();
 						if (ingelogdVoorInstelling.getOrganisatieType().equals(OrganisatieType.LABORATORIUM))
@@ -115,7 +113,7 @@ public class NietTeBeoordelenMonstersPage extends ColonScreeningBasePage
 					}
 					else
 					{
-						error("Test is geen FIT of is al beoordeeld of opnieuw aangevraagd.");
+						error(getString("error.is.geen.fit.of.al.beoordeeld"));
 					}
 				}
 				else

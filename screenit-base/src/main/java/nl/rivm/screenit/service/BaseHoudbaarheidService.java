@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.service;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,14 +21,15 @@ package nl.rivm.screenit.service;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+import java.util.Date;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.model.AbstractHoudbaarheid;
-
-import org.joda.time.DateTime;
 
 public interface BaseHoudbaarheidService
 {
 	<H extends AbstractHoudbaarheid> boolean isHoudbaar(Class<H> clazz, String barcode);
 
-	DateTime getMinstensHoudbaarTotMet(DateTime nu, PreferenceKey minimaleHoudbaarheidMonstersVoorControleKey);
+	LocalDate getMinstensHoudbaarTotMet(LocalDate vandaag, PreferenceKey minimaleHoudbaarheidMonstersVoorControleKey);
 }

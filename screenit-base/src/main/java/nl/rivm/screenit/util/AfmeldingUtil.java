@@ -4,7 +4,7 @@ package nl.rivm.screenit.util;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,8 @@ package nl.rivm.screenit.util;
  * =========================LICENSE_END==================================
  */
 
-import java.util.List;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.model.AanvraagBriefStatus;
 import nl.rivm.screenit.model.Afmelding;
@@ -30,55 +31,53 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Dossier;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.ScreeningRonde;
-import nl.rivm.screenit.model.colon.ColonAfmelding;
 
-public class AfmeldingUtil
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public final class AfmeldingUtil
 {
 
-	private AfmeldingUtil()
-	{
-	}
-
-	public static boolean isAfgemeld(Dossier dossier)
+	public static boolean isEenmaligOfDefinitefAfgemeld(Dossier<?, ?> dossier)
 	{
 		boolean isAfgemeld = false;
 
-		if (isActieveDefinitieveAfmelding(dossier.getLaatsteAfmelding()))
+		if (isAfgerondeDefinitieveAfmelding(dossier.getLaatsteAfmelding()))
 		{
 			isAfgemeld = true;
 		}
 		ScreeningRonde laatsteScreeningsRonde = dossier.getLaatsteScreeningRonde();
 
-		if (laatsteScreeningsRonde != null && isActieveEenmaligeAfmelding(laatsteScreeningsRonde.getLaatsteAfmelding()))
+		if (laatsteScreeningsRonde != null &&
+			(isAfgerondeEenmaligeAfmelding(laatsteScreeningsRonde.getLaatsteAfmelding())
+				|| isAfgerondeTijdelijkeAfmelding(laatsteScreeningsRonde.getLaatsteAfmelding())))
 		{
 			isAfgemeld = true;
 		}
 		return isAfgemeld;
 	}
 
-	public static boolean isActieveDefinitieveAfmelding(Afmelding afmelding)
+	public static boolean isAfgerondeDefinitieveAfmelding(Afmelding<?, ?, ?> afmelding)
 	{
-		return afmelding != null && afmelding.getAfmeldingStatus().equals(AanvraagBriefStatus.VERWERKT) && afmelding.getType() == AfmeldingType.DEFINITIEF
-			&& afmelding.getHeraanmeldDatum() == null && afmelding.getHeraanmeldStatus() != AanvraagBriefStatus.VERWERKT;
+		return isAfgerondeAfmelding(afmelding, AfmeldingType.DEFINITIEF);
 	}
 
-	public static boolean isActieveEenmaligeAfmelding(Afmelding afmelding)
+	public static boolean isAangevraagdeDefinitieveAfmelding(Afmelding<?, ?, ?> afmelding)
 	{
-		return afmelding != null && afmelding.getHeraanmeldDatum() == null && afmelding.getHeraanmeldStatus() == null && afmelding.getType() == AfmeldingType.EENMALIG;
+		return isAangevraagdeAfmelding(afmelding, AfmeldingType.DEFINITIEF);
 	}
 
-	public static ColonAfmelding getOpEenNaLaatsteAfmelding(List<ColonAfmelding> afmeldingen, ColonAfmelding withoutAfmelding)
+	public static boolean isAfgerondeEenmaligeAfmelding(Afmelding<?, ?, ?> afmelding)
 	{
-		ColonAfmelding eenNaLaatsteAfmelding = null;
-		for (ColonAfmelding afmelding : afmeldingen)
-		{
-			if ((eenNaLaatsteAfmelding == null || DateUtil.compareAfter(eenNaLaatsteAfmelding.getAfmeldDatum(), afmelding.getAfmeldDatum()))
-				&& !afmelding.getId().equals(withoutAfmelding.getId()))
-			{
-				eenNaLaatsteAfmelding = afmelding;
-			}
-		}
-		return eenNaLaatsteAfmelding;
+		return isAfgerondeAfmelding(afmelding, AfmeldingType.EENMALIG);
+	}
+
+	public static boolean isAfgerondeTijdelijkeAfmelding(Afmelding<?, ?, ?> afmelding)
+	{
+		return isAfgerondeAfmelding(afmelding, AfmeldingType.TIJDELIJK);
+	}
+
+	public static boolean isAangevraagdeTijdelijkeAfmelding(Afmelding<?, ?, ?> afmelding)
+	{
+		return isAangevraagdeAfmelding(afmelding, AfmeldingType.TIJDELIJK);
 	}
 
 	public static Client getClientFromAfmelding(Afmelding afmelding)
@@ -93,48 +92,116 @@ public class AfmeldingUtil
 		}
 	}
 
-	public static <A extends Afmelding<?, ?, ?>> A getLaatsteAfmelding(ScreeningRonde<?, ?, A, ?> screeningRonde, Dossier<?, A> dossier)
+	public static <A extends Afmelding<S, D, ?>, S extends ScreeningRonde<D, ?, A, ?>, D extends Dossier<S, A>> A getLaatsteAfmelding(S screeningRonde, D dossier)
 	{
-		A afmelding;
-
 		if (Boolean.FALSE.equals(dossier.getAangemeld()))
 		{
-			afmelding = dossier.getLaatsteAfmelding();
+			var afmelding = dossier.getLaatsteAfmelding();
+			if (afmelding == null)
+			{
+				afmelding = screeningRonde.getLaatsteAfmelding();
+			}
+			return afmelding;
 		}
 		else
 		{
-			afmelding = screeningRonde.getLaatsteAfmelding();
+			return screeningRonde.getLaatsteAfmelding();
 		}
-		return afmelding;
 	}
 
-	public static <A extends Afmelding<?, ?, ?>,S extends ScreeningRonde<?, ?, A, ?>> A getVerwerkteAfmelding(Dossier<S, A> dossier)
+	public static <A extends Afmelding<S, ?, ?>, S extends ScreeningRonde<?, ?, A, ?>> A getHeraanmeldbareAfmelding(Dossier<S, A> dossier)
 	{
 		if (DossierStatus.INACTIEF.equals(dossier.getStatus()))
 		{
-			List<A> dossierAfmeldingen = dossier.getAfmeldingen();
-			for (A afmelding : dossierAfmeldingen)
+			var definitieveAfmeldingen = dossier.getAfmeldingen();
+			for (A afmelding : definitieveAfmeldingen)
 			{
-				if (AanvraagBriefStatus.VERWERKT.equals(afmelding.getAfmeldingStatus()) && afmelding.getHeraanmeldStatus() != AanvraagBriefStatus.VERWERKT)
+				if (isAfmeldingVerwerktNietHeraangemeld(afmelding))
+				{
+					return afmelding;
+				}
+			}
+			var eenmaligOfTijdelijkeAfmeldingen = dossier.getLaatsteScreeningRonde().getAfmeldingen();
+			for (A afmelding : eenmaligOfTijdelijkeAfmeldingen)
+			{
+				if (isAfgerondeAfmeldingNietHeraangemeldEnJuisteType(afmelding, AfmeldingType.TIJDELIJK))
 				{
 					return afmelding;
 				}
 			}
 		}
-		else if (DossierStatus.ACTIEF.equals(dossier.getStatus()))
+		else if (DossierStatus.ACTIEF.equals(dossier.getStatus()) && dossier.getLaatsteScreeningRonde() != null)
 		{
-			if (dossier.getLaatsteScreeningRonde() != null)
+			for (A afmelding : dossier.getLaatsteScreeningRonde().getAfmeldingen())
 			{
-				for (A afmelding : dossier.getLaatsteScreeningRonde().getAfmeldingen())
+				if (isAfgerondeAfmeldingNietHeraangemeldEnJuisteType(afmelding, AfmeldingType.EENMALIG))
 				{
-					if (AanvraagBriefStatus.VERWERKT.equals(afmelding.getAfmeldingStatus()) && AfmeldingType.EENMALIG.equals(afmelding.getType())
-						&& !AanvraagBriefStatus.VERWERKT.equals(afmelding.getHeraanmeldStatus()))
-					{
-						return afmelding;
-					}
+					return afmelding;
+				}
+				if (isAangevraagdeTijdelijkeAfmelding(afmelding))
+				{
+					return afmelding;
+				}
+			}
+
+		}
+		throw new IllegalStateException("DossierStatus is onbekend of een ongeldige status.");
+	}
+
+	public static <D extends Dossier<S, A>, A extends Afmelding<S, D, ?>, S extends ScreeningRonde<D, ?, A, ?>>
+	A getLaatsteDefinitieveOfTijdelijkeHeraangemeldeAfmelding(D dossier)
+	{
+		var laatsteDefitieveAfmelding = dossier.getLaatsteAfmelding();
+
+		A laatsteTijdelijkeAfmelding = null;
+		var laatsteRonde = dossier.getLaatsteScreeningRonde();
+		if (laatsteRonde != null)
+		{
+			var afmeldingen = laatsteRonde.getAfmeldingen();
+			for (int i = afmeldingen.size(); i-- > 0; )
+			{
+				var afmelding = afmeldingen.get(i);
+				if (AfmeldingType.TIJDELIJK == afmelding.getType())
+				{
+					laatsteTijdelijkeAfmelding = afmelding;
+					break;
 				}
 			}
 		}
-		throw new IllegalStateException("DossierStatus is onbekend of een ongeldige status.");
+
+		if (laatsteDefitieveAfmelding != null && laatsteTijdelijkeAfmelding != null)
+		{
+			return laatsteDefitieveAfmelding.getAfmeldDatum().before(laatsteTijdelijkeAfmelding.getAfmeldDatum()) ? laatsteTijdelijkeAfmelding : laatsteDefitieveAfmelding;
+		}
+		else if (laatsteTijdelijkeAfmelding != null)
+		{
+			return laatsteTijdelijkeAfmelding;
+		}
+		else if (laatsteDefitieveAfmelding != null)
+		{
+			return laatsteDefitieveAfmelding;
+		}
+		throw new IllegalStateException("Geen heraangemelde afmelding gevonden.");
+	}
+
+	private static boolean isAfgerondeAfmelding(Afmelding<?, ?, ?> afmelding, AfmeldingType type)
+	{
+		return afmelding != null && isAfgerondeAfmeldingNietHeraangemeldEnJuisteType(afmelding, type)
+			&& afmelding.getHeraanmeldStatus() == null;
+	}
+
+	private static boolean isAfgerondeAfmeldingNietHeraangemeldEnJuisteType(Afmelding<?, ?, ?> afmelding, AfmeldingType gewensteType)
+	{
+		return isAfmeldingVerwerktNietHeraangemeld(afmelding) && afmelding.getType() == gewensteType;
+	}
+
+	private static boolean isAfmeldingVerwerktNietHeraangemeld(Afmelding<?, ?, ?> afmelding)
+	{
+		return afmelding.getAfmeldingStatus() == AanvraagBriefStatus.VERWERKT && afmelding.getHeraanmeldStatus() != AanvraagBriefStatus.VERWERKT;
+	}
+
+	private static boolean isAangevraagdeAfmelding(Afmelding<?, ?, ?> afmelding, AfmeldingType type)
+	{
+		return afmelding != null && afmelding.getType() == type && afmelding.getAfmeldingStatus() == AanvraagBriefStatus.BRIEF;
 	}
 }

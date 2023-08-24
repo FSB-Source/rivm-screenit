@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.discrepantie_arbi
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,12 +23,11 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.discrepantie_arbi
 
 import java.util.List;
 
-import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.MammaOnderzoekPanel;
-import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.AbstractMammaBeoordelenPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.AbstractMammaRondePanel;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.MammaMBBBeoordelingPanel;
+import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.MammaOnderzoekPanel;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.MammaVisueleInspectiePanel;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.dto.LaesieDto;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.dto.LaesieDtoMapper;
@@ -37,6 +36,7 @@ import nl.rivm.screenit.model.mamma.MammaLezing;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.enums.MammaBeLezerSoort;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
+import nl.rivm.screenit.util.EnumStringUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -102,7 +102,7 @@ public class MammaDiscrepantieArbitrageRondePanel extends AbstractMammaRondePane
 		koppelNieuweLaesiesAanLezing(lezing, laesieDtos);
 		baseBeoordelingService.slaLezingOpEnVerwerkStatus(getModelObject(), lezing, ScreenitSession.get().getLoggedInInstellingGebruiker(),
 			b -> getString(EnumStringUtil.getPropertyString(((MammaBeoordeling) b).getOpschortReden())));
-		((AbstractMammaBeoordelenPage) getPage()).volgendeVerslag(target);
+		((AbstractMammaBeoordelenPage) getPage()).volgendeBeoordeling(target);
 	}
 
 	private void koppelNieuweLaesiesAanLezing(MammaLezing lezing, List<LaesieDto> laesieDtos)
@@ -114,7 +114,7 @@ public class MammaDiscrepantieArbitrageRondePanel extends AbstractMammaRondePane
 	void beoordelingNaarArbitrageEnOpslaan(MammaLezing discrepantieLezing, AjaxRequestTarget target)
 	{
 		baseBeoordelingService.discrepantieAfrondenEnNaarArbitrageZetten(getModelObject(), discrepantieLezing);
-		((AbstractMammaBeoordelenPage) getPage()).volgendeVerslag(target);
+		((AbstractMammaBeoordelenPage) getPage()).volgendeBeoordeling(target);
 	}
 
 	MammaBeLezerSoort getLezerSoort()

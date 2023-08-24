@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.logging.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -79,17 +79,17 @@ public class MammaHl7v24BerichtPage extends AlgemeenPage implements IDetachable
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				if (hl7BerichtLogEventModel.getObject().getClient() != null)
+				var clientUitModel = hl7BerichtLogEventModel.getObject().getLogRegel().getClient();
+				if (clientUitModel != null)
 				{
 					Client client = clientService
-						.getClientByBsn(hl7BerichtLogEventModel
-							.getObject().getClient().getPersoon().getBsn());
+						.getClientByBsn(clientUitModel.getPersoon().getBsn());
 					setResponsePage(new ClientInzienPage(new SimpleHibernateModel<>(client)));
 				}
 			}
 		};
 		Label directNaarClientDossierAlternatiefLabel = new Label("directNaarClientDossierAlternatief", "Geen client gekoppeld, bekijk HL7 bericht voor client BSN");
-		if (hl7BerichtLogEventModel.getObject().getClient() == null)
+		if (hl7BerichtLogEventModel.getObject().getLogRegel().getClient() == null)
 		{
 			clientDossierButton.setVisible(false);
 			directNaarClientDossierAlternatiefLabel.setVisible(true);

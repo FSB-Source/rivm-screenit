@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.controllers.colon;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,6 +30,7 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActieType;
 import nl.rivm.screenit.model.EnovationHuisarts;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
+import nl.rivm.screenit.service.ClientContactService;
 import nl.rivm.screenit.service.colon.ColonHuisartsService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -50,19 +51,21 @@ import org.springframework.web.bind.annotation.RestController;
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class ColonHuisartsController extends AbstractController
 {
+	private final HibernateService hibernateService;
+
+	private final ClientContactService clientContactService;
+
 	private final ColonHuisartsService colonHuisartsService;
 
 	private final HuisartsMapper huisartsMapper;
-
-	private final HibernateService hibernateService;
 
 	@PostMapping
 	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<Void> koppelColonHuisarts(Authentication authentication, @RequestParam long id)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.COLON_HUISARTS_WIJZIGEN))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.COLON_HUISARTS_WIJZIGEN))
 		{
 			EnovationHuisarts huisarts = hibernateService.get(EnovationHuisarts.class, id);
 
@@ -85,9 +88,9 @@ public class ColonHuisartsController extends AbstractController
 	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<Void> ontkoppelColonHuisarts(Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.COLON_HUISARTS_WIJZIGEN))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.COLON_HUISARTS_WIJZIGEN))
 		{
 			if (client != null && client.getColonDossier() != null)
 			{
@@ -106,7 +109,7 @@ public class ColonHuisartsController extends AbstractController
 	@GetMapping(path = "/vorige")
 	public ResponseEntity<HuisartsDto> getVorigeColonHuisarts(Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
 		if (client != null && client.getColonDossier() != null)
 		{
@@ -120,7 +123,7 @@ public class ColonHuisartsController extends AbstractController
 	@GetMapping(path = "/huidige")
 	public ResponseEntity<HuisartsDto> getHuidigeColonHuisarts(Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 		if (client != null && client.getColonDossier() != null)
 		{
 			ColonScreeningRonde laatsteScreeningRonde = client.getColonDossier().getLaatsteScreeningRonde();
@@ -134,9 +137,9 @@ public class ColonHuisartsController extends AbstractController
 	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<Void> bevestigVorigeColonHuisarts(Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.COLON_HUISARTS_WIJZIGEN))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.COLON_HUISARTS_WIJZIGEN))
 		{
 			if (client != null)
 			{

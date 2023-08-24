@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,19 +52,17 @@ import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.mamma.enums.MammaAfmeldingReden;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
 import nl.rivm.screenit.service.BaseAfmeldService;
+import nl.rivm.screenit.service.BaseDossierService;
 import nl.rivm.screenit.service.DossierFactory;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.TestService;
+import nl.rivm.screenit.service.mamma.MammaBaseDossierService;
 import nl.rivm.screenit.service.mamma.MammaBaseFactory;
 import nl.rivm.screenit.service.mamma.MammaBaseIlmService;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
-import nl.rivm.screenit.service.mamma.MammaBaseKwaliteitscontroleService;
-import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
 import nl.rivm.screenit.service.mamma.MammaBaseTestService;
-import nl.rivm.screenit.service.mamma.MammaBaseUitwisselportaalService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
-import nl.topicuszorg.util.collections.CollectionUtils;
 import nl.topicuszorg.util.postcode.PostcodeFormatter;
 
 import org.apache.commons.lang.StringUtils;
@@ -71,8 +70,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.google.common.collect.ImmutableMap;
 
 @Service
 @Slf4j
@@ -98,18 +95,15 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 	private DossierFactory dossierFactory;
 
 	@Autowired
+	private MammaBaseDossierService mammaBaseDossierService;
+
+	@Autowired
+	private BaseDossierService baseDossierService;
+
+	@Autowired
 	private BaseAfmeldService baseAfmeldService;
 
 	@Autowired
-	private MammaBaseScreeningrondeService screeningrondeService;
-
-	@Autowired(required = false)
-	private MammaBaseUitwisselportaalService uitwisselportaalService;
-
-	@Autowired(required = false)
-	private MammaBaseKwaliteitscontroleService kwaliteitscontroleService;
-
-	@Autowired(required = false)
 	private MammaBaseKansberekeningService baseKansberekeningService;
 
 	@Autowired
@@ -212,50 +206,32 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 			return;
 		}
 
-		uitwisselportaalService.verwijderDownloadVerzoeken(dossier);
+		mammaBaseDossierService.maakDossierLeeg(dossier);
 
-		kwaliteitscontroleService.verwijderKwaliteitscontroleOnderzoeken(dossier);
-
-		screeningrondeService.verwijderAlleScreeningRondes(dossier);
+		baseDossierService.verwijderLaatsteAfmelding(dossier);
 
 		baseIlmService.verwijderIlmBezwaarPogingen(dossier);
 
 		baseIlmService.verwijderIlmRapportageEntriesVoorClient(client);
-
-		if (CollectionUtils.isNotEmpty(dossier.getAfmeldingen()))
-		{
-			for (MammaAfmelding afmelding : dossier.getAfmeldingen())
-			{
-				afmelding.setAfmeldingAanvraag(null);
-				afmelding.setAfmeldingBevestiging(null);
-				afmelding.setHeraanmeldAanvraag(null);
-				afmelding.setHeraanmeldBevestiging(null);
-				hibernateService.deleteAll(afmelding.getBrieven());
-			}
-			dossier.setLaatsteAfmelding(null);
-			hibernateService.deleteAll(dossier.getAfmeldingen());
-		}
 
 		MammaDeelnamekans deelnamekans = dossier.getDeelnamekans();
 		if (deelnamekans != null)
 		{
 			hibernateService.delete(deelnamekans);
 		}
+
+		baseHL7v24Dao.deleteMessagesForClient(client);
+
+		List<MammaBrief> overgeblevenBrieven = hibernateService.getByParameters(MammaBrief.class, Map.of("client", client));
+		hibernateService.deleteAll(overgeblevenBrieven);
+
 		client.setMammaDossier(null);
 		hibernateService.delete(dossier);
 		hibernateService.saveOrUpdate(client);
 
-		List<MammaBrief> overgeblevenBrieven = hibernateService.getByParameters(MammaBrief.class, ImmutableMap.of("client", client));
-		hibernateService.deleteAll(overgeblevenBrieven);
+		dossierFactory.maakDossiers(client);
 
-		if (client.getMammaDossier() == null)
-		{
-			dossierFactory.maakDossiers(client);
-		}
-
-		baseHL7v24Dao.deleteMessagesForClient(client);
-
-		LOG.info("Client gereset met bsn: " + client.getPersoon().getBsn());
+		LOG.info("Client gereset met id: " + client.getId());
 	}
 
 	@Override

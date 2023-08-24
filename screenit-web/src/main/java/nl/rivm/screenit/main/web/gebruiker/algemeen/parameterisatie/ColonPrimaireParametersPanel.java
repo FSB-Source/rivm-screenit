@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -51,7 +51,8 @@ public class ColonPrimaireParametersPanel extends BasePrimaireParametersPanel
 		Form<Parameterisatie> form = new Form<>("form");
 		form.add(new TextField<>("uitnodigingsinterval", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
 		form.add(new TextField<>("vooraankondiginsperiode", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
-		form.add(createDoubleTextField("percentgageifobtongustig").setRequired(true).add(new RangeValidator<Double>(0.01, 100.0)));
+		form.add(new TextField<>("colonVooraankondigingNaVervolgonderzoek", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
+		form.add(createDoubleTextField("percentgageifobtongustig").setRequired(true).add(new RangeValidator<>(0.01, 100.0)));
 		form.add(createDoubleTextField("percentageifobtretour").setRequired(true).add(new RangeValidator<>(0.01, 100.0)));
 		form.add(new TextField<>("intakeafspraakperiode", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
 		form.add(new TextField<>("ifobtanalyseperiode", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
@@ -80,9 +81,14 @@ public class ColonPrimaireParametersPanel extends BasePrimaireParametersPanel
 		form.add(new TextField<>("colonAantalRondesUitnodigingsbriefZonderFit", Integer.class).add(RangeValidator.minimum(1)).setRequired(true));
 
 		addTextAreaField(form, "colonEenmaligHeraanmeldenTekst");
+		addTextAreaField(form, "colonTijdelijkHeraanmeldenTekst");
 		addTextAreaField(form, "colonDefinitiefHeraanmeldenTekst");
+		addTextAreaField(form, "colonDefinitieveAfmeldingBevestigingTekst");
+		addTextAreaField(form, "colonTijdelijkeAfmeldingBevestigingTekst");
 		addTextAreaField(form, "colonNieuweFitAangevraagdTekst");
 		addTextAreaField(form, "colonNieuweFitNaHeraanmeldingTekst");
+		addTextAreaField(form, "colonLaatsteRondeBriefTekst");
+		addTextAreaField(form, "colonVolgendeRondeBriefTekst");
 
 		return form;
 	}

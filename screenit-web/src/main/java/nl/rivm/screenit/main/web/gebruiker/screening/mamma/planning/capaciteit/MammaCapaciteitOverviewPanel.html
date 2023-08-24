@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -20,12 +20,12 @@
   -->
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-	<div style="display:none;" class="right" wicket:id="selector"></div>
+	<div class="right display-none" wicket:id="selector"></div>
     <div wicket:id="calendar"></div>
     <div id="loading">Loading...</div>
     <div wicket:id="dialog"></div>
     <div wicket:id="tooltipContainer">
-        <div wicket:id="tooltip" style="display: none;"></div>
+		<div wicket:id="tooltip" class="display-none"></div>
     </div>    
     <wicket:fragment wicket:id="meldingenFragment">
     	<table class="table table-bordered table-condensed">

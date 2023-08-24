@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline;
  * =========================LICENSE_END==================================
  */
 
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -49,6 +50,7 @@ import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
+import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.cervix.enums.CervixAfmeldingReden;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -155,7 +157,7 @@ public class CervixTestTimelinePage extends TestenBasePage
 
 		TestTimelineModel testTimelineModel = new TestTimelineModel();
 		testTimelineModel.setGeslacht(Geslacht.VROUW);
-		testTimelineModel.setGeboortedatum(dateSupplier.getDateTime().minusYears(30).toDate());
+		testTimelineModel.setGeboortedatum(DateUtil.minusTijdseenheid(dateSupplier.getDate(), 30, ChronoUnit.YEARS));
 		testTimelineModel.setLeeftijd(30);
 
 		model = new CompoundPropertyModel<>(testTimelineModel);
@@ -263,7 +265,7 @@ public class CervixTestTimelinePage extends TestenBasePage
 			protected void onUpdate(AjaxRequestTarget target)
 			{
 				TestTimelineModel timelineModel = model.getObject();
-				timelineModel.setLeeftijd(DateUtil.getAantalJaarTussenTweeDatums(DateUtil.toLocalDate(timelineModel.getGeboortedatum()), dateSupplier.getLocalDate()));
+				timelineModel.setLeeftijd(DateUtil.getLeeftijd(DateUtil.toLocalDate(timelineModel.getGeboortedatum()), dateSupplier.getLocalDate()));
 				target.add(leeftijd);
 			}
 		});
@@ -390,9 +392,17 @@ public class CervixTestTimelinePage extends TestenBasePage
 				public List<TestVervolgKeuzeOptie> getOptions()
 				{
 					var keuzes = new ArrayList<TestVervolgKeuzeOptie>();
-					if (!Deelnamemodus.SELECTIEBLOKKADE.equals(clientModel.getObject().get(0).getCervixDossier().getDeelnamemodus()))
+					CervixDossier dossier = clientModel.getObject().get(0).getCervixDossier();
+					if (!Deelnamemodus.SELECTIEBLOKKADE.equals(dossier.getDeelnamemodus()))
 					{
-						keuzes.add(TestVervolgKeuzeOptie.CERVIX_NIEUWE_RONDE);
+						if (testTimelineService.magNieuweRondeStarten(dossier))
+						{
+							keuzes.add(TestVervolgKeuzeOptie.CERVIX_NIEUWE_RONDE);
+							if (dossier.getLaatsteScreeningRonde() == null)
+							{
+								keuzes.add(TestVervolgKeuzeOptie.CERVIX_NIEUWE_RONDE_MET_VOORAANKONDIGING);
+							}
+						}
 						keuzes.add(TestVervolgKeuzeOptie.CERVIX_NIEUWE_CISHISTORIE);
 						keuzes.add(TestVervolgKeuzeOptie.CERVIX_NIEUWE_CIS_RONDE0);
 						keuzes.add(TestVervolgKeuzeOptie.CERVIX_VERZET_TIJD);

@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.controller;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ import nl.rivm.screenit.mamma.se.proxy.model.Amputatie;
 import nl.rivm.screenit.mamma.se.proxy.model.ClientScreenITWerklijstItem;
 import nl.rivm.screenit.mamma.se.proxy.model.KwaliteitsopnameScreenITWerklijstItem;
 import nl.rivm.screenit.mamma.se.proxy.services.WerklijstStoreService;
+import nl.rivm.screenit.mamma.se.proxy.util.SafeStringUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,8 +68,12 @@ public class WerklijstProxyController
 		}
 		else
 		{
-			LOG.info("Start kwaliteitsopname, reden = {}, voor of na kalibratie = {}, patientId = {}, startMoment = {}", werklijstItem.getReden(),
-				werklijstItem.getVoorOfNaKalibratie(), werklijstItem.getPatientId(), werklijstItem.getStartMoment());
+			var safeReden = SafeStringUtil.maakStringMetUserInputVeiligVoorLogging(werklijstItem.getReden());
+			var safeVoorOfNaKalibratie = SafeStringUtil.maakStringMetUserInputVeiligVoorLogging(werklijstItem.getVoorOfNaKalibratie());
+			var safePatientId = SafeStringUtil.maakStringMetUserInputVeiligVoorLogging(werklijstItem.getPatientId());
+
+			LOG.info("Start kwaliteitsopname, reden = {}, voor of na kalibratie = {}, patientId = {}, startMoment = {}", safeReden,
+				safeVoorOfNaKalibratie, safePatientId, werklijstItem.getStartMoment());
 			store.setActiefKwaliteitsopnameWerklijstItem(werklijstItem);
 			store.setWerklijstItem(werklijstItem);
 			return ResponseEntity.ok(werklijstItem);

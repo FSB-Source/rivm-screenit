@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -38,24 +38,24 @@
                 <fieldset class="">
                     <div class="form-horizontal">
                         <div class="control-group">
-                            <label class="control-label span12">Opmerking</label>
-                            <div class="controls" style="margin-left: 0;">
-                                <textarea class="textarea-full-width" id="opmerkingen" wicket:id="opmerking"></textarea>
-                            </div>
-                        </div>
+							<label class="control-label span12">Opmerking</label>
+							<div class="controls client-vervolg-acties">
+								<textarea class="textarea-full-width" id="opmerkingen" wicket:id="opmerking"></textarea>
+							</div>
+						</div>
 
                         <div class="control-group">
-                            <div class="controls" style="margin-left: 0;" wicket:id="vervolgacties">
-                                <div wicket:id="vervolgactiesGen">
-                                    <strong>Algemeen</strong>
-                                    <label class="checkbox" wicket:id="vervolgactie">
-                                        <input type="checkbox" wicket:id="checkbox">
-                                        <wicket:container wicket:id="label"/>
-                                    </label>
-                                </div>
-                                <div wicket:id="vervolgactiesCervix">
-                                    <strong>Baarmoederhalskanker</strong>
-                                    <label class="checkbox" wicket:id="vervolgactie">
+							<div class="controls client-vervolg-acties" wicket:id="vervolgacties">
+								<div wicket:id="vervolgactiesGen">
+									<strong>Algemeen</strong>
+									<label class="checkbox" wicket:id="vervolgactie">
+										<input type="checkbox" wicket:id="checkbox">
+										<wicket:container wicket:id="label"/>
+									</label>
+								</div>
+								<div wicket:id="vervolgactiesCervix">
+									<strong>Baarmoederhalskanker</strong>
+									<label class="checkbox" wicket:id="vervolgactie">
                                         <input type="checkbox" wicket:id="checkbox">
                                         <wicket:container wicket:id="label"/>
                                     </label>
@@ -81,7 +81,7 @@
                 </fieldset>
 
                 <div class="buttons">
-                    <a href="javascript:void(0);" class="btn btn-primary pull-right" wicket:id="afronden">Contact afronden</a>
+                    <a  class="btn btn-primary pull-right" wicket:id="afronden">Contact afronden</a>
                 </div>
             </form>
             <div class="clearfix"></div>

@@ -23,6 +23,7 @@ import {
 	MAAK_ONDERBROKEN_ONDERZOEK,
 	MAAK_ONVOLLEDIG_ONDERZOEK,
 	SET_AMPUTATIE,
+	MAAK_ONDERZOEK_TYPE,
 } from "../actions/AanvullendeInformatieActions"
 import type {ClearCacheActions} from "../actions/ClearCacheActions"
 import {CLEAR_CACHE} from "../actions/ClearCacheActions"
@@ -60,6 +61,7 @@ const OnderzoekReducer = (stateSlice: Map<number, Onderzoek> = new Map(), action
 				onderbrokenOnderzoek: undefined,
 				extraFotosRedenen: undefined,
 				adviesHuisarts: undefined,
+				onderzoekType: action.onderzoekType,
 			})
 			break
 		case ONDERZOEK_OPSLAAN:
@@ -157,6 +159,12 @@ const OnderzoekReducer = (stateSlice: Map<number, Onderzoek> = new Map(), action
 			result.set(action.afspraakId, {
 				...getMandatory(stateSlice, action.afspraakId),
 				extraFotosRedenen: action.extraFotosRedenen,
+			})
+			break
+		case MAAK_ONDERZOEK_TYPE:
+			result.set(action.afspraakId, {
+				...getMandatory(stateSlice, action.afspraakId),
+				onderzoekType: action.onderzoekType,
 			})
 			break
 		case MAAK_ADVIES_HUISARTS:

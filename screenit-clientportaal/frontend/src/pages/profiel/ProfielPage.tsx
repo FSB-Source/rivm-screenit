@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,6 +35,7 @@ import {isNullOfLeeg, isNullOfUndefined} from "../../utils/EmptyUtil"
 import {useSelector} from "react-redux"
 import {State} from "../../datatypes/State"
 import TelefoonnummerIcon from "../../scss/media/icons_toptaken/TelefoonnummerWijzigenIcon/TelefoonnummerWijzigenIcon"
+import EmailadresWijzigenIcon from "../../scss/media/icons_toptaken/EmailadresWijzigenIcon/EmailadresWijzigenIcon"
 import HuisIcon from "../../scss/media/icons_toptaken/AdresWijzigenIcon/HuisIcon"
 import properties from "./ProfielPage.json"
 import {ClientContactActieType} from "../../datatypes/ClientContactActieType"
@@ -70,7 +71,7 @@ const ProfielPage = () => {
 					</div>
 				</Col>
 			</Row>
-			{!beschikbareActies.includes(ClientContactActieType.GEEN) &&
+			{!beschikbareActies.includes(ClientContactActieType.GEEN) && persoon.vertrokkenUitNederland === false &&
 				<Row className={styles.topTaakSelectie}>
 					<Col lg={4}>
 						<TopTaakComponent icon={<TelefoonnummerIcon/>}
@@ -78,6 +79,12 @@ const ProfielPage = () => {
 										  titel={getString(properties.toptaak.title.telefoonnummer)}
 										  subTitel={heeftTelefoonnummer(persoon) ? getString(properties.toptaak.subtitle.telefoonnummer) : ""}
 										  subTekst={heeftTelefoonnummer(persoon) ? (persoon.telefoonnummer1 ? persoon.telefoonnummer1 + "<br/>" : "") + (persoon.telefoonnummer2 ? persoon.telefoonnummer2 : "") : ""}/>
+					</Col>
+					<Col lg={4}>
+						<TopTaakComponent icon={<EmailadresWijzigenIcon/>}
+										  link="/profiel/email/"
+										  titel={getString(properties.toptaak.title.email)}
+						/>
 					</Col>
 					<Col lg={4}>
 						<TopTaakComponent icon={<HuisIcon/>}

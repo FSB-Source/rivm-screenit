@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -18,13 +18,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
-import RedenAfspraakAfzeggen from "./RedenAfspraakAfzeggen"
-
 export type ColonIntakeAfspraakDto = {
-    weergaveAfspraakmoment: string
-    redenAfzeggen: RedenAfspraakAfzeggen
-    naamInstelling: string
-    adresString: string
+	weergaveAfspraakmoment: string
+	naamInstelling: string
+	adresString: string
+	afspraakAfgezegd: boolean
+	andereIntakelocatieOpVerzoekClient: boolean
 }
-
-export const geenColonIntakeAfspraak = {} as ColonIntakeAfspraakDto

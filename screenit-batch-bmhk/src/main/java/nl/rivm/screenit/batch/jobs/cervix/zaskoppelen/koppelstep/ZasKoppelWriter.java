@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.zaskoppelen.koppelstep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -101,7 +101,7 @@ public class ZasKoppelWriter implements ItemWriter<VERZONDENUITNODIGING>
 					}
 					if (zas == null)
 					{
-						zas = cervixFactory.maakZas(cervixUitnodiging, zasBarcode);
+						zas = cervixFactory.maakZasMonster(cervixUitnodiging, zasBarcode);
 					}
 					Date datumVerstuurd = verzendDatumFormat.parse(getMatchingFieldValue(verzondenUitnodiging, KoppelConstants.KOPPEL_DATUM_VERZENDING, true));
 					zas.setVerstuurd(datumVerstuurd);

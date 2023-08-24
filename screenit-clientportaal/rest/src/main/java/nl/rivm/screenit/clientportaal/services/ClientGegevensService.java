@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.services;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,8 @@ import nl.rivm.screenit.model.TijdelijkAdres;
 public interface ClientGegevensService
 {
 	Client setTelefoonnummer(String telefoonnummer1, String telefoonnummer2, Client client);
+
+	Client setEmailadres(String emailAdres, Client client);
 
 	Client setTijdelijkAdres(TijdelijkAdres tijdelijkAdres, Client client);
 

@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.service.impl;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,6 +29,7 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
+import nl.rivm.screenit.dao.mamma.MammaBaseAfspraakDao;
 import nl.rivm.screenit.dao.mamma.MammaBaseStandplaatsPeriodeDao;
 import nl.rivm.screenit.mamma.se.dao.MammaAfsprakenDao;
 import nl.rivm.screenit.mamma.se.dto.actions.AfspraakMakenPassantDto;
@@ -72,6 +73,9 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 
 	@Autowired
 	private MammaAfsprakenDao afsprakenDao;
+
+	@Autowired
+	private MammaBaseAfspraakDao baseAfspraakDao;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -130,7 +134,7 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 	@Override
 	public LocalDate getDatumVanOudsteNietAfgeslotenOnderzoek(String seCode)
 	{
-		var datum = afsprakenDao.readDatumVanOudsteNietAfgeslotenOnderzoek(currentDateSupplier.getLocalDate(), seCode);
+		var datum = baseAfspraakDao.readDatumVanOudsteNietAfgeslotenOnderzoek(currentDateSupplier.getLocalDate(), seCode);
 		return DateUtil.toLocalDate(datum);
 	}
 
@@ -217,7 +221,7 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 			var content = "Voor een client is een afspraak in de toekomst afgezegd, deze is terug te vinden op het dashboard '" + type.getNaam() + "' van "
 				+ dashboardStatus.getOrganisatie().getNaam() + " of via 'Logging inzien' door te filteren op de gebeurtenis 'Afspraak afgemeld SE offline'";
 
-			mailService.queueMail(emailadressen, "Onderzoek nabewerken: afspraak in de toekomst afgezegd", content);
+			mailService.queueMailAanProfessional(emailadressen, "Onderzoek nabewerken: afspraak in de toekomst afgezegd", content);
 		}
 	}
 

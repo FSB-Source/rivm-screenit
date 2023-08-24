@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.dao.colon.impl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,14 +38,12 @@ import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.MdlVerslag;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
-import nl.rivm.screenit.model.colon.planning.AfspraakLocatieWrapper;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.query.ScreenitRestrictions;
 import nl.topicuszorg.hibernate.criteria.BaseCriteria;
 import nl.topicuszorg.hibernate.criteria.ListCriteria;
-import nl.topicuszorg.hibernate.object.model.HibernateObject;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 import nl.topicuszorg.wicket.planning.dao.CriteriaHelper;
 import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
@@ -55,7 +52,6 @@ import nl.topicuszorg.wicket.planning.model.appointment.Location;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
-import org.hibernate.Hibernate;
 import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Disjunction;
@@ -64,18 +60,12 @@ import org.hibernate.criterion.ProjectionList;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
-import org.hibernate.envers.AuditReader;
-import org.hibernate.envers.AuditReaderFactory;
-import org.hibernate.envers.query.AuditEntity;
-import org.hibernate.envers.query.AuditQuery;
 import org.hibernate.sql.JoinType;
-import org.hibernate.transform.Transformers;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 
 @Repository
@@ -269,14 +259,16 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 				Restrictions.or(
 					Subqueries.propertyIn("colonScreeningRonde.id", verslagenCrit),
 					Restrictions.and(
-						Restrictions.eq("status", AfspraakStatus.UITGEVOERD), 
+						Restrictions.eq("status", AfspraakStatus.UITGEVOERD),
 						Restrictions.isNotNull("conclusie.type"),
+						Restrictions.ne("conclusie.type", ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM),
 						Restrictions.ne("conclusie.type", ColonConclusieType.ON_HOLD))));
 			criteria.add(Restrictions.isNull("persoon.overlijdensdatum"));
 			criteria.add(Restrictions.or(
 				ScreenitRestrictions.getLeeftijdsgrensRestrictions(null, zoekFilter.getMaxLeeftijd(), vandaag),
 				Restrictions.not(
-					ColonRestrictions.critRondeZonderVerslagNaVerlopenOngunstigeUitslag(DateUtil.toUtilDate(vandaag.minusDays(zoekFilter.getInterval())), "testen", "colonScreeningRonde")
+					ColonRestrictions.critRondeZonderVerslagNaVerlopenOngunstigeUitslag(DateUtil.toUtilDate(vandaag.minusDays(zoekFilter.getInterval())), "testen",
+						"colonScreeningRonde")
 				),
 				Restrictions.isNotNull("openUitnodiging.id")
 			));
@@ -296,16 +288,30 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 				critZonderConclusie.add(Restrictions.lt("startTime", DateUtil.toUtilDate(vandaag)));
 			}
 
-				Conjunction critOnHold = Restrictions.conjunction();
-				critOnHold.add(Restrictions.eq("conclusie.type", ColonConclusieType.ON_HOLD));
-				if (totEnMet != null)
-				{
-					critOnHold.add(Restrictions.lt("startTime", DateUtil.toUtilDate(totEnMet)));
-				}
-				criteria.alias("dossier.volgendeUitnodiging", "volgendeUitnodiging");
-				criteria.createAlias("volgendeUitnodiging.interval", "interval");
-				criteria.add(Restrictions.gtProperty("volgendeUitnodiging.peildatum", "interval.berekendeReferentieDatum"));
-				criteria.add(Restrictions.or(critZonderConclusie, critOnHold));
+			Conjunction critOnHold = Restrictions.conjunction();
+			critOnHold.add(Restrictions.eq("conclusie.type", ColonConclusieType.ON_HOLD));
+
+			Conjunction critDoorverwijzenMedischeRedenen = Restrictions.conjunction();
+			critDoorverwijzenMedischeRedenen.add(Restrictions.eq("conclusie.type", ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM));
+			critDoorverwijzenMedischeRedenen.add(
+				Restrictions.or(
+					Restrictions.and(
+						Restrictions.eq("conclusie.doorverwijzingBevestigd", false),
+						Restrictions.isNotNull("nieuweAfspraak")),
+					Restrictions.and(
+						Restrictions.eq("conclusie.doorverwijzingBevestigd", true),
+						Restrictions.isNull("nieuweAfspraak"))
+				));
+
+			if (totEnMet != null)
+			{
+				critOnHold.add(Restrictions.lt("startTime", DateUtil.toUtilDate(totEnMet)));
+				critDoorverwijzenMedischeRedenen.add(Restrictions.lt("startTime", DateUtil.toUtilDate(totEnMet)));
+			}
+			criteria.alias("dossier.volgendeUitnodiging", "volgendeUitnodiging");
+			criteria.createAlias("volgendeUitnodiging.interval", "interval");
+			criteria.add(Restrictions.gtProperty("volgendeUitnodiging.peildatum", "interval.berekendeReferentieDatum"));
+			criteria.add(Restrictions.or(critZonderConclusie, critOnHold, critDoorverwijzenMedischeRedenen));
 		}
 
 		if (!AfspraakStatus.UITGEVOERD.equals(zoekFilter.getStatus()))
@@ -345,7 +351,7 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 		final BaseCriteria<? extends ColonIntakeAfspraak> criteria = createCriteria(zoekFilter, coloscopieCentrum, vandaag);
 		if (moetNogOpGeboortedatumFilteren(zoekFilter))
 		{
-			List<ColonIntakeAfspraak> afspraken =  (List<ColonIntakeAfspraak>) criteria.list(getSession());
+			List<ColonIntakeAfspraak> afspraken = (List<ColonIntakeAfspraak>) criteria.list(getSession());
 			filterGeboortedatum(zoekFilter.getGeboortedatum(), afspraken);
 			return afspraken.size();
 		}
@@ -369,7 +375,7 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 	}
 
 	@Override
-	public List<Object> getAfsprakenInIntervals(Kamer location, List<Interval> verwijderdeIntervals)
+	public List<Object> getAfsprakenInRanges(Kamer location, List<Range<Date>> verwijderdeRanges)
 	{
 		Criteria criteria = getSession().createCriteria(Afspraak.class);
 
@@ -378,18 +384,17 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 		criteria.add(Restrictions.or(Restrictions.eq("status", AfspraakStatus.GEPLAND), Restrictions.eq("status", AfspraakStatus.UITGEVOERD)));
 
 		Disjunction disjunction = Restrictions.disjunction();
-		for (Interval interval : verwijderdeIntervals)
+		for (var range : verwijderdeRanges)
 		{
-			disjunction.add(RangeCriteriaBuilder.closedOpen("startTime", "endTime").overlaps(interval));
+			disjunction.add(RangeCriteriaBuilder.closedOpen("startTime", "endTime").overlaps(range));
 		}
 		criteria.add(disjunction);
 		criteria.addOrder(Order.asc("startTime"));
 
-		ProjectionList projectionList = Projections.projectionList() 
-			.add(Projections.property("startTime")) 
-			.add(Projections.property("endTime")) 
-			.add(Projections.property("id"))
-		;
+		ProjectionList projectionList = Projections.projectionList()
+			.add(Projections.property("startTime"))
+			.add(Projections.property("endTime"))
+			.add(Projections.property("id"));
 		criteria.setProjection(projectionList);
 
 		return criteria.list();
@@ -402,8 +407,8 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 
 		criteria.add(Restrictions.eq("location", newAfspraak.getLocation()));
 
-		Interval interval = new Interval(new DateTime(newAfspraak.getStartTime()), new DateTime(newAfspraak.getEndTime()));
-		criteria.add(RangeCriteriaBuilder.closedOpen("startTime", "endTime").overlaps(interval));
+		var range = Range.closed(newAfspraak.getStartTime(), newAfspraak.getEndTime());
+		criteria.add(RangeCriteriaBuilder.closedOpen("startTime", "endTime").overlaps(range));
 
 		return (RoosterItem) criteria.uniqueResult();
 	}
@@ -422,41 +427,7 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 	}
 
 	@Override
-	public List<AfspraakLocatieWrapper> getAllAfsprakLengtesPerLocatie()
-	{
-		Criteria criteria = getSession().createCriteria(Afspraak.class);
-
-		criteria.createAlias("location", "location");
-		criteria.createAlias("location.coloscopieCentrum", "intakeLocatie");
-
-		criteria.add(Restrictions.or(Restrictions.eq("status", AfspraakStatus.GEPLAND), Restrictions.eq("status", AfspraakStatus.UITGEVOERD)));
-
-		criteria.addOrder(Order.desc("startTime"));
-
-		ProjectionList projectionList = Projections.projectionList() 
-			.add(Projections.alias(Projections.property("intakeLocatie.id"), "locatieId")) 
-			.add(Projections.alias(Projections.property("startTime"), "startTime")) 
-			.add(Projections.alias(Projections.property("endTime"), "endTime")) 
-		;
-		criteria.setProjection(projectionList);
-		criteria.setResultTransformer(Transformers.aliasToBean(AfspraakLocatieWrapper.class));
-
-		return criteria.list();
-	}
-
-	@Override
-	public Date getLaatsteWijzigingsdatumAfspraak(HibernateObject entity)
-	{
-		AuditReader reader = AuditReaderFactory.get(getSession());
-		AuditQuery query = reader.createQuery().forRevisionsOfEntity(Hibernate.getClass(entity), false, false);
-		query.add(AuditEntity.id().eq(entity.getId()));
-		query.addProjection(AuditEntity.revisionNumber().max());
-		Number lastRevision = (Number) query.getSingleResult();
-		return lastRevision == null ? null : reader.getRevisionDate(lastRevision);
-	}
-
-	@Override
-	public List<Object> getRoosterItemsBezetMetAfspraak(Long roosterItemId, Interval currentViewInterval)
+	public List<Object> getRoosterItemsBezetMetAfspraak(Long roosterItemId, Range<Date> currentViewRange)
 	{
 		Criteria criteria = getSession().createCriteria(Afspraak.class, "this");
 
@@ -472,14 +443,13 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 		subcriteria.add(Restrictions.eq("recurrenceItems.id", roosterItemId));
 		subcriteria.setProjection(Projections.id());
 
-		criteria.add(RangeCriteriaBuilder.closedOpen("this.startTime", "this.endTime").overlaps(currentViewInterval));
+		criteria.add(RangeCriteriaBuilder.closedOpen("this.startTime", "this.endTime").overlaps(currentViewRange));
 		criteria.add(Restrictions.or(Restrictions.eq("roosterItem.id", roosterItemId), Subqueries.propertyIn("roosterItem.id", subcriteria)));
 
-		ProjectionList projectionList = Projections.projectionList() 
-			.add(Projections.property("this.startTime")) 
-			.add(Projections.property("this.endTime")) 
-			.add(Projections.property("this.id"))
-		;
+		ProjectionList projectionList = Projections.projectionList()
+			.add(Projections.property("this.startTime"))
+			.add(Projections.property("this.endTime"))
+			.add(Projections.property("this.id"));
 		criteria.setProjection(Projections.distinct(projectionList));
 		return criteria.list();
 	}

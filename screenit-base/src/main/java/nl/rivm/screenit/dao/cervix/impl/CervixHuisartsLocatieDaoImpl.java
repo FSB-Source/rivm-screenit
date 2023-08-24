@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,24 +22,31 @@ package nl.rivm.screenit.dao.cervix.impl;
  */
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.dao.cervix.CervixHuisartsLocatieDao;
+import nl.rivm.screenit.huisartsenportaal.enums.CervixLocatieStatus;
 import nl.rivm.screenit.model.Gemeente;
+import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.enums.CervixHuisartsAanmeldStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixHuisartsLocatieMutatieSoort;
 import nl.rivm.screenit.service.cervix.CervixHuisartsLocatieFilter;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.criteria.BaseCriteria;
 import nl.topicuszorg.hibernate.criteria.ListCriteria;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.MatchMode;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.Subqueries;
 import org.hibernate.sql.JoinType;
-import org.joda.time.DateTime;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,7 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.primitives.Ints;
 
 @Repository
-@Transactional(propagation = Propagation.SUPPORTS)
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class CervixHuisartsLocatieDaoImpl extends AbstractAutowiredDao implements CervixHuisartsLocatieDao
 {
 	@Override
@@ -58,7 +65,7 @@ public class CervixHuisartsLocatieDaoImpl extends AbstractAutowiredDao implement
 
 	@Override
 	public List<CervixHuisartsLocatie> getHuisartsLocaties(long first, long count, String orderByProperty, boolean ascending,
-		String agbCode, List<CervixHuisartsLocatieMutatieSoort> mutatiesoorten, DateTime mutatiedatumVanaf, DateTime mutatiedatumTot, Gemeente... gemeentes)
+		String agbCode, List<CervixHuisartsLocatieMutatieSoort> mutatiesoorten, Date mutatiedatumVanaf, Date mutatiedatumTot, List<Gemeente> gemeentes)
 	{
 		BaseCriteria<CervixHuisartsLocatie> baseCriteria = getCervixHuisartsLocatieBaseCriteria(agbCode, mutatiesoorten, mutatiedatumVanaf, mutatiedatumTot, gemeentes);
 		if (orderByProperty != null)
@@ -66,7 +73,7 @@ public class CervixHuisartsLocatieDaoImpl extends AbstractAutowiredDao implement
 			baseCriteria.order(ascending, orderByProperty);
 		}
 
-		if (first > 0 && count > 0 || first > 0 || count > 0)
+		if (first > 0 || count > 0)
 		{
 			return baseCriteria.list(getSession(), new ListCriteria(Ints.checkedCast(first), Ints.checkedCast(count), orderByProperty, ascending));
 		}
@@ -83,44 +90,35 @@ public class CervixHuisartsLocatieDaoImpl extends AbstractAutowiredDao implement
 	}
 
 	@Override
-	public long countHuisartsLocaties(String agbCode, List<CervixHuisartsLocatieMutatieSoort> mutatiesoorten, DateTime mutatiedatumVanaf, DateTime mutatiedatumTot,
-		Gemeente... gemeentes)
+	public long countHuisartsLocaties(String agbCode, List<CervixHuisartsLocatieMutatieSoort> mutatiesoorten, Date mutatiedatumVanaf, Date mutatiedatumTot,
+		List<Gemeente> gemeentes)
 	{
 		BaseCriteria<CervixHuisartsLocatie> baseCriteria = getCervixHuisartsLocatieBaseCriteria(agbCode, mutatiesoorten, mutatiedatumVanaf, mutatiedatumTot, gemeentes);
 
 		return baseCriteria.count(getSession());
 	}
 
-	private BaseCriteria<CervixHuisartsLocatie> getCervixHuisartsLocatieBaseCriteria(String agbCode, List<CervixHuisartsLocatieMutatieSoort> mutatiesoorten,
-		DateTime mutatiedatumVanaf,
-		DateTime mutatiedatumTot,
-		Gemeente... gemeentes)
+	private BaseCriteria<CervixHuisartsLocatie> getCervixHuisartsLocatieBaseCriteria(String agbcode, List<CervixHuisartsLocatieMutatieSoort> mutatiesoorten,
+		Date mutatiedatumVanaf, Date mutatiedatumTot, List<Gemeente> gemeentes)
 	{
-		BaseCriteria<CervixHuisartsLocatie> crit = new BaseCriteria<>(CervixHuisartsLocatie.class, "huisartsLocatie");
-		crit.alias("huisartsLocatie.huisarts", "huisarts");
-		crit.alias("huisartsLocatie.locatieAdres", "locatieAdres");
+		BaseCriteria<CervixHuisartsLocatie> crit = getCervixHuisartsLocatieBaseCriteria(agbcode);
+
 		crit.alias("locatieAdres.woonplaats", "woonplaats");
 		crit.alias("woonplaats.gemeente", "gemeente");
 
-		crit.add(Restrictions.eq("huisarts.aanmeldStatus", CervixHuisartsAanmeldStatus.GEREGISTREERD));
-
-		if (StringUtils.isNotBlank(agbCode))
-		{
-			crit.add(Restrictions.like("huisarts.agbcode", agbCode, MatchMode.ANYWHERE));
-		}
 		if (mutatiedatumVanaf != null)
 		{
-			crit.add(Restrictions.ge("mutatiedatum", mutatiedatumVanaf.toDate()));
+			crit.add(Restrictions.ge("mutatiedatum", mutatiedatumVanaf));
 		}
 		if (mutatiedatumTot != null)
 		{
-			crit.add(Restrictions.le("mutatiedatum", mutatiedatumTot.plusDays(1).toDate()));
+			crit.add(Restrictions.le("mutatiedatum", DateUtil.plusDagen(mutatiedatumTot, 1)));
 		}
 		if (CollectionUtils.isNotEmpty(mutatiesoorten))
 		{
 			crit.add(Restrictions.in("mutatieSoort", mutatiesoorten));
 		}
-		if (gemeentes.length > 0)
+		if (!gemeentes.isEmpty())
 		{
 			List<Long> ids = new ArrayList<>();
 			for (Gemeente gemeente : gemeentes)
@@ -140,25 +138,15 @@ public class CervixHuisartsLocatieDaoImpl extends AbstractAutowiredDao implement
 
 	private BaseCriteria<CervixHuisartsLocatie> createHuisartsLocatiesBaseCriteria(CervixHuisartsLocatieFilter filter)
 	{
-		BaseCriteria<CervixHuisartsLocatie> crit = new BaseCriteria<>(CervixHuisartsLocatie.class, "huisartsLocatie");
-		crit.alias("huisartsLocatie.huisarts", "huisarts");
+		BaseCriteria<CervixHuisartsLocatie> crit = getCervixHuisartsLocatieBaseCriteria(filter.getAgbcode());
+
+		crit.alias("locatieAdres.woonplaats", "woonplaats", JoinType.LEFT_OUTER_JOIN);
 		crit.alias("huisarts.organisatieMedewerkers", "organisatieMedewerker");
 		crit.alias("organisatieMedewerker.medewerker", "medewerker");
-		crit.alias("huisartsLocatie.locatieAdres", "locatieAdres");
-		crit.alias("locatieAdres.woonplaats", "woonplaats", JoinType.LEFT_OUTER_JOIN);
-
-		crit.add(Restrictions.eq("huisarts.aanmeldStatus", CervixHuisartsAanmeldStatus.GEREGISTREERD));
-
 		if (StringUtils.isNotBlank(filter.getAchternaam()))
 		{
 			crit.add(Restrictions.ilike("medewerker.achternaam", filter.getAchternaam(), MatchMode.ANYWHERE));
 		}
-
-		if (StringUtils.isNotBlank(filter.getAgbcode()))
-		{
-			crit.add(Restrictions.ilike("huisarts.agbcode", filter.getAgbcode(), MatchMode.ANYWHERE));
-		}
-
 		if (StringUtils.isNotBlank(filter.getLocatieNaam()))
 		{
 			crit.add(Restrictions.ilike("huisartsLocatie.naam", filter.getLocatieNaam(), MatchMode.ANYWHERE));
@@ -181,5 +169,39 @@ public class CervixHuisartsLocatieDaoImpl extends AbstractAutowiredDao implement
 		}
 
 		return crit;
+	}
+
+	@NotNull
+	private static BaseCriteria<CervixHuisartsLocatie> getCervixHuisartsLocatieBaseCriteria(String agbcode)
+	{
+		BaseCriteria<CervixHuisartsLocatie> crit = new BaseCriteria<>(CervixHuisartsLocatie.class, "huisartsLocatie");
+		crit.alias("huisartsLocatie.huisarts", "huisarts");
+		crit.alias("huisartsLocatie.locatieAdres", "locatieAdres");
+
+		crit.add(Restrictions.eq("huisarts.aanmeldStatus", CervixHuisartsAanmeldStatus.GEREGISTREERD));
+		crit.add(CervixRestrictions.createLocatieCompleetRestriction("huisartsLocatie"));
+
+		if (StringUtils.isNotBlank(agbcode))
+		{
+			crit.add(Restrictions.like("huisarts.agbcode", agbcode, MatchMode.ANYWHERE));
+		}
+		return crit;
+	}
+
+	@Override
+	public CervixHuisarts getActieveHuisartsMetEenActieveLocatie(String agb)
+	{
+		BaseCriteria<CervixHuisarts> baseCriteria = new BaseCriteria<>(CervixHuisarts.class, "ha");
+		baseCriteria.add(Restrictions.eq("ha.agbcode", agb.trim()));
+		baseCriteria.add(Restrictions.eq("ha.actief", Boolean.TRUE));
+
+		DetachedCriteria subcriteria = DetachedCriteria.forClass(CervixHuisartsLocatie.class, "locatie");
+		subcriteria.add(Restrictions.eq("locatie.status", CervixLocatieStatus.ACTIEF));
+		subcriteria.add(Restrictions.eqProperty("locatie.huisarts", "ha.id"));
+		subcriteria.setProjection(Projections.rowCount());
+
+		baseCriteria.add(Subqueries.eq(1L, subcriteria));
+
+		return baseCriteria.uniqueResult(getSession());
 	}
 }

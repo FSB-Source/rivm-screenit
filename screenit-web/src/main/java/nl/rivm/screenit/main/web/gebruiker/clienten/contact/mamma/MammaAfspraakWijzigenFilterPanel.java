@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,11 +35,11 @@ import java.util.stream.Stream;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.main.dao.mamma.MammaScreeningsEenheidDao;
 import nl.rivm.screenit.main.service.mamma.MammaStandplaatsPeriodeService;
-import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitListMultipleChoice;
+import nl.rivm.screenit.main.web.component.validator.WerkdagValidator;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.ClientContactPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.ClientContactPanel.ClientContactPanelCreateContext;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
@@ -67,11 +67,9 @@ import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.RadioChoice;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidationError;
@@ -81,15 +79,9 @@ import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
 public abstract class MammaAfspraakWijzigenFilterPanel extends GenericPanel<MammaAfspraakWijzigenFilter>
 {
-	private static final String ID_AFSTAND = "afstand";
-
-	private static final String ID_PLAATS = "plaats";
 
 	@SpringBean
 	private ICurrentDateSupplier dateSupplier;
-
-	@SpringBean
-	private MammaStandplaatsService standplaatsService;
 
 	@SpringBean
 	private MammaBaseStandplaatsService baseStandplaatsService;
@@ -113,19 +105,13 @@ public abstract class MammaAfspraakWijzigenFilterPanel extends GenericPanel<Mamm
 
 	private SimpleListHibernateModel<MammaScreeningsEenheid> screeningsEenhedenModel;
 
-	private ListModel<String> plaatsenModel = new ListModel<>(new ArrayList<>());
+	private final boolean uitstellen;
 
-	private boolean verzetten;
-
-	private final boolean isClientportaal;
-
-	private IModel<MammaStandplaats> standplaats;
-
-	public MammaAfspraakWijzigenFilterPanel(String id, IModel<MammaAfspraakWijzigenFilter> filterModel, boolean verzetten, IModel<MammaStandplaats> standplaats)
+	private final IModel<MammaStandplaats> standplaats;
+	protected MammaAfspraakWijzigenFilterPanel(String id, IModel<MammaAfspraakWijzigenFilter> filterModel, boolean uitstellen, IModel<MammaStandplaats> standplaats)
 	{
 		super(id, filterModel);
-		this.verzetten = verzetten;
-		isClientportaal = ScreenitSession.get().checkPermission(Recht.CLIENT_DASHBOARD, Actie.INZIEN);
+		this.uitstellen = uitstellen;
 		this.standplaats = standplaats;
 	}
 
@@ -135,19 +121,76 @@ public abstract class MammaAfspraakWijzigenFilterPanel extends GenericPanel<Mamm
 		super.onInitialize();
 
 		MammaAfspraakWijzigenFilter filter = getModelObject();
+		MammaDossier dossier = filter.getClient().getMammaDossier();
 
 		Form<MammaAfspraakWijzigenFilter> form = new Form<>("form");
 		add(form);
 
-		MammaDossier dossier = filter.getClient().getMammaDossier();
+		DatePicker<Date> vanafField = addVanafField(form, dossier);
+		DatePicker<Date> totEnMetField = addTotEnMetField(form, dossier);
+
+		if (!uitstellen)
+		{
+			form.add(new DependantDateValidator(vanafField, totEnMetField, DependantDateValidator.Operator.AFTER));
+		}
+
+		resetFilter(null);
+		List<MammaVerzettenReden> values = new ArrayList<>(Arrays.asList(MammaVerzettenReden.values()));
+		values.remove(MammaVerzettenReden.CLIENTEN_PORTAAL);
+		values.remove(MammaVerzettenReden.PASSANT);
+
+		ClientContactPanelCreateContext panelCreateContext = getPage().getMetaData(ClientContactPanel.CREATE_CONTEXT_KEY);
+		if (dossier.getDoelgroep().equals(MammaDoelgroep.MINDER_VALIDE) || dossier.getTehuis() != null || panelCreateContext.bkAlleenClientContact)
+		{
+			values.removeAll(MammaVerzettenReden.BRIEF_VERPLICHT);
+			filter.setVerzettenReden(MammaVerzettenReden.CLIENT_CONTACT);
+		}
+		boolean vanuitPlanning = panelCreateContext.bkVanuitPlanning;
+		if (!vanuitPlanning)
+		{
+			filter.setVerzettenReden(MammaVerzettenReden.CLIENT_CONTACT);
+		}
+		RadioChoice<MammaVerzettenReden> reden = new RadioChoice<>("verzettenReden", values, new EnumChoiceRenderer<>(this));
+		reden.setPrefix("<label class=\"radio\">");
+		reden.setSuffix("</label>");
+		reden.setRequired(true);
+
+		WebMarkupContainer redenContainer = new WebMarkupContainer("redenContainer");
+		redenContainer.setOutputMarkupPlaceholderTag(true);
+		redenContainer.add(reden);
+
+		redenContainer.setVisible(vanuitPlanning && !uitstellen && values.size() > 1);
+		form.add(redenContainer);
+
+		WebMarkupContainer standplaatsenContainer = new WebMarkupContainer("standplaatsenContainer");
+		form.add(standplaatsenContainer);
+		standplaatsenContainer.add(new ScreenitListMultipleChoice<>("standplaatsen", standplaatsenModel, new ChoiceRenderer<>("naam")));
+		standplaatsenContainer.setOutputMarkupId(true);
+
+		WebMarkupContainer screeningsEenhedenContainer = new WebMarkupContainer("screeningsEenhedenContainer");
+		form.add(screeningsEenhedenContainer);
+		screeningsEenhedenContainer.add(new ScreenitListMultipleChoice<>("screeningsEenheden", screeningsEenhedenModel, new ChoiceRenderer<>("naam")));
+		screeningsEenhedenContainer.setOutputMarkupId(true);
+
+		form.add(new CheckBox("extraOpties").setVisible(!uitstellen));
+
+		Integer[] afstanden = new Integer[] { 5, 10, 15, 20, 25, 30, 35, 40, 45 };
+		ScreenitDropdown<Integer> afstandField = new ScreenitDropdown<>("afstand", Arrays.asList(afstanden));
+		afstandField.setNullValid(true);
+		form.add(afstandField);
+
+		CheckBox buitenRegioField = new CheckBox("buitenRegio");
+		buitenRegioField.setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_MAMMA_AFSPRAAK_BUITEN_REGIO, Actie.AANPASSEN));
+		form.add(buitenRegioField);
+
+		buitenRegioField.add(maakChangeBehavior(form));
+		maakZoekButtons(form);
+	}
+
+	private DatePicker<Date> addVanafField(Form<MammaAfspraakWijzigenFilter> form, MammaDossier dossier)
+	{
 		LocalDate minimaleVanaf = dateSupplier.getLocalDate();
 		Integer minimaleIntervalMammografieOnderzoeken = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_INTERVAL_MAMMOGRAFIE_ONDERZOEKEN.name());
-
-		if (isClientportaal)
-		{
-			Integer afsprakenVanafWerkdagen = preferenceService.getInteger(PreferenceKey.MAMMA_ONDERZOEKSCAPACITEIT_NIET_BESCHIKBAAR_BINNEN_WERKDAGEN.name(), 0);
-			minimaleVanaf = DateUtil.plusWerkdagen(minimaleVanaf, afsprakenVanafWerkdagen);
-		}
 
 		LocalDate vroegstMogelijkeUitnodigingsDatum = baseAfspraakService.vroegstMogelijkeUitnodigingsDatum(dossier, minimaleVanaf, minimaleIntervalMammografieOnderzoeken);
 		boolean momenteelBinnenHonderdTachtigRegel = !minimaleVanaf.isEqual(vroegstMogelijkeUitnodigingsDatum);
@@ -170,111 +213,33 @@ public abstract class MammaAfspraakWijzigenFilterPanel extends GenericPanel<Mamm
 				ValidationError validationError = (ValidationError) super.decorate(error, validatable);
 				if (momenteelBinnenHonderdTachtigRegel)
 				{
-					validationError.setKeys(Arrays.asList("vanafdatum.binnen.hondertachtig.dagen"));
+					validationError.setKeys(List.of("vanafdatum.binnen.hondertachtig.dagen"));
 					validationError.setVariable("dagen", preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_INTERVAL_MAMMOGRAFIE_ONDERZOEKEN.toString()));
 				}
 				return validationError;
 			}
 		});
 
+		if (uitstellen)
+		{
+			vanafField.add(new WerkdagValidator());
+		}
+		return vanafField;
+	}
+
+	private DatePicker<Date> addTotEnMetField(Form<MammaAfspraakWijzigenFilter> form, MammaDossier dossier)
+	{
 		DatePicker<Date> totEnMetField = ComponentHelper.newDatePicker("totEnMet");
+
 		form.add(totEnMetField);
 		totEnMetField.setRequired(true);
-		LocalDate laatstMogelijkeUitnodigingsDatum = baseAfspraakService.laatstMogelijkeUitnodigingsDatum(dossier);
+		LocalDate laatstMogelijkeUitnodigingsDatum = baseAfspraakService.laatstMogelijkeAfspraakDatum(dossier);
 		if (laatstMogelijkeUitnodigingsDatum != null)
 		{
 			totEnMetField.add(DateValidator.maximum(DateUtil.toUtilDate(laatstMogelijkeUitnodigingsDatum)));
 		}
-		totEnMetField.setVisible(verzetten);
-
-		form.add(new DependantDateValidator(vanafField, totEnMetField, DependantDateValidator.Operator.AFTER));
-
-		resetFilter(null, null);
-		List<MammaVerzettenReden> values = new ArrayList<>(Arrays.asList(MammaVerzettenReden.values()));
-		values.remove(MammaVerzettenReden.CLIENTEN_PORTAAL);
-		values.remove(MammaVerzettenReden.PASSANT);
-
-		ClientContactPanelCreateContext panelCreateContext = getPage().getMetaData(ClientContactPanel.CREATE_CONTEXT_KEY);
-		if (dossier.getDoelgroep().equals(MammaDoelgroep.MINDER_VALIDE) || dossier.getTehuis() != null || panelCreateContext.bkAlleenClientContact)
-		{
-			values.removeAll(MammaVerzettenReden.BRIEF_VERPLICHT);
-			filter.setVerzettenReden(MammaVerzettenReden.CLIENT_CONTACT);
-		}
-		boolean vanuitPlanning = panelCreateContext.bkVanuitPlanning;
-		if (!vanuitPlanning)
-		{
-			if (isClientportaal)
-			{
-				if (dossier.getLaatsteScreeningRonde() != null && dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging() != null
-					&& dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging().getAfstand() != null)
-				{
-					int afstand = (int) (5.0 * Math.ceil(dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging().getAfstand().doubleValue() / 5.0));
-					filter.setAfstand(afstand);
-				}
-				filter.setVerzettenReden(MammaVerzettenReden.CLIENTEN_PORTAAL);
-				if (standplaats != null)
-				{
-					filter.setPlaats(standplaatsService.getStandplaatsLocatie(standplaats.getObject(), DateUtil.toUtilDate(minimaleVanaf)).getPlaats());
-				}
-			}
-			else
-			{
-				filter.setVerzettenReden(MammaVerzettenReden.CLIENT_CONTACT);
-			}
-		}
-		RadioChoice<MammaVerzettenReden> reden = new RadioChoice<>("verzettenReden", values, new EnumChoiceRenderer<MammaVerzettenReden>(this));
-		reden.setPrefix("<label class=\"radio\">");
-		reden.setSuffix("</label>");
-		reden.setRequired(true);
-
-		WebMarkupContainer redenContainer = new WebMarkupContainer("redenContainer");
-		redenContainer.setOutputMarkupPlaceholderTag(true);
-		redenContainer.add(reden);
-		redenContainer.setVisible(vanuitPlanning && verzetten);
-		form.add(redenContainer);
-
-		WebMarkupContainer standplaatsenContainer = new WebMarkupContainer("standplaatsenContainer");
-		form.add(standplaatsenContainer);
-		standplaatsenContainer.add(new ScreenitListMultipleChoice<>("standplaatsen", standplaatsenModel, new ChoiceRenderer<>("naam")));
-		standplaatsenContainer.setOutputMarkupId(true);
-		standplaatsenContainer.setVisible(!isClientportaal);
-
-		WebMarkupContainer plaatsContainer = new WebMarkupContainer("plaatsContainer");
-		form.add(plaatsContainer);
-		ScreenitDropdown<String> plaatsField = new ScreenitDropdown<>(ID_PLAATS, plaatsenModel);
-		plaatsField.setNullValid(true);
-		plaatsContainer.add(plaatsField);
-		plaatsContainer.setVisible(isClientportaal);
-
-		WebMarkupContainer screeningsEenhedenContainer = new WebMarkupContainer("screeningsEenhedenContainer");
-		form.add(screeningsEenhedenContainer);
-		screeningsEenhedenContainer.add(new ScreenitListMultipleChoice<>("screeningsEenheden", screeningsEenhedenModel, new ChoiceRenderer<>("naam")));
-		screeningsEenhedenContainer.setOutputMarkupId(true);
-		screeningsEenhedenContainer.setVisible(!isClientportaal);
-
-		form.add(new CheckBox("extraOpties").setVisible(verzetten && !isClientportaal));
-
-		Integer[] afstanden = new Integer[] { 5, 10, 15, 20, 25, 30, 35, 40, 45 };
-		ScreenitDropdown<Integer> afstandField = new ScreenitDropdown<>(ID_AFSTAND, Arrays.asList(afstanden));
-		afstandField.setNullValid(true);
-		form.add(afstandField);
-
-		CheckBox buitenRegioField = new CheckBox("buitenRegio");
-		buitenRegioField.setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_MAMMA_AFSPRAAK_BUITEN_REGIO, Actie.AANPASSEN));
-		form.add(buitenRegioField);
-
-		if (isClientportaal)
-		{
-			afstandField.add(maakChangeBehavior(form));
-			plaatsField.add(maakChangeBehavior(form));
-			vanafField.add(maakChangeBehavior(form));
-			totEnMetField.add(maakChangeBehavior(form));
-		}
-		else
-		{
-			buitenRegioField.add(maakChangeBehavior(form));
-		}
-		maakZoekButtons(form);
+		totEnMetField.setVisible(!uitstellen);
+		return totEnMetField;
 	}
 
 	private void maakZoekButtons(Form<MammaAfspraakWijzigenFilter> form)
@@ -288,19 +253,6 @@ public abstract class MammaAfspraakWijzigenFilterPanel extends GenericPanel<Mamm
 			}
 
 		});
-
-		form.add(new IndicatingAjaxSubmitLink("toonMeerAfspraken")
-		{
-			@Override
-			protected void onSubmit(AjaxRequestTarget target)
-			{
-				MammaAfspraakWijzigenFilter filter = MammaAfspraakWijzigenFilterPanel.this.getModelObject();
-				filter.setExtraOpties(true);
-				onZoeken(target);
-				setVisible(false);
-				target.add(this);
-			}
-		}.setOutputMarkupId(true).setVisible(isClientportaal));
 	}
 
 	private void onZoeken(AjaxRequestTarget target)
@@ -310,7 +262,7 @@ public abstract class MammaAfspraakWijzigenFilterPanel extends GenericPanel<Mamm
 		{
 			int aantalWerkdagenVerzettenVanaf = simplePreferenceService
 				.getInteger(PreferenceKey.MAMMA_AFSPRAAK_VERZETTEN_ZONDER_CLIENT_CONTACT_VANAF_AANTAL_WERKDAGEN.name());
-			LocalDate minDatumBriefVerplicht = DateUtil.toLocalDate(DateUtil.plusWerkdagen(dateSupplier.getDateTimeMidnight(), aantalWerkdagenVerzettenVanaf).toDate());
+			LocalDate minDatumBriefVerplicht = DateUtil.toLocalDate(DateUtil.plusWerkdagen(dateSupplier.getDateMidnight(), aantalWerkdagenVerzettenVanaf));
 			if (minDatumBriefVerplicht.isAfter(filter.getVanaf()))
 			{
 				error("Bij de gekozen reden moet een brief gestuurd worden. Daarom moet de minimale 'Vanaf' datum op of na "
@@ -330,13 +282,13 @@ public abstract class MammaAfspraakWijzigenFilterPanel extends GenericPanel<Mamm
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
-				resetFilter(target, getFormComponent());
+				resetFilter(target);
 				target.add(form);
 			}
 		};
 	}
 
-	private void resetFilter(AjaxRequestTarget target, FormComponent<?> changedComponent)
+	private void resetFilter(AjaxRequestTarget target)
 	{
 		ScreeningOrganisatie screeningOrganisatie = null;
 		MammaAfspraakWijzigenFilter filter = getModelObject();
@@ -354,12 +306,12 @@ public abstract class MammaAfspraakWijzigenFilterPanel extends GenericPanel<Mamm
 			List<MammaStandplaats> savedFilterStandplaatsen = filter.getStandplaatsen();
 			filter.setStandplaatsen(new ArrayList<>());
 			filter.setScreeningsEenheden(new ArrayList<>());
-			standplaatsen = Stream.of(standplaatsen, standplaatsPeriodeService.getStandplaatsenBuitenRegio(filter, verzetten))
+			standplaatsen = Stream.of(standplaatsen, standplaatsPeriodeService.getStandplaatsenBuitenRegio(filter, uitstellen))
 				.flatMap(Collection::stream)
 				.distinct()
 				.sorted(Comparator.comparing(MammaStandplaats::getNaam))
 				.collect(Collectors.toList());
-			screeningsEenheden = Stream.of(screeningsEenheden, standplaatsPeriodeService.getScreeningEenhedenBuitenRegio(filter, verzetten))
+			screeningsEenheden = Stream.of(screeningsEenheden, standplaatsPeriodeService.getScreeningEenhedenBuitenRegio(filter, uitstellen))
 				.flatMap(Collection::stream)
 				.distinct()
 				.sorted(Comparator.comparing(MammaScreeningsEenheid::getCode))
@@ -376,21 +328,6 @@ public abstract class MammaAfspraakWijzigenFilterPanel extends GenericPanel<Mamm
 		{
 			standplaatsenModel.setObject(standplaatsen);
 			screeningsEenhedenModel.setObject(screeningsEenheden);
-		}
-		if (isClientportaal)
-		{
-			plaatsenModel.setObject(baseStandplaatsService.getStandplaatsPlaatsenVanActivePeriodes(filter, verzetten));
-			if (changedComponent != null)
-			{
-				if (changedComponent.getId().equals(ID_PLAATS))
-				{
-					filter.setAfstand(null);
-				}
-				else if (changedComponent.getId().equals(ID_AFSTAND))
-				{
-					filter.setPlaats(null);
-				}
-			}
 		}
 	}
 

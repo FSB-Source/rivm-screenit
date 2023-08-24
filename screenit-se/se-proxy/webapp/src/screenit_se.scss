@@ -3,12 +3,17 @@
 	--daglijst-blokken-rechts: 260px;
 	--footer-height: 5%;
 	--header-height: 31px;
+	--page-heading-height: 60px;
 	--vorig-onderzoek-ruimte-erboven: 8px;
 	--original-scale-factor: calc(730 / 1084);
 	--donker-paars: #54026e;
+	--grijs-paars: #a290bd;
 	--middel-paars: #9576C0;
+	--middel-paars-transparant: rgba(149, 118, 192, 0.5);
 	--licht-paars: #D8C1FB;
+	--licht-paars-transparant: rgba(216, 193, 251, 0.25);
 	--tabel-hover-paars: rgba(90, 51, 125, 0.2);
+	--wit-transparant: rgba(255, 255, 255, 0.5);
 }
 
 .login-spinner {
@@ -174,6 +179,19 @@
 
 .clickable {
 	cursor: pointer;
+}
+
+.page-heading-fixed {
+	height: var(--page-heading-height);
+	margin-left: 75px;
+	margin-right: 85px;
+	padding: 0 10px 0 10px;
+	background-color: var(--licht-paars-transparant);
+	border-radius: 10px;
+
+	.btn {
+		margin-top: 10px;
+	}
 }
 
 .onderzoek-heading {
@@ -376,11 +394,6 @@ h5 {
 	margin-bottom: 5%;
 }
 
-.nav-item {
-	color: white;
-	cursor: default;
-}
-
 .fa .tooltiptext {
 	display: none;
 }
@@ -407,16 +420,30 @@ h5 {
 	border-color: var(--middel-paars) !important;
 }
 
+.nav-tabs {
+	padding-top: 15px;
+	padding-left: 40px;
+	background-color: var(--licht-paars);
+}
+
+.nav-item {
+	color: white;
+	cursor: default;
+}
+
 .nav-link {
 	color: inherit;
 	margin-left: 6px;
-	background-color: var(--middel-paars);
 	padding-bottom: 2px;
 	padding-top: 2px;
-}
 
-.nav-link:hover {
-	color: inherit;
+	&:not(.active) {
+		background-color: var(--middel-paars) !important;
+	}
+
+	&:hover {
+		color: inherit;
+	}
 }
 
 .paneel {
@@ -729,7 +756,7 @@ thead {
 
 .onderzoek-component {
 	color: white;
-	background-color: #a290bd;
+	background-color: var(--grijs-paars);
 }
 
 
@@ -799,23 +826,22 @@ table tbody tr:hover {
 	font-style: normal;
 }
 
-.nav-tabs {
-	padding-top: 15px;
-	padding-left: 40px;
-	background-color: var(--licht-paars);
-}
-
 .buitenste-view {
 	height: 100%;
 	width: 100%;
 }
 
 .onderzoek-scherm {
-	position: absolute;
-	height: calc(95% - var(--footer-height) - var(--header-height));
-	width: 100%;
-	overflow: auto;
-	background-color: #a290bd
+	background-color: var(--grijs-paars);
+
+	::-webkit-scrollbar-thumb {
+		background-color: var(--wit-transparant);
+	}
+
+	.onderzoek-content {
+		height: calc(95% - var(--footer-height) - var(--header-height) - var(--page-heading-height) - 20px);
+		background-color: var(--grijs-paars);
+	}
 }
 
 .vorige-onderzoeken {
@@ -823,10 +849,38 @@ table tbody tr:hover {
 }
 
 .inschrijven-scherm {
-	position: absolute;
-	height: calc(93% - var(--footer-height) - var(--header-height));
+
+	::-webkit-scrollbar-thumb {
+		background-color: var(--middel-paars-transparant);
+	}
+
+	.inschrijven-content {
+		height: calc(93% - var(--footer-height) - var(--header-height) - var(--page-heading-height) - 20px);
+		padding-bottom: 20px;
+	}
+
+}
+
+.onderzoek-content, .inschrijven-content {
 	width: 100%;
-	overflow: auto;
+	position: absolute;
+	overflow-y: scroll;
+	overflow-x: auto;
+}
+
+.onderzoek-scherm, .inschrijven-scherm {
+	::-webkit-scrollbar {
+		width: 12px;
+	}
+
+	::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	::-webkit-scrollbar-thumb {
+		border-radius: 20px;
+		border: transparent;
+	}
 }
 
 .tabpagina {

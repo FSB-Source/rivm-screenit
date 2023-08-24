@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.screeningse
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -131,6 +131,8 @@ public class MammaSEEditPage extends MammaPlanningBasePage
 
 		ScreenitBooleanDropdown heeftLiftDropdownChoice = new ScreenitBooleanDropdown("heeftLift", true, !magAanpassen);
 		seWijzigenForm.add(heeftLiftDropdownChoice);
+
+		seWijzigenForm.add(new ScreenitBooleanDropdown("tomosyntheseMogelijk", true, magSeAanpassen));
 
 		ScreenitDropdown duurMinderValideAfspraak = new ScreenitDropdown<>("duurMinderValideAfspraak", Arrays.asList(MammaDuurMinderValideAfspraak.values()),
 			new EnumChoiceRenderer<>(this));

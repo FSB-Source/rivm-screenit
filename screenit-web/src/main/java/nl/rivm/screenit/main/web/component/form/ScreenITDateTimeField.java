@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.component.form;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,9 +21,11 @@ package nl.rivm.screenit.main.web.component.form;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import nl.rivm.screenit.main.web.component.ComponentHelper;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.wicket.planning.web.component.AjaxDateTimeField;
 
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -31,8 +33,6 @@ import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.head.OnLoadHeaderItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.joda.time.DateTime;
-import org.joda.time.MutableDateTime;
 import org.wicketstuff.wiquery.core.javascript.JsQuery;
 import org.wicketstuff.wiquery.ui.JQueryUIJavaScriptResourceReference;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
@@ -40,9 +40,6 @@ import org.wicketstuff.wiquery.ui.datepicker.DatePickerLanguageResourceReference
 
 public abstract class ScreenITDateTimeField extends AjaxDateTimeField
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private boolean magDatumWijzigen = true;
 
 	public ScreenITDateTimeField(String id)
@@ -61,11 +58,8 @@ public abstract class ScreenITDateTimeField extends AjaxDateTimeField
 	@Override
 	protected DatePicker<Date> newDatePicker(String wicketId, IModel<Date> model)
 	{
-		DatePicker<Date> datePicker = new DatePicker<Date>(wicketId, model)
+		DatePicker<Date> datePicker = new DatePicker<>(wicketId, model)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void renderHead(IHeaderResponse response)
 			{
@@ -83,13 +77,13 @@ public abstract class ScreenITDateTimeField extends AjaxDateTimeField
 			@Override
 			public void updateModel()
 			{
-				MutableDateTime convertedInput = new MutableDateTime(getConvertedInput());
-				MutableDateTime startDateTime = new MutableDateTime(getModelObject());
-				convertedInput.setMinuteOfHour(startDateTime.getMinuteOfHour());
-				convertedInput.setHourOfDay(startDateTime.getHourOfDay());
-				convertedInput.setSecondOfMinute(0); 
-				convertedInput.setMillisOfSecond(0);
-				setModelObject(convertedInput.toDate());
+				var startDateTime = DateUtil.toLocalDateTime(getModelObject());
+				var convertedInput = DateUtil.toLocalDateTime(getConvertedInput())
+					.withMinute(startDateTime != null ? startDateTime.getMinute() : 0)
+					.withHour(startDateTime != null ? startDateTime.getHour() : 0)
+					.withSecond(0)
+					.withNano(0);
+				setModelObject(DateUtil.toUtilDate(convertedInput));
 			}
 
 		};
@@ -111,32 +105,32 @@ public abstract class ScreenITDateTimeField extends AjaxDateTimeField
 		else
 		{
 
-			MutableDateTime datum = null;
+			LocalDateTime datum;
 			if (getDatePicker().getConvertedInput() != null)
 			{
-				datum = new MutableDateTime(getDatePicker().getConvertedInput());
+				datum = DateUtil.toLocalDateTime(getDatePicker().getConvertedInput());
 			}
 			else
 			{
-				datum = new MutableDateTime(getDatePicker().getModelObject());
+				datum = DateUtil.toLocalDateTime(getDatePicker().getModelObject());
 			}
-			datum.setSecondOfDay(0); 
-			datum.setMillisOfSecond(0);
 
-			DateTime tijd = null;
+			LocalDateTime tijd;
 			if (getTimeField().getConvertedInput() != null)
 			{
-				tijd = new DateTime(getTimeField().getConvertedInput());
+				tijd = DateUtil.toLocalDateTime(getTimeField().getConvertedInput());
 			}
 			else
 			{
-				tijd = new DateTime(getTimeField().getModelObject());
+				tijd = DateUtil.toLocalDateTime(getTimeField().getModelObject());
 			}
 
-			datum.setHourOfDay(tijd.getHourOfDay());
-			datum.setMinuteOfHour(tijd.getMinuteOfHour());
-
-			setConvertedInput(datum.toDate());
+			setConvertedInput(DateUtil.toUtilDate(datum
+				.withHour(tijd.getHour())
+				.withMinute(tijd.getMinute())
+				.withSecond(0)
+				.withNano(0)
+			));
 		}
 	}
 

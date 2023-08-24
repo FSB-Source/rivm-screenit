@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.component.panels;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -137,7 +137,7 @@ public class UploadImageFormComponent<T extends HibernateObject> extends Generic
 			createFileInTmp(target, nieuwUploadDocument);
 			if (oudUploadDocument != null)
 			{
-				uploadDocumentService.delete(oudUploadDocument, true);
+				uploadDocumentService.delete(oudUploadDocument);
 			}
 			target.add(labelBestandsNaam);
 			target.add(verwijderButton);

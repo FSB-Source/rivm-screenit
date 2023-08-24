@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -54,7 +54,7 @@
 									<div class="input-append">
 										<input wicket:id="geboortedatum" type="text" placeholder="dd-mm-jaar" size="16" id="startDatum"
 											   class="input-small datum datum three-months"/>
-										<a href="javascript:void(0);" class="add-on" onclick="$(this).prev().datepicker({ changeMonth: true, changeYear: true});" title="Datum"
+										<a class="add-on js-datepicker-change-month-and-year" title="Datum"
 										   tabindex="-1">
 											<i class="icon-calendar"></i>
 										</a>
@@ -105,7 +105,7 @@
 						<th class="input-micro">Ronde</th>
 						<th>
 							<div class="right" wicket:id="nieuweRonde">Maak CervixScreeningRonde</div>
-							<label style="margin-top: 10px; font-weight: bold;">Gebeurtenis Baarmoederhalskanker</label></th>
+							<label class="margin-top-10px font-bold">Gebeurtenis Baarmoederhalskanker</label></th>
 					</tr>
 					</thead>
 					<tbody wicket:id="rondes">

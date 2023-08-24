@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.model;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,9 +28,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import nl.rivm.screenit.model.AfmeldingType;
-import nl.rivm.screenit.model.cervix.enums.CervixAfmeldingReden;
-import nl.rivm.screenit.model.colon.enums.ColonAfmeldingReden;
-import nl.rivm.screenit.model.mamma.enums.MammaAfmeldingReden;
 
 @Getter
 @Setter
@@ -41,4 +38,6 @@ public class AfmeldingDto<TReden>
 	private AfmeldingType afmeldType;
 
 	private TReden afmeldReden;
+
+	private Integer afmeldenTotJaartal;
 }

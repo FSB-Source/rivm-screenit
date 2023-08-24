@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.uitnodigingenversturen.versturenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -41,7 +41,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -106,6 +105,10 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 
 	private static final int NR_OF_TRIES = 7;
 
+	private static int NR_OF_RETRIES_ZIP_XML_VERZENDEN;
+
+	private static int TIME_BETWEEN_RETRIES_ZIP_XML_VERZENDEN;
+
 	private static final String WSDL_QUESTION = "?wsdl";
 
 	private StepExecution stepExecution;
@@ -156,6 +159,8 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 
 	private String bvoAfkorting;
 
+	private Integer onsuccesvolleVerzendPogingenGehad = 0;
+
 	protected abstract List<Long> getUitnodigingen();
 
 	protected abstract BriefDefinitie getBriefDefinitie(U uitnodiging);
@@ -193,8 +198,12 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 			return handleExceptionPingen(contribution, e);
 		}
 
-		if (uitnodigingIds.size() > 0)
+		if (!uitnodigingIds.isEmpty())
 		{
+			onsuccesvolleVerzendPogingenGehad = 0;
+			NR_OF_RETRIES_ZIP_XML_VERZENDEN = preferenceService.getInteger(PreferenceKey.RETRIES_VERZENDEN_INPAKCENTRUM.name());
+			TIME_BETWEEN_RETRIES_ZIP_XML_VERZENDEN = preferenceService.getInteger(PreferenceKey.TIME_BETWEEN_RETRIES_VERZENDEN_INPAKCENTRUM.name());
+
 			gegenereerdeuitnodigingIds = new ConcurrentLinkedQueue<>();
 			inpakcentrumBrieven = new ConcurrentLinkedQueue<>();
 			volgnummer = new AtomicInteger(0);
@@ -210,9 +219,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 			for (Long uitnodigingId : uitnodigingIds)
 			{
 				forkJoinPool.submit(() -> OpenHibernate5Session.withCommittedTransaction().run(() ->
-				{
-					genereerUitnodiging(uitnodigingId);
-				}));
+					genereerUitnodiging(uitnodigingId)));
 			}
 			forkJoinPool.shutdown();
 			forkJoinPool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
@@ -251,7 +258,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 		SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm");
 
 		StringBuilder message = new StringBuilder();
-		message.append("\n<br>Poging 1 (" + format.format(currentDateSupplier.getDate()) + "): ");
+		message.append("\n<br>Poging 1 (").append(format.format(currentDateSupplier.getDate())).append("): ");
 
 		while (!WebservicePingUtil.ping(url, Arrays.asList("GetReady", "NumberOfRecords"), message))
 		{
@@ -280,7 +287,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 				{
 					LOG.error("Fout in sleep", e);
 				}
-				message.append("\n<br>Poging " + (i + 1) + " (" + format.format(currentDateSupplier.getDate()) + "): ");
+				message.append("\n<br>Poging ").append(i + 1).append(" (").append(format.format(currentDateSupplier.getDate())).append("): ");
 			}
 			else
 			{
@@ -304,7 +311,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 			emailadressen.addAll(getEmails(preferenceService.getString(PreferenceKey.DASHBOARDEMAIL.name())));
 
 			message.insert(0, "Na " + NR_OF_TRIES + " pogingen in het afgelopen uur is de Inpakcentrum WSDL " + url + " niet bereikbaar geweest. ");
-			mailService.queueMail(String.join(";", emailadressen), "Inpakcentrum WSDL niet bereikbaar", message.toString(), MailPriority.HIGH);
+			mailService.queueMailAanProfessional(String.join(";", emailadressen), "Inpakcentrum WSDL niet bereikbaar", message.toString(), MailPriority.HIGH);
 			throw new IllegalStateException(message.toString());
 		}
 	}
@@ -326,41 +333,38 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 		{
 			if (geenUitzonderingGevonden(uitnodiging))
 			{
+				beforeProcessUitnodiging(uitnodiging);
 				LOG.trace("Geneer uitnodiging voor uitnodigingId: " + uitnodigingId);
-				UITNODIGING inpakcentrumUitnodiging = new UITNODIGING();
+				var inpakcentrumUitnodiging = new UITNODIGING();
 				inpakcentrumUitnodiging.setID(uitnodiging.getUitnodigingsId());
 				inpakcentrumUitnodiging.setMERGEFIELDS(new MERGEFIELDS());
 
-				BriefDefinitie briefDefinitie = getBriefDefinitie(uitnodiging);
-				nl.rivm.screenit.model.Client client = uitnodiging.getScreeningRonde().getDossier().getClient();
-				ProjectBriefActie briefActie = projectService.getProjectBriefActie(client, briefDefinitie.getBriefType());
+				var briefDefinitie = getBriefDefinitie(uitnodiging);
+				var client = uitnodiging.getScreeningRonde().getDossier().getClient();
+				var briefActie = projectService.getProjectBriefActie(client, briefDefinitie.getBriefType());
 
 				File briefTemplate;
 				if (briefActie != null)
 				{
-					String inpakcentrumTemplateNaam = maakInpakcentrumTemplateNaam(briefActie);
+					var inpakcentrumTemplateNaam = maakInpakcentrumTemplateNaam(briefActie);
 					inpakcentrumUitnodiging.setTEMPLATE(inpakcentrumTemplateNaam);
 					uitnodiging.setTemplateNaam(briefActie.getProject().getNaam() + ": " + briefActie.getDocument().getNaam());
 					briefTemplate = uploadDocumentService.load(briefActie.getDocument());
 				}
 				else
 				{
-					String inpakcentrumTemplateNaam = maakInpakcentrumTemplateNaam(briefDefinitie);
+					var inpakcentrumTemplateNaam = maakInpakcentrumTemplateNaam(briefDefinitie);
 					inpakcentrumUitnodiging.setTEMPLATE(inpakcentrumTemplateNaam);
-					UploadDocument document = briefDefinitie.getDocument();
+					var document = briefDefinitie.getDocument();
 					uitnodiging.setTemplateNaam(document.getNaam());
 					briefTemplate = uploadDocumentService.load(document);
 				}
 
-				MailMergeContext mailMergeContext = new MailMergeContext();
-				mailMergeContext.setClient(client);
-				setMergeContext(uitnodiging, mailMergeContext);
-
 				byte[] briefTemplateBytes = FileUtils.readFileToByteArray(briefTemplate);
 				if (briefActie != null)
 				{
-					Document templateDocument = new Document(new ByteArrayInputStream(briefTemplateBytes));
-					MailMergeContext context = new MailMergeContext();
+					var templateDocument = new Document(new ByteArrayInputStream(briefTemplateBytes));
+					var context = new MailMergeContext();
 					if (projectService.addVragenlijstAanTemplate(context, templateDocument, briefActie, null))
 					{
 
@@ -369,9 +373,12 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 						briefTemplateBytes = baos.toByteArray();
 					}
 				}
+				var mailMergeContext = new MailMergeContext();
+				mailMergeContext.setClient(client);
+				setMergeContext(uitnodiging, mailMergeContext);
 
-				Document document = asposeService.processDocument(briefTemplateBytes, mailMergeContext);
-				File uitnodigingFile = briefService.genereerPdf(document, "uitnodiging", false);
+				var document = asposeService.processDocument(briefTemplateBytes, mailMergeContext);
+				var uitnodigingFile = briefService.genereerPdf(document, "uitnodiging", false);
 
 				int uitnodigingVolgnummer = volgnummer.getAndIncrement();
 				UploadDocument uploadDocument = new UploadDocument();
@@ -380,7 +387,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 				uploadDocument.setNaam(maakPdfNaam(uitnodiging, uitnodigingVolgnummer));
 				uploadDocument.setFile(uitnodigingFile);
 
-				Long timestamp = currentDateSupplier.getDate().getTime();
+				var timestamp = currentDateSupplier.getDate().getTime();
 				uploadDocumentService.saveOrUpdate(uploadDocument, getFileStoreLocation(), timestamp, true);
 
 				inpakcentrumBrieven.add(uploadDocument);
@@ -389,58 +396,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 
 				setGegenereerd(uitnodiging);
 
-				List<MERGEFIELD> mergefieldContainer = inpakcentrumUitnodiging.getMERGEFIELDS().getMERGEFIELD();
-				List<MergeField> teSturenMergefields = Arrays.asList(MergeField.SO_ID, MergeField.CLIENT_NAAM, MergeField.CLIENT_ADRES, MergeField.CLIENT_POSTCODE,
-					MergeField.CLIENT_WOONPLAATS, MergeField.KIX_CLIENT);
-
-				for (MergeField mergeField : teSturenMergefields)
-				{
-					if (mergeField.naarInpakcentrum())
-					{
-						Object value = mergeField.getValue(mailMergeContext);
-						MERGEFIELD xmlMergefield = new MERGEFIELD();
-						xmlMergefield.setNAME(mergeField.getFieldName());
-
-						if (value != null)
-						{
-							xmlMergefield.setVALUE(value.toString());
-						}
-						else
-						{
-							xmlMergefield.setVALUE("");
-						}
-
-						mergefieldContainer.add(xmlMergefield);
-					}
-				}
-
-				MERGEFIELD volgnummerMergeField = new MERGEFIELD();
-				volgnummerMergeField.setNAME("_VOLGNUMMER");
-				volgnummerMergeField.setVALUE(Integer.toString(uitnodigingVolgnummer));
-				mergefieldContainer.add(volgnummerMergeField);
-
-				MERGEFIELD bvoMergeField = new MERGEFIELD();
-				bvoMergeField.setNAME("_BVO");
-				bvoMergeField.setVALUE(bvoAfkorting);
-				mergefieldContainer.add(bvoMergeField);
-
-				MERGEFIELD projectMergeField = new MERGEFIELD();
-				projectMergeField.setNAME("_PROJECT");
-				if (briefActie != null)
-				{
-					projectMergeField.setVALUE("P" + briefActie.getProject().getId() + ":" + briefActie.getProject().getNaam());
-				}
-				else
-				{
-					projectMergeField.setVALUE("");
-				}
-				mergefieldContainer.add(projectMergeField);
-
-				MERGEFIELD pdfNaamMergeField = new MERGEFIELD();
-				pdfNaamMergeField.setNAME("_PDF");
-				pdfNaamMergeField.setVALUE(uploadDocument.getNaam());
-				mergefieldContainer.add(pdfNaamMergeField);
-				updateMergeData(inpakcentrumUitnodiging);
+				vulMetaData(inpakcentrumUitnodiging, briefActie, mailMergeContext, uitnodigingVolgnummer, uploadDocument);
 
 				updateCounts(uitnodiging);
 				uitnodiging.setVerstuurd(true);
@@ -464,39 +420,72 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 		}
 	}
 
+	protected void vulMetaData(UITNODIGING inpakcentrumUitnodiging, ProjectBriefActie briefActie, MailMergeContext mailMergeContext, int uitnodigingVolgnummer,
+		UploadDocument uploadDocument)
+	{
+		var mergefieldContainer = inpakcentrumUitnodiging.getMERGEFIELDS().getMERGEFIELD();
+		var teSturenMergefields = Arrays.asList(MergeField.SO_ID, MergeField.CLIENT_NAAM, MergeField.CLIENT_ADRES, MergeField.CLIENT_POSTCODE,
+			MergeField.CLIENT_WOONPLAATS, MergeField.KIX_CLIENT);
+
+		for (var mergeField : teSturenMergefields)
+		{
+			if (mergeField.naarInpakcentrum())
+			{
+				Object value = mergeField.getValue(mailMergeContext);
+				addMergeFieldValue(mergefieldContainer, mergeField.getFieldName(), value != null ? value.toString() : "");
+			}
+		}
+
+		addMergeFieldValue(mergefieldContainer, "_VOLGNUMMER", Integer.toString(uitnodigingVolgnummer));
+		addMergeFieldValue(mergefieldContainer, "_BVO", bvoAfkorting);
+		addMergeFieldValue(mergefieldContainer, "_PROJECT", briefActie != null ? "P" + briefActie.getProject().getId() + ":" + briefActie.getProject().getNaam() : "");
+		addMergeFieldValue(mergefieldContainer, "_PDF", uploadDocument.getNaam());
+		updateMergeData(inpakcentrumUitnodiging);
+	}
+
+	protected void addMergeFieldValue(List<MERGEFIELD> mergefieldContainer, String key, String value)
+	{
+		var mergeField = new MERGEFIELD();
+		mergeField.setNAME(key);
+		mergeField.setVALUE(value);
+		mergefieldContainer.add(mergeField);
+	}
+
+	protected void beforeProcessUitnodiging(U uitnodiging)
+	{
+	}
+
 	protected abstract U getUitnodigingById(Long uitnodigingId);
 
 	private void verstuurUitnodigingen(List<Long> uitnodigingIds) throws JAXBException, IOException
 	{
-		if (uitnodigingIds.size() > 0)
+		if (!uitnodigingIds.isEmpty())
 		{
 			LOG.info("Webservice opzetten");
-			JAXBContext jaxbContext = JAXBContext.newInstance(MERGEDATA.class);
-			Marshaller marshaller = jaxbContext.createMarshaller();
-			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+			var jaxbContext = JAXBContext.newInstance(MERGEDATA.class);
+			var marshaller = jaxbContext.createMarshaller();
+			var byteArrayOutputStream = new ByteArrayOutputStream();
 			marshaller.marshal(mergedata, byteArrayOutputStream);
 
-			IUpload upload = webserviceOpzettenService.initialiseerWebserviceInpakcentrum();
+			var upload = webserviceOpzettenService.initialiseerWebserviceInpakcentrum();
 
 			LOG.info("Start versturen, uitnodigingIds size: " + uitnodigingIds.size() + ", id van eerste uitnodiging: " + uitnodigingIds.get(0));
-			boolean result = true;
-
-			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-			UploadRequest uploadRequest = new UploadRequest();
+			var dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+			var uploadRequest = new UploadRequest();
 			uploadRequest.setStream(byteArrayOutputStream.toByteArray());
-			result &= upload
-				.upload(uploadRequest, "xml", bvoAfkorting + "_mergedata" + dateFormat.format(currentDateSupplier.getDate()) + ".xml",
-					uitnodigingIds.size())
-				.isUploadSucceeded();
 
-			Set<File> zips = zipInpakcentrumBrieven(bvoAfkorting);
+			var versturenGeslaagd = verstuurXml(uitnodigingIds.size(), upload, dateFormat, uploadRequest);
 
-			result = verstuurZips(upload, result, zips);
+			if (versturenGeslaagd)
+			{
+				var zips = zipInpakcentrumBrieven(bvoAfkorting);
+				versturenGeslaagd = verstuurZips(upload, zips);
+			}
 
-			result = upload.getReady(result);
+			versturenGeslaagd = upload.getReady(versturenGeslaagd);
 
-			LOG.info("Alles verstuurd met resultaat: " + result);
-			if (result)
+			LOG.info("Alles verstuurd met resultaat: " + versturenGeslaagd);
+			if (versturenGeslaagd)
 			{
 				setUitnodigingVersturenTijd(uitnodigingIds);
 			}
@@ -511,26 +500,65 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 		}
 	}
 
-	protected abstract void setUitnodigingVersturenTijd(List<Long> uitnodigingIds);
-
-	private boolean verstuurZips(IUpload upload, boolean result, Set<File> zips)
+	private boolean verstuurXml(int aantalUitnodigingen, IUpload upload, SimpleDateFormat dateFormat, UploadRequest uploadRequest)
 	{
-		for (File zip : zips)
+		boolean versturenGeslaagd;
+
+		do
+		{
+			versturenGeslaagd = upload
+				.upload(uploadRequest, "xml", bvoAfkorting + "_mergedata" + dateFormat.format(currentDateSupplier.getDate()) + ".xml",
+					aantalUitnodigingen)
+				.isUploadSucceeded();
+		}
+		while (bepaalMagNogmaalsProberen(versturenGeslaagd));
+
+		return versturenGeslaagd;
+	}
+
+	private boolean verstuurZips(IUpload upload, Set<File> zips)
+	{
+		var versturenGeslaagd = true;
+		for (var zip : zips)
 		{
 			LOG.info(zip.getName() + " grootte is: " + zip.length() + " bytes");
-			result &= newUploadRequest(upload, zip, zip.getName());
+			versturenGeslaagd &= newUploadRequest(upload, zip, zip.getName());
 			FileUtils.deleteQuietly(zip);
 		}
-		return result;
+		return versturenGeslaagd;
 	}
+
+	private boolean bepaalMagNogmaalsProberen(boolean versturenGeslaagd)
+	{
+		if (versturenGeslaagd || onsuccesvolleVerzendPogingenGehad == NR_OF_RETRIES_ZIP_XML_VERZENDEN)
+		{
+			onsuccesvolleVerzendPogingenGehad = 0;
+			return false;
+		}
+
+		onsuccesvolleVerzendPogingenGehad++;
+		try
+		{
+			LOG.info("Retry nodig, wacht {} seconden", TimeUnit.MILLISECONDS.toSeconds(TIME_BETWEEN_RETRIES_ZIP_XML_VERZENDEN));
+			Thread.sleep(TIME_BETWEEN_RETRIES_ZIP_XML_VERZENDEN);
+		}
+		catch (InterruptedException e)
+		{
+			LOG.error("Fout in sleep", e);
+		}
+
+		return true;
+	}
+
+	protected abstract void setUitnodigingVersturenTijd(List<Long> uitnodigingIds);
 
 	private Set<File> zipInpakcentrumBrieven(String bvoAfkorting) throws IOException
 	{
-		LocalDateTime dateTime = LocalDateTime.now();
-		String datumTijd = DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(dateTime);
-		String baseZipNaam = bvoAfkorting.toLowerCase() + "_" + datumTijd;
+		var dateTime = LocalDateTime.now();
+		var datumTijd = DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(dateTime);
+		var baseZipNaam = bvoAfkorting.toLowerCase() + "_" + datumTijd;
 
-		int maxBestandsGrootte = preferenceService.getInteger(PreferenceKey.INTERNAL_MAX_GROOTTE_ZIP.name());
+		var maxBestandsGrootte = preferenceService.getInteger(PreferenceKey.INTERNAL_MAX_GROOTTE_ZIP.name());
 
 		return ZipUtil.maakZips(Lists.newArrayList(inpakcentrumBrieven), baseZipNaam, maxBestandsGrootte);
 	}
@@ -539,20 +567,19 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 
 	private String maakPdfNaam(InpakbareUitnodiging<?> uitnodiging, int volgnummer)
 	{
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+		var dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 		return String.format("%s_%s_%s.pdf", dateFormat.format(currentDateSupplier.getDate()), volgnummer, uitnodiging.getUitnodigingsId());
 	}
 
 	private String maakInpakcentrumTemplateNaam(BriefDefinitie briefDefinitie)
 	{
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-		String templateNaam = briefDefinitie.getBriefType().name() + "_" + dateFormat.format(briefDefinitie.getLaatstGewijzigd());
-		return templateNaam;
+		var dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+		return briefDefinitie.getBriefType().name() + "_" + dateFormat.format(briefDefinitie.getLaatstGewijzigd());
 	}
 
 	private String maakInpakcentrumTemplateNaam(ProjectBriefActie briefActie)
 	{
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+		var dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 		String templateNaam = briefActie.getBriefType().name();
 		if (briefActie.getProject() != null)
 		{
@@ -570,25 +597,34 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 			LOG.warn("UploadDocument was null wordt niet verstuurd naar inpakcentrum! fileName: " + fileName);
 			return true;
 		}
-		String extensie = FilenameUtils.getExtension(fileName);
+		var extensie = FilenameUtils.getExtension(fileName);
 		if (StringUtils.isBlank(extensie))
 		{
 			LOG.error("Kon geen extensie bepaald worden bij de fileName: " + fileName);
 			return false;
 		}
 		LOG.info("File met naam '" + fileName + "' wordt naar inpakcentrum verstuurd");
-		try
+
+		boolean verzendenGeslaagd;
+
+		do
 		{
-			UploadRequest uploadRequest = new UploadRequest();
-			byte[] template = FileUtils.readFileToByteArray(file);
-			uploadRequest.setStream(template);
-			return upload.upload(uploadRequest, extensie, fileName, 1).isUploadSucceeded();
+			try
+			{
+				var uploadRequest = new UploadRequest();
+				byte[] template = FileUtils.readFileToByteArray(file);
+				uploadRequest.setStream(template);
+				verzendenGeslaagd = upload.upload(uploadRequest, extensie, fileName, 1).isUploadSucceeded();
+			}
+			catch (Exception e)
+			{
+				LOG.error("Er is een probleem opgetreden met uploaden naar het inpakcentrum", e);
+				verzendenGeslaagd = false;
+			}
 		}
-		catch (Exception e)
-		{
-			LOG.error("Er is een probleem opgetreden met uploaden naar het inpakcentrum", e);
-			return false;
-		}
+		while (bepaalMagNogmaalsProberen(verzendenGeslaagd));
+
+		return verzendenGeslaagd;
 	}
 
 	protected ExecutionContext getExecutionContext()
@@ -619,7 +655,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 
 	protected boolean checkBrieven()
 	{
-		for (BriefType briefType : BriefType.values())
+		for (var briefType : BriefType.values())
 		{
 			if (OrganisatieType.INPAKCENTRUM == briefType.getVerzendendeOrganisatieType() && briefDao.getNieuwsteBriefDefinitie(briefType) == null)
 			{
@@ -644,5 +680,4 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 			getExecutionContext().put(BatchConstants.LEVEL, Level.ERROR);
 		}
 	}
-
 }

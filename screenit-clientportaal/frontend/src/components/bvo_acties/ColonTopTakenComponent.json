@@ -2,7 +2,8 @@
   "heraanmelden": "opnieuw aanmelden",
   "afspraak": {
     "verzetten": "mijn afspraak verzetten",
-    "afzeggen": "mijn afspraak afzeggen"
+    "afzeggen": "mijn afspraak afzeggen",
+    "aanmaken": "nieuwe afspraak maken"
   },
   "huisarts": {
     "opgeven": "mijn huisarts doorgeven",

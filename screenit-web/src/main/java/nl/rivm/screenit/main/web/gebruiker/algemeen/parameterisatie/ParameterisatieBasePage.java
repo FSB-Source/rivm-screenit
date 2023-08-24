@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,8 @@ import java.util.List;
 
 import nl.rivm.screenit.main.web.gebruiker.algemeen.AlgemeenPage;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie.algemeen.AlgemeenParameterisatiePage;
+import nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie.digitaleberichten.emailconfiguratie.EmailConfiguratiePage;
+import nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie.digitaleberichten.smsconfiguratie.SmsConfiguratiePage;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie.huisartsberichten.HuisartsBerichtTemplateEditPage;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
 import nl.rivm.screenit.model.enums.Actie;
@@ -43,6 +45,7 @@ public abstract class ParameterisatieBasePage extends AlgemeenPage
 		contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.parameterisatie.clientportaal", ClientportaalParameterisatiePage.class));
 		contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.parameterisatie.wachtwoordconfiguratie", WachtwoordConfiguratiePage.class));
 		contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.parameterisatie.medewerkerconfiguratie", EmailConfiguratiePage.class));
+		contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.parameterisatie.smsconfiguratie", SmsConfiguratiePage.class));
 		contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.parameterisatie.overeenkomstconfiguratie", OvereenkomstConfiguratiePage.class));
 		contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.parameterisatie.huisartsberichttemplate", HuisartsBerichtTemplateEditPage.class));
 		contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.parameterisatie.algemeen", AlgemeenParameterisatiePage.class));

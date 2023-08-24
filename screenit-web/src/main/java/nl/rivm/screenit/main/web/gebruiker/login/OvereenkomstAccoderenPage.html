@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -39,10 +39,9 @@
                     <p>In geval dat de overeenkomst niet correct is dient u contact op te nemen met uw regionaal contactpersoon.</p>
                     <div class="control-group no-label gelezen-check">
                         <div class="controls">
-                            <label class="checkbox"><input type="checkbox"
-                                                           onclick="if($(this).is(':checked')){ $('.akkoordBtn').removeAttr('disabled') } else { $('.akkoordBtn').attr('disabled', 'true');  }"
-                                                           id=""><span>Ja, ik heb de overeenkomst gelezen</span></label>
-                        </div>
+							<label class="checkbox"><input type="checkbox" class="js-checkbox-akkoord"
+														   id=""><span>Ja, ik heb de overeenkomst gelezen</span></label>
+						</div>
                     </div>
                     <div class="form-actions">
                         <button class="btn" wicket:id="naarInlog">Naar inlogpagina</button>

@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -19,7 +19,7 @@
  * =========================LICENSE_END==================================
  */
 import {FormikProps} from "formik"
-import {ChangeEvent} from "react"
+import React, {ChangeEvent} from "react"
 import {WoonplaatsDto} from "../../../state/datatypes/dto/WoonplaatsDto"
 import styles from "./FormWoonplaatsSelectField.module.scss"
 import AsyncSelect from "react-select/async"
@@ -45,6 +45,7 @@ const loadWoonplaatsen = async (value: string): Promise<WoonplaatsDto[]> => {
 function FormWoonplaatsSelectField<T>(props: FormWoonplaatsSelectFieldProps<T>) {
 	return <div className={styles.style}>
 		<AsyncSelect
+			styles={undefined}
 			defaultOptions
 			value={!!props.selectedValue && props.selectedValue}
 			isDisabled={!!props.disabled}

@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.helper;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,11 +32,28 @@ public class InstellingGebruikerRolComparator implements Comparator<InstellingGe
 	private static final long serialVersionUID = 1L;
 
 	@Override
-	public int compare(InstellingGebruikerRol arg0, InstellingGebruikerRol arg1)
+	public int compare(InstellingGebruikerRol rolVanDezeGebruiker, InstellingGebruikerRol rolVanAndereGebruiker)
 	{
-		String instRol = arg0.getRol().getNaam();
-		String instRol2 = arg1.getRol().getNaam();
-		return instRol.compareTo(instRol2);
+		if (rolVanDezeGebruiker.getId() != null && rolVanAndereGebruiker.getId() == null)
+		{
+			return 1;
+		}
+		if (rolVanDezeGebruiker.getId() == null && rolVanAndereGebruiker.getId() != null)
+		{
+			return -1;
+		}
+
+		String naamVanDezeGebruiker = "";
+		String naamVanAndereGebruiker = "";
+		if (rolVanDezeGebruiker.getRol() != null)
+		{
+			naamVanDezeGebruiker = rolVanDezeGebruiker.getRol().getNaam();
+		}
+		if (rolVanAndereGebruiker.getRol() != null)
+		{
+			naamVanAndereGebruiker = rolVanAndereGebruiker.getRol().getNaam();
+		}
+		return naamVanDezeGebruiker.compareTo(naamVanAndereGebruiker);
 	}
 
 }

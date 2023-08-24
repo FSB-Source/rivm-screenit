@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +22,7 @@ package nl.rivm.screenit.service.impl;
  */
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -50,12 +51,14 @@ import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.model.enums.GbaVraagType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.gba.GbaVraag;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectInactiefReden;
@@ -67,6 +70,8 @@ import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.BriefUtil;
+import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -124,9 +129,29 @@ public class ClientServiceImpl implements ClientService
 	}
 
 	@Override
-	public Client setTelefoonnummer(Client client)
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void saveContactGegevens(Client client, Account ingelogdAccount)
 	{
-		return client;
+		saveContactGegevens(client, ingelogdAccount, null, null);
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void saveContactGegevens(Client client, Account ingelogdAccount, MammaScreeningsEenheid screeningsEenheid, LocalDateTime transactieDatumTijd)
+	{
+		var persoon = client.getPersoon();
+
+		var wijzigingen = EntityAuditUtil.getDiffFieldsToLatestVersion(persoon, hibernateService.getHibernateSession(), "telefoonnummer1", "telefoonnummer2", "emailadres");
+
+		if (!wijzigingen.isEmpty())
+		{
+			var melding = "Wijzigingen: " + wijzigingen
+				.replace("telefoonnummer1: ", "mobiel nummer: ") 
+				.replace("telefoonnummer2: ", "extra telefoonnummer: ")
+				.replace("emailadres: ", "e-mailadres: ");
+			logService.logGebeurtenis(LogGebeurtenis.CLIENT_CONTACT_GEGEVENS_GEWIJZIGD, screeningsEenheid, ingelogdAccount, client, melding, transactieDatumTijd);
+			hibernateService.saveOrUpdate(persoon);
+		}
 	}
 
 	@Override
@@ -144,7 +169,7 @@ public class ClientServiceImpl implements ClientService
 	@Override
 	public String getVoorNg01EenNieuweBsn(String bsn)
 	{
-		if (bsn == null) 
+		if (bsn == null)
 		{
 			return null;
 		}
@@ -219,16 +244,21 @@ public class ClientServiceImpl implements ClientService
 		CervixUitnodiging laatsteUitnodiging = null;
 		for (CervixUitnodiging uitnodiging : ronde.getUitnodigingen())
 		{
-			if (laatsteUitnodiging == null || laatsteUitnodiging.getId() < uitnodiging.getId())
+			if ((laatsteUitnodiging == null || laatsteUitnodiging.getId() < uitnodiging.getId()) &&
+				(uitnodiging.getMonsterType() == CervixMonsterType.UITSTRIJKJE && BriefUtil.isGegenereerd(uitnodiging.getBrief())
+					|| inclusiefZas && selecteerZasUitnodiging(uitnodiging)))
 			{
-				if (uitnodiging.getMonsterType() == CervixMonsterType.UITSTRIJKJE && BriefUtil.isGegenereerd(uitnodiging.getBrief())
-					|| inclusiefZas && uitnodiging.getMonsterType() == CervixMonsterType.ZAS && uitnodiging.getMonster() != null)
-				{
-					laatsteUitnodiging = uitnodiging;
-				}
+				laatsteUitnodiging = uitnodiging;
 			}
 		}
 		return laatsteUitnodiging;
+	}
+
+	private boolean selecteerZasUitnodiging(CervixUitnodiging uitnodiging)
+	{
+		return !BriefType.getCervixZasUitnodigingNietDirectHerzendbaarBrieven().contains(uitnodiging.getBrief().getBriefType()) &&
+			uitnodiging.getMonsterType() == CervixMonsterType.ZAS &&
+			uitnodiging.getMonster() != null;
 	}
 
 	@Override
@@ -293,12 +323,13 @@ public class ClientServiceImpl implements ClientService
 	{
 		if (pClient != null)
 		{
-			if (!reden.equals(ProjectInactiefReden.AFMELDING)
+			if (!reden.equals(ProjectInactiefReden.AFMELDING) && (bevolkingsonderzoek == null || pClient.getProject().getBevolkingsonderzoeken().contains(bevolkingsonderzoek))
 				|| reden.equals(ProjectInactiefReden.AFMELDING) && pClient.getProject().getExcludeerAfmelding().contains(bevolkingsonderzoek))
 			{
 				pClient.setActief(false);
 				pClient.setProjectInactiefReden(reden);
 				pClient.setProjectInactiefDatum(currentDateSupplier.getDate());
+
 				hibernateService.saveOrUpdate(pClient);
 
 				String melding = String.format("Project: %s, groep: %s, reden: %s",
@@ -316,7 +347,7 @@ public class ClientServiceImpl implements ClientService
 	public void alleProjectClientenInactiveren(Client client, ProjectInactiefReden projectInactiefReden, Bevolkingsonderzoek bvo)
 	{
 		List<ProjectClient> projectClienten = ProjectUtil.getHuidigeProjectClienten(client, currentDateSupplier.getDate(), false);
-		if (projectClienten != null && projectClienten.size() > 0)
+		if (!projectClienten.isEmpty())
 		{
 			for (ProjectClient projectClient : projectClienten)
 			{
@@ -375,6 +406,12 @@ public class ClientServiceImpl implements ClientService
 	}
 
 	@Override
+	public boolean clientHeeftGbaIndicatie(Client client)
+	{
+		return client != null && client.getPersoon() != null && GbaStatus.INDICATIE_AANWEZIG == client.getGbaStatus();
+	}
+
+	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
 	public GbaVraag vraagGbaGegevensOpnieuwAan(Client client, Account account, RedenOpnieuwAanvragenClientgegevens reden)
 	{
@@ -416,7 +453,7 @@ public class ClientServiceImpl implements ClientService
 	@Override
 	public boolean isTijdelijkeAdresNuActueel(GbaPersoon persoon)
 	{
-		return AdresUtil.isTijdelijkAdres(persoon, currentDateSupplier.getDateTime());
+		return AdresUtil.isTijdelijkAdres(persoon, currentDateSupplier.getLocalDate());
 	}
 
 	@Override
@@ -454,7 +491,7 @@ public class ClientServiceImpl implements ClientService
 		try
 		{
 
-			briefkenmerk = briefkenmerk.replaceAll(" ", "").toUpperCase();
+			briefkenmerk = briefkenmerk.replace(" ", "").toUpperCase();
 			if (briefkenmerk.startsWith("K"))
 			{
 				Client client = getClientMetBriefkenmerk(briefkenmerk);
@@ -502,7 +539,7 @@ public class ClientServiceImpl implements ClientService
 	{
 		Client client = null;
 
-		briefkenmerk = briefkenmerk.replaceAll(" ", "").toUpperCase();
+		briefkenmerk = briefkenmerk.replace(" ", "").toUpperCase();
 		if (briefkenmerk.startsWith("KU"))
 		{ 
 			briefkenmerk = briefkenmerk.substring(2);
@@ -522,7 +559,7 @@ public class ClientServiceImpl implements ClientService
 			briefkenmerk = briefkenmerk.substring(1);
 			if (NumberUtils.isCreatable("0x" + briefkenmerk))
 			{
-				ClientBrief brief = hibernateService.get(ClientBrief.class, Long.parseLong(briefkenmerk, 16));
+				var brief = hibernateService.get(ClientBrief.class, Long.parseLong(briefkenmerk, 16));
 				if (brief != null)
 				{
 					client = brief.getClient();
@@ -562,6 +599,18 @@ public class ClientServiceImpl implements ClientService
 	{
 		return client.getPersoon().getTijdelijkGbaAdres() != null ? client.getPersoon().getTijdelijkGbaAdres().getPostcode()
 			: client.getPersoon().getGbaAdres().getPostcode();
+	}
+
+	@Override
+	public Integer getLeeftijd(Client client)
+	{
+		return DateUtil.getLeeftijd(DateUtil.toLocalDate(client.getPersoon().getGeboortedatum()), currentDateSupplier.getLocalDate());
+	}
+
+	@Override
+	public boolean isLevendeInwonerNederlandMetGbaIndicatie(Client client)
+	{
+		return !isClientOverleden(client) && !clientInBuitenland(client) && clientHeeftGbaIndicatie(client);
 	}
 
 	@Override

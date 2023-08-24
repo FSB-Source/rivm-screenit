@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.exchange;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.exchange;
  * =========================LICENSE_END==================================
  */
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -130,13 +129,7 @@ public class MammaExchangeUploadPanel extends GenericPanel<MammaUploadBeeldenVer
 				{
 					for (FileUpload fileUpload : files.getObject())
 					{
-						File file = fileUpload.writeToTempFile();
-						UploadDocument uploadDocument = new UploadDocument();
-						uploadDocument.setFile(file);
-						uploadDocument.setNaam(fileUpload.getClientFileName());
-						uploadDocument.setContentType(fileUpload.getContentType());
-						uploadDocument.setActief(true);
-						uploadDocumenten.add(uploadDocument);
+						uploadDocumenten.add(ScreenitSession.get().fileUploadToUploadDocument(fileUpload));
 					}
 				}
 				catch (Exception e)

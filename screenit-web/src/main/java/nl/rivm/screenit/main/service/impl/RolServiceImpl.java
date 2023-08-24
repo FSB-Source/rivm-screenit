@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,10 +26,19 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
+
+import lombok.AllArgsConstructor;
+
+import nl.rivm.screenit.dto.PermissieDto;
+import nl.rivm.screenit.dto.RolDto;
 import nl.rivm.screenit.main.dao.RolDao;
 import nl.rivm.screenit.main.service.RolService;
+import nl.rivm.screenit.main.web.ScreenitSession;
+import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.InstellingGebruikerRol;
 import nl.rivm.screenit.model.Permissie;
@@ -38,24 +47,34 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.LogService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
+@AllArgsConstructor
 public class RolServiceImpl implements RolService
 {
+	private final RolDao rolDao;
 
-	@Autowired
-	private RolDao rolDao;
+	private final LogService logService;
 
-	@Autowired
-	private LogService logService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private HibernateService hibernateService;
+	@Transactional(propagation = Propagation.REQUIRED)
+	@Override
+	public void setRechtActiefOfInactief(Rol rol, Account ingelogdeAccount)
+	{
+		boolean actief = rol.getActief();
+		long rolId = rol.getId();
+		hibernateService.getHibernateSession().evict(rol);
+		Rol opslaanRol = hibernateService.get(Rol.class, rolId);
+		opslaanRol.setActief(actief);
+		saveLoginformatieVoorActieverenRol(opslaanRol, ingelogdeAccount);
+		hibernateService.saveOrUpdate(opslaanRol);
+	}
 
 	@Override
 	public void saveOrUpdateRol(Rol rol)
@@ -66,7 +85,7 @@ public class RolServiceImpl implements RolService
 	@Override
 	public List<Rol> getToeTeVoegenRollen(InstellingGebruiker organisatieMedewerkerRolToevoegen, InstellingGebruiker ingelogdeOrganisatieMedewerker)
 	{
-		List<Rol> toeTeVoegenRollen = new ArrayList<Rol>();
+		List<Rol> toeTeVoegenRollen = new ArrayList<>();
 
 		List<Rol> rollen = getActieveRollen();
 		for (Rol rol : rollen)
@@ -111,7 +130,7 @@ public class RolServiceImpl implements RolService
 	@Override
 	public List<Rol> getParentRollen(Rol rol)
 	{
-		Set<Rol> parentRollen = new HashSet<Rol>();
+		Set<Rol> parentRollen = new HashSet<>();
 
 		for (Rol beschikbareRol : getRollen())
 		{
@@ -143,9 +162,9 @@ public class RolServiceImpl implements RolService
 	}
 
 	@Override
-	public boolean opslaan(Rol rol, List<InstellingGebruikerRol> rollen, List<Bevolkingsonderzoek> verwijderdeBevolkingsonderzoek, InstellingGebruiker instellingGebruiker)
+	public boolean opslaan(Rol rol, List<InstellingGebruikerRol> rollen, RolDto initieleRol, List<Bevolkingsonderzoek> verwijderdeBevolkingsonderzoek,
+		InstellingGebruiker ingelogdeInstellingGebruiker)
 	{
-		boolean opslaanGelukt = true;
 		if (rollen != null && !verwijderdeBevolkingsonderzoek.isEmpty())
 		{
 			for (InstellingGebruikerRol igRol : rollen)
@@ -161,11 +180,12 @@ public class RolServiceImpl implements RolService
 				}
 			}
 		}
+
 		verwijderPermissieMetBvo(rol);
-		opslaanGelukt = zijnErActivePermissies(rol);
+		var opslaanGelukt = zijnErActivePermissies(rol);
 		if (opslaanGelukt)
 		{
-			saveLoginformatieVoorRol(rol, instellingGebruiker);
+			saveLogInformatieVoorRol(initieleRol, rol, ingelogdeInstellingGebruiker);
 			hibernateService.saveOrUpdate(rol);
 			hibernateService.saveOrUpdateAll(rollen);
 		}
@@ -175,41 +195,121 @@ public class RolServiceImpl implements RolService
 	@Override
 	public boolean zijnErRechtenDieVerwijderdWorden(Rol rol)
 	{
-		boolean gaatErRechtVerwijderdWorden = false;
-		for (Permissie permissie : rol.getPermissies())
-		{
-			permissie.getRecht().getBevolkingsonderzoeken();
-			if (Collections.disjoint(Arrays.asList(permissie.getRecht().getBevolkingsonderzoeken()), rol.getBevolkingsonderzoeken()))
-			{
-				gaatErRechtVerwijderdWorden = true;
-			}
-		}
-		return gaatErRechtVerwijderdWorden;
+		return rol.getPermissies()
+			.stream()
+			.anyMatch(permissie -> Collections.disjoint(Arrays.asList(permissie.getRecht().getBevolkingsonderzoeken()), rol.getBevolkingsonderzoeken()));
 	}
 
-	private void saveLoginformatieVoorRol(Rol rol, InstellingGebruiker instellingGebruiker)
+	private void saveLogInformatieVoorRol(RolDto initieleRol, Rol rol, InstellingGebruiker instellingGebruiker)
 	{
 		if (rol.getId() == null)
 		{
-			logService.logGebeurtenis(LogGebeurtenis.ROL_NIEUW, instellingGebruiker, "Rol: " + rol.getNaam());
+			logService.logGebeurtenis(LogGebeurtenis.ROL_NIEUW, instellingGebruiker, String.format("Rol: %s", rol.getNaam()));
 		}
-		else
+		else if (isRolGewijzigd(initieleRol, rol))
 		{
-			logService.logGebeurtenis(LogGebeurtenis.ROL_WIJZIG, instellingGebruiker, "Rol: " + rol.getNaam());
+			var melding = String.format("Rol: %s gewijzigd ", rol.getNaam());
+			var wijzigingen = new StringJoiner(", ", "(", ")");
+
+			toevoegenWijzigingen(initieleRol, rol, wijzigingen);
+			melding += wijzigingen.toString();
+			logService.logGebeurtenis(LogGebeurtenis.ROL_WIJZIG, instellingGebruiker, melding);
+		}
+		rol.getPermissies().forEach(permissie -> saveLogInformatieVoorPermissie(rol, initieleRol, permissie, instellingGebruiker));
+	}
+
+	private static void toevoegenWijzigingen(RolDto initieleRol, Rol rol, StringJoiner wijzigingen)
+	{
+		if (!Objects.equals(initieleRol.getNaam(), rol.getNaam()))
+		{
+			wijzigingen.add(String.format("Naam: %s -> %s", initieleRol.getNaam(), rol.getNaam()));
+		}
+		if (!Objects.equals(initieleRol.getParentRol() == null ? null : initieleRol.getParentRol().getId(), rol.getParentRol() == null ? null : rol.getParentRol().getId()))
+		{
+			wijzigingen.add(String.format("Alleen beschikbaar voor: %s -> %s", initieleRol.getParentRol() == null ? "(leeg)" : initieleRol.getParentRol().getNaam(),
+				rol.getParentRol() == null ? "(leeg)" : rol.getParentRol().getNaam()));
+		}
+		if (!Objects.equals(Bevolkingsonderzoek.getAfkortingen(initieleRol.getBevolkingsonderzoeken()), Bevolkingsonderzoek.getAfkortingen(rol.getBevolkingsonderzoeken())))
+		{
+			wijzigingen.add(String.format("Bevolkingsonderzoeken: %s -> %s", Bevolkingsonderzoek.getAfkortingen(initieleRol.getBevolkingsonderzoeken()),
+				Bevolkingsonderzoek.getAfkortingen(rol.getBevolkingsonderzoeken())));
 		}
 	}
 
-	private List<Permissie> verwijderPermissieMetBvo(Rol rol)
+	private void saveLogInformatieVoorPermissie(Rol rol, RolDto initieleRol, Permissie permissie, InstellingGebruiker instellingGebruiker)
+	{
+		if (permissie.getRecht() != null)
+		{
+			var initielePermissieOptional = initieleRol.getPermissies().stream().filter(p -> Objects.equals(p.getId(), permissie.getId())).findFirst();
+
+			if ((initielePermissieOptional.isEmpty() || initielePermissieOptional.get().getId() == null) && !Boolean.TRUE.equals(permissie.getActief()))
+			{
+				return;
+			}
+
+			var melding = String.format("Rol: %s. Recht '%s' ", rol.getNaam(), permissie.getRecht().getNaam());
+
+			if (initielePermissieOptional.isEmpty() || initielePermissieOptional.get().getId() == null)
+			{
+				melding += String.format("toegevoegd met actie '%s' en niveau '%s'", permissie.getActie().getNaam(), permissie.getToegangLevel().getNaam());
+				logService.logGebeurtenis(LogGebeurtenis.ROL_WIJZIG, instellingGebruiker, melding);
+				return;
+			}
+
+			var initielePermissie = initielePermissieOptional.get();
+			if (Boolean.FALSE.equals(initielePermissie.getActief()) && Boolean.FALSE.equals(permissie.getActief()) || (Boolean.TRUE.equals(permissie.getActief())
+				&& !isPermissieGewijzigd(initielePermissie, permissie)))
+			{
+				return;
+			}
+
+			melding = aanvullenMelding(permissie, melding, initielePermissie);
+			logService.logGebeurtenis(LogGebeurtenis.ROL_WIJZIG, instellingGebruiker, melding);
+		}
+	}
+
+	private String aanvullenMelding(Permissie permissie, String melding, PermissieDto initielePermissie)
+	{
+		if (Boolean.FALSE.equals(permissie.getActief()))
+		{
+			melding += "verwijderd";
+		}
+		else if (isPermissieGewijzigd(initielePermissie, permissie))
+		{
+			melding += "gewijzigd ";
+			var wijzigingen = new StringJoiner(", ", "(", ")");
+
+			if (permissie.getActie() != initielePermissie.getActie())
+			{
+				wijzigingen.add(String.format("Actie: %s -> %s", initielePermissie.getActie().getNaam(), permissie.getActie().getNaam()));
+			}
+			if (permissie.getToegangLevel() != initielePermissie.getToegangLevel())
+			{
+				wijzigingen.add(String.format("Niveau: %s -> %s", initielePermissie.getToegangLevel().getNaam(), permissie.getToegangLevel().getNaam()));
+			}
+			melding += wijzigingen.toString();
+		}
+		return melding;
+	}
+
+	private boolean isRolGewijzigd(RolDto initieleRol, Rol rol)
+	{
+		return !Objects.equals(initieleRol.getNaam(), rol.getNaam()) ||
+			!Objects.equals(Bevolkingsonderzoek.getAfkortingen(initieleRol.getBevolkingsonderzoeken()), Bevolkingsonderzoek.getAfkortingen(rol.getBevolkingsonderzoeken())) ||
+			!Objects.equals(initieleRol.getParentRol() == null ? null : initieleRol.getParentRol().getId(), rol.getParentRol() == null ? null : rol.getParentRol().getId());
+	}
+
+	private boolean isPermissieGewijzigd(PermissieDto initielePermissie, Permissie permissie)
+	{
+		return permissie.getActie() != initielePermissie.getActie() || permissie.getToegangLevel() != initielePermissie.getToegangLevel();
+	}
+
+	private void verwijderPermissieMetBvo(Rol rol)
 	{
 		List<Bevolkingsonderzoek> goedeOnderzoeken = rol.getBevolkingsonderzoeken();
-		for (Permissie permissie : rol.getPermissies())
-		{
-			if (permissie.getRecht() == null || Collections.disjoint(goedeOnderzoeken, Arrays.asList(permissie.getRecht().getBevolkingsonderzoeken())))
-			{
-				permissie.setActief(Boolean.FALSE);
-			}
-		}
-		return rol.getPermissies();
+		rol.getPermissies().stream()
+			.filter(permissie -> permissie.getRecht() == null || Collections.disjoint(goedeOnderzoeken, Arrays.asList(permissie.getRecht().getBevolkingsonderzoeken())))
+			.forEach(permissie -> permissie.setActief(Boolean.FALSE));
 	}
 
 	private boolean zijnErActivePermissies(Rol rol)
@@ -217,12 +317,26 @@ public class RolServiceImpl implements RolService
 		boolean actief = false;
 		for (Permissie permissie : rol.getPermissies())
 		{
-			if (permissie.getActief())
+			if (Boolean.TRUE.equals(permissie.getActief()))
 			{
 				actief = true;
 				break;
 			}
 		}
 		return actief;
+	}
+
+	private void saveLoginformatieVoorActieverenRol(Rol rol, Account ingelogdeAccount)
+	{
+		if (Boolean.FALSE.equals(rol.getActief()))
+		{
+			rol.setActief(Boolean.TRUE);
+			logService.logGebeurtenis(LogGebeurtenis.ROL_ACTIVEREN, ingelogdeAccount, "Rol: " + rol.getNaam());
+		}
+		else
+		{
+			rol.setActief(Boolean.FALSE);
+			logService.logGebeurtenis(LogGebeurtenis.ROL_VERWIJDEREN, ScreenitSession.get().getLoggedInAccount(), "Rol: " + rol.getNaam());
+		}
 	}
 }

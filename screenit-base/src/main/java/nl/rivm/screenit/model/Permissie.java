@@ -4,7 +4,7 @@ package nl.rivm.screenit.model;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,10 @@ import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
@@ -40,10 +44,11 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @Entity
 @Table(schema = "gedeeld")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "organisatie.cache")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Permissie extends AbstractHibernateObject implements Permission
 {
-
-	private static final long serialVersionUID = 1L;
 
 	@Enumerated(EnumType.STRING)
 	private Actie actie;
@@ -58,11 +63,6 @@ public class Permissie extends AbstractHibernateObject implements Permission
 	private Rol rol;
 
 	private Boolean actief = true;
-
-	public Permissie()
-	{
-
-	}
 
 	public Permissie(Rol rol)
 	{
@@ -81,36 +81,6 @@ public class Permissie extends AbstractHibernateObject implements Permission
 		this.rol = rol;
 		this.actie = actie;
 		this.recht = recht;
-		this.toegangLevel = toegangLevel;
-	}
-
-	public Actie getActie()
-	{
-		return actie;
-	}
-
-	public void setActie(Actie actie)
-	{
-		this.actie = actie;
-	}
-
-	public Recht getRecht()
-	{
-		return recht;
-	}
-
-	public void setRecht(Recht recht)
-	{
-		this.recht = recht;
-	}
-
-	public ToegangLevel getToegangLevel()
-	{
-		return toegangLevel;
-	}
-
-	public void setToegangLevel(ToegangLevel toegangLevel)
-	{
 		this.toegangLevel = toegangLevel;
 	}
 
@@ -139,26 +109,6 @@ public class Permissie extends AbstractHibernateObject implements Permission
 	public String toString()
 	{
 		return getRecht().name();
-	}
-
-	public Boolean getActief()
-	{
-		return actief;
-	}
-
-	public void setActief(Boolean actief)
-	{
-		this.actief = actief;
-	}
-
-	public Rol getRol()
-	{
-		return rol;
-	}
-
-	public void setRol(Rol rol)
-	{
-		this.rol = rol;
 	}
 
 }

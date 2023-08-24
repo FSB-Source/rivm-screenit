@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl.zorgid;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,8 @@ package nl.rivm.screenit.main.service.impl.zorgid;
 
 import java.time.Duration;
 
+import nl.topicuszorg.zorgid.webservice.SessionInitializedEvent;
+
 public class InitializedSessieState extends ExpirableStateImpl implements SessieState
 {
 
@@ -30,14 +32,17 @@ public class InitializedSessieState extends ExpirableStateImpl implements Sessie
 
 	private String nonce;
 
+	private String environmentCode;
+
 	public InitializedSessieState()
 	{
 	}
 
-	public InitializedSessieState(String nonce)
+	public InitializedSessieState(SessionInitializedEvent sessionInitializedEvent)
 	{
 		super(EXPIRE_TIME);
-		this.nonce = nonce;
+		this.nonce = sessionInitializedEvent.getNonce();
+		this.environmentCode = sessionInitializedEvent.getEnvironmentcode();
 	}
 
 	public String getNonce()
@@ -45,4 +50,8 @@ public class InitializedSessieState extends ExpirableStateImpl implements Sessie
 		return nonce;
 	}
 
+	public String getEnvironmentCode()
+	{
+		return environmentCode;
+	}
 }

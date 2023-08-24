@@ -28,6 +28,10 @@
 
 	.navBarToggle {
 		margin-right: 15px;
+
+		span {
+			background-image: url('./hamburger.svg');
+		}
 	}
 
 	.navItem {

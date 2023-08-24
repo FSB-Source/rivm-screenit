@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.brieventemplates;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -40,6 +40,7 @@ import nl.rivm.screenit.main.web.gebruiker.algemeen.AlgemeenPage;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.BriefDefinitie;
 import nl.rivm.screenit.model.OrganisatieType;
+import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.batch.BvoZoekCriteria;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -72,6 +73,7 @@ import org.apache.wicket.markup.html.list.PropertyListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.lang.Bytes;
@@ -130,14 +132,7 @@ public class BriefBeheerPage extends AlgemeenPage
 			}
 		});
 
-		brievenContainer.add(new PropertyListView<>("brieven", new IModel<List<BriefDefinitie>>()
-		{
-			@Override
-			public List<BriefDefinitie> getObject()
-			{
-				return getBriefDefinities();
-			}
-		})
+		brievenContainer.add(new PropertyListView<>("brieven", (IModel<List<BriefDefinitie>>) () -> getBriefDefinities())
 		{
 			private final IModel<List<FileUpload>> files = new ListModel<>();
 
@@ -147,8 +142,7 @@ public class BriefBeheerPage extends AlgemeenPage
 				BriefDefinitie briefDefinitie = item.getModelObject();
 				if (briefDefinitie.getGeldigTot() != null)
 				{
-					item.add(new AttributeModifier("class", "subrow " + subrowClass(briefDefinitie)));
-					item.add(new AttributeModifier("hidden", "true"));
+					item.add(new AttributeModifier("class", "display-none subrow " + subrowClass(briefDefinitie)));
 				}
 
 				BriefType briefType = briefDefinitie.getBriefType();
@@ -165,8 +159,6 @@ public class BriefBeheerPage extends AlgemeenPage
 				item.add(new Label("documentNaam", new PropertyModel<>(item.getModel(), "document.naam")));
 				item.add(new WebMarkupContainer("geenDocument")
 				{
-					private static final long serialVersionUID = 1L;
-
 					@Override
 					protected void onConfigure()
 					{
@@ -175,10 +167,10 @@ public class BriefBeheerPage extends AlgemeenPage
 					}
 				});
 				Component uitklapknop = new WebMarkupContainer("uitklapknop").setVisible(briefDefinitie.getVolgnummer() != 1 && briefDefinitie.getGeldigTot() == null);
-				uitklapknop.add(new AttributeAppender("onclick", "if (this.subrowsVisible) { $('." + subrowClass(briefDefinitie)
-					+ "').hide(); this.src = '../../assets/images/icons/arrow.gif'; this.subrowsVisible = false; }" +
-					"else { $('." + subrowClass(briefDefinitie) + "').show(); this.src = '../../assets/images/icons/arrowDown.gif'; this.subrowsVisible = true; }", ";"));
+				uitklapknop.add(new AttributeAppender("class", " briefTemplate "));
+				uitklapknop.add(new AttributeAppender("data-value", subrowClass(briefDefinitie)));
 				item.add(uitklapknop);
+
 				item.add(new Label("volgnummer", Model.of(briefDefinitie.getVolgnummer())));
 
 				AjaxEditableLabel<String> formulerierNummer = new AjaxEditableLabel<String>("formulierNummer")
@@ -233,28 +225,32 @@ public class BriefBeheerPage extends AlgemeenPage
 
 							final FileUpload fileUpload = files.getObject().get(0);
 
-							List<Project> projecten = projectService.getAllProjectenWhereProjectBriefActieHasBriefType(item.getModelObject().getBriefType());
-							if (projecten.size() > 0)
+							try
 							{
-
-								dialog.openWith(target, new ConfirmPanel(IDialog.CONTENT_ID, Model.of("Weet u zeker dat u de brief template wilt aanpassen?"),
-									Model
-										.of("De volgende actieve en toekomstige projecten hebben aangepaste brieven op deze brief template: " + namenVanDeProjecten(projecten)),
-									new DefaultConfirmCallback()
-									{
-										private static final long serialVersionUID = 1L;
-
-										@Override
-										public void onYesClick(AjaxRequestTarget target)
+								List<Project> projecten = projectService.getAllProjectenWhereProjectBriefActieHasBriefType(item.getModelObject().getBriefType());
+								var uploadDocument = ScreenitSession.get().fileUploadToUploadDocument(fileUpload);
+								if (projecten.size() > 0)
+								{
+									dialog.openWith(target, new ConfirmPanel(IDialog.CONTENT_ID, new StringResourceModel("confirm.title", this),
+										new StringResourceModel("confirm.content", this).setParameters(namenVanDeProjecten(projecten)),
+										new DefaultConfirmCallback()
 										{
-											saveNieuweBriefDefinitie(item.getModelObject(), fileUpload, target, brievenContainer);
-										}
-
-									}, dialog));
+											@Override
+											public void onYesClick(AjaxRequestTarget target)
+											{
+												saveNieuweBriefDefinitie(item.getModelObject(), uploadDocument, target, brievenContainer);
+											}
+										}, dialog));
+								}
+								else
+								{
+									saveNieuweBriefDefinitie(item.getModelObject(), uploadDocument, target, brievenContainer);
+								}
 							}
-							else
+							catch (Exception e)
 							{
-								saveNieuweBriefDefinitie(item.getModelObject(), fileUpload, target, brievenContainer);
+								LOG.error("Fout bij opslaan van template", e);
+								BriefBeheerPage.this.error(getString("error.onbekend"));
 							}
 						}
 						else
@@ -273,6 +269,7 @@ public class BriefBeheerPage extends AlgemeenPage
 					uploadForm.setVisible(false);
 				}
 			}
+
 		});
 	}
 
@@ -290,7 +287,7 @@ public class BriefBeheerPage extends AlgemeenPage
 		return briefDefinities.getObject();
 	}
 
-	private void saveNieuweBriefDefinitie(BriefDefinitie definitie, FileUpload fileUpload, AjaxRequestTarget target, WebMarkupContainer brievenContainer)
+	private void saveNieuweBriefDefinitie(BriefDefinitie definitie, UploadDocument uploadDocument, AjaxRequestTarget target, WebMarkupContainer brievenContainer)
 	{
 		try
 		{
@@ -298,8 +295,7 @@ public class BriefBeheerPage extends AlgemeenPage
 			nieuweBriefDefinitie.setBriefType(definitie.getBriefType());
 			nieuweBriefDefinitie.setFormulierNummer(definitie.getFormulierNummer());
 			nieuweBriefDefinitie.setUploader(ScreenitSession.get().getLoggedInInstellingGebruiker());
-			briefService.saveBriefDefinitie(nieuweBriefDefinitie, fileUpload.writeToTempFile(), fileUpload.getContentType(),
-				fileUpload.getClientFileName(), this::getString);
+			briefService.saveBriefDefinitie(nieuweBriefDefinitie, uploadDocument.getFile(), uploadDocument.getContentType(), uploadDocument.getNaam(), this::getString);
 		}
 		catch (Exception e)
 		{

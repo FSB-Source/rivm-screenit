@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -27,21 +27,27 @@
 					<div class="span3">
 						<legend>Hpv bericht maken</legend>
 						<div class="control-group">
-							<label for="bsn" class="control-label span2">MessageId:</label>
+							<label class="control-label span2" wicket:for="messageId">MessageId:</label>
 							<div class="controls">
-								<input wicket:id="messageId" class="form-control" type="text">
+								<input class="form-control" type="text" wicket:id="messageId">
 							</div>
 						</div>
 						<div class="control-group">
-							<label for="bsn" class="control-label span2">Labnaam:</label>
+							<label class="control-label span2" wicket:for="labNaam">Labnaam:</label>
 							<div class="controls">
-								<input wicket:id="labNaam" class="form-control" type="text">
+								<input class="form-control" type="text" wicket:id="labNaam">
 							</div>
 						</div>
 						<div class="control-group">
-							<label for="bsn" class="control-label span2">InstrumentId:</label>
+							<label class="control-label span2" wicket:for="instrumentId">InstrumentId:</label>
 							<div class="controls">
-								<input wicket:id="instrumentId" class="form-control" type="text">
+								<input class="form-control" type="text" wicket:id="instrumentId">
+							</div>
+						</div>
+						<div class="control-group">
+							<label class="control-label span2" wicket:for="resultaatBerichtBron">Bericht bron:</label>
+							<div class="controls">
+								<select class="form-control" type="select" wicket:id="resultaatBerichtBron"></select>
 							</div>
 						</div>
 					</div>
@@ -69,32 +75,30 @@
 							</tr>
 							</thead>
 							<tbody wicket:id="uitslagenContainer">
-							<tr wicket:id="monsterWrappers" class="autowidth-select">
-								<td><input wicket:id="barcode" class="form-control input-small" type="text"/></td>
-								<td><select wicket:id="ordercode" class="form-control"></select></td>
-								<td><select wicket:id="analysecode1" class="form-control"></select></td>
-								<td><select wicket:id="analyseresultaat1" class="form-control"></select></td>
-								<td><select wicket:id="analysecode2" class="form-control"></select></td>
-								<td><select wicket:id="analyseresultaat2" class="form-control"></select></td>
-								<td><select wicket:id="analysecode3" class="form-control"></select></td>
-								<td><select wicket:id="analyseresultaat3" class="form-control"></select></td>
+							<tr class="autowidth-select" wicket:id="monsterWrappers">
+								<td><input class="form-control input-small" type="text" wicket:id="barcode"/></td>
+								<td><select class="form-control" wicket:id="ordercode"></select></td>
+								<td><select class="form-control" wicket:id="analysecode1"></select></td>
+								<td><select class="form-control" wicket:id="analyseresultaat1"></select></td>
+								<td><select class="form-control" wicket:id="analysecode2"></select></td>
+								<td><select class="form-control" wicket:id="analyseresultaat2"></select></td>
+								<td><select class="form-control" wicket:id="analysecode3"></select></td>
+								<td><select class="form-control" wicket:id="analyseresultaat3"></select></td>
 								<td>
 									<div class="input-append">
-										<input wicket:id="analyseDatum" type="text" placeholder="dd-mm-jaar" size="16"
-											   class="input-small datum datum three-months"/> <a
-											href="javascript:void(0);" class="add-on"
-											onclick="$(this).prev().datepicker({ changeMonth: true, changeYear: true});"
-											title="Datum" tabindex="-1"> <em class="icon-calendar"></em>
+										<input class="input-small datum datum three-months" placeholder="dd-mm-jaar" size="16" type="text"
+											   wicket:id="analyseDatum"/> <a
+											class="add-on js-datepicker-change-month-and-year"
+											title="Datum"> <em class="icon-calendar"></em>
 									</a>
 									</div>
 								</td>
 								<td>
 									<div class="input-append">
-										<input wicket:id="autorisatieDatum" type="text" placeholder="dd-mm-jaar" size="16"
-											   class="input-small datum datum three-months"/> <a
-											href="javascript:void(0);" class="add-on"
-											onclick="$(this).prev().datepicker({ changeMonth: true, changeYear: true});"
-											title="Datum" tabindex="-1"> <em class="icon-calendar"></em>
+										<input class="input-small datum datum three-months" placeholder="dd-mm-jaar" size="16" type="text"
+											   wicket:id="autorisatieDatum"/> <a
+											class="add-on js-datepicker-change-month-and-year"
+											title="Datum"> <em class="icon-calendar"></em>
 									</a>
 									</div>
 								</td>
@@ -108,7 +112,7 @@
 				<div class="row-fluid">
 					<div class="span12">
 						<div class="form-actions btn-bottom right">
-							<a class="btn" wicket:id="uitslagToevoegen"> <i class="icon-plus-sign" aria-hidden="true"></i> Analyse toevoegen</a>
+							<a class="btn" wicket:id="uitslagToevoegen"> <i aria-hidden="true" class="icon-plus-sign"></i> Analyse toevoegen</a>
 							<button class="btn btn-info" wicket:id="verstuurHl7Bericht">Verstuur HL7 bericht</button>
 						</div>
 					</div>

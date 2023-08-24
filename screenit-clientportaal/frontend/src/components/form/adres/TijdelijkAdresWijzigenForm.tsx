@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,12 +26,12 @@ import SubmitForm from "../SubmitForm"
 import React from "react"
 import {TijdelijkAdres} from "../../../datatypes/adres/TijdelijkAdres"
 import ScreenitTextfield from "../../input/ScreenitTextfield"
-import ScreenitDatePicker from "../../input/ScreenitDatePicker"
 import {formatDate, isDatumInToekomst, isDatumVandaagOfLater, plusDagen, vandaag} from "../../../utils/DateUtil"
 import styles from "./TijdelijkAdresWijzigenForm.module.scss"
 import {Col, Row} from "react-bootstrap"
 import {REGEX_HUISLETTER, REGEX_HUISNUMMER, REGEX_POSTCODE_EXACT} from "../../../validators/AdresValidator"
 import classNames from "classnames"
+import ScreenitDatePicker from "../../input/ScreenitDatePicker"
 
 export type TijdelijkAdresWijzigenFormProps = {
 	huidigTijdelijkAdres?: TijdelijkAdres
@@ -96,6 +96,8 @@ const TijdelijkAdresWijzigenForm = (props: TijdelijkAdresWijzigenFormProps) => {
 										...values,
 										id: props.huidigTijdelijkAdres ? props.huidigTijdelijkAdres.id : undefined,
 										huisnummer: Number(values.huisnummer),
+										startDatum: new Date(values.startDatum),
+										eindDatum: values.eindDatum == null ? null : new Date(values.eindDatum),
 									})
 								}>
 			{formikProps => (

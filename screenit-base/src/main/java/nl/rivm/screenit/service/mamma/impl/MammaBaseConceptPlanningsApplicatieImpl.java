@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -65,7 +65,6 @@ import nl.rivm.screenit.service.mamma.MammaBaseConceptPlanningsApplicatie;
 import nl.rivm.screenit.util.rest.RestApiFactory;
 
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -304,11 +303,11 @@ public class MammaBaseConceptPlanningsApplicatieImpl implements MammaBaseConcept
 	}
 
 	@Override
-	public PlanningWeekDto getWeek(MammaScreeningsEenheid screeningsEenheid, DateTime start)
+	public PlanningWeekDto getWeek(MammaScreeningsEenheid screeningsEenheid, Date start)
 	{
 		RestTemplate restApi = RestApiFactory.create();
 		ResponseEntity<PlanningWeekDto> responseEntity = restApi.getForEntity(
-			planningBkRestUrl + PlanningRestConstants.C_WEEK + "/" + screeningsEenheid.getId() + "/" + start.getMillis(),
+			planningBkRestUrl + PlanningRestConstants.C_WEEK + "/" + screeningsEenheid.getId() + "/" + start.getTime(),
 			PlanningWeekDto.class);
 		return responseEntity.getBody();
 	}

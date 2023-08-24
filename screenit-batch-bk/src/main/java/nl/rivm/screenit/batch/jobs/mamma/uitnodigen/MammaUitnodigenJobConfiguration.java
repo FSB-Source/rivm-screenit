@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.uitnodigen;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,6 +29,8 @@ import nl.rivm.screenit.batch.jobs.mamma.uitnodigen.interval.MammaIntervalUitnod
 import nl.rivm.screenit.batch.jobs.mamma.uitnodigen.rondefactor.MammaEersteOnderzoekBijwerkenReader;
 import nl.rivm.screenit.batch.jobs.mamma.uitnodigen.rondefactor.MammaEersteOnderzoekBijwerkenWriter;
 import nl.rivm.screenit.batch.jobs.mamma.uitnodigen.step.uitnodigen.MammaUitnodigenTasklet;
+import nl.rivm.screenit.batch.jobs.mamma.uitnodigen.uitstel.MammaUitstelUitnodigenReader;
+import nl.rivm.screenit.batch.jobs.mamma.uitnodigen.uitstel.MammaUitstelUitnodigenWriter;
 import nl.rivm.screenit.model.enums.JobType;
 
 import org.springframework.batch.core.ExitStatus;
@@ -41,18 +43,21 @@ import org.springframework.context.annotation.Configuration;
 public class MammaUitnodigenJobConfiguration extends AbstractJobConfiguration
 {
 	@Bean
-	public Job uitnodigenJob(MammaUitnodigenListener listener, Step eersteOnderzoekBijwerkenStep, Step intervalUitnodigenStep, Step uitnodigenStep, Step afrondenStep)
+	public Job uitnodigenJob(MammaUitnodigenListener listener, Step eersteOnderzoekBijwerkenStep, Step uitstelUitnodigenStep, Step intervalUitnodigenStep, Step uitnodigenStep,
+		Step verlopenRondesStep)
 	{
 		return jobBuilderFactory.get(JobType.MAMMA_UITNODIGEN.name())
 			.listener(listener)
 			.start(eersteOnderzoekBijwerkenStep)
-			.on("*").to(intervalUitnodigenStep)
-			.from(eersteOnderzoekBijwerkenStep).on(ExitStatus.FAILED.getExitCode()).to(intervalUitnodigenStep)
+			.on("*").to(uitstelUitnodigenStep)
+			.from(eersteOnderzoekBijwerkenStep).on(ExitStatus.FAILED.getExitCode()).to(uitstelUitnodigenStep)
+			.from(uitstelUitnodigenStep).on("*").to(intervalUitnodigenStep)
+			.from(uitstelUitnodigenStep).on(ExitStatus.FAILED.getExitCode()).to(intervalUitnodigenStep)
 			.from(intervalUitnodigenStep).on("*").to(uitnodigenStep)
 			.from(intervalUitnodigenStep).on(ExitStatus.FAILED.getExitCode()).to(uitnodigenStep)
-			.from(uitnodigenStep).on("*").to(afrondenStep)
-			.from(uitnodigenStep).on(ExitStatus.FAILED.getExitCode()).to(afrondenStep)
-			.from(afrondenStep)
+			.from(uitnodigenStep).on("*").to(verlopenRondesStep)
+			.from(uitnodigenStep).on(ExitStatus.FAILED.getExitCode()).to(verlopenRondesStep)
+			.from(verlopenRondesStep)
 			.end().build();
 	}
 
@@ -79,6 +84,17 @@ public class MammaUitnodigenJobConfiguration extends AbstractJobConfiguration
 	}
 
 	@Bean
+	public Step uitstelUitnodigenStep(MammaUitstelUitnodigenReader reader, MammaUitstelUitnodigenWriter writer)
+	{
+		return stepBuilderFactory.get("uitstelUitnodigenStep")
+			.transactionManager(transactionManager)
+			.<Long, Long> chunk(10)
+			.reader(reader)
+			.writer(writer)
+			.build();
+	}
+
+	@Bean
 	public Step uitnodigenStep(MammaUitnodigenTasklet tasklet)
 	{
 		return stepBuilderFactory.get("uitnodigenStep")
@@ -88,9 +104,9 @@ public class MammaUitnodigenJobConfiguration extends AbstractJobConfiguration
 	}
 
 	@Bean
-	public Step afrondenStep(MammaVerlopenRondesReader reader, MammaVerlopenRondesWriter writer)
+	public Step verlopenRondesStep(MammaVerlopenRondesReader reader, MammaVerlopenRondesWriter writer)
 	{
-		return stepBuilderFactory.get("afrondenStep")
+		return stepBuilderFactory.get("verlopenRondesStep")
 			.transactionManager(transactionManager)
 			.<Long, Long> chunk(10)
 			.reader(reader)

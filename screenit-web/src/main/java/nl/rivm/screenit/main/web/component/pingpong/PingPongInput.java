@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.component.pingpong;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,11 @@ import java.util.List;
 
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxEventBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxCallListener;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -79,10 +84,12 @@ public abstract class PingPongInput<T> extends GenericPanel<List<T>> implements 
 				StringBuilder javaScript = new StringBuilder();
 				javaScript.append("$('#");
 				javaScript.append(getNotSelectedId(item.getModel()));
-				javaScript.append("').show();");
+				javaScript.append("').removeClass('display-none')");
+				javaScript.append(".addClass('display-inline-block');");
 				javaScript.append("$('#");
 				javaScript.append(getSelectedId(item.getModel()));
-				javaScript.append("').hide();");
+				javaScript.append("').removeClass('display-inline-block')");
+				javaScript.append(".addClass('display-none');");
 
 				javaScript.append("var value = $('#");
 				javaScript.append(pingPongRecoder.getMarkupId());
@@ -106,16 +113,15 @@ public abstract class PingPongInput<T> extends GenericPanel<List<T>> implements 
 
 				if (inzien)
 				{
-					container.add(new AttributeAppender("disabled", "diabled"));
+					container.add(new AttributeAppender("disabled", " disabled"));
 				}
 				else
 				{
-					container.add(new AttributeAppender("onclick", javaScript));
+					containerOnClickEvent(javaScript, container);
 				}
-
 				if (!isSelected(item.getModelObject()))
 				{
-					container.add(new AttributeAppender("style", "display: none;"));
+					container.add(new AttributeAppender("class", " display-none"));
 				}
 
 				item.add(container);
@@ -134,10 +140,12 @@ public abstract class PingPongInput<T> extends GenericPanel<List<T>> implements 
 				StringBuilder javaScript = new StringBuilder();
 				javaScript.append("$('#");
 				javaScript.append(getSelectedId(item.getModel()));
-				javaScript.append("').show();");
+				javaScript.append("').removeClass('display-none')");
+				javaScript.append(".addClass('display-inline-block');");
 				javaScript.append("$('#");
 				javaScript.append(getNotSelectedId(item.getModel()));
-				javaScript.append("').hide();");
+				javaScript.append("').removeClass('display-inline-block')");
+				javaScript.append(".addClass('display-none');");
 
 				javaScript.append("var value = $('#");
 				javaScript.append(pingPongRecoder.getMarkupId());
@@ -150,6 +158,7 @@ public abstract class PingPongInput<T> extends GenericPanel<List<T>> implements 
 				javaScript.append("$('#");
 				javaScript.append(pingPongRecoder.getMarkupId());
 				javaScript.append("').val(value);");
+				javaScript.append("return false;");
 
 				WebMarkupContainer container = new WebMarkupContainer("container");
 				container.setOutputMarkupId(true);
@@ -159,20 +168,47 @@ public abstract class PingPongInput<T> extends GenericPanel<List<T>> implements 
 
 				if (inzien)
 				{
-					container.add(new AttributeAppender("disabled", "diabled"));
+					container.add(new AttributeAppender("disabled", " disabled"));
 				}
 				else
 				{
-					container.add(new AttributeAppender("onclick", javaScript));
+					containerOnClickEvent(javaScript, container);
 				}
 				if (isSelected(item.getModelObject()))
 				{
-					container.add(new AttributeAppender("style", "display: none;"));
+					container.add(new AttributeAppender("class", " display-none"));
 				}
 
 				item.add(container);
 
 			}
+		});
+	}
+
+	private void containerOnClickEvent(StringBuilder javaScript, WebMarkupContainer container)
+	{
+		container.add(new AjaxEventBehavior("click")
+		{
+			@Override
+			protected void updateAjaxAttributes(AjaxRequestAttributes attributes)
+			{
+				super.updateAjaxAttributes(attributes);
+				attributes.getAjaxCallListeners().add(new AjaxCallListener()
+				{
+					@Override
+					public CharSequence getPrecondition(Component component)
+					{
+						return javaScript;
+					}
+				});
+			}
+
+			@Override
+			protected void onEvent(AjaxRequestTarget target)
+			{
+
+			}
+
 		});
 	}
 

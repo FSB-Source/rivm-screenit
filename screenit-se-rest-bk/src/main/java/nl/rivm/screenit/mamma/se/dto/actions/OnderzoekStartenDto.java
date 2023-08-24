@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.dto.actions;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,8 +21,14 @@ package nl.rivm.screenit.mamma.se.dto.actions;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import lombok.Setter;
+
+import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.mamma.enums.MammaAmputatie;
 
+@Getter
+@Setter
 public class OnderzoekStartenDto extends AbstractActionDto
 {
 
@@ -32,38 +38,10 @@ public class OnderzoekStartenDto extends AbstractActionDto
 
 	private MammaAmputatie amputatie;
 
+	private MammaOnderzoekType onderzoekType;
+
 	public OnderzoekStartenDto()
 	{
 		super(SEActieType.ONDERZOEK_STARTEN);
-	}
-
-	public long getAfspraakId()
-	{
-		return afspraakId;
-	}
-
-	public void setAfspraakId(long newValue)
-	{
-		afspraakId = newValue;
-	}
-
-	public Boolean getDubbeleTijd()
-	{
-		return dubbeleTijd;
-	}
-
-	public void setDubbeleTijd(Boolean dubbeleTijd)
-	{
-		this.dubbeleTijd = dubbeleTijd;
-	}
-
-	public MammaAmputatie getAmputatie()
-	{
-		return amputatie;
-	}
-
-	public void setAmputatie(MammaAmputatie amputatie)
-	{
-		this.amputatie = amputatie;
 	}
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,31 +25,25 @@ import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import nl.rivm.screenit.util.ThreadLocalDateFormat;
-import nl.topicuszorg.planning.model.enums.Days;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
+import nl.rivm.screenit.util.ThreadLocalDateFormat;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Constants
 {
 	public static final Locale LOCALE_NL = Locale.forLanguageTag("NL-nl");
 
 	public static final int PASSWORDHASHINGITERATIONS = 300000;
 
+	public static final String NAAM_BEHEER_ORGANISATIE = "BVO landelijk beheer";
+
 	public static final int AANTAL_RIJEN = 20;
-
-	public static final int AANTAL_PALETTE_RIJEN = 10;
-
-	public static final int AANTAL_SPECIFIEKE_ZOEKRESULTATEN = 1;
-
-	public static final int AANTAL_CLIENTEN_IN_SESSIE = 5;
-
-	public static final int MAX_AUTO_PLAN_POGINGEN = 5;
-
-	public static final EnumSet<Days> WERKDAGEN = EnumSet.range(Days.MONDAY, Days.FRIDAY);
 
 	public static final String DEFAULT_DATE_FORMAT = "dd-MM-yyyy";
 
@@ -163,9 +157,11 @@ public class Constants
 
 	public static final int MAMMA_MAX_AANTAL_MAANDEN_GEEN_UITSLAG_ONDERBROKEN_ONDERZOEK = 6;
 
-	private Constants()
-	{
-	}
+	public static final int MAX_LENGTE_TEMPLATE_SUBJECT = 255;
+
+	public static final String INLINE_ID_SO_LOGO_EMAIL = "soLogo";
+
+	public static final String BMHK_BETALING_GENEREREN_LOCKNAAM = "BetalingGenereren";
 
 	static
 	{

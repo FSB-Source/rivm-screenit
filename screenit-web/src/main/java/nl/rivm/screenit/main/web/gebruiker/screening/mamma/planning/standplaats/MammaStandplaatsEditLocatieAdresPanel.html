@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -32,19 +32,17 @@
                         <label class="control-label">Periode</label>
                         <div class="controls">
                             <div class="input-append">
-                                <input wicket:id="startDatum" class="datum vanaf" type="text"
-                                       value=""> <a href="javascript:void(0);" class="btn"
-                                                    onclick="$(this).parent().find('.vanaf').datepicker('show');return false;"
-                                                    title="Datum" tabindex="-1"><i class="icon-calendar"></i></a>
-                            </div>
+								<input wicket:id="startDatum" class="datum vanaf" type="text"
+									   value=""> <a class="btn js-datepicker-show"
+													title="Datum" tabindex="-1"><i class="icon-calendar"></i></a>
+							</div>
                             <i class="icon-asterisk icon-purple"></i>
                             t/m
-                            <div class="input-append">
-                                <input wicket:id="eindDatum" class="datum tot" type="text"
-                                       value=""> <a href="javascript:void(0);" class="btn"
-                                                    onclick="$(this).parent().find('.tot').datepicker('show');return false;"
-                                                    title="Datum" tabindex="-1"><i class="icon-calendar"></i></a>
-                            </div>
+							<div class="input-append">
+								<input wicket:id="eindDatum" class="datum tot" type="text"
+									   value=""> <a class="btn js-datepicker-show"
+													title="Datum" tabindex="-1"><i class="icon-calendar"></i></a>
+							</div>
                             <i class="icon-asterisk icon-purple"></i>
                         </div>
                     </div>
@@ -68,7 +66,7 @@
                 <div class="control-group">
                     <label class="control-label">Locatiebeschrijving</label>
                     <div class="controls">
-                        <textarea style="width: 95%; resize: none;" wicket:id="locatieBeschrijving"></textarea>
+                        <textarea class="mamma-afspraak-locatie" wicket:id="locatieBeschrijving"></textarea>
                     </div>
                 </div>
                 <div class="control-group">

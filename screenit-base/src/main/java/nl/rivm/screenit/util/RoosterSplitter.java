@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.util;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +21,12 @@ package nl.rivm.screenit.util;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.planning.model.appointment.recurrence.AbstractRecurrence;
@@ -29,25 +34,19 @@ import nl.topicuszorg.wicket.planning.model.appointment.recurrence.NoRecurrence;
 
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
-import org.joda.time.DateTime;
-import org.joda.time.Minutes;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class RoosterSplitter
 {
 
-	private RoosterSplitter()
-	{
-
-	}
-
 	public static void splitRoosterBlok(Object session, RoosterItem unsavedObject)
 	{
-		DateTime startDate = new DateTime(unsavedObject.getStartTime());
-		int diffStartEndMinutes = Math.abs(Minutes.minutesBetween(new DateTime(unsavedObject.getStartTime()), new DateTime(unsavedObject.getEndTime())).getMinutes());
+		var startDate = DateUtil.toLocalDateTime(unsavedObject.getStartTime());
+		int diffStartEndMinutes = Math.abs(DateUtil.getPeriodeTussenTweeDatums(startDate, DateUtil.toLocalDateTime(unsavedObject.getEndTime()), ChronoUnit.MINUTES));
 
 		Integer duurAfspraakInMinuten = unsavedObject.getLocation().getColoscopieCentrum().getAfspraakDefinities().get(0).getDuurAfspraakInMinuten();
 		int berekendAantalBlokken = diffStartEndMinutes / duurAfspraakInMinuten;
-		DateTime endTime;
+		LocalDateTime endTime;
 		for (int i = 0; i < berekendAantalBlokken; i++)
 		{
 			RoosterItem splittedRoosterBlok = unsavedObject.transientClone();
@@ -58,9 +57,9 @@ public final class RoosterSplitter
 				clonedRecurrence.setFirstAppointment(splittedRoosterBlok);
 				splittedRoosterBlok.setRecurrence(clonedRecurrence);
 			}
-			splittedRoosterBlok.setStartTime(startDate.toDate());
+			splittedRoosterBlok.setStartTime(DateUtil.toUtilDate(startDate));
 			endTime = startDate.plusMinutes(duurAfspraakInMinuten);
-			splittedRoosterBlok.setEndTime(endTime.toDate());
+			splittedRoosterBlok.setEndTime(DateUtil.toUtilDate(endTime));
 			startDate = endTime;
 			if (session instanceof Session)
 			{

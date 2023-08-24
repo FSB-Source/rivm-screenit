@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,22 +22,26 @@ package nl.rivm.screenit.service.cervix.impl;
  */
 
 import java.text.SimpleDateFormat;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.cervix.CervixScreeningrondeDao;
 import nl.rivm.screenit.model.Account;
+import nl.rivm.screenit.model.Brief_;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.cervix.CervixAfmelding;
 import nl.rivm.screenit.model.cervix.CervixBrief;
+import nl.rivm.screenit.model.cervix.CervixBrief_;
 import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.cervix.CervixHpvBeoordeling;
 import nl.rivm.screenit.model.cervix.CervixHuisartsBericht;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
+import nl.rivm.screenit.model.cervix.CervixScreeningRonde_;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
+import nl.rivm.screenit.model.cervix.CervixUitnodiging_;
 import nl.rivm.screenit.model.cervix.CervixUitstel;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
@@ -50,12 +54,19 @@ import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting;
 import nl.rivm.screenit.model.cervix.verslag.CervixVerslag;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.repository.cervix.CervixScreeningRondeRepository;
+import nl.rivm.screenit.service.BaseDossierService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.UploadDocumentService;
+import nl.rivm.screenit.service.cervix.Cervix2023StartBepalingService;
 import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 import nl.rivm.screenit.service.cervix.CervixVervolgService;
 import nl.rivm.screenit.service.cervix.enums.CervixVervolgTekst;
+import nl.rivm.screenit.util.BriefUtil;
+import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -63,6 +74,7 @@ import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.util.collections.CollectionUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -93,6 +105,18 @@ public class CervixBaseScreeningrondeServiceImpl implements CervixBaseScreeningr
 	@Autowired
 	private CervixScreeningrondeDao screeningrondeDao;
 
+	@Autowired
+	private BaseDossierService baseDossierService;
+
+	@Autowired
+	private UploadDocumentService uploadDocumentService;
+
+	@Autowired
+	private CervixScreeningRondeRepository screeningRondeRepository;
+
+	@Autowired
+	private Cervix2023StartBepalingService bmhk2023StartBepalingService;
+
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void annuleerNietVerstuurdeZAS(CervixScreeningRonde ronde)
@@ -105,7 +129,7 @@ public class CervixBaseScreeningrondeServiceImpl implements CervixBaseScreeningr
 				{
 					if (anderUitnodiging.getGeannuleerdDatum() == null)
 					{
-						anderUitnodiging.setGeannuleerdDatum(dateSupplier.getDateTime().minusMillis(50).toDate());
+						anderUitnodiging.setGeannuleerdDatum(DateUtil.toUtilDate(dateSupplier.getLocalDateTime().minusSeconds(1)));
 						hibernateService.saveOrUpdate(anderUitnodiging);
 						break;
 					}
@@ -129,6 +153,12 @@ public class CervixBaseScreeningrondeServiceImpl implements CervixBaseScreeningr
 
 		annuleerHerinnering(ronde);
 		annuleerNietVerstuurdeZAS(ronde);
+
+		var laatsteBrief = client.getCervixDossier().getLaatsteScreeningRonde().getLaatsteBrief();
+		if (laatsteBrief != null && !BriefUtil.isGegenereerd(laatsteBrief))
+		{
+			hibernateService.saveOrUpdate(BriefUtil.setTegenhouden(laatsteBrief, true));
+		}
 
 		logService.logGebeurtenis(wijziging ? LogGebeurtenis.UITSTEL_GEWIJZIGD : LogGebeurtenis.UITSTEL_AANGEVRAAGD, account, client,
 			maakCervixUitstelMelding(uitstel, wijziging), Bevolkingsonderzoek.CERVIX);
@@ -156,7 +186,7 @@ public class CervixBaseScreeningrondeServiceImpl implements CervixBaseScreeningr
 		{
 			if (uitstel.getGeannuleerdDatum() == null)
 			{
-				uitstel.setGeannuleerdDatum(dateSupplier.getDateTime().minusMillis(50).toDate());
+				uitstel.setGeannuleerdDatum(DateUtil.minusTijdseenheid(dateSupplier.getDate(), 50, ChronoUnit.MILLIS));
 				hibernateService.saveOrUpdate(uitstel);
 			}
 		}
@@ -171,7 +201,7 @@ public class CervixBaseScreeningrondeServiceImpl implements CervixBaseScreeningr
 		{
 			if (uitnodiging.getHerinnerenGeannuleerdDatum() == null)
 			{
-				uitnodiging.setHerinnerenGeannuleerdDatum(dateSupplier.getDateTime().minusMillis(50).toDate());
+				uitnodiging.setHerinnerenGeannuleerdDatum(DateUtil.minusTijdseenheid(dateSupplier.getDate(), 50, ChronoUnit.MILLIS));
 				hibernateService.saveOrUpdate(uitnodiging);
 			}
 		}
@@ -187,7 +217,7 @@ public class CervixBaseScreeningrondeServiceImpl implements CervixBaseScreeningr
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void verwijderCervixScreeningRondes(CervixDossier dossier)
+	public void verwijderScreeningRondes(CervixDossier dossier)
 	{
 		List<CervixScreeningRonde> rondes = dossier.getScreeningRondes();
 		dossier.setLaatsteScreeningRonde(null);
@@ -196,20 +226,26 @@ public class CervixBaseScreeningrondeServiceImpl implements CervixBaseScreeningr
 		{
 			for (CervixScreeningRonde ronde : rondes)
 			{
-				verwijderCervixScreeningRonde(ronde);
+				verwijderScreeningRonde(ronde);
 			}
 		}
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void verwijderCervixScreeningRonde(CervixScreeningRonde ronde)
+	public void verwijderScreeningRonde(CervixScreeningRonde ronde)
 	{
+		baseDossierService.verwijderAlleAfmeldingenUitRonde(ronde);
 		List<CervixUitnodiging> uitnodigingen = ronde.getUitnodigingen();
 		for (CervixUitnodiging uitnodiging : uitnodigingen)
 		{
 			if (uitnodiging.getMonster() != null)
 			{
+				var verwijderdBrief = uitnodiging.getMonster().getVerwijderdBrief();
+				if (verwijderdBrief != null)
+				{
+					uploadDocumentService.delete(verwijderdBrief);
+				}
 				CervixMonster monster = uitnodiging.getMonster();
 				for (CervixVerrichting verrichting : monster.getVerrichtingen())
 				{
@@ -279,14 +315,6 @@ public class CervixBaseScreeningrondeServiceImpl implements CervixBaseScreeningr
 		{
 			hibernateService.deleteAll(verslagen);
 		}
-
-		if (CollectionUtils.isNotEmpty(ronde.getAfmeldingen()))
-		{
-			for (CervixAfmelding afmelding : ronde.getAfmeldingen())
-			{
-				hibernateService.delete(afmelding);
-			}
-		}
 		hibernateService.delete(ronde);
 	}
 
@@ -353,7 +381,7 @@ public class CervixBaseScreeningrondeServiceImpl implements CervixBaseScreeningr
 	{
 		Integer maxAantalZASaanvragen = getMaxAantalZASAanvragen(aangevraagdDoorClient);
 
-		return screeningrondeDao.getAantalZASsenAangevraagd(laatsteScreeningRonde, aangevraagdDoorClient) >= maxAantalZASaanvragen;
+		return screeningRondeRepository.count(getZASsenHandmatigAangevraagdSpecification(laatsteScreeningRonde, aangevraagdDoorClient)) >= maxAantalZASaanvragen;
 	}
 
 	@Override
@@ -369,6 +397,38 @@ public class CervixBaseScreeningrondeServiceImpl implements CervixBaseScreeningr
 			maxAantalZASaanvragen = preferenceService.getInteger(PreferenceKey.CERVIX_MAX_ZAS_AANVRAGEN_INFOLIJN.name());
 		}
 		return maxAantalZASaanvragen;
+	}
+
+	@Override
+	public boolean nieuweUitnodigingVoorClientMoetPUZijn(CervixScreeningRonde screeningRonde)
+	{
+		return bmhk2023StartBepalingService.rondeValtBinnenBmhk2023(screeningRonde) && !clientHeeftAanOnderzoekMeegedaanInRonde(screeningRonde);
+	}
+
+	@Override
+	public boolean clientHeeftAanOnderzoekMeegedaanInRonde(CervixScreeningRonde screeningRonde)
+	{
+		return screeningRonde.getUitnodigingen().stream().anyMatch(uitnodiging -> uitnodiging.getMonster() != null && uitnodiging.getMonster().getOntvangstdatum() != null);
+	}
+
+	private static Specification<CervixScreeningRonde> getZASsenHandmatigAangevraagdSpecification(CervixScreeningRonde ronde, boolean aangevraagdDoorClient)
+	{
+		return ((r, cq, cb) ->
+		{
+			var uitnodigingJoin = r.join(CervixScreeningRonde_.UITNODIGINGEN);
+			var uitnodiging = uitnodigingJoin.on(
+				cb.equal(uitnodigingJoin.get(CervixUitnodiging_.SCREENING_RONDE), r));
+
+			var briefJoin = uitnodiging.join(CervixUitnodiging_.BRIEF);
+			var brief = briefJoin.on(cb.equal(briefJoin.get(CervixBrief_.UITNODIGING), uitnodiging.get(CervixUitnodiging_.BRIEF)));
+
+			var juisteRonde = cb.equal(r, ronde);
+			var monsterTypeZAS = cb.equal(uitnodiging.get(CervixUitnodiging_.MONSTER_TYPE), CervixMonsterType.ZAS);
+			var zasAangevraagdDoorClient = cb.equal(uitnodiging.get(CervixUitnodiging_.ZAS_AANGEVRAAGD_DOOR_CLIENT), aangevraagdDoorClient);
+			var filterOpBriefType = cb.not(brief.get(Brief_.BRIEF_TYPE).in(BriefType.getCervixZasUitnodigingNietDirectHerzendbaarBrieven()));
+
+			return cb.and(juisteRonde, monsterTypeZAS, zasAangevraagdDoorClient, filterOpBriefType);
+		});
 	}
 
 }

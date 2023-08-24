@@ -4,7 +4,7 @@ package nl.rivm.screenit.dto.mamma.afspraken;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,7 @@ package nl.rivm.screenit.dto.mamma.afspraken;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Objects;
 
@@ -38,7 +39,7 @@ public class MammaKandidaatAfspraakDto implements Serializable, Comparable<Mamma
 
 	private final Double afstand;
 
-	public final static Double ONBEKENDE_AFSTAND = -1.0;
+	public static final Double ONBEKENDE_AFSTAND = -1.0;
 
 	public MammaKandidaatAfspraakDto(Long capaciteitBlokId, LocalDate datum, LocalTime tijd, Long standplaatsPeriodeId, Double afstand)
 	{
@@ -116,5 +117,10 @@ public class MammaKandidaatAfspraakDto implements Serializable, Comparable<Mamma
 	public boolean isAfstandOnbekend()
 	{
 		return afstand.equals(ONBEKENDE_AFSTAND);
+	}
+
+	public LocalDateTime getDatumTijd()
+	{
+		return getDatum().atTime(getTijd());
 	}
 }

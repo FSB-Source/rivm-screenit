@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.dao.impl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,6 +31,7 @@ import nl.rivm.screenit.main.model.colon.IFobtBatchFilter;
 import nl.rivm.screenit.model.colon.IFOBTBestand;
 import nl.rivm.screenit.model.colon.IFOBTUitslag;
 import nl.rivm.screenit.model.colon.enums.IFOBTBestandStatus;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.criteria.BaseCriteria;
 import nl.topicuszorg.hibernate.criteria.ListCriteria;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
@@ -39,7 +39,6 @@ import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
-import org.joda.time.DateTime;
 import org.springframework.stereotype.Repository;
 
 import com.google.common.primitives.Ints;
@@ -65,15 +64,15 @@ public class IfobtBestandDaoImpl extends AbstractAutowiredDao implements IfobtBe
 		List<IFOBTBestandStatus> statussen = new ArrayList<>();
 		if (filter.getStatus() == null)
 		{
-			statussen = Arrays.asList(new IFOBTBestandStatus[] { IFOBTBestandStatus.GEAUTORISEERD, IFOBTBestandStatus.INGELEZEN, IFOBTBestandStatus.VERWERKT });
+			statussen = Arrays.asList(IFOBTBestandStatus.GEAUTORISEERD, IFOBTBestandStatus.INGELEZEN, IFOBTBestandStatus.VERWERKT);
 		}
 		else if (filter.getStatus().equals(IFOBTBestandStatus.VERWERKT))
 		{
-			statussen = Arrays.asList(new IFOBTBestandStatus[] { IFOBTBestandStatus.GEAUTORISEERD, IFOBTBestandStatus.VERWERKT });
+			statussen = Arrays.asList(IFOBTBestandStatus.GEAUTORISEERD, IFOBTBestandStatus.VERWERKT);
 		}
 		else if (filter.getStatus().equals(IFOBTBestandStatus.INGELEZEN))
 		{
-			statussen = Arrays.asList(new IFOBTBestandStatus[] { IFOBTBestandStatus.INGELEZEN });
+			statussen = List.of(IFOBTBestandStatus.INGELEZEN);
 		}
 		crit.add(Restrictions.in("status", statussen));
 		if (filter.getLab() != null)
@@ -85,11 +84,11 @@ public class IfobtBestandDaoImpl extends AbstractAutowiredDao implements IfobtBe
 			DetachedCriteria subQuery = DetachedCriteria.forClass(IFOBTUitslag.class);
 			if (filter.getDatumTot() != null)
 			{
-				subQuery.add(Restrictions.lt("analyseDatum", new DateTime(filter.getDatumTot()).plusDays(1).withTimeAtStartOfDay().toDate()));
+				subQuery.add(Restrictions.lt("analyseDatum", DateUtil.plusDagen(DateUtil.startDag(filter.getDatumTot()), 1)));
 			}
 			if (filter.getDatumVan() != null)
 			{
-				subQuery.add(Restrictions.ge("analyseDatum", new DateTime(filter.getDatumVan()).withTimeAtStartOfDay().toDate()));
+				subQuery.add(Restrictions.ge("analyseDatum", DateUtil.startDag(filter.getDatumVan())));
 			}
 			subQuery.setProjection(Projections.property("bestand"));
 			crit.in("id", subQuery);
@@ -98,11 +97,11 @@ public class IfobtBestandDaoImpl extends AbstractAutowiredDao implements IfobtBe
 		{
 			if (filter.getDatumTot() != null)
 			{
-				crit.add(Restrictions.lt("statusDatum", new DateTime(filter.getDatumTot()).plusDays(1).withTimeAtStartOfDay().toDate()));
+				crit.add(Restrictions.lt("statusDatum", DateUtil.plusDagen(DateUtil.startDag(filter.getDatumTot()), 1)));
 			}
 			if (filter.getDatumVan() != null)
 			{
-				crit.add(Restrictions.ge("statusDatum", new DateTime(filter.getDatumVan()).withTimeAtStartOfDay().toDate()));
+				crit.add(Restrictions.ge("statusDatum", DateUtil.startDag(filter.getDatumVan())));
 			}
 		}
 		return crit;

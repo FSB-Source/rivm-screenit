@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -41,7 +41,6 @@ import nl.rivm.screenit.service.impl.EdiServiceBaseImpl;
 import nl.rivm.screenit.util.NaamUtil;
 
 import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -82,11 +81,11 @@ public class ColonEdiServiceImpl extends EdiServiceBaseImpl implements ColonEdiS
 		}
 		LOG.debug("Er wordt een HuisartsBericht gemaakt voor het HuisartsBerichtType: " + berichtType.getNaam() + ", met de status: " + status.name()
 			+ ", voor Client: " + client.getId());
-		DateTime date = currentDateSupplier.getDateTime();
+		var date = currentDateSupplier.getDate();
 
 		ColonHuisartsBericht haBericht = new ColonHuisartsBericht();
 		haBericht.setBerichtType(berichtType);
-		haBericht.setAanmaakDatum(date.toDate());
+		haBericht.setAanmaakDatum(date);
 		haBericht.setStatus(status);
 		haBericht.setHuisarts(huisarts);
 		haBericht.setClient(client);

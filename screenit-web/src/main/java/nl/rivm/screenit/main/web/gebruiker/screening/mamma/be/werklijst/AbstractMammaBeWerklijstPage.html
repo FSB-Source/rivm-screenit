@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -20,7 +20,6 @@
   -->
 <html xmlns:wicket="http://wicket.apache.org/">
 <wicket:extend>
-    <link rel="stylesheet" type="text/css" href="assets/css/base_styles_be.css"/>
 
     <div class="btn-top dropdown pull-right">
         <button class="btn btn-primary" wicket:id="lezingenBevestigen">
@@ -62,19 +61,25 @@
                     </div>
                 </div>
                 <div class="span4">
-                    <div class="control-group">
-                        <label class="control-label">Screeningseenheden</label>
-                        <select class="span6" multiple="multiple" wicket:id="screeningsEenheden">
-                            <option>0</option>
-                        </select>
-                    </div>
-                    <div class="control-group">
-                        <label class="control-label">Status</label>
-                        <select class="span6" multiple="multiple" wicket:id="beoordelingStatussen">
-                            <option>0</option>
-                        </select>
-                    </div>
-                </div>
+					<div class="control-group">
+						<label class="control-label">Screeningseenheden</label>
+						<select class="span6" multiple="multiple" wicket:id="screeningsEenheden">
+							<option>0</option>
+						</select>
+					</div>
+					<div class="control-group">
+						<label class="control-label">Status</label>
+						<select class="span6" multiple="multiple" wicket:id="beoordelingStatussen">
+							<option>0</option>
+						</select>
+					</div>
+					<wicket:enclosure child="onderzoekType">
+						<div class="control-group">
+							<label class="control-label">Type onderzoek</label>
+							<select class="span6" wicket:id="onderzoekType"></select>
+						</div>
+					</wicket:enclosure>
+				</div>
 
                 <div class="form-actions clearfix">
                     <button class="btn btn-primary" wicket:id="zoeken">

@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.model.mamma;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -51,15 +50,18 @@ public class MammaPostcodeReeks extends AbstractHibernateObject
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)
 	@DiffSpecs(displayProperty = "naam")
 	private MammaStandplaats standplaats;
+
 	@Column(nullable = false, length = HibernateMagicNumber.L6)
 	private String vanPostcode;
+
 	@Column(nullable = false, length = HibernateMagicNumber.L6)
 	private String totPostcode;
+
 	public void setVanPostcode(String vanPostcode)
 	{
 		if (vanPostcode != null)
 		{
-			this.vanPostcode = vanPostcode.toUpperCase().replaceAll(" ", "");
+			this.vanPostcode = vanPostcode.toUpperCase().replace(" ", "");
 		}
 		else
 		{
@@ -71,7 +73,7 @@ public class MammaPostcodeReeks extends AbstractHibernateObject
 	{
 		if (totPostcode != null)
 		{
-			this.totPostcode = totPostcode.toUpperCase().replaceAll(" ", "");
+			this.totPostcode = totPostcode.toUpperCase().replace(" ", "");
 		}
 		else
 		{

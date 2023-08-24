@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,6 +24,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import nl.rivm.screenit.dao.mamma.MammaBaseTehuisClientenDao;
 import nl.rivm.screenit.main.service.mamma.MammaTehuisAdresService;
 import nl.rivm.screenit.main.service.mamma.MammaTehuisService;
@@ -40,6 +41,7 @@ import nl.rivm.screenit.service.mamma.enums.MammaTehuisSelectie;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.organisatie.model.Adres;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

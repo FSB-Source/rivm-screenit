@@ -4,7 +4,7 @@ package nl.rivm.screenit.wsb.fhir.resource.dstu3.v1;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,8 +32,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import nl.rivm.screenit.dao.cervix.CervixHuisartsBaseDao;
+import nl.rivm.screenit.dao.cervix.CervixHuisartsLocatieDao;
 import nl.rivm.screenit.huisartsenportaal.enums.CervixLocatieStatus;
+import nl.rivm.screenit.huisartsenportaal.util.CervixLocatieUtil;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
@@ -67,14 +68,14 @@ public class LabaanvraagBundle extends Bundle implements LabaanvraagResource
 
 	private final ICurrentDateSupplier currentDateSupplier;
 
-	private final CervixHuisartsBaseDao huisartsBaseDao;
+	private final CervixHuisartsLocatieDao locatieDao;
 
 	private final CervixMonsterService monsterService;
 
 	public LabaanvraagBundle()
 	{
 		this.currentDateSupplier = SpringBeanProvider.getInstance().getBean(ICurrentDateSupplier.class);
-		this.huisartsBaseDao = SpringBeanProvider.getInstance().getBean(CervixHuisartsBaseDao.class);
+		this.locatieDao = SpringBeanProvider.getInstance().getBean(CervixHuisartsLocatieDao.class);
 		this.monsterService = SpringBeanProvider.getInstance().getBean(CervixMonsterService.class);
 	}
 
@@ -88,8 +89,13 @@ public class LabaanvraagBundle extends Bundle implements LabaanvraagResource
 		return OBJ_ID;
 	}
 
-	public BMHKLaboratorium getLaboratorium()
+	public BMHKLaboratorium getLaboratorium() throws NoSuchElementException
 	{
+		var uitstrijkje = getUitstrijkje();
+		if (uitstrijkje != null && uitstrijkje.getLaboratorium() != null)
+		{
+			return uitstrijkje.getLaboratorium();
+		}
 		return getHuisartsLocatie()
 			.getLocatieAdres()
 			.getWoonplaats()
@@ -110,33 +116,33 @@ public class LabaanvraagBundle extends Bundle implements LabaanvraagResource
 		return monsterService.getUitstrijkjeByClientBsnAndControleLetters(getClientBsn(), getControleLetters());
 	}
 
-	public CervixHuisartsLocatie getHuisartsLocatie()
+	public CervixHuisartsLocatie getHuisartsLocatie() throws NoSuchElementException
 	{
-		final CervixHuisarts huisarts = getHuisarts();
+		final CervixHuisarts huisarts = getActieveHuisartsMetEenActieveLocatie();
 		return huisarts
 			.getHuisartsLocaties()
 			.stream()
-			.filter(locatie -> CervixLocatieStatus.ACTIEF.equals(locatie.getStatus()))
+			.filter(locatie -> locatie.getStatus() == CervixLocatieStatus.ACTIEF && CervixLocatieUtil.isLocatieCompleet(locatie))
 			.min(Comparator.comparing(CervixHuisartsLocatie::getId))
 			.orElseThrow(() -> new NoSuchElementException(String.format("Voor huisarts met AGB code %s is geen actieve locatie gevonden.", huisarts.getAgbcode())));
 	}
 
-	private CervixHuisarts getHuisarts()
+	private CervixHuisarts getActieveHuisartsMetEenActieveLocatie()
 	{
 		if (getIndividueleAgb() != null)
 		{
-			CervixHuisarts huisarts = getActieveHuisarts(getIndividueleAgb());
+			CervixHuisarts huisarts = getActieveHuisartsMetEenActieveLocatie(getIndividueleAgb());
 			if (huisarts != null)
 			{
 				return huisarts;
 			}
 		}
-		return getActieveHuisarts(getPraktijkAgb());
+		return getActieveHuisartsMetEenActieveLocatie(getPraktijkAgb());
 	}
 
-	private CervixHuisarts getActieveHuisarts(String praktijkAgb)
+	private CervixHuisarts getActieveHuisartsMetEenActieveLocatie(String agbcode)
 	{
-		return huisartsBaseDao.getActieveHuisarts(praktijkAgb);
+		return locatieDao.getActieveHuisartsMetEenActieveLocatie(agbcode);
 	}
 
 	public CervixLabformulierStatus getStatus()
@@ -271,6 +277,13 @@ public class LabaanvraagBundle extends Bundle implements LabaanvraagResource
 	public String getOpmerkingenTekst()
 	{
 		return extractStringElementByCode(CodeSystem.OPMERKINGEN_TEKST);
+	}
+
+	public String getZorgDomeinID()
+	{
+		var identifierLijst = getCompositionStream().map(Composition::getIdentifier).collect(Collectors.toList());
+
+		return identifierLijst.isEmpty() ? null : identifierLijst.get(0).getValue();
 	}
 
 	private Stream<Resource> getResourceStream()

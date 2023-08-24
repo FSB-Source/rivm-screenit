@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,9 +33,7 @@ import nl.rivm.screenit.model.colon.ClientCategorieEntry;
 import nl.rivm.screenit.model.enums.JobStartParameter;
 import nl.rivm.screenit.model.verwerkingverslag.SelectieRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.SelectieRapportageGewijzigdGebiedEntry;
-import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.ProjectService;
-import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.batch.core.JobParameters;
@@ -59,23 +57,17 @@ public class ClientSelectieMetCapaciteitItemReader extends AbstractClientSelecti
 	private ColonUitnodigingsgebiedCapaciteitService uitnodigingsGebiedCapactieitService;
 
 	@Autowired
-	private ColonDossierBaseService dossierService;
-
-	@Autowired
 	private HibernateService hibernateService;
 
 	@Autowired
 	private ProjectService projectService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private Collection<ColonUitnodigingsgebiedSelectieContext> uitnodigingsgebieden;
 
 	public ClientSelectieMetCapaciteitItemReader()
 	{
 		super.setFetchSize(50);
 	}
-
-	private Collection<ColonUitnodigingsgebiedSelectieContext> uitnodigingsgebieden;
 
 	@Override
 	public ClientCategorieEntry read()
@@ -101,8 +93,6 @@ public class ClientSelectieMetCapaciteitItemReader extends AbstractClientSelecti
 				TransactionSynchronizationManager.bindResource(sessionFactory, new SessionHolder(hibernateSession));
 				unbindSessionFromThread = true;
 			}
-			dossierService.updateIntervalReferentieDatums();
-
 			JobParameters jobParameters = stepExecution.getJobExecution().getJobParameters();
 			boolean herstartJob = Boolean.parseBoolean(jobParameters.getString(JobStartParameter.COLON_SELECTIE_HERSTART.name(), "false"));
 			uitnodigingsgebieden = uitnodigingsGebiedCapactieitService.bepaalCapaciteit(executionContext, true, herstartJob);
@@ -121,11 +111,8 @@ public class ClientSelectieMetCapaciteitItemReader extends AbstractClientSelecti
 
 	private void setCursor()
 	{
-		Integer uitnodigingsInterval = preferenceService.getInteger(PreferenceKey.UITNODIGINGSINTERVAL.name());
-		if (uitnodigingsInterval == null)
-		{
-			throw new IllegalStateException("Spreidingsperiode op de parameterisatie pagina is niet gezet");
-		}
+		var projectGroepen = projectService.getActieveProjectGroepenVoorUitnodigingDK();
+
 		Integer minimaleLeeftijd = preferenceService.getInteger(PreferenceKey.MINIMALE_LEEFTIJD_COLON.name());
 		if (minimaleLeeftijd == null)
 		{
@@ -137,27 +124,19 @@ public class ClientSelectieMetCapaciteitItemReader extends AbstractClientSelecti
 		{
 			throw new IllegalStateException("Maximale leeftijd colonscreening op de parameterisatie pagina is niet gezet");
 		}
-		Integer wachttijdVerzendenPakket = preferenceService.getInteger(PreferenceKey.WACHTTIJD_VERZENDEN_PAKKET_TWEE_OP_EEN_ADRES.name());
-		if (wachttijdVerzendenPakket == null)
-		{
-			throw new IllegalStateException("Wachttijd verzenden pakket bij 2 op 1 adres op de parameterisatie pagina is niet gezet");
-		}
-
-		var projectGroepen = projectService.getActieveProjectGroepenVoorUitnodigingDK();
 
 		var selectieContext = new ColonClientSelectieContext();
 		selectieContext.clientDao = clientDao;
+		selectieContext.fitService = fitService;
 		selectieContext.uitnodigingsDao = uitnodigingsDao;
 		selectieContext.hibernateService = hibernateService;
 		selectieContext.uitnodigingsGebiedCapaciteitService = uitnodigingsGebiedCapactieitService;
 		selectieContext.fetchSize = fetchSize;
 		selectieContext.minimaleLeeftijd = minimaleLeeftijd;
 		selectieContext.maximaleLeeftijd = maximaleLeeftijd;
-		selectieContext.wachttijdVerzendenPakket = wachttijdVerzendenPakket;
-		selectieContext.uitnodigingsInterval = uitnodigingsInterval;
 		selectieContext.init(uitnodigingsDao.getUitnodigingCohorten(), projectGroepen);
 
-		cursor = new ClientSelectieMetCapaciteitItemCursor(selectieContext, uitnodigingsgebieden, currentDateSupplier.getLocalDate());
+		cursor = new ClientSelectieMetCapaciteitItemCursor(selectieContext, uitnodigingsgebieden);
 	}
 
 	private void rapporteerLeegLopendeGebieden()

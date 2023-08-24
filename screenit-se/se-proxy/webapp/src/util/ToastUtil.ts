@@ -66,10 +66,10 @@ export const showNfcErrorToast = (): void => {
 	}
 }
 
-export const showWarningToast = (message: string): void => {
+export const showWarningToast = (message: string, viewTime?: number): void => {
 	if (!toastIdWarning || !toast.isActive(toastIdWarning)) {
 		toastIdWarning = toast.warn(message, {
-			autoClose: MINUUT,
+			autoClose: viewTime ? viewTime : MINUUT,
 		})
 	}
 }

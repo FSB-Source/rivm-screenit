@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,7 +30,6 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.RondeNummerService;
-import nl.rivm.screenit.service.colon.ColonHuisartsBerichtService;
 import nl.rivm.screenit.service.colon.ColonHuisartsService;
 import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.rivm.screenit.util.NaamUtil;
@@ -46,10 +45,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class ColonHuisartsServiceImpl implements ColonHuisartsService
 {
-
-	@Autowired
-	private ColonHuisartsBerichtService huisartsBerichtService;
-
 	@Autowired
 	private LogService logService;
 
@@ -81,7 +76,7 @@ public class ColonHuisartsServiceImpl implements ColonHuisartsService
 
 			ronde.setColonHuisarts(huisarts);
 			boolean diffColonHuisarts = StringUtils
-				.isNotBlank(EntityAuditUtil.getDiffFieldToLatestVersion(ronde, "colonHuisarts", hibernateService.getHibernateSession()));
+				.isNotBlank(EntityAuditUtil.getDiffFieldsToLatestVersion(ronde, hibernateService.getHibernateSession(), "colonHuisarts"));
 
 			if (diffColonHuisarts)
 			{

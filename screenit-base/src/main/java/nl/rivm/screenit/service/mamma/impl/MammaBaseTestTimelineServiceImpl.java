@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,8 +21,8 @@ package nl.rivm.screenit.service.mamma.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Date;
 
 import nl.rivm.screenit.dao.mamma.MammaBaseHL7v24Dao;
 import nl.rivm.screenit.model.Client;
@@ -45,6 +45,7 @@ import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
 import nl.rivm.screenit.service.mamma.MammaBaseTestTimelineService;
 import nl.rivm.screenit.service.mamma.MammaBaseTestTimelineTimeService;
 import nl.rivm.screenit.service.mamma.enums.MammaTestTimeLineDossierTijdstip;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -152,14 +153,15 @@ public class MammaBaseTestTimelineServiceImpl implements MammaBaseTestTimelineSe
 	{
 		rekenDossierTerug(ronde.getDossier(), MammaTestTimeLineDossierTijdstip.DATUM_TIJD_AFSPRAAK);
 
-		Date afspraakDatum = currentDateSupplier.getDateTime().minuteOfHour().roundHalfCeilingCopy().plusWeeks(5).toDate();
+		var nu = currentDateSupplier.getLocalDateTime();
+		var afspraakDatum = nu.truncatedTo(ChronoUnit.HOURS).plusMinutes(30 * (nu.getMinute() / 30)).plusWeeks(5);
 		MammaStandplaatsPeriode standplaatsPeriode = screeningsEenheid.getStandplaatsPerioden().get(0);
 		if (standplaatsPeriode == null)
 		{
 			throw new IllegalArgumentException("Screeningeenheid " + screeningsEenheid.getNaam() + " heeft geen standplaatsperiode");
 		}
 		baseKansberekeningService.resetPreferences();
-		return baseAfspraakService.maakAfspraak(ronde, null, afspraakDatum, standplaatsPeriode, null, true, true, false, stuurHl7Bericht, false, null, false);
+		return baseAfspraakService.maakAfspraak(ronde, null, DateUtil.toUtilDate(afspraakDatum), standplaatsPeriode, null, true, true, false, stuurHl7Bericht, false, null, false);
 	}
 
 	private MammaScreeningRonde nieuweRonde(Client client, MammaStandplaatsRonde standplaatsRonde, boolean rekenDossierTerug)
@@ -173,7 +175,12 @@ public class MammaBaseTestTimelineServiceImpl implements MammaBaseTestTimelineSe
 
 		if (standplaatsRonde == null)
 		{
-			standplaatsRonde = hibernateService.loadAll(MammaStandplaatsRonde.class).get(0);
+			var lijstMetStandplaatsronden = hibernateService.loadAll(MammaStandplaatsRonde.class);
+			var eersteStandplaatsRondeMetAchtervang = lijstMetStandplaatsronden
+				.stream()
+				.filter(standplaatsRondeToDetermine -> standplaatsRondeToDetermine.getAchtervangToegepast().equals(Boolean.TRUE))
+				.findFirst();
+			standplaatsRonde = eersteStandplaatsRondeMetAchtervang.orElse(lijstMetStandplaatsronden.get(0));
 		}
 		return factory.maakRonde(dossier, standplaatsRonde, false);
 	}

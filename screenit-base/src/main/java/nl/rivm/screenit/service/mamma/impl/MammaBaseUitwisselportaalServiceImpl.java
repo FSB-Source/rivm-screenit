@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -101,7 +101,7 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 	{
 		try
 		{
-			LOG.info("Start ophalen versalg voor " + downloadOnderzoek.getId());
+			LOG.info("Start ophalen verslag voor " + downloadOnderzoek.getId());
 			MammaBeoordeling beoordeling = downloadOnderzoek.getOnderzoek().getLaatsteBeoordeling();
 			File verslagFile = baseVerslagService.getVerslagFile(beoordeling);
 			if (verslagFile != null)
@@ -183,7 +183,7 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 
 		for (MammaDownloadOnderzoekenVerzoek verzoek : verzoeken)
 		{
-			uploadDocumentService.delete(verzoek.getZipBestand(), true);
+			uploadDocumentService.delete(verzoek.getZipBestand());
 			hibernateService.delete(verzoek);
 		}
 	}
@@ -196,7 +196,7 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 
 		for (MammaDownloadOnderzoekenVerzoek verzoek : verzoeken)
 		{
-			uploadDocumentService.delete(verzoek.getZipBestand(), true);
+			uploadDocumentService.delete(verzoek.getZipBestand());
 			hibernateService.delete(verzoek);
 		}
 	}
@@ -221,7 +221,7 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 	{
 		for (UploadDocument bestand : uploadBeeldenPoging.getBestanden())
 		{
-			uploadDocumentService.delete(bestand, true);
+			uploadDocumentService.delete(bestand);
 		}
 		uploadBeeldenPoging.getBestanden().clear();
 

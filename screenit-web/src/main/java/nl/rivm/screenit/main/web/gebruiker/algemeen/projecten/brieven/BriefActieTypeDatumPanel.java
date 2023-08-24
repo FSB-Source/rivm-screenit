@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.brieven;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,7 @@ import java.util.Date;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.DateUtil;
 
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
@@ -35,9 +36,6 @@ import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
 public class BriefActieTypeDatumPanel extends GenericPanel<ProjectBriefActie>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private ICurrentDateSupplier currentDateSupplier;
 
@@ -47,7 +45,7 @@ public class BriefActieTypeDatumPanel extends GenericPanel<ProjectBriefActie>
 
 		DatePicker<Date> datePicker = ComponentHelper.newDatePicker("datum");
 		datePicker.setRequired(true);
-		datePicker.add(DateValidator.minimum(currentDateSupplier.getDateTime().minusDays(1).toDate()));
+		datePicker.add(DateValidator.minimum(DateUtil.minDagen(currentDateSupplier.getDate(), 1)));
 		add(datePicker);
 	}
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.component.table;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,9 +21,9 @@ package nl.rivm.screenit.main.web.component.table;
  * =========================LICENSE_END==================================
  */
 
-import java.io.File;
 import java.util.List;
 
+import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.validator.FileValidator;
 import nl.rivm.screenit.model.IDocument;
 import nl.rivm.screenit.model.UploadDocument;
@@ -77,19 +77,13 @@ public abstract class UploadDocumentPanel<T extends IDocument> extends GenericPa
 					try
 					{
 
-						FileUpload fileUpload = getFiles().getObject().get(0);
 						T modelObject = UploadDocumentPanel.this.getModelObject();
 
-						UploadDocument oldDocument = modelObject.getDocument();
+						var oldDocument = modelObject.getDocument();
 						oldDocument.setActief(false);
 						hibernateService.saveOrUpdate(oldDocument);
 
-						UploadDocument newDocument = new UploadDocument();
-						File file = fileUpload.writeToTempFile();
-						newDocument.setFile(file);
-						newDocument.setNaam(fileUpload.getClientFileName());
-						newDocument.setContentType(fileUpload.getContentType());
-						newDocument.setActief(true);
+						var newDocument = ScreenitSession.get().fileUploadToUploadDocument(getFiles().getObject().get(0));
 
 						saveUploadDocument(target, modelObject, newDocument);
 						target.add(UploadDocumentPanel.this.refreshContainer);

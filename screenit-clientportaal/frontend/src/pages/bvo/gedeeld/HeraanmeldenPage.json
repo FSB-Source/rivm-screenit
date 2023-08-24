@@ -3,7 +3,8 @@
     "heraanmelden": "Opnieuw aanmelden bevolkingsonderzoek"
   },
   "afmeldenText": "U heeft zich eerder afgemeld voor het bevolkingsonderzoek. Wilt u toch weer meedoen? Dat kan.",
-  "uitnodigingText": "U krijgt automatisch een nieuwe uitnodiging wanneer u weer aan de beurt bent.",
+  "uitnodigingText_dk_bk": "U krijgt automatisch een nieuwe uitnodiging wanneer u weer aan de beurt bent.",
+  "uitnodigingText_bmhk": "U krijgt automatisch een nieuwe uitnodiging.",
   "COLON": {
     "uitnodiging": {
       "infoText": "U kunt meedoen door de ontlastingstest die u eerder heeft gekregen in te sturen. ",
@@ -30,7 +31,7 @@
   },
   "toast": {
     "CERVIX": {
-      "algemeen": "U heeft zich weer aangemeld voor het bevolkingsonderzoek. </br>U krijgt automatisch een nieuwe uitnodiging wanneer u weer aan de beurt bent."
+      "algemeen": "U heeft zich weer aangemeld voor het bevolkingsonderzoek. </br>U krijgt automatisch een nieuwe uitnodiging."
     },
     "COLON": {
       "algemeen": "U heeft zich weer aangemeld voor het bevolkingsonderzoek. </br>U krijgt automatisch een nieuwe uitnodiging wanneer u weer aan de beurt bent.",

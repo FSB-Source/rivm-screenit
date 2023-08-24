@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -52,6 +52,7 @@ import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
+import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -100,6 +101,7 @@ import org.apache.wicket.Session;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.ISortState;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.model.IDetachable;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.protocol.http.WebSession;
@@ -151,8 +153,6 @@ public class ScreenitSession extends WebSession
 
 	@SpringBean
 	private ICurrentDateSupplier currentDateSupplier;
-
-	private String afkomstigURLRegioCode;
 
 	private String regioCode;
 
@@ -769,16 +769,6 @@ public class ScreenitSession extends WebSession
 		return uzipasMeldingen.isEmpty();
 	}
 
-	public String getAfkomstigURLRegioCode()
-	{
-		return afkomstigURLRegioCode;
-	}
-
-	public void setAfkomstigURLRegioCode(String afkomstigURLRegioCode)
-	{
-		this.afkomstigURLRegioCode = afkomstigURLRegioCode;
-	}
-
 	public Long getSavedPageNumber(String compPatch)
 	{
 		return getZoekStatus(compPatch).getPageNumber();
@@ -856,9 +846,7 @@ public class ScreenitSession extends WebSession
 		InstellingGebruiker gebruiker = getLoggedInInstellingGebruiker();
 		if (gebruiker != null && CollectionUtils.isNotEmpty(gebruiker.getBevolkingsonderzoeken()))
 		{
-			List<Bevolkingsonderzoek> bvos = new ArrayList<>(gebruiker.getBevolkingsonderzoeken());
-			Bevolkingsonderzoek.sort(bvos);
-			return bvos;
+			return Bevolkingsonderzoek.sort(new ArrayList<>(gebruiker.getBevolkingsonderzoeken()));
 		}
 		else
 		{
@@ -921,6 +909,23 @@ public class ScreenitSession extends WebSession
 	public void addTempFile(File tempFile)
 	{
 		tempFiles.add(tempFile);
+	}
+
+	public UploadDocument fileUploadToUploadDocument(FileUpload fileUpload) throws Exception
+	{
+		UploadDocument uploadDocument = null;
+		if (fileUpload != null)
+		{
+			uploadDocument = new UploadDocument();
+			File tempFile = fileUpload.writeToTempFile();
+			tempFile.deleteOnExit();
+			uploadDocument.setFile(tempFile);
+			uploadDocument.setActief(true);
+			uploadDocument.setNaam(fileUpload.getClientFileName());
+			uploadDocument.setContentType(fileUpload.getContentType());
+			addTempFile(tempFile);
+		}
+		return uploadDocument;
 	}
 
 	@Override

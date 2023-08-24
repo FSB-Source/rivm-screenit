@@ -4,7 +4,7 @@ package nl.rivm.screenit.document.sepa;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,37 +22,30 @@ package nl.rivm.screenit.document.sepa;
  */
 
 import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.document.BaseDocumentCreator;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdrachtRegel;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdrachtRegelSpecificatie;
-import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.util.cervix.CervixTariefUtil;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.aspose.words.net.System.Data.DataRow;
+import com.aspose.words.Document;
+import com.aspose.words.MailMergeCleanupOptions;
 import com.aspose.words.net.System.Data.DataSet;
 import com.aspose.words.net.System.Data.DataTable;
-import com.aspose.words.Document;
-import com.aspose.words.MailMerge;
-import com.aspose.words.MailMergeCleanupOptions;
 
+@Slf4j
 public class CervixBetaalOpdrachtSpecificatieDocumentCreator extends BaseDocumentCreator
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(CervixBetaalOpdrachtSpecificatieDocumentCreator.class);
 
 	private List<CervixBetaalopdrachtRegel> labRegels = new ArrayList<>();
 
@@ -93,13 +86,14 @@ public class CervixBetaalOpdrachtSpecificatieDocumentCreator extends BaseDocumen
 		BigDecimal tarief = BigDecimal.ZERO;
 
 		BigDecimal totaal = BigDecimal.ZERO;
+
 	}
 
 	public CervixBetaalOpdrachtSpecificatieDocumentCreator(CervixBetaalopdracht opdracht)
 	{
-		List<CervixBetaalopdrachtRegel> cervixBetaalopdrachtRegels = opdracht.getBetaalopdrachtRegels().stream()
+		var cervixBetaalopdrachtRegels = opdracht.getBetaalopdrachtRegels().stream()
 			.sorted(Comparator.comparing(CervixBetaalopdrachtRegel::getNaarTenaamstelling)).collect(Collectors.toList());
-		for (CervixBetaalopdrachtRegel opdrachtRegel : cervixBetaalopdrachtRegels)
+		for (var opdrachtRegel : cervixBetaalopdrachtRegels)
 		{
 			if (opdrachtRegel.getLaboratorium() != null)
 			{
@@ -121,7 +115,7 @@ public class CervixBetaalOpdrachtSpecificatieDocumentCreator extends BaseDocumen
 		}
 	}
 
-	private void initDataSet() throws Exception
+	private void initDataSet()
 	{
 		createLabTabel();
 		insertRegelsEnSpecificaties(labRegels, TABLE_LABS, TABLE_LAB_SPECIFICATIE);
@@ -131,7 +125,7 @@ public class CervixBetaalOpdrachtSpecificatieDocumentCreator extends BaseDocumen
 
 	private DataTable createLabTabel()
 	{
-		DataTable labTable = getOrCreateDataTable(betaalOpdracht, TABLE_LABS, TABLE_LABS + ID, FIELD_TOTAAL, FIELD_NAAM, FIELD_IBAN);
+		var labTable = getOrCreateDataTable(betaalOpdracht, TABLE_LABS, TABLE_LABS + ID, FIELD_TOTAAL, FIELD_NAAM, FIELD_IBAN);
 		String[] columns = {
 			TABLE_LAB_SPECIFICATIE + ID,
 			TABLE_LABS,
@@ -143,7 +137,7 @@ public class CervixBetaalOpdrachtSpecificatieDocumentCreator extends BaseDocumen
 			FIELD_SUBTOTAAL,
 			FIELD_BETALINGSKENMERK
 		};
-		DataTable labSpecTable = getOrCreateDataTable(betaalOpdracht, TABLE_LAB_SPECIFICATIE, columns);
+		var labSpecTable = getOrCreateDataTable(betaalOpdracht, TABLE_LAB_SPECIFICATIE, columns);
 		betaalOpdracht.getRelations().add(labTable, labSpecTable, TABLE_LABS + ID, TABLE_LABS);
 		return labTable;
 	}
@@ -160,18 +154,17 @@ public class CervixBetaalOpdrachtSpecificatieDocumentCreator extends BaseDocumen
 			FIELD_SUBTOTAAL,
 			FIELD_BETALINGSKENMERK
 		};
-		DataTable haSpecTable = getOrCreateDataTable(betaalOpdracht, TABLE_HA_SPECIFICATIE, columns);
-		return haSpecTable;
+		return getOrCreateDataTable(betaalOpdracht, TABLE_HA_SPECIFICATIE, columns);
 	}
 
-	public void insertSpecificatiesHuisartsen(List<CervixBetaalopdrachtRegel> regels, String tableSpecificatieNaam) throws Exception
+	public void insertSpecificatiesHuisartsen(List<CervixBetaalopdrachtRegel> regels, String tableSpecificatieNaam)
 	{
-		DataTable tableSpecificatie = getDataTable(betaalOpdracht, tableSpecificatieNaam);
-		for (CervixBetaalopdrachtRegel regel : regels)
+		var tableSpecificatie = getDataTable(betaalOpdracht, tableSpecificatieNaam);
+		for (var regel : regels)
 		{
-			for (CervixBetaalopdrachtRegelSpecificatie spec : regel.getSpecificaties())
+			for (var spec : regel.getSpecificaties())
 			{
-				for (SplittedSpecificatie specificatie : bepaalSpecificaties(spec))
+				for (var specificatie : bepaalSpecificaties(spec))
 				{
 					insertRow(tableSpecificatie, getNextSequence(), spec.getTariefType().getNaam(), regel.getNaarIban(), regel.getNaarTenaamstelling(),
 						NumberFormat.getCurrencyInstance().format(specificatie.tarief), specificatie.aantal,
@@ -183,42 +176,33 @@ public class CervixBetaalOpdrachtSpecificatieDocumentCreator extends BaseDocumen
 
 	private Collection<SplittedSpecificatie> bepaalSpecificaties(CervixBetaalopdrachtRegelSpecificatie spec)
 	{
-		Map<BigDecimal, SplittedSpecificatie> splittedSpecificaties = new TreeMap<>();
-		for (CervixBoekRegel boekRegel : spec.getBoekRegels())
+		var splittedSpecificaties = new TreeMap<Long, SplittedSpecificatie>();
+		for (var boekRegel : spec.getBoekRegels())
 		{
-			BigDecimal tarief = CervixTariefUtil.getTariefBedrag(boekRegel);
-			if (boekRegel.getDebet())
-			{
-				tarief = tarief.negate();
-			}
-			SplittedSpecificatie splittedSpecificatie = splittedSpecificaties.get(tarief);
-			if (splittedSpecificatie == null)
-			{
-				splittedSpecificatie = new SplittedSpecificatie();
-				splittedSpecificatie.tarief = tarief;
-			}
+			var splittedSpecificatie = splittedSpecificaties.computeIfAbsent(boekRegel.getTarief().getId(), s -> new SplittedSpecificatie());
+			var tarief = CervixTariefUtil.getTariefBedrag(boekRegel);
+			splittedSpecificatie.tarief = tarief;
+			splittedSpecificatie.aantal += (Boolean.FALSE.equals(boekRegel.getDebet()) ? 1 : -1);
 			splittedSpecificatie.totaal = splittedSpecificatie.totaal.add(tarief);
-			splittedSpecificatie.aantal++;
-			splittedSpecificaties.put(tarief, splittedSpecificatie);
 		}
 		return splittedSpecificaties.values();
 	}
 
-	public void insertRegelsEnSpecificaties(List<CervixBetaalopdrachtRegel> regels, String tableNaam, String tableSpecificatieNaam) throws Exception
+	public void insertRegelsEnSpecificaties(List<CervixBetaalopdrachtRegel> regels, String tableNaam, String tableSpecificatieNaam)
 	{
-		DataTable table = getDataTable(betaalOpdracht, tableNaam);
-		for (CervixBetaalopdrachtRegel regel : regels)
+		var table = getDataTable(betaalOpdracht, tableNaam);
+		for (var regel : regels)
 		{
-			String naam = "";
+			var naam = "";
 			if (regel.getLaboratorium() != null)
 			{
 				naam = regel.getLaboratorium().getNaam();
 			}
-			DataRow row = insertRow(table, getNextSequence(), NumberFormat.getCurrencyInstance().format(regel.getBedrag()), naam, regel.getNaarIban());
-			for (CervixBetaalopdrachtRegelSpecificatie spec : regel.getSpecificaties())
+			var row = insertRow(table, getNextSequence(), NumberFormat.getCurrencyInstance().format(regel.getBedrag()), naam, regel.getNaarIban());
+			for (var spec : regel.getSpecificaties())
 			{
-				DataTable tableSpecificatie = getDataTable(betaalOpdracht, tableSpecificatieNaam);
-				for (SplittedSpecificatie specificatie : bepaalSpecificaties(spec))
+				var tableSpecificatie = getDataTable(betaalOpdracht, tableSpecificatieNaam);
+				for (var specificatie : bepaalSpecificaties(spec))
 				{
 					insertRow(tableSpecificatie, getNextSequence(), row.get(tableNaam + ID), spec.getTariefType().getNaam(), regel.getNaarIban(), regel.getNaarTenaamstelling(),
 						NumberFormat.getCurrencyInstance().format(specificatie.tarief), specificatie.aantal,
@@ -232,7 +216,7 @@ public class CervixBetaalOpdrachtSpecificatieDocumentCreator extends BaseDocumen
 	public Document fillExecuteWithRegions(Document document) throws Exception
 	{
 		log(LOG, betaalOpdracht);
-		MailMerge mailMerge = document.getMailMerge();
+		var mailMerge = document.getMailMerge();
 		mailMerge.setCleanupOptions(MailMergeCleanupOptions.REMOVE_UNUSED_REGIONS);
 		mailMerge.executeWithRegions(betaalOpdracht);
 

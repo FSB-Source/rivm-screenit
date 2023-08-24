@@ -4,7 +4,7 @@ package nl.rivm.screenit.util;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,11 +21,11 @@ package nl.rivm.screenit.util;
  * =========================LICENSE_END==================================
  */
 
-import com.google.common.collect.Range;
-
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalTime;
+
+import com.google.common.collect.Range;
 
 public class TimeRange
 {

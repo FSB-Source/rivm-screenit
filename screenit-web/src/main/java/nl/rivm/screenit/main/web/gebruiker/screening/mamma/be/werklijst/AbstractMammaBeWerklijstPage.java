@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.werklijst;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,8 +23,10 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.werklijst;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaBeWerklijstZoekObject;
@@ -45,6 +47,7 @@ import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaLezing;
@@ -74,7 +77,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.CompoundPropertyModel;
@@ -103,23 +105,26 @@ public abstract class AbstractMammaBeWerklijstPage extends AbstractMammaBePage
 	@SpringBean
 	private LogService logService;
 
-	private Form<MammaBeWerklijstZoekObject> zoekForm;
+	private final Form<MammaBeWerklijstZoekObject> zoekForm;
+
+	private final boolean heeftToegangTotOnderzoektypeFilter;
 
 	private IModel<MammaBeWerklijstZoekObject> zoekObjectModel = new CompoundPropertyModel<>(new MammaBeWerklijstZoekObject());
 
 	private IModel<List<MammaScreeningsEenheid>> screeningsEenhedenModel = new SimpleListHibernateModel<>(new ArrayList<>());
 
-	private ScreenitListMultipleChoice<MammaScreeningsEenheid> screeningsEenhedenSelector;
+	private final ScreenitListMultipleChoice<MammaScreeningsEenheid> screeningsEenhedenSelector;
 
 	private boolean emailHandtekeningVerstuurd = false;
 
 	private final WebMarkupContainer refreshContainer;
 
-	private Component lezingBevestigenBtn;
+	private final Component lezingBevestigenBtn;
 
-	public AbstractMammaBeWerklijstPage()
+	protected AbstractMammaBeWerklijstPage()
 	{
-		List<MammaScreeningsEenheid> screeningsEenheden = getMogelijkeScreeningsEenheden();
+		var screeningsEenheden = getMogelijkeScreeningsEenheden();
+		heeftToegangTotOnderzoektypeFilter = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_SCREENING_MAMMA_BE_ONDERZOEKTYPE_FILTER, Actie.INZIEN);
 
 		if (CollectionUtils.isNotEmpty(screeningsEenheden))
 		{
@@ -134,90 +139,15 @@ public abstract class AbstractMammaBeWerklijstPage extends AbstractMammaBePage
 			resetZoekObject();
 		}
 
-		final boolean heeftHandtekekingVoorScreenen = ScreenitSession.get().getLoggedInInstellingGebruiker().getMedewerker().getHandtekening() != null;
-		MammaOnderzoekDataProvider onderzoekDataProvider = new MammaOnderzoekDataProvider("onderzoek.creatieDatum", zoekObjectModel);
-
 		refreshContainer = new WebMarkupContainer("refreshContainer");
 		refreshContainer.setOutputMarkupId(Boolean.TRUE);
 		add(refreshContainer);
 
-		List<IColumn<MammaBeoordeling, String>> columns = new ArrayList<>();
-		columns.add(new DateTimePropertyColumn<>(Model.of("Onderzoeksdatum"), "onderzoek.creatieDatum", Constants.getDateTimeSecondsFormat()));
-		columns.add(new ClientColumn<MammaBeoordeling>("persoon.achternaam", "onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client"));
-		columns.add(new GeboortedatumColumn<>("persoon.geboortedatum", "onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon"));
-		columns.add(new PropertyColumn<>(Model.of("BSN"), "persoon.bsn", "onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon.bsn"));
-		columns.add(new PropertyColumn<>(Model.of("SE"), "se.naam", "onderzoek.screeningsEenheid.naam"));
-		columns.add(new EnumPropertyColumn<>(Model.of("Status"), "beoordeling.status", "status"));
-
-		refreshContainer.add(new ScreenitDataTable<MammaBeoordeling, String>("resultaten", columns, onderzoekDataProvider, 10, Model.of("beoordeling(en)"))
-		{
-			@Override
-			protected String getCssClass(int index, IModel<MammaBeoordeling> rowModel)
-			{
-				MammaBeoordeling beoordeling = rowModel.getObject();
-				MammaLezing beoordeeldeLezing = null;
-				String cssClass = "";
-				if (MammaBeoordelingStatus.EERSTE_LEZING_OPGESLAGEN.equals(beoordeling.getStatus()))
-				{
-					beoordeeldeLezing = beoordeling.getEersteLezing();
-				}
-				else if (MammaBeoordelingStatus.TWEEDE_LEZING_OPGESLAGEN.equals(beoordeling.getStatus()))
-				{
-					beoordeeldeLezing = beoordeling.getTweedeLezing();
-				}
-				if (beoordeeldeLezing != null)
-				{
-					cssClass += baseBeoordelingService.isLezingVerwijzen(beoordeeldeLezing) ? " verwijzend " : "";
-				}
-				return super.getCssClass(index, rowModel) + cssClass;
-			}
-
-			@Override
-			public void onClick(AjaxRequestTarget target, IModel<MammaBeoordeling> model)
-			{
-				if (heeftHandtekekingVoorScreenen)
-				{
-					openBeoordelingScherm(target, model, zoekForm.getModel(), onderzoekDataProvider.getSort());
-				}
-				else
-				{
-					if (!emailHandtekeningVerstuurd)
-					{
-						beoordelingService.radioloogHeeftGeenHandtekening(ScreenitSession.get().getLoggedInInstellingGebruiker().getMedewerker());
-						emailHandtekeningVerstuurd = true;
-					}
-					error(getString("error.heeft.geen.handtekening"));
-				}
-			}
-
-			@Override
-			public Panel getCustomPanel(String id)
-			{
-				IModel<Integer> beoordeeldModel = new IModel<Integer>()
-				{
-					@Override
-					public Integer getObject()
-					{
-						return beoordelingService.getAantalBeoordeeld(zoekForm.getModel().getObject());
-					}
-				};
-
-				IModel<Integer> teBeoordelenModel = new IModel<Integer>()
-				{
-					@Override
-					public Integer getObject()
-					{
-						return (int) getItemCount() - beoordeeldModel.getObject();
-					}
-				};
-
-				return new MammaBeTabelCounterPanel(id, teBeoordelenModel, beoordeeldModel);
-			}
-		});
+		refreshContainer.add(createOnderzoekenTabel());
 
 		zoekForm = new Form<>("form", zoekObjectModel);
 
-		FormComponent<String> bsnField = ComponentHelper.addTextField(zoekForm, "bsn", false, 9, false);
+		var bsnField = ComponentHelper.addTextField(zoekForm, "bsn", false, 9, false);
 		bsnField.add(new BSNValidator());
 
 		ComponentHelper.addTextField(zoekForm, "geboortedatum", false, -1, Date.class, false)
@@ -235,12 +165,15 @@ public abstract class AbstractMammaBeWerklijstPage extends AbstractMammaBePage
 		screeningsEenhedenSelector = createScreeningsEenhedenSelector();
 		zoekForm.add(screeningsEenhedenSelector);
 
-		List<MammaBeoordelingStatus> beoordelingStatussen = getBeschikbarePaginaStatussen();
+		var beoordelingStatussen = getBeschikbarePaginaStatussen();
 		ScreenitListMultipleChoice<MammaBeoordelingStatus> onderzoekStatusSelector = new ScreenitListMultipleChoice<>(
 			"beoordelingStatussen",
-			new PropertyModel<List<MammaBeoordelingStatus>>(zoekObjectModel, "beoordelingStatussen"), beoordelingStatussen,
+			new PropertyModel<>(zoekObjectModel, "beoordelingStatussen"), beoordelingStatussen,
 			new EnumChoiceRenderer<>());
 		zoekForm.add(onderzoekStatusSelector);
+
+		ComponentHelper.addDropDownChoice(zoekForm, "onderzoekType", true, Arrays.asList(MammaOnderzoekType.values()), false)
+			.setVisible(heeftToegangTotOnderzoektypeFilter);
 
 		IndicatingAjaxSubmitLink zoekenButton = new IndicatingAjaxSubmitLink("zoeken", zoekForm)
 		{
@@ -266,7 +199,80 @@ public abstract class AbstractMammaBeWerklijstPage extends AbstractMammaBePage
 		zoekForm.add(zoekenButton);
 		add(zoekForm);
 
-		lezingBevestigenBtn = new IndicatingAjaxLink<T>("lezingenBevestigen", null)
+		lezingBevestigenBtn = createLezingenBevestigenButton();
+		updateBevestigenButtonStatus();
+		add(lezingBevestigenBtn);
+		logFilter();
+	}
+
+	private Component createOnderzoekenTabel()
+	{
+		final var heeftHandtekeningVoorScreenen = ScreenitSession.get().getLoggedInInstellingGebruiker().getMedewerker().getHandtekening() != null;
+
+		var onderzoekDataProvider = new MammaOnderzoekDataProvider("onderzoek.creatieDatum", zoekObjectModel);
+
+		List<IColumn<MammaBeoordeling, String>> columns = new ArrayList<>();
+		columns.add(new DateTimePropertyColumn<>(Model.of("Onderzoeksdatum"), "onderzoek.creatieDatum", Constants.getDateTimeSecondsFormat()));
+		columns.add(new ClientColumn<>("persoon.achternaam", "onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client"));
+		columns.add(new GeboortedatumColumn<>("persoon.geboortedatum", "onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon"));
+		columns.add(new PropertyColumn<>(Model.of("BSN"), "persoon.bsn", "onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon.bsn"));
+		columns.add(new PropertyColumn<>(Model.of("SE"), "se.naam", "onderzoek.screeningsEenheid.naam"));
+		columns.add(new EnumPropertyColumn<>(Model.of("Status"), "beoordeling.status", "status"));
+
+		return new ScreenitDataTable<>("resultaten", columns, onderzoekDataProvider, 10, Model.of("beoordeling(en)"))
+		{
+			@Override
+			protected String getCssClass(int index, IModel<MammaBeoordeling> rowModel)
+			{
+				MammaBeoordeling beoordeling = rowModel.getObject();
+				MammaLezing beoordeeldeLezing = null;
+				String cssClass = "";
+				if (MammaBeoordelingStatus.EERSTE_LEZING_OPGESLAGEN.equals(beoordeling.getStatus()))
+				{
+					beoordeeldeLezing = beoordeling.getEersteLezing();
+				}
+				else if (MammaBeoordelingStatus.TWEEDE_LEZING_OPGESLAGEN.equals(beoordeling.getStatus()))
+				{
+					beoordeeldeLezing = beoordeling.getTweedeLezing();
+				}
+				if (beoordeeldeLezing != null)
+				{
+					cssClass += baseBeoordelingService.isLezingVerwijzen(beoordeeldeLezing) ? " verwijzend " : "";
+				}
+				return super.getCssClass(index, rowModel) + cssClass;
+			}
+
+			@Override
+			public void onClick(AjaxRequestTarget target, IModel<MammaBeoordeling> model)
+			{
+				if (heeftHandtekeningVoorScreenen)
+				{
+					openBeoordelingScherm(target, model, zoekForm.getModel(), onderzoekDataProvider.getSort());
+				}
+				else
+				{
+					if (!emailHandtekeningVerstuurd)
+					{
+						beoordelingService.radioloogHeeftGeenHandtekening(ScreenitSession.get().getLoggedInInstellingGebruiker().getMedewerker());
+						emailHandtekeningVerstuurd = true;
+					}
+					error(getString("error.heeft.geen.handtekening"));
+				}
+			}
+
+			@Override
+			public Panel getCustomPanel(String id)
+			{
+				IModel<Integer> beoordeeldModel = () -> beoordelingService.getAantalBeoordeeld(zoekForm.getModel().getObject());
+				IModel<Integer> teBeoordelenModel = () -> (int) getItemCount() - beoordeeldModel.getObject();
+				return new MammaBeTabelCounterPanel(id, teBeoordelenModel, beoordeeldModel);
+			}
+		};
+	}
+
+	private Component createLezingenBevestigenButton()
+	{
+		return new IndicatingAjaxLink<T>("lezingenBevestigen", null)
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target)
@@ -287,17 +293,14 @@ public abstract class AbstractMammaBeWerklijstPage extends AbstractMammaBePage
 			}
 		}
 			.setOutputMarkupId(true)
-			.setOutputMarkupPlaceholderTag(true)
-			.setVisible(bevestigenButtonVisible())
-			.setEnabled(bevestigenButtonEnabled());
-		add(lezingBevestigenBtn);
-		logFilter();
+			.setOutputMarkupPlaceholderTag(true);
 	}
 
 	private void resetZoekObject()
 	{
 		MammaBeWerklijstZoekObject zoekObject = zoekObjectModel.getObject();
 		zoekObject.setInstellingGebruiker(ScreenitSession.get().getLoggedInInstellingGebruiker());
+		zoekObject.setOnderzoekType(MammaOnderzoekType.MAMMOGRAFIE);
 		zoekObject.setBeoordelingStatussen(getDefaultStatussen());
 		zoekObject.setScreeningsEenheden(screeningsEenhedenModel.getObject());
 		zoekObject.setBeoordelingsEenheid((BeoordelingsEenheid) ScreenitSession.get().getInstelling());
@@ -310,17 +313,27 @@ public abstract class AbstractMammaBeWerklijstPage extends AbstractMammaBePage
 	@Override
 	protected void onCloseLogoutConfirmationDialog(AjaxRequestTarget target)
 	{
-		target.add(lezingBevestigenBtn
-			.setVisible(bevestigenButtonVisible())
-			.setEnabled(bevestigenButtonEnabled()));
-		target.add(refreshContainer, zoekForm);
+		updateBevestigenButtonStatus();
+		target.add(lezingBevestigenBtn, refreshContainer, zoekForm);
+	}
+
+	private void updateBevestigenButtonStatus()
+	{
+		lezingBevestigenBtn.setVisible(bevestigenButtonVisible()).setEnabled(bevestigenButtonEnabled());
+	}
+
+	@Override
+	protected void onConfigure()
+	{
+		super.onConfigure();
+		updateBevestigenButtonStatus();
 	}
 
 	private ScreenitListMultipleChoice<MammaScreeningsEenheid> createScreeningsEenhedenSelector()
 	{
 		return new ScreenitListMultipleChoice<>(
 			"screeningsEenheden",
-			new PropertyModel<List<MammaScreeningsEenheid>>(zoekObjectModel, "screeningsEenheden"), screeningsEenhedenModel,
+			new PropertyModel<>(zoekObjectModel, "screeningsEenheden"), screeningsEenhedenModel,
 			new ChoiceRenderer<>("naam"));
 	}
 
@@ -358,31 +371,18 @@ public abstract class AbstractMammaBeWerklijstPage extends AbstractMammaBePage
 		{
 			filter += "postcode: " + zoekObject.getPostcode() + ", ";
 		}
+		if (zoekObject.getOnderzoekType() != null)
+		{
+			filter += "onderzoekType: " + zoekObject.getOnderzoekType().getNaam() + ", ";
+		}
 		if (zoekObject.getScreeningsEenheden() != null && !zoekObject.getScreeningsEenheden().isEmpty())
 		{
-			List<MammaScreeningsEenheid> ses = zoekObject.getScreeningsEenheden();
 			filter += "se: [";
-			for (int i = 0; i < ses.size(); i++)
-			{
-				filter += ses.get(i).getNaam();
-				if (i < ses.size() - 1)
-				{
-					filter += ", ";
-				}
-			}
-			filter += "]";
+			filter += zoekObject.getScreeningsEenheden().stream().map(MammaScreeningsEenheid::getNaam).collect(Collectors.joining(", "));
+			filter += "] ";
 		}
-
-		List<MammaBeoordelingStatus> statussen = zoekObject.getBeoordelingStatussen();
 		filter += "statussen: [";
-		for (int i = 0; i < statussen.size(); i++)
-		{
-			filter += statussen.get(i).getNaam();
-			if (i < statussen.size() - 1)
-			{
-				filter += ", ";
-			}
-		}
+		filter += zoekObject.getBeoordelingStatussen().stream().map(MammaBeoordelingStatus::getNaam).collect(Collectors.joining(", "));
 		filter += "]";
 		logService.logGebeurtenis(LogGebeurtenis.MAMMA_WERKLIJST_INGEZIEN, ScreenitSession.get().getLoggedInInstellingGebruiker(), filter, Bevolkingsonderzoek.MAMMA);
 	}

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.config;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,8 +21,6 @@ package nl.rivm.screenit.batch.config;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Properties;
-
 import lombok.Setter;
 
 import nl.rivm.screenit.service.TechnischeBerichtenLoggingSaverService;
@@ -32,7 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 @Configuration
 @ConfigurationProperties(prefix = "mail")
@@ -41,17 +38,9 @@ public class MailConfig
 {
 	private final TechnischeBerichtenLoggingSaverService technischeBerichtenLoggingSaverService;
 
-	private static final String SMTP_TIMEOUT_MS = "30000";
+	private MailServerConfig professional;
 
-	private String username;
-
-	private String password;
-
-	private String host;
-
-	private int port;
-
-	private boolean ssl;
+	private MailServerConfig client;
 
 	@Autowired
 	public MailConfig(TechnischeBerichtenLoggingSaverService technischeBerichtenLoggingSaverService)
@@ -60,41 +49,15 @@ public class MailConfig
 	}
 
 	@Bean
-	public LoggingJavaMailSender mailSender()
+	public LoggingJavaMailSender mailSenderProfessional()
 	{
-		final LoggingJavaMailSender loggingJavaMailSender = new LoggingJavaMailSender();
-		final JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-
-		mailSender.setUsername(username);
-		mailSender.setPassword(password);
-		mailSender.setHost(host);
-		mailSender.setPort(port);
-		mailSender.setProtocol("smtp");
-
-		Properties props = mailSender.getJavaMailProperties();
-		if (username == null)
-		{
-			props.setProperty("mail.smtp.auth", "false");
-		}
-		else
-		{
-			props.setProperty("mail.smtp.auth", "true");
-		}
-
-		if (ssl)
-		{
-			props.setProperty("mail.smtp.starttls.enable", "true");
-			props.setProperty("mail.smtp.ssl.protocols", "TLSv1.2");
-		}
-		else
-		{
-			props.setProperty("mail.smtp.starttls.enable", "false");
-		}
-		props.setProperty("mail.smtp.connectiontimeout", SMTP_TIMEOUT_MS);
-		props.setProperty("mail.smtp.timeout", SMTP_TIMEOUT_MS);
-
-		loggingJavaMailSender.setMailSender(mailSender);
-		loggingJavaMailSender.setTechnischeLoggingSaverService(technischeBerichtenLoggingSaverService);
-		return loggingJavaMailSender;
+		return new LoggingJavaMailSender(professional, technischeBerichtenLoggingSaverService);
 	}
+
+	@Bean
+	public LoggingJavaMailSender mailSenderClient()
+	{
+		return new LoggingJavaMailSender(client, technischeBerichtenLoggingSaverService);
+	}
+
 }

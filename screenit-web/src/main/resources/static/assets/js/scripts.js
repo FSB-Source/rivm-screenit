@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,7 @@ function changeInActief(id) {
 	$button.addClass("active");
 }
 
-function showDialog(markupId, closeCallBack) {
+function showDialog(markupId) {
 	var $dialog = $('#' + markupId);
 
 	if ($dialog.hasClass('moveModalDialog')) {
@@ -44,12 +44,7 @@ function showDialog(markupId, closeCallBack) {
 	}
 
 	$dialog.modal('show');
-
-	if ($.trim(closeCallBack).length > 0) {
-		$dialog.on('hidden', function () {
-			eval(closeCallBack);
-		})
-	}
+	return $dialog;
 }
 
 var oldFormValues;
@@ -105,8 +100,7 @@ function triggerChangesConfirmed(buttonMarkupId) {
 }
 
 function formChanged() {
-	return (bevatFormulieren && oldFormValues !== getFormValues())
-		|| (window.huidigeLezingGewijzigd && window.huidigeLezingGewijzigd());
+	return (bevatFormulieren && oldFormValues !== getFormValues()) || (window.huidigeLezingGewijzigd && window.huidigeLezingGewijzigd());
 }
 
 window.onbeforeunload = function () {
@@ -223,12 +217,10 @@ var matched, browser;
 jQuery.uaMatch = function (ua) {
 	ua = ua.toLowerCase();
 
-	var match = /(chrome)[ \/]([\w.]+)/.exec(ua) || /(webkit)[ \/]([\w.]+)/.exec(ua) || /(opera)(?:.*version|)[ \/]([\w.]+)/.exec(ua)
-		|| /(msie) ([\w.]+)/.exec(ua) || ua.indexOf("compatible") < 0 && /(mozilla)(?:.*? rv:([\w.]+)|)/.exec(ua) || [];
+	var match = /(chrome)[ \/]([\w.]+)/.exec(ua) || /(webkit)[ \/]([\w.]+)/.exec(ua) || /(opera)(?:.*version|)[ \/]([\w.]+)/.exec(ua) || /(msie) ([\w.]+)/.exec(ua) || ua.indexOf("compatible") < 0 && /(mozilla)(?:.*? rv:([\w.]+)|)/.exec(ua) || [];
 
 	return {
-		browser: match[1] || "",
-		version: match[2] || "0"
+		browser: match[1] || "", version: match[2] || "0"
 	};
 };
 
@@ -268,8 +260,7 @@ var hideAllPopovers = function () {
 
 function initInfoPopover(selector) {
 	$(selector).clickover({
-		content: $('#' + $(selector).attr('rel')).html(),
-		onShown: function () {
+		content: $('#' + $(selector).attr('rel')).html(), onShown: function () {
 			this.$tip.find('.popover-title').append('<button class="close" data-dismiss="clickover">&times;</button>');
 		},
 	});
@@ -294,3 +285,16 @@ function initToonWachtwoordToggle() {
 		element.next('input').attr('type', visible ? 'text' : 'password')
 	}
 }
+
+function replaceTextNieuwsItem() {
+	let nieuwsItemTekst = document.getElementsByClassName('js-nieuws-item-tekst');
+
+	$(".js-nieuws-item-tekst").each(function (index) {
+		$(".js-nieuws-item-tekst")[index].innerHTML.replace(/\n/g, "<br />");
+	});
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+	replaceTextNieuwsItem();
+	initToonWachtwoordToggle();
+});

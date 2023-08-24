@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.dao.UitnodigingsDao;
 import nl.rivm.screenit.model.Account;
@@ -62,6 +64,7 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.cervix.Cervix2023StartBepalingService;
 import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
 import nl.rivm.screenit.service.cervix.CervixMonsterService;
@@ -70,19 +73,16 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
 public class CervixFactoryImpl implements CervixFactory
 {
-	private static final Logger LOG = LoggerFactory.getLogger(CervixFactoryImpl.class);
-
 	@Autowired
 	private BaseBriefService briefService;
 
@@ -104,6 +104,9 @@ public class CervixFactoryImpl implements CervixFactory
 	@Autowired
 	private CervixMonsterService monsterService;
 
+	@Autowired
+	private Cervix2023StartBepalingService bmhk2023startBepalingService;
+
 	@Override
 	public CervixScreeningRonde maakRonde(CervixDossier dossier, boolean setDatumVolgendeRonde)
 	{
@@ -119,7 +122,7 @@ public class CervixFactoryImpl implements CervixFactory
 	@Override
 	public CervixScreeningRonde maakRonde(CervixDossier dossier, LocalDateTime creatiedatum, boolean setDatumVolgendeRonde)
 	{
-		LOG.info("CervixScreeningRonde aanmaken voor clientId " + dossier.getClient().getId());
+		LOG.info("CervixScreeningRonde aanmaken voor client (id: '{}')", dossier.getClient().getId());
 
 		CervixScreeningRonde vorigeRonde = dossier.getLaatsteScreeningRonde();
 		if (vorigeRonde != null && vorigeRonde.getStatus() == ScreeningRondeStatus.LOPEND)
@@ -169,6 +172,31 @@ public class CervixFactoryImpl implements CervixFactory
 	}
 
 	@Override
+	public CervixUitnodiging maakHeraanvraagUitnodiging(CervixScreeningRonde ronde, CervixBrief brief)
+	{
+		return maakUitnodigingMetVoorEnNaBmhk2023HerinnerenCheck(ronde, brief, false);
+	}
+
+	@Override
+	public CervixUitnodiging maakUitnodigingMetVoorEnNaBmhk2023HerinnerenCheck(CervixScreeningRonde ronde, CervixBrief brief, boolean herinnerenPreBmhk2023)
+	{
+		var herinneren = herinnerenPreBmhk2023;
+		if (bmhk2023startBepalingService.rondeValtBinnenBmhk2023(ronde))
+		{
+			var herinnerenNaBmhk2023 = moetBriefHerinnertWordenPostBmhk2023(ronde, brief.getBriefType());
+			herinneren |= herinnerenNaBmhk2023;
+		}
+
+		return maakUitnodiging(ronde, brief, herinneren, true);
+	}
+
+	private boolean moetBriefHerinnertWordenPostBmhk2023(CervixScreeningRonde ronde, BriefType briefType)
+	{
+		return BriefType.getCervixUitnodigingen().contains(briefType)
+			&& !screeningrondeService.clientHeeftAanOnderzoekMeegedaanInRonde(ronde);
+	}
+
+	@Override
 	public CervixUitnodiging maakUitnodiging(CervixScreeningRonde ronde, BriefType briefType)
 	{
 		return maakUitnodiging(ronde, briefType, false, true);
@@ -180,7 +208,7 @@ public class CervixFactoryImpl implements CervixFactory
 		var dossier = ronde.getDossier();
 		if (dossier.getVooraankondigingsBrief() == null)
 		{
-			LOG.info("CervixVooraankondigingbrief aanmaken (clientId: " + dossier.getClient().getId() + ")");
+			LOG.info("CervixVooraankondigingbrief aanmaken client (id: '{}')", dossier.getClient().getId());
 			var brief = briefService.maakBvoBrief(ronde, BriefType.CERVIX_VOORAANKONDIGING);
 			dossier.setVooraankondigingsBrief(brief);
 			hibernateService.saveOrUpdate(dossier);
@@ -203,7 +231,7 @@ public class CervixFactoryImpl implements CervixFactory
 	@Override
 	public CervixUitnodiging maakUitnodiging(CervixScreeningRonde ronde, CervixBrief brief, boolean herinneren, boolean herinneringOnderbreken)
 	{
-		LOG.info("CervixUitnodiging aanmaken (clientId: " + ronde.getDossier().getClient().getId() + ")");
+		LOG.info("CervixUitnodiging aanmaken client (id: '{}')", ronde.getDossier().getClient().getId());
 
 		if (herinneringOnderbreken)
 		{
@@ -254,15 +282,53 @@ public class CervixFactoryImpl implements CervixFactory
 		hibernateService.saveOrUpdate(brief);
 		hibernateService.saveOrUpdate(uitnodiging);
 		hibernateService.saveOrUpdate(ronde);
+		if (brief.getBriefType() == BriefType.CERVIX_UITNODIGING_30)
+		{
+			maakGecombineerdeUitnodiging(uitnodiging);
+		}
 		return uitnodiging;
+	}
+
+	private void maakGecombineerdeUitnodiging(CervixUitnodiging uitstrijkjeUitnodiging)
+	{
+		if (uitstrijkjeUitnodiging.getGecombineerdeUitstrijkje() != null || uitstrijkjeUitnodiging.getGecombineerdeZas() != null
+			|| uitstrijkjeUitnodiging.getMonsterType() != CervixMonsterType.UITSTRIJKJE)
+		{
+			throw new IllegalStateException("uitnodiging moet een uitstrijkje zijn en er mogen nog geen gecombineerde uitnodigingen gekoppeld zijn");
+		}
+		if (bmhk2023startBepalingService.rondeValtBinnenBmhk2023(uitstrijkjeUitnodiging.getScreeningRonde()))
+		{
+			var ronde = uitstrijkjeUitnodiging.getScreeningRonde();
+			var zasUitnodiging = maakZasUitnodiging(ronde.getDossier().getClient(), BriefType.CERVIX_ZAS_COMBI_UITNODIGING_30, null, false, false);
+			zasUitnodiging.setGecombineerdeUitstrijkje(uitstrijkjeUitnodiging);
+			uitstrijkjeUitnodiging.setGecombineerdeZas(zasUitnodiging);
+			zasUitnodiging.setAangevraagdeHerdruk(uitstrijkjeUitnodiging.getAangevraagdeHerdruk());
+			hibernateService.saveOrUpdate(BriefUtil.setTegenhouden(uitstrijkjeUitnodiging.getBrief(), true));
+			hibernateService.saveOrUpdateAll(zasUitnodiging, uitstrijkjeUitnodiging);
+		}
 	}
 
 	@Override
 	public CervixUitnodiging maakZasUitnodiging(Client client, Account account, boolean uitstelDatumNemen, boolean zasAangevraagdDoorClient)
 	{
-		CervixScreeningRonde laatsteScreeningRonde = client.getCervixDossier().getLaatsteScreeningRonde();
-		CervixUitnodiging laatsteZasUitnodiging = laatsteScreeningRonde.getLaatsteZasUitnodiging();
-		CervixUitnodiging laatsteUitnodiging = laatsteScreeningRonde.getLaatsteUitnodiging();
+		return maakZasUitnodiging(client, BriefType.CERVIX_ZAS_UITNODIGING, account, uitstelDatumNemen, zasAangevraagdDoorClient);
+	}
+
+	@Override
+	public CervixUitnodiging maakHerinneringNonResponderMetZas(Client client)
+	{
+		var uitnodiging = maakZasUitnodiging(client, BriefType.CERVIX_ZAS_NON_RESPONDER, null, false, false);
+		uitnodiging.setHerinneren(true);
+		hibernateService.saveOrUpdate(uitnodiging);
+
+		return uitnodiging;
+	}
+
+	private CervixUitnodiging maakZasUitnodiging(Client client, BriefType zasBriefType, Account account, boolean uitstelDatumNemen, boolean zasAangevraagdDoorClient)
+	{
+		var laatsteScreeningRonde = client.getCervixDossier().getLaatsteScreeningRonde();
+		var laatsteZasUitnodiging = laatsteScreeningRonde.getLaatsteZasUitnodiging();
+		var laatsteUitnodiging = laatsteScreeningRonde.getLaatsteUitnodiging();
 
 		if (laatsteZasUitnodiging != null && laatsteZasUitnodiging.getGeannuleerdDatum() == null && laatsteZasUitnodiging.getVerstuurdDatum() == null)
 		{
@@ -271,35 +337,47 @@ public class CervixFactoryImpl implements CervixFactory
 		}
 		if (laatsteUitnodiging != null && laatsteUitnodiging.getMonsterType() == CervixMonsterType.UITSTRIJKJE)
 		{
-			CervixBrief brief = laatsteUitnodiging.getBrief();
+			var brief = laatsteUitnodiging.getBrief();
 			if (BriefUtil.getMergedBrieven(brief) == null)
 			{
-				if (heeftEersteUitnodingOntvangen(laatsteScreeningRonde))
+				if (heeftEersteUitnodigingOntvangen(laatsteScreeningRonde))
 				{
 					hibernateService.saveOrUpdate(BriefUtil.setTegenhouden(brief, true));
 				}
-				hibernateService.saveOrUpdate(brief);
 			}
 		}
-		CervixUitnodiging uitnodiging = maakUitnodiging(laatsteScreeningRonde, BriefType.CERVIX_ZAS_UITNODIGING, laatsteUitnodiging.getHerinneren(), true);
-		uitnodiging.setZasAangevraagdDoorClient(zasAangevraagdDoorClient);
-		CervixUitstel uitstel = laatsteScreeningRonde.getUitstel();
+		var nieuweZasUitnodiging = maakUitnodiging(laatsteScreeningRonde, zasBriefType, uitnodigingKrijgtHerinnering(laatsteUitnodiging), true);
+		nieuweZasUitnodiging.setZasAangevraagdDoorClient(zasAangevraagdDoorClient);
+		var uitstel = laatsteScreeningRonde.getUitstel();
 		if (uitstel != null && uitstel.getGeannuleerdDatum() == null)
 		{
 			if (uitstelDatumNemen)
 			{
-				uitnodiging.setUitnodigingsDatum(uitstel.getUitstellenTotDatum());
+				nieuweZasUitnodiging.setUitnodigingsDatum(uitstel.getUitstellenTotDatum());
 			}
 			screeningrondeService.annuleerUitstel(laatsteScreeningRonde);
-			hibernateService.saveOrUpdate(uitstel);
 		}
-		hibernateService.saveOrUpdate(uitnodiging);
+		hibernateService.saveOrUpdate(nieuweZasUitnodiging);
 		logService.logGebeurtenis(LogGebeurtenis.CERVIX_ZAS_AANGEVRAAGD, account, client, Bevolkingsonderzoek.CERVIX);
 
-		return uitnodiging;
+		return nieuweZasUitnodiging;
 	}
 
-	private boolean heeftEersteUitnodingOntvangen(CervixScreeningRonde ronde)
+	private boolean uitnodigingKrijgtHerinnering(CervixUitnodiging laatsteUitnodiging)
+	{
+		if (laatsteUitnodiging != null)
+		{
+			if (BriefType.CERVIX_ZAS_NON_RESPONDER == laatsteUitnodiging.getBrief().getBriefType())
+			{
+				return false;
+			}
+
+			return laatsteUitnodiging.getHerinneren();
+		}
+		return true;
+	}
+
+	private boolean heeftEersteUitnodigingOntvangen(CervixScreeningRonde ronde)
 	{
 		return ronde.getUitnodigingen().stream()
 			.anyMatch(uitnodiging -> BriefType.getCervixUitnodigingen().contains(uitnodiging.getBrief().getBriefType())
@@ -327,18 +405,17 @@ public class CervixFactoryImpl implements CervixFactory
 
 		hibernateService.saveOrUpdate(uitstrijkje);
 
-		LOG.info("CervixUitstrijkje aanmaken (clientId: "
-			+ cervixDossier.getClient().getId()
-			+ ", monsterId: " + monsterId + ", monsterControleLetters: " + monsterControleLetters + ")");
+		LOG.info("CervixUitstrijkje aanmaken client (id: '{}'), monster (id: '{}'), monsterControleLetters: {}", cervixDossier.getClient().getId(), monsterId,
+			monsterControleLetters);
 
 		return uitstrijkje;
 	}
 
 	@Override
-	public CervixZas maakZas(CervixUitnodiging uitnodiging, String monsterId)
+	public CervixZas maakZasMonster(CervixUitnodiging uitnodiging, String monsterId)
 	{
-		LOG.info("CervixZas aanmaken voor clientId " + uitnodiging.getScreeningRonde().getDossier().getClient().getId() + " met uitnodigingId "
-			+ uitnodiging.getUitnodigingsId());
+		LOG.info("ZAS monster met monsterId '{}' aanmaken voor uitnodiging (uitnodigingId: '{}') van client (id: '{}')", monsterId, uitnodiging.getUitnodigingsId(),
+			uitnodiging.getScreeningRonde().getDossier().getClient().getId());
 
 		CervixZas zas = new CervixZas();
 		zas.setZasStatus(CervixZasStatus.VERSTUURD);
@@ -349,13 +426,14 @@ public class CervixFactoryImpl implements CervixFactory
 
 		hibernateService.saveOrUpdate(zas);
 		hibernateService.saveOrUpdate(uitnodiging);
+		voegGecombineerdeBriefToeAanMergedBrievenVanZas(uitnodiging);
 		return zas;
 	}
 
 	@Override
 	public CervixHpvBericht maakHpvBericht(BMHKLaboratorium laboratorium, String instrumentId, String hl7Bericht, String messageId)
 	{
-		LOG.info("CervixHpvBericht aanmaken voor laboratorium: " + laboratorium.getNaam() + " met messageId " + messageId);
+		LOG.info("CervixHpvBericht aanmaken voor laboratorium: {} met messageId: '{}'", laboratorium.getNaam(), messageId);
 
 		CervixHpvBericht hpvBericht = new CervixHpvBericht();
 		hpvBericht.setStatus(BerichtStatus.NIEUW);
@@ -375,8 +453,8 @@ public class CervixFactoryImpl implements CervixFactory
 		CervixHpvBeoordelingWaarde hpvUitslag,
 		List<CervixHpvAnalyseresultaat> analyseresultaten)
 	{
-		LOG.info("CervixHpvBeoordeling aanmaken voor clientId " + monster.getUitnodiging().getScreeningRonde().getDossier().getClient().getId() + " met monsterId "
-			+ monster.getMonsterId());
+		LOG.info("CervixHpvBeoordeling aanmaken voor client (id: '{}') met monsterId: '{}'", monster.getUitnodiging().getScreeningRonde().getDossier().getClient().getId(),
+			monster.getMonsterId());
 
 		CervixHpvBeoordeling hpvBeoordeling = new CervixHpvBeoordeling();
 		hpvBeoordeling.setAnalyseDatum(analyseDatum);
@@ -419,8 +497,8 @@ public class CervixFactoryImpl implements CervixFactory
 	@Override
 	public CervixCytologieOrder maakCytologieOrder(CervixUitstrijkje uitstrijkje, CervixCytologieReden cytologieReden, String hl7Bericht)
 	{
-		LOG.info("CervixCytologieOrder aanmaken voor clientId " + uitstrijkje.getUitnodiging().getScreeningRonde().getDossier().getClient().getId() + " met monsterId "
-			+ uitstrijkje.getMonsterId());
+		LOG.info("CervixCytologieOrder aanmaken voor client (id: '{}') met monsterId: '{}'" + uitstrijkje.getUitnodiging().getScreeningRonde().getDossier().getClient().getId(),
+			uitstrijkje.getMonsterId());
 
 		CervixCytologieOrder cytologieOrder = new CervixCytologieOrder();
 		cytologieOrder.setUitstrijkje(uitstrijkje);
@@ -446,7 +524,23 @@ public class CervixFactoryImpl implements CervixFactory
 		uitstel.setUitstelType(uitstelType);
 		uitstel.setWijzigingsDatum(dateSupplier.getDate());
 		ronde.setUitstel(uitstel);
-		hibernateService.saveOrUpdateAll(uitstel,ronde);
+		hibernateService.saveOrUpdateAll(uitstel, ronde);
 		return uitstel;
+	}
+
+	private void voegGecombineerdeBriefToeAanMergedBrievenVanZas(CervixUitnodiging zasUitnodiging)
+	{
+		var gecombineerdeUitstrijkjeUitnodiging = zasUitnodiging.getGecombineerdeUitstrijkje();
+		if (gecombineerdeUitstrijkjeUitnodiging != null)
+		{
+			var gecombineerdeUitstrijkjeUitnodigingBrief = gecombineerdeUitstrijkjeUitnodiging.getBrief();
+			var mergedBrieven = zasUitnodiging.getBrief().getMergedBrieven();
+			mergedBrieven.setPrintDatum(dateSupplier.getDate());
+			gecombineerdeUitstrijkjeUitnodigingBrief.setMergedBrieven(mergedBrieven);
+			gecombineerdeUitstrijkjeUitnodigingBrief.setGegenereerd(true);
+
+			hibernateService.saveOrUpdate(BriefUtil.setTegenhouden(gecombineerdeUitstrijkjeUitnodigingBrief, false));
+			hibernateService.saveOrUpdate(mergedBrieven);
+		}
 	}
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,6 +32,7 @@ import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.ImportPocOpties
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
+import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaLezing;
@@ -50,7 +51,7 @@ public interface MammaTestTimelineService
 	MammaOnderzoek maakOnderzoekVoorBe(MammaAfspraak afspraak, InstellingGebruiker mbber, MammaScreeningsEenheid se);
 
 	void rondOnderzoekAf(MammaAfspraak afspraak, InstellingGebruiker instellingGebruiker, boolean verstuurHl7Berichten, OnvolledigOnderzoekOption onvolledigOnderzoekOption,
-		OnderbrokenOnderzoekOption onderbrokenOnderzoekOption, boolean afwijkingGesignaleerd);
+		OnderbrokenOnderzoekOption onderbrokenOnderzoekOption, MammaOnderzoekType onderzoeksType, boolean afwijkingGesignaleerd);
 
 	void voegLezingToe(MammaBeoordeling beoordeling, MammaLezing lezing, InstellingGebruiker gebruiker);
 
@@ -86,4 +87,6 @@ public interface MammaTestTimelineService
 	boolean isSnelkeuzeKnopMammaBeschikbaar(Client client, TestTimelineRonde timeLineRonde);
 
 	void registreerDeelnamewens(Client client);
+
+	void sluitAlleDagenTotEnMetGisteren(MammaScreeningsEenheid screeningsEenheid, InstellingGebruiker ingelogdeGebruiker) throws IllegalStateException;
 }

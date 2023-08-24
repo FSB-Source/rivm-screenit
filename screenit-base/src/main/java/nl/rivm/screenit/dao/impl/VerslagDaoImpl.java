@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -104,7 +104,7 @@ public class VerslagDaoImpl extends AbstractAutowiredDao implements VerslagDao
 				tnummers.add(tnummer.getTnummerPathologieVerslag());
 			}
 		}
-		if (tnummers.size() > 0)
+		if (!tnummers.isEmpty())
 		{
 			criteria.add(Restrictions.in("pathologieMedischeObservatie.tnummerLaboratorium", tnummers));
 			List<?> list = criteria.list();
@@ -295,6 +295,10 @@ public class VerslagDaoImpl extends AbstractAutowiredDao implements VerslagDao
 		criteria.createAlias("screeningRonde.dossier", "dossier");
 		criteria.createAlias("dossier.client", "client");
 		criteria.add(Restrictions.eq("client.id", zoekObject.getScreeningRonde().getDossier().getClient().getId()));
+		if (zoekObject.getType() != null)
+		{
+			criteria.add(Restrictions.eq("type", zoekObject.getType()));
+		}
 		return criteria;
 	}
 
@@ -310,7 +314,7 @@ public class VerslagDaoImpl extends AbstractAutowiredDao implements VerslagDao
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public void setBerichtenOpnieuwVerwerken(List<Long> ids)
 	{
-		Query query = getSession().createQuery(
+		Query<Void> query = getSession().createQuery(
 			"update " + OntvangenCdaBericht.class.getName() + " set status = '" + BerichtStatus.VERWERKING.name() + "' where id in (:ids)");
 		query.setParameterList("ids", ids);
 		query.executeUpdate();

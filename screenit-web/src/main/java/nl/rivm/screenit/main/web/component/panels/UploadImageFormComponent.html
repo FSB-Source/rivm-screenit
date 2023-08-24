@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -22,15 +22,15 @@
 <wicket:panel>
 	<form wicket:id="uploadForm" class="form-inline">
 		<div class='span4'>
-			<span style="font-style: italic; color: grey;" wicket:id="uploadFieldNaam"></span>
+			<span class="font-italic-grey" wicket:id="uploadFieldNaam"></span>
 			<input type="file" wicket:id="fileUpload">
 		</div>
-		<div class='span1 pull-right' style='bottom: 0;'>
-			<a wicket:id="uploaden" class="btn upload" style='float: right'
-				title="Uploaden"> <i class="icon-upload"></i>
+		<div class='span1 pull-right bottom-0'>
+			<a wicket:id="uploaden" class="btn upload right"
+			   title="Uploaden"> <i class="icon-upload"></i>
 			</a>
-			<a wicket:id="verwijderen" class="btn" style='float: right'
-				title="Verwijderen"> <i class="icon-remove"></i>
+			<a wicket:id="verwijderen" class="btn right"
+			   title="Verwijderen"> <i class="icon-remove"></i>
 			</a>
 		</div>
 	</form>

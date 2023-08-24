@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.overeenkomsten;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -47,6 +47,9 @@ import nl.topicuszorg.wicket.input.validator.DependantDateValidator.Operator;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
@@ -75,6 +78,13 @@ public abstract class AfgeslotenOvereenkomstEditPanel extends Panel
 	private InstellingService instellingService;
 
 	private final IModel<List<FileUpload>> fileUploadModel = new ListModel<>();
+
+	@Override
+	public void renderHead(IHeaderResponse response)
+	{
+		super.renderHead(response);
+		response.render(JavaScriptHeaderItem.forUrl("assets/js/checkbox/checkboxAccorderen.js"));
+	}
 
 	public AfgeslotenOvereenkomstEditPanel(String id, AbstractAfgeslotenOvereenkomst abstractAfgeslotenOvereenkomst)
 	{
@@ -113,14 +123,22 @@ public abstract class AfgeslotenOvereenkomstEditPanel extends Panel
 
 				FileUpload fileUpload = null;
 				List<FileUpload> filesUploaded = fileUploadModel.getObject();
-				if (filesUploaded != null && filesUploaded.size() > 0)
+				if (filesUploaded != null && !filesUploaded.isEmpty())
 				{
 					fileUpload = filesUploaded.get(0);
 				}
 
-				overeenkomstService.saveOrUpdateOvereenkomst(overeenkomstModel.getObject(), fileUpload, ScreenitSession.get().getLoggedInAccount());
+				try
+				{
+					overeenkomstService.saveOrUpdateOvereenkomst(overeenkomstModel.getObject(), ScreenitSession.get().fileUploadToUploadDocument(fileUpload),
+						ScreenitSession.get().getLoggedInAccount());
+					info(getString("message.succes"));
+				}
+				catch (Exception e)
+				{
+					error("Fout bij verwerken van geuploaded bestand.");
+				}
 				AfgeslotenOvereenkomstEditPanel.this.onSubmit(target);
-				info(getString("message.succes"));
 			}
 		});
 	}
@@ -198,43 +216,42 @@ public abstract class AfgeslotenOvereenkomstEditPanel extends Panel
 						AjaxRequestTarget target = getRequestCycle().find(AjaxRequestTarget.class).orElse(null);
 						if (target != null)
 						{
-							target.appendJavaScript("$('.teAccorderen').hide();");
+							target.appendJavaScript("$('teAccorderen').hide();");
 						}
 					}
 				}
-
 			};
 			add(teAccoderen);
 
 			add(new DependantDateValidator(startDatum, eindDatum, Operator.AFTER));
 			add(new ScreenitDropdown<ScreeningOrganisatie>("screeningOrganisatie",
 				new SimpleListHibernateModel<>(instellingService.getActieveInstellingen(ScreeningOrganisatie.class)), new IChoiceRenderer<ScreeningOrganisatie>()
+			{
+
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public Object getDisplayValue(ScreeningOrganisatie object)
 				{
+					return object.getNaam();
+				}
 
-					private static final long serialVersionUID = 1L;
+				@Override
+				public String getIdValue(ScreeningOrganisatie object, int index)
+				{
+					return object.getId().toString();
+				}
 
-					@Override
-					public Object getDisplayValue(ScreeningOrganisatie object)
+				@Override
+				public ScreeningOrganisatie getObject(String id, IModel<? extends List<? extends ScreeningOrganisatie>> choices)
+				{
+					if (id != null)
 					{
-						return object.getNaam();
+						return choices.getObject().stream().filter(o -> o.getId().toString().equals(id)).findFirst().orElse(null);
 					}
-
-					@Override
-					public String getIdValue(ScreeningOrganisatie object, int index)
-					{
-						return object.getId().toString();
-					}
-
-					@Override
-					public ScreeningOrganisatie getObject(String id, IModel<? extends List<? extends ScreeningOrganisatie>> choices)
-					{
-						if (id != null)
-						{
-							return choices.getObject().stream().filter(o -> o.getId().toString().equals(id)).findFirst().orElse(null);
-						}
-						return null;
-					}
-				})
+					return null;
+				}
+			})
 			{
 
 				private static final long serialVersionUID = 1L;
@@ -264,7 +281,7 @@ public abstract class AfgeslotenOvereenkomstEditPanel extends Panel
 
 			});
 
-			add(new FileUploadField("upload", fileUploadModel)
+			var uploadField = new FileUploadField("upload", fileUploadModel)
 			{
 
 				private static final long serialVersionUID = 1L;
@@ -278,7 +295,16 @@ public abstract class AfgeslotenOvereenkomstEditPanel extends Panel
 						listOvereenkomstTypes.contains(OvereenkomstType.OVEREENKOMST));
 				}
 
+			};
+			uploadField.add(new AjaxFormComponentUpdatingBehavior("change")
+			{
+				@Override
+				protected void onUpdate(AjaxRequestTarget target)
+				{
+					target.appendJavaScript("showAccorderen($('.js-file-te-accorderen'))");
+				}
 			});
+			add(uploadField);
 		}
 
 		private OvereenkomstType[] getOvereenkomstTypes(AbstractAfgeslotenOvereenkomst abstractAfgeslotenOvereenkomst)

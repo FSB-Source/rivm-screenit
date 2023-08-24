@@ -16,6 +16,7 @@ import type {Zorginstelling} from "../../../datatypes/Zorginstelling"
 import TextAreaValue from "../../generic/TextAreaValue"
 import AlleenOnlineButton from "../../generic/AlleenOnlineButton"
 import {DubbeleTijdType} from "../../../validation/DubbeleTijdRedenValidator"
+import {alleOnderzoekTypes, getOnderzoekTypeLabel, MAMMOGRAFIE, OnderzoekType} from "../../../datatypes/OnderzoekType"
 
 export type AanvullendeInformatieViewStateProps = {
 	online: boolean;
@@ -28,12 +29,14 @@ export type AanvullendeInformatieViewStateProps = {
 	onvolledigOnderzoek?: OnvolledigOnderzoekOption;
 	onderbrokenOnderzoek?: OnderbrokenOnderzoekOption;
 	extraFotosRedenen?: Array<ExtraFotosReden>;
+	onderzoekType: OnderzoekType;
 	dubbeleTijd: boolean;
 	dubbeleTijdReden?: string;
 	adviesHuisarts?: string;
 	onderzoekForm: Form;
 	dubbeleTijdDisabled: boolean;
 	disabled: boolean;
+	tomosyntheseMogelijk: boolean;
 };
 
 export type AanvullendeInformatieViewDispatchProps = {
@@ -42,11 +45,13 @@ export type AanvullendeInformatieViewDispatchProps = {
 	verwerkOnvolledigOnderzoek: (afspraakId: number, onvolledigOnderzoek: OnvolledigOnderzoekOption | undefined) => void;
 	verwerkOnderbrokenOnderzoek: (afspraakId: number, onderbrokenOnderzoek: OnderbrokenOnderzoekOption | undefined) => void;
 	verwerkExtraFotosReden: (afspraakId: number, extraFotosReden: Array<ExtraFotosReden>) => void;
+	verwerkOnderzoekType: (afspraakId: number, onderzoekType: OnderzoekType) => void;
 	verwerkDubbeleTijd: (afspraakId: number, clientId: number, dubbeleTijd: boolean, dubbeleTijdReden: string | undefined, form: Form) => void;
 	verwerkDubbeleTijdReden: (afspraakId: number, clientId: number, dubbeleTijdReden: string) => void;
 	verwerkAdviesHuisarts: (afspraakId: number, adviesHuisarts: string) => void;
 	adhocKwaliteitscontrolePopup: (onderzoekId: number) => void;
 	updateField: <T>(value: T | string, fieldId: FORM_FIELD_ID, form: Form, showError: boolean | undefined) => void;
+	voegOnderzoekTypeWijzigingToeAanWerklijst?: (onderzoekType: OnderzoekType) => void;
 }
 
 export const DUBBELE_TIJD_FIELD_ID: FORM_FIELD_ID = {
@@ -86,6 +91,13 @@ export default class AanvullendeInformatieView extends Component<AanvullendeInfo
 	}
 	extraFotosRedenDidChange = (selectedOptions: Array<ExtraFotosReden>): void => {
 		this.props.verwerkExtraFotosReden(this.props.afspraakId, selectedOptions)
+	}
+	onderzoekeTypeDidChange = (value: OnderzoekType | undefined): void => {
+		const onderzoekType = value ?? MAMMOGRAFIE
+		this.props.verwerkOnderzoekType(this.props.afspraakId, onderzoekType)
+		if (this.props.voegOnderzoekTypeWijzigingToeAanWerklijst !== undefined) {
+			this.props.voegOnderzoekTypeWijzigingToeAanWerklijst(onderzoekType)
+		}
 	}
 	dubbeleTijdDidChange = (value: boolean): void => {
 		this.props.verwerkDubbeleTijd(this.props.afspraakId, this.props.clientId, value, this.props.dubbeleTijdReden, this.props.onderzoekForm)
@@ -151,6 +163,14 @@ export default class AanvullendeInformatieView extends Component<AanvullendeInfo
 												 }
 											 })}
 											 handleChange={this.extraFotosRedenDidChange}/>}/>
+				{this.props.tomosyntheseMogelijk && <LabelInput
+					label={"Onderzoek type"}
+					input={<DropdownValue id={"onderzoekType"} disabled={this.props.disabled}
+										  required={true}
+										  value={this.props.onderzoekType}
+										  options={alleOnderzoekTypes}
+										  valueToLabel={getOnderzoekTypeLabel} lavendel={true}
+										  handleChange={this.onderzoekeTypeDidChange}/>}/>}
 				<div className={"mbb-signalering-row"}>
 					<CheckboxValue
 						label={"Dubbele tijd"} checked={this.props.dubbeleTijd}

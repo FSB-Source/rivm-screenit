@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -34,24 +34,23 @@
                 <table class="table table-bordered table-condensed">
                     <thead>
                     <tr>
-                        <th class="input-micro" style="width: 20%;">Bevolkingsonderzoek</th>
+                        <th class="input-micro width-20procent">Bevolkingsonderzoek</th>
                         <th class="input-micro">Ronde</th>
                         <th class="input-medium">Gebeurtenis</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr wicket:id="rondes">
-                        <td>
-                            <h2><span wicket:id="bvo">Darmkanker</span></h2>
-                            <div class="control-group" wicket:id="projectBadges"
-                                 style="white-space: normal; word-wrap: break-word; width: 94%;">
-                            </div>
-                        </td>
-                        <td class="center-content">
-                            <span wicket:id="index" class="badge">1</span>
-                            <span wicket:id="gepusht" class="badge">Gepusht</span>
-                        </td>
-                        <td class="gebeurtenissen">
+					<tr wicket:id="rondes">
+						<td>
+							<h2><span wicket:id="bvo">Darmkanker</span></h2>
+							<div class="control-group client-dossier-project-badge" wicket:id="projectBadges">
+							</div>
+						</td>
+						<td class="center-content">
+							<span wicket:id="index" class="badge">1</span>
+							<span wicket:id="gepusht" class="badge">Gepusht</span>
+						</td>
+						<td class="gebeurtenissen">
 								<span class="badge" wicket:id="gebeurtenissen">
 									<span class="omschrijving">
 										<wicket:container wicket:id="bron">Afgerond</wicket:container>

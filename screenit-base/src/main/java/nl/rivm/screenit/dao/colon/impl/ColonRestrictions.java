@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -46,6 +46,7 @@ import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.query.DateRestrictions;
 import nl.rivm.screenit.util.query.DateYearRestrictions;
@@ -88,21 +89,7 @@ public abstract class ColonRestrictions
 
 		crit.add(Restrictions.eq("dossier.wachtOpStartProject", false));
 
-		if (projectGroupId != null)
-		{
-			crit.createAlias("projecten", "projectClient");
-			crit.add(Restrictions.eq("projectClient.groep.id", projectGroupId));
-			crit.add(Restrictions.eq("projectClient.actief", true));
-		}
-		else if (CollectionUtils.isNotEmpty(exclusieGroepIds))
-		{
-			crit.createAlias("projecten", "projectClient", JoinType.LEFT_OUTER_JOIN);
-
-			crit.add(Restrictions.or( 
-				Restrictions.isNull("projectClient.id"), 
-				Restrictions.eq("projectClient.actief", false), 
-				Restrictions.not(Restrictions.in("projectClient.groep.id", exclusieGroepIds))));
-		}
+		addProjectMetPrioriteitCriteria(crit, projectGroupId, exclusieGroepIds);
 
 		if (!count)
 		{
@@ -138,7 +125,9 @@ public abstract class ColonRestrictions
 		return conjunction;
 	}
 
-	public static Criteria getQueryU2(Session session, UitnodigingsGebied uitnodigingsGebied, Integer minimaleLeeftijd, Integer maximaleLeeftijd, LocalDate vandaag)
+	public static Criteria getQueryU2(Session session, UitnodigingsGebied uitnodigingsGebied, Integer minimaleLeeftijd, Integer maximaleLeeftijd, boolean count,
+		Long projectGroupId,
+		List<Long> exclusieGroepIds, LocalDate vandaag)
 	{
 		Criteria crit = getCriteriaUitnodigen(session, uitnodigingsGebied, minimaleLeeftijd, maximaleLeeftijd, vandaag);
 
@@ -150,9 +139,13 @@ public abstract class ColonRestrictions
 
 		crit.add(Restrictions.eq("dossier.wachtOpStartProject", false));
 
-		crit.addOrder(Order.asc("laatsteScreeningRonde.creatieDatum"));
+		addProjectMetPrioriteitCriteria(crit, projectGroupId, exclusieGroepIds);
 
-		addDefaultOrder(crit);
+		if (!count)
+		{
+			crit.addOrder(Order.asc("laatsteScreeningRonde.creatieDatum"));
+			addDefaultOrder(crit);
+		}
 
 		return crit;
 	}
@@ -172,27 +165,61 @@ public abstract class ColonRestrictions
 				Restrictions.le("afspraak.startTime", DateUtil.toUtilDate(DateUtil.minusWerkdagen(peildatum, 5)))));
 	}
 
+	private static void addProjectMetPrioriteitCriteria(Criteria crit, Long projectGroupId, List<Long> exclusieGroepIds)
+	{
+		if (projectGroupId != null)
+		{
+			crit.createAlias("projecten", "projectClient");
+			crit.add(Restrictions.eq("projectClient.groep.id", projectGroupId));
+			crit.add(Restrictions.eq("projectClient.actief", true));
+		}
+		else if (CollectionUtils.isNotEmpty(exclusieGroepIds))
+		{
+			DetachedCriteria critProjectClienten = DetachedCriteria.forClass(ProjectClient.class, "projectClient");
+			critProjectClienten.add(Restrictions.eq("projectClient.actief", true));
+			critProjectClienten.add(Restrictions.in("projectClient.groep.id", exclusieGroepIds));
+			critProjectClienten.add(Restrictions.eqProperty("projectClient.client", "rootClient.id"));
+			critProjectClienten.setProjection(Projections.id());
+			crit.add(Subqueries.notExists(critProjectClienten));
+		}
+	}
+
 	private static Criterion createReferentieCriteria(LocalDate peildatum, LocalDate vandaag)
 	{
 		long afwijking = ChronoUnit.DAYS.between(vandaag, peildatum);
-		Criterion referentieCriteria = Restrictions.or(
-			Restrictions.and(
-				Restrictions.isNull("volgendeUitnodiging.projectPeildatum"),
-				Restrictions.leProperty("volgendeUitnodiging.peildatum", "interval.berekendeReferentieDatum")),
-			Restrictions.and(
-				Restrictions.isNotNull("volgendeUitnodiging.projectPeildatum"),
-				Restrictions.leProperty("volgendeUitnodiging.projectPeildatum", "interval.berekendeReferentieDatum"))
-		);
+		Criterion referentieCriteria =
+			Restrictions.or(
+				Restrictions.and(
+					Restrictions.isNotNull("volgendeUitnodiging.datumVolgendeRonde"),
+					Restrictions.le("volgendeUitnodiging.datumVolgendeRonde", vandaag)
+				), Restrictions.and(
+					Restrictions.isNull("volgendeUitnodiging.datumVolgendeRonde"),
+					Restrictions.or(
+						Restrictions.and(
+							Restrictions.isNull("volgendeUitnodiging.projectPeildatum"),
+							Restrictions.leProperty("volgendeUitnodiging.peildatum", "interval.berekendeReferentieDatum")),
+						Restrictions.and(
+							Restrictions.isNotNull("volgendeUitnodiging.projectPeildatum"),
+							Restrictions.leProperty("volgendeUitnodiging.projectPeildatum", "interval.berekendeReferentieDatum"))
+					)));
 		if (afwijking != 0)
 		{
-			referentieCriteria = Restrictions.or(
-				Restrictions.and(
-					Restrictions.isNull("volgendeUitnodiging.projectPeildatum"),
-					new SpecialPropertyExpression("volgendeUitnodiging.peildatum", "<=", "interval.berekendeReferentieDatum", " + interval '" + afwijking + "' day")),
-				Restrictions.and(
-					Restrictions.isNotNull("volgendeUitnodiging.projectPeildatum"),
-					new SpecialPropertyExpression("volgendeUitnodiging.projectPeildatum", "<=", "interval.berekendeReferentieDatum", " + interval '" + afwijking + "' day"))
-			);
+			referentieCriteria =
+				Restrictions.or(
+					Restrictions.and(
+						Restrictions.isNotNull("volgendeUitnodiging.datumVolgendeRonde"),
+						Restrictions.le("volgendeUitnodiging.datumVolgendeRonde", vandaag.plusDays(afwijking))
+					), Restrictions.and(
+						Restrictions.isNull("volgendeUitnodiging.datumVolgendeRonde"),
+						Restrictions.or(
+							Restrictions.and(
+								Restrictions.isNull("volgendeUitnodiging.projectPeildatum"),
+								new SpecialPropertyExpression("volgendeUitnodiging.peildatum", "<=", "interval.berekendeReferentieDatum", " + interval '" + afwijking + "' day")),
+							Restrictions.and(
+								Restrictions.isNotNull("volgendeUitnodiging.projectPeildatum"),
+								new SpecialPropertyExpression("volgendeUitnodiging.projectPeildatum", "<=", "interval.berekendeReferentieDatum",
+									" + interval '" + afwijking + "' day"))
+						)));
 		}
 		return referentieCriteria;
 	}
@@ -587,16 +614,16 @@ public abstract class ColonRestrictions
 
 	public static void addNogGeenUitslagbriefOntvangenCriteria(Criteria crit, String rondeAlias)
 	{
-		addNogGeenUitslagbriefOntvangenCriteria(crit, rondeAlias, BriefType.COLON_UITSLAG_BRIEVEN);
+		addNogGeenBriefOntvangenVanTypesCriteria(crit, rondeAlias, BriefType.COLON_UITSLAG_BRIEVEN);
 	}
 
-	public static void addNogGeenUitslagbriefOntvangenCriteria(Criteria crit, String rondeAlias, List<BriefType> uitslagBriefTypes)
+	public static void addNogGeenBriefOntvangenVanTypesCriteria(Criteria crit, String rondeAlias, List<BriefType> briefTypes)
 	{
 		rondeAlias = ScreenitRestrictions.fixAlias(rondeAlias);
 		DetachedCriteria subquery = DetachedCriteria.forClass(ColonBrief.class, "brief");
 		subquery.setProjection(Projections.id());
 		subquery.add(Restrictions.eqProperty("brief.screeningRonde", rondeAlias + "id"));
-		subquery.add(Restrictions.in("brief.briefType", uitslagBriefTypes));
+		subquery.add(Restrictions.in("brief.briefType", briefTypes));
 		crit.add(Subqueries.notExists(subquery));
 	}
 

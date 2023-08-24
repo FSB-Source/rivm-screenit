@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,45 +23,44 @@ package nl.rivm.screenit.service.cervix.impl;
 
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.dao.cervix.CervixDossierDao;
 import nl.rivm.screenit.dao.cervix.CervixLabformulierDao;
 import nl.rivm.screenit.dao.cervix.CervixMonsterDao;
 import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixLabformulierenFilter;
+import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.service.cervix.CervixLabformulierService;
 import nl.rivm.screenit.service.cervix.CervixVervolgService;
 import nl.rivm.screenit.util.BriefUtil;
+import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.EntityAuditUtil;
+import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@AllArgsConstructor
 @Transactional(propagation = Propagation.SUPPORTS)
 public class CervixLabformulierServiceImpl implements CervixLabformulierService
 {
 
-	@Autowired
 	private CervixLabformulierDao labformulierDao;
 
-	@Autowired
 	private CervixVervolgService vervolgService;
 
-	@Autowired
 	private HibernateService hibernateService;
 
-	@Autowired
 	private CervixMonsterDao monsterDao;
 
-	@Autowired
 	private CervixDossierDao dossierDao;
 
 	@Override
@@ -123,12 +122,12 @@ public class CervixLabformulierServiceImpl implements CervixLabformulierService
 
 	private void valideerLabformulierWaarden(CervixLabformulier labformulier)
 	{
-		DateTime scanDatum = new DateTime(labformulier.getScanDatum());
-		DateTime datumUitstrijkje = new DateTime(labformulier.getDatumUitstrijkje());
+		var scanDatum = labformulier.getScanDatum();
+		var datumUitstrijkje = labformulier.getDatumUitstrijkje();
 
 		if ((labformulier.getStatus().equals(CervixLabformulierStatus.HUISARTS_ONBEKEND) || labformulier.getStatus().equals(CervixLabformulierStatus.GECONTROLEERD_CYTOLOGIE)
 			|| labformulier.getStatus().equals(CervixLabformulierStatus.GECONTROLEERD)) && labformulier.getDatumUitstrijkje() != null
-			&& scanDatum.toDateMidnight().isBefore(datumUitstrijkje.toDateMidnight()))
+			&& DateUtil.startDag(scanDatum).before(DateUtil.startDag(datumUitstrijkje)))
 		{
 			throw new IllegalStateException("datum.uitstrijkje.niet.voor.scan.datum");
 		}
@@ -201,6 +200,23 @@ public class CervixLabformulierServiceImpl implements CervixLabformulierService
 		uitstrijkje.setOntvangstScreeningRonde(dossierDao.getOntvangstRonde(uitstrijkje));
 		hibernateService.saveOrUpdate(labformulier);
 		vervolgService.digitaalLabformulierKlaarVoorCytologie(uitstrijkje);
+	}
+
+	@Override
+	public void updateLabformulierLaboratoriumNaOntvangstMonster(CervixMonster monster)
+	{
+		if (CervixMonsterUtil.isUitstrijkje(monster))
+		{
+			var uitstrijkje = CervixMonsterUtil.getUitstrijkje(monster);
+			var laboratorium = uitstrijkje.getLaboratorium();
+			var labformulier = uitstrijkje.getLabformulier();
+			if (labformulier != null && laboratorium != null && !laboratorium.equals(labformulier.getLaboratorium()) && Boolean.TRUE.equals(labformulier.getDigitaal()))
+			{
+				labformulier.setLaboratorium(laboratorium);
+				hibernateService.saveOrUpdate(labformulier);
+			}
+
+		}
 	}
 
 	private CervixUitstrijkje valideerLabformulierKoppeling(CervixLabformulier labformulier)

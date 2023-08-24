@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.verslag;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,8 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nl.dries.wicket.hibernate.dozer.DozerModel;
-import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.service.RondeNummerService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.table.EnumPropertyColumn;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
@@ -37,7 +35,9 @@ import nl.rivm.screenit.model.berichten.enums.VerslagType;
 import nl.rivm.screenit.model.cervix.CervixCytologieVerslag;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Recht;
-import nl.rivm.screenit.model.mamma.verslag.followup.MammaFollowUpVerslagContent;
+import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
+import nl.rivm.screenit.service.BaseVerslagService;
+import nl.rivm.screenit.service.RondeNummerService;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
 
@@ -45,11 +45,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.head.CssHeaderItem;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.JavaScriptHeaderItem;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
-import org.apache.wicket.markup.head.PriorityHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -63,38 +58,34 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public abstract class ClientVerslagenOverzichtPanel<V extends Verslag<?, ?>> extends GenericPanel<Client>
 {
-	private static final long serialVersionUID = 1L;
-
-	private List<String> addedTooltips = new ArrayList<>();
+	private final List<String> addedTooltips = new ArrayList<>();
 
 	@SpringBean
 	private RondeNummerService rondeNummerService;
 
-	private ClientVerslagenDataProvider<V> dataProvider;
+	@SpringBean
+	private BaseVerslagService baseVerslagService;
 
-	public ClientVerslagenOverzichtPanel(String id, IModel<Client> model)
+	private final ClientVerslagenDataProvider<V> dataProvider;
+
+	protected ClientVerslagenOverzichtPanel(String id, IModel<Client> model)
 	{
 		super(id, model);
 
 		List<IColumn<V, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<V, String>(Model.of("Ronde"), "ronde")
+		columns.add(new PropertyColumn<>(Model.of("Ronde"), "ronde")
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
-			public IModel<Object> getDataModel(IModel<V> rowModel)
+			public IModel<Integer> getDataModel(IModel<V> rowModel)
 			{
-				return new Model(rondeNummerService.geefRondeNummer(rowModel.getObject().getScreeningRonde()));
+				return new Model<>(rondeNummerService.geefRondeNummer(rowModel.getObject().getScreeningRonde()));
 			}
 		});
-		columns.add(new EnumPropertyColumn<V, String, VerslagType>(Model.of("Type verslag"), "type"));
-		columns.add(new DateTimePropertyColumn<V, String>(Model.of("Datum onderzoek"), "datumOnderzoek", "datumOnderzoek"));
-		columns.add(new DateTimePropertyColumn<V, String>(Model.of("Datum/tijd verslag"), "datumVerwerkt", "datumVerwerkt"));
+		columns.add(new EnumPropertyColumn<>(Model.of("Type verslag"), "type"));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Datum onderzoek"), "datumOnderzoek", "datumOnderzoek"));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Datum/tijd verslag"), "datumVerwerkt", "datumVerwerkt"));
 		columns.add(new EnumPropertyColumn<V, String, VerslagStatus>(Model.of("Status"), "status", "status")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public IModel<?> getDataModel(IModel<V> rowModel)
 			{
@@ -102,7 +93,7 @@ public abstract class ClientVerslagenOverzichtPanel<V extends Verslag<?, ?>> ext
 				if (dataModel instanceof Model && rowModel.getObject().getType() == VerslagType.CERVIX_CYTOLOGIE
 					&& ((CervixCytologieVerslag) HibernateHelper.deproxy(rowModel.getObject())).getUitstrijkje().getVerwijderdDatum() != null)
 				{
-					dataModel = new Model(dataModel.getObject() + " (Verwijderd)");
+					dataModel = new Model<>(dataModel.getObject() + " (Verwijderd)");
 				}
 				return dataModel;
 			}
@@ -117,32 +108,32 @@ public abstract class ClientVerslagenOverzichtPanel<V extends Verslag<?, ?>> ext
 
 		IModel<? extends V> verslagenFilterModel = getVerslagFilter();
 
-		dataProvider = new ClientVerslagenDataProvider<V>(verslagenFilterModel);
-		add(new ScreenitDataTable<V, String>("tabel", columns, dataProvider, 10,
+		dataProvider = new ClientVerslagenDataProvider<>(verslagenFilterModel);
+		add(new ScreenitDataTable<>("tabel", columns, dataProvider, 10,
 			new Model<>("verslag(en)"))
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<V> model)
 			{
 
 				IModel<Client> clientModel = ClientVerslagenOverzichtPanel.this.getModel();
-				boolean inzien = false;
+				boolean inzien;
 				switch (model.getObject().getType())
 				{
-					case MDL:
-						inzien = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_UITSLAGCOLOSCOPIEONTVANGEN, Actie.INZIEN, clientModel.getObject());
-						break;
-					case PA_LAB:
-						inzien = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_UITSLAGPATHOLOGIEONTVANGEN, Actie.INZIEN, clientModel.getObject());
-						break;
-					case CERVIX_CYTOLOGIE:
-						inzien = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CERVIX_CYTOLOGIE_VERSLAG, Actie.INZIEN, clientModel.getObject());
-						break;
-					case MAMMA_PA_FOLLOW_UP:
-						inzien = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_MAMMA_FOLLOW_UP_VERSLAG, Actie.INZIEN, clientModel.getObject());
-						break;
+				case MDL:
+					inzien = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_UITSLAGCOLOSCOPIEONTVANGEN, Actie.INZIEN, clientModel.getObject());
+					break;
+				case PA_LAB:
+					inzien = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_UITSLAGPATHOLOGIEONTVANGEN, Actie.INZIEN, clientModel.getObject());
+					break;
+				case CERVIX_CYTOLOGIE:
+					inzien = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CERVIX_CYTOLOGIE_VERSLAG, Actie.INZIEN, clientModel.getObject());
+					break;
+				case MAMMA_PA_FOLLOW_UP:
+					inzien = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_MAMMA_FOLLOW_UP_VERSLAG, Actie.INZIEN, clientModel.getObject());
+					break;
+				default:
+					throw new IllegalStateException("Unexpected value: " + model.getObject().getType());
 				}
 				if (inzien)
 				{
@@ -179,15 +170,12 @@ public abstract class ClientVerslagenOverzichtPanel<V extends Verslag<?, ?>> ext
 	@Override
 	protected void onConfigure()
 	{
-
 		super.onConfigure();
 		setVisible(dataProvider != null && dataProvider.size() > 0 && magOverzichtZien());
 	}
 
 	private class VerslagTooltip extends Fragment
 	{
-		private static final long serialVersionUID = 1L;
-
 		public VerslagTooltip(String id, IModel<V> model)
 		{
 			super(id, "tooltipFragment", ClientVerslagenOverzichtPanel.this, new CompoundPropertyModel<>(model));
@@ -199,10 +187,7 @@ public abstract class ClientVerslagenOverzichtPanel<V extends Verslag<?, ?>> ext
 			add(new Label("invoerder.organisatie.naam"));
 			if (verslag.getType() == VerslagType.MAMMA_PA_FOLLOW_UP)
 			{
-				add(new Label("bron",
-					Constants.BK_TNUMMER_ELEKTRONISCH.equals(((MammaFollowUpVerslagContent) verslag.getVerslagContent()).getPathologieMedischeObservatie().getTnummerLaboratorium())
-						? "Elektronisch"
-						: "Handmatig"));
+				add(new Label("bron", baseVerslagService.isElektronischPalgaVerslag((MammaFollowUpVerslag) verslag) ? "Elektronisch" : "Handmatig"));
 			}
 			else
 			{
@@ -211,16 +196,7 @@ public abstract class ClientVerslagenOverzichtPanel<V extends Verslag<?, ?>> ext
 		}
 	}
 
-	@Override
-	public void renderHead(IHeaderResponse response)
-	{
-		super.renderHead(response);
-		response.render(new PriorityHeaderItem(CssHeaderItem.forUrl("assets/js/libs/qtip/jquery.qtip.min.css")));
-		response.render(new PriorityHeaderItem(JavaScriptHeaderItem.forUrl("assets/js/libs/qtip/jquery.qtip.min.js")));
-		response.render(new OnDomReadyHeaderItem("initTooltip()"));
-	}
-
-	protected abstract IModel<? extends V> getVerslagFilter();
+	protected abstract IModel<V> getVerslagFilter();
 
 	protected abstract boolean magOverzichtZien();
 }

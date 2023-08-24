@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.dao.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,12 +26,14 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.main.dao.mamma.MammaBeoordelingDao;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaBaseWerklijstZoekObject;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaBeWerklijstZoekObject;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaCeWerklijstZoekObject;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.berichten.enums.VerslagType;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
@@ -73,14 +75,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MammaBeoordelingDaoImpl extends AbstractAutowiredDao implements MammaBeoordelingDao
 {
-
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Autowired
 	private SimplePreferenceService preferenceService;
-
-	private static final int MAX_DAGEN_IN_STATUS_VERSLAG_MAKEN = 1;
 
 	@Override
 	public long countCeWerklijstBeoordelingen(MammaCeWerklijstZoekObject zoekObject)
@@ -139,14 +138,14 @@ public class MammaBeoordelingDaoImpl extends AbstractAutowiredDao implements Mam
 		return Projections.alias(
 			new SmartSQLProjection(
 				String.format("CASE " +
-					"WHEN {beoordeling}.status = 'EERSTE_LEZING_OPGESLAGEN' " +
-					"AND ({eersteLezing}.birads_rechts IN (%s) " +
-					"OR {eersteLezing}.birads_links IN (%s)) THEN 1 " +
-					"WHEN {beoordeling}.status = 'TWEEDE_LEZING_OPGESLAGEN' " +
-					"AND ({tweedeLezing}.birads_rechts IN (%s) " +
-					"OR {tweedeLezing}.birads_links IN (%s)) THEN 1 " +
-					"ELSE 0 " +
-					"END as verwijzend",
+						"WHEN {beoordeling}.status = 'EERSTE_LEZING_OPGESLAGEN' " +
+						"AND ({eersteLezing}.birads_rechts IN (%s) " +
+						"OR {eersteLezing}.birads_links IN (%s)) THEN 1 " +
+						"WHEN {beoordeling}.status = 'TWEEDE_LEZING_OPGESLAGEN' " +
+						"AND ({tweedeLezing}.birads_rechts IN (%s) " +
+						"OR {tweedeLezing}.birads_links IN (%s)) THEN 1 " +
+						"ELSE 0 " +
+						"END as verwijzend",
 					verwijzendeBiradsString, verwijzendeBiradsString, verwijzendeBiradsString, verwijzendeBiradsString),
 				new String[] {
 					"verwijzend"
@@ -316,6 +315,7 @@ public class MammaBeoordelingDaoImpl extends AbstractAutowiredDao implements Mam
 		criteria.add(Subqueries.propertyNotIn("ronde.id", folluwUpRadiologieVerslagen));
 
 		DetachedCriteria followUpVerslagen = DetachedCriteria.forClass(MammaFollowUpVerslag.class);
+		followUpVerslagen.add(Restrictions.eq("type", VerslagType.MAMMA_PA_FOLLOW_UP));
 		followUpVerslagen.setProjection(Projections.property("screeningRonde"));
 		criteria.add(Subqueries.propertyNotIn("ronde.id", followUpVerslagen));
 	}
@@ -522,6 +522,11 @@ public class MammaBeoordelingDaoImpl extends AbstractAutowiredDao implements Mam
 			{
 				criteria.add(Restrictions.in("beoordeling.status", beoordelingStatussen));
 			}
+		}
+
+		if (zoekObject.getOnderzoekType() != null)
+		{
+			criteria.add(Restrictions.eq("onderzoek.onderzoekType", zoekObject.getOnderzoekType()));
 		}
 	}
 

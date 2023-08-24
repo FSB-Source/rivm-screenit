@@ -18,10 +18,11 @@
         "opgeven": "een tijdelijk adres doorgeven",
         "wijzigen": "mijn tijdelijke adres wijzigen"
       },
-      "aanspreekvorm": "mijn aanspreekvorm wijzigen"
+      "aanspreekvorm": "mijn aanspreekvorm wijzigen",
+      "email": "mijn e-mailadres doorgeven"
     },
     "subtitle": {
-      "telefoonnummer": "Mijn telefoonnummer",
+      "telefoonnummer": "Mijn telefoonnummer(s)",
       "adres": "Tijdelijk adres %s %s",
       "aanspreekvorm": "Gewenste aanspreekvorm",
       "aanspreekvormen": {

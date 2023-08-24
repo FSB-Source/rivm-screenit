@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon.huisarts;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,7 +29,6 @@ import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.modal.IDialog;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon.ColonHuisartsWijzigenPanel;
 import nl.rivm.screenit.model.EnovationHuisarts;
-import nl.rivm.screenit.model.OnbekendeHuisarts;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Recht;
@@ -96,7 +95,7 @@ public class HuisartsPanel extends GenericPanel<ColonScreeningRonde>
 			{
 				ColonScreeningRonde huidigeRonde = getModelObject();
 				ColonScreeningRonde vorigeRonde = rondeNummerService.getVorigeRonde(huidigeRonde);
-				if (vorigeRonde != null && vorigeRonde.getColonHuisarts() != null && huidigeRonde.getColonHuisarts() == null && huidigeRonde.getOnbekendeHuisarts() == null)
+				if (vorigeRonde != null && vorigeRonde.getColonHuisarts() != null && huidigeRonde.getColonHuisarts() == null)
 				{
 					getDialog().openWith(target, new HuisartsVorigeRondeDialogPanel(IDialog.CONTENT_ID, getModel(), ModelUtil.sModel(vorigeRonde.getColonHuisarts()),
 						getZoekModel(), getDialog(), getHuisartsWijzigenPanel())
@@ -137,7 +136,6 @@ public class HuisartsPanel extends GenericPanel<ColonScreeningRonde>
 		ColonScreeningRonde laatsteScreeningronde = getModelObject();
 		boolean vorigeBerichtenBeschikbaar = laatsteScreeningronde.getLaatsteAfspraak() != null;
 		EnovationHuisarts enovationHuisarts = laatsteScreeningronde.getColonHuisarts();
-		OnbekendeHuisarts onbekendeHuisarts = laatsteScreeningronde.getOnbekendeHuisarts();
 
 		boolean verzendHaBerichtenVisible = magVerzenden && vorigeBerichtenBeschikbaar && enovationHuisarts != null;
 		final WebMarkupContainer verzendHaBerichtenOpnieuwContainer = new WebMarkupContainer("verzendHaBerichtenOpnieuwContainer");
@@ -154,7 +152,6 @@ public class HuisartsPanel extends GenericPanel<ColonScreeningRonde>
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				HuisartsPanel.this.getModelObject().setOnbekendeHuisarts(null);
 				HuisartsPanel.this.getModelObject().setColonHuisarts(null);
 				HuisartsPanel.this.get("huisartsNaam").setDefaultModelObject("");
 				HuisartsPanel.this.get("praktijkAdres").setDefaultModelObject("");
@@ -170,7 +167,7 @@ public class HuisartsPanel extends GenericPanel<ColonScreeningRonde>
 			}
 		};
 		add(huisartsVerwijderenBtn);
-		huisartsVerwijderenBtn.setVisible(magVerwijderen && (enovationHuisarts != null || onbekendeHuisarts != null));
+		huisartsVerwijderenBtn.setVisible(magVerwijderen && enovationHuisarts != null);
 
 		if (enovationHuisarts != null)
 		{
@@ -187,18 +184,6 @@ public class HuisartsPanel extends GenericPanel<ColonScreeningRonde>
 			add(new Label("klantnummer", enovationHuisarts.getKlantnummer()));
 			add(new Label("ediadres", enovationHuisarts.getOorspronkelijkEdiadres()));
 			add(new Label("communicatieadres", enovationHuisarts.getEdiadres()));
-		}
-		else if (onbekendeHuisarts != null)
-		{
-
-			add(new Label("huisartsNaam", onbekendeHuisarts.getHuisartsNaam()));
-			add(new Label("praktijkNaam", onbekendeHuisarts.getPraktijkNaam()));
-			add(new Label("praktijkAdres", AdresUtil.getOnbekendeHuisartsAdres(onbekendeHuisarts)));
-			add(new Label("huisartsAgb", Model.of("")));
-			add(new Label("weergaveNaam", Model.of("")));
-			add(new Label("klantnummer", Model.of("")));
-			add(new Label("ediadres", Model.of("")));
-			add(new Label("communicatieadres", Model.<String> of("")));
 		}
 		else
 		{

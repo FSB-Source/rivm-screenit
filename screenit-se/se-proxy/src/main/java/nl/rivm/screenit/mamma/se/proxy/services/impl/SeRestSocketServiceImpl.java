@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.services.impl;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,7 +32,6 @@ import java.time.format.DateTimeParseException;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpoint;
 import javax.websocket.ContainerProvider;
@@ -42,10 +41,14 @@ import javax.websocket.OnMessage;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.mamma.se.proxy.SeProxyApplication;
 import nl.rivm.screenit.mamma.se.proxy.dao.PersistableTransactionDao;
+import nl.rivm.screenit.mamma.se.proxy.model.SeConfiguratieKey;
 import nl.rivm.screenit.mamma.se.proxy.model.WebsocketBerichtType;
 import nl.rivm.screenit.mamma.se.proxy.services.CleanUpService;
+import nl.rivm.screenit.mamma.se.proxy.services.ConfiguratieService;
 import nl.rivm.screenit.mamma.se.proxy.services.MammaScreeningsEenheidStatusService;
 import nl.rivm.screenit.mamma.se.proxy.services.ProxyService;
 import nl.rivm.screenit.mamma.se.proxy.services.SeDaglijstService;
@@ -55,9 +58,8 @@ import nl.rivm.screenit.mamma.se.proxy.services.TransactionQueueService;
 import nl.rivm.screenit.mamma.se.proxy.services.WebSocketProxyService;
 import nl.rivm.screenit.mamma.se.proxy.util.DateUtil;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -65,16 +67,19 @@ import org.springframework.stereotype.Service;
 
 @Service
 @ClientEndpoint
+@Slf4j
 public class SeRestSocketServiceImpl implements SeRestSocketService, ApplicationContextAware
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(SeRestSocketServiceImpl.class);
-
 	private static final int RETRY_TIMEOUT = 5000;
 
-	private static final int PING_INTERVAL = 2500;
+	private static final int PING_INTERVAL_DEFAULT_MS = 2500;
 
-	private static final int UPDATE_STATUS_INTERVAL = (int) TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS);
+	private int pingInterval = PING_INTERVAL_DEFAULT_MS;
+
+	private static final int PONG_TIMEOUT_DEFAULT_MS = 5000;
+
+	private int pongTimeout = PONG_TIMEOUT_DEFAULT_MS;
 
 	private static final int MINIMALE_RETRY_TIMEOUT_IN_SECONDEN = 30;
 
@@ -103,6 +108,9 @@ public class SeRestSocketServiceImpl implements SeRestSocketService, Application
 
 	private ProxyService proxyService;
 
+	@Autowired
+	private ConfiguratieService configuratieService;
+
 	private TransactionQueueService transactionQueueService;
 
 	private static ApplicationContext applicationContext;
@@ -125,6 +133,7 @@ public class SeRestSocketServiceImpl implements SeRestSocketService, Application
 		{
 			try
 			{
+				verversPingEnPongConfig();
 				laatstePong = null;
 				String seRestEndpoint = seRestUrl.replace("http", "ws") + "/ws/proxySocket";
 				LOG.info("Maak verbinding met: " + seRestEndpoint);
@@ -137,12 +146,41 @@ public class SeRestSocketServiceImpl implements SeRestSocketService, Application
 				LOG.info("Websocket verbonden, registreer SE code: {}", seCode);
 				socketSession.getBasicRemote().sendText(WebsocketBerichtType.REGISTREER_SE.name() + seCode);
 				LOG.info("SE geregistreerd, start ping task");
-				getTimer().schedule(getPingTask(), 0, PING_INTERVAL);
+				scheduleNewPingTask();
 			}
 			catch (Exception e)
 			{
 				setSeVerbindingStatus(false);
 				LOG.error("Fout bij verbinden met SE REST door {}", e.getMessage(), e);
+			}
+		}
+	}
+
+	private void scheduleNewPingTask()
+	{
+		getTimer().schedule(getPingTask(), 0, pingInterval);
+	}
+
+	@Override
+	public void verversPingEnPongConfig()
+	{
+		var intervalUitConfig = configuratieService.getConfiguratieIntegerValue(SeConfiguratieKey.SE_PING_INTERVAL);
+		if (intervalUitConfig > 0)
+		{
+			var nieuwInterval = pingInterval != intervalUitConfig;
+			if (nieuwInterval)
+			{
+				pingInterval = intervalUitConfig;
+				scheduleNewPingTask();
+			}
+		}
+		var timeoutUitConfig = configuratieService.getConfiguratieIntegerValue(SeConfiguratieKey.SE_PONG_TIMEOUT);
+		if (timeoutUitConfig > 0)
+		{
+			var nieuweTimeout = pongTimeout != timeoutUitConfig;
+			if (nieuweTimeout)
+			{
+				pongTimeout = timeoutUitConfig;
 			}
 		}
 	}
@@ -319,7 +357,7 @@ public class SeRestSocketServiceImpl implements SeRestSocketService, Application
 
 		private boolean isPongTimeout()
 		{
-			return laatstePong != null && !LocalDateTime.now().isBefore(laatstePong.plusSeconds((PING_INTERVAL * 2) / 1000));
+			return laatstePong != null && !LocalDateTime.now().isBefore(laatstePong.plusNanos((pongTimeout * 1000000L)));
 		}
 	}
 

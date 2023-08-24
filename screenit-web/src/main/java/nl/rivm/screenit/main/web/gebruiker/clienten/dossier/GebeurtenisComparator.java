@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.clienten.dossier;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,13 +27,8 @@ import java.util.Date;
 
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenis;
 
-import org.joda.time.DateTime;
-
 public class GebeurtenisComparator implements Comparator<ScreeningRondeGebeurtenis>, Serializable
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@Override
 	public int compare(ScreeningRondeGebeurtenis o1, ScreeningRondeGebeurtenis o2)
 	{
@@ -48,7 +42,7 @@ public class GebeurtenisComparator implements Comparator<ScreeningRondeGebeurten
 		{
 			datum2 = new Date();
 		}
-		return new DateTime(datum).compareTo(new DateTime(datum2));
+		return datum.compareTo(datum2);
 	}
 
 }

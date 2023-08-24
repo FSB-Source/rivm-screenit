@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.model;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,38 +21,16 @@ package nl.rivm.screenit.mamma.se.proxy.model;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public abstract class ScreenITWerklijstItem
 {
 	private String aeTitle; 
 
 	private String medewerkercode;
 
-	ScreenITWerklijstItem()
-	{
-	}
-
-	ScreenITWerklijstItem(String medewerkercode)
-	{
-		this.medewerkercode = medewerkercode;
-	}
-
-	public String getAeTitle()
-	{
-		return aeTitle;
-	}
-
-	public void setAeTitle(String aeTitle)
-	{
-		this.aeTitle = aeTitle;
-	}
-
-	public String getMedewerkercode()
-	{
-		return medewerkercode;
-	}
-
-	public void setMedewerkercode(String medewerkercode)
-	{
-		this.medewerkercode = medewerkercode;
-	}
+	private String onderzoekscode;
 }

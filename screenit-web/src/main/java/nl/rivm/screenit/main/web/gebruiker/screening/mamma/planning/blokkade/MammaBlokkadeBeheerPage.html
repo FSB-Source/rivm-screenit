@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -62,16 +62,16 @@
                         <label class="control-label">Vanaf / tot en met</label>
                         <div class="controls">
                             <div class="input-append">
-                                <input type="text" class="datum" wicket:id="vanaf"/>
-                                <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');">
-                                    <i class="icon-calendar"/>
-                                </a>
-                            </div>
+								<input type="text" class="datum" wicket:id="vanaf"/>
+								<a  class="btn js-datepicker-show">
+									<i class="icon-calendar"/>
+								</a>
+							</div>
                             <div class="input-append">
                                 <input type="text" class="datum" wicket:id="totEnMet"/>
-                                <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');">
-                                    <i class="icon-calendar"/>
-                                </a>
+								<a  class="btn js-datepicker-show">
+									<i class="icon-calendar"/>
+								</a>
                             </div>
                         </div>
                     </div>

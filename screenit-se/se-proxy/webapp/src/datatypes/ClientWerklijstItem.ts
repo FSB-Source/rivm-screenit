@@ -9,4 +9,5 @@ export type ClientWerklijstItem = {
 	geslacht: string;
 	aeTitle: string;
 	medewerkercode: string;
+	onderzoekscode: string;
 };

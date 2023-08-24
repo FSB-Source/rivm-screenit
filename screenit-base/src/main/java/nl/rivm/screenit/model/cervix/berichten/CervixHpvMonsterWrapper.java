@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.cervix.berichten;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,13 +27,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+
+import nl.rivm.screenit.model.cervix.enums.CervixHpvResultaatBerichtBron;
 
 import org.apache.commons.lang3.StringUtils;
 
-import ca.uhn.hl7v2.model.Varies;
 import ca.uhn.hl7v2.model.v251.datatype.CE;
 import ca.uhn.hl7v2.model.v251.datatype.DR;
 import ca.uhn.hl7v2.model.v251.datatype.EI;
@@ -46,11 +48,44 @@ import ca.uhn.hl7v2.model.v251.segment.INV;
 import ca.uhn.hl7v2.model.v251.segment.OBX;
 import ca.uhn.hl7v2.model.v251.segment.SPM;
 
-@AllArgsConstructor
 @Slf4j
 public class CervixHpvMonsterWrapper
 {
+	@Getter
 	private final OUL_R22_SPECIMEN specimen;
+
+	private CervixHpvResultaatBerichtBron resultaatBerichtBron;
+
+	public CervixHpvMonsterWrapper(OUL_R22_SPECIMEN specimen)
+	{
+		this.specimen = specimen;
+
+		OUL_R22_ORDER order = specimen.getORDER();
+		OUL_R22_RESULT result = order.getRESULT(0);
+		OBX obx = result.getOBX();
+
+		if (obx.getObx5_ObservationValue(0).getData() instanceof DR)
+		{
+			resultaatBerichtBron = CervixHpvResultaatBerichtBron.ROCHE;
+		}
+		else
+		{
+			resultaatBerichtBron = CervixHpvResultaatBerichtBron.LIMS;
+		}
+	}
+
+	private static boolean zijnAnalyseresultatenGoedAangeleverd(List<CervixHpvAnalyseresultaat> completeAnalyseresultaten)
+	{
+		Set<CervixHpvResultCode> resultCodes = completeAnalyseresultaten.stream().map(ar -> ar.getResultCode()).collect(Collectors.toSet());
+		Set<CervixHpvOrderCode> orderCodes = resultCodes.stream().map(rc -> rc.getOrderCode()).collect(Collectors.toSet());
+
+		return orderCodes.size() == 1 &&
+			(orderCodes.iterator().next().equals(CervixHpvOrderCode.GEN) && resultCodes.size() == 3 ||
+				orderCodes.iterator().next().equals(CervixHpvOrderCode.PAN) && resultCodes.size() == 1) &&
+			!completeAnalyseresultaten.stream().anyMatch(ar -> !ar.getResultValue().equals(CervixHpvResultValue.FAILURE)
+				&& (!ar.getResultValue().getResultCode().equals(ar.getResultCode())
+				|| !ar.getResultValue().getResultCode().getOrderCode().equals(ar.getOrderCode())));
+	}
 
 	public String getBarcode()
 	{
@@ -68,20 +103,22 @@ public class CervixHpvMonsterWrapper
 		return controle.getCe1_Identifier().getValue();
 	}
 
-	public OUL_R22_SPECIMEN getSpecimen()
-	{
-		return specimen;
-	}
-
 	private String getStringValueAnalyseDatum()
 	{
 		OUL_R22_ORDER order = specimen.getORDER();
-		OUL_R22_RESULT result = order.getRESULT(0);
-		OBX obx = result.getOBX();
 
-		Varies obx5_0 = obx.getObx5_ObservationValue(0);
-		DR data = (DR) obx5_0.getData();
-		return data.getDr1_RangeStartDateTime().getTs1_Time().getValue();
+		if (CervixHpvResultaatBerichtBron.ROCHE == resultaatBerichtBron)
+		{
+			OUL_R22_RESULT result = order.getRESULT(0);
+			OBX obx = result.getOBX();
+
+			var data = (DR) obx.getObx5_ObservationValue(0).getData();
+			return data.getDr1_RangeStartDateTime().getTs1_Time().getValue();
+		}
+		else
+		{
+			return order.getOBR().getObr7_ObservationDateTime().getTs1_Time().getValue();
+		}
 	}
 
 	public Date getAnalyseDatum()
@@ -103,12 +140,19 @@ public class CervixHpvMonsterWrapper
 	private String getStringValueAutorisatieDatum()
 	{
 		OUL_R22_ORDER order = specimen.getORDER();
-		OUL_R22_RESULT result = order.getRESULT(0);
-		OBX obx = result.getOBX();
 
-		Varies obx5_0 = obx.getObx5_ObservationValue(0);
-		DR data = (DR) obx5_0.getData();
-		return data.getDr2_RangeEndDateTime().getTs1_Time().getValue();
+		if (CervixHpvResultaatBerichtBron.ROCHE == resultaatBerichtBron)
+		{
+			OUL_R22_RESULT result = order.getRESULT(0);
+			OBX obx = result.getOBX();
+
+			var data = (DR) obx.getObx5_ObservationValue(0).getData();
+			return data.getDr2_RangeEndDateTime().getTs1_Time().getValue();
+		}
+		else
+		{
+			return order.getOBR().getObr22_ResultsRptStatusChngDateTime().getTs1_Time().getValue();
+		}
 	}
 
 	public Date getAutorisatieDatum()
@@ -127,29 +171,28 @@ public class CervixHpvMonsterWrapper
 		return autorisatieDatum;
 	}
 
-	private String getStringResultValue(int resultaatNr)
+	private String getStringResultValue(int repetitionIndex)
 	{
 		OUL_R22_ORDER order = specimen.getORDER();
-		if (order.getRESULTReps() > resultaatNr)
+		if (order.getRESULTReps() > repetitionIndex)
 		{
-			OUL_R22_RESULT result = order.getRESULT(resultaatNr);
+			OUL_R22_RESULT result = order.getRESULT(repetitionIndex);
 			OBX obx = result.getOBX();
-			Varies obx5 = obx.getObx5_ObservationValue(0);
-			if (obx5.getData() instanceof ST)
+			var data = obx.getObx5_ObservationValue(0).getData();
+			if (data instanceof ST)
 			{
-				ST data = (ST) obx5.getData();
-				return data.getValue();
+				return ((ST) data).getValue();
 			}
 		}
 		return null;
 	}
 
-	private String getStringResultCode(int resultaatNr)
+	private String getStringResultCode(int repetitionIndex)
 	{
 		OUL_R22_ORDER order = specimen.getORDER();
-		if (order.getRESULTReps() > resultaatNr)
+		if (order.getRESULTReps() > repetitionIndex)
 		{
-			OUL_R22_RESULT result = order.getRESULT(resultaatNr);
+			OUL_R22_RESULT result = order.getRESULT(repetitionIndex);
 			OBX obx = result.getOBX();
 			ST st = obx.getObx3_ObservationIdentifier().getCe1_Identifier();
 			return st.getValue();
@@ -170,10 +213,14 @@ public class CervixHpvMonsterWrapper
 	public List<CervixHpvAnalyseresultaat> getAnalyseresultaten()
 	{
 		CervixHpvOrderCode orderCode = CervixHpvOrderCode.fromBerichtWaarde(getStringOrderCode());
-		return List.of(
-			new CervixHpvAnalyseresultaat(CervixHpvResultValue.fromValue(getStringResultValue(1)), CervixHpvResultCode.fromBerichtWaarde(getStringResultCode(1)), orderCode),
-			new CervixHpvAnalyseresultaat(CervixHpvResultValue.fromValue(getStringResultValue(2)), CervixHpvResultCode.fromBerichtWaarde(getStringResultCode(2)), orderCode),
-			new CervixHpvAnalyseresultaat(CervixHpvResultValue.fromValue(getStringResultValue(3)), CervixHpvResultCode.fromBerichtWaarde(getStringResultCode(3)), orderCode));
+
+		var startRepetitionIndex = CervixHpvResultaatBerichtBron.ROCHE == resultaatBerichtBron ? 1 : 0;
+
+		return IntStream
+			.range(startRepetitionIndex, startRepetitionIndex + 3)
+			.mapToObj(repetitionIndex -> new CervixHpvAnalyseresultaat(CervixHpvResultValue.fromValue(getStringResultValue(repetitionIndex)),
+				CervixHpvResultCode.fromBerichtWaarde(getStringResultCode(repetitionIndex)), orderCode))
+			.collect(Collectors.toList());
 	}
 
 	public boolean isFailure()
@@ -181,11 +228,18 @@ public class CervixHpvMonsterWrapper
 		return getAnalyseresultaten().stream().anyMatch(ar -> CervixHpvResultValue.FAILURE.equals(ar.getResultValue()));
 	}
 
+	public static List<CervixHpvAnalyseresultaat> getCompleteAnalyseresultaten(List<CervixHpvAnalyseresultaat> analyseresultaten)
+	{
+		return analyseresultaten.stream().filter(ar -> ar.getResultValue() != null && ar.getResultCode() != null && ar.getOrderCode() != null).collect(Collectors.toList());
+	}
+
 	public String getAnalyseresultatenString()
 	{
+		var startRepetitionIndex = CervixHpvResultaatBerichtBron.ROCHE == resultaatBerichtBron ? 1 : 0;
+
 		String analyseresultatenString = "OrderCode: '" + getStringOrderCode() + "' ";
 		boolean first = true;
-		for (int i = 1; i <= 3; i++)
+		for (int i = startRepetitionIndex; i <= startRepetitionIndex + 2; i++)
 		{
 			String resultCode = getStringResultCode(i);
 			String resultValue = getStringResultValue(i);
@@ -223,6 +277,7 @@ public class CervixHpvMonsterWrapper
 			return true;
 		}
 		LOG.warn("--- Sample invalide ---");
+		LOG.warn("Bron resultaat: " + resultaatBerichtBron);
 		LOG.warn("Barcode: " + getBarcode());
 		LOG.warn("AnalyseDatum: " + getStringValueAnalyseDatum());
 		LOG.warn("AutorisatieDatum: " + getStringValueAutorisatieDatum());
@@ -234,24 +289,6 @@ public class CervixHpvMonsterWrapper
 			LOG.warn("analyseresultaten info consistent: " + zijnAnalyseresultatenGoedAangeleverd);
 		}
 		return false;
-	}
-
-	public static List<CervixHpvAnalyseresultaat> getCompleteAnalyseresultaten(List<CervixHpvAnalyseresultaat> analyseresultaten)
-	{
-		return analyseresultaten.stream().filter(ar -> ar.getResultValue() != null && ar.getResultCode() != null && ar.getOrderCode() != null).collect(Collectors.toList());
-	}
-
-	private static boolean zijnAnalyseresultatenGoedAangeleverd(List<CervixHpvAnalyseresultaat> completeAnalyseresultaten)
-	{
-		Set<CervixHpvResultCode> resultCodes = completeAnalyseresultaten.stream().map(ar -> ar.getResultCode()).collect(Collectors.toSet());
-		Set<CervixHpvOrderCode> orderCodes = resultCodes.stream().map(rc -> rc.getOrderCode()).collect(Collectors.toSet());
-
-		return orderCodes.size() == 1 &&
-			(orderCodes.iterator().next().equals(CervixHpvOrderCode.GEN) && resultCodes.size() == 3 ||
-				orderCodes.iterator().next().equals(CervixHpvOrderCode.PAN) && resultCodes.size() == 1) &&
-			!completeAnalyseresultaten.stream().anyMatch(ar -> !ar.getResultValue().equals(CervixHpvResultValue.FAILURE)
-				&& (!ar.getResultValue().getResultCode().equals(ar.getResultCode())
-				|| !ar.getResultValue().getResultCode().getOrderCode().equals(ar.getOrderCode())));
 	}
 
 }

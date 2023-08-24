@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.a
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -82,7 +82,7 @@ public class MammaAdhocMeekijkverzoekMiniWerklijstPanel extends Panel
 			public void onClick(AjaxRequestTarget target, IModel<MammaAdhocMeekijkverzoek> model)
 			{
 				MammaAdhocMeekijkverzoek verzoek = model.getObject();
-				parent.gaNaarVerslag(verzoek.getOnderzoek().getId(), target);
+				parent.gaNaarBeoordeling(verzoek.getOnderzoek().getId(), target);
 			}
 
 			@Override

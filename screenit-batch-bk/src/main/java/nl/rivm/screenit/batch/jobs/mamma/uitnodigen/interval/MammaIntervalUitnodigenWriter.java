@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.uitnodigen.interval;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,11 +28,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.batch.jobs.mamma.uitnodigen.MammaUitnodigenListener;
+import nl.rivm.screenit.batch.service.MammaBatchUitnodigenService;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaIntervalUitnodigenRapportage;
-import nl.rivm.screenit.service.mamma.MammaVolgendeUitnodigingService;
 
 import org.springframework.stereotype.Component;
 
@@ -41,13 +41,13 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class MammaIntervalUitnodigenWriter extends BaseWriter<Client>
 {
-	private final MammaVolgendeUitnodigingService volgendeUitnodigingService;
+	private final MammaBatchUitnodigenService uitnodigenService;
 
 	@Override
 	protected void write(Client client) throws Exception
 	{
 		LOG.info("Client {} uitnodigen", client.getId());
-		var uitnodiging = volgendeUitnodigingService.geefNieuweRondeVoorVolgendeUitnodiging(client);
+		var uitnodiging = uitnodigenService.maakNieuweRondeEnIntervalUitnodiging(client);
 		if (uitnodiging != null)
 		{
 			bijwerkenRapportage(uitnodiging);

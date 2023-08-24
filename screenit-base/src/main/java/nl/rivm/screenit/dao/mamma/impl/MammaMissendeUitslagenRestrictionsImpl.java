@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,7 +33,7 @@ import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.InstellingService;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.query.DateRestrictions;
 import nl.rivm.screenit.util.query.ScreenitRestrictions;
@@ -57,12 +57,12 @@ public class MammaMissendeUitslagenRestrictionsImpl implements MammaMissendeUits
 {
 	private final ICurrentDateSupplier currentDateSupplier;
 
-	private final InstellingService instellingService;
+	private final OrganisatieParameterService organisatieParameterService;
 
 	@Override
 	public void addBeeldenZonderUitslagRestrictions(Criteria criteria)
 	{
-		var signaleringsTermijn = instellingService.getOrganisatieParameter(null, OrganisatieParameterKey.MAMMA_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN, 30);
+		var signaleringsTermijn = organisatieParameterService.getOrganisatieParameter(null, OrganisatieParameterKey.MAMMA_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN, 30);
 
 		var vandaag = currentDateSupplier.getLocalDate();
 

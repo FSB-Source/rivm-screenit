@@ -49,507 +49,522 @@
 @import "beheer/sections/organisatiemedewerkers";
 
 div.canvas.row-fluid.topnav {
-  background: $primary-be-color !important;
+	background: $primary-be-color !important;
 }
 
 div.canvas.row-fluid.subnav {
-  background: $secondary-be-light-background-color !important;
+	background: $secondary-be-light-background-color !important;
 }
 
 .subnav .nav-tabs .menulink {
-  background-color: #9576C0;
+	background-color: #9576C0;
 }
 
 .subnav .nav-tabs .menulink:hover {
-  background-color: $secondary-be-light-background-color;
+	background-color: $secondary-be-light-background-color;
 }
 
 .subnav .nav-tabs .active .menulink {
-  background-color: $primary-be-background-color;
-  color: $primary-be-text-color;
+	background-color: $primary-be-background-color;
+	color: $primary-be-text-color;
 }
 
 .hero-unit {
-  background-color: $primary-be-color;
-  border-color: $primary-be-color !important;
+	background-color: $primary-be-color;
+	border-color: $primary-be-color !important;
 }
 
 .canvas.content {
-  background-color: $primary-be-background-color !important;
-  color: $primary-be-text-color;
+	background-color: $primary-be-background-color !important;
+	color: $primary-be-text-color;
 }
 
 strong {
-  color: $primary-be-text-color;
+	color: $primary-be-text-color;
 }
 
 .control-group.value .control-label {
-  color: $primary-be-text-color;
+	color: $primary-be-text-color;
 }
 
 textarea, input[type="text"], input[type="text"].btn, input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"], .uneditable-input {
-  background-color: $primary-be-color;
-  color: $primary-be-text-color;
+	background-color: $primary-be-color;
+	color: $primary-be-text-color;
 }
 
 input::placeholder, textarea::placeholder {
-  color: #c3c3c3;
+	color: #c3c3c3;
 }
 
 .table-striped tr th {
-  background-color: $primary-be-color;
+	background-color: $primary-be-color;
 }
 
 .table-striped tbody > tr:nth-child(odd) > td, .table-striped tbody > tr:nth-child(odd) > th {
-  background-color: $secondary-be-background-color;
-  color: $primary-be-text-color;
+	background-color: $secondary-be-background-color;
+	color: $primary-be-text-color;
+}
+
+table.table tbody tr:hover td {
+	background-color: $primary-be-color;
 }
 
 .table-striped tbody > tr:nth-child(even) > td, .table-striped tbody > tr:nth-child(even) > th {
-  background-color: #71439b;
-  color: $primary-be-text-color;
+	background-color: #71439b;
+	color: $primary-be-text-color;
 }
 
 .table-striped tbody > tr.open .even, .table-striped tbody > tr.open .odd {
-  background-color: $primary-be-color;
-  color: $primary-be-text-color;
+	background-color: $primary-be-color;
+	color: $primary-be-text-color;
 }
 
 table.clickable tr:hover td {
-  background-color: $primary-be-color;
+	background-color: $primary-be-color;
 }
 
 table.table tbody tr.selected td {
-  background-color: $primary-be-color;
+	background-color: $primary-be-color;
 }
 
 .table-striped span {
-  color: $primary-be-text-color;
+	color: $primary-be-text-color;
 }
 
 .table-striped tr th span:hover {
-  color: $primary-be-background-color;
+	color: $primary-be-background-color;
 }
 
 .accordion-group {
-  border-color: $primary-be-color;
+	border-color: $primary-be-color;
 }
 
 .accordion-heading {
-  background-color: $primary-be-color;
-  -webkit-border-radius: 4px 4px 0 0;
-  -moz-border-radius: 4px 4px 0 0;
-  border-radius: 4px 4px 0 0;
+	background-color: $primary-be-color;
+	-webkit-border-radius: 4px 4px 0 0;
+	-moz-border-radius: 4px 4px 0 0;
+	border-radius: 4px 4px 0 0;
 }
 
 .accordion-heading:hover {
-  background-color: $secondary-be-light-background-color;
-  -webkit-border-radius: 4px;
-  -moz-border-radius: 4px;
-  border-radius: 4px;
+	background-color: $secondary-be-light-background-color;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
 }
 
 .accordion-heading .accordion-toggle {
-  color: $primary-be-text-color;
+	color: $primary-be-text-color;
 }
 
 .accordion-heading:hover .accordion-toggle {
-  color: $primary-be-color;
+	color: $primary-be-color;
 }
 
 .accordion-inner {
-  padding: 9px 15px;
-  border-top: 1px solid $primary-be-color;
+	padding: 9px 15px;
+	border-top: 1px solid $primary-be-color;
 }
 
 div.canvas.footer .row-fluid {
-  background-color: $primary-be-color;
-  color: $secondary-be-light-background-color;
+	background-color: $primary-be-color;
+	color: $secondary-be-light-background-color;
 }
 
 .accordion-body .controls {
-  margin-left: auto;
+	margin-left: auto;
 }
 
 .accordion-body .controls .input-micro {
-  margin-left: 20px;
-  text-align: center;
-  width: 40px;
+	margin-left: 20px;
+	text-align: center;
+	width: 40px;
 }
 
 .accordion-body .controls input[type="checkbox"] {
-  float: left;
-  margin-top: 9px;
+	float: left;
+	margin-top: 9px;
 }
 
 .accordion-body .controls {
-  textarea.input-fullwidth {
-    height: 40px;
-  }
+	textarea.input-fullwidth {
+		height: 40px;
+	}
 
-  textarea.input-fullwidth.biradsopmerking {
-    padding-left: 0;
-    height: 180px;
-  }
+	textarea.input-fullwidth.biradsopmerking {
+		padding-left: 0;
+		height: 180px;
+	}
 }
 
 #mbb-signalering-dialog, #kwaliteitsopname-dialog {
-  textarea.low-max-width[disabled], textarea.low-max-width {
-    background-color: $inactive-be-background-color;
-    border-color: white;
-    width: 100%;
-    height: 100%;
-    box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-  }
+	textarea.low-max-width[disabled], textarea.low-max-width {
+		background-color: $inactive-be-background-color;
+		border-color: white;
+		width: 100%;
+		height: 100%;
+		box-sizing: border-box;
+		-moz-box-sizing: border-box;
+		-webkit-box-sizing: border-box;
+	}
 
-  .modal-header {
-    background-color: $primary-be-color;
-    border-bottom: none;
-  }
+	.modal-header {
+		background-color: $primary-be-color;
+		border-bottom: none;
+	}
 
-  .modal-body {
-    max-height: 950px;
-    background-color: $primary-be-background-color;
+	.modal-body {
+		max-height: 950px;
+		background-color: $primary-be-background-color;
 
-    .hero-unit {
-      background-color: $inactive-be-background-color;
-    }
+		.hero-unit {
+			background-color: $inactive-be-background-color;
+		}
 
-    .control-label, span {
-      color: $primary-be-text-color;
-    }
+		.control-label, span {
+			color: $primary-be-text-color;
+		}
 
-    h3 {
-      margin: 0;
-      padding: 0 5px;
-      font-size: 16px;
-      color: #FFF;
-    }
+		h3 {
+			margin: 0;
+			padding: 0 5px;
+			font-size: 16px;
+			color: #FFF;
+		}
 
-  }
+	}
 
-  .modal-footer {
-    background-color: $primary-be-background-color;
-  }
+	.modal-footer {
+		background-color: $primary-be-background-color;
+	}
 }
 
 .accordion-body .controls textarea.low-max-width[disabled], .input-fullwidth[disabled], .input-micro[disabled], .select2-search-field[disabled] {
-  background-color: transparent;
+	background-color: transparent;
 }
 
 .accordion-body .controls label.text {
-  margin-left: 120px;
+	margin-left: 120px;
 }
 
 .accordion-body .no-label {
-  margin-left: 0px;
+	margin-left: 0px;
 }
 
 .controls.mini .select2-container {
-  margin-left: 6px;
-  width: 70px;
-  text-align: center;
+	margin-left: 6px;
+	width: 70px;
+	text-align: center;
 }
 
 .totaal-aantal {
-  color: white;
+	color: white;
 }
 
 .select2-container .select2-choice {
-  color: $primary-be-text-color;
-  background-color: $primary-be-color;
-  background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0, $primary-be-color), color-stop(0.5, $primary-be-color));
-  background-image: -webkit-linear-gradient(center bottom, $primary-be-color 0%, $primary-be-color 50%);
-  background-image: -moz-linear-gradient(center bottom, $primary-be-color 0%, $primary-be-color 50%);
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#{$primary-be-color}", endColorstr="#{$primary-be-color}", GradientType=0);
-  background-image: linear-gradient(top, $primary-be-color 0%, $primary-be-color 50%);
+	color: $primary-be-text-color;
+	background-color: $primary-be-color;
+	background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0, $primary-be-color), color-stop(0.5, $primary-be-color));
+	background-image: -webkit-linear-gradient(center bottom, $primary-be-color 0%, $primary-be-color 50%);
+	background-image: -moz-linear-gradient(center bottom, $primary-be-color 0%, $primary-be-color 50%);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#{$primary-be-color}", endColorstr="#{$primary-be-color}", GradientType=0);
+	background-image: linear-gradient(top, $primary-be-color 0%, $primary-be-color 50%);
 }
 
 .select2-container.select2-container-disabled .select2-choice {
-  background-color: transparent;
+	background-color: transparent;
 }
 
 .select2-container-multi .select2-choices {
-  height: auto !important;
-  height: 1%;
-  margin: 0;
-  padding: 0;
-  position: relative;
-  border: 1px solid #aaa;
-  cursor: text;
-  overflow: hidden;
-  background-color: $primary-be-color;
-  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, color-stop(1%, $primary-be-color), color-stop(15%, $primary-be-color));
-  background-image: -webkit-linear-gradient(top, $primary-be-color 1%, $primary-be-color 15%);
-  background-image: -moz-linear-gradient(top, $primary-be-color 1%, $primary-be-color 15%);
-  background-image: linear-gradient(top, $primary-be-color 1%, $primary-be-color 15%);
+	height: auto !important;
+	height: 1%;
+	margin: 0;
+	padding: 0;
+	position: relative;
+	border: 1px solid #aaa;
+	cursor: text;
+	overflow: hidden;
+	background-color: $primary-be-color;
+	background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, color-stop(1%, $primary-be-color), color-stop(15%, $primary-be-color));
+	background-image: -webkit-linear-gradient(top, $primary-be-color 1%, $primary-be-color 15%);
+	background-image: -moz-linear-gradient(top, $primary-be-color 1%, $primary-be-color 15%);
+	background-image: linear-gradient(top, $primary-be-color 1%, $primary-be-color 15%);
 }
 
 .select2-default {
-  color: #c3c3c3 !important;
+	color: #c3c3c3 !important;
 }
 
 .select2-container-multi.select2-container-disabled .select2-choices {
-  color: $primary-be-text-color;
-  background-color: transparent;
+	color: $primary-be-text-color;
+	background-color: transparent;
 }
 
 .select2-container-multi .select2-choices .select2-search-choice {
-  border: 1px solid $primary-be-text-color;
-  color: $primary-be-text-color;
-  -webkit-box-shadow: 0 0 2px $secondary-be-background-color inset, 0 1px 0 rgba(0, 0, 0, 0.05);
-  box-shadow: 0 0 2px $secondary-be-background-color inset, 0 1px 0 $secondary-be-background-color;
-  background-color: $secondary-be-background-color;
-  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, color-stop(20%, $secondary-be-background-color), color-stop(50%, $secondary-be-background-color), color-stop(52%, $secondary-be-background-color), color-stop(100%, $secondary-be-background-color));
-  background-image: -webkit-linear-gradient(top, $secondary-be-background-color 20%, $secondary-be-background-color 50%, $secondary-be-background-color 52%, $secondary-be-background-color 100%);
-  background-image: -moz-linear-gradient(top, $secondary-be-background-color 20%, $secondary-be-background-color 50%, $secondary-be-background-color 52%, $secondary-be-background-color 100%);
-  background-image: linear-gradient(top, $secondary-be-background-color 20%, $secondary-be-background-color 50%, $secondary-be-background-color 52%, $secondary-be-background-color 100%);
+	border: 1px solid $primary-be-text-color;
+	color: $primary-be-text-color;
+	-webkit-box-shadow: 0 0 2px $secondary-be-background-color inset, 0 1px 0 rgba(0, 0, 0, 0.05);
+	box-shadow: 0 0 2px $secondary-be-background-color inset, 0 1px 0 $secondary-be-background-color;
+	background-color: $secondary-be-background-color;
+	background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, color-stop(20%, $secondary-be-background-color), color-stop(50%, $secondary-be-background-color), color-stop(52%, $secondary-be-background-color), color-stop(100%, $secondary-be-background-color));
+	background-image: -webkit-linear-gradient(top, $secondary-be-background-color 20%, $secondary-be-background-color 50%, $secondary-be-background-color 52%, $secondary-be-background-color 100%);
+	background-image: -moz-linear-gradient(top, $secondary-be-background-color 20%, $secondary-be-background-color 50%, $secondary-be-background-color 52%, $secondary-be-background-color 100%);
+	background-image: linear-gradient(top, $secondary-be-background-color 20%, $secondary-be-background-color 50%, $secondary-be-background-color 52%, $secondary-be-background-color 100%);
 }
 
 .select2-container-multi.select2-container-disabled .select2-choices .select2-search-choice {
-  background-color: #9a84b6;
+	background-color: #9a84b6;
 }
 
 .fullwidth {
-  width: 100%;
-  max-width: 600px;
+	width: 100%;
+	max-width: 600px;
 }
 
+
+
 .inactive-element {
-  background-color: $inactive-be-background-color;
+	background-color: $inactive-be-background-color;
 }
 
 .inactive-element.all-radius {
-  -webkit-border-radius: 4px;
-  -moz-border-radius: 4px;
-  border-radius: 4px;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
 }
 
 .inactive-element.top-no-radius {
-  -webkit-border-radius: 0 0 4px 4px;
-  -moz-border-radius: 0 0 4px 4px;
-  border-radius: 0 0 4px 4px;
+	-webkit-border-radius: 0 0 4px 4px;
+	-moz-border-radius: 0 0 4px 4px;
+	border-radius: 0 0 4px 4px;
 }
 
 .lezing {
-  padding: 9px;
+	padding: 9px;
 }
 
 .select2-search-choice-close {
-  filter: brightness(0) invert(0.9);
+	filter: brightness(0) invert(0.9);
 }
 
 .ui-button-text {
-  color: $primary-be-text-color;
+	color: $primary-be-text-color;
 }
 
 textarea.low-max-width {
-  height: 40px;
-  width: 100%;
+	height: 40px;
+	width: 100%;
 }
 
 textarea.low-max-width.biradsopmerking {
-  height: 180px;
-  background-color: $primary-be-color;
+	height: 180px;
+	background-color: $primary-be-color;
 }
 
 .lezing-form-container .control-group.error .control-label {
-  color: #e5e5e5 !important;
+	color: #e5e5e5 !important;
 }
 
 textarea.required, {
-  color: #e5e5e5 !important;
+	color: #e5e5e5 !important;
 }
 
 textarea:disabled {
-  background-color: transparent !important;
+	background-color: transparent !important;
 }
 
 textarea:disabled ~ i.icon-asterisk.icon-purple {
-  display: none;
+	display: none;
 }
 
 .btn-primary[disabled] {
-  background-color: #c3c3c3
+	background-color: #c3c3c3
 }
 
 .number-alert {
-  position: relative;
-  left: 4px;
-  display: inline-block;
-  border-radius: 50%;
-  background-color: red;
-  width: 20px;
-  height: 20px;
-  text-align: center;
-  line-height: 20px;
+	position: relative;
+	left: 4px;
+	display: inline-block;
+	border-radius: 50%;
+	background-color: red;
+	width: 20px;
+	height: 20px;
+	text-align: center;
+	line-height: 20px;
 }
 
 .number-alert:empty {
-  display: none;
+	display: none;
 }
 
 .doNotSelect {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
 }
 
 .hoverBorder {
-  border: 10px solid transparent;
-  cursor: pointer;
+	border: 10px solid transparent;
+	cursor: pointer;
 }
 
 .hoverBorder:hover {
-  border-color: $secondary-be-background-color;
+	border-color: $secondary-be-background-color;
 }
 
 .laesiepanel .controls {
-  margin-left: 180px;
+	margin-left: 180px;
 }
 
 .laesiepanel .icon-asterisk.icon-purple {
-  display: none;
+	display: none;
 }
 
 .titelVerslagVerfijnen {
-  font-size: large;
+	font-size: large;
 }
 
 .accordion-inner {
-  textarea[name="biradsOpmerking"] {
-    resize: none;
-  }
+	textarea[name="biradsOpmerking"] {
+		resize: none;
+	}
 }
 
 .clientpaspoortEnMiniwerklijstBE {
-  position: absolute;
-  top: 101px;
-  width: 33%;
+	position: absolute;
+	top: 101px;
+	width: 33%;
 }
 
 .lezingOpslaan {
-  margin-top: 10px;
+	margin-top: 10px;
 }
 
 .btn-arbitrage {
-  float: left;
+	float: left;
 }
 
 .show-results {
-  .even.verwijzend > td {
-    background-color: #a94747;
-  }
+	.even.verwijzend > td {
+		background-color: #a94747;
+	}
 
-  .even.verwijzend:hover > td {
-    background-color: darken(#a94747, 5%);
-  }
+	.even.verwijzend:hover > td {
+		background-color: darken(#a94747, 5%);
+	}
 
-  .odd.verwijzend > td {
-    background-color: lighten(#a94747, 5%);
-  }
+	.odd.verwijzend > td {
+		background-color: lighten(#a94747, 5%);
+	}
 
-  .odd.verwijzend:hover > td {
-    background-color: darken(#a94747, 10%);
-  }
+	.odd.verwijzend:hover > td {
+		background-color: darken(#a94747, 10%);
+	}
 }
 
 #beLogoutDialog {
-  .modal-header {
-    background-color: $primary-be-color;
-    border-bottom: none;
-  }
+	.modal-header {
+		background-color: $primary-be-color;
+		border-bottom: none;
+	}
 
-  .modal-body {
-    max-height: 950px;
-    background-color: $primary-be-background-color;
+	.modal-body {
+		max-height: 950px;
+		background-color: $primary-be-background-color;
 
-    .hero-unit {
-      background-color: $inactive-be-background-color;
-      color: $primary-be-text-color;
+		.hero-unit {
+			background-color: $inactive-be-background-color;
+			color: $primary-be-text-color;
 
-      .control-label {
-        color: $primary-be-text-color;
-      }
+			.control-label {
+				color: $primary-be-text-color;
+			}
 
-      h3 {
-        margin: 0;
-        padding: 0 5px;
-        font-size: 16px;
-        color: #FFF;
-      }
-    }
+			h3 {
+				margin: 0;
+				padding: 0 5px;
+				font-size: 16px;
+				color: #FFF;
+			}
+		}
 
-    .btn-success:hover, .btn-success:focus, .btn-success:active, .btn-success.active, .btn-success.disabled, .btn-success[disabled] {
-      background-color: #97a300;
-    }
+		.btn-success:hover, .btn-success:focus, .btn-success:active, .btn-success.active, .btn-success.disabled, .btn-success[disabled] {
+			background-color: #97a300;
+		}
 
-    .btn-danger:hover, .btn-danger:focus, .btn-danger:active, .btn-danger.active, .btn-danger.disabled, .btn-danger[disabled] {
-      background-color: #da4f49;
-      background-position: 0 0;
-    }
-  }
+		.btn-danger:hover, .btn-danger:focus, .btn-danger:active, .btn-danger.active, .btn-danger.disabled, .btn-danger[disabled] {
+			background-color: #da4f49;
+			background-position: 0 0;
+		}
+	}
 }
 
 .pdfPopup {
-  max-height: 500px;
+	max-height: 500px;
 
-  .pdf-unit {
-    width: 95%;
-    height: 500px;
-  }
+	.pdf-unit {
+		width: 95%;
+		height: 500px;
+	}
 }
 
 .nevenbevindingContainer {
-  margin-top: 69px;
+	margin-top: 69px;
 }
 
 .span8 {
-  .huidigeRondevisueleInspectieAfbeelding {
-    img {
-      margin-top: -80px;
-      margin-bottom: -60px;
-    }
-  }
+	.huidigeRondevisueleInspectieAfbeelding {
+		img {
+			margin-top: -80px;
+			margin-bottom: -60px;
+		}
+	}
 }
 
 .span6 {
-  .huidigeRondevisueleInspectieAfbeelding {
-    img {
-      margin-top: -60px;
-      margin-bottom: -45px;
-    }
-  }
+	.huidigeRondevisueleInspectieAfbeelding {
+		img {
+			margin-top: -60px;
+			margin-bottom: -45px;
+		}
+	}
 }
 
 .span4 {
-  .huidigeRondevisueleInspectieAfbeelding {
-    img {
-      margin-top: -40px;
-      margin-bottom: -30px;
-    }
-  }
+	.huidigeRondevisueleInspectieAfbeelding {
+		img {
+			margin-top: -40px;
+			margin-bottom: -30px;
+		}
+	}
 }
 
 .conclusie-gereviewd-filter {
-  display: flex;
-  margin-bottom: 5px;
+	display: flex;
+	margin-bottom: 5px;
 
-  input {
-    margin-right: 5px;
-  }
+	input {
+		margin-right: 5px;
+	}
 }
 
 .fotobespreking-multiselect-label {
-  text-align: left;
-  min-height: initial;
+	text-align: left;
+	min-height: initial;
 }
 
 .radioloog-dashboard-table {
-  .dashboard-kalenderjaar-cel {
-    text-align: right;
-  }
+	.dashboard-kalenderjaar-cel {
+		text-align: right;
+	}
+}
+
+fieldset.mammaPathologieVerslag {
+	min-inline-size: auto;
+}
+
+.mammaPathologieVerslag table {
+	display: block;
+	overflow-x: auto;
 }

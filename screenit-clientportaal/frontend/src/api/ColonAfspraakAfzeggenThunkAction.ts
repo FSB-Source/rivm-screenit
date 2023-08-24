@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,13 +21,12 @@
 import {Dispatch} from "redux"
 import ScreenitBackend from "../utils/Backend"
 import {ColonIntakeAfspraakAction, setColonIntakeAfspraakAction} from "../actions/ColonDossierAction"
-import RedenAfspraakAfzeggen from "../datatypes/colon/RedenAfspraakAfzeggen"
 
 export const getHuidigeIntakeAfspraak = () => async (dispatch: Dispatch<ColonIntakeAfspraakAction>) => {
-    return ScreenitBackend.get("/colon/afspraak/huidig")
-        .then(response => dispatch(setColonIntakeAfspraakAction(response.data)))
+	return ScreenitBackend.get("/colon/afspraak/huidig")
+		.then(response => dispatch(setColonIntakeAfspraakAction(response.data)))
 }
 
-export const saveColonAfzegReden = (afzegReden: RedenAfspraakAfzeggen) => () => {
-    return ScreenitBackend.put(`/colon/afspraak/afzeggen/${afzegReden}`)
+export const saveAfspraakAfzeggen = () => {
+	return ScreenitBackend.put(`/colon/afspraak/afzeggen`)
 }

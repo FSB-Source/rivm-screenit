@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.component.panels;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,11 +21,11 @@ package nl.rivm.screenit.main.web.component.panels;
  * =========================LICENSE_END==================================
  */
 
-import java.io.File;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
+import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.validator.FileValidator;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.service.UploadDocumentService;
@@ -107,13 +107,7 @@ public class UploadDocumentFormComponentPanel extends GenericPanel<UploadDocumen
 
 			try
 			{
-				FileUpload fileUpload = files.getObject().get(0);
-				newDocument = new UploadDocument();
-				File file = fileUpload.writeToTempFile();
-				newDocument.setFile(file);
-				newDocument.setNaam(fileUpload.getClientFileName());
-				newDocument.setContentType(fileUpload.getContentType());
-				newDocument.setActief(true);
+				newDocument = ScreenitSession.get().fileUploadToUploadDocument(files.getObject().get(0));
 			}
 			catch (Exception e)
 			{

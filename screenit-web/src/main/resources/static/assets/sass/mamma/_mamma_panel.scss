@@ -1,0 +1,55 @@
+.doNotSelect {
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+.uitstel-table-border {
+	border-left: 3px solid #dddddd;
+}
+
+.follow-up-niet-gedownload-werklijst .table-condensed td a.btn {
+	color: white;
+}
+
+.pointer-events-none {
+	pointer-events: none;
+}
+
+.white-space-pre-wrap {
+	white-space: pre-wrap;
+}
+
+.mamma-opmerking {
+	width: 100%;
+	resize: none;
+}
+
+.mamma-opmerking-lijst {
+	vertical-align: top;
+	color: #612d83;
+}
+
+.mamma-standplaats-beschrijving {
+	width: 95%;
+	resize: none;
+}
+
+.max-aantal-per-file {
+	font-size: 13px;
+	line-height: 20px;
+}
+
+.row-fluid .mamma-exchange-download-onderzoeken {
+	margin-left: 0;
+}
+
+.row-fluid .mamma-lezing-form {
+	padding-left: 0;
+}
+
+.row-fluid .mamma-huisarts-uitlijning {
+	margin-left: 0px;
+}
+

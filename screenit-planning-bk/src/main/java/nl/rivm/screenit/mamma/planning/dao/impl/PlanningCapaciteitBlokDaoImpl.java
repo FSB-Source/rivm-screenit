@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.dao.impl;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,6 +24,7 @@ package nl.rivm.screenit.mamma.planning.dao.impl;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -38,11 +39,8 @@ import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class PlanningCapaciteitBlokDaoImpl extends AbstractAutowiredDao implements PlanningCapaciteitBlokDao
 {
 
@@ -89,4 +87,12 @@ public class PlanningCapaciteitBlokDaoImpl extends AbstractAutowiredDao implemen
 		return blok;
 	}
 
+	@Override
+	public Optional<LocalDate> findMaxDatumVanAlleCapaciteitsBlokken()
+	{
+		var criteria = getSession().createCriteria(MammaCapaciteitBlok.class, "capaciteitBlok");
+		criteria.setProjection(Projections.max("capaciteitBlok.vanaf"));
+		var max = (Date) criteria.uniqueResult();
+		return Optional.ofNullable(DateUtil.toLocalDate(max));
+	}
 }

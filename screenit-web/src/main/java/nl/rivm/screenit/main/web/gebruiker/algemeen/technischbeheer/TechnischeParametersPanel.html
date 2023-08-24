@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -32,8 +32,20 @@
 					<div class="control-group">
 						<label class="control-label">Startdatum BMHK</label>
 						<div class="controls">
-							<input type="text" class="datum" wicket:id="startdatumBmhk"/>
-							<a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum" tabindex="-1"><i
+							<input class="datum" type="text" wicket:id="startdatumBmhk"/>
+							<a class="btn js-datepicker-show" tabindex="-1" title="Datum"><i
+									class="icon-calendar"></i></a>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row-fluid">
+				<div class="span6">
+					<div class="control-group">
+						<label class="control-label">Startdatum BMHK2023</label>
+						<div class="controls">
+							<input class="datum" type="text" wicket:id="cervixStartBmhk2023"/>
+							<a class="btn js-datepicker-show" tabindex="-1" title="Datum"><i
 									class="icon-calendar"></i></a>
 						</div>
 					</div>
@@ -42,7 +54,7 @@
 					<div class="control-group">
 						<label class="control-label">URL zorgmail update bestand</label>
 						<div class="controls">
-							<input wicket:id="internalZorgmailBestandUrl" class="input-xxlarge" type="text"> (url eindigend op csv.zip)
+							<input class="input-xxlarge" type="text" wicket:id="internalZorgmailBestandUrl"> (url eindigend op csv.zip)
 						</div>
 					</div>
 				</div>
@@ -52,8 +64,8 @@
 					<div class="control-group">
 						<label class="control-label">Stopdatum verwerking complicaties DK</label>
 						<div class="controls">
-							<input type="text" class="datum" wicket:id="internalColonComplicatieVerwerkingStop"/>
-							<a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum" tabindex="-1"><i
+							<input class="datum" type="text" wicket:id="internalColonComplicatieVerwerkingStop"/>
+							<a class="btn js-datepicker-show" tabindex="-1" title="Datum"><i
 									class="icon-calendar"></i></a>
 						</div>
 					</div>
@@ -62,7 +74,7 @@
 					<div class="control-group">
 						<label class="control-label">Valide FQDNs (BMHK)</label>
 						<div class="controls">
-							<input type="text" class="input-xxlarge" wicket:id="internalCervixLabFormulierValidFqdns"/> (';' seperated)
+							<input class="input-xxlarge" type="text" wicket:id="internalCervixLabFormulierValidFqdns"/> (';' seperated)
 						</div>
 					</div>
 				</div>
@@ -72,7 +84,7 @@
 					<div class="control-group">
 						<label class="control-label">Maximale grootte ZIP in kilobytes</label>
 						<div class="controls">
-							<input type="text" class="input-small" wicket:id="internalMaxGrootteZip"/>
+							<input class="input-small" type="text" wicket:id="internalMaxGrootteZip"/>
 						</div>
 					</div>
 				</div>
@@ -80,7 +92,7 @@
 					<div class="control-group">
 						<label class="control-label">BK Uploadlimiet uploadportaal in megabytes</label>
 						<div class="controls">
-							<input type="text" class="input-small" wicket:id="internalMammaUploadlimietUploadportaal"/>
+							<input class="input-small" type="text" wicket:id="internalMammaUploadlimietUploadportaal"/>
 						</div>
 					</div>
 				</div>
@@ -90,7 +102,7 @@
 					<div class="control-group">
 						<label class="control-label">PACS IMS Dicom CMove connection config</label>
 						<div class="controls">
-							<input type="text" class="input-large" wicket:id="internalMammaImsDicomCmoveConfig"/> (aeTitle@host:port,aeTitle@host:port (eerst QR SCP, dan STORE
+							<input class="input-large" type="text" wicket:id="internalMammaImsDicomCmoveConfig"/> (aeTitle@host:port,aeTitle@host:port (eerst QR SCP, dan STORE
 							SCP))
 						</div>
 					</div>
@@ -99,7 +111,7 @@
 					<div class="control-group">
 						<label class="control-label">PACS IMS Dicom CStore connection config</label>
 						<div class="controls">
-							<input type="text" class="input-large" wicket:id="internalMammaImsDicomCstoreConfig"/> (aeTitle@host:port,aeTitle@host:port (eerst SCU, dan STORE
+							<input class="input-large" type="text" wicket:id="internalMammaImsDicomCstoreConfig"/> (aeTitle@host:port,aeTitle@host:port (eerst SCU, dan STORE
 							SCP))
 						</div>
 					</div>
@@ -110,15 +122,7 @@
 					<div class="control-group">
 						<label class="control-label">Herinneringsperiode logregel onvolledig adres</label>
 						<div class="controls">
-							<input type="text" class="input-small" wicket:id="internalHerinneringsperiodeLogregelOnvolledigAdres"/> dagen
-						</div>
-					</div>
-				</div>
-				<div class="span6">
-					<div class="control-group">
-						<label class="control-label">SE informatie ophalen CRON (Let op: spring cron)</label>
-						<div class="controls">
-							<input wicket:id="internalMammaSeInformatieOphalenCron" class="input-xxlarge" type="text"/>
+							<input class="input-small" type="text" wicket:id="internalHerinneringsperiodeLogregelOnvolledigAdres"/> dagen
 						</div>
 					</div>
 				</div>
@@ -128,7 +132,7 @@
 					<div class="control-group">
 						<label class="control-label">Schematron version path mapping</label>
 						<div class="controls">
-							<input wicket:id="internalWsbSchematronVersionpathmapping" class="input-xxlarge" type="text"/>
+							<input class="input-xxlarge" type="text" wicket:id="internalWsbSchematronVersionpathmapping"/>
 						</div>
 					</div>
 				</div>
@@ -138,51 +142,60 @@
 					<div class="control-group">
 						<label class="control-label">BMHK Labels printen zonder PDF</label>
 						<div class="controls">
-							<input wicket:id="bmhkLabelPrintenZonderPdf" type="checkbox">
+							<input type="checkbox" wicket:id="bmhkLabelPrintenZonderPdf">
 						</div>
 					</div>
 				</div>
+			</div>
+			<div class="row-fluid">
 				<div class="span6">
-					<div class="btn-top dropdown right">
-						<button wicket:id="parametersOpslaan" class="btn btn-primary" type="button">Opslaan parameters
-						</button>
+					<div class="control-group">
+						<label class="control-label">Aantal retries verzenden naar inpakcentrum</label>
+						<div class="controls">
+							<input class="input-small" type="text" wicket:id="retriesVerzendenInpakcentrum"/> keer
+						</div>
 					</div>
 				</div>
 			</div>
-		</fieldset>
-	</form>
-	<form wicket:id="labsForm">
-		<fieldset>
 			<div class="row-fluid">
-				<div class="span12">
-					<legend>Technische parameters voor de BMHK LABS (Order, ORU)</legend>
+				<div class="span6">
+					<div class="control-group">
+						<label class="control-label">Tijd tussen de retries voor verzenden naar inpakcentrum</label>
+						<div class="controls">
+							<input class="input-small" type="text" wicket:id="timeBetweenRetriesVerzendenInpakcentrum"/> ms
+						</div>
+					</div>
 				</div>
 			</div>
-			<div class="row-fluid">
-				<div class="span12">
-					<table class="table table-bordered table-condensed">
-						<thead>
-						<tr>
-							<th>Naam BMHK laboratorium</th>
-							<th>Host</th>
-							<th>Port</th>
-						</tr>
-						</thead>
-						<tbody>
-						<tr class="remove-row show-active" wicket:id="labs">
-							<td><span wicket:id="naam"></span></td>
-							<td><input class="input-medium" type="text" wicket:id="orderHost"></td>
-							<td><input class="input-small" type="text" wicket:id="orderPort"></td>
-						</tr>
-						</tbody>
-					</table>
-				</div>
+			<div class="span6">
 				<div class="btn-top dropdown right">
-					<button wicket:id="parametersOpslaan" class="btn btn-primary" type="button">Opslaan</button>
+					<button class="btn btn-primary" type="button" wicket:id="parametersOpslaan">Opslaan parameters
+					</button>
 				</div>
 			</div>
 		</fieldset>
 	</form>
+	<fieldset>
+		<div class="row-fluid">
+			<div class="span12">
+				<legend>Technische parameters voor de BMHK LABS (Orders, ORU)</legend>
+			</div>
+		</div>
+		<div class="row-fluid">
+			<div class="span12" wicket:id="bmhkLabParameters">
+
+			</div>
+
+			<div class="align-bottom">
+				&ast;
+				<em>Verstuur HPV Order / Alleen nieuwe ZASsen verwerken / Nieuwe tariefstructuur / Geen re-run invalid HPV uitslag</em>
+			</div>
+
+			<div class="btn-top dropdown right">
+				<button class="btn btn-primary" type="button" wicket:id="bmhkLabParametersOpslaan">Opslaan</button>
+			</div>
+		</div>
+	</fieldset>
 	<fieldset>
 		<div class="row-fluid">
 			<div class="span12">
@@ -194,7 +207,7 @@
 
 			</div>
 			<div class="btn-top dropdown right">
-				<button wicket:id="parametersOpslaan" class="btn btn-primary" type="button">Opslaan</button>
+				<button class="btn btn-primary" type="button" wicket:id="parametersOpslaan">Opslaan</button>
 			</div>
 		</div>
 	</fieldset>

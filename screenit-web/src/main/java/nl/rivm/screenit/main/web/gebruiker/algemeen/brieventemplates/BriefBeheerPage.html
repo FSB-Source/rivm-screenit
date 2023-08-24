@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -40,29 +40,29 @@
             </thead>
             <tbody wicket:id="brievenContainer">
             <tr wicket:id="brieven">
-                <td wicket:id="bvo">DK</td>
-                <td wicket:id="type">Vooraankondiging</td>
-                <td>
-                    <wicket:container wicket:id="documentNaam">Vooraankondiging</wicket:container>
-                    <span wicket:id="geenDocument" class="badge">Er is nog geen document toegevoegd</span>
-                </td>
-                <td><img wicket:id="uitklapknop" src="../../assets/images/icons/arrow.gif" style="float:left; cursor: pointer; padding: 6px 0"/>
-                    <div wicket:id="volgnummer" style="float:right"></div>
-                </td>
-                <td title="Alleen van toepassing voor inpakcentrum brieven"><span wicket:id="formulierNummer"></span></td>
-                <td wicket:id="geldigVanaf" class="dateTimeColumn">dd-mm-jaar</td>
-                <td wicket:id="geldigTot" class="dateTimeColumn"></td>
-                <td wicket:id="geuploadDoor">Medewerker</td>
-                <td wicket:id="uploadColumn" class="status-upload">
-                    <form wicket:id="uploadForm" class="form-inline">
-                        <input type="file" wicket:id="fileUpload" accept=".docx">
-                        <a href="javascript:void(0);" wicket:id="uploaden" class="btn upload" title="Uploaden"><i class="icon-upload"></i></a>
-                    </form>
-                </td>
-                <td class="status">
-                    <a wicket:id="download" class="btn" title="Downloaden"><i class="icon-download"></i></a>
-                </td>
-            </tr>
+				<td wicket:id="bvo">DK</td>
+				<td wicket:id="type">Vooraankondiging</td>
+				<td>
+					<wicket:container wicket:id="documentNaam">Vooraankondiging</wicket:container>
+					<span wicket:id="geenDocument" class="badge">Er is nog geen document toegevoegd</span>
+				</td>
+				<td><img wicket:id="uitklapknop" src="../../assets/images/icons/arrow.gif" class="uitklap-knop"/>
+					<div wicket:id="volgnummer" class="right"></div>
+				</td>
+				<td title="Alleen van toepassing voor inpakcentrum brieven"><span wicket:id="formulierNummer"></span></td>
+				<td wicket:id="geldigVanaf" class="dateTimeColumn">dd-mm-jaar</td>
+				<td wicket:id="geldigTot" class="dateTimeColumn"></td>
+				<td wicket:id="geuploadDoor">Medewerker</td>
+				<td wicket:id="uploadColumn" class="status-upload">
+					<form wicket:id="uploadForm" class="form-inline">
+						<input type="file" wicket:id="fileUpload" accept=".docx">
+						<a  wicket:id="uploaden" class="btn upload" title="Uploaden"><i class="icon-upload"></i></a>
+					</form>
+				</td>
+				<td class="status">
+					<a wicket:id="download" class="btn" title="Downloaden"><i class="icon-download"></i></a>
+				</td>
+			</tr>
             </tbody>
         </table>
     </div>

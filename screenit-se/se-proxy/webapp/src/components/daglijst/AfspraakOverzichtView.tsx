@@ -1,14 +1,15 @@
 import React, {Component} from "react"
-import AfspraakLijstView from "./AfspraakLijstView"
 import type {Tijdslot} from "../../datatypes/Planning"
 import {Afspraak} from "../../datatypes/Afspraak"
 import {Col, Row} from "reactstrap"
 import {store} from "../../Store"
-import BarcodeReader from "react-barcode-reader"
+
 import {GEFORCEERD_DAGLIJST_OPHALEN, vernieuwAfsprakenDaglijst} from "../../restclient/DaglijstRestclient"
 import {vandaagISO} from "../../util/DateUtil"
 import {Client} from "../../datatypes/Client"
 import {navigateToClientgegevens, navigateToOnderzoek} from "../../util/NavigationUtil"
+import BarcodeReader from "../barcodereader/BarcodeReader"
+import AfspraakLijstView from "./AfspraakLijstView"
 
 export type AfspraakOverzichtViewProps = {
 	nietAfgerondeTijdSlots: Array<Tijdslot>;
@@ -21,7 +22,6 @@ export default class AfspraakOverzichtView extends Component<AfspraakOverzichtVi
 
 	constructor(props: AfspraakOverzichtViewProps) {
 		super(props)
-
 		const state = store.getState()
 		if (state.pendingUpdates && state.pendingUpdates.moetDaglijstNogVerversen) {
 			vernieuwAfsprakenDaglijst()
@@ -36,27 +36,22 @@ export default class AfspraakOverzichtView extends Component<AfspraakOverzichtVi
 				if (afspraak.vanafDatum !== vandaagISO()) {
 					return
 				}
-
 				navigeerNaarClientAfspraak(afspraak)
-				return
 			}
 		})
 	}
 
-	handleError(): void {
-	}
-
 	render(): JSX.Element {
 		return <div className="afspraaklijst">
-			<BarcodeReader onError={this.handleError} onScan={this.handleScan} minLength={9}/>
+			<BarcodeReader minimaleLengte={9} onScan={this.handleScan}/>
 			<Row>
 				<Col md={6}><h6>Gepland
 					({this.props.nietAfgerondeTijdSlots.filter(value => value instanceof Afspraak).length})</h6></Col>
 				{this.props.daglijstDatum === vandaagISO() &&
-				<Col md={6}><i className="fa fa-refresh float-right" id={"daglijst-refresh"} aria-hidden="true"
-							   onClick={(): void => {
-								   vernieuwAfsprakenDaglijst(GEFORCEERD_DAGLIJST_OPHALEN)
-							   }}/></Col>}
+					<Col md={6}><i className="fa fa-refresh float-right" id={"daglijst-refresh"} aria-hidden="true"
+								   onClick={(): void => {
+									   vernieuwAfsprakenDaglijst(GEFORCEERD_DAGLIJST_OPHALEN)
+								   }}/></Col>}
 			</Row>
 			<AfspraakLijstView afspraken={this.props.nietAfgerondeTijdSlots} clienten={this.props.clienten}
 							   emptyText="Er zijn geen geplande afspraken."/>

@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -33,17 +33,6 @@
         </div>
         <div class="span1"/>
     </div>
-    <script type="application/javascript">'use strict';
-    $('.biradskeuze .radio.biradsverwijzen>input:checked').each(function() {$(this).closest('.biradskeuze').addClass('biradsverwijzen');});
-
-    $('.biradskeuze input:radio').click(function() {
-        $(this).closest('.biradskeuze').removeClass('biradsverwijzen');
-        if ($(this).closest('.radio').hasClass('biradsverwijzen')) {
-            $(this).closest('.biradskeuze').addClass('biradsverwijzen');
-        }
-    });
-    </script>
-
 </wicket:panel>
 </body>
 </html>

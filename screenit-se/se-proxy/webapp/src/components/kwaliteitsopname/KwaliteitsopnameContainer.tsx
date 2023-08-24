@@ -1,9 +1,9 @@
 import {connect} from "react-redux"
 import type {KwaliteitsopnameReden, VoorOfNaKalibratie} from "./KwaliteitsopnameView"
-import KwaliteitsopnameView, {KwaliteitsopnameViewProps} from "./KwaliteitsopnameView"
+import KwaliteitsopnameView, {KwaliteitsopnameViewProps, KwaliteitsopnameViewStateProps} from "./KwaliteitsopnameView"
 import {putTransactionToScreenItCentraalPromise} from "../../restclient/TransactionRestclient"
 import {BEEINDIG_KWALITEITSOPNAME, createActionKwaliteitsopnameOrm, START_KWALITEITSOPNAME} from "../../actions/KwaliteitsopnameOrmActions"
-import {store} from "../../Store"
+import {RootState, store} from "../../Store"
 import {beeindigKwaliteitsopname, kwaliteitsopnameToevoegenAanWerklijst} from "../../restclient/WerklijstRestclient"
 import {aeTitle, seCode} from "../../util/Util"
 import {fetchApiPromise} from "../../util/ApiUtil"
@@ -29,6 +29,10 @@ const mapDispatchToProps = (dispatch: Dispatch): KwaliteitsopnameViewProps => ({
 	},
 })
 
+const mapStateToProps = (state: RootState): KwaliteitsopnameViewStateProps => {
+	return {tomosyntheseMogelijk: true === state.environmentInfo?.tomosyntheseMogelijk}
+}
+
 const startOfBeeindigKwaliteitsopname = (mammograafnr: string, volgnr: number | undefined, actionType: string, reden: KwaliteitsopnameReden, voorOfNaKalibratie: VoorOfNaKalibratie, dispatch: any): void => {
 	if (!volgnr) {
 		console.warn(`Volgnummer is leeg bij starten of beeindigen kwaliteitsopname op mammograaf ${mammograafnr}`)
@@ -44,12 +48,11 @@ const startOfBeeindigKwaliteitsopname = (mammograafnr: string, volgnr: number | 
 
 	const datumPatientId = nu().format("YYYYMMDD")
 	const startMoment = nuISO()
-	const qcOfBu = reden === "Vervanging rontgenbuis" ? "BU" : "QC"
 	const kalibratieLetter = voorOfNaKalibratie === "Na kalibratie" ? "N" : voorOfNaKalibratie === "Voor kalibratie" ? "V" : "G"
 	const seNr = seCode().split("-")[1]
 	const volgnrString = (volgnr < 10 ? "0" : "") + volgnr
-	const accessionNumber = `${qcOfBu + seNr}M${mammograafnr}${datumAcccesionNumber}${kalibratieLetter}${volgnrString}`
-	const onderzoekscode = `LRCB${qcOfBu}`
+	const accessionNumber = `${bepaalRedenCodeAccesionNumber(reden) + seNr}M${mammograafnr}${datumAcccesionNumber}${kalibratieLetter}${volgnrString}`
+	const onderzoekscode = bepaalOnderzoeksCode(reden)
 	const patientId = `${seCode()}_LRCB_${datumPatientId}`
 
 	switch (actionType) {
@@ -81,6 +84,25 @@ const startOfBeeindigKwaliteitsopname = (mammograafnr: string, volgnr: number | 
 		navigateToDaglijst(dispatch)
 	}
 }
+const bepaalRedenCodeAccesionNumber = (reden: KwaliteitsopnameReden): string => {
+	if ("Vervanging rontgenbuis" === reden) {
+		return "BU"
+	}
+	if ("Dagelijkse tomosynthese" === reden) {
+		return "TO"
+	}
+	return "QC"
+}
 
-const KwaliteitsopnameContainer = connect(undefined, mapDispatchToProps)(KwaliteitsopnameView)
+const bepaalOnderzoeksCode = (reden: KwaliteitsopnameReden): string => {
+	if ("Vervanging rontgenbuis" === reden) {
+		return "LRCBBU"
+	}
+	if ("Dagelijkse tomosynthese" === reden) {
+		return "LRCBDBT"
+	}
+	return "LRCBQC"
+}
+
+const KwaliteitsopnameContainer = connect(mapStateToProps, mapDispatchToProps)(KwaliteitsopnameView)
 export default KwaliteitsopnameContainer

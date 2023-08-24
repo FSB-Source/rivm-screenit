@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -45,15 +45,14 @@ import nl.rivm.screenit.model.overeenkomsten.AfgeslotenInstellingOvereenkomst;
 import nl.rivm.screenit.model.overeenkomsten.AfgeslotenMedewerkerOvereenkomst;
 import nl.rivm.screenit.model.overeenkomsten.Overeenkomst;
 import nl.rivm.screenit.model.overeenkomsten.OvereenkomstType;
-import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.MailService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -96,7 +95,7 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void saveOrUpdateOvereenkomst(Overeenkomst overeenkomst, FileUpload fileUpload, Account account)
+	public void saveOrUpdateOvereenkomst(Overeenkomst overeenkomst, UploadDocument uploadDocument, Account account)
 	{
 		if (OvereenkomstType.ZAKELIJKE_OVEREENKOMST == overeenkomst.getOvereenkomst())
 		{
@@ -111,15 +110,14 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 			overeenkomst.getDocument().setActief(Boolean.TRUE);
 		}
 
-		if (fileUpload != null)
+		if (uploadDocument != null)
 		{
 			try
 			{
-				var tempFile = fileUpload.writeToTempFile();
 				overeenkomst.setLaatsteUpdateDocument(currentDateSupplier.getDate());
-				overeenkomst.getDocument().setContentType(fileUpload.getContentType());
-				overeenkomst.getDocument().setNaam(fileUpload.getClientFileName());
-				overeenkomst.getDocument().setFile(tempFile);
+				overeenkomst.getDocument().setContentType(uploadDocument.getContentType());
+				overeenkomst.getDocument().setNaam(uploadDocument.getNaam());
+				overeenkomst.getDocument().setFile(uploadDocument.getFile());
 
 				if (nieuwUploadDocument)
 				{
@@ -217,7 +215,7 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void saveOrUpdateOvereenkomst(AbstractAfgeslotenOvereenkomst overeenkomst, FileUpload fileUpload, Account account)
+	public void saveOrUpdateOvereenkomst(AbstractAfgeslotenOvereenkomst overeenkomst, UploadDocument uploadDocument, Account account)
 	{
 		var genereerCode = false;
 		var verstuurMail = false;
@@ -278,19 +276,12 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 			overeenkomst.setCode(code.toString());
 		}
 
-		if (fileUpload != null)
+		if (uploadDocument != null)
 		{
 			try
 			{
-				var tempFile = fileUpload.writeToTempFile();
-				overeenkomst.setGescandDocument(new UploadDocument());
-				var gescandDocument = overeenkomst.getGescandDocument();
-				gescandDocument.setContentType(fileUpload.getContentType());
-				gescandDocument.setNaam(fileUpload.getClientFileName());
-				gescandDocument.setFile(tempFile);
-				gescandDocument.setActief(Boolean.TRUE);
-
-				uploadDocumentService.saveOrUpdate(gescandDocument, FileStoreLocation.COLON_OVEREENKOMST);
+				overeenkomst.setGescandDocument(uploadDocument);
+				uploadDocumentService.saveOrUpdate(uploadDocument, FileStoreLocation.COLON_OVEREENKOMST);
 			}
 			catch (Exception e)
 			{
@@ -395,7 +386,7 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 				{
 					onderwerp = preferenceService.getString(PreferenceKey.OVEREENKOMSTSUBJECT.name(), "Overeenkomst gewijzigd");
 				}
-				mailService.queueMail(emailAdres, onderwerp, content);
+				mailService.queueMailAanProfessional(emailAdres, onderwerp, content);
 			}
 		}
 	}

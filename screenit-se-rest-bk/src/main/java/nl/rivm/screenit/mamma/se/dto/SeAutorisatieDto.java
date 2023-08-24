@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.dto;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,15 +21,13 @@ package nl.rivm.screenit.mamma.se.dto;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.annotation.JsonFilter;
+import java.util.Map;
+
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Map;
-
 @Getter
 @Setter
-@JsonFilter("autorisatieFilter")
 public class SeAutorisatieDto
 {
 	private String displayName;
@@ -55,8 +53,6 @@ public class SeAutorisatieDto
 	private SERechtDto connectiestatusRecht;
 
 	private String navigatie;
-
-	private int seMaxOfflineInlogPeriode;
 
 	private Map<SeConfiguratieKey, String> seParameters;
 }

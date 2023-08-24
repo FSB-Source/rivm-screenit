@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,15 +21,17 @@ package nl.rivm.screenit.service.cervix;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Date;
+import java.util.List;
+
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
-
-import java.util.Date;
+import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting;
 
 public interface CervixVerrichtingFactory
 {
-	void maakLabVerrichting(CervixMonster monster, CervixTariefType tariefType, Date verrichtingsDatum);
+	List<CervixVerrichting> maakLabVerrichting(CervixMonster monster, CervixTariefType tariefType, Date verrichtingsDatum);
 
-	void maakHuisartsVerrichting(CervixMonster monster, CervixTariefType tariefType, Date verrichtingsDatum, CervixHuisartsLocatie huisartsLocatie);
+	void maakHuisartsVerrichting(CervixMonster monster, Date verrichtingsDatum, CervixHuisartsLocatie huisartsLocatie);
 }

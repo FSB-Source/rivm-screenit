@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -19,10 +19,9 @@
  * =========================LICENSE_END==================================
  */
 import React from "react"
-import Select from "@material-ui/core/Select"
 import classNames from "classnames"
 import styles from "./ScreenitDropdown.module.scss"
-import {FormControl, InputLabel, MenuItem} from "@material-ui/core"
+import {FormControl, InputLabel, MenuItem, Select, SelectChangeEvent} from "@mui/material"
 
 export type DropdownOption = {
 	value: string,
@@ -38,7 +37,7 @@ export type ScreenitDropdownProps = {
 	propertyName: string,
 	invalidMessage?: string,
 	onChange: (
-		event: React.ChangeEvent<{ name?: string; value: unknown }>,
+		event: SelectChangeEvent<string>,
 		child: React.ReactNode,
 	) => void;
 }
@@ -55,6 +54,7 @@ function ScreenitDropdown(props: ScreenitDropdownProps) {
 						name: props.placeholder,
 						id: props.propertyName,
 					}}
+					variant={"standard"}
 					placeholder={props.placeholder}
 					defaultValue={props.initialValue ? props.initialValue : ""}
 					value={props.value ? props.value : ""}

@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.mamma.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,11 @@ package nl.rivm.screenit.model.mamma.enums;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
 public enum MammaHL7v24ORMBerichtStatus
 {
 
@@ -36,12 +41,7 @@ public enum MammaHL7v24ORMBerichtStatus
 	DELETED("Deleted"),
 	ERROR("Error");
 
-	private String label;
-
-	public String getLabel()
-	{
-		return label;
-	}
+	private final String label;
 
 	public static MammaHL7v24ORMBerichtStatus getEnumForLabel(String label)
 	{
@@ -52,11 +52,6 @@ public enum MammaHL7v24ORMBerichtStatus
 				return status;
 			}
 		}
-		throw new IllegalStateException("Enum niet gevonden");
-	}
-
-	MammaHL7v24ORMBerichtStatus(String label)
-	{
-		this.label = label;
+		throw new IllegalStateException("Onbekende HL7 ORM berichtstatus: " + label);
 	}
 }

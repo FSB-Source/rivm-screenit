@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.cervix;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,11 +30,16 @@ import nl.rivm.screenit.model.cervix.CervixAfmelding;
 import nl.rivm.screenit.model.cervix.CervixBrief;
 import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
+import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class CervixClientContactHeraanmeldenPanel extends AbstractClientContactHeraanmeldenPanel<CervixDossier, CervixAfmelding, CervixBrief, CervixScreeningRonde>
 {
+	@SpringBean
+	private CervixBaseScreeningrondeService screeningrondeService;
+
 	private static final long serialVersionUID = 1L;
 
 	public CervixClientContactHeraanmeldenPanel(String id, IModel<ClientContactActie> model, IModel<Client> client, List<Object> extraPanelParams)
@@ -52,7 +57,12 @@ public class CervixClientContactHeraanmeldenPanel extends AbstractClientContactH
 	public List<String> getOpslaanMeldingen()
 	{
 		List<String> opslaanMeldingen = super.getOpslaanMeldingen();
-		opslaanMeldingen.add("Er wordt automatisch een uitnodiging gestuurd");
+		var laatsteScreeningRonde = getClient().getCervixDossier().getLaatsteScreeningRonde();
+		if (laatsteScreeningRonde == null || !screeningrondeService.clientHeeftAanOnderzoekMeegedaanInRonde(
+			laatsteScreeningRonde))
+		{
+			opslaanMeldingen.add("Er wordt automatisch een uitnodiging gestuurd");
+		}
 		return opslaanMeldingen;
 	}
 }

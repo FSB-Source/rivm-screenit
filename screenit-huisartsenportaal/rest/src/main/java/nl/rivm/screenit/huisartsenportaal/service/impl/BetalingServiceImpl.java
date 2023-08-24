@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal.service.impl;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,13 +39,9 @@ import nl.rivm.screenit.huisartsenportaal.model.Betaling;
 import nl.rivm.screenit.huisartsenportaal.model.Huisarts;
 import nl.rivm.screenit.huisartsenportaal.model.Verrichting;
 import nl.rivm.screenit.huisartsenportaal.repository.BetalingCriteriaRepository;
-import nl.rivm.screenit.huisartsenportaal.repository.BetalingRepository;
-import nl.rivm.screenit.huisartsenportaal.repository.VerrichtingRepository;
 import nl.rivm.screenit.huisartsenportaal.service.BetalingService;
 import nl.rivm.screenit.huisartsenportaal.service.VerrichtingenService;
 
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -61,15 +57,7 @@ public class BetalingServiceImpl implements BetalingService
 	private BetalingCriteriaRepository betalingCriteriaRepository;
 
 	@Autowired
-	private BetalingRepository betalingRepository;
-
-	@Autowired
-	private VerrichtingRepository verrichtingenRepo;
-
-	@Autowired
 	private VerrichtingenService verrichtingenService;
-
-	private DateTimeFormatter dateFormat = DateTimeFormat.forPattern("dd-MM-yyyy");
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)

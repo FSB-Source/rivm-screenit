@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit.
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,20 +22,17 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit.
  */
 
 import java.time.LocalDate;
+import java.util.Date;
 
 import nl.rivm.screenit.dto.mamma.planning.PlanningDagDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningWeekDto;
 import nl.rivm.screenit.main.web.component.fullcalendar.event.Event;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit.sources.ScreenITEventSourceFactory;
-
-import org.joda.time.DateTime;
+import nl.rivm.screenit.util.DateUtil;
 
 public class AantalRegulierOnderzoekenPerDagProvider extends AbstractScreenITEventProvider
 {
-
-	private static final long serialVersionUID = 1L;
-
-	private ScreenITEventSourceFactory screenITEventSourceFactory;
+	private final ScreenITEventSourceFactory screenITEventSourceFactory;
 
 	public AantalRegulierOnderzoekenPerDagProvider(ScreenITEventSourceFactory screenITEventSourceFactory)
 	{
@@ -43,31 +40,30 @@ public class AantalRegulierOnderzoekenPerDagProvider extends AbstractScreenITEve
 	}
 
 	@Override
-	void createEvents(DateTime start, DateTime end)
+	void createEvents(Date start, Date end)
 	{
 		PlanningWeekDto weekDto = screenITEventSourceFactory.getWeekDto();
-		DateTime werkdag = start;
+		var werkdag = DateUtil.toLocalDate(start);
 		for (int i = 0; i < 7; i++)
 		{
 			Event event = new Event();
-			final LocalDate werkdagDate = LocalDate.of(werkdag.toLocalDate().getYear(), werkdag.toLocalDate().getMonthOfYear(), werkdag.toLocalDate().getDayOfMonth());
+			final LocalDate werkdagDate = LocalDate.of(werkdag.getYear(), werkdag.getMonth(), werkdag.getDayOfMonth());
 			long totaalVanDag = 0;
-			PlanningDagDto planningDagDto = weekDto.dagen.stream() 
-				.filter(d -> d.datum.equals(werkdagDate)) 
+			PlanningDagDto planningDagDto = weekDto.dagen.stream()
+				.filter(d -> d.datum.equals(werkdagDate))
 				.findFirst().orElse(null);
 			if (planningDagDto != null)
 			{
 				totaalVanDag = planningDagDto.totaalAantalOnderzoeken;
 			}
-			event.setTitle("<span class=\"label pull-right\" style=\"background-color:#540272\">" + totaalVanDag + "</span>");
-			event.setStart(werkdag);
+			event.setTitle("<span class=\"label pull-right background-paars\">" + totaalVanDag + "</span>");
+			event.setStart(werkdag.atStartOfDay());
 			event.setAllDay(true);
 			event.setEditable(false);
 			event.setFirst(true);
 			werkdag = werkdag.plusDays(1);
 			putEvent(i, event);
 		}
-
 	}
 
 	@Override

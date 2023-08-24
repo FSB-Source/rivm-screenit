@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.dao.mamma.impl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,7 +32,6 @@ import java.util.Map;
 import nl.rivm.screenit.dao.mamma.MammaBaseCapaciteitsBlokDao;
 import nl.rivm.screenit.dto.mamma.afspraken.MammaAfspraakDto;
 import nl.rivm.screenit.dto.mamma.afspraken.MammaCapaciteitBlokDto;
-import nl.rivm.screenit.model.RangeCriteriaBuilder;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.mamma.MammaBlokkade;
 import nl.rivm.screenit.model.mamma.MammaCapaciteitBlok;
@@ -53,13 +51,11 @@ import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.Order;
-import org.hibernate.criterion.ProjectionList;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
 import org.hibernate.engine.spi.TypedValue;
 import org.hibernate.sql.JoinType;
-import org.joda.time.Interval;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,43 +64,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MammaBaseCapaciteitsBlokDaoImpl extends AbstractAutowiredDao implements MammaBaseCapaciteitsBlokDao
 {
-
-	@Override
-	public List<Object> getBlokTijden(List<Interval> nieuweBlokken, MammaCapaciteitBlok blok, Interval currentViewInterval)
-	{
-		Criteria criteria = getSession().createCriteria(MammaCapaciteitBlok.class);
-
-		Disjunction disjunction = Restrictions.disjunction();
-		for (Interval interval : nieuweBlokken)
-		{
-			disjunction.add(RangeCriteriaBuilder.closedOpen("vanaf", "tot").overlaps(interval));
-		}
-		criteria.add(disjunction);
-		criteria.addOrder(Order.asc("vanaf"));
-
-		criteria.add(Restrictions.eq("screeningsEenheid", blok.getScreeningsEenheid()));
-
-		if (blok.getId() != null)
-		{
-			disjunction.add(Restrictions.eq("id", blok.getId()));
-		}
-
-		ProjectionList projectionList = Projections.projectionList() 
-			.add(Projections.property("vanaf")) 
-			.add(Projections.property("tot")) 
-			.add(Projections.property("id"))
-			;
-
-		criteria.setProjection(projectionList);
-
-		return criteria.list();
-	}
-
-	@Override
-	public List<MammaCapaciteitBlok> getCapaciteitsBlokken(MammaScreeningsEenheid screeningEenheid, Date start, Date end)
-	{
-		return getCapaciteitsBlokken(screeningEenheid, start, end, null);
-	}
 
 	@Override
 	public List<MammaCapaciteitBlok> getCapaciteitsBlokken(MammaScreeningsEenheid screeningEenheid, Date start, Date end, Collection<MammaCapaciteitBlokType> blokTypes)
@@ -252,12 +211,6 @@ public class MammaBaseCapaciteitsBlokDaoImpl extends AbstractAutowiredDao implem
 			vorigeAfspraakDto.tot = vorigeCapaciteitBlokDto.tot;
 		}
 		return capaciteitBlokDtoMap.values();
-	}
-
-	@Override
-	public Long countCapaciteitsBlokken(MammaScreeningsEenheid screeningEenheid, Date start, Date end)
-	{
-		return countCapaciteitsBlokken(screeningEenheid, start, end, null);
 	}
 
 	@Override

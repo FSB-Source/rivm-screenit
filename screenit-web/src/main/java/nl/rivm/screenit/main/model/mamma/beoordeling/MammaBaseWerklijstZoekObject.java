@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.model.mamma.beoordeling;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
+
+import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -32,6 +36,8 @@ import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import org.apache.wicket.model.IDetachable;
 import org.apache.wicket.model.IModel;
 
+@Getter
+@Setter
 public class MammaBaseWerklijstZoekObject implements IDetachable
 {
 	private Date geboortedatum;
@@ -42,49 +48,11 @@ public class MammaBaseWerklijstZoekObject implements IDetachable
 
 	private Integer huisnummer;
 
+	private MammaOnderzoekType onderzoekType;
+
 	private IModel<List<MammaScreeningsEenheid>> screeningsEenheden;
 
 	private List<MammaBeoordelingStatus> beoordelingStatussen = new ArrayList<>();
-
-	public Date getGeboortedatum()
-	{
-		return geboortedatum;
-	}
-
-	public void setGeboortedatum(Date geboortedatum)
-	{
-		this.geboortedatum = geboortedatum;
-	}
-
-	public String getBsn()
-	{
-		return bsn;
-	}
-
-	public void setBsn(String bsn)
-	{
-		this.bsn = bsn;
-	}
-
-	public String getPostcode()
-	{
-		return postcode;
-	}
-
-	public void setPostcode(String postcode)
-	{
-		this.postcode = postcode;
-	}
-
-	public Integer getHuisnummer()
-	{
-		return huisnummer;
-	}
-
-	public void setHuisnummer(Integer huisnummer)
-	{
-		this.huisnummer = huisnummer;
-	}
 
 	public List<MammaScreeningsEenheid> getScreeningsEenheden()
 	{
@@ -94,16 +62,6 @@ public class MammaBaseWerklijstZoekObject implements IDetachable
 	public void setScreeningsEenheden(List<MammaScreeningsEenheid> screeningsEenheden)
 	{
 		this.screeningsEenheden = ModelUtil.listRModel(screeningsEenheden);
-	}
-
-	public List<MammaBeoordelingStatus> getBeoordelingStatussen()
-	{
-		return beoordelingStatussen;
-	}
-
-	public void setBeoordelingStatussen(List<MammaBeoordelingStatus> beoordelingStatussen)
-	{
-		this.beoordelingStatussen = beoordelingStatussen;
 	}
 
 	@Override

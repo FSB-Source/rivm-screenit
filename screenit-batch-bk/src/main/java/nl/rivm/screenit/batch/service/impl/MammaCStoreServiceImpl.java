@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -170,7 +170,6 @@ public class MammaCStoreServiceImpl implements MammaCStoreService
 			logEvent.setMelding(melding);
 			logEvent.setHl7MessageStructure(bericht.getHl7Bericht());
 			logEvent.setLevel(Level.WARNING);
-			logEvent.setClient(client);
 
 			logService.logGebeurtenis(LogGebeurtenis.MAMMA_HL7_BERICHT_ERROR_ONTVANGEN, logEvent, null, client, Bevolkingsonderzoek.MAMMA);
 		}
@@ -285,7 +284,7 @@ public class MammaCStoreServiceImpl implements MammaCStoreService
 				uploadBeeldenPoging.setBestanden(null);
 				hibernateService.saveOrUpdateAll(uploadBeeldenPoging, uploadBeeldenVerzoek);
 
-				bestanden.forEach(uploadDocument -> uploadDocumentService.delete(uploadDocument, true));
+				bestanden.forEach(uploadDocument -> uploadDocumentService.delete(uploadDocument));
 
 				TransactionSynchronizationManager.unbindResource(sessionFactory);
 				session.close();

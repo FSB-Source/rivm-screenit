@@ -5,7 +5,7 @@ package nl.rivm.screenit.model.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,6 +34,9 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.Afmelding;
 import nl.rivm.screenit.model.colon.enums.ColonAfmeldingReden;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -47,6 +50,8 @@ import org.hibernate.envers.Audited;
 @Entity
 @Table(schema = "colon")
 @Audited
+@Getter
+@Setter
 public class ColonAfmelding extends Afmelding<ColonScreeningRonde, ColonDossier, ColonBrief>
 {
 
@@ -99,147 +104,6 @@ public class ColonAfmelding extends Afmelding<ColonScreeningRonde, ColonDossier,
 	@Transient
 	private Boolean heraanmeldingBevestigingsBriefTegenhouden;
 
-	@Override
-	public ColonBrief getAfmeldingAanvraag()
-	{
-		return afmeldingAanvraag;
-	}
-
-	@Override
-	public void setAfmeldingAanvraag(ColonBrief afmeldingAanvraag)
-	{
-		this.afmeldingAanvraag = afmeldingAanvraag;
-	}
-
-	@Override
-	public ColonBrief getAfmeldingBevestiging()
-	{
-		return afmeldingBevestiging;
-	}
-
-	@Override
-	public void setAfmeldingBevestiging(ColonBrief afmeldingBevestiging)
-	{
-		this.afmeldingBevestiging = afmeldingBevestiging;
-	}
-
-	@Override
-	public ColonBrief getHeraanmeldAanvraag()
-	{
-		return heraanmeldAanvraag;
-	}
-
-	@Override
-	public void setHeraanmeldAanvraag(ColonBrief heraanmeldAanvraag)
-	{
-		this.heraanmeldAanvraag = heraanmeldAanvraag;
-	}
-
-	@Override
-	public ColonBrief getHeraanmeldBevestiging()
-	{
-		return heraanmeldBevestiging;
-	}
-
-	@Override
-	public void setHeraanmeldBevestiging(ColonBrief heraanmeldBevestiging)
-	{
-		this.heraanmeldBevestiging = heraanmeldBevestiging;
-	}
-
-	@Override
-	public List<ColonBrief> getBrieven()
-	{
-		return brieven;
-	}
-
-	@Override
-	public void setBrieven(List<ColonBrief> brieven)
-	{
-		this.brieven = brieven;
-	}
-
-	@Override
-	public ColonScreeningRonde getScreeningRonde()
-	{
-		return screeningRonde;
-	}
-
-	@Override
-	public void setScreeningRonde(ColonScreeningRonde screeningRonde)
-	{
-		this.screeningRonde = screeningRonde;
-	}
-
-	@Override
-	public ColonDossier getDossier()
-	{
-		return dossier;
-	}
-
-	@Override
-	public void setDossier(ColonDossier dossier)
-	{
-		this.dossier = dossier;
-	}
-
-	public ColonAfmeldingReden getReden()
-	{
-		return reden;
-	}
-
-	public void setReden(ColonAfmeldingReden reden)
-	{
-		this.reden = reden;
-	}
-
-	public ColonIntakeAfspraak getHeraanmeldingAfspraak()
-	{
-		return heraanmeldingAfspraak;
-	}
-
-	public void setHeraanmeldingAfspraak(ColonIntakeAfspraak heraanmeldingAfspraak)
-	{
-		this.heraanmeldingAfspraak = heraanmeldingAfspraak;
-	}
-
-	public Boolean getHeraanmeldingAfspraakUitRooster()
-	{
-		return heraanmeldingAfspraakUitRooster;
-	}
-
-	public void setHeraanmeldingAfspraakUitRooster(Boolean heraanmeldingAfspraakUitRooster)
-	{
-		this.heraanmeldingAfspraakUitRooster = heraanmeldingAfspraakUitRooster;
-	}
-
-	public BriefType getHeraanmeldingAfspraakBriefType()
-	{
-		return heraanmeldingAfspraakBriefType;
-	}
-
-	public void setHeraanmeldingAfspraakBriefType(BriefType heraanmeldingAfspraakBriefType)
-	{
-		this.heraanmeldingAfspraakBriefType = heraanmeldingAfspraakBriefType;
-	}
-
-	public Boolean getHeraanmeldingAfspraakBriefTegenhouden()
-	{
-		return heraanmeldingAfspraakBriefTegenhouden;
-	}
-
-	public void setHeraanmeldingAfspraakBriefTegenhouden(Boolean heraanmeldingAfspraakBriefTegenhouden)
-	{
-		this.heraanmeldingAfspraakBriefTegenhouden = heraanmeldingAfspraakBriefTegenhouden;
-	}
-
-	public Boolean getHeraanmeldingBevestigingsBriefTegenhouden()
-	{
-		return heraanmeldingBevestigingsBriefTegenhouden;
-	}
-
-	public void setHeraanmeldingBevestigingsBriefTegenhouden(Boolean heraanmeldingBevestigingsBriefTegenhouden)
-	{
-		this.heraanmeldingBevestigingsBriefTegenhouden = heraanmeldingBevestigingsBriefTegenhouden;
-	}
+	@Transient
+	private int tijdelijkAfmeldenTotJaartal;
 }

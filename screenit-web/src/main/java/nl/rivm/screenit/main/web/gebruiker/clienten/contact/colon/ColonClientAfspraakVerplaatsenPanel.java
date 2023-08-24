@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +24,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -32,14 +32,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.SimpleStringResourceModel;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
-import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.colon.ColonConclusie;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
@@ -53,8 +54,10 @@ import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamer;
 import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamerFilter;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.colon.AfspraakService;
 import nl.rivm.screenit.service.colon.ColonUitnodigingService;
 import nl.rivm.screenit.service.colon.PlanningService;
 import nl.rivm.screenit.util.AdresUtil;
@@ -80,10 +83,12 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColu
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.RadioChoice;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.GenericPanel;
@@ -92,16 +97,14 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.validator.DateValidator;
-import org.joda.time.DateTime;
 import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
 public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntakeAfspraak>
 {
-
-	private static final long serialVersionUID = 1L;
 
 	@SpringBean
 	private ICurrentDateSupplier currentDateSupplier;
@@ -118,14 +121,17 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 	@SpringBean
 	private PlanningService planningService;
 
+	@SpringBean
+	private AfspraakService afspraakService;
+
 	private final boolean magAfspraakBinnenIntakeNietWijzigPeriodePlaatsen = ScreenitSession.get()
 		.checkPermission(Recht.GEBRUIKER_CLIENT_SR_INTAKE_VERPLAATS_BINNEN_INTAKE_NIET_WIJZIGBAAR_PERIODE, Actie.AANPASSEN);
 
 	private final boolean locatieWijzigen;
 
-	private IModel<Boolean> binnenNietWijzigbaarPeriode = Model.of(Boolean.FALSE);
+	private final IModel<Boolean> binnenNietWijzigbaarPeriode = Model.of(Boolean.FALSE);
 
-	private IModel<Boolean> buitenRooster = Model.of(Boolean.FALSE);
+	private final IModel<Boolean> buitenRooster = Model.of(Boolean.FALSE);
 
 	private VrijSlotZonderKamer gekozenVrijSlotZonderKamer;
 
@@ -139,13 +145,19 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 
 	private ScreenitDataTable<VrijSlotZonderKamer, String> nieuweAfspraakTable;
 
+	@Getter
+	@Setter
 	private Date datumTijdBuitenRooster = null;
 
-	private IModel<Boolean> briefTegenhouden = Model.of(Boolean.FALSE);
+	private final IModel<Boolean> briefTegenhouden = Model.of(Boolean.FALSE);
 
-	private WebMarkupContainer nieuweAfspraakContainer;
+	private final WebMarkupContainer nieuweAfspraakContainer;
 
 	private IModel<ColonIntakeAfspraak> nieuweAfspraakModel;
+
+	private final IModel<Boolean> isDoorverwezenOmMedischeRedenenModel = Model.of();
+
+	private final boolean isDoorverwezen;
 
 	public ColonClientAfspraakVerplaatsenPanel(String id, IModel<ColonIntakeAfspraak> model, boolean locatieWijzigen)
 	{
@@ -163,12 +175,15 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 		nieuweAfspraakContainer.setOutputMarkupId(true);
 		add(nieuweAfspraakContainer);
 
+		isDoorverwezen = afspraakService.isDoorverwezenOmMedischeRedenenZonderNieuweAfspraak(model.getObject().getClient());
+
 		addBriefType();
 		addHuidigeAfspraak();
 		addOrReplaceTegenhoudenContainer(null);
 		addOrReplaceDatumTijdBuitenRoosterContainer(null);
 		addOrReplaceAfspraakDetailsContainer(null);
 		addMomentZoeken();
+		addOrReplaceMedischeRedenKeuze(null);
 	}
 
 	private void addBriefType()
@@ -180,7 +195,8 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 			briefType = Model.of(BriefType.COLON_INTAKE_GEWIJZIGD);
 		}
 		ScreenitDropdown<BriefType> briefTypeDropDown = new ScreenitDropdown<>("briefType", briefType, choices, new EnumChoiceRenderer<BriefType>(this));
-		briefTypeDropDown.setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_INTAKE_WIJZIGEN_ANDER_BRIEF, Actie.AANPASSEN));
+		briefTypeDropDown.setVisible(
+			ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_INTAKE_WIJZIGEN_ANDER_BRIEF, Actie.AANPASSEN) && !isDoorverwezen);
 		briefTypeDropDown.setRequired(true);
 		add(briefTypeDropDown);
 	}
@@ -208,29 +224,18 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 		ColonIntakeAfspraak afspraak = getModelObject();
 		AfspraakStatus status = afspraak.getStatus();
 		ColonConclusie conclusie = afspraak.getConclusie();
-		ColonConclusieType colonConclusieType = conclusie != null ? colonConclusieType = conclusie.getType() : null;
-		boolean toonHuidigeAfspraak = AfspraakStatus.GEPLAND.equals(status) || AfspraakStatus.UITGEVOERD.equals(status) && ColonConclusieType.NO_SHOW.equals(colonConclusieType);
+		ColonConclusieType colonConclusieType = conclusie != null ? conclusie.getType() : null;
+		boolean toonHuidigeAfspraak = AfspraakStatus.GEPLAND.equals(status)
+			|| AfspraakStatus.UITGEVOERD.equals(status) && ColonConclusieType.NO_SHOW.equals(colonConclusieType)
+			|| afspraakService.heeftOnafgerondeVerwijzingOmMedischeRedenen(afspraak);
 
 		add(new Label("title").setVisible(toonHuidigeAfspraak));
 
-		IModel<ColoscopieCentrum> centrum = new IModel<ColoscopieCentrum>()
-		{
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public ColoscopieCentrum getObject()
-			{
-				return getModelObject().getLocation().getColoscopieCentrum();
-			}
-		};
+		IModel<ColoscopieCentrum> centrum = () -> getModelObject().getLocation().getColoscopieCentrum();
 		add(new Label("ccNaam", new PropertyModel<String>(centrum, "naam")));
 
 		add(new Label("ccAdres", new IModel<String>()
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public String getObject()
 			{
@@ -239,6 +244,38 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 			}
 		}).setEscapeModelStrings(false));
 		add(DateLabel.forDatePattern("startTime", "EEEE dd-MM-yyyy HH:mm"));
+	}
+
+	private void addOrReplaceMedischeRedenKeuze(AjaxRequestTarget target)
+	{
+		var radioContainer = new WebMarkupContainer("isVerwezenMedischeRedenenContainer");
+		var verwezenMedischeRedenRadioChoice = new RadioChoice<>("isVerwezenMedischeRedenen", isDoorverwezenOmMedischeRedenenModel,
+			new ListModel<>(Arrays.asList(Boolean.TRUE, Boolean.FALSE)),
+			new ChoiceRenderer<>()
+			{
+				@Override
+				public Object getDisplayValue(Boolean object)
+				{
+					return Boolean.TRUE.equals(object) ? "Ja" : "Nee";
+				}
+			});
+		var afspraak = getModelObject();
+		var isVerlopenAfspraakZonderConclusie = afspraak.getConclusie() == null
+			&& afspraak.getStartTime() != null && DateUtil.compareAfter(currentDateSupplier.getDate(), afspraak.getStartTime())
+			&& !AfspraakStatus.isGeannuleerd(afspraak.getStatus());
+		var isGekozenIntakeLocatieAndereDanOudeAfspraak = gekozenVrijSlotZonderKamer.getIntakeLocatieId() != null
+			&& !afspraak.getLocation().getColoscopieCentrum().getId().equals(gekozenVrijSlotZonderKamer.getIntakeLocatieId());
+		verwezenMedischeRedenRadioChoice.setRequired(true);
+		verwezenMedischeRedenRadioChoice.setPrefix("<label class=\"radio span1\">");
+		verwezenMedischeRedenRadioChoice.setSuffix("</label>");
+		radioContainer.setVisible(isVerlopenAfspraakZonderConclusie && isGekozenIntakeLocatieAndereDanOudeAfspraak);
+		radioContainer.setOutputMarkupPlaceholderTag(true);
+		radioContainer.addOrReplace(verwezenMedischeRedenRadioChoice);
+		addOrReplace(radioContainer);
+		if (target != null)
+		{
+			target.add(radioContainer);
+		}
 	}
 
 	private void addOrReplaceTegenhoudenContainer(AjaxRequestTarget target)
@@ -267,9 +304,6 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 		DateTimeField datumTijdBuitenRooster = new DateTimeField("datumTijdBuitenRooster",
 			new PropertyModel<Date>(ColonClientAfspraakVerplaatsenPanel.this, "datumTijdBuitenRooster"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected DatePicker<Date> newDatePicker(String wicketId, IModel<Date> model)
 			{
@@ -283,9 +317,6 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 			{
 				TimeField timeField = new TimeField(wicketId, model)
 				{
-
-					private static final long serialVersionUID = 1L;
-
 					@Override
 					protected TextField<Integer> getHoursField()
 					{
@@ -348,15 +379,13 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 
 		IndicatingAjaxLink wijzigLocatie = new IndicatingAjaxLink<Void>("wijzigLocatie")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
 				gekozenVrijSlotZonderKamer.setIntakeLocatieId(null);
 				gekozenVrijSlotZonderKamer.setStartTijd(null);
 				addOrReplaceAfspraakDetailsContainer(target);
+				addOrReplaceMedischeRedenKeuze(target);
 				momentZoekenContainer.setVisible(true);
 				target.add(momentZoekenContainer);
 			}
@@ -373,14 +402,12 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 
 		IndicatingAjaxLink tijdWijzigen = new IndicatingAjaxLink<Void>("tijdWijzigen")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
 				gekozenVrijSlotZonderKamer.setStartTijd(null);
 				addOrReplaceAfspraakDetailsContainer(target);
+				addOrReplaceMedischeRedenKeuze(target);
 				momentZoekenContainer.setVisible(true);
 				target.add(momentZoekenContainer);
 			}
@@ -392,9 +419,6 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 		binnenNietWijzigbaarPeriodeCheckBox.setVisible(magAfspraakBinnenIntakeNietWijzigPeriodePlaatsen);
 		binnenNietWijzigbaarPeriodeCheckBox.add(new AjaxFormComponentUpdatingBehavior("change")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
@@ -406,6 +430,7 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 
 				addOrReplaceTegenhoudenContainer(target);
 				addOrReplaceAfspraakDetailsContainer(target);
+				addOrReplaceMedischeRedenKeuze(target);
 				addOrReplaceMomentZoekenFilter(target);
 				addOrReplaceMomentZoekenTable(target);
 
@@ -425,9 +450,6 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 		buitenRoosterCheckBox.setVisible(Boolean.TRUE.equals(binnenNietWijzigbaarPeriode.getObject()));
 		buitenRoosterCheckBox.add(new AjaxFormComponentUpdatingBehavior("change")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
@@ -438,7 +460,7 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 
 				addOrReplaceDatumTijdBuitenRoosterContainer(target);
 				addOrReplaceAfspraakDetailsContainer(target);
-
+				addOrReplaceMedischeRedenKeuze(target);
 				addOrReplaceMomentZoekenFilter(target);
 				addOrReplaceMomentZoekenTable(target);
 			}
@@ -459,13 +481,18 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 		add(momentZoekenContainer);
 
 		VrijSlotZonderKamerFilter vrijSlotZonderKamerFilter = new VrijSlotZonderKamerFilter();
+		ColoscopieCentrum intakelocatie = getModelObject().getLocation().getColoscopieCentrum();
 		if (!locatieWijzigen)
 		{
-			vrijSlotZonderKamerFilter.setIntakeLocatieId(getModelObject().getLocation().getColoscopieCentrum().getId());
+			vrijSlotZonderKamerFilter.setIntakeLocatieId(intakelocatie.getId());
 		}
 		else if (AfspraakStatus.GEANNULEERD_AFMELDEN.equals(getModelObject().getStatus()))
 		{
-			vrijSlotZonderKamerFilter.setNaam(getModelObject().getLocation().getColoscopieCentrum().getNaam());
+			vrijSlotZonderKamerFilter.setNaam(intakelocatie.getNaam());
+		}
+		if (afspraakService.heeftOnafgerondeVerwijzingOmMedischeRedenen(getModelObject()))
+		{
+			vrijSlotZonderKamerFilter.setNietIntakeLocatieId(intakelocatie.getId());
 		}
 		filterModel = new CompoundPropertyModel<>(vrijSlotZonderKamerFilter);
 		addOrReplaceMomentZoekenFilter(null);
@@ -480,13 +507,13 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 		Date totEnMet;
 		if (Boolean.FALSE.equals(binnenNietWijzigbaarPeriode.getObject()))
 		{
-			vanaf = DateUtil.plusWerkdagen(currentDateSupplier.getDateTimeMidnight(), intakeNietWijzigbaar).toDate();
-			totEnMet = colonUitnodigingService.getGeprognotiseerdeIntakeDatum(true).toDate();
+			vanaf = DateUtil.plusWerkdagen(currentDateSupplier.getDateMidnight(), intakeNietWijzigbaar);
+			totEnMet = DateUtil.toUtilDate(colonUitnodigingService.getGeprognotiseerdeIntakeDatum(true));
 		}
 		else
 		{
 			vanaf = currentDateSupplier.getDateMidnight();
-			totEnMet = DateUtil.plusWerkdagen(currentDateSupplier.getDateTimeMidnight(), intakeNietWijzigbaar - 1).toDate();
+			totEnMet = DateUtil.plusWerkdagen(currentDateSupplier.getDateMidnight(), intakeNietWijzigbaar - 1);
 		}
 
 		filterModel.getObject().setVanaf(vanaf);
@@ -521,9 +548,6 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 
 		AjaxSubmitLink zoeken = new AjaxSubmitLink("zoeken", newForm)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -550,26 +574,20 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 		List<IColumn<VrijSlotZonderKamer, String>> columns = new ArrayList<>();
 		if (!buitenRooster.getObject())
 		{
-			columns.add(new DateTimePropertyColumn<VrijSlotZonderKamer, String>(new SimpleStringResourceModel("label.datumtijd"), "startTijd", "startTime",
+			columns.add(new DateTimePropertyColumn<>(new SimpleStringResourceModel("label.datumtijd"), "startTijd", "startTime",
 				new SimpleDateFormat("EEEE dd-MM-yyyy HH:mm", ScreenitSession.get().getLocale())));
 		}
-		columns.add(new AbstractColumn<VrijSlotZonderKamer, String>(new SimpleStringResourceModel("label.naam"), "naam")
+		columns.add(new AbstractColumn<>(new SimpleStringResourceModel("label.naam"), "naam")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<VrijSlotZonderKamer>> cellItem, String componentId, IModel<VrijSlotZonderKamer> rowModel)
 			{
 				cellItem.add(new Label(componentId, hibernateService.load(ColoscopieCentrum.class, rowModel.getObject().getIntakeLocatieId()).getNaam()));
 			}
 		});
-		columns.add(new PropertyColumn<VrijSlotZonderKamer, String>(new SimpleStringResourceModel("label.plaats"), "plaats", "plaats"));
-		columns.add(new AbstractColumn<VrijSlotZonderKamer, String>(new SimpleStringResourceModel("label.afstand"), "afstand")
+		columns.add(new PropertyColumn<>(new SimpleStringResourceModel("label.plaats"), "plaats", "plaats"));
+		columns.add(new AbstractColumn<>(new SimpleStringResourceModel("label.afstand"), "afstand")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<VrijSlotZonderKamer>> cellItem, String componentId, IModel<VrijSlotZonderKamer> rowModel)
 			{
@@ -578,19 +596,17 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 		});
 
 		VrijSlotZonderKamerDataProvider vrijSlotZonderKamerDataProvider = new VrijSlotZonderKamerDataProvider(filterModel.getObject(),
-			new PropertyModel<Client>(getModel(), "client"));
+			new PropertyModel<>(getModel(), "client"));
 
 		ScreenitDataTable<VrijSlotZonderKamer, String> newTable = new ScreenitDataTable<VrijSlotZonderKamer, String>("vrijeSloten", columns, vrijSlotZonderKamerDataProvider, 10,
 			Model.of("Vrije sloten"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<VrijSlotZonderKamer> model)
 			{
 				gekozenVrijSlotZonderKamer = model.getObject();
 				addOrReplaceAfspraakDetailsContainer(target);
+				addOrReplaceMedischeRedenKeuze(target);
 				momentZoekenContainer.setVisible(false);
 				target.add(momentZoekenContainer);
 			}
@@ -621,7 +637,7 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 				beschikbareKamer = planningService.getBeschikbareKamer(gekozenVrijSlotZonderKamer.getStartTijd(), gekozenVrijSlotZonderKamer.getIntakeLocatieId());
 				if (beschikbareKamer == null)
 				{
-					return Arrays.asList(getString("vrije.slot.intussen.bezet"));
+					return List.of(getString("vrije.slot.intussen.bezet"));
 				}
 			}
 			else
@@ -642,7 +658,7 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 			nieuweAfspraak.setLocation(beschikbareKamer);
 			nieuweAfspraak.setActief(true);
 			nieuweAfspraak.setBezwaar(false);
-			nieuweAfspraak.setDatumLaatsteWijziging(new Date());
+			nieuweAfspraak.setDatumLaatsteWijziging(currentDateSupplier.getDate());
 			nieuweAfspraak.setAfspraaknummer(System.currentTimeMillis());
 			nieuweAfspraak.setStatus(AfspraakStatus.GEPLAND);
 
@@ -671,26 +687,26 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 			else
 			{
 				nieuweAfspraak.setStartTime(datumTijdBuitenRooster);
-				nieuweAfspraak.setEndTime(new DateTime(nieuweAfspraak.getStartTime()).plusMinutes(duurAfspraakInMinuten).toDate());
+				nieuweAfspraak.setEndTime(DateUtil.plusTijdseenheid(nieuweAfspraak.getStartTime(), duurAfspraakInMinuten, ChronoUnit.MINUTES));
 			}
 
 			SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm");
 			ColonIntakeAfspraak laatsteAfspraak = nieuweAfspraak.getColonScreeningRonde().getLaatsteAfspraak();
 			if (laatsteAfspraak != null)
 			{
-				return Arrays.asList(String.format("coloscopie intake afspraak van %1$s in %2$s van %3$s verplaatsen naar %4$s in %5$s van %6$s",
+				return List.of(String.format("coloscopie intake afspraak van %1$s in %2$s van %3$s verplaatsen naar %4$s in %5$s van %6$s",
 					format.format(laatsteAfspraak.getStartTime()), laatsteAfspraak.getLocation().getName(), laatsteAfspraak.getLocation().getColoscopieCentrum().getNaam(),
 					format.format(nieuweAfspraak.getStartTime()), nieuweAfspraak.getLocation().getName(), nieuweAfspraak.getLocation().getColoscopieCentrum().getNaam()));
 			}
 			else
 			{
-				return Arrays.asList(String.format("coloscopie intake afspraak wilt maken op %1$s in %2$s van %3$s", format.format(nieuweAfspraak.getStartTime()),
+				return List.of(String.format("coloscopie intake afspraak wilt maken op %1$s in %2$s van %3$s", format.format(nieuweAfspraak.getStartTime()),
 					nieuweAfspraak.getLocation().getName(), nieuweAfspraak.getLocation().getColoscopieCentrum().getNaam()));
 			}
 		}
 		else
 		{
-			return Arrays.asList("Coloscopie intake afspraak kan niet worden verplaatst. Niet alle gegevens zijn geselecteerd");
+			return List.of("Coloscopie intake afspraak kan niet worden verplaatst. Niet alle gegevens zijn geselecteerd");
 		}
 	}
 
@@ -716,19 +732,10 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 				opslaanObjecten.put(ExtraOpslaanKey.AFSPRAAK_BRIEF_TEGENHOUDEN,
 					binnenNietWijzigbaarPeriode.getObject() && briefTegenhouden.getObject() || rechtVoorBriefTegenhouden && briefTegenhouden.getObject());
 				opslaanObjecten.put(ExtraOpslaanKey.AFSPRAAK_UIT_ROOSTER, !buitenRooster.getObject());
+				opslaanObjecten.put(ExtraOpslaanKey.COLON_VERWIJZING_MEDISCHE_REDENEN_INFOLIJN, isDoorverwezenOmMedischeRedenenModel.getObject());
 			}
 		}
 		return opslaanObjecten;
-	}
-
-	public Date getDatumTijdBuitenRooster()
-	{
-		return datumTijdBuitenRooster;
-	}
-
-	public void setDatumTijdBuitenRooster(Date datumTijdBuitenRooster)
-	{
-		this.datumTijdBuitenRooster = datumTijdBuitenRooster;
 	}
 
 	public void validate()

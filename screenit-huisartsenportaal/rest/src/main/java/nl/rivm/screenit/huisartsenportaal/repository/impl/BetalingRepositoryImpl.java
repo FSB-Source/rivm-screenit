@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal.repository.impl;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +22,7 @@ package nl.rivm.screenit.huisartsenportaal.repository.impl;
  */
 
 import java.math.BigDecimal;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -45,12 +46,10 @@ import nl.rivm.screenit.huisartsenportaal.model.Locatie_;
 import nl.rivm.screenit.huisartsenportaal.model.Verrichting;
 import nl.rivm.screenit.huisartsenportaal.model.Verrichting_;
 import nl.rivm.screenit.huisartsenportaal.repository.BetalingCriteriaRepository;
-import nl.rivm.screenit.huisartsenportaal.repository.LocatieRepository;
+import nl.rivm.screenit.huisartsenportaal.util.DateUtil;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,13 +57,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public class BetalingRepositoryImpl extends BaseCustomRepositoryImpl<Betaling> implements BetalingCriteriaRepository
 {
-	@Autowired
-	private LocatieRepository locatieRepository;
 
 	@Override
 	public List<Betaling> getBetalingen(Huisarts huisarts, BetalingZoekObjectDto betalingZoekObjectDto)
 	{
-
 		TableResultOptionsDto resultOptions = betalingZoekObjectDto.getResultOptions();
 		CriteriaBuilder cb = getCriteriaBuilder();
 		CriteriaQuery<Betaling> query = cb.createQuery(Betaling.class);
@@ -161,7 +157,8 @@ public class BetalingRepositoryImpl extends BaseCustomRepositoryImpl<Betaling> i
 			}
 			if (filterDto.getBetalingsdatumTotenMet() != null)
 			{
-				condities.add(cb.lessThanOrEqualTo(betalingRoot.get(Betaling_.betalingsdatum), new DateTime(filterDto.getBetalingsdatumTotenMet()).plusDays(1).toDate()));
+				condities.add(
+					cb.lessThanOrEqualTo(betalingRoot.get(Betaling_.betalingsdatum), DateUtil.plusTijdseenheid(filterDto.getBetalingsdatumTotenMet(), 1, ChronoUnit.DAYS)));
 			}
 			if (StringUtils.isNotEmpty(filterDto.getBetalingskenmerk()))
 			{

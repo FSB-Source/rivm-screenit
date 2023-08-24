@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.component;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,9 +36,6 @@ import org.apache.wicket.util.resource.IResourceStream;
 
 public abstract class AjaxDownload extends AbstractAjaxBehavior
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private boolean addAntiCache;
 
 	public AjaxDownload()
@@ -62,7 +59,7 @@ public abstract class AjaxDownload extends AbstractAjaxBehavior
 			url = url + "antiCache=" + System.currentTimeMillis();
 		}
 
-		target.appendJavaScript("setTimeout(\"window.location.href='" + url + "'\", 100);");
+		target.appendJavaScript("setTimeout(() => window.location.href='" + url + "', 100);");
 	}
 
 	@Override

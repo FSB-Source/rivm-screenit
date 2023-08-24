@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.selectie.laatsterondesluitenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -49,7 +49,7 @@ public class CervixLaatsteRondeSluitenWriter extends BaseWriter<CervixScreeningR
 	@Override
 	protected void write(CervixScreeningRonde ronde) throws Exception
 	{
-		LOG.info("Laatste ronde sluiten voor clientId " + ronde.getDossier().getClient().getId());
+		LOG.info("Laatste ronde sluiten voor client (id: '{}')", ronde.getDossier().getClient().getId());
 		ronde.setStatus(ScreeningRondeStatus.AFGEROND);
 		ronde.setStatusDatum(dateSupplier.getDate());
 		hibernateService.saveOrUpdate(ronde);

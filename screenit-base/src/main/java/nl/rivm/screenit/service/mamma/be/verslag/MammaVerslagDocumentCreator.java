@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.be.verslag;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,38 +35,74 @@ import nl.rivm.screenit.model.mamma.MammaMassaLaesie;
 import nl.rivm.screenit.model.mamma.enums.MammaLaesieType;
 import nl.rivm.screenit.service.mamma.MammaBaseAfbeeldingService;
 import nl.rivm.screenit.service.mamma.MammaBaseLaesieService;
+import nl.rivm.screenit.service.mamma.MammaBaseLezingService;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.spring.injection.SpringBeanProvider;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.aspose.words.net.System.Data.DataSet;
-import com.aspose.words.net.System.Data.DataTable;
 import com.aspose.words.Document;
 import com.aspose.words.MailMerge;
 import com.aspose.words.MailMergeCleanupOptions;
+import com.aspose.words.net.System.Data.DataSet;
+import com.aspose.words.net.System.Data.DataTable;
 
 public class MammaVerslagDocumentCreator extends BaseDocumentCreator
 {
 	private static final Logger LOG = LoggerFactory.getLogger(MammaVerslagDocumentCreator.class);
 
-	private MammaBaseAfbeeldingService afbeeldingService;
+	private final MammaBaseAfbeeldingService afbeeldingService;
 
-	private DataSet laesieDataset = new DataSet();
+	private final DataSet verslagDataset = new DataSet();
 
-	private MammaLezing verslagLezing;
+	private final MammaLezing verslagLezing;
 
-	private MammaBaseLaesieService laesieService;
+	private final MammaBaseLaesieService laesieService;
+
+	private final MammaBaseLezingService baseLezingService;
 
 	public MammaVerslagDocumentCreator(MammaLezing verslagLezing)
 	{
 		afbeeldingService = SpringBeanProvider.getInstance().getBean(MammaBaseAfbeeldingService.class);
 		laesieService = SpringBeanProvider.getInstance().getBean(MammaBaseLaesieService.class);
+		baseLezingService = SpringBeanProvider.getInstance().getBean(MammaBaseLezingService.class);
 		this.verslagLezing = (MammaLezing) HibernateHelper.deproxy(verslagLezing);
 		if (verslagLezing != null)
 		{
 			createLaesieTables();
+			createTomosyntheseTable();
+		}
+	}
+
+	private void createTomosyntheseTable()
+	{
+		var afwijkingTeZienOp = verslagLezing.getAfwijkingTeZienOp();
+		if (afwijkingTeZienOp != null)
+		{
+			var formattedZijde = StringUtils.capitalize(baseLezingService.bepaalZijdeMetPrioriteit(verslagLezing).getNaam());
+			var tomosyntheseTabelMerge = "tomosynthese";
+			getOrCreateDataTable(verslagDataset, tomosyntheseTabelMerge, "_BK_LAESIE_VIEW", "_BK_LAESIE_SLICE_NR", "_BK_LAESIE_ZIJDE");
+			var tomoDataTable = getDataTable(verslagDataset, tomosyntheseTabelMerge);
+			switch (afwijkingTeZienOp)
+			{
+			case C_VIEW_EN_SLICES:
+				insertRow(tomoDataTable, "C-view en slices", "", formattedZijde);
+				break;
+			case SLICES_CC_EN_MLO:
+				insertRow(tomoDataTable, "Slices CC & MLO", String.format("CC %s & MLO %s", verslagLezing.getZichtbaarOpCcNummer(), verslagLezing.getZichtbaarOpMloNummer()),
+					formattedZijde);
+				break;
+			case ALLEEN_SLICE_CC:
+				insertRow(tomoDataTable, "Alleen slice CC", String.format("CC %s", verslagLezing.getZichtbaarOpCcNummer()), formattedZijde);
+				break;
+			case ALLEEN_SLICE_MLO:
+				insertRow(tomoDataTable, "Alleen slice MLO", String.format("MLO %s", verslagLezing.getZichtbaarOpMloNummer()), formattedZijde);
+				break;
+			default:
+				throw new IllegalStateException();
+			}
 		}
 	}
 
@@ -74,7 +110,8 @@ public class MammaVerslagDocumentCreator extends BaseDocumentCreator
 	{
 		verslagLezing.getLaesies().stream()
 			.sorted(new MammaLaesieComparator())
-			.forEachOrdered(laesie -> {
+			.forEachOrdered(laesie ->
+			{
 				MammaLaesieType laesieType = laesie.getMammaLaesieType();
 				switch (laesieType)
 				{
@@ -90,6 +127,7 @@ public class MammaVerslagDocumentCreator extends BaseDocumentCreator
 				case ASYMMETRIE:
 					createAsymmetrieLaesieTabel((MammaAsymmetrieLaesie) laesie);
 					break;
+				default:
 				}
 			});
 	}
@@ -141,50 +179,50 @@ public class MammaVerslagDocumentCreator extends BaseDocumentCreator
 
 	private DataTable createMassaTabel()
 	{
-		getOrCreateDataTable(laesieDataset, MammaLaesieTypeMergeField.TABLE_MASSA.getMergeField(), MammaLaesieTypeMergeField._BK_LAESIE_VOLG_NR.getMergeField(),
+		getOrCreateDataTable(verslagDataset, MammaLaesieTypeMergeField.TABLE_MASSA.getMergeField(), MammaLaesieTypeMergeField._BK_LAESIE_VOLG_NR.getMergeField(),
 			MammaLaesieTypeMergeField._BK_LAESIE_ZIJDE.getMergeField(), MammaLaesieTypeMergeField._BK_LAESIE_KWADRANT.getMergeField(),
 			MammaLaesieTypeMergeField._BK_LAESIE_DIEPTE.getMergeField(),
 			MammaLaesieTypeMergeField._BK_LAESIE_GROOTTE.getMergeField(), MammaLaesieTypeMergeField._BK_LAESIE_MASSA_VORM.getMergeField(),
 			MammaLaesieTypeMergeField._BK_LAESIE_MASSA_DENSITEIT.getMergeField(),
 			MammaLaesieTypeMergeField._BK_LAESIE_MASSA_BEGRENZING.getMergeField());
-		return getDataTable(laesieDataset, MammaLaesieTypeMergeField.TABLE_MASSA.getMergeField());
+		return getDataTable(verslagDataset, MammaLaesieTypeMergeField.TABLE_MASSA.getMergeField());
 	}
 
 	private DataTable createCalcificatiesTabel()
 	{
-		getOrCreateDataTable(laesieDataset, MammaLaesieTypeMergeField.TABLE_CALCIFICATIES.getMergeField(),
+		getOrCreateDataTable(verslagDataset, MammaLaesieTypeMergeField.TABLE_CALCIFICATIES.getMergeField(),
 			MammaLaesieTypeMergeField._BK_LAESIE_VOLG_NR.getMergeField(),
 			MammaLaesieTypeMergeField._BK_LAESIE_ZIJDE.getMergeField(), MammaLaesieTypeMergeField._BK_LAESIE_KWADRANT.getMergeField(),
 			MammaLaesieTypeMergeField._BK_LAESIE_DIEPTE.getMergeField(),
 			MammaLaesieTypeMergeField._BK_LAESIE_GROOTTE.getMergeField(), MammaLaesieTypeMergeField._BK_LAESIE_CALC_VERD_VORM.getMergeField(),
 			MammaLaesieTypeMergeField._BK_LAESIE_CALC_DISTRIBUTIE.getMergeField());
-		return getDataTable(laesieDataset, MammaLaesieTypeMergeField.TABLE_CALCIFICATIES.getMergeField());
+		return getDataTable(verslagDataset, MammaLaesieTypeMergeField.TABLE_CALCIFICATIES.getMergeField());
 	}
 
 	private DataTable createArchitectuurVerstoringTabel()
 	{
-		getOrCreateDataTable(laesieDataset, MammaLaesieTypeMergeField.TABLE_ARCHITECTUUR_VERSTORING.getMergeField(), MammaLaesieTypeMergeField._BK_LAESIE_VOLG_NR.getMergeField(),
+		getOrCreateDataTable(verslagDataset, MammaLaesieTypeMergeField.TABLE_ARCHITECTUUR_VERSTORING.getMergeField(), MammaLaesieTypeMergeField._BK_LAESIE_VOLG_NR.getMergeField(),
 			MammaLaesieTypeMergeField._BK_LAESIE_ZIJDE.getMergeField(), MammaLaesieTypeMergeField._BK_LAESIE_KWADRANT.getMergeField(),
 			MammaLaesieTypeMergeField._BK_LAESIE_DIEPTE.getMergeField());
-		return getDataTable(laesieDataset, MammaLaesieTypeMergeField.TABLE_ARCHITECTUUR_VERSTORING.getMergeField());
+		return getDataTable(verslagDataset, MammaLaesieTypeMergeField.TABLE_ARCHITECTUUR_VERSTORING.getMergeField());
 	}
 
 	private DataTable createAsymmetrieTabel()
 	{
-		getOrCreateDataTable(laesieDataset, MammaLaesieTypeMergeField.TABLE_ASYMMETRIE.getMergeField(), MammaLaesieTypeMergeField._BK_LAESIE_VOLG_NR.getMergeField(),
+		getOrCreateDataTable(verslagDataset, MammaLaesieTypeMergeField.TABLE_ASYMMETRIE.getMergeField(), MammaLaesieTypeMergeField._BK_LAESIE_VOLG_NR.getMergeField(),
 			MammaLaesieTypeMergeField._BK_LAESIE_ZIJDE.getMergeField(), MammaLaesieTypeMergeField._BK_LAESIE_KWADRANT.getMergeField(),
 			MammaLaesieTypeMergeField._BK_LAESIE_DIEPTE.getMergeField(),
 			MammaLaesieTypeMergeField._BK_LAESIE_GROOTTE.getMergeField(), MammaLaesieTypeMergeField._BK_LAESIE_ASSYMETRIE_SPEC.getMergeField());
-		return getDataTable(laesieDataset, MammaLaesieTypeMergeField.TABLE_ASYMMETRIE.getMergeField());
+		return getDataTable(verslagDataset, MammaLaesieTypeMergeField.TABLE_ASYMMETRIE.getMergeField());
 	}
 
 	@Override
 	public Document fillExecuteWithRegions(Document document) throws Exception
 	{
-		log(LOG, laesieDataset);
+		log(LOG, verslagDataset);
 		MailMerge mailMerge = document.getMailMerge();
 		mailMerge.setCleanupOptions(MailMergeCleanupOptions.REMOVE_UNUSED_REGIONS);
-		mailMerge.executeWithRegions(laesieDataset);
+		mailMerge.executeWithRegions(verslagDataset);
 
 		String[] velden = new String[] {
 			MammaLaesieTypeMergeField._AFBEELDING_RECHTERBORST_VERTICALE_DOORSNEDE.getMergeField(),

@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.project;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,20 +21,18 @@ package nl.rivm.screenit.model.project;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.model.CodeboekDoc;
-
 public enum ProjectBriefActieType
 {
 
-	@CodeboekDoc("Extra brief na een bepaald moment")
 	XDAGENNAY,
 
-	@CodeboekDoc("Extra brief op het zelfde moment")
 	XMETY,
 
 	VERVANGENDEBRIEF,
 
 	DATUM,
 
-	HERINNERING;
+	VANAF_DATUM,
+
+	HERINNERING
 }

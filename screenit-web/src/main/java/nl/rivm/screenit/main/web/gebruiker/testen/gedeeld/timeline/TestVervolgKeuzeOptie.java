@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.actions.TestCe
 import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.actions.TestCervixDeelnamewensAction;
 import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.actions.TestCervixHerdrukAction;
 import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.actions.TestCervixNieuweRondeAction;
+import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.actions.TestCervixNieuweRondeMetVooraankondigingAction;
 import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.actions.TestCervixUistelZwangerschapAction;
 import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.actions.TestCervixVerstuurUitnodigingAction;
 import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.popups.TestCervixAanvraagPopup;
@@ -108,7 +109,9 @@ public enum TestVervolgKeuzeOptie implements INaam
 
 	CERVIX_AANVRAAG("Aanvraag doen", TestCervixAanvraagPopup.class),
 
-	CERVIX_NIEUWE_RONDE("Nieuwe Ronde", TestCervixNieuweRondeAction.class),
+	CERVIX_NIEUWE_RONDE("Nieuwe ronde (zonder vooraankondiging)", TestCervixNieuweRondeAction.class),
+
+	CERVIX_NIEUWE_RONDE_MET_VOORAANKONDIGING("Nieuwe ronde (met vooraankondiging)", TestCervixNieuweRondeMetVooraankondigingAction.class),
 
 	CERVIX_VERSTUUR_UITNODIGING("Verstuur uitnodiging", TestCervixVerstuurUitnodigingAction.class),
 

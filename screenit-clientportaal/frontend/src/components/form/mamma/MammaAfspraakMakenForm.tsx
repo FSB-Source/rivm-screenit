@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,11 +35,11 @@ import ScreenitDropdown, {DropdownOption} from "../../input/ScreenitDropdown"
 import styles from "./MammaAfspraakMakenForm.module.scss"
 import AdvancedSearchLinkComponent from "../AdvancedSearchLinkComponent"
 import ScreenitBackend from "../../../utils/Backend"
-import {CircularProgress} from "@material-ui/core"
+import {CircularProgress} from "@mui/material"
 import SearchForm from "../SearchForm"
-import {isValid} from "date-fns"
 import {AxiosResponse} from "axios"
 import {lijstBevatMeegegevenDatum} from "../../../utils/DateUtil"
+import {isValid} from "date-fns"
 
 export type MammaAfspraakMakenFormProps = {
 	zoekFilter: AfspraakZoekFilter
@@ -84,9 +84,7 @@ const MammaAfspraakMakenForm = (props: MammaAfspraakMakenFormProps) => {
 	useEffect(() => {
 		if (beschikbareDagen.length !== 0 && beschikbaarheidOpgehaald) {
 			if (formikRef.current) {
-				if (formikRef.current.initialValues.vanaf == null) {
-					formikRef.current.initialValues.vanaf = beschikbareDagen[0]
-				}
+				formikRef.current.initialValues.vanaf = beschikbareDagen[0]
 				formikRef.current.handleSubmit()
 			} else {
 			}

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit.
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,21 +21,16 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit.
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.dto.mamma.planning.PlanningDagDto;
+import java.util.Date;
+
 import nl.rivm.screenit.dto.mamma.planning.PlanningWeekDto;
 import nl.rivm.screenit.main.web.component.fullcalendar.event.Event;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit.sources.ScreenITEventSourceFactory;
-import org.joda.time.DateTime;
-
-import java.time.LocalDate;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class AantalRegulierOnderzoekenPerWeekProvider extends AbstractScreenITEventProvider
 {
 
-	private static final long serialVersionUID = 1L;
-
-	private ScreenITEventSourceFactory screenITEventSourceFactory;
+	private final ScreenITEventSourceFactory screenITEventSourceFactory;
 
 	public AantalRegulierOnderzoekenPerWeekProvider(ScreenITEventSourceFactory screenITEventSourceFactory)
 	{
@@ -43,14 +38,14 @@ public class AantalRegulierOnderzoekenPerWeekProvider extends AbstractScreenITEv
 	}
 
 	@Override
-	void createEvents(DateTime start, DateTime end)
+	void createEvents(Date start, Date end)
 	{
 		PlanningWeekDto weekDto = screenITEventSourceFactory.getWeekDto();
 		Event event = new Event();
 		final int[] totaalVanWeek = { 0 };
 		weekDto.dagen.forEach(planningDagDto -> totaalVanWeek[0] += planningDagDto.totaalAantalOnderzoeken);
 
-		event.setTitle("<span class=\"label pull-right\" style=\"background-color:#540272\">" + totaalVanWeek[0] + "</span>");
+		event.setTitle("<span class=\"label pull-right background-paars\">" + totaalVanWeek[0] + "</span>");
 		event.setAllWeek(true);
 		putEvent("totalWeekCapacity", event);
 	}

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.inzien;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -41,6 +41,7 @@ import nl.rivm.screenit.main.web.gebruiker.clienten.inzien.popup.afmelding.Uploa
 import nl.rivm.screenit.main.web.gebruiker.clienten.inzien.popup.heraanmelding.HeraanmeldingInzienPopupPanel;
 import nl.rivm.screenit.model.AanvraagBriefStatus;
 import nl.rivm.screenit.model.Afmelding;
+import nl.rivm.screenit.model.AfmeldingType;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.Dossier;
@@ -375,6 +376,7 @@ public class ClientInzienDossierPanel<D extends Dossier<?, ?>, A extends Afmeldi
 							public void close(AjaxRequestTarget target)
 							{
 								inactiefContainer.setVisible(true);
+								inactiefContainer.addOrReplace(maakInactiefDatumLabel(ClientInzienDossierPanel.this.getModelObject()));
 								actiefContainer.setVisible(false);
 								target.add(inactiefContainer);
 								target.add(actiefContainer);
@@ -434,11 +436,25 @@ public class ClientInzienDossierPanel<D extends Dossier<?, ?>, A extends Afmeldi
 		}
 		else if (AanvraagBriefStatus.BRIEF.equals(afmelding.getAfmeldingStatus()))
 		{
-			omschrijving.append(getString("aanvraag_definitieve_afmelding"));
+			if (AfmeldingType.DEFINITIEF.equals(afmelding.getType()))
+			{
+				omschrijving.append(getString("aanvraag_definitieve_afmelding"));
+			}
+			else if (AfmeldingType.TIJDELIJK.equals(afmelding.getType()))
+			{
+				omschrijving.append(getString("aanvraag_tijdelijke_afmelding"));
+			}
 		}
 		else
 		{
-			omschrijving.append(getString("afmelding"));
+			if (AfmeldingType.DEFINITIEF.equals(afmelding.getType()))
+			{
+				omschrijving.append(getString("afmelding_definitief"));
+			}
+			else
+			{
+				omschrijving.append(getString("afmelding_tijdelijk"));
+			}
 		}
 		if (!AanvraagBriefStatus.VERWERKT.equals(afmelding.getAfmeldingStatus()) && afmelding.getAfmeldingAanvraag() != null)
 		{

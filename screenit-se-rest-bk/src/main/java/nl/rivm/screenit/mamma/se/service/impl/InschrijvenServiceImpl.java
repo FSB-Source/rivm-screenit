@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.service.impl;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -44,22 +44,26 @@ import nl.rivm.screenit.model.TijdelijkAdres;
 import nl.rivm.screenit.model.algemeen.BezwaarBrief;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaGeenHuisartsOption;
 import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.service.BezwaarService;
 import nl.rivm.screenit.service.BriefHerdrukkenService;
+import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.util.EmailUtil;
+import nl.rivm.screenit.util.TelefoonnummerUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
 public class InschrijvenServiceImpl implements InschrijvenService
 {
 	@Autowired
@@ -80,24 +84,31 @@ public class InschrijvenServiceImpl implements InschrijvenService
 	@Autowired
 	private BaseAfmeldService baseAfmeldService;
 
+	@Autowired
+	private ClientService clientService;
+
 	@Override
-	public void inschrijven(InschrijvenDto action, InstellingGebruiker instellingGebruiker, LocalDateTime transactieDatumTijd)
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void inschrijven(InschrijvenDto action, InstellingGebruiker instellingGebruiker, LocalDateTime transactieDatumTijd, MammaScreeningsEenheid screeningsEenheid)
 	{
-		final MammaAfspraak afspraak = afspraakService.getOfMaakLaatsteAfspraakVanVandaag(action.getAfspraakId(), instellingGebruiker);
-		baseAfmeldService.heraanmeldenAlsClientAfgemeldIs(afspraak.getUitnodiging().getScreeningRonde().getDossier());
+		var afspraak = afspraakService.getOfMaakLaatsteAfspraakVanVandaag(action.getAfspraakId(), instellingGebruiker);
+		var dossier = afspraak.getUitnodiging().getScreeningRonde().getDossier();
+		baseAfmeldService.heraanmeldenAlsClientAfgemeldIs(dossier);
 		afspraakWijzigen(action, afspraak, instellingGebruiker);
 		afspraakInschrijven(afspraak, instellingGebruiker, transactieDatumTijd);
-		opslaanClientgegevens(action, afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient());
+		opslaanClientgegevens(action, dossier.getClient(), instellingGebruiker, transactieDatumTijd, screeningsEenheid);
 		hibernateService.saveOrUpdate(afspraak);
 	}
 
 	@Override
-	public void inschrijvingWijzigen(InschrijvenDto action, InstellingGebruiker instellingGebruiker)
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void inschrijvingWijzigen(InschrijvenDto action, InstellingGebruiker instellingGebruiker, LocalDateTime transactieDatumTijd, MammaScreeningsEenheid screeningsEenheid)
 	{
-		final MammaAfspraak afspraak = afspraakService.getOfMaakLaatsteAfspraakVanVandaag(action.getAfspraakId(), instellingGebruiker);
-		baseAfmeldService.heraanmeldenAlsClientAfgemeldIs(afspraak.getUitnodiging().getScreeningRonde().getDossier());
+		var afspraak = afspraakService.getOfMaakLaatsteAfspraakVanVandaag(action.getAfspraakId(), instellingGebruiker);
+		var dossier = afspraak.getUitnodiging().getScreeningRonde().getDossier();
+		baseAfmeldService.heraanmeldenAlsClientAfgemeldIs(dossier);
 		afspraakWijzigen(action, afspraak, instellingGebruiker);
-		opslaanClientgegevens(action, afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient());
+		opslaanClientgegevens(action, dossier.getClient(), instellingGebruiker, transactieDatumTijd, screeningsEenheid);
 		hibernateService.saveOrUpdate(afspraak);
 	}
 
@@ -175,17 +186,58 @@ public class InschrijvenServiceImpl implements InschrijvenService
 		afspraak.setIngeschrevenDoor(instellingGebruiker);
 	}
 
-	private void opslaanClientgegevens(InschrijvenDto inschrijvenDto, Client client)
+	private void opslaanClientgegevens(InschrijvenDto inschrijvenDto, Client client, InstellingGebruiker instellingGebruiker, LocalDateTime transactieDatumTijd,
+		MammaScreeningsEenheid screeningsEenheid)
 	{
 		GbaPersoon persoon = client.getPersoon();
 		if (inschrijvenDto.getTijdelijkAdres() != null)
 		{
 			opslaanTijdelijkAdres(inschrijvenDto, persoon);
 		}
-		persoon.setEmailadres(inschrijvenDto.getEmailadres());
-		persoon.setTelefoonnummer1(inschrijvenDto.getTelefoonnummer1());
-		persoon.setTelefoonnummer2(inschrijvenDto.getTelefoonnummer2());
-		hibernateService.saveOrUpdate(persoon);
+
+		valideerEnZetEmailadres(inschrijvenDto, persoon);
+		valideerEnZetMobielnummer(inschrijvenDto, persoon);
+		valideerEnZetExtraTelefoonnummer(inschrijvenDto, persoon);
+		clientService.saveContactGegevens(client, instellingGebruiker, screeningsEenheid, transactieDatumTijd);
+	}
+
+	private void valideerEnZetEmailadres(InschrijvenDto inschrijvenDto, GbaPersoon persoon)
+	{
+		var emailadres = StringUtils.trimToNull(inschrijvenDto.getEmailadres());
+		if (emailadres == null || EmailUtil.isCorrectEmailadres(emailadres))
+		{
+			persoon.setEmailadres(emailadres);
+		}
+		else
+		{
+			throw new IllegalStateException("E-mailadres is niet correct");
+		}
+	}
+
+	private void valideerEnZetMobielnummer(InschrijvenDto inschrijvenDto, GbaPersoon persoon)
+	{
+		var mobielnummer = StringUtils.trimToNull(inschrijvenDto.getTelefoonnummer1());
+		if (mobielnummer == null || TelefoonnummerUtil.isCorrectNederlandsMobielNummer(mobielnummer))
+		{
+			persoon.setTelefoonnummer1(mobielnummer);
+		}
+		else
+		{
+			throw new IllegalStateException("Mobiel nummer is niet correct");
+		}
+	}
+
+	private void valideerEnZetExtraTelefoonnummer(InschrijvenDto inschrijvenDto, GbaPersoon persoon)
+	{
+		var extraTelefoonnummer = StringUtils.trimToNull(inschrijvenDto.getTelefoonnummer2());
+		if (extraTelefoonnummer == null || TelefoonnummerUtil.isCorrectTelefoonnummer(extraTelefoonnummer))
+		{
+			persoon.setTelefoonnummer2(extraTelefoonnummer);
+		}
+		else
+		{
+			throw new IllegalStateException("Extra nummer is niet correct");
+		}
 	}
 
 	private void opslaanTijdelijkAdres(InschrijvenDto inschrijvenDto, GbaPersoon persoon)

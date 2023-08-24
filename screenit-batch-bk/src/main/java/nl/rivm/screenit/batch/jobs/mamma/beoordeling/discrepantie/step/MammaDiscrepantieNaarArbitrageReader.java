@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.discrepantie.step;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,6 +24,7 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.discrepantie.step;
 import nl.rivm.screenit.batch.jobs.mamma.beoordeling.MammaBaseBeoordelingReader;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
+import nl.rivm.screenit.util.DateUtil;
 
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
@@ -57,7 +58,7 @@ public class MammaDiscrepantieNaarArbitrageReader extends MammaBaseBeoordelingRe
 				Restrictions.and(
 					Subqueries.propertyNotIn("BIRADS1.beoordelaar.id", radiologenAanHetWerkSubquery),
 					Subqueries.propertyNotIn("BIRADS2.beoordelaar.id", radiologenAanHetWerkSubquery)),
-				Restrictions.le("beoordeling.statusDatum", currentDateSupplier.getDateTime().minusDays(DAGEN).toDate())));
+				Restrictions.le("beoordeling.statusDatum", DateUtil.minDagen(currentDateSupplier.getDate(), DAGEN))));
 
 		return criteria;
 	}

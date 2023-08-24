@@ -4,7 +4,7 @@ package nl.rivm.screenit.config;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -56,14 +56,14 @@ public class BaseHibernateConfig
 
 	@ConfigurationProperties(prefix = "spring.datasource.hikari")
 	@Bean
-	@Profile("!test")
+	@Profile("!cucumber & !test")
 	public HikariDataSource dataSource()
 	{
 		return new HikariDataSource();
 	}
 
 	@Bean(name = { "entityManagerFactory", "hibernateSessionFactory" })
-	@Profile("!test")
+	@Profile("!test & !cucumber")
 	public TopicusPostConfigurationSessionFactoryBean hibernateSessionFactory(DataSource dataSource, ApplicationConfig applicationConfig, JGroupsConfig jGroupsConfig,
 		Optional<List<Resource>> additionalHibernateConfigLocations)
 	{

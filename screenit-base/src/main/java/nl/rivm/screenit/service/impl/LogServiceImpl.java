@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -66,20 +66,20 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.base.Strings;
 
 @Service(value = "logInformatieService")
-@Transactional(propagation = Propagation.SUPPORTS)
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 @Slf4j
 public class LogServiceImpl implements LogService, ILogInformatieService<ILogInformatie<?, ?, ?, ?, ?>, InstellingGebruiker, Gebeurtenis>
 {
 
 	private static final String MELDING_TOO_LONG_PREFIX = "...(voor de volledige informatie click op de regel)";
 
-	private static int MELDING_COLUMN_SIZE;
+	private static int meldingColumnSize;
 
 	static
 	{
 		try
 		{
-			MELDING_COLUMN_SIZE = LogEvent.class.getDeclaredField("melding").getAnnotation(Column.class).length();
+			meldingColumnSize = LogEvent.class.getDeclaredField("melding").getAnnotation(Column.class).length();
 		}
 		catch (NoSuchFieldException | SecurityException e)
 		{
@@ -149,6 +149,7 @@ public class LogServiceImpl implements LogService, ILogInformatieService<ILogInf
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void saveOrUpdate(ILogInformatie<?, ?, ?, ?, ?> logInformatie)
 	{
 		if (logInformatie.getGebeurtenis() instanceof Gebeurtenis)
@@ -193,6 +194,7 @@ public class LogServiceImpl implements LogService, ILogInformatieService<ILogInf
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void createAndSaveLogInformatie(InstellingGebruiker ingelogd, Gebeurtenis gebeurtenis, String omschrijving)
 	{
 		LogGebeurtenis logGebeurtenis = translate(gebeurtenis);
@@ -224,6 +226,7 @@ public class LogServiceImpl implements LogService, ILogInformatieService<ILogInf
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, List<Instelling> dashboardOrganisaties, Account account, Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
 		LogEvent logEvent = getLogEvent(gebeurtenis.getDefaultLevel(), null);
@@ -238,6 +241,7 @@ public class LogServiceImpl implements LogService, ILogInformatieService<ILogInf
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, List<Instelling> dashboardOrganisaties, Account account, String melding, Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
 		LogEvent logEvent = getLogEvent(gebeurtenis.getDefaultLevel(), melding);
@@ -245,12 +249,14 @@ public class LogServiceImpl implements LogService, ILogInformatieService<ILogInf
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, Account account, Client client, Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
 		logGebeurtenis(gebeurtenis, new ArrayList<>(), account, client, bevolkingsonderzoeken);
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, List<Instelling> dashboardOrganisaties, Account account, Client client, Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
 		LogEvent logEvent = getLogEvent(gebeurtenis.getDefaultLevel(), null);
@@ -258,12 +264,14 @@ public class LogServiceImpl implements LogService, ILogInformatieService<ILogInf
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, Account account, Client client, String melding, Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
 		logGebeurtenis(gebeurtenis, new ArrayList<>(), account, client, melding, bevolkingsonderzoeken);
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, List<Instelling> dashboardOrganisaties, Account account, Client client, String melding,
 		Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
@@ -272,18 +280,21 @@ public class LogServiceImpl implements LogService, ILogInformatieService<ILogInf
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, LogEvent logEvent, Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
 		logGebeurtenis(gebeurtenis, logEvent, null, null, bevolkingsonderzoeken);
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, List<Instelling> dashboardOrganisaties, LogEvent logEvent, Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
 		logGebeurtenis(gebeurtenis, dashboardOrganisaties, logEvent, null, bevolkingsonderzoeken);
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, List<Instelling> dashboardOrganisaties, LogEvent logEvent, Account account, Client client,
 		Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
@@ -291,45 +302,53 @@ public class LogServiceImpl implements LogService, ILogInformatieService<ILogInf
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, LogEvent logEvent, Account account, Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
 		logGebeurtenis(gebeurtenis, logEvent, account, null, bevolkingsonderzoeken);
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, List<Instelling> dashboardOrganisaties, LogEvent logEvent, Account account, Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
 		logGebeurtenis(gebeurtenis, dashboardOrganisaties, logEvent, account, null, bevolkingsonderzoeken);
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void logGebeurtenis(LogGebeurtenis logGebeurtenis, LogEvent logEvent, Account account, Client client, Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
 		logGebeurtenis(logGebeurtenis, new ArrayList<>(), logEvent, account, client, bevolkingsonderzoeken);
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, MammaScreeningsEenheid screeningsEenheid, List<Instelling> dashboardOrganisaties, Client client, String melding)
 	{
 		logGebeurtenis(gebeurtenis, screeningsEenheid, dashboardOrganisaties, null, client, melding, null);
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, MammaScreeningsEenheid screeningsEenheid, List<Instelling> dashboardOrganisaties, Account account, Client client,
 		String melding, LocalDateTime datumTijd)
 	{
 		LogEvent logEvent = getLogEvent(gebeurtenis.getDefaultLevel(), melding);
-		logGebeurtenis(gebeurtenis, screeningsEenheid, dashboardOrganisaties, logEvent, account, client, null, Bevolkingsonderzoek.MAMMA);
+		logGebeurtenis(gebeurtenis, screeningsEenheid, dashboardOrganisaties, logEvent, account, client, datumTijd, Bevolkingsonderzoek.MAMMA);
 	}
 
 	@Override
-	public void logGebeurtenis(LogGebeurtenis gebeurtenis, MammaScreeningsEenheid screeningsEenheid, Account account, Client client, String melding, LocalDateTime datumTijd)
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void logGebeurtenis(LogGebeurtenis gebeurtenis, MammaScreeningsEenheid screeningsEenheid, Account account, Client client, String melding, LocalDateTime datumTijd,
+		Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
 		LogEvent logEvent = getLogEvent(gebeurtenis.getDefaultLevel(), melding);
-		logGebeurtenis(gebeurtenis, screeningsEenheid, new ArrayList<>(), logEvent, account, client, datumTijd, Bevolkingsonderzoek.MAMMA);
+		logGebeurtenis(gebeurtenis, screeningsEenheid, new ArrayList<>(), logEvent, account, client, datumTijd, bevolkingsonderzoeken);
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void logGebeurtenis(LogGebeurtenis logGebeurtenis, MammaScreeningsEenheid mammaScreeningsEenheid, List<Instelling> dashboardOrganisaties, LogEvent logEvent,
 		Account account, Client client, LocalDateTime datumTijd, Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
@@ -346,7 +365,7 @@ public class LogServiceImpl implements LogService, ILogInformatieService<ILogInf
 		logRegel.setScreeningsEenheid(mammaScreeningsEenheid);
 		logRegel.setGebruiker(getGebruiker(account));
 		logRegel.setIngelogdeGebruiker(getIngelogdeGebruiker(account));
-		if (logEvent != null && logEvent.getLevel().compareTo(logGebeurtenis.getDefaultLevel()) < 0)
+		if (logEvent.getLevel().compareTo(logGebeurtenis.getDefaultLevel()) < 0)
 		{
 			logEvent.setLevel(logGebeurtenis.getDefaultLevel());
 		}
@@ -387,8 +406,7 @@ public class LogServiceImpl implements LogService, ILogInformatieService<ILogInf
 		loggingZoekCriteria.setMelding(melding);
 		loggingZoekCriteria.setLevel(levels);
 
-		loggingZoekCriteria.setVanaf(currentDateSupplier.getDateTime()
-			.minusDays(dagen).toDate());
+		loggingZoekCriteria.setVanaf(DateUtil.minDagen(currentDateSupplier.getDate(), dagen));
 
 		List<LogRegel> result = getLogRegels(loggingZoekCriteria, 0, 1, new SortState<>("gebeurtenisDatum", Boolean.FALSE));
 
@@ -422,11 +440,11 @@ public class LogServiceImpl implements LogService, ILogInformatieService<ILogInf
 	private void fitMelding(LogEvent logEvent)
 	{
 		String melding = logEvent.getMelding();
-		if (melding != null && melding.length() > MELDING_COLUMN_SIZE)
+		if (melding != null && melding.length() > meldingColumnSize)
 		{
 			logEvent.setVolledigeMelding(melding);
 			boolean containsHTML = melding.matches(".*\\<[^>]+>.*");
-			melding = melding.substring(0, MELDING_COLUMN_SIZE - MELDING_TOO_LONG_PREFIX.length());
+			melding = melding.substring(0, meldingColumnSize - MELDING_TOO_LONG_PREFIX.length());
 			if (containsHTML && melding.lastIndexOf('<') > melding.lastIndexOf('>'))
 			{
 				melding = melding.substring(0, melding.lastIndexOf('<'));

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.facturatie;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.facturatie;
 import java.util.Iterator;
 
 import nl.rivm.screenit.dao.cervix.CervixVerrichtingDao;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -40,27 +39,22 @@ public class CervixBetalingSepaBestandenDataProvider extends SortableDataProvide
 	@SpringBean
 	private CervixVerrichtingDao cervixVerrichtingDao;
 
-	private IModel<ScreeningOrganisatie> organisatieModel;
-
-	public CervixBetalingSepaBestandenDataProvider(IModel<ScreeningOrganisatie> organisatieModel)
+	public CervixBetalingSepaBestandenDataProvider()
 	{
 		Injector.get().inject(this);
 		setSort("statusDatum", SortOrder.DESCENDING);
-		this.organisatieModel = organisatieModel;
 	}
 
 	@Override
 	public Iterator<? extends CervixBetaalopdracht> iterator(long first, long count)
 	{
-		return cervixVerrichtingDao
-			.getCervixBetaalopdrachten(ModelUtil.nullSafeGet(organisatieModel), new SortState<String>(getSort().getProperty(), getSort().isAscending()), first, count)
-			.iterator();
+		return cervixVerrichtingDao.getBetaalOpdrachten(new SortState<>(getSort().getProperty(), getSort().isAscending()), first, count).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return cervixVerrichtingDao.countCervixBetaalOpdrachten(ModelUtil.nullSafeGet(organisatieModel));
+		return cervixVerrichtingDao.countBetaalOpdrachten();
 	}
 
 	@Override
@@ -73,6 +67,5 @@ public class CervixBetalingSepaBestandenDataProvider extends SortableDataProvide
 	public void detach()
 	{
 		super.detach();
-		ModelUtil.nullSafeDetach(organisatieModel);
 	}
 }

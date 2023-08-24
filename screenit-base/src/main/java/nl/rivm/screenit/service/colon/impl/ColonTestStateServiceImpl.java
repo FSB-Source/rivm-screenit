@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,8 +24,11 @@ package nl.rivm.screenit.service.colon.impl;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.ClientDao;
@@ -64,16 +67,14 @@ import nl.rivm.screenit.service.DossierFactory;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonTestStateService;
-import nl.rivm.screenit.util.IFOBTTestUtil;
+import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.util.FITTestUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.wicket.planning.model.Discipline;
 
 import org.hibernate.criterion.Restrictions;
-import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -81,14 +82,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
+@Slf4j
 public class ColonTestStateServiceImpl implements ColonTestStateService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(ColonTestStateServiceImpl.class);
-
 	@Autowired
 	private HibernateService hibernateService;
 
-	private static Integer AANTALDAGENNAUITNODIGING = 55;
+	private static final Integer AANTALDAGENNAUITNODIGING = 55;
 
 	@Autowired
 	private ClientDao clientDao;
@@ -121,13 +121,15 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 		Client client = geefClient(model.getBsn(), model.getGeboortedatum(), model.getGbaStatus(), model.getDatumOverlijden(), model.getGeslacht());
 		geefAdres(client, model.getGemeente());
 		ColonDossier dossier = client.getColonDossier();
-		DateTime nu = currentDateSupplier.getDateTime();
+		var nu = currentDateSupplier.getDate();
 
 		String melding = "Geen testacties geselecteerd.";
 		if (model.getColonTestActies() != null)
 		{
 			melding = "Client in status " + model.getColonTestActies().toString() + " gezet. Colon client selectie job kan gedraaid worden.";
 		}
+
+		var nuMinAantalDagenUitnodiging = DateUtil.minDagen(nu, AANTALDAGENNAUITNODIGING);
 
 		if (model.getColonTestActies() != null)
 		{
@@ -140,56 +142,56 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 				setClientInU1(dossier, true, nu, ColonUitnodigingCategorie.U1);
 				break;
 			case U2_2:
-				dossier = setClientInU1(dossier, true, nu.minusDays(AANTALDAGENNAUITNODIGING), null);
-				uitnodigingVerstuurd(dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging(), nu.minusDays(AANTALDAGENNAUITNODIGING).toDate());
+				dossier = setClientInU1(dossier, true, nuMinAantalDagenUitnodiging, null);
+				uitnodigingVerstuurd(dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging(), nuMinAantalDagenUitnodiging);
 				setClientInU2_2(dossier, ColonUitnodigingCategorie.U2);
 				break;
 			case U2_3:
 				setClientInU2_3(dossier, ColonUitnodigingCategorie.U2);
 				break;
 			case U3_1:
-				dossier = setClientInU1(dossier, true, nu.minusDays(AANTALDAGENNAUITNODIGING), null);
-				uitnodigingVerstuurd(dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging(), nu.minusDays(AANTALDAGENNAUITNODIGING).toDate());
+				dossier = setClientInU1(dossier, true, nuMinAantalDagenUitnodiging, null);
+				uitnodigingVerstuurd(dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging(), nuMinAantalDagenUitnodiging);
 				setClientInU3Default(dossier, RedenNietTeBeoordelen.GEEN_MONSTER);
 				break;
 			case U3_2:
-				dossier = setClientInU1(dossier, true, nu.minusDays(AANTALDAGENNAUITNODIGING), null);
-				uitnodigingVerstuurd(dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging(), nu.minusDays(AANTALDAGENNAUITNODIGING).toDate());
+				dossier = setClientInU1(dossier, true, nuMinAantalDagenUitnodiging, null);
+				uitnodigingVerstuurd(dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging(), nuMinAantalDagenUitnodiging);
 				setClientInU3Default(dossier, RedenNietTeBeoordelen.BARCODE_ONLEESBAAR);
 				break;
 			case U3_3:
-				dossier = setClientInU1(dossier, true, nu.minusDays(AANTALDAGENNAUITNODIGING), null);
-				uitnodigingVerstuurd(dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging(), nu.minusDays(AANTALDAGENNAUITNODIGING).toDate());
+				dossier = setClientInU1(dossier, true, nuMinAantalDagenUitnodiging, null);
+				uitnodigingVerstuurd(dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging(), nuMinAantalDagenUitnodiging);
 				setClientInU3Default(dossier, RedenNietTeBeoordelen.BUIS_KAPOT);
 				break;
 			case U3_4:
-				dossier = setClientInU1(dossier, true, nu.minusDays(AANTALDAGENNAUITNODIGING), null);
-				uitnodigingVerstuurd(dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging(), nu.minusDays(AANTALDAGENNAUITNODIGING).toDate());
+				dossier = setClientInU1(dossier, true, nuMinAantalDagenUitnodiging, null);
+				uitnodigingVerstuurd(dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging(), nuMinAantalDagenUitnodiging);
 				setClientInU3Default(dossier, RedenNietTeBeoordelen.GEEN_VLOEISTOF);
 				break;
 			case U3_5:
-				dossier = setClientInU1(dossier, true, nu.minusDays(AANTALDAGENNAUITNODIGING), null);
-				uitnodigingVerstuurd(dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging(), nu.minusDays(AANTALDAGENNAUITNODIGING).toDate());
+				dossier = setClientInU1(dossier, true, nuMinAantalDagenUitnodiging, null);
+				uitnodigingVerstuurd(dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging(), nuMinAantalDagenUitnodiging);
 				setClientInU3Default(dossier, RedenNietTeBeoordelen.TECHNISCH_ONMOGELIJK);
 				break;
 			case U3_6:
-				dossier = setClientInU1(dossier, true, nu.minusDays(AANTALDAGENNAUITNODIGING), null);
-				uitnodigingVerstuurd(dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging(), nu.minusDays(AANTALDAGENNAUITNODIGING).toDate());
+				dossier = setClientInU1(dossier, true, nuMinAantalDagenUitnodiging, null);
+				uitnodigingVerstuurd(dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging(), nuMinAantalDagenUitnodiging);
 				setClientInU3Default(dossier, RedenNietTeBeoordelen.TE_WEINIG_ONTLASTING);
 				break;
 			case U3_7:
-				dossier = setClientInU1(dossier, true, nu.minusDays(AANTALDAGENNAUITNODIGING), null);
-				uitnodigingVerstuurd(dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging(), nu.minusDays(AANTALDAGENNAUITNODIGING).toDate());
+				dossier = setClientInU1(dossier, true, nuMinAantalDagenUitnodiging, null);
+				uitnodigingVerstuurd(dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging(), nuMinAantalDagenUitnodiging);
 				setClientInU3Default(dossier, RedenNietTeBeoordelen.TE_VEEL_ONTLASTING);
 				break;
 			case U4:
-				dossier = setClientInU1(dossier, true, nu.minusDays(AANTALDAGENNAUITNODIGING), null);
-				uitnodigingVerstuurd(dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging(), nu.minusDays(AANTALDAGENNAUITNODIGING).toDate());
+				dossier = setClientInU1(dossier, true, nuMinAantalDagenUitnodiging, null);
+				uitnodigingVerstuurd(dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging(), nuMinAantalDagenUitnodiging);
 				setClientInU4(dossier);
 				break;
 			case U6:
-				dossier = setClientInU1(dossier, true, nu.minusDays(AANTALDAGENNAUITNODIGING), null);
-				uitnodigingVerstuurd(dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging(), nu.minusDays(AANTALDAGENNAUITNODIGING).toDate());
+				dossier = setClientInU1(dossier, true, nuMinAantalDagenUitnodiging, null);
+				uitnodigingVerstuurd(dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging(), nuMinAantalDagenUitnodiging);
 				setClientInU6(dossier);
 				break;
 			}
@@ -197,7 +199,7 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 		return melding;
 	}
 
-	private ColonDossier setClientInU1(ColonDossier dossier, boolean totUitnodiging, DateTime nu, ColonUitnodigingCategorie u)
+	private ColonDossier setClientInU1(ColonDossier dossier, boolean totUitnodiging, Date nu, ColonUitnodigingCategorie u)
 	{
 		Client client = dossier.getClient();
 		Date vooraankondigingdate;
@@ -205,13 +207,13 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 		Integer dagen = simplePreferenceService.getInteger(PreferenceKey.VOORAANKONDIGINSPERIODE.name());
 		if (totUitnodiging)
 		{
-			vooraankondigingdate = nu.minusDays(dagen).toDate();
-			uitnodigingsdate = nu.toDate();
+			vooraankondigingdate = DateUtil.minDagen(nu, dagen);
+			uitnodigingsdate = nu;
 		}
 		else
 		{
-			vooraankondigingdate = nu.toDate();
-			uitnodigingsdate = nu.plusDays(dagen).toDate();
+			vooraankondigingdate = nu;
+			uitnodigingsdate = DateUtil.plusDagen(nu, dagen);
 		}
 
 		ColonVooraankondiging voor = dossier.getColonVooraankondiging();
@@ -235,19 +237,19 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 
 	private ColonDossier setClientInU2_2(ColonDossier dossier, ColonUitnodigingCategorie u)
 	{
-		DateTime nu = currentDateSupplier.getDateTime();
+		var nu = currentDateSupplier.getDate();
 		fixU2_2Dossier(dossier, nu);
-		ColonScreeningRonde ronde = newScreeningRonde(dossier, nu.toDate());
-		ColonUitnodiging uitnodiging = nieuweUitnodiging(ronde, nu.toDate(), u);
+		ColonScreeningRonde ronde = newScreeningRonde(dossier, nu);
+		ColonUitnodiging uitnodiging = nieuweUitnodiging(ronde, nu, u);
 		hibernateService.saveOrUpdateAll(uitnodiging, ronde);
 		return dossier;
 	}
 
 	private ColonDossier setClientInU2_3(ColonDossier dossier, ColonUitnodigingCategorie u)
 	{
-		DateTime nu = currentDateSupplier.getDateTime();
-		ColonScreeningRonde ronde = newScreeningRonde(dossier, nu.toDate());
-		ColonUitnodiging uitnodiging = nieuweUitnodiging(ronde, nu.toDate(), u);
+		var nu = currentDateSupplier.getDate();
+		ColonScreeningRonde ronde = newScreeningRonde(dossier, nu);
+		ColonUitnodiging uitnodiging = nieuweUitnodiging(ronde, nu, u);
 		dossier.setColonVooraankondiging(null);
 		hibernateService.saveOrUpdateAll(ronde, dossier, uitnodiging);
 		return dossier;
@@ -255,19 +257,19 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 
 	private void setClientInU3Default(ColonDossier dossier, RedenNietTeBeoordelen reden)
 	{
-		DateTime nu = currentDateSupplier.getDateTime();
-		fixU3Dossier(dossier, reden, nu.minusDays(31));
+		var nu = currentDateSupplier.getDate();
+		fixU3Dossier(dossier, reden, DateUtil.minDagen(nu, 31));
 	}
 
 	private void setClientInU4(ColonDossier dossier)
 	{
-		DateTime nu = currentDateSupplier.getDateTime();
+		var nu = currentDateSupplier.getDate();
 		fixU4Dossier(dossier, nu);
 	}
 
 	private void setClientInU6(ColonDossier dossier)
 	{
-		DateTime nu = currentDateSupplier.getDateTime();
+		var nu = currentDateSupplier.getDate();
 		fixU6Dossier(dossier, nu);
 	}
 
@@ -290,10 +292,10 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 	{
 		if (dossier.getLaatsteScreeningRonde() != null)
 		{
-			DateTime nu = currentDateSupplier.getDateTime();
+			var nu = currentDateSupplier.getDate();
 			ColonScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
 			ronde.setStatus(ScreeningRondeStatus.AFGEROND);
-			ronde.setStatusDatum(nu.toDate());
+			ronde.setStatusDatum(nu);
 			hibernateService.saveOrUpdate(ronde);
 		}
 	}
@@ -313,7 +315,7 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 			u = ColonUitnodigingCategorie.U1;
 
 			IFOBTTest ifobt = new IFOBTTest();
-			ifobt.setBarcode(IFOBTTestUtil.getIfobtTestBarcode());
+			ifobt.setBarcode(FITTestUtil.getFITTestBarcode());
 			ifobt.setType(IFOBTType.GOLD);
 			ifobt.setStatus(IFOBTTestStatus.ACTIEF);
 			ifobt.setHerinnering(Boolean.FALSE);
@@ -324,7 +326,7 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 
 			uitnodiging.setGekoppeldeTest(ifobt);
 			uitnodiging.setVerstuurd(true);
-			uitnodiging.setVerstuurdDatum(new Date());
+			uitnodiging.setVerstuurdDatum(currentDateSupplier.getDate());
 			uitnodiging.setVerstuurdDoorInpakcentrum(true);
 
 			screeningRonde.setLaatsteIFOBTTest(ifobt);
@@ -342,7 +344,7 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 		return uitnodiging;
 	}
 
-	private ColonDossier fixU2_2Dossier(ColonDossier dossier, DateTime nu)
+	private ColonDossier fixU2_2Dossier(ColonDossier dossier, Date nu)
 	{
 		if (dossier.getLaatsteScreeningRonde() != null && dossier.getLaatsteScreeningRonde().getLaatsteIFOBTTest() != null
 			&& dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging() != null)
@@ -350,8 +352,8 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 
 			IFOBTTest test = dossier.getLaatsteScreeningRonde().getLaatsteIFOBTTest();
 			test.setStatus(IFOBTTestStatus.UITGEVOERD);
-			test.setStatusDatum(nu.minusDays(8).toDate());
-			test.setVerwerkingsDatum(nu.minusDays(15).toDate());
+			test.setStatusDatum(DateUtil.minDagen(nu, 8));
+			test.setVerwerkingsDatum(DateUtil.minDagen(nu, 15));
 			test.setNormWaarde(new BigDecimal("25.5"));
 			test.setUitslag(new BigDecimal("100.5"));
 			hibernateService.saveOrUpdate(test);
@@ -360,41 +362,39 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 
 			ColonScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
 			ronde.setStatus(ScreeningRondeStatus.AFGEROND);
-			ronde.setStatusDatum(nu.toDate());
+			ronde.setStatusDatum(nu);
 			hibernateService.saveOrUpdate(ronde);
 		}
 		return dossier;
 	}
 
-	private ColonDossier fixU3Dossier(ColonDossier dossier, RedenNietTeBeoordelen reden, DateTime nu)
+	private ColonDossier fixU3Dossier(ColonDossier dossier, RedenNietTeBeoordelen reden, Date nu)
 	{
 		if (dossier.getLaatsteScreeningRonde() != null && dossier.getLaatsteScreeningRonde().getLaatsteIFOBTTest() != null
 			&& dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging() != null)
 		{
 
 			ColonUitnodiging uitnodiging = dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging();
-			uitnodiging.setVerstuurdDatum(new DateTime(uitnodiging.getVerstuurdDatum()).minusDays(5).toDate());
+			uitnodiging.setVerstuurdDatum(DateUtil.minDagen(uitnodiging.getVerstuurdDatum(), 5));
 
 			hibernateService.saveOrUpdate(uitnodiging);
 
 			IFOBTTest test = dossier.getLaatsteScreeningRonde().getLaatsteIFOBTTest();
 			test.setStatus(IFOBTTestStatus.NIETTEBEOORDELEN);
 			test.setRedenNietTeBeoordelen(reden);
-			test.setStatusDatum(nu.toDate());
-			test.setVerwerkingsDatum(nu.toDate());
+			test.setStatusDatum(nu);
+			test.setVerwerkingsDatum(nu);
 
 			hibernateService.saveOrUpdate(test);
 
 			ColonVooraankondiging voor = dossier.getColonVooraankondiging();
-			DateTime voorcreatieDatum = new DateTime(voor.getCreatieDatum());
-			voorcreatieDatum = voorcreatieDatum.minusDays(5);
-			voor.setCreatieDatum(voorcreatieDatum.toDate());
+			voor.setCreatieDatum(DateUtil.minDagen(voor.getCreatieDatum(), 5));
 			hibernateService.saveOrUpdate(voor);
 		}
 		return dossier;
 	}
 
-	private ColonDossier fixU4Dossier(ColonDossier dossier, DateTime nu)
+	private ColonDossier fixU4Dossier(ColonDossier dossier, Date nu)
 	{
 		if (dossier.getLaatsteScreeningRonde() != null && dossier.getLaatsteScreeningRonde().getLaatsteIFOBTTest() != null
 			&& dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging() != null)
@@ -402,33 +402,31 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 
 			IFOBTTest test = dossier.getLaatsteScreeningRonde().getLaatsteIFOBTTest();
 			test.setStatus(IFOBTTestStatus.VERLOREN);
-			test.setStatusDatum(nu.toDate());
+			test.setStatusDatum(nu);
 			hibernateService.saveOrUpdate(test);
 
-			ColonUitnodiging uitnodigingIFOBTEN = IFOBTTestUtil.getUitnodiging(test);
+			ColonUitnodiging uitnodigingIFOBTEN = FITTestUtil.getUitnodiging(test);
 			IFOBTTest studietest = uitnodigingIFOBTEN.getGekoppeldeExtraTest();
 			if (studietest != null && studietest.getType().equals(IFOBTType.STUDIE))
 			{
 				studietest.setStatus(IFOBTTestStatus.VERLOREN);
-				studietest.setStatusDatum(nu.toDate());
+				studietest.setStatusDatum(nu);
 				hibernateService.saveOrUpdate(studietest);
 			}
 
 			ColonVooraankondiging voor = dossier.getColonVooraankondiging();
-			DateTime voorcreatieDatum = new DateTime(voor.getCreatieDatum());
-			voorcreatieDatum = voorcreatieDatum.minusDays(5);
-			voor.setCreatieDatum(voorcreatieDatum.toDate());
+			voor.setCreatieDatum(DateUtil.minDagen(voor.getCreatieDatum(), 5));
 			hibernateService.saveOrUpdate(voor);
 
 			ColonUitnodiging uitnodiging = dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging();
-			uitnodiging.setVerstuurdDatum(new DateTime(uitnodiging.getVerstuurdDatum()).minusDays(5).toDate());
+			uitnodiging.setVerstuurdDatum(DateUtil.minDagen(uitnodiging.getVerstuurdDatum(), 5));
 
 			hibernateService.saveOrUpdate(uitnodiging);
 		}
 		return dossier;
 	}
 
-	private ColonDossier fixU6Dossier(ColonDossier dossier, DateTime nu)
+	private ColonDossier fixU6Dossier(ColonDossier dossier, Date nu)
 	{
 		if (dossier.getLaatsteScreeningRonde() != null && dossier.getLaatsteScreeningRonde().getLaatsteIFOBTTest() != null
 			&& dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging() != null)
@@ -436,17 +434,16 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 
 			IFOBTTest test = dossier.getLaatsteScreeningRonde().getLaatsteIFOBTTest();
 			test.setStatus(IFOBTTestStatus.VERVALDATUMVERLOPEN);
-			test.setStatusDatum(nu.toDate());
+			test.setStatusDatum(nu);
 			hibernateService.saveOrUpdate(test);
 
 			ColonVooraankondiging voor = dossier.getColonVooraankondiging();
-			DateTime voorcreatieDatum = new DateTime(voor.getCreatieDatum());
-			voorcreatieDatum = voorcreatieDatum.minusDays(5);
-			voor.setCreatieDatum(voorcreatieDatum.toDate());
+			voor.setCreatieDatum(DateUtil.minDagen(voor.getCreatieDatum(), 5));
+
 			hibernateService.saveOrUpdate(voor);
 
 			ColonUitnodiging uitnodiging = dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging();
-			uitnodiging.setVerstuurdDatum(new DateTime(uitnodiging.getVerstuurdDatum()).minusDays(5).toDate());
+			uitnodiging.setVerstuurdDatum(DateUtil.minDagen(uitnodiging.getVerstuurdDatum(), 5));
 			hibernateService.saveOrUpdate(uitnodiging);
 		}
 		return dossier;
@@ -566,7 +563,7 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 		intakeAfspraak.setStatus(AfspraakStatus.GEPLAND);
 		if (intakeAfspraak.getStartTime() == null)
 		{
-			intakeAfspraak.setStartTime(currentDateSupplier.getDateTime().plusDays(1).toDate());
+			intakeAfspraak.setStartTime(DateUtil.plusDagen(currentDateSupplier.getDate(), 1));
 		}
 		if (intakeAfspraak.getLocation() == null)
 		{
@@ -580,7 +577,7 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 		}
 		if (intakeAfspraak.getEndTime() == null)
 		{
-			intakeAfspraak.setEndTime(new DateTime(intakeAfspraak.getStartTime()).plusMinutes(intakeAfspraak.getDefinition().getDuurAfspraakInMinuten()).toDate());
+			intakeAfspraak.setEndTime(DateUtil.plusTijdseenheid(intakeAfspraak.getStartTime(), intakeAfspraak.getDefinition().getDuurAfspraakInMinuten(), ChronoUnit.MINUTES));
 		}
 
 		hibernateService.saveOrUpdateAll(intakeAfspraak, screeningRonde, client);
@@ -628,7 +625,7 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 	{
 		ColonBrief brief = new ColonBrief();
 		brief.setTemplateNaam(templateNaam);
-		brief.setCreatieDatum(new DateTime(nu).minusDays(1).toDate());
+		brief.setCreatieDatum(DateUtil.minDagen(nu, 1));
 		brief.setGegenereerd(true);
 		brief.setBriefType(briefType);
 		brief.setClient(client);

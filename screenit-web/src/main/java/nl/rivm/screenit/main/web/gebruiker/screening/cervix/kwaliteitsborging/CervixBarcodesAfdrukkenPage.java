@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.kwaliteitsborging;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,7 +33,6 @@ import nl.rivm.screenit.dao.cervix.CervixKwaliteitsborgingDao;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.modal.IDialog;
-import nl.rivm.screenit.main.web.filter.SecurityHeadersFilter;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten.PdfViewerPanel;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerHoofdMenuItem;
 import nl.rivm.screenit.main.web.gebruiker.screening.cervix.CervixBarcodeAfdrukkenBasePage;
@@ -60,7 +59,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,13 +111,6 @@ public class CervixBarcodesAfdrukkenPage extends CervixBarcodeAfdrukkenBasePage
 		{
 			initialiseerZebraPrinterLibrary(response);
 		}
-	}
-
-	@Override
-	protected void setHeaders(WebResponse response)
-	{
-		SecurityHeadersFilter.allowExtraConnectSrcInContentSecurityPolicy(response, "https://localhost:9101");
-		super.setHeaders(response);
 	}
 
 	public CervixBarcodesAfdrukkenPage()

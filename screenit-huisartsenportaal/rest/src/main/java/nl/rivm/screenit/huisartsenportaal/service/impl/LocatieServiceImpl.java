@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal.service.impl;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -89,18 +89,17 @@ public class LocatieServiceImpl implements LocatieService
 
 	private void removeEmptyFromDto(List<LocatieDto> locatieDtos)
 	{
-		String empty = "<empty>";
 		for (LocatieDto dto : locatieDtos)
 		{
-			if (empty.equals(dto.getIban()))
+			if (LocatieDto.EMPTY_VALUE.equalsIgnoreCase(dto.getIban()))
 			{
 				dto.setIban("");
 			}
-			if (empty.equals(dto.getIbanTenaamstelling()))
+			if (LocatieDto.EMPTY_VALUE.equalsIgnoreCase(dto.getIbanTenaamstelling()))
 			{
 				dto.setIbanTenaamstelling("");
 			}
-			if (empty.equals(dto.getNaam()))
+			if (LocatieDto.EMPTY_VALUE.equalsIgnoreCase(dto.getNaam()))
 			{
 				dto.setNaam("");
 			}
@@ -108,7 +107,8 @@ public class LocatieServiceImpl implements LocatieService
 	}
 
 	@Override
-	public Locatie setLocatie(Huisarts huisarts, LocatieDto locatieDto)
+	@Transactional(propagation = Propagation.REQUIRED)
+	public Locatie updateAndGetLocatie(Huisarts huisarts, LocatieDto locatieDto)
 	{
 		Locatie locatie = getLocatie(locatieDto);
 		if (locatie == null)
@@ -165,14 +165,10 @@ public class LocatieServiceImpl implements LocatieService
 
 		if (locatieDto.getLocatieAdres() != null)
 		{
-			locatie.setLocatieAdres(adresService.setAdres(locatieDto.getLocatieAdres()));
+			locatie.setLocatieAdres(adresService.updateAndGetAdres(locatieDto.getLocatieAdres()));
 		}
 		locatieRepository.save(locatie);
 
-		if (locatie.getStatus().equals(CervixLocatieStatus.INACTIEF))
-		{
-			labformulierService.verwijderNogNietVerstuurdeLabformulierenVanLocatie(locatie);
-		}
 		return locatie;
 	}
 
@@ -237,5 +233,15 @@ public class LocatieServiceImpl implements LocatieService
 		}
 		locatieRepository.save(locatie);
 		synchronisatieService.herzendVerificatieMail(huisarts, locatie);
+	}
+
+	@Override
+	public void nietVerstuurdeLabformulierenVerwijderen(LocatieDto locatieDto)
+	{
+		Locatie locatie = getLocatie(locatieDto);
+		if (locatie != null && locatie.getStatus().equals(CervixLocatieStatus.INACTIEF))
+		{
+			labformulierService.verwijderNogNietVerstuurdeLabformulierenVanLocatie(locatie);
+		}
 	}
 }

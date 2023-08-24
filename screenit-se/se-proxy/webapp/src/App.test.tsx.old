@@ -1,0 +1,53 @@
+import React from "react"
+import ReactDOM from "react-dom"
+import {Provider} from "react-redux"
+import {shallow} from "enzyme"
+import DaglijstView from "./components/daglijst/DaglijstView"
+import {newClientGegevensForm} from "./components/clientgegevens/ClientgegevensContainer"
+import IdentificatieView from "./components/clientgegevens/IdentificatieView"
+import {store} from "./Store"
+import PaneelNaam from "./components/generic/PaneelNaam"
+import {Afspraak} from "./datatypes/Afspraak"
+import AfspraakOverzichtContainer from "./components/daglijst/AfspraakOverzichtContainer"
+import BuitensteView from "./components/app/BuitensteView"
+
+it("Renders without crashing", () => {
+	const div = document.createElement("div")
+	ReactDOM.render(<Provider store={store}>
+		<BuitensteView/>
+	</Provider>, div)
+})
+it("Renders daglijst", () => {
+	const daglijst = shallow(<DaglijstView/>)
+	const container = <AfspraakOverzichtContainer/>
+	expect(daglijst.contains(container)).toEqual(true)
+})
+it("Renders identificatieView", () => {
+	const afspraak: Afspraak = new Afspraak(
+		1,
+		"",
+		"",
+		0,
+		"VERWACHT",
+		0,
+		0,
+		0,
+		false,
+		false,
+		false,
+		false,
+		false,
+	)
+	afspraak.identificatiesoort = "PASPOORT"
+
+	const form = newClientGegevensForm(undefined, undefined)
+
+	/* eslint-disable */
+	const identificatieView = shallow(<IdentificatieView afspraak={afspraak} clientGegevensForm={form}
+														 disabled={true} onChooseNummer={() => {
+	}} onChooseSoort={() => {
+	}} updateField={() => {
+	}}/>)
+	const titel = <PaneelNaam titel={"Identificatie*"}/>
+	expect(identificatieView.contains(titel)).toEqual(true)
+})

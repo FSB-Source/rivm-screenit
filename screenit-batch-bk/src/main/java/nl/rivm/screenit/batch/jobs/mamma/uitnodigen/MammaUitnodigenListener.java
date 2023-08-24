@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.uitnodigen;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,7 +38,11 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.model.logging.MammaUitnodigenLogEvent;
+import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaIntervalUitnodigenRapportage;
+import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaStandplaatsPeriodeUitnodigenRapportage;
+import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaStandplaatsRondeRapportageStatus;
+import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaStandplaatsRondeUitnodigenRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaUitnodigenRapportage;
 import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.LogService;
@@ -56,6 +60,8 @@ public class MammaUitnodigenListener extends BaseLogListener
 
 	public static final String INTERVAL_RAPPORTAGE_KEY = "intervalRapportageKey";
 
+	public static final String UITSTEL_PER_STANDPLAATSPERIODE_KEY = "uitstelRapportagePerStandplaatsPeriodeKey";
+
 	private final HibernateService hibernateService;
 
 	private final LogService logService;
@@ -67,6 +73,7 @@ public class MammaUitnodigenListener extends BaseLogListener
 	{
 		super.beforeStarting(jobExecution);
 		jobExecution.getExecutionContext().put(MammaUitnodigenListener.INTERVAL_RAPPORTAGE_KEY, new HashMap<Long, MammaIntervalUitnodigenRapportage>());
+		jobExecution.getExecutionContext().put(MammaUitnodigenListener.UITSTEL_PER_STANDPLAATSPERIODE_KEY, new HashMap<Long, MammaStandplaatsPeriodeUitnodigenRapportage>());
 	}
 
 	@Override
@@ -109,9 +116,8 @@ public class MammaUitnodigenListener extends BaseLogListener
 		{
 			var rapportageId = executionContext.getLong(RAPPORTAGE_ID_KEY);
 			var rapportage = hibernateService.get(MammaUitnodigenRapportage.class, rapportageId);
-
 			intervalUitnodigingenBijwerkenInRapportage(rapportage);
-
+			uitstelUitnodigingenBijwerkenInRapportage(rapportage);
 			logEvent.setRapportage(rapportage);
 		}
 
@@ -130,6 +136,75 @@ public class MammaUitnodigenListener extends BaseLogListener
 			eindRapportage.getIntervalUitnodigenRapportages().add(intervalRapportage);
 			hibernateService.saveOrUpdateAll(intervalRapportage, eindRapportage);
 		}
+	}
+
+	private void uitstelUitnodigingenBijwerkenInRapportage(MammaUitnodigenRapportage eindRapportage)
+	{
+		Map<Long, MammaStandplaatsPeriodeUitnodigenRapportage> uitstelRapportages = getTypedValueFromExecutionContext(UITSTEL_PER_STANDPLAATSPERIODE_KEY);
+		for (var entry : uitstelRapportages.entrySet())
+		{
+			var standplaatsPeriode = hibernateService.get(MammaStandplaatsPeriode.class, entry.getKey());
+			var standplaatsPeriodeRapportage = getStandplaatsPeriodeRapportageVoorUitstel(eindRapportage, standplaatsPeriode);
+			var uitstelRapportage = entry.getValue();
+			standplaatsPeriodeRapportage.setUitgenodigdAfspraak(
+				sommeerAantalUitnodigingen(standplaatsPeriodeRapportage.getUitgenodigdAfspraak(), uitstelRapportage.getUitgenodigdAfspraak()));
+			standplaatsPeriodeRapportage.setUitgenodigdOpen(
+				sommeerAantalUitnodigingen(standplaatsPeriodeRapportage.getUitgenodigdOpen(), uitstelRapportage.getUitgenodigdOpen()));
+			standplaatsPeriodeRapportage.setUitgenodigdMinderValide(
+				sommeerAantalUitnodigingen(standplaatsPeriodeRapportage.getUitgenodigdMinderValide(), uitstelRapportage.getUitgenodigdMinderValide()));
+			standplaatsPeriodeRapportage.setUitgenodigdSuspect(
+				sommeerAantalUitnodigingen(standplaatsPeriodeRapportage.getUitgenodigdSuspect(), uitstelRapportage.getUitgenodigdSuspect()));
+			standplaatsPeriodeRapportage.setUitgenodigdNaUitstel(
+				sommeerAantalUitnodigingen(standplaatsPeriodeRapportage.getUitgenodigdNaUitstel(), uitstelRapportage.getUitgenodigdNaUitstel()));
+			hibernateService.saveOrUpdate(standplaatsPeriodeRapportage);
+		}
+	}
+
+	private static Long sommeerAantalUitnodigingen(Long basisAantal, long uitstelAantal)
+	{
+		if (uitstelAantal > 0)
+		{
+			return basisAantal == null ? uitstelAantal : basisAantal + uitstelAantal;
+		}
+		return basisAantal;
+	}
+
+	private MammaStandplaatsPeriodeUitnodigenRapportage getStandplaatsPeriodeRapportageVoorUitstel(MammaUitnodigenRapportage eindRapportage,
+		MammaStandplaatsPeriode standplaatsPeriode)
+	{
+		var standplaatsRondeRapportage = eindRapportage.getStandplaatsRondeUitnodigenRapportages().stream()
+			.filter(spr -> spr.getStandplaatsRonde().equals(standplaatsPeriode.getStandplaatsRonde()))
+			.findFirst()
+			.orElseGet(() -> maakStandplaatsRondeRapportageVoorUitstel(eindRapportage, standplaatsPeriode));
+
+		return standplaatsRondeRapportage.getStandplaatsPeriodeUitnodigenRapportages().stream()
+			.filter(spp -> spp.getStandplaatsPeriode().equals(standplaatsPeriode))
+			.findFirst()
+			.orElseGet(() -> maakStandplaatsPeriodeRapportageVoorUitstel(standplaatsPeriode, standplaatsRondeRapportage));
+	}
+
+	private MammaStandplaatsRondeUitnodigenRapportage maakStandplaatsRondeRapportageVoorUitstel(MammaUitnodigenRapportage eindRapportage,
+		MammaStandplaatsPeriode standplaatsPeriode)
+	{
+		var standplaatsRondeRapportage = new MammaStandplaatsRondeUitnodigenRapportage();
+		standplaatsRondeRapportage.setStandplaatsRonde(standplaatsPeriode.getStandplaatsRonde());
+		standplaatsRondeRapportage.setUitnodigenRapportage(eindRapportage);
+		eindRapportage.getStandplaatsRondeUitnodigenRapportages().add(standplaatsRondeRapportage);
+		standplaatsRondeRapportage.setStatus(MammaStandplaatsRondeRapportageStatus.ALLEEN_UITSTEL_UITNODIGINGEN);
+		hibernateService.saveOrUpdateAll(standplaatsRondeRapportage, eindRapportage);
+		return standplaatsRondeRapportage;
+	}
+
+	private MammaStandplaatsPeriodeUitnodigenRapportage maakStandplaatsPeriodeRapportageVoorUitstel(MammaStandplaatsPeriode standplaatsPeriode,
+		MammaStandplaatsRondeUitnodigenRapportage standplaatsRondeRapportage)
+	{
+		var standplaatsPeriodeRapportage = new MammaStandplaatsPeriodeUitnodigenRapportage();
+		standplaatsPeriodeRapportage.setStandplaatsRondeUitnodigenRapportage(standplaatsRondeRapportage);
+		standplaatsRondeRapportage.getStandplaatsPeriodeUitnodigenRapportages().add(standplaatsPeriodeRapportage);
+		standplaatsPeriodeRapportage.setStandplaatsPeriode(standplaatsPeriode);
+		standplaatsPeriodeRapportage.setUitnodigenTotEnMet(standplaatsPeriode.getScreeningsEenheid().getUitnodigenTotEnMet());
+		hibernateService.saveOrUpdateAll(standplaatsPeriodeRapportage, standplaatsRondeRapportage);
+		return standplaatsPeriodeRapportage;
 	}
 
 	@Override

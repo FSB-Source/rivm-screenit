@@ -48,20 +48,20 @@ export default class TelefoonView extends Component<TelefoonViewStateProps & Tel
 			<PaneelNaam titel={"Telefoonnummer(s)"}/>
 			<Row noGutters>
 				<Col md={2}>
-					Telefoonnummer
+					Mobiel nummer
 				</Col>
 				<Col md={3}>
-					<ValidationInputContainer label={"Telefoonnummer"} placeholder={"Voer telefoonnummer in"}
+					<ValidationInputContainer label={"Mobiel nummer"} placeholder={"Voer mobiel nummer in"}
 											  disabled={this.props.disabled} value={this.props.telefoonnummer1 || ""}
 											  onChange={this.onTelefoon1Change} fieldId={TELEFOON_1_FIELD_ID}
 											  maxLength={20}/>
 				</Col>
 				<Col md={1}/>
 				<Col md={2}>
-					Mobiel nummer
+					Extra telefoonnummer
 				</Col>
 				<Col md={3}>
-					<ValidationInputContainer label={"Mobiel nummer"} placeholder={"Voer mobiel nummer in"}
+					<ValidationInputContainer label={"Extra telefoonnummer"} placeholder={"Voer nummer in"}
 											  disabled={this.props.disabled} value={this.props.telefoonnummer2 || ""}
 											  onChange={this.onTelefoon2Change} fieldId={TELEFOON_2_FIELD_ID}
 											  maxLength={20}/>

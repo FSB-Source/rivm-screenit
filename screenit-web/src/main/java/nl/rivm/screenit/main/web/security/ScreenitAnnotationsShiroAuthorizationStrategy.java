@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.security;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +24,8 @@ package nl.rivm.screenit.main.web.security;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.OrganisatieType;
@@ -43,14 +44,10 @@ import org.apache.wicket.authorization.IAuthorizationStrategy;
 import org.apache.wicket.request.component.IRequestableComponent;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.IResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class ScreenitAnnotationsShiroAuthorizationStrategy implements IAuthorizationStrategy
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(ScreenitAnnotationsShiroAuthorizationStrategy.class);
-
 	@Override
 	public <T extends IRequestableComponent> boolean isInstantiationAuthorized(final Class<T> componentClass)
 	{
@@ -59,7 +56,7 @@ public class ScreenitAnnotationsShiroAuthorizationStrategy implements IAuthoriza
 		{
 			if (LOG.isTraceEnabled())
 			{
-				LOG.trace("Unauthorized Instantiation :: component={} reason={} subject={}", new Object[] { componentClass, fail, SecurityUtils.getSubject() });
+				LOG.trace("Unauthorized Instantiation :: component={} reason={} subject={}", componentClass, fail, SecurityUtils.getSubject());
 			}
 			return false;
 		}
@@ -211,6 +208,6 @@ public class ScreenitAnnotationsShiroAuthorizationStrategy implements IAuthoriza
 	@Override
 	public boolean isResourceAuthorized(IResource resource, PageParameters parameters)
 	{
-		return true;
+		return checkInvalidInstantiation(resource.getClass().getAnnotations(), null) == null;
 	}
 }

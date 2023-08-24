@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.bmhklaboratoriu
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -66,6 +66,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.hibernate.Hibernate;
 import org.wicketstuff.shiro.ShiroConstraint;
 
 @SecurityConstraint(
@@ -77,7 +78,6 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.CERVIX })
 public class CervixLaboratoriumTarievenPage extends OrganisatieBeheer
 {
-
 	@SpringBean
 	private ICurrentDateSupplier currentDateSupplier;
 
@@ -102,8 +102,6 @@ public class CervixLaboratoriumTarievenPage extends OrganisatieBeheer
 
 	private IModel<BMHKLaboratorium> labModel;
 
-	private final BootstrapDialog dialog;
-
 	private WebMarkupContainer tableContainer;
 
 	public CervixLaboratoriumTarievenPage()
@@ -115,7 +113,7 @@ public class CervixLaboratoriumTarievenPage extends OrganisatieBeheer
 
 		add(new OrganisatiePaspoortPanel("paspoort", ModelUtil.sModel(super.getCurrentSelectedOrganisatie())));
 
-		zoekObject = ModelUtil.cModel(new CervixLabTarief());
+		zoekObject = ModelUtil.ccModel(new CervixLabTarief());
 		zoekObject.getObject().setBmhkLaboratorium(labModel.getObject());
 
 		dialog = new BootstrapDialog("dialog");
@@ -190,29 +188,27 @@ public class CervixLaboratoriumTarievenPage extends OrganisatieBeheer
 		WebMarkupContainer container = new WebMarkupContainer("tableContainer");
 		container.setOutputMarkupPlaceholderTag(true);
 
-		List<IColumn<CervixLabTarief, String>> columns = new ArrayList<IColumn<CervixLabTarief, String>>();
-		for (CervixTariefType type : CervixTariefType.getAlleLabTariefTypes())
+		List<IColumn<CervixLabTarief, String>> columns = new ArrayList<>();
+		var organisatie = ScreenitSession.get().getCurrentSelectedOrganisatie();
+		for (CervixTariefType type : betalingService.getTariefTypenVoorLaboratorium((BMHKLaboratorium) Hibernate.unproxy(organisatie)))
 		{
 			columns
-				.add(new BigDecimalPricePropertyColumn<CervixLabTarief, String>(new SimpleStringResourceModel(EnumStringUtil.getPropertyString(type)), type.getBedragProperty()));
+				.add(new BigDecimalPricePropertyColumn<>(new SimpleStringResourceModel(EnumStringUtil.getPropertyString(type)), type.getBedragProperty()));
 		}
 		columns.add(new DateTimePropertyColumn<>(Model.of("Geldig vanaf"), "geldigVanafDatum", "geldigVanafDatum", format));
 		columns.add(new DateTimePropertyColumn<>(Model.of("Geldig t/m"), "geldigTotenmetDatum", "geldigTotenmetDatum", format));
 
 		if (Actie.VERWIJDEREN == actie)
 		{
-			columns.add(new AbstractColumn<CervixLabTarief, String>(Model.of("Verwijderen"))
+			columns.add(new AbstractColumn<>(Model.of("Verwijderen"))
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				public void populateItem(Item<ICellPopulator<CervixLabTarief>> cellItem, String componentId, IModel<CervixLabTarief> rowModel)
 				{
 					CervixLabTarief tarief = rowModel.getObject();
 					if (tarief.getGeldigVanafDatum().after(currentDateSupplier.getDate()))
 					{
-						cellItem.add(new AjaxImageCellPanel<CervixLabTarief>(componentId, rowModel, "icon-trash")
+						cellItem.add(new AjaxImageCellPanel<>(componentId, rowModel, "icon-trash")
 						{
 							@Override
 							protected void onClick(AjaxRequestTarget target)
@@ -244,7 +240,7 @@ public class CervixLaboratoriumTarievenPage extends OrganisatieBeheer
 			});
 		}
 
-		ScreenitDataTable<CervixLabTarief, String> table = new ScreenitDataTable<CervixLabTarief, String>("table", columns,
+		ScreenitDataTable<CervixLabTarief, String> table = new ScreenitDataTable<>("table", columns,
 			new CervixLaboratoriumTarievenDataProvider(zoekObject), Model.of("Tarieven"));
 		container.add(table);
 

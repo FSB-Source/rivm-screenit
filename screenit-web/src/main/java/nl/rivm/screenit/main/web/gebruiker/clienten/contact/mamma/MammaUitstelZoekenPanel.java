@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,18 +26,13 @@ import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.dto.mamma.afspraken.MammaStandplaatsPeriodeMetAfstandDto;
-import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.SimpleStringResourceModel;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.enums.Actie;
-import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
-import nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
-import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -58,15 +53,12 @@ import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 public abstract class MammaUitstelZoekenPanel extends Panel
 {
 	@SpringBean
-	private ICurrentDateSupplier dateSupplier;
-
-	@SpringBean
 	private MammaBaseStandplaatsService baseStandplaatsService;
 
 	@SpringBean
 	private HibernateService hibernateService;
 
-	public MammaUitstelZoekenPanel(String id, IModel<Client> clientModel)
+	protected MammaUitstelZoekenPanel(String id, IModel<Client> clientModel)
 	{
 		super(id);
 		Client client = clientModel.getObject();
@@ -81,65 +73,30 @@ public abstract class MammaUitstelZoekenPanel extends Panel
 		IModel<MammaAfspraakWijzigenFilter> filterModel = new CompoundPropertyModel<>(new MammaAfspraakWijzigenFilter(null, null, null, screeningsEenheid));
 
 		filterModel.getObject().setClient(clientModel.getObject());
-		boolean isClientportaal = ScreenitSession.get().checkPermission(Recht.CLIENT_DASHBOARD, Actie.INZIEN);
 		List<IColumn<MammaStandplaatsPeriodeMetAfstandDto, String>> columns = new ArrayList<>();
-		if (!isClientportaal)
+		columns.add(new AbstractColumn<>(Model.of("SE"))
 		{
-			columns.add(new AbstractColumn<MammaStandplaatsPeriodeMetAfstandDto, String>(Model.of("SE"))
+			@Override
+			public void populateItem(Item<ICellPopulator<MammaStandplaatsPeriodeMetAfstandDto>> cell, String id,
+				IModel<MammaStandplaatsPeriodeMetAfstandDto> standplaatsPeriodeMetAfstandDtoModel)
 			{
-				private static final long serialVersionUID = 1L;
-
-				@Override
-				public void populateItem(Item<ICellPopulator<MammaStandplaatsPeriodeMetAfstandDto>> cell, String id,
-					IModel<MammaStandplaatsPeriodeMetAfstandDto> standplaatsPeriodeMetAfstandDtoModel)
-				{
-					cell.add(
-						new Label(id, hibernateService.load(MammaStandplaatsPeriode.class, standplaatsPeriodeMetAfstandDtoModel.getObject().getStandplaatsPeriodeId())
-							.getScreeningsEenheid().getNaam()));
-				}
-			});
-			columns.add(new AbstractColumn<MammaStandplaatsPeriodeMetAfstandDto, String>(Model.of("Standplaats"))
-			{
-				private static final long serialVersionUID = 1L;
-
-				@Override
-				public void populateItem(Item<ICellPopulator<MammaStandplaatsPeriodeMetAfstandDto>> cell, String id,
-					IModel<MammaStandplaatsPeriodeMetAfstandDto> standplaatsPeriodeMetAfstandDtoModel)
-				{
-					cell.add(new Label(id, hibernateService.load(MammaStandplaatsPeriode.class, standplaatsPeriodeMetAfstandDtoModel.getObject().getStandplaatsPeriodeId())
-						.getStandplaatsRonde().getStandplaats().getNaam()));
-				}
-			});
-		}
-		if (isClientportaal)
+				cell.add(
+					new Label(id, hibernateService.load(MammaStandplaatsPeriode.class, standplaatsPeriodeMetAfstandDtoModel.getObject().getStandplaatsPeriodeId())
+						.getScreeningsEenheid().getNaam()));
+			}
+		});
+		columns.add(new AbstractColumn<>(Model.of("Standplaats"))
 		{
-			columns.add(new AbstractColumn<MammaStandplaatsPeriodeMetAfstandDto, String>(Model.of("Plaats"))
+			@Override
+			public void populateItem(Item<ICellPopulator<MammaStandplaatsPeriodeMetAfstandDto>> cell, String id,
+				IModel<MammaStandplaatsPeriodeMetAfstandDto> standplaatsPeriodeMetAfstandDtoModel)
 			{
-				private static final long serialVersionUID = 1L;
-
-				@Override
-				public void populateItem(Item<ICellPopulator<MammaStandplaatsPeriodeMetAfstandDto>> cell, String id,
-					IModel<MammaStandplaatsPeriodeMetAfstandDto> standplaatsPeriodeMetAfstandDtoModel)
-				{
-					MammaStandplaatsPeriode standplaatsPeriode = hibernateService.load(MammaStandplaatsPeriode.class,
-						standplaatsPeriodeMetAfstandDtoModel.getObject().getStandplaatsPeriodeId());
-					MammaStandplaatsLocatie locatie = baseStandplaatsService.getStandplaatsLocatie(standplaatsPeriode.getStandplaatsRonde().getStandplaats(),
-						standplaatsPeriode.getVanaf());
-					if (locatie != null)
-					{
-						cell.add(new Label(id, locatie.getPlaats()));
-					}
-					else
-					{
-						cell.add(new Label(id, ""));
-					}
-				}
-			});
-		}
-		columns.add(new AbstractColumn<MammaStandplaatsPeriodeMetAfstandDto, String>(new SimpleStringResourceModel("label.afstand"))
+				cell.add(new Label(id, hibernateService.load(MammaStandplaatsPeriode.class, standplaatsPeriodeMetAfstandDtoModel.getObject().getStandplaatsPeriodeId())
+					.getStandplaatsRonde().getStandplaats().getNaam()));
+			}
+		});
+		columns.add(new AbstractColumn<>(new SimpleStringResourceModel("label.afstand"))
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<MammaStandplaatsPeriodeMetAfstandDto>> cell, String id,
 				IModel<MammaStandplaatsPeriodeMetAfstandDto> standplaatsPeriodeMetAfstandDtoModel)
@@ -156,10 +113,8 @@ public abstract class MammaUitstelZoekenPanel extends Panel
 				}
 			}
 		});
-		columns.add(new AbstractColumn<MammaStandplaatsPeriodeMetAfstandDto, String>(new SimpleStringResourceModel("label.vanaf"))
+		columns.add(new AbstractColumn<>(new SimpleStringResourceModel("label.vanaf"))
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<MammaStandplaatsPeriodeMetAfstandDto>> cell, String id,
 				IModel<MammaStandplaatsPeriodeMetAfstandDto> standplaatsPeriodeMetAfstandDtoModel)
@@ -169,10 +124,8 @@ public abstract class MammaUitstelZoekenPanel extends Panel
 				cell.add(DateLabel.forDatePattern(id, Model.of(standplaatsPeriode.getVanaf()), "EEEE dd-MM-yyyy"));
 			}
 		});
-		columns.add(new AbstractColumn<MammaStandplaatsPeriodeMetAfstandDto, String>(new SimpleStringResourceModel("label.tot.en.met"))
+		columns.add(new AbstractColumn<>(new SimpleStringResourceModel("label.tot.en.met"))
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<MammaStandplaatsPeriodeMetAfstandDto>> cell, String id,
 				IModel<MammaStandplaatsPeriodeMetAfstandDto> standplaatsPeriodeMetAfstandDtoModel)
@@ -185,11 +138,9 @@ public abstract class MammaUitstelZoekenPanel extends Panel
 
 		MammaStandplaatsPeriodeProvider standplaatsPeriodeProvider = new MammaStandplaatsPeriodeProvider(clientModel, filterModel);
 
-		ScreenitDataTable<MammaStandplaatsPeriodeMetAfstandDto, String> standplaatsPeriodes = new ScreenitDataTable<MammaStandplaatsPeriodeMetAfstandDto, String>(
+		ScreenitDataTable<MammaStandplaatsPeriodeMetAfstandDto, String> standplaatsPeriodes = new ScreenitDataTable<>(
 			"standplaatsPeriodes", columns, standplaatsPeriodeProvider, 10, Model.of("standplaats periodes"))
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<MammaStandplaatsPeriodeMetAfstandDto> model)
@@ -204,10 +155,8 @@ public abstract class MammaUitstelZoekenPanel extends Panel
 		standplaatsPeriodes.setOutputMarkupPlaceholderTag(true);
 		add(standplaatsPeriodes);
 
-		add(new MammaAfspraakWijzigenFilterPanel("filter", filterModel, false, null)
+		add(new MammaAfspraakWijzigenFilterPanel("filter", filterModel, true, null)
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void zoeken(AjaxRequestTarget target)
 			{

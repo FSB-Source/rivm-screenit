@@ -4,24 +4,45 @@ import {getErrorMessage} from "../datatypes/Error"
 
 export class TelefoonnummerValidator<T extends string | undefined> implements Validation<T> {
 	isValid(value: string | undefined): boolean {
-		return isTelefoonnummerValid(value)
+		return isTelefoonnummerValideOfLeeg(value)
 	}
 
 	getErrorMessage(value: string | undefined, fieldLabel: string): string {
-		const errors: ValidationError[] = validateTelefoonnummer(value, fieldLabel)
+		const errors: ValidationError[] = this.validateTelefoonnummerOngeldigError(value, fieldLabel)
 		if (errors.length > 0) {
 			return getErrorMessage(errors[0])
 		}
 		return ""
 	}
+
+	validateTelefoonnummerOngeldigError(telefoonnummer: string | undefined, label: string): ValidationError[] {
+		const errors: ValidationError[] = []
+		if (!this.isValid(telefoonnummer)) {
+			errors.push({
+				type: "ongeldig",
+				label: label,
+			})
+		}
+		return errors
+	}
 }
 
-function isTelefoonnummerValid(telefoonnummer: string | undefined): boolean {
+export class MobielnummerValidator<T extends string | undefined> extends TelefoonnummerValidator<T> {
+	isValid(value: string | undefined): boolean {
+		return isMobielnummerValideOfLeeg(value)
+	}
+}
+
+function isTelefoonnummerValideOfLeeg(telefoonnummer: string | undefined): boolean {
 	return !telefoonnummer || telefoonnummerCheck(telefoonnummer)
 }
 
-function telefoonnummerCheck(telefoonnummer: string | undefined): boolean {
+function telefoonnummerCheck(telefoonnummer: string): boolean {
 	return telefoonnummer ? isVastNlNummer(telefoonnummer) || isMobielNlNummer(telefoonnummer) || isInformatieNlNummer(telefoonnummer) || isBuitenlandsNummer(telefoonnummer) : true
+}
+
+function isMobielnummerValideOfLeeg(mobielnummer: string | undefined): boolean {
+	return !mobielnummer || isMobielNlNummer(mobielnummer)
 }
 
 function isVastNlNummer(telefoonnummer: string): boolean {
@@ -29,7 +50,7 @@ function isVastNlNummer(telefoonnummer: string): boolean {
 }
 
 function isMobielNlNummer(telefoonnummer: string): boolean {
-	return exactMatch(telefoonnummer, /^(06( |-)?[0-9]{8})$/)
+	return exactMatch(telefoonnummer, /^(06|\+316|00316)[- ]?\d{8}$/)
 }
 
 function isInformatieNlNummer(telefoonnummer: string): boolean {
@@ -47,20 +68,5 @@ function exactMatch(telefoonnummer: string, regex: RegExp): boolean {
 		return regexResult[0].length === telefoonnummer.length
 	} else {
 		return false
-	}
-}
-
-function validateTelefoonnummer(telefoonnummer: string | undefined, label: string): ValidationError[] {
-	const errors: ValidationError[] = []
-	validateTelefoonnummerOngeldigError(telefoonnummer, label, errors)
-	return errors
-}
-
-function validateTelefoonnummerOngeldigError(telefoonnummer: string | undefined, label: string, errors: ValidationError[]): void {
-	if (!isTelefoonnummerValid(telefoonnummer)) {
-		errors.push({
-			type: "ongeldig",
-			label: label,
-		})
 	}
 }

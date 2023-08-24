@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be;
  * =========================LICENSE_END==================================
  */
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,30 +32,34 @@ import nl.rivm.screenit.main.service.mamma.MammaBeWerklijstService;
 import nl.rivm.screenit.main.service.mamma.MammaBeoordelingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.PollingAbstractAjaxTimerBehavior;
-import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.modal.IDialog;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.MammaScreeningBasePage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.dashboard.MammaRadioloogDashboardPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.popup.MammaLogoutConfirmationDialog;
+import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.review.MammaReviewWerklijstPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.werklijst.MammaArbitrageWerklijstPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.werklijst.MammaBeoordelingenWerklijstPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.werklijst.MammaDiscrepantieWerklijstPage;
-import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.review.MammaReviewWerklijstPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.werklijst.MammaVerslagenWerklijstPage;
 import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.enums.Actie;
+import nl.rivm.screenit.model.enums.MammaOnderzoekType;
+import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.apache.wicket.util.time.Duration;
 
 public abstract class AbstractMammaBePage extends MammaScreeningBasePage
 {
@@ -64,15 +69,21 @@ public abstract class AbstractMammaBePage extends MammaScreeningBasePage
 	@SpringBean
 	private MammaBeWerklijstService beWerklijstService;
 
-	private List<Component> postfixes = new ArrayList<>();
+	private final boolean heeftToegangTotOnderzoektypeFilter;
 
-	private BootstrapDialog dialog;
+	private final List<Component> postfixes = new ArrayList<>();
+
+	@Override
+	public void renderHead(IHeaderResponse response)
+	{
+		super.renderHead(response);
+		response.render(CssHeaderItem.forUrl("assets/css/base_styles_be.css"));
+	}
 
 	protected AbstractMammaBePage()
 	{
-		dialog = new BootstrapDialog("dialog");
-		add(dialog);
-		PollingAbstractAjaxTimerBehavior timer = new PollingAbstractAjaxTimerBehavior(Duration.seconds(5))
+		heeftToegangTotOnderzoektypeFilter = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_SCREENING_MAMMA_BE_ONDERZOEKTYPE_FILTER, Actie.INZIEN);
+		PollingAbstractAjaxTimerBehavior timer = new PollingAbstractAjaxTimerBehavior(Duration.ofSeconds(5))
 		{
 			@Override
 			protected void onTimer(AjaxRequestTarget target)
@@ -80,7 +91,12 @@ public abstract class AbstractMammaBePage extends MammaScreeningBasePage
 				super.onTimer(target);
 				for (Component comp : postfixes)
 				{
-					target.add(comp);
+					var parentPage = comp.findParent(Page.class);
+					if (parentPage != null)
+					{
+
+						target.add(comp);
+					}
 				}
 			}
 		};
@@ -137,14 +153,18 @@ public abstract class AbstractMammaBePage extends MammaScreeningBasePage
 			@Override
 			protected String load()
 			{
-				Long aantalOnderzoeken;
 				MammaBeWerklijstZoekObject zoekObject = new MammaBeWerklijstZoekObject();
 				zoekObject.setBeoordelingStatussen(beoordelingStatussen);
 				zoekObject.setBeoordelingsEenheid((BeoordelingsEenheid) ScreenitSession.get().getInstelling());
 
+				if (!heeftToegangTotOnderzoektypeFilter)
+				{
+					zoekObject.setOnderzoekType(MammaOnderzoekType.MAMMOGRAFIE);
+				}
+
 				zoekObject.setInstellingGebruiker(ScreenitSession.get().getLoggedInInstellingGebruiker());
 
-				aantalOnderzoeken = beoordelingService.countOnderzoeken(zoekObject);
+				var aantalOnderzoeken = beoordelingService.countOnderzoeken(zoekObject);
 
 				if (aantalOnderzoeken > 0L)
 				{

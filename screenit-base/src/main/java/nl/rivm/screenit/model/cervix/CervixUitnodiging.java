@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,12 +36,18 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.InpakbareUitnodiging;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 
+import org.hibernate.annotations.Check;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
+@Getter
+@Setter
 @Entity
 @Table(
 	schema = "cervix",
@@ -52,6 +58,8 @@ import org.hibernate.envers.NotAudited;
 		@Index(name = "idx_cervix_uitnodiging_monster_type", columnList = "monsterType"), @Index(name = "idx_cervix_uitnodiging_verstuurd", columnList = "verstuurd"),
 		@Index(name = "idx_cervix_uitnodiging_herinneren_geannuleerd_datum", columnList = "herinnerenGeannuleerdDatum"),
 		@Index(name = "idx_cervix_uitnodiging_trackid", columnList = "trackTraceId") })
+@Check(
+	constraints = "uitnodiging.monster_type != 'ZAS' OR uitnodiging.gecombineerde_zas is null")
 @Audited
 public class CervixUitnodiging extends InpakbareUitnodiging<CervixScreeningRonde>
 {
@@ -68,6 +76,12 @@ public class CervixUitnodiging extends InpakbareUitnodiging<CervixScreeningRonde
 
 	@OneToOne(fetch = FetchType.EAGER)
 	private CervixMonster monster;
+
+	@OneToOne(fetch = FetchType.LAZY)
+	private CervixUitnodiging gecombineerdeZas;
+
+	@OneToOne(fetch = FetchType.LAZY, mappedBy = "gecombineerdeZas")
+	private CervixUitnodiging gecombineerdeUitstrijkje;
 
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date geannuleerdDatum;
@@ -90,117 +104,5 @@ public class CervixUitnodiging extends InpakbareUitnodiging<CervixScreeningRonde
 
 	@NotAudited
 	private Boolean zasAangevraagdDoorClient;
-
-	@Override
-	public CervixScreeningRonde getScreeningRonde()
-	{
-		return screeningRonde;
-	}
-
-	@Override
-	public void setScreeningRonde(CervixScreeningRonde screeningRonde)
-	{
-		this.screeningRonde = screeningRonde;
-	}
-
-	public CervixBrief getBrief()
-	{
-		return brief;
-	}
-
-	public void setBrief(CervixBrief brief)
-	{
-		this.brief = brief;
-	}
-
-	public CervixMonster getMonster()
-	{
-		return monster;
-	}
-
-	public void setMonster(CervixMonster monster)
-	{
-		this.monster = monster;
-	}
-
-	public CervixMonsterType getMonsterType()
-	{
-		return monsterType;
-	}
-
-	public void setMonsterType(CervixMonsterType monsterType)
-	{
-		this.monsterType = monsterType;
-	}
-
-	public Date getGeannuleerdDatum()
-	{
-		return geannuleerdDatum;
-	}
-
-	public void setGeannuleerdDatum(Date geannuleerdDatum)
-	{
-		this.geannuleerdDatum = geannuleerdDatum;
-	}
-
-	public Boolean getHerinneren()
-	{
-		return herinneren;
-	}
-
-	public void setHerinneren(Boolean herinneren)
-	{
-		this.herinneren = herinneren;
-	}
-
-	public Boolean getHerinnering()
-	{
-		return herinnering;
-	}
-
-	public void setHerinnering(Boolean herinnering)
-	{
-		this.herinnering = herinnering;
-	}
-
-	public Date getHerinnerenGeannuleerdDatum()
-	{
-		return herinnerenGeannuleerdDatum;
-	}
-
-	public void setHerinnerenGeannuleerdDatum(Date herinnerenGeannuleerdDatum)
-	{
-		this.herinnerenGeannuleerdDatum = herinnerenGeannuleerdDatum;
-	}
-
-	public Boolean getUitgesteld()
-	{
-		return uitgesteld;
-	}
-
-	public void setUitgesteld(Boolean uitgesteld)
-	{
-		this.uitgesteld = uitgesteld;
-	}
-
-	public Boolean getZasAangevraagdDoorClient()
-	{
-		return zasAangevraagdDoorClient;
-	}
-
-	public void setZasAangevraagdDoorClient(Boolean zasAangevraagdDoorClient)
-	{
-		this.zasAangevraagdDoorClient = zasAangevraagdDoorClient;
-	}
-
-	public Boolean getAangevraagdeHerdruk()
-	{
-		return aangevraagdeHerdruk;
-	}
-
-	public void setAangevraagdeHerdruk(Boolean aangevraagdeHerdruk)
-	{
-		this.aangevraagdeHerdruk = aangevraagdeHerdruk;
-	}
 
 }

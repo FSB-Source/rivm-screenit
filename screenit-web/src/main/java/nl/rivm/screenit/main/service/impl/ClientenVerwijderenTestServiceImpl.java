@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,9 @@ package nl.rivm.screenit.main.service.impl;
  */
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -134,6 +136,7 @@ public class ClientenVerwijderenTestServiceImpl implements ClientenVerwijderenTe
 				List<NieuweIFobtAanvraagLogEvent> logEvents = hibernateService.getByParameters(NieuweIFobtAanvraagLogEvent.class, ImmutableMap.of("client", client));
 				logEvents.forEach(le -> hibernateService.delete(le.getLogRegel()));
 
+				Set<UploadDocument> bezwaarBrieven = new HashSet<>();
 				for (BezwaarMoment bezwaarMoment : client.getBezwaarMomenten())
 				{
 					UploadDocument brief = bezwaarMoment.getBezwaarBrief();
@@ -141,9 +144,10 @@ public class ClientenVerwijderenTestServiceImpl implements ClientenVerwijderenTe
 					{
 						bezwaarMoment.setBezwaarBrief(null);
 						hibernateService.saveOrUpdate(bezwaarMoment);
-						uploadDocumentService.delete(brief, true);
+						bezwaarBrieven.add(brief);
 					}
 				}
+				bezwaarBrieven.forEach(b -> uploadDocumentService.delete(b));
 				client.setLaatstVoltooideBezwaarMoment(null);
 
 				hibernateService.deleteAll(client.getBezwaarMomenten());

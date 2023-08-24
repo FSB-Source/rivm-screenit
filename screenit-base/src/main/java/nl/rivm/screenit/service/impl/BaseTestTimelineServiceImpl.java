@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -72,15 +71,15 @@ public class BaseTestTimelineServiceImpl implements BaseTestTimelineService
 		}
 		if (persoon.getOverlijdensdatum() != null)
 		{
-			persoon.setOverlijdensdatum(DateUtil.minusTijdseenheid(persoon.getOverlijdensdatum(), aantalDagen, ChronoUnit.DAYS));
+			persoon.setOverlijdensdatum(DateUtil.minDagen(persoon.getOverlijdensdatum(), aantalDagen));
 		}
 		if (persoon.getDatumVertrokkenUitNederland() != null)
 		{
-			persoon.setDatumVertrokkenUitNederland(DateUtil.minusTijdseenheid(persoon.getDatumVertrokkenUitNederland(), aantalDagen, ChronoUnit.DAYS));
+			persoon.setDatumVertrokkenUitNederland(DateUtil.minDagen(persoon.getDatumVertrokkenUitNederland(), aantalDagen));
 		}
 		if (persoon.getDatumVestigingNederland() != null)
 		{
-			persoon.setDatumVestigingNederland(DateUtil.minusTijdseenheid(persoon.getDatumVestigingNederland(), aantalDagen, ChronoUnit.DAYS));
+			persoon.setDatumVestigingNederland(DateUtil.minDagen(persoon.getDatumVestigingNederland(), aantalDagen));
 		}
 		hibernateService.saveOrUpdate(persoon);
 	}
@@ -108,7 +107,7 @@ public class BaseTestTimelineServiceImpl implements BaseTestTimelineService
 
 						if (oudeDatum != null)
 						{
-							Date nieuweDatum = DateUtil.minusTijdseenheid((Date) oudeDatum, aantalDagen, ChronoUnit.DAYS);
+							Date nieuweDatum = DateUtil.minDagen((Date) oudeDatum, aantalDagen);
 							BeanUtils.setProperty(object, dateField.getName(), nieuweDatum);
 							hibernateService.saveOrUpdate(object);
 							LOG.debug("--- " + object.getClass().getName() + "." + dateField.getName() + " van datum " + format.format((Date) oudeDatum) + ", naar datum "

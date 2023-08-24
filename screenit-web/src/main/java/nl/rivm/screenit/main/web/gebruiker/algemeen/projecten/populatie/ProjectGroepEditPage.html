@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -57,14 +57,14 @@
                                     Uitnodigingen pushen DK
                                 </label>
                                 <div class="control">
-                                    <input wicket:id="uitnodigingenPushenNa" type="text" placeholder="dd-mm-jaar"
-                                           size="16" id="appendedInputButton2"
-                                           class="input-small datum 3-maanden">
-                                    <a href="javascript:void();" class="btn"
-                                       onclick="$(this).prev().datepicker('show');return false;" title="Datum"
-                                       tabindex="-1"><i
-                                            class="icon-calendar"></i></a>
-                                </div>
+									<input wicket:id="uitnodigingenPushenNa" type="text" placeholder="dd-mm-jaar"
+										   size="16" id="appendedInputButton2"
+										   class="input-small datum 3-maanden">
+									<a href="javascript:void();" class="btn js-datepicker-show"
+									   title="Datum"
+									   tabindex="-1"><i
+											class="icon-calendar"></i></a>
+								</div>
                             </div>
                         </wicket:enclosure>
                         <wicket:enclosure child="uitnodigenVoorDKvoor">
@@ -72,15 +72,15 @@
                                 <label class="control-label">
                                     Uitnodigen voor DK v&oacute;&oacute;r
                                 </label>
-                                <div class="control">
-                                    <input wicket:id="uitnodigenVoorDKvoor" type="text" placeholder="dd-mm-jaar"
-                                           size="16" id="appendedInputButton"
-                                           class="input-small datum 3-maanden">
-                                    <a href="javascript:void();" class="btn"
-                                       onclick="$(this).prev().datepicker('show');return false;" title="Datum"
-                                       tabindex="-1"><i
-                                            class="icon-calendar"></i></a>
-                                </div>
+								<div class="control">
+									<input wicket:id="uitnodigenVoorDKvoor" type="text" placeholder="dd-mm-jaar"
+										   size="16" id="appendedInputButton"
+										   class="input-small datum 3-maanden">
+									<a class="btn js-datepicker-show"
+									   title="Datum"
+									   tabindex="-1"><i
+											class="icon-calendar"></i></a>
+								</div>
                             </div>
                         </wicket:enclosure>
                     </fieldset>

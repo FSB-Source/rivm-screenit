@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.controllers.mamma;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,7 +38,10 @@ import nl.rivm.screenit.clientportaal.services.mamma.MammaAfspraakService;
 import nl.rivm.screenit.clientportaal.services.mamma.MammaUitstelService;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActieType;
+import nl.rivm.screenit.service.ClientContactService;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
+import nl.rivm.screenit.util.DateUtil;
+import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -56,6 +59,10 @@ import org.springframework.web.bind.annotation.RestController;
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class UitstelController extends AbstractController
 {
+	private final HibernateService hibernateService;
+
+	private final ClientContactService clientContactService;
+
 	private final MammaBaseStandplaatsService standplaatsService;
 
 	private final MammaAfspraakService afspraakService;
@@ -72,11 +79,16 @@ public class UitstelController extends AbstractController
 			LOG.error("Datum ligt in het verleden");
 			return ResponseEntity.badRequest().build();
 		}
+		if (!DateUtil.isWerkdag(body.getVanaf()))
+		{
+			LOG.error("Datum ligt in het weekend");
+			return ResponseEntity.badRequest().build();
+		}
 
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.MAMMA_AFSPRAAK_MAKEN)
-			|| aanvraagIsToegestaneActie(client, ClientContactActieType.MAMMA_AFSPRAAK_WIJZIGEN))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.MAMMA_AFSPRAAK_MAKEN)
+			|| clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.MAMMA_AFSPRAAK_WIJZIGEN))
 		{
 			MammaAfspraakWijzigenFilterDto filter = afspraakService.toAfspraakFilter(body, client, false);
 
@@ -91,11 +103,18 @@ public class UitstelController extends AbstractController
 	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<String> maakUitstel(Authentication authentication, @RequestBody MammaStandplaatsperiodeOptieDto standplaatsPeriodeDto)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (datumValidatieService.datumIsInHetVerleden(standplaatsPeriodeDto.getFilter().getVanaf()))
+		var streefdatum = standplaatsPeriodeDto.getFilter().getVanaf();
+		if (datumValidatieService.datumIsInHetVerleden(streefdatum))
 		{
-			LOG.error("Datum ligt in het verleden");
+			LOG.error("Streefdatum ligt in het verleden");
+			return ResponseEntity.badRequest().build();
+		}
+
+		if (!DateUtil.isWerkdag(streefdatum))
+		{
+			LOG.error("Streefdatum valt in weekend");
 			return ResponseEntity.badRequest().build();
 		}
 
@@ -105,8 +124,8 @@ public class UitstelController extends AbstractController
 			return ResponseEntity.badRequest().build();
 		}
 
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.MAMMA_AFSPRAAK_MAKEN)
-			|| aanvraagIsToegestaneActie(client, ClientContactActieType.MAMMA_AFSPRAAK_WIJZIGEN))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.MAMMA_AFSPRAAK_MAKEN)
+			|| clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.MAMMA_AFSPRAAK_WIJZIGEN))
 		{
 			try
 			{

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.verslag;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,27 +38,23 @@ import org.apache.wicket.model.IModel;
 
 public class CervixClientVerslagenOverzichtPanel extends ClientVerslagenOverzichtPanel<CervixVerslag<?>>
 {
-	private static final long serialVersionUID = 1L;
-
 	public CervixClientVerslagenOverzichtPanel(String id, IModel<Client> model)
 	{
 		super(id, model);
 	}
 
 	@Override
-	protected IModel<? extends CervixVerslag<?>> getVerslagFilter()
+	protected IModel<CervixVerslag<?>> getVerslagFilter()
 	{
-		IModel<CervixCytologieVerslag> model = ModelUtil.cModel(new CervixCytologieVerslag());
-		CervixCytologieVerslag cytologieVerslag = model.getObject();
+		var dossier = new CervixDossier();
+		var screeningRonde = new CervixScreeningRonde();
+		var verslag = new CervixCytologieVerslag();
 
-		cytologieVerslag.setScreeningRonde(new CervixScreeningRonde());
-
-		CervixScreeningRonde screeningRonde = cytologieVerslag.getScreeningRonde();
-		screeningRonde.setDossier(new CervixDossier());
-		CervixDossier dossier = screeningRonde.getDossier();
+		verslag.setScreeningRonde(screeningRonde);
+		screeningRonde.setDossier(dossier);
 		dossier.setClient(getModelObject());
 
-		return model;
+		return ModelUtil.ccModel(verslag);
 	}
 
 	@Override
@@ -69,5 +65,4 @@ public class CervixClientVerslagenOverzichtPanel extends ClientVerslagenOverzich
 		return bevolkingsonderzoeken.contains(Bevolkingsonderzoek.CERVIX)
 			&& ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CERVIX_CYTOLOGIE_VERSLAG, Actie.INZIEN, clientModel.getObject());
 	}
-
 }

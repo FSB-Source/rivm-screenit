@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.generalis.projecten.brieven.aanmaakstep;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,6 @@ package nl.rivm.screenit.batch.jobs.generalis.projecten.brieven.aanmaakstep;
  */
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -63,6 +62,7 @@ public class ProjectBrievenAanmaakWriter extends BaseWriter<ProjectBriefActie>
 		switch (item.getType())
 		{
 		case DATUM:
+		case VANAF_DATUM:
 			createDatumBrieven(item, clienten);
 			break;
 		case XDAGENNAY:
@@ -79,7 +79,7 @@ public class ProjectBrievenAanmaakWriter extends BaseWriter<ProjectBriefActie>
 
 	private void createHerinneringBrief(ProjectBriefActie herinneringsActie)
 	{
-		Date verstuurdOp = currentDateSupplier.getDateTimeMidnight().minusDays(herinneringsActie.getAantalDagen()).toDate();
+		Date verstuurdOp = DateUtil.minDagen(currentDateSupplier.getDateMidnight(), herinneringsActie.getAantalDagen());
 		List<ProjectBrief> projectBrieven = projectService.getAllProjectBriefForHerinnering(herinneringsActie, verstuurdOp);
 		for (ProjectBrief brief : projectBrieven)
 		{
@@ -160,10 +160,6 @@ public class ProjectBrievenAanmaakWriter extends BaseWriter<ProjectBriefActie>
 		if (orgineleBrief != null)
 		{
 			brief.setTeHerinnerenBrief(orgineleBrief);
-		}
-		if (pClient.getBrieven() == null)
-		{
-			pClient.setBrieven(new ArrayList<ProjectBrief>());
 		}
 		if (orgineleBrief != null && orgineleBrief.getBriefType() != null)
 		{

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -255,6 +255,23 @@ public class MammaKwaliteitscontroleServiceImpl implements MammaKwaliteitscontro
 		{
 			throw new IllegalStateException("Onderzoek is al gezien.");
 		}
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void deleteVisitatie(MammaVisitatie visitatie)
+	{
+		if (visitatie.getRapportageBijlage() != null)
+		{
+			uploadDocumentService.delete(visitatie.getRapportageBijlage());
+			visitatie.setRapportageBijlage(null);
+		}
+		if (visitatie.getVragenlijstBijlage() != null)
+		{
+			uploadDocumentService.delete(visitatie.getVragenlijstBijlage());
+			visitatie.setVragenlijstBijlage(null);
+		}
+		hibernateService.delete(visitatie);
 	}
 
 	@Override

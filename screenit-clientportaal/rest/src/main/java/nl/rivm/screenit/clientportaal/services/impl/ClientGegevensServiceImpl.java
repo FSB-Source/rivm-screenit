@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.services.impl;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,7 +25,6 @@ import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.clientportaal.mappers.TijdelijkAdresMapper;
 import nl.rivm.screenit.clientportaal.services.ClientGegevensService;
-import nl.rivm.screenit.clientportaal.validators.TelefoonnummerValidator;
 import nl.rivm.screenit.clientportaal.validators.TijdelijkAdresValidator;
 import nl.rivm.screenit.dao.CoordinatenDao;
 import nl.rivm.screenit.model.Aanhef;
@@ -34,7 +33,11 @@ import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.TijdelijkAdres;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.ClientContactService;
+import nl.rivm.screenit.service.ClientService;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.util.EmailUtil;
+import nl.rivm.screenit.util.TelefoonnummerUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Persoon;
 
@@ -58,23 +61,27 @@ public class ClientGegevensServiceImpl implements ClientGegevensService
 
 	private final LogService logService;
 
+	private final ICurrentDateSupplier currentDateSupplier;
+
+	private final ClientService clientService;
+
 	@Override
 	public Client setTelefoonnummer(String telefoonnummer1, String telefoonnummer2, Client client)
 	{
 		Persoon persoon = client.getPersoon();
 
 		String getrimdeTelefoonnummer1 = StringUtils.trimToNull(telefoonnummer1);
-		if (getrimdeTelefoonnummer1 == null || TelefoonnummerValidator.telefoonnummerIsCorrect(getrimdeTelefoonnummer1))
+		if (getrimdeTelefoonnummer1 == null || TelefoonnummerUtil.isCorrectNederlandsMobielNummer(getrimdeTelefoonnummer1))
 		{
 			persoon.setTelefoonnummer1(getrimdeTelefoonnummer1);
 		}
 		else
 		{
-			throw new IllegalStateException("Het telefoonnummer is niet geldig");
+			throw new IllegalStateException("Het mobiele nummer is niet geldig");
 		}
 
 		String getrimdeTelefoonnummer2 = StringUtils.trimToNull(telefoonnummer2);
-		if (getrimdeTelefoonnummer2 == null || TelefoonnummerValidator.telefoonnummerIsCorrect(getrimdeTelefoonnummer2))
+		if (getrimdeTelefoonnummer2 == null || TelefoonnummerUtil.isCorrectTelefoonnummer(getrimdeTelefoonnummer2))
 		{
 			persoon.setTelefoonnummer2(getrimdeTelefoonnummer2);
 		}
@@ -83,7 +90,27 @@ public class ClientGegevensServiceImpl implements ClientGegevensService
 			throw new IllegalStateException("Het telefoonnummer is niet geldig");
 		}
 
-		hibernateService.saveOrUpdate(persoon);
+		clientService.saveContactGegevens(client, client);
+
+		return client;
+	}
+
+	@Override
+	public Client setEmailadres(String emailAdres, Client client)
+	{
+		var persoon = client.getPersoon();
+
+		var getrimdMailadres = StringUtils.trimToNull(emailAdres);
+		if (getrimdMailadres == null || EmailUtil.isCorrectEmailadres(emailAdres))
+		{
+			persoon.setEmailadres(getrimdMailadres);
+		}
+		else
+		{
+			throw new IllegalStateException("Het emailadres is niet geldig");
+		}
+
+		clientService.saveContactGegevens(client, client);
 
 		return client;
 	}
@@ -94,7 +121,7 @@ public class ClientGegevensServiceImpl implements ClientGegevensService
 		GbaPersoon persoon = client.getPersoon();
 
 		TijdelijkAdres huidigTijdelijkAdres = persoon.getTijdelijkAdres();
-		TijdelijkAdresValidator.validateTijdelijkAdres(nieuwTijdelijkAdres, huidigTijdelijkAdres);
+		TijdelijkAdresValidator.validateTijdelijkAdres(nieuwTijdelijkAdres, huidigTijdelijkAdres, currentDateSupplier.getLocalDate());
 
 		if (huidigTijdelijkAdres == null)
 		{

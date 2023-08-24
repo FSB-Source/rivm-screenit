@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.verslag;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -46,6 +46,7 @@ import nl.rivm.screenit.model.mamma.MammaLezing;
 import nl.rivm.screenit.model.mamma.enums.MammaAmputatie;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
+import nl.rivm.screenit.service.mamma.MammaBaseLezingService;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -66,6 +67,9 @@ public class MammaVerslagVerfijnenPanel extends GenericPanel<MammaLezing>
 	@SpringBean
 	private MammaBaseBeoordelingService baseBeoordelingService;
 
+	@SpringBean
+	private MammaBaseLezingService baseLezingService;
+
 	private final WebMarkupContainer laesiesContainer;
 
 	private IModel<List<LaesieDto>> laesieDtos;
@@ -75,10 +79,9 @@ public class MammaVerslagVerfijnenPanel extends GenericPanel<MammaLezing>
 
 	private IndicatingAjaxButton maakVerslagBtn;
 
-	public MammaVerslagVerfijnenPanel(MammaVerslagRondePanel verslagRondePanel, String id, IModel<MammaLezing> model, MammaAmputatie amputatie)
+	public MammaVerslagVerfijnenPanel(MammaVerslagRondePanel verslagRondePanel, String id, IModel<MammaLezing> model, MammaAmputatie amputatie, boolean toonAfwijkingSliceButtons)
 	{
 		super(id, model);
-
 		ScreenitForm<MammaLezing> form = new ScreenitForm<>("verfijnenForm");
 		add(form);
 		renderAfkeurRedenen(form);
@@ -97,6 +100,8 @@ public class MammaVerslagVerfijnenPanel extends GenericPanel<MammaLezing>
 
 		ComponentHelper.addTextArea(form, "biradsOpmerking", false, 255, lezingParameters.isInzien());
 
+		maakTomosyntheseSliceButtons(toonAfwijkingSliceButtons, form);
+
 		laesiesContainer = new WebMarkupContainer("laesiesContainer");
 		laesiesContainer.add(createLaesieLijst());
 		laesiesContainer.setOutputMarkupId(true);
@@ -113,7 +118,7 @@ public class MammaVerslagVerfijnenPanel extends GenericPanel<MammaLezing>
 					IModel<MammaLezing> verslagLezingModel = MammaVerslagVerfijnenPanel.this.getModel();
 					koppelLaesiesAanLezingEnSlaOp(verslagLezingModel, verslagRondePanel);
 					BasePage.markeerFormulierenOpgeslagen(target);
-					gaNaarVerwijsVerslagPanel(target, verslagRondePanel, verslagLezingModel, amputatie);
+					gaNaarVerwijsVerslagPanel(target, verslagRondePanel, verslagLezingModel, amputatie, toonAfwijkingSliceButtons);
 				}
 			}
 		};
@@ -123,6 +128,19 @@ public class MammaVerslagVerfijnenPanel extends GenericPanel<MammaLezing>
 		form.add(maakVerslagBtn);
 
 		form.add(new MammaNevenbevindingViewerPanel("nevenbevindingen", verslagRondePanel.getModel()));
+	}
+
+	private void maakTomosyntheseSliceButtons(Boolean toonAfwijkingSliceButtons, ScreenitForm<MammaLezing> form)
+	{
+		var afwijkingTeZienOpContainer = new MammaAfwijkingTeZienOpPanel("teZienOpContainer", getModel());
+		afwijkingTeZienOpContainer.setVisible(toonAfwijkingSliceButtons);
+		form.add(afwijkingTeZienOpContainer);
+
+		var zijde = baseLezingService.bepaalZijdeMetPrioriteit(getModelObject()).getNaam();
+
+		var sliceTomosyntheseTekst = new Label("sliceTomosyntheseTekst", String.format("Tomosynthese (%s)", StringUtils.capitalize(zijde)));
+		sliceTomosyntheseTekst.setVisible(toonAfwijkingSliceButtons);
+		form.add(sliceTomosyntheseTekst);
 	}
 
 	private void renderAfkeurRedenen(ScreenitForm<MammaLezing> form)
@@ -154,6 +172,7 @@ public class MammaVerslagVerfijnenPanel extends GenericPanel<MammaLezing>
 	{
 		return new ListView<LaesieDto>("laesieLijst", laesieDtos)
 		{
+			@Override
 			protected void populateItem(ListItem<LaesieDto> item)
 			{
 				item.add(createLaesiePanel(new CompoundPropertyModel<>(item.getModel())));
@@ -167,9 +186,10 @@ public class MammaVerslagVerfijnenPanel extends GenericPanel<MammaLezing>
 		baseBeoordelingService.slaLezingOp(verslagPanel.getModelObject(), verslagLezingModel.getObject());
 	}
 
-	private void gaNaarVerwijsVerslagPanel(AjaxRequestTarget target, MammaVerslagRondePanel verslagPanel, IModel<MammaLezing> verslagLezingModel, MammaAmputatie amputatie)
+	private void gaNaarVerwijsVerslagPanel(AjaxRequestTarget target, MammaVerslagRondePanel verslagPanel, IModel<MammaLezing> verslagLezingModel, MammaAmputatie amputatie,
+		boolean toonAfwijkingSliceButtons)
 	{
-		MammaVerwijsVerslagPanel verwijsVerslagPanel = new MammaVerwijsVerslagPanel("verslagPanel", verslagPanel, verslagLezingModel, amputatie);
+		MammaVerwijsVerslagPanel verwijsVerslagPanel = new MammaVerwijsVerslagPanel("verslagPanel", verslagPanel, verslagLezingModel, amputatie, toonAfwijkingSliceButtons);
 		verwijsVerslagPanel.setOutputMarkupId(true);
 		verslagPanel.replaceRonde(target, verwijsVerslagPanel);
 	}

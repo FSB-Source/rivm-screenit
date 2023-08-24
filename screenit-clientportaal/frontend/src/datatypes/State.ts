@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,6 +35,7 @@ export type State = {
 	client: Client,
 	landingOverzicht: LandingOverzicht,
 	toasts: ToastMessage[],
+	requestMinusResponseCounter: number
 }
 
 export const legeState: State = {
@@ -51,4 +52,5 @@ export const legeState: State = {
 	},
 	landingOverzicht: legeLandingOverzicht,
 	toasts: [],
+	requestMinusResponseCounter: 0,
 }

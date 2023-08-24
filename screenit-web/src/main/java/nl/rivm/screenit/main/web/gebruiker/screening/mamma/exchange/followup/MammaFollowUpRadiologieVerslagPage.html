@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -19,9 +19,6 @@
   =========================LICENSE_END==================================
   -->
 <html xmlns:wicket="http://wicket.apache.org/">
-<wicket:head>
-    <link rel="stylesheet" href="assets/font-awesome/css/font-awesome.min.css"/>
-</wicket:head>
 <body>
 <wicket:extend>
     <div class="form-horizontal">
@@ -53,15 +50,15 @@
         <wicket:fragment wicket:id="geenScreeningRondeFragment">
             <fieldset>
                 <div class="control-group value">
-                    <label style="font-size: 14px;">Client heeft nog geen onderzoek gehad</label>
+                    <label class="font-size-14px">Client heeft nog geen onderzoek gehad</label>
                 </div>
             </fieldset>
         </wicket:fragment>
         <wicket:fragment wicket:id="geenBeeldenGedownloadedFragment">
             <fieldset>
                 <div class="control-group value">
-                    <label style="font-size: 14px;">Er zijn (nog) geen beelden gedownloaded voor het laatste onderzoek van deze client. Wilt u alsnog radiologiegevens
-                        opvoeren?</label>
+					<label class="font-size-14px">Er zijn (nog) geen beelden gedownloaded voor het laatste onderzoek van deze client. Wilt u alsnog radiologiegevens
+						opvoeren?</label>
                 </div>
                 <div class="buttons">
                     <a class="btn btn-primary" wicket:id="tochInvoeren">Toch invoeren</a>

@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.verslag;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,17 +36,15 @@ import nl.rivm.screenit.main.web.gebruiker.gedeeld.formulieren.ScreenitFormulier
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.berichten.Verslag;
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
-import nl.rivm.screenit.model.cervix.verslag.cytologie.CervixCytologieVerslagContent;
+import nl.rivm.screenit.model.berichten.enums.VerslagType;
 import nl.rivm.screenit.model.colon.ColonVerslag;
-import nl.rivm.screenit.model.colon.verslag.mdl.MdlVerslagContent;
-import nl.rivm.screenit.model.colon.verslag.pa.PaVerslagContent;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.formulieren.ScreenitFormulierInstantie;
 import nl.rivm.screenit.model.formulieren.TypeFormulier;
+import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
 import nl.rivm.screenit.model.mamma.verslag.MammaVerslag;
-import nl.rivm.screenit.model.mamma.verslag.followup.MammaFollowUpVerslagContent;
 import nl.rivm.screenit.model.verslag.VerslagContent;
 import nl.rivm.screenit.service.BaseVerslagService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -67,15 +65,11 @@ import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wicketstuff.wiquery.core.javascript.JsQuery;
 import org.wicketstuff.wiquery.core.javascript.JsStatement;
 
 public class ClientVerslagPage extends ClientPage
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(ClientVerslagPage.class);
 
 	@SpringBean
 	private VerslagService verslagService;
@@ -101,26 +95,26 @@ public class ClientVerslagPage extends ClientPage
 
 	private FormulierRenderContext formulierRenderContext;
 
-	private final IModel<? extends Verslag> verslagModel;
+	private final IModel<? extends Verslag<?, ?>> verslagModel;
 
-	private BootstrapDialog dialog;
+	private final BootstrapDialog verwijderDialog;
 
 	private AjaxSubmitLink opslaanButton;
 
 	private boolean logout = false;
 
-	public ClientVerslagPage(IModel<? extends Verslag> verslagModel)
+	public ClientVerslagPage(IModel<? extends Verslag<?, ?>> verslagModel)
 	{
 		super(new PropertyModel<>(verslagModel, "screeningRonde.dossier.client"));
 		this.verslagModel = verslagModel;
 
-		Verslag verslag = verslagModel.getObject();
+		var verslag = verslagModel.getObject();
 
 		boolean isOpenstaand = verslag.getStatus().equals(VerslagStatus.IN_BEWERKING);
 		boolean isNieuw = verslag.getId() == null;
 
-		boolean magVerslagAanpassen = true;
-		boolean magVerslagVerwijderen = false;
+		boolean magVerslagAanpassen;
+		boolean magVerslagVerwijderen;
 		Client client = verslag.getScreeningRonde().getDossier().getClient();
 
 		switch (verslag.getType())
@@ -135,15 +129,18 @@ public class ClientVerslagPage extends ClientPage
 			break;
 		case CERVIX_CYTOLOGIE:
 			magVerslagAanpassen = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CERVIX_CYTOLOGIE_VERSLAG, Actie.AANPASSEN, client);
+			magVerslagVerwijderen = false;
 			break;
 		case MAMMA_PA_FOLLOW_UP:
 			magVerslagAanpassen = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_MAMMA_FOLLOW_UP_VERSLAG, Actie.AANPASSEN, client);
 			magVerslagVerwijderen = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_MAMMA_FOLLOW_UP_VERSLAG, Actie.VERWIJDEREN, client);
 			break;
+		default:
+			throw new IllegalStateException("Unexpected value: " + verslag.getType());
 		}
 
-		dialog = new BootstrapDialog("dialog");
-		add(dialog);
+		verwijderDialog = new BootstrapDialog("dialog");
+		add(verwijderDialog);
 
 		ScreenitFormulierRenderPanel formulierRenderPanel = new ScreenitFormulierRenderPanel("formulier",
 			ModelUtil.sModel(formulierService.getFormulierInstatie(verslag.getType().getTypeFormulier())))
@@ -164,25 +161,18 @@ public class ClientVerslagPage extends ClientPage
 			protected IModel<FormulierResultaatImpl> createRenderContextModel(ScreenitFormulierInstantie formulierInstantie, FormulierRenderContext formulierRenderContext)
 			{
 				ClientVerslagPage.this.formulierRenderContext = formulierRenderContext;
-				Verslag innerVerslag = ClientVerslagPage.this.verslagModel.getObject();
+				var innerVerslag = ClientVerslagPage.this.verslagModel.getObject();
 				TypeFormulier typeFormulier = formulierInstantie.getTypeFormulier();
 				switch (typeFormulier)
 				{
 				case MDL:
-					formulierRenderContext.setRootObject(new PropertyModel<MdlVerslagContent>(ClientVerslagPage.this.verslagModel, "verslagContent"));
-					break;
 				case PALGA:
-					formulierRenderContext.setRootObject(new PropertyModel<PaVerslagContent>(ClientVerslagPage.this.verslagModel, "verslagContent"));
-					break;
 				case CYTOLOGIE:
-					formulierRenderContext.setRootObject(new PropertyModel<CervixCytologieVerslagContent>(ClientVerslagPage.this.verslagModel, "verslagContent"));
-					break;
 				case MAMMA_PA_FOLLOW_UP:
-					formulierRenderContext.setRootObject(new PropertyModel<MammaFollowUpVerslagContent>(ClientVerslagPage.this.verslagModel, "verslagContent"));
+					formulierRenderContext.setRootObject(new PropertyModel<>(ClientVerslagPage.this.verslagModel, "verslagContent"));
 					break;
 				default:
 					break;
-
 				}
 
 				formulierResultaatModel = super.createRenderContextModel(formulierInstantie, formulierRenderContext);
@@ -240,10 +230,10 @@ public class ClientVerslagPage extends ClientPage
 			}
 		});
 
-		addVerslagVerwijderenButton(isOpenstaand, isNieuw, magVerslagVerwijderen, form);
+		addVerslagVerwijderenButton(isOpenstaand, isNieuw, magVerslagVerwijderen);
 		addOpslaanButton(isOpenstaand, magVerslagAanpassen, form);
 		addAfrondenButton(verslag, isOpenstaand, magVerslagAanpassen, client, form);
-		addHeropenenButton(verslag, isOpenstaand, magVerslagAanpassen, client, form);
+		addHeropenenButton(verslag, magVerslagAanpassen);
 		addAnnulerenButton();
 		addTerugButton();
 
@@ -263,22 +253,24 @@ public class ClientVerslagPage extends ClientPage
 		case MAMMA_PA_FOLLOW_UP:
 			add(new Label("type", "Follow Up"));
 			break;
+		default:
+			throw new IllegalStateException("Unexpected value: " + verslag.getType());
 		}
 	}
 
-	private void addHeropenenButton(Verslag verslag, boolean isOpenstaand, boolean magVerslagAanpassen, Client client, Form<Void> form)
+	private void addHeropenenButton(Verslag<?, ?> verslag, boolean magVerslagAanpassen)
 	{
-		IndicatingAjaxLink<Void> heropenen = new IndicatingAjaxLink<Void>("heropenen")
+		IndicatingAjaxLink<Void> heropenen = new IndicatingAjaxLink<>("heropenen")
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
 
-				Verslag innerVerslag = verslagModel.getObject();
+				var innerVerslag = verslagModel.getObject();
 				if (innerVerslag.getType().getBevolkingsonderzoek() != Bevolkingsonderzoek.CERVIX)
 				{
 					innerVerslag = verslagService.heropenVerslag(innerVerslag, ScreenitSession.get().getLoggedInInstellingGebruiker());
-					IModel model = null;
+					IModel<? extends Verslag<?, ?>> model;
 					switch (innerVerslag.getType().getBevolkingsonderzoek())
 					{
 					case COLON:
@@ -300,9 +292,19 @@ public class ClientVerslagPage extends ClientPage
 				}
 			}
 		};
-		boolean magHeropenen = verslag.getStatus().equals(VerslagStatus.AFGEROND) && verslag.getOntvangenBericht() == null && magVerslagAanpassen;
-		heropenen.setVisible(magHeropenen);
+		heropenen.setVisible(magHeropenen(verslag, magVerslagAanpassen));
 		add(heropenen);
+	}
+
+	private boolean magHeropenen(Verslag<?, ?> verslag, boolean magVerslagAanpassen)
+	{
+		return verslag.getStatus().equals(VerslagStatus.AFGEROND) && magVerslagAanpassen
+			&& verslag.getOntvangenBericht() == null && !isElektronischPalgaVerslag(verslag);
+	}
+
+	private boolean isElektronischPalgaVerslag(Verslag<?, ?> verslag)
+	{
+		return verslag.getType() == VerslagType.MAMMA_PA_FOLLOW_UP && baseVerslagService.isElektronischPalgaVerslag((MammaFollowUpVerslag) verslag);
 	}
 
 	@Override
@@ -322,7 +324,7 @@ public class ClientVerslagPage extends ClientPage
 
 	private void addTerugButton()
 	{
-		add(new Link<Object>("terug")
+		add(new Link<>("terug")
 		{
 			@Override
 			public void onClick()
@@ -335,7 +337,7 @@ public class ClientVerslagPage extends ClientPage
 
 	private void addAnnulerenButton()
 	{
-		add(new Link<Object>("annuleren")
+		add(new Link<>("annuleren")
 		{
 			@Override
 			public void onClick()
@@ -394,14 +396,14 @@ public class ClientVerslagPage extends ClientPage
 		add(opslaanButton);
 	}
 
-	private void addVerslagVerwijderenButton(boolean isOpenstaand, boolean isNieuw, boolean magVerslagVerwijderen, Form<Void> form)
+	private void addVerslagVerwijderenButton(boolean isOpenstaand, boolean isNieuw, boolean magVerslagVerwijderen)
 	{
-		IndicatingAjaxLink<Void> verwijderen = new ConfirmingIndicatingAjaxLink<Void>("verwijderen", dialog, "verwijder.verslag")
+		IndicatingAjaxLink<Void> verwijderen = new ConfirmingIndicatingAjaxLink<>("verwijderen", verwijderDialog, "verwijder.verslag")
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				Verslag verslag = verslagModel.getObject();
+				var verslag = verslagModel.getObject();
 				if (verslag.getType().getBevolkingsonderzoek() != Bevolkingsonderzoek.CERVIX)
 				{
 					ScreenitSession.get().info("Verslag verwijderd");
@@ -427,7 +429,7 @@ public class ClientVerslagPage extends ClientPage
 		if (rootObject instanceof VerslagContent)
 		{
 			VerslagContent<?> verslagContent = (VerslagContent<?>) rootObject;
-			Verslag verslag = verslagContent.getVerslag();
+			var verslag = verslagContent.getVerslag();
 			verslag.setInvoerder(ScreenitSession.get().getLoggedInInstellingGebruiker());
 			verslag.setDatumVerwerkt(dateSupplier.getDate());
 			verslagService.saveOrAfronden(verslagContent, formulierResultaatModel.getObject(), afronden, ScreenitSession.get().getLoggedInInstellingGebruiker());

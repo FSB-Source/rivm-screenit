@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.afspraken;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -142,14 +142,15 @@ public abstract class MammaBulkVerzettenPopup extends GenericPanel<MammaBulkVerz
 		gekozenStandplaatsPeriodeModel = standplaatsPeriodesVoorBulkVerzetten.contains(standplaatsPeriode) ? ModelUtil.cModel(standplaatsPeriode)
 			: ModelUtil.cModel(standplaatsPeriodesVoorBulkVerzetten.get(0));
 
-		afspraakVerzettenZonderClientContactVanaf = DateUtil.plusWerkdagen(dateSupplier.getDateTimeMidnight(),
-			preferenceService.getInteger(PreferenceKey.MAMMA_AFSPRAAK_VERZETTEN_ZONDER_CLIENT_CONTACT_VANAF_AANTAL_WERKDAGEN.name())).toDate();
+		afspraakVerzettenZonderClientContactVanaf = DateUtil.plusWerkdagen(dateSupplier.getDateMidnight(),
+			preferenceService.getInteger(PreferenceKey.MAMMA_AFSPRAAK_VERZETTEN_ZONDER_CLIENT_CONTACT_VANAF_AANTAL_WERKDAGEN.name()));
 
 		Date minDag = Collections.max(Arrays.asList(gekozenStandplaatsPeriodeModel.getObject().getVanaf(), afspraakVerzettenZonderClientContactVanaf));
 		Date maxDag = Collections.min(
 			Arrays.asList(gekozenStandplaatsPeriodeModel.getObject().getTotEnMet(), gekozenStandplaatsPeriodeModel.getObject().getScreeningsEenheid().getVrijgegevenTotEnMet()));
 
-		benodigdeCapaciteitVoorAfspraken = afspraken.stream().map(afspraak -> {
+		benodigdeCapaciteitVoorAfspraken = afspraken.stream().map(afspraak ->
+		{
 			BigDecimal voorlopigeOpkomstkans = baseKansberekeningService
 				.getVoorlopigeOpkomstkans(afspraak.getUitnodiging(), gekozenStandplaatsPeriodeModel.getObject(), MammaVerzettenReden.ONVOORZIENE_OMSTANDIGHEDEN);
 			MammaFactorType factorType = baseDossierService.getFactorType(afspraak.getUitnodiging().getScreeningRonde().getDossier());
@@ -179,7 +180,7 @@ public abstract class MammaBulkVerzettenPopup extends GenericPanel<MammaBulkVerz
 		form.add(vrijeCapaciteitContainer);
 
 		standplaatsPeriodeDropdown = new ScreenitDropdown<>("standplaatsPeriodeNaar", gekozenStandplaatsPeriodeModel, ModelUtil.listRModel(standplaatsPeriodesVoorBulkVerzetten),
-			new ChoiceRenderer<MammaStandplaatsPeriode>()
+			new ChoiceRenderer<>()
 			{
 				@Override
 				public Object getDisplayValue(MammaStandplaatsPeriode standplaatsPeriode)
@@ -245,8 +246,6 @@ public abstract class MammaBulkVerzettenPopup extends GenericPanel<MammaBulkVerz
 
 		ConfirmingIndicatingAjaxSubmitLink<Void> verzetten = new ConfirmingIndicatingAjaxSubmitLink<Void>("verzetten", form, confirmPopup, "bulk.verzetten")
 		{
-			private static final long serialVersionUID = 1L;
-
 			private boolean bulkVerzettenMogelijk;
 
 			@Override

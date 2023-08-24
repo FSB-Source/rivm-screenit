@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,12 +25,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.dao.UitnodigingsDao;
-import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.colon.ColonBrief;
@@ -51,7 +48,7 @@ import nl.rivm.screenit.service.colon.IFobtService;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.ColonScreeningRondeUtil;
 import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.IFOBTTestUtil;
+import nl.rivm.screenit.util.FITTestUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
@@ -82,9 +79,6 @@ public class ColonScreeningsrondeServiceImpl implements ColonScreeningsrondeServ
 	private HibernateService hibernateService;
 
 	@Autowired
-	private ClientDao clientDao;
-
-	@Autowired
 	private BaseBriefService briefService;
 
 	@Autowired
@@ -92,7 +86,7 @@ public class ColonScreeningsrondeServiceImpl implements ColonScreeningsrondeServ
 
 	@Autowired
 	@Lazy
-	private IFobtService iFobtService;
+	private IFobtService fitService;
 
 	@Override
 	public boolean heeftUitslag(ColonUitnodiging uitnodiging, boolean checkAlleenUitslagGecommuiceerd)
@@ -180,8 +174,8 @@ public class ColonScreeningsrondeServiceImpl implements ColonScreeningsrondeServ
 				}
 				else
 				{
-					IFOBTTest test = IFOBTTestUtil.getIfobtTest(laatsteUitnodiging);
-					iFobtService.setTestenVerlorenIndienActief(test);
+					IFOBTTest test = FITTestUtil.getFITTest(laatsteUitnodiging);
+					fitService.setTestenVerlorenIndienActief(test);
 				}
 			}
 			nieuweUitnodigingsDatum = fixUitnodigingsDatumBij2OpEenAdres(nieuweUitnodigingsDatum, uitnodiging);
@@ -199,38 +193,19 @@ public class ColonScreeningsrondeServiceImpl implements ColonScreeningsrondeServ
 
 	private Date fixUitnodigingsDatumBij2OpEenAdres(Date nieuweUitnodigingsDatum, ColonUitnodiging uitnodiging)
 	{
-		Integer uitnodigingsInterval = preferenceService.getInteger(PreferenceKey.UITNODIGINGSINTERVAL.name());
-		if (uitnodigingsInterval == null)
-		{
-			throw new IllegalStateException("Spreidingsperiode op de parameterisatie pagina is niet gezet");
-		}
-		Integer minimaleLeeftijd = preferenceService.getInteger(PreferenceKey.MINIMALE_LEEFTIJD_COLON.name());
-		if (minimaleLeeftijd == null)
-		{
-			throw new IllegalStateException("Minimale leeftijd colonscreening op de parameterisatie pagina is niet gezet.");
-		}
-
-		Integer maximaleLeeftijd = preferenceService.getInteger(PreferenceKey.MAXIMALE_LEEFTIJD_COLON.name());
-		if (maximaleLeeftijd == null)
-		{
-			throw new IllegalStateException("Maximale leeftijd colonscreening op de parameterisatie pagina is niet gezet");
-		}
 		Integer wachttijdVerzendenPakket = preferenceService.getInteger(PreferenceKey.WACHTTIJD_VERZENDEN_PAKKET_TWEE_OP_EEN_ADRES.name());
 		if (wachttijdVerzendenPakket == null)
 		{
 			throw new IllegalStateException("Wachttijd verzenden pakket bij 2 op 1 adres op de parameterisatie pagina is niet gezet");
 		}
 		Client client = uitnodiging.getScreeningRonde().getDossier().getClient();
-		List<Client> clientenOpAdres = clientDao.getClientenOpAdres(client.getPersoon().getGbaAdres(), minimaleLeeftijd,
-			maximaleLeeftijd, uitnodigingsInterval);
-		Client andereClient = ColonRestrictions.getAndereClient(clientenOpAdres, client);
-		boolean andereClientMetZelfdeAdresHeeftActiveIfobt = clientenOpAdres.size() == 2 && ColonRestrictions.isIfobtActief(andereClient, new ArrayList<>())
-			&& !ColonRestrictions.isWachttijdOpPakketVerstreken(andereClient, wachttijdVerzendenPakket, new ArrayList<>(), currentDateSupplier.getLocalDate());
 
-		if (andereClientMetZelfdeAdresHeeftActiveIfobt)
+		var andereClientMetActieveFit = fitService.getAndereClientOpZelfdeAdresEnActieveFit(client, new ArrayList<>());
+
+		if (andereClientMetActieveFit != null)
 		{
 			LocalDate creatieDatumUitnodigingAndereClient = DateUtil
-				.toLocalDate(andereClient.getColonDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging().getCreatieDatum());
+				.toLocalDate(andereClientMetActieveFit.getColonDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging().getCreatieDatum());
 			creatieDatumUitnodigingAndereClient = creatieDatumUitnodigingAndereClient.plusDays(wachttijdVerzendenPakket);
 			if (nieuweUitnodigingsDatum.before(DateUtil.toUtilDate(creatieDatumUitnodigingAndereClient)))
 			{

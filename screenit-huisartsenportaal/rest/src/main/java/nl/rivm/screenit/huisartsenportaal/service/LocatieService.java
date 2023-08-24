@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal.service;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,7 +35,7 @@ public interface LocatieService
 
 	List<LocatieDto> getAllLocatiesFromHuisartsInDto(Huisarts huisarts);
 
-	Locatie setLocatie(Huisarts huisarts, LocatieDto locatieDto);
+	Locatie updateAndGetLocatie(Huisarts huisarts, LocatieDto locatieDto);
 
 	Locatie getLocatie(LocatieDto locatieDto);
 
@@ -46,5 +46,7 @@ public interface LocatieService
 	boolean isLocatieIdVanHuisarts(Huisarts huisarts, long locatieId);
 
 	void herzendVerificatieMail(Huisarts huisarts, VerificatieLocatieDto locatieDto);
+
+	void nietVerstuurdeLabformulierenVerwijderen(LocatieDto locatieDto);
 
 }

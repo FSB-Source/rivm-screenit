@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.cervix.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,14 +23,13 @@ package nl.rivm.screenit.model.cervix.enums;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.util.DateUtil;
-
-import com.google.common.primitives.Ints;
 
 @Getter
 @AllArgsConstructor
@@ -50,14 +49,9 @@ public enum CervixLeeftijdcategorie
 
 	private final BriefType uitnodigingsBrief;
 
-	public static int getLeeftijd(LocalDate geboortedatum, LocalDate peilDatum)
-	{
-		return Ints.checkedCast(DateUtil.getAantalJaarTussenTweeDatums(geboortedatum, peilDatum));
-	}
-
 	public static CervixLeeftijdcategorie getLeeftijdcategorie(LocalDate geboortedatum, LocalDateTime peilDatum)
 	{
-		int leeftijd = getLeeftijd(geboortedatum, peilDatum.toLocalDate());
+		int leeftijd = DateUtil.getLeeftijd(geboortedatum, peilDatum.toLocalDate());
 		int remainder = leeftijd % 5;
 		int leeftijdCategorieInteger = leeftijd - remainder;
 		switch (leeftijdCategorieInteger)
@@ -106,5 +100,15 @@ public enum CervixLeeftijdcategorie
 			return _70;
 		}
 		return null;
+	}
+
+	public static int minimumLeeftijd()
+	{
+		return _30.getLeeftijd();
+	}
+
+	public static int aantalDagenTotBereikenMinimaleLeeftijd(LocalDate geboortedatum, LocalDate peildatum)
+	{
+		return DateUtil.getPeriodeTussenTweeDatums(peildatum, geboortedatum.plusYears(minimumLeeftijd()), ChronoUnit.DAYS);
 	}
 }

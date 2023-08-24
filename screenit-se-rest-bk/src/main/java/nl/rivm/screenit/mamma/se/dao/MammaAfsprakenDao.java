@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.dao;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,6 @@ package nl.rivm.screenit.mamma.se.dao;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +30,4 @@ public interface MammaAfsprakenDao
 	Map<Long, ClientIdentificatie> readLaatsteIdentificatieVanClienten(List<Long> clientIds);
 
 	Map<Long, Integer> readInschrijvingenVanSeInRange(Date beginDatum, Date eindDatum, String seCode);
-
-	Date readDatumVanOudsteNietAfgeslotenOnderzoek(LocalDate vandaag, String seCode);
 }

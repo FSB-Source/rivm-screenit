@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.colon.verslag.mdl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -65,7 +65,7 @@ public class MdlMedicatiemiddel
 		@DSValueSetValue(code = "N01AH03", codeSystem = "2.16.840.1.113883.6.73"),
 		@DSValueSetValue(code = "OTH", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(displayName = "Medicatie tijdens coloscopie", extraTekst = "Medicatie gegevens tijdens coloscopie, middel ter sedatie of relaxerend. Dit concept bevat de naam van het middel.", code = "2.16.840.1.113883.2.4.3.36.77.2.10.140090", isVerplicht = true)
+	@VraagElement(displayName = "Medicatie tijdens coloscopie", extraTekst = "Medicatie gegevens tijdens coloscopie, middel ter sedatie of relaxerend. Dit concept bevat de naam van het middel.", code = "2.16.840.1.113883.2.4.3.36.77.2.11.92", isVerplicht = true)
 	private DSValue medicatieTijdensColoscopie;
 
 	@Embedded
@@ -75,7 +75,7 @@ public class MdlMedicatiemiddel
 		@AttributeOverride(name = "unit", column = @Column(name = "doseringMedicatieUnit")),
 		@AttributeOverride(name = "nullFlavour", column = @Column(name = "doseringMedicatieNf"))
 	})
-	@VraagElement(displayName = "Dosering medicatie", extraTekst = "Hoeveelheid medicatie die gegeven is tijdens de coloscopie", code = "2.16.840.1.113883.2.4.3.36.77.2.10.140100", isVerplicht = true, unit = {
+	@VraagElement(displayName = "Dosering medicatie", extraTekst = "Hoeveelheid medicatie die gegeven is tijdens de coloscopie", code = "2.16.840.1.113883.2.4.3.36.77.2.11.94", isVerplicht = true, unit = {
 		@VraagElementUnit(unit = "mg"),
 		@VraagElementUnit(unit = "\u00b5g")
 	})

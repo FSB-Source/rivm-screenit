@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal.validator;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,6 @@ package nl.rivm.screenit.huisartsenportaal.validator;
  * =========================LICENSE_END==================================
  */
 
-import java.util.EnumSet;
 import java.util.List;
 
 import nl.rivm.screenit.huisartsenportaal.dto.AdresDto;
@@ -32,6 +31,7 @@ import nl.rivm.screenit.huisartsenportaal.model.Locatie;
 import nl.rivm.screenit.huisartsenportaal.repository.LocatieCriteriaRepository;
 import nl.rivm.screenit.huisartsenportaal.repository.LocatieRepository;
 import nl.rivm.screenit.huisartsenportaal.service.LocatieService;
+import nl.rivm.screenit.huisartsenportaal.util.CervixLocatieUtil;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.IBANValidator;
@@ -58,9 +58,9 @@ public class LocatieValidator extends BaseValidator<LocatieDto>
 	@Override
 	public void validateTarget(LocatieDto dto, Errors errors)
 	{
-		if (!controleerLocatieOpNullVelden(dto))
+		if (!isLocatieGoedIngevuld(dto))
 		{
-			errors.reject("error.locaties.valid", "Niet alle velden van de locatie zijn gevuld.");
+			errors.reject("error.locaties.valid", "Niet alle velden van de locatie zijn (goed) gevuld.");
 		}
 
 		Locatie locatieMetDezelfdeNaam = isErEenLocatieMetDezelfdeNaam(dto);
@@ -95,14 +95,10 @@ public class LocatieValidator extends BaseValidator<LocatieDto>
 			.anyMatch(el -> !el.getStatus().equals("INACTIEF"));
 	}
 
-	private boolean controleerLocatieOpNullVelden(LocatieDto locatieDto)
+	private boolean isLocatieGoedIngevuld(LocatieDto locatieDto)
 	{
-		boolean isIban = locatieDto.getIban() != null;
-		boolean isIbanTenaamstelling = locatieDto.getIbanTenaamstelling() != null;
-		boolean isZorgmailklantnummer = locatieDto.getZorgmailklantnummer() != null;
-		boolean isNaam = locatieDto.getNaam() != null;
 		boolean isAdres = controleerAdresOpNullVelden(locatieDto.getLocatieAdres());
-		return isIban && isIbanTenaamstelling && isZorgmailklantnummer && isNaam && isAdres;
+		return CervixLocatieUtil.isLocatieCompleet(locatieDto) && isAdres;
 	}
 
 	private boolean controleerAdresOpNullVelden(AdresDto adresDto)

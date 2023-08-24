@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.exceptions;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,16 +21,15 @@ package nl.rivm.screenit.exceptions;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Date;
 import java.util.List;
 
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
+import nl.rivm.screenit.util.DateUtil;
+
+import com.google.common.collect.Range;
 
 public abstract class OpslaanVerwijderenTijdBlokException extends Exception
 {
-
-	private static final long serialVersionUID = 1L;
-
 	public OpslaanVerwijderenTijdBlokException(String message)
 	{
 		super(message);
@@ -40,27 +38,28 @@ public abstract class OpslaanVerwijderenTijdBlokException extends Exception
 	public String getAdditionalMessageInfo()
 	{
 		int i = 0;
-		String message = " ";
+		String message = "";
 		List<?> items = getItems();
 		for (Object item : items)
 		{
-			Interval interval = null;
-			if (item instanceof Interval)
+			Range<Date> range = null;
+			if (item instanceof Range)
 			{
-				interval = (Interval) item;
+				range = (Range<Date>) item;
 			}
 			else
 			{
 				Object[] roosterItemTijden = (Object[]) item;
-				DateTime startDateTimeBestaand = new DateTime(roosterItemTijden[0]).withMillisOfSecond(0);
-				DateTime endDateTimeBestaand = new DateTime(roosterItemTijden[1]).withMillisOfSecond(0);
-				interval = new Interval(startDateTimeBestaand, endDateTimeBestaand);
+
+				var startDateTimeBestaand = DateUtil.startSeconde((Date) roosterItemTijden[0]);
+				var endDateTimeBestaand = DateUtil.startSeconde((Date) roosterItemTijden[1]);
+				range = Range.closed(startDateTimeBestaand, endDateTimeBestaand);
 			}
 			if (i > 0)
 			{
 				message += ", ";
 			}
-			message += interval.getStart().toString("dd-MM-yyyy HH:mm") + "-" + interval.getEnd().toString("HH:mm");
+			message += DateUtil.formatShortDateTime(range.lowerEndpoint()) + "-" + DateUtil.formatTime(range.upperEndpoint());
 
 			i++;
 			if (i == 5)

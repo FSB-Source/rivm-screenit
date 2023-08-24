@@ -3,6 +3,7 @@ import type {OnderbrokenOnderzoekOption} from "./visueleinspectie/aanvullendeinf
 import type {ExtraFotosReden} from "./visueleinspectie/aanvullendeinformatie/ExtraFotosReden"
 import type {SuboptimaleInsteltechniek} from "./visueleinspectie/mbbsignalering/SuboptimaleInsteltechniek"
 import type {RedenFotobespreking} from "./visueleinspectie/mbbsignalering/RedenFotobespreking"
+import {OnderzoekType} from "./OnderzoekType"
 
 export type Onderzoekstatus = "ACTIEF" | "ONDERBROKEN" | "ONVOLLEDIG" | "AFGEROND";
 export type Amputatie = "LINKERBORST" | "RECHTERBORST";
@@ -24,6 +25,7 @@ export type OnderzoekDto = {
 	onderbrokenOnderzoek?: OnderbrokenOnderzoekOption;
 	extraFotosRedenen?: Array<ExtraFotosReden>;
 	adviesHuisarts?: string;
+	onderzoekType: OnderzoekType;
 };
 export type Onderzoek = {
 	eerderMammogramZorginstellingId?: number;
@@ -42,4 +44,5 @@ export type Onderzoek = {
 	onderbrokenOnderzoek?: OnderbrokenOnderzoekOption;
 	extraFotosRedenen?: Array<ExtraFotosReden>;
 	adviesHuisarts?: string;
+	onderzoekType: OnderzoekType;
 };

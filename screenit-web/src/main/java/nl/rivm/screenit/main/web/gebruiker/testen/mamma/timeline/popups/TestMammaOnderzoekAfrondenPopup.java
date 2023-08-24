@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.popups;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,6 +29,7 @@ import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.MammaTestTimelinePage;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.mamma.enums.OnderbrokenOnderzoekOption;
 import nl.rivm.screenit.model.mamma.enums.OnvolledigOnderzoekOption;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
@@ -42,6 +43,8 @@ public class TestMammaOnderzoekAfrondenPopup extends TestMammaAbstractPopupPanel
 
 	private IModel<OnderbrokenOnderzoekOption> onderbrokenModel = Model.of();
 
+	private IModel<MammaOnderzoekType> onderzoeksTypeModel = Model.of(MammaOnderzoekType.MAMMOGRAFIE);
+
 	private IModel<Boolean> afwijkingModel = Model.of();
 
 	public TestMammaOnderzoekAfrondenPopup(String id, IModel<List<Client>> clientModel)
@@ -50,6 +53,7 @@ public class TestMammaOnderzoekAfrondenPopup extends TestMammaAbstractPopupPanel
 
 		ComponentHelper.addDropDownChoice(this, "onvolledig", false, Arrays.asList(OnvolledigOnderzoekOption.values()), false).setModel(onvolledigModel);
 		ComponentHelper.addDropDownChoice(this, "onderbroken", false, Arrays.asList(OnderbrokenOnderzoekOption.values()), false).setModel(onderbrokenModel);
+		ComponentHelper.addDropDownChoice(this, "typeOnderzoek", true, Arrays.asList(MammaOnderzoekType.values()), false).setModel(onderzoeksTypeModel);
 		this.add(ComponentHelper.newCheckBox("afwijking", afwijkingModel));
 
 	}
@@ -67,7 +71,7 @@ public class TestMammaOnderzoekAfrondenPopup extends TestMammaAbstractPopupPanel
 			InstellingGebruiker instellingGebruiker = ScreenitSession.get().getLoggedInInstellingGebruiker();
 			boolean versturenHl7Berichten = ((MammaTestTimelinePage) getPage()).getVerstuurHl7Berichten().getObject();
 			testTimelineService.rondOnderzoekAf(MammaScreeningRondeUtil.getLaatsteAfspraak(client.getMammaDossier().getLaatsteScreeningRonde()), instellingGebruiker,
-				versturenHl7Berichten, onvolledigModel.getObject(), onderbrokenModel.getObject(), afwijkingModel.getObject());
+				versturenHl7Berichten, onvolledigModel.getObject(), onderbrokenModel.getObject(), onderzoeksTypeModel.getObject(), afwijkingModel.getObject());
 		}
 
 	}

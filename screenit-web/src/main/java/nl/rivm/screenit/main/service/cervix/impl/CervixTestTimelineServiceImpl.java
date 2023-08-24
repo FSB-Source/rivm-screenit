@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,6 +29,7 @@ import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
+import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dto.alg.client.contact.DeelnamewensDto;
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenissen;
 import nl.rivm.screenit.main.model.testen.TestTimelineModel;
@@ -54,6 +55,7 @@ import nl.rivm.screenit.model.cervix.CervixZas;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieOrderStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
+import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixZasStatus;
@@ -71,7 +73,9 @@ import nl.rivm.screenit.service.cervix.CervixAanvraagService;
 import nl.rivm.screenit.service.cervix.CervixTestTimelineTimeService;
 import nl.rivm.screenit.service.cervix.enums.CervixTestTimeLineDossierTijdstip;
 import nl.rivm.screenit.util.BriefUtil;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -121,6 +125,9 @@ public class CervixTestTimelineServiceImpl implements CervixTestTimelineService
 
 	@Autowired
 	private TransgenderService transgenderService;
+
+	@Autowired
+	private SimplePreferenceService preferenceService;
 
 	@Override
 	public List<TestTimelineRonde> getTimelineRondes(Client client)
@@ -251,6 +258,18 @@ public class CervixTestTimelineServiceImpl implements CervixTestTimelineService
 			}
 		}
 		return keuzes;
+	}
+
+	@Override
+	public boolean magNieuweRondeStarten(CervixDossier dossier)
+	{
+		if (dossier.getLaatsteScreeningRonde() == null)
+		{
+			var vooraankondigingsPeriode = preferenceService.getInteger(PreferenceKey.CERVIX_VOORAANKONDIGINGS_PERIODE.name(), 30);
+			return CervixLeeftijdcategorie.aantalDagenTotBereikenMinimaleLeeftijd(DateUtil.toLocalDate(dossier.getClient().getPersoon().getGeboortedatum()),
+				dateSupplier.getLocalDate()) <= vooraankondigingsPeriode;
+		}
+		return true;
 	}
 
 	@Override

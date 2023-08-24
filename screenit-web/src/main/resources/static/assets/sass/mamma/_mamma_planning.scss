@@ -1,0 +1,94 @@
+.mamma-blokkade-reden {
+	width: 95%;
+	resize: none;
+}
+
+span.span-blokkade-list {
+	font-size: 12px;
+	vertical-align: middle;
+	padding: 4px 12px;
+}
+
+span.hele-dag-selector {
+	display: block;
+	padding-bottom: 5px;
+}
+
+.span-blokkade-list.blokkade-tm {
+	width: fit-content;
+	margin-left: 0;
+}
+
+.clear-both {
+	clear: both;
+}
+
+.bk-afspraken-nav > * {
+	margin-top: 0;
+	margin-bottom: 0;
+	margin-right: 10px;
+	display: inline-block;
+	float: none;
+}
+
+.bk-afspraken-nav {
+	display: inline-block;
+}
+
+.one-row {
+	display: flex;
+}
+
+.totaal-capaciteit {
+	width: 250px;
+}
+
+.checkbox-container {
+	flex: 1;
+	margin-left: 28px;
+}
+
+.blokkades {
+	background-color: #f7e7e7;
+	border-color: #df9f9f;
+	padding: 6px;
+	border-radius: 6px;
+}
+
+.bk-afspraken-nav-datum {
+	margin-right: -5px;
+	margin-bottom: 0 !important;
+}
+
+.btn.js-datepicker-show-parent.bk-afspraken-datum {
+	margin-right: 10px;
+}
+
+#ui-datepicker-div {
+	z-index: 20000 !important;
+}
+
+.week-capaciteit-tehuis {
+	background-color: #8E7B00;
+	margin-right: 2px;
+}
+
+.mamma-afspraak-locatie {
+	width: 95%;
+	resize: none;
+}
+
+.mamma-blok-met-afspraken-regulier {
+	background-color: #f7f2ff;
+	border-color: #d8beff;
+}
+
+.mamma-blok-met-afspraken-tehuis {
+	background-color: #fff297;
+	border-color: #ddd69f;
+}
+
+.mamma-blok-met-afspraken-geen_screening {
+	background-color: #f4f4f4;
+	border-color: #c8c8c8;
+}

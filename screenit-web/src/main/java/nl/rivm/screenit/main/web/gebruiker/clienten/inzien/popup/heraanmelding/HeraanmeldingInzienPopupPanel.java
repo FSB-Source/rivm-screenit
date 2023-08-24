@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.inzien.popup.heraanmelding;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -156,6 +156,7 @@ public abstract class HeraanmeldingInzienPopupPanel<A extends Afmelding<?, ?, ?>
 	private void addButtons()
 	{
 		ClientBrief laatsteBrief = getLaatsteBrief();
+
 		add(new AjaxLink<Void>("nogmaalsVersturen")
 		{
 			private static final long serialVersionUID = 1L;
@@ -170,7 +171,9 @@ public abstract class HeraanmeldingInzienPopupPanel<A extends Afmelding<?, ?, ?>
 				close(target);
 			}
 
-		}.setVisible(DossierStatus.ACTIEF == getModelObject().getDossier().getStatus()));
+		}.setVisible(DossierStatus.ACTIEF == (getModelObject().getDossier() == null ?
+			getModelObject().getScreeningRonde().getDossier().getStatus() :
+			getModelObject().getDossier().getStatus())));
 		add(new AjaxLink<Void>("tegenhouden")
 		{
 			@Override

@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,7 +36,7 @@ import {setLaatsteBezwaarMomentAction} from "../../actions/BezwaarReduxAction"
 import SpanWithHtml from "../../components/span/SpanWithHtml"
 import {Formik} from "formik"
 import SubmitForm from "../../components/form/SubmitForm"
-import {Checkbox} from "@material-ui/core"
+import {Checkbox} from "@mui/material"
 import {useNavigate} from "react-router-dom"
 import {getBvoBaseUrl} from "../../utils/UrlUtil"
 

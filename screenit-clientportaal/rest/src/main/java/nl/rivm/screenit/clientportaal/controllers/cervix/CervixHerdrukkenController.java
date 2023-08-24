@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.controllers.cervix;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,7 +31,9 @@ import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.service.BriefHerdrukkenService;
+import nl.rivm.screenit.service.ClientContactService;
 import nl.rivm.screenit.service.ClientService;
+import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -47,6 +49,9 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor
 public class CervixHerdrukkenController extends AbstractController
 {
+	private final HibernateService hibernateService;
+
+	private final ClientContactService clientContactService;
 
 	private final BriefHerdrukkenService herdrukkenService;
 
@@ -56,9 +61,9 @@ public class CervixHerdrukkenController extends AbstractController
 	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<Void> vraagHerdrukAan(Authentication authentication)
 	{
-		Client client = getClient(authentication);
+		Client client = getClient(authentication, hibernateService);
 
-		if (aanvraagIsToegestaneActie(client, ClientContactActieType.CERVIX_HERDRUK))
+		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.CERVIX_HERDRUK))
 		{
 			herdrukkenService.opnieuwAanmaken(getCervixBriefLaatstVerstuurdeUitnodiging(client), client);
 			return ResponseEntity.ok().build();

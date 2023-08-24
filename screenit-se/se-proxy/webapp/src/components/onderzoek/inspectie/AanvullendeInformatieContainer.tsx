@@ -12,6 +12,7 @@ import {
 	createActionMaakExtraFotosRedenen,
 	createActionMaakOnderbrokenOnderzoek,
 	createActionMaakOnvolledigOnderzoek,
+	createActionSetOnderzoekType,
 } from "../../../actions/AanvullendeInformatieActions"
 import type {ExtraFotosReden} from "../../../datatypes/visueleinspectie/aanvullendeinformatie/ExtraFotosReden"
 import {getMandatory} from "../../../util/MapUtil"
@@ -27,10 +28,12 @@ import AdhocKwaliteitscontrolePopupView from "../../melding/AdhocKwaliteitscontr
 import {magAdhocVersturen} from "../../../restclient/AdhocMeekijkverzoekRestClient"
 import {showErrorToast} from "../../../util/ToastUtil"
 import {Dispatch} from "redux"
+import {OnderzoekType} from "../../../datatypes/OnderzoekType"
 
 const aantalJarenTerug = 4
 type AanvullendeInformatieContainerProps = {
 	disabled: boolean;
+	voegOnderzoekTypeWijzigingToeAanWerklijst?: (onderzoekType: OnderzoekType) => void;
 };
 
 const mapStateToProps = (state: RootState, ownProps: AanvullendeInformatieContainerProps): AanvullendeInformatieViewStateProps => {
@@ -47,6 +50,7 @@ const mapStateToProps = (state: RootState, ownProps: AanvullendeInformatieContai
 		onvolledigOnderzoek: onderzoek.onvolledigOnderzoek,
 		onderbrokenOnderzoek: onderzoek.onderbrokenOnderzoek,
 		extraFotosRedenen: onderzoek.extraFotosRedenen,
+		onderzoekType: onderzoek.onderzoekType,
 		dubbeleTijd: client.doelgroep === "DUBBELE_TIJD",
 		dubbeleTijdReden: client.dubbeleTijdReden,
 		adviesHuisarts: onderzoek.adviesHuisarts,
@@ -55,6 +59,7 @@ const mapStateToProps = (state: RootState, ownProps: AanvullendeInformatieContai
 		disabled: afspraak.doorgevoerd || disabled,
 		onderzoekForm: getMandatory(state.formsByFormId, "onderzoek"),
 		dubbeleTijdDisabled: client.doelgroep === "MINDER_VALIDE",
+		tomosyntheseMogelijk: true === state.environmentInfo?.tomosyntheseMogelijk,
 	}
 }
 
@@ -67,7 +72,7 @@ const getJarenLijst = (daglijstDatum: string): number[] => {
 	return jarenList
 }
 
-const mapDispatchToProps = (dispatch: Dispatch): AanvullendeInformatieViewDispatchProps => {
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: AanvullendeInformatieContainerProps): AanvullendeInformatieViewDispatchProps => {
 	return {
 		verwerkEerderMammogramZorginstelling: (afspraakId: number, eerderMammogramZorginstelling: Zorginstelling | undefined): void => {
 			dispatchActions(dispatch, createActionMaakEerderMammogramZorginstelling(afspraakId, eerderMammogramZorginstelling ? eerderMammogramZorginstelling.id : undefined))
@@ -79,7 +84,6 @@ const mapDispatchToProps = (dispatch: Dispatch): AanvullendeInformatieViewDispat
 			if (onvolledigOnderzoek === "ZONDER_FOTOS") {
 				dispatchActions(dispatch, createActionMaakExtraFotosRedenen(afspraakId, undefined))
 			}
-
 			dispatchActions(dispatch, createActionMaakOnvolledigOnderzoek(afspraakId, onvolledigOnderzoek))
 		},
 		verwerkOnderbrokenOnderzoek(afspraakId: number, onderbrokenOnderzoek: OnderbrokenOnderzoekOption | undefined): void {
@@ -87,6 +91,9 @@ const mapDispatchToProps = (dispatch: Dispatch): AanvullendeInformatieViewDispat
 		},
 		verwerkExtraFotosReden(afspraakId: number, extraFotosRedenen: Array<ExtraFotosReden>): void {
 			dispatchActions(dispatch, createActionMaakExtraFotosRedenen(afspraakId, extraFotosRedenen))
+		},
+		verwerkOnderzoekType(afspraakId: number, onderzoekType: OnderzoekType): void {
+			dispatchActions(dispatch, createActionSetOnderzoekType(afspraakId, onderzoekType))
 		},
 		verwerkDubbeleTijd(afspraakId: number, clientId: number, dubbeleTijd: boolean, dubbeleTijdReden: string | undefined, form: Form): void {
 			dispatchActions(dispatch, createActionMaakDubbeleTijd(afspraakId, clientId, dubbeleTijd))
@@ -119,6 +126,11 @@ const mapDispatchToProps = (dispatch: Dispatch): AanvullendeInformatieViewDispat
 					showErrorToast("Kan geen meekijkverzoek LRCB aanvragen, probeer het later opnieuw")
 				}
 			})
+		},
+		voegOnderzoekTypeWijzigingToeAanWerklijst(onderzoekType: OnderzoekType): void {
+			if (ownProps.voegOnderzoekTypeWijzigingToeAanWerklijst) {
+				ownProps.voegOnderzoekTypeWijzigingToeAanWerklijst(onderzoekType)
+			}
 		},
 	}
 }

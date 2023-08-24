@@ -6,7 +6,7 @@ import {createActionAfspraakMakenPassant} from "../actions/PassantAfspraakMakenA
 import {dispatchActions} from "../util/DispatchUtil"
 import {createActionShowPopup} from "../actions/PopupActions"
 import {showErrorToast} from "../util/ToastUtil"
-import {datumFormaat, vandaagISO} from "../util/DateUtil"
+import {datumFormaat, datumTijdFormaat, vandaagISO} from "../util/DateUtil"
 import {putTransactionToScreenItCentraalPromiseZonderAfspraak} from "./TransactionRestclient"
 import {createActionNavigateToClientgegevens} from "../actions/NavigationActions"
 import type {ErrorDto} from "../datatypes/ErrorDto"
@@ -42,13 +42,13 @@ function dispatchPassant(dispatch: Dispatch, passant?: PassantDto): void {
 		dispatchActions(dispatch, createActionShowPopup("Afspraak maken cliënt", <PassantPopupView
 			naam={`${passant.clientSeDto.voorletters} ${passant.clientSeDto.aanspreekTussenvoegselEnAchternaam}`}
 			bsn={passant.clientSeDto.bsn} geboortedatum={datumFormaat(passant.clientSeDto.geboortedatum)}
-			afspraakVanaf={datumFormaat(passant.afspraakVanaf)} afspraakSe={passant.afspraakSe}
+			afspraakVanaf={datumTijdFormaat(passant.afspraakVanaf)} afspraakSe={passant.afspraakSe}
 			uitnodigingsDatum={datumFormaat(passant.uitnodigingsDatum)}
 			eenmaligeAfmelding={passant.eenmaligeAfmelding}/>, () => {
 			afterAkkoord(dispatch, passant.clientSeDto)
 		}, () => {
 			dispatchActions(dispatch, createActionUpdateForm("passant_afspraak_maken", newPassantAfspraakMakenForm()))
-		}, "Akkoord", "Annuleren", true))
+		}, "Maak afspraak", "Annuleren", true))
 	}
 }
 
