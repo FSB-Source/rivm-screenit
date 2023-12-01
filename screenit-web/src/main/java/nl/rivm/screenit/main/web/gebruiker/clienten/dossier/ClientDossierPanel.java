@@ -42,7 +42,6 @@ import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.Gebeu
 import nl.rivm.screenit.main.web.gebruiker.clienten.verslag.ClientVerslagPage;
 import nl.rivm.screenit.main.web.gebruiker.clienten.verslag.ClientVerslagenPage;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.enums.Actie;
@@ -111,7 +110,8 @@ public class ClientDossierPanel extends GenericPanel<Client>
 
 		hibernateService.reload(model.getObject());
 
-		InstellingGebruiker loggedInInstellingGebruiker = ScreenitSession.get().getLoggedInInstellingGebruiker();
+		var client = getModelObject();
+		var loggedInInstellingGebruiker = ScreenitSession.get().getLoggedInInstellingGebruiker();
 
 		IModel<ClientDossierFilter> zoekObjectModel;
 		if (!ScreenitSession.get().isZoekObjectGezetForComponent(ClientPage.class))
@@ -125,7 +125,7 @@ public class ClientDossierPanel extends GenericPanel<Client>
 			zoekObjectModel = (IModel<ClientDossierFilter>) ScreenitSession.get().getZoekObject(ClientPage.class);
 		}
 
-		ClientDossierFilterBvoPanel contactBvoFilter = new ClientDossierFilterBvoPanel("contactBvoFilter", zoekObjectModel)
+		var contactBvoFilter = new ClientDossierFilterBvoPanel("contactBvoFilter", zoekObjectModel)
 		{
 
 			@Override
@@ -137,7 +137,6 @@ public class ClientDossierPanel extends GenericPanel<Client>
 				target.add(gebeurtenissenContainer);
 			}
 		};
-
 		add(contactBvoFilter);
 		add(new ClientPaspoortPanel("passpoort", model));
 
@@ -150,8 +149,10 @@ public class ClientDossierPanel extends GenericPanel<Client>
 				setResponsePage(new ClientContactPage(ClientDossierPanel.this.getModel()));
 			}
 		};
+
 		contactAanmaken
-			.setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_CONTACT, null, model.getObject()) && !clientService.isClientOverleden(model.getObject()));
+			.setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_CONTACT, null, model.getObject()) && !clientService.isClientOverleden(model.getObject())
+				&& clientService.isClientActief(client));
 		add(contactAanmaken);
 
 		gebeurtenissenContainer = new WebMarkupContainer("gebeurtenissenContainer");
@@ -169,6 +170,7 @@ public class ClientDossierPanel extends GenericPanel<Client>
 	private ListView<ScreeningRondeGebeurtenissen> getGebeurtenissenContainer(final ClientDossierFilter clientDossierFilter)
 	{
 		dossierModel = new DetachableListModel<>(dossierService.getScreeningRondeGebeurtenissen((Client) ClientDossierPanel.this.getDefaultModelObject(), clientDossierFilter));
+		var client = getModelObject();
 
 		ListView<ScreeningRondeGebeurtenissen> rondeListView = new ListView<>("rondes", dossierModel)
 		{
@@ -176,7 +178,7 @@ public class ClientDossierPanel extends GenericPanel<Client>
 			@Override
 			protected void populateItem(ListItem<ScreeningRondeGebeurtenissen> item)
 			{
-				Bevolkingsonderzoek bevolkingsonderzoek = item.getModelObject().getScreeningRonde().getBevolkingsonderzoek();
+				var bevolkingsonderzoek = item.getModelObject().getScreeningRonde().getBevolkingsonderzoek();
 				item.add(new Label("bvo", getString(EnumStringUtil.getPropertyString(bevolkingsonderzoek))));
 				item.add(getProjectBadge(ClientDossierPanel.this.getModelObject(), bevolkingsonderzoek));
 				switch (bevolkingsonderzoek)
@@ -203,6 +205,10 @@ public class ClientDossierPanel extends GenericPanel<Client>
 			}
 		};
 		rondeListView.setOutputMarkupId(true);
+		if (!clientService.isClientActief(client))
+		{
+			rondeListView.setEnabled(false);
+		}
 		return rondeListView;
 	}
 
@@ -215,7 +221,7 @@ public class ClientDossierPanel extends GenericPanel<Client>
 			@Override
 			protected void populateItem(final ListItem<ScreeningRondeGebeurtenis> item)
 			{
-				ScreeningRondeGebeurtenis screeningRondeGebeurtenis = item.getModelObject();
+				var screeningRondeGebeurtenis = item.getModelObject();
 				IModel<Client> clientModel = ClientDossierPanel.this.getModel();
 
 				final TypeGebeurtenis gebeurtenis = screeningRondeGebeurtenis.getGebeurtenis();

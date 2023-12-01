@@ -28,6 +28,8 @@ import javax.persistence.Index;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import nl.topicuszorg.organisatie.model.Adres;
+
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
@@ -36,7 +38,7 @@ import org.hibernate.envers.NotAudited;
 	@Index(name = "IDX_ADRES_TOEVOEGING", columnList = "huisnummerToevoeging"), @Index(name = "IDX_ADRES_AANDUIDING", columnList = "huisnummerAanduiding"),
 	@Index(name = "IDX_ADRES_POSTCODE", columnList = "postcode"), @Index(name = "IDX_ADRES_LOCATIEBESCHRIJVING", columnList = "locatieBeschrijving") })
 @Audited
-public class BagAdres extends ScreenitAdres
+public class BagAdres extends Adres
 {
 
 	private static final long serialVersionUID = 1L;

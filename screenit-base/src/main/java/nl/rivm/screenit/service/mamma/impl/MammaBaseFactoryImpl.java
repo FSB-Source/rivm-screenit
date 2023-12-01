@@ -276,7 +276,7 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 
 		if (notificeerBetrokkenSe)
 		{
-			berichtToSeRestBkService.notificeerSes(screeningRonde.getDossier().getClient());
+			berichtToSeRestBkService.notificeerScreeningsEenhedenVerversenDaglijst(screeningRonde.getDossier().getClient());
 		}
 
 		if (stuurBerichtNaarSectra)

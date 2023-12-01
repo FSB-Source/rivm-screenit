@@ -44,7 +44,7 @@ public interface MammaBaseTestService
 
 	String clientenResetten(String bsns);
 
-	void clientReset(Client client);
+	void clientReset(Client client, boolean verwijderAlleBerichten);
 
 	int clientenDefinitiefAfmelden(List<Client> clienten, MammaAfmeldingReden afmeldingReden);
 

@@ -28,15 +28,15 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import nl.topicuszorg.organisatie.model.Adres;
+
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
 @Entity
 @Audited
-public class TijdelijkAdres extends ScreenitAdres
+public class TijdelijkAdres extends Adres
 {
-
-	private static final long serialVersionUID = 1L;
 
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date startDatum;

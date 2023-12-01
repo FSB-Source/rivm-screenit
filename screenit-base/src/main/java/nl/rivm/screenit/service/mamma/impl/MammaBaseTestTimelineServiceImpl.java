@@ -166,7 +166,7 @@ public class MammaBaseTestTimelineServiceImpl implements MammaBaseTestTimelineSe
 
 	private MammaScreeningRonde nieuweRonde(Client client, MammaStandplaatsRonde standplaatsRonde, boolean rekenDossierTerug)
 	{
-		baseHL7v24Dao.deleteMessagesForClient(client);
+		baseHL7v24Dao.deleteMessagesForClient(client, true);
 		MammaDossier dossier = client.getMammaDossier();
 		if (rekenDossierTerug)
 		{

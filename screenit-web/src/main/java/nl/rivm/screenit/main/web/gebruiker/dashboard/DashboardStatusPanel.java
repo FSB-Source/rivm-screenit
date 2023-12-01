@@ -30,11 +30,9 @@ import nl.rivm.screenit.main.service.cervix.CervixDossierService;
 import nl.rivm.screenit.main.service.colon.ColonDossierService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
+import nl.rivm.screenit.main.web.component.ConfirmingIndicatingAjaxSubmitLink;
 import nl.rivm.screenit.main.web.component.SimpleStringResourceModel;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
-import nl.rivm.screenit.main.web.component.modal.ConfirmPanel;
-import nl.rivm.screenit.main.web.component.modal.DefaultConfirmCallback;
-import nl.rivm.screenit.main.web.component.modal.IDialog;
 import nl.rivm.screenit.main.web.component.table.AjaxImageCellPanel;
 import nl.rivm.screenit.main.web.component.table.EnumPropertyColumn;
 import nl.rivm.screenit.main.web.component.table.NotClickablePropertyColumn;
@@ -47,6 +45,7 @@ import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.logging.LogRegel;
+import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.DashboardService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.mamma.MammaBaseDossierService;
@@ -69,11 +68,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import static nl.rivm.screenit.model.dashboard.DashboardType.CERVIX_CONTROLE_MISSENDE_UITSLAGEN;
-import static nl.rivm.screenit.model.dashboard.DashboardType.CERVIX_DIGITALE_LABFORMULIER_FOUT_BERICHTEN;
-import static nl.rivm.screenit.model.dashboard.DashboardType.COLON_CONTROLE_MISSENDE_UITSLAGEN;
-import static nl.rivm.screenit.model.dashboard.DashboardType.MAMMA_CONTROLE_MISSENDE_UITSLAGEN;
-
 public class DashboardStatusPanel extends GenericPanel<DashboardStatus>
 {
 	@SpringBean
@@ -86,6 +80,11 @@ public class DashboardStatusPanel extends GenericPanel<DashboardStatus>
 	private LogService logService;
 
 	@SpringBean
+	private ClientService clientService;
+
+	private BootstrapDialog confirmDialog;
+
+	@SpringBean
 	private ColonDossierService colonDossierService;
 
 	@SpringBean
@@ -96,16 +95,16 @@ public class DashboardStatusPanel extends GenericPanel<DashboardStatus>
 
 	private final WebMarkupContainer dashboardTabelContainer = new WebMarkupContainer("dashboardTabelContainer");
 
-	private final BootstrapDialog controleerdVastleggenDialog = new BootstrapDialog("controleerdVastleggenDialog");
-
 	public DashboardStatusPanel(String id, DashboardStatus dashboardStatus)
 	{
 		super(id, ModelUtil.ccModel(dashboardStatus));
-		add(controleerdVastleggenDialog);
+
+		confirmDialog = new BootstrapDialog("confirmDialog");
+		add(confirmDialog);
 
 		List<IColumn<LogRegel, String>> columns = new ArrayList<>();
 
-		columns.add(new EnumPropertyColumn<LogRegel, String, LogGebeurtenis>(new SimpleStringResourceModel("label.gebeurtenis"),
+		columns.add(new EnumPropertyColumn<>(new SimpleStringResourceModel("label.gebeurtenis"),
 			"logRegel.logGebeurtenis", "logGebeurtenis"));
 		columns.add(new DateTimePropertyColumn<>(new SimpleStringResourceModel("label.datumtijd"), "gebeurtenisDatum",
 			"logRegel.gebeurtenisDatum", Constants.getDateTimeSecondsFormat()));
@@ -132,23 +131,19 @@ public class DashboardStatusPanel extends GenericPanel<DashboardStatus>
 				item.add(new Label(componentId, getDataModel(rowModel)).setEscapeModelStrings(false));
 			}
 		});
-		boolean dashboardMetGecontroleerdKnop = isDashboardMetGecontroleerdKnop();
-		if (ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BEHEER_DASHBOARD_GEZIEN_KNOP, Actie.INZIEN) && !dashboardMetGecontroleerdKnop)
+
+		if (ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BEHEER_DASHBOARD_AFGEHANDELD_KNOP, Actie.AANPASSEN))
 		{
-			columns.add(maakGezienKnop());
-		}
-		else if (ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CONTROLEREN_MISSENDE_UITSLAGEN, Actie.AANPASSEN) && dashboardMetGecontroleerdKnop)
-		{
-			columns.add(maakGecontroleerdKnop());
+			columns.add(maakAfgehandeldKnop());
 		}
 
-		LoggingTable table = new LoggingTable("logging", columns, new DashboardDataProvider(getModel()), 5);
+		var table = new LoggingTable("logging", columns, new DashboardDataProvider(getModel()), 5);
 		table.setOutputMarkupId(true);
 		dashboardTabelContainer.add(table);
 		dashboardTabelContainer.setOutputMarkupId(true);
 		add(dashboardTabelContainer);
 
-		Form<?> form = new Form<>("form");
+		var form = new Form<>("form");
 		add(form);
 
 		var magEmailAanpassen = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BEHEER_DASHBOARD, Actie.AANPASSEN);
@@ -162,54 +157,51 @@ public class DashboardStatusPanel extends GenericPanel<DashboardStatus>
 				info(getString("message.gegevensopgeslagen"));
 			}
 		}.setVisible(magEmailAanpassen));
-	}
 
-	private NotClickablePropertyColumn<LogRegel, String> maakGezienKnop()
-	{
-		return new NotClickablePropertyColumn<>(Model.of("Gezien"), "")
+		ConfirmingIndicatingAjaxSubmitLink<String> bulkAfhandelLink = new ConfirmingIndicatingAjaxSubmitLink<>("bulkAfhandel", confirmDialog,
+			"Afhandelen.bulk.popup.bevestiging")
 		{
 			@Override
-			public void populateItem(Item<ICellPopulator<LogRegel>> item, String componentId, IModel<LogRegel> iModel)
+			protected void onSubmit(AjaxRequestTarget target)
 			{
-				Label emptyLabel = new Label(componentId, "");
-				emptyLabel.setOutputMarkupId(true);
-				if (!iModel.getObject().getLogEvent().getLevel().equals(Level.INFO))
+				var logregels = logService.getLogRegelsVanDashboard(DashboardStatusPanel.this.getModelObject());
+
+				for (var logRegel : logregels)
 				{
-					item.add(new AjaxImageCellPanel<>(componentId, iModel, "icon-eye-open")
+					if (!logRegel.getLogEvent().getLevel().equals(Level.INFO))
 					{
-						@Override
-						protected void onClick(AjaxRequestTarget target)
-						{
-							boolean isGedowngrade = dashboardService.updateLogRegelMetDashboardStatus(getModelObject(),
-								ScreenitSession.get().getLoggedInInstellingGebruiker().getMedewerker().getGebruikersnaam(), DashboardStatusPanel.this.getModelObject());
-							if (!isGedowngrade)
-							{
-								target.add(dashboardTabelContainer);
-							}
-							else
-							{
-								setResponsePage(new DashboardPage());
-							}
-						}
-					});
+						afhandelen(target, logRegel);
+					}
 				}
-				else
-				{
-					item.add(emptyLabel);
-				}
-				item.setOutputMarkupId(true);
+			}
+
+			@Override
+			protected IModel<String> getHeaderStringModel()
+			{
+				return Model.of(getString("Afhandelen.bulk.header"));
+			}
+
+			@Override
+			protected IModel<String> getContentStringModel()
+			{
+				return Model.of(getString("Afhandelen.bulk.popup.bevestiging"));
 			}
 		};
+
+		bulkAfhandelLink.setVisible(
+			ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BEHEER_DASHBOARD_AFGEHANDELD_KNOP, Actie.AANPASSEN) && !dashboardStatus.getLevel().equals(Level.INFO));
+
+		form.add(bulkAfhandelLink);
 	}
 
-	private NotClickablePropertyColumn<LogRegel, String> maakGecontroleerdKnop()
+	private NotClickablePropertyColumn<LogRegel, String> maakAfgehandeldKnop()
 	{
-		return new NotClickablePropertyColumn<>(Model.of("Gecontroleerd"), "")
+		return new NotClickablePropertyColumn<>(Model.of("Afgehandeld"), "")
 		{
 			@Override
 			public void populateItem(Item<ICellPopulator<LogRegel>> item, String componentId, IModel<LogRegel> iModel)
 			{
-				Label emptyLabel = new Label(componentId, "");
+				var emptyLabel = new Label(componentId, "");
 				emptyLabel.setOutputMarkupId(true);
 				if (!iModel.getObject().getLogEvent().getLevel().equals(Level.INFO))
 				{
@@ -218,20 +210,8 @@ public class DashboardStatusPanel extends GenericPanel<DashboardStatus>
 						@Override
 						protected void onClick(AjaxRequestTarget target)
 						{
-							var dashboardStatus = DashboardStatusPanel.this.getModelObject();
-							String dialogPropertyPrefix = "controleerDialog." + dashboardStatus.getType();
-							controleerdVastleggenDialog.openWith(target, new ConfirmPanel(IDialog.CONTENT_ID, Model.of(getString(dialogPropertyPrefix + ".header")),
-								Model.of(getString(dialogPropertyPrefix + ".content")),
-								new DefaultConfirmCallback()
-								{
-									@Override
-									public void onYesClick(AjaxRequestTarget target)
-									{
-										onControleerd(target, getModelObject());
-									}
-								}, controleerdVastleggenDialog));
+							afhandelen(target, getModelObject());
 						}
-
 					});
 				}
 				else
@@ -243,11 +223,12 @@ public class DashboardStatusPanel extends GenericPanel<DashboardStatus>
 		};
 	}
 
-	private void onControleerd(AjaxRequestTarget target, LogRegel logRegel)
+	private void afhandelen(AjaxRequestTarget target, LogRegel logRegel)
 	{
 		var dashboardStatus = getModelObject();
 		var dashboardLevelDowngraded = false;
 		var ingelogdeInstellingGebruiker = ScreenitSession.get().getLoggedInInstellingGebruiker();
+		var gebruikersnaam = ingelogdeInstellingGebruiker.getMedewerker().getGebruikersnaam();
 
 		switch (dashboardStatus.getType())
 		{
@@ -264,14 +245,22 @@ public class DashboardStatusPanel extends GenericPanel<DashboardStatus>
 				ingelogdeInstellingGebruiker, dashboardStatus);
 			break;
 		case CERVIX_DIGITALE_LABFORMULIER_FOUT_BERICHTEN:
-			dashboardLevelDowngraded = logService.verwijderLogRegelsVanDashboards(List.of(logRegel), ScreenitSession.get().getLoggedInInstellingGebruiker(),
+			dashboardLevelDowngraded = logService.verwijderLogRegelsVanDashboards(List.of(logRegel), ingelogdeInstellingGebruiker,
 				LogGebeurtenis.CERVIX_DIGITAAL_LABFORMULIER_FOUT_ONTVANGEN_GECONTROLEERD);
 			break;
-		default:
+		case GBA_LANDELIJK:
+			if (logRegel.getLogGebeurtenis().equals(LogGebeurtenis.GBA_IMPORT_VERWIJDERD_VAN_PERSOONSLIJST))
+			{
+				logService.logGebeurtenis(LogGebeurtenis.GBA_DASHBOARDMELDING_AFGEHANDELD, ScreenitSession.get().getLoggedInAccount(), logRegel.getClient());
+			}
+			dashboardLevelDowngraded = dashboardService.updateLogRegelMetDashboardStatus(logRegel,
+				gebruikersnaam, dashboardStatus);
 			break;
+		default:
+			dashboardLevelDowngraded = dashboardService.updateLogRegelMetDashboardStatus(logRegel,
+				gebruikersnaam, dashboardStatus);
 		}
-
-		if (!dashboardLevelDowngraded)
+		if (!dashboardLevelDowngraded && target != null)
 		{
 			target.add(dashboardTabelContainer);
 		}
@@ -281,9 +270,4 @@ public class DashboardStatusPanel extends GenericPanel<DashboardStatus>
 		}
 	}
 
-	private boolean isDashboardMetGecontroleerdKnop()
-	{
-		return List.of(COLON_CONTROLE_MISSENDE_UITSLAGEN, CERVIX_CONTROLE_MISSENDE_UITSLAGEN, MAMMA_CONTROLE_MISSENDE_UITSLAGEN, CERVIX_DIGITALE_LABFORMULIER_FOUT_BERICHTEN)
-			.contains(getModelObject().getType());
-	}
 }

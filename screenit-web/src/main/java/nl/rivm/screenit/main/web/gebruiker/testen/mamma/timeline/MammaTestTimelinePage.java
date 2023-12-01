@@ -258,6 +258,8 @@ public class MammaTestTimelinePage extends TestenBasePage
 		add(new MammaTestBulkDeelnamekansPanel("deelnamekansen"));
 
 		add(new MammaTestSluitDagenSEPanel("sluitDagenSE"));
+
+		add(new MammaTestClientenMetBeeldenBeschikbaarPanel("clientenMetBeeldenBeschikbaar"));
 	}
 
 	private WebMarkupContainer getFormComponentsContainer()

@@ -90,8 +90,7 @@ public class CervixUitstelWriter extends BaseWriter<CervixUitstel>
 				{
 					brief = briefService.maakBvoBrief(ronde, ronde.getLeeftijdcategorie().getUitnodigingsBrief());
 				}
-
-				var laatsteUitnodiging = clientService.getLaatstVerstuurdeUitnodiging(ronde, false);
+				var laatsteUitnodiging = clientService.getLaatstVerstuurdeUitnodiging(ronde, true);
 				if (laatsteUitnodiging != null)
 				{
 					var laatsteUitnodigingBrief = laatsteUitnodiging.getBrief();

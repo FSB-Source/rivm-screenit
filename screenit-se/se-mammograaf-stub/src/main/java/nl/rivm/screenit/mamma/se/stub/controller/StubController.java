@@ -23,10 +23,15 @@ package nl.rivm.screenit.mamma.se.stub.controller;
 
 import java.security.InvalidParameterException;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.mamma.se.stub.SeStubApplication;
 import nl.rivm.screenit.mamma.se.stub.services.DicomService;
@@ -43,13 +48,17 @@ import org.dcm4che3.net.Status;
 import org.dcm4che3.util.UIDUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
+@Slf4j
 public class StubController
 {
 	private Map<String, String> viewResults;
@@ -64,6 +73,8 @@ public class StubController
 	@Value("${AE_TITLE}")
 	private String aeTitle;
 
+	private Duration offset = Duration.ZERO;
+
 	public StubController()
 	{
 		lastWorklistItem = new Attributes();
@@ -73,6 +84,16 @@ public class StubController
 		formatter.applyPattern("dd-MM-YYYY");
 	}
 
+	@PostMapping("/wijzigDatumTijd/{datumTijd}")
+	public ResponseEntity<Void> wijzigDatumTijd(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime datumTijd)
+	{
+		this.offset = Duration.between(datumTijd, LocalDateTime.now());
+
+		LOG.info("Datum bijgewerkt naar {}", datumTijd);
+
+		return ResponseEntity.ok().build();
+	}
+
 	@RequestMapping("/werklijst")
 	public String getWerklijst(Model model, @RequestParam(value = "foutMelding", required = false) boolean foutMelding,
 		@RequestParam(value = "accessionNumber", required = false) String accessionNumber) throws Exception
@@ -80,7 +101,10 @@ public class StubController
 		Attributes worklistRequest = dicomService.loadDicomResource("mwlRequestTemplate.xml");
 
 		Sequence scheduledProcedure = worklistRequest.getSequence(Tag.ScheduledProcedureStepSequence);
-		scheduledProcedure.get(0).setDate(Tag.ScheduledProcedureStepStartDate, VR.DA, foutMelding ? DateUtils.addDays(new Date(), -1) : new Date());
+
+		var date = getCurrentUtilDate();
+
+		scheduledProcedure.get(0).setDate(Tag.ScheduledProcedureStepStartDate, VR.DA, foutMelding ? DateUtils.addDays(date, -1) : date);
 
 		if (accessionNumber != null)
 		{
@@ -109,7 +133,7 @@ public class StubController
 
 		updateMppsCreateFromWorklist(mppsInProgress);
 
-		mppsInProgress.setDate(Tag.PerformedProcedureStepStartDateAndTime, new DatePrecision(Calendar.SECOND), new Date());
+		mppsInProgress.setDate(Tag.PerformedProcedureStepStartDateAndTime, new DatePrecision(Calendar.SECOND), getCurrentUtilDate());
 
 		dicomService.sendMppsCreate(mppsInProgress, foutMelding);
 		vulMPPSResultaten(dicomService.getResults());
@@ -130,7 +154,7 @@ public class StubController
 	{
 		Attributes mppsCompleted = dicomService.loadDicomResource("mppsCompletedTemplate.xml");
 
-		mppsCompleted.setDate(Tag.PerformedProcedureStepEndDateAndTime, new DatePrecision(Calendar.SECOND), new Date());
+		mppsCompleted.setDate(Tag.PerformedProcedureStepEndDateAndTime, new DatePrecision(Calendar.SECOND), getCurrentUtilDate());
 
 		switch (zijde)
 		{
@@ -167,7 +191,7 @@ public class StubController
 	public String sendModalityPerfomedProcedureStepDiscontinued(Model model) throws Exception
 	{
 		Attributes mppsDiscontinued = dicomService.loadDicomResource("mppsDiscontinuedTemplate.xml");
-		mppsDiscontinued.setDate(Tag.PerformedProcedureStepEndDateAndTime, new DatePrecision(Calendar.SECOND), new Date());
+		mppsDiscontinued.setDate(Tag.PerformedProcedureStepEndDateAndTime, new DatePrecision(Calendar.SECOND), getCurrentUtilDate());
 
 		maakSerieFotos(mppsDiscontinued, "R CC");
 
@@ -300,5 +324,12 @@ public class StubController
 		exposureDoseSequence.setString(Tag.XRayTubeCurrentInuA, VR.DS, "1000");
 
 		return exposureDoseSequence;
+	}
+
+	private Date getCurrentUtilDate()
+	{
+		var atZone = LocalDateTime.now().minus(offset).atZone(ZoneId.of("Europe/Amsterdam"));
+		var instant = atZone.toInstant();
+		return Date.from(instant);
 	}
 }

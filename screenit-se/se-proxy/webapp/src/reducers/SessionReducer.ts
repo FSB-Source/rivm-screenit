@@ -8,7 +8,6 @@ const SessionReducer: Reducer<Session | null, SessionActions | ClearCacheActions
 	switch (action.type) {
 		case SET_SESSION:
 			return {
-				sessionId: action.sessionId,
 				gebruikersnaam: action.gebruikersnaam,
 				medewerkercode: action.medewerkercode,
 				displayName: action.displayName,

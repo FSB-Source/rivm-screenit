@@ -62,7 +62,7 @@ public class MammaConclusieReviewDaoImpl extends AbstractAutowiredDao implements
 	@Override
 	public long countConclusieReviewsVanRadioloog(MammaConclusieReviewZoekObject zoekObject)
 	{
-		Criteria crit = createConclusieReviewCriteria(zoekObject);
+		var crit = createConclusieReviewCriteria(zoekObject);
 		crit.setProjection(Projections.rowCount());
 		return (Long) crit.uniqueResult();
 	}
@@ -70,7 +70,7 @@ public class MammaConclusieReviewDaoImpl extends AbstractAutowiredDao implements
 	@Override
 	public List<MammaConclusieReview> zoekConclusieReviewsVanRadioloog(MammaConclusieReviewZoekObject zoekObject, int first, int count, String sortProperty, boolean asc)
 	{
-		Criteria crit = createConclusieReviewCriteria(zoekObject);
+		var crit = createConclusieReviewCriteria(zoekObject);
 
 		addSortering(sortProperty, asc, crit);
 
@@ -86,7 +86,7 @@ public class MammaConclusieReviewDaoImpl extends AbstractAutowiredDao implements
 	@Override
 	public List<Long> zoekBeoordelingIdsMetConclusie(MammaConclusieReviewZoekObject zoekObject, String sortProperty, boolean asc)
 	{
-		Criteria crit = createConclusieReviewCriteria(zoekObject);
+		var crit = createConclusieReviewCriteria(zoekObject);
 		addSortering(sortProperty, asc, crit);
 
 		crit.createAlias("laatsteOnderzoek.laatsteBeoordeling", "laatsteBeoordeling");
@@ -97,23 +97,53 @@ public class MammaConclusieReviewDaoImpl extends AbstractAutowiredDao implements
 
 	private Criteria createConclusieReviewCriteria(MammaConclusieReviewZoekObject zoekObject)
 	{
-		InstellingGebruiker instellingGebruiker = zoekObject.getInstellingGebruiker();
-		DetachedCriteria subCriteria = DetachedCriteria.forClass(MammaConclusieReview.class);
+		var radioloog = zoekObject.getRadioloog();
+		var subCriteria = DetachedCriteria.forClass(MammaConclusieReview.class, "conclusieReview");
 		subCriteria.createAlias("screeningRonde", "screeningRonde");
 
 		addGereviewedRestriction(zoekObject, subCriteria);
 		addConclusiedatumRestriction(zoekObject, subCriteria);
 
-		subCriteria.add(Restrictions.eq("radioloog", zoekObject.getInstellingGebruiker()));
+		subCriteria.add(Restrictions.eq("radioloog", radioloog));
 		subCriteria.add(Restrictions.eq("reviewAlsCoordinerendRadioloog", false));
 
-		addFilterOptieRestrictions(zoekObject, instellingGebruiker, subCriteria);
+		addFilterOptieRestrictions(zoekObject, radioloog, subCriteria);
+
+		addGereviewedDoorCoordinerendRadioloogRestriction(zoekObject, subCriteria);
+
 		subCriteria.setProjection(Projections.id());
 
-		Criteria crit = getSession().createCriteria(MammaConclusieReview.class);
+		var crit = getSession().createCriteria(MammaConclusieReview.class);
 		crit.add(Subqueries.propertyIn("id", subCriteria));
 
 		return crit;
+	}
+
+	private void addGereviewedDoorCoordinerendRadioloogRestriction(MammaConclusieReviewZoekObject zoekObject, DetachedCriteria subCriteria)
+	{
+		if (zoekObject.getCoordinerendRadioloogKijktBijAndereRadioloog())
+		{
+			if (zoekObject.isGezienCoordinerendRadioloogTonen())
+			{
+				subCriteria.add(Subqueries.exists(getGereviewedCoordinerendRadioloogRestriction(zoekObject)));
+			}
+			else
+			{
+				subCriteria.add(Subqueries.notExists(getGereviewedCoordinerendRadioloogRestriction(zoekObject)));
+			}
+		}
+	}
+
+	private DetachedCriteria getGereviewedCoordinerendRadioloogRestriction(MammaConclusieReviewZoekObject zoekObject)
+	{
+		var subSubcriteria = DetachedCriteria.forClass(MammaConclusieReview.class, "conclusieReviewCR");
+		subSubcriteria.add(Restrictions.eqProperty("conclusieReviewCR.screeningRonde", "conclusieReview.screeningRonde"));
+		subSubcriteria.add(Restrictions.eq("reviewAlsCoordinerendRadioloog", true));
+		subSubcriteria.add(Restrictions.eq("radioloog", zoekObject.getIngelogdeGebruiker()));
+		subSubcriteria.add(Restrictions.isNotNull("reviewMoment"));
+		subSubcriteria.setProjection(Projections.id());
+
+		return subSubcriteria;
 	}
 
 	private void addSortering(String sortProperty, boolean asc, Criteria crit)
@@ -213,17 +243,6 @@ public class MammaConclusieReviewDaoImpl extends AbstractAutowiredDao implements
 			Restrictions.in(lezing + ".biradsLinks", MammaBIRADSWaarde.getNietVerwijzendBIRADSWaarden()),
 			Restrictions.in(lezing + ".biradsRechts", MammaBIRADSWaarde.getNietVerwijzendBIRADSWaarden()),
 			Restrictions.eq(lezing + ".beoordelaar", instellingGebruiker));
-	}
-
-	@Override
-	public MammaConclusieReview getConclusieReview(MammaScreeningRonde screeningRonde, InstellingGebruiker radioloog, boolean alsCoordinerendRadioloogGereviewd)
-	{
-		Criteria criteria = getSession().createCriteria(MammaConclusieReview.class, "conclusieReview");
-		criteria.add(Restrictions.eq("conclusieReview.screeningRonde.id", screeningRonde.getId()));
-		criteria.add(Restrictions.eq("conclusieReview.radioloog.id", radioloog.getId()));
-		criteria.add(Restrictions.eq("conclusieReview.reviewAlsCoordinerendRadioloog", alsCoordinerendRadioloogGereviewd));
-
-		return (MammaConclusieReview) criteria.uniqueResult();
 	}
 
 	@Override

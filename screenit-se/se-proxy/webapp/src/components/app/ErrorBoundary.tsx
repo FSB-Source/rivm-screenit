@@ -21,7 +21,7 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
 		verstuurConsoleMeldingNaarCentraal({
 			level: "ERROR",
 			melding: `Fout uit component: ${error.message}`,
-			stack: info.componentStack,
+			stack: info.componentStack ?? undefined,
 		})
 		this.setState({hasError: true})
 	}

@@ -27,7 +27,6 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -418,7 +417,7 @@ public class RoosterServiceImpl implements RoosterService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void toevoegenHerhaling(AbstractAppointment appointment)
 	{
 		hibernateService.saveOrUpdate(appointment);
@@ -428,8 +427,18 @@ public class RoosterServiceImpl implements RoosterService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
-	public Iterator<RoosterItemListViewWrapper> getRoosterBlokken(String sortProperty, boolean asc, long first, long count, RoosterListViewFilter filter,
+	@Transactional
+	public List<RoosterItemListViewWrapper> getAlleRoosterBlokkenInPeriode(String sortProperty, boolean asc, RoosterListViewFilter filter,
+		ColoscopieCentrum intakeLocatie)
+	{
+		filter = filter.clone();
+		refineFilterDates(filter);
+		return roosterDao.getAlleRoosterBlokkenInPeriode(sortProperty, asc, filter, intakeLocatie);
+	}
+
+	@Override
+	@Transactional
+	public List<RoosterItemListViewWrapper> getRoosterBlokken(String sortProperty, boolean asc, long first, long count, RoosterListViewFilter filter,
 		ColoscopieCentrum intakeLocatie)
 	{
 		filter = filter.clone();
@@ -438,7 +447,7 @@ public class RoosterServiceImpl implements RoosterService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public long getRoosterBlokkenCount(RoosterListViewFilter filter, ColoscopieCentrum intakeLocatie)
 	{
 		filter = filter.clone();

@@ -39,6 +39,14 @@ public class DagPlanningSamenvattingDto
 
 	private LocalDateTime eindtijd;
 
+	private long aantalVerwacht;
+
+	private long aantalAfgerond;
+
+	private long aantalOnderbroken;
+
+	private long aantalOnvolledig;
+
 	public DagPlanningSamenvattingDto()
 	{
 		dagCapaciteit = BigDecimal.ZERO;

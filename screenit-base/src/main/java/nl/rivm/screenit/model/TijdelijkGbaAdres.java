@@ -23,13 +23,12 @@ package nl.rivm.screenit.model;
 
 import javax.persistence.Entity;
 
+import nl.topicuszorg.organisatie.model.Adres;
+
 import org.hibernate.envers.Audited;
 
 @Entity
 @Audited
-public class TijdelijkGbaAdres extends ScreenitAdres
+public class TijdelijkGbaAdres extends Adres
 {
-
-	private static final long serialVersionUID = 1L;
-
 }

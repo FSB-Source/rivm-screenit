@@ -21,6 +21,8 @@ package nl.rivm.screenit.mamma.se.service;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 
 public interface MammaScreeningsEenheidService
@@ -29,4 +31,6 @@ public interface MammaScreeningsEenheidService
 	MammaScreeningsEenheid getActieveScreeningsEenheidByCode(String seCode);
 
 	String getSeCodeMetIpAdres(String ipAdres);
+
+	boolean magSeDaglijstInzienVanDatum(String seCode, LocalDate datum);
 }

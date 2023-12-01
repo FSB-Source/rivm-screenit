@@ -28,8 +28,6 @@ import nl.rivm.screenit.edi.service.ValidatedMessageFactory;
 import nl.rivm.screenit.edi.service.impl.EdiMessageServiceImpl;
 import nl.rivm.screenit.edi.service.impl.ValidatedMessageFactoryImpl;
 import nl.rivm.screenit.service.LogService;
-import nl.topicuszorg.loginformatie.model.Gebeurtenis;
-import nl.topicuszorg.loginformatie.services.ILogInformatieService;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,7 +92,7 @@ public class EdiConfig
 	public EdiMessageServiceImpl ediMessageService()
 	{
 		var ediMessageService = new EdiMessageServiceImpl();
-		ediMessageService.setLogInformatieService((ILogInformatieService<?, Void, Gebeurtenis>) logInformatieService);
+		ediMessageService.setLogInformatieService(logInformatieService);
 		ediMessageService.setMailRelayIP(mailRelayIp());
 		ediMessageService.setMailRelayPort(mailRelayPort());
 		ediMessageService.setSmtpPort(smtpPort());

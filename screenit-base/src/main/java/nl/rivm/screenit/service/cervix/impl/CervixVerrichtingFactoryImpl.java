@@ -30,9 +30,9 @@ import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.model.cervix.CervixCytologieVerslag;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.CervixMonster;
+import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting;
@@ -97,13 +97,13 @@ public class CervixVerrichtingFactoryImpl implements CervixVerrichtingFactory
 				break;
 
 			case LAB_CYTOLOGIE_NA_HPV_UITSTRIJKJE:
-				verrichtingen.add(maakCervixcytologieVerrichting(monster, verrichtingsDatum, laboratorium));
+				verrichtingen.add(maakCervixcytologieVerrichting(CervixMonsterUtil.getUitstrijkje(monster), verrichtingsDatum, laboratorium));
 				break;
 
 			case LAB_CYTOLOGIE_NA_HPV_ZAS:
 			case LAB_CYTOLOGIE_VERVOLGUITSTRIJKJE:
 				verrichtingen.add(maakVerrichting(monster, CervixTariefType.LAB_LOGISTIEK, verrichtingsDatum, null, laboratorium));
-				verrichtingen.add(maakCervixcytologieVerrichting(monster, verrichtingsDatum, laboratorium));
+				verrichtingen.add(maakCervixcytologieVerrichting(CervixMonsterUtil.getUitstrijkje(monster), verrichtingsDatum, laboratorium));
 				break;
 
 			default:
@@ -122,28 +122,22 @@ public class CervixVerrichtingFactoryImpl implements CervixVerrichtingFactory
 		huisartsenportaalSyncService.sendJmsBericht(CervixHuisartsToDtoUtil.getVerrichtingDto(verrichting));
 	}
 
-	private CervixVerrichting maakCervixcytologieVerrichting(CervixMonster monster, Date verrichtingsDatum, BMHKLaboratorium laboratorium)
+	private CervixVerrichting maakCervixcytologieVerrichting(CervixUitstrijkje uitstrijkje, Date verrichtingsDatum, BMHKLaboratorium laboratorium)
 	{
-		if (isCos(monster))
+		if (isCos(uitstrijkje))
 		{
-			return maakVerrichting(monster, CervixTariefType.LAB_CERVIXCYTOLOGIE_MET_COS, verrichtingsDatum, null, laboratorium);
+			return maakVerrichting(uitstrijkje, CervixTariefType.LAB_CERVIXCYTOLOGIE_MET_COS, verrichtingsDatum, null, laboratorium);
 		}
 		else
 		{
-			return maakVerrichting(monster, CervixTariefType.LAB_CERVIXCYTOLOGIE_MANUEEL_SCREENEN, verrichtingsDatum, null, laboratorium);
+			return maakVerrichting(uitstrijkje, CervixTariefType.LAB_CERVIXCYTOLOGIE_MANUEEL_SCREENEN, verrichtingsDatum, null, laboratorium);
 		}
 	}
 
-	private boolean isCos(CervixMonster monster)
+	private boolean isCos(CervixUitstrijkje uitstrijkje)
 	{
-		return monster
-			.getOntvangstScreeningRonde()
-			.getVerslagen()
-			.stream()
-			.findFirst()
-			.flatMap(verslag -> Optional.of(((CervixCytologieVerslag) verslag).getVerslagContent().getCytologieUitslagBvoBmhk()))
-			.filter(uitslag -> uitslag.getMonsterBmhk().getMonsterIdentificatie().replaceFirst("^0+(?!$)", "").equals(monster.getMonsterId()))
-			.map(uitslag -> Boolean.TRUE.equals(uitslag.getCos()))
+		return Optional
+			.ofNullable(uitstrijkje.getCytologieVerslag().getVerslagContent().getCytologieUitslagBvoBmhk().getCos())
 			.orElse(false);
 	}
 
@@ -203,10 +197,7 @@ public class CervixVerrichtingFactoryImpl implements CervixVerrichtingFactory
 
 		if (cervix2023StartBepalingService.datumValtBinnenBmhk2023(DateUtil.toLocalDate(verrichtingsDatum)))
 		{
-			return Optional.ofNullable(monster.getOntvangstScreeningRonde().getUitstrijkjeCytologieUitslag())
-				.flatMap(uitslag -> Optional.ofNullable(uitslag.getCytologieVerslag()))
-				.flatMap(verslag -> Optional.ofNullable(verslag.getLaboratorium()))
-				.orElse(monster.getLaboratorium());
+			return CervixMonsterUtil.getUitstrijkje(monster).getCytologieVerslag().getLaboratorium();
 		}
 
 		return monster.getLaboratorium();

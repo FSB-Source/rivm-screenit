@@ -193,6 +193,10 @@ public enum PreferenceKey
 	CERVIX_CYTOLOGIE_POSITIEF_60PLUS_TEKST("Tekst wanneer de cytologie uitslag positief is en doelgroep 60 plus", String.class),
 	CERVIX_CYTOLOGIE_POSITIEF_OVERIGE_TEKST("Tekst wanneer de cytologie uitslag positief is en bedoelt voor alle overige doelgroepen", String.class),
 
+	CERVIX_NIEUWE_ZAS_NA_OUDE_INGESTUURDE_ZAS_TEKST("Tekst wanneer een nieuwe ZAS aangevraagd is nav ingestuurde oude ZAS type (Z)", String.class),
+
+	CERVIX_NIEUWE_ZAS_STANDAARD_TEKST("Tekst wanneer een nieuwe ZAS aangevraagd is", String.class),
+
 	COLON_EENMALIG_HERAANMELDEN_TEKST("Eenmalig heraanmelden tekst", String.class),
 
 	COLON_TIJDELIJK_HERAANMELDEN_TEKST("Tijdelijk heraanmelden tekst", String.class),
@@ -365,6 +369,8 @@ public enum PreferenceKey
 
 	INTERNAL_MAMMA_UPLOADLIMIET_UPLOADPORTAAL("BK Uploadlimiet uitwisselportaal in megabytes", Integer.class),
 
+	INTERNAL_MAMMA_POC_CLIENTEN_SET("Set met accession numbers van de POC clienten set op keten", String.class),
+
 	MAMMA_XDS_HOME_COMMUNITY_ID("XDS home community id", String.class),
 
 	MAMMA_XDS_ASSIGNING_AUTHORITY("XDS assigning authority", String.class),
@@ -457,7 +463,13 @@ public enum PreferenceKey
 
 	RETRIES_VERZENDEN_INPAKCENTRUM("Retry voor verzenden naar inpakcentrum", Integer.class),
 
-	TIME_BETWEEN_RETRIES_VERZENDEN_INPAKCENTRUM("Tijd tussen de retries voor verzenden naar inpakcentrum in ms", Integer.class);
+	TIME_BETWEEN_RETRIES_VERZENDEN_INPAKCENTRUM("Tijd tussen de retries voor verzenden naar inpakcentrum in ms", Integer.class),
+
+	COLON_ROOSTER_NACHT_BEPERKING_TYPE("Harde of zachte nacht beperking voor het DK rooster", String.class),
+	COLON_ROOSTER_NACHT_BEPERKING_BEGIN("Start tijd voor de nacht beperking voor het DK rooster", String.class),
+	COLON_ROOSTER_NACHT_BEPERKING_EIND("Eind tijd voor de nacht beperking voor het DK rooster", String.class),
+	COLON_ROOSTER_ZATERDAG_BEPERKING_TYPE("Harde of zachte beperking op zaterdag voor het DK rooster", String.class),
+	COLON_ROOSTER_ZONDAG_BEPERKING_TYPE("Harde of zachte beperking op zondag voor het DK rooster", String.class);
 
 	private final String layoutName;
 

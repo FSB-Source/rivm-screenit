@@ -71,6 +71,7 @@ import nl.topicuszorg.wicket.input.validator.DependantDateValidator.Operator;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -252,11 +253,13 @@ public class CervixBmhkLaboratoriumOverzichtVerrichtingenPage extends Organisati
 			}
 		});
 
+		var nieuwLab = tariefTypes.get(0).isBmhk2023Lab();
 		form.add(new IndicatingAjaxSubmitLink("filteren")
 		{
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
+				target.getPage().addOrReplace(getTotalenContainer(nieuwLab));
 				target.add(verrichtingenTableContainer, totalenContainer);
 			}
 		});
@@ -265,8 +268,7 @@ public class CervixBmhkLaboratoriumOverzichtVerrichtingenPage extends Organisati
 			ModelUtil.sModel((BMHKLaboratorium) getCurrentSelectedOrganisatie()));
 
 		add(getVerrichtingenTableContainer());
-
-		add(getTotalenContainer(tariefTypes.get(0).isBmhk2023Lab()));
+		add(getTotalenContainer(nieuwLab));
 
 		verrichtingenTableContainer.add(new ExportToXslLink<>("exporteren", "overzicht-betalingen", "Exporteren", bmhkLaboratoriumVerrichtingenTabel));
 	}
@@ -300,16 +302,16 @@ public class CervixBmhkLaboratoriumOverzichtVerrichtingenPage extends Organisati
 		form.add(label);
 	}
 
-	private WebMarkupContainer getTotalenContainer(boolean nieuwLab)
+	private WebMarkupContainer getTotalenContainer(boolean bmhk2023Lab)
 	{
 		var totalen = new EnumMap<CervixTariefType, BigDecimal>(CervixTariefType.class);
-		CervixTariefType.getAlleLabTariefTypes(nieuwLab).forEach(tariefType ->
+		CervixTariefType.getAlleLabTariefTypes(bmhk2023Lab).forEach(tariefType ->
 			totalen.put(tariefType, getTotaalBedrag(tariefType)));
 
 		totalenContainer = new WebMarkupContainer("totalenContainer");
 		totalenContainer.setOutputMarkupId(true);
 
-		totalenContainer.add(new ListView<>("verrichtingTotaal", CervixTariefType.getAlleLabTariefTypes(nieuwLab))
+		totalenContainer.add(new ListView<>("verrichtingTotaal", CervixTariefType.getAlleLabTariefTypes(bmhk2023Lab))
 		{
 			@Override
 			protected void populateItem(ListItem item)

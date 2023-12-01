@@ -50,7 +50,7 @@ public class ConfiguratieServiceImpl implements ConfiguratieService
 
 	private static final String INTERNAL_MAMMA_SE_INFORMATIE_OPHALEN_CRON_DEFAULT = "0 0 2 * * ?";
 
-	private static final int SE_DAGLIJST_OPHALEN_VOOR_DAGEN_DEFAULT = 1;
+	public static final int SE_DAGLIJST_OPHALEN_VOOR_DAGEN_DEFAULT = 1;
 
 	private static final int MAMMA_SE_MAX_OFFLINE_INLOGPERIODE_DEFAULT = 0;
 
@@ -69,13 +69,8 @@ public class ConfiguratieServiceImpl implements ConfiguratieService
 			Integer.toString(preferenceService.getInteger(PreferenceKey.INTERNAL_MAMMA_SE_PING_INTERVAL.name(), SE_PING_INTERVAL_DEFAULT)));
 		seParameters.put(SeConfiguratieKey.SE_PONG_TIMEOUT,
 			Integer.toString(preferenceService.getInteger(PreferenceKey.INTERNAL_MAMMA_SE_PONG_TIMEOUT.name(), SE_PONG_TIMEOUT_DEFAULT)));
-
-		if (versie != null && !versie.startsWith("22.7"))
-		{
-			seParameters.put(SeConfiguratieKey.TOMOSYNTHESE_MOGELIJK, screeningsEenheid.getTomosyntheseMogelijk().toString());
-		}
+		seParameters.put(SeConfiguratieKey.TOMOSYNTHESE_MOGELIJK, screeningsEenheid.getTomosyntheseMogelijk().toString());
 
 		result.setSeParameters(seParameters);
 	}
-
 }

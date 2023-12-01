@@ -87,6 +87,8 @@ public interface ClientService
 
 	boolean isClientOverleden(Client client);
 
+	boolean isClientActief(Client client);
+
 	boolean clientInBuitenland(Client client);
 
 	boolean clientHeeftGbaIndicatie(Client client);

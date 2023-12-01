@@ -1,5 +1,4 @@
 import {store} from "../Store"
-import {getTokenHeader} from "./TokenUtil"
 import {createActionFatalError} from "../actions/ErrorActions"
 import {MELDING_SESSIE_NIET_GELDIG, MELDING_TECHNISCHE_FOUT, showErrorToast, showErrorToastWithoutAutoClose} from "./ToastUtil"
 import {logoutClient} from "../restclient/AuthenticatieRestclient"
@@ -94,7 +93,7 @@ function getAccountId(): number | undefined {
 }
 
 export const createClientHeaders = (): Headers => {
-	const clientHeaders = getTokenHeader()
+	const clientHeaders = new Headers()
 	clientHeaders.append("Accept", "application/json, text/plain, */*")
 	clientHeaders.append("Content-Type", "application/json")
 	const yubikeyIdentificatie = getYubikeyIdentificatie()

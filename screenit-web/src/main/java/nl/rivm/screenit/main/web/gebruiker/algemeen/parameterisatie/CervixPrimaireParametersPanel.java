@@ -87,6 +87,9 @@ public class CervixPrimaireParametersPanel extends BasePrimaireParametersPanel
 
 		addTextAreaField(form, "cervixCytologiePositief60plusTekst");
 		addTextAreaField(form, "cervixCytologiePositiefOverigeTekst");
+		addTextAreaField(form, "cervixNieuweZasNaOudeIngestuurdeZasTekst");
+		addTextAreaField(form, "cervixNieuweZasStandaardTekst");
+
 		return form;
 	}
 

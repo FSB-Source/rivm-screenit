@@ -160,6 +160,7 @@ public class AuthenticatieProxyController
 		webSocketProxyService.broadCastTijdUpdateNaarWerkstations("Login");
 		return response;
 	}
+
 	private ResponseEntity<String> meenemenLogischeSessie(String yubikeyIdentificatie, String yubikey, HttpSession httpSession) throws JsonProcessingException
 	{
 		ResponseEntity<String> response;
@@ -179,7 +180,6 @@ public class AuthenticatieProxyController
 			LOG.info("INLOGGEN (sessie meenemen) met identificatie: " + yubikeyIdentificatie + " -> Zelfde OTP, skip inlog op centraal");
 			broadcastOnlineStatus();
 			response = logischeSessie.getLoginAntwoord();
-			bindSessionCookie(response, httpSession);
 		}
 		else
 		{
@@ -296,7 +296,6 @@ public class AuthenticatieProxyController
 				String displayName = responseObject.getDisplayName();
 				String seCode = responseObject.getSeCode();
 
-				bindSessionCookie(response, httpSession);
 				if (seStatusService.getSeCode() == null)
 				{
 					seStatusService.setSeCode(seCode);
@@ -319,17 +318,6 @@ public class AuthenticatieProxyController
 			achtergrondRequestService.ensureRunning();
 			transactionQueueService.ensureRunningQueueVerwerking();
 		}
-	}
-
-	private void bindSessionCookie(ResponseEntity<String> response, HttpSession httpSession)
-	{
-		HttpHeaders headers = response.getHeaders();
-		String sessioncookie = headers.getFirst(HttpHeaders.SET_COOKIE);
-		if (sessioncookie != null && sessioncookie.startsWith(JSESSIONID))
-		{
-			sessioncookie = sessioncookie.substring(0, sessioncookie.indexOf(';') + 1);
-		}
-		httpSession.setAttribute(JSESSIONID, sessioncookie);
 	}
 
 	private void broadcastOnlineStatus()

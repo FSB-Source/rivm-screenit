@@ -23,6 +23,7 @@ package nl.rivm.screenit.dao.mamma.impl;
 
 import nl.rivm.screenit.dao.mamma.MammaBaseHL7v24Dao;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.hibernate.Query;
@@ -34,15 +35,27 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.REQUIRED)
 public class MammaBaseHL7v24DaoImpl extends AbstractAutowiredDao implements MammaBaseHL7v24Dao
 {
-
 	@Override
-	public void deleteMessagesForClient(Client client)
+	public void deleteMessagesForClient(Client client, boolean verwijderAlleBerichten)
 	{
 		String clientId = client.getId().toString();
 
-		String sql = "delete from mamma.hl7v24_message where dto_json like ('%\"clientId\":' || :clientId || '%')";
-		Query query = getSession().createSQLQuery(sql);
-		query.setParameter("clientId", clientId);
+		Query query;
+		var sql = "delete from mamma.hl7v24_message where dto_json like ('%\"clientId\":' || :clientId || '%')";
+		if (verwijderAlleBerichten)
+		{
+			query = getSession().createSQLQuery(sql);
+			query.setParameter("clientId", clientId);
+		}
+		else
+		{
+			sql += " and dto_json not like ('%\"status\":\"' || :delete || '\"%') and dto_json not like ('%\"status\":\"' || :goingToDelete || '\"%')";
+			query = getSession().createSQLQuery(sql);
+			query.setParameter("clientId", clientId);
+			query.setParameter("delete", MammaHL7v24ORMBerichtStatus.DELETE.name());
+			query.setParameter("goingToDelete", MammaHL7v24ORMBerichtStatus.GOINGTODELETE.name());
+		}
+
 		query.executeUpdate();
 	}
 }

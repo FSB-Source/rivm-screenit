@@ -27,51 +27,60 @@ import nl.rivm.screenit.mamma.se.proxy.dao.PersistableTransactionDao;
 import nl.rivm.screenit.mamma.se.proxy.model.PersistableTransaction;
 import nl.rivm.screenit.mamma.se.proxy.services.PersistableTransactionService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class PersistableTransactionServiceImpl implements PersistableTransactionService
 {
-    private static final Logger LOG = LoggerFactory.getLogger(PersistableTransactionServiceImpl.class);
+	@Autowired
+	private PersistableTransactionDao persistableTransactionDao;
 
-    @Autowired
-    private PersistableTransactionDao persistableTransactionDao;
-
+	@Override
 	public void putLast(PersistableTransaction transaction)
 	{
-        persistableTransactionDao.putLast(transaction);
-    }
+		persistableTransactionDao.putLast(transaction);
+	}
 
+	@Override
 	public PersistableTransaction takeFirst()
 	{
-        return persistableTransactionDao.takeFirst();
-    }
+		return persistableTransactionDao.takeFirst();
+	}
 
+	@Override
 	public List<PersistableTransaction> getAll()
 	{
-        return persistableTransactionDao.getAll();
-    }
+		return persistableTransactionDao.getAll();
+	}
 
+	@Override
 	public void remove(Long id)
 	{
-        persistableTransactionDao.remove(id);
-    }
+		persistableTransactionDao.remove(id);
+	}
 
+	@Override
 	public void addToVerstuurdeTransacties(PersistableTransaction transaction)
 	{
-        persistableTransactionDao.addToVerstuurdeTransacties(transaction);
-    }
+		persistableTransactionDao.addToVerstuurdeTransacties(transaction);
+	}
 
-    public void clearOldEntries()
-    {
-        persistableTransactionDao.startOfDayCleanUp();
-    }
+	@Override
+	public void clearOldEntries()
+	{
+		persistableTransactionDao.startOfDayCleanUp();
+	}
 
-    public void addToFouteTransactie(PersistableTransaction transaction)
-    {
-        persistableTransactionDao.addToFouteTransactie(transaction);
-    }
+	@Override
+	public void addToFouteTransactie(PersistableTransaction transaction)
+	{
+		persistableTransactionDao.addToFouteTransactie(transaction);
+	}
+
+	@Override
+	public boolean zijnErWachtendeTransacties()
+	{
+		return takeFirst() != null;
+	}
 }

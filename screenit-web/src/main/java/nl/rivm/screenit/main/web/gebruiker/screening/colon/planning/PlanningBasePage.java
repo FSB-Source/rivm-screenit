@@ -29,6 +29,7 @@ import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.ColonScreeningBasePage;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.blokkadesview.BlokkadeListViewPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.listview.RoosterListViewPage;
+import nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.rooster.RoosterAngularPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.rooster.RoosterPage;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.OrganisatieType;
@@ -59,6 +60,7 @@ public class PlanningBasePage extends ColonScreeningBasePage
 	protected List<GebruikerMenuItem> getContextMenuItems()
 	{
 		List<GebruikerMenuItem> contextMenuItems = new ArrayList<GebruikerMenuItem>();
+		contextMenuItems.add(new GebruikerMenuItem("label.planning.rooster", RoosterAngularPage.class));
 		contextMenuItems.add(new GebruikerMenuItem("label.planning.rooster", RoosterPage.class));
 		contextMenuItems.add(new GebruikerMenuItem("label.planning.roosterblok.listview", RoosterListViewPage.class));
 		contextMenuItems.add(new GebruikerMenuItem("label.planning.blokkade.listview", BlokkadeListViewPage.class));

@@ -86,7 +86,7 @@ public class PlanningServiceImpl<T extends VrijSlot> implements PlanningService<
 		filter.setEndDatum(DateUtil.toUtilDate(eindDatum));
 		filter.setStatus(RoosterItemStatus.VRIJ_TE_VERPLAATSEN);
 		filter.setRekeningHoudenMetCapaciteitMeeBepaald(false);
-		Iterator<RoosterItemListViewWrapper> roosterBlokken = roosterDao.getRoosterBlokken("startTime", true, -1, -1, filter, intakelocatie);
+		Iterator<RoosterItemListViewWrapper> roosterBlokken = roosterDao.getRoosterBlokken("startTime", true, -1, -1, filter, intakelocatie).iterator();
 		while (roosterBlokken.hasNext())
 		{
 			RoosterItemListViewWrapper roosterItem = roosterBlokken.next();

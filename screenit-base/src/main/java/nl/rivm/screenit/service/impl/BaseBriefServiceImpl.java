@@ -219,7 +219,6 @@ public class BaseBriefServiceImpl implements BaseBriefService
 		nieuweBriefDefinitie.setLaatstGewijzigd(currentDateSupplier.getDate());
 
 		hibernateService.save(nieuweBriefDefinitie);
-		uploadFile.delete();
 
 		if (getString != null)
 		{
@@ -666,7 +665,6 @@ public class BaseBriefServiceImpl implements BaseBriefService
 
 		uploadDocumentService.saveOrUpdate(mergedBrievenPdfContainer, briefGenerator.getFileStoreLocation(), briefGenerator.getFileStoreId());
 		mergedBrieven.setMergedBrieven(mergedBrievenPdfContainer);
-		nieuwPdfMetMergedBrieven.delete();
 		LOG.info("Mergedocument(id = " + mergedBrieven.getId() + ") nieuw aangemaakt op filestore: " + mergedBrievenPdfContainer.getPath());
 	}
 

@@ -106,31 +106,6 @@ public class BetalingServiceImpl implements BetalingService
 		return csvFile;
 	}
 
-	public Betaling convertFromDto(BetalingDto betalingDto)
-	{
-		Betaling betaling = new Betaling();
-		betaling.setScreenitId(betalingDto.getScreenitId());
-		betaling.setDebet(betalingDto.isDebet());
-		betaling.setBetalingsKenmerk(betalingDto.getBetalingsKenmerk());
-		betaling.setBetalingsdatum(betalingDto.getBetalingsdatum());
-		betaling.setBedrag(betalingDto.getBedrag());
-		return betaling;
-	}
-
-	public BetalingDto convertToDto(Betaling betaling, VerrichtingDto verrichtingDto)
-	{
-		BetalingDto betalingDto = new BetalingDto();
-		betalingDto.setHuisartsportaalId(betaling.getHuisartsportaalId());
-		betalingDto.setBedrag(betaling.getBedrag());
-		betalingDto.setBetalingsKenmerk(betaling.getBetalingsKenmerk());
-		betalingDto.setBedragString(NumberFormat.getCurrencyInstance().format(betaling.getBedrag()));
-		betalingDto.setDebet(betaling.isDebet());
-		betalingDto.setBetalingsKenmerk(betaling.getBetalingsKenmerk());
-		betalingDto.setBetalingsdatum(betaling.getBetalingsdatum());
-		betalingDto.setVerrichting(verrichtingDto);
-		return betalingDto;
-	}
-
 	public BetalingDto convertToDisplayDto(Betaling betaling, Verrichting verrichting)
 	{
 		BetalingDto betalingDto = new BetalingDto();

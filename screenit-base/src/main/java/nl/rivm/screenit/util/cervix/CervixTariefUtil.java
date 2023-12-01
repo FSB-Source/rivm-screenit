@@ -22,7 +22,6 @@ package nl.rivm.screenit.util.cervix;
  */
 
 import java.math.BigDecimal;
-import java.util.stream.Collectors;
 
 import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
@@ -66,33 +65,6 @@ public class CervixTariefUtil
 	public static boolean hoortVerrichtingBijHuisarts(CervixBoekRegel boekregel)
 	{
 		return CervixTariefType.HUISARTS_UITSTRIJKJE.equals(boekregel.getVerrichting().getType());
-	}
-
-	public static String getTariefString(CervixTarief tarief)
-	{
-		String tariefTekst = "'";
-
-		if (CervixTariefType.isHuisartsTarief(tarief))
-		{
-			tariefTekst += "huisartstarief " + CervixTariefType.HUISARTS_UITSTRIJKJE.getBedragStringVanTarief(tarief);
-		}
-		else
-		{
-			tariefTekst += CervixTariefType.getAlleLabTariefTypes().stream()
-				.filter(t -> t.getBedragVanTarief(tarief).compareTo(BigDecimal.valueOf(0)) > 0)
-				.map(t -> t.getNaam() + ": tarief " + t.getBedragStringVanTarief(tarief))
-				.collect(Collectors.joining(", "));
-		}
-		if (tarief.getActief())
-		{
-			tariefTekst += " " + getGeldigheidMelding(tarief);
-		}
-		else
-		{
-			tariefTekst += " (verwijderd)";
-		}
-		tariefTekst += "'";
-		return tariefTekst;
 	}
 
 	public static String getGeldigheidMelding(CervixTarief tarief)

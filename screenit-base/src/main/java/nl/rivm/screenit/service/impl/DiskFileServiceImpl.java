@@ -28,21 +28,31 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.service.FileService;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-@Conditional(DiskFileServiceCondition.class)
+@ConditionalOnProperty(value = "s3.enabled", havingValue = "false")
 public class DiskFileServiceImpl implements FileService
 {
+	public DiskFileServiceImpl()
+	{
+		LOG.info("diskfile service");
+	}
 
 	@Override
 	public boolean exists(String fullFilePath)
@@ -95,7 +105,7 @@ public class DiskFileServiceImpl implements FileService
 		}
 		catch (IOException e)
 		{
-			LOG.error("Fout bij opslaan van het bestand {} door {}", fullFilePath, e.getMessage(), e);
+			LOG.error("Fout bij opslaan van het bestand {} door {}", fullFilePath, e.getMessage());
 			throw e;
 		}
 	}
@@ -125,7 +135,7 @@ public class DiskFileServiceImpl implements FileService
 		}
 		catch (IOException e)
 		{
-			LOG.error("Kon bestand {} niet inladen als stream door {}", fullFilePath, e.getMessage(), e);
+			LOG.error("Kon bestand {} niet inladen als stream door {}", fullFilePath, e.getMessage());
 			throw e;
 		}
 	}
@@ -142,5 +152,45 @@ public class DiskFileServiceImpl implements FileService
 			return false;
 		}
 		return new File(fullFilePath).delete();
+	}
+
+	@Override
+	public boolean deleteQuietly(String fullFilePath)
+	{
+		return FileUtils.deleteQuietly(new File(fullFilePath));
+	}
+
+	@Override
+	public void cleanDirectory(String directory) throws IOException
+	{
+		try
+		{
+			FileUtils.cleanDirectory(new File(directory));
+		}
+		catch (IOException e)
+		{
+			LOG.error("Kon map {} niet opschonen door {}", directory, e.getMessage());
+			throw e;
+		}
+	}
+
+	@Override
+	public void deleteDirectory(String directory) throws IOException
+	{
+		try
+		{
+			FileUtils.deleteDirectory(new File(directory));
+		}
+		catch (IOException e)
+		{
+			LOG.error("Kon map {} niet verwijderen door {}", directory, e.getMessage());
+			throw e;
+		}
+	}
+
+	@Override
+	public List<String> listFiles(String directory)
+	{
+		return Arrays.stream(Objects.requireNonNull(new File(directory).listFiles())).map(File::getPath).collect(Collectors.toList());
 	}
 }

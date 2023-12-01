@@ -28,6 +28,7 @@ import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 
+import nl.rivm.screenit.ApplicationEnvironment;
 import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.dao.DashboardDao;
 import nl.rivm.screenit.main.service.ClientenVerwijderenTestService;
@@ -39,6 +40,7 @@ import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.algemeen.AlgemeneBrief;
 import nl.rivm.screenit.model.algemeen.OverdrachtPersoonsgegevens;
 import nl.rivm.screenit.model.dashboard.DashboardLogRegel;
+import nl.rivm.screenit.model.exception.VerwijderClientException;
 import nl.rivm.screenit.model.gba.GbaVraag;
 import nl.rivm.screenit.model.logging.LogRegel;
 import nl.rivm.screenit.model.logging.LoggingZoekCriteria;
@@ -49,6 +51,7 @@ import nl.rivm.screenit.service.TestService;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.cervix.CervixTestService;
 import nl.rivm.screenit.service.colon.ColonTestService;
+import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
 import nl.rivm.screenit.service.mamma.MammaBaseTestService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -92,8 +95,13 @@ public class ClientenVerwijderenTestServiceImpl implements ClientenVerwijderenTe
 	@Autowired
 	private DashboardDao dashboardDao;
 
+	@Autowired
+	private MammaBaseScreeningrondeService screeningrondeService;
+
+	@Autowired
+	private String applicationEnvironment;
+
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS)
 	public String clientenVerwijderen(String bsns)
 	{
 		int verwijderdeClienten = 0;
@@ -114,11 +122,16 @@ public class ClientenVerwijderenTestServiceImpl implements ClientenVerwijderenTe
 					continue;
 				}
 
+				boolean isKetenEnvironment = ApplicationEnvironment.KTN.getEnvNaam().equalsIgnoreCase(applicationEnvironment);
+				if (isKetenEnvironment && heeftBeelden(client)) {
+					throw new VerwijderClientException("Ronde bevat beelden. Client moet eerst gereset worden.");
+				}
+
 				testService.projectenVerwijderen(client);
 
 				cervixTestService.clientReset(client);
 				colonTestService.clientReset(client);
-				mammaBaseTestService.clientReset(client);
+				mammaBaseTestService.clientReset(client, true);
 
 				testService.verwijderClientContacten(client, true, true, true);
 
@@ -180,6 +193,11 @@ public class ClientenVerwijderenTestServiceImpl implements ClientenVerwijderenTe
 
 				verwijderdeClienten++;
 			}
+			catch (VerwijderClientException e)
+			{
+				result = e.getMessage();
+				LOG.error("error bij bsn " + bsn, e);
+			}
 			catch (Exception e)
 			{
 				result = "Fout bij verwijderen van client met BSN " + bsn;
@@ -189,4 +207,13 @@ public class ClientenVerwijderenTestServiceImpl implements ClientenVerwijderenTe
 		return result + ". #" + verwijderdeClienten + " clienten verwijderd.";
 	}
 
+	private boolean heeftBeelden(Client client)
+	{
+		var dossier = client.getMammaDossier();
+		if (dossier == null) {
+			return false;
+		}
+
+		return dossier.getScreeningRondes().stream().anyMatch(ronde -> screeningrondeService.heeftBeelden(ronde));
+	}
 }

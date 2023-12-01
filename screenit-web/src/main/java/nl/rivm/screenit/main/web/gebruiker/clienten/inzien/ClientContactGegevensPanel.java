@@ -53,7 +53,7 @@ public class ClientContactGegevensPanel extends GenericPanel<Client>
 	public ClientContactGegevensPanel(String id, IModel<Client> model)
 	{
 		super(id, model);
-		magWijzigen = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_CONTACTGEGEVENS_REGISTREREN, Actie.AANPASSEN);
+		magWijzigen = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_CONTACTGEGEVENS_REGISTREREN, Actie.AANPASSEN) && clientService.isClientActief(model.getObject());
 	}
 
 	@Override

@@ -45,6 +45,7 @@ import nl.rivm.screenit.main.web.component.table.ClientColumn;
 import nl.rivm.screenit.main.web.component.table.GeboortedatumColumn;
 import nl.rivm.screenit.main.web.component.table.NotClickablePropertyColumn;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
+import nl.rivm.screenit.main.web.component.table.ScreenitDateTimePropertyColumn;
 import nl.rivm.screenit.main.web.component.table.VerwijderPropertyColumn;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerBasePage;
 import nl.rivm.screenit.main.web.gebruiker.gedeeld.MammaDoelgroepIndicatorPanel;
@@ -413,7 +414,7 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 			}
 		});
 		columns.add(
-			new DateTimePropertyColumn<>(Model.of("Laatste afspraak"), "mammaDossier.laatsteScreeningRonde.laatsteUitnodiging.laatsteAfspraak.vanaf", Constants.getDateTimeFormat())
+			new ScreenitDateTimePropertyColumn<>(Model.of("Laatste afspraak"), "mammaDossier.laatsteScreeningRonde.laatsteUitnodiging.laatsteAfspraak.vanaf", Constants.getDateTimeFormat())
 			{
 				@Override
 				public IModel<Object> getDataModel(IModel<Client> embeddedModel)

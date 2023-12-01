@@ -116,6 +116,12 @@
         <dependency>
             <groupId>nl.topicuszorg.hibernate-extensions</groupId>
             <artifactId>hibernate-extension-object</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -231,36 +237,18 @@
         </dependency>
 
         <dependency>
-            <groupId>nl.topicuszorg.patient-registratie</groupId>
-            <artifactId>patient-registratie-persoonsgegevens</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>jcl-over-slf4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.hibernate</groupId>
-                    <artifactId>hibernate-envers</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>annotations</artifactId>
         </dependency>
+
         <dependency>
-            <groupId>nl.topicuszorg.patient-registratie</groupId>
-            <artifactId>patient-registratie-persoonsgegevens-interfaces</artifactId>
+            <groupId>nl.topicuszorg.util</groupId>
+            <artifactId>util</artifactId>
         </dependency>
+
         <dependency>
-            <groupId>nl.topicuszorg.organisatie</groupId>
-            <artifactId>organisatie</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>nl.topicuszorg.gba</groupId>
+            <artifactId>gba</artifactId>
         </dependency>
 
         <dependency>
@@ -350,11 +338,6 @@
         </dependency>
 
         <dependency>
-            <groupId>nl.topicuszorg.loginformatie</groupId>
-            <artifactId>loginformatie-interfaces</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>nl.topicuszorg.formulieren2</groupId>
             <artifactId>formulieren-persistence</artifactId>
             <exclusions>
@@ -375,7 +358,7 @@
 
         <dependency>
             <groupId>org.jdom</groupId>
-            <artifactId>jdom</artifactId>
+            <artifactId>jdom2</artifactId>
         </dependency>
 
         <dependency>
@@ -468,20 +451,6 @@
         <dependency>
             <groupId>org.ghost4j</groupId>
             <artifactId>ghost4j</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.json-lib</groupId>
-            <artifactId>json-lib</artifactId>
         </dependency>
 
         <dependency>
@@ -505,8 +474,8 @@
         </dependency>
 
         <dependency>
-            <groupId>nl.topicuszorg.hl7v2</groupId>
-            <artifactId>hl7v2</artifactId>
+            <groupId>ca.uhn.hapi</groupId>
+            <artifactId>hapi-structures-v24</artifactId>
         </dependency>
 
         <dependency>
@@ -565,18 +534,6 @@
         </dependency>
 
         <dependency>
-            <groupId>nl.topicuszorg.loginformatie</groupId>
-            <artifactId>loginformatie-core</artifactId>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
             <groupId>javax.annotation</groupId>
             <artifactId>javax.annotation-api</artifactId>
         </dependency>
@@ -626,6 +583,21 @@
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.janino</groupId>
+            <artifactId>janino</artifactId>
+        </dependency>
+
     </dependencies>
 
 </project>

@@ -20,27 +20,29 @@
   -->
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <wicket:enclosure child="bvoFilterForm:bvoFilter">
-        <fieldset class="form-horizontal">
-            <form wicket:id="bvoFilterForm">
-                <div class="row-fluid">
-                    <div class="span10">
-                        <wicket:container wicket:id="bvoFilter"></wicket:container>
-                        <wicket:enclosure child="exactMatch">
-                            <div class="control-group">
-                                <label class="control-label">Exact match</label>
-                                <div class="controls">
-                                    <input wicket:id="exactMatch" type=checkbox>
-                                </div>
-                            </div>
-                        </wicket:enclosure>
-                    </div>
-                    <div class="span2">
-                        <button class="btn btn-primary" wicket:id="filteren">Filteren</button>
-                    </div>
-                </div>
-            </form>
-        </fieldset>
-    </wicket:enclosure>
+	<wicket:enclosure child="bvoFilterForm:bvoFilter">
+		<fieldset class="form-horizontal">
+			<form wicket:id="bvoFilterForm">
+				<div class="row-fluid">
+					<div class="span8">
+						<wicket:container wicket:id="bvoFilter"></wicket:container>
+						<wicket:container wicket:id="logLevelFilter"></wicket:container>
+						<wicket:enclosure child="exactMatch">
+							<div class="control-group">
+								<label class="control-label">Exact match</label>
+								<div class="controls">
+									<input wicket:id="exactMatch" type=checkbox>
+								</div>
+							</div>
+						</wicket:enclosure>
+					</div>
+					<div class="span2"></div>
+					<div class="span2">
+						<button class="btn btn-primary" wicket:id="filteren">Filteren</button>
+					</div>
+				</div>
+			</form>
+		</fieldset>
+	</wicket:enclosure>
 </wicket:panel>
 </html>

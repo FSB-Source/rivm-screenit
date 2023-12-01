@@ -53,9 +53,6 @@ import nl.rivm.screenit.service.DashboardService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.util.DateUtil;
-import nl.topicuszorg.loginformatie.model.Gebeurtenis;
-import nl.topicuszorg.loginformatie.model.ILogInformatie;
-import nl.topicuszorg.loginformatie.services.ILogInformatieService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -68,7 +65,7 @@ import com.google.common.base.Strings;
 @Service(value = "logInformatieService")
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 @Slf4j
-public class LogServiceImpl implements LogService, ILogInformatieService<ILogInformatie<?, ?, ?, ?, ?>, InstellingGebruiker, Gebeurtenis>
+public class LogServiceImpl implements LogService
 {
 
 	private static final String MELDING_TOO_LONG_PREFIX = "...(voor de volledige informatie click op de regel)";
@@ -125,6 +122,13 @@ public class LogServiceImpl implements LogService, ILogInformatieService<ILogInf
 	}
 
 	@Override
+	public List<LogRegel> getLogRegelsVanDashboard(DashboardStatus item)
+	{
+
+		return logDao.getLogRegelsVanDashboard(item);
+	}
+
+	@Override
 	public long countLogRegelsVanDashboard(DashboardStatus item)
 	{
 		return logDao.countLogRegelsVanDashboard(item);
@@ -140,27 +144,6 @@ public class LogServiceImpl implements LogService, ILogInformatieService<ILogInf
 	public long countLogRegels(LoggingZoekCriteria loggingZoekCriteria)
 	{
 		return logDao.countLogRegels(loggingZoekCriteria);
-	}
-
-	@Override
-	public void inloggen(InstellingGebruiker ingelogd, Boolean uzipas)
-	{
-
-	}
-
-	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
-	public void saveOrUpdate(ILogInformatie<?, ?, ?, ?, ?> logInformatie)
-	{
-		if (logInformatie.getGebeurtenis() instanceof Gebeurtenis)
-		{
-			LogGebeurtenis logGebeurtenis = translate((Gebeurtenis) logInformatie.getGebeurtenis());
-			if (logGebeurtenis != null)
-			{
-				LogEvent logEvent = getLogEvent(logGebeurtenis.getDefaultLevel(), null);
-				logGebeurtenis(logGebeurtenis, logEvent, (Account) logInformatie.getOrganisatieMedewerkerRol(), getBvos(logGebeurtenis));
-			}
-		}
 	}
 
 	private Bevolkingsonderzoek[] getBvos(LogGebeurtenis logGebeurtenis)
@@ -188,33 +171,13 @@ public class LogServiceImpl implements LogService, ILogInformatieService<ILogInf
 	}
 
 	@Override
-	public ILogInformatie<?, ?, ?, ?, ?> createLogInformatie(InstellingGebruiker ingelogd, Gebeurtenis gebeurtenis)
-	{
-		return null;
-	}
-
-	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void createAndSaveLogInformatie(InstellingGebruiker ingelogd, Gebeurtenis gebeurtenis, String omschrijving)
+	public void createAndSaveLogInformatie(InstellingGebruiker ingelogd, LogGebeurtenis logGebeurtenis, String omschrijving)
 	{
-		LogGebeurtenis logGebeurtenis = translate(gebeurtenis);
 		if (logGebeurtenis != null)
 		{
 			LogEvent logEvent = getLogEvent(logGebeurtenis.getDefaultLevel(), omschrijving);
 			logGebeurtenis(logGebeurtenis, logEvent, ingelogd, getBvos(logGebeurtenis));
-		}
-	}
-
-	private LogGebeurtenis translate(Gebeurtenis gebeurtenis)
-	{
-		switch (gebeurtenis)
-		{
-		case INLOGGEN:
-			return LogGebeurtenis.INLOGGEN;
-		case VERSTUREN_MEDVRY:
-			return LogGebeurtenis.MEDVRY_VERSTUURD;
-		default:
-			return null;
 		}
 	}
 

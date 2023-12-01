@@ -31,21 +31,22 @@ import properties from "./InleidingComponent.json"
 import {getString} from "../../utils/TekstPropertyUtil"
 
 export type InleidingComponentProps = {
-    bvoNaam: string,
-    groteTitel: string,
-    inleidingBvoTekst: string,
-    hintTekst?: string,
-    link?: string,
-    linkTekst?: string
-    toonAlgemeneInleidingTekst: boolean
+	bvoNaam: string,
+	groteTitel: string,
+	inleidingBvoTekst: string,
+	hintTekst?: string,
+	link?: string,
+	linkTekst?: string,
+	toonAlgemeneInleidingTekst: boolean,
+	volgendeUitnodigingTekst?: string
 }
 
 const InleidingComponent = (props: InleidingComponentProps) => {
 
-    const selectedBvo = useSelectedBvo()
+	const selectedBvo = useSelectedBvo()
 
-    return (
-        <div className={BevolkingsonderzoekStyle[selectedBvo!]}>
+	return (
+		<div className={BevolkingsonderzoekStyle[selectedBvo!]}>
 			<h4
 				className={classNames(bvoStyles.bvoText)}>{getString(properties.bvo_title, [props.bvoNaam])}</h4>
 			<h1 className={styles.bvoNaam}>{props.groteTitel}</h1>
@@ -53,10 +54,11 @@ const InleidingComponent = (props: InleidingComponentProps) => {
 				<SpanWithHtml className={styles.infoText} value={props.inleidingBvoTekst}/>
 			</div>
 			{props.hintTekst && <HintComponent><SpanWithHtml value={props.hintTekst}/></HintComponent>}
+			{props.volgendeUitnodigingTekst && <SpanWithHtml value={props.volgendeUitnodigingTekst}/>}
 			{props.link && props.linkTekst && <BvoUrlComponent link={props.link} tekst={props.linkTekst}/>}
 			{props.toonAlgemeneInleidingTekst && <SpanWithHtml className={styles.infoText} value={getString(properties.inleiding_algemeen)}/>}
 		</div>
-    )
+	)
 }
 
 export default InleidingComponent

@@ -26,6 +26,11 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.Date;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class RoosterItemListViewWrapper implements Serializable
 {
 
@@ -43,75 +48,16 @@ public class RoosterItemListViewWrapper implements Serializable
 
 	private Long roosterItemId;
 
-	private Long kamerId;
-
-	public Date getStartTime()
-	{
-		return startTime;
-	}
-
-	public void setStartTime(Date startTime)
-	{
-		this.startTime = startTime;
-	}
-
-	public Date getEndTime()
-	{
-		return endTime;
-	}
-
-	public void setEndTime(Date endTime)
-	{
-		this.endTime = endTime;
-	}
-
-	public String getKamer()
-	{
-		return kamer;
-	}
-
-	public void setKamer(String kamer)
-	{
-		this.kamer = kamer;
-	}
-
-	public RoosterItemStatus getStatus()
-	{
-		return status;
-	}
-
-	public void setStatus(RoosterItemStatus status)
-	{
-		this.status = status;
-	}
-
-	public Long getRoosterItemId()
-	{
-		return roosterItemId;
-	}
-
 	public void setRoosterItemId(BigInteger roosterItemId)
 	{
 		this.roosterItemId = roosterItemId.longValue();
 	}
 
-	public Long getKamerId()
-	{
-		return kamerId;
-	}
+	private Long kamerId;
 
 	public void setKamerId(BigInteger kamerId)
 	{
 		this.kamerId = kamerId.longValue();
 	}
 
-	public Boolean getCapaciteitMeeBepaald()
-	{
-		return capaciteitMeeBepaald;
-	}
-
-	public void setCapaciteitMeeBepaald(Boolean capaciteitMeeBepaald)
-	{
-		this.capaciteitMeeBepaald = capaciteitMeeBepaald;
-	}
 }

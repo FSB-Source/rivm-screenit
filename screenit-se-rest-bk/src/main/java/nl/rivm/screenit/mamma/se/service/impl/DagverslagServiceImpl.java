@@ -32,6 +32,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.RequiredArgsConstructor;
+
 import nl.rivm.screenit.dao.mamma.MammaBaseBlokkadeDao;
 import nl.rivm.screenit.dao.mamma.MammaBaseStandplaatsPeriodeDao;
 import nl.rivm.screenit.mamma.se.dao.MammaScreeningsEenheidDao;
@@ -39,15 +41,14 @@ import nl.rivm.screenit.mamma.se.dto.DagAfsluitingDto;
 import nl.rivm.screenit.mamma.se.dto.DagPlanningSamenvattingDto;
 import nl.rivm.screenit.mamma.se.dto.DagProductieDto;
 import nl.rivm.screenit.mamma.se.dto.DagSynchronisatieDto;
+import nl.rivm.screenit.mamma.se.repository.MammaAfspraakRepository;
 import nl.rivm.screenit.mamma.se.service.DagverslagService;
 import nl.rivm.screenit.mamma.se.service.MammaAfspraakService;
+import nl.rivm.screenit.mamma.se.service.MammaScreeningsEenheidService;
 import nl.rivm.screenit.mamma.se.service.OnderzoekService;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.mamma.MammaBlokkade;
 import nl.rivm.screenit.model.mamma.MammaCapaciteitBlok;
-import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
-import nl.rivm.screenit.model.mamma.MammaStandplaats;
-import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
+import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaCapaciteitBlokType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseCapaciteitsBlokService;
@@ -56,38 +57,34 @@ import nl.rivm.screenit.util.EnvironmentUtil;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
+@RequiredArgsConstructor
 public class DagverslagServiceImpl implements DagverslagService
 {
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private MammaAfspraakService mammaAfspraakService;
+	private final MammaAfspraakService mammaAfspraakService;
 
-	@Autowired
-	private OnderzoekService mammaOnderzoekService;
+	private final OnderzoekService mammaOnderzoekService;
 
-	@Autowired
-	private MammaBaseCapaciteitsBlokService baseCapaciteitsBlokService;
+	private final MammaBaseCapaciteitsBlokService baseCapaciteitsBlokService;
 
-	@Autowired
-	private MammaScreeningsEenheidDao screeningsEenheidDao;
+	private final MammaScreeningsEenheidDao screeningsEenheidDao;
 
-	@Autowired
-	private MammaBaseBlokkadeDao baseBlokkadeDao;
+	private final MammaBaseBlokkadeDao baseBlokkadeDao;
 
-	@Autowired
-	private MammaBaseStandplaatsPeriodeDao baseStandplaatsPeriodeDao;
+	private final MammaBaseStandplaatsPeriodeDao baseStandplaatsPeriodeDao;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
+
+	private final MammaAfspraakRepository afspraakRepository;
+
+	private final MammaScreeningsEenheidService screeningsEenheidService;
 
 	@Override
 	public Map<String, DagProductieDto> getDagproductieVanSeMedewerkers(String seCode, Date datum)
@@ -122,7 +119,7 @@ public class DagverslagServiceImpl implements DagverslagService
 
 	private DagProductieDto getOrCreateDagproductieDto(Long instellingGebruikerId, Map<String, DagProductieDto> result)
 	{
-		DagProductieDto dagproductieDto = result.get(getDisplayName(instellingGebruikerId));
+		var dagproductieDto = result.get(getDisplayName(instellingGebruikerId));
 		if (dagproductieDto == null)
 		{
 			dagproductieDto = new DagProductieDto();
@@ -133,14 +130,14 @@ public class DagverslagServiceImpl implements DagverslagService
 
 	private String getDisplayName(long instellingGebruikerId)
 	{
-		final InstellingGebruiker instellingGebruiker = hibernateService.get(InstellingGebruiker.class, instellingGebruikerId);
+		var instellingGebruiker = hibernateService.get(InstellingGebruiker.class, instellingGebruikerId);
 		return NaamUtil.getNaamGebruiker(instellingGebruiker.getMedewerker());
 	}
 
 	@Override
 	public DagAfsluitingDto getDoorgevoerdCountVanDag(String seCode, Date datum)
 	{
-		DagAfsluitingDto dagAfsluitingDto = new DagAfsluitingDto();
+		var dagAfsluitingDto = new DagAfsluitingDto();
 		dagAfsluitingDto.setAantalDoorgevoerd(mammaOnderzoekService.getAantalDoorgevoerdVanDag(datum, seCode));
 		return dagAfsluitingDto;
 	}
@@ -148,7 +145,7 @@ public class DagverslagServiceImpl implements DagverslagService
 	@Override
 	public DagSynchronisatieDto getSynchronisatieCountVanDag(String seCode, Date datum)
 	{
-		DagSynchronisatieDto synchronisatieDto = new DagSynchronisatieDto();
+		var synchronisatieDto = new DagSynchronisatieDto();
 		synchronisatieDto.setGemaakt(mammaOnderzoekService.getAantalOnderzoekenMetBeelden(datum, seCode));
 		synchronisatieDto.setVerwerkt(mammaOnderzoekService.getAantalOnderzoekenMetBeeldenBeschikbaarInIms(datum, seCode));
 		return synchronisatieDto;
@@ -163,15 +160,15 @@ public class DagverslagServiceImpl implements DagverslagService
 	@Override
 	public DagPlanningSamenvattingDto getPlanningSamenvattingVanDeDag(String seCode, Date datum)
 	{
-		MammaScreeningsEenheid screeningsEenheid = screeningsEenheidDao.getActieveScreeningsEenheidByCode(seCode);
-		MammaStandplaatsPeriode standplaatsPeriode = baseStandplaatsPeriodeDao.getStandplaatsPeriode(screeningsEenheid, datum);
+		var screeningsEenheid = screeningsEenheidDao.getActieveScreeningsEenheidByCode(seCode);
+		var standplaatsPeriode = baseStandplaatsPeriodeDao.getStandplaatsPeriode(screeningsEenheid, datum);
 
 		if (standplaatsPeriode == null)
 		{
 			return new DagPlanningSamenvattingDto();
 		}
-		MammaStandplaats standplaats = standplaatsPeriode.getStandplaatsRonde().getStandplaats();
-		List<MammaBlokkade> actieveBlokkades = baseBlokkadeDao.getActieveBlokkadesVoorSE(standplaats, screeningsEenheid, datum);
+		var standplaats = standplaatsPeriode.getStandplaatsRonde().getStandplaats();
+		var actieveBlokkades = baseBlokkadeDao.getActieveBlokkadesVoorSE(standplaats, screeningsEenheid, datum);
 
 		if (!actieveBlokkades.isEmpty() || (!EnvironmentUtil.getBooleanEnvironmentVariable("SE_DAGVERSLAG_INCL_CAPACITEIT", true) && DateUtil.isZelfdeDag(
 			currentDateSupplier.getLocalDate(), datum)))
@@ -180,17 +177,17 @@ public class DagverslagServiceImpl implements DagverslagService
 		}
 		else
 		{
-			List<MammaCapaciteitBlok> capaciteitsBlokken = baseCapaciteitsBlokService.getCapaciteitsBlokken(screeningsEenheid, datum,
+			var capaciteitsBlokken = baseCapaciteitsBlokService.getCapaciteitsBlokken(screeningsEenheid, datum,
 				DateUtil.toUtilDate(DateUtil.toLocalDate(datum).plusDays(1)), true, Arrays.asList(MammaCapaciteitBlokType.REGULIER, MammaCapaciteitBlokType.TEHUIS));
 
-			return maakEnVulDagPlanningSamenvattingDto(capaciteitsBlokken);
+			return maakEnVulDagPlanningSamenvattingDto(capaciteitsBlokken, seCode, datum);
 		}
 	}
 
-	private DagPlanningSamenvattingDto maakEnVulDagPlanningSamenvattingDto(List<MammaCapaciteitBlok> capaciteitsBlokken)
+	private DagPlanningSamenvattingDto maakEnVulDagPlanningSamenvattingDto(List<MammaCapaciteitBlok> capaciteitsBlokken, String seCode, Date datum)
 	{
-		BigDecimal vrijeCapaciteit = BigDecimal.ZERO;
-		BigDecimal beschikbareCapaciteit = BigDecimal.ZERO;
+		var vrijeCapaciteit = BigDecimal.ZERO;
+		var beschikbareCapaciteit = BigDecimal.ZERO;
 		for (MammaCapaciteitBlok blok : capaciteitsBlokken)
 		{
 			vrijeCapaciteit = vrijeCapaciteit.add(blok.getVrijeCapaciteit());
@@ -199,11 +196,29 @@ public class DagverslagServiceImpl implements DagverslagService
 		LocalDateTime starttijd = DateUtil.toLocalDateTime(capaciteitsBlokken.stream().map(MammaCapaciteitBlok::getVanaf).min(Comparator.naturalOrder()).orElse(null));
 		LocalDateTime eindtijd = DateUtil.toLocalDateTime(capaciteitsBlokken.stream().map(MammaCapaciteitBlok::getTot).max(Comparator.naturalOrder()).orElse(null));
 
-		DagPlanningSamenvattingDto statistiekenDto = new DagPlanningSamenvattingDto();
+		var statistiekenDto = new DagPlanningSamenvattingDto();
 		statistiekenDto.setDagCapaciteit(beschikbareCapaciteit);
 		statistiekenDto.setBeschikbaarheid(vrijeCapaciteit.setScale(1, RoundingMode.HALF_UP));
 		statistiekenDto.setStarttijd(starttijd);
 		statistiekenDto.setEindtijd(eindtijd);
+
+		if (!screeningsEenheidService.magSeDaglijstInzienVanDatum(seCode, DateUtil.toLocalDate(datum)))
+		{
+			zetAfspraakStatussen(seCode, datum, statistiekenDto);
+		}
+
 		return statistiekenDto;
 	}
+
+	private void zetAfspraakStatussen(String seCode, Date datum, DagPlanningSamenvattingDto statistiekenDto)
+	{
+		var afspraakStatussen = new MammaAfspraakStatus[] { MammaAfspraakStatus.GEPLAND, MammaAfspraakStatus.BEEINDIGD };
+		var aantalAfsprakenPerStatus = afspraakRepository.getAantalAfsprakenPerStatus(seCode, datum, DateUtil.eindDag(datum),
+			afspraakStatussen);
+		statistiekenDto.setAantalVerwacht(aantalAfsprakenPerStatus.getAantalVerwacht());
+		statistiekenDto.setAantalAfgerond(aantalAfsprakenPerStatus.getAantalAfgerond());
+		statistiekenDto.setAantalOnderbroken(aantalAfsprakenPerStatus.getAantalOnderbroken());
+		statistiekenDto.setAantalOnvolledig(aantalAfsprakenPerStatus.getAantalOnvolledig());
+	}
+
 }

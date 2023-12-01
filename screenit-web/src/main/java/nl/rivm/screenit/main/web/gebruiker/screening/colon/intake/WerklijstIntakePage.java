@@ -40,6 +40,7 @@ import nl.rivm.screenit.main.web.component.table.EnumPropertyColumn;
 import nl.rivm.screenit.main.web.component.table.ExportToCsvLink;
 import nl.rivm.screenit.main.web.component.table.GeboortedatumColumn;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
+import nl.rivm.screenit.main.web.component.table.ScreenitDateTimePropertyColumn;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.ColonScreeningBasePage;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
@@ -316,7 +317,7 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 	protected List<IColumn<ColonIntakeAfspraak, String>> getColumns()
 	{
 		List<IColumn<ColonIntakeAfspraak, String>> columns = new ArrayList<>();
-		columns.add(new DateTimePropertyColumn<>(Model.of("Intakeafspraak"), "startTime", "startTime", new SimpleDateFormat("dd-MM-yyyy HH:mm"))
+		columns.add(new ScreenitDateTimePropertyColumn<>(Model.of("Intakeafspraak"), "startTime", "startTime", new SimpleDateFormat("dd-MM-yyyy HH:mm"))
 		{
 			@Override
 			public IModel<Object> getDataModel(IModel<ColonIntakeAfspraak> embeddedModel)

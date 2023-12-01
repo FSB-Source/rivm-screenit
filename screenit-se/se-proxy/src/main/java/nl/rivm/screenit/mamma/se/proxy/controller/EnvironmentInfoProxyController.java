@@ -29,9 +29,9 @@ import nl.rivm.screenit.mamma.se.proxy.model.EnvironmentInfoDto;
 import nl.rivm.screenit.mamma.se.proxy.model.SeConfiguratieKey;
 import nl.rivm.screenit.mamma.se.proxy.services.ConfiguratieService;
 import nl.rivm.screenit.mamma.se.proxy.services.LogischeSessieService;
+import nl.rivm.screenit.mamma.se.proxy.services.PersistableTransactionService;
 import nl.rivm.screenit.mamma.se.proxy.services.ProxyService;
 import nl.rivm.screenit.mamma.se.proxy.services.SeDaglijstService;
-import nl.rivm.screenit.mamma.se.proxy.services.TransactionQueueService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,7 +51,7 @@ public class EnvironmentInfoProxyController
 	private LogischeSessieService logischeSessieService;
 
 	@Autowired
-	private TransactionQueueService transactionQueueService;
+	private PersistableTransactionService persistableTransactionService;
 
 	@Autowired
 	private SeDaglijstService seDaglijstService;
@@ -68,7 +68,7 @@ public class EnvironmentInfoProxyController
 		EnvironmentInfoDto environmentInfo = new EnvironmentInfoDto(SeProxyApplication.getEnvironmentInfo());
 		environmentInfo.setNfcEnabled(String.valueOf(!disableNFCAuthentication));
 		environmentInfo.setHuidigWerkstationIpAdres(request.getRemoteAddr());
-		environmentInfo.setMagUpdaten(!logischeSessieService.zijnErNietVerlopenSessies() && !transactionQueueService.zijnErWachtendeTransacties());
+		environmentInfo.setMagUpdaten(!logischeSessieService.zijnErNietVerlopenSessies() && !persistableTransactionService.zijnErWachtendeTransacties());
 		environmentInfo.setDagenInDaglijstCache(seDaglijstService.dagenInCache());
 		environmentInfo.setCacheVulling(proxyService.cacheVullingInfo());
 		environmentInfo.setDagenDaglijstOphalenLimiet(configuratieService.getConfiguratieIntegerValue(SeConfiguratieKey.SE_DAGLIJST_OPHALEN_VOOR_DAGEN));

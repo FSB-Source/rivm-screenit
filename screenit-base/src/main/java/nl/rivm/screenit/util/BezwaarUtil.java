@@ -23,19 +23,18 @@ package nl.rivm.screenit.util;
 
 import java.util.Arrays;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 import nl.rivm.screenit.model.Bezwaar;
 import nl.rivm.screenit.model.BezwaarMoment;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BezwaarType;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class BezwaarUtil
 {
-
-	private BezwaarUtil()
-	{
-	}
-
 	public static boolean isBezwaarActiefVoorEenVanDeOnderzoeken(Client client, BezwaarType type)
 	{
 		if (type.getBevolkingsonderzoeken().length == 0)
@@ -44,7 +43,7 @@ public class BezwaarUtil
 		}
 		else
 		{
-			return Arrays.asList(type.getBevolkingsonderzoeken()).stream().anyMatch(onderzoek -> isBezwaarActiefVoor(client, type, onderzoek));
+			return Arrays.stream(type.getBevolkingsonderzoeken()).anyMatch(onderzoek -> isBezwaarActiefVoor(client, type, onderzoek));
 		}
 	}
 

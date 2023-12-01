@@ -34,6 +34,7 @@ import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.Kamer;
+import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamer;
 import nl.rivm.screenit.service.colon.AfspraakService;
@@ -69,6 +70,15 @@ public class ColonAfspraakServiceImpl implements ColonAfspraakService
 		}
 
 		return laatsteColonScreeningRonde.getLaatsteAfspraak();
+	}
+
+	@Override
+	public boolean laatsteAfspraakHeeftDefinitieveIntakeconclusie(Client client)
+	{
+		var laatsteAfspraak = getHuidigeIntakeAfspraak(client);
+
+		return laatsteAfspraak != null && laatsteAfspraak.getConclusie() != null && ColonConclusieType.getDefinitieveIntakeConclusieTypes()
+			.contains(laatsteAfspraak.getConclusie().getType());
 	}
 
 	@Override

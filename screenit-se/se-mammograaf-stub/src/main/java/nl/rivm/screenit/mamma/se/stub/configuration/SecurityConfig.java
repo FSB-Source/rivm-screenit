@@ -21,31 +21,21 @@ package nl.rivm.screenit.mamma.se.stub.configuration;
  * =========================LICENSE_END==================================
  */
 
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.session.web.http.HeaderHttpSessionStrategy;
-import org.springframework.session.web.http.HttpSessionStrategy;
 
 @Configuration
 public class SecurityConfig extends WebSecurityConfigurerAdapter
 {
-
-	@Bean
-	public HttpSessionStrategy httpSessionStrategy()
-	{
-		return new HeaderHttpSessionStrategy();
-	}
-
 	@Override
 	public void configure(AuthenticationManagerBuilder auth) throws Exception
 	{
 		auth.inMemoryAuthentication()
-				.withUser("beheer")
-				.password("{noop}wachtwoord!")
-				.roles("USER");
+			.withUser("beheer")
+			.password("{noop}mammograafStub!")
+			.roles("USER");
 	}
 
 	@Override

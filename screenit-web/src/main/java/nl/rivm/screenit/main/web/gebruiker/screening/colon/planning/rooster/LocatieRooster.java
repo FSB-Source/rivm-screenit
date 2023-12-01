@@ -79,7 +79,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.codehaus.jackson.JsonNode;
 import org.hibernate.ObjectNotFoundException;
 import org.wicketstuff.shiro.ShiroConstraint;
 import org.wicketstuff.wiquery.core.javascript.JsQuery;
@@ -342,7 +341,7 @@ public class LocatieRooster extends GenericPanel<Kamer> implements ICalendarCall
 				}
 				else
 				{
-					JsonNode jsonNode = eventProperties.getNode().findValue("title");
+					var jsonNode = eventProperties.getNode().findValue("title");
 					String text = jsonNode.asText();
 					ColonTijdSlotType slotType = ColonTijdSlotType.getTypeOnTitle(text);
 					if (slotType == ColonTijdSlotType.ROOSTER_ITEM)

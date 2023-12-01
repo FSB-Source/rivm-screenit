@@ -99,8 +99,6 @@ import nl.rivm.screenit.model.colon.ColonAfmelding;
 import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.colon.ColonConclusie;
 import nl.rivm.screenit.model.colon.ColonDossier;
-import nl.rivm.screenit.model.colon.ColonHuisartsBericht;
-import nl.rivm.screenit.model.colon.ColonHuisartsBerichtStatus;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColonOnderzoeksVariant;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
@@ -258,31 +256,9 @@ public class DossierServiceImpl implements DossierService
 
 			for (ColonIntakeAfspraak afspraak : colonScreeningRonde.getAfspraken())
 			{
-				ScreeningRondeGebeurtenis screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
-				screeningRondeGebeurtenis.setDatum(afspraak.getDatumLaatsteWijziging());
-				screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.INTAKEAFSPRAAKGEMAAKT);
-				screeningRondeGebeurtenis
-					.setBron(bepaalGebeurtenisBron(afspraak, AuditEntity.property("status").in(new AfspraakStatus[] { AfspraakStatus.GEPLAND, AfspraakStatus.UITGEVOERD })));
-
-				String afspraakTime = Constants.getDateTimeFormat().format(afspraak.getStartTime());
-
-				ColoscopieCentrum coloscopieCentrum = afspraak.getLocation().getColoscopieCentrum();
-
-				screeningRondeGebeurtenis.setExtraOmschrijving(afspraakTime, " Intakelocatie: " + coloscopieCentrum.getNaam() + ", " + coloscopieCentrum.getEerstePlaats());
-
-				rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
-
-				if (AfspraakStatus.isGeannuleerd(afspraak.getStatus()))
-				{
-					screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
-					screeningRondeGebeurtenis.setDatum(afspraak.getAfzegDatum());
-					screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.INTAKEAFSPRAAKAFGEZEGD);
-					screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(afspraak));
-					rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
-				}
-
-				conclusieIntakeGebeurtenissen(rondeDossier, afspraak);
+				maakDKAfspraakGebeurtenis(rondeDossier, afspraak);
 			}
+
 			for (ColonUitnodiging colonUitnodiging : colonScreeningRonde.getUitnodigingen())
 			{
 				ScreeningRondeGebeurtenis uitnodigingAangemaakt = new ScreeningRondeGebeurtenis();
@@ -307,83 +283,26 @@ public class DossierServiceImpl implements DossierService
 				ScannedAntwoordFormulier antwoordFormulier = colonUitnodiging.getAntwoordFormulier();
 				if (antwoordFormulier != null)
 				{
-					ScreeningRondeGebeurtenis screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
-					screeningRondeGebeurtenis.setDatum(antwoordFormulier.getScanDatum());
-
-					screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.ANTWOORDFORMULIERONTVANGEN);
-					if (ScannedAntwoordFormulier.STATUS_VERWIJDERD_UIT_DOSSIER.equals(antwoordFormulier.getStatus())
-						|| ScannedAntwoordFormulier.STATUS_VERWIJDERD.equals(antwoordFormulier.getStatus()))
-					{
-						screeningRondeGebeurtenis.setExtraOmschrijving("UitnodigingsID: " + colonUitnodiging.getUitnodigingsId(), "OCR." + antwoordFormulier.getStatus());
-					}
-					else
-					{
-						screeningRondeGebeurtenis.setExtraOmschrijving("UitnodigingsID: " + colonUitnodiging.getUitnodigingsId());
-					}
-					screeningRondeGebeurtenis.setUitnodiging(colonUitnodiging);
-					screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(antwoordFormulier));
-					rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
+					maakDKAntwoordFormulierGebeurtenis(rondeDossier, colonUitnodiging, antwoordFormulier);
 				}
+
 				if (colonUitnodiging.getDatumTerugOntvangen() != null)
 				{
-					Date lastActionOfClient = dossierAuditService.getLastRevisionDate(colonUitnodiging, AuditEntity.property("datumTerugOntvangen").isNotNull(), Client.class);
-					if (lastActionOfClient != null)
-					{
-						ScreeningRondeGebeurtenis screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
-						screeningRondeGebeurtenis.setDatum(lastActionOfClient);
-						screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.AFNAMEDATUM_INGEVULD_OP_PORTAAL);
-						screeningRondeGebeurtenis.setBron(GebeurtenisBron.CLIENT);
-						screeningRondeGebeurtenis.setExtraOmschrijving(Constants.getDateFormat().format(getClientAfnameDatum(colonUitnodiging.getGekoppeldeTest())));
-						rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
-					}
+					maakDKAfnameGebeurtenis(rondeDossier, colonUitnodiging);
 				}
+
 				retouren(rondeDossier, colonUitnodiging);
 				IFOBTTest buis = FITTestUtil.getFITTest(colonUitnodiging);
 
 				if (buis != null && buis.getBarcode() != null)
 				{
-					ScreeningRondeGebeurtenis screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
-					screeningRondeGebeurtenis.setDatum(buis.getDatumVerstuurd());
-					screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.UITNODIGINGSPAKKET_SAMENGESTELD);
-					String extraOmschrijving = contructBarcodeInfo(colonUitnodiging);
-					screeningRondeGebeurtenis.setExtraOmschrijving("UitnodigingsID: " + colonUitnodiging.getUitnodigingsId(), extraOmschrijving);
-					screeningRondeGebeurtenis.setBron(GebeurtenisBron.AUTOMATISCH);
-					rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
+					maakDKUitnodigingsPakketSamenstellenGebeurtenis(rondeDossier, colonUitnodiging, buis);
 				}
 			}
 
 			for (ColonVerslag<?> verslag : colonScreeningRonde.getVerslagen())
 			{
-				Date ontvangen;
-				if (verslag.getOntvangenBericht() != null)
-				{
-					ontvangen = verslag.getOntvangenBericht().getOntvangen();
-				}
-				else
-				{
-					ontvangen = verslag.getDatumVerwerkt();
-				}
-				if (verslag.getType().equals(VerslagType.MDL) && verslag.getStatus() == VerslagStatus.AFGEROND)
-				{
-					ScreeningRondeGebeurtenis screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
-					screeningRondeGebeurtenis.setDatum(ontvangen);
-					screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.UITSLAGCOLOSCOPIEONTVANGEN);
-					screeningRondeGebeurtenis.setVerslag(verslag);
-					screeningRondeGebeurtenis.setExtraOmschrijving(EnumStringUtil.getPropertyString(((MdlVerslag) verslag).getVervolgbeleid()));
-					screeningRondeGebeurtenis.setScreeningRondeGebeurtenissen(rondeDossier);
-					screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(verslag));
-					rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
-				}
-				else if (verslag.getType().equals(VerslagType.PA_LAB) && verslag.getStatus() == VerslagStatus.AFGEROND)
-				{
-					ScreeningRondeGebeurtenis screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
-					screeningRondeGebeurtenis.setDatum(ontvangen);
-					screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.UITSLAGPATHOLOGIEONTVANGEN);
-					screeningRondeGebeurtenis.setVerslag(verslag);
-					screeningRondeGebeurtenis.setScreeningRondeGebeurtenissen(rondeDossier);
-					screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(verslag));
-					rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
-				}
+				maakDKVerslagGebeurtenis(rondeDossier, verslag);
 			}
 
 			if (colonScreeningRonde.getColonHuisarts() != null && colonScreeningRonde.getDatumVastleggenHuisarts() != null)
@@ -394,78 +313,7 @@ public class DossierServiceImpl implements DossierService
 
 			for (IFOBTTest buis : colonScreeningRonde.getIfobtTesten())
 			{
-				TypeGebeurtenis typeGebeurtenis = null;
-				switch (buis.getStatus())
-				{
-				case VERLOREN:
-					typeGebeurtenis = TypeGebeurtenis.IFOBTVERLOREN;
-					break;
-				case NIETONTVANGEN:
-					typeGebeurtenis = TypeGebeurtenis.RETOURPERIODEIFOBTVERSTREKEN;
-					break;
-				case NIETTEBEOORDELEN:
-					typeGebeurtenis = TypeGebeurtenis.IFOBTNIETTEBEOORDELEN;
-					break;
-				case VERVALDATUMVERLOPEN:
-					typeGebeurtenis = TypeGebeurtenis.VERVALDATUMIFOBTVERLOPEN;
-					break;
-				case UITGEVOERD:
-				case WACHTOPBRIEF:
-				case VERWIJDERD:
-					typeGebeurtenis = TypeGebeurtenis.UITSLAGIFOBTONTVANGEN;
-					break;
-				case ONBETROUWBAAR:
-					typeGebeurtenis = TypeGebeurtenis.UITSLAGIFOBTONBETROUWBAAR;
-					break;
-				default:
-					if (buis.getUitslag() != null)
-					{
-						typeGebeurtenis = TypeGebeurtenis.UITSLAGIFOBTONTVANGEN;
-					}
-					break;
-				}
-
-				if (typeGebeurtenis != null)
-				{
-					String barcodeInfo = "Barcode: " + buis.getBarcode();
-					ScreeningRondeGebeurtenis screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
-					screeningRondeGebeurtenis.setDatum(buis.getStatusDatum());
-					screeningRondeGebeurtenis.setGebeurtenis(typeGebeurtenis);
-					screeningRondeGebeurtenis.setUitnodiging(FITTestUtil.getUitnodiging(buis));
-					screeningRondeGebeurtenis.setBuis(buis);
-					screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(buis, false));
-					screeningRondeGebeurtenis.setExtraOmschrijving(barcodeInfo);
-					if (TypeGebeurtenis.IFOBTVERLOREN.equals(typeGebeurtenis))
-					{
-						screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(buis, true));
-					}
-					else if (TypeGebeurtenis.UITSLAGIFOBTONTVANGEN.equals(typeGebeurtenis) && buis.getBarcode() != null)
-					{
-						if (buis.getVerwerkingsDatum() != null)
-						{
-							screeningRondeGebeurtenis.setDatum(buis.getVerwerkingsDatum());
-						}
-						if (FITTestUtil.isOngunstig(buis))
-						{
-							screeningRondeGebeurtenis.setExtraOmschrijving("Ongunstig", barcodeInfo);
-						}
-						else if (FITTestUtil.isGunstig(buis))
-						{
-							screeningRondeGebeurtenis.setExtraOmschrijving("Gunstig", barcodeInfo);
-						}
-						else if (IFOBTTestStatus.VERWIJDERD.equals(buis.getStatus()))
-						{
-							screeningRondeGebeurtenis.setExtraOmschrijving("Verwijderd", barcodeInfo);
-						}
-					}
-					else if (TypeGebeurtenis.IFOBTNIETTEBEOORDELEN.equals(typeGebeurtenis))
-					{
-						screeningRondeGebeurtenis.setExtraOmschrijving(EnumStringUtil.getPropertyString(buis.getRedenNietTeBeoordelen()), barcodeInfo);
-					}
-
-					rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
-				}
-
+				maakDKIFOBTTestGebeurtenis(rondeDossier, buis);
 			}
 
 			voegBrievenGebeurtenissenToe(colonScreeningRonde, rondeDossier);
@@ -475,44 +323,7 @@ public class DossierServiceImpl implements DossierService
 
 			if (CollectionUtils.isNotEmpty(colonScreeningRonde.getHuisartsBerichten()))
 			{
-				for (ColonHuisartsBericht bericht : colonScreeningRonde.getHuisartsBerichten())
-				{
-					ColonHuisartsBerichtStatus statusBericht = bericht.getStatus();
-					ScreeningRondeGebeurtenis screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
-					screeningRondeGebeurtenis.setClickable(true);
-					screeningRondeGebeurtenis.setExtraOmschrijving(bericht.getBerichtType().getNaam());
-					if (bericht.getHuisarts() != null)
-					{
-						screeningRondeGebeurtenis.addToExtraOmschrijving(bericht.getHuisarts().getPraktijknaam());
-					}
-					screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(bericht));
-					rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
-					screeningRondeGebeurtenis.setColonHuisartsBericht(bericht);
-
-					switch (statusBericht)
-					{
-					case TE_CONTROLEREN:
-					case CONTROLE_NIET_NODIG:
-						screeningRondeGebeurtenis.setDatum(bericht.getAanmaakDatum());
-						screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.COLON_HUISARTSBERICHT_AANGEMAAKT);
-						break;
-					case GEEN_HUISARTS:
-					case VERZENDEN_MISLUKT:
-						screeningRondeGebeurtenis.setDatum(bericht.getAanmaakDatum());
-						screeningRondeGebeurtenis.setGebeurtenis(
-							bericht.isEenOpnieuwVerzondenBericht() ?
-								TypeGebeurtenis.COLON_HUISARTSBERICHT_OPNIEUW_VERSTUREN_MISLUKT :
-								TypeGebeurtenis.COLON_HUISARTSBERICHT_VERSTUREN_MISLUKT);
-						break;
-					case VERZENDEN_GELUKT:
-						screeningRondeGebeurtenis.setDatum(bericht.getVerzendDatum());
-						screeningRondeGebeurtenis.setGebeurtenis(
-							bericht.isEenOpnieuwVerzondenBericht() ?
-								TypeGebeurtenis.COLON_HUISARTSBERICHT_OPNIEUW_VERSTUURD :
-								TypeGebeurtenis.COLON_HUISARTSBERICHT_VERSTUURD);
-						break;
-					}
-				}
+				maakDKHuisartsBerichtGebeurtenis(colonScreeningRonde, rondeDossier);
 			}
 
 			dossiers.add(rondeDossier);
@@ -522,6 +333,231 @@ public class DossierServiceImpl implements DossierService
 			}
 		}
 		return dossiers;
+	}
+
+	private void maakDKAfspraakGebeurtenis(ScreeningRondeGebeurtenissen rondeDossier, ColonIntakeAfspraak afspraak)
+	{
+		var screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
+		screeningRondeGebeurtenis.setDatum(afspraak.getDatumLaatsteWijziging());
+		screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.INTAKEAFSPRAAKGEMAAKT);
+		screeningRondeGebeurtenis
+			.setBron(bepaalGebeurtenisBron(afspraak, AuditEntity.property("status").in(new AfspraakStatus[] { AfspraakStatus.GEPLAND, AfspraakStatus.UITGEVOERD })));
+
+		var afspraakTime = Constants.getDateTimeFormat().format(afspraak.getStartTime());
+
+		var coloscopieCentrum = afspraak.getLocation().getColoscopieCentrum();
+
+		screeningRondeGebeurtenis.setExtraOmschrijving(afspraakTime, " Intakelocatie: " + coloscopieCentrum.getNaam() + ", " + coloscopieCentrum.getEerstePlaats());
+
+		rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
+
+		if (AfspraakStatus.isGeannuleerd(afspraak.getStatus()))
+		{
+			screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
+			screeningRondeGebeurtenis.setDatum(afspraak.getAfzegDatum());
+			screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.INTAKEAFSPRAAKAFGEZEGD);
+			screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(afspraak));
+			rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
+		}
+
+		conclusieIntakeGebeurtenissen(rondeDossier, afspraak);
+	}
+
+	private void maakDKAntwoordFormulierGebeurtenis(ScreeningRondeGebeurtenissen rondeDossier, ColonUitnodiging colonUitnodiging, ScannedAntwoordFormulier antwoordFormulier)
+	{
+		var screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
+		screeningRondeGebeurtenis.setDatum(antwoordFormulier.getScanDatum());
+
+		screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.ANTWOORDFORMULIERONTVANGEN);
+		if (ScannedAntwoordFormulier.STATUS_VERWIJDERD_UIT_DOSSIER.equals(antwoordFormulier.getStatus())
+			|| ScannedAntwoordFormulier.STATUS_VERWIJDERD.equals(antwoordFormulier.getStatus()))
+		{
+			screeningRondeGebeurtenis.setExtraOmschrijving("UitnodigingsID: " + colonUitnodiging.getUitnodigingsId(), "OCR." + antwoordFormulier.getStatus());
+		}
+		else
+		{
+			screeningRondeGebeurtenis.setExtraOmschrijving("UitnodigingsID: " + colonUitnodiging.getUitnodigingsId());
+		}
+		screeningRondeGebeurtenis.setUitnodiging(colonUitnodiging);
+		screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(antwoordFormulier));
+		rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
+	}
+
+	private void maakDKAfnameGebeurtenis(ScreeningRondeGebeurtenissen rondeDossier, ColonUitnodiging colonUitnodiging)
+	{
+		var lastActionOfClient = dossierAuditService.getLastRevisionDate(colonUitnodiging, AuditEntity.property("datumTerugOntvangen").isNotNull(), Client.class);
+		if (lastActionOfClient != null)
+		{
+			var screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
+			screeningRondeGebeurtenis.setDatum(lastActionOfClient);
+			screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.AFNAMEDATUM_INGEVULD_OP_PORTAAL);
+			screeningRondeGebeurtenis.setBron(GebeurtenisBron.CLIENT);
+			screeningRondeGebeurtenis.setExtraOmschrijving(Constants.getDateFormat().format(getClientAfnameDatum(colonUitnodiging.getGekoppeldeTest())));
+			rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
+		}
+	}
+
+	private void maakDKUitnodigingsPakketSamenstellenGebeurtenis(ScreeningRondeGebeurtenissen rondeDossier, ColonUitnodiging colonUitnodiging, IFOBTTest buis)
+	{
+		var screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
+		screeningRondeGebeurtenis.setDatum(buis.getDatumVerstuurd());
+		screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.UITNODIGINGSPAKKET_SAMENGESTELD);
+		var extraOmschrijving = contructBarcodeInfo(colonUitnodiging);
+		screeningRondeGebeurtenis.setExtraOmschrijving("UitnodigingsID: " + colonUitnodiging.getUitnodigingsId(), extraOmschrijving);
+		screeningRondeGebeurtenis.setBron(GebeurtenisBron.AUTOMATISCH);
+		rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
+	}
+
+	private void maakDKVerslagGebeurtenis(ScreeningRondeGebeurtenissen rondeDossier, ColonVerslag<?> verslag)
+	{
+		Date ontvangen;
+		if (verslag.getOntvangenBericht() != null)
+		{
+			ontvangen = verslag.getOntvangenBericht().getOntvangen();
+		}
+		else
+		{
+			ontvangen = verslag.getDatumVerwerkt();
+		}
+		if (verslag.getType() == VerslagType.MDL && verslag.getStatus() == VerslagStatus.AFGEROND)
+		{
+			var screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
+			screeningRondeGebeurtenis.setDatum(ontvangen);
+			screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.UITSLAGCOLOSCOPIEONTVANGEN);
+			screeningRondeGebeurtenis.setVerslag(verslag);
+			screeningRondeGebeurtenis.setExtraOmschrijving(EnumStringUtil.getPropertyString(((MdlVerslag) verslag).getVervolgbeleid()));
+			screeningRondeGebeurtenis.setScreeningRondeGebeurtenissen(rondeDossier);
+			screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(verslag));
+			rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
+		}
+		else if (verslag.getType() == VerslagType.PA_LAB && verslag.getStatus() == VerslagStatus.AFGEROND)
+		{
+			var screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
+			screeningRondeGebeurtenis.setDatum(ontvangen);
+			screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.UITSLAGPATHOLOGIEONTVANGEN);
+			screeningRondeGebeurtenis.setVerslag(verslag);
+			screeningRondeGebeurtenis.setScreeningRondeGebeurtenissen(rondeDossier);
+			screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(verslag));
+			rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
+		}
+	}
+
+	private void maakDKIFOBTTestGebeurtenis(ScreeningRondeGebeurtenissen rondeDossier, IFOBTTest buis)
+	{
+		TypeGebeurtenis typeGebeurtenis = null;
+		switch (buis.getStatus())
+		{
+		case VERLOREN:
+			typeGebeurtenis = TypeGebeurtenis.IFOBTVERLOREN;
+			break;
+		case NIETONTVANGEN:
+			typeGebeurtenis = TypeGebeurtenis.RETOURPERIODEIFOBTVERSTREKEN;
+			break;
+		case NIETTEBEOORDELEN:
+			typeGebeurtenis = TypeGebeurtenis.IFOBTNIETTEBEOORDELEN;
+			break;
+		case VERVALDATUMVERLOPEN:
+			typeGebeurtenis = TypeGebeurtenis.VERVALDATUMIFOBTVERLOPEN;
+			break;
+		case UITGEVOERD:
+		case WACHTOPBRIEF:
+		case VERWIJDERD:
+			typeGebeurtenis = TypeGebeurtenis.UITSLAGIFOBTONTVANGEN;
+			break;
+		case ONBETROUWBAAR:
+			typeGebeurtenis = TypeGebeurtenis.UITSLAGIFOBTONBETROUWBAAR;
+			break;
+		default:
+			if (buis.getUitslag() != null)
+			{
+				typeGebeurtenis = TypeGebeurtenis.UITSLAGIFOBTONTVANGEN;
+			}
+			break;
+		}
+
+		if (typeGebeurtenis != null)
+		{
+			var barcodeInfo = "Barcode: " + buis.getBarcode();
+			var screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
+			screeningRondeGebeurtenis.setDatum(buis.getStatusDatum());
+			screeningRondeGebeurtenis.setGebeurtenis(typeGebeurtenis);
+			screeningRondeGebeurtenis.setUitnodiging(FITTestUtil.getUitnodiging(buis));
+			screeningRondeGebeurtenis.setBuis(buis);
+			screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(buis, false));
+			screeningRondeGebeurtenis.setExtraOmschrijving(barcodeInfo);
+			if (typeGebeurtenis == TypeGebeurtenis.IFOBTVERLOREN && buis.getBarcode() != null)
+			{
+				screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(buis, true));
+			}
+			else if (typeGebeurtenis == TypeGebeurtenis.UITSLAGIFOBTONTVANGEN && buis.getBarcode() != null)
+			{
+				if (buis.getVerwerkingsDatum() != null)
+				{
+					screeningRondeGebeurtenis.setDatum(buis.getVerwerkingsDatum());
+				}
+				if (FITTestUtil.isOngunstig(buis))
+				{
+					screeningRondeGebeurtenis.setExtraOmschrijving("Ongunstig", barcodeInfo);
+				}
+				else if (FITTestUtil.isGunstig(buis))
+				{
+					screeningRondeGebeurtenis.setExtraOmschrijving("Gunstig", barcodeInfo);
+				}
+				else if (buis.getStatus() == IFOBTTestStatus.VERWIJDERD)
+				{
+					screeningRondeGebeurtenis.setExtraOmschrijving("Verwijderd", barcodeInfo);
+				}
+			}
+			else if (typeGebeurtenis == TypeGebeurtenis.IFOBTNIETTEBEOORDELEN)
+			{
+				screeningRondeGebeurtenis.setExtraOmschrijving(EnumStringUtil.getPropertyString(buis.getRedenNietTeBeoordelen()), barcodeInfo);
+				screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(buis, true));
+			}
+
+			rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
+		}
+	}
+
+	private void maakDKHuisartsBerichtGebeurtenis(ColonScreeningRonde colonScreeningRonde, ScreeningRondeGebeurtenissen rondeDossier)
+	{
+		for (var bericht : colonScreeningRonde.getHuisartsBerichten())
+		{
+			var statusBericht = bericht.getStatus();
+			var screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
+			screeningRondeGebeurtenis.setClickable(true);
+			screeningRondeGebeurtenis.setExtraOmschrijving(bericht.getBerichtType().getNaam());
+			if (bericht.getHuisarts() != null)
+			{
+				screeningRondeGebeurtenis.addToExtraOmschrijving(bericht.getHuisarts().getPraktijknaam());
+			}
+			screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(bericht));
+			rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
+			screeningRondeGebeurtenis.setColonHuisartsBericht(bericht);
+
+			switch (statusBericht)
+			{
+			case TE_CONTROLEREN:
+			case CONTROLE_NIET_NODIG:
+				screeningRondeGebeurtenis.setDatum(bericht.getAanmaakDatum());
+				screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.COLON_HUISARTSBERICHT_AANGEMAAKT);
+				break;
+			case GEEN_HUISARTS:
+			case VERZENDEN_MISLUKT:
+				screeningRondeGebeurtenis.setDatum(bericht.getAanmaakDatum());
+				screeningRondeGebeurtenis.setGebeurtenis(
+					bericht.isEenOpnieuwVerzondenBericht() ?
+						TypeGebeurtenis.COLON_HUISARTSBERICHT_OPNIEUW_VERSTUREN_MISLUKT :
+						TypeGebeurtenis.COLON_HUISARTSBERICHT_VERSTUREN_MISLUKT);
+				break;
+			case VERZENDEN_GELUKT:
+				screeningRondeGebeurtenis.setDatum(bericht.getVerzendDatum());
+				screeningRondeGebeurtenis.setGebeurtenis(
+					bericht.isEenOpnieuwVerzondenBericht() ?
+						TypeGebeurtenis.COLON_HUISARTSBERICHT_OPNIEUW_VERSTUURD :
+						TypeGebeurtenis.COLON_HUISARTSBERICHT_VERSTUURD);
+				break;
+			}
+		}
 	}
 
 	private void conclusieIntakeGebeurtenissen(ScreeningRondeGebeurtenissen rondeDossier, ColonIntakeAfspraak afspraak)
@@ -622,7 +658,7 @@ public class DossierServiceImpl implements DossierService
 		{
 			ScreeningRondeGebeurtenis screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
 			screeningRondeGebeurtenis.setDatum(uitnodiging.getRetourOntvangen());
-			if (RetourzendingWijze.BESTAND.equals(uitnodiging.getRetourzendingWijze()))
+			if (uitnodiging.getRetourzendingWijze() == RetourzendingWijze.BESTAND)
 			{
 				screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.RETOURZENDING_BESTAND);
 			}

@@ -156,14 +156,6 @@ public abstract class ClientVerslagenOverzichtPanel<V extends Verslag<?, ?>> ext
 				}
 				return item;
 			}
-
-			@Override
-			protected void updateContainer(AjaxRequestTarget target)
-			{
-				super.updateContainer(target);
-				target.add(tooltipContainter);
-				target.appendJavaScript("initTooltip();");
-			}
 		});
 	}
 

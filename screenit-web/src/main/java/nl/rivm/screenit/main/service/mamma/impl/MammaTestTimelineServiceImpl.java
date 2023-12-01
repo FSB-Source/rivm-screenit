@@ -49,6 +49,7 @@ import nl.rivm.screenit.main.service.algemeen.DeelnamemodusService;
 import nl.rivm.screenit.main.service.mamma.MammaBeoordelingService;
 import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
 import nl.rivm.screenit.main.service.mamma.MammaTestTimelineService;
+import nl.rivm.screenit.main.specification.MammografieSpecification;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.TestVervolgKeuzeOptie;
 import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.ImportPocOpties;
 import nl.rivm.screenit.model.BagAdres;
@@ -87,6 +88,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
 import nl.rivm.screenit.model.mamma.enums.OnderbrokenOnderzoekOption;
 import nl.rivm.screenit.model.mamma.enums.OnvolledigOnderzoekOption;
+import nl.rivm.screenit.repository.ClientRepository;
 import nl.rivm.screenit.service.BerichtToBatchService;
 import nl.rivm.screenit.service.DeelnamemodusDossierService;
 import nl.rivm.screenit.service.EnovationHuisartsService;
@@ -190,6 +192,9 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 
 	@Autowired
 	private MammaBaseAfspraakDao baseAfspraakDao;
+
+	@Autowired
+	private ClientRepository clientRepository;
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS)
@@ -1079,5 +1084,12 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 			return afspraak.getIngeschrevenDoor();
 		}
 		return ingelogdeGebruiker;
+	}
+
+	@Override
+	public String getBsnsMetBeeldenBeschikbaar()
+	{
+		return clientRepository.findAll(MammografieSpecification.heeftBeeldenBeschikbaar())
+			.stream().map(client -> client.getPersoon().getBsn()).collect(Collectors.joining(","));
 	}
 }

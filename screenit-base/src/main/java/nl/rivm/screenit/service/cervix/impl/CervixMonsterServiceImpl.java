@@ -23,6 +23,7 @@ package nl.rivm.screenit.service.cervix.impl;
 
 import nl.rivm.screenit.dao.cervix.CervixMonsterDao;
 import nl.rivm.screenit.model.Instelling;
+import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.cervix.CervixHpvAnalyseresultaten;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
@@ -98,6 +99,6 @@ public class CervixMonsterServiceImpl implements CervixMonsterService
 		{
 			isMonsterNietOntvangen = CervixZasStatus.VERSTUURD == CervixMonsterUtil.getZAS(monster).getZasStatus();
 		}
-		return isMonsterNietOntvangen || instelling.equals(monster.getLaboratorium());
+		return isMonsterNietOntvangen || instelling.getOrganisatieType() != OrganisatieType.BMHK_LABORATORIUM || instelling.equals(monster.getLaboratorium());
 	}
 }

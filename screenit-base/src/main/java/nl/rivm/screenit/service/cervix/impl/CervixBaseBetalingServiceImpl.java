@@ -22,18 +22,23 @@ package nl.rivm.screenit.service.cervix.impl;
  */
 
 import java.math.BigDecimal;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel_;
 import nl.rivm.screenit.model.cervix.facturatie.CervixHuisartsTarief;
 import nl.rivm.screenit.model.cervix.facturatie.CervixHuisartsTarief_;
+import nl.rivm.screenit.model.cervix.facturatie.CervixTarief;
 import nl.rivm.screenit.repository.cervix.CervixBoekRegelRepository;
+import nl.rivm.screenit.service.cervix.Cervix2023StartBepalingService;
 import nl.rivm.screenit.service.cervix.CervixBaseBetalingService;
 import nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification;
+import nl.rivm.screenit.util.cervix.CervixTariefUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.stereotype.Service;
@@ -46,6 +51,8 @@ public class CervixBaseBetalingServiceImpl implements CervixBaseBetalingService
 	private final CervixBoekRegelRepository boekRegelRepository;
 
 	private final HibernateService hibernateService;
+
+	private final Cervix2023StartBepalingService cervix2023StartBepalingService;
 
 	@Override
 	public long totaalAantalHuisartsBoekRegelsInBetaalopdracht(CervixBetaalopdracht betaalopdracht, boolean debet)
@@ -90,5 +97,35 @@ public class CervixBaseBetalingServiceImpl implements CervixBaseBetalingService
 	public BigDecimal totaalBedragHuisartsBoekRegelsInBetaalopdracht(CervixBetaalopdracht betaalopdracht)
 	{
 		return totaalBedragHuisartsBoekRegelsInBetaalopdracht(betaalopdracht, false).subtract(totaalBedragHuisartsBoekRegelsInBetaalopdracht(betaalopdracht, true));
+	}
+
+	@Override
+	public String getTariefString(CervixTarief tarief)
+	{
+		String tariefTekst = "'";
+
+		if (CervixTariefType.isHuisartsTarief(tarief))
+		{
+			tariefTekst += "huisartstarief " + CervixTariefType.HUISARTS_UITSTRIJKJE.getBedragStringVanTarief(tarief);
+		}
+		else
+		{
+			var bmhk2023Lab = cervix2023StartBepalingService.isBmhk2023Tarief(tarief);
+
+			tariefTekst += CervixTariefType.getAlleLabTariefTypes(bmhk2023Lab).stream()
+				.filter(t -> t.getBedragVanTarief(tarief).compareTo(BigDecimal.valueOf(0)) > 0)
+				.map(t -> t.getNaam() + ": tarief " + t.getBedragStringVanTarief(tarief))
+				.collect(Collectors.joining(", "));
+		}
+		if (Boolean.TRUE.equals(tarief.getActief()))
+		{
+			tariefTekst += " " + CervixTariefUtil.getGeldigheidMelding(tarief);
+		}
+		else
+		{
+			tariefTekst += " (verwijderd)";
+		}
+		tariefTekst += "'";
+		return tariefTekst;
 	}
 }

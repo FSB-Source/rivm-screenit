@@ -120,6 +120,7 @@ public class ColonScreeningRonde extends ScreeningRonde<ColonDossier, ColonBrief
 	@NotAudited
 	private List<ColonHuisartsBericht> huisartsBerichten = new ArrayList<>();
 
+	@Deprecated
 	@Enumerated(EnumType.STRING)
 	private ColonDefinitiefVervolgbeleid definitiefVervolgbeleid;
 

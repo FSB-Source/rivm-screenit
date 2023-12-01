@@ -24,6 +24,8 @@ package nl.rivm.screenit.main.web.base;
 
 import javax.servlet.http.HttpSession;
 
+import nl.rivm.screenit.main.web.gebruiker.base.angular.AngularBasePage;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -80,11 +82,13 @@ public abstract class BasePage extends WebPage
 		response.render(JavaScriptHeaderItem.forUrl("assets/js/laadEvents.js"));
 		response.render(JavaScriptHeaderItem.forUrl("assets/js/brieventemplates/brieventemplatesUitklappen.js"));
 
-		response.render(CssHeaderItem.forUrl("assets/js/libs/select2/select2.css"));
-		response.render(CssHeaderItem.forUrl("assets/css/colonis-ui/jquery-ui-1.8.16.custom.css"));
-		response.render(CssHeaderItem.forUrl("assets/js/libs/qtip/jquery.qtip.min.css"));
-		response.render(CssHeaderItem.forUrl("assets/css/bootstrap/bootstrap.min.css"));
-		response.render(CssHeaderItem.forUrl("assets/css/base_styles.css"));
+		if (!(this instanceof AngularBasePage))
+		{
+			response.render(CssHeaderItem.forUrl("assets/js/libs/select2/select2.css"));
+			response.render(CssHeaderItem.forUrl("assets/css/colonis-ui/jquery-ui-1.8.16.custom.css"));
+			response.render(CssHeaderItem.forUrl("assets/js/libs/qtip/jquery.qtip.min.css"));
+			response.render(CssHeaderItem.forUrl("assets/css/base_styles.css"));
+		}
 
 		response.render(JavaScriptHeaderItem.forUrl("assets/js/datepicker/datepickerShow.js"));
 		response.render(JavaScriptHeaderItem.forUrl("assets/js/datepicker/datepickerFilterDatum.js"));

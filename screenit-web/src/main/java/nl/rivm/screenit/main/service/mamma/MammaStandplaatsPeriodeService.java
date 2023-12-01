@@ -21,10 +21,12 @@ package nl.rivm.screenit.main.service.mamma;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.util.List;
 
 import nl.rivm.screenit.dto.mamma.afspraken.IMammaAfspraakWijzigenFilter;
 import nl.rivm.screenit.dto.mamma.planning.PlanningStandplaatsPeriodeDto;
+import nl.rivm.screenit.main.exception.MagOpslaanException;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
@@ -51,4 +53,8 @@ public interface MammaStandplaatsPeriodeService
 
 	List<MammaScreeningsEenheid> getScreeningEenhedenBuitenRegio(IMammaAfspraakWijzigenFilter filter, boolean uitstellen);
 
+	void magOnthouden(PlanningStandplaatsPeriodeDto standplaatsPeriodeDto, boolean nieuwePrognose, LocalDate nieuweEindDatum, LocalDate vrijgegevenTotEnMet,
+		LocalDate uitnodigenTotEnMet, PlanningStandplaatsPeriodeDto volgendeStandplaatsPeriode) throws MagOpslaanException;
+
+	long countAfsprakenTeVerzetten(LocalDate nieuweEindDatum, PlanningStandplaatsPeriodeDto standplaatsPeriodeDto, MammaScreeningsEenheid screeningsEenheid);
 }

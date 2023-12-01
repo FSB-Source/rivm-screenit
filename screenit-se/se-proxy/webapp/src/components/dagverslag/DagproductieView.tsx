@@ -1,15 +1,9 @@
 import React from "react"
 import {Table} from "reactstrap"
 import Paneel from "../generic/Paneel"
-import type {Afspraak} from "../../datatypes/Afspraak"
-import type {Onderzoek} from "../../datatypes/Onderzoek"
-import type {Session} from "../../datatypes/Session"
 import type {Dagverslag} from "../../datatypes/Dagverslag"
 
 export type DagproductieViewProps = {
-	afspraken: Map<number, Afspraak>;
-	onderzoeken: Map<number, Onderzoek>;
-	session?: Session;
 	daglijstDatum: string;
 	dagverslag: Map<string, Dagverslag>;
 };

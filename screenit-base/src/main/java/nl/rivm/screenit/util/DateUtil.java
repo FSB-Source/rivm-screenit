@@ -551,5 +551,4 @@ public final class DateUtil
 
 		return !intersects;
 	}
-
 }

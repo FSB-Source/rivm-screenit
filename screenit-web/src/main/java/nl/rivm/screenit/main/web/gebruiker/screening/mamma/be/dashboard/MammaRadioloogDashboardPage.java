@@ -114,7 +114,8 @@ public class MammaRadioloogDashboardPage extends AbstractMammaBePage
 	private long countConclusieReviewsVanRadioloog(boolean toonGereviewed)
 	{
 		MammaConclusieReviewZoekObject zoekObject = new MammaConclusieReviewZoekObject();
-		zoekObject.setInstellingGebruiker(ScreenitSession.get().getLoggedInInstellingGebruiker());
+		zoekObject.setRadioloog(ScreenitSession.get().getLoggedInInstellingGebruiker());
+		zoekObject.setIngelogdeGebruiker(ScreenitSession.get().getLoggedInInstellingGebruiker());
 		zoekObject.setFilterOptie(MammaConclusieReviewFilterOptie.ALLES);
 		zoekObject.setGezienTonen(toonGereviewed);
 		zoekObject.setVoorDashboard(true);

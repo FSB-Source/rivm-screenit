@@ -37,7 +37,7 @@ public interface MammaBaseUitwisselportaalService
 
 	void kopieerVerslagPdfNaarDownloadVerzoekMap(MammaDownloadOnderzoek downloadOnderzoek);
 
-	void kopieerDicomBestandNaarDownloadVerzoekMap(File file, String seriesNumber, MammaDownloadOnderzoek downloadOnderzoek);
+	void kopieerDicomBestandNaarDownloadVerzoekMap(File dicomTempFile, String seriesNumber, MammaDownloadOnderzoek downloadOnderzoek);
 
 	void zetFilesInZip(MammaDownloadOnderzoekenVerzoek verzoek) throws IOException;
 

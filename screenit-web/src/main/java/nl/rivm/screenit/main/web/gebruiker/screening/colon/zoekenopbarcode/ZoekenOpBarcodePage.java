@@ -31,6 +31,7 @@ import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ZoekIfobtMetBarcodePanel;
 import nl.rivm.screenit.main.web.component.table.ClientColumn;
 import nl.rivm.screenit.main.web.component.table.GeboortedatumColumn;
+import nl.rivm.screenit.main.web.component.table.PostcodeColumn;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
 import nl.rivm.screenit.main.web.gebruiker.clienten.inzien.ClientInzienPage;
@@ -43,7 +44,6 @@ import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
-import nl.topicuszorg.util.postcode.PostcodeFormatter;
 import nl.topicuszorg.wicket.hibernate.SimpleHibernateModel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -126,19 +126,8 @@ public class ZoekenOpBarcodePage extends ColonScreeningBasePage
 		columns.add(new ClientColumn<>("persoon.achternaam", ""));
 		columns.add(new PropertyColumn<>(Model.of("Bsn"), "persoon.bsn", "persoon.bsn"));
 		columns.add(new GeboortedatumColumn<>("persoon.geboortedatum", "persoon"));
-
 		columns.add(new PropertyColumn<>(Model.of("Overlijdensdatum"), "persoon.overlijdensdatum", "persoon.overlijdensdatum"));
-
-		columns.add(new PropertyColumn<>(Model.of("Postcode"), "persoon.gbaAdres.postcode", "persoon.gbaAdres.postcode")
-		{
-
-			@Override
-			public IModel<Object> getDataModel(IModel<Client> rowModel)
-			{
-				return new Model(PostcodeFormatter.formatPostcode((String) super.getDataModel(rowModel).getObject(), true));
-			}
-
-		});
+		columns.add(new PostcodeColumn<>("persoon.gbaAdres.postcode", "persoon.gbaAdres.postcode"));
 		columns.add(new PropertyColumn<>(Model.of("Huisnummer"), "persoon.gbaAdres.huisnummer", "persoon.gbaAdres.huisnummer"));
 
 		final ScreenitDataTable<Client, String> tabel = new ScreenitDataTable<Client, String>("tabel", columns, new SortableDataProvider<>()

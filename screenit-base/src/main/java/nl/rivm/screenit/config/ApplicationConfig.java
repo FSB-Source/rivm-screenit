@@ -65,6 +65,8 @@ public class ApplicationConfig
 
 	private String zooKeeperServerUri;
 
+	private String medewerkerPortaalResourceUrl;
+
 	@Bean
 	public Boolean isJpa()
 	{
@@ -148,5 +150,11 @@ public class ApplicationConfig
 	public String zooKeeperServerUri()
 	{
 		return StringUtils.defaultIfBlank(zooKeeperServerUri, "");
+	}
+
+	@Bean
+	public String medewerkerPortaalResourceUrl()
+	{
+		return StringUtils.defaultIfBlank(medewerkerPortaalResourceUrl, "");
 	}
 }

@@ -109,7 +109,9 @@ public class CervixUitnodigingsDaoImpl extends AbstractAutowiredDao implements C
 		subQuery.createAlias("ronde.uitnodigingen", "uitnodigingen");
 		subQuery.createAlias("uitnodigingen.brief", "brief");
 		subQuery.createAlias("brief.mergedBrieven", "mergedbrief");
-		subQuery.add(Restrictions.eq("mergedbrief.geprint", true));
+		subQuery.add(Restrictions.or(
+			Restrictions.eq("mergedbrief.geprint", true),
+			Restrictions.isNotNull("mergedbrief.printDatum")));
 		subQuery.add(Restrictions.in("brief.briefType", BriefType.getCervixUitnodigingen()));
 		subQuery.setProjection(Projections.distinct(Projections.property("ronde.id")));
 		return subQuery;

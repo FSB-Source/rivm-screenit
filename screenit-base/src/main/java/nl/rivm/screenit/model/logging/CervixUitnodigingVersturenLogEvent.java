@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Entity;
+import javax.persistence.JoinTable;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -42,11 +43,13 @@ public class CervixUitnodigingVersturenLogEvent extends LogEvent
 {
 	@OneToMany
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
+	@JoinTable(schema = "gedeeld")
 	@Cascade(CascadeType.DELETE)
 	private List<CervixZasVersturenRapportage> rapportage = new ArrayList<>();
 
 	@OneToMany
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
+	@JoinTable(schema = "gedeeld")
 	@Cascade(CascadeType.DELETE)
 	private List<CervixZasVersturenRapportageProjectEntry> projectGroepen = new ArrayList<>();
 

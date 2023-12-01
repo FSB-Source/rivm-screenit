@@ -31,12 +31,13 @@ import java.util.stream.Collectors;
 
 import nl.rivm.screenit.mamma.se.proxy.model.RequestTypeCentraal;
 import nl.rivm.screenit.mamma.se.proxy.model.SeConfiguratieKey;
+import nl.rivm.screenit.mamma.se.proxy.model.WebsocketBerichtType;
 import nl.rivm.screenit.mamma.se.proxy.services.AchtergrondRequestService;
-import nl.rivm.screenit.mamma.se.proxy.services.CleanUpService;
 import nl.rivm.screenit.mamma.se.proxy.services.ConfiguratieService;
 import nl.rivm.screenit.mamma.se.proxy.services.ProxyService;
 import nl.rivm.screenit.mamma.se.proxy.services.SeDaglijstService;
 import nl.rivm.screenit.mamma.se.proxy.services.TransactionQueueService;
+import nl.rivm.screenit.mamma.se.proxy.services.WebSocketProxyService;
 import nl.rivm.screenit.mamma.se.proxy.util.DateUtil;
 
 import org.slf4j.Logger;
@@ -57,12 +58,6 @@ public class SeDaglijstServiceImpl implements SeDaglijstService
 
 	private final ConcurrentHashMap<LocalDate, LinkedBlockingDeque<String>> transactiesVerwerktDoorCentraalNaCachenDaglijst = new ConcurrentHashMap<>();
 
-	private final Object daglijstEnTransactieLock = new Object();
-
-	private final Object cleanupLock = new Object();
-
-	private LocalDate laatsteUpdateDag;
-
 	@Autowired
 	private TransactionQueueService transactionQueueService;
 
@@ -73,16 +68,14 @@ public class SeDaglijstServiceImpl implements SeDaglijstService
 	private ConfiguratieService configuratieService;
 
 	@Autowired
-	private CleanUpService cleanUpService;
+	private AchtergrondRequestService achtergrondRequestService;
 
 	@Autowired
-	private AchtergrondRequestService achtergrondRequestService;
+	private WebSocketProxyService webSocketProxyService;
 
 	@Override
 	public String getDaglijst(LocalDate datum)
 	{
-		startOfDayCleanupUitvoerenIndienNodig();
-
 		String daglijst = daglijstCache.get(datum);
 		if (daglijst == null)
 		{
@@ -94,7 +87,7 @@ public class SeDaglijstServiceImpl implements SeDaglijstService
 	@Override
 	public String getDaglijstGeforceerd(LocalDate opTeHalenDag)
 	{
-		synchronized (daglijstEnTransactieLock)
+		synchronized (transactionQueueService.getDaglijstEnTransactieLock())
 		{
 			ResponseEntity<String> responseEntity = daglijstRequest(opTeHalenDag);
 			if (responseEntity != null && HttpStatus.OK.equals(responseEntity.getStatusCode()))
@@ -109,7 +102,7 @@ public class SeDaglijstServiceImpl implements SeDaglijstService
 				LOG.warn("Kon daglijst van [" + opTeHalenDag + "] niet ophalen van SE-REST-BK");
 				if (responseEntity == null || responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN))
 				{
-					achtergrondRequestService.queueDaglijstRequest(opTeHalenDag);
+					achtergrondRequestService.queueDaglijstRequest(opTeHalenDag, this::haalDaglijstEnBroadcast);
 				}
 				return null;
 			}
@@ -152,20 +145,16 @@ public class SeDaglijstServiceImpl implements SeDaglijstService
 	@Override
 	public void queueDaglijstOphalenVanDag(LocalDate dag)
 	{
-		achtergrondRequestService.queueDaglijstRequest(dag);
+		achtergrondRequestService.queueDaglijstRequest(dag, this::haalDaglijstEnBroadcast);
 		achtergrondRequestService.ensureRunning();
 	}
 
-	private void startOfDayCleanupUitvoerenIndienNodig()
+	private void haalDaglijstEnBroadcast(LocalDate opTeHalenDag)
 	{
-		synchronized (cleanupLock)
+		String daglijstResponse = getDaglijstGeforceerd(opTeHalenDag);
+		if (daglijstResponse != null && DateUtil.isVandaag(opTeHalenDag))
 		{
-			LocalDate vandaag = DateUtil.getCurrentDateTime().toLocalDate();
-			if (laatsteUpdateDag == null || vandaag.isAfter(laatsteUpdateDag))
-			{
-				laatsteUpdateDag = vandaag;
-				cleanUpService.startOfDayCleanup();
-			}
+			webSocketProxyService.broadcast(WebsocketBerichtType.DAGLIJST_UPDATE.name());
 		}
 	}
 
@@ -182,7 +171,10 @@ public class SeDaglijstServiceImpl implements SeDaglijstService
 		daglijstCache.entrySet().removeIf(entry -> !teVerversenDagen.contains(entry.getKey()));
 		transactiesVerwerktDoorCentraalNaCachenDaglijst.entrySet().removeIf(entry -> !teVerversenDagen.contains(entry.getKey()));
 
-		teVerversenDagen.forEach(achtergrondRequestService::queueDaglijstRequest);
+		for (LocalDate teVerversenDag : teVerversenDagen)
+		{
+			achtergrondRequestService.queueDaglijstRequest(teVerversenDag, this::haalDaglijstEnBroadcast);
+		}
 		achtergrondRequestService.ensureRunning();
 	}
 
@@ -198,12 +190,6 @@ public class SeDaglijstServiceImpl implements SeDaglijstService
 			teVerversenDagen.add(vandaag.plusDays(i));
 		}
 		return teVerversenDagen;
-	}
-
-	@Override
-	public Object getDaglijstEnTransactieLock()
-	{
-		return daglijstEnTransactieLock;
 	}
 
 	@Override

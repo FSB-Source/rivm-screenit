@@ -38,6 +38,7 @@ import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdrachtRegel;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdrachtRegelSpecificatie;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
+import nl.rivm.screenit.model.cervix.facturatie.CervixLabTarief;
 import nl.rivm.screenit.model.cervix.facturatie.CervixTarief;
 import nl.rivm.screenit.model.enums.BestandStatus;
 import nl.rivm.screenit.service.LogService;
@@ -45,6 +46,7 @@ import nl.rivm.screenit.service.cervix.CervixVerrichtingService;
 import nl.rivm.screenit.util.cervix.CervixTariefUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
+import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -311,7 +313,7 @@ public class CervixVerrichtingServiceImpl implements CervixVerrichtingService
 
 	private BMHKLaboratorium getBMHKLabVanVerrichting(CervixBoekRegel boekregel)
 	{
-		return boekregel.getVerrichting().getMonster().getLaboratorium();
+		return ((CervixLabTarief) Hibernate.unproxy(boekregel.getTarief())).getBmhkLaboratorium();
 	}
 
 	private CervixHuisartsLocatie getHuisartsLocatie(CervixBoekRegel boekregel)

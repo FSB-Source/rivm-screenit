@@ -22,6 +22,8 @@ package nl.rivm.screenit.model.colon.enums;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
+
 public enum ColonConclusieType
 {
 	COLOSCOPIE("Coloscopie", ColonUitnodigingsintervalType.INTAKE_COLOSCOPIE_GEPLAND),
@@ -47,6 +49,11 @@ public enum ColonConclusieType
 	{
 		this.omschrijving = omschrijving;
 		this.uitnodigingsintervalType = uitnodigingsintervalType;
+	}
+
+	public static List<ColonConclusieType> getDefinitieveIntakeConclusieTypes()
+	{
+		return List.of(COLOSCOPIE, CT_COLOGRAFIE, GEEN_VERVOLGONDERZOEK);
 	}
 
 	public ColonUitnodigingsintervalType getUitnodigingsintervalType()

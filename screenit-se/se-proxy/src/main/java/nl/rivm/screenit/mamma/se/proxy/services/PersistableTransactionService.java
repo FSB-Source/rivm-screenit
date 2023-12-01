@@ -41,4 +41,6 @@ public interface PersistableTransactionService
 	void clearOldEntries();
 
 	void addToFouteTransactie(PersistableTransaction transaction);
+
+	boolean zijnErWachtendeTransacties();
 }

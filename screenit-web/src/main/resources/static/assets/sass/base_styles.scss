@@ -1,4 +1,6 @@
-@charset "utf-8";
+@charset "UTF-8";
+@import "bootstrap";
+
 @import "shared/plugins/reset";
 @import "shared/plugins/grid";
 @import "shared/globals/mixins";
@@ -72,7 +74,29 @@
 @import "client/client_dossier";
 @import "shared/globals/color";
 @import "shared/globals/display";
+@import "shared/globals/overflowwrap";
 @import "shared/globals/font";
 @import "shared/globals/margin";
 @import "shared/globals/padding";
 @import "shared/globals/width-height";
+
+:root * {
+	@extend :root;
+}
+
+.container-fluid {
+	padding-right: 20px;
+	padding-left: 20px;
+	*zoom: 1;
+}
+
+.container-fluid:before,
+.container-fluid:after {
+	display: table;
+	content: "";
+	line-height: 0;
+}
+
+.container-fluid:after {
+	clear: both;
+}

@@ -22,7 +22,6 @@ package nl.rivm.screenit.main.service.colon;
  */
 
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 import nl.rivm.screenit.dao.colon.IntakelocatieVanTotEnMetFilter;
@@ -54,7 +53,9 @@ public interface RoosterService
 
 	void toevoegenHerhaling(AbstractAppointment appointment);
 
-	Iterator<RoosterItemListViewWrapper> getRoosterBlokken(String sortProperty, boolean asc, long first, long count, RoosterListViewFilter filter, ColoscopieCentrum intakeLocatie);
+	List<RoosterItemListViewWrapper> getAlleRoosterBlokkenInPeriode(String sortProperty, boolean asc, RoosterListViewFilter filter, ColoscopieCentrum intakeLocatie);
+
+	List<RoosterItemListViewWrapper> getRoosterBlokken(String sortProperty, boolean asc, long first, long count, RoosterListViewFilter filter, ColoscopieCentrum intakeLocatie);
 
 	long getRoosterBlokkenCount(RoosterListViewFilter filter, ColoscopieCentrum intakeLocatie);
 
@@ -69,5 +70,4 @@ public interface RoosterService
 	List<ColonBlokkade> getBlokkades(String sortProperty, boolean ascending, long first, long count, RoosterListViewFilter filter, ColoscopieCentrum intakelocatie);
 
 	long getBlokkadesCount(RoosterListViewFilter filter, ColoscopieCentrum intakelocatie);
-
 }

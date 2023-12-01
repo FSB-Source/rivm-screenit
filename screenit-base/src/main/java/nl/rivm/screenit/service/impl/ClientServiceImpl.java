@@ -400,6 +400,12 @@ public class ClientServiceImpl implements ClientService
 	}
 
 	@Override
+	public boolean isClientActief(Client client)
+	{
+		return client != null && client.getGbaStatus() != GbaStatus.AFGEVOERD;
+	}
+
+	@Override
 	public boolean clientInBuitenland(Client client)
 	{
 		return client != null && client.getPersoon() != null && client.getPersoon().getDatumVertrokkenUitNederland() != null;

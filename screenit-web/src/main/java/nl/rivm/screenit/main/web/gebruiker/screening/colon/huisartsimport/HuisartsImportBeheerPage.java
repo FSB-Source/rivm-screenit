@@ -70,7 +70,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	constraint = ShiroConstraint.HasPermission,
 	recht = Recht.GEBRUIKER_BEHEER_HUISARTSIMPORT,
 	bevolkingsonderzoekScopes = {
-		Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX })
+		Bevolkingsonderzoek.COLON })
 public class HuisartsImportBeheerPage extends ColonScreeningBasePage
 {
 	@SpringBean

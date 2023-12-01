@@ -27,15 +27,15 @@ import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import nl.rivm.screenit.model.ScreenitAdres;
 import nl.rivm.screenit.util.DiffSpecs;
+import nl.topicuszorg.organisatie.model.Adres;
 
 import org.hibernate.envers.Audited;
 
 @Entity
 @Audited
 @Table
-public class MammaTehuisAdres extends ScreenitAdres
+public class MammaTehuisAdres extends Adres
 {
 
 	@Column(nullable = true)

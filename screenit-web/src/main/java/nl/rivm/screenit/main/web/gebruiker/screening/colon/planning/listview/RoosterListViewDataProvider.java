@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.listview;
 
 /*-
@@ -61,7 +60,7 @@ public class RoosterListViewDataProvider extends SortableDataProvider<RoosterIte
 	@Override
 	public Iterator<RoosterItemListViewWrapper> iterator(long first, long count)
 	{
-		return roosterService.getRoosterBlokken(getSort().getProperty(), getSort().isAscending(), first, count, zoekModel.getObject(), intakelocatie.getObject());
+		return roosterService.getRoosterBlokken(getSort().getProperty(), getSort().isAscending(), first, count, zoekModel.getObject(), intakelocatie.getObject()).iterator();
 	}
 
 	@Override

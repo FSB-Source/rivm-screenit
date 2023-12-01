@@ -21,25 +21,35 @@ package nl.rivm.screenit.mamma.se.proxy.services.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.format.DateTimeFormatter;
+
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.mamma.se.proxy.SeProxyApplication;
 import nl.rivm.screenit.mamma.se.proxy.model.WebsocketBerichtType;
 import nl.rivm.screenit.mamma.se.proxy.services.WebSocketProxyService;
 import nl.rivm.screenit.mamma.se.proxy.util.DateUtil;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.http.entity.ContentType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 @Service
+@Slf4j
 public class WebSocketProxyServiceImpl implements WebSocketProxyService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(WebSocketProxyService.class);
-
 	@Autowired
 	private SimpMessagingTemplate simp;
+
+	@Value("${MAMMOGRAAF_STUB_URL}")
+	private String mammograafStubUrl;
 
 	@SendTo("/transactionReceive")
 	@Override
@@ -60,6 +70,24 @@ public class WebSocketProxyServiceImpl implements WebSocketProxyService
 			String offset = DateUtil.getOffset().toString();
 			LOG.info("{}: Broadcast tijdupdate naar werkstations voor offset: {} (nieuwe tijd: {})", logPrefix, offset, DateUtil.getCurrentDateTime());
 			broadcast(WebsocketBerichtType.TIJD_UPDATE.name() + "###" + offset);
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.add("Content-Type", ContentType.APPLICATION_JSON.getMimeType());
+			var auth = "beheer:mammograafStub!";
+			var encodedAuth = Base64.encodeBase64(auth.getBytes());
+			var authHeader = "Basic " + new String(encodedAuth);
+			headers.add("Authorization", authHeader);
+
+			var restTemplate = new RestTemplate();
+			var request = new HttpEntity<>(headers);
+			try
+			{
+				restTemplate.postForObject(mammograafStubUrl + "/wijzigDatumTijd/" + DateUtil.getCurrentDateTime().format(DateTimeFormatter.ISO_DATE_TIME), request, String.class);
+			}
+			catch (Exception e)
+			{
+				LOG.error("Fout bij wijzigen van datum/tijd in mammograaf stub {}: {}", mammograafStubUrl, e.getMessage());
+			}
 		}
 	}
 }

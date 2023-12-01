@@ -55,4 +55,6 @@ public interface AfspraakDao extends AppointmentDao
 	List<Object> getRoosterItemsBezetMetAfspraak(Long roosterItemId, Range<Date> currentViewRange);
 
 	RoosterItem getVrijRoosterBlokVoorAfspraak(ColonIntakeAfspraak newAfspraak);
+
+	List<ColonIntakeAfspraak> getAfsprakenInRange(Range<Date> range);
 }

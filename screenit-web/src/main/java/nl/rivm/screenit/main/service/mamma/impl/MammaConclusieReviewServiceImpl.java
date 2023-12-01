@@ -23,6 +23,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import nl.rivm.screenit.main.dao.mamma.MammaConclusieReviewDao;
@@ -38,6 +39,7 @@ import nl.rivm.screenit.model.mamma.MammaConclusieReview;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaFollowUpConclusieStatus;
 import nl.rivm.screenit.model.mamma.enums.MammobridgeRole;
+import nl.rivm.screenit.repository.mamma.MammaConclusieReviewRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.util.DateUtil;
@@ -54,6 +56,9 @@ public class MammaConclusieReviewServiceImpl implements MammaConclusieReviewServ
 {
 	@Autowired
 	private MammaConclusieReviewDao conclusieReviewDao;
+
+	@Autowired
+	private MammaConclusieReviewRepository conclusieReviewRepository;
 
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
@@ -87,15 +92,15 @@ public class MammaConclusieReviewServiceImpl implements MammaConclusieReviewServ
 	@Override
 	public MammaConclusieReview getConclusieReview(MammaScreeningRonde screeningRonde, InstellingGebruiker radioloog)
 	{
-		return conclusieReviewDao.getConclusieReview(screeningRonde, radioloog, false);
+		return conclusieReviewRepository.findByRadioloogAndScreeningRondeAndReviewAlsCoordinerendRadioloog(radioloog, screeningRonde, false)
+			.orElse(null);
 	}
 
 	@Override
 	public MammaConclusieReview getConclusieReviewCoordinerendRadioloog(MammaScreeningRonde screeningRonde, InstellingGebruiker coordinerendRadioloog)
 	{
-		var conclusieReview = conclusieReviewDao.getConclusieReview(screeningRonde, coordinerendRadioloog, true);
-
-		return conclusieReview != null ? conclusieReview : maakConclusieReviewCoordinerendRadioloog();
+		return conclusieReviewRepository.findByRadioloogAndScreeningRondeAndReviewAlsCoordinerendRadioloog(coordinerendRadioloog, screeningRonde, true)
+			.orElseGet(this::maakConclusieReviewCoordinerendRadioloog);
 	}
 
 	@Override
@@ -103,20 +108,13 @@ public class MammaConclusieReviewServiceImpl implements MammaConclusieReviewServ
 	public void saveConclusieReviewCoordinerendRadioloog(MammaConclusieReview conclusieReview, MammaScreeningRonde screeningRonde,
 		InstellingGebruiker coordinerendRadioloog)
 	{
-		if (!conclusieReview.getRedenenFotobesprekingRadioloog().isEmpty() || !conclusieReview.getRedenenFotobesprekingMbber().isEmpty())
+		if (conclusieReview.getId() == null)
 		{
-			if (conclusieReview.getId() == null)
-			{
-				slaNieuweConclusieReviewOp(conclusieReview, screeningRonde, coordinerendRadioloog);
-			}
-			else
-			{
-				updateConclusieReview(conclusieReview);
-			}
+			slaNieuweConclusieReviewOp(conclusieReview, screeningRonde, coordinerendRadioloog);
 		}
-		else if (conclusieReview.getId() != null)
+		else
 		{
-			verwijderConclusieReview(conclusieReview, screeningRonde);
+			updateConclusieReview(conclusieReview);
 		}
 
 		logConclusieReviewAfgerond(coordinerendRadioloog, screeningRonde.getDossier().getClient(), conclusieReview, true);
@@ -137,14 +135,6 @@ public class MammaConclusieReviewServiceImpl implements MammaConclusieReviewServ
 		conclusieReview.setReviewMoment(currentDateSupplier.getLocalDateTime());
 
 		hibernateService.saveOrUpdate(conclusieReview);
-	}
-
-	private void verwijderConclusieReview(MammaConclusieReview conclusieReview, MammaScreeningRonde screeningRonde)
-	{
-		screeningRonde.getConclusieReviews().remove(conclusieReview);
-
-		hibernateService.delete(conclusieReview);
-		hibernateService.update(screeningRonde);
 	}
 
 	@Override
@@ -229,6 +219,12 @@ public class MammaConclusieReviewServiceImpl implements MammaConclusieReviewServ
 			logService.logGebeurtenis(LogGebeurtenis.CONCLUSIE_REVIEW_AFGEROND, gebruiker,
 				client, logMelding, Bevolkingsonderzoek.MAMMA);
 		}
+	}
+
+	@Override
+	public Optional<MammaConclusieReview> getReviewAfgerondDoorCoordinerendRadioloog(InstellingGebruiker coordinerendRadioloog, MammaScreeningRonde screeningRonde)
+	{
+		return conclusieReviewRepository.findByRadioloogAndScreeningRondeAndReviewAlsCoordinerendRadioloog(coordinerendRadioloog, screeningRonde, true);
 	}
 
 	private String maakRedenenFotobesprekingLogString(List<? extends INaam> redenenLijst, String beginString)

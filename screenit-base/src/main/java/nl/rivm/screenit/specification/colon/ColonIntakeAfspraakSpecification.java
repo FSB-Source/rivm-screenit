@@ -28,6 +28,7 @@ import javax.persistence.criteria.Predicate;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
+import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.berichten.enums.VerslagType;
 import nl.rivm.screenit.model.colon.ColonConclusie_;
@@ -38,6 +39,7 @@ import nl.rivm.screenit.model.colon.ColonScreeningRonde_;
 import nl.rivm.screenit.model.colon.ColonVerslag;
 import nl.rivm.screenit.model.colon.ColonVerslag_;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.Kamer_;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
@@ -87,7 +89,7 @@ public class ColonIntakeAfspraakSpecification
 				.get(ColonDossier_.client)
 				.get(Patient_.persoon);
 
-			return PersoonSpecification.nietOverledenVoor(conclusiePath.get(ColonConclusie_.datumColoscopie)).withPath(cb, persoonPath);
+			return PersoonSpecification.nietOverledenVoor(conclusiePath.get(ColonConclusie_.datumColoscopie)).withPath(cb, cb.treat(persoonPath, GbaPersoon.class));
 		};
 	}
 
@@ -99,13 +101,13 @@ public class ColonIntakeAfspraakSpecification
 				.get(ColonIntakeAfspraak_.conclusie)
 				.get(ColonConclusie_.datumColoscopie);
 
-			var gbaPersoon = r
+			var persoonPath = r
 				.get(ColonIntakeAfspraak_.colonScreeningRonde)
 				.get(ColonScreeningRonde_.dossier)
 				.get(ColonDossier_.client)
 				.get(Patient_.persoon);
 
-			return PersoonSpecification.nietVetrokkenUitNederlandVoor(datumColoscopie).withPath(cb, gbaPersoon);
+			return PersoonSpecification.nietVetrokkenUitNederlandVoor(datumColoscopie).withPath(cb, cb.treat(persoonPath, GbaPersoon.class));
 		};
 	}
 
@@ -118,7 +120,7 @@ public class ColonIntakeAfspraakSpecification
 	public static Specification<ColonIntakeAfspraak> metIntakelocatie(ColoscopieCentrum intakelocatie)
 	{
 		return (r, q, cb) ->
-			cb.equal(r.get(AbstractAppointment_.location).get(Kamer_.coloscopieCentrum), intakelocatie);
+			cb.equal(cb.treat(r.get(AbstractAppointment_.location), Kamer.class).get(Kamer_.coloscopieCentrum), intakelocatie);
 	}
 
 	public static Specification<ColonIntakeAfspraak> metConclusieInVerleden(ICurrentDateSupplier currentDateSupplier)

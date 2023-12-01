@@ -71,7 +71,7 @@ public class BerichtToSeRestBkServiceImpl implements BerichtToSeRestBkService
 	private SimplePreferenceService preferenceService;
 
 	@Override
-	public void notificeerSes(Client client)
+	public void notificeerScreeningsEenhedenVerversenDaglijst(Client client)
 	{
 		Map<MammaScreeningsEenheid, HashSet<LocalDate>> updateEenheden = new HashMap<>();
 		List<MammaAfspraak> afspraken = client.getMammaDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging().getAfspraken();
@@ -82,17 +82,17 @@ public class BerichtToSeRestBkServiceImpl implements BerichtToSeRestBkService
 			updateDates.add(afspraakDatum);
 		}
 		LocalDate daglijstNotificerenTotEnMet = getDaglijstNotificerenTotEnMet();
-		updateEenheden.forEach((se, datums) -> notificeerSe(se, datums, daglijstNotificerenTotEnMet));
+		updateEenheden.forEach((se, datums) -> notificeerScreeningsEenheidVerversenDaglijst(se, datums, daglijstNotificerenTotEnMet));
 	}
 
 	@Override
-	public void notificeerSe(MammaScreeningsEenheid se, Set<LocalDate> updateDatums)
+	public void notificeerScreeningsEenheidVerversenDaglijst(MammaScreeningsEenheid se, Set<LocalDate> updateDatums)
 	{
-		notificeerSe(se, updateDatums, getDaglijstNotificerenTotEnMet());
+		notificeerScreeningsEenheidVerversenDaglijst(se, updateDatums, getDaglijstNotificerenTotEnMet());
 	}
 
 	@Override
-	public void notificeerSe(MammaScreeningsEenheid se, Set<LocalDate> updateDatums, LocalDate daglijstNotificerenTotEnMet)
+	public void notificeerScreeningsEenheidVerversenDaglijst(MammaScreeningsEenheid se, Set<LocalDate> updateDatums, LocalDate daglijstNotificerenTotEnMet)
 	{
 		LocalDate vandaag = currentDateSupplier.getLocalDate();
 		updateDatums.stream()

@@ -41,7 +41,8 @@ export const dismissAllToasts = (): void => {
 export const showWijzigingenOpgeslagenToast = (): void => {
 	if (!toastIdWijzigingenOpgeslagen || !toast.isActive(toastIdWijzigingenOpgeslagen)) {
 		toastIdWijzigingenOpgeslagen = toast.success(MELDING_WIJZIGINGEN_VERWERKT, {
-			className: "success-color",
+			type: "success",
+			theme: "colored",
 		})
 	}
 }
@@ -49,7 +50,8 @@ export const showWijzigingenOpgeslagenToast = (): void => {
 export const showYubikeyHerkendToast = (): void => {
 	if (!toastIdYubikeyHerkend || !toast.isActive(toastIdYubikeyHerkend)) {
 		toastIdYubikeyHerkend = toast.info(MELDING_YUBIKEY_GEDETECTEERD, {
-			className: "info-color",
+			type: "info",
+			theme: "colored",
 			autoClose: false,
 		})
 	}
@@ -60,7 +62,8 @@ export const showNfcErrorToast = (): void => {
 
 	if (!toastIdNfcError || !toast.isActive(toastIdNfcError)) {
 		toastIdNfcError = toast.error(MELDING_NFC_ERROR, {
-			className: "danger-color",
+			type: "error",
+			theme: "colored",
 			autoClose: false,
 		})
 	}
@@ -70,6 +73,8 @@ export const showWarningToast = (message: string, viewTime?: number): void => {
 	if (!toastIdWarning || !toast.isActive(toastIdWarning)) {
 		toastIdWarning = toast.warn(message, {
 			autoClose: viewTime ? viewTime : MINUUT,
+			theme: "colored",
+			type: "warning",
 		})
 	}
 }
@@ -78,7 +83,8 @@ export const showErrorToast = (message: string): void => {
 	console.warn(`Toast met foutmelding '${message}'`)
 	if (!toastIdError || !toast.isActive(toastIdError)) {
 		toastIdError = toast.error(message, {
-			className: "danger-color",
+			type: "error",
+			theme: "colored",
 		})
 	}
 }
@@ -87,7 +93,8 @@ export const showErrorToastWithoutAutoClose = (message: string): void => {
 	console.warn(`Toast met foutmelding '${message}'`)
 	if (!toastIdError || !toast.isActive(toastIdError)) {
 		toastIdError = toast.error(message, {
-			className: "danger-color",
+			type: "error",
+			theme: "colored",
 			autoClose: false,
 		})
 	}
@@ -96,12 +103,14 @@ export const showErrorToastWithoutAutoClose = (message: string): void => {
 export const persistentErrorToast = (message: string): void => {
 	console.warn(`Toast met foutmelding '${message}'`)
 	toast.error(message, {
-		className: "danger-color",
+		type: "error",
+		theme: "colored",
 	})
 }
 
 export const persistentSuccessToast = (message: string): void => {
 	toast.success(message, {
-		className: "success-color",
+		type: "success",
+		theme: "colored",
 	})
 }

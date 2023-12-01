@@ -28,46 +28,53 @@
                 <div class="control-group value">
                     <label class="control-label">Bevolkingsonderzoek</label>
                     <div class="controls">Baarmoederhalskanker</div>
-                </div>
-            </div>
-            <div class="span6">
-                <div class="control-group value">
-                    <label class="control-label">Ronde</label>
-                    <div class="controls">
-                        <span class="badge" wicket:id="rondeNr">2</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <wicket:enclosure child="extraOmschrijving">
-            <div class="control-group value">
-                <label class="control-label">Gebeurtenis</label>
-                <div class="controls">
+				</div>
+			</div>
+			<div class="span6">
+				<div class="control-group value">
+					<label class="control-label">Ronde</label>
+					<div class="controls">
+						<span class="badge" wicket:id="rondeNr">2</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<wicket:enclosure child="extraOmschrijving">
+			<div class="control-group value">
+				<label class="control-label">Gebeurtenis</label>
+				<div class="controls">
                     <span class="badge badge-inverse"><wicket:container wicket:id="gebeurtenis"></wicket:container> (<span wicket:id="extraOmschrijving"></span>) : <wicket:container
-                            wicket:id="datum"> 21-10-2012</wicket:container></span>
-                </div>
-            </div>
-        </wicket:enclosure>
-        <wicket:enclosure child="uitstelPeriodeNemen">
-            <div class="control-group value">
-                <label class="control-label">Uitstel</label>
-                <div wicket:id="uitstelPeriodeNemen">
-                    <div class="controls">
-                        De client heeft uitstel aangevraagd. Het uitstel wordt nav. deze ZAS aanvraag geannuleerd. De client kan nu kiezen uit de volgende opties:
-                        <label class="radio">
-                            <input type="radio" wicket:id="uitstel">
-                            De ZAS laten bezorgen vanaf de datum dat het uitstel is beeindigd (
-                            <wicket:container wicket:id="uitstelDatum"></wicket:container>
-                            )
-                        </label>
-                        <label class="radio">
-                            <input type="radio" wicket:id="ZAS">
-                            De ZAS laten bezorgen vanaf de datum dat ZAS op z'n vroegst afgeleverd kan worden (
-                            <wicket:container wicket:id="zasUitnodigingsDatum"></wicket:container>
-                            )
-                        </label>
-                    </div>
-                </div>
+							wicket:id="datum"> 21-10-2012</wicket:container></span>
+				</div>
+			</div>
+		</wicket:enclosure>
+		<wicket:enclosure child="reden">
+			<div class="control-group value">
+				<label class="control-label">Reden voor nieuwe ZAS</label>
+				<div class="controls" wicket:id="reden">
+				</div>
+			</div>
+		</wicket:enclosure>
+		<wicket:enclosure child="uitstelPeriodeNemen">
+			<div class="control-group value">
+				<label class="control-label">Uitstel</label>
+				<div wicket:id="uitstelPeriodeNemen">
+					<div class="controls">
+						De client heeft uitstel aangevraagd. Het uitstel wordt nav. deze ZAS aanvraag geannuleerd. De client kan nu kiezen uit de volgende opties:
+						<label class="radio">
+							<input type="radio" wicket:id="uitstel">
+							De ZAS laten bezorgen vanaf de datum dat het uitstel is beeindigd (
+							<wicket:container wicket:id="uitstelDatum"></wicket:container>
+							)
+						</label>
+						<label class="radio">
+							<input type="radio" wicket:id="ZAS">
+							De ZAS laten bezorgen vanaf de datum dat ZAS op z'n vroegst afgeleverd kan worden (
+							<wicket:container wicket:id="zasUitnodigingsDatum"></wicket:container>
+							)
+						</label>
+					</div>
+				</div>
             </div>
         </wicket:enclosure>
         <div class="control-group value" wicket:id="gbaMessageContainer">

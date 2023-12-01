@@ -27,8 +27,6 @@ import java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.main.web.ScreenitSession;
-import nl.rivm.screenit.model.Instelling;
-import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.security.Constraint;
 import nl.topicuszorg.hibernate.object.model.HibernateObject;
@@ -110,26 +108,11 @@ public class ScreenitAnnotationsShiroAuthorizationStrategy implements IAuthoriza
 							}
 						}
 					}
-					if (constraint.checkScope() && constraint.organisatieTypeScopes().length > 0)
+					var valtBinnenOrganisatieTypeScopes = ScreenitSession.get().inScope(constraint);
+					if (!valtBinnenOrganisatieTypeScopes)
 					{
-						Instelling instelling = ScreenitSession.get().getInstelling();
-						boolean valtBinnenOrganisatieTypeScopes = false;
-						if (instelling != null)
-						{
-							for (OrganisatieType type : constraint.organisatieTypeScopes())
-							{
-								if (instelling.getOrganisatieType().equals(type))
-								{
-									valtBinnenOrganisatieTypeScopes = true;
-									break;
-								}
-							}
-						}
-						if (!valtBinnenOrganisatieTypeScopes)
-						{
-							fail = constraint;
-							break;
-						}
+						fail = constraint;
+						break;
 					}
 					boolean isAny = constraint.required().equals(Required.ANY);
 					for (Recht recht : constraint.recht())

@@ -73,7 +73,7 @@ public class JGroupsChannelImpl implements JGroupsChannel
 						System.getProperties().put(Global.EXTERNAL_ADDR, jgroupsBindIP);
 					}
 
-					channel = new JChannel(JGroupsChannelImpl.class.getResource("/jg-sit-tcp.xml"));
+					channel = new JChannel(JGroupsChannelImpl.class.getResource("/jg-sit-tcp.xml").openStream());
 
 					TCP tcpProtocol = channel.getProtocolStack().findProtocol(TCP.class);
 					tcpProtocol.setBindPort(jgroupsCommonBindPort);

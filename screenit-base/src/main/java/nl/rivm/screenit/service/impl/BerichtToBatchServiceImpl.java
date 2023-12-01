@@ -22,13 +22,16 @@ package nl.rivm.screenit.service.impl;
  */
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.jms.Destination;
 
+import nl.rivm.screenit.ApplicationEnvironment;
 import nl.rivm.screenit.Constants;
+import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dto.mamma.MammaAbstractHL7v24OrmBerichtTriggerDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24AdtBerichtTriggerDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetClientDto;
@@ -50,6 +53,7 @@ import nl.rivm.screenit.service.BerichtToBatchService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.activemq.command.ActiveMQMessage;
 import org.slf4j.Logger;
@@ -108,6 +112,12 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 
 	@Autowired
 	private HibernateService hibernateService;
+
+	@Autowired
+	private String applicationEnvironment;
+
+	@Autowired
+	private SimplePreferenceService preferenceService;
 
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -187,6 +197,11 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 	private void queueMammaHL7v24BerichtUitgaand(MammaHL7v24ORMBerichtStatus status, Long clientId, Long accessionNumber, MammaAfspraak laatsteAfspraak,
 		MammaOnderzoek laatsteOnderzoek)
 	{
+		if (!magBerichtenVerzenden(status, accessionNumber))
+		{
+			return;
+		}
+
 		MammaHL7v24OrmBerichtTriggerMetClientDto triggerDto = new MammaHL7v24OrmBerichtTriggerMetClientDto();
 		triggerDto.setClientId(clientId);
 		triggerDto.setAccessionNumber(accessionNumber.toString());
@@ -211,6 +226,18 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 		queueHL7(status, triggerDto, status == MammaHL7v24ORMBerichtStatus.DELETE ? MammaHL7BerichtType.IMS_ORM_ILM : MammaHL7BerichtType.IMS_ORM);
 
 		LOG.debug("Sending client message to batch BK HL7 queue");
+	}
+
+	private boolean magBerichtenVerzenden(MammaHL7v24ORMBerichtStatus status, Long accessionNumber) {
+		var isKetenEnvironment = ApplicationEnvironment.KTN.getEnvNaam().equalsIgnoreCase(applicationEnvironment);
+		var isVerwijderBericht = status == MammaHL7v24ORMBerichtStatus.GOINGTODELETE || status == MammaHL7v24ORMBerichtStatus.DELETE;
+		return !(isKetenEnvironment && isVerwijderBericht && inPocSet(accessionNumber));
+	}
+
+	private boolean inPocSet(Long accessionNumber) {
+		var pocSetString = preferenceService.getString(PreferenceKey.INTERNAL_MAMMA_POC_CLIENTEN_SET.name());
+		var pocSetList = Arrays.asList(pocSetString.split(","));
+		return pocSetList.contains(accessionNumber.toString());
 	}
 
 	@Override

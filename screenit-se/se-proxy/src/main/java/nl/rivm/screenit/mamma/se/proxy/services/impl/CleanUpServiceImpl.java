@@ -70,11 +70,29 @@ public class CleanUpServiceImpl implements CleanUpService
 	@Autowired
 	private AchtergrondRequestService achtergrondRequestService;
 
+	private final Object cleanupLock = new Object();
+
+	private LocalDate laatsteUpdateDag;
+
 	@Override
 	public void startOfDayCleanup()
 	{
 		kwaliteitsopnameStoreService.resetVolgnrs();
 		werklijstStoreService.startOfDayCleanUp();
+	}
+
+	@Override
+	public void startOfDayCleanupUitvoerenIndienNodig()
+	{
+		synchronized (cleanupLock)
+		{
+			LocalDate vandaag = DateUtil.getCurrentDateTime().toLocalDate();
+			if (laatsteUpdateDag == null || vandaag.isAfter(laatsteUpdateDag))
+			{
+				laatsteUpdateDag = vandaag;
+				startOfDayCleanup();
+			}
+		}
 	}
 
 	@Override

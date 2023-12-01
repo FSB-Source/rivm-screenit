@@ -47,6 +47,8 @@ import nl.rivm.screenit.main.web.gebruiker.algemeen.rollenrechten.RollenBeheer;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.technischbeheer.TechnischeParametersPage;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.tooltip.ClientTooltipBeheerPage;
 import nl.rivm.screenit.main.web.gebruiker.clienten.ClientZoekenPage;
+import nl.rivm.screenit.main.web.gebruiker.colon.beperkingen.ColonFeestdagenPage;
+import nl.rivm.screenit.main.web.gebruiker.colon.beperkingen.ColonWeekendWerkDagBeperkingenPage;
 import nl.rivm.screenit.main.web.gebruiker.dashboard.DashboardPage;
 import nl.rivm.screenit.main.web.gebruiker.gedeeld.brievenafdrukken.AlgemeenAfdrukkenDocumentenPage;
 import nl.rivm.screenit.main.web.gebruiker.gedeeld.brievenafdrukken.BezwaarAfdrukkenDocumentenPage;
@@ -69,6 +71,7 @@ import nl.rivm.screenit.main.web.gebruiker.screening.cervix.labformulier.werklij
 import nl.rivm.screenit.main.web.gebruiker.screening.cervix.labformulier.werklijst.CervixOrdersVerwerkenPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.cervix.monster.CervixOntvangstMonsterPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.cervix.monster.CervixStatusMonsterPage;
+import nl.rivm.screenit.main.web.gebruiker.screening.cervix.zoekenopbarcode.CervixZoekenOpBarcodePage;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.gebieden.GemeenteZoeken;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.houdbaarheid.ifobtbatch.IFOBTBatchOverzichtPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.huisartsimport.HuisartsImportBeheerPage;
@@ -78,6 +81,7 @@ import nl.rivm.screenit.main.web.gebruiker.screening.colon.kwaliteitscontrole.Kw
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.kwaliteitscontrole.reeks.SentinelControlesPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.niettebeoordelen.NietTeBeoordelenMonstersPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.overeenkomstenzoeken.OvereenkomstZoekenBeheerPage;
+import nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.rooster.RoosterAngularPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.rooster.RoosterPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.proefbvo.ProefBVOAfmeldenPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.verslagen.VerwerkteBerichtenOverzichtPage;
@@ -148,6 +152,7 @@ public enum GebruikerHoofdMenuItem
 				contextMenuItems.add(new GebruikerMenuItem("menu.cervixscreening.barcodes-afdrukken", CervixBarcodesAfdrukkenPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.cervixscreening.ontvangstmonster", CervixOntvangstMonsterPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.cervixscreening.statusmonster", CervixStatusMonsterPage.class));
+				contextMenuItems.add(new GebruikerMenuItem("menu.screening.zoekenopbarcode", CervixZoekenOpBarcodePage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.cervixscreening.labformulieren-controleren", CervixLabformulierenControlerenPage.class));
 				contextMenuItems.add(
 					new GebruikerMenuItem("menu.cervixscreening.labformulieren-controleren-voor-cytologie", CervixLabformulierenControlerenVoorCytologiePage.class));
@@ -207,14 +212,15 @@ public enum GebruikerHoofdMenuItem
 				contextMenuItems.add(new GebruikerMenuItem("menu.colonscreening.kwaliteitscontrole.reeks", SentinelControlesPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.colonscreening.kwaliteitscontrole", KwaliteitscontroleBatchOverzichtPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.colonscreening.ifobtbatch", IFOBTBatchOverzichtPage.class));
-				contextMenuItems.add(new GebruikerMenuItem("menu.colonscreening.zoekenopbarcode", ZoekenOpBarcodePage.class));
+				contextMenuItems.add(new GebruikerMenuItem("menu.screening.zoekenopbarcode", ZoekenOpBarcodePage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.colonscreening.niettebeoordelen", NietTeBeoordelenMonstersPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.colonscreening.verslagen", VerwerkteBerichtenOverzichtPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.screening.verwerkenongeldigeberichten", ColonVerwerkOngeldigeBerichtenPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.colonscreening.proefbvo", ProefBVOAfmeldenPage.class));
-				contextMenuItems.add(new GebruikerMenuItem("menu.colonscreening.rooster", RoosterPage.class));
+				contextMenuItems.add(new GebruikerMenuItem("menu.colonscreening.rooster", RoosterPage.class, RoosterAngularPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.colonscreening.werklijstintake", ColonGeplandeIntakesWerklijstPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.all.afdrukkendocumenten", ColonAfdrukkenDocumentenPage.class));
+				contextMenuItems.add(new GebruikerMenuItem("menu.colonscreening.roosterbeperkingen", ColonFeestdagenPage.class, ColonWeekendWerkDagBeperkingenPage.class));
 				return new GebruikerMenuItem("menu.colon", contextMenuItems);
 			}
 
@@ -249,6 +255,7 @@ public enum GebruikerHoofdMenuItem
 				contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.brieventemplates.testen", DocumentTemplateTestenPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.all.afdrukkendocumenten", BezwaarAfdrukkenDocumentenPage.class, ProjectAfdrukkenDocumentenPage.class,
 					AlgemeenAfdrukkenDocumentenPage.class));
+
 				return new GebruikerMenuItem("menu.algemeen", contextMenuItems);
 			}
 

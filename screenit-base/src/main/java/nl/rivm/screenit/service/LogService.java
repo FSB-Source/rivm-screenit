@@ -40,6 +40,8 @@ import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 
 public interface LogService
 {
+	void createAndSaveLogInformatie(InstellingGebruiker ingelogd, LogGebeurtenis gebeurtenis, String omschrijving);
+
 	void logGebeurtenis(LogGebeurtenis gebeurtenis, Account account, Bevolkingsonderzoek... bevolkingsonderzoeken);
 
 	void logGebeurtenis(LogGebeurtenis gebeurtenis, Account account, String melding, Bevolkingsonderzoek... bevolkingsonderzoeken);
@@ -84,6 +86,8 @@ public interface LogService
 	List<LogRegel> getLogRegels(LoggingZoekCriteria loggingZoekCriteria, int first, int count, SortState<String> sortState);
 
 	List<LogRegel> getLogRegelsVanDashboard(DashboardStatus item, int first, int count, SortState<String> sortState);
+
+	List<LogRegel> getLogRegelsVanDashboard(DashboardStatus item);
 
 	long countLogRegels(LoggingZoekCriteria loggingZoekCriteria);
 

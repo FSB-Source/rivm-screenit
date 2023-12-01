@@ -24,14 +24,18 @@
 <body>
 <wicket:panel>
 	<div class="accordion-inner">
-		<div wicket:id="controleerdVastleggenDialog"></div>
 		<div wicket:id="dashboardTabelContainer">
 			<div wicket:id="logging"></div>
 		</div>
 		<div class="row-fluid">
 			<div class="span12 form-horizontal">
 				<form wicket:id="form">
-					<div class="control-group">
+					<div class="control-group right">
+						<div class="controls">
+							<a class="btn btn-primary" wicket:id="bulkAfhandel">Alles afhandelen</a>
+						</div>
+					</div>
+					<div class="control-group left">
 						<label class="control-label">
 							Bij een fout, email sturen naar (; of , gescheiden)
 						</label>
@@ -44,7 +48,7 @@
 			</div>
 		</div>
 	</div>
-
+	<div wicket:id="confirmDialog"></div>
 </wicket:panel>
 </body>
 </html>

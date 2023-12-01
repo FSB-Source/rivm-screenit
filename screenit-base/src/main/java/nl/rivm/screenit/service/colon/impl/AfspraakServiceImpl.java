@@ -726,6 +726,12 @@ public class AfspraakServiceImpl implements AfspraakService
 	}
 
 	@Override
+	public List<ColonIntakeAfspraak> getAfsprakenInRange(Range<Date> range)
+	{
+		return afspraakDao.getAfsprakenInRange(range);
+	}
+
+	@Override
 	public RoosterItem getVrijRoosterBlokVoorAfspraak(ColonIntakeAfspraak newAfspraak)
 	{
 		return afspraakDao.getVrijRoosterBlokVoorAfspraak(newAfspraak);

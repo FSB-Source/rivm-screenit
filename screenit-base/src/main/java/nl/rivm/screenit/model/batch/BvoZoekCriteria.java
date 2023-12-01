@@ -27,6 +27,7 @@ import java.util.List;
 
 import nl.rivm.screenit.model.IBevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.Level;
 
 public class BvoZoekCriteria implements Serializable, IBevolkingsonderzoek
 {
@@ -35,12 +36,24 @@ public class BvoZoekCriteria implements Serializable, IBevolkingsonderzoek
 
 	private List<Bevolkingsonderzoek> bevolkingsonderzoeken = new ArrayList<>();
 
+	private List<Level> loggingLevels;
+
 	private Boolean exactMatch = Boolean.FALSE;
 
 	@Override
 	public List<Bevolkingsonderzoek> getBevolkingsonderzoeken()
 	{
 		return bevolkingsonderzoeken;
+	}
+
+	public List<Level> getLoggingLevels()
+	{
+		return loggingLevels;
+	}
+
+	public void setLoggingLevels(List<Level> levels)
+	{
+		this.loggingLevels = levels;
 	}
 
 	@Override

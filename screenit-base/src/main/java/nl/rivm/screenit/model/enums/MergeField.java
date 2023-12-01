@@ -35,6 +35,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -70,10 +71,10 @@ import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
-import nl.rivm.screenit.model.cervix.CervixZas;
 import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.cervix.enums.CervixNietAnalyseerbaarReden;
+import nl.rivm.screenit.model.cervix.enums.CervixRedenUitnodiging;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
 import nl.rivm.screenit.model.cervix.verslag.cytologie.CervixCytologieCytologieUitslagBvoBmhkTbvHuisarts;
@@ -3172,6 +3173,29 @@ public enum MergeField
 
 		},
 
+	CERVIX_NIEUWE_ZAS_AANGEVRAAGD_TEKST(
+		"_CERVIX_NIEUWE_ZAS_AANGEVRAAGD_TEKST",
+		MergeFieldTestType.OVERIGE,
+		String.class,
+		"",
+		NIET_NAAR_INPAKCENTRUM,
+		MergeFieldFlag.NIET_IN_HUISARTSBERICHT)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				var redenUitnodiging = Optional.of(context.getCervixUitnodiging()).orElseGet(CervixUitnodiging::new).getRedenUitnodiging();
+				if (redenUitnodiging == CervixRedenUitnodiging.NIEUWE_ZAS_NA_OUDE_INGESTUURDE_ZAS)
+				{
+					return getStringValueFromPreference(PreferenceKey.CERVIX_NIEUWE_ZAS_NA_OUDE_INGESTUURDE_ZAS_TEKST);
+				}
+				else
+				{
+					return getStringValueFromPreference(PreferenceKey.CERVIX_NIEUWE_ZAS_STANDAARD_TEKST);
+				}
+			}
+		},
+
 	CERVIX_VERVOLGONDERZOEK_NEGATIEF(
 		"_CERVIX_VERVOLGONDERZOEK_NEGATIEF_TEKST",
 		MergeFieldTestType.OVERIGE,
@@ -4428,11 +4452,6 @@ public enum MergeField
 					if (retouradres.getRegio().equals(screeningOrganisatie))
 					{
 						bmhkRetouradres = retouradres.getAdres();
-						if (bmhkRetouradres.getHuisnummer() == null || StringUtils.isBlank(bmhkRetouradres.getPostcode()) || StringUtils.isBlank(bmhkRetouradres.getPlaats()))
-						{
-							melding.append("Retouradres voor BMHK lab '" + retouradres.getLaboratorium().getNaam() + "' bij screeningorganisatie '"
-								+ retouradres.getRegio().getNaam() + "' is niet volledig ingevuld. ");
-						}
 					}
 				}
 				if (bmhkRetouradres == null)
@@ -4465,12 +4484,11 @@ public enum MergeField
 		CervixMonster monster = brief.getMonster();
 		if (monster != null)
 		{
-			BMHKLaboratorium laboratorium = monster.getLaboratorium();
-
+			var laboratorium = monster.getLaboratorium();
 			switch (monster.getUitnodiging().getMonsterType())
 			{
 			case UITSTRIJKJE:
-				CervixUitstrijkje uitstrijkje = (CervixUitstrijkje) monster;
+				var uitstrijkje = CervixMonsterUtil.getUitstrijkje(monster);
 				switch (uitstrijkje.getUitstrijkjeStatus())
 				{
 				case NIET_ONTVANGEN: 
@@ -4487,7 +4505,7 @@ public enum MergeField
 					throw new IllegalStateException();
 				}
 			case ZAS:
-				CervixZas zas = (CervixZas) monster;
+				var zas = CervixMonsterUtil.getZAS(monster);
 				switch (zas.getZasStatus())
 				{
 				case ONTVANGEN:

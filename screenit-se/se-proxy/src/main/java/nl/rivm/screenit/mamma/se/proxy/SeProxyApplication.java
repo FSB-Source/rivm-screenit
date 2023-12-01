@@ -79,7 +79,7 @@ public class SeProxyApplication implements ApplicationListener<ContextRefreshedE
 			.run(args);
 	}
 
-	@Bean
+	@Bean(name = "databasePath")
 	public String databasePath(@Value("${spring.datasource.url}") String path)
 	{
 		return path;

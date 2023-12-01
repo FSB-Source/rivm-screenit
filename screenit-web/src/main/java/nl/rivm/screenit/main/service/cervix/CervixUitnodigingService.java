@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.function.UnaryOperator;
 
 import nl.rivm.screenit.model.Instelling;
+import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 
 public interface CervixUitnodigingService
@@ -39,4 +40,6 @@ public interface CervixUitnodigingService
 	boolean magMonsterVerwerktWordenDoorLab(Instelling ingelogdNamensOrganisatie, CervixUitnodiging uitnodiging);
 
 	boolean uitnodigingHeeftZasMetNieuweBarcode(CervixUitnodiging uitnodiging);
+
+	boolean magRedenUitnodigingKiezen(CervixScreeningRonde laatsteScreeningRonde);
 }

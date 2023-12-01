@@ -77,6 +77,7 @@ import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.MessageService;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.cervix.Cervix2023StartBepalingService;
+import nl.rivm.screenit.service.cervix.CervixBaseBetalingService;
 import nl.rivm.screenit.service.cervix.CervixVerrichtingService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.cervix.CervixHuisartsToDtoUtil;
@@ -137,6 +138,9 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 
 	@Autowired
 	private Cervix2023StartBepalingService cervix2023StartBepalingService;
+
+	@Autowired
+	private CervixBaseBetalingService cervixBaseBetalingService;
 
 	public CervixBetalingServiceImpl()
 	{
@@ -233,7 +237,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 	private String getLogMeldingLabTariefVerwijderd(CervixLabTarief labTarief)
 	{
 		String logMelding = "Labtarief verwijderd met de bedragen: ";
-		for (CervixTariefType labTariefType : CervixTariefType.getAlleLabTariefTypes())
+		for (CervixTariefType labTariefType : getTariefTypenVoorLaboratorium(labTarief.getBmhkLaboratorium()))
 		{
 			logMelding += String.format("%s:  %s; ", labTariefType.getNaam(), labTariefType.getBedragStringVanTarief(labTarief));
 		}
@@ -250,7 +254,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 			{
 				melding += "; ";
 			}
-			melding += CervixTariefUtil.getTariefString(oudeTarief);
+			melding += cervixBaseBetalingService.getTariefString(oudeTarief);
 			messageService.queueMessage(MessageType.HERINDEXATIE,
 				new CervixHerindexatieDto(oudeTarief.getId(), nieuweTarief.getId(), CervixTariefType.isHuisartsTarief(nieuweTarief)));
 		}
@@ -274,7 +278,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 		}
 		else
 		{
-			logMelding = "Herindexering: " + corrigeerOudeTarievenMelding + ". Bedrag nieuw " + CervixTariefUtil.getTariefString(nieuwTarief);
+			logMelding = "Herindexering: " + corrigeerOudeTarievenMelding + ". Bedrag nieuw " + cervixBaseBetalingService.getTariefString(nieuwTarief);
 		}
 		return logMelding;
 	}
@@ -316,7 +320,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 			}
 			if (oudeTarief.getGeldigVanafDatum().before(nieuweTarief.getGeldigVanafDatum()))
 			{
-				melding += "Oud " + CervixTariefUtil.getTariefString(oudeTarief);
+				melding += "Oud " + cervixBaseBetalingService.getTariefString(oudeTarief);
 				oudeTarief.setGeldigTotenmetDatum(DateUtil.toUtilDate(DateUtil.toLocalDate(nieuweTarief.getGeldigVanafDatum()).minusDays(1)));
 				melding += " is aangepast naar " + CervixTariefUtil.getGeldigheidMelding(oudeTarief);
 			}
@@ -324,7 +328,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 				&& (oudeTarief.getGeldigTotenmetDatum() == null || (oudeTarief.getGeldigVanafDatum().before(nieuweTarief.getGeldigTotenmetDatum())
 				&& oudeTarief.getGeldigTotenmetDatum().after(nieuweTarief.getGeldigTotenmetDatum()))))
 			{
-				melding += "Oud " + CervixTariefUtil.getTariefString(oudeTarief);
+				melding += "Oud " + cervixBaseBetalingService.getTariefString(oudeTarief);
 				oudeTarief.setGeldigVanafDatum(DateUtil.toUtilDate(DateUtil.toLocalDate(nieuweTarief.getGeldigTotenmetDatum()).plusDays(1)));
 				melding += " is aangepast naar " + CervixTariefUtil.getGeldigheidMelding(oudeTarief);
 			}
@@ -337,7 +341,8 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 				}
 				else
 				{
-					melding += getLogMeldingLabTariefVerwijderd((CervixLabTarief) deproxiedTarief);
+					var labTarief = (CervixLabTarief) deproxiedTarief;
+					melding += getLogMeldingLabTariefVerwijderd(labTarief);
 				}
 				oudeTarief.setActief(false);
 			}
@@ -375,7 +380,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 			CervixTarief previousTarief = verrichtingService.getTariefVoorDatum(CervixTariefType.LAB_CYTOLOGIE_NA_HPV_UITSTRIJKJE,
 				DateUtil.toUtilDate(DateUtil.toLocalDate(nieuwTarief.getGeldigVanafDatum()).minusDays(1)),
 				nieuwTarief.getBmhkLaboratorium());
-			for (CervixTariefType labTariefType : CervixTariefType.getAlleLabTariefTypes())
+			for (CervixTariefType labTariefType : getTariefTypenVoorLaboratorium(nieuwTarief.getBmhkLaboratorium()))
 			{
 				String logMelding = String.format("; %s: Van oud bedrag (%s) naar nieuw bedrag %s", labTariefType.getNaam(),
 					labTariefType.getBedragStringVanTarief(previousTarief),
@@ -393,7 +398,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 		else
 		{
 			logMeldingBuilder.insert(0, "Indexering: ");
-			logMeldingBuilder.append(corrigeerOudeTarievenMelding).append(" nieuwe bedragen ").append(CervixTariefUtil.getTariefString(nieuwTarief));
+			logMeldingBuilder.append(corrigeerOudeTarievenMelding).append(" nieuwe bedragen ").append(cervixBaseBetalingService.getTariefString(nieuwTarief));
 		}
 
 		return logMeldingBuilder.toString();
@@ -578,6 +583,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 		oudeTarieven.addAll(getOudeTarieven(nieuweTarief));
 		checkVoorGesplitsteOudeTarieven(oudeTarieven, nieuweTarief);
 		hibernateService.saveOrUpdate(nieuweTarief);
+
 		String corrigeerOudeTarievenMelding = corrigeerOudeTarieven(oudeTarieven, nieuweTarief);
 
 		toevoegenTariefAfronden(nieuweTarief, corrigeerOudeTarievenMelding, account);

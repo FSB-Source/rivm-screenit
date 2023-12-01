@@ -401,6 +401,27 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 	}
 
 	@Override
+	public List<ColonIntakeAfspraak> getAfsprakenInRange(Range<Date> range)
+	{
+		var criteria = getSession().createCriteria(ColonIntakeAfspraak.class);
+
+		criteria.add(Restrictions.or(Restrictions.eq("status", AfspraakStatus.GEPLAND), Restrictions.eq("status", AfspraakStatus.UITGEVOERD)));
+
+		var disjunction = Restrictions.disjunction();
+		disjunction.add(RangeCriteriaBuilder.closedOpen("startTime", "endTime").overlaps(range));
+		criteria.add(disjunction);
+		criteria.addOrder(Order.asc("startTime"));
+
+		var projectionList = Projections.projectionList()
+			.add(Projections.property("startTime"))
+			.add(Projections.property("endTime"))
+			.add(Projections.property("id"));
+		criteria.setProjection(projectionList);
+
+		return criteria.list();
+	}
+
+	@Override
 	public RoosterItem getRoosterBlokVoorAfspraak(ColonIntakeAfspraak newAfspraak)
 	{
 		Criteria criteria = getSession().createCriteria(RoosterItem.class);

@@ -194,6 +194,15 @@ public enum Recht implements INaam
 			}
 		},
 
+	GEBRUIKER_LOCATIE_NIEUW_ROOSTER("Beheer nieuw rooster", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON })
+		{
+			@Override
+			public List<OrganisatieType> getOrganisatieTypes()
+			{
+				return Collections.singletonList(OrganisatieType.COLOSCOPIECENTRUM);
+			}
+		},
+
 	GEBRUIKER_UITNODIGING_VERSTUREN("Uitnodiging versturen", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON }),
 
 	GEBRUIKER_SCREENING_SCANNING("Screening scanning", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON }),
@@ -219,12 +228,6 @@ public enum Recht implements INaam
 		new ToegangLevel[] { ToegangLevel.INSTELLING, ToegangLevel.REGIO, ToegangLevel.LANDELIJK },
 		Actie.INZIEN,
 		Actie.AANPASSEN),
-
-	GEBRUIKER_BEHEER_DASHBOARD_GEZIEN_KNOP(
-		"Beheer dashboard gezien knop",
-		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA },
-		new ToegangLevel[] { ToegangLevel.REGIO, ToegangLevel.LANDELIJK },
-		Actie.INZIEN),
 
 	GEBRUIKER_BEHEER_DOCUMENTENTEMPLATES(
 		"Documenttemplates testen",
@@ -502,7 +505,7 @@ public enum Recht implements INaam
 
 	GEBRUIKER_CLIENT_PROJECTEN("Projecten bij cli\u00EBnt", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA }),
 
-	GEBRUIKER_SCREENING_ZOEKENOPBARCODE("Zoeken op barcode FIT monster", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON }),
+	GEBRUIKER_SCREENING_ZOEKENOPBARCODE("Zoeken op barcode monster", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX }),
 
 	HANDLEIDINGEN_DOWNLOADEN(
 		"Handleidingen downloaden",
@@ -739,6 +742,12 @@ public enum Recht implements INaam
 
 	GEBRUIKER_CERVIX_CLIENT_ZAS_AANVRAGEN(
 		"ZAS aanvragen",
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.CERVIX },
+		new ToegangLevel[] { ToegangLevel.REGIO, ToegangLevel.LANDELIJK },
+		Actie.TOEVOEGEN),
+
+	GEBRUIKER_CERVIX_CLIENT_ZAS_AANVRAGEN_NA_OUDE_ZAS(
+		"ZAS aanvragen na oude ingestuurde ZAS",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.CERVIX },
 		new ToegangLevel[] { ToegangLevel.REGIO, ToegangLevel.LANDELIJK },
 		Actie.TOEVOEGEN),
@@ -1120,12 +1129,6 @@ public enum Recht implements INaam
 		new ToegangLevel[] { ToegangLevel.REGIO, ToegangLevel.LANDELIJK },
 		Actie.INZIEN),
 
-	GEBRUIKER_CONTROLEREN_MISSENDE_UITSLAGEN(
-		"Controleren missende uitslagen",
-		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.MAMMA, Bevolkingsonderzoek.CERVIX },
-		new ToegangLevel[] { ToegangLevel.LANDELIJK },
-		Actie.AANPASSEN
-	),
 	GEBRUIKER_TOON_GENDERINDETITEIT(
 		"Toon genderidentiteit",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.MAMMA, Bevolkingsonderzoek.CERVIX },
@@ -1135,7 +1138,30 @@ public enum Recht implements INaam
 	GEBRUIKER_SCREENING_MAMMA_BE_ONDERZOEKTYPE_FILTER(
 		"BE type onderzoek filter",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
-		new ToegangLevel[] { ToegangLevel.INSTELLING }, Actie.INZIEN);
+		new ToegangLevel[] { ToegangLevel.INSTELLING }, Actie.INZIEN),
+
+	GEBRUIKER_BEHEER_DASHBOARD_AFGEHANDELD_KNOP(
+		"Beheer dashboard afgehandeld knop",
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA, Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX },
+		new ToegangLevel[] { ToegangLevel.LANDELIJK },
+		Actie.AANPASSEN),
+
+	GEBRUIKER_INACTIEVE_CLIENT_INZIEN(
+		"Inactieve cli\u00EBnten inzien",
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA, Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX },
+		new ToegangLevel[] { ToegangLevel.LANDELIJK },
+		Actie.INZIEN),
+
+	COLON_FEESTDAGEN_BEHEER(
+		"Beheer van feestdagen",
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON },
+		new ToegangLevel[] { ToegangLevel.LANDELIJK }),
+
+	COLON_WEEKEND_WERK_DAG_BEPERKINGEN_BEHEER(
+		"Beheer van beperkingen voor weekend en werkdag",
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON },
+		new ToegangLevel[] { ToegangLevel.LANDELIJK },
+		Actie.INZIEN, Actie.AANPASSEN);
 
 	private final String omschrijving;
 

@@ -253,7 +253,7 @@
                     <systemPropertyVariables>
                         <property>
                             <name>logback.configurationFile</name>
-                            <value>logback-test.groovy</value>
+                            <value>logback-test.xml</value>
                         </property>
                     </systemPropertyVariables>
                 </configuration>

@@ -22,6 +22,7 @@ package nl.rivm.screenit.mamma.se.controller;
  */
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -31,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import nl.rivm.screenit.mamma.se.dto.AfspraakSeDto;
 import nl.rivm.screenit.mamma.se.service.DaglijstService;
+import nl.rivm.screenit.mamma.se.service.MammaScreeningsEenheidService;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5SessionInThread;
 
 import org.slf4j.Logger;
@@ -52,6 +54,9 @@ public class DaglijstController extends AuthorizedController
 
 	@Autowired
 	private DaglijstService daglijstService;
+
+	@Autowired
+	private MammaScreeningsEenheidService screeningsEenheidService;
 
 	@RequestMapping(value = "/{datum}", method = RequestMethod.GET)
 	public ResponseEntity readDaglijst(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate datum, HttpServletRequest request)
@@ -80,23 +85,30 @@ public class DaglijstController extends AuthorizedController
 
 	private class DaglijstOphaler extends OpenHibernate5SessionInThread
 	{
-		private final LocalDate datum;
+		private final LocalDate opTeHalenDatum;
 
 		private final String seCode;
 
 		private List<AfspraakSeDto> afspraken;
 
-		DaglijstOphaler(LocalDate datum, String seCode)
+		DaglijstOphaler(LocalDate opTeHalenDatum, String seCode)
 		{
 			super(true);
-			this.datum = datum;
+			this.opTeHalenDatum = opTeHalenDatum;
 			this.seCode = seCode;
 		}
 
 		@Override
 		protected void runInternal()
 		{
-			afspraken = daglijstService.readDaglijst(datum, seCode);
+			if (screeningsEenheidService.magSeDaglijstInzienVanDatum(seCode, opTeHalenDatum))
+			{
+				afspraken = daglijstService.readDaglijst(opTeHalenDatum, seCode);
+			}
+			else
+			{
+				afspraken = new ArrayList<>();
+			}
 		}
 
 		List<AfspraakSeDto> getAfspraken()

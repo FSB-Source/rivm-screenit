@@ -21,6 +21,8 @@ package nl.rivm.screenit.main.config;
  * =========================LICENSE_END==================================
  */
 
+import java.util.HashMap;
+
 import nl.rivm.screenit.security.ScreenitRealm;
 
 import org.apache.shiro.cache.ehcache.EhCacheManager;
@@ -36,7 +38,6 @@ import org.springframework.core.Ordered;
 @Configuration
 public class ShiroConfig
 {
-
 	@Bean
 	public SecurityManager shiroSecurityManager(ScreenitRealm screenitRealm, EhCacheManager cacheManager)
 	{
@@ -51,6 +52,7 @@ public class ShiroConfig
 	{
 		var filter = new ShiroFilterFactoryBean();
 		filter.setSecurityManager(shiroSecurityManager);
+		filter.setFilterChainDefinitionMap(getFilterChainMapping());
 		return filter;
 	}
 
@@ -66,4 +68,10 @@ public class ShiroConfig
 		return filter;
 	}
 
+	private HashMap<String, String> getFilterChainMapping()
+	{
+		var filterMap = new HashMap<String, String>();
+		filterMap.put("/api/**", "noSessionCreation");
+		return filterMap;
+	}
 }

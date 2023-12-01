@@ -27,6 +27,9 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.ColonGeinterpreteerdeUitslag;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
@@ -38,14 +41,10 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class FITTestUtil
 {
 	private static final Logger LOG = LoggerFactory.getLogger(FITTestUtil.class);
-
-	private FITTestUtil()
-	{
-
-	}
 
 	public static boolean isOngunstig(IFOBTTest test)
 	{
@@ -168,5 +167,15 @@ public final class FITTestUtil
 	public static boolean heeftUitslag(IFOBTTest buis)
 	{
 		return buis.getUitslag() != null || buis.getGeinterpreteerdeUitslag() != null;
+	}
+
+	public static boolean heeftOngunstigeUitslagInLaatsteRonde(ColonDossier dossier)
+	{
+		return getAlleUitgevoerdeFITTestenInLaatsteRonde(dossier).stream().anyMatch(FITTestUtil::isOngunstig);
+	}
+
+	public static boolean heeftGunstigeUitslagInLaatsteRonde(ColonDossier dossier)
+	{
+		return getAlleUitgevoerdeFITTestenInLaatsteRonde(dossier).stream().anyMatch(FITTestUtil::isGunstig);
 	}
 }
