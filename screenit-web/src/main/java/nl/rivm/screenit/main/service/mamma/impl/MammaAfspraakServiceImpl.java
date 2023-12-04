@@ -232,7 +232,7 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 
 		baseConceptPlanningsApplicatie.verzetClienten(verzetClientenDto);
 
-		berichtToSeRestBkService.notificeerSe(standplaatsPeriode.getScreeningsEenheid(), afspraakDatums);
+		berichtToSeRestBkService.notificeerScreeningsEenheidVerversenDaglijst(standplaatsPeriode.getScreeningsEenheid(), afspraakDatums);
 
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 		String melding = "Bulk verzetting: #" + afspraken.size() + " afspraken, reden: " + filter.getVerzettenReden() + ", vanaf: "
@@ -457,7 +457,7 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 			if (brieven.size() > 0)
 			{
 				baseConceptPlanningsApplicatie.verzetClienten(verzetClientenDto);
-				berichtToSeRestBkService.notificeerSe(persistentStandplaatsPeriode.getScreeningsEenheid(), afspraakDatums);
+				berichtToSeRestBkService.notificeerScreeningsEenheidVerversenDaglijst(persistentStandplaatsPeriode.getScreeningsEenheid(), afspraakDatums);
 				baseStandplaatsService.zetBrievenKlaarVoorStandplaatsVoorAfdrukken(brieven, persistentStandplaatsPeriode.getStandplaatsRonde().getStandplaats());
 			}
 		}

@@ -116,7 +116,7 @@ public class CervixMonsterDaoImpl extends AbstractAutowiredDao implements Cervix
 	@Override
 	public CervixMonster getLaatsteMonsterMetMissendeUitslagVanDossier(CervixDossier dossier, LocalDate signalerenVanaf, LocalDate minimaleSignaleringsDatum)
 	{
-		Criteria criteria = getSession().createCriteria(CervixMonster.class, "monster");
+		Criteria criteria = getSession().createCriteria(CervixMonster.class, "rootMonster");
 		CervixRestrictions.addMissendeUitslagRestrictions(criteria, signalerenVanaf, minimaleSignaleringsDatum);
 		criteria.add(Restrictions.eq("ronde.dossier", dossier));
 		criteria.addOrder(Order.desc("ontvangstdatum"));

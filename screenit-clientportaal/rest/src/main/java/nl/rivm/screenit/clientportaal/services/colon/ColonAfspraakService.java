@@ -30,6 +30,8 @@ public interface ColonAfspraakService
 {
 	ColonIntakeAfspraak getHuidigeIntakeAfspraak(Client client);
 
+	boolean laatsteAfspraakHeeftDefinitieveIntakeconclusie(Client client);
+
 	ColonVrijSlotZonderKamerDto vanVrijSlotNaarColonVrijSlot(VrijSlotZonderKamer vrijSlot);
 
 	void intakeAfspraakAfzeggen(Client client);

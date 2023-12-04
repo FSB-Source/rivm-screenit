@@ -28,6 +28,9 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,6 +42,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
@@ -53,18 +57,26 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 import static org.apache.commons.lang3.StringUtils.chomp;
 
 @Slf4j
 @Service
-@Conditional(S3FileServiceCondition.class)
+@ConditionalOnProperty(value = "s3.enabled", havingValue = "true")
 public class S3FileServiceImpl implements FileService, InitializingBean
 {
+
+	public S3FileServiceImpl()
+	{
+		LOG.info("S3 Fileservice");
+	}
 
 	@Autowired
 	@Qualifier("s3bucketEndpointOverride")
@@ -119,7 +131,7 @@ public class S3FileServiceImpl implements FileService, InitializingBean
 		}
 		try
 		{
-			PutObjectResponse objectResponse = s3.putObject(PutObjectRequest
+			var objectResponse = s3.putObject(PutObjectRequest
 				.builder()
 				.bucket(s3bucketName)
 				.key(getS3Path(fullFilePath)).build(), RequestBody.fromInputStream(content, contentLength));
@@ -140,7 +152,7 @@ public class S3FileServiceImpl implements FileService, InitializingBean
 	{
 		try
 		{
-			File file = File.createTempFile(FilenameUtils.getBaseName(fullFilePath), "." + FilenameUtils.getExtension(fullFilePath));
+			var file = File.createTempFile(FilenameUtils.getBaseName(fullFilePath), "." + FilenameUtils.getExtension(fullFilePath));
 			LOG.debug("Tijdelijk bestand {} aangemaakt van S3 bestand {}", file.getPath(), fullFilePath);
 			try (InputStream documentStream = loadAsStream(fullFilePath))
 			{
@@ -186,8 +198,8 @@ public class S3FileServiceImpl implements FileService, InitializingBean
 		}
 		try
 		{
-			ObjectIdentifier key = ObjectIdentifier.builder().key(getS3Path(fullFilePath)).build();
-			DeleteObjectsRequest request = DeleteObjectsRequest
+			var key = ObjectIdentifier.builder().key(getS3Path(fullFilePath)).build();
+			var request = DeleteObjectsRequest
 				.builder()
 				.bucket(s3bucketName)
 				.delete(Delete
@@ -195,7 +207,7 @@ public class S3FileServiceImpl implements FileService, InitializingBean
 					.objects(key)
 					.build())
 				.build();
-			DeleteObjectsResponse response = s3.deleteObjects(request);
+			var response = s3.deleteObjects(request);
 			return response.sdkHttpResponse().isSuccessful();
 		}
 		catch (S3Exception e)
@@ -206,9 +218,74 @@ public class S3FileServiceImpl implements FileService, InitializingBean
 	}
 
 	@Override
+	public boolean deleteQuietly(String fullFilePath)
+	{
+		if (StringUtils.isBlank(fullFilePath))
+		{
+			return false;
+		}
+		try
+		{
+			var key = ObjectIdentifier.builder().key(getS3Path(fullFilePath)).build();
+			var request = DeleteObjectsRequest
+				.builder()
+				.bucket(s3bucketName)
+				.delete(Delete
+					.builder()
+					.objects(key)
+					.build())
+				.build();
+			var response = s3.deleteObjects(request);
+			return response.sdkHttpResponse().isSuccessful();
+		}
+		catch (S3Exception e)
+		{
+
+		}
+		return false;
+	}
+
+	@Override
+	public void cleanDirectory(String directory) throws IOException
+	{
+		deleteDirectory(directory);
+	}
+
+	@Override
+	public void deleteDirectory(String directory) throws IOException
+	{
+		var filesInDirectory = listFiles(directory);
+		filesInDirectory.forEach(this::delete);
+	}
+
+	@Override
+	public List<String> listFiles(String directory) throws IOException
+	{
+		if (StringUtils.isBlank(directory))
+		{
+			return new ArrayList<>();
+		}
+		try
+		{
+			var request = ListObjectsRequest
+				.builder()
+				.bucket(s3bucketName)
+				.prefix(directory)
+				.build();
+			var response = s3.listObjects(request);
+			return response.contents().stream().map(S3Object::key).collect(Collectors.toList());
+		}
+		catch (S3Exception e)
+		{
+			LOG.error("Fout bij ophalen van bestandlijst in map {} uit S3 door {}", directory, e.getMessage(), e);
+			throw new IOException(e);
+		}
+	}
+
+	@Override
 	public void afterPropertiesSet()
 	{
-		final AwsBasicCredentials basicCredentials = AwsBasicCredentials.create(s3bucketAccessId, s3bucketAccessSecret);
+		final var basicCredentials = AwsBasicCredentials.create(s3bucketAccessId, s3bucketAccessSecret);
 
 		s3 = S3Client
 			.builder()
@@ -224,7 +301,7 @@ public class S3FileServiceImpl implements FileService, InitializingBean
 		{
 			try
 			{
-				final URI endpointOverrideURI = URI.create(s3bucketEndpointOverride);
+				final var endpointOverrideURI = URI.create(s3bucketEndpointOverride);
 				s3ClientBuilder.endpointOverride(endpointOverrideURI);
 			}
 			catch (final IllegalArgumentException e)
@@ -237,7 +314,7 @@ public class S3FileServiceImpl implements FileService, InitializingBean
 
 	private String getS3Path(String path)
 	{
-		String formattedPath = path.replace("\\", "/").replaceAll("\\\\", "/").replaceAll("//", "/");
+		var formattedPath = path.replace("\\", "/").replaceAll("\\\\", "/").replaceAll("//", "/");
 		return formattedPath.endsWith("/") ? chomp(formattedPath) : formattedPath;
 	}
 }

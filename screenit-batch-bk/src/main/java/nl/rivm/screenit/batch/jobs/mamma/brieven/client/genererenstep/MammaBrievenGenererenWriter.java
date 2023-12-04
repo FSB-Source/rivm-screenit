@@ -191,8 +191,8 @@ public class MammaBrievenGenererenWriter extends AbstractBrievenGenererenWriter<
 	@Override
 	public BaseDocumentCreator getDocumentCreator(MailMergeContext context)
 	{
-		if (BriefType.MAMMA_ONGUNSTIGE_UITSLAG_BIRADS_4_5_ZONDER_HUISARTS.equals(context.getBrief().getBriefType()) ||
-			BriefType.MAMMA_ONGUNSTIGE_UITSLAG_BIRADS_0_ZONDER_HUISARTS.equals(context.getBrief().getBriefType()) && context.getClient() != null)
+		if (BriefType.getMammaOngunstigeUitslagenZonderHuisarts().contains(context.getBrief().getBriefType())
+			&& context.getClient() != null)
 		{
 			var beoordeling = beoordelingService.getBeoordelingMetVerslagLezing(MammaScreeningRondeUtil.getAfspraakVanLaatsteOnderzoek(context.getClient().getMammaDossier()));
 			if (beoordeling != null)

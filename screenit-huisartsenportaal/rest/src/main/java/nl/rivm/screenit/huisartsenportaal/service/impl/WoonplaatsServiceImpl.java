@@ -73,17 +73,6 @@ public class WoonplaatsServiceImpl implements WoonplaatsService
 		return woonplaatsDtos;
 	}
 
-	private String getDisplayNaam(Woonplaats woonplaats)
-	{
-		String display = woonplaats.getNaam();
-		if (woonplaats.getGemeente() != null)
-		{
-			display += " (" + woonplaats.getGemeente() + ")";
-		}
-		return display;
-
-	}
-
 	@Override
 	public Woonplaats getWoonplaats(WoonplaatsDto woonplaatsDto)
 	{

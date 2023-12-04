@@ -14,6 +14,9 @@
 	--licht-paars-transparant: rgba(216, 193, 251, 0.25);
 	--tabel-hover-paars: rgba(90, 51, 125, 0.2);
 	--wit-transparant: rgba(255, 255, 255, 0.5);
+	--toastify-color-error: #dc3545;
+	--toastify-color-success: #97A12E;
+	--toastify-color-warning: #f1c40f;
 }
 
 .login-spinner {
@@ -744,14 +747,6 @@ thead {
 
 .modal-footer {
 	display: block;
-}
-
-.success-color {
-	background-color: #97A12E;
-}
-
-.danger-color {
-	background-color: #dc3545;
 }
 
 .onderzoek-component {

@@ -9,7 +9,7 @@ const SE_SLUIT_DUBBEL_VENSTER = "SE_SLUIT_DUBBEL_VENSTER"
 
 export default class DubbeleInstantieDetector extends React.Component {
 
-	constructor(props: never) {
+	constructor(props: { children: JSX.Element }) {
 		super(props)
 		this.handlelocalStorageUpdated = this.handlelocalStorageUpdated.bind(this)
 	}

@@ -110,6 +110,13 @@ public class LogDaoImpl extends AbstractAutowiredDao implements LogDao
 	}
 
 	@Override
+	public List<LogRegel> getLogRegelsVanDashboard(DashboardStatus status)
+	{
+		Criteria crit = createCriteriaLogRegelsVanDashboard(status);
+		return crit.list();
+	}
+
+	@Override
 	public long countLogRegelsVanDashboard(DashboardStatus status)
 	{
 		Criteria crit = createCriteriaLogRegelsVanDashboard(status);

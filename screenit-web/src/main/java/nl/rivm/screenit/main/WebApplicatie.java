@@ -24,7 +24,6 @@ package nl.rivm.screenit.main;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.factory.colon.DefaultVrijSlotFactory;
-import nl.topicuszorg.patientregistratie.persoonsgegevens.service.BsnService;
 import nl.topicuszorg.zorgid.webservice.ZorgidWebservice;
 
 import org.springframework.boot.SpringApplication;
@@ -39,7 +38,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @ComponentScan(
 	basePackages = { "nl.rivm.screenit", "nl.topicuszorg" },
 	excludeFilters = {
-		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = BsnService.class),
 		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = ZorgidWebservice.class),
 		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = DefaultVrijSlotFactory.class),
 		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "nl.topicuszorg.hibernate.spring.module.test.impl.TestServiceImpl"),

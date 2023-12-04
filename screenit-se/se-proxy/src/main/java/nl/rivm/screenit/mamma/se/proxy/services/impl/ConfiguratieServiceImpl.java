@@ -33,7 +33,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class ConfiguratieServiceImpl implements ConfiguratieService
 {
-
 	@Autowired
 	private ConfiguratieDao configuratieDao;
 

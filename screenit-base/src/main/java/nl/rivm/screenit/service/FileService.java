@@ -24,20 +24,29 @@ package nl.rivm.screenit.service;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 public interface FileService
 {
 
-	boolean exists(final String fullFilePath);
+	boolean exists(String fullFilePath);
 
-	void save(final String fullFilePath, final File tempFile) throws IOException;
+	void save(String fullFilePath, File tempFile) throws IOException;
 
-	void save(final String fullFilePath, final InputStream content, final Long contentLength) throws IOException;
+	void save(String fullFilePath, InputStream content, Long contentLength) throws IOException;
 
-	File load(final String fullFilePath);
+	File load(String fullFilePath);
 
-	InputStream loadAsStream(final String fullFilePath) throws IOException;
+	InputStream loadAsStream(String fullFilePath) throws IOException;
 
-	boolean delete(final String fullFilePath);
+	boolean delete(String fullFilePath);
+
+	boolean deleteQuietly(String fullFilePath);
+
+	void cleanDirectory(String directory) throws IOException;
+
+	void deleteDirectory(String directory) throws IOException;
+
+	List<String> listFiles(String directory) throws IOException;
 
 }

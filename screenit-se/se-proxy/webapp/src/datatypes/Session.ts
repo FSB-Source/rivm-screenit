@@ -1,5 +1,4 @@
 export type Session = {
-	sessionId: string;
 	gebruikersnaam: string;
 	medewerkercode: string;
 	displayName: string;

@@ -111,7 +111,7 @@ public class BriefOpnieuwAanmakenPanel extends GenericPanel<ClientBrief<?, ?, ?>
 		{
 			melding = getString("message.briefisaleenherdruk");
 		}
-		else if (BriefType.getCervixUitnodigingen().contains(brief.getBriefType()) || BriefType.getCervixZasBrieven().contains(brief.getBriefType()))
+		else if (BriefType.getCervixZasBrieven().contains(brief.getBriefType()) || BriefType.getCervixUitstrijkjeBrieven().contains(brief.getBriefType()))
 		{
 			melding = getString("message.cervixuitnodiging");
 		}

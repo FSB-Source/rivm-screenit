@@ -37,6 +37,7 @@ import nl.rivm.screenit.model.gba.GbaFile;
 import nl.rivm.screenit.model.gba.GbaFoutRegel;
 import nl.rivm.screenit.model.gba.GbaVerwerkingEntry;
 import nl.rivm.screenit.model.gba.GbaVerwerkingsLog;
+import nl.rivm.screenit.service.FileService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.SimpleListHibernateModel;
 
@@ -59,6 +60,9 @@ public class GbaVerslagPanel extends GenericPanel<GbaVerwerkingsLog>
 	@SpringBean
 	private HibernateService hibernateService;
 
+	@SpringBean
+	private FileService fileService;
+
 	@SpringBean(name = "voFileStorePath")
 	private String voFileStorePath;
 
@@ -77,9 +81,9 @@ public class GbaVerslagPanel extends GenericPanel<GbaVerwerkingsLog>
 			@Override
 			protected void populateItem(ListItem<GbaFile> item)
 			{
-				String directory = voFileStorePath + item.getModelObject().getPath();
+				var bestandLocatie = voFileStorePath + item.getModelObject().getPath();
 
-				ResourceStreamResource resource = new ResourceStreamResource(new FileResourceStream(new File(directory)))
+				var resource = new ResourceStreamResource(new FileResourceStream(fileService.load(bestandLocatie)))
 					.setContentDisposition(ContentDisposition.ATTACHMENT)
 					.setCacheDuration(Duration.ZERO)
 					.setFileName(System.currentTimeMillis() + "-" + item.getModelObject().getNaam());
@@ -103,6 +107,7 @@ public class GbaVerslagPanel extends GenericPanel<GbaVerwerkingsLog>
 			}
 		});
 	}
+
 	private String getAantalNieuweBurgers(IModel<GbaVerwerkingsLog> model)
 	{
 		if (model.getObject() == null)
@@ -127,6 +132,7 @@ public class GbaVerslagPanel extends GenericPanel<GbaVerwerkingsLog>
 		}
 		return null;
 	}
+
 	private String getAantalBijgewerkteBurgers(IModel<GbaVerwerkingsLog> model)
 	{
 		if (model.getObject() == null)

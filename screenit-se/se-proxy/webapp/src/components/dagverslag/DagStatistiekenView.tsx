@@ -1,17 +1,19 @@
 import React from "react"
 import {Table} from "reactstrap"
 import Paneel from "../generic/Paneel"
-import type {Afspraak} from "../../datatypes/Afspraak"
-import type {Onderzoek} from "../../datatypes/Onderzoek"
-import {getOnderzoekStatusCount} from "../../util/AfsprakenUtil"
 import {Dagverslag} from "../../datatypes/Dagverslag"
 import {tijdFormaat} from "../../util/DateUtil"
 
 export type DagStatistiekenViewProps = {
-	afspraken: Afspraak[];
-	onderzoeken: Map<number, Onderzoek>;
-	afsprakenLength: number;
 	dagverslag?: Dagverslag;
+	aantalVerwacht: number;
+	aantalIngeschreven: number;
+	aantalOnderzoek: number;
+	aantalSignaleren: number;
+	aantalAfgerond: number;
+	aantalOnderbroken: number;
+	aantalOnvolledig: number;
+	aantalTotaal: number;
 };
 
 export default class DagStatistiekenView extends React.Component<DagStatistiekenViewProps> {
@@ -68,7 +70,8 @@ export default class DagStatistiekenView extends React.Component<DagStatistieken
 						Verwacht
 					</td>
 					<td>
-						{getOnderzoekStatusCount("VERWACHT", this.props.onderzoeken, this.props.afspraken)}
+						<span>{this.props.aantalVerwacht}</span>
+
 					</td>
 				</tr>
 				<tr>
@@ -76,7 +79,7 @@ export default class DagStatistiekenView extends React.Component<DagStatistieken
 						Ingeschreven
 					</td>
 					<td>
-						{getOnderzoekStatusCount("INGESCHREVEN", this.props.onderzoeken, this.props.afspraken)}
+						<span>{this.props.aantalIngeschreven}</span>
 					</td>
 				</tr>
 				<tr>
@@ -84,7 +87,7 @@ export default class DagStatistiekenView extends React.Component<DagStatistieken
 						Onderzoek
 					</td>
 					<td>
-						{getOnderzoekStatusCount("ONDERZOEK", this.props.onderzoeken, this.props.afspraken)}
+						<span>{this.props.aantalOnderzoek}</span>
 					</td>
 				</tr>
 				<tr>
@@ -92,7 +95,7 @@ export default class DagStatistiekenView extends React.Component<DagStatistieken
 						Signaleren
 					</td>
 					<td>
-						{getOnderzoekStatusCount("SIGNALEREN", this.props.onderzoeken, this.props.afspraken)}
+						<span>{this.props.aantalSignaleren}</span>
 					</td>
 				</tr>
 				<tr>
@@ -100,7 +103,7 @@ export default class DagStatistiekenView extends React.Component<DagStatistieken
 						Afgerond
 					</td>
 					<td>
-						{getOnderzoekStatusCount("AFGEROND", this.props.onderzoeken, this.props.afspraken)}
+						<span>{this.props.aantalAfgerond}</span>
 					</td>
 				</tr>
 				<tr>
@@ -108,7 +111,7 @@ export default class DagStatistiekenView extends React.Component<DagStatistieken
 						Onderbroken
 					</td>
 					<td>
-						{getOnderzoekStatusCount("ONDERBROKEN", this.props.onderzoeken, this.props.afspraken)}
+						<span>{this.props.aantalOnderbroken}</span>
 					</td>
 				</tr>
 				<tr>
@@ -116,7 +119,7 @@ export default class DagStatistiekenView extends React.Component<DagStatistieken
 						Onvolledig
 					</td>
 					<td>
-						{getOnderzoekStatusCount("ONVOLLEDIG", this.props.onderzoeken, this.props.afspraken)}
+						<span>{this.props.aantalOnvolledig}</span>
 					</td>
 				</tr>
 				<tr>
@@ -124,7 +127,7 @@ export default class DagStatistiekenView extends React.Component<DagStatistieken
 						Totaal
 					</th>
 					<th>
-						{this.props.afsprakenLength}
+						<span>{this.props.aantalTotaal}</span>
 					</th>
 				</tr>
 				</tbody>

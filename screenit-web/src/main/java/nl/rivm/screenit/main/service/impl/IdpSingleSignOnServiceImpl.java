@@ -88,7 +88,7 @@ public class IdpSingleSignOnServiceImpl implements IdpSingleSignOnService
 			.claim("given_name", medewerker.getVoornaam())
 			.claim("family_name", NaamUtil.getTussenvoegselEnAchternaam(medewerker))
 			.claim("ctx", context)
-			.claim("jti", UUID.randomUUID())
+			.claim("jti", UUID.randomUUID().toString())
 			.claim("email_transient", medewerker.getEmailextra())
 			.signWith(SignatureAlgorithm.RS512, getKey())
 			.compact();

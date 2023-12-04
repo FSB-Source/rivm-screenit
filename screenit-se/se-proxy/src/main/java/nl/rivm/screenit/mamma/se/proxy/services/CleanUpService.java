@@ -28,4 +28,6 @@ public interface CleanUpService
 	void startOfDayCleanup();
 
 	void updateCachesAtOnlineEvent();
+
+	void startOfDayCleanupUitvoerenIndienNodig();
 }

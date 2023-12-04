@@ -22,22 +22,23 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.cervix;
  */
 
 import java.util.Date;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.model.TypeGebeurtenis;
+import nl.rivm.screenit.main.service.cervix.CervixUitnodigingService;
+import nl.rivm.screenit.main.web.ScreenitSession;
+import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.AbstractClientContactActiePanel;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActie;
-import nl.rivm.screenit.model.cervix.CervixDossier;
-import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
-import nl.rivm.screenit.model.cervix.CervixUitnodiging;
-import nl.rivm.screenit.model.cervix.CervixUitstel;
-import nl.rivm.screenit.model.cervix.CervixZas;
+import nl.rivm.screenit.model.cervix.enums.CervixRedenUitnodiging;
+import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.model.enums.GbaStatus;
+import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.RondeNummerService;
 import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
@@ -67,11 +68,16 @@ public class CervixClientContactAanvragenNieuweZASPanel extends AbstractClientCo
 	@SpringBean
 	private ICurrentDateSupplier currentDateSupplier;
 
+	@SpringBean
+	private CervixUitnodigingService uitnodigingService;
+
 	private final IModel<Client> clientModel;
 
 	private Date uitstellenTotDatum;
 
 	private Boolean uitstelPeriodeNemen = false;
+
+	private CervixRedenUitnodiging reden = CervixRedenUitnodiging.STANDAARD;
 
 	public CervixClientContactAanvragenNieuweZASPanel(String id, IModel<ClientContactActie> model, IModel<Client> clientModel, List<Object> extraPanelParams)
 	{
@@ -87,13 +93,13 @@ public class CervixClientContactAanvragenNieuweZASPanel extends AbstractClientCo
 		Date verstuurd = null;
 
 		String extraOmschrijving = null;
-		CervixDossier cervixDossier = clientModel.getObject().getCervixDossier();
-		CervixScreeningRonde laatsteScreeningRonde = cervixDossier.getLaatsteScreeningRonde();
-		CervixUitnodiging laatsteUitnodiging = laatsteScreeningRonde.getLaatsteUitnodiging();
+		var dossier = clientModel.getObject().getCervixDossier();
+		var laatsteScreeningRonde = dossier.getLaatsteScreeningRonde();
+		var laatsteUitnodiging = laatsteScreeningRonde.getLaatsteUitnodiging();
 
 		if (laatsteScreeningRonde.getLaatsteZasUitnodiging() != null)
 		{
-			CervixZas zas = CervixMonsterUtil.getZAS(laatsteScreeningRonde.getLaatsteZasUitnodiging().getMonster());
+			var zas = CervixMonsterUtil.getZAS(laatsteScreeningRonde.getLaatsteZasUitnodiging().getMonster());
 			if (zas != null)
 			{
 				verstuurd = zas.getVerstuurd();
@@ -105,7 +111,7 @@ public class CervixClientContactAanvragenNieuweZASPanel extends AbstractClientCo
 			}
 		}
 
-		int rondeNr = rondeNummerService.geefRondeNummer(laatsteScreeningRonde);
+		var rondeNr = rondeNummerService.geefRondeNummer(laatsteScreeningRonde);
 
 		add(DateLabel.forDatePattern("datum", Model.of(verstuurd), "dd-MM-yyyy HH:mm:ss"));
 		add(new EnumLabel<>("gebeurtenis", TypeGebeurtenis.BMHK_ZAS_SAMENGESTELD));
@@ -114,16 +120,16 @@ public class CervixClientContactAanvragenNieuweZASPanel extends AbstractClientCo
 		add(new Label("maxZASOverschredenWaarschuwing", String.format(getString("message.maxZASOverschredenWaarschuwing"), maxZasAanvragenInfolijn()))
 			.setVisible(screeningrondeBaseService.heeftMaxAantalZASsenBereikt(laatsteScreeningRonde, false)));
 
-		RadioGroup<Boolean> uitstelPeriodeNemen = new RadioGroup<>("uitstelPeriodeNemen", new PropertyModel<>(this, "uitstelPeriodeNemen"));
-		Radio<Boolean> uitstelRadio = new Radio<>("uitstel", Model.of(Boolean.TRUE));
+		var uitstelPeriodeNemen = new RadioGroup<Boolean>("uitstelPeriodeNemen", new PropertyModel<>(this, "uitstelPeriodeNemen"));
+		var uitstelRadio = new Radio<>("uitstel", Model.of(Boolean.TRUE));
+		var zasRadio = new Radio<>("ZAS", Model.of(Boolean.FALSE));
 		uitstelPeriodeNemen.add(uitstelRadio);
-		Radio<Boolean> ZASRadio = new Radio<>("ZAS", Model.of(Boolean.FALSE));
-		uitstelPeriodeNemen.add(ZASRadio);
+		uitstelPeriodeNemen.add(zasRadio);
 		uitstelPeriodeNemen.setOutputMarkupId(true);
 		uitstelPeriodeNemen.setRequired(true);
 
-		Date zasUitnodigingsDatum = currentDateSupplier.getDate();
-		CervixUitstel uitstel = laatsteScreeningRonde.getUitstel();
+		var zasUitnodigingsDatum = currentDateSupplier.getDate();
+		var uitstel = laatsteScreeningRonde.getUitstel();
 		add(uitstelPeriodeNemen);
 		if (uitstel != null && uitstel.getGeannuleerdDatum() == null)
 		{
@@ -140,6 +146,16 @@ public class CervixClientContactAanvragenNieuweZASPanel extends AbstractClientCo
 			uitstelPeriodeNemen.add(new Label("uitstelDatum", ""));
 			uitstelPeriodeNemen.add(new Label("zasUitnodigingsDatum", ""));
 		}
+		var redenChoice = ComponentHelper.addRadioChoice(this, "reden", new PropertyModel<>(this, "reden"), CervixRedenUitnodiging.class);
+
+		boolean magRedenUitnodigingKiezen = uitnodigingService.magRedenUitnodigingKiezen(laatsteScreeningRonde) &&
+			ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CERVIX_CLIENT_ZAS_AANVRAGEN_NA_OUDE_ZAS, Actie.TOEVOEGEN);
+		if (magRedenUitnodigingKiezen)
+		{
+			reden = CervixRedenUitnodiging.NIEUWE_ZAS_NA_OUDE_INGESTUURDE_ZAS;
+		}
+		redenChoice.setVisible(magRedenUitnodigingKiezen);
+
 		add(new Label("rondeNr", rondeNr));
 	}
 
@@ -151,8 +167,7 @@ public class CervixClientContactAanvragenNieuweZASPanel extends AbstractClientCo
 	@Override
 	public List<String> getOpslaanMeldingen()
 	{
-
-		List<String> meldingen = super.getOpslaanMeldingen();
+		var meldingen = super.getOpslaanMeldingen();
 		if (uitstelPeriodeNemen)
 		{
 			meldingen.add(String.format("De cli\u00EBnt ontvangt de zelfafnameset na uitstelperiode (%s)", Constants.getDateFormat().format(uitstellenTotDatum)));
@@ -167,8 +182,9 @@ public class CervixClientContactAanvragenNieuweZASPanel extends AbstractClientCo
 	@Override
 	public Map<ExtraOpslaanKey, Object> getOpslaanObjecten()
 	{
-		HashMap<ExtraOpslaanKey, Object> opslaanObjecten = new HashMap<>();
+		var opslaanObjecten = new EnumMap<>(ExtraOpslaanKey.class);
 		opslaanObjecten.put(ExtraOpslaanKey.CERVIX_UITSTEL, uitstelPeriodeNemen);
+		opslaanObjecten.put(ExtraOpslaanKey.CERVIX_ZAS_AANVRAAG_REDEN, reden);
 		return opslaanObjecten;
 	}
 

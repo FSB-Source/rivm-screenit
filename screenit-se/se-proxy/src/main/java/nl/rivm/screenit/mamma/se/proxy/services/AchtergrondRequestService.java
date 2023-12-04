@@ -22,13 +22,14 @@ package nl.rivm.screenit.mamma.se.proxy.services;
  */
 
 import java.time.LocalDate;
+import java.util.function.Consumer;
 
 import nl.rivm.screenit.mamma.se.proxy.model.CacheProxyActie;
 import nl.rivm.screenit.mamma.se.proxy.model.SeStatusDto;
 
 public interface AchtergrondRequestService
 {
-	void queueDaglijstRequest(LocalDate datum);
+	void queueDaglijstRequest(LocalDate opTeHalenDag, Consumer<LocalDate> haalDaglijstEnBroadcast);
 
 	void verwijderAlleOpTeHalenDaglijsten();
 

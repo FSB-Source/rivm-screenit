@@ -336,7 +336,7 @@ public class GbaServiceImpl implements GbaService
 
 		String goedeString = "Bericht Verwerkt: bsn aangepast naar " + nieuweClientBsn + ", EREF " + eref + ", a-nummer uit bericht: " + anummerARecord
 			+ ", anummer afgevoerde cliënt: " + client.getPersoon().getAnummer();
-		logService.logGebeurtenis(LogGebeurtenis.GBA_IMPORT_VERWIJDERD_VAN_PERSOONSLIJST, clientService.getScreeningOrganisatieVan(client), client, goedeString);
+		logService.logGebeurtenis(LogGebeurtenis.GBA_IMPORT_VERWIJDERD_VAN_PERSOONSLIJST, client, goedeString);
 
 		if (getScreeningOrganisatie(client) != null && aantalBurgersBijwerken)
 		{

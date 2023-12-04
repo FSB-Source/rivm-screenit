@@ -57,8 +57,6 @@ import org.hibernate.envers.NotAudited;
 public class Instelling extends Organisatie<InstellingGebruiker> implements IActief
 {
 
-	private static final long serialVersionUID = 1L;
-
 	private Boolean actief = Boolean.TRUE;
 
 	@Column(length = HibernateMagicNumber.L20)

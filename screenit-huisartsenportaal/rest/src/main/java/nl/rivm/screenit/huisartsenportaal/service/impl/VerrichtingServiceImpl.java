@@ -39,7 +39,6 @@ import nl.rivm.screenit.huisartsenportaal.model.Verrichting;
 import nl.rivm.screenit.huisartsenportaal.repository.BetalingRepository;
 import nl.rivm.screenit.huisartsenportaal.repository.VerrichtingCriteriaRepository;
 import nl.rivm.screenit.huisartsenportaal.repository.VerrichtingRepository;
-import nl.rivm.screenit.huisartsenportaal.service.BetalingService;
 import nl.rivm.screenit.huisartsenportaal.service.LocatieService;
 import nl.rivm.screenit.huisartsenportaal.service.VerrichtingenService;
 import nl.rivm.screenit.huisartsenportaal.util.DateUtil;
@@ -66,9 +65,6 @@ public class VerrichtingServiceImpl implements VerrichtingenService
 
 	@Autowired
 	private LocatieService locatieService;
-
-	@Autowired
-	private BetalingService betalingService;
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
@@ -223,7 +219,7 @@ public class VerrichtingServiceImpl implements VerrichtingenService
 				}
 				if (betaling == null)
 				{
-					betaling = betalingService.convertFromDto(betalingDto);
+					betaling = convertFromDto(betalingDto);
 					nieuweBetalingen.add(betaling);
 				}
 			}
@@ -264,4 +260,16 @@ public class VerrichtingServiceImpl implements VerrichtingenService
 		}
 		return oudsteBetalingDto;
 	}
+
+	private Betaling convertFromDto(BetalingDto betalingDto)
+	{
+		Betaling betaling = new Betaling();
+		betaling.setScreenitId(betalingDto.getScreenitId());
+		betaling.setDebet(betalingDto.isDebet());
+		betaling.setBetalingsKenmerk(betalingDto.getBetalingsKenmerk());
+		betaling.setBetalingsdatum(betalingDto.getBetalingsdatum());
+		betaling.setBedrag(betalingDto.getBedrag());
+		return betaling;
+	}
+
 }

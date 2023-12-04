@@ -26,15 +26,19 @@ import javax.persistence.criteria.JoinType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
+import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.cervix.CervixHuisartsBericht_;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixMonster_;
+import nl.rivm.screenit.model.cervix.CervixScreeningRonde_;
+import nl.rivm.screenit.model.cervix.CervixUitnodiging_;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje_;
 import nl.rivm.screenit.model.cervix.CervixZas;
 import nl.rivm.screenit.model.cervix.CervixZas_;
 import nl.rivm.screenit.model.cervix.enums.CervixHuisartsBerichtStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
+import nl.rivm.screenit.model.cervix.enums.CervixZasStatus;
 
 import org.springframework.data.jpa.domain.Specification;
 
@@ -82,5 +86,14 @@ public class CervixMonsterSpecification
 	public static Specification<CervixMonster> isZas()
 	{
 		return (r, q, cb) -> cb.treat(r, CervixZas.class).get(CervixZas_.zasStatus).isNotNull();
+	}
+
+	public static Specification<CervixMonster> geefNietIngestuurdeOudeZAS(CervixDossier dossier)
+	{
+		return (r, q, cb) ->
+			cb.and(
+				cb.equal(cb.treat(r, CervixZas.class).get(CervixZas_.zasStatus), CervixZasStatus.VERSTUURD),
+				cb.like(r.get(CervixMonster_.monsterId), "Z%"),
+				cb.equal(r.join(CervixMonster_.uitnodiging).join(CervixUitnodiging_.screeningRonde).join(CervixScreeningRonde_.dossier), dossier));
 	}
 }

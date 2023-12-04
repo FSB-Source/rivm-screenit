@@ -202,14 +202,6 @@ public class MammaStandplaatsPeriodesPanel extends Panel
 			{
 				return MammaStandplaatsPeriodesPanel.this.newListView("items", model);
 			}
-
-			@Override
-			protected void updateTooltips(AjaxRequestTarget target)
-			{
-				target.add(tooltips.getParent());
-				target.appendJavaScript("initTooltip();");
-			}
-
 		};
 
 	}

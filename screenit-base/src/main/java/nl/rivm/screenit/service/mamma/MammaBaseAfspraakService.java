@@ -79,7 +79,8 @@ public interface MammaBaseAfspraakService
 
 	BigDecimal getBenodigdeCapaciteit(List<MammaAfspraak> afspraken);
 
-	void afspraakAnnuleren(MammaAfspraak afspraak, MammaAfspraakStatus nieuweStatus, Date rondeAfgemeldOp, boolean afspraakStatusWijzigen, boolean notificeerSE);
+	void afspraakAnnuleren(MammaAfspraak afspraak, MammaAfspraakStatus nieuweStatus, Date rondeAfgemeldOp, boolean afspraakStatusWijzigen,
+		boolean notificeerScreeningsEenhedenVerversenDaglijst);
 
 	MammaStandplaatsLocatie getMammaStandplaatsLocatieAfspraak(MammaAfspraak afspraak);
 

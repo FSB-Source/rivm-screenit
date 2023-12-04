@@ -23,18 +23,15 @@ package nl.rivm.screenit.mamma.se.proxy.services.impl;
 
 import java.time.LocalDate;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.function.Consumer;
 
 import nl.rivm.screenit.mamma.se.proxy.model.CacheProxyActie;
 import nl.rivm.screenit.mamma.se.proxy.model.OphaalRequest;
 import nl.rivm.screenit.mamma.se.proxy.model.RequestTypeCentraal;
 import nl.rivm.screenit.mamma.se.proxy.model.SeStatusDto;
-import nl.rivm.screenit.mamma.se.proxy.model.WebsocketBerichtType;
 import nl.rivm.screenit.mamma.se.proxy.services.AchtergrondRequestService;
 import nl.rivm.screenit.mamma.se.proxy.services.ProxyService;
-import nl.rivm.screenit.mamma.se.proxy.services.SeDaglijstService;
 import nl.rivm.screenit.mamma.se.proxy.services.SeStatusService;
-import nl.rivm.screenit.mamma.se.proxy.services.WebSocketProxyService;
-import nl.rivm.screenit.mamma.se.proxy.util.DateUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,27 +57,12 @@ public class AchtergrondRequestServiceImpl implements AchtergrondRequestService
 	private SeStatusService statusService;
 
 	@Autowired
-	private SeDaglijstService daglijstService;
-
-	@Autowired
-	private WebSocketProxyService webSocketProxyService;
-
-	@Autowired
 	private ProxyService proxyService;
 
 	@Override
-	public void queueDaglijstRequest(LocalDate opTeHalenDag)
+	public void queueDaglijstRequest(LocalDate opTeHalenDag, Consumer<LocalDate> haalDaglijstEnBroadcast)
 	{
-		queueRequest(new OphaalRequest(RequestTypeCentraal.GET_DAGLIJST, opTeHalenDag, () -> haalDaglijstEnBroadcast(opTeHalenDag)));
-	}
-
-	private void haalDaglijstEnBroadcast(LocalDate opTeHalenDag)
-	{
-		String daglijstResponse = daglijstService.getDaglijstGeforceerd(opTeHalenDag);
-		if (daglijstResponse != null && DateUtil.isVandaag(opTeHalenDag))
-		{
-			webSocketProxyService.broadcast(WebsocketBerichtType.DAGLIJST_UPDATE.name());
-		}
+		queueRequest(new OphaalRequest(RequestTypeCentraal.GET_DAGLIJST, opTeHalenDag, () -> haalDaglijstEnBroadcast.accept(opTeHalenDag)));
 	}
 
 	@Override

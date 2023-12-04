@@ -98,7 +98,6 @@ public abstract class MammaStandplaatsPeriodeSortable extends Sortable<PlanningS
 			{
 				target.add(this);
 				error(getString("may.not.moved"));
-				updateTooltips(target);
 			}
 		}
 	}
@@ -125,7 +124,6 @@ public abstract class MammaStandplaatsPeriodeSortable extends Sortable<PlanningS
 		{
 			target.add(this, connectedSortable);
 			error(getString("may.not.moved"));
-			updateTooltips(target);
 		}
 	}
 
@@ -165,7 +163,6 @@ public abstract class MammaStandplaatsPeriodeSortable extends Sortable<PlanningS
 		target.add(this);
 		if (isLast)
 		{
-			updateTooltips(target);
 			info(getString("message.gegevens.onthouden"));
 		}
 	}
@@ -181,8 +178,6 @@ public abstract class MammaStandplaatsPeriodeSortable extends Sortable<PlanningS
 		this.connectedSortable = sortable;
 		return super.connectWith(sortable);
 	}
-
-	protected abstract void updateTooltips(AjaxRequestTarget target);
 
 	@Override
 	protected void onDetach()

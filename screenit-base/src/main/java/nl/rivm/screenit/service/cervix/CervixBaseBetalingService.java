@@ -24,6 +24,7 @@ package nl.rivm.screenit.service.cervix;
 import java.math.BigDecimal;
 
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
+import nl.rivm.screenit.model.cervix.facturatie.CervixTarief;
 
 public interface CervixBaseBetalingService
 {
@@ -37,4 +38,6 @@ public interface CervixBaseBetalingService
 	BigDecimal totaalBedragInBetaalopdracht(CervixBetaalopdracht betaalopdracht);
 
 	BigDecimal totaalBedragHuisartsBoekRegelsInBetaalopdracht(CervixBetaalopdracht betaalopdracht);
+
+	String getTariefString(CervixTarief tarief);
 }

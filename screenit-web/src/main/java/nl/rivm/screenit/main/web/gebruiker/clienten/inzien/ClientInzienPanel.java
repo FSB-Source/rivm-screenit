@@ -34,7 +34,6 @@ import nl.rivm.screenit.main.web.gebruiker.clienten.contact.ClientContactPage;
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Gemeente;
-import nl.rivm.screenit.model.TijdelijkAdres;
 import nl.rivm.screenit.model.TijdelijkGbaAdres;
 import nl.rivm.screenit.model.cervix.CervixAfmelding;
 import nl.rivm.screenit.model.cervix.CervixBrief;
@@ -47,7 +46,6 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.model.enums.GbaVraagType;
 import nl.rivm.screenit.model.enums.Recht;
-import nl.rivm.screenit.model.gba.GbaMutatie;
 import nl.rivm.screenit.model.gba.GbaVraag;
 import nl.rivm.screenit.model.mamma.MammaAfmelding;
 import nl.rivm.screenit.model.mamma.MammaBrief;
@@ -72,16 +70,13 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.AuditReaderFactory;
 import org.hibernate.envers.query.AuditEntity;
-import org.hibernate.envers.query.AuditQuery;
 import org.wicketstuff.datetime.PatternDateConverter;
 import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public class ClientInzienPanel extends GenericPanel<Client>
 {
-	private static final long serialVersionUID = 1L;
 
 	@SpringBean
 	private HibernateService hibernateService;
@@ -103,23 +98,17 @@ public class ClientInzienPanel extends GenericPanel<Client>
 		dialog = new BootstrapDialog("dialog");
 		dialog.setOutputMarkupPlaceholderTag(true);
 		add(dialog);
-		boolean bezwaarRecht = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_BEZWAAR, Actie.INZIEN);
-		if (bezwaarRecht)
-		{
-			add(new ClientInzienBezwaarPanel("clientInzienBezwaarPanel", getModel(), dialog));
-		}
-		else
-		{
-			add(new EmptyPanel("clientInzienBezwaarPanel"));
-		}
+		var client = getModelObject();
+		addBezwaarPanel();
 
 		addAanvraagOverdrachtGegevensPanel();
-		add(new ClientInzienAlgemeneBrievenPanel("algemeneBrievenPanel", getModel(), dialog));
+
+		var algemeneBrievenPanel = new ClientInzienAlgemeneBrievenPanel("algemeneBrievenPanel", getModel(), dialog);
+		algemeneBrievenPanel.setEnabled(clientService.isClientActief(client));
+		add(algemeneBrievenPanel);
 
 		IndicatingAjaxLink<Void> contactAanmaken = new IndicatingAjaxLink<>("contactAanmaken")
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick(AjaxRequestTarget target)
@@ -129,11 +118,12 @@ public class ClientInzienPanel extends GenericPanel<Client>
 
 		};
 		contactAanmaken
-			.setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_CONTACT, null, getModelObject()) && !clientService.isClientOverleden(getModelObject()));
+			.setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_CONTACT, null, client) && !clientService.isClientOverleden(client)
+				&& clientService.isClientActief(client));
 		add(contactAanmaken);
 
-		GbaMutatie mutatie = getModelObject().getLaatsteGbaMutatie();
-		DateLabel laatsteGbaMutatie = DateLabel.forDatePattern("laatsteGbaMutatie", mutatie != null ? Model.of(mutatie.getMutatieDatum()) : null, "dd-MM-yyyy HH:mm:ss");
+		var mutatie = client.getLaatsteGbaMutatie();
+		var laatsteGbaMutatie = DateLabel.forDatePattern("laatsteGbaMutatie", mutatie != null ? Model.of(mutatie.getMutatieDatum()) : null, "dd-MM-yyyy HH:mm:ss");
 		add(laatsteGbaMutatie);
 
 		laatsteGbaMutatie.setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_GBA_AANVRAGEN, null));
@@ -155,12 +145,13 @@ public class ClientInzienPanel extends GenericPanel<Client>
 
 		});
 
-		add(new ClientContactGegevensPanel("contactGegevens", getModel()));
+		var contactGegevens = new ClientContactGegevensPanel("contactGegevens", getModel());
+		add(contactGegevens);
 
-		IModel<String> laatseBekendeRegioBijRni = laatseBekendeRegioBijRni(getModelObject().getPersoon().getGbaAdres());
+		IModel<String> laatseBekendeRegioBijRni = laatseBekendeRegioBijRni(client.getPersoon().getGbaAdres());
 		add(new Label("persoon.gbaAdres.gbaGemeente.screeningOrganisatie.naam", laatseBekendeRegioBijRni));
 
-		TijdelijkAdres tijdelijkAdres = getModelObject().getPersoon().getTijdelijkAdres();
+		var tijdelijkAdres = client.getPersoon().getTijdelijkAdres();
 		add(new Label("persoon.tijdelijkAdres.plaats"));
 		add(new Label("persoon.tijdelijkAdres.huisletter"));
 		add(new PostcodeLabel("persoon.tijdelijkAdres.postcode", true));
@@ -183,7 +174,6 @@ public class ClientInzienPanel extends GenericPanel<Client>
 
 		})
 		{
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onConfigure()
@@ -195,7 +185,6 @@ public class ClientInzienPanel extends GenericPanel<Client>
 
 		add(new EnumLabel<GbaStatus>("gbaStatus")
 		{
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onConfigure()
@@ -208,7 +197,6 @@ public class ClientInzienPanel extends GenericPanel<Client>
 
 		add(new DateLabel("persoon.datumVertrokkenUitNederland", new PatternDateConverter("dd-MM-yyyy", true))
 		{
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onConfigure()
@@ -219,7 +207,6 @@ public class ClientInzienPanel extends GenericPanel<Client>
 		});
 		add(new DateLabel("persoon.datumVestigingNederland", new PatternDateConverter("dd-MM-yyyy", true))
 		{
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onConfigure()
@@ -232,25 +219,47 @@ public class ClientInzienPanel extends GenericPanel<Client>
 		addDossierPanels();
 	}
 
+	private void addBezwaarPanel()
+	{
+		var bezwaarRecht = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_BEZWAAR, Actie.INZIEN);
+		if (bezwaarRecht)
+		{
+			var clientInzienBezwaarPanel = new ClientInzienBezwaarPanel("clientInzienBezwaarPanel", getModel(), dialog);
+			clientInzienBezwaarPanel.setEnabled(clientService.isClientActief(getModelObject()));
+			add(clientInzienBezwaarPanel);
+		}
+		else
+		{
+			add(new EmptyPanel("clientInzienBezwaarPanel"));
+		}
+	}
+
 	private void addDossierPanels()
 	{
-		add(new ClientInzienDossierPanel<ColonDossier, ColonAfmelding, ColonBrief>("colonDossier", ModelUtil.csModel(getModelObject().getColonDossier()), getModel(),
-			Bevolkingsonderzoek.COLON, dialog));
+		var client = getModelObject();
+		var colonDossier = new ClientInzienDossierPanel<ColonDossier, ColonAfmelding, ColonBrief>("colonDossier", ModelUtil.csModel(client.getColonDossier()), getModel(),
+			Bevolkingsonderzoek.COLON, dialog);
+		colonDossier.setEnabled(clientService.isClientActief(client));
+		add(colonDossier);
 
-		if (getModelObject().getCervixDossier() != null)
+		if (client.getCervixDossier() != null)
 		{
-			add(new ClientInzienDossierPanel<CervixDossier, CervixAfmelding, CervixBrief>("cervixDossier", ModelUtil.csModel(getModelObject().getCervixDossier()), getModel(),
-				Bevolkingsonderzoek.CERVIX, dialog));
+			var cervixDossier = new ClientInzienDossierPanel<CervixDossier, CervixAfmelding, CervixBrief>("cervixDossier", ModelUtil.csModel(client.getCervixDossier()),
+				getModel(), Bevolkingsonderzoek.CERVIX, dialog);
+			cervixDossier.setEnabled(clientService.isClientActief(client));
+			add(cervixDossier);
 		}
 		else
 		{
 			add(new EmptyPanel("cervixDossier"));
 		}
 
-		if (getModelObject().getMammaDossier() != null)
+		if (client.getMammaDossier() != null)
 		{
-			add(new ClientInzienDossierPanel<MammaDossier, MammaAfmelding, MammaBrief>("mammaDossier", ModelUtil.csModel(getModelObject().getMammaDossier()), getModel(),
-				Bevolkingsonderzoek.MAMMA, dialog));
+			var mammaDossier = new ClientInzienDossierPanel<MammaDossier, MammaAfmelding, MammaBrief>("mammaDossier", ModelUtil.csModel(client.getMammaDossier()),
+				getModel(), Bevolkingsonderzoek.MAMMA, dialog);
+			mammaDossier.setEnabled(clientService.isClientActief(client));
+			add(mammaDossier);
 		}
 		else
 		{
@@ -262,7 +271,10 @@ public class ClientInzienPanel extends GenericPanel<Client>
 	{
 		if (ScreenitSession.get().checkPermission(Recht.GEBRUIKER_AANVRAAG_OVERDRACHT_PERSOONSGEGEVENS, Actie.INZIEN))
 		{
-			add(new ClientInzienOverdrachtPersoonsgegevensPanel("clientInzienAanvraagOverdrachtGegevensPanel", getModel(), dialog));
+			var clientInzienAanvraagOverdrachtGegevensPanel = new ClientInzienOverdrachtPersoonsgegevensPanel("clientInzienAanvraagOverdrachtGegevensPanel", getModel(), dialog);
+			clientInzienAanvraagOverdrachtGegevensPanel.setEnabled(clientService.isClientActief(getModelObject()));
+			add(clientInzienAanvraagOverdrachtGegevensPanel);
+
 		}
 		else
 		{
@@ -275,18 +287,18 @@ public class ClientInzienPanel extends GenericPanel<Client>
 		IModel<String> laatseBekendeRegioBijRni = null;
 		if (gbaAdres.getGbaGemeente() == null || gbaAdres.getGbaGemeente().getCode().equals(Gemeente.RNI_CODE) || gbaAdres.getGbaGemeente().getScreeningOrganisatie() == null)
 		{
-			AuditReader reader = AuditReaderFactory.get(hibernateService.getHibernateSession());
-			AuditQuery query = reader.createQuery().forRevisionsOfEntity(BagAdres.class, false, true);
+			var reader = AuditReaderFactory.get(hibernateService.getHibernateSession());
+			var query = reader.createQuery().forRevisionsOfEntity(BagAdres.class, false, true);
 			query.add(AuditEntity.id().eq(gbaAdres.getId()));
 
 			query.addOrder(AuditEntity.revisionNumber().desc());
 			var resultList = query.getResultList();
 			for (Object auditRow : resultList)
 			{
-				Gemeente auditGemeente = ((BagAdres) ((Object[]) auditRow)[0]).getGbaGemeente();
+				var auditGemeente = ((BagAdres) ((Object[]) auditRow)[0]).getGbaGemeente();
 				if (auditGemeente != null)
 				{
-					Gemeente oldGemeente = hibernateService.load(Gemeente.class, auditGemeente.getId());
+					var oldGemeente = hibernateService.load(Gemeente.class, auditGemeente.getId());
 					if (oldGemeente != null && !oldGemeente.getCode().equals(Gemeente.RNI_CODE) && oldGemeente.getScreeningOrganisatie() != null)
 					{
 						laatseBekendeRegioBijRni = Model.of(oldGemeente.getScreeningOrganisatie().getNaam() + " (laatst bekende)");
@@ -305,19 +317,19 @@ public class ClientInzienPanel extends GenericPanel<Client>
 
 	private void tijdelijkeGbaAdres()
 	{
-		final WebMarkupContainer tijdelijkGbaAdres = new WebMarkupContainer("tijdelijkGbaAdres");
+		final var tijdelijkGbaAdres = new WebMarkupContainer("tijdelijkGbaAdres");
 		tijdelijkGbaAdres.setOutputMarkupId(true);
 
-		AjaxLink<Void> tijdelijkGbaAdresWijzigen = new AjaxLink<>("tijdelijkGbaAdresWijzigen")
+		var tijdelijkGbaAdresWijzigen = new AjaxLink<>("tijdelijkGbaAdresWijzigen")
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				Client client = ClientInzienPanel.this.getModelObject();
+				var client = ClientInzienPanel.this.getModelObject();
 				if (client.getPersoon().getTijdelijkGbaAdres() == null)
 				{
-					TijdelijkGbaAdres tijdelijkGbaAdres = new TijdelijkGbaAdres();
-					BagAdres gbaAdres = client.getPersoon().getGbaAdres();
+					var tijdelijkGbaAdres = new TijdelijkGbaAdres();
+					var gbaAdres = client.getPersoon().getGbaAdres();
 					tijdelijkGbaAdres.setHuisletter(gbaAdres.getHuisletter());
 					tijdelijkGbaAdres.setHuisnummer(gbaAdres.getHuisnummer());
 					tijdelijkGbaAdres.setStraat(gbaAdres.getStraat());
@@ -330,8 +342,6 @@ public class ClientInzienPanel extends GenericPanel<Client>
 				}
 				dialog.openWith(target, new TijdelijkGbaAdresDialogPanel(IDialog.CONTENT_ID, ModelUtil.ccModel(client))
 				{
-
-					private static final long serialVersionUID = 1L;
 
 					@Override
 					protected void close(AjaxRequestTarget target)
@@ -346,13 +356,10 @@ public class ClientInzienPanel extends GenericPanel<Client>
 
 		tijdelijkGbaAdresWijzigen.add(new Label("label", new IModel<String>()
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public String getObject()
 			{
-				Client client = ClientInzienPanel.this.getModelObject();
+				var client = ClientInzienPanel.this.getModelObject();
 				if (client.getPersoon().getTijdelijkGbaAdres() == null)
 				{
 					return getString("label.aanmaken");
@@ -363,15 +370,14 @@ public class ClientInzienPanel extends GenericPanel<Client>
 				}
 			}
 		}));
-		tijdelijkGbaAdresWijzigen.setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_GBA_TIJDELIJK_ADRES, Actie.AANPASSEN));
+		var client = getModelObject();
+		tijdelijkGbaAdresWijzigen.setVisible(
+			ScreenitSession.get().checkPermission(Recht.GEBRUIKER_GBA_TIJDELIJK_ADRES, Actie.AANPASSEN) && clientService.isClientActief(client));
 		tijdelijkGbaAdres.add(tijdelijkGbaAdresWijzigen);
 		tijdelijkGbaAdres.add(new Label("persoon.tijdelijkGbaAdres.plaats"));
 		tijdelijkGbaAdres.add(new PostcodeLabel("persoon.tijdelijkGbaAdres.postcode", true));
 		tijdelijkGbaAdres.add(new Label("persoon.tijdelijkGbaAdres.adres", new IModel<String>()
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public String getObject()
 			{
@@ -380,9 +386,9 @@ public class ClientInzienPanel extends GenericPanel<Client>
 
 		}));
 
-		BagAdres gbaAdres = getModelObject().getPersoon().getGbaAdres();
+		var gbaAdres = client.getPersoon().getGbaAdres();
 		tijdelijkGbaAdres
-			.setVisible((AdresUtil.isOnvolledigAdres(gbaAdres) || AdresUtil.isVolledigAdresVoorInpakcentrum(getModelObject())) && !StringUtils.equals(gbaAdres.getStraat(), ".")
+			.setVisible((AdresUtil.isOnvolledigAdres(gbaAdres) || AdresUtil.isVolledigAdresVoorInpakcentrum(client)) && !StringUtils.equals(gbaAdres.getStraat(), ".")
 				&& ScreenitSession.get().checkPermission(Recht.GEBRUIKER_GBA_TIJDELIJK_ADRES, Actie.INZIEN));
 		add(tijdelijkGbaAdres);
 	}

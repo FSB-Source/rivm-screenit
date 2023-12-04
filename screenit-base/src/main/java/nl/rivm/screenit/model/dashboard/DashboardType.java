@@ -28,7 +28,7 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 
 public enum DashboardType
 {
-	GBA_LANDELIJK("GBA", List.of(OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
+	GBA_LANDELIJK("GBA & inactieve client", List.of(OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
 
 	COLON_BATCH_NA_GBA_VERWERKING("Darmkanker specifieke verwerking nav. GBA", Bevolkingsonderzoek.COLON),
 

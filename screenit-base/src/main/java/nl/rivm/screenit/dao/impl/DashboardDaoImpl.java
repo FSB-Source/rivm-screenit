@@ -31,12 +31,12 @@ import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.dashboard.DashboardLogRegel;
 import nl.rivm.screenit.model.dashboard.DashboardStatus;
 import nl.rivm.screenit.model.dashboard.DashboardType;
+import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.logging.LogRegel;
 import nl.topicuszorg.hibernate.criteria.BaseCriteria;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.hibernate.Criteria;
-import org.hibernate.Query;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
@@ -59,10 +59,21 @@ public class DashboardDaoImpl extends AbstractAutowiredDao implements DashboardD
 	@Override
 	public void maakDashboardStatusLeeg(@Nonnull DashboardType dashboardType)
 	{
-		String sql = "delete from gedeeld.dashboard_log_regel where dashboard_status in (select id from gedeeld.dashboard_status where type = :di)";
-		Query query = getSession().createSQLQuery(sql);
-		query.setString("di", dashboardType.name());
-		query.executeUpdate();
+		if (dashboardType == DashboardType.GBA_LANDELIJK)
+		{
+			var gbaSql = "delete from gedeeld.dashboard_log_regel where id in (select dl.id from gedeeld.dashboard_log_regel as dl join dashboard_status as ds on dl.dashboard_status = ds.id join log_regel as lr on dl.log_regel = lr.id join log_event as le on lr.log_event = le.id where type = :ty and le.level = :le);";
+			var gbaQuery = getSession().createSQLQuery(gbaSql);
+			gbaQuery.setString("ty", dashboardType.name());
+			gbaQuery.setString("le", Level.INFO.name());
+			gbaQuery.executeUpdate();
+		}
+		else
+		{
+			var sql = "delete from gedeeld.dashboard_log_regel where dashboard_status in (select id from gedeeld.dashboard_status where type = :di)";
+			var query = getSession().createSQLQuery(sql);
+			query.setString("di", dashboardType.name());
+			query.executeUpdate();
+		}
 	}
 
 	@Override

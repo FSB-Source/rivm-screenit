@@ -96,7 +96,7 @@ public class ClientportaalParametersPanel extends BasePrimaireParametersPanel
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				opslaan(target, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA, Bevolkingsonderzoek.CERVIX);
+			opslaan(target, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA, Bevolkingsonderzoek.COLON);
 				info("Clientportaal parameters zijn opgeslagen");
 
 			}

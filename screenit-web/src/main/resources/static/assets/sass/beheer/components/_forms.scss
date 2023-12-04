@@ -1,4 +1,3 @@
-@charset "utf-8";
 
 
 .controls.geen-padding > .radio:first-child {
@@ -45,7 +44,7 @@
 	background-color: $colorColonis3;
 }
 
-.btn.actief {
+.isolated .btn.actief {
 	background-color: #97a300;
 	color: white;
 	text-shadow: 0 0 0 transparent;

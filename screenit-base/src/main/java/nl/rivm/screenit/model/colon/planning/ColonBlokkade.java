@@ -41,10 +41,6 @@ import nl.topicuszorg.planning.model.enums.AppointmentType;
 import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
 import nl.topicuszorg.wicket.planning.model.appointment.recurrence.AbstractRecurrence;
 
-import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.node.ObjectNode;
 import org.hibernate.Hibernate;
 import org.hibernate.envers.Audited;
 
@@ -102,31 +98,6 @@ public class ColonBlokkade extends AbstractAppointment implements Comparable<Col
 	public void setDescription(String description)
 	{
 		this.description = description;
-	}
-
-	@Override
-	public JsonNode toJson()
-	{
-		ObjectMapper mapper = new ObjectMapper();
-
-		ObjectNode json = mapper.createObjectNode();
-		json.put("id", getId());
-		json.put("title", "Blokkade");
-		json.put("description", getDescription());
-		if (getEventType() == null)
-		{
-			json.put("eventColor", "Default");
-		}
-		else
-		{
-			json.put("eventColor", getEventType().getName());
-		}
-		json.put("appointmentType", StringUtils.capitalize(getAppointmentType().toString().toLowerCase()));
-
-		json.put("start", getStartTime().getTime());
-		json.put("end", getEndTime().getTime());
-
-		return json;
 	}
 
 	@Override

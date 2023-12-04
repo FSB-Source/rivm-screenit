@@ -25,9 +25,9 @@ import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import net.sf.json.JSONObject;
-
 import nl.rivm.screenit.model.colon.Kamer;
+
+import org.json.JSONObject;
 
 public class VrijSlot implements Comparable<VrijSlot>
 {
@@ -123,12 +123,12 @@ public class VrijSlot implements Comparable<VrijSlot>
 	{
 		JSONObject jsonObject = new JSONObject();
 
-		jsonObject.element("id", getId());
-		jsonObject.element("start", startTijd.getTime());
-		jsonObject.element("end", eindTijd.getTime());
-		jsonObject.element("maxAantalDeelnemers", maxAantalDeelnemers);
-		jsonObject.element("aantalDeelnemers", aantalDeelnemers);
-		jsonObject.element("type", "'free'");
+		jsonObject.put("id", getId());
+		jsonObject.put("start", startTijd.getTime());
+		jsonObject.put("end", eindTijd.getTime());
+		jsonObject.put("maxAantalDeelnemers", maxAantalDeelnemers);
+		jsonObject.put("aantalDeelnemers", aantalDeelnemers);
+		jsonObject.put("type", "'free'");
 
 		return jsonObject;
 	}

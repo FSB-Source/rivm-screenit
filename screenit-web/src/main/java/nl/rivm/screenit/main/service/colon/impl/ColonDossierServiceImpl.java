@@ -208,7 +208,6 @@ public class ColonDossierServiceImpl implements ColonDossierService
 		switch (conclusie.getType())
 		{
 		case CT_COLOGRAFIE:
-			dossier.setStatus(DossierStatus.INACTIEF);
 			hibernateService.saveOrUpdate(dossier);
 			screeningRonde.setStatusDatum(DateUtil.toUtilDate(nu.plusNanos(50000)));
 			screeningRonde.setStatus(ScreeningRondeStatus.AFGEROND);

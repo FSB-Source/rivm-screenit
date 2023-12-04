@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -175,7 +174,15 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 	}
 
 	@Override
-	public Iterator<RoosterItemListViewWrapper> getRoosterBlokken(String sortProperty, boolean asc, long first, long count, RoosterListViewFilter filter,
+	public List<RoosterItemListViewWrapper> getAlleRoosterBlokkenInPeriode(String sortProperty, boolean asc, RoosterListViewFilter filter,
+		ColoscopieCentrum intakeLocatie)
+	{
+		var criteria = createRoosterBlokkenCriteria(filter, intakeLocatie, sortProperty, asc);
+		return criteria.list();
+	}
+
+	@Override
+	public List<RoosterItemListViewWrapper> getRoosterBlokken(String sortProperty, boolean asc, long first, long count, RoosterListViewFilter filter,
 		ColoscopieCentrum intakeLocatie)
 	{
 		SQLQuery criteria = createRoosterBlokkenCriteria(filter, intakeLocatie, sortProperty, asc);
@@ -188,7 +195,7 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 			criteria.setMaxResults(Ints.checkedCast(count));
 		}
 
-		return criteria.list().iterator();
+		return criteria.list();
 	}
 
 	private SQLQuery createRoosterBlokkenCriteria(RoosterListViewFilter filter, ColoscopieCentrum intakeLocatie, String sortProperty, boolean asc)

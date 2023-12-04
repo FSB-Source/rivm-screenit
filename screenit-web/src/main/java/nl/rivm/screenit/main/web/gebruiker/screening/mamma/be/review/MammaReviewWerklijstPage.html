@@ -44,17 +44,23 @@
 				<fieldset>
 					<div class="width-171px">
 						<div>
-							<select wicket:id="instellingGebruiker"></select>
+							<select wicket:id="radioloog"></select>
 						</div>
 					</div>
-					<div class="span5" wicket:id="filterDatumVanafContainer">
-						<label class="span4">
+					<div class="span7" wicket:id="coordinerendRadioloogFilterContainer">
+						<label class="span3">
 							Onderzoeken vanaf eindconclusie datum
 						</label>
-						<div class="span1">
+						<div class="span3">
 							<div class="input-append date">
 								<input wicket:id="zoekenVanafEindconclusieDatum" type="text" placeholder="dd-mm-jaar" size="16" class="input-small three-months">
 								<a class="btn js-datepicker-show" title="Datum"><i class="icon-calendar"></i></a>
+							</div>
+						</div>
+						<div class="span3">
+							<div class="conclusie-gereviewd-filter">
+								<input wicket:id="gezienCoordinerendRadioloogTonen" type="checkbox">
+								<label class="control-label">Toon alleen onderzoeken gereviewed als coördinerend radioloog</label>
 							</div>
 						</div>
 					</div>

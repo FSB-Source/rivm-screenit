@@ -39,6 +39,8 @@ public enum MammaMammografieIlmStatus
 
 	public static final List<MammaMammografieIlmStatus> BEELDEN_BESCHIKBAAR_OF_BESCHIKBAAR_GEWEEST = Arrays.asList(BESCHIKBAAR, TE_VERWIJDEREN, VERWIJDEREN_MISLUKT, VERWIJDERD);
 
+	public static final List<MammaMammografieIlmStatus> BEELDEN_MOGELIJK_AANWEZIG = Arrays.asList(BESCHIKBAAR, TE_VERWIJDEREN, VERWIJDEREN_MISLUKT);
+
 	public static boolean beeldenBeschikbaar(MammaMammografieIlmStatus status)
 	{
 		return BESCHIKBAAR.equals(status);
@@ -51,6 +53,6 @@ public enum MammaMammografieIlmStatus
 
 	public static boolean beeldenMogelijkAanwezig(MammaMammografieIlmStatus status)
 	{
-		return Arrays.asList(BESCHIKBAAR, TE_VERWIJDEREN, VERWIJDEREN_MISLUKT).contains(status);
+		return BEELDEN_MOGELIJK_AANWEZIG.contains(status);
 	}
 }

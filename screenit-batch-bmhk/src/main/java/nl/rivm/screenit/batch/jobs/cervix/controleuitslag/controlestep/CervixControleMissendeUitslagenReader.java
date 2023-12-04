@@ -58,7 +58,7 @@ public class CervixControleMissendeUitslagenReader extends BaseScrollableResultR
 				organisatieParameterService.getOrganisatieParameter(null, OrganisatieParameterKey.CERVIX_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN, 30));
 			var signalerenVanaf = vandaag.minusDays(MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN);
 
-			var criteria = session.createCriteria(CervixMonster.class, "monster");
+			var criteria = session.createCriteria(CervixMonster.class, "rootMonster");
 			CervixRestrictions.addMissendeUitslagRestrictions(criteria, signalerenVanaf, minimaleSignaleringsDatum);
 			criteria.addOrder(Order.asc("dossier.id"));
 			return criteria;

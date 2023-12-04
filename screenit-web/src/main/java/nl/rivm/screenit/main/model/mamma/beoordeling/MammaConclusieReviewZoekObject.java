@@ -37,29 +37,49 @@ import org.apache.wicket.model.IModel;
 @Setter
 public class MammaConclusieReviewZoekObject implements IDetachable
 {
-	private IModel<InstellingGebruiker> instellingGebruiker;
+	private IModel<InstellingGebruiker> radioloog;
+
+	private IModel<InstellingGebruiker> ingelogdeGebruiker;
 
 	private MammaConclusieReviewFilterOptie filterOptie = MammaConclusieReviewFilterOptie.ALLES;
 
 	private Boolean gezienTonen = false;
 
+	private boolean gezienCoordinerendRadioloogTonen = false;
+
 	private Boolean voorDashboard = false;
 
 	private Date zoekenVanafEindconclusieDatum;
 
-	public InstellingGebruiker getInstellingGebruiker()
+	public InstellingGebruiker getRadioloog()
 	{
-		return ModelUtil.nullSafeGet(instellingGebruiker);
+		return ModelUtil.nullSafeGet(radioloog);
 	}
 
-	public void setInstellingGebruiker(InstellingGebruiker instellingGebruiker)
+	public void setRadioloog(InstellingGebruiker radioloog)
 	{
-		this.instellingGebruiker = ModelUtil.sModel(instellingGebruiker);
+		this.radioloog = ModelUtil.sModel(radioloog);
+	}
+
+	public InstellingGebruiker getIngelogdeGebruiker()
+	{
+		return ModelUtil.nullSafeGet(ingelogdeGebruiker);
+	}
+
+	public void setIngelogdeGebruiker(InstellingGebruiker ingelogdeGebruiker)
+	{
+		this.ingelogdeGebruiker = ModelUtil.sModel(ingelogdeGebruiker);
+	}
+
+	public boolean getCoordinerendRadioloogKijktBijAndereRadioloog()
+	{
+		return !ingelogdeGebruiker.equals(radioloog);
 	}
 
 	@Override
 	public void detach()
 	{
-		ModelUtil.nullSafeDetach(instellingGebruiker);
+		ModelUtil.nullSafeDetach(radioloog);
+		ModelUtil.nullSafeDetach(ingelogdeGebruiker);
 	}
 }

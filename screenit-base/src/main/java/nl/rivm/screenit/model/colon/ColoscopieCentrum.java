@@ -22,7 +22,6 @@ package nl.rivm.screenit.model.colon;
  */
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -31,16 +30,13 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.Transient;
 
 import lombok.Getter;
 import lombok.Setter;
 
-import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.PostcodeCoordinaten;
 import nl.rivm.screenit.model.helper.HibernateMagicNumber;
-import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.organisatie.model.Adres;
 
 import org.hibernate.annotations.Cache;

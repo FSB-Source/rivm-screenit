@@ -107,7 +107,7 @@ public class CervixCytologieVerslagInzienPanel extends AbstractGebeurtenisDetail
 		uploadForm.add(new Label("uitnodiging.monster.monsterId"));
 		uploadForm.add(DateLabel.forDatePattern("verslag.datumOnderzoek", "dd-MM-yyyy"));
 		uploadForm.add(new Label("verslag.cytologieUitslag"));
-		uploadForm.add(new Label("uitnodiging.monster.laatsteHpvBeoordeling.hpvBericht.laboratorium.naam"));
+		uploadForm.add(new Label("verslag.laboratorium.naam"));
 		confirmDialog = new BootstrapDialog("confirmDialog");
 		add(confirmDialog);
 	}

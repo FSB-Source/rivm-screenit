@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -270,7 +271,7 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 	public String valideerAdherentieVanGewijzigdeGebieden(Set<UitnodigingsGebied> gewijzigdeGebieden)
 	{
 		var melding = "";
-		for (var gebied : gewijzigdeGebieden)
+		for (var gebied : gewijzigdeGebieden.stream().sorted(Comparator.comparing(UitnodigingsGebied::getNaam)).collect(Collectors.toList()))
 		{
 			var koppelingen = gebied.getVerdeling();
 			var totaalAdherentie = koppelingen.stream().map(ColoscopieCentrumColonCapaciteitVerdeling::getPercentageAdherentie).reduce(0, Integer::sum);

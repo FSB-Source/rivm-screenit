@@ -28,8 +28,9 @@ import nl.rivm.screenit.clientportaal.mappers.colon.ColonDossierMapper;
 import nl.rivm.screenit.clientportaal.mappers.mamma.MammaDossierMapper;
 import nl.rivm.screenit.clientportaal.model.cervix.CervixDossierDto;
 import nl.rivm.screenit.clientportaal.model.colon.ColonDossierDto;
+import nl.rivm.screenit.clientportaal.model.colon.ColonVolgendeUitnodigingTekstDto;
 import nl.rivm.screenit.clientportaal.model.mamma.MammaDossierDto;
-import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.clientportaal.services.colon.ColonVolgendeUitnodigingDatumTekstService;
 import nl.rivm.screenit.service.BaseClientGebeurtenisService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -57,25 +58,36 @@ public class DossierController extends AbstractController
 
 	private final MammaDossierMapper mammaDossierMapper;
 
+	private final ColonVolgendeUitnodigingDatumTekstService volgendeUitnodigingDatumTekstService;
+
 	@GetMapping("/mamma")
 	public ResponseEntity<MammaDossierDto> getMammaDossier(Authentication authentication)
 	{
-		Client client = getClient(authentication, hibernateService);
+		var client = getClient(authentication, hibernateService);
 		return ResponseEntity.ok(mammaDossierMapper.mapToDto(client.getMammaDossier(), clientGebeurtenisService.getClientMammaGebeurtenissen(client)));
 	}
 
 	@GetMapping("/cervix")
 	public ResponseEntity<CervixDossierDto> getCervixDossier(Authentication authentication)
 	{
-		Client client = getClient(authentication, hibernateService);
+		var client = getClient(authentication, hibernateService);
 		return ResponseEntity.ok(cervixDossierMapper.mapToDto(client.getCervixDossier(), clientGebeurtenisService.getClientCervixGebeurtenissen(client)));
 	}
 
 	@GetMapping("/colon")
 	public ResponseEntity<ColonDossierDto> getColonDossier(Authentication authentication)
 	{
-		Client client = getClient(authentication, hibernateService);
+		var client = getClient(authentication, hibernateService);
 		return ResponseEntity.ok(colonDossierMapper.mapToDto(client.getColonDossier(), clientGebeurtenisService.getClientColonGebeurtenissen(client)));
 	}
 
+	@GetMapping("/colon/volgendeuitnodiging")
+	public ResponseEntity<ColonVolgendeUitnodigingTekstDto> getTekstDatumVolgendeUitnodiging(Authentication authentication)
+	{
+		var client = getClient(authentication, hibernateService);
+		var volgendeUitnodigingTekstDto = new ColonVolgendeUitnodigingTekstDto(volgendeUitnodigingDatumTekstService.bepaalVolgendeUitnodigingTekstType(client),
+			volgendeUitnodigingDatumTekstService.geefVolgendeUitnodigingDatumString(client));
+
+		return ResponseEntity.ok(volgendeUitnodigingTekstDto);
+	}
 }

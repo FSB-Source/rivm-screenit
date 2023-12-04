@@ -36,6 +36,7 @@ import nl.rivm.screenit.model.batch.BvoZoekCriteria;
 import nl.rivm.screenit.model.dashboard.DashboardStatus;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.DashboardService;
 import nl.rivm.screenit.service.ScopeService;
@@ -76,10 +77,12 @@ public class DashboardPage extends GebruikerBasePage
 	{
 		BvoZoekCriteria zoekCriteria = new BvoZoekCriteria();
 		zoekCriteria.setBevolkingsonderzoeken(ScreenitSession.get().getOnderzoeken());
+		zoekCriteria.setLoggingLevels(List.of(Level.values()));
 		if (ScreenitSession.get().isZoekObjectGezetForComponent(DashboardPage.class))
 		{
 			dashboardZoekCriteria = (IModel<BvoZoekCriteria>) ScreenitSession.get().getZoekObject(DashboardPage.class);
 			dashboardZoekCriteria.getObject().getBevolkingsonderzoeken().retainAll(zoekCriteria.getBevolkingsonderzoeken());
+			dashboardZoekCriteria.getObject().getLoggingLevels().retainAll(zoekCriteria.getLoggingLevels());
 		}
 		if (dashboardZoekCriteria == null || dashboardZoekCriteria.getObject().getBevolkingsonderzoeken().isEmpty())
 		{
@@ -90,9 +93,8 @@ public class DashboardPage extends GebruikerBasePage
 		container.setOutputMarkupId(true);
 		addOrReplace(container);
 
-		addOrReplace(new FilterBvoFormPanel<BvoZoekCriteria>("bvoFilter", dashboardZoekCriteria)
+		addOrReplace(new FilterBvoFormPanel<BvoZoekCriteria>("bvoFilter", dashboardZoekCriteria, false, false, true)
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -104,11 +106,12 @@ public class DashboardPage extends GebruikerBasePage
 			}
 
 		});
-
-		List<DashboardStatus> statussen = dashboardService.getListOfDashboardStatussen(ScreenitSession.get().getInstelling(), dashboardZoekCriteria.getObject()
-			.getBevolkingsonderzoeken());
+		var loggingLevels = dashboardZoekCriteria.getObject().getLoggingLevels();
+		List<DashboardStatus> statussen = dashboardService.getListOfDashboardStatussen(ScreenitSession.get().getInstelling(),
+			dashboardZoekCriteria.getObject().getBevolkingsonderzoeken(), loggingLevels);
 
 		List<PanelCreator> panels = new ArrayList<>();
+
 		for (DashboardStatus item : statussen)
 		{
 			panels.add(new DashboardStatusPanelCreator(ModelUtil.sModel(item)));

@@ -83,6 +83,8 @@ public interface AfspraakService extends AppointmentService
 
 	List<Object> getRoosterItemsBezetMetAfspraak(Long roosterItemId, Range<Date> currentViewInterval);
 
+	List<ColonIntakeAfspraak> getAfsprakenInRange(Range<Date> range);
+
 	boolean isDoorverwezenOmMedischeRedenenZonderNieuweAfspraak(Client client);
 
 	boolean isAfspraakVerwezenOmMedischeRedenen(ColonIntakeAfspraak afspraak);

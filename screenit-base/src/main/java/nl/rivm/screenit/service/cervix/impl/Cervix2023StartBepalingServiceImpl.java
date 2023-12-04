@@ -29,6 +29,8 @@ import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
+import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
+import nl.rivm.screenit.model.cervix.facturatie.CervixTarief;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.cervix.Cervix2023StartBepalingService;
@@ -79,6 +81,17 @@ public class Cervix2023StartBepalingServiceImpl implements Cervix2023StartBepali
 	public boolean isBmhk2023Laboratorium(BMHKLaboratorium laboratorium)
 	{
 		return organisatieParameterService.getOrganisatieParameter(laboratorium, OrganisatieParameterKey.CERVIX_HPV_ORDER_NIEUW, false);
+	}
+
+	@Override
+	public boolean isBmhk2023Tarief(CervixTarief tarief)
+	{
+		if (CervixTariefType.isHuisartsTarief(tarief))
+		{
+			return false;
+		}
+
+		return isBmhk2023Laboratorium(CervixTariefType.getLabTarief(tarief).getBmhkLaboratorium());
 	}
 
 	private LocalDate getStartdatumBmhk2023()

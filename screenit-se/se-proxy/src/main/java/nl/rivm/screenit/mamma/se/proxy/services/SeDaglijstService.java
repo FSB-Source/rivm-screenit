@@ -36,8 +36,6 @@ public interface SeDaglijstService
 
 	List<String> getDaglijstMutaties(LocalDate dag);
 
-	Object getDaglijstEnTransactieLock();
-
 	void haalDaglijstenOp();
 
 	String dagenInCache();

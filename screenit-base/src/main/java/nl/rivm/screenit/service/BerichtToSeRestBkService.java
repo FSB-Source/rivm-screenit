@@ -30,11 +30,11 @@ import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 
 public interface BerichtToSeRestBkService
 {
-	void notificeerSes(Client client);
+	void notificeerScreeningsEenhedenVerversenDaglijst(Client client);
 
-	void notificeerSe(MammaScreeningsEenheid se, Set<LocalDate> updateDatums, LocalDate daglijstNotificerenTot);
+	void notificeerScreeningsEenheidVerversenDaglijst(MammaScreeningsEenheid se, Set<LocalDate> updateDatums, LocalDate daglijstNotificerenTot);
 
-	void notificeerSe(MammaScreeningsEenheid se, Set<LocalDate> updateDatums);
+	void notificeerScreeningsEenheidVerversenDaglijst(MammaScreeningsEenheid se, Set<LocalDate> updateDatums);
 
 	void dbCleanupVoorIedereSe();
 

@@ -69,6 +69,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaCapaciteitBlokType;
 import nl.rivm.screenit.model.mamma.enums.MammaMeldingNiveau;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
+import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
@@ -79,8 +80,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.google.common.collect.Range;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
@@ -100,14 +99,18 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 
 	private final ICurrentDateSupplier currentDateSupplier;
 
+	private final MammaBaseStandplaatsService baseStandplaatsService;
+
 	public PlanningConceptOpslaanServiceImpl(HibernateService hibernateService, MammaBaseAfspraakService baseAfspraakService,
-		MammaBaseAfspraakDao baseAfspraakDao, @Lazy PlanningConceptmodelService conceptModelService, ICurrentDateSupplier currentDateSupplier)
+		MammaBaseAfspraakDao baseAfspraakDao, @Lazy PlanningConceptmodelService conceptModelService, ICurrentDateSupplier currentDateSupplier,
+		MammaBaseStandplaatsService baseStandplaatsService)
 	{
 		this.hibernateService = hibernateService;
 		this.baseAfspraakService = baseAfspraakService;
 		this.baseAfspraakDao = baseAfspraakDao;
 		this.conceptModelService = conceptModelService;
 		this.currentDateSupplier = currentDateSupplier;
+		this.baseStandplaatsService = baseStandplaatsService;
 	}
 
 	private static PlanningMeldingenPerSeDto getMeldingenPerSeDto(PlanningConceptMeldingenDto meldingenDto, PlanningScreeningsEenheid planningScreeningsEenheid)
@@ -315,9 +318,7 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 		}
 
 		boolean isActieveStandplaatsPeriodeVerkort = persistentStandplaatsPeriode.getId() != null
-			&& standplaatsPeriode.getTotEnMet().isBefore(DateUtil.toLocalDate(persistentStandplaatsPeriode.getTotEnMet())) && Range
-			.closed(DateUtil.toLocalDate(persistentStandplaatsPeriode.getVanaf()), DateUtil.toLocalDate(persistentStandplaatsPeriode.getTotEnMet()))
-			.contains(currentDateSupplier.getLocalDate());
+			&& baseStandplaatsService.isActieveStandplaatsPeriodeVerkort(persistentStandplaatsPeriode, standplaatsPeriode.getTotEnMet());
 		if (isActieveStandplaatsPeriodeVerkort)
 		{
 			teVerplaatsenAfsprakenVoorActieveStandplaatsPeriode.addAll(baseAfspraakService.getAfspraken(persistentStandplaatsPeriode.getScreeningsEenheid(),

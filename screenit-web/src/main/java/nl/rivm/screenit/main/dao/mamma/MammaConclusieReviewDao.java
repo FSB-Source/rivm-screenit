@@ -36,7 +36,5 @@ public interface MammaConclusieReviewDao
 
 	List<Long> zoekBeoordelingIdsMetConclusie(MammaConclusieReviewZoekObject zoekObject, String sortProperty, boolean asc);
 
-	MammaConclusieReview getConclusieReview(MammaScreeningRonde screeningRonde, InstellingGebruiker radioloog, boolean doorCoordinerendRadioloog);
-
 	List<InstellingGebruiker> getRadiologenMetLezingVanRondeEnZonderReview(MammaScreeningRonde screeningRonde);
 }

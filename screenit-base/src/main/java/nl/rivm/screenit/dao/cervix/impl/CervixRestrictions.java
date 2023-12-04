@@ -22,6 +22,7 @@ package nl.rivm.screenit.dao.cervix.impl;
  */
 
 import java.time.LocalDate;
+import java.util.List;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -51,25 +52,24 @@ public class CervixRestrictions
 
 	public static void addMissendeUitslagRestrictions(Criteria criteria, LocalDate signalerenVanaf, LocalDate minimaleSignaleringsDatum)
 	{
-		criteria.createAlias("monster.ontvangstScreeningRonde", "ronde");
+		criteria.createAlias("rootMonster.ontvangstScreeningRonde", "ronde");
 		criteria.createAlias("ronde.dossier", "dossier");
 		criteria.createAlias("dossier.client", "client");
 		criteria.createAlias("client.persoon", "persoon");
 
-		criteria.add(Restrictions.le("monster.ontvangstdatum", DateUtil.toUtilDate(minimaleSignaleringsDatum)));
-
+		criteria.add(Restrictions.le("rootMonster.ontvangstdatum", DateUtil.toUtilDate(minimaleSignaleringsDatum)));
 		criteria.add(
 			Restrictions.or(
 				Restrictions.and(
 					Restrictions.gt("dossier.datumLaatstGecontroleerdeSignalering", DateUtil.toUtilDate(signalerenVanaf)),
-					DateRestrictions.gtProperty("monster.ontvangstdatum", "dossier.datumLaatstGecontroleerdeSignalering")
+					DateRestrictions.gtProperty("rootMonster.ontvangstdatum", "dossier.datumLaatstGecontroleerdeSignalering")
 				),
 				Restrictions.and(
 					Restrictions.or(
 						DateRestrictions.le("dossier.datumLaatstGecontroleerdeSignalering", DateUtil.toUtilDate(signalerenVanaf)),
 						Restrictions.isNull("dossier.datumLaatstGecontroleerdeSignalering")
 					),
-					Restrictions.gt("monster.ontvangstdatum", DateUtil.toUtilDate(signalerenVanaf))
+					Restrictions.gt("rootMonster.ontvangstdatum", DateUtil.toUtilDate(signalerenVanaf))
 				)
 			)
 		);
@@ -87,7 +87,8 @@ public class CervixRestrictions
 			),
 			Restrictions.and(
 				Restrictions.eq("zasStatus", CervixZasStatus.NIET_ANALYSEERBAAR),
-				Subqueries.notExists(maakNieuweUitnodigingZasZelfdeRondeQuery())
+				Subqueries.notExists(maakNieuweUitnodigingZasZelfdeRondeQuery()),
+				Subqueries.notExists(maakZasGekoppeldAanSpecifiekeBriefTypeCriteria(List.of(BriefType.CERVIX_MONSTER_NA_HPV_NEGATIEF, BriefType.CERVIX_ZAS_NA_HPV_POSITIEF)))
 			)));
 
 		ScreenitRestrictions.addClientBaseRestrictions(criteria, "client", "persoon");
@@ -100,8 +101,21 @@ public class CervixRestrictions
 		criteria.createAlias("uitnodiging.brief", "brief");
 		criteria.add(Restrictions.eq("uitnodiging.monsterType", CervixMonsterType.ZAS));
 		criteria.add(Restrictions.eqProperty("uitnodiging.screeningRonde", "ronde.id"));
-		criteria.add(DateRestrictions.geProperty("uitnodiging.creatieDatum", "monster.statusDatum"));
+		criteria.add(DateRestrictions.geProperty("uitnodiging.creatieDatum", "rootMonster.statusDatum"));
 		criteria.add(Restrictions.eq("brief.gegenereerd", true));
+		return criteria;
+	}
+
+	private static DetachedCriteria maakZasGekoppeldAanSpecifiekeBriefTypeCriteria(List<BriefType> briefTypes)
+	{
+		var criteria = DetachedCriteria.forClass(CervixUitnodiging.class, "uitnodiging");
+		criteria.setProjection(Projections.id());
+		criteria.createAlias("uitnodiging.monster", "monsterMetBrieftype");
+		criteria.createAlias("monsterMetBrieftype.brief", "brief");
+
+		criteria.add(Restrictions.eqProperty("monsterMetBrieftype.id", "rootMonster.id"));
+		criteria.add(Restrictions.eq("uitnodiging.monsterType", CervixMonsterType.ZAS));
+		criteria.add(Restrictions.in("brief.briefType", briefTypes));
 		return criteria;
 	}
 
@@ -111,7 +125,7 @@ public class CervixRestrictions
 		criteria.setProjection(Projections.id());
 		criteria.createAlias("brief.projectBrief", "projectBrief", JoinType.LEFT_OUTER_JOIN);
 		criteria.createAlias("brief.monster", "briefMonster");
-		criteria.add(Restrictions.eqProperty("briefMonster.id", "monster.id"));
+		criteria.add(Restrictions.eqProperty("briefMonster.id", "rootMonster.id"));
 		criteria.add(
 			Restrictions.or(
 				Restrictions.and(

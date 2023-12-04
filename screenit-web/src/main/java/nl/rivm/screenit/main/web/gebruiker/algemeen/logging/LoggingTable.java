@@ -46,8 +46,11 @@ import nl.rivm.screenit.main.web.gebruiker.clienten.inzien.ClientInzienPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.cervix.hl7v2berichten.CervixVerwerkHL7v2FoutBerichtenPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.palga.MammaPalgaUitwisselingPage;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.model.enums.Level;
+import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.logging.BerichtOntvangenLogEvent;
 import nl.rivm.screenit.model.logging.BrievenGenererenBeeindigdLogEvent;
 import nl.rivm.screenit.model.logging.CervixGevolgenLabprocesVerwerkenBeeindigdLogEvent;
@@ -65,6 +68,8 @@ import nl.rivm.screenit.model.logging.MammaUitnodigenLogEvent;
 import nl.rivm.screenit.model.logging.RetourzendingLogEvent;
 import nl.rivm.screenit.model.logging.SelectieRondeBeeindigdLogEvent;
 import nl.rivm.screenit.model.logging.UitnodigingVersturenLogEvent;
+import nl.rivm.screenit.service.ClientService;
+import nl.rivm.screenit.service.LogService;
 import nl.topicuszorg.wicket.hibernate.SimpleHibernateModel;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -76,10 +81,17 @@ import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.hibernate.proxy.HibernateProxy;
 
 public class LoggingTable extends ScreenitDataTable<LogRegel, String>
 {
+	@SpringBean
+	private LogService logService;
+
+	@SpringBean
+	private ClientService clientService;
+
 	public LoggingTable(String id, List<IColumn<LogRegel, String>> columns, SortableDataProvider<LogRegel, String> dataProvider, int nrOfRows)
 	{
 		super(id, columns, dataProvider, nrOfRows, Model.of("logregels"));
@@ -88,11 +100,11 @@ public class LoggingTable extends ScreenitDataTable<LogRegel, String>
 	@Override
 	public void onClick(AjaxRequestTarget target, IModel<LogRegel> model)
 	{
-		LogRegel logRegel = model.getObject();
-		LogEvent logEvent = logRegel.getLogEvent();
+		var logRegel = model.getObject();
+		var logEvent = logRegel.getLogEvent();
 		if (logEvent instanceof HibernateProxy)
 		{
-			HibernateProxy hibernateProxy = (HibernateProxy) logEvent;
+			var hibernateProxy = (HibernateProxy) logEvent;
 			logEvent = (LogEvent) hibernateProxy.getHibernateLazyInitializer().getImplementation();
 		}
 		switch (logRegel.getLogGebeurtenis())
@@ -161,9 +173,13 @@ public class LoggingTable extends ScreenitDataTable<LogRegel, String>
 			setResponsePage(new MammaIlmBeeldenStatusRapportagePage(new SimpleHibernateModel<>((MammaIlmLogEvent) logEvent)));
 			break;
 		default:
-			Client client = logRegel.getClient();
-			if (client != null && !GbaStatus.BEZWAAR.equals(client.getGbaStatus()) && !GbaStatus.AFGEVOERD.equals(client.getGbaStatus()))
+			var client = logRegel.getClient();
+			if (magClientIngezienWorden(client))
 			{
+				if (GbaStatus.AFGEVOERD.equals(client.getGbaStatus()))
+				{
+					logService.logGebeurtenis(LogGebeurtenis.INACTIEVE_CLIENT_INGEZIEN, ScreenitSession.get().getLoggedInAccount(), client);
+				}
 				setResponsePage(new ClientInzienPage(ModelUtil.sModel(client)));
 			}
 			else
@@ -177,8 +193,7 @@ public class LoggingTable extends ScreenitDataTable<LogRegel, String>
 	@Override
 	protected boolean isRowClickable(IModel<LogRegel> model)
 	{
-
-		LogRegel logRegel = model.getObject();
+		var logRegel = model.getObject();
 		if (logRegel.getLogEvent() != null)
 		{
 			switch (logRegel.getLogGebeurtenis())
@@ -227,18 +242,17 @@ public class LoggingTable extends ScreenitDataTable<LogRegel, String>
 			case MAMMA_PALGA_CSV_EXPORT_AFGEROND:
 				return ScreenitSession.get().getAuthorizationStrategy().isInstantiationAuthorized(MammaPalgaUitwisselingPage.class);
 			case MAMMA_ILM_AFGEROND:
-				LogEvent logEvent = logRegel.getLogEvent();
+				var logEvent = logRegel.getLogEvent();
 				if (logEvent instanceof HibernateProxy)
 				{
-					HibernateProxy hibernateProxy = (HibernateProxy) logEvent;
+					var hibernateProxy = (HibernateProxy) logEvent;
 					logEvent = (LogEvent) hibernateProxy.getHibernateLazyInitializer().getImplementation();
 				}
-				MammaIlmLogEvent mammaIlmLogEvent = (MammaIlmLogEvent) logEvent;
+				var mammaIlmLogEvent = (MammaIlmLogEvent) logEvent;
 				return ScreenitSession.get().getAuthorizationStrategy().isInstantiationAuthorized(MammaIlmBeeldenStatusRapportagePage.class)
 					&& mammaIlmLogEvent.getRapportage().getAantalFailedRetries() > 0;
 			default:
-				Client client = logRegel.getClient();
-				if (client != null && !GbaStatus.BEZWAAR.equals(client.getGbaStatus()) && !GbaStatus.AFGEVOERD.equals(client.getGbaStatus()))
+				if (magClientIngezienWorden(logRegel.getClient()))
 				{
 					return ScreenitSession.get().getAuthorizationStrategy().isInstantiationAuthorized(ClientInzienPage.class);
 				}
@@ -246,6 +260,12 @@ public class LoggingTable extends ScreenitDataTable<LogRegel, String>
 			}
 		}
 		return false;
+	}
+
+	private boolean magClientIngezienWorden(Client client)
+	{
+		return client != null && client.getGbaStatus() != GbaStatus.BEZWAAR && (clientService.isClientActief(client) || ScreenitSession.get()
+			.checkPermission(Recht.GEBRUIKER_INACTIEVE_CLIENT_INZIEN, Actie.INZIEN));
 	}
 
 	@Override
@@ -258,8 +278,8 @@ public class LoggingTable extends ScreenitDataTable<LogRegel, String>
 			protected void onComponentTag(ComponentTag tag)
 			{
 				super.onComponentTag(tag);
-				LogEvent logEvent = getModel().getObject().getLogEvent();
-				Level level = Level.INFO;
+				var logEvent = getModel().getObject().getLogEvent();
+				var level = Level.INFO;
 				if (logEvent != null && logEvent.getLevel() != null)
 				{
 					level = logEvent.getLevel();
@@ -268,4 +288,5 @@ public class LoggingTable extends ScreenitDataTable<LogRegel, String>
 			}
 		};
 	}
+
 }

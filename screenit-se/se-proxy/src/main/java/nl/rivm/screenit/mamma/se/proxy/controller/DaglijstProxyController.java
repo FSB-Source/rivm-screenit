@@ -26,6 +26,7 @@ import java.time.LocalDate;
 import javax.servlet.http.HttpSession;
 
 import nl.rivm.screenit.mamma.se.proxy.model.DaglijstMetMutatiesDto;
+import nl.rivm.screenit.mamma.se.proxy.services.CleanUpService;
 import nl.rivm.screenit.mamma.se.proxy.services.LogischeSessieService;
 import nl.rivm.screenit.mamma.se.proxy.services.SeDaglijstService;
 
@@ -52,6 +53,9 @@ public class DaglijstProxyController
 	@Autowired
 	private LogischeSessieService logischeSessieService;
 
+	@Autowired
+	private CleanUpService cleanUpService;
+
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	@RequestMapping(value = "/{datum}", method = RequestMethod.GET)
@@ -63,6 +67,7 @@ public class DaglijstProxyController
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 		}
 
+		cleanUpService.startOfDayCleanupUitvoerenIndienNodig();
 		return ResponseEntity.ok(objectMapper.writeValueAsString(new DaglijstMetMutatiesDto(daglijstService.getDaglijst(datum), daglijstService.getDaglijstMutaties(datum))));
 	}
 

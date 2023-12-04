@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.component.form;
 
 /*-
@@ -38,7 +37,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class FilterBvoPanel<T extends IBevolkingsonderzoek> extends GenericPanel<T>
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@SpringBean

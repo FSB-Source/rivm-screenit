@@ -155,12 +155,28 @@ public class AsposeServiceImpl implements AsposeService
 	private void processDocument(Document document, MailMergeContext context, boolean replaceMergeFieldIfNull) throws Exception
 	{
 
-		String veldnaam = null;
 		try
 		{
 			document.getMailMerge().setFieldMergingCallback(new MailMergeImageCallback(context));
-
 			Map<String, Object> mergeValues = new HashMap<>();
+			bepaalSamenvoegveldWaardenVoorDocument(document, context, replaceMergeFieldIfNull, mergeValues);
+			String[] fieldNames = mergeValues.keySet().toArray(new String[0]);
+			Object[] values = mergeValues.values().toArray();
+			document.getMailMerge().execute(fieldNames, values);
+		}
+		catch (Exception e)
+		{
+			LOG.error("Error bij het mergen van document, fout door: ", e);
+			throw e;
+		}
+	}
+
+	private void bepaalSamenvoegveldWaardenVoorDocument(Document document, MailMergeContext context, boolean replaceMergeFieldIfNull, Map<String, Object> mergeValues)
+		throws Exception
+	{
+		String veldnaam = null;
+		try
+		{
 			for (String fieldName : document.getMailMerge().getFieldNames())
 			{
 				veldnaam = fieldName;
@@ -177,20 +193,11 @@ public class AsposeServiceImpl implements AsposeService
 				{
 					mergeValues.remove(fieldName);
 				}
-
 			}
-			String[] fieldNames = mergeValues.keySet().toArray(new String[0]);
-			Object[] values = mergeValues.values().toArray();
-			document.getMailMerge().execute(fieldNames, values);
-		}
-		catch (IllegalStateException e)
-		{
-			LOG.error("Error creating word doc, merge fout door ", e);
-			throw e;
 		}
 		catch (Exception e)
 		{
-			LOG.error("Error creating word doc, merge niet gelukt van " + veldnaam, e);
+			LOG.error("Error tijdens bepalen van waarde voor samenvoegveld: {}", veldnaam);
 			throw e;
 		}
 	}
@@ -381,7 +388,7 @@ public class AsposeServiceImpl implements AsposeService
 				MergeField mergeField = (MergeField) afdrukObject;
 				Object mergeFieldValue = mergeField.getValue(context);
 
-				if (mergeFieldValue == null)
+				if (mergeFieldValue == null || mergeFieldValue instanceof String && StringUtils.isBlank((String) mergeFieldValue))
 				{
 					throw new IllegalStateException("MergeField " + mergeField + " heeft geen waarde");
 				}

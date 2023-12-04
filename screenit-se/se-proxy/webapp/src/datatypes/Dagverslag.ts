@@ -25,6 +25,10 @@ export type DagPlanningSamenvatting = {
 	beschikbaarheid: number;
 	starttijd?: string;
 	eindtijd?: string;
+	aantalVerwacht: number;
+	aantalAfgerond: number;
+	aantalOnderbroken: number;
+	aantalOnvolledig: number;
 }
 
 export type Dagverslag = {

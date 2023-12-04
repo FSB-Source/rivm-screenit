@@ -22,7 +22,6 @@ package nl.rivm.screenit.dao.colon;
  */
 
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 import nl.rivm.screenit.model.Client;
@@ -48,7 +47,9 @@ public interface RoosterDao
 
 	List<Object> getRoosterTijden(List<Range<Date>> intervals, RoosterItem roosteritem, Range<Date> totaalInterval);
 
-	Iterator<RoosterItemListViewWrapper> getRoosterBlokken(String sortProperty, boolean asc, long first, long count, RoosterListViewFilter filter, ColoscopieCentrum intakeLocatie);
+	List<RoosterItemListViewWrapper> getAlleRoosterBlokkenInPeriode(String sortProperty, boolean asc, RoosterListViewFilter filter, ColoscopieCentrum intakeLocatie);
+
+	List<RoosterItemListViewWrapper> getRoosterBlokken(String sortProperty, boolean asc, long first, long count, RoosterListViewFilter filter, ColoscopieCentrum intakeLocatie);
 
 	long getRoosterBlokkenCount(RoosterListViewFilter filter, ColoscopieCentrum intakeLocatie);
 

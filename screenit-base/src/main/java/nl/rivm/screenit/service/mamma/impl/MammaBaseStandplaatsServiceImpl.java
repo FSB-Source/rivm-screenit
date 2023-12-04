@@ -71,11 +71,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Range;
+
 @Service
-@Transactional(propagation = Propagation.REQUIRED)
 public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsService
 {
 	private static final Logger LOG = LoggerFactory.getLogger(MammaBaseStandplaatsServiceImpl.class);
@@ -104,14 +104,12 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 	private MammaBaseUitstelService uitstelService;
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<MammaStandplaatsPeriodeMetAfstandDto> getStandplaatsPeriodeMetAfstandDtos(Client client, IMammaAfspraakWijzigenFilter filter)
 	{
 		return getStandplaatsPeriodeMetAfstandDtos(client, filter, false);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<MammaStandplaatsPeriodeMetAfstandDto> getStandplaatsPeriodeMetAfstandDtos(Client client, IMammaAfspraakWijzigenFilter filter,
 		boolean validatieUitvoeren)
 	{
@@ -154,7 +152,6 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<String> getStandplaatsPlaatsenVanActievePeriodes(IMammaAfspraakWijzigenFilter filter, boolean uitstellen)
 	{
 		Set<String> plaatsen = new HashSet<>();
@@ -175,7 +172,6 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<MammaStandplaatsPeriodeMetAfstandDto> getStandplaatsPeriodeMetAfstandDtos(IMammaAfspraakWijzigenFilter filter, boolean uitstellen)
 	{
 		Client client = filter.getClient();
@@ -192,7 +188,6 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public MammaStandplaats getStandplaatsMetPostcode(Client client)
 	{
 		String postcode = clientService.getGbaPostcode(client);
@@ -204,7 +199,6 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public MammaStandplaatsPeriode getEerstvolgendeStandplaatsPeriode(MammaStandplaats standplaats)
 	{
 		Date vandaag = dateSupplier.getDateMidnight();
@@ -227,7 +221,6 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public Double bepaalAfstand(MammaStandplaats standplaats, Client client)
 	{
 		PostcodeCoordinaten standplaatsPostcodeCoordinaten = standplaats.getTijdelijkeLocatie().getStartDatum() != null
@@ -247,7 +240,6 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public MammaStandplaatsLocatie getStandplaatsLocatie(MammaStandplaats standplaats, Date datum)
 	{
 		MammaStandplaatsLocatie locatie;
@@ -266,6 +258,7 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 	}
 
 	@Override
+	@Transactional
 	public void zetBrievenKlaarVoorStandplaatsVoorAfdrukken(List<MammaBrief> brieven, MammaStandplaats standplaats)
 	{
 		if (!brieven.isEmpty())
@@ -293,6 +286,15 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 				throw new IllegalStateException();
 			}
 		}
+	}
+
+	@Override
+	public boolean isActieveStandplaatsPeriodeVerkort(MammaStandplaatsPeriode persistentStandplaatsPeriode, LocalDate nieuweTotEnMet)
+	{
+		var totEnMet = DateUtil.toLocalDate(persistentStandplaatsPeriode.getTotEnMet());
+		var vanaf = DateUtil.toLocalDate(persistentStandplaatsPeriode.getVanaf());
+		return nieuweTotEnMet.isBefore(totEnMet) && Range.closed(vanaf, totEnMet)
+			.contains(dateSupplier.getLocalDate());
 	}
 
 	private class AfspraakBrievenGeneratorHelper implements IBrievenGeneratorHelper<MammaBrief, MammaMergedBrieven>
@@ -383,14 +385,12 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<MammaStandplaats> getActieveStandplaatsen(ScreeningOrganisatie voorRegio)
 	{
 		return standplaatsDao.getActieveStandplaatsen(voorRegio);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public Date getMaximaleVrijgegevenTotEnMetDatum(List<MammaStandplaatsPeriode> standplaatsPerioden)
 	{
 		return standplaatsPerioden.stream()
@@ -401,7 +401,6 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public MammaStandplaatsPeriode huidigeStandplaatsPeriodeInRouteVanStandplaats(MammaStandplaats standplaats)
 	{
 		MammaStandplaatsPeriode eerstvolgendePeriodeStandplaats = getEerstvolgendeStandplaatsPeriode(standplaats);

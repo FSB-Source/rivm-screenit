@@ -23,6 +23,7 @@ package nl.rivm.screenit.main.service.mamma;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaConclusieReviewZoekObject;
 import nl.rivm.screenit.model.Client;
@@ -56,4 +57,6 @@ public interface MammaConclusieReviewService
 	Date bepaalInitieleConclusieReviewSorteerDatumCoordinerendRadioloog(MammaConclusieReviewZoekObject zoekObject);
 
 	void logConclusieReviewAfgerond(InstellingGebruiker gebruiker, Client client, MammaConclusieReview conclusieReview, boolean doorCoordinerendRadioloog);
+
+	Optional<MammaConclusieReview> getReviewAfgerondDoorCoordinerendRadioloog(InstellingGebruiker radioloog, MammaScreeningRonde screeningRonde);
 }

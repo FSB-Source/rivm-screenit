@@ -21,6 +21,7 @@ package nl.rivm.screenit.model.colon.enums;
  * =========================LICENSE_END==================================
  */
 
+@Deprecated
 public enum ColonDefinitiefVervolgbeleid
 {
 

@@ -55,11 +55,9 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.REQUIRED)
 public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningrondeService
 {
 	@Autowired
@@ -93,7 +91,6 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 	private BaseDossierService baseDossierService;
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean heeftGeprinteOfTegengehoudenUitslagBrief(MammaScreeningRonde screeningRonde)
 	{
 		return screeningRonde.getBrieven().stream().anyMatch(
@@ -104,6 +101,7 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 	}
 
 	@Override
+	@Transactional
 	public void verwijderAlleScreeningRondes(MammaDossier dossier)
 	{
 		List<MammaScreeningRonde> rondes = dossier.getScreeningRondes();
@@ -121,20 +119,19 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 	}
 
 	@Override
+	@Transactional
 	public boolean verwijderScreeningRonde(MammaScreeningRonde screeningRonde, boolean forceerBeeldenVerwijderen)
 	{
-		if (heeftIlmBeelden(screeningRonde))
+		if (heeftBeelden(screeningRonde))
 		{
-			if (forceerBeeldenVerwijderen)
-			{
-				berichtToBatchService.queueMammaHL7v24BerichtUitgaand(screeningRonde, MammaHL7v24ORMBerichtStatus.GOINGTODELETE);
-				berichtToBatchService.queueMammaHL7v24BerichtUitgaand(screeningRonde, MammaHL7v24ORMBerichtStatus.DELETE);
-				baseIlmService.maakIlmBezwaarPoging(screeningRonde.getDossier(), screeningRonde.getUitnodigingsNr(), false);
-			}
-			else
+			if (!forceerBeeldenVerwijderen)
 			{
 				return false;
 			}
+
+			berichtToBatchService.queueMammaHL7v24BerichtUitgaand(screeningRonde, MammaHL7v24ORMBerichtStatus.GOINGTODELETE);
+			berichtToBatchService.queueMammaHL7v24BerichtUitgaand(screeningRonde, MammaHL7v24ORMBerichtStatus.DELETE);
+			baseIlmService.maakIlmBezwaarPoging(screeningRonde.getDossier(), screeningRonde.getUitnodigingsNr(), false);
 		}
 		if (forceerBeeldenVerwijderen)
 		{
@@ -189,7 +186,8 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 		return true;
 	}
 
-	private boolean heeftIlmBeelden(MammaScreeningRonde ronde)
+	@Override
+	public boolean heeftBeelden(MammaScreeningRonde ronde)
 	{
 		return ronde.getUitnodigingen().stream().flatMap(u -> u.getAfspraken().stream())
 			.anyMatch(a -> a.getOnderzoek() != null && a.getOnderzoek().getMammografie() != null
@@ -274,7 +272,6 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS)
 	public BriefType bepaalBriefTypeVoorOpenUitnodiging(boolean isSuspect, MammaDoelgroep doelgroep)
 	{
 		if (isSuspect)

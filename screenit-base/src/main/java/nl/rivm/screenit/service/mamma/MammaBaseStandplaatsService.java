@@ -21,6 +21,7 @@ package nl.rivm.screenit.service.mamma;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -60,4 +61,6 @@ public interface MammaBaseStandplaatsService
 	Date getMaximaleVrijgegevenTotEnMetDatum(List<MammaStandplaatsPeriode> standplaatsPerioden);
 
 	MammaStandplaatsPeriode huidigeStandplaatsPeriodeInRouteVanStandplaats(MammaStandplaats standplaats);
+
+	boolean isActieveStandplaatsPeriodeVerkort(MammaStandplaatsPeriode persistentStandplaatsPeriode, LocalDate nieuweTotEnMet);
 }

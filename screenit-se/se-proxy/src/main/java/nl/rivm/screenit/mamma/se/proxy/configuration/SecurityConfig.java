@@ -29,8 +29,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
-import org.springframework.session.web.http.HeaderHttpSessionStrategy;
-import org.springframework.session.web.http.HttpSessionStrategy;
 
 @Configuration
 public class SecurityConfig extends WebSecurityConfigurerAdapter
@@ -39,12 +37,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter
 	private static final String NFC_ENDPOINT = "http://localhost:5001";
 
 	private static final String IMS_ENDPOINT = "https://localhost:7001";
-
-	@Bean
-	public HttpSessionStrategy httpSessionStrategy()
-	{
-		return new HeaderHttpSessionStrategy();
-	}
 
 	@Autowired
 	public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception

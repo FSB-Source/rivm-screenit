@@ -13,7 +13,6 @@ export const putTransactionToScreenItCentraalPromiseZonderAfspraak = (clientId: 
 	const transaction: Transaction = {
 		type: type,
 		clientId: clientId,
-		sessionId: session?.sessionId,
 		medewerkercode: session?.medewerkercode,
 		instellingGebruikerId: session?.instellingGebruikerId,
 		afspraakVanafDatum: store.getState().daglijstDatum,
@@ -28,7 +27,6 @@ const createTransactionWithActionArray = (afspraak: Afspraak | undefined, type: 
 	return {
 		type: type,
 		clientId: afspraak && afspraak.clientId,
-		sessionId: session?.sessionId,
 		medewerkercode: session?.medewerkercode,
 		instellingGebruikerId: session?.instellingGebruikerId,
 		afspraakVanafDatum: afspraak ? afspraak.vanafDatum : store.getState().daglijstDatum,

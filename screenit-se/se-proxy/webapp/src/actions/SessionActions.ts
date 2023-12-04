@@ -3,7 +3,6 @@ export type SessionActions = SetSessionAction | ClearSessionAction;
 export const SET_SESSION = "SET_SESSION"
 export type SetSessionAction = {
 	type: "SET_SESSION";
-	sessionId: string;
 	gebruikersnaam: string;
 	medewerkercode: string;
 	displayName: string;
@@ -12,9 +11,8 @@ export type SetSessionAction = {
 	yubikeyIdentificatie: string;
 	instellingGebruikerId: number;
 };
-export const createActionSetSession = (sessionId: string, gebruikersnaam: string, medewerkercode: string, displayName: string, seCode: string, seNaam: string, yubikeyIdentificatie: string, instellingGebruikerId: number): SetSessionAction => ({
+export const createActionSetSession = (gebruikersnaam: string, medewerkercode: string, displayName: string, seCode: string, seNaam: string, yubikeyIdentificatie: string, instellingGebruikerId: number): SetSessionAction => ({
 	type: SET_SESSION,
-	sessionId: sessionId,
 	gebruikersnaam: gebruikersnaam,
 	medewerkercode: medewerkercode,
 	displayName: displayName,

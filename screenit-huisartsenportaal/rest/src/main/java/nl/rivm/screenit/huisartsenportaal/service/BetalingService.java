@@ -24,11 +24,8 @@ package nl.rivm.screenit.huisartsenportaal.service;
 import java.io.File;
 import java.io.IOException;
 
-import nl.rivm.screenit.huisartsenportaal.dto.BetalingDto;
 import nl.rivm.screenit.huisartsenportaal.dto.BetalingZoekObjectDto;
 import nl.rivm.screenit.huisartsenportaal.dto.BetalingenTotalenDto;
-import nl.rivm.screenit.huisartsenportaal.dto.VerrichtingDto;
-import nl.rivm.screenit.huisartsenportaal.model.Betaling;
 import nl.rivm.screenit.huisartsenportaal.model.Huisarts;
 
 public interface BetalingService
@@ -38,7 +35,4 @@ public interface BetalingService
 
 	File getBetalingenCsv(Huisarts huisarts, BetalingZoekObjectDto betalingDto) throws IOException;
 
-	Betaling convertFromDto(BetalingDto betalingDto);
-
-	BetalingDto convertToDto(Betaling betaling, VerrichtingDto verrichtingDto);
 }

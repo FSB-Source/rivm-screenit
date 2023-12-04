@@ -41,6 +41,7 @@ import lombok.Setter;
 
 import nl.rivm.screenit.model.InpakbareUitnodiging;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
+import nl.rivm.screenit.model.cervix.enums.CervixRedenUitnodiging;
 
 import org.hibernate.annotations.Check;
 import org.hibernate.envers.Audited;
@@ -104,5 +105,9 @@ public class CervixUitnodiging extends InpakbareUitnodiging<CervixScreeningRonde
 
 	@NotAudited
 	private Boolean zasAangevraagdDoorClient;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private CervixRedenUitnodiging redenUitnodiging = CervixRedenUitnodiging.STANDAARD;
 
 }

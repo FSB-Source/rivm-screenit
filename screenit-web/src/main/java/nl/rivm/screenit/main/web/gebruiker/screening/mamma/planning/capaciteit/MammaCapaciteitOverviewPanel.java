@@ -214,7 +214,6 @@ public class MammaCapaciteitOverviewPanel extends GenericPanel<MammaScreeningsEe
 			{
 				huidigeStartVanWeek = view.getStart();
 				response.getTarget().add(tooltips.getParent());
-				response.getTarget().appendJavaScript("initTooltip()");
 				MammaCapaciteitOverviewPanel.this.onCalenderRendered(response.getTarget());
 			}
 		};

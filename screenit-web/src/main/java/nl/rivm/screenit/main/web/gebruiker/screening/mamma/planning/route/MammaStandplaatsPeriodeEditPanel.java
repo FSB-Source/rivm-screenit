@@ -24,7 +24,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.route;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,9 +35,10 @@ import java.util.stream.Collectors;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dto.mamma.planning.PlanningStandplaatsPeriodeDto;
-import nl.rivm.screenit.main.service.mamma.MammaAfspraakService;
+import nl.rivm.screenit.main.exception.MagOpslaanException;
 import nl.rivm.screenit.main.service.mamma.MammaRouteService;
 import nl.rivm.screenit.main.service.mamma.MammaStandplaatsPeriodeService;
+import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
 import nl.rivm.screenit.main.util.StandplaatsPeriodeUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -59,11 +59,9 @@ import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaStandplaatsRondeUitno
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.mamma.MammaBaseCapaciteitsBlokService;
-import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.service.mamma.impl.MammaCapaciteit;
 import nl.rivm.screenit.util.BigDecimalUtil;
 import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.mamma.MammaPlanningUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.input.AttributeRemover;
@@ -71,6 +69,7 @@ import nl.topicuszorg.wicket.input.AttributeRemover;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxButton;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -90,15 +89,10 @@ import org.apache.wicket.validation.validator.RangeValidator;
 import org.wicketstuff.wiquery.core.javascript.JsStatement;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
-import com.google.common.collect.Range;
-
 public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<PlanningStandplaatsPeriodeDto>
 {
 	@SpringBean
 	private MammaStandplaatsPeriodeService standplaatsPeriodeService;
-
-	@SpringBean
-	private MammaAfspraakService afspraakService;
 
 	@SpringBean
 	private MammaRouteService routeService;
@@ -107,7 +101,7 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 	private HibernateService hibernateService;
 
 	@SpringBean
-	private MammaBaseStandplaatsService baseStandplaatsService;
+	private MammaStandplaatsService standplaatsService;
 
 	@SpringBean(name = "applicationUrl")
 	private String applicationUrl;
@@ -129,9 +123,9 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 
 	private LocalDate uitnodigenTotEnMet;
 
-	private IModel<Date> handmatigeDatum = new Model<>();
+	private IModel<Date> nieuweTotEnMetDatumModel = new Model<>();
 
-	private PlanningStandplaatsPeriodeDto volgendeStandplaatsPeriode;
+	private IModel<Boolean> isPrognoseModel;
 
 	private ScreenitDropdown<Long> achtervangStandplaatsPeriodeDropdown;
 
@@ -189,25 +183,11 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 
 		MammaStandplaats standplaats = hibernateService.get(MammaStandplaats.class, standplaatsPeriodeDto.standplaatsId);
 
-		this.volgendeStandplaatsPeriode = volgendeStandplaatsPeriode;
-
 		String naam = StandplaatsPeriodeUtil.getStandplaatsPeriodeNaam(getModelObject(), standplaats);
 
 		form.add(new Label("standplaatsRonde.standplaats.naam", naam));
 
 		afspraakDrempelContainer.add(new Label("standplaatsRonde.standplaats.regio.afspraakDrempelBk", standplaats.getRegio().getAfspraakDrempelBk()));
-
-		String totEnMetPrognose = "";
-
-		if (Boolean.TRUE.equals(getModelObject().prognose))
-		{
-			totEnMetPrognose += "prognose: " + DateTimeFormatter.ofPattern("dd-MM-yyyy").format(getModelObject().totEnMet);
-			configurationContainer.add(new Label("totEnMetPrognose", totEnMetPrognose));
-		}
-		else
-		{
-			configurationContainer.add(new EmptyPanel("totEnMetPrognose"));
-		}
 
 		TextField<Integer> afspraakDrempel = new TextField<>("afspraakDrempel");
 		afspraakDrempelContainer.add(afspraakDrempel);
@@ -216,21 +196,29 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 		afspraakDrempel.setType(Integer.class);
 		afspraakDrempel.add(RangeValidator.range(0, 100));
 
-		DatePicker<Date> einddatum;
-		if (Boolean.TRUE.equals(standplaatsPeriodeDto.prognose))
+		DatePicker<Date> einddatumPicker;
+		var prognose = Boolean.TRUE.equals(standplaatsPeriodeDto.prognose);
+		nieuweTotEnMetDatumModel.setObject(DateUtil.toUtilDate(standplaatsPeriodeDto.totEnMet));
+		einddatumPicker = ComponentHelper.newYearDatePicker("totEnMet", nieuweTotEnMetDatumModel);
+		einddatumPicker.setOutputMarkupId(true);
+		einddatumPicker.setDisabled(!magEindDatumWijzigen || !magAanpassen);
+		configurationContainer.add(einddatumPicker);
+
+		isPrognoseModel = Model.of(prognose);
+		AjaxCheckBox totEnMetPrognoseCheckbox = new AjaxCheckBox("totEnMetPrognoseCheckbox", isPrognoseModel)
 		{
-			einddatum = ComponentHelper.newYearDatePicker("totEnMet", handmatigeDatum);
-		}
-		else
-		{
-			einddatum = ComponentHelper.newYearDatePicker("totEnMet");
-		}
-		einddatum.setOutputMarkupId(true);
-		einddatum.setDisabled(!magEindDatumWijzigen || !magAanpassen);
+			@Override
+			protected void onUpdate(AjaxRequestTarget target)
+			{
+				updateEindDatumOnPrognose(getModelObject(), einddatumPicker, magEindDatumWijzigen, magAanpassen);
+				target.add(einddatumPicker, achtervangStandplaatsContainer);
+			}
+		};
+		totEnMetPrognoseCheckbox.setEnabled(magEindDatumWijzigen && magAanpassen);
+
+		configurationContainer.add(totEnMetPrognoseCheckbox);
 
 		form.setEnabled(true);
-
-		configurationContainer.add(einddatum);
 
 		DatePicker<Date> vanafDatum = ComponentHelper.newYearDatePicker("vanaf");
 		if (magBeginDatumWijzigen)
@@ -255,15 +243,6 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 				return hibernateService.load(MammaStandplaats.class, object).getNaam();
 			}
 		});
-		achtervangStandplaatsPeriodeDropdown.add(new OnChangeAjaxBehavior()
-		{
-			@Override
-			protected void onUpdate(AjaxRequestTarget ajaxRequestTarget)
-			{
-
-			}
-		});
-
 		achtervangStandplaatsPeriodeDropdown.setOutputMarkupId(true);
 		achtervangStandplaatsPeriodeDropdown.setEnabled(magAanpassen);
 
@@ -272,13 +251,13 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 		achtervangStandplaatsContainer.add(achtervangStandplaatsPeriodeDropdown);
 		configurationContainer.add(achtervangStandplaatsContainer);
 
-		einddatum.add(new OnChangeAjaxBehavior()
+		einddatumPicker.add(new OnChangeAjaxBehavior()
 		{
 			@Override
 			protected void onUpdate(AjaxRequestTarget ajaxRequestTarget)
 			{
-				achtervangStandplaatsPeriodeDropdown.setEnabled(einddatum.getModelObject() != null);
-				if (einddatum.getModelObject() == null)
+				achtervangStandplaatsPeriodeDropdown.setEnabled(einddatumPicker.getModelObject() != null);
+				if (einddatumPicker.getModelObject() == null)
 				{
 					getModelObject().achtervangStandplaatsId = null;
 				}
@@ -290,6 +269,7 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 		{
 			achtervangStandplaatsPeriodeDropdown.setEnabled(false);
 		}
+		updateEindDatumOnPrognose(prognose, einddatumPicker, magEindDatumWijzigen, magAanpassen);
 
 		minderValideUitwijkStandplaatsDropdown = new ScreenitDropdown<>("minderValideUitwijkStandplaatsId",
 			actieveStandplaatsen, new ChoiceRenderer<>()
@@ -449,9 +429,16 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				boolean magOnthouden = magOnthouden();
-				if (magOnthouden)
+				try
 				{
+					var nieuweEindDatum = DateUtil.toLocalDate(einddatumPicker.getModelObject());
+					var nieuwePrognose = isPrognoseModel.getObject();
+					standplaatsPeriodeService.magOnthouden(standplaatsPeriodeDto, nieuwePrognose, nieuweEindDatum, vrijgegevenTotEnMet, uitnodigenTotEnMet,
+						volgendeStandplaatsPeriode);
+
+					standplaatsPeriodeDto.prognose = isPrognoseModel.getObject();
+					standplaatsPeriodeDto.totEnMet = nieuweEindDatum;
+
 					boolean isStandplaatsGewijzigd = opslaan();
 					if (isStandplaatsGewijzigd)
 					{
@@ -459,8 +446,9 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 						standplaatsPeriodeGewijzigd(target);
 					}
 				}
-				else
+				catch (MagOpslaanException ex)
 				{
+					error(String.format(getString(ex.getMessageKey()), ex.getFormatArguments()));
 					standVanZakenContainer.add(new AttributeRemover("class", Model.of(" in"), " "));
 					configurationContainer.add(new AttributeRemover("class", Model.of(" in"), " "));
 					afspraakDrempelContainer.add(new AttributeRemover("class", Model.of(" in"), " "));
@@ -472,11 +460,70 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 			@Override
 			protected boolean skipConfirmation()
 			{
-				return standplaatsPeriodeDto.minderValideUitwijkStandplaatsId == null
-					|| standplaatsPeriodeDto.minderValideUitwijkStandplaatsId.equals(initieleMinderValideUitwijkStandplaatsId);
+				return !nieuweMindervalideUitwijkStandplaatsGekozen() && !afsprakenWordenVerzet();
 			}
 
+			private boolean afsprakenWordenVerzet()
+			{
+
+				var nieuweEindDatum = DateUtil.toLocalDate(einddatumPicker.getModelObject());
+				var screeningsEenheid = screeningsEenheidModel.getObject();
+				var aantalAfspraken = standplaatsPeriodeService.countAfsprakenTeVerzetten(nieuweEindDatum, standplaatsPeriodeDto, screeningsEenheid);
+				return aantalAfspraken > 0;
+			}
+
+			private boolean nieuweMindervalideUitwijkStandplaatsGekozen()
+			{
+				return standplaatsPeriodeDto.minderValideUitwijkStandplaatsId != null
+					&& !standplaatsPeriodeDto.minderValideUitwijkStandplaatsId.equals(initieleMinderValideUitwijkStandplaatsId);
+			}
+
+			@Override
+			protected IModel<String> getContentStringModel()
+			{
+				var afsprakenWordenVerzet = afsprakenWordenVerzet();
+				var nieuweMindervalideUitwijkStandplaatsGekozen = nieuweMindervalideUitwijkStandplaatsGekozen();
+
+				if (afsprakenWordenVerzet && nieuweMindervalideUitwijkStandplaatsGekozen)
+				{
+					return Model.of("<ul><li>" + getAfsprakenVerzetMelding() + "</li><li>" + getString(
+						"Standplaatsperiode.opslaan.minder.valide.uitwijk.waarschuwing") + "</li></ul>");
+				}
+				if (afsprakenWordenVerzet)
+				{
+					return Model.of(getAfsprakenVerzetMelding());
+				}
+				if (nieuweMindervalideUitwijkStandplaatsGekozen)
+				{
+					return Model.of(getString("Standplaatsperiode.opslaan.minder.valide.uitwijk.waarschuwing"));
+				}
+				return Model.of("");
+			}
+
+			private String getAfsprakenVerzetMelding()
+			{
+				var nieuweEindDatum = DateUtil.toLocalDate(einddatumPicker.getModelObject());
+				var nieuweEindDatumText = nieuweEindDatum.format(DateUtil.LOCAL_DATE_FORMAT);
+				var screeningsEenheid = screeningsEenheidModel.getObject();
+				var aantalAfspraken = standplaatsPeriodeService.countAfsprakenTeVerzetten(nieuweEindDatum, standplaatsPeriodeDto, screeningsEenheid);
+				var volgendeStandplaats = hibernateService.get(MammaStandplaatsPeriode.class, volgendeStandplaatsPeriode.id);
+				var volgendeStandplaatsNaam = "";
+				if (volgendeStandplaats != null)
+				{
+					volgendeStandplaatsNaam = volgendeStandplaats.getStandplaatsRonde().getStandplaats().getNaam();
+				}
+
+				return String.format(getString("Standplaatsperiode.einddatum.veranderen.afspraken.worden.verzet"), nieuweEindDatumText, aantalAfspraken,
+					volgendeStandplaatsNaam);
+			}
+
+			@Override
+			protected IModel<String> getHeaderStringModel()
+			{
+				return Model.of(getString("Standplaatsperiode.opslaan.validatie.waarschuwing.header"));
+			}
 		};
+
 		opslaanKnop.setEnabled(magAanpassen);
 		form.add(opslaanKnop);
 		form.setDefaultButton(opslaanKnop);
@@ -501,6 +548,22 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 		accordionContainer.add(standVanZakenContainer);
 
 		form.add(accordionContainer);
+	}
+
+	private void updateEindDatumOnPrognose(boolean prognose, DatePicker<Date> einddatumPicker, boolean magEindDatumWijzigen, boolean magAanpassen)
+	{
+		if (!magEindDatumWijzigen || !magAanpassen)
+		{
+			return;
+		}
+
+		if (prognose)
+		{
+			einddatumPicker.setModelObject(DateUtil.toUtilDate(getModelObject().totEnMet));
+		}
+		einddatumPicker.setEnabled(!prognose);
+		einddatumPicker.setDisabled(prognose);
+		achtervangStandplaatsPeriodeDropdown.setEnabled(!prognose);
 	}
 
 	private List<Long> getStandplaatsen(ScreeningOrganisatie ingelogdNamensRegio)
@@ -555,147 +618,27 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 		}));
 	}
 
-	private boolean magOnthouden()
-	{
-		PlanningStandplaatsPeriodeDto standplaatsPeriodeDto = getModelObject();
-
-		if (handmatigeDatum.getObject() != null)
-		{
-			standplaatsPeriodeDto.totEnMet = DateUtil.toLocalDate(handmatigeDatum.getObject());
-			standplaatsPeriodeDto.prognose = false;
-		}
-		else if (standplaatsPeriodeDto.totEnMet == null
-			&& !Boolean.TRUE.equals(standplaatsPeriodeDto.prognose))
-		{
-			Date datumEersteAfspraakVolgendePeriode = afspraakService.getDatumEersteGeplandeAfspraak(volgendeStandplaatsPeriode.id);
-			if (initieleTotEnMet != null && volgendeStandplaatsPeriode != null && datumEersteAfspraakVolgendePeriode != null)
-			{
-				error(getString("Standplaatsperiode.einddatum.leeg.afspraken.in.volgende"));
-				return false;
-			}
-
-			if (initieleTotEnMet != null
-				&& (vrijgegevenTotEnMet != null
-				&& !MammaPlanningUtil.datumIsMeerDanVijfWerkdagenVoorDatum(vrijgegevenTotEnMet, initieleTotEnMet)
-				|| uitnodigenTotEnMet != null
-				&& !MammaPlanningUtil.datumIsMeerDanVijfWerkdagenVoorDatum(uitnodigenTotEnMet, initieleTotEnMet)))
-			{
-				standplaatsPeriodeDto.totEnMet = initieleTotEnMet;
-				error(
-					getString("Standplaatsperiode.einddatum.verwijderen.binnenVijfDagen"));
-				return false;
-			}
-
-			if (standplaatsPeriodeDto.gesplitst)
-			{
-				error("Einddatum mag niet leeg zijn wanneer de periode is gesplitst.");
-				return false;
-			}
-
-			standplaatsPeriodeDto.prognose = true;
-		}
-		if (standplaatsPeriodeDto.vanaf == null)
-		{
-			error(getString("Standplaatsperiode.lege.begindatum"));
-			return false;
-		}
-		if (!standplaatsPeriodeDto.prognose && standplaatsPeriodeDto.totEnMet != null)
-		{
-			if (standplaatsPeriodeDto.totEnMet.isBefore(standplaatsPeriodeDto.vanaf))
-			{
-				error(getString("Standplaatsperiode.einddatum.veranderen.eindVoorBegin"));
-				return false;
-			}
-			if (volgendeStandplaatsPeriode == null)
-			{
-				if (vrijgegevenTotEnMet != null
-					&& standplaatsPeriodeDto.totEnMet.isBefore(vrijgegevenTotEnMet))
-				{
-					error(getString("Standplaatsperiode.einddatum.voor.vrijgegeven.tot.en.met"));
-					return false;
-				}
-
-				if (uitnodigenTotEnMet != null
-					&& standplaatsPeriodeDto.totEnMet.isBefore(uitnodigenTotEnMet))
-				{
-					error(getString("Standplaatsperiode.einddatum.voor.uitnodigen.tot.en.met"));
-					return false;
-				}
-			}
-			Date datumLaatsteAfspraak = afspraakService.getDatumLaatsteGeplandeAfspraak(standplaatsPeriodeDto.id);
-			if (datumLaatsteAfspraak != null && DateUtil.toLocalDate(datumLaatsteAfspraak).isAfter(standplaatsPeriodeDto.totEnMet))
-			{
-				boolean isLopendeStandplaatsPeriode = Range.closedOpen(standplaatsPeriodeDto.vanaf, standplaatsPeriodeDto.totEnMet)
-					.contains(dateSupplier.getLocalDate());
-				if (!isLopendeStandplaatsPeriode)
-				{
-					String datumLaatsteAfspraakText = DateUtil.formatShortDate(datumLaatsteAfspraak);
-					error(String.format(getString("Standplaatsperiode.einddatum.veranderen.overschrijdtAfspraak.na"), datumLaatsteAfspraakText));
-					return false;
-				}
-				else if (standplaatsPeriodeDto.totEnMet.isAfter(dateSupplier.getLocalDate()))
-				{
-					info(getString("Standplaatsperiode.einddatum.veranderen.afspraken.worden.verzet"));
-				}
-			}
-
-			if (volgendeStandplaatsPeriode != null)
-			{
-				if (!volgendeStandplaatsPeriode.prognose && !standplaatsPeriodeDto.totEnMet.isBefore(volgendeStandplaatsPeriode.totEnMet))
-				{
-					error(getString("Standplaatsperiode.einddatum.voor.volgende.einddatum"));
-					return false;
-				}
-
-				Date datumEersteAfspraakVolgendePeriode = afspraakService.getDatumEersteGeplandeAfspraak(volgendeStandplaatsPeriode.id);
-				if (datumEersteAfspraakVolgendePeriode != null && !standplaatsPeriodeDto.totEnMet.isBefore(DateUtil.toLocalDate(datumEersteAfspraakVolgendePeriode)))
-				{
-					String datumEersteAfspraakVolgendePeriodeText = DateUtil.formatShortDate(datumEersteAfspraakVolgendePeriode);
-					error(String.format(getString("Standplaatsperiode.einddatum.veranderen.overschrijdtAfspraak.voor"), datumEersteAfspraakVolgendePeriodeText));
-					return false;
-				}
-			}
-		}
-		else if (volgendeStandplaatsPeriode != null && !volgendeStandplaatsPeriode.prognose && standplaatsPeriodeDto.totEnMet == null)
-		{
-			error(getString("Standplaatsperiode.einddatum.niet.wanneer.volgende.periode.ingevoerd"));
-			return false;
-		}
-
-		if (!standplaatsPeriodeDto.prognose && standplaatsPeriodeDto.totEnMet != null || standplaatsPeriodeDto.prognose && handmatigeDatum.getObject() != null)
-		{
-			if (standplaatsPeriodeDto.achtervangStandplaatsId == null)
-			{
-				error(getString("Standplaatsperiode.achtervang.verplicht"));
-				return false;
-			}
-		}
-
-		return true;
-
-	}
-
 	private boolean magSplitsen()
 	{
 		PlanningStandplaatsPeriodeDto standplaatsPeriodeDto = getModelObject();
 
-		LocalDate totEnMet = standplaatsPeriodeDto.totEnMet;
-		boolean prognose = standplaatsPeriodeDto.prognose;
+		LocalDate nieuweTotEnMet = DateUtil.toLocalDate(nieuweTotEnMetDatumModel.getObject());
+		boolean oudePrognose = standplaatsPeriodeDto.prognose;
+		boolean nieuwePrognose = Boolean.TRUE.equals(isPrognoseModel.getObject());
 
-		if (totEnMet == null || prognose && handmatigeDatum.getObject() == null)
+		if (nieuwePrognose)
 		{
-			error(getString("Standplaatsperiode.lege.einddatum.gesplitst"));
+			error(getString("Standplaatsperiode.splitsen.met.prognose"));
 			return false;
 		}
 
-		if (!initieleVanaf.equals(standplaatsPeriodeDto.vanaf)
-			|| !initieleTotEnMet.equals(totEnMet) || prognose)
+		if (!initieleVanaf.equals(standplaatsPeriodeDto.vanaf) || !initieleTotEnMet.equals(nieuweTotEnMet) || oudePrognose)
 		{
 			error(getString("Standplaatsperiode.onthoud.wijzigingen"));
 			return false;
 		}
 
-		if (standplaatsPeriodeDto.gesplitst)
+		if (Boolean.TRUE.equals(standplaatsPeriodeDto.gesplitst))
 		{
 			error(getString("Standplaatsperiode.is.al.gesplitst"));
 			return false;
@@ -725,6 +668,7 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 	protected void onDetach()
 	{
 		super.onDetach();
-		handmatigeDatum.detach();
+		isPrognoseModel.detach();
+		nieuweTotEnMetDatumModel.detach();
 	}
 }

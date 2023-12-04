@@ -41,6 +41,7 @@ import nl.rivm.screenit.main.web.gebruiker.clienten.project.ClientProjectenPage;
 import nl.rivm.screenit.main.web.gebruiker.clienten.verslag.ClientVerslagenPage;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContact;
+import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.topicuszorg.wicket.hibernate.SimpleHibernateModel;
 
 import org.apache.commons.lang.reflect.ConstructorUtils;
@@ -48,6 +49,8 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -57,30 +60,38 @@ import org.slf4j.LoggerFactory;
 
 public abstract class ClientPage extends GebruikerBasePage
 {
-
 	private static final Logger LOG = LoggerFactory.getLogger(ClientPage.class);
 
 	@SpringBean
 	private ClientContactDao clientContactDao;
 
-	private static final long serialVersionUID = 1L;
+	private final List<Component> postfixes = new ArrayList<>();
 
-	private List<Component> postfixes = new ArrayList<>();
-
-	public static Object[][] CLIENT_DOSSIER_TABS = new Object[][] 
+	static List<Object[]> getClientDossierTabs(Client client)
 	{
-		{ "label.clientinzien", ClientInzienPage.class },
-		{ "label.clientagenda", ClientAgendaPage.class },
-		{ "label.rondes", ClientDossierPage.class },
-		{ "label.clientcontact", ClientContactPage.class },
-		{ "label.clientverslagen", ClientVerslagenPage.class },
-		{ "label.clientcomplicaties", ClientComplicatiePage.class },
-		{ "label.clientdocumenten", ClientDocumentenPage.class },
-		{ "label.clientprojecten", ClientProjectenPage.class },
-		{ "label.cis-historie", ClientCISHistoriePage.class },
-	};
 
-	public ClientPage(IModel<Client> client)
+		List<Object[]> dossierTabs = new ArrayList<>();
+		if (client.getGbaStatus() != GbaStatus.AFGEVOERD)
+		{
+			dossierTabs.add(new Object[] { "label.clientinzien", ClientInzienPage.class });
+			dossierTabs.add(new Object[] { "label.clientagenda", ClientAgendaPage.class });
+			dossierTabs.add(new Object[] { "label.rondes", ClientDossierPage.class });
+			dossierTabs.add(new Object[] { "label.clientcontact", ClientContactPage.class });
+			dossierTabs.add(new Object[] { "label.clientverslagen", ClientVerslagenPage.class });
+			dossierTabs.add(new Object[] { "label.clientcomplicaties", ClientComplicatiePage.class });
+			dossierTabs.add(new Object[] { "label.clientdocumenten", ClientDocumentenPage.class });
+			dossierTabs.add(new Object[] { "label.clientprojecten", ClientProjectenPage.class });
+			dossierTabs.add(new Object[] { "label.cis-historie", ClientCISHistoriePage.class });
+		}
+		else
+		{
+			dossierTabs.add(new Object[] { "label.clientinzien", ClientInzienPage.class });
+			dossierTabs.add(new Object[] { "label.rondes", ClientDossierPage.class });
+		}
+		return dossierTabs;
+	}
+
+	protected ClientPage(IModel<Client> client)
 	{
 		setDefaultModel(client);
 	}
@@ -102,13 +113,16 @@ public abstract class ClientPage extends GebruikerBasePage
 	{
 		List<GebruikerMenuItem> contextMenuItems = new ArrayList<>();
 		contextMenuItems.add(new GebruikerMenuItem("label.clientzoeken", ClientZoekenPage.class));
-		for (Object[] menuItem : CLIENT_DOSSIER_TABS)
+		clientDossierTabsMaken(contextMenuItems);
+		return contextMenuItems;
+	}
+
+	private void clientDossierTabsMaken(List<GebruikerMenuItem> contextMenuItems)
+	{
+		for (Object[] menuItem : getClientDossierTabs(getClientModel().getObject()))
 		{
 			contextMenuItems.add(new ClientGebruikerMenuItem((String) menuItem[0], (Class<ClientPage>) menuItem[1])
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected ClientPage createPage()
 				{
@@ -138,10 +152,8 @@ public abstract class ClientPage extends GebruikerBasePage
 						return super.getPostfix(id);
 					}
 				}
-
 			});
 		}
-		return contextMenuItems;
 	}
 
 	protected IModel<Client> getClientModel()
@@ -149,11 +161,15 @@ public abstract class ClientPage extends GebruikerBasePage
 		return new SimpleHibernateModel<>(Client.class, ((Client) getDefaultModelObject()).getId());
 	}
 
+	@Override
+	public void renderHead(IHeaderResponse response)
+	{
+		super.renderHead(response);
+		response.render(OnDomReadyHeaderItem.forScript("initTooltip();"));
+	}
+
 	private abstract class ClientGebruikerMenuItem extends GebruikerMenuItem
 	{
-
-		private static final long serialVersionUID = 1L;
-
 		@SuppressWarnings("unchecked")
 		public ClientGebruikerMenuItem(String resourceTag, Class<? extends ClientPage> targetPageClass)
 		{
@@ -163,10 +179,8 @@ public abstract class ClientPage extends GebruikerBasePage
 		@Override
 		public IndicatingAjaxLink<?> createWicketLink(String markupId)
 		{
-			return new IndicatingAjaxLink<Client>(markupId, getClientModel())
+			return new IndicatingAjaxLink<>(markupId, getClientModel())
 			{
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				public void onClick(AjaxRequestTarget target)
 				{
@@ -205,5 +219,4 @@ public abstract class ClientPage extends GebruikerBasePage
 		postfixes.add(label);
 		return label;
 	}
-
 }

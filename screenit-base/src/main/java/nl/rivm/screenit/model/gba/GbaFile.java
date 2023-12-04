@@ -26,6 +26,9 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;
@@ -36,10 +39,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @Entity
 @Table(schema = "algemeen")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
+@Getter
+@Setter
 public class GbaFile extends AbstractHibernateObject
 {
-
-	private static final long serialVersionUID = 1L;
 
 	private String naam;
 
@@ -48,34 +51,4 @@ public class GbaFile extends AbstractHibernateObject
 	@ManyToOne
 	@JsonIgnore
 	private GbaVerwerkingsLog gbaVerwerkingsLog;
-
-	public String getNaam()
-	{
-		return naam;
-	}
-
-	public void setNaam(String naam)
-	{
-		this.naam = naam;
-	}
-
-	public String getPath()
-	{
-		return path;
-	}
-
-	public void setPath(String path)
-	{
-		this.path = path;
-	}
-
-	public GbaVerwerkingsLog getGbaVerwerkingsLog()
-	{
-		return gbaVerwerkingsLog;
-	}
-
-	public void setGbaVerwerkingsLog(GbaVerwerkingsLog gbaVerwerkingsLog)
-	{
-		this.gbaVerwerkingsLog = gbaVerwerkingsLog;
-	}
 }

@@ -156,6 +156,7 @@
         <mapping class="nl.rivm.screenit.model.colon.ColonKoppelresultaatKankerregistratie"/>
         <mapping class="nl.rivm.screenit.model.colon.ColonUitnodigingsinterval"/>
         <mapping class="nl.rivm.screenit.model.colon.ColonVolgendeUitnodiging"/>
+        <mapping class="nl.rivm.screenit.model.colon.ColonFeestdag"/>
 
 
         

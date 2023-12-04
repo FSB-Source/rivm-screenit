@@ -24,17 +24,17 @@ package nl.rivm.screenit.mamma.se.stub;
 import java.io.IOException;
 import java.util.Properties;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.mamma.se.stub.model.BuildinfoDto;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 
 @SpringBootApplication
+@Slf4j
 public class SeStubApplication
 {
-	private static final Logger LOG = LoggerFactory.getLogger(SeStubApplication.class);
 
 	private static BuildinfoDto buildinfo = null; 
 
@@ -43,6 +43,7 @@ public class SeStubApplication
 		new SpringApplicationBuilder()
 			.sources(SeStubApplication.class)
 			.run(args);
+		LOG.info("Screenit versie {}", getBuildinfo().getVersion());
 	}
 
 	public static BuildinfoDto getBuildinfo()

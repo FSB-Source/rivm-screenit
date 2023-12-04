@@ -142,7 +142,7 @@
 														<input name="vanaf" wicket:id="vanaf" type="text"
 															   placeholder="dd-mm-jaar" size="16"
 															   class="input-small datum three-months"/>
-														<a  class="add-on js-datepicker-show"
+														<a class="add-on js-datepicker-show"
 														   title="vanaf"
 														   tabindex="-1">
 															<i class="icon-calendar"></i>
@@ -155,21 +155,28 @@
 									</div>
 									<div class="control-group">
 										<label class="control-label">Einddatum</label>
-										<div class="controls">
-											<div>
+										<div class="controls controls-row">
+											<div class="span6">
 												<div class="btn-group periode-filter">
 													<div class="input-append">
 														<input name="totEnMet" wicket:id="totEnMet" type="text"
 															   placeholder="dd-mm-jaar" size="16"
 															   class="input-small datum three-months"/>
-														<a  class="add-on js-datepicker-show"
+														<a class="add-on js-datepicker-show"
 														   title="totEnMet"
 														   tabindex="-1">
 															<i class="icon-calendar"></i>
 														</a>
 													</div>
 												</div>
-												<span wicket:id="totEnMetPrognose"></span>
+											</div>
+											<div class="span6">
+												<div class="margin-top-5px">
+													<label class="checkbox" for="prognoseCheckbox">
+														<input id="prognoseCheckbox" type="checkbox" wicket:id="totEnMetPrognoseCheckbox"/>
+														Prognose
+													</label>
+												</div>
 											</div>
 										</div>
 									</div>
@@ -202,7 +209,7 @@
 														<input name="minderValideUitnodigenVanaf" wicket:id="minderValideUitnodigenVanaf" type="text"
 															   placeholder="dd-mm-jaar" size="16"
 															   class="input-small datum three-months"/>
-														<a  class="add-on js-datepicker-show"
+														<a class="add-on js-datepicker-show"
 														   title="minderValideUitnodigenVanaf"
 														   tabindex="-1">
 															<i class="icon-calendar"></i>

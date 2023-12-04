@@ -38,8 +38,8 @@ import nl.rivm.screenit.model.messagequeue.dto.CervixHerindexatieDto;
 import nl.rivm.screenit.service.HuisartsenportaalSyncService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.cervix.Cervix2023StartBepalingService;
+import nl.rivm.screenit.service.cervix.CervixBaseBetalingService;
 import nl.rivm.screenit.util.cervix.CervixHuisartsToDtoUtil;
-import nl.rivm.screenit.util.cervix.CervixTariefUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -75,7 +75,10 @@ public class CervixHerindexeerVerrichtingenServiceImpl implements CervixHerindex
 	@Autowired
 	private Cervix2023StartBepalingService cervix2023StartBepalingService;
 
-	private final static ObjectMapper objectMapper = new ObjectMapper();
+	@Autowired
+	private CervixBaseBetalingService baseBetalingService;
+
+	private static final ObjectMapper objectMapper = new ObjectMapper();
 
 	@Override
 	public int verrichtingenHerindexeren(CervixHerindexatieDto herindexatieDto)
@@ -128,8 +131,8 @@ public class CervixHerindexeerVerrichtingenServiceImpl implements CervixHerindex
 			updateLaatsteBoekregel(verrichting, nieuweTarief, laatsteBoekRegel);
 		}
 
-		LOG.info(logIndexeerd + "Verrichting(" + verrichting.getId() + "): van " + CervixTariefUtil.getTariefString(oudeTarief) + " naar " + CervixTariefUtil
-			.getTariefString(nieuweTarief));
+		LOG.info(logIndexeerd + "Verrichting(" + verrichting.getId() + "): van " + baseBetalingService.getTariefString(oudeTarief) + " naar "
+			+ baseBetalingService.getTariefString(nieuweTarief));
 		if (CervixTariefType.isHuisartsTarief(nieuweTarief))
 		{
 			huisartsenportaalSyncService.sendJmsBericht(CervixHuisartsToDtoUtil.getVerrichtingDto(verrichting));
@@ -167,7 +170,7 @@ public class CervixHerindexeerVerrichtingenServiceImpl implements CervixHerindex
 	public void logStart(CervixHerindexatieDto herindexatieDto)
 	{
 		CervixTarief oudeTarief = hibernateService.load(CervixTarief.class, herindexatieDto.getOudeTariefId());
-		String melding = "Start herindexatie voor verrichtingen voor " + CervixTariefUtil.getTariefString(oudeTarief) + ".";
+		String melding = "Start herindexatie voor verrichtingen voor " + baseBetalingService.getTariefString(oudeTarief) + ".";
 		LogGebeurtenis gebeurtenis = LogGebeurtenis.CERVIX_HUISARTS_TARIEF_INDEXEERD;
 		if (!herindexatieDto.isHuisartsTarief())
 		{
@@ -190,7 +193,7 @@ public class CervixHerindexeerVerrichtingenServiceImpl implements CervixHerindex
 	public void logEinde(CervixHerindexatieDto herindexatieDto, int totaalAantalVerrichtingen)
 	{
 		CervixTarief oudeTarief = hibernateService.load(CervixTarief.class, herindexatieDto.getOudeTariefId());
-		String melding = totaalAantalVerrichtingen + " verrichtingen voor " + CervixTariefUtil.getTariefString(oudeTarief) + " bijgewerkt.";
+		String melding = totaalAantalVerrichtingen + " verrichtingen voor " + baseBetalingService.getTariefString(oudeTarief) + " bijgewerkt.";
 		LogGebeurtenis gebeurtenis = LogGebeurtenis.CERVIX_HUISARTS_TARIEF_INDEXEERD;
 		if (!herindexatieDto.isHuisartsTarief())
 		{
@@ -211,7 +214,7 @@ public class CervixHerindexeerVerrichtingenServiceImpl implements CervixHerindex
 		{
 			CervixTarief oudeTarief = (CervixTarief) HibernateHelper.deproxy(hibernateService.load(CervixTarief.class, herindexatieDto.getOudeTariefId()));
 
-			melding += "Er zijn wel " + totaalAantalVerrichtingen + " verrichtingen voor " + CervixTariefUtil.getTariefString(oudeTarief) + " bijgewerkt.";
+			melding += "Er zijn wel " + totaalAantalVerrichtingen + " verrichtingen voor " + baseBetalingService.getTariefString(oudeTarief) + " bijgewerkt.";
 
 			if (!herindexatieDto.isHuisartsTarief())
 			{

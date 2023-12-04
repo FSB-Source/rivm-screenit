@@ -50,4 +50,6 @@ public interface MammaBaseScreeningrondeService
 	BriefType bepaalBriefTypeVoorOpenUitnodiging(boolean isSuspect, MammaDoelgroep doelgroep);
 
 	boolean isRondeNogGeldig(MammaScreeningRonde laatsteRonde);
+
+	boolean heeftBeelden(MammaScreeningRonde ronde);
 }

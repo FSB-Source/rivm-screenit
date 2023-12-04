@@ -87,7 +87,7 @@ public class MammaMergeMailAttachmentServiceImpl implements MammaMergeMailAttach
 			client.getMammaDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging().getLaatsteAfspraak().getVanaf());
 		var eindDatum = startDatum.plusMinutes(15);
 		var ontvanger = client.getPersoon().getEmailadres();
-		var icalAfspraakId = client.getIdString();
+		var icalAfspraakId = client.getId().toString();
 		var onderwerp = "Afspraak bevolkingsonderzoek borstkanker";
 		var contentAgenda = "Afspraak bevolkingsonderzoek borstkanker op locatie: \n"
 			+ locatie + "\n"

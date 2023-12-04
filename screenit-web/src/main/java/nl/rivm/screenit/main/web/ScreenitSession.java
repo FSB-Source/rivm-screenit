@@ -45,6 +45,7 @@ import nl.rivm.screenit.main.web.gebruiker.login.OrganisatieSelectiePage;
 import nl.rivm.screenit.main.web.gebruiker.login.OvereenkomstAccoderenPage;
 import nl.rivm.screenit.main.web.gebruiker.login.PasswordMustChangePage;
 import nl.rivm.screenit.main.web.gebruiker.login.uzipas.zorgid.session.ZorgIdSession;
+import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.InlogStatus;
@@ -975,6 +976,28 @@ public class ScreenitSession extends WebSession
 	public void setUziPasTokenAfgekeurd(boolean uziPasTokenAfgekeurd)
 	{
 		this.uziPasTokenAfgekeurd = uziPasTokenAfgekeurd;
+	}
+
+	public boolean inScope(SecurityConstraint constraint)
+	{
+		if (constraint.checkScope() && constraint.organisatieTypeScopes().length > 0)
+		{
+			Instelling instelling = getInstelling();
+			boolean valtBinnenOrganisatieTypeScopes = false;
+			if (instelling != null)
+			{
+				for (OrganisatieType type : constraint.organisatieTypeScopes())
+				{
+					if (instelling.getOrganisatieType().equals(type))
+					{
+						valtBinnenOrganisatieTypeScopes = true;
+						break;
+					}
+				}
+			}
+			return valtBinnenOrganisatieTypeScopes;
+		}
+		return true;
 	}
 
 }

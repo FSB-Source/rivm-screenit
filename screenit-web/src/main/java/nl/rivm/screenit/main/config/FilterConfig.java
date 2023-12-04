@@ -23,6 +23,7 @@ package nl.rivm.screenit.main.config;
 
 import java.util.List;
 
+import nl.rivm.screenit.main.filter.AuthorizationFilter;
 import nl.rivm.screenit.main.web.ScreenitSessionListener;
 import nl.rivm.screenit.main.web.filter.LogFilter;
 import nl.rivm.screenit.main.web.filter.PlanningRestErrorHandlerFilter;
@@ -55,6 +56,7 @@ public class FilterConfig
 		LOG,
 		WICKET,
 		WICKET_SESSION,
+		AUTHORIZATION,
 	}
 
 	@Bean
@@ -153,4 +155,13 @@ public class FilterConfig
 		return filter;
 	}
 
+	@Bean
+	public FilterRegistrationBean<AuthorizationFilter> authorizationFilter()
+	{
+		var filter = new FilterRegistrationBean<AuthorizationFilter>();
+		filter.setFilter(new AuthorizationFilter());
+		filter.addUrlPatterns("/api/*");
+		filter.setOrder(FilterOrder.AUTHORIZATION.ordinal());
+		return filter;
+	}
 }

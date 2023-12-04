@@ -33,12 +33,16 @@ import nl.rivm.screenit.main.service.cervix.CervixUitnodigingService;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
+import nl.rivm.screenit.model.OrganisatieType;
+import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
+import nl.rivm.screenit.repository.cervix.CervixMonsterRepository;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.cervix.Cervix2023StartBepalingService;
 import nl.rivm.screenit.service.cervix.CervixMonsterService;
+import nl.rivm.screenit.specification.cervix.CervixMonsterSpecification;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
@@ -59,6 +63,8 @@ public class CervixUitnodigingServiceImpl implements CervixUitnodigingService
 	private final Cervix2023StartBepalingService bmkh2023StartBepalingService;
 
 	private final OrganisatieParameterService organisatieParameterService;
+
+	private final CervixMonsterRepository monsterRepository;
 
 	@Override
 	public String zoekMonsters(Instelling ingelogdNamensOrganisatie, String monsterId, String bsn, Date geboortedatum, List<CervixUitnodiging> uitnodigingen,
@@ -129,23 +135,26 @@ public class CervixUitnodigingServiceImpl implements CervixUitnodigingService
 
 	private String valideerIngevuldMonsterId(String monsterId, Instelling ingelogdNamensOrganisatie, UnaryOperator<String> getString)
 	{
-		var verwachteEersteZASMonsterIdLetter = getVerwachteEersteZASMonsterIdLetter(ingelogdNamensOrganisatie);
-		var eersteLetter = monsterId.charAt(0);
-		if (eersteLetter == verwachteEersteZASMonsterIdLetter)
+		if (ingelogdNamensOrganisatie.getOrganisatieType() == OrganisatieType.BMHK_LABORATORIUM)
 		{
-			final String monsterNummer = monsterId.substring(1);
-			if (!StringUtils.isNumeric(monsterNummer))
+			var verwachteEersteZASMonsterIdLetter = getVerwachteEersteZASMonsterIdLetter(ingelogdNamensOrganisatie);
+			var eersteLetter = monsterId.charAt(0);
+			if (eersteLetter == verwachteEersteZASMonsterIdLetter)
 			{
-				return String.format(getString.apply("nummer.invullen.na.z"), verwachteEersteZASMonsterIdLetter);
+				final String monsterNummer = monsterId.substring(1);
+				if (!StringUtils.isNumeric(monsterNummer))
+				{
+					return String.format(getString.apply("nummer.invullen.na.z"), verwachteEersteZASMonsterIdLetter);
+				}
 			}
-		}
-		else if (eersteLetter == 'C' || eersteLetter == 'Z')
-		{
-			return String.format(getString.apply("zas.mag.niet.verwerkt.worden"), ingelogdNamensOrganisatie.getNaam());
-		}
-		else if (!StringUtils.isNumeric(monsterId))
-		{
-			return String.format(getString.apply("nummer.invullen"), verwachteEersteZASMonsterIdLetter);
+			else if (eersteLetter == 'C' || eersteLetter == 'Z')
+			{
+				return String.format(getString.apply("zas.mag.niet.verwerkt.worden"), ingelogdNamensOrganisatie.getNaam());
+			}
+			else if (!StringUtils.isNumeric(monsterId))
+			{
+				return String.format(getString.apply("nummer.invullen"), verwachteEersteZASMonsterIdLetter);
+			}
 		}
 		return null;
 	}
@@ -187,9 +196,10 @@ public class CervixUitnodigingServiceImpl implements CervixUitnodigingService
 	public boolean magMonsterVerwerktWordenDoorLab(Instelling ingelogdNamensOrganisatie, CervixUitnodiging uitnodiging)
 	{
 		var verwachteEersteZASMonsterIdLetter = String.valueOf(getVerwachteEersteZASMonsterIdLetter(ingelogdNamensOrganisatie));
-		return uitnodiging != null && uitnodiging.getMonster() != null &&
-			(uitnodiging.getMonsterType() == CervixMonsterType.UITSTRIJKJE ||
-				uitnodiging.getMonster().getMonsterId() != null && uitnodiging.getMonster().getMonsterId().startsWith(verwachteEersteZASMonsterIdLetter));
+		return ingelogdNamensOrganisatie.getOrganisatieType() != OrganisatieType.BMHK_LABORATORIUM ||
+			(uitnodiging != null && uitnodiging.getMonster() != null &&
+				(uitnodiging.getMonsterType() == CervixMonsterType.UITSTRIJKJE ||
+					uitnodiging.getMonster().getMonsterId() != null && uitnodiging.getMonster().getMonsterId().startsWith(verwachteEersteZASMonsterIdLetter)));
 	}
 
 	@Override
@@ -197,5 +207,11 @@ public class CervixUitnodigingServiceImpl implements CervixUitnodigingService
 	{
 		return uitnodiging.getMonster() != null && uitnodiging.getMonsterType() == CervixMonsterType.ZAS && uitnodiging.getMonster().getMonsterId() != null
 			&& uitnodiging.getMonster().getMonsterId().charAt(0) == 'C';
+	}
+
+	@Override
+	public boolean magRedenUitnodigingKiezen(CervixScreeningRonde laatsteScreeningRonde)
+	{
+		return monsterRepository.exists(CervixMonsterSpecification.geefNietIngestuurdeOudeZAS(laatsteScreeningRonde.getDossier()));
 	}
 }

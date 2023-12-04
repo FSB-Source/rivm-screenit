@@ -136,6 +136,7 @@ public class ScreenitApplication extends WebApplication
 			.add(CSPDirective.DEFAULT_SRC, CSPDirectiveSrcValue.SELF)
 			.add(CSPDirective.OBJECT_SRC, CSPDirectiveSrcValue.SELF)
 			.add(CSPDirective.STYLE_SRC, CSPDirectiveSrcValue.SELF)
+			.add(CSPDirective.FONT_SRC, CSPDirectiveSrcValue.SELF)
 			.add(CSPDirective.FRAME_ANCESTORS, CSPDirectiveSrcValue.SELF);
 		getSecuritySettings().setCrossOriginOpenerPolicyConfiguration(CrossOriginOpenerPolicyConfiguration.CoopMode.SAME_ORIGIN_ALLOW_POPUPS);
 

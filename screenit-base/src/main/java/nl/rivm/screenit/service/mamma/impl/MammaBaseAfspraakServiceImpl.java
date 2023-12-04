@@ -467,32 +467,33 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 	}
 
 	@Override
-	public void afspraakAnnuleren(MammaAfspraak afspraak, MammaAfspraakStatus nieuweStatus, Date rondeAfgemeldOp, boolean afspraakStatusWijzigen, boolean notificeerSE)
+	public void afspraakAnnuleren(MammaAfspraak afspraak, MammaAfspraakStatus nieuweStatus, Date rondeAfgemeldOp, boolean afspraakStatusWijzigen,
+		boolean notificeerScreeningsEenhedenVerversenDaglijst)
 	{
-		if (afspraak.getStatus().equals(MammaAfspraakStatus.GEPLAND) && nieuweStatus != null
+		var screeningRonde = afspraak.getUitnodiging().getScreeningRonde();
+		var origineleStatus = afspraak.getStatus();
+		if (origineleStatus == MammaAfspraakStatus.GEPLAND && nieuweStatus != null
 			&& afspraakStatusWijzigen) 
 		{
 			afspraak.setStatus(nieuweStatus);
 			afspraak.setAfgezegdOp(rondeAfgemeldOp);
 
-			MammaCapaciteitBlok capaciteitBlok = afspraak.getCapaciteitBlok();
+			var capaciteitBlok = afspraak.getCapaciteitBlok();
 			if (capaciteitBlok != null)
 			{
 				capaciteitBlok.getAfspraken().remove(afspraak);
 				afspraak.setCapaciteitBlok(null);
 				hibernateService.saveOrUpdate(capaciteitBlok);
 			}
-
-			MammaScreeningRonde screeningRonde = afspraak.getUitnodiging().getScreeningRonde();
 			baseBriefService.setNietGegenereerdeBrievenOpTegenhouden(screeningRonde, Collections.singletonList(BriefType.MAMMA_AFSPRAAK_VERZET));
 			hibernateService.saveOrUpdate(afspraak);
 
 			this.berichtToBatchService.queueMammaHL7v24BerichtUitgaand(screeningRonde.getDossier().getClient(), MammaHL7v24ORMBerichtStatus.CANCELLED);
+		}
 
-			if (notificeerSE)
-			{
-				berichtToSeRestBkService.notificeerSes(screeningRonde.getDossier().getClient());
-			}
+		if (notificeerScreeningsEenhedenVerversenDaglijst && origineleStatus == MammaAfspraakStatus.GEPLAND)
+		{
+			berichtToSeRestBkService.notificeerScreeningsEenhedenVerversenDaglijst(screeningRonde.getDossier().getClient());
 		}
 	}
 
@@ -515,10 +516,11 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 		MammaStandplaatsLocatie locatie = null;
 		if (uitnodiging != null)
 		{
-			if (uitnodiging.getLaatsteAfspraak() != null)
+			var afspraak = uitnodiging.getLaatsteAfspraak();
+			if (afspraak != null)
 			{
-				MammaStandplaats standplaats = uitnodiging.getLaatsteAfspraak().getStandplaatsPeriode().getStandplaatsRonde().getStandplaats();
-				locatie = standplaatsService.getStandplaatsLocatie(standplaats, currentDateSupplier.getDate());
+				MammaStandplaats standplaats = afspraak.getStandplaatsPeriode().getStandplaatsRonde().getStandplaats();
+				locatie = standplaatsService.getStandplaatsLocatie(standplaats, afspraak.getVanaf());
 			}
 			else if (uitnodiging.getStandplaatsRonde() != null)
 			{

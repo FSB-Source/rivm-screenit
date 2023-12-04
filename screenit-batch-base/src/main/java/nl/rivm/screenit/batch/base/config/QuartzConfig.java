@@ -26,12 +26,14 @@ import java.util.Properties;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.quartz.QuartzDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 
 @Configuration
+@QuartzDataSource
 public class QuartzConfig
 {
 
@@ -47,7 +49,6 @@ public class QuartzConfig
 		properties.put("org.quartz.scheduler.jmx.export", "true");
 		properties.put("org.quartz.scheduler.instanceId", applicationInstance);
 		properties.put("org.quartz.jobStore.misfireThreshold", "60000");
-		properties.put("org.quartz.jobStore.class", "org.quartz.impl.jdbcjobstore.JobStoreTX");
 		properties.put("org.quartz.jobStore.driverDelegateClass", "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate");
 		properties.put("org.quartz.jobStore.isClustered", "true");
 		properties.put("org.quartz.jobStore.clusterCheckinInterval", "20000");
@@ -55,6 +56,7 @@ public class QuartzConfig
 		properties.put("org.quartz.threadPool.class", "org.quartz.simpl.SimpleThreadPool");
 		properties.put("org.quartz.threadPool.threadCount", "25");
 		properties.put("org.quartz.threadPool.threadPriority", "5");
+		properties.put("org.quartz.jobStore.class", "org.springframework.scheduling.quartz.LocalDataSourceJobStore");
 		schedulerFactoryBean.setQuartzProperties(properties);
 		return schedulerFactoryBean;
 	}

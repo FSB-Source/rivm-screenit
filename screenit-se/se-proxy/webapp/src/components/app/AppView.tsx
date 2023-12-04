@@ -27,7 +27,7 @@ const AppView = (props: AppProps): JSX.Element => {
 					<TabbarContainer/>
 				</div>
 			</BrowserRouter>}
-		<ToastContainer autoClose={DEFAULT_TOAST_TIMEOUT} hideProgressBar position={"top-center"}/>
+		<ToastContainer autoClose={DEFAULT_TOAST_TIMEOUT} hideProgressBar position={"top-center"} icon={false}/>
 	</div>
 }
 

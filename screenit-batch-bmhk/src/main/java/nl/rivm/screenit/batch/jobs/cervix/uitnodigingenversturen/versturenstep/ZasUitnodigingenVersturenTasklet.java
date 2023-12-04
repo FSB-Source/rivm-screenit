@@ -40,6 +40,7 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.Rivm;
+import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.cervix.CervixMergedBrieven;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
@@ -109,9 +110,21 @@ public class ZasUitnodigingenVersturenTasklet extends AbstractUitnodigingenVerst
 		mergedBrieven.setMergedBrieven(uploadDocument);
 		mergedBrieven.setCreatieDatum(currentDateSupplier.getDate());
 		mergedBrieven.setBriefType(brief.getBriefType());
+		mergedBrieven.setScreeningOrganisatie(getScreeningOrganisatieObvUitnodiging(uitnodiging));
 		brief.setMergedBrieven(mergedBrieven);
 		brief.setBriefDefinitie(briefDefinitie);
 		hibernateService.saveOrUpdateAll(mergedBrieven, brief);
+	}
+
+	private ScreeningOrganisatie getScreeningOrganisatieObvUitnodiging(CervixUitnodiging uitnodiging)
+	{
+		return uitnodiging.getScreeningRonde()
+			.getDossier()
+			.getClient()
+			.getPersoon()
+			.getGbaAdres()
+			.getGbaGemeente()
+			.getScreeningOrganisatie();
 	}
 
 	@Override

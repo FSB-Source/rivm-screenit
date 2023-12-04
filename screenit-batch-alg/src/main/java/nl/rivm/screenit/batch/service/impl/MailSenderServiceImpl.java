@@ -21,6 +21,7 @@ package nl.rivm.screenit.batch.service.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
@@ -76,7 +77,8 @@ public class MailSenderServiceImpl implements MailSenderService
 		}
 	}
 
-	private boolean sendEmail(String to, String subject, String message, MailPriority priority, MailServerKeuze mailserver, List<MailAttachment> mailAttachment) throws MessagingException, MailException
+	private boolean sendEmail(String to, String subject, String message, MailPriority priority, MailServerKeuze mailserver, List<MailAttachment> mailAttachment)
+		throws MessagingException, MailException
 	{
 		if (StringUtils.isNotBlank(to))
 		{
@@ -87,7 +89,8 @@ public class MailSenderServiceImpl implements MailSenderService
 		return false;
 	}
 
-	private void sendEmail(String[] to, String subject, String message, MailPriority priority, MailServerKeuze mailserver, List<MailAttachment> mailAttachment) throws MessagingException, MailException
+	private void sendEmail(String[] to, String subject, String message, MailPriority priority, MailServerKeuze mailserver, List<MailAttachment> mailAttachment)
+		throws MessagingException, MailException
 	{
 		var mailVerzenden = mailService.getMailVerzenden();
 		if (MailVerzenden.ALTERNATIEF_ADRES.equals(mailVerzenden))
@@ -120,9 +123,10 @@ public class MailSenderServiceImpl implements MailSenderService
 		return mailserver == MailServerKeuze.CLIENT ? mailSenderClient : mailSenderProfessional;
 	}
 
-	private MimeMessageHelper createMimeMessageHelper(MimeMessage mimeMessage, String subject, String message, MailPriority priority, String fromAddress, List<MailAttachment> mailAttachmentList) throws MessagingException
+	private MimeMessageHelper createMimeMessageHelper(MimeMessage mimeMessage, String subject, String message, MailPriority priority, String fromAddress,
+		List<MailAttachment> mailAttachmentList) throws MessagingException
 	{
-		var helper = new MimeMessageHelper(mimeMessage, true);
+		var helper = new MimeMessageHelper(mimeMessage, true, StandardCharsets.UTF_8.name());
 		helper.setFrom(fromAddress);
 		helper.setSubject(subject);
 		helper.setText(message, true);

@@ -28,9 +28,9 @@ public interface TransactionQueueService
 {
 	void ensureRunningQueueVerwerking();
 
-    void addTransactionToQueue(String transactionJSON, Long clientId);
+	void addTransactionToQueue(String transactionJSON, Long clientId);
 
-    List<String> getPendingTransactionDtos(LocalDate datum);
+	List<String> getPendingTransactionDtos(LocalDate datum);
 
-	boolean zijnErWachtendeTransacties();
+	Object getDaglijstEnTransactieLock();
 }

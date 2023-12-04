@@ -75,6 +75,7 @@ import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstel;
 import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
+import nl.rivm.screenit.model.cervix.enums.CervixRedenUitnodiging;
 import nl.rivm.screenit.model.colon.ColonAfmelding;
 import nl.rivm.screenit.model.colon.ColonConclusie;
 import nl.rivm.screenit.model.colon.ColonDossier;
@@ -799,9 +800,11 @@ public class ClientContactServiceImpl implements ClientContactService
 	private ClientContactActie zasAanvragen(ClientContactActie actie, Client client, Map<ExtraOpslaanKey, Object> extraOpslaanParams,
 		Account account)
 	{
-		boolean zasAangevraagdDoorClient = Boolean.TRUE.equals(extraOpslaanParams.get(ExtraOpslaanKey.ZAS_DOOR_CLIENT_AANGEVRAAGD));
-		boolean zasUitstelPeriodeNemen = Boolean.TRUE.equals(extraOpslaanParams.get(ExtraOpslaanKey.CERVIX_UITSTEL));
-		factory.maakZasUitnodiging(client, account, zasUitstelPeriodeNemen, zasAangevraagdDoorClient);
+		var zasAangevraagdDoorClient = Boolean.TRUE.equals(extraOpslaanParams.get(ExtraOpslaanKey.ZAS_DOOR_CLIENT_AANGEVRAAGD));
+		var zasUitstelPeriodeNemen = Boolean.TRUE.equals(extraOpslaanParams.get(ExtraOpslaanKey.CERVIX_UITSTEL));
+		var redenVoorAanvraagZas = (CervixRedenUitnodiging) extraOpslaanParams.get(ExtraOpslaanKey.CERVIX_ZAS_AANVRAAG_REDEN);
+		var uitnodiging = factory.maakZasUitnodiging(client, account, zasUitstelPeriodeNemen, zasAangevraagdDoorClient);
+		uitnodiging.setRedenUitnodiging(redenVoorAanvraagZas);
 		return actie;
 	}
 

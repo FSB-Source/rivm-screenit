@@ -25,5 +25,5 @@ import nl.rivm.screenit.model.Client;
 
 public interface MammaBaseHL7v24Dao
 {
-	void deleteMessagesForClient(Client client);
+	void deleteMessagesForClient(Client client, boolean verwijderAlleBerichten);
 }

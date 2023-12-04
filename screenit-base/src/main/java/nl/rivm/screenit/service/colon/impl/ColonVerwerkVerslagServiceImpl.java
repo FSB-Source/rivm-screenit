@@ -134,10 +134,6 @@ public class ColonVerwerkVerslagServiceImpl implements ColonVerwerkVerslagServic
 					screeningRonde.setStatus(ScreeningRondeStatus.AFGEROND);
 					screeningRonde.setAfgerondReden("definitieve diagnose");
 				}
-				if (dossier.getStatus() == DossierStatus.ACTIEF)
-				{
-					dossier.setStatus(DossierStatus.INACTIEF);
-				}
 			}
 			else if (Boolean.FALSE.equals(dossier.getAangemeld()))
 			{

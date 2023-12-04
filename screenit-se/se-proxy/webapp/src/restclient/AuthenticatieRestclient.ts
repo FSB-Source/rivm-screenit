@@ -120,20 +120,13 @@ function verwerkLoginResponse(loginResponse: Response, yubikeyIdentificatie: str
 }
 
 function verwerkSuccesvolleLogin(response: any, yubikeyIdentificatie: string): Promise<any> {
-	const token: string = response.headers.get("x-auth-token")
 	let autorisatie: AutorisatieDto
-
-	if (!token) {
-		showErrorToast("Er ging iets fout tijdens het inloggen, probeer het opnieuw of neem contact op met een beheerder")
-		console.error("Fout tijdens inloggen: Geen token.")
-		return new Promise<void>(resolve => resolve())
-	}
 
 	return response.json().then((autorisatieObject: AutorisatieDto) => {
 		ensureIdleCheck()
 		autorisatie = autorisatieObject
 		const navigatieActie = JSON.parse(autorisatie.navigatie)
-		store.dispatch(createActionSetSession(token, autorisatie.username, autorisatie.medewerkercode, autorisatie.displayName, autorisatie.seCode, autorisatie.seNaam,
+		store.dispatch(createActionSetSession(autorisatie.username, autorisatie.medewerkercode, autorisatie.displayName, autorisatie.seCode, autorisatie.seNaam,
 			yubikeyIdentificatie, autorisatie.instellingGebruikerId))
 		store.dispatch(createActionSetAutorisatie(autorisatie))
 		return navigatieActie

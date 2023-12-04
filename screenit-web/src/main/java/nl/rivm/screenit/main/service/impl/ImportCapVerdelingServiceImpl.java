@@ -251,7 +251,7 @@ public class ImportCapVerdelingServiceImpl implements ImportCapVerdelingService
 	{
 		var intakelocatie = hibernateService.get(ColoscopieCentrum.class, ilId);
 		var ilNaam = ilIdToNaam.get(ilId);
-		while (intakelocatie == null && StringUtils.isNotBlank(ilNaam))
+		while ((intakelocatie == null || ilNaam.indexOf(intakelocatie.getNaam()) < 0) && StringUtils.isNotBlank(ilNaam))
 		{
 			intakelocatie = hibernateService.getUniqueByParameters(ColoscopieCentrum.class, Map.of("naam", ilNaam.trim()));
 			ilNaam = ilNaam.substring(1);

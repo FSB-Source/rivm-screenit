@@ -21,19 +21,37 @@ package nl.rivm.screenit.mamma.se.proxy.dao.impl;
  * =========================LICENSE_END==================================
  */
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public abstract class BaseDaoImpl
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+
+public abstract class BaseDaoImpl implements ApplicationContextAware
 {
-    @Autowired
     private String databasePath;
+
+	private ApplicationContext applicationContext;
+
+	private String getDatabasePath()
+	{
+		if (databasePath == null)
+		{
+			databasePath = applicationContext.getBean("databasePath", String.class);
+		}
+		return databasePath;
+	}
 
     protected Connection getConnection() throws SQLException
     {
-        return DriverManager.getConnection(databasePath);
+		return DriverManager.getConnection(getDatabasePath());
     }
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException
+	{
+		this.applicationContext = applicationContext;
+	}
 }

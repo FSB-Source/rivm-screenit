@@ -30,7 +30,5 @@ import org.mapstruct.Mapper;
 @Mapper(config = ScreenitMapperConfig.class, uses = { RolMapper.class })
 public interface InstellingGebruikerRolMapper
 {
-
 	InstellingGebruikerRolDto instellingGebruikerRolToDto(InstellingGebruikerRol instellingGebruikerRol);
-
 }

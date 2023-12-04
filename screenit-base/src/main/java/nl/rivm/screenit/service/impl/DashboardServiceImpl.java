@@ -117,12 +117,18 @@ public class DashboardServiceImpl implements DashboardService
 					if (dateTimeLastLogRegel != null && DateUtil.toLocalDate(dateTimeLastLogRegel).isBefore(dateSupplier.getLocalDate()))
 					{
 						dashboardDao.maakDashboardStatusLeeg(dashboardType);
-						resetDashboardLevel = true;
+						if (dashboardDao.getDashboardStatussen(dashboardType).isEmpty())
+						{
+							resetDashboardLevel = true;
+						}
 					}
 					break;
 				case START:
 					dashboardDao.maakDashboardStatusLeeg(dashboardType);
-					resetDashboardLevel = true;
+					if (dashboardDao.getDashboardStatussen(dashboardType).isEmpty())
+					{
+						resetDashboardLevel = true;
+					}
 					break;
 				case OVERIG:
 					break;
@@ -190,7 +196,6 @@ public class DashboardServiceImpl implements DashboardService
 		logregel.getLogEvent().setLevel(Level.INFO);
 		LOG.info("Gebruiker " + gebruikersnaam + " heeft aangemerkt logregel " + logregel.getId() + " te hebben gezien.");
 		hibernateService.saveOrUpdate(logregel);
-
 		boolean isGedowngrade = downgradeDashboardStatussenLevelNaarBenedenAlsMogelijk(dashboardStatus);
 		downgradeDashboardStatussenLevelNaarBenedenAlsMogelijk(getDashboardStatussen(dashboardStatus.getType()));
 		return isGedowngrade;
@@ -284,7 +289,7 @@ public class DashboardServiceImpl implements DashboardService
 	public Level getHoogsteLevelDashboardItems(Instelling ingelogdVoorOrganisatie, List<Bevolkingsonderzoek> bevolkingsOnderzoeken)
 	{
 		Level highestLevel = Level.INFO;
-		List<DashboardStatus> statussen = getListOfDashboardStatussen(ingelogdVoorOrganisatie, bevolkingsOnderzoeken);
+		List<DashboardStatus> statussen = getListOfDashboardStatussen(ingelogdVoorOrganisatie, bevolkingsOnderzoeken, null);
 		for (DashboardStatus status : statussen)
 		{
 			if (highestLevel.ordinal() < status.getLevel().ordinal())
@@ -297,7 +302,7 @@ public class DashboardServiceImpl implements DashboardService
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public List<DashboardStatus> getListOfDashboardStatussen(Instelling ingelogdVoorOrganisatie, List<Bevolkingsonderzoek> bevolkingsOnderzoeken)
+	public List<DashboardStatus> getListOfDashboardStatussen(Instelling ingelogdVoorOrganisatie, List<Bevolkingsonderzoek> bevolkingsonderzoeken, List<Level> loggingLevels)
 	{
 		List<DashboardStatus> listOfDashboardStatussen = dashboardDao.getListOfDashboardStatussen(ingelogdVoorOrganisatie);
 		List<DashboardStatus> listOfDashboardStatussenPerBVO = new ArrayList<>();
@@ -306,7 +311,7 @@ public class DashboardServiceImpl implements DashboardService
 			boolean heeftBVO = false;
 			for (Bevolkingsonderzoek bvo : type.getBevolkingsOnderzoek())
 			{
-				if (bevolkingsOnderzoeken.contains(bvo) || bevolkingsOnderzoeken.isEmpty())
+				if (bevolkingsonderzoeken.contains(bvo) || bevolkingsonderzoeken.isEmpty())
 				{
 					heeftBVO = true;
 					break;
@@ -319,7 +324,10 @@ public class DashboardServiceImpl implements DashboardService
 				{
 					if (status.getType().equals(type))
 					{
-						listOfDashboardStatussenPerBVO.add(status);
+						if (loggingLevels != null && loggingLevels.contains(status.getLevel()))
+						{
+							listOfDashboardStatussenPerBVO.add(status);
+						}
 						foundType = true;
 						break;
 					}
@@ -331,7 +339,10 @@ public class DashboardServiceImpl implements DashboardService
 					{
 						DashboardStatus dashboardStatus = maakDashboardStatus(type, ingelogdVoorOrganisatie);
 						hibernateService.saveOrUpdate(dashboardStatus);
-						listOfDashboardStatussenPerBVO.add(dashboardStatus);
+						if (loggingLevels != null && loggingLevels.contains(dashboardStatus.getLevel()))
+						{
+							listOfDashboardStatussenPerBVO.add(dashboardStatus);
+						}
 					}
 				}
 

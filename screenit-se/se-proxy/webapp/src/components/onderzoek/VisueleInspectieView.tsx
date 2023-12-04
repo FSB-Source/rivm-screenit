@@ -46,7 +46,6 @@ export default class VisueleInspectieView extends Component<VisueleInspectieView
 		this.state = {
 			width: 0,
 		}
-		this.voegOnderzoekTypeWijzigingToeAanWerklijst(this.props.onderzoek.onderzoekType)
 		this.props.onInitializeForm(this.props.client)
 	}
 
@@ -56,17 +55,15 @@ export default class VisueleInspectieView extends Component<VisueleInspectieView
 		}
 	}
 
-	componentDidUpdate(): void {
-		this.voegOnderzoekTypeWijzigingToeAanWerklijst(this.props.onderzoek.onderzoekType)
-	}
-
 	componentDidMount(): void {
-		const element = document ? document.getElementById("col-afbeelding-container") ? document.getElementById("col-afbeelding-container") : undefined : undefined
+		const element = document.getElementById("col-afbeelding-container")
 		if (element) {
 			this.setState({
 				width: element.clientWidth - parseFloat(window.getComputedStyle(element).paddingRight),
 			})
 		}
+
+		this.voegOnderzoekTypeWijzigingToeAanWerklijst(this.props.onderzoek.onderzoekType)
 	}
 
 	voegOnderzoekTypeWijzigingToeAanWerklijst(onderzoekType: OnderzoekType): void {
@@ -112,10 +109,12 @@ export default class VisueleInspectieView extends Component<VisueleInspectieView
 							<MbbSignaleringContainer disabled={false}/>
 						</Col>
 						<Col md={4} className={"pr-0"}>
-							<AanvullendeInformatieContainer disabled={false}
-															voegOnderzoekTypeWijzigingToeAanWerklijst={(onderzoekType: OnderzoekType): void => {
-																this.voegOnderzoekTypeWijzigingToeAanWerklijst(onderzoekType)
-															}}/>
+							<AanvullendeInformatieContainer
+								disabled={false}
+								voegOnderzoekTypeWijzigingToeAanWerklijst={(onderzoekType: OnderzoekType): void => {
+									this.voegOnderzoekTypeWijzigingToeAanWerklijst(onderzoekType)
+								}}
+							/>
 						</Col>
 					</Row>
 				</div>

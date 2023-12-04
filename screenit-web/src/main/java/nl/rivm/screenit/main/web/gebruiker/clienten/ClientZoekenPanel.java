@@ -27,10 +27,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ScreenitDateTextField;
 import nl.rivm.screenit.main.web.component.form.PostcodeField;
 import nl.rivm.screenit.main.web.component.table.GeboortedatumColumn;
+import nl.rivm.screenit.main.web.component.table.PostcodeColumn;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;
@@ -38,13 +41,11 @@ import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
-import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.util.postcode.PostcodeFormatter;
 import nl.topicuszorg.wicket.hibernate.SimpleHibernateModel;
 import nl.topicuszorg.wicket.input.validator.BSNValidator;
 
@@ -66,19 +67,10 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class ClientZoekenPanel extends Panel
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(ClientZoekenPanel.class);
-
-	private static final long serialVersionUID = 1L;
-
-	@SpringBean
-	private AutorisatieService autorisatieService;
-
 	@SpringBean
 	private LogService logService;
 
@@ -130,9 +122,6 @@ public class ClientZoekenPanel extends Panel
 
 	private class ClientZoekenForm extends Form<Client>
 	{
-
-		private static final long serialVersionUID = 1L;
-
 		@SpringBean
 		private ClientService clientService;
 
@@ -147,9 +136,6 @@ public class ClientZoekenPanel extends Panel
 
 			add(new ScreenitDateTextField("persoon.geboortedatum").setRequired(true).setOutputMarkupId(true).add(new AjaxFormComponentUpdatingBehavior("change")
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected void onUpdate(AjaxRequestTarget target)
 				{
@@ -164,9 +150,6 @@ public class ClientZoekenPanel extends Panel
 
 			AjaxSubmitLink submit = new AjaxSubmitLink("submit")
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected void onSubmit(AjaxRequestTarget target)
 				{
@@ -210,9 +193,6 @@ public class ClientZoekenPanel extends Panel
 			List<IColumn<Client, String>> columns = new ArrayList<>();
 			columns.add(new PropertyColumn<Client, String>(Model.of("Naam"), "persoon.achternaam", "persoon.achternaam")
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@SuppressWarnings({ "rawtypes", "unchecked" })
 				@Override
 				public IModel<Object> getDataModel(IModel<Client> rowModel)
@@ -228,26 +208,11 @@ public class ClientZoekenPanel extends Panel
 
 			columns.add(new PropertyColumn<>(Model.of("Overlijdensdatum"), "persoon.overlijdensdatum", "persoon.overlijdensdatum"));
 
-			columns.add(new PropertyColumn<Client, String>(Model.of("Postcode"), "persoon.gbaAdres.postcode", "persoon.gbaAdres.postcode")
-			{
-
-				private static final long serialVersionUID = 1L;
-
-				@SuppressWarnings({ "unchecked", "rawtypes" })
-				@Override
-				public IModel<Object> getDataModel(IModel<Client> rowModel)
-				{
-					return new Model(PostcodeFormatter.formatPostcode((String) super.getDataModel(rowModel).getObject(), true));
-				}
-
-			});
+			columns.add(new PostcodeColumn<>("persoon.gbaAdres.postcode", "persoon.gbaAdres.postcode"));
 			columns.add(new PropertyColumn<>(Model.of("Huisnummer"), "persoon.gbaAdres.huisnummer", "persoon.gbaAdres.huisnummer"));
 
 			final ScreenitDataTable<Client, String> tabel = new ScreenitDataTable<Client, String>("tabel", columns, new SortableDataProvider<Client, String>()
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				public Iterator<? extends Client> iterator(long first, long count)
 				{
@@ -269,12 +234,10 @@ public class ClientZoekenPanel extends Panel
 			}, Model.of("client(en)"))
 			{
 
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				public void onClick(AjaxRequestTarget target, IModel<Client> model)
 				{
-					for (Object[] menuItem : ClientPage.CLIENT_DOSSIER_TABS)
+					for (Object[] menuItem : ClientPage.getClientDossierTabs(model.getObject()))
 					{
 						Class<ClientPage> targetPageClass = (Class<ClientPage>) menuItem[1];
 						if (Session.get().getAuthorizationStrategy().isInstantiationAuthorized(targetPageClass))

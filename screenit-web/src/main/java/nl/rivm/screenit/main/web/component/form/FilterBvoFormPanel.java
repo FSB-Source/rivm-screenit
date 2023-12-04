@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.component.form;
 
 /*-
@@ -35,20 +34,24 @@ import org.apache.wicket.model.IModel;
 
 public abstract class FilterBvoFormPanel<T extends IBevolkingsonderzoek> extends GenericPanel<T>
 {
-
 	private static final long serialVersionUID = 1L;
 
 	public FilterBvoFormPanel(String id, final IModel<T> model)
 	{
-		this(id, model, false, false);
+		this(id, model, false, false, false);
 	}
 
 	public FilterBvoFormPanel(String id, IModel<T> model, boolean altijdZichtbaar)
 	{
-		this(id, model, altijdZichtbaar, false);
+		this(id, model, altijdZichtbaar, false, false);
 	}
 
 	public FilterBvoFormPanel(String id, IModel<T> model, boolean altijdZichtbaar, boolean showExactMatch)
+	{
+		this(id, model, altijdZichtbaar, showExactMatch, false);
+	}
+
+	public FilterBvoFormPanel(String id, IModel<T> model, boolean altijdZichtbaar, boolean showExactMatch, boolean isDashboard)
 	{
 		super(id, new CompoundPropertyModel<>(model));
 
@@ -56,10 +59,11 @@ public abstract class FilterBvoFormPanel<T extends IBevolkingsonderzoek> extends
 		add(form);
 		form.add(new FilterBvoPanel<T>("bvoFilter", model, altijdZichtbaar));
 
+		form.add(new FilterLogLevelPanel<T>("logLevelFilter", model).setVisible(isDashboard));
+
 		form.add(new CheckBox("exactMatch").setVisible(showExactMatch));
 		form.add(new IndicatingAjaxSubmitLink("filteren", form)
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override

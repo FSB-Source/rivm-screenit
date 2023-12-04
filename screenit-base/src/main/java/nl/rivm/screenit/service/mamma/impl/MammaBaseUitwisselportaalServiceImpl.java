@@ -66,7 +66,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.ImmutableMap;
 
 @Slf4j
-
 @Service
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselportaalService

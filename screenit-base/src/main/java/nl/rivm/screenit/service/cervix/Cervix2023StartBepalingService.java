@@ -25,6 +25,7 @@ import java.time.LocalDate;
 
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
+import nl.rivm.screenit.model.cervix.facturatie.CervixTarief;
 
 public interface Cervix2023StartBepalingService
 {
@@ -35,4 +36,6 @@ public interface Cervix2023StartBepalingService
 	boolean datumValtBinnenBmhk2023(LocalDate datum);
 
 	boolean isBmhk2023Laboratorium(BMHKLaboratorium laboratorium);
+
+	boolean isBmhk2023Tarief(CervixTarief tarief);
 }

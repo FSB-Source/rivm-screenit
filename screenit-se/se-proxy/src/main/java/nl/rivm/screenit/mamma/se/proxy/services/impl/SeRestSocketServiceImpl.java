@@ -247,6 +247,7 @@ public class SeRestSocketServiceImpl implements SeRestSocketService, Application
 				LOG.info("Cleanup DB ontvangen van SE-REST-BK");
 				getPersistableTransactionDao().clearDb();
 				getProxyService().clearTestCache();
+				getCleanupService().startOfDayCleanup();
 			}
 			break;
 		case VERSTUUR_STATUS:

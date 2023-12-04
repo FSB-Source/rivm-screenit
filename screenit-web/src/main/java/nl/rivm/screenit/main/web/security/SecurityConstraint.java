@@ -36,7 +36,7 @@ import nl.rivm.screenit.model.enums.ToegangLevel;
 
 import org.wicketstuff.shiro.ShiroConstraint;
 
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
@@ -58,4 +58,6 @@ public @interface SecurityConstraint
 	OrganisatieType[] organisatieTypeScopes() default {};
 
 	Bevolkingsonderzoek[] bevolkingsonderzoekScopes();
+
+	boolean altijdToegestaan() default false;
 }

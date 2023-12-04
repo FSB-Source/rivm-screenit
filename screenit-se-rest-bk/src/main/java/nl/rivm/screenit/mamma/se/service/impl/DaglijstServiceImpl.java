@@ -40,6 +40,7 @@ import nl.rivm.screenit.mamma.se.service.dtomapper.AfspraakDtoMapper;
 import nl.rivm.screenit.mamma.se.service.dtomapper.VorigOnderzoekDtoMapper;
 import nl.rivm.screenit.mamma.se.websocket.socket.SeProxyWebsocket;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.MailPriority;
@@ -119,7 +120,8 @@ public class DaglijstServiceImpl implements DaglijstService
 		var afspraakDtos = baseAfspraakDao
 			.getAfspraken(seCode, datum, datum, MammaAfspraakStatus.NIET_GEANNULEERD.toArray(new MammaAfspraakStatus[] {}))
 			.stream()
-			.filter(afspraak -> afspraak.getId().equals(afspraak.getUitnodiging().getLaatsteAfspraak().getId()))
+			.filter(afspraak -> afspraak.getId().equals(afspraak.getUitnodiging().getLaatsteAfspraak().getId())
+				&& afspraak.getUitnodiging().getScreeningRonde().getStatus() == ScreeningRondeStatus.LOPEND)
 			.map(this::createAfspraakDto)
 			.collect(Collectors.toList());
 

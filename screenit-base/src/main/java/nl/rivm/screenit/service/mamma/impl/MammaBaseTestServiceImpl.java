@@ -73,7 +73,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
-@Transactional(propagation = Propagation.REQUIRED)
 public class MammaBaseTestServiceImpl implements MammaBaseTestService
 {
 	@Autowired
@@ -120,6 +119,7 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 	}
 
 	@Override
+	@Transactional
 	public MammaScreeningRonde geefScreeningRonde(GbaPersoon gbaPersoon)
 	{
 		MammaDossier dossier = geefDossier(gbaPersoon);
@@ -135,6 +135,7 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 	}
 
 	@Override
+	@Transactional
 	public MammaUitnodiging maakUitnodiging(GbaPersoon gbaPersoon, BriefType briefType)
 	{
 		MammaScreeningRonde ronde = geefScreeningRonde(gbaPersoon);
@@ -184,7 +185,7 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 				{
 					continue;
 				}
-				clientReset(client);
+				clientReset(client, false);
 				testService.verwijderClientContacten(client, Bevolkingsonderzoek.MAMMA);
 				gevondenEnIsVerwijderd++;
 			}
@@ -198,7 +199,8 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 	}
 
 	@Override
-	public void clientReset(Client client)
+	@Transactional
+	public void clientReset(Client client, boolean verwijderAlleBerichten)
 	{
 		MammaDossier dossier = client.getMammaDossier();
 		if (dossier == null)
@@ -220,7 +222,7 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 			hibernateService.delete(deelnamekans);
 		}
 
-		baseHL7v24Dao.deleteMessagesForClient(client);
+		baseHL7v24Dao.deleteMessagesForClient(client, verwijderAlleBerichten);
 
 		List<MammaBrief> overgeblevenBrieven = hibernateService.getByParameters(MammaBrief.class, Map.of("client", client));
 		hibernateService.deleteAll(overgeblevenBrieven);
@@ -235,6 +237,7 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 	}
 
 	@Override
+	@Transactional
 	public int clientenDefinitiefAfmelden(List<Client> clienten, MammaAfmeldingReden afmeldingReden)
 	{
 		int aantalAfgemeld = 0;
@@ -253,6 +256,7 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 	}
 
 	@Override
+	@Transactional
 	public void maakOfVindClient(String bsn, MammaDoelgroep doelgroep, String postcode, BigDecimal deelnamekans, BigDecimal opkomstkans, Date geboortedatum)
 	{
 		GbaPersoon persoon = new GbaPersoon();
@@ -277,6 +281,7 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 	}
 
 	@Override
+	@Transactional
 	public Client maakOfVindClient(GbaPersoon persoon, MammaDoelgroep doelgroep, BigDecimal deelnamekans, BigDecimal opkomstkans, boolean alleenMaken)
 	{
 		Client client = testService.getClientByBsn(persoon.getBsn());
