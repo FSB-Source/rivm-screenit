@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import nl.rivm.screenit.batch.service.MailSenderService;
 import nl.rivm.screenit.model.Mail;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
-import nl.rivm.screenit.repository.MailRepository;
+import nl.rivm.screenit.repository.algemeen.MailRepository;
 import nl.rivm.screenit.service.LogService;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5Session;
 

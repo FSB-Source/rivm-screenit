@@ -113,6 +113,7 @@ public class MammaBeeldenZoekenPanel extends Panel
 			IndicatingAjaxSubmitLink submit = new IndicatingAjaxSubmitLink("submit")
 			{
 
+				@Override
 				protected void onSubmit(AjaxRequestTarget target)
 				{
 					Client client = getModelObject();
@@ -191,7 +192,7 @@ public class MammaBeeldenZoekenPanel extends Panel
 					}
 					else
 					{
-						error("Geen onderzoeken met beelden gevonden voor " + model.getObject().getName() + ".");
+						error("Geen onderzoeken met beelden gevonden voor " + NaamUtil.titelVoorlettersTussenvoegselEnAanspreekAchternaam(model.getObject()) + ".");
 					}
 				}
 			};

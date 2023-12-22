@@ -18,4 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
-module.exports = require('../../frontend-base/config/jest.config');
+module.exports = {
+  ...require('../../frontend-base/config/jest.config'),
+  reporters: [ "default", "jest-junit" ],
+  globalSetup: "./global-setup.js",
+};

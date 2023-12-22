@@ -25,48 +25,41 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.KoppelConstants;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.service.BarcodeValiderenService;
 import nl.rivm.screenit.dao.BaseHoudbaarheidDao;
-import nl.rivm.screenit.dao.cervix.CervixMonsterDao;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
-import nl.rivm.screenit.model.cervix.CervixZas;
 import nl.rivm.screenit.model.cervix.CervixZasHoudbaarheid;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.service.BaseHoudbaarheidService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.cervix.CervixBaseMonsterService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import generated.KOPPELDATA;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
+@AllArgsConstructor
 public class BarcodeZasValiderenServiceImpl extends BaseValiderenService implements BarcodeValiderenService
 {
-	@Autowired
-	private BaseHoudbaarheidService houdbaarheidService;
+	private final BaseHoudbaarheidService houdbaarheidService;
 
-	@Autowired
-	private BaseHoudbaarheidDao houdbaarheidDao;
+	private final BaseHoudbaarheidDao houdbaarheidDao;
 
-	@Autowired
-	private CervixMonsterDao cervixMonsterDao;
+	private final CervixBaseMonsterService monsterService;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	public List<String> voerSemantischeValiatieUit(List<KOPPELDATA.VERZONDENUITNODIGING> koppeldata)
@@ -100,7 +93,7 @@ public class BarcodeZasValiderenServiceImpl extends BaseValiderenService impleme
 				}
 				if (StringUtils.isNotBlank(zasBarcode))
 				{
-					CervixZas bestaandeZas = cervixMonsterDao.getZas(zasBarcode);
+					var bestaandeZas = monsterService.getZas(zasBarcode).orElse(null);
 					if (bestaandeZas != null && !bestaandeZas.getUitnodiging().equals(cervixUitnodiging))
 					{
 						addFout(foutmeldingen, String.format(KoppelConstants.CERVIX_ZASID_AL_GEKOPPELD, verzondenUitnodiging.getID(),

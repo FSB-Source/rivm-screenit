@@ -27,6 +27,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -93,7 +95,8 @@ import nl.topicuszorg.organisatie.model.Adres;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.pdfbox.io.MemoryUsageSetting;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionJavaScript;
@@ -457,17 +460,21 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	@Override
 	public void completePdf(MergedBrieven<?> mergedBrieven)
 	{
+		var file = uploadDocumentService.load(mergedBrieven.getMergedBrieven());
+
 		try
 		{
-			File file = uploadDocumentService.load(mergedBrieven.getMergedBrieven());
-			PDDocument pdfBoxDocument = PDDocument.load(file);
-			PDActionJavaScript javaScript = new PDActionJavaScript(JavaScriptPdfHelper.getPrintJavascript());
-			pdfBoxDocument.getDocumentCatalog().setOpenAction(javaScript);
-			try (FileOutputStream outputStream = new FileOutputStream(file))
+			var copy = Files.copy(file.toPath(), Paths.get(file.toPath() + "-copy")).toFile();
+			var javaScript = new PDActionJavaScript(JavaScriptPdfHelper.getPrintJavascript());
+			try (var document = Loader.loadPDF(copy); var outputStream = new FileOutputStream(file))
 			{
-				pdfBoxDocument.save(outputStream);
-				pdfBoxDocument.close();
+				document.getDocumentCatalog().setOpenAction(javaScript);
+				document.save(outputStream);
 				LOG.info("Mergedocument(id = " + mergedBrieven.getId() + ") gegenereerd en klaar!");
+			}
+			finally
+			{
+				copy.delete();
 			}
 		}
 		catch (IOException e)
@@ -704,7 +711,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 			pdfMergerUtility.addSource(copyHuidigePdfMetMergedBrieven);
 			pdfMergerUtility.addSource(nieuwPdfMetMergedBrieven);
 			pdfMergerUtility.setDestinationStream(outputStream);
-			pdfMergerUtility.mergeDocuments(MemoryUsageSetting.setupMainMemoryOnly());
+			pdfMergerUtility.mergeDocuments(IOUtils.createMemoryOnlyStreamCache());
 
 			copyHuidigePdfMetMergedBrieven.delete();
 			nieuwPdfMetMergedBrieven.delete();
@@ -817,7 +824,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 		{
 			PdfSaveOptions pdfSaveOptions = asposeService.getPdfSaveOptions();
 			document.save(tempStream, pdfSaveOptions);
-			PDDocument pdfBoxDocument = PDDocument.load(new ByteArrayInputStream(tempStream.toByteArray()));
+			PDDocument pdfBoxDocument = Loader.loadPDF(new ByteArrayInputStream(tempStream.toByteArray()).readAllBytes());
 			if (autoShowPrintdialog)
 			{
 				PDActionJavaScript javaScript = new PDActionJavaScript(JavaScriptPdfHelper.getPrintJavascript());

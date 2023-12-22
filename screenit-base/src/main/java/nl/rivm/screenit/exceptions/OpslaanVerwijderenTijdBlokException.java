@@ -24,6 +24,7 @@ package nl.rivm.screenit.exceptions;
 import java.util.Date;
 import java.util.List;
 
+import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
 import nl.rivm.screenit.util.DateUtil;
 
 import com.google.common.collect.Range;
@@ -38,14 +39,19 @@ public abstract class OpslaanVerwijderenTijdBlokException extends Exception
 	public String getAdditionalMessageInfo()
 	{
 		int i = 0;
-		String message = "";
+		var message = new StringBuilder();
 		List<?> items = getItems();
-		for (Object item : items)
+		for (var item : items)
 		{
 			Range<Date> range = null;
 			if (item instanceof Range)
 			{
 				range = (Range<Date>) item;
+			}
+			else if (item instanceof ColonBlokkade)
+			{
+				var blokkade = (ColonBlokkade) item;
+				range = Range.closed(blokkade.getStartTime(), blokkade.getEndTime());
 			}
 			else
 			{
@@ -57,19 +63,19 @@ public abstract class OpslaanVerwijderenTijdBlokException extends Exception
 			}
 			if (i > 0)
 			{
-				message += ", ";
+				message.append(", ");
 			}
-			message += DateUtil.formatShortDateTime(range.lowerEndpoint()) + "-" + DateUtil.formatTime(range.upperEndpoint());
+			message.append(DateUtil.formatShortDateTime(range.lowerEndpoint())).append("-").append(DateUtil.formatTime(range.upperEndpoint()));
 
 			i++;
 			if (i == 5)
 			{
-				message += " en " + (items.size() - 5) + " andere..";
+				message.append(" en ").append(items.size() - 5).append(" andere..");
 				break;
 			}
 		}
-		message += ".";
-		return message;
+		message.append(".");
+		return message.toString();
 	}
 
 	protected abstract List<?> getItems();

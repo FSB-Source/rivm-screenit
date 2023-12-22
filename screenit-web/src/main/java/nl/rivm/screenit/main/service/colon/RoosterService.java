@@ -23,11 +23,15 @@ package nl.rivm.screenit.main.service.colon;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import nl.rivm.screenit.dao.colon.IntakelocatieVanTotEnMetFilter;
+import nl.rivm.screenit.exceptions.HeeftAfsprakenException;
 import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
+import nl.rivm.screenit.main.exception.ValidatieException;
 import nl.rivm.screenit.main.model.RecurrenceOption;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.RoosterItemListViewWrapper;
@@ -49,7 +53,7 @@ public interface RoosterService
 		Date origRecEndDateTime, boolean wijzigen) throws OpslaanVerwijderenTijdBlokException;
 
 	void magBlokkadeOpslaanVerwijderen(ColonBlokkade blokkade, RecurrenceOption recurrenceOption, Date recurrenceEditEnd, Date origRecEndDateTime, boolean wijzigen,
-		List<Kamer> kamers) throws OpslaanVerwijderenTijdBlokException;
+		List<Kamer> kamers) throws HeeftAfsprakenException;
 
 	void toevoegenHerhaling(AbstractAppointment appointment);
 
@@ -61,6 +65,8 @@ public interface RoosterService
 
 	RoosterItemStatus getRoosterItemStatus(RoosterItem roosterItem);
 
+	Optional<RoosterItem> getRoosterItem(Long id);
+
 	Integer getCurrentAantalRoosterBlokken(ColoscopieCentrum intakeLocatie, Range<Date> periode);
 
 	List<Date> getMdlDatums(Client client, IntakelocatieVanTotEnMetFilter intakeVanTotEnMetFilter);
@@ -70,4 +76,12 @@ public interface RoosterService
 	List<ColonBlokkade> getBlokkades(String sortProperty, boolean ascending, long first, long count, RoosterListViewFilter filter, ColoscopieCentrum intakelocatie);
 
 	long getBlokkadesCount(RoosterListViewFilter filter, ColoscopieCentrum intakelocatie);
+
+	void valideerTijdslot(AbstractAppointment tijdslot) throws ValidatieException;
+
+	ColoscopieCentrum getIntakelocatieVanInstellingGebruiker(InstellingGebruiker instellingGebruiker);
+
+	List<Range<Date>> getNieuweTijdSloten(AbstractAppointment tijdslot, Range<Date> currentViewRange);
+
+	Range<Date> getCurrentViewRange(AbstractAppointment tijdslot, RecurrenceOption recurrenceOption, Date recurrenceEditEnd, Date origRecEndDateTime);
 }

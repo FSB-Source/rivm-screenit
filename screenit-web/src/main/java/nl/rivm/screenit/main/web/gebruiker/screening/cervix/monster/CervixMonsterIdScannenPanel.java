@@ -21,13 +21,12 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.monster;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.dao.cervix.CervixMonsterDao;
 import nl.rivm.screenit.main.service.cervix.CervixUitnodigingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.modal.IDialog;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
-import nl.rivm.screenit.service.cervix.CervixMonsterService;
+import nl.rivm.screenit.service.cervix.CervixBaseMonsterService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.input.behavior.FocusBehavior;
 
@@ -46,13 +45,10 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 public abstract class CervixMonsterIdScannenPanel extends Panel
 {
 	@SpringBean
-	private CervixMonsterDao monsterDao;
-
-	@SpringBean
 	private CervixUitnodigingService uitnodigingService;
 
 	@SpringBean
-	private CervixMonsterService monsterService;
+	private CervixBaseMonsterService monsterService;
 
 	private final IModel<String> monsterId = Model.of("");
 
@@ -88,7 +84,7 @@ public abstract class CervixMonsterIdScannenPanel extends Panel
 			protected void onSubmit(AjaxRequestTarget target)
 			{
 				CervixUitnodiging uitnodiging = null;
-				var monster = monsterDao.getMonsterByMonsterId(monsterId.getObject());
+				var monster = monsterService.getMonster(monsterId.getObject()).orElse(null);
 				if (monster != null)
 				{
 					var ingelogdNamensOrganisatie = ScreenitSession.get().getInstelling();

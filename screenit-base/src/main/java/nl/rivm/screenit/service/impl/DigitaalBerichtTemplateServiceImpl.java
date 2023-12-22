@@ -32,11 +32,12 @@ import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.DigitaalBerichtTemplate;
 import nl.rivm.screenit.model.MailMergeContext;
+import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.enums.DigitaalBerichtTemplateType;
 import nl.rivm.screenit.model.enums.DigitaalBerichtType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.MergeField;
-import nl.rivm.screenit.repository.DigitaalBerichtTemplateRepository;
+import nl.rivm.screenit.repository.algemeen.DigitaalBerichtTemplateRepository;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.DigitaalBerichtTemplateService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -68,9 +69,14 @@ public class DigitaalBerichtTemplateServiceImpl implements DigitaalBerichtTempla
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public Optional<DigitaalBerichtTemplate> getDigitaalBerichtTemplate(DigitaalBerichtTemplateType type)
+	public Optional<DigitaalBerichtTemplate> findDigitaalBerichtTemplate(DigitaalBerichtTemplateType type)
 	{
 		return digitaalBerichtTemplateRepository.findDigitaalBerichtTemplateByType(type);
+	}
+
+	private DigitaalBerichtTemplate getDigitaalBerichtTemplate(DigitaalBerichtTemplateType type) throws NoSuchElementException
+	{
+		return findDigitaalBerichtTemplate(type).orElseThrow(() -> new NoSuchElementException("Templatetype: " + type + " staat niet in de database"));
 	}
 
 	@Override
@@ -84,9 +90,18 @@ public class DigitaalBerichtTemplateServiceImpl implements DigitaalBerichtTempla
 	@Override
 	public DigitaalBerichtDTO maakDigitaalBericht(DigitaalBerichtTemplateType type, Client client)
 	{
-		var template = getDigitaalBerichtTemplate(type).orElseThrow(() -> new NoSuchElementException("Templatetype: " + type + " staat niet in de database"));
+		var template = getDigitaalBerichtTemplate(type);
 		var context = maakMailMergeContext(client);
 		context.putValue(MailMergeContext.CONTEXT_MAMMA_CE, clientService.bepaalCe(client));
+
+		return maakDigitaalBericht(template, context);
+	}
+
+	@Override
+	public DigitaalBerichtDTO maakDigitaalBericht(DigitaalBerichtTemplateType type, ColoscopieCentrum intakelocatie)
+	{
+		var template = getDigitaalBerichtTemplate(type);
+		var context = maakMailMergeContext(intakelocatie);
 
 		return maakDigitaalBericht(template, context);
 	}
@@ -105,6 +120,13 @@ public class DigitaalBerichtTemplateServiceImpl implements DigitaalBerichtTempla
 	{
 		var context = new MailMergeContext();
 		context.setClient(client);
+		return context;
+	}
+
+	private MailMergeContext maakMailMergeContext(ColoscopieCentrum intakelocatie)
+	{
+		var context = new MailMergeContext();
+		context.setIntakelocatie(intakelocatie);
 		return context;
 	}
 

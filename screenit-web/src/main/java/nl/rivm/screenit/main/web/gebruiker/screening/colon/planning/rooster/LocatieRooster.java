@@ -34,6 +34,7 @@ import java.util.TreeMap;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
+import nl.rivm.screenit.main.exception.ValidatieException;
 import nl.rivm.screenit.main.service.colon.RoosterService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
@@ -175,22 +176,11 @@ public class LocatieRooster extends GenericPanel<Kamer> implements ICalendarCall
 				}
 
 				@Override
-				protected boolean onBeforeOpslaan(RoosterItem roosteritem)
+				protected boolean onBeforeOpslaan(RoosterItem roosteritem) throws ValidatieException, OpslaanVerwijderenTijdBlokException
 				{
-					boolean isValideRoosterItem = super.onBeforeOpslaan(roosteritem);
-					if (isValideRoosterItem)
-					{
-						try
-						{
-							roosterService.magRoosterItemOpslaanVerwijderen(roosteritem, getRecurrenceOption(), getRecurrenceEditEnd(), origRecEndDateTime, true);
-						}
-						catch (OpslaanVerwijderenTijdBlokException e)
-						{
-							isValideRoosterItem = false;
-							error(createErrorMessage(e));
-						}
-					}
-					return isValideRoosterItem;
+					super.onBeforeOpslaan(roosteritem);
+					roosterService.magRoosterItemOpslaanVerwijderen(roosteritem, getRecurrenceOption(), getRecurrenceEditEnd(), origRecEndDateTime, true);
+					return true;
 				}
 
 				@Override
@@ -497,23 +487,12 @@ public class LocatieRooster extends GenericPanel<Kamer> implements ICalendarCall
 				}
 
 				@Override
-				protected boolean onBeforeOpslaan(ColonBlokkade blokkade)
+				protected boolean onBeforeOpslaan(ColonBlokkade blokkade) throws ValidatieException, OpslaanVerwijderenTijdBlokException
 				{
-					boolean isValideBlokkade = super.onBeforeOpslaan(blokkade);
-					if (isValideBlokkade)
-					{
-						try
-						{
-							roosterService.magBlokkadeOpslaanVerwijderen(blokkade, getRecurrenceOption(), getRecurrenceEditEnd(), origRecEndDateTime, true,
-								getKamers(blokkade));
-						}
-						catch (OpslaanVerwijderenTijdBlokException e)
-						{
-							isValideBlokkade = false;
-							error(createErrorMessage(e));
-						}
-					}
-					return isValideBlokkade;
+					super.onBeforeOpslaan(blokkade);
+					roosterService.magBlokkadeOpslaanVerwijderen(blokkade, getRecurrenceOption(), getRecurrenceEditEnd(), origRecEndDateTime, true,
+						getKamers(blokkade));
+					return true;
 				}
 
 				@Override

@@ -26,8 +26,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.dao.cervix.CervixVerrichtingDao;
 import nl.rivm.screenit.dto.cervix.facturatie.CervixBetalingsZoekObject;
+import nl.rivm.screenit.main.service.cervix.CervixBetalingService;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.HibernateIdChoiceRenderer;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
@@ -67,7 +67,7 @@ public class CervixBetalingPage extends CervixScreeningBasePage
 {
 
 	@SpringBean
-	private CervixVerrichtingDao verrichtingDao;
+	private CervixBetalingService betalingService;
 
 	@SpringBean
 	private DistributedLockService lockService;
@@ -163,7 +163,7 @@ public class CervixBetalingPage extends CervixScreeningBasePage
 		{
 			try
 			{
-				var boekregels = verrichtingDao.getVerrichtingenVoorBetaling(zoekObjectModel.getObject(), null, -1, -1);
+				var boekregels = betalingService.getVerrichtingenVoorBetaling(zoekObjectModel.getObject());
 				if (boekregels.isEmpty())
 				{
 					info("Er zijn op dit moment geen verrichtingen meer die uitbetaald moeten worden.");

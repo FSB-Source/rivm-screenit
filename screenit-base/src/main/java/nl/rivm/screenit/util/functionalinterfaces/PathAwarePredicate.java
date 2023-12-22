@@ -21,12 +21,41 @@ package nl.rivm.screenit.util.functionalinterfaces;
  * =========================LICENSE_END==================================
  */
 
+import java.util.function.Function;
+
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.metamodel.SingularAttribute;
+
+import nl.rivm.screenit.specification.SpecificationUtil;
+
+import org.springframework.data.jpa.domain.Specification;
 
 @FunctionalInterface
 public interface PathAwarePredicate<T>
 {
 	Predicate withPath(CriteriaBuilder cb, Path<T> r);
+
+	default Specification<T> toSpecification()
+	{
+		return (r, q, cb) -> withPath(cb, r);
+	}
+
+	default <S> Specification<S> toSpecification(Function<Root<S>, Path<T>> pathSupplier)
+	{
+		return (r, q, cb) -> withPath(cb, pathSupplier.apply(r));
+	}
+
+	default <S> Specification<S> toSpecification(SingularAttribute<? super S, T> attribute)
+	{
+		return toSpecification(attribute, JoinType.INNER);
+	}
+
+	default <S> Specification<S> toSpecification(SingularAttribute<? super S, T> attribute, JoinType joinType)
+	{
+		return (r, q, cb) -> withPath(cb, SpecificationUtil.join(r, attribute, joinType));
+	}
 }

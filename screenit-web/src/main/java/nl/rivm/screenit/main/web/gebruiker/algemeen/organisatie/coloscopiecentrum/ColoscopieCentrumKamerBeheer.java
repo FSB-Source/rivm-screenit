@@ -61,7 +61,6 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	Recht.GEBRUIKER_BEHEER_CC_LOCATIES }, level = ToegangLevel.INSTELLING, bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON })
 public class ColoscopieCentrumKamerBeheer extends OrganisatieBeheer
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@SpringBean
@@ -116,7 +115,6 @@ public class ColoscopieCentrumKamerBeheer extends OrganisatieBeheer
 		locatieBeschrijvingForm.add(new KoppelAanRegioOrganisatiePanel<ColoscopieCentrum>("regio", locatieBeschrijvingForm.getModel()).setEnabled(!inzien));
 		locatieBeschrijvingForm.add(new AjaxSubmitLink("opslaan")
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -174,7 +172,6 @@ public class ColoscopieCentrumKamerBeheer extends OrganisatieBeheer
 		aantalGeprognRoosterBlokkenForm.add(aantalGeprognostiseerdeRoosterblokkenVolgendJaar);
 		ScreenitAjaxLink opslaan = new ScreenitAjaxLink("opslaan")
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override

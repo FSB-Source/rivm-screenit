@@ -35,7 +35,6 @@ import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -78,14 +77,6 @@ public class MammaScreeningsEenheidServiceImpl implements MammaScreeningsEenheid
 		{
 			return true;
 		}
-
-		var seVersie = getVersieVanSe(seCode);
-
-		if (seVersie != null && seVersie.startsWith("23.3"))
-		{
-			return true;
-		}
-
 		if (datum.isAfter(laatstOpTeHalenDatum))
 		{
 			return false;
@@ -93,22 +84,6 @@ public class MammaScreeningsEenheidServiceImpl implements MammaScreeningsEenheid
 
 		var vroegstOpTeHalenDatum = getVroegstOpTeHalenDatum(seCode);
 		return !datum.isBefore(vroegstOpTeHalenDatum);
-	}
-
-	@Nullable
-	private String getVersieVanSe(String seCode)
-	{
-		String seVersie = null;
-		var screeningsEenheid = getActieveScreeningsEenheidByCode(seCode);
-		if (screeningsEenheid != null)
-		{
-			var seStatus = screeningsEenheid.getStatus();
-			if (seStatus != null)
-			{
-				seVersie = seStatus.getVersie();
-			}
-		}
-		return seVersie;
 	}
 
 	private LocalDate getVroegstOpTeHalenDatum(String seCode)

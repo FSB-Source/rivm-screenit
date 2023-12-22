@@ -29,7 +29,6 @@ import java.util.stream.Stream;
 
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.dao.cervix.CervixHuisartsLocatieDao;
 import nl.rivm.screenit.huisartsenportaal.enums.CervixLocatieStatus;
 import nl.rivm.screenit.huisartsenportaal.util.CervixLocatieUtil;
 import nl.rivm.screenit.model.Client;
@@ -39,8 +38,9 @@ import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.cervix.CervixBaseMonsterService;
 import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
-import nl.rivm.screenit.service.cervix.CervixMonsterService;
+import nl.rivm.screenit.service.cervix.CervixHuisartsLocatieService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.wsb.fhir.exception.NotValidatedException;
 import nl.rivm.screenit.wsb.fhir.exception.RequiredPropertyException;
@@ -65,9 +65,9 @@ public class LabaanvraagValidator
 
 	private final ClientService clientService;
 
-	private final CervixHuisartsLocatieDao locatieDao;
+	private final CervixHuisartsLocatieService huisartsLocatieService;
 
-	private final CervixMonsterService monsterService;
+	private final CervixBaseMonsterService monsterService;
 
 	private final CervixBaseScreeningrondeService screeningRondeService;
 
@@ -81,8 +81,8 @@ public class LabaanvraagValidator
 	{
 		validated = false;
 		clientService = SpringBeanProvider.getInstance().getBean(ClientService.class);
-		locatieDao = SpringBeanProvider.getInstance().getBean(CervixHuisartsLocatieDao.class);
-		monsterService = SpringBeanProvider.getInstance().getBean(CervixMonsterService.class);
+		huisartsLocatieService = SpringBeanProvider.getInstance().getBean(CervixHuisartsLocatieService.class);
+		monsterService = SpringBeanProvider.getInstance().getBean(CervixBaseMonsterService.class);
 		screeningRondeService = SpringBeanProvider.getInstance().getBean(CervixBaseScreeningrondeService.class);
 		currentDateSupplier = SpringBeanProvider.getInstance().getBean(ICurrentDateSupplier.class);
 		hibernateSerice = SpringBeanProvider.getInstance().getBean(HibernateService.class);
@@ -479,7 +479,7 @@ public class LabaanvraagValidator
 	private void getAndValidateMonsterByMonsterId(LabaanvraagResource resource)
 	{
 		CervixUitstrijkje uitstrijkje = monsterService
-			.getUitstrijkjeByClientBsnAndMonsterId(resource.getClientBsn(), resource.getMonsterId());
+			.getUitstrijkjeByClientBsnAndMonsterId(resource.getClientBsn(), resource.getMonsterId()).orElse(null);
 		if (uitstrijkje == null)
 		{
 			addBusinessRuleErrorOperationOutcomeIssueComponent(ValidationMessage.MONSTER_ID_ONBEKEND_BIJ_CLIENT);
@@ -507,7 +507,7 @@ public class LabaanvraagValidator
 	private void getAndValidateMonsterByControleLetters(LabaanvraagResource resource)
 	{
 		CervixUitstrijkje uitstrijkje = monsterService
-			.getUitstrijkjeByClientBsnAndControleLetters(resource.getClientBsn(), resource.getControleLetters());
+			.getUitstrijkjeByClientBsnAndControleLetters(resource.getClientBsn(), resource.getControleLetters()).orElse(null);
 		if (uitstrijkje == null)
 		{
 			addBusinessRuleErrorOperationOutcomeIssueComponent(ValidationMessage.CONTROLELETTERS_ONBEKEND_BIJ_CLIENT);
@@ -555,36 +555,30 @@ public class LabaanvraagValidator
 
 	private void validateIndividueleAgb(LabaanvraagResource resource)
 	{
-		CervixHuisarts huisarts = getActieveHuisartsMetEenActieveLocatie(resource.getIndividueleAgb());
-		if (huisarts == null
-			&& resource.getPraktijkAgb() != null)
+		var huisarts = huisartsLocatieService.findActieveHuisartsMetEenActieveLocatie(resource.getIndividueleAgb());
+		if (huisarts.isEmpty() && resource.getPraktijkAgb() != null)
 		{
 			validatePraktijkAgb(resource);
 		}
-		else if (huisarts != null)
+		else if (huisarts.isPresent())
 		{
-			validateActieveGoedIngevuldeLocatie(huisarts);
+			validateActieveGoedIngevuldeLocatie(huisarts.get());
 			validateGemeenteGekoppeldAanBmhkLaboratorium(resource);
 		}
 	}
 
 	private void validatePraktijkAgb(LabaanvraagResource resource)
 	{
-		CervixHuisarts huisarts = getActieveHuisartsMetEenActieveLocatie(resource.getPraktijkAgb());
-		if (huisarts == null)
+		var huisarts = huisartsLocatieService.findActieveHuisartsMetEenActieveLocatie(resource.getPraktijkAgb());
+		if (huisarts.isEmpty())
 		{
 			addBusinessRuleErrorOperationOutcomeIssueComponent(ValidationMessage.AGB_CODE_ONBEKEND);
 		}
 		else
 		{
-			validateActieveGoedIngevuldeLocatie(huisarts);
+			validateActieveGoedIngevuldeLocatie(huisarts.get());
 			validateGemeenteGekoppeldAanBmhkLaboratorium(resource);
 		}
-	}
-
-	private CervixHuisarts getActieveHuisartsMetEenActieveLocatie(String agbcode)
-	{
-		return locatieDao.getActieveHuisartsMetEenActieveLocatie(agbcode);
 	}
 
 	private void validateActieveGoedIngevuldeLocatie(CervixHuisarts huisarts)
@@ -606,14 +600,16 @@ public class LabaanvraagValidator
 		if (resource instanceof LabaanvraagBundle)
 		{
 			LabaanvraagBundle bundle = (LabaanvraagBundle) resource;
-			try {
+			try
+			{
 				if (bundle.getLaboratorium() == null)
 				{
 					addErrorOperationOutcomeIssueComponent(OperationOutcome.IssueType.EXCEPTION,
 						new RequiredPropertyException("De gemeente waar de huisarts is gevestigd is (nog) niet aan een laboratorium gekoppeld. Neem contact op met BVO-NL!"));
 				}
 			}
-			catch (NoSuchElementException e) {
+			catch (NoSuchElementException e)
+			{
 				LOG.error(e.getMessage());
 			}
 		}

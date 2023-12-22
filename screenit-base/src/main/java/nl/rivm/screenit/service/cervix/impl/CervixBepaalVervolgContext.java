@@ -38,7 +38,7 @@ import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixZasStatus;
-import nl.rivm.screenit.service.cervix.CervixMonsterService;
+import nl.rivm.screenit.service.cervix.CervixBaseMonsterService;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 
 public class CervixBepaalVervolgContext
@@ -93,18 +93,18 @@ public class CervixBepaalVervolgContext
 
 	public CervixBepaalVervolgDao bepaalVervolgDao;
 
-	public CervixMonsterService monsterService;
+	public CervixBaseMonsterService monsterService;
 
 	public int intervalControleUitstrijkje;
 
 	public CervixBepaalVervolgContext(CervixMonster monster, boolean isZasHoudbaar, LocalDateTime nu, LocalDate startDatumAanleveringGenotypering,
-		CervixBepaalVervolgDao bepaalVervolgDao, CervixMonsterService monsterService, int intervalControleUitstrijkje)
+		CervixBepaalVervolgDao bepaalVervolgDao, CervixBaseMonsterService monsterService, int intervalControleUitstrijkje)
 	{
 		this(monster, isZasHoudbaar, nu, startDatumAanleveringGenotypering, bepaalVervolgDao, monsterService, intervalControleUitstrijkje, false);
 	}
 
 	public CervixBepaalVervolgContext(CervixMonster monster, boolean isZasHoudbaar, LocalDateTime nu, LocalDate startDatumAanleveringGenotypering,
-		CervixBepaalVervolgDao bepaalVervolgDao, CervixMonsterService monsterService, int intervalControleUitstrijkje, boolean digitaalLabformulier)
+		CervixBepaalVervolgDao bepaalVervolgDao, CervixBaseMonsterService monsterService, int intervalControleUitstrijkje, boolean digitaalLabformulier)
 	{
 		huidigeMonster = (CervixMonster) HibernateHelper.deproxy(monster);
 		this.nu = nu;

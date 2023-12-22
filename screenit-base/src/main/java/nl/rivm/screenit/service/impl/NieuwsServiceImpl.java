@@ -28,7 +28,7 @@ import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.nieuws.NieuwsItem;
-import nl.rivm.screenit.repository.NieuwsRepository;
+import nl.rivm.screenit.repository.algemeen.NieuwsRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.NieuwsService;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
@@ -39,10 +39,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import static nl.rivm.screenit.repository.NieuwsRepository.baseSpecification;
-import static nl.rivm.screenit.repository.NieuwsRepository.isOngelezen;
-import static nl.rivm.screenit.repository.NieuwsRepository.publicerenTot;
-import static nl.rivm.screenit.repository.NieuwsRepository.publicerenVanaf;
+import static nl.rivm.screenit.repository.algemeen.NieuwsRepository.baseSpecification;
+import static nl.rivm.screenit.repository.algemeen.NieuwsRepository.isOngelezen;
+import static nl.rivm.screenit.repository.algemeen.NieuwsRepository.publicerenTot;
+import static nl.rivm.screenit.repository.algemeen.NieuwsRepository.publicerenVanaf;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)

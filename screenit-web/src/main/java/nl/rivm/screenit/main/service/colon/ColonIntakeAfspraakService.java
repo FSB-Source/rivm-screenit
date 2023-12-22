@@ -21,6 +21,8 @@ package nl.rivm.screenit.main.service.colon;
  * =========================LICENSE_END==================================
  */
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.List;
 
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
@@ -32,5 +34,9 @@ public interface ColonIntakeAfspraakService
 	List<ColonIntakeAfspraak> getAfsprakenZonderVerslag(WerklijstIntakeFilter zoekObject, ColoscopieCentrum intakeLocatie, long first, long count, String sortProperty,
 		boolean isAscending);
 
-	Long getAantalAfsprakenZonderVerslag(WerklijstIntakeFilter zoekObject, ColoscopieCentrum intakeLocatie);
+	long getAantalAfsprakenZonderVerslag(WerklijstIntakeFilter zoekObject, ColoscopieCentrum intakeLocatie);
+
+	long countAfsprakenOpDagVanDeWeek(DayOfWeek dagVanDeWeek);
+
+	long countAfsprakenInNacht(LocalTime beginTijd, LocalTime eindTijd);
 }

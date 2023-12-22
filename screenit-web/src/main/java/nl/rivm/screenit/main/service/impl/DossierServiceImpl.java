@@ -42,7 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.ClientDao;
-import nl.rivm.screenit.dao.cervix.CervixRondeDao;
 import nl.rivm.screenit.main.model.AfmeldenDossierGebeurtenis;
 import nl.rivm.screenit.main.model.DossierGebeurtenis;
 import nl.rivm.screenit.main.model.DossierGebeurtenisType;
@@ -53,6 +52,7 @@ import nl.rivm.screenit.main.model.TypeGebeurtenis;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaBeoordelingGebeurtenis;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaLezingGebeurtenis;
 import nl.rivm.screenit.main.model.mamma.onderzoek.MammaOnderzoekGebeurtenis;
+import nl.rivm.screenit.main.repository.cervix.CervixMonsterRepository;
 import nl.rivm.screenit.main.service.ClientDossierFilter;
 import nl.rivm.screenit.main.service.DossierService;
 import nl.rivm.screenit.main.service.cervix.CervixOmissieGebeurtenisFactory;
@@ -75,19 +75,15 @@ import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.berichten.enums.VerslagType;
 import nl.rivm.screenit.model.cervix.CervixAfmelding;
 import nl.rivm.screenit.model.cervix.CervixBrief;
-import nl.rivm.screenit.model.cervix.CervixCytologieOrder;
 import nl.rivm.screenit.model.cervix.CervixCytologieVerslag;
 import nl.rivm.screenit.model.cervix.CervixDossier;
-import nl.rivm.screenit.model.cervix.CervixHpvBeoordeling;
 import nl.rivm.screenit.model.cervix.CervixHuisartsBericht;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
-import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstel;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
-import nl.rivm.screenit.model.cervix.cis.CervixCISHistorie;
 import nl.rivm.screenit.model.cervix.enums.CervixAfmeldingReden;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieOrderStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixHuisartsBerichtStatus;
@@ -189,7 +185,7 @@ public class DossierServiceImpl implements DossierService
 
 	private final HibernateService hibernateService;
 
-	private final CervixRondeDao cervixRondeDao;
+	private final CervixMonsterRepository monsterRepository;
 
 	private final RondeNummerService rondeNummerService;
 
@@ -829,23 +825,23 @@ public class DossierServiceImpl implements DossierService
 		List<ScreeningRondeGebeurtenissen> dossiers = new ArrayList<>();
 		if (client.getCervixDossier() != null)
 		{
-			List<CervixScreeningRonde> screeningRondes = new ArrayList<>(client.getCervixDossier().getScreeningRondes());
+			var screeningRondes = new ArrayList<>(client.getCervixDossier().getScreeningRondes());
 			Collections.sort(screeningRondes, (o1, o2) -> o1.getCreatieDatum().compareTo(o2.getCreatieDatum()) * -1);
 
-			CervixCISHistorie cisHistorie = client.getCervixDossier().getCisHistorie();
+			var cisHistorie = client.getCervixDossier().getCisHistorie();
 
-			for (CervixScreeningRonde cervixScreeningRonde : screeningRondes)
+			for (var cervixScreeningRonde : screeningRondes)
 			{
 
 				int rondeNr = rondeNummerService.geefRondeNummer(cervixScreeningRonde);
 
-				ScreeningRondeGebeurtenissen rondeDossier = new ScreeningRondeGebeurtenissen(rondeNr);
+				var rondeDossier = new ScreeningRondeGebeurtenissen(rondeNr);
 				rondeDossier.setScreeningRonde(cervixScreeningRonde);
 				hibernateService.reload(cervixScreeningRonde);
 
 				if (cisHistorie != null && cervixScreeningRonde.equals(cisHistorie.getScreeningRonde()) && cisHistorie.isHeeftPap0())
 				{
-					ScreeningRondeGebeurtenis screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
+					var screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
 					screeningRondeGebeurtenis.setDatum(cervixScreeningRonde.getCreatieDatum());
 					screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.CIS_PAP0);
 					screeningRondeGebeurtenis.setBron(GebeurtenisBron.AUTOMATISCH);
@@ -854,11 +850,11 @@ public class DossierServiceImpl implements DossierService
 
 				maakCervixUitstelGebeurtenissen(cervixScreeningRonde, rondeDossier);
 
-				for (CervixUitnodiging cervixUitnodiging : cervixScreeningRonde.getUitnodigingen())
+				for (var cervixUitnodiging : cervixScreeningRonde.getUitnodigingen())
 				{
 					if (cervixUitnodiging.getMonsterType() == CervixMonsterType.ZAS)
 					{
-						ScreeningRondeGebeurtenis screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
+						var screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
 						screeningRondeGebeurtenis.setDatum(cervixUitnodiging.getCreatieDatum());
 						screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BMHK_ZAS_AANGEVRAAGD);
 						screeningRondeGebeurtenis.setGebeurtenis(cervixUitnodiging.getBrief().getBriefType() == BriefType.CERVIX_ZAS_UITNODIGING ?
@@ -891,7 +887,7 @@ public class DossierServiceImpl implements DossierService
 							rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
 						}
 
-						CervixZas zas = (CervixZas) cervixUitnodiging.getMonster();
+						var zas = CervixMonsterUtil.getZAS(cervixUitnodiging.getMonster());
 						if (zas != null)
 						{
 							List<String> extraOmschrijvingen = new ArrayList<>();
@@ -913,19 +909,19 @@ public class DossierServiceImpl implements DossierService
 					retouren(rondeDossier, cervixUitnodiging);
 				}
 
-				List<CervixMonster> ontvangenMonsters = cervixRondeDao.getOntvangenMonsters(cervixScreeningRonde);
-				for (CervixMonster ontvangenMonster : ontvangenMonsters)
+				var ontvangenMonsters = monsterRepository.findAllByOntvangstScreeningRonde(cervixScreeningRonde);
+				for (var ontvangenMonster : ontvangenMonsters)
 				{
-					CervixUitnodiging cervixUitnodiging = ontvangenMonster.getUitnodiging();
+					var cervixUitnodiging = ontvangenMonster.getUitnodiging();
 
-					for (CervixHpvBeoordeling beoordeling : ontvangenMonster.getHpvBeoordelingen())
+					for (var beoordeling : ontvangenMonster.getHpvBeoordelingen())
 					{
-						ScreeningRondeGebeurtenis screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
+						var screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
 						screeningRondeGebeurtenis.setDatum(beoordeling.getHpvBericht().getOntvangen());
 						screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BMHK_MONSTER_HPV_GEANALYSEERD);
 						screeningRondeGebeurtenis.setUitnodiging(cervixUitnodiging);
 						screeningRondeGebeurtenis.setBeoordeling(beoordeling);
-						List<String> extraOmschrijving = new ArrayList<>();
+						var extraOmschrijving = new ArrayList<>();
 						extraOmschrijving.add("Monster-id: ");
 						extraOmschrijving.add(ontvangenMonster.getMonsterId());
 						extraOmschrijving.add("Beoordeling: ");
@@ -950,19 +946,19 @@ public class DossierServiceImpl implements DossierService
 					}
 					if (CervixMonsterUtil.isUitstrijkje(ontvangenMonster))
 					{
-						CervixUitstrijkje uitstrijkje = (CervixUitstrijkje) ontvangenMonster;
+						var uitstrijkje = (CervixUitstrijkje) ontvangenMonster;
 						addUitstrijkjeStatusGebeurtenissen(rondeDossier, uitstrijkje);
 
-						CervixLabformulier labformulier = uitstrijkje.getLabformulier();
+						var labformulier = uitstrijkje.getLabformulier();
 						if (labformulier != null)
 						{
 							addLabformulierStatusGebeurtenissen(rondeDossier, labformulier);
 						}
 
-						CervixCytologieOrder cytologieOrder = uitstrijkje.getCytologieOrder();
+						var cytologieOrder = uitstrijkje.getCytologieOrder();
 						if (cytologieOrder != null && uitstrijkje.getCytologieVerslag() == null && CervixCytologieOrderStatus.VERSTUURD == cytologieOrder.getStatus())
 						{
-							ScreeningRondeGebeurtenis screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
+							var screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
 							screeningRondeGebeurtenis.setDatum(cytologieOrder.getStatusDatum());
 							screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BMHK_ORDER_VERSTUURD);
 							screeningRondeGebeurtenis.setUitnodiging(cervixUitnodiging);
@@ -981,7 +977,7 @@ public class DossierServiceImpl implements DossierService
 						{
 							huisartsBerichten.add(labformulier.getUitstrijkjeOntbreektHuisartsBericht());
 						}
-						for (CervixHuisartsBericht huisartsBericht : huisartsBerichten)
+						for (var huisartsBericht : huisartsBerichten)
 						{
 							voegHuisartsberichtGebeurtenisToe(rondeDossier, huisartsBericht, huisartsBericht.getAanmaakDatum(), TypeGebeurtenis.BMHK_HUISARTSBERICHT_AANGEMAAKT,
 								GebeurtenisBron.AUTOMATISCH);

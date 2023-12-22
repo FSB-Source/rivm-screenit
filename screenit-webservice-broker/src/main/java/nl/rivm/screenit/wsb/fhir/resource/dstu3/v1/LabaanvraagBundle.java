@@ -28,11 +28,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import nl.rivm.screenit.dao.cervix.CervixHuisartsLocatieDao;
 import nl.rivm.screenit.huisartsenportaal.enums.CervixLocatieStatus;
 import nl.rivm.screenit.huisartsenportaal.util.CervixLocatieUtil;
 import nl.rivm.screenit.model.BMHKLaboratorium;
@@ -41,7 +41,9 @@ import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.cervix.CervixMonsterService;
+import nl.rivm.screenit.service.cervix.CervixBaseMonsterService;
+import nl.rivm.screenit.service.cervix.CervixHuisartsLocatieService;
+import nl.topicuszorg.organisatie.model.Organisatie;
 import nl.topicuszorg.spring.injection.SpringBeanProvider;
 
 import org.hl7.fhir.dstu3.model.Bundle;
@@ -68,15 +70,15 @@ public class LabaanvraagBundle extends Bundle implements LabaanvraagResource
 
 	private final ICurrentDateSupplier currentDateSupplier;
 
-	private final CervixHuisartsLocatieDao locatieDao;
+	private final CervixHuisartsLocatieService huisartsLocatieService;
 
-	private final CervixMonsterService monsterService;
+	private final CervixBaseMonsterService monsterService;
 
 	public LabaanvraagBundle()
 	{
 		this.currentDateSupplier = SpringBeanProvider.getInstance().getBean(ICurrentDateSupplier.class);
-		this.locatieDao = SpringBeanProvider.getInstance().getBean(CervixHuisartsLocatieDao.class);
-		this.monsterService = SpringBeanProvider.getInstance().getBean(CervixMonsterService.class);
+		this.huisartsLocatieService = SpringBeanProvider.getInstance().getBean(CervixHuisartsLocatieService.class);
+		this.monsterService = SpringBeanProvider.getInstance().getBean(CervixBaseMonsterService.class);
 	}
 
 	public Date getScanDatum()
@@ -105,44 +107,50 @@ public class LabaanvraagBundle extends Bundle implements LabaanvraagResource
 
 	public CervixUitstrijkje getUitstrijkje()
 	{
-		if (getMonsterId() != null)
+		var monsterId = getMonsterId();
+		var clientBsn = getClientBsn();
+
+		if (monsterId != null)
 		{
-			CervixUitstrijkje uitstrijkje = monsterService.getUitstrijkjeByClientBsnAndMonsterId(getClientBsn(), getMonsterId());
-			if (uitstrijkje != null)
+			return monsterService.getUitstrijkjeByClientBsnAndMonsterId(clientBsn, monsterId).orElse(null);
+		}
+		else
+		{
+			var controleLetters = getControleLetters();
+			if (controleLetters != null)
 			{
-				return uitstrijkje;
+				return monsterService.getUitstrijkjeByClientBsnAndControleLetters(clientBsn, controleLetters).orElse(null);
 			}
 		}
-		return monsterService.getUitstrijkjeByClientBsnAndControleLetters(getClientBsn(), getControleLetters());
+		return null;
 	}
 
 	public CervixHuisartsLocatie getHuisartsLocatie() throws NoSuchElementException
 	{
-		final CervixHuisarts huisarts = getActieveHuisartsMetEenActieveLocatie();
+		var huisarts = getActieveHuisartsMetEenActieveLocatie();
+
 		return huisarts
-			.getHuisartsLocaties()
+			.map(CervixHuisarts::getHuisartsLocaties)
+			.orElseGet(ArrayList::new)
 			.stream()
 			.filter(locatie -> locatie.getStatus() == CervixLocatieStatus.ACTIEF && CervixLocatieUtil.isLocatieCompleet(locatie))
 			.min(Comparator.comparing(CervixHuisartsLocatie::getId))
-			.orElseThrow(() -> new NoSuchElementException(String.format("Voor huisarts met AGB code %s is geen actieve locatie gevonden.", huisarts.getAgbcode())));
+			.orElseThrow(
+				() -> new NoSuchElementException(
+					String.format("Voor huisarts met AGB code %s is geen actieve locatie gevonden.", huisarts.map(Organisatie::getAgbcode).orElse(""))));
 	}
 
-	private CervixHuisarts getActieveHuisartsMetEenActieveLocatie()
+	private Optional<CervixHuisarts> getActieveHuisartsMetEenActieveLocatie()
 	{
 		if (getIndividueleAgb() != null)
 		{
-			CervixHuisarts huisarts = getActieveHuisartsMetEenActieveLocatie(getIndividueleAgb());
-			if (huisarts != null)
+			var huisarts = huisartsLocatieService.findActieveHuisartsMetEenActieveLocatie(getIndividueleAgb());
+			if (huisarts.isPresent())
 			{
 				return huisarts;
 			}
 		}
-		return getActieveHuisartsMetEenActieveLocatie(getPraktijkAgb());
-	}
-
-	private CervixHuisarts getActieveHuisartsMetEenActieveLocatie(String agbcode)
-	{
-		return locatieDao.getActieveHuisartsMetEenActieveLocatie(agbcode);
+		return huisartsLocatieService.findActieveHuisartsMetEenActieveLocatie(getPraktijkAgb());
 	}
 
 	public CervixLabformulierStatus getStatus()

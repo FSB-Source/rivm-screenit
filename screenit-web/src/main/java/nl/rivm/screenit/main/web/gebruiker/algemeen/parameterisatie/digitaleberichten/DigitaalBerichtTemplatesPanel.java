@@ -117,7 +117,7 @@ public abstract class DigitaalBerichtTemplatesPanel extends Panel
 				var type = digitaalBerichtFilter.getObject();
 				if (type != null)
 				{
-					var template = templateService.getDigitaalBerichtTemplate(type).orElseGet(() -> maakNieuweDigitaalBerichtTemplate(type));
+					var template = templateService.findDigitaalBerichtTemplate(type).orElseGet(() -> maakNieuweDigitaalBerichtTemplate(type));
 					var templateModel = ModelUtil.ccModel(template);
 					addOrReplace(new DigitaalBerichtTemplateAanpassenPanel("digitaalBerichtTemplateAanpassen", templateModel));
 					selecteerEenTemplate.setVisible(false);

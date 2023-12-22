@@ -1,0 +1,7 @@
+spring:
+  datasource:
+    hikari:
+      username: ${DB_USER:screenit}
+      password: ${DB_PASSWORD:screenit}
+s3:
+  endpointOverride: ${S3_ENDPOINT_OVERRIDE:http://s3.localhost.localstack.cloud:4566}

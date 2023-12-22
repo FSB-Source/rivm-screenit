@@ -137,7 +137,8 @@ public class ScreenitApplication extends WebApplication
 			.add(CSPDirective.OBJECT_SRC, CSPDirectiveSrcValue.SELF)
 			.add(CSPDirective.STYLE_SRC, CSPDirectiveSrcValue.SELF)
 			.add(CSPDirective.FONT_SRC, CSPDirectiveSrcValue.SELF)
-			.add(CSPDirective.FRAME_ANCESTORS, CSPDirectiveSrcValue.SELF);
+			.add(CSPDirective.FRAME_ANCESTORS, CSPDirectiveSrcValue.SELF)
+			.add(CSPDirective.IMG_SRC, "data:");
 		getSecuritySettings().setCrossOriginOpenerPolicyConfiguration(CrossOriginOpenerPolicyConfiguration.CoopMode.SAME_ORIGIN_ALLOW_POPUPS);
 
 		ScreenitAnnotationsShiroAuthorizationStrategy authz = new ScreenitAnnotationsShiroAuthorizationStrategy();

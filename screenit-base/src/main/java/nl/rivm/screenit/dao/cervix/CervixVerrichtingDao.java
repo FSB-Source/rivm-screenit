@@ -25,7 +25,6 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
-import nl.rivm.screenit.dto.cervix.facturatie.CervixBetalingsZoekObject;
 import nl.rivm.screenit.dto.cervix.facturatie.CervixVerrichtingenZoekObject;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
@@ -42,7 +41,6 @@ import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting;
 
 public interface CervixVerrichtingDao
 {
-	List<CervixBoekRegel> getVerrichtingenVoorBetaling(CervixBetalingsZoekObject zoekObject, SortState<String> sortState, long first, long count);
 
 	List<CervixBoekRegel> getLabVerrichtingen(CervixVerrichtingenZoekObject verrichtingenCriteria, ScreeningOrganisatie screeningOrganisatie, BMHKLaboratorium bmhkLaboratorium,
 		SortState<String> sortState, long first,

@@ -542,7 +542,26 @@ public final class DateUtil
 
 		var intersection = a.intersection(b);
 
-		boolean intersects = !intersection.isEmpty();
+		var intersects = !intersection.isEmpty();
+		if (intersection.hasLowerBound() && intersection.hasUpperBound())
+		{
+
+			intersects = intersection.lowerEndpoint().equals(intersection.upperEndpoint());
+		}
+
+		return !intersects;
+	}
+
+	public static boolean overlapsLocalDateTime(Range<LocalDateTime> a, Range<LocalDateTime> b)
+	{
+		if (!a.isConnected(b))
+		{
+			return false;
+		}
+
+		var intersection = a.intersection(b);
+
+		var intersects = !intersection.isEmpty();
 		if (intersection.hasLowerBound() && intersection.hasUpperBound())
 		{
 

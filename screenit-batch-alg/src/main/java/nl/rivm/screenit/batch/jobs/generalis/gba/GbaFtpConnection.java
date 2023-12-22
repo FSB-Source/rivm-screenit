@@ -42,25 +42,15 @@ import com.jcraft.jsch.SftpException;
 @Slf4j
 public abstract class GbaFtpConnection
 {
-	private final GbaConfig gbaConfig;
-
-	private final GbaVerwerkingsLog gbaVerwerkingsLog;
-
 	@Getter(AccessLevel.PROTECTED)
 	private ChannelSftp channelSftp;
 
-	protected GbaFtpConnection(GbaConfig gbaConfig, GbaVerwerkingsLog gbaVerwerkingsLog)
-	{
-		this.gbaConfig = gbaConfig;
-		this.gbaVerwerkingsLog = gbaVerwerkingsLog;
-	}
-
-	public void run()
+	public void run(GbaConfig gbaConfig, GbaVerwerkingsLog gbaVerwerkingsLog)
 	{
 		Session session = null;
 		try
 		{
-			session = connect(new JSch());
+			session = connect(gbaConfig, new JSch());
 			channelSftp = openChannel(session);
 			ftpActies();
 		}
@@ -87,7 +77,7 @@ public abstract class GbaFtpConnection
 		}
 	}
 
-	private Session connect(JSch jsch) throws JSchException
+	private Session connect(GbaConfig gbaConfig, JSch jsch) throws JSchException
 	{
 		boolean checkHostKey = Boolean.parseBoolean(System.getProperty("SFTP_CHECK_HOST_KEY"));
 		if (checkHostKey)

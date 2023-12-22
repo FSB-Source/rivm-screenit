@@ -19,24 +19,25 @@
  * =========================LICENSE_END==================================
  */
 import * as React from "react"
+import {useContext} from "react"
 import {Navigate, RouteProps} from "react-router-dom"
-import {useKeycloak} from "@react-keycloak/web"
 import {useSelector} from "react-redux"
 import {State} from "../datatypes/State"
+import {KeycloakContext} from "../components/KeycloakProvider"
 
 type PrivateRouteParams = RouteProps & {
 	component: React.ComponentType<any>
 }
 
 export default function PrivateRoute({component: Component, ...rest}: PrivateRouteParams) {
-	const {initialized, keycloak} = useKeycloak()
+	const {initialized, keycloak} = useContext(KeycloakContext)
 	const authenticatie = useSelector((state: State) => state.authenticatie)
 
 	const redirectComponent = (path: string) => {
 		return <Navigate replace to={{pathname: path}}/>
 	}
 
-	if (initialized && keycloak?.authenticated && authenticatie.isLoggedIn) {
+	if (initialized && keycloak.authenticated && authenticatie.isLoggedIn) {
 		return authenticatie.isUnauthorized ? redirectComponent("/niet-in-bevolkingsonderzoek") : <Component {...rest} />
 	} else {
 		return redirectComponent("/login")

@@ -52,16 +52,13 @@ import nl.rivm.screenit.service.HuisartsenportaalSyncService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.UploadDocumentService;
-import nl.rivm.screenit.util.JavaScriptPdfHelper;
 import nl.rivm.screenit.util.cervix.CervixHuisartsToDtoUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.validator.routines.IBANValidator;
-import org.apache.pdfbox.io.MemoryUsageSetting;
+import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.interactive.action.PDActionJavaScript;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
@@ -102,6 +99,9 @@ public class LabformulierGenererenWriter implements ItemStreamWriter<Long>
 
 	@Autowired
 	private LogService logService;
+
+	@Autowired
+	private BaseBriefService baseBriefService;
 
 	private int volgnummerBatch;
 
@@ -287,36 +287,15 @@ public class LabformulierGenererenWriter implements ItemStreamWriter<Long>
 
 	private void voegPrintFunctionaliteitToe(CervixRegioMergedBrieven cervixRegioMergedBrieven)
 	{
-		FileOutputStream outputStream = null;
 		try
 		{
-			File file = uploadDocumentService.load(cervixRegioMergedBrieven.getMergedBrieven());
-			PDDocument pdfBoxDocument = PDDocument.load(file);
-			PDActionJavaScript javaScript = new PDActionJavaScript(JavaScriptPdfHelper.getPrintJavascript());
-			pdfBoxDocument.getDocumentCatalog().setOpenAction(javaScript);
-			outputStream = new FileOutputStream(file);
-			pdfBoxDocument.save(outputStream);
-			pdfBoxDocument.close();
+			baseBriefService.completePdf(cervixRegioMergedBrieven);
 		}
 		catch (Exception e)
 		{
-			crashMelding("Er is iets misgegaan met de toevoegen van de print functionaliteit", e);
+			getExecutionContext().put(BatchConstants.MELDING, e.getMessage());
+			getExecutionContext().put(BatchConstants.LEVEL, Level.ERROR);
 		}
-		finally
-		{
-			if (outputStream != null)
-			{
-				try
-				{
-					outputStream.close();
-				}
-				catch (Exception e)
-				{
-					LOG.error("Er is iets misgegaan met de toevoegen van de print functionaliteit", e);
-				}
-			}
-		}
-
 	}
 
 	private String voegNaamgevingAanPdf(CervixRegioMergedBrieven mergedBrieven)
@@ -417,7 +396,7 @@ public class LabformulierGenererenWriter implements ItemStreamWriter<Long>
 				pdfMergerUtility.addSource(mergedPdfFile);
 				outputStream = new FileOutputStream(mergedBrievenFile);
 				pdfMergerUtility.setDestinationStream(outputStream);
-				pdfMergerUtility.mergeDocuments(MemoryUsageSetting.setupMainMemoryOnly());
+				pdfMergerUtility.mergeDocuments(IOUtils.createMemoryOnlyStreamCache());
 				uploadDocumentService.saveOrUpdate(uploadDocumentMergedBrieven, FileStoreLocation.INSTELLING_MERGED_BRIEVEN,
 					aanvraag.getHuisartsLocatie().getHuisarts().getId());
 				outputStream.close();

@@ -53,7 +53,7 @@ import nl.rivm.screenit.model.colon.planning.TypeAfspraak;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
-import nl.rivm.screenit.repository.ScreeningOrganisatieRepository;
+import nl.rivm.screenit.repository.algemeen.ScreeningOrganisatieRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.LogService;

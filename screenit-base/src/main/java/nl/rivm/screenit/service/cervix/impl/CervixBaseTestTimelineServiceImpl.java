@@ -21,6 +21,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -30,9 +31,10 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.dao.cervix.CervixBaseTestTimelineDao;
 import nl.rivm.screenit.dao.cervix.CervixBepaalVervolgDao;
 import nl.rivm.screenit.dao.cervix.CervixDossierDao;
 import nl.rivm.screenit.dao.cervix.CervixMonsterDao;
@@ -50,7 +52,6 @@ import nl.rivm.screenit.model.cervix.CervixCytologieOrder;
 import nl.rivm.screenit.model.cervix.CervixCytologieVerslag;
 import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.cervix.CervixHpvBericht;
-import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixMergedBrieven;
 import nl.rivm.screenit.model.cervix.CervixMonster;
@@ -68,6 +69,7 @@ import nl.rivm.screenit.model.cervix.enums.CervixCytologieUitslag;
 import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
+import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.cervix.enums.CervixNietAnalyseerbaarReden;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstelType;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
@@ -79,11 +81,11 @@ import nl.rivm.screenit.model.cervix.verslag.cytologie.CervixCytologieVerrichtin
 import nl.rivm.screenit.model.cervix.verslag.cytologie.CervixCytologieVerslagContent;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.cervix.Cervix2023StartBepalingService;
+import nl.rivm.screenit.service.cervix.CervixBaseMonsterService;
+import nl.rivm.screenit.service.cervix.CervixBaseTestTimelineHuisartsService;
 import nl.rivm.screenit.service.cervix.CervixBaseTestTimelineService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
-import nl.rivm.screenit.service.cervix.CervixMonsterService;
 import nl.rivm.screenit.service.cervix.CervixTestTimelineTimeService;
 import nl.rivm.screenit.service.cervix.CervixVervolgService;
 import nl.rivm.screenit.service.cervix.enums.CervixTestTimeLineDossierTijdstip;
@@ -93,55 +95,41 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.REQUIRED)
+@AllArgsConstructor
 public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimelineService
 {
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final ICurrentDateSupplier dateSupplier;
 
-	@Autowired
-	private CervixFactory factory;
+	private final CervixFactory factory;
 
-	@Autowired
-	private CervixTestTimelineTimeService testTimelineTimeService;
+	private final CervixTestTimelineTimeService testTimelineTimeService;
 
-	@Autowired
-	private CervixMonsterDao monsterDao;
+	private final CervixDossierDao dossierDao;
 
-	@Autowired
-	private CervixDossierDao dossierDao;
+	private final CervixBepaalVervolgDao bepaalVervolgDao;
 
-	@Autowired
-	private CervixBepaalVervolgDao bepaalVervolgDao;
+	private final SimplePreferenceService preferenceService;
 
-	@Autowired
-	private CervixBaseTestTimelineDao cervixBaseTestTimelineDao;
+	private final CervixBaseMonsterService monsterService;
 
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final CervixMonsterDao monsterDao;
 
-	@Autowired
-	private CervixMonsterService monsterService;
+	private final CervixVervolgService vervolgService;
 
-	@Autowired
-	private CervixVervolgService vervolgService;
+	private final Cervix2023StartBepalingService cervix2023StartBepalingService;
 
-	@Autowired
-	private OrganisatieParameterService organisatieParameterService;
+	private final CervixBaseTestTimelineHuisartsService testTimelineHuisartsService;
 
-	@Autowired
-	private Cervix2023StartBepalingService cervix2023StartBepalingService;
+	private final Random random = new SecureRandom();
 
 	@Override
+	@Transactional
 	public CervixBaseTestTimelineService ontvangen(CervixUitnodiging uitnodiging, BMHKLaboratorium laboratorium)
 	{
 		testTimelineTimeService.rekenDossierTerug(uitnodiging.getScreeningRonde().getDossier(), CervixTestTimeLineDossierTijdstip.ONTVANGEN);
@@ -150,53 +138,53 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 		monster.setLaboratorium(laboratorium);
 		monster.setOntvangstdatum(dateSupplier.getDate());
 		monster.setOntvangstScreeningRonde(dossierDao.getOntvangstRonde(monster));
-		switch (uitnodiging.getMonsterType())
+		if (uitnodiging.getMonsterType() == CervixMonsterType.UITSTRIJKJE)
 		{
-		case UITSTRIJKJE:
 			CervixUitstrijkje uitstrijkje = (CervixUitstrijkje) monster;
 			uitstrijkje.setUitstrijkjeStatus(CervixUitstrijkjeStatus.ONTVANGEN);
 			uitstrijkje.setStatusDatum(dateSupplier.getDate());
 
 			hibernateService.saveOrUpdate(uitstrijkje);
-			break;
-		case ZAS:
+		}
+		else if (uitnodiging.getMonsterType() == CervixMonsterType.ZAS)
+		{
 			CervixZas zas = (CervixZas) monster;
 			zas.setZasStatus(CervixZasStatus.ONTVANGEN);
 			zas.setStatusDatum(dateSupplier.getDate());
 			hibernateService.saveOrUpdate(zas);
-			break;
 		}
 
 		return this;
 	}
 
 	@Override
+	@Transactional
 	public CervixBaseTestTimelineService nietAnalyseerbaar(CervixUitnodiging uitnodiging)
 	{
 		testTimelineTimeService.rekenDossierTerug(uitnodiging.getScreeningRonde().getDossier(), CervixTestTimeLineDossierTijdstip.NIET_ANALYSEERBAAR);
 
 		CervixMonster monster = uitnodiging.getMonster();
-		switch (uitnodiging.getMonsterType())
+		if (uitnodiging.getMonsterType() == CervixMonsterType.UITSTRIJKJE)
 		{
-		case UITSTRIJKJE:
 			CervixUitstrijkje uitstrijkje = (CervixUitstrijkje) monster;
 			uitstrijkje.setUitstrijkjeStatus(CervixUitstrijkjeStatus.NIET_ANALYSEERBAAR);
 			uitstrijkje.setStatusDatum(dateSupplier.getDate());
 			uitstrijkje.setNietAnalyseerbaarReden(CervixNietAnalyseerbaarReden.ONBEKEND);
 			hibernateService.saveOrUpdate(uitstrijkje);
-			break;
-		case ZAS:
+		}
+		else if (uitnodiging.getMonsterType() == CervixMonsterType.ZAS)
+		{
 			CervixZas zas = (CervixZas) monster;
 			zas.setZasStatus(CervixZasStatus.NIET_ANALYSEERBAAR);
 			zas.setStatusDatum(dateSupplier.getDate());
 			zas.setNietAnalyseerbaarReden(CervixNietAnalyseerbaarReden.ONBEKEND);
 			hibernateService.saveOrUpdate(zas);
-			break;
 		}
 		return this;
 	}
 
 	@Override
+	@Transactional
 	public CervixBaseTestTimelineService geanalyseerdOpHpv(CervixUitnodiging uitnodiging, CervixHpvBeoordelingWaarde hpvUitslag, BMHKLaboratorium laboratorium,
 		List<CervixHpvResultValue> hpvResultValues)
 	{
@@ -222,9 +210,8 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 
 		var bmhk2023Lab = cervix2023StartBepalingService.isBmhk2023Laboratorium(monster.getLaboratorium());
 
-		switch (uitnodiging.getMonsterType())
+		if (uitnodiging.getMonsterType() == CervixMonsterType.UITSTRIJKJE)
 		{
-		case UITSTRIJKJE:
 			CervixUitstrijkje uitstrijkje = (CervixUitstrijkje) monster;
 			if (uitstrijkje.getUitstrijkjeStatus() == CervixUitstrijkjeStatus.ONTVANGEN && !bmhk2023Lab)
 			{
@@ -237,8 +224,9 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 			uitstrijkje.setStatusDatum(dateSupplier.getDate());
 			hibernateService.saveOrUpdate(uitstrijkje);
 			vervolgService.digitaalLabformulierKlaarVoorCytologie(uitstrijkje);
-			break;
-		case ZAS:
+		}
+		else if (uitnodiging.getMonsterType() == CervixMonsterType.ZAS)
+		{
 			CervixZas zas = (CervixZas) monster;
 			if (zas.getZasStatus() == CervixZasStatus.ONTVANGEN && !bmhk2023Lab)
 			{
@@ -250,12 +238,12 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 			}
 			zas.setStatusDatum(dateSupplier.getDate());
 			hibernateService.saveOrUpdate(zas);
-			break;
 		}
 		return this;
 	}
 
 	@Override
+	@Transactional
 	public CervixBaseTestTimelineService beoordeeldDoorCytologie(CervixUitnodiging uitnodiging, CervixCytologieUitslag cytologieUitslag, BMHKLaboratorium laboratorium)
 	{
 		testTimelineTimeService.rekenDossierTerug(uitnodiging.getScreeningRonde().getDossier(), CervixTestTimeLineDossierTijdstip.BEOORDEELD_DOOR_CYTOLOGIE);
@@ -346,6 +334,7 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 	}
 
 	@Override
+	@Transactional
 	public CervixBaseTestTimelineService labformulierGescand(CervixUitnodiging uitnodiging, BMHKLaboratorium laboratorium)
 	{
 		testTimelineTimeService.rekenDossierTerug(uitnodiging.getScreeningRonde().getDossier(), CervixTestTimeLineDossierTijdstip.LABFORMULIER_GESCAND);
@@ -357,11 +346,11 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 			uitstrijkje.setOntvangstScreeningRonde(null);
 		}
 
-		CervixLabformulier labformulier = new CervixLabformulier();
+		var labformulier = new CervixLabformulier();
 		labformulier.setUitstrijkje(uitstrijkje);
 		labformulier.setLaboratorium(laboratorium);
 		labformulier.setScanDatum(dateSupplier.getDate());
-		labformulier.setObjid(Long.toString(Math.abs(new Random().nextInt())));
+		labformulier.setObjid(Long.toString(random.nextInt(Integer.MAX_VALUE)));
 		labformulier.setStatus(CervixLabformulierStatus.GESCAND);
 		labformulier.setStatusDatum(dateSupplier.getDate());
 		labformulier.setBarcode(uitstrijkje.getMonsterId());
@@ -374,6 +363,7 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 	}
 
 	@Override
+	@Transactional
 	public CervixBaseTestTimelineService labformulierGecontroleerd(CervixUitnodiging uitnodiging)
 	{
 		testTimelineTimeService.rekenDossierTerug(uitnodiging.getScreeningRonde().getDossier(), CervixTestTimeLineDossierTijdstip.LABFORMULIER_GECONTROLEERD);
@@ -395,6 +385,7 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 	}
 
 	@Override
+	@Transactional
 	public CervixBaseTestTimelineService labformulierGecontroleerdVoorCytologie(CervixUitnodiging uitnodiging)
 	{
 		testTimelineTimeService.rekenDossierTerug(uitnodiging.getScreeningRonde().getDossier(), CervixTestTimeLineDossierTijdstip.LABFORMULIER_GECONTROLEERD_VOOR_CYTOLOGIE);
@@ -410,12 +401,14 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 	}
 
 	@Override
+	@Transactional
 	public CervixUitnodiging nieuweRonde(Client client)
 	{
 		return nieuweRonde(client, false);
 	}
 
 	@Override
+	@Transactional
 	public CervixUitnodiging nieuweRonde(Client client, boolean metVooraankondiging)
 	{
 		var dossier = client.getCervixDossier();
@@ -445,6 +438,7 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 	}
 
 	@Override
+	@Transactional
 	public void uitstelVoorZwangerschap(CervixScreeningRonde ronde)
 	{
 		Date uitstellenTotDatum = DateUtil.toUtilDate(dateSupplier.getLocalDate().plusDays(preferenceService.getInteger(PreferenceKey.UITSTEL_BIJ_ZWANGERSCHAP_CERVIX.name())));
@@ -452,6 +446,7 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 	}
 
 	@Override
+	@Transactional
 	public void nieuweCISRonde0(Client client, Date creatieDatum)
 	{
 		CervixDossier dossier = client.getCervixDossier();
@@ -462,6 +457,7 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 	}
 
 	@Override
+	@Transactional
 	public void nieuweCISHistorie(Client client)
 	{
 		CervixDossier dossier = client.getCervixDossier();
@@ -470,6 +466,7 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 	}
 
 	@Override
+	@Transactional
 	public CervixBaseTestTimelineService orderVerstuurd(CervixUitnodiging uitnodiging)
 	{
 		testTimelineTimeService.rekenDossierTerug(uitnodiging.getScreeningRonde().getDossier(), CervixTestTimeLineDossierTijdstip.ORDER_VERSTUURD);
@@ -485,6 +482,7 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 	}
 
 	@Override
+	@Transactional
 	public void verstuurUitnodiging(CervixScreeningRonde ronde)
 	{
 		var dagenVoorDeVooraankondiging = getDagenVoorDeVooraankondiging();
@@ -499,6 +497,7 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 	}
 
 	@Override
+	@Transactional
 	public CervixBaseTestTimelineService vervolgonderzoekBrief(CervixScreeningRonde ronde)
 	{
 		testTimelineTimeService.rekenDossierTerug(ronde.getDossier(), CervixTestTimeLineDossierTijdstip.VERVOLGONDERZOEK_BRIEF);
@@ -511,6 +510,7 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 	}
 
 	@Override
+	@Transactional
 	public CervixBaseTestTimelineService maakZasMonster(Client client, Account account, CervixTestTimeLineDossierTijdstip tijdstip, boolean isNieuwTypeZas)
 	{
 		CervixDossier dossier = client.getCervixDossier();
@@ -536,11 +536,13 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 			zasKlaargezet(uitnodiging);
 			zasSamengesteld(uitnodiging, isNieuwTypeZas);
 			break;
+		default:
 		}
 		return this;
 	}
 
 	@Override
+	@Transactional
 	public CervixBaseTestTimelineService zetMonsterId(CervixUitnodiging uitnodiging, String monsterId)
 	{
 		CervixMonster monster = uitnodiging.getMonster();
@@ -566,17 +568,17 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 	}
 
 	@Override
+	@Transactional
 	public CervixBaseTestTimelineService maakAanvraag(CervixUitnodiging uitnodiging, BMHKLaboratorium laboratorium)
 	{
 		labformulierGescand(uitnodiging, laboratorium);
 		labformulierGecontroleerd(uitnodiging);
 		CervixLabformulier labformulier = CervixMonsterUtil.getUitstrijkje(uitnodiging.getMonster()).getLabformulier();
 		labformulier.setDigitaal(true);
-		List<CervixHuisartsLocatie> locaties = cervixBaseTestTimelineDao.getFirstCervixHuisartsLocatie();
-		if (!locaties.isEmpty())
-		{
-			labformulier.setHuisartsLocatie(locaties.get(0));
-		}
+
+		var locaties = testTimelineHuisartsService.findFirstHuisartsLocatie();
+
+		locaties.ifPresent(labformulier::setHuisartsLocatie);
 		hibernateService.saveOrUpdate(labformulier);
 
 		return this;

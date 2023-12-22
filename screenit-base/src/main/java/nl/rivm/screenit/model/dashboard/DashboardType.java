@@ -32,6 +32,8 @@ public enum DashboardType
 
 	COLON_BATCH_NA_GBA_VERWERKING("Darmkanker specifieke verwerking nav. GBA", Bevolkingsonderzoek.COLON),
 
+	COLON_BATCH_ROOSTER_GEEN_CAPACITEIT_SIGNALERING("Signalering geen capaciteit opgegeven", Bevolkingsonderzoek.COLON),
+
 	CLIENT_SELECTIE("Client selectie", List.of(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.COLON),
 
 	UITNODIGING_VERSTUREN_NAAR_INPAKCENTRUM("Uitnodiging versturen naar inpakcentrum", Bevolkingsonderzoek.COLON),
@@ -161,7 +163,8 @@ public enum DashboardType
 
 	ENOVATION_HUISARTSEN("Enovation huisartsen import", Bevolkingsonderzoek.MAMMA, Bevolkingsonderzoek.COLON),
 
-	MAIL_LANDELIJK("Mail versturen", List.of(OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
+	MAIL_LANDELIJK("Mail versturen", List.of(OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX,
+		Bevolkingsonderzoek.MAMMA),
 
 	SIGNALERING_GENDER("Signalering gender", Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
 

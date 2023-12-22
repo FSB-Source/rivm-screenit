@@ -19,9 +19,8 @@
  * =========================LICENSE_END==================================
  */
 import * as React from "react"
-import {useCallback} from "react"
+import {useCallback, useContext} from "react"
 import {Navigate, useLocation} from "react-router-dom"
-import {useKeycloak} from "@react-keycloak/web"
 import {useDispatch, useSelector} from "react-redux"
 import {Col, Row} from "react-bootstrap"
 import authenticationStyle from "./AuthenticationPage.module.scss"
@@ -38,6 +37,7 @@ import {ArrowType} from "../../components/vectors/ArrowIconComponent"
 import properties from "./DigiDInloggenAfgebrokenPage.json"
 import {getBevolkingsonderzoekNederlandUrl, getBevolkingsonderzoekNederlandUrlNaam} from "../../utils/UrlUtil"
 import {Location} from "history"
+import {KeycloakContext} from "../../components/KeycloakProvider"
 
 enum DigidLoginAfbrekenCode {
 	"cancelled" = "cancelled",
@@ -47,7 +47,7 @@ enum DigidLoginAfbrekenCode {
 }
 
 const DigiDInloggenAfgebrokenPage = () => {
-	const {initialized: keycloakInitialized, keycloak} = useKeycloak()
+	const {initialized: keycloakInitialized, keycloak} = useContext(KeycloakContext)
 	const dispatch = useDispatch()
 	const authenticatie = useSelector((state: State) => state.authenticatie)
 	const digidLoginAfbrekenCode = getDigiDLoginAfbrekenCode(useLocation())
@@ -57,7 +57,7 @@ const DigiDInloggenAfgebrokenPage = () => {
 		dispatch(setLoggingInAction(true))
 	}, [dispatch])
 
-	if (keycloakInitialized && keycloak?.authenticated && authenticatie.isLoggedIn && !authenticatie.isLoggingOut) {
+	if (keycloakInitialized && keycloak.authenticated && authenticatie.isLoggedIn && !authenticatie.isLoggingOut) {
 		return <Navigate replace to={"/"}/>
 	}
 	return (

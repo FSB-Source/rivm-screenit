@@ -31,6 +31,7 @@ import nl.rivm.screenit.dao.HuisartsBerichtTemplateDao;
 import nl.rivm.screenit.edi.model.MedVryOut;
 import nl.rivm.screenit.edi.model.OutboundMessageData;
 import nl.rivm.screenit.edi.service.EdiMessageService;
+import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.HuisartsBericht;
@@ -47,9 +48,8 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.MailService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.organisatie.model.Adres;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.NaamGebruik;
-import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Patient;
-import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Persoon;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang.StringUtils;
@@ -95,8 +95,8 @@ public abstract class EdiServiceBaseImpl
 
 	protected void zetPatient(HuisartsBericht huisartsBericht, MedVryOut medVryOut)
 	{
-		GbaPersoon persoon = huisartsBericht.getClient().getPersoon();
-		Persoon transientPersoon = new Persoon(persoon);
+		var persoon = huisartsBericht.getClient().getPersoon();
+		var transientPersoon = copyPersoon(persoon);
 		transientPersoon.setBsnControleDatum(currentDateSupplier.getDate());
 		transientPersoon.setBsnGeverifieerd(true);
 		NaamGebruik naamGebruik = transientPersoon.getNaamGebruik();
@@ -121,9 +121,30 @@ public abstract class EdiServiceBaseImpl
 			}
 		}
 
-		Patient<Persoon> transientPatient = new Patient<Persoon>();
+		var transientPatient = new Client();
 		transientPatient.setPersoon(transientPersoon);
 		medVryOut.setPatient(transientPatient);
+	}
+
+	private GbaPersoon copyPersoon(GbaPersoon persoon)
+	{
+		var copyPersoon = new GbaPersoon();
+		copyPersoon.setAchternaam(persoon.getAchternaam());
+		persoon.getAdressen().forEach(a -> copyPersoon.getAdressen().add(new Adres(a)));
+		copyPersoon.setBsn(persoon.getBsn());
+		copyPersoon.setEmailadres(persoon.getEmailadres());
+		copyPersoon.setGeboortedatum(persoon.getGeboortedatum());
+		copyPersoon.setGeslacht(persoon.getGeslacht());
+		copyPersoon.setMobielnummer(persoon.getMobielnummer());
+		copyPersoon.setNaamGebruik(persoon.getNaamGebruik());
+		copyPersoon.setOverlijdensdatum(persoon.getOverlijdensdatum());
+		copyPersoon.setPartnerAchternaam(persoon.getPartnerAchternaam());
+		copyPersoon.setPartnerTussenvoegsel(persoon.getPartnerTussenvoegsel());
+		copyPersoon.setTelefoonnummer1(persoon.getTelefoonnummer1());
+		copyPersoon.setTelefoonnummer2(persoon.getTelefoonnummer2());
+		copyPersoon.setTussenvoegsel(persoon.getTussenvoegsel());
+		copyPersoon.setVoornaam(persoon.getVoornaam());
+		return copyPersoon;
 	}
 
 	protected InstellingGebruiker zetZender(HuisartsBericht huisartsBericht, MedVryOut medVry)

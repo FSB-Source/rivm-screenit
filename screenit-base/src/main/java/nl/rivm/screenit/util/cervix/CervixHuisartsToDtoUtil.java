@@ -138,7 +138,7 @@ public class CervixHuisartsToDtoUtil
 			LOG.error("Geen labformulier bekend bij aanmaken huisarts verrichting. monsterID: {}", verrichting.getMonster().getMonsterId());
 		}
 		verrichtingDto.setHuisartsLocatie(getLocatieDto(verrichting.getHuisartsLocatie()));
-		verrichtingDto.setClientNaam(NaamUtil.getAchternaamVoorlettersTussenvoegsel(verrichting.getClient()));
+		verrichtingDto.setClientNaam(NaamUtil.getVolledigeAchternaamVoorlettersTussenvoegsel(verrichting.getClient()));
 		return verrichtingDto;
 	}
 

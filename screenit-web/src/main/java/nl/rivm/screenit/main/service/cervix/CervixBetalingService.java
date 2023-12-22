@@ -27,11 +27,13 @@ import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
+import nl.rivm.screenit.dto.cervix.facturatie.CervixBetalingsZoekObject;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
+import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.model.cervix.facturatie.CervixTarief;
 
 public interface CervixBetalingService
@@ -55,4 +57,6 @@ public interface CervixBetalingService
 	String toevoegenIndexatieTarief(CervixTarief nieuweTarief, Account account);
 
 	void verwijderCervixTarief(CervixTarief tarief, Account account);
+
+	List<CervixBoekRegel> getVerrichtingenVoorBetaling(CervixBetalingsZoekObject zoekObject);
 }

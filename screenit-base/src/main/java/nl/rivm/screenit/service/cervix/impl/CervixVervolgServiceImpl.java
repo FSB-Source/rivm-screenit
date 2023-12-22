@@ -45,7 +45,7 @@ import nl.rivm.screenit.service.BaseHoudbaarheidService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.MessageService;
 import nl.rivm.screenit.service.OrganisatieParameterService;
-import nl.rivm.screenit.service.cervix.CervixMonsterService;
+import nl.rivm.screenit.service.cervix.CervixBaseMonsterService;
 import nl.rivm.screenit.service.cervix.CervixVervolgService;
 import nl.rivm.screenit.service.cervix.enums.CervixVervolgTekst;
 import nl.rivm.screenit.util.EntityAuditUtil;
@@ -77,7 +77,7 @@ public class CervixVervolgServiceImpl implements CervixVervolgService
 	private BaseHoudbaarheidService houdbaarheidService;
 
 	@Autowired
-	private CervixMonsterService monsterService;
+	private CervixBaseMonsterService monsterService;
 
 	@Autowired
 	private HibernateService hibernateService;

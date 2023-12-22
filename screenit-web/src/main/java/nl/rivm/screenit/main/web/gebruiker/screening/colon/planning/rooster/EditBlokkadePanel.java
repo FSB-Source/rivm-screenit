@@ -28,21 +28,23 @@ import java.util.List;
 import java.util.Objects;
 import java.util.TimeZone;
 
-import nl.rivm.screenit.main.model.RecurrenceOption;
+import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
+import nl.rivm.screenit.main.exception.ValidatieException;
+import nl.rivm.screenit.main.service.colon.ColonBlokkadeService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.component.form.ScreenITDateTimeField;
-import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
 import nl.rivm.screenit.model.enums.Actie;
-import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.util.EntityAuditUtil;
+import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.planning.model.appointment.recurrence.AbstractRecurrence;
 import nl.topicuszorg.wicket.planning.model.appointment.recurrence.NoRecurrence;
@@ -86,7 +88,11 @@ public abstract class EditBlokkadePanel extends AbstractEditTijdSlotPanel<ColonB
 	@SpringBean
 	private ICurrentDateSupplier currentDateSupplier;
 
-	private final Date origStartTime;
+	@SpringBean
+	private ColonBlokkadeService blokkadeService;
+
+	@SpringBean
+	private HibernateService hibernateService;
 
 	protected IModel<Boolean> alleKamers;
 
@@ -97,7 +103,6 @@ public abstract class EditBlokkadePanel extends AbstractEditTijdSlotPanel<ColonB
 	public EditBlokkadePanel(String id, IModel<ColonBlokkade> model)
 	{
 		super(id, model);
-		origStartTime = model.getObject().getStartTime();
 		magVerwijderen = super.isDeleteButtonVisible() && getModelObject().getStartTime().after(currentDateSupplier.getDate());
 	}
 
@@ -137,7 +142,7 @@ public abstract class EditBlokkadePanel extends AbstractEditTijdSlotPanel<ColonB
 
 		form.add(new Label("actie", wijzigOfNieuw));
 		form.add(new Label("kamer", kamerString));
-		form.add(new Label("tijd", getPeriodeTekst(blokkade)).setVisible(!isNieuw));
+		form.add(new Label("tijd", blokkadeService.getPeriodeTekst(blokkade)).setVisible(!isNieuw));
 		form.add(new Label("periode", herhalingsPeriodeString).setVisible(!herhalingsPeriodeString.isEmpty()));
 
 		form.add(new Label("title"));
@@ -389,20 +394,18 @@ public abstract class EditBlokkadePanel extends AbstractEditTijdSlotPanel<ColonB
 	}
 
 	@Override
-	protected boolean onBeforeOpslaan(ColonBlokkade blokkade)
+	protected boolean onBeforeOpslaan(ColonBlokkade blokkade) throws ValidatieException, OpslaanVerwijderenTijdBlokException
 	{
-		boolean ok = super.onBeforeOpslaan(blokkade);
+		super.onBeforeOpslaan(blokkade);
 		if (blokkade.getLocation() == null && !Boolean.TRUE.equals(alleKamers.getObject()))
 		{
-			error(getString("error.kamer.of.alle.kamers.verplicht"));
-			ok = false;
+			throw new ValidatieException("error.kamer.of.alle.kamers.verplicht");
 		}
 		if (StringUtils.isBlank(blokkade.getDescription()))
 		{
-			error(getString("error.omschrijving.verplicht"));
-			ok = false;
+			throw new ValidatieException("error.omschrijving.verplicht");
 		}
-		return ok;
+		return true;
 	}
 
 	@Override
@@ -420,10 +423,10 @@ public abstract class EditBlokkadePanel extends AbstractEditTijdSlotPanel<ColonB
 				if (!Objects.equals(kamer, unsavedObject.getLocation()))
 				{
 					ColonBlokkade blokkade = unsavedObject.transientClone();
-					AbstractRecurrence recurrence = unsavedObject.getRecurrence();
+					var recurrence = unsavedObject.getRecurrence();
 					if (recurrence != null && !NoRecurrence.class.isAssignableFrom(Hibernate.getClass(recurrence)))
 					{
-						AbstractRecurrence clonedRecurrence = recurrence.transientClone();
+						var clonedRecurrence = recurrence.transientClone();
 						clonedRecurrence.setFirstAppointment(blokkade);
 						blokkade.setRecurrence(clonedRecurrence);
 					}
@@ -438,68 +441,11 @@ public abstract class EditBlokkadePanel extends AbstractEditTijdSlotPanel<ColonB
 	@Override
 	protected void logAction(ColonBlokkade unsavedObject)
 	{
-		Account account = ScreenitSession.get().getLoggedInAccount();
-		Kamer selectedKamer = unsavedObject.getLocation();
-		if (selectedKamer != null)
-		{
-			logActionKamer(unsavedObject, account, selectedKamer);
-		}
-		else
-		{
-			for (Kamer kamer : getActieveKamers())
-			{
-				logActionKamer(unsavedObject, account, kamer);
-			}
-		}
+		var instellingGebruiker = ScreenitSession.get().getLoggedInInstellingGebruiker();
+		var intakelocatie = roosterService.getIntakelocatieVanInstellingGebruiker(instellingGebruiker);
+		var logGebeurtenis = unsavedObject.getId() != null ? LogGebeurtenis.COLON_BLOKKADES_WIJZIG : LogGebeurtenis.COLON_BLOKKADES_NIEUW;
+		var origBlokkade = EntityAuditUtil.getPreviousVersionOfEntity(unsavedObject, hibernateService.getHibernateSession());
 
+		blokkadeService.logAction(unsavedObject, instellingGebruiker, intakelocatie, origBlokkade, logGebeurtenis);
 	}
-
-	private void logActionKamer(ColonBlokkade unsavedObject, Account account, Kamer kamer)
-	{
-		String melding = getPeriodeTekst(unsavedObject) + ", " + kamer.getName() + ", " + kamer.getColoscopieCentrum().getNaam();
-		if (unsavedObject.getRecurrence() != null && !NoRecurrence.class.isAssignableFrom(unsavedObject.getRecurrence().getClass()))
-		{
-			melding += ", in " + unsavedObject.getRecurrence().getName() + " reeks ";
-			if (unsavedObject.getRecurrence().getEndDate() != null)
-			{
-				melding += " t/m " + DateUtil.formatShortDate(unsavedObject.getRecurrence().getEndDate());
-			}
-		}
-		if (unsavedObject.getId() == null)
-		{
-			logService.logGebeurtenis(LogGebeurtenis.COLON_BLOKKADES_NIEUW, account, melding, Bevolkingsonderzoek.COLON);
-		}
-		else
-		{
-			melding = DateUtil.formatShortDateTime(origStartTime) + " -> " + melding;
-			if (unsavedObject.getRecurrence() != null && !NoRecurrence.class.isAssignableFrom(unsavedObject.getRecurrence().getClass()))
-			{
-				melding += ", " + getString("label.recurrenceoption." + getRecurrenceOption().name().toLowerCase());
-				if (getRecurrenceOption().equals(RecurrenceOption.WIJZIG_OF_VERWIJDER_TOT))
-				{
-					melding += DateUtil.formatShortDate(getRecurrenceEditEnd());
-				}
-			}
-			logService.logGebeurtenis(LogGebeurtenis.COLON_BLOKKADES_WIJZIG, account, melding, Bevolkingsonderzoek.COLON);
-		}
-	}
-
-	private String getPeriodeTekst(ColonBlokkade unsavedObject)
-	{
-		String periodeTekst = "";
-		if (unsavedObject != null && unsavedObject.getStartTime() != null && unsavedObject.getEndTime() != null)
-		{
-			periodeTekst = DateUtil.formatShortDate(unsavedObject.getStartTime()) + " ";
-			if (!DateUtil.isZelfdeDag(unsavedObject.getEndTime(), unsavedObject.getStartTime()))
-			{
-				periodeTekst += "hele dag";
-			}
-			else
-			{
-				periodeTekst += DateUtil.formatTime(unsavedObject.getStartTime()) + " - " + DateUtil.formatTime(unsavedObject.getEndTime());
-			}
-		}
-		return periodeTekst;
-	}
-
 }

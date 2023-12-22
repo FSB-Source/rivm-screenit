@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.project;
 
 /*-
@@ -27,49 +26,40 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import nl.rivm.screenit.model.CodeboekDoc;
+import lombok.Getter;
+
 import nl.rivm.screenit.model.INaam;
 
+@Getter
 public enum GroepInvoer implements INaam
 {
-	@CodeboekDoc("Groep selecteren door Criteria") CRITERIA("Groep seleceteren door Criteria"),
+	CRITERIA("Groep selecteren door Criteria"),
 
-	@CodeboekDoc("Groep selecteren door importeren") IMPORT("Groep selecteren door importeren", GroepSelectieType.STATISCH),
+	IMPORT("Groep selecteren door importeren", GroepSelectieType.STATISCH),
 
 	;
 
-	private String naam;
+	private final String naam;
 
-	private GroepSelectieType[] types;
+	private final GroepSelectieType[] types;
 
-	private GroepInvoer(String naam, GroepSelectieType... types)
+	GroepInvoer(String naam, GroepSelectieType... types)
 	{
 		this.naam = naam;
 		this.types = types;
 	}
 
-	@Override
-	public String getNaam()
-	{
-		return naam;
-	}
-
-	public GroepSelectieType[] getTypes()
-	{
-		return types;
-	}
-
 	public static List<GroepInvoer> getGroepinvoerVanSelectieType(GroepSelectieType... types)
 	{
-		List<GroepInvoer> invoers = new ArrayList<GroepInvoer>();
-		for (GroepInvoer invoer : Arrays.asList(GroepInvoer.values()))
+		var result = new ArrayList<GroepInvoer>();
+		for (GroepInvoer invoer : GroepInvoer.values())
 		{
 			if (!Collections.disjoint(Arrays.asList(invoer.getTypes()), Arrays.asList(types)))
 			{
-				invoers.add(invoer);
+				result.add(invoer);
 			}
 		}
-		return invoers;
+		return result;
 	}
 
 }

@@ -22,7 +22,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.rooster;
  */
 
 import java.time.DayOfWeek;
-import java.time.LocalTime;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,6 +30,8 @@ import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.Constants;
+import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
+import nl.rivm.screenit.main.exception.ValidatieException;
 import nl.rivm.screenit.main.model.RecurrenceOption;
 import nl.rivm.screenit.main.service.colon.RoosterService;
 import nl.rivm.screenit.main.web.ScreenitSession;
@@ -62,7 +63,6 @@ import nl.topicuszorg.wicket.planning.model.appointment.recurrence.WeeklyRecurre
 import nl.topicuszorg.wicket.planning.model.appointment.recurrence.YearlyRecurrence;
 import nl.topicuszorg.wicket.planning.services.RecurrenceService;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -102,7 +102,7 @@ public abstract class AbstractEditTijdSlotPanel<T extends AbstractAppointment> e
 	private LogService logService;
 
 	@SpringBean
-	private RoosterService roosterService;
+	protected RoosterService roosterService;
 
 	@SpringBean
 	protected ICurrentDateSupplier currentDateSupplier;
@@ -176,57 +176,67 @@ public abstract class AbstractEditTijdSlotPanel<T extends AbstractAppointment> e
 					hasError = nonValidateForm.hasError();
 				}
 
-				if (!hasError)
+				if (hasError)
 				{
-					@SuppressWarnings("unchecked")
-					T unsavedObject = (T) getForm().getModelObject();
-					unsavedObject = ModelProxyHelper.deproxy(unsavedObject);
+					return;
+				}
+				@SuppressWarnings("unchecked")
+				T unsavedObject = (T) getForm().getModelObject();
+				unsavedObject = ModelProxyHelper.deproxy(unsavedObject);
 
-					if (onBeforeOpslaan(unsavedObject))
+				try
+				{
+					onBeforeOpslaan(unsavedObject);
+					logAction(unsavedObject);
+					if (unsavedObject.getId() != null && unsavedObject.getRecurrence() != null
+						&& !NoRecurrence.class.isAssignableFrom(unsavedObject.getRecurrence().getClass()))
 					{
-						logAction(unsavedObject);
-						if (unsavedObject.getId() != null && unsavedObject.getRecurrence() != null
-							&& !NoRecurrence.class.isAssignableFrom(unsavedObject.getRecurrence().getClass()))
+						if (getRecurrenceOption().equals(RecurrenceOption.WIJZIG_OF_VERWIJDER_ALLEEN_DEZE_AFSPRAAK))
 						{
-							if (getRecurrenceOption().equals(RecurrenceOption.WIJZIG_OF_VERWIJDER_ALLEEN_DEZE_AFSPRAAK))
-							{
-								hibernateService.update(unsavedObject);
-							}
-							else if (getRecurrenceOption().equals(RecurrenceOption.WIJZIG_OF_VERWIJDER_HELE_SERIE))
-							{
-								recurrenceService.changeHerhalingChain(unsavedObject, ModelProxyHelper.deproxy(AbstractEditTijdSlotPanel.this.recurrence.getObject()), null);
-							}
-							else if (getRecurrenceOption().equals(RecurrenceOption.WIJZIG_OF_VERWIJDER_VANAF_HIER))
-							{
-								recurrenceService.changeHerhalingChainVanaf(unsavedObject, null);
-							}
-							else if (getRecurrenceOption().equals(RecurrenceOption.WIJZIG_OF_VERWIJDER_TOT))
-							{
-								Date eind = DateUtil.eindDag(getRecurrenceEditEnd());
-								recurrenceService.changeHerhalingChainVanafEnTot(unsavedObject, eind, null);
-							}
+							hibernateService.update(unsavedObject);
+						}
+						else if (getRecurrenceOption().equals(RecurrenceOption.WIJZIG_OF_VERWIJDER_HELE_SERIE))
+						{
+							recurrenceService.changeHerhalingChain(unsavedObject, ModelProxyHelper.deproxy(AbstractEditTijdSlotPanel.this.recurrence.getObject()), null);
+						}
+						else if (getRecurrenceOption().equals(RecurrenceOption.WIJZIG_OF_VERWIJDER_VANAF_HIER))
+						{
+							recurrenceService.changeHerhalingChainVanaf(unsavedObject, null);
+						}
+						else if (getRecurrenceOption().equals(RecurrenceOption.WIJZIG_OF_VERWIJDER_TOT))
+						{
+							Date eind = DateUtil.eindDag(getRecurrenceEditEnd());
+							recurrenceService.changeHerhalingChainVanafEnTot(unsavedObject, eind, null);
+						}
 
-							onClose(target, new CalendarRefresher<>(false, unsavedObject, getRecurrenceOption()));
-						}
-						else if (unsavedObject.getRecurrence() != null && !NoRecurrence.class.isAssignableFrom(unsavedObject.getRecurrence().getClass()))
-						{
-							onToevoegen(target, unsavedObject);
-						}
-						else if (unsavedObject.getId() == null)
-						{
-							List<T> transformedTijdSloten = transformTijdSlot(unsavedObject);
-							for (T transformedTijdSlot : transformedTijdSloten)
-							{
-								hibernateService.saveOrUpdate(transformedTijdSlot);
-							}
-							onClose(target, new CalendarRefresher<>(false, transformedTijdSloten, null));
-						}
-						else
-						{
-							hibernateService.saveOrUpdate(unsavedObject);
-							onClose(target, new CalendarRefresher<>(false, unsavedObject, null));
-						}
+						onClose(target, new CalendarRefresher<>(false, unsavedObject, getRecurrenceOption()));
 					}
+					else if (unsavedObject.getRecurrence() != null && !NoRecurrence.class.isAssignableFrom(unsavedObject.getRecurrence().getClass()))
+					{
+						onToevoegen(target, unsavedObject);
+					}
+					else if (unsavedObject.getId() == null)
+					{
+						List<T> transformedTijdSloten = transformTijdSlot(unsavedObject);
+						for (T transformedTijdSlot : transformedTijdSloten)
+						{
+							hibernateService.saveOrUpdate(transformedTijdSlot);
+						}
+						onClose(target, new CalendarRefresher<>(false, transformedTijdSloten, null));
+					}
+					else
+					{
+						hibernateService.saveOrUpdate(unsavedObject);
+						onClose(target, new CalendarRefresher<>(false, unsavedObject, null));
+					}
+				}
+				catch (ValidatieException ex)
+				{
+					error(String.format(getString(ex.getMessage()), ex.getFormatArguments()));
+				}
+				catch (OpslaanVerwijderenTijdBlokException ex)
+				{
+					error(getString(ex.getMessage()));
 				}
 			}
 
@@ -278,10 +288,11 @@ public abstract class AbstractEditTijdSlotPanel<T extends AbstractAppointment> e
 
 				T abstractAppointmentToDelete = AbstractEditTijdSlotPanel.this.getModelObject();
 				abstractAppointmentToDelete = ModelProxyHelper.deproxy(abstractAppointmentToDelete);
-				Kamer kamer = (Kamer) abstractAppointmentToDelete.getLocation();
-				String melding = Constants.getDateTimeFormat().format(abstractAppointmentToDelete.getStartTime()) + ", " + kamer.getName() + ", "
+				var kamer = (Kamer) abstractAppointmentToDelete.getLocation();
+				var melding = Constants.getDateTimeFormat().format(abstractAppointmentToDelete.getStartTime()) + ", " + kamer.getName() + ", "
 					+ kamer.getColoscopieCentrum().getNaam();
 				CalendarRefresher<T> refresher = new CalendarRefresher<>(true, abstractAppointmentToDelete, getRecurrenceOption());
+				logAction(abstractAppointmentToDelete);
 
 				if (abstractAppointmentToDelete.getRecurrence() != null && !NoRecurrence.class.isAssignableFrom(abstractAppointmentToDelete.getRecurrence().getClass()))
 				{
@@ -510,87 +521,10 @@ public abstract class AbstractEditTijdSlotPanel<T extends AbstractAppointment> e
 		return !foutInRecurrenceEditEnd;
 	}
 
-	protected boolean onBeforeOpslaan(T appointment)
+	protected boolean onBeforeOpslaan(T appointment) throws ValidatieException, OpslaanVerwijderenTijdBlokException
 	{
-		boolean ok = true;
-
-		Date startTime = appointment.getStartTime();
-		Date endTime = appointment.getEndTime();
-		if (!endTime.after(startTime))
-		{
-			error(getString("eind.voor.start"));
-			ok = false;
-		}
-		if (DateUtil.toLocalTime(startTime).getMinute() % 5 != 0)
-		{
-			error(getString("minuten.veelvoud.vijf"));
-			ok = false;
-		}
-
-		if (appointment.getId() != null && !appointment.equals(startTime) && startTime.before(currentDateSupplier.getDate()))
-		{
-			error(getString("nieuwe.start.in.verleden"));
-			ok = false;
-		}
-		else if (appointment.getId() == null && startTime.before(currentDateSupplier.getDate()))
-		{
-			error(getString("start.in.verleden"));
-			ok = false;
-		}
-		LocalTime startTijd = DateUtil.toLocalTime(startTime);
-
-		AbstractRecurrence recurrence = appointment.getRecurrence();
-		if (recurrence != null && !NoRecurrence.class.isAssignableFrom(recurrence.getClass()))
-		{
-			Date endDate = recurrence.getEndDate();
-			if (endDate != null)
-			{
-				endDate = DateUtil.toUtilDate(DateUtil.toLocalDateTime(endDate).plusSeconds(startTijd.toSecondOfDay()));
-				if (startTime.after(endDate))
-				{
-					error(getString("eind.herhaling.moet.na.start"));
-					ok = false;
-				}
-			}
-			if (WeeklyRecurrence.class.isAssignableFrom(recurrence.getClass()))
-			{
-				WeeklyRecurrence weeklyRecurrence = (WeeklyRecurrence) recurrence;
-				if (CollectionUtils.isEmpty(weeklyRecurrence.getDagen()))
-				{
-					error(getString("geen.dag.voor.herhaling"));
-					ok = false;
-				}
-				if (weeklyRecurrence.getRecurrenceInterval() == null || weeklyRecurrence.getRecurrenceInterval() < 1)
-				{
-					error(getString("keert.weekend.terug.moet.groter.dan.nul"));
-					ok = false;
-				}
-			}
-			else if (MonthlyRecurrence.class.isAssignableFrom(recurrence.getClass()))
-			{
-				MonthlyRecurrence monthlyRecurrence = (MonthlyRecurrence) recurrence;
-				if (monthlyRecurrence.getRecurrenceInterval() == null || monthlyRecurrence.getRecurrenceInterval() < 1)
-				{
-					error(getString("keert.maand.terug.moet.groter.dan.nul"));
-					ok = false;
-				}
-				if (monthlyRecurrence.getXthWeekDay() == null || monthlyRecurrence.getDay() == null)
-				{
-					error(getString("op.de.elke.maand.verplicht"));
-					ok = false;
-				}
-			}
-			else if (YearlyRecurrence.class.isAssignableFrom(recurrence.getClass()))
-			{
-				YearlyRecurrence yearlyRecurrence = (YearlyRecurrence) recurrence;
-				if (yearlyRecurrence.getRecurrenceInterval() == null || yearlyRecurrence.getRecurrenceInterval() < 1)
-				{
-					error(getString("keert.jaar.terug.moet.groter.dan.nul"));
-					ok = false;
-				}
-			}
-		}
-		return ok;
+		roosterService.valideerTijdslot(appointment);
+		return true;
 	}
 
 	protected abstract void onClose(AjaxRequestTarget target, CalendarRefresher<T> refresher);

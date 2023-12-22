@@ -23,13 +23,14 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.rooster;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.Constants;
+import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
+import nl.rivm.screenit.main.exception.ValidatieException;
 import nl.rivm.screenit.main.model.RecurrenceOption;
+import nl.rivm.screenit.main.service.colon.ColonAfspraakSlotService;
 import nl.rivm.screenit.main.service.colon.RoosterService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -68,7 +69,6 @@ import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.hibernate.Hibernate;
 import org.joda.time.DateTime;
-import org.joda.time.Interval;
 import org.joda.time.LocalDate;
 import org.joda.time.Minutes;
 import org.wicketstuff.datetime.markup.html.basic.DateLabel;
@@ -79,6 +79,9 @@ public abstract class EditRoosterBlokPanel extends AbstractEditTijdSlotPanel<Roo
 {
 	@SpringBean
 	private RoosterService roosterService;
+
+	@SpringBean
+	private ColonAfspraakSlotService afspraakSlotService;
 
 	@SpringBean
 	private LogService logService;
@@ -132,7 +135,7 @@ public abstract class EditRoosterBlokPanel extends AbstractEditTijdSlotPanel<Roo
 		roosterItemStatus = roosterService.getRoosterItemStatus(roosterItem);
 		final boolean magDatumWijzigen = ((isNieuw || roosterItem.getRecurrence() == null || NoRecurrence.class.isAssignableFrom(roosterItem.getRecurrence().getClass()))
 			&& !roosterItemStatus
-				.equals(RoosterItemStatus.INTAKE_GEPLAND))
+			.equals(RoosterItemStatus.INTAKE_GEPLAND))
 			&& magAanpassen;
 
 		String kamerString = "";
@@ -273,19 +276,16 @@ public abstract class EditRoosterBlokPanel extends AbstractEditTijdSlotPanel<Roo
 
 	}
 
-	private boolean checkEindTijdOpZelfdeDag(LocalDateTime startDateTime, LocalDateTime endDateTime)
+	private void checkEindTijdOpZelfdeDag(LocalDateTime startDateTime, LocalDateTime endDateTime)
 	{
-		if (!startDateTime.equals(endDateTime))
+		try
 		{
-			LocalDateTime volgendeNacht = startDateTime.plusDays(1).toLocalDate().atStartOfDay();
-			if (volgendeNacht.isBefore(endDateTime))
-			{
-				int overgeblevenMinutenVanDeDag = (int) ChronoUnit.MINUTES.between(startDateTime, volgendeNacht);
-				error(String.format(getString("error.te.veel.blokken"), overgeblevenMinutenVanDeDag / duurAfspraakInMinuten));
-				return false;
-			}
+			afspraakSlotService.checkEindTijdOpZelfdeDag(startDateTime, endDateTime, ScreenitSession.get().getColoscopieCentrum());
 		}
-		return true;
+		catch (ValidatieException ex)
+		{
+			error(String.format(getString(ex.getMessage()), ex.getFormatArguments()));
+		}
 	}
 
 	private LocalDateTime calcEindtijd(Date startTime)
@@ -296,48 +296,18 @@ public abstract class EditRoosterBlokPanel extends AbstractEditTijdSlotPanel<Roo
 	@Override
 	protected List<RoosterItem> transformTijdSlot(RoosterItem unsavedObject)
 	{
-		List<RoosterItem> roosterItems = new ArrayList<>();
-		DateTime startDate = new DateTime(unsavedObject.getStartTime());
-		DateTime endTime;
-		for (int i = 0; i < aantalBlokken.getObject(); i++)
-		{
-			RoosterItem splittedRoosterBlok = unsavedObject.transientClone();
-			AbstractRecurrence recurrence = unsavedObject.getRecurrence();
-			if (recurrence != null && !NoRecurrence.class.isAssignableFrom(Hibernate.getClass(recurrence)))
-			{
-				AbstractRecurrence clonedRecurrence = recurrence.transientClone();
-				clonedRecurrence.setFirstAppointment(splittedRoosterBlok);
-				splittedRoosterBlok.setRecurrence(clonedRecurrence);
-			}
-			splittedRoosterBlok.setStartTime(startDate.toDate());
-			endTime = startDate.plusMinutes(duurAfspraakInMinuten);
-			splittedRoosterBlok.setEndTime(endTime.toDate());
-			startDate = endTime;
-			roosterItems.add(splittedRoosterBlok);
-		}
-		return roosterItems;
+		return afspraakSlotService.splitAfspraakSlot(unsavedObject, aantalBlokken.getObject(), ScreenitSession.get().getColoscopieCentrum());
 	}
 
 	@Override
-	protected boolean onBeforeOpslaan(RoosterItem roosteritem)
+	protected boolean onBeforeOpslaan(RoosterItem roosteritem) throws ValidatieException, OpslaanVerwijderenTijdBlokException
 	{
-		boolean isValideRoosterItem = super.onBeforeOpslaan(roosteritem);
-		if (roosterItemStatus.equals(RoosterItemStatus.GEBRUIKT_VOOR_CAPACITEIT) && roosteritem.getId() != null)
-		{
-			Date startTime = roosteritem.getStartTime();
-			DateTime eindDatumGebruiktVoorCapaciteit = new DateTime(origStartTime).dayOfWeek().withMaximumValue().plusDays(1).withTimeAtStartOfDay();
-			if (!new Interval(eindDatumGebruiktVoorCapaciteit.minusWeeks(1), eindDatumGebruiktVoorCapaciteit).overlaps(new Interval(new DateTime(startTime),
-				new DateTime(startTime).plusMinutes(duurAfspraakInMinuten))))
-			{
-				error("Dit roosterblok is gebruikt voor de capaciteitsberekening. Derhalve moet start datum/tijd in dezelfde week blijven liggen.");
-				isValideRoosterItem = false;
-			}
-		}
-		if (!checkEindTijdOpZelfdeDag(DateUtil.toLocalDateTime(roosteritem.getStartTime()), DateUtil.toLocalDateTime(roosteritem.getEndTime())))
-		{
-			isValideRoosterItem = false;
-		}
-		return isValideRoosterItem;
+		super.onBeforeOpslaan(roosteritem);
+		afspraakSlotService.checkCapaciteitBerekening(roosteritem, ScreenitSession.get().getColoscopieCentrum());
+		var startDateTime = DateUtil.toLocalDateTime(roosteritem.getStartTime());
+		var nieuwEndTimeLocalDateTime = calcEindtijd(roosteritem.getEndTime());
+		afspraakSlotService.checkEindTijdOpZelfdeDag(startDateTime, nieuwEndTimeLocalDateTime, ScreenitSession.get().getColoscopieCentrum());
+		return true;
 	}
 
 	@Override

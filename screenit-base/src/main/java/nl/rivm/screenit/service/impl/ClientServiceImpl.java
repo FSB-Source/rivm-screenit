@@ -42,7 +42,7 @@ import nl.rivm.screenit.model.Dossier;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.RedenOpnieuwAanvragenClientgegevens;
+import nl.rivm.screenit.model.RedenGbaVraag;
 import nl.rivm.screenit.model.TijdelijkAdres;
 import nl.rivm.screenit.model.TijdelijkGbaAdres;
 import nl.rivm.screenit.model.UploadDocument;
@@ -62,7 +62,7 @@ import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectInactiefReden;
-import nl.rivm.screenit.repository.ClientRepository;
+import nl.rivm.screenit.repository.algemeen.ClientRepository;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
@@ -419,11 +419,11 @@ public class ClientServiceImpl implements ClientService
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public GbaVraag vraagGbaGegevensOpnieuwAan(Client client, Account account, RedenOpnieuwAanvragenClientgegevens reden)
+	public GbaVraag vraagGbaGegevensOpnieuwAan(Client client, Account account, RedenGbaVraag reden)
 	{
 		GbaVraag gbaVraag = new GbaVraag();
 		gbaVraag.setClient(client);
-		gbaVraag.setDatum(currentDateSupplier.getDate());
+		gbaVraag.setDatum(currentDateSupplier.getLocalDateTime());
 		gbaVraag.setVraagType(GbaVraagType.VERWIJDER_INDICATIE);
 		gbaVraag.setReden(reden);
 		gbaVraag.setReactieOntvangen(false);

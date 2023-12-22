@@ -41,7 +41,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -165,7 +164,12 @@ public class DiskFileServiceImpl implements FileService
 	{
 		try
 		{
-			FileUtils.cleanDirectory(new File(directory));
+			var file = new File(directory);
+
+			if (file.exists())
+			{
+				FileUtils.cleanDirectory(file);
+			}
 		}
 		catch (IOException e)
 		{
@@ -185,6 +189,19 @@ public class DiskFileServiceImpl implements FileService
 		{
 			LOG.error("Kon map {} niet verwijderen door {}", directory, e.getMessage());
 			throw e;
+		}
+	}
+
+	@Override
+	public void deleteFileOrDirectory(File bestand) throws IOException
+	{
+		if (bestand.isDirectory())
+		{
+			deleteDirectory(bestand.getPath());
+		}
+		else
+		{
+			delete(bestand.getPath());
 		}
 	}
 

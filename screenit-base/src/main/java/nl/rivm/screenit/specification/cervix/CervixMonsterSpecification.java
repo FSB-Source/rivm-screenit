@@ -26,7 +26,10 @@ import javax.persistence.criteria.JoinType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.GbaPersoon_;
 import nl.rivm.screenit.model.cervix.CervixDossier;
+import nl.rivm.screenit.model.cervix.CervixDossier_;
 import nl.rivm.screenit.model.cervix.CervixHuisartsBericht_;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixMonster_;
@@ -40,6 +43,7 @@ import nl.rivm.screenit.model.cervix.enums.CervixHuisartsBerichtStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixZasStatus;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -95,5 +99,36 @@ public class CervixMonsterSpecification
 				cb.equal(cb.treat(r, CervixZas.class).get(CervixZas_.zasStatus), CervixZasStatus.VERSTUURD),
 				cb.like(r.get(CervixMonster_.monsterId), "Z%"),
 				cb.equal(r.join(CervixMonster_.uitnodiging).join(CervixUitnodiging_.screeningRonde).join(CervixScreeningRonde_.dossier), dossier));
+	}
+
+	public static Specification<CervixMonster> heeftMonsterId(String monsterId)
+	{
+		return (r, q, cb) -> cb.equal(r.get(CervixMonster_.monsterId), StringUtils.trimToEmpty(monsterId));
+	}
+
+	public static Specification<CervixZas> heeftZasMonsterId(String monsterId)
+	{
+		return (r, q, cb) -> cb.equal(r.get(CervixMonster_.monsterId), StringUtils.trimToEmpty(monsterId));
+	}
+
+	public static Specification<CervixUitstrijkje> heeftUitstrijkjeMonsterId(String monsterId)
+	{
+		return (r, q, cb) -> cb.equal(r.get(CervixMonster_.monsterId), StringUtils.trimToEmpty(monsterId));
+	}
+
+	public static Specification<CervixUitstrijkje> heeftControleLetters(String controleLetters)
+	{
+		return (r, q, cb) -> cb.equal(r.get(CervixUitstrijkje_.controleLetters), StringUtils.trimToEmpty(controleLetters));
+	}
+
+	public static Specification<CervixUitstrijkje> heeftBsn(String bsn)
+	{
+		return (r, q, cb) -> cb.equal(
+			r.join(CervixMonster_.uitnodiging)
+				.join(CervixUitnodiging_.screeningRonde)
+				.join(CervixScreeningRonde_.dossier)
+				.join(CervixDossier_.client)
+				.join(Client_.persoon)
+				.get(GbaPersoon_.bsn), bsn);
 	}
 }

@@ -25,7 +25,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.time.LocalDate;
 import java.util.Iterator;
 import java.util.UUID;
 
@@ -33,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.jobs.generalis.gba.GbaConstants;
 import nl.rivm.screenit.batch.jobs.generalis.gba.verwerk107step.IVo107Provider.Vo107File;
+import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.gba.GbaFile;
 import nl.rivm.screenit.model.gba.GbaFoutCategorie;
 import nl.rivm.screenit.model.gba.GbaFoutRegel;
@@ -62,7 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class Vo107ItemReader implements ItemReader<Vo107Bericht>, ItemStream
 {
 
-	private static final String OFFSET = "key.offset";
+	private static final String KEY_OFFSET = "key.offset";
 
 	private static final String ZIP_FILE_EXTENSION = ".zip";
 
@@ -165,9 +165,9 @@ public class Vo107ItemReader implements ItemReader<Vo107Bericht>, ItemStream
 				LOG.warn("Geen GBA bestanden gevonden");
 			}
 
-			if (executionContext.containsKey(OFFSET))
+			if (executionContext.containsKey(KEY_OFFSET))
 			{
-				for (int i = 0; i < executionContext.getInt(OFFSET); i++)
+				for (int i = 0; i < executionContext.getInt(KEY_OFFSET); i++)
 				{
 					if (berichtIterator.hasNext())
 					{
@@ -226,7 +226,7 @@ public class Vo107ItemReader implements ItemReader<Vo107Bericht>, ItemStream
 	private String saveToFilestoreAsZip(Vo107File vo107File)
 	{
 		var fileName = UUID.randomUUID() + "-incoming" + ZIP_FILE_EXTENSION;
-		var datePath = dateToPath(dateSupplier.getLocalDate());
+		var datePath = FileStoreLocation.relativePathForDate(dateSupplier.getLocalDate());
 
 		var relativeFilestorePath = datePath + fileName;
 		var fileStorePath = voFileStorePath + System.getProperty("file.separator") + relativeFilestorePath;
@@ -273,12 +273,6 @@ public class Vo107ItemReader implements ItemReader<Vo107Bericht>, ItemStream
 		gbaVerwerkingsLog.getFouten().add(gbaFoutRegel);
 	}
 
-	protected String dateToPath(LocalDate date)
-	{
-		var separator = System.getProperty("file.separator");
-		return separator + date.getYear() + separator + date.getMonthValue() + separator + date.getDayOfMonth() + separator;
-	}
-
 	private void deleteCurrentFileIfExists()
 	{
 		if (currentFile != null && currentFile.getTempFile() != null && currentFile.getTempFile().exists())
@@ -297,7 +291,7 @@ public class Vo107ItemReader implements ItemReader<Vo107Bericht>, ItemStream
 	@Override
 	public void update(ExecutionContext executionContext) throws ItemStreamException
 	{
-		executionContext.putInt(OFFSET, offset);
+		executionContext.putInt(KEY_OFFSET, offset);
 	}
 
 	@Override

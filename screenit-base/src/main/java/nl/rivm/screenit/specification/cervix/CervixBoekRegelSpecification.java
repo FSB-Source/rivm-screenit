@@ -28,6 +28,7 @@ import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdrachtRegelSpecifi
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdrachtRegel_;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel_;
+import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 
 import org.springframework.data.jpa.domain.Specification;
@@ -43,6 +44,11 @@ public class CervixBoekRegelSpecification
 	public static Specification<CervixBoekRegel> metSpecificatie()
 	{
 		return (r, q, cb) -> cb.isNotNull(r.get(CervixBoekRegel_.specificatie));
+	}
+
+	public static PathAwarePredicate<CervixBoekRegel> heeftNogGeenBetaalopdracht()
+	{
+		return (cb, r) -> cb.isNull(r.get(CervixBoekRegel_.specificatie));
 	}
 
 	public static Specification<CervixBoekRegel> metOpdrachtID(Long id)

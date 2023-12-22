@@ -39,7 +39,7 @@ import nl.rivm.screenit.model.MailAttachment;
 import nl.rivm.screenit.model.MailVerzenden;
 import nl.rivm.screenit.model.enums.MailPriority;
 import nl.rivm.screenit.model.enums.MailServerKeuze;
-import nl.rivm.screenit.repository.MailRepository;
+import nl.rivm.screenit.repository.algemeen.MailRepository;
 import nl.rivm.screenit.service.MailService;
 import nl.rivm.screenit.util.mail.LoggingJavaMailSender;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;

@@ -29,6 +29,10 @@ import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.envers.Audited;
@@ -37,11 +41,11 @@ import org.hibernate.envers.Audited;
 @Table(schema = "algemeen")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 @Audited
+@Getter
+@Setter
+@NoArgsConstructor
 public class ClientContactActie extends SingleTableHibernateObject
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 	private ClientContact contact;
 
@@ -49,45 +53,10 @@ public class ClientContactActie extends SingleTableHibernateObject
 	private ClientContactActieType type;
 
 	@Enumerated(EnumType.STRING)
-	private RedenOpnieuwAanvragenClientgegevens opnieuwAanvragenClientgegevensReden;
-
-	public ClientContactActie()
-	{
-
-	}
+	private RedenGbaVraag opnieuwAanvragenClientgegevensReden;
 
 	public ClientContactActie(ClientContactActieType type)
 	{
 		this.type = type;
-	}
-
-	public ClientContact getContact()
-	{
-		return contact;
-	}
-
-	public void setContact(ClientContact contact)
-	{
-		this.contact = contact;
-	}
-
-	public ClientContactActieType getType()
-	{
-		return type;
-	}
-
-	public void setType(ClientContactActieType type)
-	{
-		this.type = type;
-	}
-
-	public RedenOpnieuwAanvragenClientgegevens getOpnieuwAanvragenClientgegevensReden()
-	{
-		return opnieuwAanvragenClientgegevensReden;
-	}
-
-	public void setOpnieuwAanvragenClientgegevensReden(RedenOpnieuwAanvragenClientgegevens opnieuwAanvragenClientgegevensReden)
-	{
-		this.opnieuwAanvragenClientgegevensReden = opnieuwAanvragenClientgegevensReden;
 	}
 }

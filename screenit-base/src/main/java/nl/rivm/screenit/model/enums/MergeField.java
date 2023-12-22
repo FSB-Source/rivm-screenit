@@ -112,6 +112,7 @@ import nl.rivm.screenit.service.cervix.CervixBaseBetalingService;
 import nl.rivm.screenit.service.cervix.impl.CervixMonsterIdBarcode;
 import nl.rivm.screenit.service.cervix.impl.CervixMonsterIdLabelBarcode;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
+import nl.rivm.screenit.service.colon.ColonRoosterService;
 import nl.rivm.screenit.service.impl.UitnodigingIdBarcode;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
@@ -1334,10 +1335,16 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
+				if (context.getIntakelocatie() != null)
+				{
+					return context.getIntakelocatie().getNaam();
+				}
+
 				if (context.getIntakeAfspraak() != null)
 				{
 					return context.getIntakeAfspraak().getLocation().getColoscopieCentrum().getNaam();
 				}
+
 				return null;
 			}
 		},
@@ -1689,6 +1696,14 @@ public enum MergeField
 					}
 				}
 				return null;
+			}
+		},
+	COLON_GEEN_CAPACITEIT_TERMIJN("_COLON_GEEN_CAPACITEIT_TERMIJN")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				return getBean(ColonRoosterService.class).getSignaleringstermijnTekst();
 			}
 		},
 

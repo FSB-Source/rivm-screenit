@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model;
 
 /*-
@@ -25,12 +24,19 @@ package nl.rivm.screenit.model;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
+import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.overeenkomsten.AbstractAfgeslotenOvereenkomst;
 import nl.rivm.screenit.model.project.ProjectAttribuut;
 import nl.rivm.screenit.model.project.ProjectBrief;
 
+@Getter
+@Setter
 public class MailMergeContext
 {
 
@@ -56,6 +62,8 @@ public class MailMergeContext
 
 	private Client client;
 
+	private ColoscopieCentrum intakelocatie;
+
 	private ColonUitnodiging colonUitnodiging;
 
 	private Afspraak intakeAfspraak;
@@ -74,69 +82,11 @@ public class MailMergeContext
 
 	private Map<ProjectAttribuut, String> projectAttributen = new HashMap<ProjectAttribuut, String>();
 
+	@Setter(AccessLevel.NONE)
+	@Getter(AccessLevel.NONE)
 	private Map<String, Object> contextMap = new HashMap<>();
 
 	private Brief brief;
-
-	public Client getClient()
-	{
-		return client;
-	}
-
-	public void setClient(Client client)
-	{
-		this.client = client;
-	}
-
-	public ColonUitnodiging getColonUitnodiging()
-	{
-		return colonUitnodiging;
-	}
-
-	public void setColonUitnodiging(ColonUitnodiging colonUitnodiging)
-	{
-		this.colonUitnodiging = colonUitnodiging;
-	}
-
-	public Afspraak getIntakeAfspraak()
-	{
-		return intakeAfspraak;
-	}
-
-	public void setIntakeAfspraak(Afspraak intakeAfspraak)
-	{
-		this.intakeAfspraak = intakeAfspraak;
-	}
-
-	public Afspraak getVorigeIntakeAfspraak()
-	{
-		return vorigeIntakeAfspraak;
-	}
-
-	public void setVorigeIntakeAfspraak(Afspraak vorigeIntakeAfspraak)
-	{
-		this.vorigeIntakeAfspraak = vorigeIntakeAfspraak;
-	}
-
-	public AbstractAfgeslotenOvereenkomst getOvereenkomst()
-	{
-		return overeenkomst;
-	}
-
-	public void setOvereenkomst(AbstractAfgeslotenOvereenkomst overeenkomst)
-	{
-		this.overeenkomst = overeenkomst;
-	}
-
-	public Boolean getUseTestValue()
-	{
-		return useTestValue;
-	}
-
-	public void setUseTestValue(Boolean useTestValue)
-	{
-		this.useTestValue = useTestValue;
-	}
 
 	@Override
 	public int hashCode()
@@ -225,46 +175,6 @@ public class MailMergeContext
 		return true;
 	}
 
-	public ProjectBrief getProjectBrief()
-	{
-		return projectBrief;
-	}
-
-	public void setProjectBrief(ProjectBrief projectBrief)
-	{
-		this.projectBrief = projectBrief;
-	}
-
-	public String getVragenlijstNaam()
-	{
-		return vragenlijstNaam;
-	}
-
-	public void setVragenlijstNaam(String vragenlijstNaam)
-	{
-		this.vragenlijstNaam = vragenlijstNaam;
-	}
-
-	public CervixUitnodiging getCervixUitnodiging()
-	{
-		return cervixUitnodiging;
-	}
-
-	public void setCervixUitnodiging(CervixUitnodiging cervixUitnodiging)
-	{
-		this.cervixUitnodiging = cervixUitnodiging;
-	}
-
-	public Map<ProjectAttribuut, String> getProjectAttributen()
-	{
-		return projectAttributen;
-	}
-
-	public void setProjectAttributen(Map<ProjectAttribuut, String> projectAttributen)
-	{
-		this.projectAttributen = projectAttributen;
-	}
-
 	public void putValue(String name, Object value)
 	{
 		contextMap.put(name, value);
@@ -274,25 +184,5 @@ public class MailMergeContext
 	public <T> T getValue(String name)
 	{
 		return (T) contextMap.get(name);
-	}
-
-	public Brief getBrief()
-	{
-		return brief;
-	}
-
-	public void setBrief(Brief brief)
-	{
-		this.brief = brief;
-	}
-
-	public BMHKLaboratorium getBmhkLaboratorium()
-	{
-		return bmhkLaboratorium;
-	}
-
-	public void setBmhkLaboratorium(BMHKLaboratorium bmhkLaboratorium)
-	{
-		this.bmhkLaboratorium = bmhkLaboratorium;
 	}
 }

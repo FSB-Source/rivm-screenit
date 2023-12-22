@@ -52,6 +52,7 @@ import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.util.AdresUtil;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -132,7 +133,10 @@ public class ClientInzienPanel extends GenericPanel<Client>
 		add(new DateLabel("laatstAangevraagd", (IModel<Date>) () ->
 		{
 			List<GbaVraag> gbaVragen = new ArrayList<>(getModelObject().getGbaVragen());
-			return gbaVragen.stream().filter(v -> v.getVraagType() == GbaVraagType.VERWIJDER_INDICATIE).map(GbaVraag::getDatum).max(Comparator.naturalOrder()).orElse(null);
+			var momentLaatsteVerwijderIndicatie = gbaVragen.stream().filter(v -> v.getVraagType() == GbaVraagType.VERWIJDER_INDICATIE).map(GbaVraag::getDatum)
+				.max(Comparator.naturalOrder())
+				.orElse(null);
+			return DateUtil.toUtilDate(momentLaatsteVerwijderIndicatie);
 		}, new PatternDateConverter("dd-MM-yyyy HH:mm:ss", true))
 		{
 
