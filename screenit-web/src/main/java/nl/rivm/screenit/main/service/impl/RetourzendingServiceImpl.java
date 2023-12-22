@@ -37,7 +37,7 @@ import nl.rivm.screenit.main.service.RetourzendingService;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.InpakbareUitnodiging;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.RedenOpnieuwAanvragenClientgegevens;
+import nl.rivm.screenit.model.RedenGbaVraag;
 import nl.rivm.screenit.model.RetourredenAfhandeling;
 import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
@@ -343,7 +343,7 @@ public class RetourzendingServiceImpl implements RetourzendingService
 			}
 			else if (!baseUitnodigingsService.isVerstuurdMetTijdelijkAdres(uitnodiging))
 			{
-				GbaVraag gbaVraag = clientService.vraagGbaGegevensOpnieuwAan(screeningRonde.getDossier().getClient(), null, RedenOpnieuwAanvragenClientgegevens.ONJUIST_ADRES);
+				GbaVraag gbaVraag = clientService.vraagGbaGegevensOpnieuwAan(screeningRonde.getDossier().getClient(), null, RedenGbaVraag.ONJUIST_ADRES);
 				String retourzendingMarker = null;
 				if (uitnodiging instanceof ColonUitnodiging)
 				{

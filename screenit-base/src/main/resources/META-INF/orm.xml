@@ -34,47 +34,7 @@
         </attributes>
     </mapped-superclass>
 
-    <entity class="nl.topicuszorg.patientregistratie.persoonsgegevens.model.Patient"
-            metadata-complete="false">
-        <table schema="gedeeld"/>
-        <inheritance strategy="SINGLE_TABLE"/>
-        <attributes>
-            <one-to-one mapped-by="patient" name="persoon" target-entity="nl.rivm.screenit.model.GbaPersoon">
-                <cascade>
-                    <cascade-all/>
-                </cascade>
-            </one-to-one>
-        </attributes>
-    </entity>
 
-    <entity class="nl.topicuszorg.patientregistratie.persoonsgegevens.model.Persoon"
-            metadata-complete="false">
-        <table schema="gedeeld"/>
-        <attributes>
-            <basic name="bsn">
-                <column unique="true" length="12"/>
-            </basic>
-            <basic name="voornaam">
-                <column length="255"/>
-            </basic>
-            <basic name="emailadres">
-                <column length="100"/>
-            </basic>
-            <basic name="overlijdensdatum">
-                <column nullable="true"/>
-                <temporal>DATE</temporal>
-            </basic>
-            <many-to-many name="adressen">
-                <join-table schema="algemeen" name="pat_persoon_adressen"/>
-            </many-to-many>
-            <element-collection name="nationaliteiten">
-                <enumerated>STRING</enumerated>
-                <collection-table name="pat_persoon_nationaliteiten" schema="algemeen">
-                    <join-column name="pat_persoon_id"/>
-                </collection-table>
-            </element-collection>
-        </attributes>
-    </entity>
     <entity class="nl.topicuszorg.patientregistratie.persoonsgegevens.model.VerzekeringsMaatschappij"
             metadata-complete="false">
         <table schema="algemeen"/>

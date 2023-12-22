@@ -22,67 +22,53 @@ package nl.rivm.screenit.service.cervix.impl;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.dao.cervix.CervixMonsterDao;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.model.cervix.CervixCytologieVerslag;
-import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
-import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieUitslag;
 import nl.rivm.screenit.model.cervix.enums.CervixOmissieType;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
-import nl.rivm.screenit.model.cervix.verslag.cytologie.CervixCytologieCytologieUitslagBvoBmhk;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.cervix.CervixBaseMonsterService;
 import nl.rivm.screenit.service.cervix.CervixMailService;
 import nl.rivm.screenit.service.cervix.CervixVerwerkVerslagService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
+@AllArgsConstructor
 public class CervixVerwerkVerslagServiceImpl implements CervixVerwerkVerslagService
 {
+	private final HibernateService hibernateService;
 
-	private static final Logger LOG = LoggerFactory.getLogger(CervixVerwerkVerslagServiceImpl.class);
+	private final ICurrentDateSupplier dateSupplier;
 
-	@Autowired
-	private ApplicationContext appContext;
+	private final CervixBaseMonsterService monsterService;
 
-	@Autowired
-	private HibernateService hibernateService;
-
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
-
-	@Autowired
-	private CervixMonsterDao monsterDao;
-
-	@Autowired
-	private CervixMailService mailService;
+	private final CervixMailService mailService;
 
 	@Override
 	public void verwerkInDossier(CervixCytologieVerslag cytologieVerslag)
 	{
 
-		CervixCytologieCytologieUitslagBvoBmhk cytologieUitslagBvoBmhk = cytologieVerslag.getVerslagContent().getCytologieUitslagBvoBmhk();
-		String monsterIdentificatie = cytologieUitslagBvoBmhk.getMonsterBmhk().getMonsterIdentificatie();
-		String papKlasseCode = cytologieUitslagBvoBmhk.getPapKlasse().getCode();
-		CervixCytologieUitslag cytologieUitslag = CervixCytologieUitslag.valueOf(papKlasseCode.toUpperCase());
+		var cytologieUitslagBvoBmhk = cytologieVerslag.getVerslagContent().getCytologieUitslagBvoBmhk();
+		var monsterIdentificatie = cytologieUitslagBvoBmhk.getMonsterBmhk().getMonsterIdentificatie();
+		var papKlasseCode = cytologieUitslagBvoBmhk.getPapKlasse().getCode();
+		var cytologieUitslag = CervixCytologieUitslag.valueOf(papKlasseCode.toUpperCase());
 
 		monsterIdentificatie = monsterIdentificatie.replaceFirst("^0+(?!$)", ""); 
-		CervixUitstrijkje uitstrijkje = monsterDao.getUitstrijkje(monsterIdentificatie);
-		CervixScreeningRonde ontvangstRonde = uitstrijkje.getOntvangstScreeningRonde();
+		var uitstrijkje = monsterService.getUitstrijkje(monsterIdentificatie).orElseThrow(() ->
+			new IllegalStateException(
+				String.format("Dossier kan niet worden verwerkt, het uitstrijkje voor verslag met id %d kan niet worden gevonden", cytologieVerslag.getId())));
+		var ontvangstRonde = uitstrijkje.getOntvangstScreeningRonde();
 
 		if (!ontvangstRonde.getVerslagen().contains(cytologieVerslag))
 		{
 			cytologieVerslag.setCytologieUitslag(cytologieUitslag);
 			cytologieVerslag.setUitstrijkje(uitstrijkje);
-
 			cytologieVerslag.setScreeningRonde(ontvangstRonde);
 
 			uitstrijkje.setCytologieVerslag(cytologieVerslag);
@@ -109,6 +95,7 @@ public class CervixVerwerkVerslagServiceImpl implements CervixVerwerkVerslagServ
 			}
 		}
 		else
+
 		{
 			cytologieVerslag.getHerzieningenOntvangen().add(dateSupplier.getDate());
 		}

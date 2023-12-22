@@ -18,30 +18,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
-import React from "react"
+import React, {useContext} from "react"
 import {Link} from "react-router-dom"
-import {useKeycloak} from "@react-keycloak/web"
 import properties from "./NotFoundPage.json"
 import SpanWithHtml from "../components/span/SpanWithHtml"
+import {KeycloakContext} from "../components/KeycloakProvider"
 
 const NotFoundPage = () => {
+	const {keycloak} = useContext(KeycloakContext)
 
-    const {keycloak} = useKeycloak()
-
-    return keycloak?.authenticated ?
-        (
-            <div>
-                <h1>{properties.title}</h1>
-                <SpanWithHtml value={properties.authenticated.message}/>
-                <Link to="/">{properties.authenticated.link_text}</Link>
-            </div>
-        ) : (
-            <div>
-                <h1>{properties.title}</h1>
-                <SpanWithHtml value={properties.unauthenticated.message}/>
-                <Link to="/login">{properties.unauthenticated.link_text}</Link>
-            </div>
-        )
+	return keycloak.authenticated ?
+		(
+			<div>
+				<h1>{properties.title}</h1>
+				<SpanWithHtml value={properties.authenticated.message}/>
+				<Link to="/">{properties.authenticated.link_text}</Link>
+			</div>
+		) : (
+			<div>
+				<h1>{properties.title}</h1>
+				<SpanWithHtml value={properties.unauthenticated.message}/>
+				<Link to="/login">{properties.unauthenticated.link_text}</Link>
+			</div>
+		)
 
 }
 

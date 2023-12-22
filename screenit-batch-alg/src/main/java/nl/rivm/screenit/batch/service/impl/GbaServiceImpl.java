@@ -37,7 +37,7 @@ import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Gemeente;
-import nl.rivm.screenit.model.RedenOpnieuwAanvragenClientgegevens;
+import nl.rivm.screenit.model.RedenGbaVraag;
 import nl.rivm.screenit.model.TijdelijkGbaAdres;
 import nl.rivm.screenit.model.enums.DatumPrecisie;
 import nl.rivm.screenit.model.enums.GbaStatus;
@@ -127,10 +127,11 @@ public class GbaServiceImpl implements GbaService
 			else
 			{
 				String bsn = bericht.getBsn();
+				String bsnBRecord = getStringUitBericht(bericht, GbaRubriek.PERS_BSN);
 				String anummerARecord = bericht.getString(Vo107_ArecordVeld.ANR);
 				String oorspronkelijkBsn = bericht.getOorspronkelijkBsn();
 
-				if (Strings.isNullOrEmpty(bsn))
+				if (Strings.isNullOrEmpty(bsn) || bericht.isVerstrekking() && Strings.isNullOrEmpty(bsnBRecord))
 				{
 					GbaFoutRegel foutRegel = new GbaFoutRegel();
 					String foutString = "Bericht geskipt: Geen BSN gevonden in A of B records. EREF: " + eref;
@@ -478,13 +479,17 @@ public class GbaServiceImpl implements GbaService
 			GbaVraag gbaVraag = new GbaVraag();
 			gbaVraag.setClient(client);
 			gbaVraag.setBsn(bsn);
-			gbaVraag.setDatum(currentDateSupplier.getDate());
+			gbaVraag.setDatum(currentDateSupplier.getLocalDateTime());
 			gbaVraag.setVraagType(GbaVraagType.PLAATS_INDICATIE);
 			gbaVraag.setReactieOntvangen(false);
 			gbaVraag.setAanvullendeInformatie(laasteGbaVraag.getAanvullendeInformatie());
 			if (laasteGbaVraag.getClient() != null && GbaVraagType.VERWIJDER_INDICATIE.equals(laasteGbaVraag.getVraagType()))
 			{
 				gbaVraag.setReden(laasteGbaVraag.getReden());
+			}
+			else
+			{
+				gbaVraag.setReden(RedenGbaVraag.ONVERWACHT_INDICATIE_VERWIJDERD);
 			}
 
 			hibernateService.saveOrUpdate(gbaVraag);
@@ -527,9 +532,10 @@ public class GbaServiceImpl implements GbaService
 		else
 		{
 			GbaVraag gbaVraag = new GbaVraag();
-			gbaVraag.setDatum(currentDateSupplier.getDate());
+			gbaVraag.setDatum(currentDateSupplier.getLocalDateTime());
 			gbaVraag.setBsn(bsn);
 			gbaVraag.setVraagType(GbaVraagType.VERWIJDER_INDICATIE);
+			gbaVraag.setReden(RedenGbaVraag.MUTATIEBERICHT_ONBEKENDE_CLIENT);
 			gbaVraag.setReactieOntvangen(false);
 
 			hibernateService.saveOrUpdate(gbaVraag);
@@ -588,6 +594,7 @@ public class GbaServiceImpl implements GbaService
 		GbaPersoon persoon = new GbaPersoon();
 		persoon.setPatient(client);
 		client.setPersoon(persoon);
+		client.setGbaStatus(GbaStatus.INDICATIE_AANWEZIG);
 		vulPersoonsGegevens(client, bericht, verwerkingLog, true);
 		verwerkAdres(bericht, verwerkingLog, client);
 
@@ -632,12 +639,12 @@ public class GbaServiceImpl implements GbaService
 				}
 				client.getGbaMutaties().get(client.getGbaMutaties().size() - 1).setAanvullendeInformatie(aanvullendeInformatie);
 			}
-			RedenOpnieuwAanvragenClientgegevens reden = laasteGbaVraag.getReden();
-			if (!gegevensGewijzigd && RedenOpnieuwAanvragenClientgegevens.ONJUISTE_PERSOONSGEGEVENS.equals(reden))
+			RedenGbaVraag reden = laasteGbaVraag.getReden();
+			if (!gegevensGewijzigd && RedenGbaVraag.ONJUISTE_PERSOONSGEGEVENS.equals(reden))
 			{
 				logService.logGebeurtenis(LogGebeurtenis.GBA_PERSOONSGEGEVENS_NIET_GEWIJZIGD, clientService.getScreeningOrganisatieVan(client), client);
 			}
-			else if (!adresGewijzigd && !kanVersturenMetTijdelijkAdres && RedenOpnieuwAanvragenClientgegevens.ONJUIST_ADRES.equals(reden)) 
+			else if (!adresGewijzigd && !kanVersturenMetTijdelijkAdres && RedenGbaVraag.ONJUIST_ADRES.equals(reden)) 
 			{
 				logService.logGebeurtenis(LogGebeurtenis.GBA_ADRES_NIET_GEWIJZIGD, clientService.getScreeningOrganisatieVan(client), client);
 			}
@@ -676,7 +683,7 @@ public class GbaServiceImpl implements GbaService
 
 	private boolean isOpenstaandePlaatsing(GbaVraag laasteGbaVraag)
 	{
-		return GbaVraagType.PLAATS_INDICATIE.equals(laasteGbaVraag.getVraagType()) && !Boolean.TRUE.equals(laasteGbaVraag.getReactieOntvangen());
+		return laasteGbaVraag.getVraagType() == GbaVraagType.PLAATS_INDICATIE && !laasteGbaVraag.isReactieOntvangen();
 	}
 
 	private GbaVerwerkingEntry getOrCreateEntry(GbaVerwerkingsLog verwerkingLog, Client client)
@@ -727,7 +734,7 @@ public class GbaServiceImpl implements GbaService
 		{
 			if (GbaStatus.PUNT_ADRES.equals(client.getGbaStatus()))
 			{
-				client.setGbaStatus(null);
+				client.setGbaStatus(GbaStatus.INDICATIE_AANWEZIG);
 			}
 			if (AdresUtil.isOnvolledigAdres(adres))
 			{

@@ -71,6 +71,8 @@ public enum JobType
 
 	COLON_ILM(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
 
+	COLON_ROOSTER_GEEN_CAPACITEIT_SIGNALERING(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
+
 	COLON_CONTROLE_MISSENDE_UITSLAGEN(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON },
 		new OrganisatieParameterKey[] { OrganisatieParameterKey.COLON_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN }),
 

@@ -67,6 +67,9 @@ public class ColoscopieCentrum extends Instelling
 	@Column(length = HibernateMagicNumber.L2048)
 	private String locatieBeschrijving;
 
+	@Column(length = 100)
+	private String emailSignaleringIntakelocatie;
+
 	private Integer aantalGeprognostiseerdeRoosterblokken;
 
 	private Integer aantalGeprognostiseerdeRoosterblokkenVolgendJaar;

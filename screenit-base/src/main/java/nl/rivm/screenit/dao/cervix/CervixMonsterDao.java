@@ -25,25 +25,10 @@ import java.time.LocalDate;
 
 import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.cervix.CervixMonster;
-import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
-import nl.rivm.screenit.model.cervix.CervixZas;
 
 public interface CervixMonsterDao
 {
-
-	CervixMonster getMonsterByMonsterId(String monsterId);
-
-	CervixUitstrijkje getUitstrijkjeByClientBsnAndMonsterId(String bsn, String monsterId);
-
-	CervixUitstrijkje getUitstrijkjeByClientBsnAndControleLetters(String bsn, String controleLetters);
-
-	CervixUitstrijkje getUitstrijkje(String monsterId);
-
-	CervixZas getZas(String monsterId);
-
 	Long getNextMonsterId();
 
 	CervixMonster getLaatsteMonsterMetMissendeUitslagVanDossier(CervixDossier dossier, LocalDate signalerenVanaf, LocalDate minimaleSignaleringsDatum);
-
-	boolean isVerwijderdMonster(String monsterId);
 }

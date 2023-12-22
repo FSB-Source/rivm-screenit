@@ -31,12 +31,11 @@ import lombok.AllArgsConstructor;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.GbaPersoon_;
 import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
-import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Persoon_;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PersoonSpecification
 {
-	public static PathAwarePredicate<GbaPersoon> nietVetrokkenUitNederlandVoor(Path<Date> datum)
+	public static PathAwarePredicate<GbaPersoon> isNietVertrokkenUitNederlandVoorDatumPredicate(Path<Date> datum)
 	{
 		return (cb, r) ->
 			cb.or(
@@ -45,12 +44,12 @@ public class PersoonSpecification
 			);
 	}
 
-	public static PathAwarePredicate<GbaPersoon> nietOverledenVoor(Path<Date> datum)
+	public static PathAwarePredicate<GbaPersoon> isNietOverledenVoorPredicate(Path<Date> datum)
 	{
 		return (cb, r) ->
 			cb.or(
-				cb.isNull(r.get(Persoon_.overlijdensdatum)),
-				cb.greaterThan(r.get(Persoon_.overlijdensdatum), datum)
+				cb.isNull(r.get(GbaPersoon_.overlijdensdatum)),
+				cb.greaterThan(r.get(GbaPersoon_.overlijdensdatum), datum)
 			);
 	}
 }

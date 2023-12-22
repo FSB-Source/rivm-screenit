@@ -19,8 +19,7 @@
  * =========================LICENSE_END==================================
  */
 import * as React from "react"
-import {useCallback} from "react"
-import {useKeycloak} from "@react-keycloak/web"
+import {useCallback, useContext} from "react"
 import {useDispatch, useSelector} from "react-redux"
 import {Col, Row} from "react-bootstrap"
 import authenticationStyle from "./AuthenticationPage.module.scss"
@@ -36,9 +35,10 @@ import Button from "../../components/input/Button"
 import {ArrowType} from "../../components/vectors/ArrowIconComponent"
 import properties from "./LoginPage.json"
 import {Navigate} from "react-router-dom"
+import {KeycloakContext} from "../../components/KeycloakProvider"
 
 const LoginPage = () => {
-	const {initialized: keycloakInitialized, keycloak} = useKeycloak()
+	const {initialized: keycloakInitialized, keycloak} = useContext(KeycloakContext)
 	const dispatch = useDispatch()
 	const authenticatie = useSelector((state: State) => state.authenticatie)
 
@@ -46,7 +46,7 @@ const LoginPage = () => {
 		dispatch(setLoggingInAction(true))
 	}, [dispatch])
 
-	if (keycloakInitialized && keycloak?.authenticated &&
+	if (keycloakInitialized && keycloak.authenticated &&
 		((authenticatie.isLoggedIn && !authenticatie.isLoggingOut) ||
 			(!authenticatie.isLoggingIn && !authenticatie.isLoggingOut && !authenticatie.isLoggedIn && !authenticatie.isSessionExpired))) {
 		return <Navigate replace to={"/"}/>
@@ -55,7 +55,7 @@ const LoginPage = () => {
 			<div className={classNames(authenticationStyle.style, styles.style)}>
 				<Row>
 					<Col sm={8}>
-						{(keycloak?.authenticated && authenticatie.isLoggingIn && !authenticatie.isLoggingOut) ? <div>
+						{(keycloak.authenticated && authenticatie.isLoggingIn && !authenticatie.isLoggingOut) ? <div>
 							<h1>{getString(properties.title.logging_in)}</h1>
 						</div> : <div>
 							<h1>{authenticatie.isSessionExpired ? getString(properties.title.opnieuw_inloggen) : getString(properties.title.inloggen)}</h1>

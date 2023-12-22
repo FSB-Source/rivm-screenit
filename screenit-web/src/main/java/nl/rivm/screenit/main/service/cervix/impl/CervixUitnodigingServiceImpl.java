@@ -28,7 +28,7 @@ import java.util.function.UnaryOperator;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.dao.cervix.CervixMonsterDao;
+import nl.rivm.screenit.main.repository.cervix.CervixMonsterRepository;
 import nl.rivm.screenit.main.service.cervix.CervixUitnodigingService;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Instelling;
@@ -37,11 +37,10 @@ import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
-import nl.rivm.screenit.repository.cervix.CervixMonsterRepository;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.cervix.Cervix2023StartBepalingService;
-import nl.rivm.screenit.service.cervix.CervixMonsterService;
+import nl.rivm.screenit.service.cervix.CervixBaseMonsterService;
 import nl.rivm.screenit.specification.cervix.CervixMonsterSpecification;
 
 import org.apache.commons.lang3.StringUtils;
@@ -54,9 +53,7 @@ import org.springframework.stereotype.Service;
 public class CervixUitnodigingServiceImpl implements CervixUitnodigingService
 {
 
-	private final CervixMonsterDao monsterDao;
-
-	private final CervixMonsterService monsterService;
+	private final CervixBaseMonsterService monsterService;
 
 	private final ClientService clientService;
 
@@ -162,7 +159,7 @@ public class CervixUitnodigingServiceImpl implements CervixUitnodigingService
 	private String zoekUitnodigingOpBasisVanMonsterId(String monsterId, String bsn, Date geboortedatum, Instelling ingelogdNamensOrganisatie,
 		List<CervixUitnodiging> uitnodigingen, UnaryOperator<String> getString)
 	{
-		var monster = monsterDao.getMonsterByMonsterId(monsterId);
+		var monster = monsterService.getMonster(monsterId).orElse(null);
 		if (monster == null)
 		{
 			return getString.apply("geen.met.monster.id");

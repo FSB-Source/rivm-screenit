@@ -47,6 +47,8 @@ public interface FileService
 
 	void deleteDirectory(String directory) throws IOException;
 
+	void deleteFileOrDirectory(File bestand) throws IOException;
+
 	List<String> listFiles(String directory) throws IOException;
 
 }

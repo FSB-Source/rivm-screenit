@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.gba;
 
 /*-
@@ -22,8 +21,9 @@ package nl.rivm.screenit.model.gba;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -31,47 +31,55 @@ import javax.persistence.FetchType;
 import javax.persistence.Index;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 
 import lombok.Getter;
 import lombok.Setter;
 
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.RedenOpnieuwAanvragenClientgegevens;
+import nl.rivm.screenit.model.RedenGbaVraag;
 import nl.rivm.screenit.model.enums.GbaVraagType;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Check;
 
 @Entity
 @Table(schema = "algemeen", indexes = @Index(name = "idx_gba_vraag_bsn", columnList = "bsn"))
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 @Getter
 @Setter
+@Check(constraints = "(bsn is not null or client is not null) AND"
+	+ "("
+	+ "  reden IN ('ONJUIST_ADRES', 'ONJUISTE_PERSOONSGEGEVENS', 'MUTATIEBERICHT_ONBEKENDE_CLIENT', 'BEZWAAR_INGETROKKEN')" 
+	+ "  OR (vraag_type = 'VERWIJDER_INDICATIE' AND reden in ('BEZWAAR', 'AFGEMELD', 'BOVENGRENS_LEEFTIJD', 'SELECTIEBLOKKADE'))"
+	+ "  OR (vraag_type = 'PLAATS_INDICATIE' AND reden in ('BEZWAAR_INGETROKKEN', 'AANGEMELD', 'BRIEF_VERSTUREN', 'ONVERWACHT_INDICATIE_VERWIJDERD'))"
+	+ ")"
+)
 public class GbaVraag extends AbstractHibernateObject
 {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	private Client client;
 
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date datum;
+	private String bsn;
+
+	@Column(nullable = false)
+	private LocalDateTime datum;
 
 	private boolean verstuurd;
 
 	private String uniqueBatchId;
 
 	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
 	private GbaVraagType vraagType;
 
-	private String bsn;
-
 	@Enumerated(EnumType.STRING)
-	private RedenOpnieuwAanvragenClientgegevens reden;
+	@Column(nullable = false)
+	private RedenGbaVraag reden;
 
-	private Boolean reactieOntvangen;
+	private boolean reactieOntvangen;
 
 	private String aanvullendeInformatie;
 }

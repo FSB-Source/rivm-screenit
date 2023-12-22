@@ -44,6 +44,10 @@ public class JmsConfig
 {
 	private final ApplicationConfig appConfig;
 
+	private String activemqUsername;
+
+	private String activemqPassword;
+
 	@Bean
 	public Destination verwerkColonCdaBerichtDestination()
 	{
@@ -177,6 +181,13 @@ public class JmsConfig
 		connectionFactory.setUseAsyncSend(true);
 		connectionFactory.setPrefetchPolicy(prefetchPolicy());
 		connectionFactory.setRedeliveryPolicy(redeliveryPolicy());
+
+		if (!activemqUsername.isBlank() && !activemqPassword.isBlank())
+		{
+			connectionFactory.setUserName(activemqUsername);
+			connectionFactory.setPassword(activemqPassword);
+		}
+
 		connectionFactory.setTrustedPackages(
 			Arrays.asList("org.quartz.utils", "nl.rivm.screenit.model.batch", "nl.rivm.screenit.huisartsenportaal.dto", "nl.rivm.screenit.model.enums", "java.lang", "java.util"));
 		return connectionFactory;

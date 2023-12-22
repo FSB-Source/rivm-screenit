@@ -72,5 +72,4 @@ public interface RoosterDao
 	List<ColonBlokkade> getBlokkades(String sortProperty, boolean ascending, long first, long count, RoosterListViewFilter filter, ColoscopieCentrum intakelocatie);
 
 	long getBlokkadesCount(RoosterListViewFilter filter, ColoscopieCentrum intakelocatie);
-
 }

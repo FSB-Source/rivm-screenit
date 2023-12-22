@@ -83,9 +83,9 @@ public class ColonParameterisatiePage extends ParameterisatieBasePage
 
 	public ColonParameterisatiePage()
 	{
-		Parameterisatie parameteriastie = parameterisatieService.loadParameterisatie();
-		add(new CohortenForm("form", new Model<>(parameteriastie)));
-		add(new ColonPrimaireParametersPanel("landelijkeParameters", new Model<>(parameteriastie)));
+		var parameterisatie = parameterisatieService.loadParameterisatie();
+		add(new CohortenForm("form", new Model<>(parameterisatie)));
+		add(new ColonPrimaireParametersPanel("landelijkeParameters", new Model<>(parameterisatie)));
 	}
 
 	private class CohortenForm extends Form<Parameterisatie>
@@ -104,11 +104,11 @@ public class ColonParameterisatiePage extends ParameterisatieBasePage
 		{
 			super(id, model);
 			settingParameterisatieObject(model.getObject());
-			final WebMarkupContainer cohortenContainer = new WebMarkupContainer("cohortenContainer");
+			final var cohortenContainer = new WebMarkupContainer("cohortenContainer");
 			cohortenContainer.setOutputMarkupId(true);
 			add(cohortenContainer);
 
-			Actie actie = autorisatieService.getActieVoorMedewerker(ScreenitSession.get().getLoggedInInstellingGebruiker(), ScreenitSession.get().getCurrentSelectedMedewerker(),
+			var actie = autorisatieService.getActieVoorMedewerker(ScreenitSession.get().getLoggedInInstellingGebruiker(), ScreenitSession.get().getCurrentSelectedMedewerker(),
 				Recht.GEBRUIKER_BEHEER_PARAMETERISATIE);
 			level = ScreenitSession.get().getToegangsLevel(Actie.INZIEN, Recht.GEBRUIKER_BEHEER_PARAMETERISATIE);
 			inzien = !isMinimumActie(actie, Actie.AANPASSEN);
@@ -141,9 +141,9 @@ public class ColonParameterisatiePage extends ParameterisatieBasePage
 									@Override
 									public List<Integer> convertToObject(String value, Locale locale)
 									{
-										List<Integer> result = new ArrayList<>();
-										String[] values = value.split(",");
-										for (String splittedValue : values)
+										var result = new ArrayList<Integer>();
+										var values = value.split(",");
+										for (var splittedValue : values)
 										{
 											if (!StringUtils.isNumericSpace(splittedValue) || splittedValue.trim().length() != GELDIGE_SPLITS_WAARDEN)
 											{
@@ -167,7 +167,7 @@ public class ColonParameterisatiePage extends ParameterisatieBasePage
 						}
 
 					};
-					Label jaar = new Label("jaar");
+					var jaar = new Label("jaar");
 					item.add(jaar);
 					geboorteJaren.add(new CohortJaarValidator(item.getModelObject().getJaar()));
 					geboorteJaren.setRequired(true);
@@ -184,16 +184,16 @@ public class ColonParameterisatiePage extends ParameterisatieBasePage
 				@Override
 				public void onClick(AjaxRequestTarget target)
 				{
-					UitnodigingCohort uitnodigingCohort = new UitnodigingCohort();
-					Integer jaar = Calendar.getInstance().get(Calendar.YEAR);
-					for (UitnodigingCohort uitnodigingCohort2 : getModel().getObject().getCohorten())
+					var uitnodigingCohort = new UitnodigingCohort();
+					var jaar = Calendar.getInstance().get(Calendar.YEAR);
+					for (var uitnodigingCohort2 : getModel().getObject().getCohorten())
 					{
 						if (uitnodigingCohort2.getJaar() >= jaar)
 						{
 							jaar = uitnodigingCohort2.getJaar() + 1;
 						}
 					}
-					UitnodigingCohortGeboortejarenDto geboortejarenDto = new UitnodigingCohortGeboortejarenDto();
+					var geboortejarenDto = new UitnodigingCohortGeboortejarenDto();
 					geboortejarenDto.setJaar(jaar);
 					cohorten.getObject().add(geboortejarenDto);
 					uitnodigingCohort.setJaar(jaar);
@@ -221,12 +221,12 @@ public class ColonParameterisatiePage extends ParameterisatieBasePage
 
 		private void settingParameterisatieObject(Parameterisatie parameterisatieObject)
 		{
-			UitnodigingCohortDto uitnodigingCohortDto = new UitnodigingCohortDto();
-			List<UitnodigingCohortGeboortejarenDto> geboortejarenDtos = new ArrayList<>();
+			var uitnodigingCohortDto = new UitnodigingCohortDto();
+			var geboortejarenDtos = new ArrayList<UitnodigingCohortGeboortejarenDto>();
 
-			for (UitnodigingCohort cohort : parameterisatieObject.getCohorten())
+			for (var cohort : parameterisatieObject.getCohorten())
 			{
-				UitnodigingCohortGeboortejarenDto geboortejarenDto = new UitnodigingCohortGeboortejarenDto();
+				var geboortejarenDto = new UitnodigingCohortGeboortejarenDto();
 				geboortejarenDto.setJaar(cohort.getJaar());
 				geboortejarenDto.setGeboortejaren(cohort.getGeboortejaren().stream().map(UitnodigingCohortGeboortejaren::getGeboortejaren).collect(Collectors.toList()));
 				geboortejarenDtos.add(geboortejarenDto);

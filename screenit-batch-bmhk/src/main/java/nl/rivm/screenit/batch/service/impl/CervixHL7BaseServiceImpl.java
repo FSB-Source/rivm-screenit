@@ -41,6 +41,7 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.HL7Util;
+import nl.rivm.screenit.util.NaamUtil;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 
@@ -143,7 +144,7 @@ public class CervixHL7BaseServiceImpl implements CervixHL7BaseService
 		XPN patientGegevens = pid.getPid5_PatientName(0);
 		patientGegevens.getGivenName().setValue(persoon.getVoornaam());
 		patientGegevens.getNameTypeCode().setValue("L");
-		patientGegevens.getFamilyName().getSurname().setValue(persoon.getNaamEigenPartner());
+		patientGegevens.getFamilyName().getSurname().setValue(NaamUtil.getAanspreekTussenvoegselEnAchternaam(client));
 		patientGegevens.getFamilyName().getOwnSurname().setValue(persoon.getAchternaam());
 		patientGegevens.getFamilyName().getOwnSurnamePrefix().setValue(persoon.getTussenvoegsel());
 		patientGegevens.getFamilyName().getSurnameFromPartnerSpouse().setValue(persoon.getPartnerAchternaam());

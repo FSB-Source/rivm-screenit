@@ -116,19 +116,11 @@ public class DashboardServiceImpl implements DashboardService
 					Date dateTimeLastLogRegel = dashboardDao.getDateTimeLastLogRegel(dashboardType);
 					if (dateTimeLastLogRegel != null && DateUtil.toLocalDate(dateTimeLastLogRegel).isBefore(dateSupplier.getLocalDate()))
 					{
-						dashboardDao.maakDashboardStatusLeeg(dashboardType);
-						if (dashboardDao.getDashboardStatussen(dashboardType).isEmpty())
-						{
-							resetDashboardLevel = true;
-						}
+						resetDashboardLevel = verwijderLogRegelsEnResetDashboardStatus(dashboardType);
 					}
 					break;
 				case START:
-					dashboardDao.maakDashboardStatusLeeg(dashboardType);
-					if (dashboardDao.getDashboardStatussen(dashboardType).isEmpty())
-					{
-						resetDashboardLevel = true;
-					}
+					resetDashboardLevel = verwijderLogRegelsEnResetDashboardStatus(dashboardType);
 					break;
 				case OVERIG:
 					break;
@@ -163,6 +155,12 @@ public class DashboardServiceImpl implements DashboardService
 				}
 			}
 		}
+	}
+
+	private boolean verwijderLogRegelsEnResetDashboardStatus(DashboardType dashboardType)
+	{
+		dashboardDao.maakDashboardStatusLeeg(dashboardType);
+		return dashboardDao.getLogRegelsInDashboard(dashboardType).isEmpty();
 	}
 
 	private boolean downgradeDashboardStatussenLevelNaarBenedenAlsMogelijk(DashboardStatus dashboardStatus)
@@ -289,7 +287,8 @@ public class DashboardServiceImpl implements DashboardService
 	public Level getHoogsteLevelDashboardItems(Instelling ingelogdVoorOrganisatie, List<Bevolkingsonderzoek> bevolkingsOnderzoeken)
 	{
 		Level highestLevel = Level.INFO;
-		List<DashboardStatus> statussen = getListOfDashboardStatussen(ingelogdVoorOrganisatie, bevolkingsOnderzoeken, null);
+		var levels = List.of(Level.WARNING, Level.ERROR);
+		List<DashboardStatus> statussen = getListOfDashboardStatussen(ingelogdVoorOrganisatie, bevolkingsOnderzoeken, levels);
 		for (DashboardStatus status : statussen)
 		{
 			if (highestLevel.ordinal() < status.getLevel().ordinal())

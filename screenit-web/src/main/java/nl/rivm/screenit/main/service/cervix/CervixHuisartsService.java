@@ -56,5 +56,4 @@ public interface CervixHuisartsService
 	void resetWachtwoord(CervixHuisarts huisarts, Account loggedInAccount);
 
 	void inactiveerHuisarts(CervixHuisarts huisarts, InstellingGebruiker loggedInAccount);
-
 }

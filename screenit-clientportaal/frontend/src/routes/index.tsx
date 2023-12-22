@@ -19,6 +19,7 @@
  * =========================LICENSE_END==================================
  */
 import * as React from "react"
+import {useContext} from "react"
 import {Navigate, Route, Routes} from "react-router-dom"
 import NotFound from "../pages/NotFoundPage"
 import {ClientContactActieType} from "../datatypes/ClientContactActieType"
@@ -27,13 +28,13 @@ import {useSelector} from "react-redux"
 import {State} from "../datatypes/State"
 import {assertUnreachable} from "../utils/EnumUtil"
 import routes, {RouteDef} from "./routes"
-import {useKeycloak} from "@react-keycloak/web"
 import LadenComponent from "../components/laden/LadenComponent"
 import {LandingOverzicht} from "../datatypes/landing/LandingOverzicht"
 import {Bevolkingsonderzoek} from "../datatypes/Bevolkingsonderzoek"
+import {KeycloakContext} from "../components/KeycloakProvider"
 
 export const AppRoutes = () => {
-	const {initialized, keycloak} = useKeycloak()
+	const {initialized, keycloak} = useContext(KeycloakContext)
 	const authenticatie = useSelector((state: State) => state.authenticatie)
 
 	const contactActions = useSelector((state: State) => state.client.beschikbareActies.beschikbareActies)

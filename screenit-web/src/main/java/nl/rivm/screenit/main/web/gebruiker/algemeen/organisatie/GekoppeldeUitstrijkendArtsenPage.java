@@ -28,7 +28,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import nl.rivm.screenit.dao.cervix.CervixHuisartsLocatieDao;
+import nl.rivm.screenit.main.dto.cervix.GekoppeldeUitstrijkendArtsZoekObject;
+import nl.rivm.screenit.main.service.colon.impl.GekoppeldeUitstrijkendArtsenDataProviderService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitListMultipleChoice;
@@ -51,12 +52,14 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.AutorisatieService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.wicket.hibernate.SimpleListHibernateModel;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
@@ -82,7 +85,7 @@ public class GekoppeldeUitstrijkendArtsenPage extends OrganisatieBeheer
 	private IModel<List<Gemeente>> gemeentesUitOrganisatie = new SimpleListHibernateModel<>(new ArrayList<>());
 
 	@SpringBean
-	private CervixHuisartsLocatieDao cervixHuisartsLocatieDao;
+	private GekoppeldeUitstrijkendArtsenDataProviderService gekoppeldeUitstrijkendArtsenDataProviderService;
 
 	@SpringBean
 	private AutorisatieService autorisatieService;
@@ -209,29 +212,35 @@ public class GekoppeldeUitstrijkendArtsenPage extends OrganisatieBeheer
 		IModel<String> totaalLabel = new Model<>("BMHK arts(en)");
 
 		ScreenitDataTable<CervixHuisartsLocatie, String> dataTable = new ScreenitDataTable<CervixHuisartsLocatie, String>("organisaties", columns,
-			new SortableDataProvider<>()
+			new SortableDataProvider<CervixHuisartsLocatie, String>()
 			{
+				private GekoppeldeUitstrijkendArtsZoekObject maakZoekObject()
+				{
+					var zoekObject = new GekoppeldeUitstrijkendArtsZoekObject();
+					zoekObject.setGemeentes(getGemeentes());
+					zoekObject.setAgbCode(zoekAgbCode);
+					zoekObject.setMutatieSoorten(zoekMutatieSoort);
+					zoekObject.setMutatieDatumVanaf(DateUtil.toLocalDate(zoekMutatiedatumVanaf));
+					zoekObject.setMutatieDatumTotEnMet(DateUtil.toLocalDate(zoekMutatiedatumTot));
+					return zoekObject;
+				}
+
 				@Override
 				public Iterator<? extends CervixHuisartsLocatie> iterator(long first, long count)
 				{
-					String sortProperty = "mutatiedatum";
-					boolean asc = true;
-
-					if (getSort() != null)
+					if (getSort() == null)
 					{
-						sortProperty = getSort().getProperty();
-						asc = getSort().isAscending();
+						setSort("mutatiedatum", SortOrder.ASCENDING);
 					}
-					return cervixHuisartsLocatieDao
-						.getHuisartsLocaties(first, count, sortProperty, asc, zoekAgbCode, zoekMutatieSoort, zoekMutatiedatumVanaf, zoekMutatiedatumTot, getGemeentes())
-						.iterator();
+
+					return gekoppeldeUitstrijkendArtsenDataProviderService.findPage(first, count, maakZoekObject(), getSort()).iterator();
 				}
 
 				@Override
 				public long size()
 				{
-					return cervixHuisartsLocatieDao.countHuisartsLocaties(zoekAgbCode, zoekMutatieSoort, zoekMutatiedatumVanaf, zoekMutatiedatumTot, getGemeentes());
-
+					var a = gekoppeldeUitstrijkendArtsenDataProviderService.size(maakZoekObject());
+					return a;
 				}
 
 				@NotNull

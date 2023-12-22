@@ -21,12 +21,9 @@ package nl.rivm.screenit.clientportaal.model;
  * =========================LICENSE_END==================================
  */
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 import lombok.Setter;
-import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Persoon;
 
 @Getter
 @Setter

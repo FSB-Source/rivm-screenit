@@ -88,7 +88,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
 import nl.rivm.screenit.model.mamma.enums.OnderbrokenOnderzoekOption;
 import nl.rivm.screenit.model.mamma.enums.OnvolledigOnderzoekOption;
-import nl.rivm.screenit.repository.ClientRepository;
+import nl.rivm.screenit.repository.algemeen.ClientRepository;
 import nl.rivm.screenit.service.BerichtToBatchService;
 import nl.rivm.screenit.service.DeelnamemodusDossierService;
 import nl.rivm.screenit.service.EnovationHuisartsService;

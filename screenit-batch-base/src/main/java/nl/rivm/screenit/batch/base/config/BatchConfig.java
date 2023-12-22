@@ -52,6 +52,10 @@ import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 @Configuration
 public class BatchConfig
 {
@@ -98,11 +102,16 @@ public class BatchConfig
 	@Bean
 	public ExecutionContextSerializer executionContextSerializer()
 	{
-		return new Jackson2ExecutionContextStringSerializer(
+		var objectMapper = JsonMapper.builder();
+		objectMapper.addModule(new JavaTimeModule());
+		objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+		var serializer = new Jackson2ExecutionContextStringSerializer(
 			"nl.rivm.screenit.model.logging.IntakeMakenLogEvent",
 			"nl.rivm.screenit.model.colon.IntakeMakenLogEventRegel",
 			"nl.rivm.screenit.batch.model.dto.MammaIlmRetryDto"
 		);
+		serializer.setObjectMapper(objectMapper.build());
+		return serializer;
 	}
 
 	@Bean
@@ -130,7 +139,7 @@ public class BatchConfig
 
 	@Bean
 	public JobRepositoryFactoryBean jobRepository(DataSource dataSource, ExecutionContextSerializer executionContextSerializer, HibernateTransactionManager transactionManager,
-		LobHandler lobHandler) throws Exception
+		LobHandler lobHandler)
 	{
 		var jobRepository = new JobRepositoryFactoryBean();
 		jobRepository.setDataSource(dataSource);
@@ -141,7 +150,7 @@ public class BatchConfig
 	}
 
 	@Bean
-	public JobExplorerFactoryBean jobExplorer(DataSource dataSource, ExecutionContextSerializer executionContextSerializer) throws Exception
+	public JobExplorerFactoryBean jobExplorer(DataSource dataSource, ExecutionContextSerializer executionContextSerializer)
 	{
 		var jobExplorer = new JobExplorerFactoryBean();
 		jobExplorer.setDataSource(dataSource);
@@ -150,7 +159,7 @@ public class BatchConfig
 	}
 
 	@Bean
-	public JobOperator jobOperator(JobLauncher jobLauncher, JobExplorer jobExplorer, JobRepository jobRepository, JobRegistry jobRegistry) throws Exception
+	public JobOperator jobOperator(JobLauncher jobLauncher, JobExplorer jobExplorer, JobRepository jobRepository, JobRegistry jobRegistry)
 	{
 		var jobOperator = new SimpleJobOperator();
 		jobOperator.setJobLauncher(jobLauncher);

@@ -23,15 +23,15 @@ package nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.popups;
 
 import java.util.List;
 
-import nl.rivm.screenit.dao.cervix.CervixBaseTestTimelineDao;
 import nl.rivm.screenit.main.dao.cervix.CervixHuisartsDao;
+import nl.rivm.screenit.main.service.cervix.CervixTestTimelineService;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
-import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
+import nl.rivm.screenit.service.cervix.CervixBaseTestTimelineHuisartsService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -42,11 +42,9 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.springframework.util.CollectionUtils;
 
 public class TestCervixHuisartsKoppelenPopup extends TestCervixUitnodigingenPopup
 {
-
 	private static final long serialVersionUID = 1L;
 
 	private IModel<String> agbCodeModel;
@@ -59,10 +57,13 @@ public class TestCervixHuisartsKoppelenPopup extends TestCervixUitnodigingenPopu
 	private CervixHuisartsDao huisartsDao;
 
 	@SpringBean
-	private CervixBaseTestTimelineDao testTimelineDao;
+	private HibernateService hiberateService;
 
 	@SpringBean
-	private HibernateService hiberateService;
+	private CervixTestTimelineService testTimelineService;
+
+	@SpringBean
+	private CervixBaseTestTimelineHuisartsService testTimelineHuisartsService;
 
 	public TestCervixHuisartsKoppelenPopup(String id, IModel<List<Client>> clientModel)
 	{
@@ -78,14 +79,7 @@ public class TestCervixHuisartsKoppelenPopup extends TestCervixUitnodigingenPopu
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
-				if (eersteHuisartsCheckModel.getObject())
-				{
-					agbCodeContainer.setVisible(false);
-				}
-				else
-				{
-					agbCodeContainer.setVisible(true);
-				}
+				agbCodeContainer.setVisible(!eersteHuisartsCheckModel.getObject());
 				target.add(agbCodeContainer);
 			}
 		});
@@ -124,13 +118,13 @@ public class TestCervixHuisartsKoppelenPopup extends TestCervixUitnodigingenPopu
 			CervixLabformulier formulier = uitstrijkje.getLabformulier();
 			if (eersteHuisartsCheckModel.getObject())
 			{
-				List<CervixHuisartsLocatie> locaties = testTimelineDao.getFirstCervixHuisartsLocatie();
-				if (CollectionUtils.isEmpty(locaties))
+				var locaties = testTimelineHuisartsService.findFirstHuisartsLocatie();
+				if (locaties.isEmpty())
 				{
 					error("Er zit op dit moment geen actieve huisarts met locatie in de database, maak er een aan.");
 					return;
 				}
-				formulier.setHuisartsLocatie(locaties.get(0));
+				formulier.setHuisartsLocatie(locaties.get());
 
 			}
 			else

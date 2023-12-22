@@ -19,7 +19,7 @@
  * =========================LICENSE_END==================================
  */
 import {useEffect, useState} from "react"
-import {useKeycloak} from "@react-keycloak/web"
+import keycloak from "../utils/Keycloak"
 import {useLocation} from "react-router-dom"
 import {Bevolkingsonderzoek} from "../datatypes/Bevolkingsonderzoek"
 import {useDispatch, useSelector} from "react-redux"
@@ -50,31 +50,31 @@ export const useSelectedBvo = (): Bevolkingsonderzoek | undefined => {
 
 export const useRefreshEnvironmentInfo = () => {
 	const dispatch = useDispatch()
-	const {keycloak} = useKeycloak()
+	const {authenticated} = keycloak
 
 	useEffect(() => {
-		if (keycloak.authenticated) {
+		if (authenticated) {
 			ScreenitBackend.get("/environment").then(result => {
 				dispatch(createSetEnvironmentInfoAction(result.data))
 			})
 		}
-	}, [dispatch, keycloak.authenticated])
+	}, [dispatch, authenticated])
 }
 
 export const useRefreshClient = () => {
 	const dispatch = useThunkDispatch()
 	const authenticatie = useSelector((state: State) => state.authenticatie)
-	const {keycloak} = useKeycloak()
 	const location = useLocation()
+	const {authenticated} = keycloak
 
 	useEffect(() => {
-		if (keycloak.authenticated && authenticatie.isLoggedIn && !authenticatie.isLoggingOut) {
+		if (authenticated && authenticatie.isLoggedIn && !authenticatie.isLoggingOut) {
 			ScreenitBackend.get("/persoon").then(result => {
 				dispatch(createPersoonAction(result.data))
 				dispatch(getBeschikbareContactActies())
 			})
 		}
-	}, [location.pathname, authenticatie, dispatch, keycloak])
+	}, [location.pathname, authenticatie, dispatch, authenticated])
 }
 
 export const useRefreshBvoDossier = () => {
@@ -82,12 +82,12 @@ export const useRefreshBvoDossier = () => {
 
 	const isLoggedIn = useSelector((state: State) => state.authenticatie.isLoggedIn)
 	const dispatch = useThunkDispatch()
-	const {keycloak} = useKeycloak()
+	const {authenticated} = keycloak
 
 	const pathname = useLocation().pathname
 
 	useEffect(() => {
-		if (keycloak.authenticated && isLoggedIn && selectedBvo) {
+		if (authenticated && isLoggedIn && selectedBvo) {
 			switch (selectedBvo) {
 				case Bevolkingsonderzoek.CERVIX:
 					dispatch(refreshCervixDossier())
@@ -103,20 +103,20 @@ export const useRefreshBvoDossier = () => {
 
 			}
 		}
-	}, [pathname, selectedBvo, dispatch, isLoggedIn, keycloak.authenticated])
+	}, [pathname, selectedBvo, dispatch, isLoggedIn, authenticated])
 }
 
 export const useRegio = () => {
 	const regio = useSelector((state: State) => state.client.regio)
 	const authenticatie = useSelector((state: State) => state.authenticatie)
 	const thunkDispatch = useThunkDispatch()
-	const {keycloak} = useKeycloak()
+	const {authenticated} = keycloak
 
 	useEffect(() => {
-		if (keycloak.authenticated && authenticatie.isLoggedIn && !authenticatie.isLoggingOut && !regio) {
+		if (authenticated && authenticatie.isLoggedIn && !authenticatie.isLoggingOut && !regio) {
 			thunkDispatch(getRegio())
 		}
-	}, [regio, authenticatie, thunkDispatch, keycloak])
+	}, [regio, authenticatie, thunkDispatch, authenticated])
 
 	return regio
 }

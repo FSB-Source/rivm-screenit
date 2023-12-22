@@ -18,14 +18,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
-import {useEffect} from "react"
+import {useContext, useEffect} from "react"
 import {useSelector} from "react-redux"
 import {State} from "../datatypes/State"
-import {useKeycloak} from "@react-keycloak/web"
 import {setLoggingInAction, setSessionExpiredAction} from "../actions/AuthenticatieAction"
 import {processLogin} from "../api/LoginThunkAction"
 import {createClearStateAction} from "../actions/RootAction"
 import {useThunkDispatch} from "../index"
+import {KeycloakContext} from "../components/KeycloakProvider"
 
 export interface AuthenticationWrapperProps {
 	children: JSX.Element;
@@ -33,20 +33,20 @@ export interface AuthenticationWrapperProps {
 
 const AuthenticationWrapper = (props: AuthenticationWrapperProps) => {
 	const dispatch = useThunkDispatch()
-	const {initialized: keycloakInitialized, keycloak} = useKeycloak()
+	const {initialized: keycloakInitialized, keycloak} = useContext(KeycloakContext)
 	const authenticatie = useSelector((state: State) => state.authenticatie)
 
 	useEffect(() => {
 		if (!keycloakInitialized) {
 			return
-		} else if (!keycloak?.authenticated && authenticatie.isLoggingIn) {
+		} else if (!keycloak.authenticated && authenticatie.isLoggingIn) {
 			dispatch(setLoggingInAction(false))
-			keycloak?.login()
-		} else if (keycloak?.authenticated && !authenticatie.isLoggedIn) {
+			keycloak.login()
+		} else if (keycloak.authenticated && !authenticatie.isLoggedIn) {
 			dispatch(processLogin())
-		} else if (keycloak?.authenticated && (authenticatie.isLoggingOut || authenticatie.isSessionExpired)) {
-			keycloak?.logout()
-		} else if (!keycloak?.authenticated && authenticatie.isLoggedIn) {
+		} else if (keycloak.authenticated && (authenticatie.isLoggingOut || authenticatie.isSessionExpired)) {
+			keycloak.logout()
+		} else if (!keycloak.authenticated && authenticatie.isLoggedIn) {
 			dispatch(createClearStateAction())
 			if (authenticatie.isSessionExpired) {
 				dispatch(setSessionExpiredAction(true))

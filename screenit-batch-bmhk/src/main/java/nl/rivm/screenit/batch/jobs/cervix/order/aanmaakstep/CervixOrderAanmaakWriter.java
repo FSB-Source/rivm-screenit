@@ -40,8 +40,8 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.cervix.CervixBaseMonsterService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
-import nl.rivm.screenit.service.cervix.CervixMonsterService;
 import nl.rivm.screenit.service.cervix.impl.CervixBepaalVervolgContext;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
@@ -64,7 +64,7 @@ public class CervixOrderAanmaakWriter extends BaseWriter<CervixUitstrijkje>
 
 	private CervixBepaalVervolgDao bepaalVervolgDao;
 
-	private CervixMonsterService monsterService;
+	private CervixBaseMonsterService monsterService;
 
 	private SimplePreferenceService preferenceService;
 

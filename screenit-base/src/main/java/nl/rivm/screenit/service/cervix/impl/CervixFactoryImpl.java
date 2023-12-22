@@ -29,6 +29,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.dao.UitnodigingsDao;
+import nl.rivm.screenit.dao.cervix.CervixMonsterDao;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.Client;
@@ -67,7 +68,6 @@ import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.cervix.Cervix2023StartBepalingService;
 import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
-import nl.rivm.screenit.service.cervix.CervixMonsterService;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
@@ -102,7 +102,7 @@ public class CervixFactoryImpl implements CervixFactory
 	private UitnodigingsDao uitnodigingsDao;
 
 	@Autowired
-	private CervixMonsterService monsterService;
+	private CervixMonsterDao monsterDao;
 
 	@Autowired
 	private Cervix2023StartBepalingService bmhk2023startBepalingService;
@@ -386,7 +386,7 @@ public class CervixFactoryImpl implements CervixFactory
 
 	private CervixUitstrijkje maakUitstrijkje(CervixUitnodiging uitnodiging)
 	{
-		Long monsterIdLong = monsterService.getNextMonsterId();
+		Long monsterIdLong = monsterDao.getNextMonsterId();
 
 		String monsterId = monsterIdLong < 100 ? String.format("%010d", monsterIdLong) : monsterIdLong.toString();
 

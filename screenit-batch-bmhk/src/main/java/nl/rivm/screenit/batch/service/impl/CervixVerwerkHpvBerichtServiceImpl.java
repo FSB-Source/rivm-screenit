@@ -23,23 +23,21 @@ package nl.rivm.screenit.batch.service.impl;
 
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.dao.VerwerkHpvBerichtenDao;
 import nl.rivm.screenit.batch.model.HapiContextType;
 import nl.rivm.screenit.batch.service.CervixBepaalHpvBeoordelingService;
 import nl.rivm.screenit.batch.service.CervixVerwerkHpvBerichtService;
-import nl.rivm.screenit.dao.cervix.CervixMonsterDao;
-import nl.rivm.screenit.model.BMHKLaboratorium;
-import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.berichten.enums.BerichtStatus;
 import nl.rivm.screenit.model.cervix.CervixHpvBeoordeling;
 import nl.rivm.screenit.model.cervix.CervixHpvBericht;
 import nl.rivm.screenit.model.cervix.CervixMonster;
-import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
 import nl.rivm.screenit.model.cervix.berichten.CervixHpvBerichtWrapper;
@@ -54,66 +52,49 @@ import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.cervix.Cervix2023StartBepalingService;
+import nl.rivm.screenit.service.cervix.CervixBaseMonsterService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
 import nl.rivm.screenit.service.cervix.CervixVervolgService;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import ca.uhn.hl7v2.HapiContext;
-import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v251.message.OUL_R22;
-import ca.uhn.hl7v2.parser.Parser;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
+@Slf4j
+@AllArgsConstructor
 public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBerichtService
 {
+	private final CervixBaseMonsterService monsterService;
 
-	private static final Logger LOG = LoggerFactory.getLogger(CervixVerwerkHpvBerichtServiceImpl.class);
+	private final VerwerkHpvBerichtenDao verwerkHpvBerichtenDao;
 
-	@Autowired
-	private CervixMonsterDao monsterDao;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private VerwerkHpvBerichtenDao verwerkHpvBerichtenDao;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final LogService logService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final CervixFactory factory;
 
-	@Autowired
-	private LogService logService;
+	private final CervixBepaalHpvBeoordelingService bepaalHpvBeoordelingService;
 
-	@Autowired
-	private CervixFactory factory;
+	private final CervixVervolgService vervolgService;
 
-	@Autowired
-	private CervixBepaalHpvBeoordelingService bepaalHpvBeoordelingService;
-
-	@Autowired
-	private CervixVervolgService vervolgService;
-
-	@Autowired
-	private Cervix2023StartBepalingService cervix2023StartBepalingService;
+	private final Cervix2023StartBepalingService cervix2023StartBepalingService;
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public List<CervixHpvBericht> getAlleNietVerwerkteHpvBerichten()
 	{
 		return verwerkHpvBerichtenDao.getAlleNietVerwerkteHpvBerichten();
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void verwerkOntvangenHpvBericht(Long berichtId)
 	{
 		CervixHpvBericht ontvangenBericht = hibernateService.get(CervixHpvBericht.class, berichtId);
@@ -121,10 +102,10 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 		List<Instelling> opDashboardVanOrganisaties = Arrays.asList(ontvangenBericht.getLaboratorium());
 		try
 		{
-			String hpvBericht = ontvangenBericht.getHl7Bericht();
-			HapiContext context = ScreenitHapiContext.getHapiContext(HapiContextType.UTF_8);
-			Parser p = context.getPipeParser();
-			Message hapiMsg = p.parse(hpvBericht);
+			var hpvBericht = ontvangenBericht.getHl7Bericht();
+			var context = ScreenitHapiContext.getHapiContext(HapiContextType.UTF_8);
+			var parser = context.getPipeParser();
+			var hapiMsg = parser.parse(hpvBericht);
 			CervixHpvBerichtWrapper bericht = new CervixHpvBerichtWrapper((OUL_R22) hapiMsg);
 
 			LOG.info("Bericht (" + bericht.getMessageId() + ") wordt verwerkt! Aantal: " + bericht.getResultaten().size());
@@ -132,7 +113,7 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 			{
 				try
 				{
-					CervixMonster monster = validateBarcode(sample, opDashboardVanOrganisaties);
+					var monster = validateBarcode(sample, opDashboardVanOrganisaties);
 					validatieAnalyseDatumEnAutorisatieDatum(monster, sample, opDashboardVanOrganisaties);
 					validateStatusMonster(monster, sample, opDashboardVanOrganisaties);
 
@@ -140,7 +121,7 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 					if (beoordelingWaarde != null)
 					{
 						valideerMonsterMagOverschrevenWorden(sample, monster, opDashboardVanOrganisaties);
-						CervixScreeningRonde ronde = monster.getOntvangstScreeningRonde();
+						var ronde = monster.getOntvangstScreeningRonde();
 						factory.maakHpvBeoordeling(monster, ontvangenBericht, sample.getAnalyseDatum(), sample.getAutorisatieDatum(), beoordelingWaarde,
 							sample.getAnalyseresultaten());
 
@@ -154,21 +135,21 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 						}
 						else if (monster.getHpvBeoordelingen().size() == 1 && !cervix2023StartBepalingService.isBmhk2023Laboratorium(monster.getLaboratorium()))
 						{
-							String melding = "Eerste ongeldige hrHPV-analyseresultaat(en) van monster. Monster dient nogmaals op HPV beoordeeld te worden.";
+							var melding = "Eerste ongeldige hrHPV-analyseresultaat(en) van monster. Monster dient nogmaals op HPV beoordeeld te worden.";
 							logging(LogGebeurtenis.CERVIX_HPV_UITSLAG_VERWERKT, opDashboardVanOrganisaties, Level.INFO, melding, sample, monster);
 						}
 						vervolgService.digitaalLabformulierKlaarVoorCytologie(monster);
 					}
 					else
 					{
-						Level onverwachteBerichtWaardeLogLevel = Level.ERROR;
-						String onverwachteBerichtWaardeMeldingPrefix = "Onverwachte ";
+						var onverwachteBerichtWaardeLogLevel = Level.ERROR;
+						var onverwachteBerichtWaardeMeldingPrefix = "Onverwachte ";
 						if (sample.isFailure())
 						{
 							onverwachteBerichtWaardeLogLevel = Level.WARNING; 
 							onverwachteBerichtWaardeMeldingPrefix = "";
 						}
-						String melding = onverwachteBerichtWaardeMeldingPrefix + "hrHPV-analyseresultaat(en) (" + sample.getAnalyseresultatenString()
+						var melding = onverwachteBerichtWaardeMeldingPrefix + "hrHPV-analyseresultaat(en) (" + sample.getAnalyseresultatenString()
 							+ ") van monster ontvangen. Aanlevering wordt genegeerd.";
 						melding = logging(LogGebeurtenis.CERVIX_HPV_UITSLAG_GENEGEERD, opDashboardVanOrganisaties, onverwachteBerichtWaardeLogLevel, melding, sample, monster);
 						throw new IllegalStateException(melding);
@@ -194,14 +175,14 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void logError(Long berichtId, String message)
 	{
-		CervixHpvBericht ontvangenBericht = hibernateService.get(CervixHpvBericht.class, berichtId);
+		var ontvangenBericht = hibernateService.get(CervixHpvBericht.class, berichtId);
 		ontvangenBericht.setStatus(BerichtStatus.FOUT);
 		hibernateService.saveOrUpdate(ontvangenBericht);
-		BMHKLaboratorium laboratorium = ontvangenBericht.getLaboratorium();
-		List<Instelling> opDashboardVanOrganisaties = Arrays.asList(laboratorium);
+		var laboratorium = ontvangenBericht.getLaboratorium();
+		List<Instelling> opDashboardVanOrganisaties = List.of(laboratorium);
 		logging(LogGebeurtenis.CERVIX_HPV_BERICHT_VERWERKT, opDashboardVanOrganisaties, Level.ERROR,
 			"Bericht (messageID: " + ontvangenBericht.getMessageId() + ") kon niet worden verwerkt. " + (message != null ? "(" + message + ")" : ""),
 			null);
@@ -216,7 +197,7 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 	{
 		if (sample != null)
 		{
-			String sampleGegevens = " Monster-id: " + sample.getBarcode() + ".";
+			var sampleGegevens = " Monster-id: " + sample.getBarcode() + ".";
 			melding += sampleGegevens;
 		}
 
@@ -229,24 +210,22 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 			}
 		}
 
-		Client client = null;
+		var event = new LogEvent();
+		event.setLevel(level);
+		event.setMelding(melding);
+
 		if (monster != null && monster.getUitnodiging() != null && monster.getUitnodiging().getScreeningRonde() != null
 			&& monster.getUitnodiging().getScreeningRonde().getDossier() != null)
 		{
-			client = monster.getUitnodiging().getScreeningRonde().getDossier().getClient();
-		}
-
-		LogEvent event = new LogEvent();
-		event.setLevel(level);
-		event.setMelding(melding);
-		if (client != null)
-		{
+			var client = monster.getUitnodiging().getScreeningRonde().getDossier().getClient();
 			logService.logGebeurtenis(gebeurtenis, instellingen, event, client, Bevolkingsonderzoek.CERVIX);
 		}
 		else
 		{
 			logService.logGebeurtenis(gebeurtenis, instellingen, event, Bevolkingsonderzoek.CERVIX);
+
 		}
+
 		return melding;
 	}
 
@@ -303,13 +282,13 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 
 	private void validatieAnalyseDatumEnAutorisatieDatum(CervixMonster monster, CervixHpvMonsterWrapper sample, List<Instelling> opDashboardVanOrganisaties)
 	{
-		SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
-		Date analyseDatum = sample.getAnalyseDatum();
+		var format = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
+		var analyseDatum = sample.getAnalyseDatum();
 		for (CervixHpvBeoordeling hpvBeoordeling : monster.getHpvBeoordelingen())
 		{
 			if (format.format(hpvBeoordeling.getAnalyseDatum()).equals(format.format(analyseDatum)))
 			{
-				String melding = "hrHPV-analyseresultaat(en) zijn dubbel ontvangen. Aanlevering wordt genegeerd.";
+				var melding = "hrHPV-analyseresultaat(en) zijn dubbel ontvangen. Aanlevering wordt genegeerd.";
 				melding = logging(LogGebeurtenis.CERVIX_HPV_UITSLAG_GENEGEERD, opDashboardVanOrganisaties, Level.WARNING, melding, sample, monster);
 				throw new IllegalStateException(melding);
 			}
@@ -318,7 +297,7 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 
 	private boolean isErAlEenEerdereInvalidUitslag(CervixMonster monster)
 	{
-		List<CervixHpvBeoordeling> hpvBeoordelingen = monster.getHpvBeoordelingen();
+		var hpvBeoordelingen = monster.getHpvBeoordelingen();
 		if (hpvBeoordelingen.size() == 1)
 		{
 			CervixHpvBeoordeling beoordeling = hpvBeoordelingen.get(0);
@@ -332,38 +311,38 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 
 	private void valideerMonsterMagOverschrevenWorden(CervixHpvMonsterWrapper sample, CervixMonster monster, List<Instelling> opDashboardVanOrganisaties)
 	{
-		CervixScreeningRonde ronde = monster.getOntvangstScreeningRonde();
-		boolean eerdereHPVuitslag = ronde.getMonsterHpvUitslag() != null;
+		var ronde = monster.getOntvangstScreeningRonde();
+		var eerdereHPVuitslag = ronde.getMonsterHpvUitslag() != null;
 		if (!eerdereHPVuitslag)
 		{
 			return;
 		}
-		boolean eerderHpvUitslagIsZas = eerdereHPVuitslag && CervixMonsterUtil.isZAS(ronde.getMonsterHpvUitslag());
-		boolean isCommunicatieUitgestuurd = ronde.getMonsterHpvUitslag().getBrief() != null;
+		var eerderHpvUitslagIsZas = eerdereHPVuitslag && CervixMonsterUtil.isZAS(ronde.getMonsterHpvUitslag());
+		var isCommunicatieUitgestuurd = ronde.getMonsterHpvUitslag().getBrief() != null;
 		if (eerderHpvUitslagIsZas && !isCommunicatieUitgestuurd)
 		{
-			CervixHpvBeoordeling beoordeling = ronde.getMonsterHpvUitslag().getLaatsteHpvBeoordeling();
-			String oudeBeoordeling = beoordeling.getHpvUitslag().getNaam();
-			String melding = "hrHPV-analyseresultaat(en) van uitstrijkje overschrijft hrHPV-analyseresultaat(en) van ZAS, status veranderd van " + oudeBeoordeling + " naar "
+			var beoordeling = ronde.getMonsterHpvUitslag().getLaatsteHpvBeoordeling();
+			var oudeBeoordeling = beoordeling.getHpvUitslag().getNaam();
+			var melding = "hrHPV-analyseresultaat(en) van uitstrijkje overschrijft hrHPV-analyseresultaat(en) van ZAS, status veranderd van " + oudeBeoordeling + " naar "
 				+ bepaalHpvBeoordelingService.getHpvBeoordelingWaarde(sample.getAnalyseresultaten()).getNaam() + ".";
 			logging(LogGebeurtenis.CERVIX_HPV_UITSLAG_OVERSCHREVEN, opDashboardVanOrganisaties, Level.INFO, melding, sample, monster);
 			return;
 		}
-		String melding = "hrHPV-analyseresultaat(en) in een ronde, waar al een hrHPV-analyseresultaat(en) bestaat. Aanlevering wordt genegeerd.";
+		var melding = "hrHPV-analyseresultaat(en) in een ronde, waar al een hrHPV-analyseresultaat(en) bestaat. Aanlevering wordt genegeerd.";
 		melding = logging(LogGebeurtenis.CERVIX_HPV_UITSLAG_GENEGEERD, opDashboardVanOrganisaties, Level.WARNING, melding, sample, monster);
 		throw new IllegalStateException(melding);
 	}
 
 	private CervixMonster validateBarcode(CervixHpvMonsterWrapper sample, List<Instelling> opDashboardVanOrganisaties) throws IllegalStateException
 	{
-		String barcode = sample.getBarcode();
-		CervixMonster monster = monsterDao.getMonsterByMonsterId(barcode);
+		var barcode = sample.getBarcode();
+		var monster = monsterService.getMonster(barcode).orElse(null);
 		if (monster != null)
 		{
 			return monster;
 		}
-		boolean isVerwijderdeMonster = monsterDao.isVerwijderdMonster(barcode);
-		String melding = String.format("hrHPV-analyseresultaat(en) van onbekend monster%s. Aanlevering wordt genegeerd.",
+		var isVerwijderdeMonster = monsterService.isVerwijderdMonster(barcode);
+		var melding = String.format("hrHPV-analyseresultaat(en) van onbekend monster%s. Aanlevering wordt genegeerd.",
 			isVerwijderdeMonster ? " (clientdossier verwijderd)" : "");
 		melding = logging(LogGebeurtenis.CERVIX_HPV_ONBEKENDE_BARCODE, opDashboardVanOrganisaties, Level.WARNING, melding, sample);
 		throw new IllegalStateException(melding);

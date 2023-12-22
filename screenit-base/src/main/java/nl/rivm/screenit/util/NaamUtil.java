@@ -32,7 +32,6 @@ import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Huisarts;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.NaamGebruik;
-import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Persoon;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.weergave.persoon.NaamWeergaveHelper;
 
 import org.apache.commons.lang.StringUtils;
@@ -54,13 +53,7 @@ public abstract class NaamUtil
 			ingelogdeGebruikerNaam.append(NaamWeergaveHelper.standaardiseerVoorletters(gebruiker.getVoorletters()));
 			ingelogdeGebruikerNaam.append(" ");
 		}
-		if (StringUtils.isNotBlank(gebruiker.getTussenvoegsel()))
-		{
-			ingelogdeGebruikerNaam.append(gebruiker.getTussenvoegsel());
-			ingelogdeGebruikerNaam.append(" ");
-
-		}
-		ingelogdeGebruikerNaam.append(gebruiker.getAchternaam());
+		ingelogdeGebruikerNaam.append(getTussenvoegselEnAchternaam(gebruiker));
 		return ingelogdeGebruikerNaam.toString();
 	}
 
@@ -214,58 +207,42 @@ public abstract class NaamUtil
 		{
 			return null;
 		}
-
-		NaamGebruik naamGebruik = client.getPersoon().getNaamGebruik();
-		if (NaamGebruik.EIGEN.equals(naamGebruik) || NaamGebruik.EIGEN_PARTNER.equals(naamGebruik))
+		var persoon = client.getPersoon();
+		var volledigeNaam = StringUtils.trim(getTussenvoegsel(persoon));
+		if (volledigeNaam.length() > 0)
 		{
-			return client.getPersoon().getNaamEigenPartner();
+			volledigeNaam += " ";
 		}
-		else if (naamGebruik == null || NaamGebruik.PARTNER.equals(naamGebruik) || NaamGebruik.PARTNER_EIGEN.equals(naamGebruik))
-		{
-			return client.getPersoon().getNaamPartnerEigen();
-		}
-		return null;
+		volledigeNaam += getAanspreekNaamZonderTussenvoegsel(persoon);
+		return volledigeNaam;
 	}
 
-	public static String getAchternaamVoorlettersTussenvoegsel(Client client)
+	private static String getAanspreekNaamZonderTussenvoegsel(GbaPersoon persoon)
 	{
-		if (client == null)
-		{
-			return null;
-		}
-		String volledigeNaam = "";
-
-		Persoon persoon = client.getPersoon();
-		NaamGebruik naamGebruik = persoon.getNaamGebruik();
-		if (NaamGebruik.EIGEN.equals(naamGebruik) || NaamGebruik.EIGEN_PARTNER.equals(naamGebruik))
+		var volledigeNaam = "";
+		var naamGebruik = persoon.getNaamGebruik();
+		if (naamGebruik == NaamGebruik.EIGEN || naamGebruik == NaamGebruik.EIGEN_PARTNER)
 		{
 			if (StringUtils.isNotBlank(persoon.getAchternaam()))
 			{
 				volledigeNaam += persoon.getAchternaam();
 			}
-			if (NaamGebruik.EIGEN_PARTNER.equals(naamGebruik))
+			if (naamGebruik == NaamGebruik.EIGEN_PARTNER)
 			{
 				if (StringUtils.isNotBlank(volledigeNaam) && StringUtils.isNotBlank(persoon.getPartnerAchternaam()))
 				{
 					volledigeNaam += " - ";
 				}
-				if (StringUtils.isNotBlank(persoon.getPartnerTussenvoegsel()))
-				{
-					volledigeNaam += persoon.getPartnerTussenvoegsel() + " ";
-				}
-				if (StringUtils.isNotBlank(persoon.getPartnerAchternaam()))
-				{
-					volledigeNaam += persoon.getPartnerAchternaam();
-				}
+				volledigeNaam += getPartnernaam(persoon);
 			}
 		}
-		else if (naamGebruik == null || NaamGebruik.PARTNER.equals(naamGebruik) || NaamGebruik.PARTNER_EIGEN.equals(naamGebruik))
+		else if (naamGebruik == null || naamGebruik == NaamGebruik.PARTNER || naamGebruik == NaamGebruik.PARTNER_EIGEN)
 		{
 			if (StringUtils.isNotBlank(persoon.getPartnerAchternaam()))
 			{
 				volledigeNaam += persoon.getPartnerAchternaam();
 			}
-			if (naamGebruik == null || NaamGebruik.PARTNER_EIGEN.equals(naamGebruik))
+			if (naamGebruik == null || naamGebruik == NaamGebruik.PARTNER_EIGEN)
 			{
 				if (StringUtils.isNotBlank(volledigeNaam) && StringUtils.isNotBlank(persoon.getAchternaam()))
 				{
@@ -281,31 +258,77 @@ public abstract class NaamUtil
 				}
 			}
 		}
+		return volledigeNaam;
+	}
 
+	private static String getEigennaam(GbaPersoon persoon)
+	{
+		var eigennaam = "";
+		if (StringUtils.isNotBlank(persoon.getTussenvoegsel()))
+		{
+			eigennaam += persoon.getTussenvoegsel() + " ";
+		}
+		if (StringUtils.isNotBlank(persoon.getAchternaam()))
+		{
+			eigennaam += persoon.getAchternaam();
+		}
+		return eigennaam;
+	}
+
+	private static String getPartnernaam(GbaPersoon persoon)
+	{
+		var partnernaam = "";
+		if (StringUtils.isNotBlank(persoon.getPartnerTussenvoegsel()))
+		{
+			partnernaam += persoon.getPartnerTussenvoegsel() + " ";
+		}
+		if (StringUtils.isNotBlank(persoon.getPartnerAchternaam()))
+		{
+			partnernaam += persoon.getPartnerAchternaam();
+		}
+		return partnernaam;
+	}
+
+	public static String getVolledigeAchternaamVoorlettersTussenvoegsel(Client client)
+	{
+		if (client == null)
+		{
+			return null;
+		}
+		var persoon = client.getPersoon();
+		var volledigeNaam = getAanspreekNaamZonderTussenvoegsel(persoon);
 		volledigeNaam += ", " + getVoorlettersClient(client);
+		volledigeNaam += getTussenvoegsel(persoon);
+
+		return volledigeNaam;
+	}
+
+	private static String getTussenvoegsel(GbaPersoon persoon)
+	{
+		var tussenvoegels = "";
+		var naamGebruik = persoon.getNaamGebruik();
 		if (((NaamGebruik.EIGEN.equals(naamGebruik) || NaamGebruik.EIGEN_PARTNER.equals(naamGebruik))
 			|| (NaamGebruik.PARTNER_EIGEN.equals(naamGebruik) && StringUtils.isBlank(persoon.getPartnerTussenvoegsel()) && StringUtils.isBlank(persoon.getPartnerAchternaam())))
 			&& StringUtils.isNotBlank(persoon.getTussenvoegsel()))
 		{
-			volledigeNaam += " " + persoon.getTussenvoegsel();
+			tussenvoegels += " " + persoon.getTussenvoegsel();
 		}
 		else if ((NaamGebruik.PARTNER.equals(naamGebruik) || NaamGebruik.PARTNER_EIGEN.equals(naamGebruik)) && StringUtils.isNotBlank(persoon.getPartnerTussenvoegsel()))
 		{
-			volledigeNaam += " " + persoon.getPartnerTussenvoegsel();
+			tussenvoegels += " " + persoon.getPartnerTussenvoegsel();
 		}
 		else if (naamGebruik == null)
 		{
 			if (StringUtils.isNotBlank(persoon.getPartnerTussenvoegsel()) && StringUtils.isNotBlank(persoon.getPartnerAchternaam()))
 			{
-				volledigeNaam += " " + persoon.getPartnerTussenvoegsel();
+				tussenvoegels += " " + persoon.getPartnerTussenvoegsel();
 			}
 			else if (StringUtils.isNotBlank(persoon.getTussenvoegsel()))
 			{
-				volledigeNaam += " " + persoon.getTussenvoegsel();
+				tussenvoegels += " " + persoon.getTussenvoegsel();
 			}
 		}
-
-		return volledigeNaam;
+		return tussenvoegels;
 	}
 
 	public static String getVoorlettersClient(Client client)
@@ -315,7 +338,7 @@ public abstract class NaamUtil
 			return null;
 		}
 
-		StringBuilder voorletters = new StringBuilder();
+		var voorletters = new StringBuilder();
 
 		if (!Strings.isNullOrEmpty(client.getPersoon().getVoornaam()))
 		{
@@ -340,7 +363,7 @@ public abstract class NaamUtil
 
 	public static String getNaamHuisarts(Huisarts huisarts)
 	{
-		StringBuilder naam = new StringBuilder();
+		var naam = new StringBuilder();
 		if (huisarts == null)
 		{
 			return naam.toString();
@@ -366,12 +389,12 @@ public abstract class NaamUtil
 
 	public static String getNaamHuisarts(CervixHuisarts cervixHuisarts)
 	{
-		StringBuilder naam = new StringBuilder();
+		var naam = new StringBuilder();
 		if (cervixHuisarts == null)
 		{
 			return naam.toString();
 		}
-		Gebruiker medewerker = cervixHuisarts.getOrganisatieMedewerkers().get(0).getMedewerker();
+		var medewerker = cervixHuisarts.getOrganisatieMedewerkers().get(0).getMedewerker();
 		if (StringUtils.isNotBlank(medewerker.getVoorletters()))
 		{
 			naam.append(NaamWeergaveHelper.standaardiseerVoorletters(medewerker.getVoorletters()));
@@ -390,14 +413,9 @@ public abstract class NaamUtil
 		return naam.toString();
 	}
 
-	public static String getGeboorteTussenvoegselEnAchternaam(Persoon persoon)
+	public static String getGeboorteTussenvoegselEnAchternaam(GbaPersoon persoon)
 	{
-		String result = StringUtils.isNotBlank(persoon.getTussenvoegsel()) ? persoon.getTussenvoegsel() + " " : "";
-		if (StringUtils.isNotBlank(persoon.getAchternaam()))
-		{
-			result += persoon.getAchternaam();
-		}
-		return result;
+		return getEigennaam(persoon);
 	}
 
 	public static String getGewensteAanspreekVorm(Client client)

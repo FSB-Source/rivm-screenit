@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.List;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -37,7 +38,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
-import javax.persistence.Transient;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -48,26 +50,31 @@ import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.Complicatie;
 import nl.rivm.screenit.model.enums.GbaStatus;
+import nl.rivm.screenit.model.enums.RedenIntrekkenGbaIndicatie;
 import nl.rivm.screenit.model.gba.GbaMutatie;
 import nl.rivm.screenit.model.gba.GbaVraag;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.project.ProjectClient;
-import nl.rivm.screenit.util.NaamUtil;
-import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Patient;
+import nl.topicuszorg.patientregistratie.persoonsgegevens.model.BsnBron;
 import nl.topicuszorg.planning.model.IAppointment;
 import nl.topicuszorg.planning.model.IParticipant;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Check;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
 import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 
-@Entity
-@Table(indexes = { @Index(name = "IDX_GBASTATUS", columnList = "gbaStatus") })
+@Getter
+@Setter
 @Audited
-public class Client extends Patient<GbaPersoon> implements Account, IParticipant
+@Entity(name = "pat_patient")
+@Table(schema = "gedeeld", indexes = { @Index(name = "IDX_GBASTATUS", columnList = "gbaStatus") })
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "patient.registratie.cache")
+@Check(constraints = "reden_intrekken_gba_indicatie_door_bvo = 'NIET_INGETROKKEN' OR gba_status IN ('INDICATIE_AANWEZIG', 'PUNT_ADRES', 'BEZWAAR')")
+public class Client extends SingleTableHibernateObject implements Account, IParticipant
 {
 	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@Audited(targetAuditMode = NOT_AUDITED)
@@ -90,7 +97,12 @@ public class Client extends Patient<GbaPersoon> implements Account, IParticipant
 	private List<Complicatie> complicaties = new ArrayList<>();
 
 	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
 	private GbaStatus gbaStatus;
+
+	@Column(nullable = false)
+	@Enumerated(EnumType.STRING)
+	private RedenIntrekkenGbaIndicatie redenIntrekkenGbaIndicatieDoorBvo = RedenIntrekkenGbaIndicatie.NIET_INGETROKKEN;
 
 	@OneToMany(cascade = CascadeType.ALL)
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
@@ -136,9 +148,6 @@ public class Client extends Patient<GbaPersoon> implements Account, IParticipant
 	@Audited(targetAuditMode = NOT_AUDITED)
 	private GbaMutatie laatsteGbaMutatie;
 
-	@Deprecated
-	private Date datumLaatsteUitnodiging;
-
 	@OneToMany(mappedBy = "client")
 	@OrderBy("statusDatum DESC")
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
@@ -150,230 +159,57 @@ public class Client extends Patient<GbaPersoon> implements Account, IParticipant
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 	private List<AlgemeneBrief> algemeneBrieven = new ArrayList<>();
 
-	public ColonDossier getColonDossier()
-	{
-		return colonDossier;
-	}
+	@Column(length = 20)
+	@Deprecated(forRemoval = true)
+	private String patientnummer;
 
-	public void setColonDossier(ColonDossier colonDossier)
-	{
-		this.colonDossier = colonDossier;
-	}
+	@Column(length = 255)
+	@Deprecated(forRemoval = true)
+	private String uitgeverPatientnummer;
 
-	@Override
-	public void setId(Long id)
-	{
-		super.setId(id);
-	}
+	@Temporal(TemporalType.DATE)
+	@Deprecated(forRemoval = true)
+	private Date inschrijfdatum;
 
-	@Override
-	public Long getId()
-	{
-		return (Long) super.getId();
-	}
+	@OneToOne(mappedBy = "patient", cascade = CascadeType.ALL)
+	private GbaPersoon persoon;
+
+	@Enumerated(EnumType.STRING)
+	@Deprecated(forRemoval = true)
+	private BsnBron bsnBron;
 
 	@Override
+	@Deprecated(forRemoval = true)
 	public String getName()
 	{
-		return NaamUtil.titelVoorlettersTussenvoegselEnAanspreekAchternaam(this);
+		return null;
 	}
 
-	@Deprecated
 	@Override
+	@Deprecated(forRemoval = true)
 	public void setName(String name)
 	{
 
 	}
 
 	@Override
+	@Deprecated(forRemoval = true)
 	public String getDescription()
 	{
-		return "Client " + getPersoon().getNaamVolledigMetVoornaam();
+		return null;
 	}
 
-	@Deprecated
 	@Override
+	@Deprecated(forRemoval = true)
 	public void setDescription(String description)
 	{
 
 	}
 
 	@Override
-	@Transient
+	@Deprecated(forRemoval = true)
 	public List<? extends IAppointment> getAppointments(Date startTime, Date endTime)
 	{
-		List<Afspraak> result = new ArrayList<>();
-
-		for (Afspraak afspraak : getAfspraken())
-		{
-			if (afspraak.getStartTime().after(startTime) && afspraak.getStartTime().before(endTime))
-			{
-				result.add(afspraak);
-			}
-		}
-
-		return result;
-	}
-
-	public List<Afspraak> getAfspraken()
-	{
-		return afspraken;
-	}
-
-	public void setAfspraken(List<Afspraak> afspraken)
-	{
-		this.afspraken = afspraken;
-	}
-
-	public GbaStatus getGbaStatus()
-	{
-		return gbaStatus;
-	}
-
-	public void setGbaStatus(GbaStatus gbaStatus)
-	{
-		this.gbaStatus = gbaStatus;
-	}
-
-	public List<GbaMutatie> getGbaMutaties()
-	{
-		return gbaMutaties;
-	}
-
-	public void setGbaMutaties(List<GbaMutatie> gbaMutaties)
-	{
-		this.gbaMutaties = gbaMutaties;
-	}
-
-	public List<GbaVraag> getGbaVragen()
-	{
-		return gbaVragen;
-	}
-
-	public void setGbaVragen(List<GbaVraag> gbaVragen)
-	{
-		this.gbaVragen = gbaVragen;
-	}
-
-	public List<ClientContact> getContacten()
-	{
-		return contacten;
-	}
-
-	public void setContacten(List<ClientContact> contacten)
-	{
-		this.contacten = contacten;
-	}
-
-	public List<BezwaarMoment> getBezwaarMomenten()
-	{
-		return bezwaarMomenten;
-	}
-
-	public void setBezwaarMomenten(List<BezwaarMoment> bezwaren)
-	{
-		this.bezwaarMomenten = bezwaren;
-	}
-
-	@Deprecated
-	public Date getDatumLaatsteUitnodiging()
-	{
-		return datumLaatsteUitnodiging;
-	}
-
-	@Deprecated
-	public void setDatumLaatsteUitnodiging(Date datumLaatsteUitnodiging)
-	{
-		this.datumLaatsteUitnodiging = datumLaatsteUitnodiging;
-	}
-
-	public List<HuisartsBericht> getHuisartsBerichten()
-	{
-		return huisartsBerichten;
-	}
-
-	public void setHuisartsBerichten(List<HuisartsBericht> huisartsBerichten)
-	{
-		this.huisartsBerichten = huisartsBerichten;
-	}
-
-	public List<Complicatie> getComplicaties()
-	{
-		return complicaties;
-	}
-
-	public void setComplicaties(List<Complicatie> complicaties)
-	{
-		this.complicaties = complicaties;
-	}
-
-	public List<UploadDocument> getDocuments()
-	{
-		return documents;
-	}
-
-	public void setDocuments(List<UploadDocument> documents)
-	{
-		this.documents = documents;
-	}
-
-	public List<ProjectClient> getProjecten()
-	{
-		return projecten;
-	}
-
-	public void setProjecten(List<ProjectClient> projecten)
-	{
-		this.projecten = projecten;
-	}
-
-	public CervixDossier getCervixDossier()
-	{
-		return cervixDossier;
-	}
-
-	public void setCervixDossier(CervixDossier cervixDossier)
-	{
-		this.cervixDossier = cervixDossier;
-	}
-
-	public MammaDossier getMammaDossier()
-	{
-		return mammaDossier;
-	}
-
-	public void setMammaDossier(MammaDossier mammaDossier)
-	{
-		this.mammaDossier = mammaDossier;
-	}
-
-	public BezwaarMoment getLaatstVoltooideBezwaarMoment()
-	{
-		return laatstVoltooideBezwaarMoment;
-	}
-
-	public void setLaatstVoltooideBezwaarMoment(BezwaarMoment laatstVoltooideBezwaarMoment)
-	{
-		this.laatstVoltooideBezwaarMoment = laatstVoltooideBezwaarMoment;
-	}
-
-	public GbaMutatie getLaatsteGbaMutatie()
-	{
-		return laatsteGbaMutatie;
-	}
-
-	public void setLaatsteGbaMutatie(GbaMutatie laatsteGbaMutatie)
-	{
-		this.laatsteGbaMutatie = laatsteGbaMutatie;
-	}
-
-	public List<OverdrachtPersoonsgegevens> getOverdrachtPersoonsgegevensLijst()
-	{
-		return overdrachtPersoonsgegevensLijst;
-	}
-
-	public void setOverdrachtPersoonsgegevensLijst(List<OverdrachtPersoonsgegevens> overdrachtPersoonsgegevensLijst)
-	{
-		this.overdrachtPersoonsgegevensLijst = overdrachtPersoonsgegevensLijst;
+		return null;
 	}
 }

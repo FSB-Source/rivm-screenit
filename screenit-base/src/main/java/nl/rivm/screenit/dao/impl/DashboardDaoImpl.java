@@ -51,9 +51,18 @@ public class DashboardDaoImpl extends AbstractAutowiredDao implements DashboardD
 	@Override
 	public List<DashboardStatus> getDashboardStatussen(DashboardType item)
 	{
-		BaseCriteria<DashboardStatus> criteria = new BaseCriteria<DashboardStatus>(DashboardStatus.class);
+		var criteria = new BaseCriteria<DashboardStatus>(DashboardStatus.class);
 		criteria.add(Restrictions.eq("type", item));
 		return criteria.list(getSession());
+	}
+
+	@Override
+	public List<DashboardLogRegel> getLogRegelsInDashboard(DashboardType dashboardType)
+	{
+		var criteria = getSession().createCriteria(DashboardLogRegel.class);
+		criteria.createAlias("dashboardStatus", "dashboardStatus");
+		criteria.add(Restrictions.eq("dashboardStatus.type", dashboardType));
+		return criteria.list();
 	}
 
 	@Override

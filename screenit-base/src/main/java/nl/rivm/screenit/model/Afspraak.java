@@ -172,21 +172,10 @@ public class Afspraak extends Action<Client> implements Cloneable, IActief, ITij
 
 	@Override
 	@Transient
+	@Deprecated
 	public String getDescription()
 	{
-		List<String> stringetjes = new ArrayList<String>();
-		if (getClient() != null)
-		{
-			stringetjes.add("Client: " + getClient().getPersoon().getNaamVolledigMetVoornaam());
-		}
-
-		StringBuilder returnValue = new StringBuilder("<ul class=\"simplelist\">");
-		for (String string : stringetjes)
-		{
-			returnValue.append("<li>" + string + "</li>");
-		}
-		returnValue.append("</ul>");
-		return returnValue.toString();
+		return null;
 	}
 
 	@Override

@@ -19,8 +19,7 @@
  * =========================LICENSE_END==================================
  */
 import * as React from "react"
-import {useEffect, useState} from "react"
-import {useKeycloak} from "@react-keycloak/web"
+import {useContext, useEffect, useState} from "react"
 import {useDispatch, useSelector} from "react-redux"
 import {Col, Row} from "react-bootstrap"
 import {State} from "../../datatypes/State"
@@ -29,9 +28,10 @@ import properties from "./AutoLoginPage.json"
 import {getString} from "../../utils/TekstPropertyUtil"
 import {getBevolkingsonderzoekNederlandUrl, getBevolkingsonderzoekNederlandUrlNaam} from "../../utils/UrlUtil"
 import {Navigate} from "react-router-dom"
+import {KeycloakContext} from "../../components/KeycloakProvider"
 
 const AutoLoginPage = () => {
-	const {initialized: keycloakInitialized, keycloak} = useKeycloak()
+	const {initialized: keycloakInitialized, keycloak} = useContext(KeycloakContext)
 	const dispatch = useDispatch()
 	const authenticatie = useSelector((state: State) => state.authenticatie)
 	const [loginTimeout, setLoginTimeout] = useState<NodeJS.Timeout | undefined>(undefined)
@@ -44,7 +44,7 @@ const AutoLoginPage = () => {
 		}
 	}, [keycloakInitialized, keycloak, dispatch])
 
-	if (keycloak?.authenticated && authenticatie.isLoggedIn && !authenticatie.isLoggingOut) {
+	if (keycloak.authenticated && authenticatie.isLoggedIn && !authenticatie.isLoggingOut) {
 		loginTimeout && clearTimeout(loginTimeout)
 		return <Navigate replace to={"/"}/>
 	} else {

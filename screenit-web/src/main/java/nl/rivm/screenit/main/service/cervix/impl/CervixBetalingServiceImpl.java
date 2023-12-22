@@ -45,6 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.cervix.CervixVerrichtingDao;
 import nl.rivm.screenit.document.sepa.CervixBetaalOpdrachtSpecificatieDocumentCreator;
+import nl.rivm.screenit.dto.cervix.facturatie.CervixBetalingsZoekObject;
 import nl.rivm.screenit.main.model.cervix.sepa.SEPACreditTransfer;
 import nl.rivm.screenit.main.service.cervix.CervixBetalingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
@@ -62,6 +63,8 @@ import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.model.cervix.facturatie.CervixHuisartsTarief;
 import nl.rivm.screenit.model.cervix.facturatie.CervixLabTarief;
 import nl.rivm.screenit.model.cervix.facturatie.CervixTarief;
+import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting;
+import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting_;
 import nl.rivm.screenit.model.enums.BestandStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
@@ -79,6 +82,8 @@ import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.cervix.Cervix2023StartBepalingService;
 import nl.rivm.screenit.service.cervix.CervixBaseBetalingService;
 import nl.rivm.screenit.service.cervix.CervixVerrichtingService;
+import nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification;
+import nl.rivm.screenit.specification.cervix.CervixVerrichtingSpecification;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.cervix.CervixHuisartsToDtoUtil;
 import nl.rivm.screenit.util.cervix.CervixTariefUtil;
@@ -90,6 +95,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.IBANValidator;
 import org.hibernate.HibernateException;
+import org.hibernate.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -405,6 +411,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 
 	}
 
+	@Override
 	public List<CervixTariefType> getTariefTypenVoorLaboratorium(BMHKLaboratorium laboratorium)
 	{
 		var bmhk2023Lab = cervix2023StartBepalingService.isBmhk2023Laboratorium(laboratorium);
@@ -610,6 +617,25 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 			berekenEinddatumCervixLaboratoriumTarief(CervixTariefType.getLabTarief(tarief).getBmhkLaboratorium());
 			logService.logGebeurtenis(LogGebeurtenis.CERVIX_LAB_TARIEF_VERWIJDERD, account, melding, Bevolkingsonderzoek.CERVIX);
 		}
+	}
+
+	@Override
+	public List<CervixBoekRegel> getVerrichtingenVoorBetaling(CervixBetalingsZoekObject zoekObject)
+	{
+		var session = hibernateService.getHibernateSession();
+
+		var cb = session.getCriteriaBuilder();
+		var q = cb.createQuery(CervixBoekRegel.class);
+		var r = q.from(CervixVerrichting.class);
+
+		q.select(r.get(CervixVerrichting_.laatsteBoekRegel))
+			.where(CervixVerrichtingSpecification.filterVerrichtingType(zoekObject.isVerrichtingenHuisarts(), zoekObject.isVerrichtingenLaboratorium())
+				.and(CervixVerrichtingSpecification.filterVerrichtingDatumTotEnMet(DateUtil.toLocalDate(zoekObject.getVerrichtingsdatumTotEnMet())))
+				.and(CervixVerrichtingSpecification.filterVerrichtingBinnenRegio(zoekObject.getScreeningOrganisatieId()))
+				.and(CervixBoekRegelSpecification.heeftNogGeenBetaalopdracht().toSpecification(CervixVerrichting_.laatsteBoekRegel))
+				.toPredicate(r, q, cb));
+
+		return session.createQuery(q).unwrap(Query.class).list();
 	}
 
 	private class CervixBetalingsBestandenThread extends OpenHibernate5SessionInThread

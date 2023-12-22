@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
-import React, {useEffect} from "react"
+import React, {useContext, useEffect} from "react"
 import classNames from "classnames"
 import authenticationStyle from "./AuthenticationPage.module.scss"
 import styles from "./LogoutPage.module.scss"
@@ -30,18 +30,18 @@ import SpanWithHtml from "../../components/span/SpanWithHtml"
 import {useRedirectAfterSeconds} from "../../utils/Hooks"
 import {getBevolkingsonderzoekNederlandUrl, getBevolkingsonderzoekNederlandUrlNaam} from "../../utils/UrlUtil"
 import properties from "./LogoutPage.json"
-import {useKeycloak} from "@react-keycloak/web"
 import {useDispatch, useSelector} from "react-redux"
 import {State} from "../../datatypes/State"
 import {setLoggingOutAction} from "../../actions/AuthenticatieAction"
+import {KeycloakContext} from "../../components/KeycloakProvider"
 
 const LogoutPage = () => {
-	const {initialized: keycloakInitialized, keycloak} = useKeycloak()
+	const {initialized: keycloakInitialized, keycloak} = useContext(KeycloakContext)
 	const dispatch = useDispatch()
 	const authenticatie = useSelector((state: State) => state.authenticatie)
 
 	useEffect(() => {
-		if (keycloakInitialized && keycloak?.authenticated && !authenticatie.isLoggingOut) {
+		if (keycloakInitialized && keycloak.authenticated && !authenticatie.isLoggingOut) {
 			dispatch(setLoggingOutAction(true))
 		}
 	}, [authenticatie, keycloakInitialized, keycloak, dispatch])

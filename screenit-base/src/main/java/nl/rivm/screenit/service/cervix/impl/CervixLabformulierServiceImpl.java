@@ -27,13 +27,13 @@ import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.dao.cervix.CervixDossierDao;
 import nl.rivm.screenit.dao.cervix.CervixLabformulierDao;
-import nl.rivm.screenit.dao.cervix.CervixMonsterDao;
 import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixLabformulierenFilter;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
+import nl.rivm.screenit.service.cervix.CervixBaseMonsterService;
 import nl.rivm.screenit.service.cervix.CervixLabformulierService;
 import nl.rivm.screenit.service.cervix.CervixVervolgService;
 import nl.rivm.screenit.util.BriefUtil;
@@ -59,7 +59,7 @@ public class CervixLabformulierServiceImpl implements CervixLabformulierService
 
 	private HibernateService hibernateService;
 
-	private CervixMonsterDao monsterDao;
+	private CervixBaseMonsterService monsterService;
 
 	private CervixDossierDao dossierDao;
 
@@ -228,7 +228,7 @@ public class CervixLabformulierServiceImpl implements CervixLabformulierService
 		}
 		else
 		{
-			uitstrijkje = monsterDao.getUitstrijkje(labformulier.getBarcode());
+			uitstrijkje = monsterService.getUitstrijkje(labformulier.getBarcode()).orElse(null);
 			if (uitstrijkje == null)
 			{
 				throw new IllegalStateException("geen.uitnodiging.gevonden");

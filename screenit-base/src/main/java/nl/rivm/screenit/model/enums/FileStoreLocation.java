@@ -22,7 +22,7 @@ package nl.rivm.screenit.model.enums;
  */
 
 import java.io.File;
-import java.util.Calendar;
+import java.time.LocalDate;
 
 import lombok.Getter;
 
@@ -215,14 +215,7 @@ public enum FileStoreLocation
 
 		if (daysDirectories)
 		{
-			Calendar cal = Calendar.getInstance();
-			directory.append(File.separator);
-			directory.append(cal.get(Calendar.YEAR));
-			directory.append(File.separator);
-			directory.append(cal.get(Calendar.MONTH) + 1);
-			directory.append(File.separator);
-			directory.append(cal.get(Calendar.DAY_OF_MONTH));
-			directory.append(File.separator);
+			directory.append(relativePathForDate(LocalDate.now()));
 		}
 
 		String rightPath = directory.toString();
@@ -231,6 +224,11 @@ public enum FileStoreLocation
 			return rightPath.replace("{id}", id.toString());
 		}
 		return rightPath;
+	}
+
+	public static String relativePathForDate(LocalDate date)
+	{
+		return File.separator + date.getYear() + File.separator + date.getMonthValue() + File.separator + date.getDayOfMonth() + File.separator;
 	}
 
 	public static FileStoreLocation getAfmelding(Bevolkingsonderzoek bevolkingsonderzoek)

@@ -32,7 +32,7 @@ import nl.rivm.screenit.main.web.component.ScreenitWachtwoordField;
 import nl.rivm.screenit.main.web.component.validator.ScreenITWachtwoordValidator;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
-import nl.rivm.screenit.repository.GebruikerRepository;
+import nl.rivm.screenit.repository.algemeen.GebruikerRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.WachtwoordService;

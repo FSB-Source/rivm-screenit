@@ -34,6 +34,7 @@ import nl.rivm.screenit.main.web.component.ConfirmingIndicatingAjaxLink;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
 import nl.rivm.screenit.main.web.component.ScreenitIndicatingAjaxSubmitLink;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
+import nl.rivm.screenit.main.web.component.validator.EmailAddressenValidator;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.medewerker.MedewerkerZoeken;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.BeoordelingsEenheid;
@@ -185,6 +186,7 @@ public class OrganisatieBasisgegevens extends OrganisatieBeheer
 			boolean isSo = organisatieType.equals(OrganisatieType.SCREENINGSORGANISATIE);
 			boolean isCe = organisatieType.equals(OrganisatieType.CENTRALE_EENHEID);
 			boolean isSoOfCe = isSo || isCe;
+			boolean isIntakeLocatie = organisatieType.equals(OrganisatieType.COLOSCOPIECENTRUM);
 			var organisatieNaam = ComponentHelper.addTextField(this, "naam", true, 50, inzien).setLabel(Model.of("Naam"));
 
 			organisatieNaam.add(new UniqueFieldValidator<>(Instelling.class, organisatie.getId(), "naam", hibernateService, Map.of("actief", Boolean.TRUE)));
@@ -203,6 +205,7 @@ public class OrganisatieBasisgegevens extends OrganisatieBeheer
 			ComponentHelper.addTextField(this, "email2", isCe, 100, inzien).add(EmailAddressValidator.getInstance()).setVisible(isCe);
 			ComponentHelper.addTextField(this, "email3", isCe, 100, inzien).add(EmailAddressValidator.getInstance()).setVisible(isCe);
 			ComponentHelper.addTextField(this, "email4", isCe, 100, inzien).add(EmailAddressValidator.getInstance()).setVisible(isCe);
+			ComponentHelper.addTextField(this, "emailSignaleringIntakelocatie", false, 100, inzien).add(EmailAddressenValidator.getInstance()).setVisible(isIntakeLocatie);
 			ComponentHelper.addTextField(this, "website", false, 200, inzien).setVisible(!isCe);
 			ComponentHelper.addTextField(this, "telefoon", isSoOfCe, 20, inzien);
 			ComponentHelper.addTextField(this, "telefoon2", isCe, 20, inzien);

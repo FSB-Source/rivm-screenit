@@ -43,7 +43,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -54,14 +53,11 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.model.Delete;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
-import software.amazon.awssdk.services.s3.model.DeleteObjectsResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
@@ -256,6 +252,19 @@ public class S3FileServiceImpl implements FileService, InitializingBean
 	{
 		var filesInDirectory = listFiles(directory);
 		filesInDirectory.forEach(this::delete);
+	}
+
+	@Override
+	public void deleteFileOrDirectory(File bestand) throws IOException
+	{
+		if (bestand.isDirectory())
+		{
+			deleteDirectory(bestand.getPath());
+		}
+		else
+		{
+			delete(bestand.getPath());
+		}
 	}
 
 	@Override

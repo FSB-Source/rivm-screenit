@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.comparator.BezwaarComparator;
-import nl.rivm.screenit.dao.cervix.CervixRondeDao;
 import nl.rivm.screenit.model.AanvraagBriefStatus;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.BagAdres;
@@ -45,7 +44,7 @@ import nl.rivm.screenit.model.BezwaarMoment;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactManier;
 import nl.rivm.screenit.model.GbaPersoon;
-import nl.rivm.screenit.model.RedenOpnieuwAanvragenClientgegevens;
+import nl.rivm.screenit.model.RedenGbaVraag;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.algemeen.BezwaarBrief;
 import nl.rivm.screenit.model.algemeen.BezwaarGroupViewWrapper;
@@ -68,6 +67,7 @@ import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.berichten.xds.XdsStatus;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectInactiefReden;
+import nl.rivm.screenit.repository.cervix.CervixBaseMonsterRepository;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BezwaarService;
 import nl.rivm.screenit.service.ClientDoelgroepService;
@@ -132,7 +132,7 @@ public class BezwaarServiceImpl implements BezwaarService
 	private CervixMailService mailService;
 
 	@Autowired(required = false)
-	private CervixRondeDao rondeDao;
+	private CervixBaseMonsterRepository monsterRepository;
 
 	@Autowired(required = false)
 	private ColonDossierBaseService colonDossierBaseService;
@@ -705,7 +705,7 @@ public class BezwaarServiceImpl implements BezwaarService
 					switch (bezwaar.getType())
 					{
 					case GEEN_OPNAME_UIT_BPR:
-						clientService.vraagGbaGegevensOpnieuwAan(client, account, RedenOpnieuwAanvragenClientgegevens.BEZWAAR_INGETROKKEN);
+						clientService.vraagGbaGegevensOpnieuwAan(client, account, RedenGbaVraag.BEZWAAR_INGETROKKEN);
 						verwijderAdresGegevensVanClient(client);
 						break;
 					default:
@@ -814,22 +814,20 @@ public class BezwaarServiceImpl implements BezwaarService
 
 	private void verwerkGeenControleVerwijsAdvies(Client client)
 	{
-		if (mailService != null && rondeDao != null && client.getCervixDossier().getLaatsteScreeningRonde() != null)
+		if (mailService != null && monsterRepository != null && client.getCervixDossier().getLaatsteScreeningRonde() != null)
 		{
 			CervixScreeningRonde laatsteScreeningRonde = client.getCervixDossier().getLaatsteScreeningRonde();
-			rondeDao.getOntvangenMonsters(laatsteScreeningRonde).stream()
-				.filter(cervixMonster -> cervixMonster.getBrief() != null)
+			monsterRepository.findAllByOntvangstScreeningRondeAndBriefNotNull(laatsteScreeningRonde)
 				.forEach(cervixMonster -> mailService.sendBMHKBezwaarControlleVerwijsAdviesMail(cervixMonster));
 		}
 	}
 
 	private void verwerkBezwaarLichaamsmateriaal(Client client)
 	{
-		if (mailService != null && rondeDao != null && client.getCervixDossier().getLaatsteScreeningRonde() != null)
+		if (mailService != null && client.getCervixDossier().getLaatsteScreeningRonde() != null)
 		{
 			CervixScreeningRonde laatsteScreeningRonde = client.getCervixDossier().getLaatsteScreeningRonde();
-			rondeDao.getOntvangenMonsters(laatsteScreeningRonde).stream()
-				.filter(cervixMonster -> cervixMonster.getBrief() != null)
+			monsterRepository.findAllByOntvangstScreeningRondeAndBriefNotNull(laatsteScreeningRonde)
 				.forEach(cervixMonster -> mailService.sendBMHKBezwaarLichaamsmateriaalMailAsync(cervixMonster));
 		}
 	}

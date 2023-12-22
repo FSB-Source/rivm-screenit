@@ -34,6 +34,8 @@ public interface DashboardDao
 {
 	List<DashboardStatus> getDashboardStatussen(DashboardType item);
 
+	List<DashboardLogRegel> getLogRegelsInDashboard(DashboardType dashboardType);
+
 	void maakDashboardStatusLeeg(DashboardType dashboardType);
 
 	Date getDateTimeLastLogRegel(DashboardType dashboardType);

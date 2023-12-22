@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.clienten.contact.gen;
 
 /*-
@@ -29,22 +28,19 @@ import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.AbstractClientContactActiePanel;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActie;
-import nl.rivm.screenit.model.RedenOpnieuwAanvragenClientgegevens;
+import nl.rivm.screenit.model.RedenGbaVraag;
 
 import org.apache.wicket.model.IModel;
 
 public class ClientContactClientGegevensAanvragenPanel extends AbstractClientContactActiePanel<ClientContactActie>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	public ClientContactClientGegevensAanvragenPanel(String id, IModel<ClientContactActie> model, IModel<Client> client, List<Object> extraPanelParams)
 	{
 		super(id, model);
 
-		List<RedenOpnieuwAanvragenClientgegevens> redenen = new ArrayList<>();
-		redenen.add(RedenOpnieuwAanvragenClientgegevens.ONJUIST_ADRES);
-		redenen.add(RedenOpnieuwAanvragenClientgegevens.ONJUISTE_PERSOONSGEGEVENS);
+		var redenen = new ArrayList<RedenGbaVraag>();
+		redenen.add(RedenGbaVraag.ONJUIST_ADRES);
+		redenen.add(RedenGbaVraag.ONJUISTE_PERSOONSGEGEVENS);
 
 		ComponentHelper.addDropDownChoice(this, "opnieuwAanvragenClientgegevensReden", true, redenen, false);
 	}

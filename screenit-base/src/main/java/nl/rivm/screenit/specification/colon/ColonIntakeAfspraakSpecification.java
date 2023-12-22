@@ -28,7 +28,10 @@ import javax.persistence.criteria.Predicate;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
+import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.GbaPersoon;
+import nl.rivm.screenit.model.GbaPersoon_;
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.berichten.enums.VerslagType;
 import nl.rivm.screenit.model.colon.ColonConclusie_;
@@ -44,9 +47,6 @@ import nl.rivm.screenit.model.colon.Kamer_;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.specification.algemeen.PersoonSpecification;
-import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Patient_;
-import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Persoon_;
 import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment_;
 
 import org.apache.commons.lang.StringUtils;
@@ -55,7 +55,7 @@ import org.springframework.data.jpa.domain.Specification;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ColonIntakeAfspraakSpecification
 {
-	public static Specification<ColonIntakeAfspraak> zonderVerslagen()
+	public static Specification<ColonIntakeAfspraak> heeftGeenVerslagen()
 	{
 		return (r, q, cb) ->
 		{
@@ -76,54 +76,48 @@ public class ColonIntakeAfspraakSpecification
 		};
 	}
 
-	public static Specification<ColonIntakeAfspraak> clientNietOverledenVoorColoscopie()
+	public static Specification<ColonIntakeAfspraak> heeftClientNietOverledenOfVerhuisdVoorColoscopie()
 	{
 		return (r, q, cb) ->
 		{
-			var conclusiePath = r
-				.get(ColonIntakeAfspraak_.conclusie);
+			var subquery = q.subquery(Client.class);
+			var subqueryRoot = subquery.from(Client.class);
 
-			var persoonPath = r
-				.get(ColonIntakeAfspraak_.colonScreeningRonde)
-				.get(ColonScreeningRonde_.dossier)
-				.get(ColonDossier_.client)
-				.get(Patient_.persoon);
+			var gbaPersoonAlias = cb.treat(subqueryRoot.join(Client_.persoon), GbaPersoon.class);
+			var datumColoscopiePath = r.join(ColonIntakeAfspraak_.conclusie).get(ColonConclusie_.datumColoscopie);
+			var dossierPath = r.join(ColonIntakeAfspraak_.colonScreeningRonde).get(ColonScreeningRonde_.dossier);
 
-			return PersoonSpecification.nietOverledenVoor(conclusiePath.get(ColonConclusie_.datumColoscopie)).withPath(cb, cb.treat(persoonPath, GbaPersoon.class));
+			return cb.exists(subquery.select(subqueryRoot).where(
+				cb.equal(dossierPath, subqueryRoot.get(Client_.colonDossier)),
+				cb.and(
+					cb.or(
+						cb.isNull(gbaPersoonAlias.get(GbaPersoon_.overlijdensdatum)),
+						cb.greaterThan(gbaPersoonAlias.get(GbaPersoon_.overlijdensdatum), datumColoscopiePath)
+					),
+					cb.or(
+						cb.isNull(gbaPersoonAlias.get(GbaPersoon_.datumVertrokkenUitNederland)),
+						cb.greaterThan(gbaPersoonAlias.get(GbaPersoon_.datumVertrokkenUitNederland),
+							datumColoscopiePath)
+					)
+				))
+			);
+
 		};
 	}
 
-	public static Specification<ColonIntakeAfspraak> clientNietVerhuisdNaarBuitenlandVoorColoscopie()
-	{
-		return (r, q, cb) ->
-		{
-			var datumColoscopie = r
-				.get(ColonIntakeAfspraak_.conclusie)
-				.get(ColonConclusie_.datumColoscopie);
-
-			var persoonPath = r
-				.get(ColonIntakeAfspraak_.colonScreeningRonde)
-				.get(ColonScreeningRonde_.dossier)
-				.get(ColonDossier_.client)
-				.get(Patient_.persoon);
-
-			return PersoonSpecification.nietVetrokkenUitNederlandVoor(datumColoscopie).withPath(cb, cb.treat(persoonPath, GbaPersoon.class));
-		};
-	}
-
-	public static Specification<ColonIntakeAfspraak> metConclusieType(ColonConclusieType conclusieType)
+	public static Specification<ColonIntakeAfspraak> heeftConclusieType(ColonConclusieType conclusieType)
 	{
 		return (r, q, cb) ->
 			cb.equal(r.get(ColonIntakeAfspraak_.conclusie).get(ColonConclusie_.type), conclusieType);
 	}
 
-	public static Specification<ColonIntakeAfspraak> metIntakelocatie(ColoscopieCentrum intakelocatie)
+	public static Specification<ColonIntakeAfspraak> heeftIntakelocatie(ColoscopieCentrum intakelocatie)
 	{
 		return (r, q, cb) ->
 			cb.equal(cb.treat(r.get(AbstractAppointment_.location), Kamer.class).get(Kamer_.coloscopieCentrum), intakelocatie);
 	}
 
-	public static Specification<ColonIntakeAfspraak> metConclusieInVerleden(ICurrentDateSupplier currentDateSupplier)
+	public static Specification<ColonIntakeAfspraak> heeftConclusieInVerleden(ICurrentDateSupplier currentDateSupplier)
 	{
 
 		return (r, q, cb) ->
@@ -146,13 +140,13 @@ public class ColonIntakeAfspraakSpecification
 			var persoonPath = colonScreeningRondePath
 				.get(ColonScreeningRonde_.dossier)
 				.get(ColonDossier_.client)
-				.get(Patient_.persoon);
+				.get(Client_.persoon);
 
 			var predicates = new ArrayList<Predicate>();
 
 			if (StringUtils.isNotBlank(zoekObject.getBsn()))
 			{
-				predicates.add(cb.equal(persoonPath.get(Persoon_.bsn), zoekObject.getBsn()));
+				predicates.add(cb.equal(persoonPath.get(GbaPersoon_.bsn), zoekObject.getBsn()));
 			}
 
 			if (zoekObject.getVanaf() != null)

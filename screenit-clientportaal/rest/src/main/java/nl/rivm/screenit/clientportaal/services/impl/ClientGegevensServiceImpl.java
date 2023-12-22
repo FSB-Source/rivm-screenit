@@ -39,7 +39,6 @@ import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.util.EmailUtil;
 import nl.rivm.screenit.util.TelefoonnummerUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Persoon;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
@@ -68,7 +67,7 @@ public class ClientGegevensServiceImpl implements ClientGegevensService
 	@Override
 	public Client setTelefoonnummer(String telefoonnummer1, String telefoonnummer2, Client client)
 	{
-		Persoon persoon = client.getPersoon();
+		GbaPersoon persoon = client.getPersoon();
 
 		String getrimdeTelefoonnummer1 = StringUtils.trimToNull(telefoonnummer1);
 		if (getrimdeTelefoonnummer1 == null || TelefoonnummerUtil.isCorrectNederlandsMobielNummer(getrimdeTelefoonnummer1))

@@ -67,6 +67,10 @@ public class ApplicationConfig
 
 	private String medewerkerPortaalResourceUrl;
 
+	private String activemqUsername;
+
+	private String activemqPassword;
+
 	@Bean
 	public Boolean isJpa()
 	{
@@ -157,4 +161,17 @@ public class ApplicationConfig
 	{
 		return StringUtils.defaultIfBlank(medewerkerPortaalResourceUrl, "");
 	}
+
+	@Bean
+	public String activemqUsername()
+	{
+		return StringUtils.defaultIfBlank(activemqUsername, "");
+	}
+
+	@Bean
+	public String activemqPassword()
+	{
+		return StringUtils.defaultIfBlank(activemqPassword, "");
+	}
+
 }

@@ -34,7 +34,7 @@ import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.InlogStatus;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.enums.InlogMethode;
-import nl.rivm.screenit.repository.GebruikerRepository;
+import nl.rivm.screenit.repository.algemeen.GebruikerRepository;
 import nl.rivm.screenit.service.AuthenticatieService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.MailService;

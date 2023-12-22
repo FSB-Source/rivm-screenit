@@ -31,7 +31,7 @@ import nl.rivm.screenit.model.Dossier;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.RedenOpnieuwAanvragenClientgegevens;
+import nl.rivm.screenit.model.RedenGbaVraag;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
@@ -93,7 +93,7 @@ public interface ClientService
 
 	boolean clientHeeftGbaIndicatie(Client client);
 
-	GbaVraag vraagGbaGegevensOpnieuwAan(Client client, Account account, RedenOpnieuwAanvragenClientgegevens reden);
+	GbaVraag vraagGbaGegevensOpnieuwAan(Client client, Account account, RedenGbaVraag reden);
 
 	boolean isTijdelijkeAdresNuActueel(GbaPersoon persoon);
 

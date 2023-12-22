@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ========================LICENSE_START=================================
+  screenit-batch-alg
+  %%
+  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+<configuration scan="true" scanPeriod="10 seconds">
+
+
+    <if condition='isDefined("jetty.logging.dir")'>
+        <then>
+            <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender" append="true">
+                <file>${jetty.logging.dir}/screenit-batch-alg.log</file>
+                <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                    <fileNamePattern>${jetty.logging.dir}/screenit-batch-alg_%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+                </rollingPolicy>
+                <encoder name="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                    <pattern>%d{yyyyMMdd HH:mm:ss.SSS}[%thread] %-5level %-36.36c{36} - %msg%n</pattern>
+                </encoder>
+            </appender>
+        </then>
+        <else>
+            <appender name="FILE" class="ch.qos.logback.core.helpers.NOPAppender"/>
+        </else>
+    </if>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder name="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{yyyyMMdd HH:mm:ss.SSS}[%thread] %-10([A:%X{A}]) %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name ="nl" level="INFO"/>
+    <logger name ="nl.rivm.screenit.batch.JschLogger" level="ERROR"/>
+    <logger name ="nl.rivm.screenit.document.bezwaar.BezwaarDocumentCreatorOneDatasetCoupleTables" level="DEBUG"/>
+    <logger name ="org.hibernate.SQL" level="INFO"/>
+    <logger name ="org.jgroups" level="INFO"/>
+    <logger name ="org.jgroups.protocols.pbcast.GMS" level="DEBUG"/>
+    <logger name ="nl.rivm.screenit.batch.service.impl.GbaServiceImpl" level="DEBUG"/>
+    <logger name ="org.hibernate.engine.internal.StatefulPersistenceContext" level="ERROR"/>
+    <logger name ="nl.rivm.screenit.service.impl.DefaultCurrentDateSupplier" level="DEBUG"/>
+    <logger name ="nl.rivm.screenit.batch.service.impl.UitnodigingsGebiedCapactieitServiceImpl" level="DEBUG"/>
+    <logger name ="nl.rivm.screenit.service.impl.DistributedLockServiceImpl" level="DEBUG"/>
+    <logger name ="nl.rivm.screenit.batch.service.impl.BatchJobServiceImpl" level="DEBUG"/>
+    <logger name ="org.hibernate.orm.deprecation" level="ERROR"/>
+
+    <root level="info">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+
+</configuration>

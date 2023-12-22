@@ -221,6 +221,8 @@ public enum PreferenceKey
 
 	COLON_TIJDELIJKE_AFMELDING_BEVESTIGING_TEKST("Tijdelijk afgemeld bevestiging tekst", String.class),
 
+	COLON_SIGNALERINGSTERMIJN_GEEN_CAPACITEIT("Signaleringstermijn voor geen opgegeven capaciteit", Integer.class),
+
 	CERVIX_WACHTTIJD_UITSTRIJKJE_ONTBREEKT_ANALOOG("Uitstrijkje ontbreekt (analoog labformulier)", Integer.class),
 
 	CERVIX_WACHTTIJD_WACHT_OP_UITSTRIJKJE_ONTVANGEN_ANALOOG("Wacht op uitstrijkje ontvangen (analoog labformulier)", Integer.class),

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ========================LICENSE_START=================================
+  se-proxy
+  %%
+  Copyright (C) 2017 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+<configuration scan="true" scanPeriod="10 seconds">
+
+
+    <if condition='isDefined("SE_LOG_NAME")'>
+        <then>
+            <property name="SE_LOG_NAME" scope="context" value="${SE_LOG_NAME}"/>
+        </then>
+        <else>
+            <property name="SE_LOG_NAME" scope="context" value="proxy"/>
+        </else>
+    </if>
+
+    <if condition='isDefined("jetty.logging.dir")'>
+        <then>
+            <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender" append="true">
+                <file>${jetty.logging.dir}/${SE_LOG_NAME}/screenit-se-${SE_LOG_NAME}.log</file>
+                <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                    <fileNamePattern>${jetty.logging.dir}/${SE_LOG_NAME}/screenit-se-${SE_LOG_NAME}_%d{yyyy-MM-dd}.gz</fileNamePattern>
+                    <maxHistory>90</maxHistory>
+                    <cleanHistoryOnStart>true</cleanHistoryOnStart>
+                </rollingPolicy>
+                <encoder name="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                    <pattern>%d{yyyyMMdd HH:mm:ss.SSS} [%thread] %-10([A:%X{A}]) %-5level %logger{36} - %msg%n</pattern>
+                </encoder>
+            </appender>
+        </then>
+        <else>
+            <appender name="FILE" class="ch.qos.logback.core.helpers.NOPAppender"/>
+        </else>
+    </if>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder name="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{yyyyMMdd HH:mm:ss.SSS} [%thread] %-10([A:%X{A}]) %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="nl" level="DEBUG"/>
+    <logger name="org.dcm4che3.net.Connection" level="DEBUG"/>
+    <logger name="org.dcm4che3" level="DEBUG"/>
+    <logger name="org.springframework.boot.web.filter.OrderedRequestContextFilter" level="INFO"/>
+
+    <root level="info">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+</configuration>

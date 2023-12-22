@@ -54,7 +54,7 @@ public class VertrouwdVerbondenVo107Provider implements IVo107Provider
 	{
 		final List<Vo107File> vo107Files = new ArrayList<>();
 
-		var gbaFtpConnection = new GbaFtpConnection(gbaConfig, gbaVerwerkingsLog)
+		var gbaFtpConnection = new GbaFtpConnection()
 		{
 			@Override
 			protected void ftpActies() throws SftpException
@@ -75,7 +75,7 @@ public class VertrouwdVerbondenVo107Provider implements IVo107Provider
 			}
 		};
 
-		gbaFtpConnection.run();
+		gbaFtpConnection.run(gbaConfig, gbaVerwerkingsLog);
 
 		return vo107Files;
 	}
@@ -99,7 +99,7 @@ public class VertrouwdVerbondenVo107Provider implements IVo107Provider
 		@Override
 		public void saveToTempFile(final File targetFile)
 		{
-			var gbaFtpConnection = new GbaFtpConnection(gbaConfig, gbaVerwerkingsLog)
+			var gbaFtpConnection = new GbaFtpConnection()
 			{
 				@Override
 				protected void ftpActies() throws SftpException
@@ -119,13 +119,13 @@ public class VertrouwdVerbondenVo107Provider implements IVo107Provider
 				}
 			};
 			this.tempFile = targetFile;
-			gbaFtpConnection.run();
+			gbaFtpConnection.run(gbaConfig, gbaVerwerkingsLog);
 		}
 
 		@Override
 		public void deleteFile()
 		{
-			var gbaFtpConnection = new GbaFtpConnection(gbaConfig, gbaVerwerkingsLog)
+			var gbaFtpConnection = new GbaFtpConnection()
 			{
 				@Override
 				protected void ftpActies() throws SftpException
@@ -134,7 +134,7 @@ public class VertrouwdVerbondenVo107Provider implements IVo107Provider
 					getChannelSftp().rm(filename);
 				}
 			};
-			gbaFtpConnection.run();
+			gbaFtpConnection.run(gbaConfig, gbaVerwerkingsLog);
 		}
 	}
 }

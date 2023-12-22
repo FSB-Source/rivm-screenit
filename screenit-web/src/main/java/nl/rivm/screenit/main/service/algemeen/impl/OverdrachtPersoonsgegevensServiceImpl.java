@@ -33,7 +33,7 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.dao.cervix.CervixRondeDao;
+import nl.rivm.screenit.main.repository.cervix.CervixMonsterRepository;
 import nl.rivm.screenit.main.service.algemeen.OverdrachtPersoonsgegevensService;
 import nl.rivm.screenit.main.util.CervixCisHistoryUtil;
 import nl.rivm.screenit.model.AanvraagBriefStatus;
@@ -157,7 +157,7 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 	private LogService logService;
 
 	@Autowired
-	private CervixRondeDao cervixRondeDao;
+	private CervixMonsterRepository monsterRepository;
 
 	@Autowired
 	private MammaBaseLaesieService baseLaesieService;
@@ -485,8 +485,8 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 
 	private void addBmhkUitslagen(CellStyle cellStyleDateTime, Sheet sheet, CervixScreeningRonde ronde)
 	{
-		List<CervixMonster> ontvangenMonsters = cervixRondeDao.getOntvangenMonsters(ronde);
-		for (CervixMonster monster : ontvangenMonsters)
+		var ontvangenMonsters = monsterRepository.findAllByOntvangstScreeningRonde(ronde);
+		for (var monster : ontvangenMonsters)
 		{
 			addUitstrijkje(cellStyleDateTime, sheet, monster);
 			addZAS(cellStyleDateTime, sheet, monster);

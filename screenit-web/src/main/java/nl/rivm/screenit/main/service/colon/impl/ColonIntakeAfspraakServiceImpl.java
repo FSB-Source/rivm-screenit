@@ -21,16 +21,18 @@ package nl.rivm.screenit.main.service.colon.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.dao.colon.ColonIntakeAfspraakRepository;
 import nl.rivm.screenit.main.service.colon.ColonIntakeAfspraakService;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
+import nl.rivm.screenit.repository.colon.ColonIntakeAfspraakRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.specification.colon.ColonIntakeAfspraakSpecification;
 
@@ -52,12 +54,12 @@ public class ColonIntakeAfspraakServiceImpl implements ColonIntakeAfspraakServic
 
 	private Specification<ColonIntakeAfspraak> getSpecification(ColoscopieCentrum intakelocatie, WerklijstIntakeFilter zoekObject, ICurrentDateSupplier dateSupplier)
 	{
-		return ColonIntakeAfspraakSpecification.zonderVerslagen()
-			.and(ColonIntakeAfspraakSpecification.clientNietOverledenVoorColoscopie())
-			.and(ColonIntakeAfspraakSpecification.clientNietVerhuisdNaarBuitenlandVoorColoscopie())
-			.and(ColonIntakeAfspraakSpecification.metConclusieType(ColonConclusieType.COLOSCOPIE))
-			.and(ColonIntakeAfspraakSpecification.metIntakelocatie(intakelocatie))
-			.and(ColonIntakeAfspraakSpecification.metConclusieInVerleden(dateSupplier))
+		return ColonIntakeAfspraakSpecification.heeftGeenVerslagen()
+			.and(ColonIntakeAfspraakSpecification.heeftClientNietOverledenOfVerhuisdVoorColoscopie())
+			.and(ColonIntakeAfspraakSpecification.heeftConclusieType(ColonConclusieType.COLOSCOPIE))
+			.and(ColonIntakeAfspraakSpecification.heeftIntakelocatie(intakelocatie))
+			.and(ColonIntakeAfspraakSpecification.heeftConclusieInVerleden(dateSupplier))
+
 			.and(ColonIntakeAfspraakSpecification.metFilter(zoekObject));
 	}
 
@@ -73,8 +75,22 @@ public class ColonIntakeAfspraakServiceImpl implements ColonIntakeAfspraakServic
 	}
 
 	@Override
-	public Long getAantalAfsprakenZonderVerslag(WerklijstIntakeFilter zoekObject, ColoscopieCentrum intakeLocatie)
+	public long getAantalAfsprakenZonderVerslag(WerklijstIntakeFilter zoekObject, ColoscopieCentrum intakeLocatie)
 	{
 		return intakeAfspraakRepository.count(getSpecification(intakeLocatie, zoekObject, currentDateSupplier));
+	}
+
+	@Override
+	public long countAfsprakenOpDagVanDeWeek(DayOfWeek dagVanDeWeek)
+	{
+		var result = intakeAfspraakRepository.countColonIntakeAfsprakenOpDag(dagVanDeWeek.getValue());
+		return result.get(0);
+	}
+
+	@Override
+	public long countAfsprakenInNacht(LocalTime startTijd, LocalTime eindTijd)
+	{
+		var result = intakeAfspraakRepository.countColonIntakeAfsprakenInNacht(eindTijd, startTijd);
+		return result.get(0);
 	}
 }

@@ -27,7 +27,6 @@ import java.util.List;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.cervix.CervixVerrichtingDao;
-import nl.rivm.screenit.dto.cervix.facturatie.CervixBetalingsZoekObject;
 import nl.rivm.screenit.dto.cervix.facturatie.CervixVerrichtingenZoekObject;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
@@ -66,71 +65,6 @@ public class CervixVerrichtingDaoImpl extends AbstractAutowiredDao implements Ce
 
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
-
-	private Criteria getCriteriaVoorVerrichtingenVoorBetaling(CervixBetalingsZoekObject zoekObject)
-	{
-		Criteria crit = getSession().createCriteria(CervixVerrichting.class);
-		crit.createAlias("laatsteBoekRegel", "boekRegel");
-		crit.createAlias("client", "client");
-		crit.createAlias("client.persoon", "persoon");
-		crit.createAlias("persoon.gbaAdres", "adres");
-		crit.createAlias("monster", "monster");
-		crit.createAlias("regio", "regio");
-		crit.add(Restrictions.isNull("boekRegel.specificatie"));
-
-		if (zoekObject.isVerrichtingenHuisarts() && !zoekObject.isVerrichtingenLaboratorium())
-		{
-			crit.add(Restrictions.in("type", CervixTariefType.getAlleHuisartsTariefTypes()));
-		}
-		else if (zoekObject.isVerrichtingenLaboratorium() && !zoekObject.isVerrichtingenHuisarts())
-		{
-			crit.add(Restrictions.in("type", CervixTariefType.getAlleLabTariefTypes()));
-		}
-		else
-		{
-			crit.add(Restrictions.in("type", CervixTariefType.values()));
-		}
-		if (zoekObject.getVerrichtingsdatumTotEnMet() != null)
-		{
-			crit.add(Restrictions.lt("verrichtingsDatum", DateUtil.plusDagen(zoekObject.getVerrichtingsdatumTotEnMet(), 1)));
-		}
-		if (zoekObject.getScreeningOrganisatieId() != null)
-		{
-			crit.add(Restrictions.eq("regio.id", zoekObject.getScreeningOrganisatieId()));
-		}
-		crit.add(Restrictions.isNull("boekRegel.specificatie"));
-		return crit;
-
-	}
-
-	@Override
-	public List<CervixBoekRegel> getVerrichtingenVoorBetaling(CervixBetalingsZoekObject zoekObject, SortState<String> sortState, long first, long count)
-	{
-		Criteria crit = getCriteriaVoorVerrichtingenVoorBetaling(zoekObject);
-
-		if (sortState != null)
-		{
-			if (!sortState.isAsc())
-			{
-				crit.addOrder(Order.desc(sortState.getSortParam()));
-			}
-			else
-			{
-				crit.addOrder(Order.asc(sortState.getSortParam()));
-			}
-		}
-
-		if (count > -1)
-		{
-			crit.setMaxResults((int) count);
-		}
-		if (first > -1)
-		{
-			crit.setFirstResult((int) first);
-		}
-		crit.setProjection(Projections.property("laatsteBoekRegel"));
-		return crit.list();
-	}
 
 	@Override
 	public List<CervixBoekRegel> getLabVerrichtingen(CervixVerrichtingenZoekObject verrichtingenCriteria, ScreeningOrganisatie screeningOrganisatie,

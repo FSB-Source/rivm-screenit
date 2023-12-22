@@ -68,6 +68,14 @@ public enum DigitaalBerichtTemplateType implements BvoHouder
 			{
 				return List.of(MergeField.MAMMA_AFSPRAAK_TIJD, MergeField.MAMMA_AFSPRAAK_DATUM, MergeField.MAMMA_SP_PLAATS);
 			}
+		},
+	COLON_ROOSTER_GEEN_CAPACITEIT_SIGNALERING(DigitaalBerichtType.EMAIL, Bevolkingsonderzoek.COLON)
+		{
+			@Override
+			public List<MergeField> getMergeFields()
+			{
+				return List.of(MergeField.IL_NAAM, MergeField.COLON_GEEN_CAPACITEIT_TERMIJN);
+			}
 		};
 
 	private final List<Bevolkingsonderzoek> bevolkingsonderzoeken;
