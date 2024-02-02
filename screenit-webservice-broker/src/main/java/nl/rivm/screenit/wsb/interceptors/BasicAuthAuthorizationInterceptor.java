@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.wsb.interceptors;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,6 +28,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.cxf.binding.soap.interceptor.SoapHeaderInterceptor;
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.apache.cxf.endpoint.Endpoint;
@@ -36,17 +37,13 @@ import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.message.Exchange;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.transport.Conduit;
-import org.apache.cxf.ws.addressing.EndpointReferenceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class BasicAuthAuthorizationInterceptor extends SoapHeaderInterceptor
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(BasicAuthAuthorizationInterceptor.class);
-
 	private String username;
-
 	private String password;
 
 	@Override
@@ -66,14 +63,8 @@ public class BasicAuthAuthorizationInterceptor extends SoapHeaderInterceptor
 			return;
 		}
 
-		if (LOG.isDebugEnabled())
-		{
-			LOG.debug("Logging in use: " + policy.getUserName());
-		}
-
 		if (!username.equals(policy.getUserName()) || !password.equals(policy.getPassword()))
 		{
-			LOG.warn("Invalid username or password for user: " + policy.getUserName());
 			sendErrorResponse(message, HttpURLConnection.HTTP_FORBIDDEN);
 		}
 	}

@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,7 +30,6 @@ import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,11 +54,10 @@ import software.amazon.awssdk.services.s3.model.Delete;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
-import software.amazon.awssdk.services.s3.model.S3Object;
 
 import static org.apache.commons.lang3.StringUtils.chomp;
 
@@ -255,16 +253,10 @@ public class S3FileServiceImpl implements FileService, InitializingBean
 	}
 
 	@Override
-	public void deleteFileOrDirectory(File bestand) throws IOException
+	public void deleteFileOrDirectory(String bestand) throws IOException
 	{
-		if (bestand.isDirectory())
-		{
-			deleteDirectory(bestand.getPath());
-		}
-		else
-		{
-			delete(bestand.getPath());
-		}
+
+		delete(bestand);
 	}
 
 	@Override
@@ -276,13 +268,17 @@ public class S3FileServiceImpl implements FileService, InitializingBean
 		}
 		try
 		{
-			var request = ListObjectsRequest
+			var resultaat = new ArrayList<String>();
+			var request = ListObjectsV2Request
 				.builder()
 				.bucket(s3bucketName)
 				.prefix(directory)
 				.build();
-			var response = s3.listObjects(request);
-			return response.contents().stream().map(S3Object::key).collect(Collectors.toList());
+			var response = s3.listObjectsV2Paginator(request);
+
+			response.stream().forEach(page -> page.contents().forEach(s3Object -> resultaat.add(s3Object.key())));
+
+			return resultaat;
 		}
 		catch (S3Exception e)
 		{

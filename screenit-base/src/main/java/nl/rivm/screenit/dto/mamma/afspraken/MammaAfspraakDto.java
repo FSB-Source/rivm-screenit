@@ -4,7 +4,7 @@ package nl.rivm.screenit.dto.mamma.afspraken;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,16 +26,23 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class MammaAfspraakDto implements Serializable
 {
-	public MammaCapaciteitBlokDto capaciteitBlokDto;
+	private MammaCapaciteitBlokDto capaciteitBlokDto;
 
-	public LocalDateTime vanaf;
+	private LocalDateTime vanaf;
 
-	public LocalTime tot;
+	private LocalTime tot;
 
-	public BigDecimal benodigdeCapaciteit;
+	private BigDecimal benodigdeCapaciteit;
 
-	public boolean minderValide;
+	private boolean minderValide;
+
+	private boolean dubbeleTijd;
 
 }

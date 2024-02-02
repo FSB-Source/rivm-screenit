@@ -4,7 +4,7 @@ package nl.rivm.screenit.repository.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,14 +25,12 @@ import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
+import nl.rivm.screenit.repository.BaseJpaRepository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
-@Repository
-public interface MammaBaseAfspraakRepository extends JpaRepository<MammaAfspraak, Long>
+public interface MammaBaseAfspraakRepository extends BaseJpaRepository<MammaAfspraak>
 {
 	@Query(nativeQuery = true, value = "select a.id from mamma.afspraak a" +
 		" join mamma.uitnodiging u on a.id = u.laatste_afspraak" +

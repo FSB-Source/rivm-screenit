@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,26 +32,26 @@ import nl.rivm.screenit.batch.dao.GbaDao;
 import nl.rivm.screenit.batch.jobs.generalis.gba.exception.GbaImportException;
 import nl.rivm.screenit.batch.jobs.generalis.gba.wrappers.GbaValidatieWrapper;
 import nl.rivm.screenit.batch.service.GbaService;
+import nl.rivm.screenit.batch.service.GbaVraagService;
 import nl.rivm.screenit.dao.CoordinatenDao;
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Gemeente;
-import nl.rivm.screenit.model.RedenGbaVraag;
 import nl.rivm.screenit.model.TijdelijkGbaAdres;
 import nl.rivm.screenit.model.enums.DatumPrecisie;
 import nl.rivm.screenit.model.enums.GbaStatus;
-import nl.rivm.screenit.model.enums.GbaVraagType;
 import nl.rivm.screenit.model.enums.IndicatieGeheim;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.model.enums.RedenIntrekkenGbaIndicatie;
 import nl.rivm.screenit.model.gba.GbaFoutCategorie;
 import nl.rivm.screenit.model.gba.GbaFoutRegel;
 import nl.rivm.screenit.model.gba.GbaMutatie;
 import nl.rivm.screenit.model.gba.GbaVerwerkingEntry;
 import nl.rivm.screenit.model.gba.GbaVerwerkingsLog;
-import nl.rivm.screenit.model.gba.GbaVraag;
 import nl.rivm.screenit.model.gba.Land;
 import nl.rivm.screenit.model.gba.Nationaliteit;
+import nl.rivm.screenit.service.BaseGbaVraagService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
@@ -108,6 +108,12 @@ public class GbaServiceImpl implements GbaService
 	@Autowired
 	private TransgenderService transgenderService;
 
+	@Autowired
+	private BaseGbaVraagService baseGbaVraagService;
+
+	@Autowired
+	private GbaVraagService gbaVraagService;
+
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void importVo107Bericht(Vo107Bericht bericht, GbaVerwerkingsLog verwerkingLog) throws GbaImportException
@@ -163,11 +169,7 @@ public class GbaServiceImpl implements GbaService
 					{
 						if (client != null)
 						{
-							String anummerAfgevoerd = afgevoerdeClientMetNieuwBsn.getPersoon().getAnummer();
-							String clientAnummer = client.getPersoon().getAnummer();
 							wisselAnummers(afgevoerdeClientMetNieuwBsn, client);
-							LOG.info("Anummer wordt aangepast van {} naar {} voor afgevoerde clientId: {}. EREF: {}", anummerAfgevoerd, clientAnummer,
-								afgevoerdeClientMetNieuwBsn.getId(), eref);
 							verwijderClient(client, verwerkingLog, eref, anummerARecord, false);
 						}
 						client = afgevoerdeClientMetNieuwBsn;
@@ -237,9 +239,9 @@ public class GbaServiceImpl implements GbaService
 				{
 					verwerkMutatie(bericht, verwerkingLog, bsn, client);
 				}
-				else if ("Null".equalsIgnoreCase(bericht.getBerichtType()))
+				else if (isNullBericht(bericht))
 				{
-					verwerkNullBericht(bsn, client, bericht);
+					gbaVraagService.verwerkNullBericht(bsn, client, bericht);
 				}
 				else if (isVerwijderBericht)
 				{
@@ -272,19 +274,24 @@ public class GbaServiceImpl implements GbaService
 		}
 		catch (Exception e)
 		{
-			String foutmelding = "Berichtverwerking gestopt vanwege fout door bericht: " + getFoutmelding(bericht, verwerkingLog, client);
-			LOG.error(foutmelding, e);
+			var foutmelding = "Berichtverwerking gestopt vanwege fout door bericht: " + getFoutmelding(bericht, verwerkingLog, client);
+			LOG.error("Berichtverwerking gestopt vanwege fout door bericht", e);
 
 			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 
-			GbaImportException exception = new GbaImportException(foutmelding, e);
+			var exception = new GbaImportException(foutmelding, e);
 			if (client != null)
 			{
 				exception.setClientId(client.getId());
 			}
 			throw exception;
 		}
+	}
 
+	private boolean isNullBericht(Vo107Bericht bericht)
+	{
+
+		return "Null".equalsIgnoreCase(bericht.getBerichtType());
 	}
 
 	private void wisselAnummers(Client clientA, Client clientB)
@@ -332,6 +339,7 @@ public class GbaServiceImpl implements GbaService
 			verwerkingLog.setAantalBijgewerkteBugers(verwerkingLog.getAantalBijgewerkteBugers() + 1);
 		}
 		client.setGbaStatus(GbaStatus.AFGEVOERD);
+		client.setRedenIntrekkenGbaIndicatieDoorBvo(RedenIntrekkenGbaIndicatie.NIET_INGETROKKEN);
 		hibernateService.saveOrUpdate(client);
 		hibernateService.getHibernateSession().flush();
 
@@ -357,8 +365,7 @@ public class GbaServiceImpl implements GbaService
 
 			if (GbaStatus.BEZWAAR.equals(client.getGbaStatus()))
 			{
-				String string = "Bericht genegeerd: Client heeft bezwaar gemaakt tegen BRP. " + getFoutmelding(bericht, verwerkingLog, client);
-				logService.logGebeurtenis(LogGebeurtenis.GBA_IMPORT_BEZWAAR, clientService.getScreeningOrganisatieVan(client), client, string);
+				verwerkBerichtVoorClientMetBezwaarBrp(client, bericht, verwerkingLog);
 				return GbaValidatieWrapper.stopVerwerking(clientIsVerwijderd);
 			}
 
@@ -422,6 +429,20 @@ public class GbaServiceImpl implements GbaService
 		return new GbaValidatieWrapper(clientIsVerwijderd, false);
 	}
 
+	private void verwerkBerichtVoorClientMetBezwaarBrp(Client client, Vo107Bericht bericht, GbaVerwerkingsLog verwerkingLog)
+	{
+		if (isNullBericht(bericht))
+		{
+			gbaVraagService.verwerkNullBericht(client.getPersoon().getBsn(), client, bericht);
+		}
+		else
+		{
+			var string = "Bericht genegeerd: Client heeft bezwaar gemaakt tegen BRP. " + getFoutmelding(bericht, verwerkingLog, client);
+			logService.logGebeurtenis(LogGebeurtenis.GBA_IMPORT_BEZWAAR, clientService.getScreeningOrganisatieVan(client), client, string);
+			gbaVraagService.onverwachtBerichtBijBezwaarBrp(client);
+		}
+	}
+
 	protected String getFoutmelding(Vo107Bericht bericht, GbaVerwerkingsLog verwerkingLog, Client client)
 	{
 		String bestandsnaam = "onbekend";
@@ -462,48 +483,6 @@ public class GbaServiceImpl implements GbaService
 		return foutmelding;
 	}
 
-	private void verwerkNullBericht(String bsn, Client client, Vo107Bericht bericht)
-	{
-
-		GbaVraag laasteGbaVraag = gbaDao.getLaatsteGbaVraag(client, bsn);
-		if (laasteGbaVraag != null)
-		{
-			laasteGbaVraag.setReactieOntvangen(true);
-			hibernateService.saveOrUpdate(laasteGbaVraag);
-
-			if (client != null)
-			{
-				client.setGbaStatus(GbaStatus.INDICATIE_AANGEVRAAGD);
-			}
-
-			GbaVraag gbaVraag = new GbaVraag();
-			gbaVraag.setClient(client);
-			gbaVraag.setBsn(bsn);
-			gbaVraag.setDatum(currentDateSupplier.getLocalDateTime());
-			gbaVraag.setVraagType(GbaVraagType.PLAATS_INDICATIE);
-			gbaVraag.setReactieOntvangen(false);
-			gbaVraag.setAanvullendeInformatie(laasteGbaVraag.getAanvullendeInformatie());
-			if (laasteGbaVraag.getClient() != null && GbaVraagType.VERWIJDER_INDICATIE.equals(laasteGbaVraag.getVraagType()))
-			{
-				gbaVraag.setReden(laasteGbaVraag.getReden());
-			}
-			else
-			{
-				gbaVraag.setReden(RedenGbaVraag.ONVERWACHT_INDICATIE_VERWIJDERD);
-			}
-
-			hibernateService.saveOrUpdate(gbaVraag);
-			if (client != null)
-			{
-				hibernateService.saveOrUpdate(client);
-			}
-		}
-		else
-		{
-			LOG.error("Bericht niet verwerkt, onverwacht null bericht EREF: " + bericht.getString(Vo107_ArecordVeld.EREF));
-		}
-	}
-
 	private void verwerkMutatie(Vo107Bericht bericht, GbaVerwerkingsLog verwerkingLog, String bsn, Client client)
 	{
 		if (client != null)
@@ -524,21 +503,11 @@ public class GbaServiceImpl implements GbaService
 					return;
 				}
 			}
-			GbaStatus oudeStatus = client.getGbaStatus();
-			GbaVraag laasteGbaVraag = gbaDao.getLaatsteGbaVraag(client, bsn);
-			verwerkBericht(bericht, verwerkingLog, client, laasteGbaVraag);
-			aanvraagNieuweGegevensAfronden(client, laasteGbaVraag, oudeStatus);
+			verwerkBericht(bericht, verwerkingLog, client);
 		}
 		else
 		{
-			GbaVraag gbaVraag = new GbaVraag();
-			gbaVraag.setDatum(currentDateSupplier.getLocalDateTime());
-			gbaVraag.setBsn(bsn);
-			gbaVraag.setVraagType(GbaVraagType.VERWIJDER_INDICATIE);
-			gbaVraag.setReden(RedenGbaVraag.MUTATIEBERICHT_ONBEKENDE_CLIENT);
-			gbaVraag.setReactieOntvangen(false);
-
-			hibernateService.saveOrUpdate(gbaVraag);
+			baseGbaVraagService.verzoekVerwijderIndicatieOnbekendeClient(bsn);
 		}
 	}
 
@@ -561,31 +530,25 @@ public class GbaServiceImpl implements GbaService
 
 	private void verwerkVerstrekking(Vo107Bericht bericht, GbaVerwerkingsLog verwerkingLog, Client client)
 	{
-		GbaVraag laasteGbaVraag = gbaDao.getLaatsteGbaVraag(client, bericht.getBsn());
-
-		GbaStatus oudeStatus = null;
 		if (client == null)
 		{
-			if (verstrekkingErrorClientMetAnderAnummerBestaatAl(bericht, verwerkingLog, client))
+			if (verstrekkingErrorClientMetAnderAnummerBestaatAl(bericht, verwerkingLog, null))
 			{
 				return;
 			}
 			verwerkingLog.setAantalNieuweBurgers(verwerkingLog.getAantalNieuweBurgers() + 1);
 
-			client = vulNieuweClient(bericht, verwerkingLog);
+			var nieuweClient = vulNieuweClient(bericht, verwerkingLog);
 
-			registreerMutatie(client, bericht);
+			registreerMutatie(nieuweClient, bericht);
 
-			setIndicatieAanwezig(client);
-			hibernateService.saveOrUpdate(client);
+			hibernateService.saveOrUpdate(nieuweClient);
+			gbaVraagService.gbaVraagAfrondenVoorMutatieOfVerstrekking(nieuweClient, null, true, true);
 		}
 		else
 		{
-			oudeStatus = client.getGbaStatus();
-			verwerkBericht(bericht, verwerkingLog, client, laasteGbaVraag);
+			verwerkBericht(bericht, verwerkingLog, client);
 		}
-
-		aanvraagNieuweGegevensAfronden(client, laasteGbaVraag, oudeStatus);
 	}
 
 	private Client vulNieuweClient(Vo107Bericht bericht, GbaVerwerkingsLog verwerkingLog)
@@ -613,7 +576,7 @@ public class GbaServiceImpl implements GbaService
 		return client;
 	}
 
-	private void verwerkBericht(Vo107Bericht bericht, GbaVerwerkingsLog verwerkingLog, Client client, GbaVraag laasteGbaVraag)
+	private void verwerkBericht(Vo107Bericht bericht, GbaVerwerkingsLog verwerkingLog, Client client)
 	{
 		verwerkingLog.setAantalBijgewerkteBugers(verwerkingLog.getAantalBijgewerkteBugers() + 1);
 
@@ -623,32 +586,13 @@ public class GbaServiceImpl implements GbaService
 			verwerkingEntry.setAantalBijgewerkteBugers(verwerkingEntry.getAantalBijgewerkteBugers() + 1);
 		}
 
-		boolean gegevensGewijzigd = vulPersoonsGegevens(client, bericht, verwerkingLog, false);
+		var oudeGbaStatus = client.getGbaStatus();
+
+		boolean persoonsGegevensGewijzigd = vulPersoonsGegevens(client, bericht, verwerkingLog, false);
 		boolean adresGewijzigd = verwerkAdres(bericht, verwerkingLog, client);
 
-		if (GbaStatus.INDICATIE_AANGEVRAAGD.equals(client.getGbaStatus()) && laasteGbaVraag != null && laasteGbaVraag.getClient() != null && laasteGbaVraag.getReden() != null)
-		{
-			boolean kanVersturenMetTijdelijkAdres = false;
-			String aanvullendeInformatie = laasteGbaVraag.getAanvullendeInformatie();
-			if (StringUtils.contains(aanvullendeInformatie, "|" + Constants.GBA_CHECK_ON_TIJDELIJK_ADRES_NU_ACTUEEL + "|"))
-			{
-				kanVersturenMetTijdelijkAdres = clientService.isTijdelijkeAdresNuActueel(client.getPersoon());
-				if (adresGewijzigd)
-				{
-					aanvullendeInformatie = "|" + Constants.GBA_ADRES_GEGEVENS_GEWIJZIGD + aanvullendeInformatie;
-				}
-				client.getGbaMutaties().get(client.getGbaMutaties().size() - 1).setAanvullendeInformatie(aanvullendeInformatie);
-			}
-			RedenGbaVraag reden = laasteGbaVraag.getReden();
-			if (!gegevensGewijzigd && RedenGbaVraag.ONJUISTE_PERSOONSGEGEVENS.equals(reden))
-			{
-				logService.logGebeurtenis(LogGebeurtenis.GBA_PERSOONSGEGEVENS_NIET_GEWIJZIGD, clientService.getScreeningOrganisatieVan(client), client);
-			}
-			else if (!adresGewijzigd && !kanVersturenMetTijdelijkAdres && RedenGbaVraag.ONJUIST_ADRES.equals(reden)) 
-			{
-				logService.logGebeurtenis(LogGebeurtenis.GBA_ADRES_NIET_GEWIJZIGD, clientService.getScreeningOrganisatieVan(client), client);
-			}
-		}
+		gbaVraagService.gbaVraagAfrondenVoorMutatieOfVerstrekking(client, oudeGbaStatus, persoonsGegevensGewijzigd, adresGewijzigd);
+
 		setIndicatieAanwezig(client);
 		hibernateService.saveOrUpdate(client);
 	}
@@ -669,21 +613,7 @@ public class GbaServiceImpl implements GbaService
 		{
 			client.setGbaStatus(GbaStatus.INDICATIE_AANWEZIG);
 		}
-	}
-
-	private void aanvraagNieuweGegevensAfronden(Client client, GbaVraag laasteGbaVraag, GbaStatus oudeStatus)
-	{
-		if (laasteGbaVraag != null && (isOpenstaandePlaatsing(laasteGbaVraag) || GbaStatus.INDICATIE_VERWIJDERD.equals(oudeStatus)))
-		{
-			laasteGbaVraag.setReactieOntvangen(true);
-			hibernateService.saveOrUpdate(laasteGbaVraag);
-			logService.logGebeurtenis(LogGebeurtenis.GBA_PERSOONSGEGEVENS_NIEUW_AANVRAGEN_AFGEROND, clientService.getScreeningOrganisatieVan(client), client);
-		}
-	}
-
-	private boolean isOpenstaandePlaatsing(GbaVraag laasteGbaVraag)
-	{
-		return laasteGbaVraag.getVraagType() == GbaVraagType.PLAATS_INDICATIE && !laasteGbaVraag.isReactieOntvangen();
+		client.setRedenIntrekkenGbaIndicatieDoorBvo(RedenIntrekkenGbaIndicatie.NIET_INGETROKKEN);
 	}
 
 	private GbaVerwerkingEntry getOrCreateEntry(GbaVerwerkingsLog verwerkingLog, Client client)
@@ -1245,7 +1175,7 @@ public class GbaServiceImpl implements GbaService
 		{
 			try
 			{
-				if (newValue != null && newValue.toString().trim().equals(""))
+				if (newValue != null && newValue.toString().trim().isEmpty())
 				{
 					newValue = null;
 				}
@@ -1255,20 +1185,16 @@ public class GbaServiceImpl implements GbaService
 				if (propertyChanged)
 				{
 
-					if (newValue == null && oldValue != null && oldValue.toString().trim().equals(""))
+					if (newValue == null && oldValue != null && oldValue.toString().trim().isEmpty())
 					{
 						propertyChanged = false;
-					}
-					if (LOG.isTraceEnabled())
-					{
-						LOG.trace("value of " + property + " is gewijzigd van " + oldValue + " to " + newValue);
 					}
 					PropertyUtils.setProperty(target, property, newValue);
 				}
 			}
 			catch (SecurityException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e)
 			{
-				LOG.error("changeProperty fail: {}", e.toString());
+				LOG.error("changeProperty fail: {}", property, e);
 			}
 		}
 		return propertyChanged;
@@ -1284,7 +1210,6 @@ public class GbaServiceImpl implements GbaService
 		gbaFoutRegel.setFout(fout);
 		gbaFoutRegel.setFoutCategorie(foutcat);
 		gbaFoutRegel.setVerwerkingsLog(verwerkingsLog);
-		LOG.error("GbaFoutRegel aangemaakt (cat:" + foutcat + ") " + (client != null ? "voor client met id " + client.getId() : ""));
 		verwerkingsLog.getFouten().add(gbaFoutRegel);
 	}
 
@@ -1303,22 +1228,22 @@ public class GbaServiceImpl implements GbaService
 
 	private String getStringUitBericht(Vo107Bericht bericht, GbaRubriek gbaRubriek)
 	{
-		Record<VoxBrecordVeld> record = bericht.getSingleRubriek(gbaRubriek.getNummer());
-		if (record == null)
+		Record<VoxBrecordVeld> rubriek = bericht.getSingleRubriek(gbaRubriek.getNummer());
+		if (rubriek == null)
 		{
 			return null;
 		}
-		return record.getWaarde(VoxBrecordVeld.INH);
+		return rubriek.getWaarde(VoxBrecordVeld.INH);
 	}
 
 	private String getCodeUitBericht(Vo107Bericht bericht, GbaRubriek gbaRubriek)
 	{
-		Record<VoxBrecordVeld> record = bericht.getSingleRubriek(gbaRubriek.getNummer());
-		if (record == null)
+		Record<VoxBrecordVeld> rubriek = bericht.getSingleRubriek(gbaRubriek.getNummer());
+		if (rubriek == null)
 		{
 			return null;
 		}
-		return record.getWaarde(VoxBrecordVeld.CODE);
+		return rubriek.getWaarde(VoxBrecordVeld.CODE);
 	}
 
 	private Date getDateUitBericht(Vo107Bericht bericht, GbaRubriek gbaRubriek)

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,7 +31,7 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.ZorgmailImportService;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -73,7 +73,7 @@ public class ZorgmailImportPoolExecuterServiceImpl implements ZorgmailImportPool
 			@Override
 			public void run()
 			{
-				SessionFactory sessionFactory = SpringBeanProvider.getInstance().getBean(SessionFactory.class);
+				SessionFactory sessionFactory = ApplicationContextProvider.getApplicationContext().getBean(SessionFactory.class);
 				try (FileInputStream xlsStream = new FileInputStream(csvFile);)
 				{
 					Session session = sessionFactory.openSession();

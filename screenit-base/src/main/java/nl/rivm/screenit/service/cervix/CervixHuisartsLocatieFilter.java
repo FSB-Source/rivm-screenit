@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,10 +23,17 @@ package nl.rivm.screenit.service.cervix;
 
 import java.io.Serializable;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@NoArgsConstructor
+@AllArgsConstructor
+@Setter
+@Getter
 public class CervixHuisartsLocatieFilter implements Serializable
 {
-	private static final long serialVersionUID = 1L;
-
 	private String achternaam;
 
 	private String agbcode;
@@ -38,64 +45,4 @@ public class CervixHuisartsLocatieFilter implements Serializable
 	private String plaats;
 
 	private String straat;
-
-	public String getAchternaam()
-	{
-		return achternaam;
-	}
-
-	public void setAchternaam(String achternaam)
-	{
-		this.achternaam = achternaam;
-	}
-
-	public String getAgbcode()
-	{
-		return agbcode;
-	}
-
-	public void setAgbcode(String agbcode)
-	{
-		this.agbcode = agbcode;
-	}
-
-	public String getLocatieNaam()
-	{
-		return locatieNaam;
-	}
-
-	public void setLocatieNaam(String locatieNaam)
-	{
-		this.locatieNaam = locatieNaam;
-	}
-
-	public String getPostcode()
-	{
-		return postcode;
-	}
-
-	public void setPostcode(String postcode)
-	{
-		this.postcode = postcode;
-	}
-
-	public String getPlaats()
-	{
-		return plaats;
-	}
-
-	public void setPlaats(String plaats)
-	{
-		this.plaats = plaats;
-	}
-
-	public String getStraat()
-	{
-		return straat;
-	}
-
-	public void setStraat(String straat)
-	{
-		this.straat = straat;
-	}
 }

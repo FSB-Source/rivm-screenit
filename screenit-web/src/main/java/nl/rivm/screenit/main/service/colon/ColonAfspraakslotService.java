@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.colon;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,31 +21,34 @@ package nl.rivm.screenit.main.service.colon;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
+import nl.rivm.screenit.main.exception.BeperkingException;
 import nl.rivm.screenit.main.exception.ValidatieException;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
-import nl.rivm.screenit.model.colon.dto.ColonAfspraakSlotDto;
+import nl.rivm.screenit.model.colon.dto.ColonAfspraakslotDto;
 import nl.rivm.screenit.model.colon.planning.RoosterItem;
 
-public interface ColonAfspraakSlotService
+public interface ColonAfspraakslotService
 {
-	List<RoosterItem> splitAfspraakSlot(RoosterItem unsavedObject, Integer aantalBlokken, ColoscopieCentrum intakelocatie);
+	List<RoosterItem> splitAfspraakslot(RoosterItem unsavedObject, Integer aantalBlokken, ColoscopieCentrum intakelocatie);
 
-	void createAfspraakSlot(ColonAfspraakSlotDto afspraakSlotDto, InstellingGebruiker instellingGebruiker)
-		throws ValidatieException, OpslaanVerwijderenTijdBlokException;
+	void createAfspraakslot(ColonAfspraakslotDto afspraakslotDto, InstellingGebruiker instellingGebruiker)
+		throws ValidatieException, OpslaanVerwijderenTijdBlokException, BeperkingException;
 
 	void checkEindTijdOpZelfdeDag(LocalDateTime startDateTime, LocalDateTime endDateTime, ColoscopieCentrum intakelocatie) throws ValidatieException;
 
 	void checkCapaciteitBerekening(RoosterItem roosterItem, ColoscopieCentrum intakelocatie) throws ValidatieException;
 
-	void updateAfspraakSlot(Long id, ColonAfspraakSlotDto afspraakSlotDto, InstellingGebruiker instellingGebruiker)
+	void updateAfspraakslot(Long id, ColonAfspraakslotDto afspraakslotDto, InstellingGebruiker instellingGebruiker)
+		throws ValidatieException, OpslaanVerwijderenTijdBlokException, BeperkingException;
+
+	void deleteAfspraakslot(Long id, InstellingGebruiker instellingGebruiker)
 		throws ValidatieException, OpslaanVerwijderenTijdBlokException;
 
-	void deleteAfspraakSlot(Long id, InstellingGebruiker instellingGebruiker)
-		throws ValidatieException, OpslaanVerwijderenTijdBlokException;
-
+	List<ColonAfspraakslotDto> getAfspraakslots(LocalDate startDate, LocalDate endDate, ColoscopieCentrum intakeLocatie);
 }

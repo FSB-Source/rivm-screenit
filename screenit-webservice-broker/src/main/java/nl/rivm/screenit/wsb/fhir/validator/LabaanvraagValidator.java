@@ -4,7 +4,7 @@ package nl.rivm.screenit.wsb.fhir.validator;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -49,7 +49,7 @@ import nl.rivm.screenit.wsb.fhir.resource.dstu3.v1.CodeSystem;
 import nl.rivm.screenit.wsb.fhir.resource.dstu3.v1.LabaanvraagBundle;
 import nl.rivm.screenit.wsb.fhir.resource.dstu3.v1.LabaanvraagResource;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 import nl.topicuszorg.util.bsn.BsnUtils;
 
 import org.apache.commons.lang.StringUtils;
@@ -80,12 +80,12 @@ public class LabaanvraagValidator
 	public LabaanvraagValidator()
 	{
 		validated = false;
-		clientService = SpringBeanProvider.getInstance().getBean(ClientService.class);
-		huisartsLocatieService = SpringBeanProvider.getInstance().getBean(CervixHuisartsLocatieService.class);
-		monsterService = SpringBeanProvider.getInstance().getBean(CervixBaseMonsterService.class);
-		screeningRondeService = SpringBeanProvider.getInstance().getBean(CervixBaseScreeningrondeService.class);
-		currentDateSupplier = SpringBeanProvider.getInstance().getBean(ICurrentDateSupplier.class);
-		hibernateSerice = SpringBeanProvider.getInstance().getBean(HibernateService.class);
+		clientService = ApplicationContextProvider.getApplicationContext().getBean(ClientService.class);
+		huisartsLocatieService = ApplicationContextProvider.getApplicationContext().getBean(CervixHuisartsLocatieService.class);
+		monsterService = ApplicationContextProvider.getApplicationContext().getBean(CervixBaseMonsterService.class);
+		screeningRondeService = ApplicationContextProvider.getApplicationContext().getBean(CervixBaseScreeningrondeService.class);
+		currentDateSupplier = ApplicationContextProvider.getApplicationContext().getBean(ICurrentDateSupplier.class);
+		hibernateSerice = ApplicationContextProvider.getApplicationContext().getBean(HibernateService.class);
 
 	}
 
@@ -591,7 +591,7 @@ public class LabaanvraagValidator
 		if (huisartsHeeftGeenGoedIngevuldeActieveLocatie)
 		{
 			addErrorOperationOutcomeIssueComponent(OperationOutcome.IssueType.EXCEPTION,
-				new RequiredPropertyException(String.format("Voor huisarts met AGB code %s is geen actieve en/of goed ingevulde locatie gevonden.", huisarts.getAgbcode())));
+				new RequiredPropertyException(String.format("Voor huisarts met id %s is geen actieve en/of goed ingevulde locatie gevonden.", huisarts.getId())));
 		}
 	}
 
@@ -668,13 +668,13 @@ public class LabaanvraagValidator
 		}
 	}
 
-	public boolean isSuccesful()
+	public boolean isSuccesvol()
 	{
 		if (validated)
 		{
 			return operationOutcome.isEmpty();
 		}
-		throw new NotValidatedException("Validation success can not be determined before validation. Please validate first!");
+		throw new NotValidatedException("Validatie succes kan nog niet worden bepaald, daarvoor moet er eerst worden gevalideerd");
 	}
 
 	public OperationOutcome toOperationOutcome()

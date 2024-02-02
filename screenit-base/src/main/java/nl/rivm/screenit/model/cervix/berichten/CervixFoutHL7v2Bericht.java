@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.cervix.berichten;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -72,7 +72,7 @@ public class CervixFoutHL7v2Bericht extends AbstractHibernateObject
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	private BMHKLaboratorium laboratorium;
 
-	@OneToOne(fetch = FetchType.LAZY, optional = false)
+	@OneToOne(fetch = FetchType.LAZY, optional = false, cascade = javax.persistence.CascadeType.REMOVE)
 	@Cascade(CascadeType.DELETE)
 	private Message message;
 

@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.logging;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,7 +34,7 @@ import org.hibernate.annotations.CascadeType;
 @Table(schema = "gedeeld")
 public class CervixHerinnerenBeeindigdLogEvent extends LogEvent
 {
-	@OneToOne
+	@OneToOne(cascade = javax.persistence.CascadeType.REMOVE)
 	@Cascade(CascadeType.DELETE)
 	private CervixHerinnerenRapportage rapportage;
 

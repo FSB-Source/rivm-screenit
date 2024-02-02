@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.controller.colon;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,12 +25,15 @@ import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
-import nl.rivm.screenit.mappers.colon.IntakelocatieMapper;
-import nl.rivm.screenit.model.colon.dto.IntakelocatieDto;
+import nl.rivm.screenit.mappers.colon.ColonIntakelocatieMapper;
+import nl.rivm.screenit.model.colon.dto.ColonIntakelocatieDto;
+import nl.rivm.screenit.model.colon.dto.ColonSignaleringstermijnDto;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.service.colon.ColonRoosterService;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -39,16 +42,34 @@ import org.wicketstuff.shiro.ShiroConstraint;
 @RestController
 @RequestMapping("/api/colon/intakelocatie")
 @AllArgsConstructor
-public class IntakelocatieController
+public class ColonIntakelocatieController
 {
-	private final IntakelocatieMapper intakelocatieMapper;
+	private final ColonIntakelocatieMapper intakelocatieMapper;
+
+	private final ColonRoosterService roosterService;
 
 	@GetMapping()
 	@SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_NIEUW_ROOSTER, bevolkingsonderzoekScopes = {
 		Bevolkingsonderzoek.COLON })
-	public IntakelocatieDto getIntakelocatie()
+	public ColonIntakelocatieDto getIntakelocatie()
 	{
 		var intakelocatie = ScreenitSession.get().getColoscopieCentrum();
 		return intakelocatieMapper.intakelocatieToDto(intakelocatie);
+	}
+
+	@GetMapping("/signaleringstermijn")
+	@SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_NIEUW_ROOSTER, bevolkingsonderzoekScopes = {
+		Bevolkingsonderzoek.COLON })
+	public ResponseEntity<ColonSignaleringstermijnDto> getSignaleringstermijn()
+	{
+		var signaleringstermijnDto = new ColonSignaleringstermijnDto();
+
+		var signaleringstermijnTekst = roosterService.getSignaleringstermijnTekst();
+
+		signaleringstermijnDto.setTekst(signaleringstermijnTekst);
+		signaleringstermijnDto.setSignaleringsTermijnDeadline(roosterService.getSignaleringstermijnDeadline());
+		signaleringstermijnDto.setHeeftGeenCapaciteitBinnenSignaleringsTermijn(roosterService.intakelocatieHeeftGeenCapaciteit(ScreenitSession.get().getColoscopieCentrum()));
+
+		return ResponseEntity.ok(signaleringstermijnDto);
 	}
 }

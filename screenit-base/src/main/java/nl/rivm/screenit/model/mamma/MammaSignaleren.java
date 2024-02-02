@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -57,19 +57,19 @@ public class MammaSignaleren extends AbstractHibernateObject
 	@OneToOne(optional = false, mappedBy = "signaleren", fetch = FetchType.LAZY)
 	private MammaOnderzoek onderzoek;
 
-	@OneToOne(fetch = FetchType.LAZY)
+	@OneToOne(fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE, javax.persistence.CascadeType.REMOVE })
 	@Cascade({ CascadeType.DELETE, CascadeType.SAVE_UPDATE })
 	private MammaAnnotatieAfbeelding rechtsVerticaleDoorsnede;
 
-	@OneToOne(fetch = FetchType.LAZY)
+	@OneToOne(fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE, javax.persistence.CascadeType.REMOVE })
 	@Cascade({ CascadeType.DELETE, CascadeType.SAVE_UPDATE })
 	private MammaAnnotatieAfbeelding linksVerticaleDoorsnede;
 
-	@OneToOne(fetch = FetchType.LAZY)
+	@OneToOne(fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE, javax.persistence.CascadeType.REMOVE })
 	@Cascade({ CascadeType.DELETE, CascadeType.SAVE_UPDATE })
 	private MammaAnnotatieAfbeelding rechtsHorizontaleDoorsnede;
 
-	@OneToOne(fetch = FetchType.LAZY)
+	@OneToOne(fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE, javax.persistence.CascadeType.REMOVE })
 	@Cascade({ CascadeType.DELETE, CascadeType.SAVE_UPDATE })
 	private MammaAnnotatieAfbeelding linksHorizontaleDoorsnede;
 

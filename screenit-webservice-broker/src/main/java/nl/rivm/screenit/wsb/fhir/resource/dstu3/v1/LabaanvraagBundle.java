@@ -4,7 +4,7 @@ package nl.rivm.screenit.wsb.fhir.resource.dstu3.v1;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -43,8 +43,8 @@ import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.cervix.CervixBaseMonsterService;
 import nl.rivm.screenit.service.cervix.CervixHuisartsLocatieService;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 import nl.topicuszorg.organisatie.model.Organisatie;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
 
 import org.hl7.fhir.dstu3.model.Bundle;
 import org.hl7.fhir.dstu3.model.Coding;
@@ -76,9 +76,9 @@ public class LabaanvraagBundle extends Bundle implements LabaanvraagResource
 
 	public LabaanvraagBundle()
 	{
-		this.currentDateSupplier = SpringBeanProvider.getInstance().getBean(ICurrentDateSupplier.class);
-		this.huisartsLocatieService = SpringBeanProvider.getInstance().getBean(CervixHuisartsLocatieService.class);
-		this.monsterService = SpringBeanProvider.getInstance().getBean(CervixBaseMonsterService.class);
+		this.currentDateSupplier = ApplicationContextProvider.getApplicationContext().getBean(ICurrentDateSupplier.class);
+		this.huisartsLocatieService = ApplicationContextProvider.getApplicationContext().getBean(CervixHuisartsLocatieService.class);
+		this.monsterService = ApplicationContextProvider.getApplicationContext().getBean(CervixBaseMonsterService.class);
 	}
 
 	public Date getScanDatum()

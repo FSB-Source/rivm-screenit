@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.gevolgenlabprocesverwerken.step;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.cervix.gevolgenlabprocesverwerken.CervixGevolgenLabprocesVerwerkenConstants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
-import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.cervix.CervixAfmelding;
 import nl.rivm.screenit.model.cervix.CervixBrief;
@@ -113,11 +112,10 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 		{
 			logService.logGebeurtenis(LogGebeurtenis.CERVIX_GEVOLGEN_LABPROCES_VERWERKEN_VERVOLG_BEPALEN_MISLUKT,
 				monster.getOntvangstScreeningRonde().getDossier().getClient(),
-				"Er kon geen vervolg worden bepaald voor monster-id " + monster.getMonsterId(),
+				"Er kon geen vervolg worden bepaald voor monster id " + monster.getMonsterId(),
 				Bevolkingsonderzoek.CERVIX);
-			LOG.error("Er kon geen vervolg worden bepaald voor client (id: '{}') monster-id: {}",
-				monster.getOntvangstScreeningRonde().getDossier().getClient().getId(),
-				monster.getMonsterId(), e);
+			LOG.error("Er kon geen vervolg worden bepaald voor client (id: '{}'), monster (id: '{}')",
+				monster.getOntvangstScreeningRonde().getDossier().getClient().getId(), monster.getId(), e);
 			return;
 		}
 
@@ -175,7 +173,7 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 		}
 		catch (Exception e)
 		{
-			LOG.error("Exceptie voor client (id: '{}') monster-id: {}", monster.getOntvangstScreeningRonde().getDossier().getClient().getId(), monster.getMonsterId());
+			LOG.error("Exceptie voor client (id: '{}') en monster (id: '{}')", monster.getOntvangstScreeningRonde().getDossier().getClient().getId(), monster.getId());
 			throw e;
 		}
 	}
@@ -204,14 +202,18 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 
 	private void verwerkBezwaar(CervixMonster monster)
 	{
-		Client client = monster.getUitnodiging().getBrief().getClient();
+		var client = monster.getUitnodiging().getBrief().getClient();
 		if (client.getLaatstVoltooideBezwaarMoment() != null
-			&& bezwaarService.checkBezwaarInLaatsteBezwaarMomentAanwezigIs(client, BezwaarType.GEEN_GEBRUIK_LICHAAMSMATERIAAL_WETENSCHAPPELIJK_ONDERZOEK))
+			&& monster.getOntvangstdatum() != null
+			&& bezwaarService.checkBezwaarInLaatsteBezwaarMomentAanwezigIs(client, BezwaarType.GEEN_GEBRUIK_LICHAAMSMATERIAAL_WETENSCHAPPELIJK_ONDERZOEK)
+		)
 		{
 			mailService.sendBMHKBezwaarLichaamsmateriaalMailAsync(monster);
 		}
 		if (client.getLaatstVoltooideBezwaarMoment() != null
-			&& bezwaarService.checkBezwaarInLaatsteBezwaarMomentAanwezigIs(client, BezwaarType.GEEN_SIGNALERING_VERWIJSADVIES))
+			&& monster.getOntvangstdatum() != null
+			&& bezwaarService.checkBezwaarInLaatsteBezwaarMomentAanwezigIs(client, BezwaarType.GEEN_SIGNALERING_VERWIJSADVIES)
+		)
 		{
 			mailService.sendBMHKBezwaarControlleVerwijsAdviesMail(monster);
 		}
@@ -380,7 +382,7 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 		var briefType = brief.getBriefType();
 		if (CervixMonsterType.getMonsterType(briefType) != null)
 		{
-			boolean herinneren = briefType != BriefType.CERVIX_UITSTRIJKJE_TWEEDE_KEER_ONBEOORDEELBAAR && briefType != BriefType.CERVIX_ZAS_TWEEDE_KEER_ONBEOORDEELBAAR;
+			var herinneren = briefType != BriefType.CERVIX_UITSTRIJKJE_TWEEDE_KEER_ONBEOORDEELBAAR && briefType != BriefType.CERVIX_ZAS_TWEEDE_KEER_ONBEOORDEELBAAR;
 
 			factory.maakUitnodiging(monster.getOntvangstScreeningRonde(), brief, herinneren, false);
 		}

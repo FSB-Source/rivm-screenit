@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -76,6 +76,15 @@ public class ColonFeestdagServiceImpl implements ColonFeestdagService
 	}
 
 	@Override
+	public List<ColonFeestdag> getFeestdagen(String start, String eind)
+	{
+		var startDatum = DateUtil.parseLocalDateForPattern(start, "dd-MM-yyyy");
+		var eindDatum = DateUtil.parseLocalDateForPattern(eind, "dd-MM-yyyy");
+		var specification = ColonFeestdagSpecification.isActief().and(ColonFeestdagSpecification.heeftDatumInRange(startDatum, eindDatum));
+		return feestdagRepository.findAll(specification, Sort.by("datum"));
+	}
+
+	@Override
 	public Optional<ColonFeestdag> getFeestdagById(Long id)
 	{
 		return feestdagRepository.findById(id);
@@ -87,7 +96,7 @@ public class ColonFeestdagServiceImpl implements ColonFeestdagService
 	{
 		if (feestdagDto.getBeperking() == ColonRoosterBeperking.HARD && heeftAfspraken(feestdagDto))
 		{
-			throw new ValidatieException("Er zijn al afspraken gemaakt op deze dag");
+			throw new ValidatieException("error.feestdag.heeft.afspraken");
 		}
 
 		var feestdag = feestdagMapper.colonFeestdagDtoToColonFeestdag(feestdagDto);
@@ -102,11 +111,11 @@ public class ColonFeestdagServiceImpl implements ColonFeestdagService
 		var persistedFeestdag = getFeestdagById(id);
 		if (persistedFeestdag.isPresent() && feestdagDto.getBeperking() == ColonRoosterBeperking.HARD && heeftAfspraken(feestdagDto))
 		{
-			throw new ValidatieException("Er zijn al afspraken gemaakt op deze dag");
+			throw new ValidatieException("error.feestdag.heeft.afspraken");
 		}
 		if (persistedFeestdag.isEmpty())
 		{
-			throw new ValidatieException("ColonFeestdag kan niet worden gevonden");
+			throw new ValidatieException("error.feestdag.niet.gevonden");
 		}
 
 		var feestdag = persistedFeestdag.get();
@@ -124,7 +133,7 @@ public class ColonFeestdagServiceImpl implements ColonFeestdagService
 		var persistedFeestdag = getFeestdagById(id);
 		if (persistedFeestdag.isEmpty())
 		{
-			throw new ValidatieException("ColonFeestdag kan niet worden gevonden");
+			throw new ValidatieException("error.feestdag.niet.gevonden");
 		}
 		var feestdag = persistedFeestdag.get();
 		logAction(String.format("Feestdag %s op %s is verwijderd", feestdag.getNaam(), feestdag.getDatum()));

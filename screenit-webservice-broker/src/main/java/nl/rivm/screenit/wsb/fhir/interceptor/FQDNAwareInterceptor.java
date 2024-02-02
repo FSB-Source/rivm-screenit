@@ -4,7 +4,7 @@ package nl.rivm.screenit.wsb.fhir.interceptor;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,7 @@ package nl.rivm.screenit.wsb.fhir.interceptor;
  * =========================LICENSE_END==================================
  */
 
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 
 public abstract class FQDNAwareInterceptor
 {
@@ -31,7 +31,7 @@ public abstract class FQDNAwareInterceptor
 	{
 		if (fqdnStore == null)
 		{
-			fqdnStore = SpringBeanProvider.getInstance().getBean(FQDNProvider.class);
+			fqdnStore = ApplicationContextProvider.getApplicationContext().getBean(FQDNProvider.class);
 		}
 		return fqdnStore;
 	}

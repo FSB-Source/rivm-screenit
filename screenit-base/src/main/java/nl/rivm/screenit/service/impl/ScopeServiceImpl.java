@@ -5,7 +5,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -37,8 +37,8 @@ import nl.rivm.screenit.security.Constraint;
 import nl.rivm.screenit.security.ScreenitRealm;
 import nl.rivm.screenit.service.ScopeService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 import nl.topicuszorg.organisatie.model.Organisatie;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
 
 import org.apache.shiro.subject.PrincipalCollection;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -149,7 +149,7 @@ public class ScopeServiceImpl implements ScopeService
 
 		ToegangLevel toegangLevel = null;
 
-		Collection<Permissie> perms = SpringBeanProvider.getInstance().getBean(ScreenitRealm.class).getPermissies(principalCollection);
+		Collection<Permissie> perms = ApplicationContextProvider.getApplicationContext().getBean(ScreenitRealm.class).getPermissies(principalCollection);
 		if (perms != null && !perms.isEmpty())
 		{
 			for (Permissie perm : perms)
@@ -178,7 +178,7 @@ public class ScopeServiceImpl implements ScopeService
 
 		ToegangLevel toegangLevel = null;
 
-		Collection<Permissie> perms = SpringBeanProvider.getInstance().getBean(ScreenitRealm.class).getPermissies(instellingGebruiker, checkBvo);
+		Collection<Permissie> perms = ApplicationContextProvider.getApplicationContext().getBean(ScreenitRealm.class).getPermissies(instellingGebruiker, checkBvo);
 		if (perms != null && !perms.isEmpty())
 		{
 			for (Permissie perm : perms)

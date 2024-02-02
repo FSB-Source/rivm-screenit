@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -60,7 +60,7 @@ import nl.topicuszorg.cloud.distributedsessions.RedisConfig;
 import nl.topicuszorg.cloud.distributedsessions.wicket.RedisPageManagerProvider;
 import nl.topicuszorg.formulieren2.expressie.ExpressieSettings;
 import nl.topicuszorg.formulieren2.expressie.definitie.IExpressieProvider;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 import nl.topicuszorg.wicket.hibernate.util.EntityAndSerializableCheckerListener;
 import nl.topicuszorg.wicket.input.converters.DoubleConverter;
 
@@ -121,7 +121,7 @@ public class ScreenitApplication extends WebApplication
 		super.init();
 
 		RevisionInformationResolver.registerDelegate(new ScreenitSessionRevisionInformationResolverDelegate());
-		SessionFinderHolder.setSessionFinder(SpringBeanProvider.getInstance().getBean(SessionFinder.class));
+		SessionFinderHolder.setSessionFinder(ApplicationContextProvider.getApplicationContext().getBean(SessionFinder.class));
 		sessionAttributePrefix = getSessionAttributePrefix(null, null);
 
 		readVersie();
@@ -138,7 +138,8 @@ public class ScreenitApplication extends WebApplication
 			.add(CSPDirective.STYLE_SRC, CSPDirectiveSrcValue.SELF)
 			.add(CSPDirective.FONT_SRC, CSPDirectiveSrcValue.SELF)
 			.add(CSPDirective.FRAME_ANCESTORS, CSPDirectiveSrcValue.SELF)
-			.add(CSPDirective.IMG_SRC, "data:");
+			.add(CSPDirective.IMG_SRC, "data:")
+			.add(CSPDirective.CONNECT_SRC, "https://browser-intake-datadoghq.eu");
 		getSecuritySettings().setCrossOriginOpenerPolicyConfiguration(CrossOriginOpenerPolicyConfiguration.CoopMode.SAME_ORIGIN_ALLOW_POPUPS);
 
 		ScreenitAnnotationsShiroAuthorizationStrategy authz = new ScreenitAnnotationsShiroAuthorizationStrategy();
@@ -184,7 +185,7 @@ public class ScreenitApplication extends WebApplication
 					else if (!isTimerRequest(target))
 					{
 						basePage.refreshFeedback(target);
-						SpringBeanProvider.getInstance().getBean(ZorgIdSessieService.class).refreshSessie(ScreenitSession.get().getZorgIdSession().getUuid());
+						ApplicationContextProvider.getApplicationContext().getBean(ZorgIdSessieService.class).refreshSessie(ScreenitSession.get().getZorgIdSession().getUuid());
 					}
 					if (basePage instanceof ClientVerslagPage)
 					{
@@ -381,7 +382,7 @@ public class ScreenitApplication extends WebApplication
 		setSessionStoreProvider(HttpSessionStore::new);
 
 		setPageManagerProvider(new RedisPageManagerProvider(this, getRedisConfig()));
-		SpringBeanProvider.getInstance().getBean(ZorgIdSessieService.class).setRedisConfig(getRedisConfig());
+		ApplicationContextProvider.getApplicationContext().getBean(ZorgIdSessieService.class).setRedisConfig(getRedisConfig());
 	}
 
 	public RedisConfig getRedisConfig()

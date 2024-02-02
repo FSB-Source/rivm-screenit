@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.brieven.regio.labformulierenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,7 +32,6 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.jobs.BatchConstants;
-import nl.rivm.screenit.model.BriefDefinitie;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
@@ -385,13 +384,13 @@ public class LabformulierGenererenWriter implements ItemStreamWriter<Long>
 			try
 			{
 
-				UploadDocument uploadDocumentMergedBrieven = mergedBrieven.getMergedBrieven();
-				File copyMergedBrievenFile = File.createTempFile("CopyMergedBrieven", ".pdf");
-				File mergedBrievenFile = uploadDocumentService.load(uploadDocumentMergedBrieven);
+				var uploadDocumentMergedBrieven = mergedBrieven.getMergedBrieven();
+				var copyMergedBrievenFile = File.createTempFile("CopyMergedBrieven", ".pdf");
+				var mergedBrievenFile = uploadDocumentService.load(uploadDocumentMergedBrieven);
 				uploadDocumentMergedBrieven.setNaam(voegNaamgevingAanPdf(mergedBrieven));
 				FileUtils.copyFile(mergedBrievenFile, copyMergedBrievenFile);
 
-				PDFMergerUtility pdfMergerUtility = new PDFMergerUtility();
+				var pdfMergerUtility = new PDFMergerUtility();
 				pdfMergerUtility.addSource(copyMergedBrievenFile);
 				pdfMergerUtility.addSource(mergedPdfFile);
 				outputStream = new FileOutputStream(mergedBrievenFile);
@@ -416,22 +415,19 @@ public class LabformulierGenererenWriter implements ItemStreamWriter<Long>
 
 	private UploadDocument getNieuwsteBriefDefinitie(BriefType type)
 	{
-		BriefDefinitie briefDefinitie = briefService.getNieuwsteBriefDefinitie(type);
-		return briefDefinitie.getDocument();
+		return briefService.getNieuwsteBriefDefinitie(type).getDocument();
 	}
 
 	private ScreeningOrganisatie getScreeningOrganisatie()
 	{
-		ScreeningOrganisatie screeningOrganisatie = hibernateService.load(ScreeningOrganisatie.class,
+		return hibernateService.load(ScreeningOrganisatie.class,
 			getStepExecutionContext().getLong(LabformulierGenererenPartitioner.KEY_SCREENINGORGANISATIEID));
-		return screeningOrganisatie;
 	}
 
 	protected String getTechnischeLoggingMergedBriefAanmaken(CervixRegioMergedBrieven brieven)
 	{
-		String tekst = "Mergedocument(id = " + brieven.getId() + ") aangemaakt voor ScreeningOrganisatie " + brieven.getScreeningOrganisatie().getNaam() + ", brieftype "
+		return "Mergedocument(id = " + brieven.getId() + ") aangemaakt voor ScreeningOrganisatie " + brieven.getScreeningOrganisatie().getNaam() + ", brieftype "
 			+ brieven.getBriefType().name();
-		return tekst;
 	}
 
 	protected void crashMelding(String melding, Exception e)
@@ -455,6 +451,6 @@ public class LabformulierGenererenWriter implements ItemStreamWriter<Long>
 	public void saveStepExecution(StepExecution stepExecution)
 	{
 		this.stepExecution = stepExecution;
-		this.jobExecution = stepExecution.getJobExecution();
+		jobExecution = stepExecution.getJobExecution();
 	}
 }

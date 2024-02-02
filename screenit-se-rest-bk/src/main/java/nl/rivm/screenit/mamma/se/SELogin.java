@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -47,9 +47,9 @@ import nl.rivm.screenit.service.GebruikersService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.MedewerkerUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 import nl.topicuszorg.organisatie.model.Organisatie;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
 import nl.topicuszorg.yubikey.shiro.YubikeyToken;
 
 import org.apache.shiro.SecurityUtils;
@@ -93,15 +93,15 @@ public class SELogin
 
 	public SELogin()
 	{
-		preferenceService = SpringBeanProvider.getInstance().getBean(SimplePreferenceService.class);
-		authenticatieService = SpringBeanProvider.getInstance().getBean(AuthenticatieService.class);
-		seAutorisatieService = SpringBeanProvider.getInstance().getBean(SeAutorisatieService.class);
-		screeningseenhedenService = SpringBeanProvider.getInstance().getBean(MammaScreeningsEenheidService.class);
-		hibernateService = SpringBeanProvider.getInstance().getBean(HibernateService.class);
-		gebruikerService = SpringBeanProvider.getInstance().getBean(GebruikersService.class);
-		logService = SpringBeanProvider.getInstance().getBean(SELogService.class);
-		applicationEnvironment = SpringBeanProvider.getInstance().getBean(String.class, "applicationEnvironment");
-		currentDateSupplier = SpringBeanProvider.getInstance().getBean(ICurrentDateSupplier.class);
+		preferenceService = ApplicationContextProvider.getApplicationContext().getBean(SimplePreferenceService.class);
+		authenticatieService = ApplicationContextProvider.getApplicationContext().getBean(AuthenticatieService.class);
+		seAutorisatieService = ApplicationContextProvider.getApplicationContext().getBean(SeAutorisatieService.class);
+		screeningseenhedenService = ApplicationContextProvider.getApplicationContext().getBean(MammaScreeningsEenheidService.class);
+		hibernateService = ApplicationContextProvider.getApplicationContext().getBean(HibernateService.class);
+		gebruikerService = ApplicationContextProvider.getApplicationContext().getBean(GebruikersService.class);
+		logService = ApplicationContextProvider.getApplicationContext().getBean(SELogService.class);
+		applicationEnvironment = ApplicationContextProvider.getApplicationContext().getBean("applicationEnvironment", String.class);
+		currentDateSupplier = ApplicationContextProvider.getApplicationContext().getBean(ICurrentDateSupplier.class);
 		Locale.setDefault(Constants.LOCALE_NL);
 	}
 

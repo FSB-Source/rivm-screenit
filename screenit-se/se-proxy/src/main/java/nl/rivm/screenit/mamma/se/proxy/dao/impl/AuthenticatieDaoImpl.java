@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.dao.impl;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,6 +27,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.mamma.se.proxy.dao.AuthenticatieDao;
 import nl.rivm.screenit.mamma.se.proxy.model.IngelogdeGebruikerDto;
 import nl.rivm.screenit.mamma.se.proxy.model.LoginContext;
@@ -34,25 +36,20 @@ import nl.rivm.screenit.mamma.se.proxy.model.SeConfiguratieKey;
 import nl.rivm.screenit.mamma.se.proxy.services.ConfiguratieService;
 import nl.rivm.screenit.mamma.se.proxy.util.DateUtil;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@Slf4j
 public class AuthenticatieDaoImpl extends BaseDaoImpl implements AuthenticatieDao
 {
 	@Autowired
 	private ConfiguratieService configuratieService;
 
-	private static final Logger LOG = LoggerFactory.getLogger(AuthenticatieDaoImpl.class);
-
 	@Override
 	public IngelogdeGebruikerDto getIngelogdeGebruiker(LoginContext loginContext)
 	{
-		IngelogdeGebruikerDto ingelogdeGebruiker = null;
-
-		String query = "SELECT IG.gebruikersnaam, IG.wachtwoord, IG.laatste_inlog, IG.yubikey_public, IG.login_response, IG.account_id " +
+		var query = "SELECT IG.gebruikersnaam, IG.wachtwoord, IG.laatste_inlog, IG.yubikey_public, IG.login_response, IG.account_id " +
 			"FROM INGELOGDE_GEBRUIKER IG " +
 			"WHERE IG.gebruikersnaam=? " +
 			"AND IG.wachtwoord=? " +
@@ -72,16 +69,16 @@ public class AuthenticatieDaoImpl extends BaseDaoImpl implements AuthenticatieDa
 		}
 		catch (SQLException e)
 		{
-			LOG.warn("Er is een probleem met het ophalen van een ingelogde gebruiker met gebruikersnaam {}: {}", loginContext.getGebruikersnaam(), e.getMessage());
+			LOG.warn("Er is een probleem met het ophalen van een ingelogde gebruiker met id {}: {}", loginContext.getAccountId(), e.getMessage());
 			throw new IllegalStateException("Ophalen van ingelogde gebruiker ging fout.");
 		}
-		return ingelogdeGebruiker;
+		return null;
 	}
 
 	@Override
 	public void insertOrUpdateIngelogdeGebruiker(IngelogdeGebruikerDto ingelogdeGebruikerDto)
 	{
-		String sql = "INSERT INTO INGELOGDE_GEBRUIKER(gebruikersnaam, wachtwoord, laatste_inlog, yubikey_public, login_response, account_id)" +
+		var sql = "INSERT INTO INGELOGDE_GEBRUIKER(gebruikersnaam, wachtwoord, laatste_inlog, yubikey_public, login_response, account_id)" +
 			" VALUES (?, ?, ?, ? ,?, ?)" +
 			" ON CONFLICT(account_id)" +
 			" DO UPDATE SET gebruikersnaam = ?, wachtwoord = ?, laatste_inlog = ?, yubikey_public = ?, login_response = ?, account_id = ?;";
@@ -105,8 +102,8 @@ public class AuthenticatieDaoImpl extends BaseDaoImpl implements AuthenticatieDa
 		}
 		catch (SQLException e)
 		{
-			LOG.warn("Er ging iets fout bij toevoegen van een ingelogde gebruiker met gebruikersnaam {}: {}, na het draaien van de lokale filler moet je handmatig de"
-				+ " tabel ingelogde_gebruiker legen in de SE database in bestand se-proxy/db/screenit-se.db", ingelogdeGebruikerDto.getGebruikersnaam(), e.getMessage());
+			LOG.warn("Er ging iets fout bij toevoegen van een ingelogde gebruiker met id {}: {}, na het draaien van de lokale filler moet je handmatig de"
+				+ " tabel ingelogde_gebruiker legen in de SE database in bestand se-proxy/db/screenit-se.db", ingelogdeGebruikerDto.getAccountId(), e.getMessage());
 			throw new IllegalStateException("Toevoegen van ingelogde gebruiker ging fout.");
 		}
 	}
@@ -114,7 +111,7 @@ public class AuthenticatieDaoImpl extends BaseDaoImpl implements AuthenticatieDa
 	@Override
 	public void updateIngelogdeGebruiker(IngelogdeGebruikerDto ingelogdeGebruikerDto)
 	{
-		String sql = "UPDATE INGELOGDE_GEBRUIKER " +
+		var sql = "UPDATE INGELOGDE_GEBRUIKER " +
 			"SET gebruikersnaam = ?, wachtwoord = ?, laatste_inlog = ?, yubikey_public = ?, login_response = ?, account_id = ? " +
 			"WHERE gebruikersnaam = ? ;";
 		try (Connection connection = getConnection();
@@ -131,8 +128,7 @@ public class AuthenticatieDaoImpl extends BaseDaoImpl implements AuthenticatieDa
 		}
 		catch (SQLException e)
 		{
-			LOG.warn("Er ging iets fout bij updaten van een ingelogde gebruiker met gebruikersnaam {}: {}",
-				ingelogdeGebruikerDto.getGebruikersnaam(), e.getMessage());
+			LOG.warn("Er ging iets fout bij updaten van een ingelogde gebruiker met id {}: {}", ingelogdeGebruikerDto.getAccountId(), e.getMessage());
 			throw new IllegalStateException("Updaten van ingelogde gebruiker ging fout.");
 		}
 	}
@@ -140,7 +136,7 @@ public class AuthenticatieDaoImpl extends BaseDaoImpl implements AuthenticatieDa
 	@Override
 	public Long getAccountIdFromUsername(String gebruikersnaam)
 	{
-		String query = "SELECT IG.account_id " +
+		var query = "SELECT IG.account_id " +
 			"FROM INGELOGDE_GEBRUIKER IG " +
 			"WHERE IG.gebruikersnaam=?;";
 
@@ -156,7 +152,6 @@ public class AuthenticatieDaoImpl extends BaseDaoImpl implements AuthenticatieDa
 		}
 		catch (SQLException e)
 		{
-			LOG.warn("Er is een probleem met het ophalen van een ingelogde gebruiker met gebruikersnaam {}: {}", gebruikersnaam, e.getMessage());
 			throw new IllegalStateException("Ophalen van ingelogde gebruiker ging fout.");
 		}
 		return null;

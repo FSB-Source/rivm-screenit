@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -70,23 +70,28 @@ public class MammaBeoordeling extends AbstractHibernateObject
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date statusDatum;
 
-	@OneToOne(fetch = FetchType.LAZY, optional = true)
+	@OneToOne(fetch = FetchType.LAZY, optional = true, cascade = { javax.persistence.CascadeType.REMOVE, javax.persistence.CascadeType.PERSIST,
+		javax.persistence.CascadeType.MERGE })
 	@Cascade({ CascadeType.DELETE, CascadeType.SAVE_UPDATE })
 	private MammaLezing eersteLezing;
 
-	@OneToOne(fetch = FetchType.LAZY, optional = true)
+	@OneToOne(fetch = FetchType.LAZY, optional = true, cascade = { javax.persistence.CascadeType.REMOVE, javax.persistence.CascadeType.PERSIST,
+		javax.persistence.CascadeType.MERGE })
 	@Cascade({ CascadeType.DELETE, CascadeType.SAVE_UPDATE })
 	private MammaLezing tweedeLezing;
 
-	@OneToOne(fetch = FetchType.LAZY, optional = true)
+	@OneToOne(fetch = FetchType.LAZY, optional = true, cascade = { javax.persistence.CascadeType.REMOVE, javax.persistence.CascadeType.PERSIST,
+		javax.persistence.CascadeType.MERGE })
 	@Cascade({ CascadeType.DELETE, CascadeType.SAVE_UPDATE })
 	private MammaLezing discrepantieLezing;
 
-	@OneToOne(fetch = FetchType.LAZY, optional = true)
+	@OneToOne(fetch = FetchType.LAZY, optional = true, cascade = { javax.persistence.CascadeType.REMOVE, javax.persistence.CascadeType.PERSIST,
+		javax.persistence.CascadeType.MERGE })
 	@Cascade({ CascadeType.DELETE, CascadeType.SAVE_UPDATE })
 	private MammaLezing arbitrageLezing;
 
-	@OneToOne(fetch = FetchType.LAZY, optional = true)
+	@OneToOne(fetch = FetchType.LAZY, optional = true, cascade = { javax.persistence.CascadeType.REMOVE, javax.persistence.CascadeType.PERSIST,
+		javax.persistence.CascadeType.MERGE })
 	@Cascade({ CascadeType.DELETE, CascadeType.SAVE_UPDATE })
 	private MammaLezing verslagLezing;
 

@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -44,7 +44,7 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
@@ -155,7 +155,7 @@ public class DigitaalBerichtTemplateServiceImpl implements DigitaalBerichtTempla
 		}
 		if (templateType.getMergeMailAttachmentService() != null)
 		{
-			var mergeMailService = SpringBeanProvider.getInstance().getBean(templateType.getMergeMailAttachmentService());
+			var mergeMailService = ApplicationContextProvider.getApplicationContext().getBean(templateType.getMergeMailAttachmentService());
 			var attachmentDtos = mergeMailService.maakMailAttachmentsAan(mailMergeContext, template);
 			berichtDto.setAttachments(attachmentDtos);
 		}

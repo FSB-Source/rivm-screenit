@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,11 +24,9 @@ package nl.rivm.screenit.main.service;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 
-import nl.rivm.screenit.model.SortState;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.ISortState;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,8 +56,16 @@ public abstract class RepositoryDataProviderService<T extends AbstractHibernateO
 			.orderBy(QueryUtils.toOrders(sort, r, cb));
 
 		var hquery = sessionFactory.getCurrentSession().createQuery(query);
-		hquery.setFirstResult(Ints.checkedCast(first));
-		hquery.setMaxResults(Ints.checkedCast(count));
+
+		if (first > -1)
+		{
+			hquery.setFirstResult(Ints.checkedCast(first));
+		}
+
+		if (count > -1)
+		{
+			hquery.setMaxResults(Ints.checkedCast(count));
+		}
 
 		return hquery.getResultList();
 	}
@@ -72,7 +78,7 @@ public abstract class RepositoryDataProviderService<T extends AbstractHibernateO
 	private R getRepository()
 	{
 		var clazz = (Class<R>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[1];
-		return SpringBeanProvider.getInstance().getBean(clazz);
+		return ApplicationContextProvider.getApplicationContext().getBean(clazz);
 	}
 
 	private Class<T> getEntityClass()

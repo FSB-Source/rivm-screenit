@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.hpvoru;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,7 +35,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
-import nl.rivm.screenit.batch.model.HL7v24ResponseWrapper;
 import nl.rivm.screenit.batch.model.HapiContextType;
 import nl.rivm.screenit.batch.model.ScreenITHL7MessageContext;
 import nl.rivm.screenit.batch.service.CervixHL7BaseService;
@@ -89,20 +88,18 @@ public class CervixHpvOruBerichtenWriter extends BaseWriter<CervixScreeningRonde
 		var laboratoriumId = getStepExecution().getExecutionContext().getLong(KEY_LABORATORIUMID);
 		var laboratorium = getHibernateService().load(BMHKLaboratorium.class, laboratoriumId);
 
-		LocalDateTime limit = (LocalDateTime) getStepExecution().getExecutionContext().get(CERVIX_HPV_ORU_BERICHT_VERSTUURDEN_TIMEOUT);
+		var limit = (LocalDateTime) getStepExecution().getExecutionContext().get(CERVIX_HPV_ORU_BERICHT_VERSTUURDEN_TIMEOUT);
 		if (LocalDateTime.now().isBefore(limit))
 		{
 			var messageContext = new ScreenITHL7MessageContext(HapiContextType.UTF_8);
 			messageContext.setHost(organisatieParameterService.getOrganisatieParameter(laboratorium, OrganisatieParameterKey.CERVIX_ORU_HOST));
 			messageContext.setPort(organisatieParameterService.getOrganisatieParameter(laboratorium, OrganisatieParameterKey.CERVIX_ORU_PORT));
 			var connection = hl7BaseService.openConnection(laboratorium.getNaam(), 3, messageContext);
-			AtomicInteger verzonden = new AtomicInteger(0);
+			var verzonden = new AtomicInteger(0);
 
 			items.stream().map(item -> getHibernateService().get(CervixScreeningRonde.class, item)).filter(Objects::nonNull).map(CervixScreeningRonde::getMonsterHpvUitslag)
 				.forEach(monster ->
 				{
-					LOG.info("Oru bericht wordt verstuurd voor monster-id:" + monster.getMonsterId());
-
 					if (!laboratorium.equals(monster.getLaboratorium()))
 					{
 						throw new IllegalArgumentException(String.format(
@@ -111,7 +108,7 @@ public class CervixHpvOruBerichtenWriter extends BaseWriter<CervixScreeningRonde
 					}
 					if (connection.isOpen())
 					{
-						HL7v24ResponseWrapper berichtResponseWrapper = messageContext.getResponseWrapper();
+						var berichtResponseWrapper = messageContext.getResponseWrapper();
 						try
 						{
 							sendMessageService.sendHL7Message(hpvOruBerichtService.maakHpvOruBericht(monster).toString(), messageContext);
@@ -128,7 +125,7 @@ public class CervixHpvOruBerichtenWriter extends BaseWriter<CervixScreeningRonde
 						}
 						else
 						{
-							StringBuilder sb = new StringBuilder("Bericht kon niet verzonden worden naar ");
+							var sb = new StringBuilder("Bericht kon niet verzonden worden naar ");
 							sb.append(laboratorium.getNaam());
 							Optional.ofNullable(berichtResponseWrapper.getMelding()).ifPresent(fout -> sb.append(": ").append(fout));
 							LOG.error(sb.toString(), berichtResponseWrapper.getCrashException());
@@ -137,7 +134,7 @@ public class CervixHpvOruBerichtenWriter extends BaseWriter<CervixScreeningRonde
 					}
 					else
 					{
-						String melding = "Bericht kon niet verzonden worden: verbinding met " + laboratorium.getNaam() + " is gesloten";
+						var melding = "Bericht kon niet verzonden worden: verbinding met " + laboratorium.getNaam() + " is gesloten";
 						LOG.error(melding);
 						versturenMislukt(monster, melding);
 					}
@@ -166,7 +163,7 @@ public class CervixHpvOruBerichtenWriter extends BaseWriter<CervixScreeningRonde
 
 	private void versturenMislukt(CervixMonster monster, String melding)
 	{
-		List<Instelling> instellingen = new ArrayList<>();
+		var instellingen = new ArrayList<Instelling>();
 		instellingen.add(getHibernateService().loadAll(Rivm.class).get(0));
 		var client = monster.getOntvangstScreeningRonde().getDossier().getClient();
 		logService.logGebeurtenis(LogGebeurtenis.CERVIX_HPV_ORU_BERICHTEN_VERSTUREN_MISLUKT, instellingen, client, melding, Bevolkingsonderzoek.CERVIX);
@@ -174,13 +171,13 @@ public class CervixHpvOruBerichtenWriter extends BaseWriter<CervixScreeningRonde
 
 	private void verhoogAantalVerzondenBerichten(BMHKLaboratorium laboratorium, int value)
 	{
-		Map<Long, Integer> map = (Map<Long, Integer>) getExecutionContext().get(CERVIX_HPV_ORU_BERICHT_VERSTUURD_PER_LAB);
+		var map = (Map<Long, Integer>) getExecutionContext().get(CERVIX_HPV_ORU_BERICHT_VERSTUURD_PER_LAB);
 		if (map == null)
 		{
 			map = new HashMap<>();
 			getExecutionContext().put(CERVIX_HPV_ORU_BERICHT_VERSTUURD_PER_LAB, map);
 		}
-		Integer currentValue = map.get(laboratorium.getId());
+		var currentValue = map.get(laboratorium.getId());
 		if (currentValue == null)
 		{
 			currentValue = 0;

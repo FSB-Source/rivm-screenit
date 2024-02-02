@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.repository;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,12 +22,9 @@ package nl.rivm.screenit.batch.repository;
  */
 
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
+import nl.rivm.screenit.repository.BaseJpaRepository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
-@Repository
-public interface ColonScreeningRondeRepository extends JpaRepository<ColonScreeningRonde, Long>
+public interface ColonScreeningRondeRepository extends BaseJpaRepository<ColonScreeningRonde>
 {
 	ColonScreeningRonde findFirstByOrderByCreatieDatumDesc();
 }

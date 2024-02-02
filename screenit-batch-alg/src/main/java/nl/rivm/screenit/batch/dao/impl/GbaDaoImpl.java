@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.batch.dao.impl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,14 +23,10 @@ package nl.rivm.screenit.batch.dao.impl;
 
 import nl.rivm.screenit.batch.dao.GbaDao;
 import nl.rivm.screenit.model.BagAdres;
-import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.gba.GbaStamtabel;
-import nl.rivm.screenit.model.gba.GbaVraag;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.hibernate.Criteria;
-import org.hibernate.Query;
-import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
@@ -41,7 +36,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class GbaDaoImpl extends AbstractAutowiredDao implements GbaDao
 {
-
 	@Override
 	public <T extends GbaStamtabel> T getStamtabelByCode(Class<T> clazz, String code)
 	{
@@ -49,35 +43,6 @@ public class GbaDaoImpl extends AbstractAutowiredDao implements GbaDao
 		crit.add(Restrictions.eq("code", code));
 
 		return (T) crit.uniqueResult();
-	}
-
-	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
-	public void updateVerstuurdeVragen(String uniqueBatchId)
-	{
-		Query query = getSession().createQuery("update " + GbaVraag.class.getName() + " set verstuurd = true where uniqueBatchId = :batchid");
-
-		query.setParameter("batchid", uniqueBatchId).executeUpdate();
-	}
-
-	@Override
-	public GbaVraag getLaatsteGbaVraag(Client client, String bsn)
-	{
-		Criteria crit = getSession().createCriteria(GbaVraag.class);
-		if (client != null)
-		{
-			crit.add(Restrictions.or(Restrictions.eq("bsn", client.getPersoon().getBsn()), Restrictions.eq("client", client)));
-		}
-		else
-		{
-			crit.add(Restrictions.eq("bsn", bsn));
-		}
-
-		crit.setMaxResults(1);
-
-		crit.addOrder(Order.desc("id"));
-
-		return (GbaVraag) crit.uniqueResult();
 	}
 
 	@Override

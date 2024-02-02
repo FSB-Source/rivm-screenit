@@ -5,7 +5,7 @@ package nl.rivm.screenit.batch.quartz;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,7 +32,7 @@ import nl.rivm.screenit.batch.jms.listener.QuartzJobHelper;
 import nl.rivm.screenit.model.batch.BatchJob;
 import nl.rivm.screenit.model.enums.JobType;
 import nl.rivm.screenit.service.JobService;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 
 import org.apache.commons.lang3.StringUtils;
 import org.quartz.JobExecutionContext;
@@ -88,6 +88,6 @@ public class JobLauncherDetails extends QuartzJobBean
 			}
 		}
 
-		SpringBeanProvider.getInstance().getBean(JobService.class).startJob(batchJob, null);
+		ApplicationContextProvider.getApplicationContext().getBean(JobService.class).startJob(batchJob, null);
 	}
 }

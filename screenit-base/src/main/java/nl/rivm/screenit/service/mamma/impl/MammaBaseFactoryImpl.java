@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -69,7 +69,7 @@ import nl.rivm.screenit.service.mamma.MammaBaseKwaliteitscontroleService;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.service.mamma.MammaVolgendeUitnodigingService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,7 +139,7 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 			logService.logGebeurtenis(LogGebeurtenis.MAMMA_RONDE_VERLOPEN, dossier.getClient(), Bevolkingsonderzoek.MAMMA);
 		}
 
-		String postcode = SpringBeanProvider.getInstance().getBean(ClientService.class).getGbaPostcode(dossier.getClient());
+		String postcode = ApplicationContextProvider.getApplicationContext().getBean(ClientService.class).getGbaPostcode(dossier.getClient());
 
 		MammaScreeningRonde ronde = new MammaScreeningRonde();
 		ronde.setStatus(ScreeningRondeStatus.LOPEND);
@@ -235,7 +235,7 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 		boolean isGeforceerdeAfspraak, SmsStatus smsStatus)
 	{
 		hibernateService.getHibernateSession().setFlushMode(FlushModeType.COMMIT);
-		String postcode = SpringBeanProvider.getInstance().getBean(ClientService.class).getGbaPostcode(screeningRonde.getDossier().getClient());
+		String postcode = ApplicationContextProvider.getApplicationContext().getBean(ClientService.class).getGbaPostcode(screeningRonde.getDossier().getClient());
 
 		MammaOpkomstkans opkomstkans = new MammaOpkomstkans();
 

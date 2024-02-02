@@ -4,7 +4,7 @@ package nl.rivm.screenit.repository.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,13 +25,9 @@ import java.util.List;
 
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.cervix.berichten.CervixFoutHL7v2Bericht;
+import nl.rivm.screenit.repository.BaseJpaRepository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.stereotype.Repository;
-
-@Repository
-public interface CervixFoutHL7v2BerichtRepository extends JpaRepository<CervixFoutHL7v2Bericht, Long>, JpaSpecificationExecutor<CervixFoutHL7v2Bericht>
+public interface CervixFoutHL7v2BerichtRepository extends BaseJpaRepository<CervixFoutHL7v2Bericht>
 {
 	List<CervixFoutHL7v2Bericht> findAllByClient(Client client);
 }

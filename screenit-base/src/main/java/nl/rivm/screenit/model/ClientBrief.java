@@ -4,7 +4,7 @@ package nl.rivm.screenit.model;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -41,13 +41,14 @@ import org.hibernate.envers.Audited;
 @Setter
 public abstract class ClientBrief<SR extends ScreeningRonde, AF extends Afmelding, CB extends ClientBrief> extends Brief
 {
-	@OneToOne(optional = true, fetch = FetchType.LAZY, mappedBy = "brief")
+	@OneToOne(optional = true, fetch = FetchType.LAZY, mappedBy = "brief", cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE,
+		javax.persistence.CascadeType.REMOVE })
 	@Cascade({ CascadeType.SAVE_UPDATE, CascadeType.DELETE })
 	private ProjectBrief projectBrief;
 
 	private boolean vervangendeProjectBrief = false;
 
-	@ManyToOne(optional = false, fetch = FetchType.LAZY)
+	@ManyToOne(optional = false, fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade({ CascadeType.SAVE_UPDATE })
 	private Client client;
 

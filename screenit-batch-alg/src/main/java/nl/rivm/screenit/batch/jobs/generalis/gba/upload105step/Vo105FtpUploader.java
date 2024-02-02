@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.generalis.gba.upload105step;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,11 +28,11 @@ import java.util.UUID;
 
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.batch.dao.GbaDao;
 import nl.rivm.screenit.batch.jobs.generalis.gba.GbaFtpConnection;
 import nl.rivm.screenit.config.GbaConfig;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.gba.GbaVerwerkingsLog;
+import nl.rivm.screenit.repository.algemeen.GbaVraagRepository;
 import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 
@@ -55,7 +55,7 @@ public class Vo105FtpUploader extends GbaFtpConnection implements Vo105Uploader
 	private FileService fileService;
 
 	@Autowired
-	private GbaDao gbaDao;
+	private GbaVraagRepository gbaVraagRepository;
 
 	@Autowired
 	private ICurrentDateSupplier dateSupplier;
@@ -84,10 +84,10 @@ public class Vo105FtpUploader extends GbaFtpConnection implements Vo105Uploader
 	protected void ftpActies() throws SftpException
 	{
 		prepareUpload();
-		File file = new File(vo105Bestand);
+		var file = new File(vo105Bestand);
 		saveFileOnFileStore(file);
 		upload(file);
-		gbaDao.updateVerstuurdeVragen(jobExecutionId.toString());
+		gbaVraagRepository.markeerVragenAlsVerstuurd(jobExecutionId.toString());
 	}
 
 	protected void prepareUpload() throws SftpException

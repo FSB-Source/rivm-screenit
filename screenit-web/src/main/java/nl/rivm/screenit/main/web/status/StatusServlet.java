@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.status;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,7 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SQLQuery;
@@ -71,10 +71,10 @@ public class StatusServlet extends HttpServlet
 
 		try
 		{
-			applicatieNaam = SpringBeanProvider.getInstance().getBean(String.class, "applicationName");
-			applicatieEnviroment = SpringBeanProvider.getInstance().getBean(String.class, "applicationEnvironment");
-			applicatieInstantie = SpringBeanProvider.getInstance().getBean(String.class, "applicationInstance");
-			HibernateService hibernateService = SpringBeanProvider.getInstance().getBean(HibernateService.class);
+			applicatieNaam = ApplicationContextProvider.getApplicationContext().getBean("applicationName", String.class);
+			applicatieEnviroment = ApplicationContextProvider.getApplicationContext().getBean("applicationEnvironment", String.class);
+			applicatieInstantie = ApplicationContextProvider.getApplicationContext().getBean("applicationInstance", String.class);
+			HibernateService hibernateService = ApplicationContextProvider.getApplicationContext().getBean(HibernateService.class);
 			SQLQuery sqlQuery = hibernateService.getHibernateSession().createSQLQuery("select count(*) from algemeen.pref_prefitem;");
 			Object result = sqlQuery.uniqueResult();
 			if (result != null)

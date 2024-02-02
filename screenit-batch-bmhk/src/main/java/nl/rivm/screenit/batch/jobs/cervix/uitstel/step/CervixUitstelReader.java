@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.uitstel.step;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,46 +21,35 @@ package nl.rivm.screenit.batch.jobs.cervix.uitstel.step;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.model.ScreeningRondeStatus;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.cervix.CervixUitstel;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.query.ScreenitRestrictions;
+import nl.rivm.screenit.specification.cervix.CervixUitstelSpecification;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CervixUitstelReader extends BaseScrollableResultReader
+public class CervixUitstelReader extends BaseSpecificationScrollableResultReader<CervixUitstel, Long>
 {
+	@Autowired
+	private ICurrentDateSupplier currentDateSupplier;
 
-	private final ICurrentDateSupplier dateSupplier;
-
-	public CervixUitstelReader(ICurrentDateSupplier dateSupplier)
+	public CervixUitstelReader()
 	{
-		super.setFetchSize(50);
-		this.dateSupplier = dateSupplier;
+		setFetchSize(50);
 	}
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	public Specification<CervixUitstel> createSpecification()
 	{
-		var crit = session.createCriteria(CervixUitstel.class, "uitstel");
-		crit.createAlias("uitstel.screeningRonde", "ronde");
-		crit.createAlias("ronde.dossier", "dossier");
-		crit.createAlias("dossier.client", "client");
-		crit.createAlias("client.persoon", "persoon");
-
-		ScreenitRestrictions.addClientBaseRestrictions(crit, "client", "persoon");
-
-		crit.add(Restrictions.eq("ronde.status", ScreeningRondeStatus.LOPEND));
-
-		crit.add(Restrictions.isNull("uitstel.geannuleerdDatum"));
-		crit.add(Restrictions.le("uitstel.uitstellenTotDatum", dateSupplier.getDate()));
-
-		return crit;
+		var vandaag = currentDateSupplier.getLocalDate();
+		return CervixUitstelSpecification.heeftClientMetIndicatieAanwezig()
+			.and(CervixUitstelSpecification.heeftPersoonMetOverledenDatum())
+			.and(CervixUitstelSpecification.heeftGeenVertrokkenPersoonUitNederlandDatum())
+			.and(CervixUitstelSpecification.heeftLopendeRonde())
+			.and(CervixUitstelSpecification.heeftGeenGeannuleerdDatum())
+			.and(CervixUitstelSpecification.heeftUitstellenTotDatumEerderDan(vandaag));
 	}
 }

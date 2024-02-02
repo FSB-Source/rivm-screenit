@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +22,7 @@ package nl.rivm.screenit.main.service.colon.impl;
  */
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
@@ -36,17 +37,23 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
+import nl.rivm.screenit.main.exception.BeperkingException;
 import nl.rivm.screenit.main.exception.ValidatieException;
-import nl.rivm.screenit.main.service.colon.ColonAfspraakSlotService;
+import nl.rivm.screenit.main.service.colon.ColonAfspraakslotService;
 import nl.rivm.screenit.main.service.colon.RoosterService;
+import nl.rivm.screenit.mappers.colon.ColonAfspraakslotMapper;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.RoosterItemStatus;
-import nl.rivm.screenit.model.colon.dto.ColonAfspraakSlotDto;
+import nl.rivm.screenit.model.colon.RoosterListViewFilter;
+import nl.rivm.screenit.model.colon.dto.ColonAfspraakslotDto;
+import nl.rivm.screenit.model.colon.enums.ColonRoosterBeperking;
 import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.repository.colon.ColonAfspraakslotRepository;
+import nl.rivm.screenit.repository.colon.ColonRoosterItemRepository;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.EntityAuditUtil;
@@ -63,7 +70,7 @@ import com.google.common.collect.Range;
 @Service
 @Slf4j
 @AllArgsConstructor
-public class ColonAfspraakSlotServiceImpl implements ColonAfspraakSlotService
+public class ColonAfspraakslotServiceImpl implements ColonAfspraakslotService
 {
 	private final RoosterService roosterService;
 
@@ -73,62 +80,74 @@ public class ColonAfspraakSlotServiceImpl implements ColonAfspraakSlotService
 
 	private final LogService logService;
 
+	private final ColonAfspraakslotRepository afspraakslotRepository;
+
+	private final ColonAfspraakslotMapper afspraakslotMapper;
+
+	private final ColonRoosterItemRepository roosterItemRepository;
+
 	@Override
 	@Transactional
-	public void createAfspraakSlot(ColonAfspraakSlotDto afspraakSlotDto, InstellingGebruiker instellingGebruiker)
-		throws ValidatieException, OpslaanVerwijderenTijdBlokException
+	public void createAfspraakslot(ColonAfspraakslotDto afspraakslotDto, InstellingGebruiker instellingGebruiker)
+		throws ValidatieException, OpslaanVerwijderenTijdBlokException, BeperkingException
 	{
 		var intakelocatie = roosterService.getIntakelocatieVanInstellingGebruiker(instellingGebruiker);
-		var dbRoosterItem = new RoosterItem();
-		var roosterItem = converteerAfspraakSlot(afspraakSlotDto, intakelocatie, dbRoosterItem);
+		var dbAfspraakslot = new RoosterItem();
+		var afspraakslot = converteerAfspraakslot(afspraakslotDto, intakelocatie, dbAfspraakslot);
+		var alleenValidatie = afspraakslotDto.isAlleenValidatie();
 
-		valideerTijdslot(roosterItem, intakelocatie);
-		logAction(roosterItem, afspraakSlotDto.getAantalBlokken(), instellingGebruiker, intakelocatie, null, LogGebeurtenis.ROOSTERBLOK_NIEUW);
-
-		var transformedAfspraakSloten = splitAfspraakSlot(roosterItem, afspraakSlotDto.getAantalBlokken(), intakelocatie);
-		for (var transformedAfspraakSlot : transformedAfspraakSloten)
+		valideerTijdslot(afspraakslot, intakelocatie, !alleenValidatie);
+		if (!alleenValidatie)
 		{
-			hibernateService.saveOrUpdate(transformedAfspraakSlot);
+			logAction(afspraakslot, afspraakslotDto.getAantalBlokken(), instellingGebruiker, intakelocatie, null, LogGebeurtenis.ROOSTERBLOK_NIEUW);
+
+			var transformedAfspraakslots = splitAfspraakslot(afspraakslot, afspraakslotDto.getAantalBlokken(), intakelocatie);
+			roosterItemRepository.saveAll(transformedAfspraakslots);
 		}
 	}
 
 	@Override
 	@Transactional
-	public void updateAfspraakSlot(Long id, ColonAfspraakSlotDto afspraakSlotDto, InstellingGebruiker instellingGebruiker)
-		throws ValidatieException, OpslaanVerwijderenTijdBlokException, IllegalStateException
+	public void updateAfspraakslot(Long id, ColonAfspraakslotDto afspraakslotDto, InstellingGebruiker instellingGebruiker)
+		throws ValidatieException, OpslaanVerwijderenTijdBlokException, IllegalStateException, BeperkingException
 	{
 		var intakelocatie = roosterService.getIntakelocatieVanInstellingGebruiker(instellingGebruiker);
-		var dbRoosterItem = roosterService.getRoosterItem(id).orElseThrow(() -> new IllegalStateException("RoosterItem kan niet worden gevonden"));
+		var dbAfspraakslot = roosterService.getRoosterItem(id).orElseThrow(() -> new IllegalStateException("RoosterItem kan niet worden gevonden"));
 
-		var originalRoosterItem = dbRoosterItem.transientClone();
-		var validateRoosterItem = dbRoosterItem.transientClone();
-		validateRoosterItem.setId(id);
-		hibernateService.getHibernateSession().detach(validateRoosterItem);
-		converteerAfspraakSlot(afspraakSlotDto, intakelocatie, validateRoosterItem);
-		valideerTijdslot(validateRoosterItem, intakelocatie);
+		var originalAfspraakslot = dbAfspraakslot.transientClone();
+		var validateAfspraakslot = dbAfspraakslot.transientClone();
+		var alleenValidatie = afspraakslotDto.isAlleenValidatie();
 
-		converteerAfspraakSlot(afspraakSlotDto, intakelocatie, dbRoosterItem);
-		logAction(dbRoosterItem, afspraakSlotDto.getAantalBlokken(), instellingGebruiker, intakelocatie, originalRoosterItem, LogGebeurtenis.ROOSTERBLOK_WIJZIG);
-		hibernateService.saveOrUpdate(dbRoosterItem);
+		validateAfspraakslot.setId(id);
+		hibernateService.getHibernateSession().detach(validateAfspraakslot);
+		converteerAfspraakslot(afspraakslotDto, intakelocatie, validateAfspraakslot);
+		valideerTijdslot(validateAfspraakslot, intakelocatie, !alleenValidatie);
+
+		if (!alleenValidatie)
+		{
+			converteerAfspraakslot(afspraakslotDto, intakelocatie, dbAfspraakslot);
+			logAction(dbAfspraakslot, afspraakslotDto.getAantalBlokken(), instellingGebruiker, intakelocatie, originalAfspraakslot, LogGebeurtenis.ROOSTERBLOK_WIJZIG);
+			roosterItemRepository.save(dbAfspraakslot);
+		}
 	}
 
 	@Override
 	@Transactional
-	public void deleteAfspraakSlot(Long id, InstellingGebruiker instellingGebruiker)
+	public void deleteAfspraakslot(Long id, InstellingGebruiker instellingGebruiker)
 		throws OpslaanVerwijderenTijdBlokException, ValidatieException
 	{
 		var intakelocatie = roosterService.getIntakelocatieVanInstellingGebruiker(instellingGebruiker);
-		var dbRoosterItem = roosterService.getRoosterItem(id).orElseThrow(() -> new ValidatieException("Afspraakslot niet gevonden"));
-		var roosterItemStatus = roosterService.getRoosterItemStatus(dbRoosterItem);
-		roosterService.magRoosterItemOpslaanVerwijderen(dbRoosterItem, null, null, null, true);
+		var dbAfspraakslot = roosterService.getRoosterItem(id).orElseThrow(() -> new ValidatieException("error.afspraakslot.niet.gevonden"));
+		var roosterItemStatus = roosterService.getRoosterItemStatus(dbAfspraakslot);
+		roosterService.magRoosterItemOpslaanVerwijderen(dbAfspraakslot, null, null, null, true);
 
 		if (roosterItemStatus == RoosterItemStatus.GEBRUIKT_VOOR_CAPACITEIT)
 		{
 			throw new ValidatieException("error.roosterblok.gebruikt.voor.capaciteit");
 		}
 
-		hibernateService.delete(dbRoosterItem);
-		logAction(dbRoosterItem, 1, instellingGebruiker, intakelocatie, dbRoosterItem, LogGebeurtenis.ROOSTERBLOK_VERWIJDEREN);
+		roosterItemRepository.delete(dbAfspraakslot);
+		logAction(dbAfspraakslot, 1, instellingGebruiker, intakelocatie, dbAfspraakslot, LogGebeurtenis.ROOSTERBLOK_VERWIJDEREN);
 	}
 
 	@Override
@@ -147,22 +166,22 @@ public class ColonAfspraakSlotServiceImpl implements ColonAfspraakSlotService
 	}
 
 	@Override
-	public void checkCapaciteitBerekening(RoosterItem roosterItem, ColoscopieCentrum intakelocatie) throws ValidatieException
+	public void checkCapaciteitBerekening(RoosterItem afspraakslot, ColoscopieCentrum intakelocatie) throws ValidatieException
 	{
-		var roosterItemStatus = roosterService.getRoosterItemStatus(roosterItem);
-		if (roosterItemStatus != RoosterItemStatus.GEBRUIKT_VOOR_CAPACITEIT || roosterItem.getId() == null)
+		var roosterItemStatus = roosterService.getRoosterItemStatus(afspraakslot);
+		if (roosterItemStatus != RoosterItemStatus.GEBRUIKT_VOOR_CAPACITEIT || afspraakslot.getId() == null)
 		{
 			return;
 		}
 
-		var startTime = DateUtil.toLocalDateTime(roosterItem.getStartTime());
-		var origRoosterItem = EntityAuditUtil.getPreviousVersionOfEntity(roosterItem, hibernateService.getHibernateSession());
-		if (origRoosterItem == null)
+		var startTime = DateUtil.toLocalDateTime(afspraakslot.getStartTime());
+		var origAfspraakslot = EntityAuditUtil.getPreviousVersionOfEntity(afspraakslot, hibernateService.getHibernateSession());
+		if (origAfspraakslot == null)
 		{
 			return;
 		}
 
-		var origStartTime = DateUtil.toLocalDate(origRoosterItem.getStartTime());
+		var origStartTime = DateUtil.toLocalDate(origAfspraakslot.getStartTime());
 		var duurAfspraakInMinuten = getDuurAfspraakInMinuten(intakelocatie);
 		var newEindDatumGebruiktVoorCapaciteit = origStartTime.plusWeeks(1).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
 			.atStartOfDay();
@@ -175,34 +194,41 @@ public class ColonAfspraakSlotServiceImpl implements ColonAfspraakSlotService
 		}
 	}
 
-	private void valideerTijdslot(RoosterItem roosterItem, ColoscopieCentrum intakelocatie) throws ValidatieException, OpslaanVerwijderenTijdBlokException
+	private void valideerTijdslot(RoosterItem afspraakslot, ColoscopieCentrum intakelocatie, boolean negeerZachteBeperking)
+		throws ValidatieException, OpslaanVerwijderenTijdBlokException, BeperkingException
 	{
-		roosterService.valideerTijdslot(roosterItem);
+		roosterService.valideerBeperkingen(afspraakslot, ColonRoosterBeperking.HARD);
+		roosterService.valideerTijdslot(afspraakslot);
 
-		roosterService.magRoosterItemOpslaanVerwijderen(roosterItem, null, null, null, true);
+		roosterService.magRoosterItemOpslaanVerwijderen(afspraakslot, null, null, null, true);
 
-		checkCapaciteitBerekening(roosterItem, intakelocatie);
-		checkEindTijdOpZelfdeDag(DateUtil.toLocalDateTime(roosterItem.getStartTime()), DateUtil.toLocalDateTime(roosterItem.getEndTime()), intakelocatie);
+		checkCapaciteitBerekening(afspraakslot, intakelocatie);
+		checkEindTijdOpZelfdeDag(DateUtil.toLocalDateTime(afspraakslot.getStartTime()), DateUtil.toLocalDateTime(afspraakslot.getEndTime()), intakelocatie);
+
+		if (!negeerZachteBeperking)
+		{
+			roosterService.valideerBeperkingen(afspraakslot, ColonRoosterBeperking.ZACHT);
+		}
 	}
 
-	private RoosterItem converteerAfspraakSlot(ColonAfspraakSlotDto afspraakSlotDto, ColoscopieCentrum intakelocatie, RoosterItem roosterItem)
+	private RoosterItem converteerAfspraakslot(ColonAfspraakslotDto afspraakslotDto, ColoscopieCentrum intakelocatie, RoosterItem afspraakslot)
 	{
-		roosterItem.setStartTime(DateUtil.toUtilDate(afspraakSlotDto.getStartTime()));
-		roosterItem.setEndTime(DateUtil.toUtilDate(afspraakSlotDto.getEndTime()));
+		afspraakslot.setStartTime(DateUtil.toUtilDate(afspraakslotDto.getStartTime()));
+		afspraakslot.setEndTime(DateUtil.toUtilDate(afspraakslotDto.getEndTime()));
 
-		var kamer = intakelocatie.getKamers().stream().filter(k -> k.getId().equals(afspraakSlotDto.getKamerId())).findFirst()
+		var kamer = intakelocatie.getKamers().stream().filter(k -> k.getId().equals(afspraakslotDto.getKamerId())).findFirst()
 			.orElse(null);
-		roosterItem.setLocation(kamer);
+		afspraakslot.setLocation(kamer);
 
-		if (roosterItem.getId() == null)
+		if (afspraakslot.getId() == null)
 		{
 			var alleScheduleSets = scheduleService.getAlleRoosterblokken(null);
 			var scheduleSet = alleScheduleSets.get(0);
-			roosterItem.setScheduleSet(scheduleSet);
-			roosterItem.setTitle(scheduleSet.getTitle());
+			afspraakslot.setScheduleSet(scheduleSet);
+			afspraakslot.setTitle(scheduleSet.getTitle());
 		}
 
-		return roosterItem;
+		return afspraakslot;
 	}
 
 	private static Integer getDuurAfspraakInMinuten(ColoscopieCentrum intakelocatie)
@@ -211,10 +237,10 @@ public class ColonAfspraakSlotServiceImpl implements ColonAfspraakSlotService
 	}
 
 	@Override
-	public List<RoosterItem> splitAfspraakSlot(RoosterItem unsavedObject, Integer aantalBlokken, ColoscopieCentrum intakelocatie)
+	public List<RoosterItem> splitAfspraakslot(RoosterItem unsavedObject, Integer aantalBlokken, ColoscopieCentrum intakelocatie)
 	{
 		var duurAfspraakInMinuten = getDuurAfspraakInMinuten(intakelocatie);
-		var roosterItems = new ArrayList<RoosterItem>();
+		var afspraakslots = new ArrayList<RoosterItem>();
 		var startDate = DateUtil.toLocalDateTime(unsavedObject.getStartTime());
 		for (int i = 0; i < aantalBlokken; i++)
 		{
@@ -230,9 +256,9 @@ public class ColonAfspraakSlotServiceImpl implements ColonAfspraakSlotService
 			var endTime = startDate.plusMinutes(duurAfspraakInMinuten);
 			splittedRoosterBlok.setEndTime(DateUtil.toUtilDate(endTime));
 			startDate = endTime;
-			roosterItems.add(splittedRoosterBlok);
+			afspraakslots.add(splittedRoosterBlok);
 		}
-		return roosterItems;
+		return afspraakslots;
 	}
 
 	public void logAction(RoosterItem unsavedObject, int aantalBlokken, InstellingGebruiker instellingGebruiker, ColoscopieCentrum intakelocatie,
@@ -253,7 +279,7 @@ public class ColonAfspraakSlotServiceImpl implements ColonAfspraakSlotService
 		}
 	}
 
-	private void logActionKamer(RoosterItem unsavedObject, InstellingGebruiker instellingGebruiker, Kamer kamer, @Nullable RoosterItem originalRoosterItem,
+	private void logActionKamer(RoosterItem unsavedObject, InstellingGebruiker instellingGebruiker, Kamer kamer, @Nullable RoosterItem originalAfspraakslot,
 		LogGebeurtenis gebeurtenis,
 		int aantalBlokken)
 	{
@@ -273,9 +299,9 @@ public class ColonAfspraakSlotServiceImpl implements ColonAfspraakSlotService
 		{
 			melding = "#" + aantalBlokken + " sloten, " + melding;
 		}
-		else if (gebeurtenis == LogGebeurtenis.ROOSTERBLOK_WIJZIG && originalRoosterItem != null)
+		else if (gebeurtenis == LogGebeurtenis.ROOSTERBLOK_WIJZIG && originalAfspraakslot != null)
 		{
-			var origStartTime = originalRoosterItem.getStartTime();
+			var origStartTime = originalAfspraakslot.getStartTime();
 			melding = dateTimeFormat.format(origStartTime) + " -> " + melding;
 
 		}
@@ -285,5 +311,25 @@ public class ColonAfspraakSlotServiceImpl implements ColonAfspraakSlotService
 	private static List<Kamer> getActieveKamers(ColoscopieCentrum intakelocatie)
 	{
 		return intakelocatie.getKamers().stream().filter(Kamer::getActief).collect(Collectors.toList());
+	}
+
+	@Override
+	public List<ColonAfspraakslotDto> getAfspraakslots(LocalDate startDate, LocalDate endDate, ColoscopieCentrum intakeLocatie)
+	{
+		var filter = new RoosterListViewFilter();
+
+		filter.setStartDatum(DateUtil.toUtilDate(startDate));
+		filter.setEndDatum(DateUtil.toUtilDate(endDate));
+
+		var items = roosterService.getAlleRoosterBlokkenInPeriode("startTime", true, filter, intakeLocatie);
+		var afspraakslots = new ArrayList<ColonAfspraakslotDto>();
+		for (var item : items)
+		{
+			var afspraakslot = afspraakslotRepository.findById(item.getRoosterItemId()).orElse(null);
+			var roosterItemStatus = roosterService.getRoosterItemStatus(afspraakslot);
+			item.setStatus(roosterItemStatus);
+			afspraakslots.add(afspraakslotMapper.roosterListItemViewWrapperToColonAfspraakDto(item));
+		}
+		return afspraakslots;
 	}
 }

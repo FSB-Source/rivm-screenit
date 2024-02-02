@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.ifobtkoppelen.koppelstep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -115,8 +115,11 @@ public class IFobtKoppelWriter implements ItemWriter<VERZONDENUITNODIGING>
 			catch (ParseException | NonUniqueResultException e)
 			{
 				LOG.error("Fout bij verwerken van koppel data regel ", e);
-				throwError(String.format(KoppelConstants.COLON_ONBEKENDE_FOUT, verzondenUitnodiging.getID(), StringUtils.defaultIfBlank(ifobtBarcodeGold, "<geen>"),
-					StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), StringUtils.defaultIfBlank(trackTraceId, "<geen>"), e.getMessage()));
+				var melding = String.format(KoppelConstants.COLON_ONBEKENDE_FOUT, verzondenUitnodiging.getID(), StringUtils.defaultIfBlank(ifobtBarcodeGold, "<geen>"),
+					StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), StringUtils.defaultIfBlank(trackTraceId, "<geen>"), e.getMessage());
+				logEvent.setLevel(Level.ERROR);
+				logEvent.setMelding(melding);
+				throw new IllegalStateException(melding);
 			}
 		}
 	}
@@ -183,14 +186,6 @@ public class IFobtKoppelWriter implements ItemWriter<VERZONDENUITNODIGING>
 			}
 			hibernateService.saveOrUpdate(test);
 		}
-	}
-
-	private void throwError(String melding)
-	{
-		LOG.error(melding);
-		logEvent.setLevel(Level.ERROR);
-		logEvent.setMelding(melding);
-		throw new IllegalStateException(melding);
 	}
 
 	private String getMatchingFieldValue(VERZONDENUITNODIGING verzondenUitnodiging, String matchingFieldName, boolean required)

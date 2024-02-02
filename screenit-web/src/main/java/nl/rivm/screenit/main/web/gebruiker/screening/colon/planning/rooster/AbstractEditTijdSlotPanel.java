@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.rooster;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -79,8 +79,6 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.validator.DateValidator;
 import org.hibernate.Hibernate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.support.PropertyComparator;
 import org.wicketstuff.wiquery.core.javascript.JsQuery;
 import org.wicketstuff.wiquery.core.javascript.JsStatement;
@@ -89,8 +87,6 @@ import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 public abstract class AbstractEditTijdSlotPanel<T extends AbstractAppointment> extends GenericPanel<T>
 {
 	private static final long serialVersionUID = 1L;
-
-	private static final Logger LOG = LoggerFactory.getLogger(AbstractEditTijdSlotPanel.class);
 
 	@SpringBean
 	private RecurrenceService recurrenceService;
@@ -236,7 +232,7 @@ public abstract class AbstractEditTijdSlotPanel<T extends AbstractAppointment> e
 				}
 				catch (OpslaanVerwijderenTijdBlokException ex)
 				{
-					error(getString(ex.getMessage()));
+					error(getString(ex.getMessage()) + " " + ex.getAdditionalMessageInfo());
 				}
 			}
 

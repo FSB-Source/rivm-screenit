@@ -4,7 +4,7 @@ package nl.rivm.screenit.repository.algemeen;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,14 +31,11 @@ import nl.rivm.screenit.model.nieuws.GebruikerNieuwsItem;
 import nl.rivm.screenit.model.nieuws.GebruikerNieuwsItem_;
 import nl.rivm.screenit.model.nieuws.NieuwsItem;
 import nl.rivm.screenit.model.nieuws.NieuwsItem_;
+import nl.rivm.screenit.repository.BaseJpaRepository;
 
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.stereotype.Repository;
 
-@Repository
-public interface NieuwsRepository extends JpaRepository<NieuwsItem, Long>, JpaSpecificationExecutor<NieuwsItem>
+public interface NieuwsRepository extends BaseJpaRepository<NieuwsItem>
 {
 
 	static Specification<NieuwsItem> baseSpecification()

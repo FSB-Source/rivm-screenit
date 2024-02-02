@@ -1,10 +1,10 @@
-package nl.rivm.screenit.main.service.colon.impl;
+package nl.rivm.screenit.main.service.cervix.impl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,36 +21,34 @@ package nl.rivm.screenit.main.service.colon.impl;
  * =========================LICENSE_END==================================
  */
 
+import nl.rivm.screenit.main.dto.cervix.GekoppeldeUitstrijkendArtsZoekObject;
 import nl.rivm.screenit.main.service.RepositoryDataProviderService;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.repository.cervix.CervixHuisartsLocatieRepository;
-import nl.rivm.screenit.service.cervix.CervixHuisartsLocatieFilter;
 
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import static nl.rivm.screenit.specification.cervix.CervixHuisartsLocatieSpecification.filterHuisartsMetAgbCodeContaining;
-import static nl.rivm.screenit.specification.cervix.CervixHuisartsLocatieSpecification.filterOpAchternaamMedewerkerContaining;
-import static nl.rivm.screenit.specification.cervix.CervixHuisartsLocatieSpecification.filterOpLocatieNaamContaining;
-import static nl.rivm.screenit.specification.cervix.CervixHuisartsLocatieSpecification.filterOpPlaatsContaining;
-import static nl.rivm.screenit.specification.cervix.CervixHuisartsLocatieSpecification.filterOpPostcodeContaining;
-import static nl.rivm.screenit.specification.cervix.CervixHuisartsLocatieSpecification.filterOpStraat;
+import static nl.rivm.screenit.specification.cervix.CervixHuisartsLocatieSpecification.filterMutatieSoortIn;
 import static nl.rivm.screenit.specification.cervix.CervixHuisartsLocatieSpecification.heeftGeregistreerdeHuisarts;
 import static nl.rivm.screenit.specification.cervix.CervixHuisartsLocatieSpecification.isVolledig;
+import static nl.rivm.screenit.specification.cervix.CervixHuisartsLocatieSpecification.valtBinnenGemeentes;
+import static nl.rivm.screenit.specification.cervix.CervixHuisartsLocatieSpecification.valtBinnenMutatieDatum;
 
-@Service
-public class CervixHuisartsLocatieDataProviderService extends RepositoryDataProviderService<CervixHuisartsLocatie, CervixHuisartsLocatieRepository, CervixHuisartsLocatieFilter>
+@Service("gekoppeldeUitstrijkendArtsenDataProviderService")
+public class GekoppeldeUitstrijkendArtsenDataProviderServiceImpl
+	extends RepositoryDataProviderService<CervixHuisartsLocatie, CervixHuisartsLocatieRepository, GekoppeldeUitstrijkendArtsZoekObject>
+
 {
 	@Override
-	protected Specification<CervixHuisartsLocatie> getSpecification(CervixHuisartsLocatieFilter filter)
+	protected Specification<CervixHuisartsLocatie> getSpecification(GekoppeldeUitstrijkendArtsZoekObject zoekObject)
 	{
-		return filterOpAchternaamMedewerkerContaining(filter.getAchternaam())
-			.and(filterHuisartsMetAgbCodeContaining(filter.getAgbcode()))
-			.and(filterOpLocatieNaamContaining(filter.getLocatieNaam()))
-			.and(filterOpPostcodeContaining(filter.getPostcode()))
-			.and(filterOpPlaatsContaining(filter.getPlaats()))
-			.and(filterOpStraat(filter.getStraat()))
-			.and(isVolledig())
-			.and(heeftGeregistreerdeHuisarts());
+		return heeftGeregistreerdeHuisarts()
+			.and(valtBinnenGemeentes(zoekObject.getGemeentes()))
+			.and(filterMutatieSoortIn(zoekObject.getMutatieSoorten()))
+			.and(valtBinnenMutatieDatum(zoekObject.getMutatieDatumVanaf(), zoekObject.getMutatieDatumTotEnMet()))
+			.and(filterHuisartsMetAgbCodeContaining(zoekObject.getAgbCode()))
+			.and(isVolledig());
 	}
 }

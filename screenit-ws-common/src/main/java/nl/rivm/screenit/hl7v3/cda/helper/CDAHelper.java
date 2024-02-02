@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.hl7v3.cda.helper;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-ws-common
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,6 +32,8 @@ import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.hl7v3.cda.ClinicalDocument;
 import nl.rivm.screenit.hl7v3.cda.EN;
 import nl.rivm.screenit.hl7v3.cda.II;
@@ -45,13 +46,10 @@ import nl.rivm.screenit.hl7v3.cda.POCDMT000040ServiceEvent;
 import nl.rivm.screenit.hl7v3.cda.ST;
 
 import org.apache.commons.beanutils.PropertyUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class CDAHelper
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(CDAHelper.class);
 
 	private CDAHelper()
 	{
@@ -232,8 +230,8 @@ public class CDAHelper
 
 	public static <T> List<T> getAllValues(Object root, String path)
 	{
-		List<T> values = new ArrayList<>();
-		if (root != null && path != null && path.trim().length() > 0)
+		var values = new ArrayList<T>();
+		if (root != null && path != null && !path.trim().isEmpty())
 		{
 			getValueFromChild(root, new ArrayList<String>(Arrays.asList(path.split(":"))), values);
 		}

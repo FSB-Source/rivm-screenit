@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.services.impl;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,9 +23,10 @@ package nl.rivm.screenit.mamma.se.proxy.services.impl;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.mamma.se.proxy.model.AutorisatieDto;
 import nl.rivm.screenit.mamma.se.proxy.model.LogischeSessie;
@@ -33,8 +34,6 @@ import nl.rivm.screenit.mamma.se.proxy.model.NavigatieDto;
 import nl.rivm.screenit.mamma.se.proxy.services.LogischeSessieService;
 import nl.rivm.screenit.mamma.se.proxy.util.DateUtil;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -42,15 +41,14 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
+@Slf4j
 public class LogischeSessieServiceImpl implements LogischeSessieService
 {
-	private Map<String, LogischeSessie> logischeSessies = new ConcurrentHashMap<>();
+	private final Map<String, LogischeSessie> logischeSessies = new ConcurrentHashMap<>();
 
 	private static final int HALF_UUR = 30 * 60 * 1000;
 
 	private final ObjectMapper objectMapper = new ObjectMapper();
-
-	private static final Logger LOG = LoggerFactory.getLogger(LogischeSessieService.class);
 
 	@Value("${DISABLE_NFC_AUTHENTICATION:#{false}}")
 	private boolean disableNFCAuthentication;
@@ -90,15 +88,15 @@ public class LogischeSessieServiceImpl implements LogischeSessieService
 	@Override
 	public boolean isVerlopen(LogischeSessie logischeSessie)
 	{
-		LocalDateTime laatsteUpdate = logischeSessie.getLaatsteUpdate();
-		Duration duration = Duration.between(laatsteUpdate, DateUtil.getCurrentDateTime());
+		var laatsteUpdate = logischeSessie.getLaatsteUpdate();
+		var duration = Duration.between(laatsteUpdate, DateUtil.getCurrentDateTime());
 		return duration.toMillis() > HALF_UUR || duration.toMillis() < 0;
 	}
 
 	@Override
 	public boolean geldigeYubikey(String yubikeyIdentificatie)
 	{
-		LogischeSessie logischeSessie = getLogischeSessieMetIdentificatie(yubikeyIdentificatie);
+		var logischeSessie = getLogischeSessieMetIdentificatie(yubikeyIdentificatie);
 		return disableNFCAuthentication || (logischeSessie != null && !isVerlopen(logischeSessie));
 	}
 
@@ -110,24 +108,23 @@ public class LogischeSessieServiceImpl implements LogischeSessieService
 
 	private void putNavigatieInLoginAntwoord(LogischeSessie logischeSessie, NavigatieDto navigatie)
 	{
-		ResponseEntity loginAntwoord = logischeSessie.getLoginAntwoord();
+		var loginAntwoord = logischeSessie.getLoginAntwoord();
 		try
 		{
-			AutorisatieDto autorisatieDto = objectMapper.readValue(logischeSessie.getLoginAntwoord().getBody(), AutorisatieDto.class);
+			var autorisatieDto = objectMapper.readValue(logischeSessie.getLoginAntwoord().getBody(), AutorisatieDto.class);
 			autorisatieDto.setNavigatie(objectMapper.writeValueAsString(navigatie));
-			String newAutorisatieDto = objectMapper.writeValueAsString(autorisatieDto).replace("navigatieType", "type");
+			var newAutorisatieDto = objectMapper.writeValueAsString(autorisatieDto).replace("navigatieType", "type");
 			logischeSessie.setLoginAntwoord(ResponseEntity.status(loginAntwoord.getStatusCode()).headers(loginAntwoord.getHeaders()).body(newAutorisatieDto));
 		}
 		catch (IOException ex)
 		{
-			LOG.warn(ex.getMessage());
-			LOG.warn("Kon oorsponkelijk login antwoord niet parsen: " + logischeSessie.getLoginAntwoord().getBody());
+			LOG.warn("Kon oorspronkelijke login antwoord niet parsen", ex);
 		}
 	}
 
 	private void logLogischeSessieWijziging(String methode, LogischeSessie logischeSessie)
 	{
-		String loginAntwoordHttpStatusCode = logischeSessie.getLoginAntwoord() != null ? String.valueOf(logischeSessie.getLoginAntwoord().getStatusCodeValue()) : "null";
+		var loginAntwoordHttpStatusCode = logischeSessie.getLoginAntwoord() != null ? String.valueOf(logischeSessie.getLoginAntwoord().getStatusCodeValue()) : "null";
 		LOG.info("logische sessie {}: {}, {}", methode, logischeSessie.getYubikeyIdentificatie(), loginAntwoordHttpStatusCode);
 	}
 }

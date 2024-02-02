@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.exception;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -20,6 +20,9 @@ package nl.rivm.screenit.main.exception;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
+
+import java.io.IOException;
+import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +57,27 @@ public class GlobalExceptionHandler
 		return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(node.toString());
 	}
 
+	@ExceptionHandler(BeperkingException.class)
+	public ResponseEntity<String> handleBeperkingException(BeperkingException ex) throws IOException
+	{
+		var messages = ex.getExceptions().stream().map(exception ->
+		{
+			var message = getString(exception.getMessageKey());
+			if (exception.getFormatArguments() != null)
+			{
+				message = String.format(message, exception.getFormatArguments()[0]);
+			}
+			return message;
+		}).collect(
+			Collectors.toList());
+		messages.forEach(LOG::error);
+		var messagesArrayNode = objectMapper.valueToTree(messages);
+		var node = objectMapper.createObjectNode();
+		node.set("messages", messagesArrayNode);
+		node.put("beperkingType", ex.getBeperkingType().toString());
+		return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(objectMapper.writeValueAsString(node));
+	}
+
 	@ExceptionHandler(OpslaanVerwijderenTijdBlokException.class)
 	public ResponseEntity<String> handleTijdBlokOverlapException(OpslaanVerwijderenTijdBlokException ex)
 	{
@@ -86,6 +110,5 @@ public class GlobalExceptionHandler
 	private String getString(String key)
 	{
 		return Application.get().getResourceSettings().getLocalizer().getString(key, null);
-
 	}
 }

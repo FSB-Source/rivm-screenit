@@ -4,7 +4,7 @@ package nl.rivm.screenit.wsb.fhir.provider.dstu3.v1;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -43,7 +43,7 @@ import nl.rivm.screenit.wsb.fhir.resource.dstu3.v1.LabaanvraagBundle;
 import nl.rivm.screenit.wsb.fhir.validator.LabaanvraagValidator;
 import nl.rivm.screenit.wsb.fhir.validator.ValidationMessage;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.exception.GenericJDBCException;
@@ -81,12 +81,12 @@ public class BundleProvider extends BaseResourceProvider
 
 	public BundleProvider()
 	{
-		clientService = SpringBeanProvider.getInstance().getBean(ClientService.class);
-		hibernateService = SpringBeanProvider.getInstance().getBean(HibernateService.class);
-		logService = SpringBeanProvider.getInstance().getBean(LogService.class);
-		dashboardService = SpringBeanProvider.getInstance().getBean(DashboardService.class);
-		labformulierService = SpringBeanProvider.getInstance().getBean(CervixLabformulierService.class);
-		fqdnProvider = SpringBeanProvider.getInstance().getBean(FQDNProvider.class);
+		clientService = ApplicationContextProvider.getApplicationContext().getBean(ClientService.class);
+		hibernateService = ApplicationContextProvider.getApplicationContext().getBean(HibernateService.class);
+		logService = ApplicationContextProvider.getApplicationContext().getBean(LogService.class);
+		dashboardService = ApplicationContextProvider.getApplicationContext().getBean(DashboardService.class);
+		labformulierService = ApplicationContextProvider.getApplicationContext().getBean(CervixLabformulierService.class);
+		fqdnProvider = ApplicationContextProvider.getApplicationContext().getBean(FQDNProvider.class);
 	}
 
 	@Override
@@ -107,7 +107,7 @@ public class BundleProvider extends BaseResourceProvider
 			if (result.isSuccessful()) 
 			{
 				LabaanvraagValidator labAanvraagValidator = new LabaanvraagValidator();
-				if (labAanvraagValidator.validate(bundle).isSuccesful()) 
+				if (labAanvraagValidator.validate(bundle).isSuccesvol()) 
 				{
 					try
 					{

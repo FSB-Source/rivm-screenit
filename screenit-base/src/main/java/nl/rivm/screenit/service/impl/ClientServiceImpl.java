@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -42,7 +42,6 @@ import nl.rivm.screenit.model.Dossier;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.RedenGbaVraag;
 import nl.rivm.screenit.model.TijdelijkAdres;
 import nl.rivm.screenit.model.TijdelijkGbaAdres;
 import nl.rivm.screenit.model.UploadDocument;
@@ -54,9 +53,7 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.GbaStatus;
-import nl.rivm.screenit.model.enums.GbaVraagType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
-import nl.rivm.screenit.model.gba.GbaVraag;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
@@ -415,34 +412,6 @@ public class ClientServiceImpl implements ClientService
 	public boolean clientHeeftGbaIndicatie(Client client)
 	{
 		return client != null && client.getPersoon() != null && GbaStatus.INDICATIE_AANWEZIG == client.getGbaStatus();
-	}
-
-	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
-	public GbaVraag vraagGbaGegevensOpnieuwAan(Client client, Account account, RedenGbaVraag reden)
-	{
-		GbaVraag gbaVraag = new GbaVraag();
-		gbaVraag.setClient(client);
-		gbaVraag.setDatum(currentDateSupplier.getLocalDateTime());
-		gbaVraag.setVraagType(GbaVraagType.VERWIJDER_INDICATIE);
-		gbaVraag.setReden(reden);
-		gbaVraag.setReactieOntvangen(false);
-
-		hibernateService.saveOrUpdate(gbaVraag);
-
-		client.setGbaStatus(GbaStatus.INDICATIE_VERWIJDERD);
-		hibernateService.saveOrUpdate(client);
-		String melding = "Reden: ";
-		if (account != null)
-		{
-			melding += reden.getNaam();
-		}
-		else
-		{
-			melding += "Retourzending";
-		}
-		logService.logGebeurtenis(LogGebeurtenis.GBA_GEGEVENS_OPNIEUW_AANGEVRAAGD, getScreeningOrganisatieVan(client), account, client, melding);
-		return gbaVraag;
 	}
 
 	@Override

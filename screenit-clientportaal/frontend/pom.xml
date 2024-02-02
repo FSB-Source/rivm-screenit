@@ -3,7 +3,7 @@
   ========================LICENSE_START=================================
   screenit-clientportaal
   %%
-  Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -46,7 +46,7 @@
                         <goals>
                             <goal>install-node-and-yarn</goal>
                         </goals>
-                        <phase>test</phase>
+                        <phase>generate-resources</phase>
                         <configuration>
                             <nodeVersion>${binary.node.version}</nodeVersion>
                             <yarnVersion>${binary.yarn.version}</yarnVersion>
@@ -57,7 +57,7 @@
                         <goals>
                             <goal>yarn</goal>
                         </goals>
-                        <phase>test</phase>
+                        <phase>generate-resources</phase>
                         <configuration>
                             <arguments>install --frozen-lockfile</arguments>
                         </configuration>

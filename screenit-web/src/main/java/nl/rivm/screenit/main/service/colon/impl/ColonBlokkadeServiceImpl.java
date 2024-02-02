@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -88,7 +88,7 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 		var dbBlokkade = new ColonBlokkade();
 		var blokkade = converteerBlokkade(blokkadeDto, intakelocatie, dbBlokkade);
 
-		valideerBlokkade(blokkade, blokkadeDto.getAlleKamers(), intakelocatie);
+		valideerBlokkade(blokkade, blokkadeDto.getAlleKamers(), intakelocatie, false);
 
 		var transformedBlokkades = splitBlokkade(blokkade, blokkadeDto.getAlleKamers(), intakelocatie);
 		for (var transformedBlokkade : transformedBlokkades)
@@ -98,11 +98,11 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 		logAction(blokkade, instellingGebruiker, intakelocatie, null, LogGebeurtenis.COLON_BLOKKADES_NIEUW);
 	}
 
-	private void valideerBlokkade(ColonBlokkade blokkade, boolean alleKamers, ColoscopieCentrum intakelocatie) throws ValidatieException, OpslaanVerwijderenTijdBlokException
+	private void valideerBlokkade(ColonBlokkade blokkade, boolean alleKamers, ColoscopieCentrum intakelocatie, boolean wijzigen) throws ValidatieException, OpslaanVerwijderenTijdBlokException
 	{
 		roosterService.valideerTijdslot(blokkade);
 		heeftOverlappendeBlokkades(blokkade, null, null, null, true);
-		roosterService.magBlokkadeOpslaanVerwijderen(blokkade, null, null, null, false, getBlokkadeKamers(blokkade, alleKamers, intakelocatie));
+		roosterService.magBlokkadeOpslaanVerwijderen(blokkade, null, null, null, wijzigen, getBlokkadeKamers(blokkade, alleKamers, intakelocatie));
 	}
 
 	private void heeftOverlappendeBlokkades(ColonBlokkade blokkade, RecurrenceOption recurrenceOption, Date recurrenceEditEnd,
@@ -203,6 +203,26 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 			}
 		}
 		return list;
+	}
+
+	@Override
+	@Transactional
+	public void updateBlokkade(ColonBlokkadeDto blokkadeDto, InstellingGebruiker loggedInInstellingGebruiker)
+		throws OpslaanVerwijderenTijdBlokException, ValidatieException
+	{
+		var blokkadeId = blokkadeDto.getId();
+		var intakelocatie = roosterService.getIntakelocatieVanInstellingGebruiker(loggedInInstellingGebruiker);
+		var blokkade = getBlokkade(blokkadeId).orElseThrow(() -> new IllegalStateException("Blokkade kan niet worden gevonden"));
+
+		var originalBlokkade = blokkade.transientClone();
+		var validateBlokkade = blokkade.transientClone();
+		validateBlokkade.setId(blokkadeId);
+		converteerBlokkade(blokkadeDto, intakelocatie, validateBlokkade);
+		valideerBlokkade(validateBlokkade, blokkadeDto.getAlleKamers(), intakelocatie, true);
+
+		converteerBlokkade(blokkadeDto, intakelocatie, blokkade);
+		logAction(blokkade, loggedInInstellingGebruiker, intakelocatie, originalBlokkade, LogGebeurtenis.COLON_BLOKKADES_WIJZIG);
+		blokkadeRepository.save(blokkade);
 	}
 
 	@Override

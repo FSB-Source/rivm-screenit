@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.project;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -72,18 +72,18 @@ public class ProjectGroep extends AbstractHibernateObject implements INaam, IAct
 	private GroepInvoer groepInvoer;
 
 	@NotAudited
-	@OneToOne(fetch = FetchType.LAZY, mappedBy = "groep")
+	@OneToOne(fetch = FetchType.LAZY, mappedBy = "groep", cascade = javax.persistence.CascadeType.REMOVE)
 	@Cascade(CascadeType.DELETE)
 	private ProjectImport projectImport;
 
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "groep")
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "groep", cascade = javax.persistence.CascadeType.REMOVE)
 	@Cascade(CascadeType.DELETE)
 	private List<ProjectBestand> projectBestanden = new ArrayList<>();
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	private Project project;
 
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "groep")
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "groep", cascade = javax.persistence.CascadeType.REMOVE)
 	@Cascade(CascadeType.DELETE)
 	private List<ProjectClient> clienten = new ArrayList<>();
 

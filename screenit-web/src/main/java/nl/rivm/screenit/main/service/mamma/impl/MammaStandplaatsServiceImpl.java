@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -70,7 +70,7 @@ import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5SessionInThread;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -366,7 +366,7 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public MammaStandplaats getStandplaatsMetPostcode(Client client)
 	{
-		String postcode = SpringBeanProvider.getInstance().getBean(ClientService.class).getGbaPostcode(client);
+		String postcode = ApplicationContextProvider.getApplicationContext().getBean(ClientService.class).getGbaPostcode(client);
 		if (StringUtils.isNotBlank(postcode))
 		{
 			return standplaatsDao.getStandplaatsMetPostcode(postcode);

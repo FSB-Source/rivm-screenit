@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.be.verslag;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -37,7 +37,7 @@ import nl.rivm.screenit.service.mamma.MammaBaseAfbeeldingService;
 import nl.rivm.screenit.service.mamma.MammaBaseLaesieService;
 import nl.rivm.screenit.service.mamma.MammaBaseLezingService;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -65,9 +65,9 @@ public class MammaVerslagDocumentCreator extends BaseDocumentCreator
 
 	public MammaVerslagDocumentCreator(MammaLezing verslagLezing)
 	{
-		afbeeldingService = SpringBeanProvider.getInstance().getBean(MammaBaseAfbeeldingService.class);
-		laesieService = SpringBeanProvider.getInstance().getBean(MammaBaseLaesieService.class);
-		baseLezingService = SpringBeanProvider.getInstance().getBean(MammaBaseLezingService.class);
+		afbeeldingService = ApplicationContextProvider.getApplicationContext().getBean(MammaBaseAfbeeldingService.class);
+		laesieService = ApplicationContextProvider.getApplicationContext().getBean(MammaBaseLaesieService.class);
+		baseLezingService = ApplicationContextProvider.getApplicationContext().getBean(MammaBaseLezingService.class);
 		this.verslagLezing = (MammaLezing) HibernateHelper.deproxy(verslagLezing);
 		if (verslagLezing != null)
 		{

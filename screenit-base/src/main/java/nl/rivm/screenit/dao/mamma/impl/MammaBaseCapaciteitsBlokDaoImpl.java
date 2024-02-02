@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -165,11 +165,11 @@ public class MammaBaseCapaciteitsBlokDaoImpl extends AbstractAutowiredDao implem
 			{
 				if (capaciteitBlokDto != null)
 				{
-					vorigeAfspraakDto.tot = afspraakVanaf.toLocalTime();
+					vorigeAfspraakDto.setTot(afspraakVanaf.toLocalTime());
 				}
 				else if (vorigeCapaciteitBlokDto != null)
 				{
-					vorigeAfspraakDto.tot = vorigeCapaciteitBlokDto.tot;
+					vorigeAfspraakDto.setTot(vorigeCapaciteitBlokDto.tot);
 				}
 			}
 			if (capaciteitBlokDto == null)
@@ -183,6 +183,7 @@ public class MammaBaseCapaciteitsBlokDaoImpl extends AbstractAutowiredDao implem
 				capaciteitBlokDto.minderValideAfspraakMogelijk = (Boolean) rowItems[10];
 				BigDecimal aantalOnderzoeken = new BigDecimal(capaciteitBlokDto.aantalOnderzoeken);
 				capaciteitBlokDto.beschikbareCapaciteit = aantalOnderzoeken.multiply(capaciteitBlokDto.blokType.getFactorType().getFactor(screeningOrganisatie));
+				capaciteitBlokDto.standplaatsPeriode = standplaatsPeriode;
 				capaciteitBlokDtoMap.put(capaciteitBlokId, capaciteitBlokDto);
 				vorigeAfspraakDto = null;
 				vorigeCapaciteitBlokDto = capaciteitBlokDto;
@@ -195,20 +196,21 @@ public class MammaBaseCapaciteitsBlokDaoImpl extends AbstractAutowiredDao implem
 				BigDecimal opkomstkans = (BigDecimal) rowItems[5];
 				BigDecimal factor = MammaFactorType.getFactorType(tehuisId != null, doelgroep, eersteOnderzoek).getFactor(screeningOrganisatie);
 				MammaAfspraakDto afspraakDto = new MammaAfspraakDto();
-				afspraakDto.capaciteitBlokDto = capaciteitBlokDto;
-				afspraakDto.vanaf = afspraakVanaf;
-				afspraakDto.benodigdeCapaciteit = factor.multiply(opkomstkans);
-				afspraakDto.minderValide = doelgroep.equals(MammaDoelgroep.MINDER_VALIDE);
+				afspraakDto.setCapaciteitBlokDto(capaciteitBlokDto);
+				afspraakDto.setVanaf(afspraakVanaf);
+				afspraakDto.setBenodigdeCapaciteit(factor.multiply(opkomstkans));
+				afspraakDto.setMinderValide(doelgroep.equals(MammaDoelgroep.MINDER_VALIDE));
+				afspraakDto.setDubbeleTijd(doelgroep.equals(MammaDoelgroep.DUBBELE_TIJD));
 				capaciteitBlokDto.afspraakDtos.add(afspraakDto);
 				vorigeAfspraakDto = afspraakDto;
 			}
-			BigDecimal benodigdeCapaciteit = capaciteitBlokDto.afspraakDtos.stream().map(a -> a.benodigdeCapaciteit).reduce(BigDecimal.ZERO,
+			BigDecimal benodigdeCapaciteit = capaciteitBlokDto.afspraakDtos.stream().map(MammaAfspraakDto::getBenodigdeCapaciteit).reduce(BigDecimal.ZERO,
 				BigDecimal::add);
 			capaciteitBlokDto.vrijeCapaciteit = capaciteitBlokDto.beschikbareCapaciteit.subtract(benodigdeCapaciteit);
 		}
 		if (vorigeAfspraakDto != null && vorigeCapaciteitBlokDto != null)
 		{
-			vorigeAfspraakDto.tot = vorigeCapaciteitBlokDto.tot;
+			vorigeAfspraakDto.setTot(vorigeCapaciteitBlokDto.tot);
 		}
 		return capaciteitBlokDtoMap.values();
 	}

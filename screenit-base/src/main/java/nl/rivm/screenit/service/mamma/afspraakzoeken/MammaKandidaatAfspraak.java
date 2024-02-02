@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.afspraakzoeken;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -59,6 +59,8 @@ public class MammaKandidaatAfspraak extends MammaRationaal
 	@Getter
 	private final boolean minderValide;
 
+	private final boolean dubbeleTijd;
+
 	@Getter
 	private final LocalDate datum;
 
@@ -71,21 +73,29 @@ public class MammaKandidaatAfspraak extends MammaRationaal
 	@Setter
 	private boolean geldigeAfspraak;
 
-	private boolean afgesplitsteAfsprakenZijnOngeldig;
+	private boolean afgesplitsteKandidatenZijnOngeldig;
 
-	public MammaKandidaatAfspraak(MammaCapaciteitBlokDto capaciteitBlok, LocalTime minimaleAfspraakVanaf, LocalTime maximaleAfspraakTot, LocalDate datum, LocalTime vanaf,
-		LocalTime tot, BigDecimal benodigdeCapaciteit, MammaScreeningsEenheidDto screeningsEenheid, boolean minderValide)
+	public MammaKandidaatAfspraak(MammaCapaciteitBlokDto capaciteitBlok, TimeRange mogelijkeAfspraakPeriode, TimeRange afspraakPeriode, BigDecimal benodigdeCapaciteit,
+		MammaScreeningsEenheidDto screeningsEenheid, boolean minderValide, boolean dubbeleTijd)
 	{
-		this.capaciteitBlokDto = capaciteitBlok;
-		this.minimaleAfspraakVanaf = minimaleAfspraakVanaf;
-		this.maximaleAfspraakTot = maximaleAfspraakTot;
-		this.datum = datum;
-		this.vanaf = vanaf;
-		this.tot = tot.isAfter(maximaleAfspraakTot) ? maximaleAfspraakTot : tot;
+		capaciteitBlokDto = capaciteitBlok;
+		minimaleAfspraakVanaf = mogelijkeAfspraakPeriode.getVanaf();
+		maximaleAfspraakTot = mogelijkeAfspraakPeriode.getTot();
+		datum = capaciteitBlok.vanaf.toLocalDate();
+		vanaf = afspraakPeriode.getVanaf();
+		tot = afspraakPeriode.getTot().isAfter(mogelijkeAfspraakPeriode.getTot()) ? mogelijkeAfspraakPeriode.getTot() : afspraakPeriode.getTot();
 		this.minderValide = minderValide;
+		this.dubbeleTijd = dubbeleTijd;
 		this.benodigdeCapaciteit = benodigdeCapaciteit;
-		this.screeningsEenheidDto = screeningsEenheid;
-		this.geldigeAfspraak = !minderValide || geldigeDuurEnPeriodeVoorMindervalideAfspraak(vanaf, tot);
+		screeningsEenheidDto = screeningsEenheid;
+		geldigeAfspraak = geldigeDuurEnPeriode(vanaf, tot);
+	}
+
+	private boolean geldigeDuurEnPeriode(LocalTime vanaf, LocalTime tot)
+	{
+		return tot.isAfter(vanaf) 
+			&& (!minderValide || geldigeDuurEnPeriodeVoorMindervalideAfspraak(vanaf, tot))
+			&& (!dubbeleTijd || geldigeDuurVoorDubbeleTijdAfspraak(vanaf, tot));
 	}
 
 	private BigDecimal getDuurInSeconden()
@@ -93,7 +103,8 @@ public class MammaKandidaatAfspraak extends MammaRationaal
 		return BigDecimal.valueOf(Duration.between(vanaf, tot).getSeconds());
 	}
 
-	public MammaKandidaatAfspraak splitsNieuweKandidaatAfspraak(BigDecimal nieuweBenodigdeCapaciteit, BigDecimal nieuweFactor, boolean nieuweKandidaatIsMinderValide)
+	public MammaKandidaatAfspraak splitsNieuweKandidaatAfspraak(BigDecimal nieuweBenodigdeCapaciteit, BigDecimal nieuweFactor, boolean nieuweKandidaatIsMinderValide,
+		boolean nieuweKandidaatIsDubbeleTijd)
 	{
 		MammaKandidaatAfspraak nieuweKandidaat;
 
@@ -103,21 +114,23 @@ public class MammaKandidaatAfspraak extends MammaRationaal
 			var maximaleBegintijdInBlok = maximaleBegintijdInBlok(nieuweFactor);
 			if (maximaleBegintijdInBlok.isBefore(nieuweOnafgerondeVanaf))
 			{
-				nieuweKandidaat = maakNieuweKandidaat(maximaleBegintijdInBlok, nieuweBenodigdeCapaciteit, nieuweKandidaatIsMinderValide);
+				nieuweKandidaat = maakNieuweKandidaat(maximaleBegintijdInBlok, nieuweBenodigdeCapaciteit, nieuweKandidaatIsMinderValide, nieuweKandidaatIsDubbeleTijd);
 			}
 			else
 			{
-				nieuweKandidaat = maakNieuweKandidaatInPassendTijdvak(nieuweOnafgerondeVanaf, nieuweBenodigdeCapaciteit, nieuweKandidaatIsMinderValide);
+				nieuweKandidaat = maakNieuweKandidaatInPassendTijdvak(nieuweOnafgerondeVanaf, nieuweBenodigdeCapaciteit, nieuweKandidaatIsMinderValide,
+					nieuweKandidaatIsDubbeleTijd);
 			}
 		}
 		else
 		{
-			nieuweKandidaat = maakNieuweKandidaatInKleinstMogelijkeTijdvak(nieuweBenodigdeCapaciteit, nieuweKandidaatIsMinderValide);
+			nieuweKandidaat = maakNieuweKandidaatInKleinstMogelijkeTijdvak(nieuweBenodigdeCapaciteit, nieuweKandidaatIsMinderValide, nieuweKandidaatIsDubbeleTijd);
 		}
 
-		LOG.debug("Kandidaatafspraak {}-{} MV={}, geldig={}, afgesplitsteOngeldig={} gesplitst naar {}-{}, MV={}, geldig={}, afgesplitsteOngeldig={}",
-			vanaf, tot, minderValide, geldigeAfspraak, afgesplitsteAfsprakenZijnOngeldig, nieuweKandidaat.vanaf, nieuweKandidaat.tot, nieuweKandidaat.minderValide,
-			nieuweKandidaat.geldigeAfspraak, nieuweKandidaat.afgesplitsteAfsprakenZijnOngeldig);
+		LOG.debug(
+			"Kandidaatafspraak {}-{} MV={}, DT={}, geldig={}, afgesplitsteOngeldig={} gesplitst naar {}-{}, MV={}, DT={}, geldig={}, afgesplitsteOngeldig={}, capaciteitBlokId={}",
+			vanaf, tot, minderValide, dubbeleTijd, geldigeAfspraak, afgesplitsteKandidatenZijnOngeldig, nieuweKandidaat.vanaf, nieuweKandidaat.tot, nieuweKandidaat.minderValide,
+			nieuweKandidaat.dubbeleTijd, nieuweKandidaat.geldigeAfspraak, nieuweKandidaat.afgesplitsteKandidatenZijnOngeldig, capaciteitBlokDto.id);
 
 		tot = nieuweKandidaat.vanaf;
 		return nieuweKandidaat;
@@ -141,33 +154,41 @@ public class MammaKandidaatAfspraak extends MammaRationaal
 		return maximaleBegintijdInBlok;
 	}
 
-	private MammaKandidaatAfspraak maakNieuweKandidaat(LocalTime nieuweVanaf, BigDecimal nieuweBenodigdeCapaciteit, boolean nieuweIsMinderValide)
+	private MammaKandidaatAfspraak maakNieuweKandidaat(LocalTime nieuweVanaf, BigDecimal nieuweBenodigdeCapaciteit, boolean nieuweIsMinderValide, boolean nieuwIsDubbeleTijd)
 	{
-		var nieuweKandidaat = new MammaKandidaatAfspraak(capaciteitBlokDto, minimaleAfspraakVanaf, maximaleAfspraakTot, datum, nieuweVanaf, this.tot, nieuweBenodigdeCapaciteit,
-			screeningsEenheidDto, nieuweIsMinderValide);
-		nieuweKandidaat.geldigeAfspraak &= !afgesplitsteAfsprakenZijnOngeldig;
-		controleerDatNieuweMindervalideOptieNietGelijkvaltMetBestaandeAfspraak(nieuweKandidaat);
-		controleerDatBestaandeMindervalideAfspraakGeldigBlijft(nieuweKandidaat);
-		nieuweKandidaat.geldigeAfspraak &= maximaleAfspraakTot.isAfter(nieuweKandidaat.vanaf); 
+		var nieuweKandidaat = new MammaKandidaatAfspraak(capaciteitBlokDto, TimeRange.of(minimaleAfspraakVanaf, maximaleAfspraakTot),
+			TimeRange.of(nieuweVanaf, tot), nieuweBenodigdeCapaciteit, screeningsEenheidDto, nieuweIsMinderValide, nieuwIsDubbeleTijd);
+		controleerDatNieuweOptieVoorEindtijdBlokBegint(nieuweKandidaat);
+		controleerDatNieuweMinderValideOfDubbeleTijdOptieNietGelijkValtMetBestaandeAfspraak(nieuweKandidaat);
+		controleerDatBestaandeAfspraakGeldigBlijft(nieuweKandidaat);
 		return nieuweKandidaat;
 	}
 
-	private void controleerDatNieuweMindervalideOptieNietGelijkvaltMetBestaandeAfspraak(MammaKandidaatAfspraak nieuweKandidaat)
+	private void controleerDatNieuweOptieVoorEindtijdBlokBegint(MammaKandidaatAfspraak nieuweKandidaat)
 	{
-		if (nieuweKandidaat.minderValide && screeningsEenheidDto.isEnkeleMammograaf())
+		nieuweKandidaat.geldigeAfspraak &= maximaleAfspraakTot.isAfter(nieuweKandidaat.vanaf);
+	}
+
+	private void controleerDatNieuweMinderValideOfDubbeleTijdOptieNietGelijkValtMetBestaandeAfspraak(MammaKandidaatAfspraak nieuweKandidaat)
+	{
+		if (screeningsEenheidDto.isEnkeleMammograaf() && (nieuweKandidaat.minderValide || nieuweKandidaat.dubbeleTijd))
 		{
 			nieuweKandidaat.geldigeAfspraak &= nieuweKandidaat.vanaf.isAfter(vanaf);
 		}
 	}
 
-	private void controleerDatBestaandeMindervalideAfspraakGeldigBlijft(MammaKandidaatAfspraak nieuweKandidaat)
+	private void controleerDatBestaandeAfspraakGeldigBlijft(MammaKandidaatAfspraak nieuweKandidaat)
 	{
-		if (minderValide && geldigeAfspraak)
+		nieuweKandidaat.afgesplitsteKandidatenZijnOngeldig = afgesplitsteKandidatenZijnOngeldig;
+		nieuweKandidaat.geldigeAfspraak &= !afgesplitsteKandidatenZijnOngeldig;
+
+		if (geldigeAfspraak && (minderValide || dubbeleTijd))
 		{
 
-			var nieuweKandidaatHoudtOudeGeldig = geldigeDuurEnPeriodeVoorMindervalideAfspraak(vanaf, nieuweKandidaat.vanaf);
+			var nieuweKandidaatHoudtOudeGeldig = !screeningsEenheidDto.isEnkeleMammograaf() || geldigeDuurEnPeriode(vanaf, nieuweKandidaat.vanaf);
 			nieuweKandidaat.geldigeAfspraak &= nieuweKandidaatHoudtOudeGeldig;
-			nieuweKandidaat.afgesplitsteAfsprakenZijnOngeldig = !nieuweKandidaatHoudtOudeGeldig;
+
+			nieuweKandidaat.afgesplitsteKandidatenZijnOngeldig |= !nieuweKandidaatHoudtOudeGeldig;
 		}
 	}
 
@@ -184,17 +205,25 @@ public class MammaKandidaatAfspraak extends MammaRationaal
 
 	private boolean afspraakValtBinnenMindervalidePeriode(LocalTime kandidaatVanaf)
 	{
-		var minimaleTotEnMet = kandidaatVanaf.plus(screeningsEenheidDto.getDuurMinderValideAfspraak().getMinuten(), ChronoUnit.MINUTES);
+		var minimaleTotEnMet = kandidaatVanaf.plusMinutes(screeningsEenheidDto.getDuurMinderValideAfspraak().getMinuten());
 		var kandidaatPeriode = TimeRange.of(kandidaatVanaf, minimaleTotEnMet);
 
 		return kandidaatPeriode.valtVolledigBinnen(screeningsEenheidDto.getMinderValidePeriode1())
 			|| kandidaatPeriode.valtVolledigBinnen(screeningsEenheidDto.getMinderValidePeriode2());
 	}
 
-	private MammaKandidaatAfspraak maakNieuweKandidaatInPassendTijdvak(LocalTime nieuweOnafgerondeVanaf, BigDecimal nieuweBenodigdeCapaciteit, boolean nieuweIsMinderValide)
+	private boolean geldigeDuurVoorDubbeleTijdAfspraak(LocalTime kandidaatVanaf, LocalTime kandidaatTot)
 	{
-		var kandidaatVroegeTijdvak = maakNieuweKandidaat(rondAfNaarBeginTijdvak(nieuweOnafgerondeVanaf), nieuweBenodigdeCapaciteit, nieuweIsMinderValide);
-		var kandidaatLateTijdvak = maakNieuweKandidaat(kandidaatVroegeTijdvak.vanaf.plusMinutes(BK_TIJDVAK_MIN), nieuweBenodigdeCapaciteit, nieuweIsMinderValide);
+		return !screeningsEenheidDto.isEnkeleMammograaf()
+			|| Duration.between(kandidaatVanaf, kandidaatTot).toMinutes() >= 10;
+	}
+
+	private MammaKandidaatAfspraak maakNieuweKandidaatInPassendTijdvak(LocalTime nieuweOnafgerondeVanaf, BigDecimal nieuweBenodigdeCapaciteit, boolean nieuweIsMinderValide,
+		boolean nieuweIsDubbeleTijd)
+	{
+		var kandidaatVroegeTijdvak = maakNieuweKandidaat(rondAfNaarBeginTijdvak(nieuweOnafgerondeVanaf), nieuweBenodigdeCapaciteit, nieuweIsMinderValide, nieuweIsDubbeleTijd);
+		var kandidaatLateTijdvak = maakNieuweKandidaat(kandidaatVroegeTijdvak.vanaf.plusMinutes(BK_TIJDVAK_MIN), nieuweBenodigdeCapaciteit, nieuweIsMinderValide,
+			nieuweIsDubbeleTijd);
 		return kiesBesteKandidaat(nieuweOnafgerondeVanaf, kandidaatVroegeTijdvak, kandidaatLateTijdvak);
 	}
 
@@ -214,20 +243,22 @@ public class MammaKandidaatAfspraak extends MammaRationaal
 		{
 			return kandidaatLateTijdvak;
 		}
-		return kiesDichtsbijzijndeKandidaat(nieuweOnafgerondeVanaf, kandidaatVroegeTijdvak, kandidaatLateTijdvak);
+		return kiesDichtstbijzijndeKandidaat(nieuweOnafgerondeVanaf, kandidaatVroegeTijdvak, kandidaatLateTijdvak);
 	}
 
-	private MammaKandidaatAfspraak kiesDichtsbijzijndeKandidaat(LocalTime onafgerondeVanaf, MammaKandidaatAfspraak kandidaatVroegeTijdvak,
+	private MammaKandidaatAfspraak kiesDichtstbijzijndeKandidaat(LocalTime onafgerondeVanaf, MammaKandidaatAfspraak kandidaatVroegeTijdvak,
 		MammaKandidaatAfspraak kandidaatLateTijdvak)
 	{
 		return Duration.between(kandidaatVroegeTijdvak.vanaf, onafgerondeVanaf).compareTo(Duration.between(onafgerondeVanaf, kandidaatLateTijdvak.vanaf)) <= 0 ?
 			kandidaatVroegeTijdvak : kandidaatLateTijdvak;
 	}
 
-	private MammaKandidaatAfspraak maakNieuweKandidaatInKleinstMogelijkeTijdvak(BigDecimal nieuweBenodigdeCapaciteit, boolean nieuweKandidaatIsMinderValide)
+	private MammaKandidaatAfspraak maakNieuweKandidaatInKleinstMogelijkeTijdvak(BigDecimal nieuweBenodigdeCapaciteit, boolean nieuweKandidaatIsMinderValide,
+		boolean nieuweKandidaatIsDubbeleTijd)
 	{
-		var nieuweKandidaat = maakNieuweKandidaat(vanaf, nieuweBenodigdeCapaciteit, nieuweKandidaatIsMinderValide);
-		nieuweKandidaat.geldigeAfspraak &= !nieuweKandidaatIsMinderValide;  
+		var nieuweKandidaat = maakNieuweKandidaat(vanaf, nieuweBenodigdeCapaciteit, nieuweKandidaatIsMinderValide, nieuweKandidaatIsDubbeleTijd);
+
+		nieuweKandidaat.geldigeAfspraak &= !nieuweKandidaatIsMinderValide && !nieuweKandidaatIsDubbeleTijd;
 		return nieuweKandidaat;
 	}
 

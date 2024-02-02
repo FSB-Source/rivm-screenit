@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,7 @@ import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.model.colon.ColonFeestdag;
 import nl.rivm.screenit.model.colon.ColonFeestdag_;
+import nl.rivm.screenit.specification.SpecificationUtil;
 
 import org.springframework.data.jpa.domain.Specification;
 
@@ -42,5 +43,10 @@ public class ColonFeestdagSpecification
 	public static Specification<ColonFeestdag> heeftDatumVanaf(LocalDate datum)
 	{
 		return ((r, q, cb) -> cb.greaterThanOrEqualTo(r.get(ColonFeestdag_.datum), datum));
+	}
+
+	public static Specification<ColonFeestdag> heeftDatumInRange(LocalDate startDatum, LocalDate eindDatum)
+	{
+		return SpecificationUtil.betweenLocalDates(startDatum, eindDatum, r -> r.get(ColonFeestdag_.datum));
 	}
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal.service.impl;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,6 @@ package nl.rivm.screenit.huisartsenportaal.service.impl;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import nl.rivm.screenit.huisartsenportaal.dto.HuisartsDto;
 import nl.rivm.screenit.huisartsenportaal.dto.WachtwoordVergetenDto;
@@ -36,7 +35,6 @@ import nl.rivm.screenit.huisartsenportaal.model.enums.Recht;
 import nl.rivm.screenit.huisartsenportaal.repository.HuisartsRepository;
 import nl.rivm.screenit.huisartsenportaal.service.AdresService;
 import nl.rivm.screenit.huisartsenportaal.service.HuisartsService;
-import nl.rivm.screenit.huisartsenportaal.service.LocatieService;
 import nl.rivm.screenit.huisartsenportaal.util.CodeGenerator;
 import nl.rivm.screenit.huisartsenportaal.util.DateUtil;
 
@@ -59,9 +57,6 @@ public class HuisartsServiceImpl implements HuisartsService
 	private HuisartsRepository huisartsRepository;
 
 	@Autowired
-	private LocatieService locatieService;
-
-	@Autowired
 	private PasswordEncoder passwordEncoder;
 
 	@Autowired
@@ -71,25 +66,25 @@ public class HuisartsServiceImpl implements HuisartsService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public Huisarts updateAndGetHuisarts(HuisartsDto huisartsDto, Huisarts huisarts)
 	{
+		adresService.updateAndGetAdres(huisartsDto.getPostadres());
 		modelMapper.map(huisartsDto, huisarts);
 
 		if (huisartsDto.getUsername() != null && huisartsDto.getWachtwoord() != null && !InlogMethode.USERNAME_PASSWORD.equals(huisarts.getInlogMethode()))
 		{
 			huisarts.setGebruikersnaam(huisartsDto.getUsername());
 
-			String wachtwoord = huisartsDto.getWachtwoord();
+			var wachtwoord = huisartsDto.getWachtwoord();
 			updateWachtwoord(huisarts, wachtwoord);
 
-			huisarts.getRollen().remove(Recht.ROLE_REGISTEREN);
-			huisarts.getRollen().add(Recht.ROLE_AANVRAGEN);
+			var rollen = huisarts.getRollen();
+			rollen.remove(Recht.ROLE_REGISTEREN);
+			rollen.add(Recht.ROLE_AANVRAGEN);
 			huisarts.setActief(true);
 		}
 		if (huisartsDto.getOvereenkomst())
 		{
 			huisarts.setOvereenkomstGeaccordeerdDatum(new Date());
 		}
-
-		adresService.updateAndGetAdres(huisartsDto.getPostadres());
 
 		huisartsRepository.save(huisarts);
 		return huisarts;
@@ -98,7 +93,7 @@ public class HuisartsServiceImpl implements HuisartsService
 	@Override
 	public Huisarts updateWachtwoord(Huisarts huisarts, String wachtwoord)
 	{
-		String encodedWachtwoord = passwordEncoder.encode(wachtwoord);
+		var encodedWachtwoord = passwordEncoder.encode(wachtwoord);
 		huisarts.setPassword(encodedWachtwoord);
 		huisarts.setInlogMethode(InlogMethode.USERNAME_PASSWORD);
 		huisarts.setAanmeldStatus(AanmeldStatus.GEREGISTREERD);
@@ -164,9 +159,9 @@ public class HuisartsServiceImpl implements HuisartsService
 	{
 		if (huisarts != null && InlogMethode.USERNAME_PASSWORD.equals(huisarts.getInlogMethode()))
 		{
-			String codeB = CodeGenerator.genereerCode(3, 3);
+			var codeB = CodeGenerator.genereerCode(3, 3);
 			huisarts.setInlogCode(codeB);
-			List<Recht> rechten = new ArrayList<>();
+			var rechten = new ArrayList<Recht>();
 			rechten.add(Recht.ROLE_REGISTEREN);
 			huisarts.setRollen(rechten);
 			huisarts.setAttempts(0);
@@ -206,7 +201,7 @@ public class HuisartsServiceImpl implements HuisartsService
 	@Override
 	public Integer incrementAttempts(Huisarts huisarts)
 	{
-		Integer attempts = huisarts.getAttempts();
+		var attempts = huisarts.getAttempts();
 		if (attempts == Medewerker.MAX_ATTEMPS)
 		{
 			attempts = 0;
@@ -228,11 +223,11 @@ public class HuisartsServiceImpl implements HuisartsService
 	@Override
 	public Long remainingMinutesLock(Huisarts huisarts)
 	{
-		Date lastAttempt = huisarts.getLastAttemptDate();
-		Date lockdownTime = DateUtil.toUtilDate(LocalDateTime.now().minusMinutes(Medewerker.MAX_LOCKED));
-		long diffMs = lastAttempt.getTime() - lockdownTime.getTime();
-		long diffsec = diffMs / 1000;
-		long minuten = diffsec / 60 + 1;
+		var lastAttempt = huisarts.getLastAttemptDate();
+		var lockdownTime = DateUtil.toUtilDate(LocalDateTime.now().minusMinutes(Medewerker.MAX_LOCKED));
+		var diffMs = lastAttempt.getTime() - lockdownTime.getTime();
+		var diffsec = diffMs / 1000;
+		var minuten = diffsec / 60 + 1;
 		return minuten > 0 ? minuten : 0;
 	}
 }

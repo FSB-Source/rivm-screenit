@@ -4,7 +4,7 @@ package nl.rivm.screenit.clientportaal.mappers.mamma;
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,7 +33,7 @@ import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -54,7 +54,7 @@ public interface MammaDossierMapper extends BaseDossierMapper<MammaDossier, Mamm
 	@Named("dossierToLaatsteStandplaatsPlaats")
 	static String dossierToLaatsteStandplaatsPlaats(MammaDossier dossier)
 	{
-		MammaBaseStandplaatsService baseStandplaatsService = SpringBeanProvider.getInstance().getBean(MammaBaseStandplaatsService.class);
+		MammaBaseStandplaatsService baseStandplaatsService = ApplicationContextProvider.getApplicationContext().getBean(MammaBaseStandplaatsService.class);
 		MammaUitnodiging laatsteUitnodiging = dossier.getLaatsteScreeningRonde() != null ? dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging() : null;
 		String plaats = null;
 		if (laatsteUitnodiging != null)

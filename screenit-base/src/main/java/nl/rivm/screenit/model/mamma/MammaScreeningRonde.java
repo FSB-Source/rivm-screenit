@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -97,7 +97,7 @@ public class MammaScreeningRonde extends ScreeningRonde<MammaDossier, MammaBrief
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "mamma.cache")
 	private List<MammaBrief> brieven = new ArrayList<>();
 
-	@OneToMany(mappedBy = "screeningRonde", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "screeningRonde", fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.REMOVE })
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "mamma.cache")
 	@Cascade(CascadeType.DELETE)
 	private List<MammaDigitaalClientBericht> berichten = new ArrayList<>();
@@ -118,9 +118,9 @@ public class MammaScreeningRonde extends ScreeningRonde<MammaDossier, MammaBrief
 	@Column(unique = true, nullable = false)
 	private Long uitnodigingsNr;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@ManyToOne(fetch = FetchType.LAZY, optional = true, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Audited(targetAuditMode = NOT_AUDITED)
-	@Cascade(org.hibernate.annotations.CascadeType.SAVE_UPDATE)
+	@Cascade(CascadeType.SAVE_UPDATE)
 	private EnovationHuisarts huisarts;
 
 	@Column
@@ -171,7 +171,7 @@ public class MammaScreeningRonde extends ScreeningRonde<MammaDossier, MammaBrief
 	@OneToOne(optional = true, fetch = FetchType.LAZY)
 	private MammaOnderzoek laatsteOnderzoek;
 
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "screeningRonde")
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "screeningRonde", cascade = { javax.persistence.CascadeType.REMOVE })
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "mamma.cache")
 	@Cascade(CascadeType.DELETE)
 	private List<MammaConclusieReview> conclusieReviews = new ArrayList<>();

@@ -5,7 +5,7 @@ package nl.rivm.screenit.model.logging;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -50,7 +50,7 @@ public class SelectieRondeBeeindigdLogEvent extends LogEvent
 	@CollectionTable(schema = "gedeeld", name = "selectie_ronde_beeindigd_log_event_exception_stack_trace")
 	private List<String> exceptionStackTrace = new ArrayList<>();
 
-	@OneToOne(fetch = FetchType.LAZY)
+	@OneToOne(fetch = FetchType.LAZY, cascade = javax.persistence.CascadeType.REMOVE)
 	@Cascade(CascadeType.DELETE)
 	private SelectieRapportage rapportage;
 

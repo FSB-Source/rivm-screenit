@@ -5,7 +5,7 @@ package nl.rivm.screenit.model;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -73,7 +73,7 @@ public abstract class Afmelding<SR extends ScreeningRonde<?, ?, ?, ?>, D extends
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date statusAfmeldDatum;
 
-	@OneToOne(fetch = FetchType.LAZY, optional = true)
+	@OneToOne(fetch = FetchType.LAZY, optional = true, cascade = javax.persistence.CascadeType.ALL)
 	@Cascade(CascadeType.ALL)
 	@NotAudited
 	private UploadDocument handtekeningDocumentAfmelding;
@@ -93,7 +93,7 @@ public abstract class Afmelding<SR extends ScreeningRonde<?, ?, ?, ?>, D extends
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date statusHeraanmeldDatum;
 
-	@OneToOne(fetch = FetchType.LAZY, optional = true)
+	@OneToOne(fetch = FetchType.LAZY, optional = true, cascade = javax.persistence.CascadeType.ALL)
 	@Cascade(CascadeType.ALL)
 	@NotAudited
 	private UploadDocument handtekeningDocumentHeraanmelding;

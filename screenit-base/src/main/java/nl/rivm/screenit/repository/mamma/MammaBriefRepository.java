@@ -1,10 +1,10 @@
-package nl.rivm.screenit.mappers.colon;
+package nl.rivm.screenit.repository.mamma;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,17 +21,9 @@ package nl.rivm.screenit.mappers.colon;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.mappers.config.ScreenitMapperConfig;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
-import nl.rivm.screenit.model.colon.dto.IntakelocatieDto;
+import nl.rivm.screenit.model.mamma.MammaBrief;
+import nl.rivm.screenit.repository.BaseJpaRepository;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-
-@Mapper(config = ScreenitMapperConfig.class)
-public interface IntakelocatieMapper
+public interface MammaBriefRepository extends BaseJpaRepository<MammaBrief>
 {
-	@Mapping(source = "id", target = "id")
-	@Mapping(source = "naam", target = "name")
-	IntakelocatieDto intakelocatieToDto(ColoscopieCentrum instelling);
 }

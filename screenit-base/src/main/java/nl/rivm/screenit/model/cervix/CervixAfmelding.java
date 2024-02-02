@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -55,19 +55,19 @@ public class CervixAfmelding extends Afmelding<CervixScreeningRonde, CervixDossi
 	@ManyToOne(fetch = FetchType.LAZY, optional = true)
 	private CervixDossier dossier;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@ManyToOne(fetch = FetchType.LAZY, optional = true, cascade = javax.persistence.CascadeType.REMOVE)
 	@Cascade(CascadeType.DELETE)
 	private CervixBrief afmeldingAanvraag;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@ManyToOne(fetch = FetchType.LAZY, optional = true, cascade = javax.persistence.CascadeType.REMOVE)
 	@Cascade(CascadeType.DELETE)
 	private CervixBrief afmeldingBevestiging;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@ManyToOne(fetch = FetchType.LAZY, optional = true, cascade = javax.persistence.CascadeType.REMOVE)
 	@Cascade(CascadeType.DELETE)
 	private CervixBrief heraanmeldAanvraag;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@ManyToOne(fetch = FetchType.LAZY, optional = true, cascade = javax.persistence.CascadeType.REMOVE)
 	@Cascade(CascadeType.DELETE)
 	private CervixBrief heraanmeldBevestiging;
 

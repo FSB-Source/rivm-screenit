@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.generalis.gba.verwerk107step;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -127,7 +127,7 @@ public class Vo107ItemReader implements ItemReader<Vo107Bericht>, ItemStream
 			if (currentFile != null)
 			{
 				var isOngeldigBestand = !StringUtils.isAsciiPrintable(e.getMessage());
-				var melding = "Leesfout in GBA-bestand " + currentFile.getFilename() + " door: " + (isOngeldigBestand ? e.getMessage() : "Ongeldig bestand");
+				var melding = "Leesfout in GBA-bestand " + currentFile.getFilename() + " door: " + (isOngeldigBestand ? "Ongeldig bestand" : e.getMessage());
 				LOG.error(melding);
 				createFoutRegel(verwerkingLog, melding);
 			}

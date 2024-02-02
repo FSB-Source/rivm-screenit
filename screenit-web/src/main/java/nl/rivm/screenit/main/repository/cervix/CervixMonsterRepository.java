@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.repository.cervix;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,13 +25,9 @@ import java.util.List;
 
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
+import nl.rivm.screenit.repository.BaseJpaRepository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.stereotype.Repository;
-
-@Repository
-public interface CervixMonsterRepository extends JpaRepository<CervixMonster, Long>, JpaSpecificationExecutor<CervixMonster>
+public interface CervixMonsterRepository extends BaseJpaRepository<CervixMonster>
 {
 	List<CervixMonster> findAllByOntvangstScreeningRonde(CervixScreeningRonde ronde);
 }

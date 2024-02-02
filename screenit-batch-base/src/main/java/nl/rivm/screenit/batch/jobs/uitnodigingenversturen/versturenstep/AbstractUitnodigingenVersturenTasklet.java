@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.uitnodigingenversturen.versturenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -184,8 +184,8 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception
 	{
-		this.stepExecution = chunkContext.getStepContext().getStepExecution();
-		this.jobExecution = stepExecution.getJobExecution();
+		stepExecution = chunkContext.getStepContext().getStepExecution();
+		jobExecution = stepExecution.getJobExecution();
 
 		controleerAlleBrieven();
 		List<Long> uitnodigingIds = getUitnodigingen();
@@ -414,7 +414,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 			else
 			{
 				nl.rivm.screenit.model.Client client = uitnodiging.getScreeningRonde().getDossier().getClient();
-				LOG.warn("Client overgeslagen door een exception, clientId: " + client.getId(), e);
+				LOG.warn("Client (id: '{}') overgeslagen door een exception", client.getId(), e);
 				logMislukt(client);
 			}
 		}
@@ -629,7 +629,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 
 	protected ExecutionContext getExecutionContext()
 	{
-		return this.jobExecution.getExecutionContext();
+		return jobExecution.getExecutionContext();
 	}
 
 	private List<String> getEmails(String emailreeks)

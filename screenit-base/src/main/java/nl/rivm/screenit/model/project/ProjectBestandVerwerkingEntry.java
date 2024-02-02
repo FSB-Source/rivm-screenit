@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.project;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -42,7 +42,7 @@ public class ProjectBestandVerwerkingEntry extends AbstractHibernateObject
 	private static final long serialVersionUID = 1L;
 
 	@Cascade({ CascadeType.ALL })
-	@ManyToOne(fetch = FetchType.EAGER, optional = false)
+	@ManyToOne(fetch = FetchType.EAGER, optional = false, cascade = javax.persistence.CascadeType.ALL)
 	private ProjectBestandVerwerking verwerking;
 
 	private Integer regelNummer;

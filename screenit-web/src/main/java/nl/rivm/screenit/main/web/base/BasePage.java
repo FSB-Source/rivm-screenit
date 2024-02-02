@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.base;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -76,7 +76,6 @@ public abstract class BasePage extends WebPage
 		response.render(JavaScriptHeaderItem.forUrl("assets/js/borst.js"));
 		response.render(JavaScriptHeaderItem.forUrl("assets/js/checkbox/checkboxOnderzoeken.js"));
 		response.render(JavaScriptHeaderItem.forUrl("assets/js/checkbox/checkboxSelectAll.js"));
-		response.render(JavaScriptHeaderItem.forUrl("assets/js/checkbox/check-all.js"));
 		response.render(JavaScriptHeaderItem.forUrl("assets/js/datepicker/datepickerShow.js"));
 		response.render(JavaScriptHeaderItem.forUrl("assets/js/laesieiconen/mouseevents.js"));
 		response.render(JavaScriptHeaderItem.forUrl("assets/js/laadEvents.js"));

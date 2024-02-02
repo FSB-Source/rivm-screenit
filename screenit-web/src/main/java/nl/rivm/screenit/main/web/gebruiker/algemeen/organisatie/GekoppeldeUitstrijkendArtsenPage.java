@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,7 +29,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import nl.rivm.screenit.main.dto.cervix.GekoppeldeUitstrijkendArtsZoekObject;
-import nl.rivm.screenit.main.service.colon.impl.GekoppeldeUitstrijkendArtsenDataProviderService;
+import nl.rivm.screenit.main.service.cervix.impl.GekoppeldeUitstrijkendArtsenDataProviderServiceImpl;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitListMultipleChoice;
@@ -85,7 +85,7 @@ public class GekoppeldeUitstrijkendArtsenPage extends OrganisatieBeheer
 	private IModel<List<Gemeente>> gemeentesUitOrganisatie = new SimpleListHibernateModel<>(new ArrayList<>());
 
 	@SpringBean
-	private GekoppeldeUitstrijkendArtsenDataProviderService gekoppeldeUitstrijkendArtsenDataProviderService;
+	private GekoppeldeUitstrijkendArtsenDataProviderServiceImpl gekoppeldeUitstrijkendArtsenDataProviderService;
 
 	@SpringBean
 	private AutorisatieService autorisatieService;
@@ -239,8 +239,7 @@ public class GekoppeldeUitstrijkendArtsenPage extends OrganisatieBeheer
 				@Override
 				public long size()
 				{
-					var a = gekoppeldeUitstrijkendArtsenDataProviderService.size(maakZoekObject());
-					return a;
+					return gekoppeldeUitstrijkendArtsenDataProviderService.size(maakZoekObject());
 				}
 
 				@NotNull

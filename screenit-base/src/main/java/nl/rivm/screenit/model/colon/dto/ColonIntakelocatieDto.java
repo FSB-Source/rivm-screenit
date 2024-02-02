@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.colon.dto;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,30 +21,14 @@ package nl.rivm.screenit.model.colon.dto;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDateTime;
-
 import lombok.Getter;
 import lombok.Setter;
 
-import nl.rivm.screenit.model.colon.RoosterItemStatus;
-
 @Getter
 @Setter
-public class ColonAfspraakSlotDto
+public class ColonIntakelocatieDto
 {
-	private LocalDateTime startTime;
-
-	private LocalDateTime endTime;
-
-	private String kamer;
-
-	private Boolean capaciteitMeeBepaald;
-
-	private RoosterItemStatus status;
-
 	private Long id;
 
-	private Long kamerId;
-
-	private int aantalBlokken = 1;
+	private String name;
 }

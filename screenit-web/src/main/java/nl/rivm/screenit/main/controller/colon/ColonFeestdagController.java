@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.controller.colon;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,9 @@ package nl.rivm.screenit.main.controller.colon;
  */
 
 import java.util.List;
+import java.util.Optional;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.main.exception.ValidatieException;
@@ -34,7 +36,6 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,27 +44,25 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.wicketstuff.shiro.ShiroConstraint;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 @Slf4j
 @RestController
+@AllArgsConstructor
 @RequestMapping("/api/colon/feestdag")
 public class ColonFeestdagController
 {
-	private final ObjectMapper objectMapper = new ObjectMapper();
-
-	@Autowired
-	private ColonFeestdagService feestdagService;
+	private final ColonFeestdagService feestdagService;
 
 	@GetMapping
-	@SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = Recht.COLON_FEESTDAGEN_BEHEER, bevolkingsonderzoekScopes = {
+	@SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = { Recht.COLON_FEESTDAGEN_BEHEER,
+		Recht.GEBRUIKER_LOCATIE_NIEUW_ROOSTER }, bevolkingsonderzoekScopes = {
 		Bevolkingsonderzoek.COLON })
-	public ResponseEntity<List<ColonFeestdag>> getFeestdagen()
+	public ResponseEntity<List<ColonFeestdag>> getFeestdagen(@RequestParam Optional<String> startDatum, @RequestParam Optional<String> eindDatum)
 	{
-		var feestdagen = feestdagService.getFeestdagen();
+		var feestdagen = startDatum.isPresent() && eindDatum.isPresent() ? feestdagService.getFeestdagen(startDatum.get(), eindDatum.get()) : feestdagService.getFeestdagen();
 		return ResponseEntity.ok(feestdagen);
 	}
 
