@@ -4,7 +4,7 @@ package nl.rivm.screenit.wsb.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,12 +23,9 @@ package nl.rivm.screenit.wsb.service.mamma.impl;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -103,9 +100,9 @@ public class MammaDicomCStroreServiceProviderImpl implements ApplicationListener
 		{
 			OpenHibernate5Session.withoutTransaction().run(() ->
 			{
-				String connectionString = preferenceService.getString(PreferenceKey.INTERNAL_MAMMA_IMS_DICOM_CMOVE_CONFIG.toString(),
+				var connectionString = preferenceService.getString(PreferenceKey.INTERNAL_MAMMA_IMS_DICOM_CMOVE_CONFIG.toString(),
 					"DICOM_QR_SCP@localhost:11114,SIT_STORE_SCP@localhost:11113");
-				CMoveConfig moveConfig = CMoveConfig.parse(connectionString);
+				var moveConfig = CMoveConfig.parse(connectionString);
 				startWachtenOpDicomBeelden(moveConfig.getStore());
 			});
 			doInit = false;
@@ -114,8 +111,8 @@ public class MammaDicomCStroreServiceProviderImpl implements ApplicationListener
 
 	private void startWachtenOpDicomBeelden(SCPConfig storeSCPConfig)
 	{
-		ApplicationEntity ae = new ApplicationEntity("*");
-		Connection server = new Connection();
+		var ae = new ApplicationEntity("*");
+		var server = new Connection();
 
 		try
 		{
@@ -127,13 +124,6 @@ public class MammaDicomCStroreServiceProviderImpl implements ApplicationListener
 		{
 			LOG.error("Fout bij opzetten StoreSCP", e);
 		}
-	}
-
-	private static void configureApplicationEntity(ApplicationEntity ae, Connection server, SCPConfig storeSCPConfig)
-	{
-		ae.setAssociationAcceptor(true);
-		ae.addConnection(server);
-		ae.setAETitle(storeSCPConfig.getAeTitle());
 	}
 
 	private void configureAndStartServer(Connection server, ApplicationEntity ae, SCPConfig storeSCPConfig) throws IOException, GeneralSecurityException
@@ -157,15 +147,23 @@ public class MammaDicomCStroreServiceProviderImpl implements ApplicationListener
 		server.setReceiveBufferSize(0);
 		server.setTcpNoDelay(true);
 
-		Device device = new Device(storeSCPConfig.getAeTitle());
+		var device = new Device(storeSCPConfig.getAeTitle());
 		device.setDimseRQHandler(createServiceRegistry());
 		device.addConnection(server);
 		device.addApplicationEntity(ae);
-		ExecutorService executorService = Executors.newCachedThreadPool();
-		ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+		var executorService = Executors.newCachedThreadPool();
+		var scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
 		device.setScheduledExecutor(scheduledExecutorService);
 		device.setExecutor(executorService);
 		device.bindConnections();
+	}
+
+	private static String toUID(String uid)
+	{
+		uid = uid.trim();
+		return uid.equals("*") || Character.isDigit(uid.charAt(0))
+			? uid
+			: UID.forName(uid);
 	}
 
 	private DicomServiceRegistry createServiceRegistry()
@@ -181,10 +179,10 @@ public class MammaDicomCStroreServiceProviderImpl implements ApplicationListener
 			{
 				rsp.setInt(Tag.Status, VR.US, 0);
 
-				String cuid = rq.getString(Tag.AffectedSOPClassUID);
-				String iuid = rq.getString(Tag.AffectedSOPInstanceUID);
-				String tsuid = pc.getTransferSyntax();
-				File file = File.createTempFile(iuid, ".part");
+				var cuid = rq.getString(Tag.AffectedSOPClassUID);
+				var iuid = rq.getString(Tag.AffectedSOPInstanceUID);
+				var tsuid = pc.getTransferSyntax();
+				var file = File.createTempFile(iuid, ".part");
 				Session session = null;
 				try
 				{
@@ -192,21 +190,20 @@ public class MammaDicomCStroreServiceProviderImpl implements ApplicationListener
 					String accessionNumber = null;
 					String seriesNumber = null;
 					String instanceNumber = null;
-					try (DicomInputStream din = new DicomInputStream(file))
+					try (var din = new DicomInputStream(file))
 					{
-						Attributes attribs = din.readDataset(-1, o -> Integer.compareUnsigned(o.tag(), Tag.PatientOrientation) >= 0);
+						var attribs = din.readDataset(-1, o -> Integer.compareUnsigned(o.tag(), Tag.PatientOrientation) >= 0);
 						accessionNumber = attribs.getString(Tag.AccessionNumber);
 						seriesNumber = attribs.getString(Tag.SeriesNumber);
 						instanceNumber = attribs.getString(Tag.InstanceNumber);
 					}
-					LOG.info("Onderzoek zoeken voor accessionNumber: " + accessionNumber);
 					session = sessionFactory.openSession();
 					TransactionSynchronizationManager.bindResource(sessionFactory, new SessionHolder(session));
 
-					MammaDownloadOnderzoek downloadOnderzoek = getDownloadOnderzoek(accessionNumber);
+					var downloadOnderzoek = getDownloadOnderzoek(accessionNumber);
 					if (downloadOnderzoek != null)
 					{
-						File newFile = new File(System.getProperty("java.io.tmpdir") + File.separator + "IMG" + StringUtils.leftPad(instanceNumber, 5, "0") + ".dcm");
+						var newFile = new File(System.getProperty("java.io.tmpdir") + File.separator + "IMG" + StringUtils.leftPad(instanceNumber, 5, "0") + ".dcm");
 						if (file.renameTo(newFile))
 						{
 							file = newFile;
@@ -243,16 +240,11 @@ public class MammaDicomCStroreServiceProviderImpl implements ApplicationListener
 			{
 				LOG.info("{}: M-WRITE {}", as, file);
 				file.getParentFile().mkdirs();
-				DicomOutputStream out = new DicomOutputStream(file);
-				try
+				try (var out = new DicomOutputStream(file))
 				{
 					out.writeFileMetaInformation(fmi);
 					data.copyTo(out);
 					out.flush();
-				}
-				finally
-				{
-					SafeClose.close(out);
 				}
 			}
 
@@ -274,36 +266,35 @@ public class MammaDicomCStroreServiceProviderImpl implements ApplicationListener
 
 	private static void configureTransferCapability(ApplicationEntity ae) throws IOException
 	{
-		Properties p = loadProperties("resource:dicom/sop-classes.properties");
-		for (String cuid : p.stringPropertyNames())
+		var p = loadProperties("resource:dicom/sop-classes.properties");
+		for (var cuid : p.stringPropertyNames())
 		{
-			String ts = p.getProperty(cuid);
-			TransferCapability tc = new TransferCapability(null, toUID(cuid), TransferCapability.Role.SCP, toUIDs(ts));
+			var ts = p.getProperty(cuid);
+			var tc = new TransferCapability(null, toUID(cuid), TransferCapability.Role.SCP, toUIDs(ts));
 			ae.addTransferCapability(tc);
 		}
 	}
 
 	private static Properties loadProperties(String url) throws IOException
 	{
-		Properties p = new Properties();
-		InputStream in = StreamUtils.openFileOrURL(url);
+		var properties = new Properties();
+		var inputStream = StreamUtils.openFileOrURL(url);
 		try
 		{
-			p.load(in);
+			properties.load(inputStream);
 		}
 		finally
 		{
-			SafeClose.close(in);
+			SafeClose.close(inputStream);
 		}
-		return p;
+		return properties;
 	}
 
-	private static String toUID(String uid)
+	private static void configureApplicationEntity(ApplicationEntity ae, Connection server, SCPConfig storeSCPConfig)
 	{
-		uid = uid.trim();
-		return uid.equals("*") || Character.isDigit(uid.charAt(0))
-			? uid
-			: UID.forName(uid);
+		ae.setAssociationAcceptor(true);
+		ae.addConnection(server);
+		ae.setAETitle(storeSCPConfig.getAeTitle());
 	}
 
 	private static String[] toUIDs(String s)
@@ -313,7 +304,7 @@ public class MammaDicomCStroreServiceProviderImpl implements ApplicationListener
 			return new String[] { "*" };
 		}
 
-		String[] uids = StringUtils.split(s, ',');
+		var uids = StringUtils.split(s, ',');
 		for (int i = 0; i < uids.length; i++)
 		{
 			uids[i] = toUID(uids[i]);

@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.base;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -256,7 +256,7 @@ public abstract class GebruikerBasePage extends BasePage
 
 				if (isHeeftImsKoppelingRecht())
 				{
-					GebruikerBasePage.this.logoutFromIms(attributes);
+					logoutFromIms(attributes);
 				}
 			}
 		};
@@ -306,10 +306,27 @@ public abstract class GebruikerBasePage extends BasePage
 	public void renderHead(IHeaderResponse response)
 	{
 		super.renderHead(response);
-		response.render(JavaScriptHeaderItem.forReference(TimeoutResponseJsResourceReference.get()));
-		response.render(JavaScriptHeaderItem.forReference(TimeoutJsResourceReference.get()));
 
 		response.render(JavaScriptHeaderItem.forUrl("assets/js/libs/daypilot/daypilot-all.min.js"));
+
+		setupTimeout(response);
+
+		if (heeftImsKoppelingRecht)
+		{
+			response.render(JavaScriptHeaderItem.forScript(createImsErrorAfhandeling(), null));
+			response.render(JavaScriptHeaderItem.forUrl(IMS_DESKTOPSYNC_JS_SOURCE));
+			response.render(JavaScriptHeaderItem.forUrl(IMS_KEYPAD_JS_SOURCE));
+			if (loginIms)
+			{
+				response.render(JavaScriptHeaderItem.forScript(createImsLogonCommand(), null));
+			}
+		}
+	}
+
+	protected void setupTimeout(IHeaderResponse response)
+	{
+		response.render(JavaScriptHeaderItem.forReference(TimeoutResponseJsResourceReference.get()));
+		response.render(JavaScriptHeaderItem.forReference(TimeoutJsResourceReference.get()));
 
 		int timeoutMillis = ((ServletWebRequest) RequestCycle.get().getRequest()).getContainerRequest().getSession().getMaxInactiveInterval() * 1000;
 
@@ -324,16 +341,6 @@ public abstract class GebruikerBasePage extends BasePage
 		jsStatement.append(FADE_ALERT_SUCCES_SCRIPT);
 
 		response.render(OnDomReadyHeaderItem.forScript(jsStatement.render()));
-		if (heeftImsKoppelingRecht)
-		{
-			response.render(JavaScriptHeaderItem.forScript(createImsErrorAfhandeling(), null));
-			response.render(JavaScriptHeaderItem.forUrl(IMS_DESKTOPSYNC_JS_SOURCE));
-			response.render(JavaScriptHeaderItem.forUrl(IMS_KEYPAD_JS_SOURCE));
-			if (loginIms)
-			{
-				response.render(JavaScriptHeaderItem.forScript(createImsLogonCommand(), null));
-			}
-		}
 	}
 
 	private String createImsLogonCommand()
@@ -543,12 +550,12 @@ public abstract class GebruikerBasePage extends BasePage
 
 	protected Class<? extends GebruikerBasePage> getActiveContextMenuClass()
 	{
-		return this.getClass();
+		return getClass();
 	}
 
 	protected Class<? extends GebruikerBasePage> getActiveSubMenuClass()
 	{
-		return this.getClass();
+		return getClass();
 	}
 
 	@Override

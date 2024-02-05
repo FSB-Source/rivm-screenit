@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.gba;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -63,7 +63,7 @@ public class GbaVerwerkingsLog extends AbstractHibernateObject
 	@Column
 	private Long aantalNieuweMammaDossiers = 0L;
 
-	@OneToMany(mappedBy = "verwerkingsLog")
+	@OneToMany(mappedBy = "verwerkingsLog", cascade = CascadeType.REMOVE)
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 	@Cascade(org.hibernate.annotations.CascadeType.DELETE)
 	private List<GbaVerwerkingEntry> entries = new ArrayList<>();

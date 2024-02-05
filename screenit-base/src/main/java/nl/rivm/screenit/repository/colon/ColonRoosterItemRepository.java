@@ -1,10 +1,10 @@
-package nl.rivm.screenit.dao.cervix;
+package nl.rivm.screenit.repository.colon;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,22 +21,10 @@ package nl.rivm.screenit.dao.cervix;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.cervix.CervixHuisarts;
-import nl.rivm.screenit.model.cervix.CervixHuisartsAdres;
-import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
-import nl.rivm.screenit.model.cervix.CervixLabformulierAanvraag;
+import nl.rivm.screenit.model.colon.planning.RoosterItem;
+import nl.rivm.screenit.repository.BaseJpaRepository;
 
-public interface CervixHuisartsSyncDao
+public interface ColonRoosterItemRepository extends BaseJpaRepository<RoosterItem>
 {
-	CervixHuisartsLocatie locatieFindByHuisartsportaalId(Long id);
-
-	CervixHuisartsAdres adresFindByHuisartsportaalId(Long id);
-
-	CervixHuisarts huisartsFindByHuisartsportaalId(Long id);
-
-	InstellingGebruiker findInstellingGebruikerByName(String naam, Long id);
-
-	CervixLabformulierAanvraag aanvraagFindByHuisartsportaalId(Long id);
 
 }

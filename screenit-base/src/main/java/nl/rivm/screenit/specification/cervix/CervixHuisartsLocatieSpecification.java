@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -148,4 +148,5 @@ public class CervixHuisartsLocatieSpecification
 		return SpecificationUtil.skipWhenEmpty(straat,
 			(r, q, cb) -> containsCaseInsensitive(cb, SpecificationUtil.join(r, CervixHuisartsLocatie_.locatieAdres).get(CervixHuisartsAdres_.straat), straat));
 	}
+
 }

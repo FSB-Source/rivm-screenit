@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,8 @@ package nl.rivm.screenit.batch;
 
 import lombok.extern.slf4j.Slf4j;
 
+import nl.rivm.screenit.repository.impl.BaseJpaRepositoryImpl;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
@@ -32,7 +34,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Slf4j
-@EnableJpaRepositories(basePackages = { "nl.rivm.screenit" })
+@EnableJpaRepositories(basePackages = { "nl.rivm.screenit" }, repositoryBaseClass = BaseJpaRepositoryImpl.class)
 @ComponentScan(
 	basePackages = { "nl.rivm.screenit", "nl.topicuszorg" },
 	excludeFilters = {

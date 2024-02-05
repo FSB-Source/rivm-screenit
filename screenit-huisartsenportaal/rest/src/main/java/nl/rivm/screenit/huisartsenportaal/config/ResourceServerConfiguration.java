@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal.config;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,9 +21,6 @@ package nl.rivm.screenit.huisartsenportaal.config;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.mamma.planning.filter.HuisartsportaalLoggingFilter;
-
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -31,6 +28,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
+import org.springframework.web.filter.CommonsRequestLoggingFilter;
 
 @Configuration
 @EnableResourceServer
@@ -56,13 +54,8 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
 	}
 
 	@Bean
-	public FilterRegistrationBean loggingFilter()
+	public CommonsRequestLoggingFilter logFilter()
 	{
-		FilterRegistrationBean registrationBean = new FilterRegistrationBean();
-
-		registrationBean.setFilter(new HuisartsportaalLoggingFilter());
-		registrationBean.addUrlPatterns("/api/*");
-
-		return registrationBean;
+		return new HttpRequestResponseLoggingFilter();
 	}
 }

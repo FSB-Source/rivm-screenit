@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,8 +22,8 @@ package nl.rivm.screenit.main.service.cervix.impl;
  */
 
 import java.util.Date;
+import java.util.Optional;
 
-import nl.rivm.screenit.dao.cervix.CervixHuisartsSyncDao;
 import nl.rivm.screenit.huisartsenportaal.dto.AanvraagDto;
 import nl.rivm.screenit.huisartsenportaal.dto.AdresDto;
 import nl.rivm.screenit.huisartsenportaal.dto.HuisartsDto;
@@ -47,6 +47,11 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.overeenkomsten.Overeenkomst;
+import nl.rivm.screenit.repository.algemeen.WoonplaatsRepository;
+import nl.rivm.screenit.repository.cervix.CervixHuisartsAdresRepository;
+import nl.rivm.screenit.repository.cervix.CervixHuisartsLocatieRepository;
+import nl.rivm.screenit.repository.cervix.CervixHuisartsRepository;
+import nl.rivm.screenit.repository.cervix.CervixLabformulierAanvraagRepository;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.HuisartsenportaalSyncService;
 import nl.rivm.screenit.service.LogService;
@@ -69,9 +74,6 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 {
 
 	@Autowired
-	private CervixHuisartsSyncDao huisartsSyncDao;
-
-	@Autowired
 	private MailService mailService;
 
 	@Autowired
@@ -92,6 +94,21 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 	@Autowired
 	private HuisartsenportaalSyncService huisartsenportaalSyncService;
 
+	@Autowired
+	private CervixHuisartsAdresRepository huisartsAdresRepository;
+
+	@Autowired
+	private CervixLabformulierAanvraagRepository labformulierAanvraagRepository;
+
+	@Autowired
+	private CervixHuisartsLocatieRepository huisartsLocatieRepository;
+
+	@Autowired
+	private CervixHuisartsRepository huisartsRepository;
+
+	@Autowired
+	private WoonplaatsRepository woonplaatsRepository;
+
 	@Override
 	public void sendData(CervixHuisarts cervixHuisarts)
 	{
@@ -110,19 +127,12 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public CervixHuisarts updateAndGetHuisarts(HuisartsDto dto, Date mutatieDatum)
 	{
-		CervixHuisarts huisarts = null;
-		if (dto.getScreenitId() != null)
-		{
-			huisarts = hibernateService.get(CervixHuisarts.class, dto.getScreenitId());
-		}
-		if (huisarts == null && dto.getHuisartsportaalId() != null)
-		{
-			huisarts = huisartsSyncDao.huisartsFindByHuisartsportaalId(dto.getHuisartsportaalId());
-		}
-		if (huisarts == null)
-		{
-			throw new IllegalStateException("Onbekende huisarts voor ScreenIT, synchronisatie gestopt.");
-		}
+		var huisarts = Optional.ofNullable(dto.getScreenitId())
+			.flatMap(id -> huisartsRepository.findById(id))
+			.or(() -> Optional.ofNullable(dto.getHuisartsportaalId())
+				.flatMap(id -> huisartsRepository.findOneByHuisartsportaalId(id)))
+			.orElseThrow(() -> new IllegalStateException("Onbekende huisarts voor ScreenIT, synchronisatie gestopt."));
+
 		huisarts.setScreenitId(dto.getScreenitId());
 		huisarts.setHuisartsportaalId(dto.getHuisartsportaalId());
 		huisarts.setAgbcode(dto.getAgbcode());
@@ -151,7 +161,7 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 		{
 			huisarts.setPostadres(setAdres(dto.getPostadres(), mutatieDatum));
 		}
-		hibernateService.saveOrUpdate(huisarts);
+		huisartsRepository.save(huisarts);
 		logService.logGebeurtenis(LogGebeurtenis.ORGANISATIE_WIJZIG, huisarts.getOrganisatieMedewerkers().get(0), "Huisarts: " + huisarts.getNaam(), Bevolkingsonderzoek.CERVIX);
 		return huisarts;
 	}
@@ -178,19 +188,12 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 
 	private CervixHuisartsLocatie setLocatie(CervixHuisarts huisarts, LocatieDto dto, Date mutatieDatum)
 	{
-		CervixHuisartsLocatie locatie = null;
-		if (dto.getScreenitId() != null)
-		{
-			locatie = hibernateService.load(CervixHuisartsLocatie.class, dto.getScreenitId());
-		}
-		if (locatie == null && dto.getHuisartsportaalId() != null)
-		{
-			locatie = huisartsSyncDao.locatieFindByHuisartsportaalId(dto.getHuisartsportaalId());
-		}
-		if (locatie == null)
-		{
-			locatie = new CervixHuisartsLocatie();
-		}
+		var locatie = Optional.ofNullable(dto.getScreenitId())
+			.flatMap(id -> huisartsLocatieRepository.findById(id))
+			.or(() -> Optional.ofNullable(dto.getHuisartsportaalId())
+				.flatMap(id -> huisartsLocatieRepository.findOneByHuisartsportaalId(id)))
+			.orElse(new CervixHuisartsLocatie());
+
 		locatie.setHuisartsportaalId(dto.getHuisartsportaalId());
 		locatie.setScreenitId(dto.getScreenitId());
 		locatie.setMutatiedatum(mutatieDatum);
@@ -215,7 +218,7 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 		{
 			locatie.setLocatieAdres(setAdres(dto.getLocatieAdres(), mutatieDatum));
 		}
-		hibernateService.saveOrUpdate(locatie);
+		huisartsLocatieRepository.save(locatie);
 		logService.logGebeurtenis(LogGebeurtenis.ORGANISATIE_WIJZIG, huisarts.getOrganisatieMedewerkers().get(0),
 			"Huisarts: " + huisarts.getNaam() + " locatie: " + locatie.getNaam(), Bevolkingsonderzoek.CERVIX);
 		return locatie;
@@ -251,19 +254,12 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 
 	private CervixHuisartsAdres setAdres(AdresDto dto, Date mutatieDatum)
 	{
-		CervixHuisartsAdres adres = null;
-		if (dto.getScreenitId() != null)
-		{
-			adres = hibernateService.load(CervixHuisartsAdres.class, dto.getScreenitId());
-		}
-		if (adres == null && dto.getHuisartsportaalId() != null)
-		{
-			adres = huisartsSyncDao.adresFindByHuisartsportaalId(dto.getHuisartsportaalId());
-		}
-		if (adres == null)
-		{
-			adres = new CervixHuisartsAdres();
-		}
+		var adres = Optional.ofNullable(dto.getScreenitId())
+			.flatMap(id -> huisartsAdresRepository.findById(id))
+			.or(() -> Optional.ofNullable(dto.getHuisartsportaalId())
+				.flatMap(id -> huisartsAdresRepository.findOneByHuisartsportaalId(id)))
+			.orElse(new CervixHuisartsAdres());
+
 		adres.setScreenitId(dto.getScreenitId());
 		adres.setHuisartsportaalId(dto.getHuisartsportaalId());
 		adres.setMutatiedatum(mutatieDatum);
@@ -273,13 +269,13 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 		adres.setWoonplaats(setWoonplaats(dto.getWoonplaats()));
 		adres.setPostcode(dto.getPostcode());
 		adres.setGbaGemeente(adres.getWoonplaats().getGemeente());
-		hibernateService.saveOrUpdate(adres);
+		huisartsAdresRepository.save(adres);
 		return adres;
 	}
 
 	private Woonplaats setWoonplaats(WoonplaatsDto dto)
 	{
-		return hibernateService.load(Woonplaats.class, dto.getScreenitId());
+		return woonplaatsRepository.findById(dto.getScreenitId()).orElse(null);
 	}
 
 	@Override
@@ -307,40 +303,32 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 	public void nieuweAanvraagLabformulieren(AanvraagDto aanvraagDto)
 	{
 		var nu = currentDateSupplier.getDate();
-		CervixHuisartsLocatie locatie = null;
-		if (aanvraagDto.getLocatie() != null && aanvraagDto.getLocatie().getScreenitId() != null)
-		{
-			locatie = hibernateService.load(CervixHuisartsLocatie.class, aanvraagDto.getLocatie().getScreenitId());
-		}
-		if (locatie == null && aanvraagDto.getLocatie() != null && aanvraagDto.getLocatie().getHuisartsportaalId() != null)
-		{
-			locatie = huisartsSyncDao.locatieFindByHuisartsportaalId(aanvraagDto.getLocatie().getHuisartsportaalId());
-		}
-		if (locatie != null)
-		{
-			var huisarts = locatie.getHuisarts();
-			var aanvraag = new CervixLabformulierAanvraag();
-			aanvraag.setAanvraagDatum(aanvraagDto.getAanvraagDatum());
-			aanvraag.setHuisartsportaalId(aanvraagDto.getHuisartsportaalId());
-			aanvraag.setMutatiedatum(nu);
-			aanvraag.setAantal(aanvraagDto.getAantal());
-			aanvraag.setInstellingGebruiker(huisarts.getOrganisatieMedewerkers().get(0));
-			aanvraag.setStatus(CervixLabformulierAanvraagStatus.valueOf(aanvraagDto.getStatus()));
-			aanvraag.setStatusDatum(aanvraagDto.getStatusDatum());
-			aanvraag.setHuisartsLocatie(locatie);
 
-			var so = locatie.getLocatieAdres().getGbaGemeente().getScreeningOrganisatie();
-			var labformulierenBrief = briefService.maakRegioBrief(so, BriefType.REGIO_UITSTRIJKEND_ARTS_LABFORMULIER, nu, null);
-			aanvraag.setBrief(labformulierenBrief);
+		var locatie = Optional.ofNullable(aanvraagDto.getLocatie().getScreenitId())
+			.flatMap(id -> huisartsLocatieRepository.findById(id))
+			.or(() -> Optional.ofNullable(aanvraagDto.getLocatie().getHuisartsportaalId())
+				.flatMap(id -> huisartsLocatieRepository.findOneByHuisartsportaalId(id)))
+			.orElseThrow(() -> new IllegalStateException("Locatie niet gevonden in de database. Kan niet worden gescynchroniseerd!"));
 
-			var voorbladBrief = briefService.maakRegioBrief(so, BriefType.REGIO_UITSTRIJKEND_ARTS_VOORBLAD_LABFORMULIER, nu, null);
-			aanvraag.setVoorbladBrief(voorbladBrief);
+		var huisarts = locatie.getHuisarts();
+		var aanvraag = new CervixLabformulierAanvraag();
+		aanvraag.setAanvraagDatum(aanvraagDto.getAanvraagDatum());
+		aanvraag.setHuisartsportaalId(aanvraagDto.getHuisartsportaalId());
+		aanvraag.setMutatiedatum(nu);
+		aanvraag.setAantal(aanvraagDto.getAantal());
+		aanvraag.setInstellingGebruiker(huisarts.getOrganisatieMedewerkers().get(0));
+		aanvraag.setStatus(CervixLabformulierAanvraagStatus.valueOf(aanvraagDto.getStatus()));
+		aanvraag.setStatusDatum(aanvraagDto.getStatusDatum());
+		aanvraag.setHuisartsLocatie(locatie);
 
-			hibernateService.saveOrUpdate(aanvraag);
-			return;
+		var so = locatie.getLocatieAdres().getGbaGemeente().getScreeningOrganisatie();
+		var labformulierenBrief = briefService.maakRegioBrief(so, BriefType.REGIO_UITSTRIJKEND_ARTS_LABFORMULIER, nu, null);
+		aanvraag.setBrief(labformulierenBrief);
 
-		}
-		throw new IllegalStateException("Locatie niet gevonden in de database. Kan niet worden gescynchroniseerd!");
+		var voorbladBrief = briefService.maakRegioBrief(so, BriefType.REGIO_UITSTRIJKEND_ARTS_VOORBLAD_LABFORMULIER, nu, null);
+		aanvraag.setVoorbladBrief(voorbladBrief);
+
+		labformulierAanvraagRepository.save(aanvraag);
 	}
 
 	@Override
@@ -374,27 +362,27 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void setLabformulierAanvraag(AanvraagDto aanvraagDto)
 	{
-		CervixLabformulierAanvraag aanvraag = null;
-		if (aanvraagDto.getScreenitId() != null)
-		{
-			aanvraag = hibernateService.load(CervixLabformulierAanvraag.class, aanvraagDto.getScreenitId());
-		}
-		else if (aanvraag == null && aanvraagDto.getHuisartsportaalId() != null)
-		{
-			aanvraag = huisartsSyncDao.aanvraagFindByHuisartsportaalId(aanvraagDto.getHuisartsportaalId());
-		}
-		if (aanvraag == null)
+		var aanvraag = Optional.ofNullable(aanvraagDto.getScreenitId())
+			.flatMap(id -> labformulierAanvraagRepository.findById(id))
+			.or(() -> Optional.ofNullable(aanvraagDto.getHuisartsportaalId())
+				.flatMap(id -> labformulierAanvraagRepository.findOneByHuisartsportaalId(id)))
+			.map(a ->
+			{
+				a.setAanvraagDatum(aanvraagDto.getAanvraagDatum());
+				a.setMutatiedatum(currentDateSupplier.getDate());
+				a.setAantal(aanvraagDto.getAantal());
+				a.setStatus(CervixLabformulierAanvraagStatus.valueOf(aanvraagDto.getStatus()));
+				a.setStatusDatum(aanvraagDto.getStatusDatum());
+				return a;
+			});
+
+		if (aanvraag.isEmpty())
 		{
 			nieuweAanvraagLabformulieren(aanvraagDto);
 		}
 		else
 		{
-			aanvraag.setAanvraagDatum(aanvraagDto.getAanvraagDatum());
-			aanvraag.setMutatiedatum(currentDateSupplier.getDate());
-			aanvraag.setAantal(aanvraagDto.getAantal());
-			aanvraag.setStatus(CervixLabformulierAanvraagStatus.valueOf(aanvraagDto.getStatus()));
-			aanvraag.setStatusDatum(aanvraagDto.getStatusDatum());
-			hibernateService.saveOrUpdate(aanvraag);
+			labformulierAanvraagRepository.save(aanvraag.get());
 		}
 	}
 }

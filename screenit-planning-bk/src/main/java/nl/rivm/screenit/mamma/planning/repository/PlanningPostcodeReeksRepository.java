@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.repository;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,12 +24,9 @@ package nl.rivm.screenit.mamma.planning.repository;
 import java.util.List;
 
 import nl.rivm.screenit.model.mamma.MammaPostcodeReeks;
+import nl.rivm.screenit.repository.BaseJpaRepository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
-@Repository
-public interface PlanningPostcodeReeksRepository extends JpaRepository<MammaPostcodeReeks, Long>
+public interface PlanningPostcodeReeksRepository extends BaseJpaRepository<MammaPostcodeReeks>
 {
 	List<MammaPostcodeReeks> findAllByStandplaatsId(Long standplaatsId);
 }

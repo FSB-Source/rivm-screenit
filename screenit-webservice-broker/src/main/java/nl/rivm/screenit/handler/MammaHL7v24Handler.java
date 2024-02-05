@@ -4,7 +4,7 @@ package nl.rivm.screenit.handler;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,7 @@ package nl.rivm.screenit.handler;
  */
 
 import nl.rivm.screenit.wsb.service.mamma.MammaHL7v24Service;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +43,7 @@ public class MammaHL7v24Handler extends AbstractHL7v2Handler<ORM_O01>
 	public MammaHL7v24Handler(Class<ORM_O01> berichtType, Class<? extends MammaHL7v24Service> clazz)
 	{
 		super(berichtType);
-		this.mammaHL7V24Service = SpringBeanProvider.getInstance().getBean(clazz);
+		this.mammaHL7V24Service = ApplicationContextProvider.getApplicationContext().getBean(clazz);
 	}
 
 	@Override

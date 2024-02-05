@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.huisarts.factur
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,6 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.huisarts.factur
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -34,6 +33,7 @@ import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
 import nl.rivm.screenit.main.web.component.price.BigDecimalPriceLabel;
+import nl.rivm.screenit.main.web.component.table.ClientColumn;
 import nl.rivm.screenit.main.web.component.table.ExportToCsvLink;
 import nl.rivm.screenit.main.web.component.table.GeboortedatumColumn;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
@@ -43,8 +43,6 @@ import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
-import nl.rivm.screenit.model.cervix.CervixMonster;
-import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.model.cervix.facturatie.CervixHuisartsTarief;
@@ -73,7 +71,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
@@ -127,7 +124,7 @@ public class CervixHuisartsOverzichtVerrichtingenPage extends OrganisatieBeheer
 
 		add(new CervixHuisartsPaspoortPanel("paspoort", ModelUtil.sModel((CervixHuisarts) getCurrentSelectedOrganisatie())));
 
-		LocalDate vandaag = currentDateSupplier.getLocalDate();
+		var vandaag = currentDateSupplier.getLocalDate();
 
 		formCriteria.getObject().setVerrichtingsDatumVanaf(DateUtil.toUtilDate(vandaag.minusMonths(1)));
 		formCriteria.getObject().setVerrichtingsDatumTotenmet(DateUtil.toUtilDate(vandaag));
@@ -135,7 +132,7 @@ public class CervixHuisartsOverzichtVerrichtingenPage extends OrganisatieBeheer
 
 		bepaalSoDropdown(form);
 
-		CervixHuisarts huisarts = (CervixHuisarts) getCurrentSelectedOrganisatie();
+		var huisarts = (CervixHuisarts) getCurrentSelectedOrganisatie();
 
 		huisartsLocatieModel = new SimpleHibernateModel<>();
 		DropDownChoice<CervixHuisartsLocatie> huisartsLocatieDropDownChoice = ComponentHelper.newDropDownChoice("huisartsLocatie",
@@ -152,7 +149,7 @@ public class CervixHuisartsOverzichtVerrichtingenPage extends OrganisatieBeheer
 
 		ComponentHelper.addTextField(form, "betalingskenmerk", false, 255, false);
 
-		CheckBox checkBox = ComponentHelper.newCheckBox("alleenZonderBetalingskenmerk");
+		var checkBox = ComponentHelper.newCheckBox("alleenZonderBetalingskenmerk");
 		checkBox.setOutputMarkupId(true);
 		form.add(checkBox);
 
@@ -161,7 +158,7 @@ public class CervixHuisartsOverzichtVerrichtingenPage extends OrganisatieBeheer
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				CervixVerrichtingenZoekObject criteria = formCriteria.getObject();
+				var criteria = formCriteria.getObject();
 				if ((criteria.getGeboorteDatum() == null && StringUtils.isNotBlank(criteria.getBsn()))
 					|| (criteria.getGeboorteDatum() != null && StringUtils.isBlank(criteria.getBsn())))
 				{
@@ -202,8 +199,8 @@ public class CervixHuisartsOverzichtVerrichtingenPage extends OrganisatieBeheer
 			@Override
 			public void validate(Form<?> form)
 			{
-				String bsn = bsnField.getConvertedInput();
-				Date geboorteDatum = geboorteDatumDatePicker.getConvertedInput();
+				var bsn = bsnField.getConvertedInput();
+				var geboorteDatum = geboorteDatumDatePicker.getConvertedInput();
 				if ((geboorteDatum == null && StringUtils.isNotBlank(bsn))
 					|| (geboorteDatum != null && StringUtils.isBlank(bsn)))
 				{
@@ -225,8 +222,8 @@ public class CervixHuisartsOverzichtVerrichtingenPage extends OrganisatieBeheer
 
 	private void bepaalSoDropdown(Form<?> form)
 	{
-		boolean toonSOdropdown = true;
-		ToegangLevel toegangLevel = ScreenitSession.get().getToegangsLevel(Actie.INZIEN, Recht.GEBRUIKER_BMHK_HUISARTS_OVERZICHT_VERRICHTINGEN);
+		var toonSOdropdown = true;
+		var toegangLevel = ScreenitSession.get().getToegangsLevel(Actie.INZIEN, Recht.GEBRUIKER_BMHK_HUISARTS_OVERZICHT_VERRICHTINGEN);
 		if (ScreenitSession.get().getScreeningOrganisatie() != null && ToegangLevel.REGIO.equals(toegangLevel))
 		{
 			screeningOrganisatieModel.setObject(ScreenitSession.get().getScreeningOrganisatie());
@@ -246,7 +243,7 @@ public class CervixHuisartsOverzichtVerrichtingenPage extends OrganisatieBeheer
 		{
 			soLabel = ScreenitSession.get().getScreeningOrganisatie().getNaam();
 		}
-		Label label = new Label("soLabel", soLabel);
+		var label = new Label("soLabel", soLabel);
 		label.setVisible(!toonSOdropdown);
 		form.add(label);
 	}
@@ -258,7 +255,7 @@ public class CervixHuisartsOverzichtVerrichtingenPage extends OrganisatieBeheer
 		totalenContainer.setDefaultModel(verrichtingTotalenModel);
 		setVerrichtingTotalenModel();
 
-		Label aantalUitstrijkjes = new Label("aantalUitstrijkjes");
+		var aantalUitstrijkjes = new Label("aantalUitstrijkjes");
 		totalenContainer.add(aantalUitstrijkjes);
 		totalenContainer.add(new Label("totaalBedrag"));
 		return totalenContainer;
@@ -266,7 +263,7 @@ public class CervixHuisartsOverzichtVerrichtingenPage extends OrganisatieBeheer
 
 	private void setVerrichtingTotalenModel()
 	{
-		CervixHuisartsVerrichtingTotalenViewObject verrichtingTotalenModelObject = verrichtingTotalenModel.getObject();
+		var verrichtingTotalenModelObject = verrichtingTotalenModel.getObject();
 		formCriteria.getObject().setAlleenVerrichtingen(true);
 		verrichtingTotalenModelObject.setAantalUitstrijkjes(verrichtingenDataProvider.size() + "");
 		formCriteria.getObject().setAlleenVerrichtingen(false);
@@ -277,7 +274,7 @@ public class CervixHuisartsOverzichtVerrichtingenPage extends OrganisatieBeheer
 
 	private BigDecimal getTotaalBedrag()
 	{
-		BigDecimal bedrag = verrichtingService.getHuisartsTotaalBedrag(formCriteria.getObject(), screeningOrganisatieModel.getObject(),
+		var bedrag = verrichtingService.getHuisartsTotaalBedrag(formCriteria.getObject(), screeningOrganisatieModel.getObject(),
 			verrichtingenDataProvider.getGeselecteerdeHuisarts(), huisartsLocatieModel.getObject());
 		if (bedrag == null)
 		{
@@ -310,7 +307,7 @@ public class CervixHuisartsOverzichtVerrichtingenPage extends OrganisatieBeheer
 		List<IColumn<CervixBoekRegel, String>> columns = new ArrayList<>();
 		columns.add(new PropertyColumn<>(Model.of("Screeningsorganisatie"), "regio.naam", "verrichting.regio.naam"));
 		columns.add(new PropertyColumn<>(Model.of("Locatie"), "huisartsLocatie.naam", "verrichting.huisartsLocatie.naam"));
-		columns.add(new PropertyColumn<>(Model.of("Naam cliënt"), "persoon.achternaam", "verrichting.client.getName"));
+		columns.add(new ClientColumn<>("persoon.achternaam", "verrichting.client"));
 		columns.add(new GeboortedatumColumn<>("persoon.geboortedatum", "verrichting.client.persoon"));
 		columns.add(new PropertyColumn<>(Model.of("BSN"), "persoon.bsn", "verrichting.client.persoon.bsn"));
 		columns.add(new PropertyColumn<>(Model.of("Monster-id"), "monster.monsterId", "verrichting.monster.monsterId"));
@@ -321,11 +318,11 @@ public class CervixHuisartsOverzichtVerrichtingenPage extends OrganisatieBeheer
 			@Override
 			public IModel<String> getDataModel(IModel<CervixBoekRegel> embeddedModel)
 			{
-				SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
-				CervixMonster monster = embeddedModel.getObject().getVerrichting().getMonster();
+				var dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+				var monster = embeddedModel.getObject().getVerrichting().getMonster();
 				if (!CervixMonsterUtil.isZAS(monster))
 				{
-					CervixUitstrijkje uitstrijkje = CervixMonsterUtil.getUitstrijkje(monster);
+					var uitstrijkje = CervixMonsterUtil.getUitstrijkje(monster);
 					if (uitstrijkje.getLabformulier() != null && uitstrijkje.getLabformulier().getDatumUitstrijkje() != null)
 					{
 						return Model.of(dateFormat.format(uitstrijkje.getLabformulier().getDatumUitstrijkje()));
@@ -340,12 +337,12 @@ public class CervixHuisartsOverzichtVerrichtingenPage extends OrganisatieBeheer
 			@Override
 			public IModel<String> getDataModel(IModel<CervixBoekRegel> embeddedModel)
 			{
-				SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+				var dateFormat = new SimpleDateFormat("dd-MM-yyyy");
 
-				CervixMonster monster = embeddedModel.getObject().getVerrichting().getMonster();
+				var monster = embeddedModel.getObject().getVerrichting().getMonster();
 				if (!CervixMonsterUtil.isZAS(monster))
 				{
-					CervixUitstrijkje uitstrijkje = CervixMonsterUtil.getUitstrijkje(monster);
+					var uitstrijkje = CervixMonsterUtil.getUitstrijkje(monster);
 					if (uitstrijkje.getLabformulier() != null && uitstrijkje.getLabformulier().getScanDatum() != null)
 					{
 						return Model.of(dateFormat.format(uitstrijkje.getLabformulier().getScanDatum()));
@@ -364,9 +361,9 @@ public class CervixHuisartsOverzichtVerrichtingenPage extends OrganisatieBeheer
 
 			private BigDecimal getBoekregel(IModel<CervixBoekRegel> rowModel)
 			{
-				CervixBoekRegel boekRegel = rowModel.getObject();
-				CervixHuisartsTarief tarief = (CervixHuisartsTarief) HibernateHelper.deproxy(boekRegel.getTarief());
-				BigDecimal bedrag = tarief.getTarief();
+				var boekRegel = rowModel.getObject();
+				var tarief = (CervixHuisartsTarief) HibernateHelper.deproxy(boekRegel.getTarief());
+				var bedrag = tarief.getTarief();
 				if (boekRegel.getDebet())
 				{
 					bedrag = bedrag.negate();
@@ -383,7 +380,7 @@ public class CervixHuisartsOverzichtVerrichtingenPage extends OrganisatieBeheer
 
 		columns.add(new DateTimePropertyColumn<>(Model.of("Betalingsdatum"), "specificatie.betaalopdrachtRegel.betaalopdracht.statusDatum", "betaalopdracht.statusDatum"));
 		columns
-				.add(new PropertyColumn<>(Model.of("Betalingskenmerk"), "betaalopdracht.betalingskenmerk", "specificatie.betaalopdrachtRegel.betaalopdracht.betalingskenmerk"));
+			.add(new PropertyColumn<>(Model.of("Betalingskenmerk"), "betaalopdracht.betalingskenmerk", "specificatie.betaalopdrachtRegel.betaalopdracht.betalingskenmerk"));
 		return columns;
 	}
 

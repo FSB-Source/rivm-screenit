@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,7 +30,7 @@ import nl.rivm.screenit.model.mamma.MammaLezing;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.MammaMergeFieldService;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -114,7 +114,7 @@ public class MammaMergeFieldServiceImpl implements MammaMergeFieldService
 
 	private Gebruiker bepaalVerwijzendeRadioloog(MammaBeoordeling beoordeling, Gebruiker beoordelaarEersteLezing, Gebruiker beoordelaarTweedeLezing)
 	{
-		MammaBaseBeoordelingService beoordelingService = SpringBeanProvider.getInstance().getBean(MammaBaseBeoordelingService.class);
+		MammaBaseBeoordelingService beoordelingService = ApplicationContextProvider.getApplicationContext().getBean(MammaBaseBeoordelingService.class);
 
 		if (beoordelingService.isLezingVerwijzen(beoordeling.getEersteLezing()))
 		{
@@ -141,7 +141,7 @@ public class MammaMergeFieldServiceImpl implements MammaMergeFieldService
 
 	private Gebruiker bepaalAndereGunstigeLezing(MammaBeoordeling beoordeling)
 	{
-		MammaBaseBeoordelingService beoordelingService = SpringBeanProvider.getInstance().getBean(MammaBaseBeoordelingService.class);
+		MammaBaseBeoordelingService beoordelingService = ApplicationContextProvider.getApplicationContext().getBean(MammaBaseBeoordelingService.class);
 		MammaLezing eersteLezing = beoordeling.getEersteLezing();
 
 		return !beoordelingService.isLezingVerwijzen(eersteLezing) ? eersteLezing.getBeoordelaar().getMedewerker()

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,16 +21,15 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen;
  * =========================LICENSE_END==================================
  */
 
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
+import java.io.File;
+
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 
 import org.apache.wicket.markup.html.link.ResourceLink;
 import org.apache.wicket.model.IModel;
 
-import java.io.File;
-
 public class OrionResourceLink extends ResourceLink<Void>
 {
-
 	private static final long serialVersionUID = 1L;
 
 	public OrionResourceLink(String id, IModel<File> formulier)
@@ -40,6 +39,7 @@ public class OrionResourceLink extends ResourceLink<Void>
 
 	public OrionResourceLink(String id, String objid)
 	{
-		super(id, new ScannedFormulierViewerResourceExternal(String.format(SpringBeanProvider.getInstance().getBean(String.class, "antwoordFormulierUrl"), objid), false));
+		super(id, new ScannedFormulierViewerResourceExternal(String.format(ApplicationContextProvider.getApplicationContext().getBean("antwoordFormulierUrl", String.class), objid),
+			false));
 	}
 }

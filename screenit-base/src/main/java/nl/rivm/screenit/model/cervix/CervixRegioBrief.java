@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -49,7 +49,7 @@ public class CervixRegioBrief extends Brief
 	@ManyToOne(fetch = FetchType.LAZY)
 	private CervixHuisarts huisarts;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade({ CascadeType.SAVE_UPDATE })
 	private CervixRegioMergedBrieven mergedBrieven;
 

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,7 +31,7 @@ import nl.rivm.screenit.config.MessageBirdConfig;
 import nl.rivm.screenit.dto.SmsVersturenSqsDto;
 import nl.rivm.screenit.service.aws.AwsSqsService;
 import nl.rivm.screenit.service.mamma.MammaDigitaalContactService;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.context.annotation.Configuration;
@@ -66,7 +66,7 @@ public class MammaSmsVersturenQueueServiceImpl
 	{
 		LOG.info("Running sms berichten herinnering queue");
 
-		try (var sqsClient = SpringBeanProvider.getInstance().getBean(SqsClient.class))
+		try (var sqsClient = ApplicationContextProvider.getApplicationContext().getBean(SqsClient.class))
 		{
 			String sqsQueueUrl = awsSqsService.getSqsQueueUrl(sqsClient, queueName);
 			if (StringUtils.isNotBlank(sqsQueueUrl))

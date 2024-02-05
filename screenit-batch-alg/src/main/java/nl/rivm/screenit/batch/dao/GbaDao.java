@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.batch.dao;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,20 +21,13 @@ package nl.rivm.screenit.batch.dao;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.gba.GbaStamtabel;
-import nl.rivm.screenit.model.gba.GbaVraag;
 
 import org.hibernate.Criteria;
 
 public interface GbaDao
 {
-
 	<T extends GbaStamtabel> T getStamtabelByCode(Class<T> clazz, String code);
-
-	void updateVerstuurdeVragen(String uniqueBatchId);
-
-	GbaVraag getLaatsteGbaVraag(Client client, String bsn);
 
 	Criteria getAllAdressenZonderCoordinanten();
 }

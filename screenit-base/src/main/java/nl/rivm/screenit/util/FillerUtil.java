@@ -4,7 +4,7 @@ package nl.rivm.screenit.util;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -54,7 +54,7 @@ import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 import nl.topicuszorg.wicket.planning.model.Discipline;
 import nl.topicuszorg.wicket.planning.model.appointment.definition.ActionType;
 
@@ -76,7 +76,7 @@ public class FillerUtil
 		uploadDocument.setFile(file);
 		try
 		{
-			UploadDocumentService uploadDocumentService = SpringBeanProvider.getInstance().getBean(UploadDocumentService.class);
+			UploadDocumentService uploadDocumentService = ApplicationContextProvider.getApplicationContext().getBean(UploadDocumentService.class);
 			uploadDocumentService.saveOrUpdate(uploadDocument, fileStoreLocation, id, false);
 		}
 		catch (IOException e)

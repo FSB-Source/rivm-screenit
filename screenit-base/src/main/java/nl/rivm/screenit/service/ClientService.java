@@ -4,7 +4,7 @@ package nl.rivm.screenit.service;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,12 +31,10 @@ import nl.rivm.screenit.model.Dossier;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.RedenGbaVraag;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.rivm.screenit.model.gba.GbaVraag;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectInactiefReden;
@@ -92,8 +90,6 @@ public interface ClientService
 	boolean clientInBuitenland(Client client);
 
 	boolean clientHeeftGbaIndicatie(Client client);
-
-	GbaVraag vraagGbaGegevensOpnieuwAan(Client client, Account account, RedenGbaVraag reden);
 
 	boolean isTijdelijkeAdresNuActueel(GbaPersoon persoon);
 

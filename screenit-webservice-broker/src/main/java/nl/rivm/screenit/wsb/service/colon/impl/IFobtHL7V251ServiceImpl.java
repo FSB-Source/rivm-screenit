@@ -4,7 +4,7 @@ package nl.rivm.screenit.wsb.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -68,10 +68,7 @@ public class IFobtHL7V251ServiceImpl extends BaseHL7v2Service<OUL_R22> implement
 		try
 		{
 			ifobtBericht = new ColonIFobtHL7BerichtWrapper(message);
-			LOG.info("Incoming message: hl7v251(" + ifobtBericht.getMessageId() + ")");
-
 			verwerkBericht(ifobtBericht);
-
 			return message.generateACK();
 		}
 		catch (NullPointerException | HL7Exception ex)
@@ -100,11 +97,11 @@ public class IFobtHL7V251ServiceImpl extends BaseHL7v2Service<OUL_R22> implement
 
 	private void verwerkBericht(ColonIFobtHL7BerichtWrapper berichtWrapper) throws HL7Exception
 	{
-		IFobtLaboratorium laboratorium = getIFobtLaboratorium(berichtWrapper);
+		var laboratorium = getIFobtLaboratorium(berichtWrapper);
 
 		if (ifobtResultDao.isIFobtBerichtAlOntvangen(berichtWrapper.getMessageId()))
 		{
-			String melding = "FIT HL7 Bericht (messageID: " + berichtWrapper.getMessageId() + ") al eerder binnengekomen voor lab: " + laboratorium.getNaam();
+			var melding = "FIT HL7 Bericht (messageID: " + berichtWrapper.getMessageId() + ") al eerder binnengekomen voor lab: " + laboratorium.getNaam();
 			logging(LogGebeurtenis.COLON_IFOBT_BERICHT_BINNENGEKOMEN, Level.WARNING, laboratorium, melding, Bevolkingsonderzoek.COLON);
 			return;
 		}
@@ -112,7 +109,7 @@ public class IFobtHL7V251ServiceImpl extends BaseHL7v2Service<OUL_R22> implement
 		logging(LogGebeurtenis.COLON_IFOBT_BERICHT_BINNENGEKOMEN, Level.INFO, laboratorium,
 			"Bericht (messageID: " + berichtWrapper.getMessageId() + ") binnengekomen voor lab: " + laboratorium.getNaam(), Bevolkingsonderzoek.COLON);
 
-		ColonIFobtUitslagBericht iFobtUitslagBericht = new ColonIFobtUitslagBericht();
+		var iFobtUitslagBericht = new ColonIFobtUitslagBericht();
 		iFobtUitslagBericht.setMessageId(berichtWrapper.getMessageId());
 		iFobtUitslagBericht.setStatus(BerichtStatus.NIEUW);
 		iFobtUitslagBericht.setLaboratorium(laboratorium);
@@ -124,8 +121,8 @@ public class IFobtHL7V251ServiceImpl extends BaseHL7v2Service<OUL_R22> implement
 
 	private IFobtLaboratorium getIFobtLaboratorium(ColonIFobtHL7BerichtWrapper message) throws HL7Exception
 	{
-		String labId = message.getLabId();
-		IFobtLaboratorium laboratorium = ifobtResultDao.getIFobtLaboratorium(labId);
+		var labId = message.getLabId();
+		var laboratorium = ifobtResultDao.getIFobtLaboratorium(labId);
 		if (laboratorium != null)
 		{
 			return laboratorium;
@@ -135,7 +132,7 @@ public class IFobtHL7V251ServiceImpl extends BaseHL7v2Service<OUL_R22> implement
 
 	private Message generateApplicationError(Exception ex, Message message)
 	{
-		String foutmelding = ex.getMessage();
+		var foutmelding = ex.getMessage();
 
 		if (StringUtils.isBlank(foutmelding))
 		{
@@ -145,8 +142,7 @@ public class IFobtHL7V251ServiceImpl extends BaseHL7v2Service<OUL_R22> implement
 		try
 		{
 			logging(LogGebeurtenis.COLON_IFOBT_BERICHT_ERROR, Level.ERROR, null, foutmelding, Bevolkingsonderzoek.COLON);
-			Message response = message.generateACK(AcknowledgmentCode.AE, new HL7Exception("Er is een fout opgetreden met de verwerking van het HL7 bericht."));
-			return response;
+			return message.generateACK(AcknowledgmentCode.AE, new HL7Exception("Er is een fout opgetreden met de verwerking van het HL7 bericht."));
 		}
 		catch (HL7Exception | IOException e)
 		{
@@ -159,10 +155,9 @@ public class IFobtHL7V251ServiceImpl extends BaseHL7v2Service<OUL_R22> implement
 	{
 		try
 		{
-			String foutmelding = "Er is een onbekende fout opgetreden in de applicatie.";
+			var foutmelding = "Er is een onbekende fout opgetreden in de applicatie.";
 			LOG.error(foutmelding, e);
-			Message responseReject = message.generateACK(AcknowledgmentCode.AR, new HL7Exception(foutmelding));
-			return responseReject;
+			return message.generateACK(AcknowledgmentCode.AR, new HL7Exception(foutmelding));
 		}
 		catch (HL7Exception | IOException e1)
 		{

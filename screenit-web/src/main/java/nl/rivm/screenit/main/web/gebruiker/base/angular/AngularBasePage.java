@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.base.angular;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -155,5 +155,11 @@ public abstract class AngularBasePage extends GebruikerBasePage
 			response.render(
 				new CssUrlReferenceHeaderItem(medewerkerPortaalResourceUrl + style + "?version=" + ScreenitApplication.get().getVersionString(), "screen", "stylesheet"));
 		}
+	}
+
+	@Override
+	protected void setupTimeout(IHeaderResponse response)
+	{
+
 	}
 }

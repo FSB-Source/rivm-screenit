@@ -5,7 +5,7 @@ package nl.rivm.screenit.batch;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -136,7 +136,7 @@ public abstract class BaseCsvFileReader<T> implements ItemReader<T>, ItemStream
 	@BeforeStep
 	public void saveStepExecution(StepExecution stepExecution)
 	{
-		this.jobExecution = stepExecution.getJobExecution();
+		jobExecution = stepExecution.getJobExecution();
 	}
 
 	protected abstract T parseLine(String[] line, int regelnummer, String bestandsNaam) throws ParseException, IllegalStateException;
@@ -153,7 +153,6 @@ public abstract class BaseCsvFileReader<T> implements ItemReader<T>, ItemStream
 			current = readers.next();
 			if (current instanceof CsvFileProvider.CSVFileReader)
 			{
-				LOG.info("Parsen van regels in bestand " + ((CsvFileProvider.CSVFileReader) current).getFileNaam());
 				CsvFileProvider.CSVFileReader currentReader = (CsvFileProvider.CSVFileReader) current;
 				bestandsNaam = currentReader.getFileNaam();
 			}

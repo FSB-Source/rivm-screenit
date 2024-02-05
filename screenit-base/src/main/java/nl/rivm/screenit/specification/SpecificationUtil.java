@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -159,6 +159,11 @@ public class SpecificationUtil
 		return (r, q, cb) -> betweenDatesPredicate(vanaf, totEnMet).withPath(cb, pathSupplier.apply(r));
 	}
 
+	public static <S> Specification<S> betweenLocalDates(LocalDate vanaf, LocalDate totEnMet, Function<Root<S>, Path<LocalDate>> pathSupplier)
+	{
+		return (r, q, cb) -> betweenLocalDatesPredicate(vanaf, totEnMet).withPath(cb, pathSupplier.apply(r));
+	}
+
 	public static PathAwarePredicate<Date> betweenDatesPredicate(Range<LocalDate> range)
 	{
 		return betweenDatesPredicate(range.lowerEndpoint(), range.upperEndpoint());
@@ -178,6 +183,26 @@ public class SpecificationUtil
 			if (totEnMet != null)
 			{
 				predicates.add(cb.lessThan(r, DateUtil.toUtilDate(totEnMet.plusDays(1))));
+			}
+
+			return composePredicates(cb, predicates);
+		};
+	}
+
+	public static PathAwarePredicate<LocalDate> betweenLocalDatesPredicate(LocalDate vanaf, LocalDate totEnMet)
+	{
+		return (cb, r) ->
+		{
+			var predicates = new ArrayList<Predicate>();
+
+			if (vanaf != null)
+			{
+				predicates.add(cb.greaterThanOrEqualTo(r, vanaf));
+			}
+
+			if (totEnMet != null)
+			{
+				predicates.add(cb.lessThan(r, totEnMet.plusDays(1)));
 			}
 
 			return composePredicates(cb, predicates);

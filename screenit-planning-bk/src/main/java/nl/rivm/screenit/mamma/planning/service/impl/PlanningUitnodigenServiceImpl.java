@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.service.impl;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -70,7 +70,7 @@ import nl.rivm.screenit.service.mamma.afspraakzoeken.MammaKandidaatAfspraak;
 import nl.rivm.screenit.service.mamma.impl.MammaOnvoldoendeVrijeCapaciteitException;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -143,7 +143,7 @@ public class PlanningUitnodigenServiceImpl implements PlanningUitnodigenService
 			MammaKandidaatAfspraak kandidaatAfspraak;
 			try
 			{
-				MammaBaseKandidaatAfsprakenDeterminatiePeriode baseKandidaatAfsprakenDeterminatiePeriode = SpringBeanProvider.getInstance()
+				MammaBaseKandidaatAfsprakenDeterminatiePeriode baseKandidaatAfsprakenDeterminatiePeriode = ApplicationContextProvider.getApplicationContext()
 					.getBean(MammaBaseKandidaatAfsprakenDeterminatiePeriode.class);
 				kandidaatAfspraak = baseKandidaatAfsprakenDeterminatiePeriode.getKandidaatAfspraakUitnodiging(dossier, mammaStandplaatsRonde, voorlopigeOpkomstkans,
 					context.capaciteitVolledigBenutTotEnMetAantalWerkdagen, context.afspraakBijUitnodigenVanafAantalWerkdagen);

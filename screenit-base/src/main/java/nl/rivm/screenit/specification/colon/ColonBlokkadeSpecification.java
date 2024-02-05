@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -56,21 +56,19 @@ public class ColonBlokkadeSpecification
 			var predicates = new ArrayList<Predicate>();
 			for (var range : ranges)
 			{
-				predicates.add(valtBinnenDatumRange(range.lowerEndpoint(), range.upperEndpoint()).toPredicate(r, q, cb));
+				predicates.add(valtBinnenDatumRange(range).toPredicate(r, q, cb));
 			}
 			return SpecificationUtil.composePredicatesOr(cb, predicates);
 		};
 	}
 
-	public static Specification<ColonBlokkade> valtBinnenDatumRange(Date vanaf, Date totEnMet)
+	public static Specification<ColonBlokkade> valtBinnenDatumRange(Range<Date> range)
 	{
 		return (r, q, cb) ->
 		{
 			var startProperty = r.get(AbstractAppointment_.startTime);
 			var endProperty = r.get(AbstractAppointment_.endTime);
-			return cb.or(
-				cb.and(cb.between(startProperty, vanaf, totEnMet), cb.between(endProperty, vanaf, totEnMet)),
-				cb.and(cb.lessThan(startProperty, vanaf), cb.greaterThan(endProperty, totEnMet))
+			return cb.and(cb.greaterThan(endProperty, range.lowerEndpoint()), cb.lessThan(startProperty, range.upperEndpoint())
 			);
 		};
 	}

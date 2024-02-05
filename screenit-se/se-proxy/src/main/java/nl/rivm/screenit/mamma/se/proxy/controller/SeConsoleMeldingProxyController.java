@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.controller;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,28 +26,27 @@ import java.nio.charset.StandardCharsets;
 
 import javax.servlet.http.HttpServletRequest;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.mamma.se.proxy.model.ConsoleMeldingDto;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Slf4j
 @RequestMapping("/api/console-melding")
 public class SeConsoleMeldingProxyController
 {
-	private static final Logger LOG = LoggerFactory.getLogger(SeConsoleMeldingProxyController.class);
-
-	@RequestMapping(method = RequestMethod.POST, value = "/{medewerkercode}")
-	public ResponseEntity<String> verwerkConsoleBericht(@RequestBody ConsoleMeldingDto meldingDto, @PathVariable String medewerkercode, HttpServletRequest request)
+	@PostMapping("/{medewerkerCode}")
+	public ResponseEntity<String> verwerkConsoleBericht(@RequestBody ConsoleMeldingDto meldingDto, @PathVariable String medewerkerCode, HttpServletRequest request)
 	{
-		String logBericht = maakLogBericht(request, medewerkercode, meldingDto.getMelding(), meldingDto.getStack());
+		var logBericht = maakLogBericht(request, medewerkerCode, meldingDto.getMelding(), meldingDto.getStack());
 
 		switch (meldingDto.getLevel())
 		{
@@ -66,9 +65,9 @@ public class SeConsoleMeldingProxyController
 		return ResponseEntity.ok().build();
 	}
 
-	private String maakLogBericht(HttpServletRequest request, String medewerkercode, String melding, String stack)
+	private String maakLogBericht(HttpServletRequest request, String medewerkerCode, String melding, String stack)
 	{
-		return String.format("[IP: %s, medewerkerCode: %s]: %s, %s", request.getRemoteAddr(), medewerkercode, URLDecoder.decode(melding, StandardCharsets.UTF_8),
+		return String.format("[IP: %s, medewerkerCode: %s]: %s, %s", request.getRemoteAddr(), medewerkerCode, URLDecoder.decode(melding, StandardCharsets.UTF_8),
 			StringUtils.isNotBlank(stack) ? "Stacktrace: " + stack : "");
 	}
 }

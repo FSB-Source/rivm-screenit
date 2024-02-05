@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -37,7 +37,6 @@ import nl.rivm.screenit.main.service.RetourzendingService;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.InpakbareUitnodiging;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.RedenGbaVraag;
 import nl.rivm.screenit.model.RetourredenAfhandeling;
 import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
@@ -58,9 +57,9 @@ import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
-import nl.rivm.screenit.model.gba.GbaVraag;
 import nl.rivm.screenit.model.logging.RetourzendingLogEvent;
 import nl.rivm.screenit.service.BaseBriefService;
+import nl.rivm.screenit.service.BaseGbaVraagService;
 import nl.rivm.screenit.service.BaseUitnodigingService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -132,6 +131,9 @@ public class RetourzendingServiceImpl implements RetourzendingService
 
 	@Autowired
 	private BaseBriefService briefService;
+
+	@Autowired
+	private BaseGbaVraagService baseGbaVraagService;
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
@@ -343,20 +345,8 @@ public class RetourzendingServiceImpl implements RetourzendingService
 			}
 			else if (!baseUitnodigingsService.isVerstuurdMetTijdelijkAdres(uitnodiging))
 			{
-				GbaVraag gbaVraag = clientService.vraagGbaGegevensOpnieuwAan(screeningRonde.getDossier().getClient(), null, RedenGbaVraag.ONJUIST_ADRES);
-				String retourzendingMarker = null;
-				if (uitnodiging instanceof ColonUitnodiging)
-				{
-					retourzendingMarker = Constants.COLON_RETOURZENDING_MARKER;
-				}
-				else if (uitnodiging instanceof CervixUitnodiging)
-				{
-					retourzendingMarker = Constants.CERVIX_RETOURZENDING_MARKER;
-				}
-				String aanvullendeInformatie = "|" + Constants.GBA_CHECK_ON_TIJDELIJK_ADRES_NU_ACTUEEL + "|" + Constants.RETOURZENDING_UITNODIGINGS_ID_MARKER + uitnodiging.getId()
-					+ "|" + retourzendingMarker + "|";
-				gbaVraag.setAanvullendeInformatie(aanvullendeInformatie);
-				hibernateService.saveOrUpdate(gbaVraag);
+				var aanvullendeInformatie = aanvullendeInformatieVoorGbaVraag(uitnodiging);
+				baseGbaVraagService.vraagGbaGegevensOpnieuwAanDoorRetourzending(screeningRonde.getDossier().getClient(), aanvullendeInformatie);
 				uitnodiging.setRetourzendingStatus(RetourzendingStatus.NIEUWE_GBA_ADRES_AANGEVRAAGD);
 			}
 			else
@@ -399,6 +389,21 @@ public class RetourzendingServiceImpl implements RetourzendingService
 		}
 
 		hibernateService.saveOrUpdate(uitnodiging);
+	}
+
+	private String aanvullendeInformatieVoorGbaVraag(InpakbareUitnodiging<?> uitnodiging)
+	{
+		String retourzendingMarker = null;
+		if (uitnodiging instanceof ColonUitnodiging)
+		{
+			retourzendingMarker = Constants.COLON_RETOURZENDING_MARKER;
+		}
+		else if (uitnodiging instanceof CervixUitnodiging)
+		{
+			retourzendingMarker = Constants.CERVIX_RETOURZENDING_MARKER;
+		}
+		return "|" + Constants.GBA_CHECK_ON_TIJDELIJK_ADRES_NU_ACTUEEL + "|" + Constants.RETOURZENDING_UITNODIGINGS_ID_MARKER + uitnodiging.getId()
+			+ "|" + retourzendingMarker + "|";
 	}
 
 	private RetourredenAfhandeling bepaalAfhandelingVoorRetourzending(String retourReden)

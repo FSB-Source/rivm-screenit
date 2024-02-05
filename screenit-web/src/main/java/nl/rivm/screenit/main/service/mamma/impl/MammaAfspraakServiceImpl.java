@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -76,8 +76,8 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5SessionInThread;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -197,7 +197,7 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 
 			var voorlopigeOpkomstkans = kansberekeningService.getVoorlopigeOpkomstkans(uitnodiging, standplaatsPeriode, filter.getVerzettenReden());
 
-			MammaBaseKandidaatAfsprakenDeterminatiePeriode baseKandidaatAfsprakenDeterminatiePeriode = SpringBeanProvider.getInstance()
+			MammaBaseKandidaatAfsprakenDeterminatiePeriode baseKandidaatAfsprakenDeterminatiePeriode = ApplicationContextProvider.getApplicationContext()
 				.getBean(MammaBaseKandidaatAfsprakenDeterminatiePeriode.class);
 
 			var kandidaatAfspraak = baseKandidaatAfsprakenDeterminatiePeriode.getKandidaatAfspraakBulkVerzetten(dossier, standplaatsPeriode, vanaf, totEnMet,

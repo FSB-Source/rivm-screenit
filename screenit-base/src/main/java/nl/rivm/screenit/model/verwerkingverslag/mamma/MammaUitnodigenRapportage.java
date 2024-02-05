@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.verwerkingverslag.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -54,12 +54,12 @@ public class MammaUitnodigenRapportage extends AbstractHibernateObject
 	@Setter
 	private Date datumVerwerking;
 
-	@OneToMany(mappedBy = "uitnodigenRapportage", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "uitnodigenRapportage", fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.REMOVE })
 	@Cascade(CascadeType.DELETE)
 	@Getter
 	private List<MammaStandplaatsRondeUitnodigenRapportage> standplaatsRondeUitnodigenRapportages = new ArrayList<>();
 
-	@OneToMany(mappedBy = "uitnodigenRapportage", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "uitnodigenRapportage", fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.REMOVE })
 	@Cascade(CascadeType.DELETE)
 	@Getter
 	private List<MammaIntervalUitnodigenRapportage> intervalUitnodigenRapportages = new ArrayList<>();

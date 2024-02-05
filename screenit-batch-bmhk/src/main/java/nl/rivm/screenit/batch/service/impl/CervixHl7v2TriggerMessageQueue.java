@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -215,8 +215,8 @@ public class CervixHl7v2TriggerMessageQueue
 
 		CervixHl7v2TriggerMessagePerLabQueue(BMHKLaboratorium lab)
 		{
-			this.labId = lab.getId();
-			this.labNaam = lab.getNaam();
+			labId = lab.getId();
+			labNaam = lab.getNaam();
 		}
 
 		@Override
@@ -605,7 +605,7 @@ public class CervixHl7v2TriggerMessageQueue
 			var monster = hibernateService.get(triggerDto.getClazz(), triggerDto.getMonsterId());
 			if (monster == null)
 			{
-				LOG.error("Monster met id {} is niet (meer) aanwezig", triggerDto.getMonsterId());
+				LOG.error("Monster (id: '{}') is niet (meer) aanwezig", triggerDto.getMonsterId());
 				return null;
 			}
 			hibernateService.reload(monster);

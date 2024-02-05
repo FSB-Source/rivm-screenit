@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -45,7 +45,7 @@ import nl.rivm.screenit.model.enums.MergeFieldTestType;
 import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ClientService;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
@@ -375,7 +375,7 @@ public abstract class DocumentTemplateTestenFieldsPanel extends GenericPanel<Doc
 		context.setCervixUitnodiging(cervixUitnodiging);
 		context.setOvereenkomst(overeenkomst);
 		context.putValue(MailMergeContext.CONTEXT_SCREENING_ORGANISATIE, screeningOrganisatie);
-		context.putValue(MailMergeContext.CONTEXT_MAMMA_CE, SpringBeanProvider.getInstance().getBean(ClientService.class).bepaalCe(client));
+		context.putValue(MailMergeContext.CONTEXT_MAMMA_CE, ApplicationContextProvider.getApplicationContext().getBean(ClientService.class).bepaalCe(client));
 		context.setIntakeAfspraak(wrapper.getIntakeAfspraak());
 		context.setBmhkLaboratorium(bmhkLaboratorium);
 

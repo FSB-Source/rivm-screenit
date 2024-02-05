@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.generalis.gba;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -96,7 +96,6 @@ public abstract class GbaFtpConnection
 		String keyfile = System.getProperty("PRIVATE_KEYFILE");
 		if (StringUtils.isNotBlank(serverHostKey) && StringUtils.isNotBlank(keyfile))
 		{
-			LOG.info("SERVER_HOST_KEY is set to " + serverHostKey);
 			session.setConfig("server_host_key", serverHostKey);
 			jsch.addIdentity(keyfile);
 		}

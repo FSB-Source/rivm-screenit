@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.services.impl;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -180,7 +180,8 @@ public class ProxyServiceImpl implements ProxyService
 	{
 		LocalDate nu = DateUtil.getCurrentDateTime().toLocalDate();
 		String planningPathPostfix = RequestTypeCentraal.GET_PLANNING.getPathPostfix();
-		cachedResponses.entrySet().removeIf(entry -> {
+		cachedResponses.entrySet().removeIf(entry ->
+		{
 			String url = entry.getKey();
 			int indexPlanning = url.indexOf(planningPathPostfix);
 			if (indexPlanning != -1)
@@ -201,7 +202,8 @@ public class ProxyServiceImpl implements ProxyService
 			{
 				return createNoConnectionSeRestBkResponse();
 			}
-			return restTemplate.exchange(requestEntity, responseType);
+			var response = restTemplate.exchange(requestEntity, responseType);
+			return responseEntityVanProxyRequest(response);
 		}
 		catch (ResourceAccessException ex)
 		{
@@ -244,6 +246,20 @@ public class ProxyServiceImpl implements ProxyService
 			LOG.error("Bericht werd niet goed verwerkt door de centrale server: Exception: ", e);
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	private <T> ResponseEntity<T> responseEntityVanProxyRequest(ResponseEntity<T> response)
+	{
+
+		var bodyBuilder = ResponseEntity.status(response.getStatusCode());
+
+		var contentType = response.getHeaders().getContentType();
+		if (contentType != null)
+		{
+			bodyBuilder = bodyBuilder.contentType(contentType);
+		}
+
+		return bodyBuilder.body(response.getBody());
 	}
 
 	private ResponseEntity createNoConnectionSeRestBkResponse()

@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.algemeen;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,8 +23,6 @@ package nl.rivm.screenit.specification.algemeen;
 
 import java.util.Date;
 
-import javax.persistence.criteria.Path;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
@@ -35,7 +33,7 @@ import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PersoonSpecification
 {
-	public static PathAwarePredicate<GbaPersoon> isNietVertrokkenUitNederlandVoorDatumPredicate(Path<Date> datum)
+	public static PathAwarePredicate<GbaPersoon> isNietVertrokkenUitNederlandVoorDatumPredicate(Date datum)
 	{
 		return (cb, r) ->
 			cb.or(
@@ -44,12 +42,22 @@ public class PersoonSpecification
 			);
 	}
 
-	public static PathAwarePredicate<GbaPersoon> isNietOverledenVoorPredicate(Path<Date> datum)
+	public static PathAwarePredicate<GbaPersoon> isNietOverledenVoorPredicate(Date datum)
 	{
 		return (cb, r) ->
 			cb.or(
 				cb.isNull(r.get(GbaPersoon_.overlijdensdatum)),
 				cb.greaterThan(r.get(GbaPersoon_.overlijdensdatum), datum)
 			);
+	}
+
+	public static PathAwarePredicate<GbaPersoon> heeftGeenOverledenDatumPredicate()
+	{
+		return (cb, r) -> cb.isNull(r.get(GbaPersoon_.overlijdensdatum));
+	}
+
+	public static PathAwarePredicate<GbaPersoon> heeftGeenVertrokkenUitNederlandDatumPredicate()
+	{
+		return (cb, r) -> cb.isNull(r.get(GbaPersoon_.datumVertrokkenUitNederland));
 	}
 }

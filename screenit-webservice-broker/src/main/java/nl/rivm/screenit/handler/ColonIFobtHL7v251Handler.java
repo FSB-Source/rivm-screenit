@@ -4,7 +4,7 @@ package nl.rivm.screenit.handler;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,7 @@ package nl.rivm.screenit.handler;
  */
 
 import nl.rivm.screenit.wsb.service.colon.IFobtHL7v251Service;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.app.ApplicationException;
@@ -37,7 +37,7 @@ public class ColonIFobtHL7v251Handler extends AbstractHL7v2Handler<OUL_R22>
 	public ColonIFobtHL7v251Handler(Class<OUL_R22> berichtType)
 	{
 		super(berichtType);
-		this.iFobtHL7v251Service = SpringBeanProvider.getInstance().getBean(IFobtHL7v251Service.class);
+		this.iFobtHL7v251Service = ApplicationContextProvider.getApplicationContext().getBean(IFobtHL7v251Service.class);
 	}
 
 	@Override

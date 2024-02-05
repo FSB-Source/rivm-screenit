@@ -4,7 +4,7 @@ package nl.rivm.screenit.mappers.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,7 @@ import java.util.Date;
 
 import nl.rivm.screenit.mappers.config.ScreenitMapperConfig;
 import nl.rivm.screenit.model.colon.RoosterItemListViewWrapper;
-import nl.rivm.screenit.model.colon.dto.ColonAfspraakSlotDto;
+import nl.rivm.screenit.model.colon.dto.ColonAfspraakslotDto;
 import nl.rivm.screenit.util.DateUtil;
 
 import org.mapstruct.Mapper;
@@ -34,7 +34,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
 @Mapper(config = ScreenitMapperConfig.class)
-public interface ColonAfspraakSlotMapper
+public interface ColonAfspraakslotMapper
 {
 	@Named("dateToLocalDateTime")
 	default LocalDateTime conversionDatum(Date datum)
@@ -49,5 +49,6 @@ public interface ColonAfspraakSlotMapper
 	@Mapping(source = "capaciteitMeeBepaald", target = "capaciteitMeeBepaald")
 	@Mapping(source = "kamerId", target = "kamerId")
 	@Mapping(target = "aantalBlokken", ignore = true)
-	ColonAfspraakSlotDto roosterListItemViewWrapperToColonAfspraakDto(RoosterItemListViewWrapper wrapper);
+	@Mapping(target = "alleenValidatie", ignore = true)
+	ColonAfspraakslotDto roosterListItemViewWrapperToColonAfspraakDto(RoosterItemListViewWrapper wrapper);
 }

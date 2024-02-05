@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.onderzoek;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by

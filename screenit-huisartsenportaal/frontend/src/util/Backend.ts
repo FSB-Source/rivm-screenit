@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,7 +25,7 @@ import {ToastType} from "../state/datatypes/Toast"
 import {BackendError} from "../state/datatypes/dto/BackendError"
 import {refreshOAuthThunkAction} from "../api/RefreshOAuthThunkAction"
 import {createClearStateAction} from "../state"
-import {ValidatieResponseDto} from "../state/datatypes/dto/ValidatieResponseDto"
+import {isValidationResponseDtoArray, ValidatieResponseDto} from "../state/datatypes/dto/ValidatieResponseDto"
 
 const BASE_URL = "/api/v1/"
 
@@ -87,7 +87,7 @@ export function validatingRequest<T>(url: string, method: Method, data: any): (d
 		}).then((response: AxiosResponse<T>) => {
 			return response.data
 		}).catch((error: AxiosError<ValidatieResponseDto[]>) => {
-			if (error.response?.data) {
+			if (isValidationResponseDtoArray(error.response?.data)) {
 				for (const code of error.response?.data) {
 					if (code.defaultMessage) {
 						dispatch(createActionPushToast({type: ToastType.ERROR, message: code.defaultMessage}))

@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -129,10 +129,10 @@ import nl.rivm.screenit.util.mamma.MammaBeoordelingUtil;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 import nl.topicuszorg.organisatie.model.Adres;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
 import nl.topicuszorg.util.postcode.PostcodeFormatter;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -4810,7 +4810,7 @@ public enum MergeField
 
 	private static <T extends Object> T getBean(Class<T> clazz)
 	{
-		return SpringBeanProvider.getInstance().getBean(clazz);
+		return ApplicationContextProvider.getApplicationContext().getBean(clazz);
 	}
 
 	private static SimplePreferenceService getSimplePreferenceService()
@@ -4821,7 +4821,7 @@ public enum MergeField
 	private static String getStringValueFromPreference(PreferenceKey key)
 	{
 		SimplePreferenceService preferenceService = getSimplePreferenceService();
-		return preferenceService != null ? preferenceService.getString(key.name(), "") : null;
+		return preferenceService.getString(key.name(), "");
 	}
 
 	private static Session getHibernateSession()

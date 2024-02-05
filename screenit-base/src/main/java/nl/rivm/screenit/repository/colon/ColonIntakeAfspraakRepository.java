@@ -4,7 +4,7 @@ package nl.rivm.screenit.repository.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,15 +25,12 @@ import java.time.LocalTime;
 import java.util.List;
 
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
+import nl.rivm.screenit.repository.BaseJpaRepository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
-@Repository
-public interface ColonIntakeAfspraakRepository extends JpaRepository<ColonIntakeAfspraak, Long>, JpaSpecificationExecutor<ColonIntakeAfspraak>
+public interface ColonIntakeAfspraakRepository extends BaseJpaRepository<ColonIntakeAfspraak>
 {
 	@Query(nativeQuery = true, value = "with time_table as ("
 		+ " select make_time(cast(extract(HOUR from papp.start_time) as INTEGER), cast(extract(MINUTE from papp.start_time) as INTEGER), cast (extract(SECOND from papp.start_time) as DOUBLE PRECISION)) as start_time,"

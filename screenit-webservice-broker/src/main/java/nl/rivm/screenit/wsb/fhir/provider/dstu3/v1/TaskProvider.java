@@ -4,7 +4,7 @@ package nl.rivm.screenit.wsb.fhir.provider.dstu3.v1;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -52,7 +52,7 @@ public class TaskProvider extends BaseResourceProvider
 		if (result.isSuccessful()) 
 		{
 			LabaanvraagValidator labAanvraagValidator = new LabaanvraagValidator();
-			if (labAanvraagValidator.validate(task).isSuccesful()) 
+			if (labAanvraagValidator.validate(task).isSuccesvol()) 
 			{
 				return new MethodOutcome()
 					.setOperationOutcome(result.toOperationOutcome());

@@ -4,7 +4,7 @@ package nl.rivm.screenit.handler;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,8 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.service.TechnischeBerichtenLoggingSaverService;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5Session;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 import nl.topicuszorg.hl7v2.services.server.impl.TypedHL7BerichtTypeHandlerImpl;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.app.ApplicationException;
@@ -44,7 +44,7 @@ public abstract class AbstractHL7v2Handler<T extends Message> extends TypedHL7Be
 	protected AbstractHL7v2Handler(Class<T> berichtType)
 	{
 		super(berichtType);
-		this.technischeBerichtenLoggingSaverService = SpringBeanProvider.getInstance().getBean(TechnischeBerichtenLoggingSaverService.class);
+		this.technischeBerichtenLoggingSaverService = ApplicationContextProvider.getApplicationContext().getBean(TechnischeBerichtenLoggingSaverService.class);
 	}
 
 	@Override

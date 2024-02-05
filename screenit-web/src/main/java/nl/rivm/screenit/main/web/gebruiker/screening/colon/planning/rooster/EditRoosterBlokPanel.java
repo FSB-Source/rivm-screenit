@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.rooster;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,8 +30,7 @@ import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
 import nl.rivm.screenit.main.exception.ValidatieException;
 import nl.rivm.screenit.main.model.RecurrenceOption;
-import nl.rivm.screenit.main.service.colon.ColonAfspraakSlotService;
-import nl.rivm.screenit.main.service.colon.RoosterService;
+import nl.rivm.screenit.main.service.colon.ColonAfspraakslotService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
@@ -78,10 +77,7 @@ import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 public abstract class EditRoosterBlokPanel extends AbstractEditTijdSlotPanel<RoosterItem>
 {
 	@SpringBean
-	private RoosterService roosterService;
-
-	@SpringBean
-	private ColonAfspraakSlotService afspraakSlotService;
+	private ColonAfspraakslotService afspraakslotService;
 
 	@SpringBean
 	private LogService logService;
@@ -211,12 +207,19 @@ public abstract class EditRoosterBlokPanel extends AbstractEditTijdSlotPanel<Roo
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
-				Date startTime = startTimeField.getModelObject();
-				LocalDateTime startDateTime = DateUtil.toLocalDateTime(startTime);
-				LocalDateTime nieuwEndTimeLocalDateTime = calcEindtijd(startTime);
-				checkEindTijdOpZelfdeDag(startDateTime, nieuwEndTimeLocalDateTime);
-				form.getModelObject().setEndTime(DateUtil.toUtilDate(nieuwEndTimeLocalDateTime));
-				target.add(endTimeField);
+				var startTime = startTimeField.getModelObject();
+				var startDateTime = DateUtil.toLocalDateTime(startTime);
+				var nieuwEndTimeLocalDateTime = calcEindtijd(startTime);
+				try
+				{
+					afspraakslotService.checkEindTijdOpZelfdeDag(startDateTime, nieuwEndTimeLocalDateTime, ScreenitSession.get().getColoscopieCentrum());
+					form.getModelObject().setEndTime(DateUtil.toUtilDate(nieuwEndTimeLocalDateTime));
+					target.add(endTimeField);
+				}
+				catch (ValidatieException ex)
+				{
+					error(String.format(getString(ex.getMessage()), ex.getFormatArguments()));
+				}
 			}
 
 		});
@@ -276,18 +279,6 @@ public abstract class EditRoosterBlokPanel extends AbstractEditTijdSlotPanel<Roo
 
 	}
 
-	private void checkEindTijdOpZelfdeDag(LocalDateTime startDateTime, LocalDateTime endDateTime)
-	{
-		try
-		{
-			afspraakSlotService.checkEindTijdOpZelfdeDag(startDateTime, endDateTime, ScreenitSession.get().getColoscopieCentrum());
-		}
-		catch (ValidatieException ex)
-		{
-			error(String.format(getString(ex.getMessage()), ex.getFormatArguments()));
-		}
-	}
-
 	private LocalDateTime calcEindtijd(Date startTime)
 	{
 		return DateUtil.toLocalDateTime(startTime).plusMinutes(duurAfspraakInMinuten * aantalBlokken.getObject());
@@ -296,17 +287,17 @@ public abstract class EditRoosterBlokPanel extends AbstractEditTijdSlotPanel<Roo
 	@Override
 	protected List<RoosterItem> transformTijdSlot(RoosterItem unsavedObject)
 	{
-		return afspraakSlotService.splitAfspraakSlot(unsavedObject, aantalBlokken.getObject(), ScreenitSession.get().getColoscopieCentrum());
+		return afspraakslotService.splitAfspraakslot(unsavedObject, aantalBlokken.getObject(), ScreenitSession.get().getColoscopieCentrum());
 	}
 
 	@Override
 	protected boolean onBeforeOpslaan(RoosterItem roosteritem) throws ValidatieException, OpslaanVerwijderenTijdBlokException
 	{
 		super.onBeforeOpslaan(roosteritem);
-		afspraakSlotService.checkCapaciteitBerekening(roosteritem, ScreenitSession.get().getColoscopieCentrum());
+		afspraakslotService.checkCapaciteitBerekening(roosteritem, ScreenitSession.get().getColoscopieCentrum());
 		var startDateTime = DateUtil.toLocalDateTime(roosteritem.getStartTime());
-		var nieuwEndTimeLocalDateTime = calcEindtijd(roosteritem.getEndTime());
-		afspraakSlotService.checkEindTijdOpZelfdeDag(startDateTime, nieuwEndTimeLocalDateTime, ScreenitSession.get().getColoscopieCentrum());
+		var eindDateTime = calcEindtijd(roosteritem.getStartTime());
+		afspraakslotService.checkEindTijdOpZelfdeDag(startDateTime, eindDateTime, ScreenitSession.get().getColoscopieCentrum());
 		return true;
 	}
 

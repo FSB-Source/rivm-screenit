@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -95,7 +95,8 @@ public class MammaLezing extends AbstractHibernateObject
 	@Column(length = HibernateMagicNumber.L255)
 	private String biradsOpmerking;
 
-	@OneToMany(mappedBy = "lezing", fetch = FetchType.LAZY, orphanRemoval = true)
+	@OneToMany(mappedBy = "lezing", fetch = FetchType.LAZY, orphanRemoval = true, cascade = { javax.persistence.CascadeType.REMOVE, javax.persistence.CascadeType.PERSIST,
+		javax.persistence.CascadeType.MERGE })
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "mamma.cache")
 	@Cascade({ CascadeType.DELETE, CascadeType.SAVE_UPDATE })
 	private List<MammaLaesie> laesies = new ArrayList<>();

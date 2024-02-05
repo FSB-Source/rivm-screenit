@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.project;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -53,7 +53,7 @@ import org.hibernate.envers.NotAudited;
 @Setter
 public class ProjectBrief extends ClientBrief<ScreeningRonde, Afmelding, ProjectBrief>
 {
-	@ManyToOne(optional = false, fetch = FetchType.LAZY)
+	@ManyToOne(optional = false, fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade({ CascadeType.SAVE_UPDATE })
 	@NotAudited
 	private ProjectClient projectClient;
@@ -62,18 +62,18 @@ public class ProjectBrief extends ClientBrief<ScreeningRonde, Afmelding, Project
 	@NotAudited
 	private ProjectBriefActie definitie;
 
-	@OneToOne(optional = true, fetch = FetchType.LAZY)
+	@OneToOne(optional = true, fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade({ CascadeType.SAVE_UPDATE })
 	private ClientBrief brief;
 
-	@OneToOne(optional = true, fetch = FetchType.LAZY)
+	@OneToOne(optional = true, fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade({ CascadeType.SAVE_UPDATE })
 	private ProjectBrief teHerinnerenBrief;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	private ProjectMergedBrieven mergedBrieven;
 
-	@OneToOne(fetch = FetchType.LAZY, optional = true)
+	@OneToOne(fetch = FetchType.LAZY, optional = true, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade({ CascadeType.SAVE_UPDATE })
 	@NotAudited
 	private ProjectVragenlijstAntwoordenHolder vragenlijstAntwoordenHolder;

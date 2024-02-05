@@ -4,7 +4,7 @@ package nl.rivm.screenit.huisartsenportaal;
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,39 +21,23 @@ package nl.rivm.screenit.huisartsenportaal;
  * =========================LICENSE_END==================================
  */
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
-import javax.jms.ConnectionFactory;
-
-import org.apache.activemq.ActiveMQConnectionFactory;
-import org.apache.activemq.ActiveMQPrefetchPolicy;
-import org.apache.activemq.RedeliveryPolicy;
-import org.apache.activemq.jms.pool.PooledConnectionFactory;
 import org.modelmapper.Condition;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.modelmapper.spi.MappingContext;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jms.annotation.EnableJms;
-import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
-import org.springframework.jms.config.JmsListenerContainerFactory;
-import org.springframework.jms.core.JmsTemplate;
 
 @SpringBootApplication
 @EnableJms
 public class Application extends SpringBootServletInitializer
 {
-
-	@Value("${spring.activemq.broker-url}")
-	private String brokerUrl;
-
 	public static void main(String[] args)
 	{
 		SpringApplication.run(Application.class, args);
@@ -69,64 +53,6 @@ public class Application extends SpringBootServletInitializer
 	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder)
 	{
 		return builder.sources(Application.class);
-	}
-
-	@Bean
-	protected JmsListenerContainerFactory jmsListenerContainerFactory()
-	{
-		DefaultJmsListenerContainerFactory containerFactory = new DefaultJmsListenerContainerFactory();
-		containerFactory.setConnectionFactory(pooledConnectionFactory(connectionFactory()));
-		return containerFactory;
-	}
-
-	@Bean(destroyMethod = "stop", initMethod = "start")
-	protected PooledConnectionFactory pooledConnectionFactory(ConnectionFactory connectionFactory)
-	{
-		PooledConnectionFactory jmsFactory = new PooledConnectionFactory();
-		jmsFactory.setConnectionFactory(connectionFactory);
-		jmsFactory.setIdleTimeout(0);
-		return jmsFactory;
-	}
-
-	@Bean
-	protected ConnectionFactory connectionFactory()
-	{
-		ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory();
-		connectionFactory.setUseAsyncSend(true);
-		connectionFactory.setPrefetchPolicy(prefetchPolicy());
-		connectionFactory.setRedeliveryPolicy(redeliveryPolicy());
-		connectionFactory.setBrokerURL(brokerUrl);
-		List<String> trustedPackages = new ArrayList<>();
-		trustedPackages.add("nl.rivm.screenit");
-		trustedPackages.add("java");
-		connectionFactory.setTrustedPackages(trustedPackages);
-
-		return connectionFactory;
-	}
-
-	@Bean
-	RedeliveryPolicy redeliveryPolicy()
-	{
-		RedeliveryPolicy policy = new RedeliveryPolicy();
-		policy.setMaximumRedeliveries(3);
-		policy.setInitialRedeliveryDelay(3000);
-		return policy;
-	}
-
-	@Bean
-	ActiveMQPrefetchPolicy prefetchPolicy()
-	{
-		ActiveMQPrefetchPolicy policy = new ActiveMQPrefetchPolicy();
-		policy.setQueuePrefetch(1);
-		return policy;
-	}
-
-	@Bean
-	JmsTemplate jmsTemplate()
-	{
-		JmsTemplate template = new JmsTemplate();
-		template.setConnectionFactory(connectionFactory());
-		return template;
 	}
 
 	@Bean
@@ -149,5 +75,4 @@ public class Application extends SpringBootServletInitializer
 		modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
 		return modelMapper;
 	}
-
 }

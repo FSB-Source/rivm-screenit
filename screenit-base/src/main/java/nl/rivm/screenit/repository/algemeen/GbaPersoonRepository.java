@@ -4,7 +4,7 @@ package nl.rivm.screenit.repository.algemeen;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,13 +22,9 @@ package nl.rivm.screenit.repository.algemeen;
  */
 
 import nl.rivm.screenit.model.GbaPersoon;
+import nl.rivm.screenit.repository.BaseJpaRepository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.stereotype.Repository;
-
-@Repository
-public interface GbaPersoonRepository extends JpaRepository<GbaPersoon, Long>, JpaSpecificationExecutor<GbaPersoon>
+public interface GbaPersoonRepository extends BaseJpaRepository<GbaPersoon>
 {
 
 }

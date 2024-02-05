@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.gba;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -51,7 +51,7 @@ import org.hibernate.annotations.Check;
 @Setter
 @Check(constraints = "(bsn is not null or client is not null) AND"
 	+ "("
-	+ "  reden IN ('ONJUIST_ADRES', 'ONJUISTE_PERSOONSGEGEVENS', 'MUTATIEBERICHT_ONBEKENDE_CLIENT', 'BEZWAAR_INGETROKKEN')" 
+	+ "  reden IN ('ONJUIST_ADRES', 'ONJUISTE_PERSOONSGEGEVENS', 'MUTATIEBERICHT_ONBEKENDE_CLIENT')"
 	+ "  OR (vraag_type = 'VERWIJDER_INDICATIE' AND reden in ('BEZWAAR', 'AFGEMELD', 'BOVENGRENS_LEEFTIJD', 'SELECTIEBLOKKADE'))"
 	+ "  OR (vraag_type = 'PLAATS_INDICATIE' AND reden in ('BEZWAAR_INGETROKKEN', 'AANGEMELD', 'BRIEF_VERSTUREN', 'ONVERWACHT_INDICATIE_VERWIJDERD'))"
 	+ ")"

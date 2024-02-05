@@ -164,6 +164,7 @@
                         <goals>
                             <goal>yarn</goal>
                         </goals>
+                        <phase>generate-resources</phase>
                         <configuration>
                             <arguments>install --frozen-lockfile</arguments>
                         </configuration>
@@ -173,6 +174,7 @@
                         <goals>
                             <goal>yarn</goal>
                         </goals>
+                        <phase>generate-resources</phase>
                         <configuration>
                             <arguments>build</arguments>
                         </configuration>
@@ -479,40 +481,6 @@
         <dependency>
             <groupId>nl.topicuszorg.wicket-extensions</groupId>
             <artifactId>wicket-extensions</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>nl.topicuszorg.hibernate-extensions</groupId>
-                    <artifactId>hibernate-extension-spring</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>nl.topicuszorg.hibernate-extensions</groupId>
-                    <artifactId>hibernate-extension-object</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>net.sf.json-lib</groupId>
-                    <artifactId>json-lib</artifactId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>cglib</artifactId>
-                    <groupId>cglib</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>asm</artifactId>
-                    <groupId>org.ow2.asm</groupId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>guava</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.codehaus.jackson</groupId>
-                    <artifactId>jackson-core-asl</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.codehaus.jackson</groupId>
-                    <artifactId>jackson-mapper-asl</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>

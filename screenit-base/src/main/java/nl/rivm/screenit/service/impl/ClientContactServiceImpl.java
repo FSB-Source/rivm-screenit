@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -118,6 +118,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaUitstelGeannuleerdReden;
 import nl.rivm.screenit.model.mamma.enums.MammaVerzettenReden;
 import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.service.BaseBriefService;
+import nl.rivm.screenit.service.BaseGbaVraagService;
 import nl.rivm.screenit.service.BaseOverdrachtPersoonsgegevensService;
 import nl.rivm.screenit.service.BezwaarService;
 import nl.rivm.screenit.service.BriefHerdrukkenService;
@@ -125,7 +126,6 @@ import nl.rivm.screenit.service.ClientContactService;
 import nl.rivm.screenit.service.ClientDoelgroepService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.DeelnamemodusDossierService;
-import nl.rivm.screenit.service.DossierFactory;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
@@ -142,7 +142,6 @@ import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.MammaBaseConceptPlanningsApplicatie;
 import nl.rivm.screenit.service.mamma.MammaBaseDossierService;
-import nl.rivm.screenit.service.mamma.MammaBaseFactory;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
 import nl.rivm.screenit.service.mamma.MammaBaseOnderzoekService;
 import nl.rivm.screenit.service.mamma.MammaBaseUitstelService;
@@ -231,9 +230,6 @@ public class ClientContactServiceImpl implements ClientContactService
 	private MammaBaseUitstelService mammaBaseUitstelService;
 
 	@Autowired
-	private MammaBaseFactory mammaBaseFactory;
-
-	@Autowired
 	private MammaHuisartsService mammaHuisartsService;
 
 	@Autowired
@@ -267,9 +263,6 @@ public class ClientContactServiceImpl implements ClientContactService
 	private MammaAfmeldService mammaAfmeldService;
 
 	@Autowired
-	private DossierFactory dossierFactory;
-
-	@Autowired
 	private DeelnamemodusDossierService deelnamemodusDossierService;
 
 	@Autowired
@@ -277,6 +270,9 @@ public class ClientContactServiceImpl implements ClientContactService
 
 	@Autowired
 	private MammaDigitaalContactService mammaDigitaalContactService;
+
+	@Autowired
+	private BaseGbaVraagService baseGbaVraagService;
 
 	@Override
 	@Transactional(
@@ -304,7 +300,7 @@ public class ClientContactServiceImpl implements ClientContactService
 				vraagNieuweIfobtAan(client, account);
 				break;
 			case OPNIEUW_AANVRAGEN_CLIENTGEGEVENS:
-				clientService.vraagGbaGegevensOpnieuwAan(client, account, actie.getOpnieuwAanvragenClientgegevensReden());
+				baseGbaVraagService.vraagGbaGegevensOpnieuwAan(client, account, actie.getOpnieuwAanvragenClientgegevensReden());
 				break;
 			case TIJDELIJK_ADRES:
 				tijdelijkAdres(account, client, actie, extraOpslaanParams);

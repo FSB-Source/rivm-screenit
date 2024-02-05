@@ -4,7 +4,7 @@ package nl.rivm.screenit.repository.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,12 +26,9 @@ import java.util.Optional;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.mamma.MammaConclusieReview;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
+import nl.rivm.screenit.repository.BaseJpaRepository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
-@Repository
-public interface MammaConclusieReviewRepository extends JpaRepository<MammaConclusieReview, Long>
+public interface MammaConclusieReviewRepository extends BaseJpaRepository<MammaConclusieReview>
 {
 	Optional<MammaConclusieReview> findByRadioloogAndScreeningRondeAndReviewAlsCoordinerendRadioloog(InstellingGebruiker radioloog,
 		MammaScreeningRonde screeningRonde, boolean reviewdAlsCoordinerendRadioloog);

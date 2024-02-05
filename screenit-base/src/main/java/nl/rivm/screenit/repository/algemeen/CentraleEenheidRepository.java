@@ -1,10 +1,10 @@
-package nl.rivm.screenit.repository.colon;
+package nl.rivm.screenit.repository.algemeen;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,12 +21,9 @@ package nl.rivm.screenit.repository.colon;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.model.colon.Kamer;
+import nl.rivm.screenit.model.CentraleEenheid;
+import nl.rivm.screenit.repository.BaseJpaRepository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
-@Repository
-public interface KamerRepository extends JpaRepository<Kamer, Long>
+public interface CentraleEenheidRepository extends BaseJpaRepository<CentraleEenheid>
 {
 }

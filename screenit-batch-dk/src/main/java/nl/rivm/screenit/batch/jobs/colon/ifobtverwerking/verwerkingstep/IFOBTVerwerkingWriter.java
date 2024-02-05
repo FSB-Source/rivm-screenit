@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.ifobtverwerking.verwerkingstep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -133,11 +133,11 @@ public class IFOBTVerwerkingWriter implements ItemWriter<IFOBTUitslag>
 			}
 			else if (ifobtTest != null && IFOBTTestStatus.NIETTEBEOORDELEN.equals(ifobtTest.getStatus()))
 			{
-				LOG.warn("Barcode " + ifobtTest.getBarcode() + " hoort bij een onbeoordeelbare FIT.");
+				LOG.warn("Barcode van FIT (id: '{}') hoort bij een onbeoordeelbare FIT.", ifobtTest.getId());
 			}
 			else
 			{
-				LOG.warn("Barcode " + ifobtResult.getBarcode() + " is onbekend of hoort niet bij een FIT.");
+				LOG.warn("Barcode van iFobtResult (id: '{}') is onbekend of hoort niet bij een FIT.", ifobtResult.getId());
 			}
 			bestand.setAantalVerwerkt(bestand.getAantalVerwerkt() + 1);
 			if (bestand.getAantalVerwerkt() >= bestand.getUitslagen().size())
@@ -145,7 +145,7 @@ public class IFOBTVerwerkingWriter implements ItemWriter<IFOBTUitslag>
 				bestand.setStatus(IFOBTBestandStatus.VERWERKT);
 				if (bestand.getAantalVerwerkt() > bestand.getUitslagen().size())
 				{
-					LOG.warn("Aantal verwerkt is groter uitslagen " + bestand.getAantalVerwerkt() + " " + bestand.getUitslagen().size());
+					LOG.warn("Aantal verwerkt is groter uitslagen {} {}", bestand.getAantalVerwerkt(), bestand.getUitslagen().size());
 				}
 			}
 
@@ -176,7 +176,7 @@ public class IFOBTVerwerkingWriter implements ItemWriter<IFOBTUitslag>
 			String trackTraceId = colonUitnodiging.getTrackTraceId();
 			if (trackTraceId != null && (trackTraceId.startsWith("16859/") || trackTraceId.startsWith("17531/")))
 			{
-				LOG.info("FIT is aangepast naar status verwijderd (Incident Inpakcentrum): " + ifobtTest.getBarcode());
+				LOG.info("FIT (id: '{}') is aangepast naar status verwijderd (Incident Inpakcentrum)", ifobtTest.getId());
 				ifobtTest.setStatus(IFOBTTestStatus.VERWIJDERD);
 				ifobtTest.setStatusDatum(currentDateSupplier.getDate());
 				return false;

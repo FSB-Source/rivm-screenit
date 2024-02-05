@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -41,7 +41,6 @@ import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.mamma.MammaBaseAfspraakDao;
 import nl.rivm.screenit.dto.mamma.afspraken.IMammaAfspraakWijzigenFilter;
 import nl.rivm.screenit.dto.mamma.afspraken.MammaKandidaatAfspraakDto;
-import nl.rivm.screenit.dto.mamma.afspraken.MammaStandplaatsPeriodeMetAfstandDto;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Brief;
 import nl.rivm.screenit.model.Client;
@@ -61,7 +60,6 @@ import nl.rivm.screenit.model.mamma.MammaMammografie;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
-import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
@@ -84,13 +82,12 @@ import nl.rivm.screenit.service.mamma.MammaBaseKandidaatAfsprakenDeterminatiePer
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.service.mamma.MammaBaseUitstelService;
-import nl.rivm.screenit.service.mamma.afspraakzoeken.MammaKandidaatAfspraak;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -144,41 +141,35 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 	@Override
 	public List<MammaKandidaatAfspraakDto> getKandidaatAfspraken(Client client, IMammaAfspraakWijzigenFilter filter)
 	{
-		List<MammaKandidaatAfspraakDto> kandidaatAfspraakDtos = new ArrayList<>();
-
-		MammaDossier dossier = client.getMammaDossier();
-
+		var kandidaatAfspraakDtos = new ArrayList<MammaKandidaatAfspraakDto>();
+		var dossier = client.getMammaDossier();
 		var minimaleTijdstip = currentDateSupplier.getLocalDateTime()
 			.plusMinutes(preferenceService.getInteger(PreferenceKey.MAMMA_AFSPRAAK_ZOEKEN_AANTAL_MINUTEN_IN_TOEKOMST.name(), 0));
 
-		Integer capaciteitVolledigBenutTotEnMetAantalWerkdagen = preferenceService.getInteger(PreferenceKey.MAMMA_CAPACITEIT_VOLLEDIG_BENUT_TOT_EN_MET_AANTAL_WERKDAGEN.toString());
-		Integer minimaleIntervalMammografieOnderzoeken = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_INTERVAL_MAMMOGRAFIE_ONDERZOEKEN.name());
+		var capaciteitVolledigBenutTotEnMetAantalWerkdagen = preferenceService.getInteger(PreferenceKey.MAMMA_CAPACITEIT_VOLLEDIG_BENUT_TOT_EN_MET_AANTAL_WERKDAGEN.toString());
+		var minimaleIntervalMammografieOnderzoeken = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_INTERVAL_MAMMOGRAFIE_ONDERZOEKEN.name());
+		var standplaatsPeriodeMetAfstandDtos = standplaatsService.getStandplaatsPeriodeMetAfstandDtos(client, filter);
 
-		List<MammaStandplaatsPeriodeMetAfstandDto> standplaatsPeriodeMetAfstandDtos = standplaatsService.getStandplaatsPeriodeMetAfstandDtos(client, filter);
-		for (MammaStandplaatsPeriodeMetAfstandDto standplaatsPeriodeMetAfstandDto : standplaatsPeriodeMetAfstandDtos)
+		for (var standplaatsPeriodeMetAfstandDto : standplaatsPeriodeMetAfstandDtos)
 		{
-			MammaStandplaatsPeriode standplaatsPeriode = hibernateService.load(MammaStandplaatsPeriode.class, standplaatsPeriodeMetAfstandDto.getStandplaatsPeriodeId());
-
-			MammaUitnodiging laatsteUitnodiging = dossier.getLaatsteScreeningRonde() != null ? dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging() : null;
-
-			BigDecimal voorlopigeOpkomstkans = laatsteUitnodiging != null
+			var standplaatsPeriode = hibernateService.load(MammaStandplaatsPeriode.class, standplaatsPeriodeMetAfstandDto.getStandplaatsPeriodeId());
+			var laatsteUitnodiging = dossier.getLaatsteScreeningRonde() != null ? dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging() : null;
+			var voorlopigeOpkomstkans = laatsteUitnodiging != null
 				? kansberekeningService.getVoorlopigeOpkomstkans(laatsteUitnodiging, standplaatsPeriode, filter.getVerzettenReden())
 				: kansberekeningService.getVoorlopigeOpkomstkans(dossier, standplaatsPeriode, filter.getVerzettenReden(), BriefType.MAMMA_AFSPRAAK_UITNODIGING);
-
-			LocalDate vrijgegevenTotEnMetDatum = DateUtil.toLocalDate(standplaatsPeriode.getScreeningsEenheid().getVrijgegevenTotEnMet());
+			var vrijgegevenTotEnMetDatum = DateUtil.toLocalDate(standplaatsPeriode.getScreeningsEenheid().getVrijgegevenTotEnMet());
 			if (vrijgegevenTotEnMetDatum != null)
 			{
-				LocalDate standplaatsPeriodeVanaf = DateUtil.toLocalDate(standplaatsPeriode.getVanaf());
-				LocalDate standplaatsPeriodeTotEnMet = DateUtil.toLocalDate(standplaatsPeriode.getTotEnMet());
+				var standplaatsPeriodeVanaf = DateUtil.toLocalDate(standplaatsPeriode.getVanaf());
+				var standplaatsPeriodeTotEnMet = DateUtil.toLocalDate(standplaatsPeriode.getTotEnMet());
 
-				LocalDate vanafDatum = Collections.max(Arrays.asList(filter.getVanaf(), standplaatsPeriodeVanaf));
-				LocalDate totEnMetDatum = Collections.min(Arrays.asList(filter.getTotEnMet(), vrijgegevenTotEnMetDatum, standplaatsPeriodeTotEnMet));
-
-				MammaBaseKandidaatAfsprakenDeterminatiePeriode baseKandidaatAfsprakenDeterminatiePeriode = createKandidaatAfsprakenDeterminatiePeriodeService();
-
-				List<MammaKandidaatAfspraak> kandidaatAfsprakenStandplaatsPeriode = baseKandidaatAfsprakenDeterminatiePeriode.getKandidaatAfspraken(dossier, standplaatsPeriode,
+				var vanafDatum = Collections.max(Arrays.asList(filter.getVanaf(), standplaatsPeriodeVanaf));
+				var totEnMetDatum = Collections.min(Arrays.asList(filter.getTotEnMet(), vrijgegevenTotEnMetDatum, standplaatsPeriodeTotEnMet));
+				var baseKandidaatAfsprakenDeterminatiePeriode = createKandidaatAfsprakenDeterminatiePeriodeService();
+				var kandidaatAfsprakenStandplaatsPeriode = baseKandidaatAfsprakenDeterminatiePeriode.getKandidaatAfspraken(dossier, standplaatsPeriode,
 					vroegstMogelijkeUitnodigingsDatum(dossier, vanafDatum, minimaleIntervalMammografieOnderzoeken), totEnMetDatum, filter.getExtraOpties(), voorlopigeOpkomstkans,
 					capaciteitVolledigBenutTotEnMetAantalWerkdagen, true);
+
 				kandidaatAfsprakenStandplaatsPeriode.forEach(kandidaatAfspraak ->
 				{
 					if (minimaleTijdstip.isBefore(kandidaatAfspraak.getDatumTijd()))
@@ -195,7 +186,7 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 
 	private static MammaBaseKandidaatAfsprakenDeterminatiePeriode createKandidaatAfsprakenDeterminatiePeriodeService()
 	{
-		return SpringBeanProvider.getInstance().getBean(MammaBaseKandidaatAfsprakenDeterminatiePeriode.class);
+		return ApplicationContextProvider.getApplicationContext().getBean(MammaBaseKandidaatAfsprakenDeterminatiePeriode.class);
 	}
 
 	@Override
@@ -257,11 +248,11 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 	@Override
 	public boolean valideUitstelStreefDatum(LocalDate streefDatum, MammaStandplaatsPeriode standplaatsPeriode)
 	{
-		LocalDate standplaatsPeriodeVanaf = DateUtil.toLocalDate(standplaatsPeriode.getVanaf());
-		LocalDate standplaatsPeriodeTotEnMet = DateUtil.toLocalDate(standplaatsPeriode.getTotEnMet());
+		var standplaatsPeriodeVanaf = DateUtil.toLocalDate(standplaatsPeriode.getVanaf());
+		var standplaatsPeriodeTotEnMet = DateUtil.toLocalDate(standplaatsPeriode.getTotEnMet());
 		if (!standplaatsPeriodeVanaf.isAfter(streefDatum) && !standplaatsPeriodeTotEnMet.isBefore(streefDatum))
 		{
-			LocalDate vrijgegevenTotEnMet = DateUtil.toLocalDate(standplaatsPeriode.getScreeningsEenheid().getVrijgegevenTotEnMet());
+			var vrijgegevenTotEnMet = DateUtil.toLocalDate(standplaatsPeriode.getScreeningsEenheid().getVrijgegevenTotEnMet());
 			return vrijgegevenTotEnMet != null && streefDatum.isAfter(vrijgegevenTotEnMet);
 		}
 		return false;
@@ -270,15 +261,15 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 	@Override
 	public LocalDate vroegstMogelijkeUitnodigingsDatum(MammaDossier dossier, LocalDate voorstelDatum, Integer minimaleIntervalMammografieOnderzoeken)
 	{
-		Date laatsteMammografieAfgerond = dossier.getLaatsteMammografieAfgerond();
-		MammaOnderzoek onderzoek = dossierService.getLaatsteOnderzoek(dossier);
+		var laatsteMammografieAfgerond = dossier.getLaatsteMammografieAfgerond();
+		var onderzoek = dossierService.getLaatsteOnderzoek(dossier);
 		boolean heeftGeforceerdeAfspraak = dossier.getLaatsteScreeningRonde() != null && dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging() != null
 			&& dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging().getAfspraken().stream().anyMatch(MammaAfspraak::isGeforceerdeAfspraak);
 		if (laatsteMammografieAfgerond != null && onderzoek != null
 			&& onderzoek.getStatus() != MammaOnderzoekStatus.ONDERBROKEN && onderzoek.getStatus() != MammaOnderzoekStatus.ONDERBROKEN_ZONDER_VERVOLG
 			&& !dossierService.isAfspraakForcerenMogelijk(dossier) && !heeftGeforceerdeAfspraak)
 		{
-			LocalDate minimaalIntervalOnderzoeken = DateUtil.toLocalDate(laatsteMammografieAfgerond).plusDays(minimaleIntervalMammografieOnderzoeken);
+			var minimaalIntervalOnderzoeken = DateUtil.toLocalDate(laatsteMammografieAfgerond).plusDays(minimaleIntervalMammografieOnderzoeken);
 			if (minimaalIntervalOnderzoeken.isAfter(voorstelDatum))
 			{
 				return minimaalIntervalOnderzoeken;
@@ -318,7 +309,7 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 	@Override
 	public List<MammaAfspraak> getAfspraken(MammaScreeningsEenheid screeningsEenheid, LocalDate vanaf, LocalDate totEnMet, MammaAfspraakStatus... afspraakStatussen)
 	{
-		List<MammaAfspraak> afspraken = afspraakDao.getAfspraken(screeningsEenheid, vanaf, totEnMet, afspraakStatussen);
+		var afspraken = afspraakDao.getAfspraken(screeningsEenheid, vanaf, totEnMet, afspraakStatussen);
 		bepaalBenodigdeCapaciteit(afspraken, screeningsEenheid);
 		return afspraken;
 	}
@@ -326,15 +317,15 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 	@Override
 	public void bepaalBenodigdeCapaciteit(List<MammaAfspraak> afspraken, MammaScreeningsEenheid screeningsEenheid)
 	{
-		ScreeningOrganisatie screeningOrganisatie = (ScreeningOrganisatie) HibernateHelper.deproxy(screeningsEenheid.getBeoordelingsEenheid().getParent().getRegio());
+		var screeningOrganisatie = (ScreeningOrganisatie) HibernateHelper.deproxy(screeningsEenheid.getBeoordelingsEenheid().getParent().getRegio());
 
 		for (MammaAfspraak afspraak : afspraken)
 		{
 			if (afspraak.getBenodigdeCapaciteit() == null) 
 			{
-				MammaDossier dossier = afspraak.getUitnodiging().getScreeningRonde().getDossier();
-				BigDecimal factor = dossierService.getFactorType(dossier).getFactor(screeningOrganisatie);
-				BigDecimal opkomstkans = afspraak.getOpkomstkans().getOpkomstkans();
+				var dossier = afspraak.getUitnodiging().getScreeningRonde().getDossier();
+				var factor = dossierService.getFactorType(dossier).getFactor(screeningOrganisatie);
+				var opkomstkans = afspraak.getOpkomstkans().getOpkomstkans();
 				afspraak.setBenodigdeCapaciteit(factor.multiply(opkomstkans));
 			}
 		}
@@ -357,9 +348,9 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 		MammaVerzettenReden verzettenReden, boolean vorigeAfspraakVerzetten, boolean notificeerBetrokkenSe, boolean isBulk, boolean stuurBerichtNaarSectra, boolean logGebeurtenis,
 		Account account, boolean isGeforceerdeAfspraak, SmsStatus smsStatus)
 	{
-		MammaUitnodiging laatsteUitnodiging = screeningRonde.getLaatsteUitnodiging();
+		var laatsteUitnodiging = screeningRonde.getLaatsteUitnodiging();
 
-		MammaAfspraak laatsteAfspraak = laatsteUitnodiging.getLaatsteAfspraak();
+		var laatsteAfspraak = laatsteUitnodiging.getLaatsteAfspraak();
 		if (laatsteAfspraak != null)
 		{
 
@@ -373,12 +364,12 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 
 		baseBriefService.setNietGegenereerdeBrievenOpTegenhouden(screeningRonde, BriefType.MAMMA_OPEN_UITNODIGINGEN);
 
-		MammaAfspraak afspraak = baseFactory.maakAfspraak(screeningRonde, capaciteitBlok, vanaf, standplaatsPeriode, verzettenReden, notificeerBetrokkenSe, stuurBerichtNaarSectra,
+		var afspraak = baseFactory.maakAfspraak(screeningRonde, capaciteitBlok, vanaf, standplaatsPeriode, verzettenReden, notificeerBetrokkenSe, stuurBerichtNaarSectra,
 			isGeforceerdeAfspraak, smsStatus);
 
 		if (logGebeurtenis)
 		{
-			String melding = getSaveAfspraakMelding(laatsteAfspraak, vanaf, standplaatsPeriode, isBulk, isGeforceerdeAfspraak);
+			var melding = getSaveAfspraakMelding(laatsteAfspraak, vanaf, standplaatsPeriode, isBulk, isGeforceerdeAfspraak);
 			logService.logGebeurtenis(isGeforceerdeAfspraak ? LogGebeurtenis.MAMMA_AFSPRAAK_GEFORCEERD : LogGebeurtenis.MAMMA_AFSPRAAK_VERZET, account,
 				screeningRonde.getDossier().getClient(), melding, Bevolkingsonderzoek.MAMMA);
 		}
@@ -441,11 +432,11 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 		if (capaciteitsBlok.getBlokType() != MammaCapaciteitBlokType.GEEN_SCREENING)
 		{
 			LOG.debug("Zoek afspraken voor cap.blok om te kunnen (her)koppelen");
-			List<MammaAfspraak> afspraken = afspraakDao.getNietGekoppeldeAfspraken(capaciteitsBlok);
+			var afspraken = afspraakDao.getNietGekoppeldeAfspraken(capaciteitsBlok);
 			aantalAfspraken = afspraken.size();
 			if (!runDry)
 			{
-				for (MammaAfspraak afspraak : afspraken)
+				for (var afspraak : afspraken)
 				{
 					LOG.info("Afspraak van " + Constants.getDateTimeFormat().format(afspraak.getVanaf()) + " + voor client met id "
 						+ afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient().getId() + " gekoppeld aan cap.blok");
@@ -488,7 +479,7 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 			baseBriefService.setNietGegenereerdeBrievenOpTegenhouden(screeningRonde, Collections.singletonList(BriefType.MAMMA_AFSPRAAK_VERZET));
 			hibernateService.saveOrUpdate(afspraak);
 
-			this.berichtToBatchService.queueMammaHL7v24BerichtUitgaand(screeningRonde.getDossier().getClient(), MammaHL7v24ORMBerichtStatus.CANCELLED);
+			berichtToBatchService.queueMammaHL7v24BerichtUitgaand(screeningRonde.getDossier().getClient(), MammaHL7v24ORMBerichtStatus.CANCELLED);
 		}
 
 		if (notificeerScreeningsEenhedenVerversenDaglijst && origineleStatus == MammaAfspraakStatus.GEPLAND)
@@ -503,8 +494,8 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 		MammaStandplaatsLocatie locatie = null;
 		if (afspraak != null)
 		{
-			MammaStandplaats standplaats = afspraak.getStandplaatsPeriode().getStandplaatsRonde().getStandplaats();
-			Date datumAfspraak = DateUtil.toUtilDateMidnight(afspraak.getVanaf());
+			var standplaats = afspraak.getStandplaatsPeriode().getStandplaatsRonde().getStandplaats();
+			var datumAfspraak = DateUtil.toUtilDateMidnight(afspraak.getVanaf());
 			locatie = standplaatsService.getStandplaatsLocatie(standplaats, datumAfspraak);
 		}
 		return locatie;
@@ -519,12 +510,12 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 			var afspraak = uitnodiging.getLaatsteAfspraak();
 			if (afspraak != null)
 			{
-				MammaStandplaats standplaats = afspraak.getStandplaatsPeriode().getStandplaatsRonde().getStandplaats();
+				var standplaats = afspraak.getStandplaatsPeriode().getStandplaatsRonde().getStandplaats();
 				locatie = standplaatsService.getStandplaatsLocatie(standplaats, afspraak.getVanaf());
 			}
 			else if (uitnodiging.getStandplaatsRonde() != null)
 			{
-				MammaStandplaats standplaats = uitnodiging.getStandplaatsRonde().getStandplaats();
+				var standplaats = uitnodiging.getStandplaatsRonde().getStandplaats();
 				locatie = standplaatsService.getStandplaatsLocatie(standplaats, currentDateSupplier.getDate());
 			}
 		}
@@ -537,7 +528,7 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 		brief = (Brief) HibernateHelper.deproxy(brief);
 		if (brief instanceof MammaBrief)
 		{
-			MammaScreeningRonde screeningRonde = ((MammaBrief) brief).getScreeningRonde();
+			var screeningRonde = ((MammaBrief) brief).getScreeningRonde();
 			if (screeningRonde != null && screeningRonde.getLaatsteUitnodiging() != null)
 			{
 				return screeningRonde.getLaatsteUitnodiging().getLaatsteAfspraak();
@@ -559,8 +550,8 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 	@Override
 	public boolean isAfspraakBinnen180Dagen(MammaOnderzoek onderzoek)
 	{
-		Integer minimaleIntervalMammografieOnderzoeken = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_INTERVAL_MAMMOGRAFIE_ONDERZOEKEN.name());
-		LocalDate minimaalIntervalOnderzoeken = DateUtil.toLocalDate(onderzoek.getMammografie().getAfgerondOp()).plusDays(minimaleIntervalMammografieOnderzoeken);
+		var minimaleIntervalMammografieOnderzoeken = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_INTERVAL_MAMMOGRAFIE_ONDERZOEKEN.name());
+		var minimaalIntervalOnderzoeken = DateUtil.toLocalDate(onderzoek.getMammografie().getAfgerondOp()).plusDays(minimaleIntervalMammografieOnderzoeken);
 		return minimaalIntervalOnderzoeken.isAfter(currentDateSupplier.getLocalDate());
 	}
 
@@ -571,23 +562,23 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 		{
 			return false;
 		}
-		LocalDateTime nu = currentDateSupplier.getLocalDateTime();
+		var nu = currentDateSupplier.getLocalDateTime();
 		return afspraakStatus == MammaAfspraakStatus.GEPLAND && nu.isAfter(afspraakMoment);
 	}
 
 	@Override
 	public boolean briefKanNogVerzondenWorden(Date afspraakDatum)
 	{
-		Integer aantalWerkdagenBriefNietVersturenParameter = preferenceService.getInteger(PreferenceKey.MAMMA_BEVESTIGINGSBRIEF_NIET_VERZENDEN_BINNEN_AANTAL_WERKDAGEN.name());
-		LocalDate minimumAfspraakDatum = DateUtil.plusWerkdagen(currentDateSupplier.getLocalDate(), aantalWerkdagenBriefNietVersturenParameter);
+		var aantalWerkdagenBriefNietVersturenParameter = preferenceService.getInteger(PreferenceKey.MAMMA_BEVESTIGINGSBRIEF_NIET_VERZENDEN_BINNEN_AANTAL_WERKDAGEN.name());
+		var minimumAfspraakDatum = DateUtil.plusWerkdagen(currentDateSupplier.getLocalDate(), aantalWerkdagenBriefNietVersturenParameter);
 		return !DateUtil.toUtilDate(minimumAfspraakDatum).after(afspraakDatum);
 	}
 
 	@Override
 	public boolean smsKanNogVerzondenWorden(LocalDateTime afspraakMoment)
 	{
-		Integer afspraakSmsHerinneringTermijn = preferenceService.getInteger(PreferenceKey.MAMMA_AFSPRAAK_SMS_HERINNERING_TERMIJN.name());
-		LocalDateTime minimaalAfspraakMoment = currentDateSupplier.getLocalDateTime().plusHours(afspraakSmsHerinneringTermijn);
+		var afspraakSmsHerinneringTermijn = preferenceService.getInteger(PreferenceKey.MAMMA_AFSPRAAK_SMS_HERINNERING_TERMIJN.name());
+		var minimaalAfspraakMoment = currentDateSupplier.getLocalDateTime().plusHours(afspraakSmsHerinneringTermijn);
 		return !minimaalAfspraakMoment.isAfter(afspraakMoment);
 	}
 
@@ -608,9 +599,9 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 	@Override
 	public boolean magUitstellen(MammaDossier dossier, boolean bijAfspraakForceren)
 	{
-		MammaScreeningRonde laatsteScreeningRonde = dossier.getLaatsteScreeningRonde();
+		var laatsteScreeningRonde = dossier.getLaatsteScreeningRonde();
 
-		MammaAfspraak laatsteAfspraak = MammaScreeningRondeUtil.getLaatsteAfspraak(laatsteScreeningRonde);
+		var laatsteAfspraak = MammaScreeningRondeUtil.getLaatsteAfspraak(laatsteScreeningRonde);
 
 		boolean isLaatsteAfspraakGeenGeforceerdeAfspraak = laatsteAfspraak == null || !laatsteAfspraak.isGeforceerdeAfspraak();
 

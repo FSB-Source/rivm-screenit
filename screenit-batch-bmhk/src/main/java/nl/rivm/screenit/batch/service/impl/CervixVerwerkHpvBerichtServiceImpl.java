@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -106,9 +106,9 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 			var context = ScreenitHapiContext.getHapiContext(HapiContextType.UTF_8);
 			var parser = context.getPipeParser();
 			var hapiMsg = parser.parse(hpvBericht);
-			CervixHpvBerichtWrapper bericht = new CervixHpvBerichtWrapper((OUL_R22) hapiMsg);
+			var bericht = new CervixHpvBerichtWrapper((OUL_R22) hapiMsg);
 
-			LOG.info("Bericht (" + bericht.getMessageId() + ") wordt verwerkt! Aantal: " + bericht.getResultaten().size());
+			LOG.info("Bericht wordt verwerkt! Aantal: {}", bericht.getResultaten().size());
 			for (CervixHpvMonsterWrapper sample : bericht.getResultaten())
 			{
 				try
@@ -117,7 +117,7 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 					validatieAnalyseDatumEnAutorisatieDatum(monster, sample, opDashboardVanOrganisaties);
 					validateStatusMonster(monster, sample, opDashboardVanOrganisaties);
 
-					CervixHpvBeoordelingWaarde beoordelingWaarde = bepaalHpvBeoordelingService.getHpvBeoordelingWaarde(sample.getAnalyseresultaten());
+					var beoordelingWaarde = bepaalHpvBeoordelingService.getHpvBeoordelingWaarde(sample.getAnalyseresultaten());
 					if (beoordelingWaarde != null)
 					{
 						valideerMonsterMagOverschrevenWorden(sample, monster, opDashboardVanOrganisaties);
@@ -166,7 +166,7 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 		}
 		catch (Exception e)
 		{
-			LOG.error("Er is een fout opgetreden met het verwerken van bericht " + ontvangenBericht.getMessageId(), e);
+			LOG.error("Er is een fout opgetreden met het verwerken van bericht {}", ontvangenBericht.getId(), e);
 			throw new IllegalStateException("Bericht kon niet worden uitgelezen");
 		}
 		ontvangenBericht.setStatus(BerichtStatus.VERWERKT);
@@ -300,11 +300,8 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 		var hpvBeoordelingen = monster.getHpvBeoordelingen();
 		if (hpvBeoordelingen.size() == 1)
 		{
-			CervixHpvBeoordeling beoordeling = hpvBeoordelingen.get(0);
-			if (CervixHpvBeoordelingWaarde.ONGELDIG == beoordeling.getHpvUitslag())
-			{
-				return true;
-			}
+			var beoordeling = hpvBeoordelingen.get(0);
+			return CervixHpvBeoordelingWaarde.ONGELDIG == beoordeling.getHpvUitslag();
 		}
 		return false;
 	}
@@ -317,7 +314,7 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 		{
 			return;
 		}
-		var eerderHpvUitslagIsZas = eerdereHPVuitslag && CervixMonsterUtil.isZAS(ronde.getMonsterHpvUitslag());
+		var eerderHpvUitslagIsZas = CervixMonsterUtil.isZAS(ronde.getMonsterHpvUitslag());
 		var isCommunicatieUitgestuurd = ronde.getMonsterHpvUitslag().getBrief() != null;
 		if (eerderHpvUitslagIsZas && !isCommunicatieUitgestuurd)
 		{

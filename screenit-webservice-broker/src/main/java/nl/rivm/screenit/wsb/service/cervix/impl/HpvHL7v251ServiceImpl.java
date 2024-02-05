@@ -4,7 +4,7 @@ package nl.rivm.screenit.wsb.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,8 @@ package nl.rivm.screenit.wsb.service.cervix.impl;
 
 import java.io.IOException;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.dao.cervix.CervixBMHKLaboratoriumDao;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.cervix.berichten.CervixHpvBerichtWrapper;
@@ -34,8 +36,6 @@ import nl.rivm.screenit.service.cervix.CervixFactory;
 import nl.rivm.screenit.wsb.service.BaseHL7v2Service;
 import nl.rivm.screenit.wsb.service.cervix.HpvHL7v251Service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.UncategorizedJmsException;
 import org.springframework.stereotype.Service;
@@ -47,10 +47,9 @@ import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v251.message.OUL_R22;
 
 @Service
+@Slf4j
 public class HpvHL7v251ServiceImpl extends BaseHL7v2Service<OUL_R22> implements HpvHL7v251Service
 {
-	private static final Logger LOG = LoggerFactory.getLogger(HpvHL7v251ServiceImpl.class);
-
 	@Autowired
 	private CervixBMHKLaboratoriumDao bmhkLaboratoriumDao;
 
@@ -60,20 +59,18 @@ public class HpvHL7v251ServiceImpl extends BaseHL7v2Service<OUL_R22> implements 
 	@Override
 	public Message processTypedMessage(OUL_R22 message) throws ApplicationException, HL7Exception
 	{
-		CervixHpvBerichtWrapper screenitMessage = new CervixHpvBerichtWrapper(message);
+		var screenitMessage = new CervixHpvBerichtWrapper(message);
 		Long labId = null;
 		try
 		{
 
 			if (screenitMessage.isValid())
 			{
-				LOG.info("Incoming message: hl7v251(" + screenitMessage.getMessageId() + ")");
-
 				verwerkBericht(screenitMessage);
 
-				if (screenitMessage.getResultaten().size() == 0)
+				if (screenitMessage.getResultaten().isEmpty())
 				{
-					String foutmelding = "Dit bericht bevat alleen controlemonsters. Bericht-ID: "
+					var foutmelding = "Dit bericht bevat alleen controlemonsters. Bericht-ID: "
 						+ screenitMessage.getMessageId() + " Laboratorium:" + screenitMessage.getLabnaam() + " ZInstrumentName: " + screenitMessage.getInstrumentId();
 					saveLogGebeurtenis(LogGebeurtenis.CERVIX_HPV_BERICHT_REJECTED, foutmelding);
 				}
@@ -82,7 +79,7 @@ public class HpvHL7v251ServiceImpl extends BaseHL7v2Service<OUL_R22> implements 
 			}
 			else
 			{
-				String foutmelding = "Dit bericht voldoet niet aan de juiste syntax, er ontbreken velden in het bericht en/of velden zijn niet goed gevuld. Bericht-ID: "
+				var foutmelding = "Dit bericht voldoet niet aan de juiste syntax, er ontbreken velden in het bericht en/of velden zijn niet goed gevuld. Bericht-ID: "
 					+ screenitMessage.getMessageId() + " Laboratorium: " + screenitMessage.getLabnaam() + " ZInstrumentName: " + screenitMessage.getInstrumentId();
 				saveLogGebeurtenis(LogGebeurtenis.CERVIX_HPV_BERICHT_REJECTED, foutmelding);
 				throw new HL7Exception(foutmelding);
@@ -129,12 +126,12 @@ public class HpvHL7v251ServiceImpl extends BaseHL7v2Service<OUL_R22> implements 
 
 	private void verwerkBericht(CervixHpvBerichtWrapper berichtWrapper) throws HL7Exception
 	{
-		BMHKLaboratorium laboratorium = getBmhkLaboratorium(berichtWrapper);
+		var laboratorium = getBmhkLaboratorium(berichtWrapper);
 
 		if (bmhkLaboratoriumDao.isHpvBerichtAlOntvangen(berichtWrapper.getMessageId()))
 		{
-			String melding = "Bericht (messageID: " + berichtWrapper.getMessageId() + ") al eerder binnengekomen voor lab: " + laboratorium.getNaam();
-			LOG.warn(melding);
+			LOG.warn("Bericht al eerder binnengekomen voor lab: {}", laboratorium.getNaam());
+			var melding = "Bericht (messageID: " + berichtWrapper.getMessageId() + ") al eerder binnengekomen voor lab: " + laboratorium.getNaam();
 			logging(LogGebeurtenis.CERVIX_HPV_BERICHT_BINNENGEKOMEN, Level.WARNING, laboratorium, melding, Bevolkingsonderzoek.CERVIX);
 			return;
 		}
@@ -146,8 +143,8 @@ public class HpvHL7v251ServiceImpl extends BaseHL7v2Service<OUL_R22> implements 
 
 	private BMHKLaboratorium getBmhkLaboratorium(CervixHpvBerichtWrapper message) throws HL7Exception
 	{
-		String instrumentId = message.getInstrumentId();
-		BMHKLaboratorium laboratorium = bmhkLaboratoriumDao.getBmhkLaboratoriumfromZInstrumentNames(instrumentId);
+		var instrumentId = message.getInstrumentId();
+		var laboratorium = bmhkLaboratoriumDao.getBmhkLaboratoriumfromZInstrumentNames(instrumentId);
 		if (laboratorium != null)
 		{
 			return laboratorium;

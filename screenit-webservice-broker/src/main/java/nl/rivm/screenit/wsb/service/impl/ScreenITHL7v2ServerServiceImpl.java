@@ -4,7 +4,7 @@ package nl.rivm.screenit.wsb.service.impl;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -46,7 +46,7 @@ import ca.uhn.hl7v2.model.v251.message.OUL_R22;
 import ca.uhn.hl7v2.protocol.ApplicationWrapper;
 
 @Service
-@DependsOn("springBeanProvider")
+@DependsOn("applicationContextProvider")
 @Transactional(propagation = Propagation.REQUIRED)
 @Slf4j
 public class ScreenITHL7v2ServerServiceImpl implements ScreenITHL7v2ServerService

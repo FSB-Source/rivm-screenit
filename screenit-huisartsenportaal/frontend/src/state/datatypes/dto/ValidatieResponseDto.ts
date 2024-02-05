@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,4 +22,8 @@ export interface ValidatieResponseDto {
 	code: string;
 	codes: string[];
 	defaultMessage: string;
+}
+
+export function isValidationResponseDtoArray(data: any): data is ValidatieResponseDto[] {
+	return typeof data !== "undefined" && Array.isArray(data) && data.length > 0 && typeof data[0].defaultMessage !== "undefined"
 }

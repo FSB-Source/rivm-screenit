@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.verrichtingen.mainstep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -83,8 +83,8 @@ public class CervixBepalenVerrichtingenWriter extends CervixAbstractVerrichtinge
 		}
 		catch (Exception e)
 		{
-			LOG.error("Fout bij bepalen van verrichting, monsterId: " + monster.getMonsterId() + ", clientId "
-				+ monster.getUitnodiging().getScreeningRonde().getDossier().getClient().getId());
+			LOG.error("Fout bij bepalen van verrichting, client (id: '{}'), monster (id: '{}')", monster.getUitnodiging().getScreeningRonde().getDossier().getClient().getId(),
+				monster.getId());
 			throw e;
 		}
 

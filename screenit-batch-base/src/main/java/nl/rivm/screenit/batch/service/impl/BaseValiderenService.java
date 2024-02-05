@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,7 +27,6 @@ import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.service.LogService;
 
-import nl.rivm.screenit.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +56,6 @@ public abstract class BaseValiderenService
 
 	protected void addFout(List<String> foutmeldingen, String melding)
 	{
-		LOG.warn(melding);
 		LogEvent logEvent = new LogEvent();
 		logEvent.setMelding(melding);
 		logEvent.setLevel(Level.WARNING);
@@ -77,7 +75,7 @@ public abstract class BaseValiderenService
 	protected boolean barcodeAlTeruggekoppeld(List<String> barcodes, String barcodeNieuw)
 	{
 		return barcodes.stream()
-				.filter(StringUtils::isNotBlank)
-				.anyMatch(barcode -> barcode.equals(barcodeNieuw));
+			.filter(StringUtils::isNotBlank)
+			.anyMatch(barcode -> barcode.equals(barcodeNieuw));
 	}
 }

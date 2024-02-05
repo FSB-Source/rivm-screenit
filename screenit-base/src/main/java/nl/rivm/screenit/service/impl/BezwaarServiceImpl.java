@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -44,7 +44,6 @@ import nl.rivm.screenit.model.BezwaarMoment;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactManier;
 import nl.rivm.screenit.model.GbaPersoon;
-import nl.rivm.screenit.model.RedenGbaVraag;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.algemeen.BezwaarBrief;
 import nl.rivm.screenit.model.algemeen.BezwaarGroupViewWrapper;
@@ -61,7 +60,6 @@ import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.envers.RevisionKenmerk;
 import nl.rivm.screenit.model.envers.RevisionKenmerkInThreadHolder;
-import nl.rivm.screenit.model.gba.Nationaliteit;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.berichten.xds.XdsStatus;
@@ -69,6 +67,7 @@ import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectInactiefReden;
 import nl.rivm.screenit.repository.cervix.CervixBaseMonsterRepository;
 import nl.rivm.screenit.service.BaseBriefService;
+import nl.rivm.screenit.service.BaseGbaVraagService;
 import nl.rivm.screenit.service.BezwaarService;
 import nl.rivm.screenit.service.ClientDoelgroepService;
 import nl.rivm.screenit.service.ClientService;
@@ -83,7 +82,6 @@ import nl.rivm.screenit.util.BezwaarUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Polis;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -142,6 +140,9 @@ public class BezwaarServiceImpl implements BezwaarService
 
 	@Autowired
 	private BaseBriefService baseBriefService;
+
+	@Autowired
+	private BaseGbaVraagService baseGbaVraagService;
 
 	public BezwaarGroupViewWrapper getBezwaarGroupViewWrapperFromList(List<BezwaarGroupViewWrapper> lijstBezwaarGroupViewWrappers, Bevolkingsonderzoek onderzoek)
 	{
@@ -315,44 +316,40 @@ public class BezwaarServiceImpl implements BezwaarService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void bezwarenDoorvoeren(BezwaarMoment moment)
 	{
-		if (moment != null)
+		var client = moment.getClient();
+		for (Bezwaar bezwaar : moment.getBezwaren())
 		{
-			for (Bezwaar bezwaar : moment.getBezwaren())
+			switch (bezwaar.getType())
 			{
-				switch (bezwaar.getType())
+			case GEEN_WETENSCHAPPELIJK_ONDERZOEK:
+			case GEEN_KWALITEITSWAARBORGING:
+				bezwaarWetenSchappelijkOnderzoekEnKwaliteitswaarborging(moment);
+				break;
+			case GEEN_OPNAME_UIT_BPR:
+				bezwaarOpnameUitBrp(client);
+				break;
+			case VERZOEK_TOT_VERWIJDERING_DOSSIER:
+				bezwaarVerzoekTotVerwijderingDossier(bezwaar);
+				break;
+			case GEEN_GEBRUIK_LICHAAMSMATERIAAL_WETENSCHAPPELIJK_ONDERZOEK:
+				if (isBezwaarNieuwVergelekenMetVorigeBezwaarMoment(moment, GEEN_GEBRUIK_LICHAAMSMATERIAAL_WETENSCHAPPELIJK_ONDERZOEK))
 				{
-				case GEEN_WETENSCHAPPELIJK_ONDERZOEK:
-				case GEEN_KWALITEITSWAARBORGING:
-					bezwaarWetenSchappelijkOnderzoekEnKwaliteitswaarborging(moment);
-					break;
-				case GEEN_OPNAME_UIT_BPR:
-					bezwaarOpnameUitBPR(moment);
-					break;
-				case VERZOEK_TOT_VERWIJDERING_DOSSIER:
-					bezwaarVerzoekTotVerwijderingDossier(bezwaar);
-					break;
-				case GEEN_GEBRUIK_LICHAAMSMATERIAAL_WETENSCHAPPELIJK_ONDERZOEK:
-					if (isBezwaarNieuwVergelekenMetVorigeBezwaarMoment(moment, GEEN_GEBRUIK_LICHAAMSMATERIAAL_WETENSCHAPPELIJK_ONDERZOEK))
-					{
-						verwerkBezwaarLichaamsmateriaal(moment.getClient());
-					}
-					break;
-				case GEEN_SIGNALERING_VERWIJSADVIES:
-					if (isBezwaarNieuwVergelekenMetVorigeBezwaarMoment(moment, GEEN_SIGNALERING_VERWIJSADVIES))
-					{
-						verwerkGeenControleVerwijsAdvies(moment.getClient());
-					}
-					break;
-				case GEEN_DIGITALE_UITWISSELING_MET_HET_ZIEKENHUIS:
-					verstuurXdsConsent(moment.getClient());
-					break;
-				default:
-
+					verwerkBezwaarLichaamsmateriaal(client);
 				}
+				break;
+			case GEEN_SIGNALERING_VERWIJSADVIES:
+				if (isBezwaarNieuwVergelekenMetVorigeBezwaarMoment(moment, GEEN_SIGNALERING_VERWIJSADVIES))
+				{
+					verwerkGeenControleVerwijsAdvies(client);
+				}
+				break;
+			case GEEN_DIGITALE_UITWISSELING_MET_HET_ZIEKENHUIS:
+				verstuurXdsConsent(client);
+				break;
+			default:
 			}
 		}
 
-		Client client = moment.getClient();
 		client.setLaatstVoltooideBezwaarMoment(moment);
 	}
 
@@ -699,18 +696,11 @@ public class BezwaarServiceImpl implements BezwaarService
 			for (Bezwaar bezwaar : huidigBezwaar.getBezwaren())
 			{
 				Client client = nieuwBezwaar.getClient();
-				if (!BezwaarUtil.isBezwaarActiefVoor(nieuwBezwaar, bezwaar.getType(), bezwaar.getBevolkingsonderzoek(), true))
+				if (!BezwaarUtil.isBezwaarActiefVoor(nieuwBezwaar, bezwaar.getType(), bezwaar.getBevolkingsonderzoek(), true)
+					&& bezwaar.getType() == BezwaarType.GEEN_OPNAME_UIT_BPR)
 				{
-
-					switch (bezwaar.getType())
-					{
-					case GEEN_OPNAME_UIT_BPR:
-						clientService.vraagGbaGegevensOpnieuwAan(client, account, RedenGbaVraag.BEZWAAR_INGETROKKEN);
-						verwijderAdresGegevensVanClient(client);
-						break;
-					default:
-
-					}
+					baseGbaVraagService.verzoekPlaatsIndicatieBijIntrekkenBezwaarBrp(client, account);
+					verwijderAdresGegevensVanClient(client);
 				}
 			}
 		}
@@ -737,10 +727,18 @@ public class BezwaarServiceImpl implements BezwaarService
 		hibernateService.saveOrUpdate(client.getMammaDossier());
 	}
 
-	private void bezwaarOpnameUitBPR(BezwaarMoment moment)
+	private void bezwaarOpnameUitBrp(Client client)
 	{
-		Client client = moment.getClient();
-		GbaPersoon persoon = client.getPersoon();
+		wisPersoonsGegevensVoorMakenBezwaarBrp(client.getPersoon());
+
+		client.setGbaStatus(GbaStatus.BEZWAAR);
+		hibernateService.saveOrUpdate(client);
+
+		baseGbaVraagService.verzoekVerwijderIndicatieBijBezwaarBrp(client);
+	}
+
+	private void wisPersoonsGegevensVoorMakenBezwaarBrp(GbaPersoon persoon)
+	{
 
 		persoon.setAanduidingBijzonderNederlanderschap(null);
 		persoon.setAkteNummerOverlijden(null);
@@ -754,14 +752,14 @@ public class BezwaarServiceImpl implements BezwaarService
 		persoon.setEmailadres(null);
 		persoon.setFaxnummer(null);
 		persoon.setGbaGeboorteLand(null);
-		persoon.setGbaNationaliteiten(new ArrayList<Nationaliteit>());
+		persoon.setGbaNationaliteiten(new ArrayList<>());
 		persoon.setGeboorteplaats(null);
 		persoon.setGeboorteland(null);
 		persoon.setIndicatieGeheim(null);
 		persoon.setMeerling(null);
 		persoon.setMobielnummer(null);
 		persoon.setOverlijdensdatum(null);
-		persoon.setPolissen(new ArrayList<Polis>());
+		persoon.setPolissen(new ArrayList<>());
 		persoon.setRedenOntbindingPartnerschap(null);
 		persoon.setRegisterGemeenteAkteOverlijden(null);
 		persoon.setTelefoonnummer1(null);
@@ -775,9 +773,6 @@ public class BezwaarServiceImpl implements BezwaarService
 		persoon.setWidOrganisatieMedewerker(null);
 		persoon.setWidRegistreerDatum(null);
 		hibernateService.saveOrUpdate(persoon);
-
-		client.setGbaStatus(GbaStatus.BEZWAAR);
-		hibernateService.saveOrUpdate(client);
 	}
 
 	private void bezwaarWetenSchappelijkOnderzoekEnKwaliteitswaarborging(BezwaarMoment moment)

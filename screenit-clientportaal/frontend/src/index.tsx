@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -58,11 +58,10 @@ if (process.env.NODE_ENV !== "production") {
 		clientToken: "pub4c285cbd766641dd2f560ee6b9a9cb63",
 		site: "datadoghq.eu",
 		service: "clientportaal",
-		trackUserInteractions: true,
-		defaultPrivacyLevel: "mask",
+		sessionReplaySampleRate: 0,
+		trackUserInteractions: false,
+		defaultPrivacyLevel: "mask-user-input",
 	})
-
-	datadogRum.startSessionReplayRecording()
 }
 
 interface MetaElement extends HTMLElement {

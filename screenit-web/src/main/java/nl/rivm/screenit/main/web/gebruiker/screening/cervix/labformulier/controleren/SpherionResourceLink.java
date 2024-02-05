@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.labformulier.contro
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.labformulier.contro
  * =========================LICENSE_END==================================
  */
 
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 
 import org.apache.wicket.markup.html.link.ResourceLink;
 
@@ -32,7 +32,8 @@ public class SpherionResourceLink extends ResourceLink<Void>
 
 	public SpherionResourceLink(String id, String objid)
 	{
-		super(id, new SpherionFormulierViewerResource(String.format(SpringBeanProvider.getInstance().getBean(String.class, "spherionUrl"), objid), false, SpringBeanProvider
-			.getInstance().getBean(String.class, "spherionUsername"), SpringBeanProvider.getInstance().getBean(String.class, "spherionPassword")));
+		super(id, new SpherionFormulierViewerResource(String.format(ApplicationContextProvider.getApplicationContext().getBean("spherionUrl", String.class), objid), false,
+			ApplicationContextProvider.getApplicationContext().getBean("spherionUsername", String.class),
+			ApplicationContextProvider.getApplicationContext().getBean("spherionPassword", String.class)));
 	}
 }

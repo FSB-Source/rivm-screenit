@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.labformulier.contro
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,9 +23,9 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.labformulier.contro
 
 import java.util.Iterator;
 
+import nl.rivm.screenit.main.service.cervix.impl.CervixHuisartsLocatieDataProviderServiceImpl;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.service.cervix.CervixHuisartsLocatieFilter;
-import nl.rivm.screenit.main.service.colon.impl.CervixHuisartsLocatieDataProviderService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -37,7 +37,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 public class CervixHuisartsLocatieProvider extends SortableDataProvider<CervixHuisartsLocatie, String>
 {
 	@SpringBean
-	private CervixHuisartsLocatieDataProviderService huisartsLocatieDataProviderService;
+	private CervixHuisartsLocatieDataProviderServiceImpl huisartsLocatieDataProviderService;
 
 	private CervixHuisartsLocatieFilter filter;
 

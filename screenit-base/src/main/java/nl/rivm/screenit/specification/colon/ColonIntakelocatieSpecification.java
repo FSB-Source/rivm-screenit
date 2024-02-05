@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2023 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,6 +30,7 @@ import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.Kamer_;
+import nl.rivm.screenit.model.colon.enums.ColonTijdSlotType;
 import nl.rivm.screenit.specification.SpecificationUtil;
 import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment_;
 import nl.topicuszorg.wicket.planning.model.appointment.Location_;
@@ -52,14 +53,22 @@ public class ColonIntakelocatieSpecification
 		{
 			var subquery = q.subquery(Kamer.class);
 			var subqueryRoot = subquery.from(Kamer.class);
+			var appointmentJoin = SpecificationUtil.join(subqueryRoot, Location_.appointments);
 
 			subquery.select(subqueryRoot).where(
+				cb.and(
 				cb.equal(subqueryRoot.get(Kamer_.coloscopieCentrum), r),
 				SpecificationUtil.betweenDatesPredicate(bereik)
-					.withPath(cb, SpecificationUtil.join(subqueryRoot, Location_.appointments).get(AbstractAppointment_.startTime))
+					.withPath(cb, appointmentJoin.get(AbstractAppointment_.startTime)),
+					cb.equal(appointmentJoin.get(AbstractAppointment_.title), ColonTijdSlotType.ROOSTER_ITEM.getTitle()))
 			);
 
 			return cb.not(cb.exists(subquery));
 		};
+	}
+
+	public static Specification<ColoscopieCentrum> isIntakelocatie(ColoscopieCentrum intakelocatie)
+	{
+		return (r, q, cb) -> cb.equal(r, intakelocatie);
 	}
 }
