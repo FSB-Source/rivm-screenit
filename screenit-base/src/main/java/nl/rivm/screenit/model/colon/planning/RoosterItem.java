@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.colon.planning;
 
 /*-
@@ -32,6 +31,9 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.model.Afspraak;
 import nl.rivm.screenit.model.colon.Kamer;
@@ -45,11 +47,10 @@ import org.hibernate.envers.Audited;
 @Entity
 @Table(schema = "colon")
 @Audited
-public class RoosterItem extends ScheduleItem implements Cloneable, ITijdObject
+@Getter
+@Setter
+public class RoosterItem extends ScheduleItem implements ITijdObject
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@OneToMany(mappedBy = "roosterItem", fetch = FetchType.LAZY)
 	private List<Afspraak> afspraken = new ArrayList<>();
 
@@ -69,12 +70,7 @@ public class RoosterItem extends ScheduleItem implements Cloneable, ITijdObject
 	@Transient
 	public String getDescription()
 	{
-
-		StringBuilder description = new StringBuilder("<ul class=\"simplelist\">");
-
-		description.append("</ul>");
-
-		return description.toString();
+		return "<ul class=simplelist></ul>";
 	}
 
 	@Override
@@ -82,7 +78,7 @@ public class RoosterItem extends ScheduleItem implements Cloneable, ITijdObject
 	public RoosterItem transientClone()
 	{
 		RoosterItem item = (RoosterItem) super.transientClone();
-		item.setAfspraken(new ArrayList<Afspraak>());
+		item.setAfspraken(new ArrayList<>());
 		return item;
 	}
 
@@ -95,17 +91,12 @@ public class RoosterItem extends ScheduleItem implements Cloneable, ITijdObject
 	@Override
 	protected String getTooltip()
 	{
-		StringBuilder sb = new StringBuilder();
-
-		sb.append(getTitle());
-		sb.append("<br />").append(getScheduleSet().getDisplayname());
-
-		sb.append("<br />").append(Constants.getTimeFormat().format(getStartTime()));
-		sb.append(" - ").append(Constants.getTimeFormat().format(getEndTime()));
-
-		sb.append("<br />").append(getLocation().getCalendarDisplayName());
-
-		return sb.toString();
+		return String.format("%s<br/>%s<br/>%s - %s<br/>%s",
+			getTitle(),
+			getScheduleSet().getDisplayname(),
+			Constants.getTimeFormat().format(getStartTime()),
+			Constants.getTimeFormat().format(getEndTime()),
+			getLocation().getCalendarDisplayName());
 	}
 
 	@Transient
@@ -146,42 +137,17 @@ public class RoosterItem extends ScheduleItem implements Cloneable, ITijdObject
 			{
 				return false;
 			}
+			if (!obj.toString().equals(toString()))
+			{
+				return false;
+			}
 		}
 		else if (!getId().equals(other.getId()))
 		{
 			return false;
 		}
+
 		return true;
 	}
 
-	public List<Afspraak> getAfspraken()
-	{
-		return afspraken;
-	}
-
-	public void setAfspraken(List<Afspraak> afspraken)
-	{
-		this.afspraken = afspraken;
-	}
-
-	@Override
-	public EventType getEventType()
-	{
-		return eventType;
-	}
-
-	public void setEventType(EventType eventType)
-	{
-		this.eventType = eventType;
-	}
-
-	public Boolean getCapaciteitMeeBepaald()
-	{
-		return capaciteitMeeBepaald;
-	}
-
-	public void setCapaciteitMeeBepaald(Boolean capaciteitMeeBepaald)
-	{
-		this.capaciteitMeeBepaald = capaciteitMeeBepaald;
-	}
 }

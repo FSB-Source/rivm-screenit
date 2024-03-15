@@ -49,8 +49,6 @@ public class MammaConclusieReviewenPage extends AbstractMammaBeoordelenPage
 	@SpringBean
 	private MammaConclusieReviewService conclusieReviewService;
 
-	private final List<Long> beoordelingIds;
-
 	private final IModel<InstellingGebruiker> radioloogModel;
 
 	private MammaKwaliteitscontroleHuidigeRondePanel huidigeRondePanel;
@@ -59,7 +57,6 @@ public class MammaConclusieReviewenPage extends AbstractMammaBeoordelenPage
 		IModel<InstellingGebruiker> radioloogModel)
 	{
 		super(initieleBeoordelingId, beoordelingIds, werklijstPageClass);
-		this.beoordelingIds = beoordelingIds;
 		this.radioloogModel = radioloogModel;
 	}
 
@@ -72,7 +69,7 @@ public class MammaConclusieReviewenPage extends AbstractMammaBeoordelenPage
 		MammaConclusieReview conclusieReview = conclusieReviewService.getConclusieReview(screeningRonde, radioloogModel.getObject());
 
 		huidigeRondePanel = new MammaConclusieReviewHuidigeRondePanel("rondeItem", ModelUtil.sModel(beoordelingModel.getObject()), ModelUtil.ccModel(conclusieReview),
-			ModelUtil.sModel(screeningRonde));
+			ModelUtil.sModel(screeningRonde), getBeoordelingenIds());
 		rondePanels.add(huidigeRondePanel);
 
 		addRondeHistorie(rondePanels);
@@ -87,7 +84,7 @@ public class MammaConclusieReviewenPage extends AbstractMammaBeoordelenPage
 	@Override
 	protected Panel getMiniWerklijst(String id)
 	{
-		return new MammaConclusieReviewMiniWerklijstPanel(id, this, huidigeBeoordelingId(), beoordelingIds, radioloogModel);
+		return new MammaConclusieReviewMiniWerklijstPanel(id, this, huidigeBeoordelingId(), getBeoordelingenIds(), radioloogModel);
 	}
 
 	@Override

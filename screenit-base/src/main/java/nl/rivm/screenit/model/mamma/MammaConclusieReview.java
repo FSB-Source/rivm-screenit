@@ -42,6 +42,7 @@ import lombok.Setter;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.mamma.enums.MammaLezingRedenenFotobesprekingMbber;
 import nl.rivm.screenit.model.mamma.enums.MammaLezingRedenenFotobesprekingRadioloog;
+import nl.rivm.screenit.model.mamma.enums.MammaRetourCeReden;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;
@@ -70,6 +71,10 @@ public class MammaConclusieReview extends AbstractHibernateObject
 
 	@Column
 	private LocalDateTime reviewMoment;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = true)
+	private MammaRetourCeReden retourCeReden;
 
 	@ElementCollection(targetClass = MammaLezingRedenenFotobesprekingRadioloog.class)
 	@Enumerated(EnumType.STRING)

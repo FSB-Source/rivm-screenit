@@ -25,10 +25,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
@@ -36,7 +36,6 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
@@ -105,16 +104,16 @@ public class MammaBaseAfbeeldingServiceImpl implements MammaBaseAfbeeldingServic
 	{
 		List<InputStream> doorsneden = new ArrayList<>();
 
-		InputStream rechtsVerticaleDoorsnede = maakAfbeelding(MammaAfbeeldingZijdeDoorsnede.RECHTS_VERTICALE_DOORSNEDE, verslagLezing.getLaesies(), amputatie, true);
+		var rechtsVerticaleDoorsnede = maakAfbeelding(MammaAfbeeldingZijdeDoorsnede.RECHTS_VERTICALE_DOORSNEDE, verslagLezing.getLaesies(), amputatie, true);
 		doorsneden.add(rechtsVerticaleDoorsnede);
 
-		InputStream linkerborstVerticaleDoorsnede = maakAfbeelding(MammaAfbeeldingZijdeDoorsnede.LINKS_VERTICALE_DOORSNEDE, verslagLezing.getLaesies(), amputatie, true);
+		var linkerborstVerticaleDoorsnede = maakAfbeelding(MammaAfbeeldingZijdeDoorsnede.LINKS_VERTICALE_DOORSNEDE, verslagLezing.getLaesies(), amputatie, true);
 		doorsneden.add(linkerborstVerticaleDoorsnede);
 
-		InputStream rechterborstHorizontaleDoorsnede = maakAfbeelding(MammaAfbeeldingZijdeDoorsnede.RECHTS_HORIZONTALE_DOORSNEDE, verslagLezing.getLaesies(), amputatie, true);
+		var rechterborstHorizontaleDoorsnede = maakAfbeelding(MammaAfbeeldingZijdeDoorsnede.RECHTS_HORIZONTALE_DOORSNEDE, verslagLezing.getLaesies(), amputatie, true);
 		doorsneden.add(rechterborstHorizontaleDoorsnede);
 
-		InputStream linkerborstHorizontaleDoorsnede = maakAfbeelding(MammaAfbeeldingZijdeDoorsnede.LINKS_HORIZONTALE_DOORSNEDE, verslagLezing.getLaesies(), amputatie, true);
+		var linkerborstHorizontaleDoorsnede = maakAfbeelding(MammaAfbeeldingZijdeDoorsnede.LINKS_HORIZONTALE_DOORSNEDE, verslagLezing.getLaesies(), amputatie, true);
 		doorsneden.add(linkerborstHorizontaleDoorsnede);
 
 		return doorsneden;
@@ -123,7 +122,7 @@ public class MammaBaseAfbeeldingServiceImpl implements MammaBaseAfbeeldingServic
 	@Override
 	public InputStream createVisueleInspectieAfbeelding(MammaAnnotatieAfbeelding annotatieAfbeelding, MammaAmputatie amputatie)
 	{
-		final Document afbeelding = getDocument(INSPECTIE_ACHTERGROND_PATH + "visuele_inspectie_afbeelding.svg");
+		final var afbeelding = getDocument(INSPECTIE_ACHTERGROND_PATH + "visuele_inspectie_afbeelding.svg");
 		vulAfbeelding(afbeelding, annotatieAfbeelding, amputatie,
 			VISUALELE_INSPECTIE_RAND_BREEDTE_IN_PIXELS);
 		if (amputatie != null)
@@ -136,7 +135,7 @@ public class MammaBaseAfbeeldingServiceImpl implements MammaBaseAfbeeldingServic
 	@Override
 	public InputStream createSignaleringAfbeelding(MammaAnnotatieAfbeelding annotatieAfbeelding, MammaAfbeeldingZijdeDoorsnede zijdeDoorsnede, MammaAmputatie amputatie)
 	{
-		final Document afbeelding = getZijdeDoorsnedeAfbeelding(zijdeDoorsnede, false);
+		final var afbeelding = getZijdeDoorsnedeAfbeelding(zijdeDoorsnede, false);
 		vulAfbeelding(afbeelding, annotatieAfbeelding, amputatie, 0.0);
 		if (amputatie != null && lezingService.isZijdeGeamputeerd(zijdeDoorsnede, amputatie))
 		{
@@ -148,7 +147,7 @@ public class MammaBaseAfbeeldingServiceImpl implements MammaBaseAfbeeldingServic
 	@Override
 	public InputStream createEmptyLaesiesAfbeelding(MammaAfbeeldingZijdeDoorsnede doorsnede, boolean toonLaesielocatievakken, MammaAmputatie amputatie)
 	{
-		Document achtergrond = getDocument(BEOORDELING_ACHTERGROND_PATH + (toonLaesielocatievakken ? "metLaesielocatievakken/" : "") + doorsnede.getSvgFileName() + ".svg");
+		var achtergrond = getDocument(BEOORDELING_ACHTERGROND_PATH + (toonLaesielocatievakken ? "metLaesielocatievakken/" : "") + doorsnede.getSvgFileName() + ".svg");
 		if (amputatie != null && lezingService.isZijdeGeamputeerd(doorsnede, amputatie))
 		{
 			achtergrond.getDocumentElement().appendChild(createAmputatieKruis(achtergrond, false));
@@ -158,21 +157,21 @@ public class MammaBaseAfbeeldingServiceImpl implements MammaBaseAfbeeldingServic
 
 	private InputStream maakAfbeelding(MammaAfbeeldingZijdeDoorsnede afbeeldingZijdeDoorsnede, List<MammaLaesie> laesies, MammaAmputatie amputatie, boolean metRand)
 	{
-		Document achtergrond = getZijdeDoorsnedeAfbeelding(afbeeldingZijdeDoorsnede, true);
+		var achtergrond = getZijdeDoorsnedeAfbeelding(afbeeldingZijdeDoorsnede, true);
 		if (amputatie != null && lezingService.isZijdeGeamputeerd(afbeeldingZijdeDoorsnede, amputatie))
 		{
 			voegElementToeAanAchtergrond(achtergrond, createAmputatieKruis(achtergrond, metRand));
 		}
-		double afbeeldingBreedte = getWidth(achtergrond);
-		double factor = (afbeeldingBreedte - DOORSNEEDE_RAND_BREEDTE_IN_PIXELS * 2.0) / 100.0;
-		for (MammaLaesie laesie : laesies)
+		var afbeeldingBreedte = getWidth(achtergrond);
+		var factor = (afbeeldingBreedte - DOORSNEEDE_RAND_BREEDTE_IN_PIXELS * 2.0) / 100.0;
+		for (var laesie : laesies)
 		{
 			if (isLaesieVanAfbeelding(laesie, afbeeldingZijdeDoorsnede))
 			{
-				Document laesieAfbeelding = getLaesieAfbeelding(laesie.getMammaLaesieType());
+				var laesieAfbeelding = getLaesieAfbeelding(laesie.getMammaLaesieType());
 
-				boolean heeftNummerNodig = laesieService.isVolgnummerNodig(laesies, laesie);
-				Element laesieSvg = bepaalDoorsnedeEnMaakLaesieElement(afbeeldingZijdeDoorsnede, laesie, laesieAfbeelding, factor, achtergrond, heeftNummerNodig);
+				var heeftNummerNodig = laesieService.isVolgnummerNodig(laesies, laesie);
+				var laesieSvg = bepaalDoorsnedeEnMaakLaesieElement(afbeeldingZijdeDoorsnede, laesie, laesieAfbeelding, factor, achtergrond, heeftNummerNodig);
 				voegElementToeAanAchtergrond(achtergrond, laesieSvg);
 			}
 		}
@@ -181,19 +180,19 @@ public class MammaBaseAfbeeldingServiceImpl implements MammaBaseAfbeeldingServic
 
 	private Element createAmputatieKruis(Document achtergrond, boolean metRand)
 	{
-		Element svgKruisContainer = achtergrond.createElement("g");
+		var svgKruisContainer = achtergrond.createElement("g");
 		svgKruisContainer.appendChild(createRedLine(achtergrond, 50 + (metRand ? DOORSNEEDE_RAND_BREEDTE_IN_PIXELS : 0),
 			140 + (metRand ? DOORSNEEDE_RAND_BREEDTE_IN_PIXELS : 0), 125 + (metRand ? DOORSNEEDE_RAND_BREEDTE_IN_PIXELS : 0),
 			230 + (metRand ? DOORSNEEDE_RAND_BREEDTE_IN_PIXELS : 0), 15));
 		svgKruisContainer.appendChild(createRedLine(achtergrond, 50 + (metRand ? DOORSNEEDE_RAND_BREEDTE_IN_PIXELS : 0), 140
-			+ (metRand ? DOORSNEEDE_RAND_BREEDTE_IN_PIXELS : 0), 230 + (metRand ? DOORSNEEDE_RAND_BREEDTE_IN_PIXELS : 0),
+				+ (metRand ? DOORSNEEDE_RAND_BREEDTE_IN_PIXELS : 0), 230 + (metRand ? DOORSNEEDE_RAND_BREEDTE_IN_PIXELS : 0),
 			125 + (metRand ? DOORSNEEDE_RAND_BREEDTE_IN_PIXELS : 0), 15));
 		return svgKruisContainer;
 	}
 
 	private Element createRedLine(Document baseDocument, double x1, double x2, double y1, double y2, int lineWidth, String unit)
 	{
-		Element line = baseDocument.createElement("line");
+		var line = baseDocument.createElement("line");
 		line.setAttribute("stroke", "#623483");
 		line.setAttribute("stroke-width", lineWidth + "px");
 		line.setAttribute("x1", x1 + unit);
@@ -213,10 +212,11 @@ public class MammaBaseAfbeeldingServiceImpl implements MammaBaseAfbeeldingServic
 		Document document = null;
 		try
 		{
-			InputStream resourceAsStream = this.getClass().getResourceAsStream(name);
-			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			dBuilder.setEntityResolver((publicId, systemId) -> {
+			var resourceAsStream = getClass().getResourceAsStream(name);
+			var dbFactory = DocumentBuilderFactory.newInstance();
+			var dBuilder = dbFactory.newDocumentBuilder();
+			dBuilder.setEntityResolver((publicId, systemId) ->
+			{
 				if (systemId.contains("svg10.dtd")) 
 				{
 					return new InputSource(new StringReader(""));
@@ -230,7 +230,7 @@ public class MammaBaseAfbeeldingServiceImpl implements MammaBaseAfbeeldingServic
 		}
 		catch (ParserConfigurationException | SAXException | IOException | IllegalArgumentException e)
 		{
-			LOG.error("Er is een fout opgetreden bij het ophalen van image " + name);
+			LOG.error("Er is een fout opgetreden bij het ophalen van image {}", name, e);
 		}
 		return document;
 	}
@@ -286,16 +286,16 @@ public class MammaBaseAfbeeldingServiceImpl implements MammaBaseAfbeeldingServic
 	private Element maakLaesieElement(Document achtergrond, Document laesieDocument, MammaLaesie laesie, double laesiePositieX, double laesiePositieY, double factor,
 		boolean heeftNummerNodig)
 	{
-		double correctieX = getWidth(laesieDocument) / 2.0;
-		double correctieY = getHeight(laesieDocument) / 2.0;
+		var correctieX = getWidth(laesieDocument) / 2.0;
+		var correctieY = getHeight(laesieDocument) / 2.0;
 
-		double xLaesieHorizontaal = bepaalAfbeeldingPositie(laesiePositieX, correctieX, factor) + DOORSNEEDE_RAND_BREEDTE_IN_PIXELS;
-		double yLaesieHorizontaal = bepaalAfbeeldingPositie(laesiePositieY, correctieY, factor) + DOORSNEEDE_RAND_BREEDTE_IN_PIXELS;
+		var xLaesieHorizontaal = bepaalAfbeeldingPositie(laesiePositieX, correctieX, factor) + DOORSNEEDE_RAND_BREEDTE_IN_PIXELS;
+		var yLaesieHorizontaal = bepaalAfbeeldingPositie(laesiePositieY, correctieY, factor) + DOORSNEEDE_RAND_BREEDTE_IN_PIXELS;
 
-		Element laesieSvg = maakAfbeeldingElement(laesieDocument, xLaesieHorizontaal, yLaesieHorizontaal);
+		var laesieSvg = maakAfbeeldingElement(laesieDocument, xLaesieHorizontaal, yLaesieHorizontaal);
 		if (heeftNummerNodig)
 		{
-			Element tekstElement = maakTekstElementEnVoegToeAanAchtergrond(achtergrond, String.valueOf(laesie.getNummer()), xLaesieHorizontaal + correctieX * 2.0,
+			var tekstElement = maakTekstElementEnVoegToeAanAchtergrond(achtergrond, String.valueOf(laesie.getNummer()), xLaesieHorizontaal + correctieX * 2.0,
 				yLaesieHorizontaal + 10.0);
 			tekstElement.setAttribute("fill", "black");
 		}
@@ -308,15 +308,15 @@ public class MammaBaseAfbeeldingServiceImpl implements MammaBaseAfbeeldingServic
 		try
 		{
 			transformer = TransformerFactory.newInstance().newTransformer();
-			StringWriter writer = new StringWriter();
+			var writer = new StringWriter();
 			transformer.transform(new DOMSource(afbeelding), new StreamResult(writer));
 
-			String output = writer.getBuffer().toString();
-			return IOUtils.toInputStream(output, "UTF-8");
+			var output = writer.getBuffer().toString();
+			return IOUtils.toInputStream(output, StandardCharsets.UTF_8);
 		}
 		catch (TransformerException e)
 		{
-			LOG.error("Bij het transformeren naar stream van " + afbeelding);
+			LOG.error("Bij het transformeren naar stream van {}", afbeelding, e);
 		}
 		return null;
 	}
@@ -326,14 +326,14 @@ public class MammaBaseAfbeeldingServiceImpl implements MammaBaseAfbeeldingServic
 		Element item = null;
 		try
 		{
-			XPath xPath = XPathFactory.newInstance().newXPath();
-			NodeList nodeList = (NodeList) xPath.compile("/svg/g").evaluate(afbeelding, XPathConstants.NODESET);
+			var xPath = XPathFactory.newInstance().newXPath();
+			var nodeList = (NodeList) xPath.compile("/svg/g").evaluate(afbeelding, XPathConstants.NODESET);
 			item = (Element) nodeList.item(0).cloneNode(true);
 			item.setAttribute("transform", String.format("translate(%s,%s)", x, y));
 		}
 		catch (XPathExpressionException e)
 		{
-			LOG.error("Er is een fout opgetreden bij het ophalen van het element uit " + afbeelding);
+			LOG.error("Er is een fout opgetreden bij het ophalen van het element uit {}", afbeelding, e);
 		}
 
 		return item;
@@ -342,7 +342,7 @@ public class MammaBaseAfbeeldingServiceImpl implements MammaBaseAfbeeldingServic
 	private void voegElementToeAanAchtergrond(Document achtergrond, Element item)
 	{
 		achtergrond.adoptNode(item);
-		Node rootSvgElement = getSvgNode(achtergrond);
+		var rootSvgElement = getSvgNode(achtergrond);
 		rootSvgElement.appendChild(item);
 	}
 
@@ -355,8 +355,8 @@ public class MammaBaseAfbeeldingServiceImpl implements MammaBaseAfbeeldingServic
 	{
 		try
 		{
-			XPath xPath = XPathFactory.newInstance().newXPath();
-			NodeList nodeList = (NodeList) xPath.compile("/svg").evaluate(afbeelding, XPathConstants.NODESET);
+			var xPath = XPathFactory.newInstance().newXPath();
+			var nodeList = (NodeList) xPath.compile("/svg").evaluate(afbeelding, XPathConstants.NODESET);
 			return nodeList.item(0);
 		}
 		catch (XPathExpressionException e)
@@ -378,15 +378,15 @@ public class MammaBaseAfbeeldingServiceImpl implements MammaBaseAfbeeldingServic
 
 	private void vulAfbeelding(Document document, MammaAnnotatieAfbeelding annotatieAfbeelding, MammaAmputatie amputatie, double randBreedte)
 	{
-		double afbeeldingBreedte = getWidth(document);
-		double factor = (afbeeldingBreedte - randBreedte * 2.0) / 100.0;
+		var afbeeldingBreedte = getWidth(document);
+		var factor = (afbeeldingBreedte - randBreedte * 2.0) / 100.0;
 		if (annotatieAfbeelding != null)
 		{
-			for (MammaAnnotatieIcoon icoon : annotatieAfbeelding.getIconen())
+			for (var icoon : annotatieAfbeelding.getIconen())
 			{
-				Document icoonAfbeelding = getAnnotatieIcoonAfbeelding(icoon);
+				var icoonAfbeelding = getAnnotatieIcoonAfbeelding(icoon);
 
-				Element icoonSvg = maakAnnotatieIcoonElement(icoon, icoonAfbeelding, factor, document, randBreedte);
+				var icoonSvg = maakAnnotatieIcoonElement(icoon, icoonAfbeelding, factor, document, randBreedte);
 				voegElementToeAanAchtergrond(document, icoonSvg);
 
 			}
@@ -395,7 +395,7 @@ public class MammaBaseAfbeeldingServiceImpl implements MammaBaseAfbeeldingServic
 
 	private void plaatsKruisOpVisueleInspectieAfbeelding(Document achtergrond, MammaAmputatie amputatie)
 	{
-		Element svgKruisContainer = achtergrond.createElement("g");
+		var svgKruisContainer = achtergrond.createElement("g");
 		if (MammaAmputatie.RECHTERBORST.equals(amputatie))
 		{
 			svgKruisContainer.appendChild(createRedLine(achtergrond, 45, 28, 75, 50, 15, "%"));
@@ -411,7 +411,7 @@ public class MammaBaseAfbeeldingServiceImpl implements MammaBaseAfbeeldingServic
 
 	private void plaatsKruisOpSignaleringsAfbeelding(Document achtergrond)
 	{
-		Element svgKruisContainer = achtergrond.createElement("g");
+		var svgKruisContainer = achtergrond.createElement("g");
 		svgKruisContainer.appendChild(createRedLine(achtergrond, 25, 75, 43, 83, 15, "%"));
 		svgKruisContainer.appendChild(createRedLine(achtergrond, 25, 75, 83, 43, 15, "%"));
 		achtergrond.getDocumentElement().appendChild(svgKruisContainer);
@@ -419,8 +419,8 @@ public class MammaBaseAfbeeldingServiceImpl implements MammaBaseAfbeeldingServic
 
 	private Document getAnnotatieIcoonAfbeelding(MammaAnnotatieIcoon icoon)
 	{
-		MammaAnnotatieIcoonType annotatieIcoonType = icoon.getType();
-		String svgFileName = annotatieIcoonType.getSvgFileName();
+		var annotatieIcoonType = icoon.getType();
+		var svgFileName = annotatieIcoonType.getSvgFileName();
 		if (StringUtils.isNotBlank(svgFileName))
 		{
 			return getDocument(INSPECTIE_ICONEN_PATH + svgFileName + ".svg");
@@ -438,7 +438,7 @@ public class MammaBaseAfbeeldingServiceImpl implements MammaBaseAfbeeldingServic
 
 	private Document getZijdeDoorsnedeAfbeelding(MammaAfbeeldingZijdeDoorsnede zijdeDoorsnede, boolean inclusiefRand)
 	{
-		String svgFileName = zijdeDoorsnede.getSvgFileName();
+		var svgFileName = zijdeDoorsnede.getSvgFileName();
 		if (StringUtils.isNotBlank(svgFileName))
 		{
 			return getDocument(ZIJDE_DOORSNEDE_ACHTERGROND_PATH + (inclusiefRand ? "inclusief_rand/" : "") + svgFileName + ".svg");
@@ -448,23 +448,23 @@ public class MammaBaseAfbeeldingServiceImpl implements MammaBaseAfbeeldingServic
 
 	private Element maakAnnotatieIcoonElement(MammaAnnotatieIcoon icoon, Document icoonAfbeelding, double factor, Document achtergrond, double randBreedte)
 	{
-		double icoonAfbeeldingWidth = getWidth(icoonAfbeelding);
-		double icoonAfbeeldingHeight = getHeight(icoonAfbeelding);
-		double correctieY = icoonAfbeeldingHeight / 2.0;
-		double correctieX = icoonAfbeeldingWidth / 2.0;
+		var icoonAfbeeldingWidth = getWidth(icoonAfbeelding);
+		var icoonAfbeeldingHeight = getHeight(icoonAfbeelding);
+		var correctieY = icoonAfbeeldingHeight / 2.0;
+		var correctieX = icoonAfbeeldingWidth / 2.0;
 		if (icoon.getType() == MammaAnnotatieIcoonType.UITWENDIGE_AFWIJKING)
 		{
 			correctieX = icoonAfbeeldingWidth;
 			correctieY = 0.0;
 		}
 
-		double xIcoon = bepaalAfbeeldingPositie(icoon.getPositieX().doubleValue(), correctieX, factor) + randBreedte;
-		double yIcoon = bepaalAfbeeldingPositie(icoon.getPositieY().doubleValue(), correctieY, factor) + randBreedte;
-		Element element = maakAfbeeldingElement(icoonAfbeelding, xIcoon, yIcoon);
-		String tekst = icoon.getTekst();
+		var xIcoon = bepaalAfbeeldingPositie(icoon.getPositieX().doubleValue(), correctieX, factor) + randBreedte;
+		var yIcoon = bepaalAfbeeldingPositie(icoon.getPositieY().doubleValue(), correctieY, factor) + randBreedte;
+		var element = maakAfbeeldingElement(icoonAfbeelding, xIcoon, yIcoon);
+		var tekst = icoon.getTekst();
 		if (StringUtils.isNotBlank(tekst))
 		{
-			Element tekstElement = maakTekstElementEnVoegToeAanAchtergrond(achtergrond, tekst, xIcoon + icoonAfbeeldingWidth / 2.0, yIcoon + 20.0 + icoonAfbeeldingHeight);
+			var tekstElement = maakTekstElementEnVoegToeAanAchtergrond(achtergrond, tekst, xIcoon + icoonAfbeeldingWidth / 2.0, yIcoon + 20.0 + icoonAfbeeldingHeight);
 			tekstElement.setAttribute("fill", "white");
 			tekstElement.setAttribute("text-anchor", "middle");
 		}
@@ -473,7 +473,7 @@ public class MammaBaseAfbeeldingServiceImpl implements MammaBaseAfbeeldingServic
 
 	private Element maakTekstElementEnVoegToeAanAchtergrond(Document achtergrond, String tekst, double x, double y)
 	{
-		Element tekstElement = achtergrond.createElement("text");
+		var tekstElement = achtergrond.createElement("text");
 		tekstElement.setAttribute("x", String.valueOf(x));
 		tekstElement.setAttribute("y", String.valueOf(y));
 		tekstElement.setTextContent(tekst);

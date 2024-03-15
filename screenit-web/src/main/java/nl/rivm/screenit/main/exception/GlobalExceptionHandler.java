@@ -78,6 +78,12 @@ public class GlobalExceptionHandler
 		return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(objectMapper.writeValueAsString(node));
 	}
 
+	@ExceptionHandler(BulkAanmakenException.class)
+	public ResponseEntity<String> handleBulkAanmakenException(BulkAanmakenException ex)
+	{
+		return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(ex.toJson());
+	}
+
 	@ExceptionHandler(OpslaanVerwijderenTijdBlokException.class)
 	public ResponseEntity<String> handleTijdBlokOverlapException(OpslaanVerwijderenTijdBlokException ex)
 	{

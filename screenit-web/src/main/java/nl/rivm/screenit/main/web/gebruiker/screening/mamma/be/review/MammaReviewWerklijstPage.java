@@ -31,6 +31,7 @@ import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaConclusieReviewZoekObject;
 import nl.rivm.screenit.main.service.MedewerkerService;
 import nl.rivm.screenit.main.service.mamma.MammaConclusieReviewService;
+import nl.rivm.screenit.main.service.mamma.impl.MammaConclusieReviewDataProviderServiceImpl;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.IndicatingAjaxFormChoiceComponentUpdatingBehavior;
@@ -67,6 +68,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.data.domain.Sort;
 import org.wicketstuff.shiro.ShiroConstraint;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
@@ -85,6 +87,9 @@ public class MammaReviewWerklijstPage extends AbstractMammaBePage
 
 	@SpringBean
 	private MedewerkerService medewerkerService;
+
+	@SpringBean
+	private MammaConclusieReviewDataProviderServiceImpl conclusieReviewDataProviderService;
 
 	private IModel<MammaConclusieReviewZoekObject> zoekObjectModel;
 
@@ -155,13 +160,13 @@ public class MammaReviewWerklijstPage extends AbstractMammaBePage
 
 	private void maakResultatenTabel()
 	{
-		var onderzoekDataProvider = new MammaReviewDataProvider(zoekObjectModel);
+		var onderzoekDataProvider = new MammaConclusieReviewDataProvider(zoekObjectModel);
 
 		List<IColumn<MammaConclusieReview, String>> columns = new ArrayList<>();
 		columns.add(new DateTimePropertyColumn<>(Model.of("Onderzoeksdatum"), "screeningRonde.laatsteOnderzoek.creatieDatum", Constants.getDateTimeSecondsFormat()));
-		columns.add(new ClientColumn<>("persoon.achternaam", "screeningRonde.dossier.client"));
-		columns.add(new GeboortedatumColumn<>("persoon.geboortedatum", "screeningRonde.dossier.client.persoon"));
-		columns.add(new PropertyColumn<>(Model.of("BSN"), "persoon.bsn", "screeningRonde.dossier.client.persoon.bsn"));
+		columns.add(new ClientColumn<>("screeningRonde.dossier.client.persoon.achternaam", "screeningRonde.dossier.client"));
+		columns.add(new GeboortedatumColumn<>("screeningRonde.dossier.client.persoon.geboortedatum", "screeningRonde.dossier.client.persoon"));
+		columns.add(new PropertyColumn<>(Model.of("BSN"), "screeningRonde.dossier.client.persoon.bsn", "screeningRonde.dossier.client.persoon.bsn"));
 		columns.add(new EnumPropertyColumn<>(Model.of("Conclusie"), "screeningRonde.followUpConclusieStatus", "screeningRonde.followUpConclusieStatus"));
 		columns.add(new ScreenitDateTimePropertyColumn<>(Model.of("Gereviewd op"), "reviewMoment", Constants.getDateTimeSecondsFormat()));
 
@@ -184,10 +189,10 @@ public class MammaReviewWerklijstPage extends AbstractMammaBePage
 			{
 				wijzigIDS7Role(conclusieReviewService.getMammobridgeRoleBijConclusieReviewFilter(zoekObjectModel.getObject().getFilterOptie()));
 
-				List<Long> beoordelingIds = conclusieReviewService.zoekBeoordelingIdsMetConclusie(zoekObjectModel.getObject(), "laatsteOnderzoek.creatieDatum", true);
-
 				if (ScreenitSession.get().checkPermission(Recht.GEBRUIKER_SCREENING_MAMMA_REVIEW_WERKLIJST, Actie.AANPASSEN) && isHeeftImsKoppelingRecht())
 				{
+					var beoordelingIds = conclusieReviewDataProviderService.zoekBeoordelingIdsMetConclusie(zoekObjectModel.getObject(), Sort.by(Sort.Direction.ASC,
+						"screeningRonde.laatsteOnderzoek.creatieDatum"));
 					setResponsePage(new MammaConclusieReviewenPage(model.getObject().getScreeningRonde().getLaatsteOnderzoek().getLaatsteBeoordeling().getId(),
 						beoordelingIds, MammaReviewWerklijstPage.class,
 						ModelUtil.sModel(zoekObjectModel.getObject().getRadioloog())));
@@ -228,16 +233,15 @@ public class MammaReviewWerklijstPage extends AbstractMammaBePage
 					var nieuwZoekObjectVoorFilterKnoppen = new MammaConclusieReviewZoekObject();
 
 					var zoekObject = zoekObjectModel.getObject();
-					nieuwZoekObjectVoorFilterKnoppen.setGezienTonen(zoekObject.getGezienTonen());
+					nieuwZoekObjectVoorFilterKnoppen.setGezienTonen(zoekObject.isGezienTonen());
 					nieuwZoekObjectVoorFilterKnoppen.setGezienCoordinerendRadioloogTonen(zoekObject.isGezienCoordinerendRadioloogTonen());
 					nieuwZoekObjectVoorFilterKnoppen.setZoekenVanafEindconclusieDatum(zoekObject.getZoekenVanafEindconclusieDatum());
 					nieuwZoekObjectVoorFilterKnoppen.setFilterOptie(filterOptie);
 					nieuwZoekObjectVoorFilterKnoppen.setRadioloog(zoekObject.getRadioloog());
 					nieuwZoekObjectVoorFilterKnoppen.setIngelogdeGebruiker(zoekObject.getIngelogdeGebruiker());
 
-					var aantalResultaten = conclusieReviewService.countConclusieReviewsVanRadioloog(nieuwZoekObjectVoorFilterKnoppen);
-					displayValue = displayValue.toString() + " (" + aantalResultaten + ")";
-					return displayValue;
+					var aantalResultaten = conclusieReviewDataProviderService.size(nieuwZoekObjectVoorFilterKnoppen);
+					return displayValue.toString() + " (" + aantalResultaten + ")";
 				}
 			});
 		conclusieOptieFilter.setPrefix("<div class=\"span2\">\n" +
@@ -292,7 +296,7 @@ public class MammaReviewWerklijstPage extends AbstractMammaBePage
 	private void maakZoekObject()
 	{
 		zoekObjectModel = new CompoundPropertyModel<>(new MammaConclusieReviewZoekObject());
-		MammaConclusieReviewZoekObject zoekObject = zoekObjectModel.getObject();
+		var zoekObject = zoekObjectModel.getObject();
 		zoekObject.setGezienTonen(false);
 		zoekObject.setRadioloog(ScreenitSession.get().getLoggedInInstellingGebruiker());
 		zoekObject.setIngelogdeGebruiker(ScreenitSession.get().getLoggedInInstellingGebruiker());

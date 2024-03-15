@@ -42,10 +42,8 @@ import nl.rivm.screenit.specification.cervix.CervixMonsterSpecification;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.AuditReaderFactory;
 import org.hibernate.envers.query.AuditEntity;
-import org.hibernate.envers.query.AuditQuery;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -98,7 +96,7 @@ public class CervixBaseMonsterServiceImpl implements CervixBaseMonsterService
 	{
 		CervixHpvAnalyseresultaten analyseresultaten = monsterHpvUitslag.getLaatsteHpvBeoordeling().getAnalyseresultaten();
 
-		return analyseresultaten != null && !CervixHpvResultValue.POS_HPV16.equals(analyseresultaten.getHpv16()) && !CervixHpvResultValue.POS_HPV18.equals(
+		return analyseresultaten != null && CervixHpvResultValue.NEG_HPV16.equals(analyseresultaten.getHpv16()) && CervixHpvResultValue.NEG_HPV18.equals(
 			analyseresultaten.getHpv18()) && CervixHpvResultValue.POS_OTHER_HR_HPV.equals(analyseresultaten.getHpvohr());
 	}
 

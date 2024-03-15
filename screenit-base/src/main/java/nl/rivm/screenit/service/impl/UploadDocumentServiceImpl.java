@@ -61,7 +61,7 @@ public class UploadDocumentServiceImpl implements UploadDocumentService
 	private HibernateService hibernateService;
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void delete(UploadDocument document)
 	{
 		fileService.delete(getFullFilePath(document));
@@ -73,7 +73,7 @@ public class UploadDocumentServiceImpl implements UploadDocumentService
 	{
 		if (uploadDocument == null)
 		{
-			throw new IllegalStateException("Het meegegeven uploaddocument is null");
+			throw new IllegalStateException("Het meegegeven UploadDocument is null");
 		}
 		else
 		{
@@ -82,21 +82,21 @@ public class UploadDocumentServiceImpl implements UploadDocumentService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void saveOrUpdate(UploadDocument document, FileStoreLocation fileStoreLocation) throws IOException, IllegalStateException
 	{
 		saveOrUpdate(document, fileStoreLocation, null, true);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void saveOrUpdate(UploadDocument document, FileStoreLocation fileStoreLocation, Long id) throws IOException, IllegalStateException
 	{
 		saveOrUpdate(document, fileStoreLocation, id, true);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void saveOrUpdate(UploadDocument document, FileStoreLocation fileStoreLocation, Long id, boolean verwijderTmpFile) throws IOException,
 		IllegalArgumentException
 	{
@@ -143,13 +143,14 @@ public class UploadDocumentServiceImpl implements UploadDocumentService
 	{
 		if (StringUtils.isBlank(uploadDocument.getPath()))
 		{
-			String filestoreFileName = generateFiltestoreFileName();
-			String fullFilePath = locatieFilestore + path + System.getProperty("file.separator") + filestoreFileName;
+			var filestoreFileName = generateFiltestoreFileName();
+
+			var fullFilePath = locatieFilestore + path + File.separator + filestoreFileName;
 
 			fileService.save(fullFilePath, uploadDocument.getFile());
 			LOG.debug("UploadDocument {} is geupload onder {}", uploadDocument.getId(), fullFilePath);
 
-			uploadDocument.setPath(path + System.getProperty("file.separator") + filestoreFileName);
+			uploadDocument.setPath(path + File.separator + filestoreFileName);
 			return true;
 		}
 
@@ -157,7 +158,7 @@ public class UploadDocumentServiceImpl implements UploadDocumentService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void update(UploadDocument uploadDocument) throws IOException
 	{
 		fileService.save(getFullFilePath(uploadDocument), uploadDocument.getFile());
@@ -171,7 +172,7 @@ public class UploadDocumentServiceImpl implements UploadDocumentService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void deleteDocumentFromList(UploadDocument document, List<UploadDocument> documents)
 	{
 		try
@@ -187,25 +188,24 @@ public class UploadDocumentServiceImpl implements UploadDocumentService
 
 	private String getFullFilePath(UploadDocument document)
 	{
-		StringBuilder fullPath = new StringBuilder();
+		var fullPath = new StringBuilder();
 		fullPath.append(locatieFilestore);
-		boolean fileStoreEindigtOpDirSeparator = StringUtils.endsWith(locatieFilestore, System.getProperty("file.separator"));
-		boolean uploadDocumentPathBegintMetSeparator = StringUtils.startsWith(document.getPath(), System.getProperty("file.separator"));
+		var fileStoreEindigtOpDirSeparator = StringUtils.endsWith(locatieFilestore, File.separator);
+		var uploadDocumentPathBegintMetSeparator = StringUtils.startsWith(document.getPath(), File.separator);
 		if (!fileStoreEindigtOpDirSeparator && !uploadDocumentPathBegintMetSeparator)
 		{
-			fullPath.append(System.getProperty("file.separator"));
+			fullPath.append(File.separator);
 		}
 
-		String path = StringUtils.replace(document.getPath(), System.getProperty("file.separator") + System.getProperty("file.separator"),
-			System.getProperty("file.separator"));
+		var path = StringUtils.replace(document.getPath(), File.separator + File.separator, File.separator);
 		fullPath.append(path);
 		return fullPath.toString();
 	}
 
 	private String generateFiltestoreFileName()
 	{
-		String uniqueFileName = UUID.randomUUID().toString();
-		int random = (int) (Math.random() * 10.0D);
+		var uniqueFileName = UUID.randomUUID().toString();
+		var random = (int) (Math.random() * 10.0D);
 		return uniqueFileName + "-" + System.currentTimeMillis() + "-" + random;
 	}
 

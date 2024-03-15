@@ -163,7 +163,7 @@ public class ProjectBriefActieTemplatePage extends ProjectTemplateTestenBasePage
 			BriefType briefType = projectBriefActie.getBriefType();
 			if (briefType != null)
 			{
-				momentTekst += getString(EnumStringUtil.getPropertyString(briefType));
+				momentTekst += briefType.getWeergaveNaam();
 			}
 		}
 		else if (ProjectBriefActieType.XMETY.equals(type))
@@ -172,7 +172,7 @@ public class ProjectBriefActieTemplatePage extends ProjectTemplateTestenBasePage
 			BriefType briefType = projectBriefActie.getBriefType();
 			if (briefType != null)
 			{
-				momentTekst += getString(EnumStringUtil.getPropertyString(briefType));
+				momentTekst += briefType.getWeergaveNaam();
 			}
 		}
 		else if (ProjectBriefActieType.VERVANGENDEBRIEF.equals(type))
@@ -180,7 +180,7 @@ public class ProjectBriefActieTemplatePage extends ProjectTemplateTestenBasePage
 			BriefType briefType = projectBriefActie.getBriefType();
 			if (briefType != null)
 			{
-				momentTekst += getString(EnumStringUtil.getPropertyString(briefType));
+				momentTekst += briefType.getWeergaveNaam();
 			}
 		}
 		return momentTekst;

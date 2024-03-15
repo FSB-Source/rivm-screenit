@@ -124,11 +124,28 @@ public class SpecificationUtil
 			.orElseGet(() -> root.join(attribute, joinType));
 	}
 
+	public static <X, Y, Z> From<X, Y> join(From<Z, X> from, ListAttribute<? super X, Y> attribute)
+	{
+		return join(from, attribute, JoinType.INNER);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <X, Y, Z> From<X, Y> join(From<Z, X> from, ListAttribute<? super X, Y> attribute, JoinType joinType)
+	{
+		return (From<X, Y>) from
+			.getJoins()
+			.stream()
+			.filter(join -> join.getAttribute().getName().equals(attribute.getName()) && join.getJoinType() == joinType)
+			.findFirst()
+			.orElseGet(() -> from.join(attribute, joinType));
+	}
+
 	public static <X, Y, Z> From<X, Y> join(From<Z, X> from, SingularAttribute<? super X, Y> attribute)
 	{
 		return join(from, attribute, JoinType.INNER);
 	}
 
+	@SuppressWarnings("unchecked")
 	public static <X, Y, Z> From<X, Y> join(From<Z, X> from, SingularAttribute<? super X, Y> attribute, JoinType joinType)
 	{
 		return (From<X, Y>) from

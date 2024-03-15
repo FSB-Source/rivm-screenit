@@ -58,7 +58,7 @@ public class MailMergeContext
 
 	public static final String CONTEXT_MAMMA_TOON_LOCATIE_WIJZIGING_TEKST = "BK_TOON_LOCATIE_WIJZIGING_TEKST";
 
-	private Boolean useTestValue = Boolean.FALSE;
+	private boolean useTestValue = false;
 
 	private Client client;
 
@@ -80,7 +80,7 @@ public class MailMergeContext
 
 	private BMHKLaboratorium bmhkLaboratorium;
 
-	private Map<ProjectAttribuut, String> projectAttributen = new HashMap<ProjectAttribuut, String>();
+	private Map<ProjectAttribuut, String> projectAttributen = new HashMap<>();
 
 	@Setter(AccessLevel.NONE)
 	@Getter(AccessLevel.NONE)
@@ -91,8 +91,8 @@ public class MailMergeContext
 	@Override
 	public int hashCode()
 	{
-		final int prime = 31;
-		int result = 1;
+		var prime = 31;
+		var result = 1;
 		result = prime * result + (client == null ? 0 : client.hashCode());
 		result = prime * result + (colonUitnodiging == null ? 0 : colonUitnodiging.hashCode());
 		result = prime * result + (intakeAfspraak == null ? 0 : intakeAfspraak.hashCode());
@@ -116,7 +116,7 @@ public class MailMergeContext
 		{
 			return false;
 		}
-		MailMergeContext other = (MailMergeContext) obj;
+		var other = (MailMergeContext) obj;
 		if (client == null)
 		{
 			if (other.client != null)

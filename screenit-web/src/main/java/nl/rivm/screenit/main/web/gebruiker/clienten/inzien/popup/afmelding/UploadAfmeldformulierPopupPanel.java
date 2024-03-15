@@ -381,7 +381,7 @@ public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> exten
 			case MEDEWERKER:
 				if (Bevolkingsonderzoek.COLON.equals(afmelding.getBevolkingsonderzoek())
 					&& (ColonAfmeldingReden.ONTERECHT.equals(((ColonAfmelding) HibernateHelper.deproxy(afmelding)).getReden())
-						|| ((ColonAfmelding) HibernateHelper.deproxy(afmelding)).getReden() == null))
+					|| ((ColonAfmelding) HibernateHelper.deproxy(afmelding)).getReden() == null))
 				{
 					wijzeAfmelding = "correctieantwoordformulier";
 				}
@@ -443,7 +443,7 @@ public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> exten
 	private List<String> creatieDatumCreaterAfmelding(A afmelding)
 	{
 		List<? extends ClientBrief> brieven = briefService.getBrievenVanAfmelding(afmelding, false);
-		return BriefOmschrijvingUtil.getBrievenOmschrijvingen(brieven, this::getString);
+		return BriefOmschrijvingUtil.getBrievenOmschrijvingen(brieven);
 	}
 
 	public abstract void close(AjaxRequestTarget target);

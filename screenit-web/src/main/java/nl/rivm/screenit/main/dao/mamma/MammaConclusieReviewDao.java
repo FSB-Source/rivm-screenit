@@ -23,18 +23,10 @@ package nl.rivm.screenit.main.dao.mamma;
 
 import java.util.List;
 
-import nl.rivm.screenit.main.model.mamma.beoordeling.MammaConclusieReviewZoekObject;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.mamma.MammaConclusieReview;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 
 public interface MammaConclusieReviewDao
 {
-	long countConclusieReviewsVanRadioloog(MammaConclusieReviewZoekObject zoekObject);
-
-	List<MammaConclusieReview> zoekConclusieReviewsVanRadioloog(MammaConclusieReviewZoekObject zoekObject, int first, int count, String sortProperty, boolean asc);
-
-	List<Long> zoekBeoordelingIdsMetConclusie(MammaConclusieReviewZoekObject zoekObject, String sortProperty, boolean asc);
-
 	List<InstellingGebruiker> getRadiologenMetLezingVanRondeEnZonderReview(MammaScreeningRonde screeningRonde);
 }

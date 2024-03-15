@@ -28,7 +28,9 @@ import nl.rivm.screenit.main.service.mamma.MammaConclusieReviewService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
 import nl.rivm.screenit.main.web.component.ScreenitIndicatingAjaxButton;
+import nl.rivm.screenit.main.web.component.ScreenitIndicatingAjaxSubmitLink;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitListMultipleChoice;
+import nl.rivm.screenit.main.web.component.modal.IDialog;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.AbstractMammaBeoordelenPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.panels.MammaKwaliteitscontroleHuidigeRondePanel;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
@@ -44,6 +46,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.jetbrains.annotations.NotNull;
 
 public class MammaConclusieReviewHuidigeRondePanel extends MammaKwaliteitscontroleHuidigeRondePanel
 {
@@ -56,11 +59,13 @@ public class MammaConclusieReviewHuidigeRondePanel extends MammaKwaliteitscontro
 
 	private final boolean coordinerendRadioloogKijktBijAndereRadioloog;
 
+	private final List<Long> beoordelingIds;
+
 	public MammaConclusieReviewHuidigeRondePanel(String id, IModel<MammaBeoordeling> beoordelingModel, IModel<MammaConclusieReview> conclusieReviewModel,
-		IModel<MammaScreeningRonde> screeningRondeModel)
+		IModel<MammaScreeningRonde> screeningRondeModel, List<Long> beoordelingIds)
 	{
 		super(id, beoordelingModel);
-
+		this.beoordelingIds = beoordelingIds;
 		this.coordinerendRadioloogKijktBijAndereRadioloog = !conclusieReviewModel.getObject().getRadioloog().equals(ScreenitSession.get().getLoggedInInstellingGebruiker());
 		this.screeningRondeModel = screeningRondeModel;
 
@@ -75,12 +80,12 @@ public class MammaConclusieReviewHuidigeRondePanel extends MammaKwaliteitscontro
 	@Override
 	protected void createButtons(WebMarkupContainer panelContainer, List<Component> buttons)
 	{
-		ScreenitForm<MammaConclusieReview> form = new ScreenitForm<>("fotobespreking_form", conclusieReviewModel);
-		boolean reviewAlGedaan = conclusieReviewModel.getObject().getReviewMoment() != null;
+		var form = new ScreenitForm<>("fotobespreking_form", conclusieReviewModel);
+		var reviewAlGedaan = conclusieReviewModel.getObject().getReviewMoment() != null;
 
 		createRedenenFotobesprekingVelden(form);
 
-		ScreenitIndicatingAjaxButton buttonGezien = new ScreenitIndicatingAjaxButton("gezien", form)
+		var buttonGezien = new ScreenitIndicatingAjaxButton("gezien", form)
 		{
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
@@ -89,11 +94,20 @@ public class MammaConclusieReviewHuidigeRondePanel extends MammaKwaliteitscontro
 			}
 
 		};
-		buttonGezien.setVisible(!coordinerendRadioloogKijktBijAndereRadioloog && !reviewAlGedaan);
+		var radioloogReviewedEigenNietGereviewedeReview = !coordinerendRadioloogKijktBijAndereRadioloog && !reviewAlGedaan;
+		buttonGezien.setVisible(radioloogReviewedEigenNietGereviewedeReview);
+
 		form.add(buttonGezien);
 		buttons.add(buttonGezien);
 
-		ScreenitIndicatingAjaxButton buttonOpslaan = new ScreenitIndicatingAjaxButton("opslaan", form)
+		var retourCe = maakRetourCeButton(form, radioloogReviewedEigenNietGereviewedeReview);
+		retourCe.setVisible(radioloogReviewedEigenNietGereviewedeReview);
+
+		form.add(retourCe);
+
+		buttons.add(retourCe);
+
+		var buttonOpslaan = new ScreenitIndicatingAjaxButton("opslaan", form)
 		{
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
@@ -120,15 +134,40 @@ public class MammaConclusieReviewHuidigeRondePanel extends MammaKwaliteitscontro
 		panelContainer.add(form);
 	}
 
+	@NotNull
+	private ScreenitIndicatingAjaxSubmitLink maakRetourCeButton(ScreenitForm<MammaConclusieReview> form, boolean radioloogReviewedEigenNietGereviewedeReview)
+	{
+		var retourCeButton = new ScreenitIndicatingAjaxSubmitLink("retourCe", form)
+		{
+			@Override
+			protected void onSubmit(AjaxRequestTarget target)
+			{
+				dialog.openWith(target, new MammaConclusieReviewRetourCePopupPanel(IDialog.CONTENT_ID, conclusieReviewModel)
+				{
+					@Override
+					public void opslaan(AjaxRequestTarget target)
+					{
+						dialog.close(target);
+						var laatsteBeoordeling = screeningRondeModel.getObject().getLaatsteOnderzoek().getLaatsteBeoordeling();
+						beoordelingIds.remove(laatsteBeoordeling.getId());
+						voerSubmitUit(target);
+					}
+				});
+			}
+		};
+		retourCeButton.setVisible(radioloogReviewedEigenNietGereviewedeReview);
+		return retourCeButton;
+	}
+
 	private void createRedenenFotobesprekingVelden(ScreenitForm<MammaConclusieReview> form)
 	{
-		ScreenitListMultipleChoice<MammaLezingRedenenFotobesprekingRadioloog> redenenFotobesprekingRadioloogSelector = new ScreenitListMultipleChoice<>(
+		var redenenFotobesprekingRadioloogSelector = new ScreenitListMultipleChoice<>(
 			"redenenFotobesprekingRadioloog",
 			Arrays.asList(MammaLezingRedenenFotobesprekingRadioloog.values()),
 			new EnumChoiceRenderer<>());
 		form.add(redenenFotobesprekingRadioloogSelector);
 
-		ScreenitListMultipleChoice<MammaLezingRedenenFotobesprekingMbber> redenenFotobesprekingMbberSelector = new ScreenitListMultipleChoice<>("redenenFotobesprekingMbber",
+		var redenenFotobesprekingMbberSelector = new ScreenitListMultipleChoice<>("redenenFotobesprekingMbber",
 			Arrays.asList(MammaLezingRedenenFotobesprekingMbber.values()),
 			new EnumChoiceRenderer<>());
 		form.add(redenenFotobesprekingMbberSelector);
@@ -136,8 +175,7 @@ public class MammaConclusieReviewHuidigeRondePanel extends MammaKwaliteitscontro
 
 	private void voerSubmitUit(AjaxRequestTarget target)
 	{
-		MammaConclusieReview conclusieReview = conclusieReviewModel.getObject();
-		conclusieReviewService.conclusieReviewAfronden(conclusieReview);
+		conclusieReviewService.conclusieReviewAfronden(conclusieReviewModel.getObject());
 
 		logConclusieReviewAfgerond();
 

@@ -26,6 +26,7 @@ import nl.rivm.screenit.main.service.RepositoryDataProviderService;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.repository.cervix.CervixHuisartsLocatieRepository;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -42,7 +43,7 @@ public class GekoppeldeUitstrijkendArtsenDataProviderServiceImpl
 
 {
 	@Override
-	protected Specification<CervixHuisartsLocatie> getSpecification(GekoppeldeUitstrijkendArtsZoekObject zoekObject)
+	protected Specification<CervixHuisartsLocatie> getSpecification(GekoppeldeUitstrijkendArtsZoekObject zoekObject, Sort sortParam)
 	{
 		return heeftGeregistreerdeHuisarts()
 			.and(valtBinnenGemeentes(zoekObject.getGemeentes()))

@@ -66,7 +66,7 @@ public class CervixBarcodeAfdrukServiceImpl implements CervixBarcodeAfdrukServic
 		}
 		catch (Exception e)
 		{
-			LOG.error("Error bij laden PDF barcode monster: {}", uitnodiging.getMonster().getMonsterId(), e);
+			LOG.error("Error bij laden PDF barcode monster: (id: '{}')", uitnodiging.getMonster().getId(), e);
 		}
 		return file;
 	}

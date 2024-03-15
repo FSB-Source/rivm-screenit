@@ -26,9 +26,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
@@ -37,9 +37,9 @@ import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.StreamUtils;
 
+@Slf4j
 public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor
 {
-	private static final Logger LOG = LoggerFactory.getLogger(LoggingRequestInterceptor.class);
 
 	final class BufferingClientHttpResponseWrapper implements ClientHttpResponse
 	{
@@ -56,41 +56,41 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor
 		@Override
 		public HttpStatus getStatusCode() throws IOException
 		{
-			return this.response.getStatusCode();
+			return response.getStatusCode();
 		}
 
 		@Override
 		public int getRawStatusCode() throws IOException
 		{
-			return this.response.getRawStatusCode();
+			return response.getRawStatusCode();
 		}
 
 		@Override
 		public String getStatusText() throws IOException
 		{
-			return this.response.getStatusText();
+			return response.getStatusText();
 		}
 
 		@Override
 		public HttpHeaders getHeaders()
 		{
-			return this.response.getHeaders();
+			return response.getHeaders();
 		}
 
 		@Override
 		public InputStream getBody() throws IOException
 		{
-			if (this.body == null)
+			if (body == null)
 			{
-				this.body = StreamUtils.copyToByteArray(this.response.getBody());
+				body = StreamUtils.copyToByteArray(response.getBody());
 			}
-			return new ByteArrayInputStream(this.body);
+			return new ByteArrayInputStream(body);
 		}
 
 		@Override
 		public void close()
 		{
-			this.response.close();
+			response.close();
 		}
 
 	}
@@ -109,9 +109,7 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor
 				responseBody = IOUtils.toString(responseCopy.getBody(), Charset.defaultCharset());
 			}
 
-			LOG.trace("Method:" + request.getMethod().toString() + "|URI:" + request.getURI().toString() + "|Request:" + new String(body) + "|Response: "
-				+ responseBody);
-
+			LOG.trace("Method: {} | URI: {} | Request: {} | Response: {}", request.getMethod(), request.getURI(), new String(body), responseBody);
 		}
 		return responseCopy;
 	}

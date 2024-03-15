@@ -94,7 +94,7 @@ public class ExportToCsvLink<T extends Serializable, S> extends GenericPanel<T>
 						}
 						catch (IOException e)
 						{
-							LOG.error("Fout bij het aanmaken van CSV: " + e.getMessage(), e);
+							LOG.error("Fout bij het aanmaken van CSV", e);
 							return;
 						}
 					}

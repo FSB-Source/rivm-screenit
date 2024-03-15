@@ -31,7 +31,8 @@
                     <fileNamePattern>${jetty.logging.dir}/screenit-batch-alg_%d{yyyy-MM-dd}.log.gz</fileNamePattern>
                 </rollingPolicy>
                 <encoder name="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-                    <pattern>%d{yyyyMMdd HH:mm:ss.SSS}[%thread] %-5level %-36.36c{36} - %msg%n</pattern>
+                    <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} %-10([A:%X{A}]) - %msg%n
+                    </pattern>
                 </encoder>
             </appender>
         </then>
@@ -42,23 +43,23 @@
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder name="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>%d{yyyyMMdd HH:mm:ss.SSS}[%thread] %-10([A:%X{A}]) %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} %-10([A:%X{A}]) - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <logger name ="nl" level="INFO"/>
-    <logger name ="nl.rivm.screenit.batch.JschLogger" level="ERROR"/>
-    <logger name ="nl.rivm.screenit.document.bezwaar.BezwaarDocumentCreatorOneDatasetCoupleTables" level="DEBUG"/>
-    <logger name ="org.hibernate.SQL" level="INFO"/>
-    <logger name ="org.jgroups" level="INFO"/>
-    <logger name ="org.jgroups.protocols.pbcast.GMS" level="DEBUG"/>
-    <logger name ="nl.rivm.screenit.batch.service.impl.GbaServiceImpl" level="DEBUG"/>
-    <logger name ="org.hibernate.engine.internal.StatefulPersistenceContext" level="ERROR"/>
-    <logger name ="nl.rivm.screenit.service.impl.DefaultCurrentDateSupplier" level="DEBUG"/>
-    <logger name ="nl.rivm.screenit.batch.service.impl.UitnodigingsGebiedCapactieitServiceImpl" level="DEBUG"/>
-    <logger name ="nl.rivm.screenit.service.impl.DistributedLockServiceImpl" level="DEBUG"/>
-    <logger name ="nl.rivm.screenit.batch.service.impl.BatchJobServiceImpl" level="DEBUG"/>
-    <logger name ="org.hibernate.orm.deprecation" level="ERROR"/>
+    <logger name="nl" level="INFO"/>
+    <logger name="nl.rivm.screenit.batch.JschLogger" level="ERROR"/>
+    <logger name="nl.rivm.screenit.document.bezwaar.BezwaarDocumentCreatorOneDatasetCoupleTables" level="DEBUG"/>
+    <logger name="org.hibernate.SQL" level="INFO"/>
+    <logger name="org.jgroups" level="INFO"/>
+    <logger name="org.jgroups.protocols.pbcast.GMS" level="DEBUG"/>
+    <logger name="nl.rivm.screenit.batch.service.impl.GbaServiceImpl" level="DEBUG"/>
+    <logger name="org.hibernate.engine.internal.StatefulPersistenceContext" level="ERROR"/>
+    <logger name="nl.rivm.screenit.service.impl.DefaultCurrentDateSupplier" level="DEBUG"/>
+    <logger name="nl.rivm.screenit.batch.service.impl.UitnodigingsGebiedCapactieitServiceImpl" level="DEBUG"/>
+    <logger name="nl.rivm.screenit.service.impl.DistributedLockServiceImpl" level="DEBUG"/>
+    <logger name="nl.rivm.screenit.batch.service.impl.BatchJobServiceImpl" level="DEBUG"/>
+    <logger name="org.hibernate.orm.deprecation" level="ERROR"/>
 
     <root level="info">
         <appender-ref ref="STDOUT"/>

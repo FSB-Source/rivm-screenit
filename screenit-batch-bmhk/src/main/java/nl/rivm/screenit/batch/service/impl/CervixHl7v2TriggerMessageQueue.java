@@ -147,6 +147,7 @@ public class CervixHl7v2TriggerMessageQueue
 				}
 				catch (InterruptedException e)
 				{
+					Thread.currentThread().interrupt();
 					throw new RuntimeException(e);
 				}
 			}

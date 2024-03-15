@@ -55,7 +55,7 @@ class DistributedLockKey
 	@Override
 	public String toString()
 	{
-		return locknaam + (gebruiker == null ? "" : " - " + gebruiker.getMedewerker().getGebruikersnaam());
+		return locknaam;
 	}
 
 	@Override

@@ -22,6 +22,7 @@ package nl.rivm.screenit.main.exception;
  */
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 import lombok.Getter;
 
@@ -44,5 +45,28 @@ public class ValidatieException extends Exception
 		super(messageKey);
 		this.messageKey = messageKey;
 		this.formatArguments = args;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		var other = (ValidatieException) obj;
+		if (other == null)
+		{
+			return false;
+		}
+
+		if (getClass() != obj.getClass())
+		{
+			return false;
+		}
+
+		return (other.getMessage().equalsIgnoreCase(getMessage()) && Arrays.equals(other.getFormatArguments(), getFormatArguments()));
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return messageKey.hashCode() + Arrays.hashCode(formatArguments);
 	}
 }

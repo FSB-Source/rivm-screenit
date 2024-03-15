@@ -38,7 +38,6 @@ import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxButton;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -56,7 +55,6 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON })
 public class SKMLInterneControleConfigPage extends KwaliteitscontroleBasePage
 {
-
 	private static final long serialVersionUID = 1L;
 
 	private IModel<List<SKMLInterneControleSet>> allSkmlInterneModels;
@@ -68,12 +66,11 @@ public class SKMLInterneControleConfigPage extends KwaliteitscontroleBasePage
 
 	public SKMLInterneControleConfigPage()
 	{
-		add(new SentineelcontrolesForm("form"));
+		add(new SentineelcontrolesForm("form").setEnabled(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BEHEER_SKML_INTERNE_CONTROLE, Actie.AANPASSEN)));
 	}
 
 	private class SentineelcontrolesForm extends ScreenitForm<SKMLSentineelControleBarcode>
 	{
-
 		private static final long serialVersionUID = 1L;
 
 		public SentineelcontrolesForm(String id)
@@ -85,7 +82,6 @@ public class SKMLInterneControleConfigPage extends KwaliteitscontroleBasePage
 
 			ListView<SKMLInterneControleSet> sets = new ListView<SKMLInterneControleSet>("set", allSkmlInterneModels)
 			{
-
 				private static final long serialVersionUID = 1L;
 
 				@Override
@@ -99,7 +95,6 @@ public class SKMLInterneControleConfigPage extends KwaliteitscontroleBasePage
 			add(sets);
 			add(new IndicatingAjaxButton("opslaan")
 			{
-
 				private static final long serialVersionUID = 1L;
 
 				@Override
@@ -115,7 +110,7 @@ public class SKMLInterneControleConfigPage extends KwaliteitscontroleBasePage
 						error("Of 'Controle tekst' EN 'QBase ID' of geen van beiden moeten gevuld zijn. Niets opgeslagen.");
 					}
 				}
-			});
+			}.setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BEHEER_SKML_INTERNE_CONTROLE, Actie.AANPASSEN)));
 		}
 
 		private TextField<SKMLSentineelControleBarcode> addTextField(String id, SKMLSentineelControleType typeCup)

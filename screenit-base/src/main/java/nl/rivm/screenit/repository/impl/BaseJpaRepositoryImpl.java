@@ -26,13 +26,17 @@ import java.util.Optional;
 import javax.persistence.EntityManager;
 
 import nl.rivm.screenit.repository.BaseJpaRepository;
+import nl.topicuszorg.hibernate.object.model.HibernateObject;
 
+import org.hibernate.proxy.HibernateProxy;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
+import org.springframework.transaction.annotation.Transactional;
 
-public class BaseJpaRepositoryImpl<T> extends SimpleJpaRepository<T, Long> implements BaseJpaRepository<T>
+public class BaseJpaRepositoryImpl<T extends HibernateObject> extends SimpleJpaRepository<T, Long> implements BaseJpaRepository<T>
 {
 	public BaseJpaRepositoryImpl(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager)
 	{
@@ -45,5 +49,23 @@ public class BaseJpaRepositoryImpl<T> extends SimpleJpaRepository<T, Long> imple
 		var typedQuery = getQuery(specification, sort);
 		typedQuery.setMaxResults(1);
 		return typedQuery.getResultList().stream().findFirst();
+	}
+
+	@Override
+	@Transactional
+	public <S extends T> @NotNull S save(@NotNull S entity)
+	{
+		var savedEntity = super.save(entity);
+		if (entity instanceof HibernateProxy)
+		{
+
+			var hibernateLazyInitializer = ((HibernateProxy) entity).getHibernateLazyInitializer();
+			if (hibernateLazyInitializer.getInternalIdentifier() == null)
+			{
+				var savedId = savedEntity.getId();
+				hibernateLazyInitializer.setIdentifier(savedId);
+			}
+		}
+		return savedEntity;
 	}
 }

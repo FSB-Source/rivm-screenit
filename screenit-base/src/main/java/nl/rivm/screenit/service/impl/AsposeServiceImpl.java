@@ -23,7 +23,6 @@ package nl.rivm.screenit.service.impl;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -33,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +41,7 @@ import java.util.Map.Entry;
 import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.Constants;
@@ -66,7 +67,6 @@ import org.ghost4j.document.PSDocument;
 import org.ghost4j.renderer.AbstractRemoteRenderer;
 import org.ghost4j.renderer.RendererException;
 import org.ghost4j.util.DiskStore;
-import org.krysalis.barcode4j.impl.AbstractBarcodeBean;
 import org.krysalis.barcode4j.impl.code128.Code128Bean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -82,7 +82,6 @@ import com.aspose.words.PdfSaveOptions;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
 import com.google.zxing.WriterException;
-import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 
@@ -96,21 +95,14 @@ public class AsposeServiceImpl implements AsposeService
 	@Autowired
 	private BarcodeService barcodeService;
 
+	@Setter
 	@Autowired
 	private String asposeLicence;
 
 	@Autowired
 	private String vragenlijstTemplate;
 
-	@Autowired
-	private String locatieFilestore;
-
 	private PdfSaveOptions pdfSaveOptions;
-
-	public void setAsposeLicence(String asposeLicence)
-	{
-		this.asposeLicence = asposeLicence;
-	}
 
 	@PostConstruct
 	public void init()
@@ -146,8 +138,7 @@ public class AsposeServiceImpl implements AsposeService
 	@Override
 	public Document processDocument(byte[] templateDocument, MailMergeContext context) throws Exception
 	{
-		Document document = null;
-		document = new Document(new ByteArrayInputStream(templateDocument));
+		var document = new Document(new ByteArrayInputStream(templateDocument));
 		processDocument(document, context, true);
 		return document;
 	}
@@ -158,10 +149,10 @@ public class AsposeServiceImpl implements AsposeService
 		try
 		{
 			document.getMailMerge().setFieldMergingCallback(new MailMergeImageCallback(context));
-			Map<String, Object> mergeValues = new HashMap<>();
+			var mergeValues = new HashMap<String, Object>();
 			bepaalSamenvoegveldWaardenVoorDocument(document, context, replaceMergeFieldIfNull, mergeValues);
-			String[] fieldNames = mergeValues.keySet().toArray(new String[0]);
-			Object[] values = mergeValues.values().toArray();
+			var fieldNames = mergeValues.keySet().toArray(new String[0]);
+			var values = mergeValues.values().toArray();
 			document.getMailMerge().execute(fieldNames, values);
 		}
 		catch (Exception e)
@@ -177,10 +168,10 @@ public class AsposeServiceImpl implements AsposeService
 		String veldnaam = null;
 		try
 		{
-			for (String fieldName : document.getMailMerge().getFieldNames())
+			for (var fieldName : document.getMailMerge().getFieldNames())
 			{
 				veldnaam = fieldName;
-				Object afdrukObject = getAfdrukObject(fieldName, context);
+				var afdrukObject = getAfdrukObject(fieldName, context);
 				if (afdrukObject instanceof Entry)
 				{
 					mergeValues.put(fieldName, ((Entry<?, ?>) afdrukObject).getValue());
@@ -222,8 +213,8 @@ public class AsposeServiceImpl implements AsposeService
 	@Override
 	public Document processVragenlijst(MailMergeContext context, ScreenitFormulierInstantie vragenlijst, boolean replaceMergeFieldIfNull) throws Exception
 	{
-		VragenlijstDocumentCreator creator = new VragenlijstDocumentCreator(new File(vragenlijstTemplate), vragenlijst);
-		Document document = creator.getDocument();
+		var creator = new VragenlijstDocumentCreator(new File(vragenlijstTemplate), vragenlijst);
+		var document = creator.getDocument();
 		processDocument(document, context, replaceMergeFieldIfNull);
 		return document;
 	}
@@ -244,10 +235,10 @@ public class AsposeServiceImpl implements AsposeService
 
 	private Object getAfdrukObject(String fieldName, MailMergeContext context)
 	{
-		MergeField mergeField = MergeField.getByFieldname(fieldName);
+		var mergeField = MergeField.getByFieldname(fieldName);
 		if (mergeField == null && !context.getProjectAttributen().isEmpty())
 		{
-			for (Entry<ProjectAttribuut, String> entry : context.getProjectAttributen().entrySet())
+			for (var entry : context.getProjectAttributen().entrySet())
 			{
 				if (fieldName.equals(entry.getKey().getMergeField()) && entry.getValue() != null)
 				{
@@ -258,6 +249,7 @@ public class AsposeServiceImpl implements AsposeService
 		return mergeField;
 	}
 
+	@Setter
 	private static class EPSRenderer extends AbstractRemoteRenderer
 	{
 		public static final int OPTION_ANTIALIASING_NONE = 0;
@@ -280,25 +272,25 @@ public class AsposeServiceImpl implements AsposeService
 		public List<PageRaster> run(org.ghost4j.document.Document document, int begin, int end) throws IOException, RendererException, org.ghost4j.document.DocumentException
 		{
 
-			this.assertDocumentSupported(document);
+			assertDocumentSupported(document);
 
-			Ghostscript gs = Ghostscript.getInstance();
+			var gs = Ghostscript.getInstance();
 
-			DiskStore diskStore = DiskStore.getInstance();
-			String inputDiskStoreKey = diskStore.generateUniqueKey();
+			var diskStore = DiskStore.getInstance();
+			var inputDiskStoreKey = diskStore.generateUniqueKey();
 
 			document.write(diskStore.addFile(inputDiskStoreKey));
 
-			PageRasterDisplayCallback displayCallback = new PageRasterDisplayCallback();
+			var displayCallback = new PageRasterDisplayCallback();
 
-			String[] gsArgs = { "-dQUIET", "-dNOPAUSE", "-dBATCH", "-dSAFER", "-dEPSCrop", "-dFirstPage=" + (begin + 1), "-dLastPage=" + (end + 1), "-sDEVICE=display",
-				"-sDisplayHandle=0", "-dDisplayFormat=16#804", "-r" + this.resolution, "-f", diskStore.getFile(inputDiskStoreKey).getAbsolutePath() };
+			var gsArgs = new String[] { "-dQUIET", "-dNOPAUSE", "-dBATCH", "-dSAFER", "-dEPSCrop", "-dFirstPage=" + (begin + 1), "-dLastPage=" + (end + 1), "-sDEVICE=display",
+				"-sDisplayHandle=0", "-dDisplayFormat=16#804", "-r" + resolution, "-f", diskStore.getFile(inputDiskStoreKey).getAbsolutePath() };
 
-			if (this.antialiasing != OPTION_ANTIALIASING_NONE)
+			if (antialiasing != OPTION_ANTIALIASING_NONE)
 			{
 				gsArgs = Arrays.copyOf(gsArgs, gsArgs.length + 2);
-				gsArgs[gsArgs.length - 2] = "-dTextAlphaBits=" + this.antialiasing;
-				gsArgs[gsArgs.length - 1] = "-dGraphicsAlphaBits=" + this.antialiasing;
+				gsArgs[gsArgs.length - 2] = "-dTextAlphaBits=" + antialiasing;
+				gsArgs[gsArgs.length - 1] = "-dGraphicsAlphaBits=" + antialiasing;
 			}
 
 			try
@@ -310,14 +302,11 @@ public class AsposeServiceImpl implements AsposeService
 
 					gs.initialize(gsArgs);
 					gs.exit();
-
 				}
 			}
 			catch (GhostscriptException e)
 			{
-
 				throw new RendererException(e);
-
 			}
 			finally
 			{
@@ -338,15 +327,6 @@ public class AsposeServiceImpl implements AsposeService
 
 		}
 
-		public void setAntialiasing(int antialiasing)
-		{
-			this.antialiasing = antialiasing;
-		}
-
-		public void setResolution(int resolution)
-		{
-			this.resolution = resolution;
-		}
 	}
 
 	private final class MailMergeImageCallback implements IFieldMergingCallback
@@ -362,7 +342,7 @@ public class AsposeServiceImpl implements AsposeService
 		public void fieldMerging(FieldMergingArgs field)
 		{
 
-			MergeField mergeField = MergeField.getByFieldname(field.getFieldName());
+			var mergeField = MergeField.getByFieldname(field.getFieldName());
 			if (field.getFieldValue() instanceof String && mergeField != null && !mergeField.waardeTrimmen())
 			{
 				field.setText((String) field.getFieldValue());
@@ -374,10 +354,10 @@ public class AsposeServiceImpl implements AsposeService
 			throws IOException, InstantiationException, IllegalAccessException, RendererException, DocumentException, NoSuchMethodException, InvocationTargetException
 		{
 
-			Object afdrukObject = getAfdrukObject(field.getFieldName(), context);
+			var afdrukObject = getAfdrukObject(field.getFieldName(), context);
 			if (afdrukObject instanceof Entry)
 			{
-				Entry<ProjectAttribuut, String> entry = (Entry<ProjectAttribuut, String>) afdrukObject;
+				var entry = (Entry<ProjectAttribuut, String>) afdrukObject;
 				if (entry.getKey().isBarcode())
 				{
 					field.setImageStream(barcodeService.maakBarcodeInputStreamVoorBrief((entry).getValue(), new Code128Bean()));
@@ -385,8 +365,8 @@ public class AsposeServiceImpl implements AsposeService
 			}
 			if (afdrukObject instanceof MergeField)
 			{
-				MergeField mergeField = (MergeField) afdrukObject;
-				Object mergeFieldValue = mergeField.getValue(context);
+				var mergeField = (MergeField) afdrukObject;
+				var mergeFieldValue = mergeField.getValue(context);
 
 				if (mergeFieldValue == null || mergeFieldValue instanceof String && StringUtils.isBlank((String) mergeFieldValue))
 				{
@@ -394,10 +374,10 @@ public class AsposeServiceImpl implements AsposeService
 				}
 				if (mergeField.isBarcode())
 				{
-					AbstractBarcodeBean abstractBarcodeBean = mergeField.getBarcodeType().getConstructor().newInstance();
+					var abstractBarcodeBean = mergeField.getBarcodeType().getConstructor().newInstance();
 					field.setImageStream(barcodeService.maakBarcodeInputStreamVoorBrief(mergeFieldValue.toString(), mergeField.getBarcodeHeight(), abstractBarcodeBean));
 				}
-				else if (mergeField.isQRcode())
+				else if (mergeField.isQrCode())
 				{
 					qrcodeMerger(field, mergeFieldValue.toString());
 				}
@@ -410,19 +390,18 @@ public class AsposeServiceImpl implements AsposeService
 
 		private void imageMerger(ImageFieldMergingArgs field, UploadDocument uploadDocument) throws IOException, RendererException, DocumentException
 		{
-			File mergeFieldFile = uploadDocumentService.load(uploadDocument);
+			var mergeFieldFile = uploadDocumentService.load(uploadDocument);
 			if (uploadDocument.getContentType().equals("image/x-eps") || uploadDocument.getContentType().equals("application/postscript"))
 			{
-				PSDocument document = new PSDocument();
+				var document = new PSDocument();
 				document.load(mergeFieldFile);
-				EPSRenderer renderer = new EPSRenderer();
+				var renderer = new EPSRenderer();
 				renderer.setResolution(100);
 
-				List<Image> images = renderer.render(document);
-				BufferedImage image = (BufferedImage) images.get(0);
+				var images = renderer.render(document);
+				var image = (BufferedImage) images.get(0);
 
-				File png = File.createTempFile("image", ".png");
-				LOG.info("png image: " + png);
+				var png = File.createTempFile("image", ".png");
 				ImageIO.write(image, "png", png);
 				field.setImage(image);
 				field.setImageHeight(new MergeFieldImageDimension(40, MergeFieldImageDimensionUnit.POINT));
@@ -430,7 +409,7 @@ public class AsposeServiceImpl implements AsposeService
 			}
 			else
 			{
-				try (InputStream inputStream = new FileInputStream(mergeFieldFile))
+				try (var inputStream = new FileInputStream(mergeFieldFile))
 				{
 					field.setImageStream(inputStream);
 				}
@@ -439,31 +418,29 @@ public class AsposeServiceImpl implements AsposeService
 					LOG.error(e.getMessage(), e);
 				}
 			}
-
 		}
 
 		private void qrcodeMerger(ImageFieldMergingArgs field, String message)
 		{
 
-			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			var outputStream = new ByteArrayOutputStream();
 
 			if (StringUtils.isNotBlank(message))
 			{
 				message = Constants.LOCATIEID + "=" + message;
 
 				int size = 100;
-				String fileType = "png";
 				try
 				{
-					Map<EncodeHintType, ErrorCorrectionLevel> hintMap = new HashMap<>();
+					var hintMap = new EnumMap<>(EncodeHintType.class);
 					hintMap.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.L);
-					QRCodeWriter qrCodeWriter = new QRCodeWriter();
-					BitMatrix byteMatrix = qrCodeWriter.encode(message, BarcodeFormat.QR_CODE, size, size, hintMap);
+					var qrCodeWriter = new QRCodeWriter();
+					var byteMatrix = qrCodeWriter.encode(message, BarcodeFormat.QR_CODE, size, size, hintMap);
 					int crunchifyWidth = byteMatrix.getWidth();
-					BufferedImage image = new BufferedImage(crunchifyWidth, crunchifyWidth, BufferedImage.TYPE_INT_RGB);
+					var image = new BufferedImage(crunchifyWidth, crunchifyWidth, BufferedImage.TYPE_INT_RGB);
 					image.createGraphics();
 
-					Graphics2D graphics = (Graphics2D) image.getGraphics();
+					var graphics = (Graphics2D) image.getGraphics();
 					graphics.setColor(Color.WHITE);
 					graphics.fillRect(0, 0, crunchifyWidth, crunchifyWidth);
 					graphics.setColor(Color.BLACK);
@@ -478,7 +455,7 @@ public class AsposeServiceImpl implements AsposeService
 							}
 						}
 					}
-					ImageIO.write(image, fileType, outputStream);
+					ImageIO.write(image, "png", outputStream);
 				}
 				catch (WriterException | IOException e)
 				{
@@ -486,7 +463,7 @@ public class AsposeServiceImpl implements AsposeService
 				}
 			}
 
-			InputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+			var inputStream = new ByteArrayInputStream(outputStream.toByteArray());
 			field.setImageStream(inputStream);
 		}
 	}

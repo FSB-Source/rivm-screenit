@@ -126,7 +126,7 @@ public abstract class OverdrachtGegevensAanvraagPopupPanel extends GenericPanel<
 	private void addVerstuurdeBrieven()
 	{
 		List<AlgemeneBrief> verstuurdeBrieven = getVerstuurdeBrieven();
-		form.add(new ListView<>("brievenLijst", BriefOmschrijvingUtil.getBrievenOmschrijvingen(verstuurdeBrieven, this::getString))
+		form.add(new ListView<>("brievenLijst", BriefOmschrijvingUtil.getBrievenOmschrijvingen(verstuurdeBrieven))
 		{
 			@Override
 			protected void populateItem(ListItem<String> item)

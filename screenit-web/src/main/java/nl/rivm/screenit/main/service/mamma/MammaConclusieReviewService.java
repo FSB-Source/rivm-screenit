@@ -22,7 +22,6 @@ package nl.rivm.screenit.main.service.mamma;
  */
 
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaConclusieReviewZoekObject;
@@ -35,12 +34,6 @@ import nl.rivm.screenit.model.mamma.enums.MammobridgeRole;
 
 public interface MammaConclusieReviewService
 {
-	long countConclusieReviewsVanRadioloog(MammaConclusieReviewZoekObject zoekObject);
-
-	List<MammaConclusieReview> zoekConclusieReviewsVanRadioloog(MammaConclusieReviewZoekObject zoekObject, int first, int count, String sortProperty, boolean asc);
-
-	List<Long> zoekBeoordelingIdsMetConclusie(MammaConclusieReviewZoekObject zoekObject, String sortProperty, boolean asc);
-
 	MammaConclusieReview getConclusieReview(MammaScreeningRonde screeningRonde, InstellingGebruiker radioloog);
 
 	MammaConclusieReview getConclusieReviewCoordinerendRadioloog(MammaScreeningRonde screeningRonde, InstellingGebruiker radioloog);

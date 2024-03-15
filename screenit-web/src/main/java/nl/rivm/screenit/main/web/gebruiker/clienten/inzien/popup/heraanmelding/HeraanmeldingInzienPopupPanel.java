@@ -245,7 +245,7 @@ public abstract class HeraanmeldingInzienPopupPanel<A extends Afmelding<?, ?, ?>
 	{
 		A afmelding = getModelObject();
 		List<? extends ClientBrief> brieven = briefService.getBrievenVanAfmelding(afmelding, true);
-		return BriefOmschrijvingUtil.getBrievenOmschrijvingen(brieven, this::getString);
+		return BriefOmschrijvingUtil.getBrievenOmschrijvingen(brieven);
 	}
 
 	private String getWijzeVanHeraanmeldenTekst()

@@ -49,4 +49,6 @@ public class ColonAfspraakslotDto
 	private int aantalBlokken = 1;
 
 	private boolean alleenValidatie;
+
+	private ColonAfspraakslotHerhalingDto herhaling;
 }

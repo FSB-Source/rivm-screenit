@@ -405,7 +405,7 @@ public class CervixFactoryImpl implements CervixFactory
 
 		hibernateService.saveOrUpdate(uitstrijkje);
 
-		LOG.info("CervixUitstrijkje aanmaken client (id: '{}'), monster (id: '{}'), monsterControleLetters: {}", cervixDossier.getClient().getId(), monsterId,
+		LOG.info("CervixUitstrijkje aanmaken client (id: '{}'), monster (id: '{}'), monsterControleLetters: {}", cervixDossier.getClient().getId(), uitstrijkje.getId(),
 			monsterControleLetters);
 
 		return uitstrijkje;
@@ -453,8 +453,8 @@ public class CervixFactoryImpl implements CervixFactory
 		CervixHpvBeoordelingWaarde hpvUitslag,
 		List<CervixHpvAnalyseresultaat> analyseresultaten)
 	{
-		LOG.info("CervixHpvBeoordeling aanmaken voor client (id: '{}') met monsterId: '{}'", monster.getUitnodiging().getScreeningRonde().getDossier().getClient().getId(),
-			monster.getMonsterId());
+		LOG.info("CervixHpvBeoordeling aanmaken voor client (id: '{}') met monster (id: '{}')", monster.getUitnodiging().getScreeningRonde().getDossier().getClient().getId(),
+			monster.getId());
 
 		CervixHpvBeoordeling hpvBeoordeling = new CervixHpvBeoordeling();
 		hpvBeoordeling.setAnalyseDatum(analyseDatum);
@@ -497,8 +497,8 @@ public class CervixFactoryImpl implements CervixFactory
 	@Override
 	public CervixCytologieOrder maakCytologieOrder(CervixUitstrijkje uitstrijkje, CervixCytologieReden cytologieReden, String hl7Bericht)
 	{
-		LOG.info("CervixCytologieOrder aanmaken voor client (id: '{}') met monsterId: '{}'" + uitstrijkje.getUitnodiging().getScreeningRonde().getDossier().getClient().getId(),
-			uitstrijkje.getMonsterId());
+		LOG.info("CervixCytologieOrder aanmaken voor client (id: '{}') met monster (id: '{}')", uitstrijkje.getUitnodiging().getScreeningRonde().getDossier().getClient().getId(),
+			uitstrijkje.getId());
 
 		CervixCytologieOrder cytologieOrder = new CervixCytologieOrder();
 		cytologieOrder.setUitstrijkje(uitstrijkje);

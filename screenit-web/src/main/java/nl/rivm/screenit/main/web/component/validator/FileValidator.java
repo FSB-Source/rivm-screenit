@@ -49,11 +49,11 @@ public class FileValidator implements IValidator<List<FileUpload>>
 	@Override
 	public void validate(IValidatable<List<FileUpload>> validatable)
 	{
-		List<FileUpload> files = validatable.getValue();
-		List<String> allFileExtensies = new ArrayList<>();
-		List<String> naamFileTypes = new ArrayList<>();
+		var files = validatable.getValue();
+		var allFileExtensies = new ArrayList<String>();
+		var naamFileTypes = new ArrayList<String>();
 
-		for (FileType fileType : fileTypes)
+		for (var fileType : fileTypes)
 		{
 			allFileExtensies.addAll(fileType.getFileExtensies());
 			naamFileTypes.add(fileType.getNaamFileType());
@@ -62,16 +62,16 @@ public class FileValidator implements IValidator<List<FileUpload>>
 		for (FileUpload file : files)
 		{
 			FileType fileTypeMatch = null;
-			String fileName = file.getClientFileName();
-			for (FileType fileType : fileTypes)
+			var fileName = file.getClientFileName();
+			for (var fileType : fileTypes)
 			{
 				if (fileType.getAllowedContentTypes().contains(file.getContentType())
-					&& fileType.getFileExtensies().stream().anyMatch(fileExtensie -> fileName.endsWith(fileExtensie)))
+					&& fileType.getFileExtensies().stream().anyMatch(fileName::endsWith))
 				{
 					byte[] magicNumber = fileType.getMagicNumber();
 					if (magicNumber != null)
 					{
-						Integer offset = fileType.getOffset();
+						var offset = fileType.getOffset();
 						if (file.getBytes().length >= offset + magicNumber.length)
 						{
 							byte[] magicNumberUpload = Arrays.copyOfRange(file.getBytes(), offset, offset + magicNumber.length);
@@ -92,11 +92,11 @@ public class FileValidator implements IValidator<List<FileUpload>>
 
 			if (fileTypeMatch == null)
 			{
-				ValidationError error = new ValidationError();
+				var error = new ValidationError();
 				error.setVariable("filename", fileName);
-				LOG.error(String.format("File '%s' is niet valide! (ContentType: %s, Toegestane filetypes: %s)", fileName, file.getContentType(),
-					StringUtils.join(naamFileTypes, " of ")));
-				if (allFileExtensies.stream().noneMatch(fileExtensie -> fileName.endsWith(fileExtensie)))
+				LOG.error("Contenttype is niet valide! (ContentType: {}, Toegestane filetypes: {})", file.getContentType(),
+					StringUtils.join(naamFileTypes, " of "));
+				if (allFileExtensies.stream().noneMatch(fileName::endsWith))
 				{
 					error.addKey("FileValidator.extensie");
 					error.setVariable("extensies", StringUtils.join(allFileExtensies, " of "));

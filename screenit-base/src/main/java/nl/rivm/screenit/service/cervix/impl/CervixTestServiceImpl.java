@@ -21,8 +21,6 @@ package nl.rivm.screenit.service.cervix.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +47,6 @@ import nl.rivm.screenit.model.cervix.CervixMergedBrieven;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
-import nl.rivm.screenit.model.cervix.cis.CervixCISHistorie;
 import nl.rivm.screenit.model.cervix.enums.CervixAfmeldingReden;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
@@ -107,7 +104,7 @@ public class CervixTestServiceImpl implements CervixTestService
 	@Override
 	public CervixDossier geefDossier(GbaPersoon gbaPersoon)
 	{
-		Client client = testService.maakClient(gbaPersoon);
+		var client = testService.maakClient(gbaPersoon);
 		return client.getCervixDossier();
 	}
 
@@ -120,9 +117,9 @@ public class CervixTestServiceImpl implements CervixTestService
 	@Override
 	public CervixScreeningRonde geefScreeningRonde(GbaPersoon gbaPersoon, Date inVervolgonderzoekDatum)
 	{
-		CervixDossier dossier = geefDossier(gbaPersoon);
+		var dossier = geefDossier(gbaPersoon);
 
-		CervixScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
+		var ronde = dossier.getLaatsteScreeningRonde();
 		if (ronde == null)
 		{
 			ronde = factory.maakRonde(dossier);
@@ -138,16 +135,16 @@ public class CervixTestServiceImpl implements CervixTestService
 
 	private CervixUitnodiging geefLaatsteUitnodiging(GbaPersoon gbaPersoon)
 	{
-		CervixScreeningRonde screeningRonde = geefScreeningRonde(gbaPersoon);
+		var screeningRonde = geefScreeningRonde(gbaPersoon);
 		return screeningRonde.getLaatsteUitnodiging();
 	}
 
 	@Override
 	public CervixUitnodiging maakUitnodiging(GbaPersoon gbaPersoon, BriefType briefType)
 	{
-		CervixScreeningRonde ronde = geefScreeningRonde(gbaPersoon);
+		var ronde = geefScreeningRonde(gbaPersoon);
 
-		CervixUitnodiging uitnodiging = factory.maakUitnodiging(ronde, briefType, true, true);
+		var uitnodiging = factory.maakUitnodiging(ronde, briefType, true, true);
 		verzendLaatsteBrief(ronde);
 		return uitnodiging;
 	}
@@ -156,9 +153,9 @@ public class CervixTestServiceImpl implements CervixTestService
 	public CervixUitstrijkje geefUitstrijkje(GbaPersoon gbaPersoon, CervixUitstrijkjeStatus uitstrijkjeStatus, String monsterId,
 		BMHKLaboratorium bmhkLaboratorium)
 	{
-		CervixUitnodiging uitnodiging = geefLaatsteUitnodiging(gbaPersoon);
+		var uitnodiging = geefLaatsteUitnodiging(gbaPersoon);
 
-		CervixUitstrijkje uitstrijkje = (CervixUitstrijkje) HibernateHelper.deproxy(uitnodiging.getMonster());
+		var uitstrijkje = (CervixUitstrijkje) HibernateHelper.deproxy(uitnodiging.getMonster());
 		if (uitstrijkjeStatus != null)
 		{
 			uitstrijkje.setUitstrijkjeStatus(uitstrijkjeStatus);
@@ -177,9 +174,9 @@ public class CervixTestServiceImpl implements CervixTestService
 	public CervixLabformulier geefLabformulier(GbaPersoon gbaPersoon, CervixLabformulierStatus labformulierStatus, BMHKLaboratorium laboratorium,
 		CervixHuisartsLocatie huisartsLocatie)
 	{
-		CervixUitstrijkje uitstrijkje = geefUitstrijkje(gbaPersoon, null, null, null);
+		var uitstrijkje = geefUitstrijkje(gbaPersoon, null, null, null);
 
-		CervixLabformulier labformulier = uitstrijkje.getLabformulier();
+		var labformulier = uitstrijkje.getLabformulier();
 		if (labformulier == null)
 		{
 			labformulier = maakLabformulier(uitstrijkje, labformulierStatus, laboratorium);
@@ -207,7 +204,7 @@ public class CervixTestServiceImpl implements CervixTestService
 			laboratorium = hibernateService.loadAll(BMHKLaboratorium.class).get(0);
 		}
 
-		CervixLabformulier labformulier = new CervixLabformulier();
+		var labformulier = new CervixLabformulier();
 		labformulier.setUitstrijkje(uitstrijkje);
 		labformulier.setLaboratorium(laboratorium);
 		labformulier.setScanDatum(dateSupplier.getDate());
@@ -227,13 +224,13 @@ public class CervixTestServiceImpl implements CervixTestService
 	public Document geefBarcodeUitnodigingsIdTestPdf(CervixUitnodiging uitnodiging)
 	{
 		Document document = null;
-		MailMergeContext context = new MailMergeContext();
+		var context = new MailMergeContext();
 		context.setCervixUitnodiging(uitnodiging);
 		context.setClient(uitnodiging.getScreeningRonde().getDossier().getClient());
 
-		try (InputStream inputStream = getClass().getResourceAsStream("/CervixUitnodigingsSticker.doc"))
+		try (var inputStream = getClass().getResourceAsStream("/CervixUitnodigingsSticker.doc"))
 		{
-			byte[] briefTemplateBytes = FileCopyUtils.copyToByteArray(inputStream);
+			var briefTemplateBytes = FileCopyUtils.copyToByteArray(inputStream);
 			document = asposeService.processDocument(briefTemplateBytes, context);
 		}
 		catch (Exception e)
@@ -245,16 +242,15 @@ public class CervixTestServiceImpl implements CervixTestService
 
 	private void verzendLaatsteBrief(CervixScreeningRonde ronde)
 	{
-		CervixBrief brief = ronde.getLaatsteBrief();
+		var brief = ronde.getLaatsteBrief();
 
-		CervixMergedBrieven mergedBrieven = new CervixMergedBrieven();
+		var mergedBrieven = new CervixMergedBrieven();
 		mergedBrieven.setCreatieDatum(dateSupplier.getDate());
 		mergedBrieven.setBriefType(ronde.getLeeftijdcategorie().getUitnodigingsBrief());
-		mergedBrieven.setBrieven(new ArrayList<>());
 		mergedBrieven.setPrintDatum(dateSupplier.getDate());
 		mergedBrieven.setVerwijderd(true);
 		brief.setMergedBrieven(mergedBrieven);
-		UploadDocument fakeMergeDocument = new UploadDocument();
+		var fakeMergeDocument = new UploadDocument();
 		fakeMergeDocument.setActief(true);
 		fakeMergeDocument.setNaam("dummy_testservice_brief_niet_openen");
 		hibernateService.saveOrUpdate(fakeMergeDocument);
@@ -267,10 +263,10 @@ public class CervixTestServiceImpl implements CervixTestService
 	@Transactional(propagation = Propagation.SUPPORTS)
 	public String clientenResetten(String bsns)
 	{
-		int gevondenEnIsVerwijderd = 0;
-		String[] bsnList = bsns.split(",");
-		String result = "Succesvol";
-		for (String bsn : bsnList)
+		var gevondenEnIsVerwijderd = 0;
+		var bsnList = bsns.split(",");
+		var result = "Succesvol";
+		for (var bsn : bsnList)
 		{
 			try
 			{
@@ -278,7 +274,7 @@ public class CervixTestServiceImpl implements CervixTestService
 				{
 					continue;
 				}
-				Client client = clientDao.getClientByBsn(bsn.trim());
+				var client = clientDao.getClientByBsn(bsn.trim());
 				if (client == null)
 				{
 					continue;
@@ -299,7 +295,7 @@ public class CervixTestServiceImpl implements CervixTestService
 	@Override
 	public void clientReset(Client client)
 	{
-		CervixDossier dossier = client.getCervixDossier();
+		var dossier = client.getCervixDossier();
 
 		if (dossier == null)
 		{
@@ -309,7 +305,7 @@ public class CervixTestServiceImpl implements CervixTestService
 
 		baseDossierService.verwijderLaatsteAfmelding(dossier);
 
-		List<CervixBrief> overgeblevenBrieven = hibernateService.getByParameters(CervixBrief.class, Map.of("client", client));
+		var overgeblevenBrieven = hibernateService.getByParameters(CervixBrief.class, Map.of("client", client));
 		hibernateService.deleteAll(overgeblevenBrieven);
 
 		client.setCervixDossier(null);
@@ -323,11 +319,11 @@ public class CervixTestServiceImpl implements CervixTestService
 	@Override
 	public int clientenDefinitiefAfmelden(List<Client> clienten, CervixAfmeldingReden afmeldingReden)
 	{
-		int aantalAfgemeld = 0;
-		for (Client client : clienten)
+		var aantalAfgemeld = 0;
+		for (var client : clienten)
 		{
-			CervixCISHistorie cisHistorie = client.getCervixDossier().getCisHistorie();
-			CervixAfmelding afmelding = new CervixAfmelding();
+			var cisHistorie = client.getCervixDossier().getCisHistorie();
+			var afmelding = new CervixAfmelding();
 			afmelding.setDossier(client.getCervixDossier());
 			afmelding.setType(AfmeldingType.DEFINITIEF);
 			afmelding.setManier(ClientContactManier.DIRECT);

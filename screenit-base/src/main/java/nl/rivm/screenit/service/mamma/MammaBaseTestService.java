@@ -42,8 +42,6 @@ public interface MammaBaseTestService
 
 	MammaUitnodiging maakUitnodiging(GbaPersoon gbaPersoon, BriefType briefType);
 
-	String clientenResetten(String bsns);
-
 	void clientReset(Client client, boolean verwijderAlleBerichten);
 
 	int clientenDefinitiefAfmelden(List<Client> clienten, MammaAfmeldingReden afmeldingReden);

@@ -91,4 +91,6 @@ public interface MammaTestTimelineService
 	void sluitAlleDagenTotEnMetGisteren(MammaScreeningsEenheid screeningsEenheid, InstellingGebruiker ingelogdeGebruiker) throws IllegalStateException;
 
 	String getBsnsMetBeeldenBeschikbaar();
+
+	String clientenResetten(String bsns);
 }

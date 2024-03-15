@@ -87,8 +87,8 @@ public class MammaBaseCapaciteitsBlokServiceImpl implements MammaBaseCapaciteits
 		}
 		catch (HttpClientErrorException | HttpServerErrorException se)
 		{
-			String responseBody = se.getResponseBodyAsString();
-			LOG.trace("Response body: " + responseBody);
+			var responseBody = se.getResponseBodyAsString();
+			LOG.error("Er ging iets mis bij het opslaan van de capaciteitsblok", se);
 			return responseBody;
 		}
 		catch (RestClientException e)

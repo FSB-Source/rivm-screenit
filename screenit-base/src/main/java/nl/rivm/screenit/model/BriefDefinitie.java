@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model;
 
 /*-
@@ -49,7 +48,6 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 public class BriefDefinitie extends AbstractHibernateObject implements IDocument
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@Column(nullable = false)

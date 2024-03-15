@@ -21,12 +21,23 @@ package nl.rivm.screenit.batch.jobs.cervix.herinneren.zasstep;
  * =========================LICENSE_END==================================
  */
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Root;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.cervix.herinneren.allsteps.CervixHerinnerenReader;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
+import nl.rivm.screenit.model.cervix.CervixUitnodiging;
+import nl.rivm.screenit.model.cervix.CervixUitnodiging_;
+import nl.rivm.screenit.model.cervix.CervixZas;
+import nl.rivm.screenit.model.cervix.CervixZas_;
+import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.specification.SpecificationUtil;
+import nl.rivm.screenit.specification.cervix.CervixUitnodigingSpecification;
 
-import org.hibernate.Criteria;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -37,13 +48,27 @@ public class CervixAangevraagdeZasHerinnerenReader extends CervixHerinnerenReade
 
 	public CervixAangevraagdeZasHerinnerenReader()
 	{
-		super(CERVIX_ZAS_HERINNEREN_READER_FETCH_SIZE, PreferenceKey.CERVIX_HERINNERINGS_PERIODE_ZAS, OrganisatieParameterKey.CERVIX_MAX_AANTAL_HERINNERINGEN_ZAS, "zas.verstuurd");
+		super(CERVIX_ZAS_HERINNEREN_READER_FETCH_SIZE, OrganisatieParameterKey.CERVIX_MAX_AANTAL_HERINNERINGEN_ZAS,
+			CervixMonsterType.ZAS);
 	}
 
 	@Override
-	protected void voegStepSpecifiekeCriteriaToe(Criteria crit)
+	protected Specification<CervixUitnodiging> createSpecification()
 	{
-		voegAliasEnCriteriaToeMonstertypeZas(crit);
-		voegCriteriaCheckOpBriefTypeToe(crit, BriefType.CERVIX_ZAS_UITNODIGING, BriefType.CERVIX_ZAS_NIET_ANALYSEERBAAR_OF_ONBEOORDEELBAAR);
+		var maxPeriodeDatum = getMaxPeriodeDatum(PreferenceKey.CERVIX_HERINNERINGS_PERIODE_ZAS);
+		return super.createSpecification()
+			.and(CervixUitnodigingSpecification.heeftZasDieVerstuurdIsVoorDatum(maxPeriodeDatum))
+			.and(CervixUitnodigingSpecification.heeftBriefMetBrieftype(BriefType.CERVIX_ZAS_UITNODIGING, BriefType.CERVIX_ZAS_NIET_ANALYSEERBAAR_OF_ONBEOORDEELBAAR));
+	}
+
+	@Override
+	protected Order getOrder(Root<CervixUitnodiging> r, CriteriaBuilder cb)
+	{
+		if (getMaxAantalHerinneringen(OrganisatieParameterKey.CERVIX_MAX_AANTAL_HERINNERINGEN_ZAS) != null)
+		{
+			var zas = cb.treat(SpecificationUtil.join(r, CervixUitnodiging_.monster), CervixZas.class);
+			return cb.asc(zas.get(CervixZas_.verstuurd));
+		}
+		return null;
 	}
 }

@@ -25,6 +25,7 @@ import nl.rivm.screenit.dto.mamma.MammaLezingRapportageDto;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaConclusieReviewZoekObject;
 import nl.rivm.screenit.main.service.mamma.MammaConclusieReviewService;
 import nl.rivm.screenit.main.service.mamma.MammaLezingService;
+import nl.rivm.screenit.main.service.mamma.impl.MammaConclusieReviewDataProviderServiceImpl;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.AbstractMammaBePage;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
@@ -57,6 +58,9 @@ public class MammaRadioloogDashboardPage extends AbstractMammaBePage
 
 	@SpringBean
 	private MammaConclusieReviewService conclusieReviewService;
+
+	@SpringBean
+	private MammaConclusieReviewDataProviderServiceImpl conclusieReviewDataProviderService;
 
 	@SpringBean
 	private ICurrentDateSupplier currentDateSupplier;
@@ -120,7 +124,7 @@ public class MammaRadioloogDashboardPage extends AbstractMammaBePage
 		zoekObject.setGezienTonen(toonGereviewed);
 		zoekObject.setVoorDashboard(true);
 
-		return conclusieReviewService.countConclusieReviewsVanRadioloog(zoekObject);
+		return conclusieReviewDataProviderService.size(zoekObject);
 	}
 
 	private String getTermijnNaam(Termijn termijn)

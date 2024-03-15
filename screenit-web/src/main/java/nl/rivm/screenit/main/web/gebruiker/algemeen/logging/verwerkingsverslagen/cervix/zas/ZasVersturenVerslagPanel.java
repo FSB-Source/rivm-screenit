@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import nl.rivm.screenit.main.web.component.BriefTypeLabel;
 import nl.rivm.screenit.model.logging.CervixUitnodigingVersturenLogEvent;
 import nl.rivm.screenit.model.verwerkingverslag.cervix.CervixZasVersturenRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.cervix.CervixZasVersturenRapportageProjectEntry;
@@ -82,7 +81,7 @@ public class ZasVersturenVerslagPanel extends GenericPanel<CervixUitnodigingVers
 			protected void populateItem(ListItem<CervixZasVersturenRapportage> item)
 			{
 				item.setModel(new CompoundPropertyModel<>(item.getModel()));
-				item.add(new BriefTypeLabel("briefType"));
+				item.add(new Label("briefType.weergaveNaam"));
 				item.add(new Label("aantal"));
 			}
 		});

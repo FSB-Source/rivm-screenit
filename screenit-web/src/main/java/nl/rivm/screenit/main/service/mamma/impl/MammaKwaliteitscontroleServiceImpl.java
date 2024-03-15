@@ -160,7 +160,7 @@ public class MammaKwaliteitscontroleServiceImpl implements MammaKwaliteitscontro
 			}
 			catch (Exception e)
 			{
-				String errorMessage = e instanceof IllegalStateException ? e.getMessage() : "Onbekende fout bij verwerking van clientenlijst bestand.";
+				var errorMessage = e instanceof IllegalStateException ? e.getMessage() : "Onbekende fout bij verwerking van clientenlijst bestand.";
 				meldingen.add(errorMessage);
 				if (!(e instanceof IllegalStateException))
 				{

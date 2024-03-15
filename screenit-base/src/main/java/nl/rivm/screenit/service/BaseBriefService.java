@@ -29,7 +29,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.UnaryOperator;
 
 import nl.rivm.screenit.document.BaseDocumentCreator;
 import nl.rivm.screenit.model.Account;
@@ -64,7 +63,7 @@ public interface BaseBriefService
 
 	List<BriefDefinitie> getBriefDefinities(BvoZoekCriteria briefType, Comparator<BriefType> comparator);
 
-	void saveBriefDefinitie(BriefDefinitie definitie, File uploadFile, String contentType, String filename, UnaryOperator<String> getString) throws IOException;
+	void saveBriefDefinitie(BriefDefinitie definitie, File uploadFile, String contentType, String filename) throws IOException;
 
 	BezwaarBrief maakBezwaarBrief(BezwaarMoment bezwaar, BriefType type, Date date);
 

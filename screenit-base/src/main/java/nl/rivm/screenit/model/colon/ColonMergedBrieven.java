@@ -21,6 +21,7 @@ package nl.rivm.screenit.model.colon;
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Entity;
@@ -38,12 +39,11 @@ import org.hibernate.envers.Audited;
 @Audited
 public class ColonMergedBrieven extends MergedBrieven<ColonBrief>
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@OneToMany(mappedBy = "mergedBrieven")
 	@Cascade(CascadeType.SAVE_UPDATE)
-	private List<ColonBrief> brieven;
+	private List<ColonBrief> brieven = new ArrayList<>();
 
 	@Override
 	public List<ColonBrief> getBrieven()
@@ -56,5 +56,4 @@ public class ColonMergedBrieven extends MergedBrieven<ColonBrief>
 	{
 		this.brieven = brieven;
 	}
-
 }

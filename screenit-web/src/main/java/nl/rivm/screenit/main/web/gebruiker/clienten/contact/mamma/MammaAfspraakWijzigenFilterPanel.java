@@ -316,8 +316,8 @@ public abstract class MammaAfspraakWijzigenFilterPanel extends GenericPanel<Mamm
 				.distinct()
 				.sorted(Comparator.comparing(MammaScreeningsEenheid::getCode))
 				.collect(Collectors.toList());
-			filter.getStandplaatsen().addAll(savedFilterStandplaatsen);
-			filter.getScreeningsEenheden().addAll(savedFilterScreeninsEenheden);
+			filter.setStandplaatsen(savedFilterStandplaatsen);
+			filter.setScreeningsEenheden(savedFilterScreeninsEenheden);
 		}
 		if (target == null)
 		{

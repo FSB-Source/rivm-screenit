@@ -43,7 +43,6 @@ import org.apache.wicket.Application;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.RuntimeConfigurationType;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupException;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -71,8 +70,6 @@ import com.google.common.base.Joiner;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ComponentHelper
 {
-	private static final ThreadLocal<Integer> tabIndexCounterThreadLocal = ThreadLocal.withInitial(() -> 1);
-
 	public static Label newLabel(String id)
 	{
 		return new Label(id);
@@ -90,7 +87,7 @@ public final class ComponentHelper
 
 	public static <T> TextField<T> newTextField(String id, Class<T> modelType, Boolean required)
 	{
-		TextField<T> textField = new TextField<>(id, modelType);
+		var textField = new TextField<>(id, modelType);
 		textField.setOutputMarkupId(true);
 		textField.setRequired(required);
 		return textField;
@@ -98,7 +95,7 @@ public final class ComponentHelper
 
 	public static TextField<String> newTextField(String id, int maxLength, boolean required)
 	{
-		TextField<String> field = newTextField(id, String.class);
+		var field = newTextField(id, String.class);
 		field.setOutputMarkupId(true);
 		field.add(StringValidator.maximumLength(maxLength));
 		field.setRequired(required);
@@ -110,20 +107,14 @@ public final class ComponentHelper
 		return addTextField(webMarkupContainer, fieldNaam, required, maximumLength, String.class, inzien);
 	}
 
-	public static <T> FormComponent<T> addTextField(WebMarkupContainer webMarkupContainer, final String fieldNaam, boolean required, int maximumLength, Class<T> type,
-		boolean inzien)
-	{
-		return addTextField(webMarkupContainer, fieldNaam, required, maximumLength, type, inzien, false);
-	}
-
 	@SuppressWarnings("unchecked")
 	public static <T> FormComponent<T> addTextField(WebMarkupContainer webMarkupContainer, final String fieldNaam, boolean required, int maximumLength, Class<T> type,
-		boolean inzien, boolean tabIndex)
+		boolean inzien)
 	{
 		FormComponent<T> textField;
 		if (type != null && type.equals(Date.class) && !inzien)
 		{
-			DatePicker<Date> newDatePicker = DatePickerHelper.newDatePicker(fieldNaam)
+			var newDatePicker = DatePickerHelper.newDatePicker(fieldNaam)
 				.setYearRange(new DatePickerYearRange((short) -80, Short.parseShort(Integer.toString(Calendar.getInstance().get(Calendar.YEAR) + 10)))).setChangeMonth(true);
 
 			textField = (FormComponent<T>) newDatePicker.add(DateValidator.maximum(DateUtil.startDag(DateUtil.parseDateForPattern("31-12-9999", Constants.DEFAULT_DATE_FORMAT))));
@@ -150,18 +141,12 @@ public final class ComponentHelper
 
 		setAutocompleteOff(textField);
 
-		if (tabIndex)
-		{
-			textField.add(new AttributeAppender("tabindex", new Model<>(tabIndexCounterThreadLocal.get()), ""));
-			tabIndexCounterThreadLocal.set(tabIndexCounterThreadLocal.get() + 1);
-		}
-
 		return textField;
 	}
 
 	public static TextArea<String> addTextArea(WebMarkupContainer webMarkupContainer, String id, boolean required, int maxLength, boolean inzien)
 	{
-		TextArea<String> textArea = new TextArea<>(id)
+		var textArea = new TextArea<String>(id)
 		{
 			@Override
 			public String getMarkupId()
@@ -194,8 +179,8 @@ public final class ComponentHelper
 
 	public static <T extends Enum<T>> ScreenitDropdown<T> newDropDownChoice(String id, IModel<T> model, Set<T> set, IChoiceRenderer<T> renderer)
 	{
-		ListModel<T> listModel = new ListModel<>(new ArrayList<>(set));
-		ScreenitDropdown<T> dropdown = new ScreenitDropdown<>(id, model, listModel, renderer);
+		var listModel = new ListModel<>(new ArrayList<>(set));
+		var dropdown = new ScreenitDropdown<>(id, model, listModel, renderer);
 		dropdown.setOutputMarkupId(true);
 		return dropdown;
 	}
@@ -207,7 +192,7 @@ public final class ComponentHelper
 
 	public static CheckBox newCheckBox(String id, boolean enabled)
 	{
-		CheckBox checkBox = new CheckBox(id);
+		var checkBox = new CheckBox(id);
 		checkBox.setEnabled(enabled);
 		return checkBox;
 	}
@@ -219,14 +204,14 @@ public final class ComponentHelper
 
 	public static CheckBox newCheckBox(String id, IModel<Boolean> model, boolean enabled)
 	{
-		CheckBox checkBox = new CheckBox(id, model);
+		var checkBox = new CheckBox(id, model);
 		checkBox.setEnabled(enabled);
 		return checkBox;
 	}
 
 	public static TextArea<String> newTextArea(String id, int maxLength)
 	{
-		TextArea<String> textArea = new TextArea<>(id);
+		var textArea = new TextArea<String>(id);
 		textArea.add(StringValidator.maximumLength(maxLength));
 
 		return textArea;
@@ -239,7 +224,7 @@ public final class ComponentHelper
 
 	public static <T> ScreenitDropdown<T> newDropDownChoice(String id, IModel<List<T>> choices, IChoiceRenderer<T> choiceRenderer, boolean required)
 	{
-		ScreenitDropdown<T> dropdown = new ScreenitDropdown<>(id, choices);
+		var dropdown = new ScreenitDropdown<>(id, choices);
 		if (choiceRenderer != null)
 		{
 			dropdown.setChoiceRenderer(choiceRenderer);
@@ -349,7 +334,7 @@ public final class ComponentHelper
 
 	public static DatePicker<Date> newDatePicker(String id, IModel<Date> model, final boolean enabled)
 	{
-		DatePicker<Date> datePicker = new DatePicker<>(id, model)
+		var datePicker = new DatePicker<>(id, model)
 		{
 			@Override
 			public void renderHead(IHeaderResponse response)
@@ -368,7 +353,7 @@ public final class ComponentHelper
 
 	public static DatePicker<Date> newDatePicker(String id, IModel<Date> model)
 	{
-		DatePicker<Date> datePicker = new DatePicker<>(id, model);
+		var datePicker = new DatePicker<>(id, model);
 		datePicker.setType(Date.class);
 		setOptions(datePicker);
 		return datePicker;
@@ -376,7 +361,7 @@ public final class ComponentHelper
 
 	public static DatePicker<Date> monthYearDatePicker(String id)
 	{
-		DatePicker<Date> datePicker = newDatePicker(id);
+		var datePicker = newDatePicker(id);
 		datePicker.setChangeYear(true);
 		datePicker.setChangeMonth(true);
 		return datePicker;
@@ -384,14 +369,14 @@ public final class ComponentHelper
 
 	public static DatePicker<Date> newYearDatePicker(String id)
 	{
-		DatePicker<Date> datePicker = newDatePicker(id);
+		var datePicker = newDatePicker(id);
 		datePicker.setChangeYear(true);
 		return datePicker;
 	}
 
 	public static DatePicker<Date> newYearDatePicker(String id, IModel<Date> model)
 	{
-		DatePicker<Date> datePicker = newDatePicker(id, model);
+		var datePicker = newDatePicker(id, model);
 		datePicker.setChangeYear(true);
 		return datePicker;
 	}
@@ -414,7 +399,7 @@ public final class ComponentHelper
 
 	public static TextField<String> newPostcodeTextField(WebMarkupContainer parent, String id, boolean required, boolean inzien)
 	{
-		TextField<String> postcode = new PostcodeField(id);
+		var postcode = new PostcodeField(id);
 		postcode.setRequired(required);
 		if (inzien)
 		{
@@ -449,7 +434,7 @@ public final class ComponentHelper
 
 	private static MarkupException createMarkupException(Component component, ComponentTag tag, Set<String> tagNames)
 	{
-		String msg = String.format("Component [%s] (path = [%s]) must be applied to a tag of type [%s], not: %s", component.getId(), component.getPath(),
+		var msg = String.format("Component [%s] (path = [%s]) must be applied to a tag of type [%s], not: %s", component.getId(), component.getPath(),
 			Joiner.on(',').join(tagNames), tag.toUserDebugString());
 
 		throw new MarkupException(component.getMarkup().getMarkupResourceStream(), msg);

@@ -49,13 +49,14 @@ public class RomanHerhalingLabelPanel extends Panel
 			public String getObject()
 			{
 				Map<Integer, Integer> herhalingen = HerhalingHelper.bepaalHerhalingen(RomanHerhalingLabelPanel.this);
+				var labelTekst = model.getObject().getLabelTekst();
 
-				Integer herhaling = null;
-				if (herhalingen != null && !herhalingen.isEmpty())
+				if (!herhalingen.isEmpty())
 				{
-					herhaling = herhalingen.get(herhalingen.size() - 1);
+					var herhaling = herhalingen.get(herhalingen.size() - 1);
+					labelTekst += " " + (herhaling + 1);
 				}
-				return model.getObject().getLabelTekst() + " " + (herhaling + 1);
+				return labelTekst;
 			}
 		})
 		{

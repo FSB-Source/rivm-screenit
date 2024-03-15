@@ -21,7 +21,6 @@ package nl.rivm.screenit.main.service.colon.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.time.DayOfWeek;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
@@ -35,34 +34,30 @@ import nl.rivm.screenit.dao.colon.RoosterDao;
 import nl.rivm.screenit.exceptions.HeeftAfsprakenException;
 import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
 import nl.rivm.screenit.exceptions.TijdBlokOverlapException;
-import nl.rivm.screenit.main.exception.BeperkingException;
 import nl.rivm.screenit.main.exception.ValidatieException;
 import nl.rivm.screenit.main.model.RecurrenceOption;
-import nl.rivm.screenit.main.service.colon.ColonFeestdagService;
-import nl.rivm.screenit.main.service.colon.ColonRoosterBeperkingService;
 import nl.rivm.screenit.main.service.colon.RoosterService;
 import nl.rivm.screenit.model.Afspraak;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.colon.ColonFeestdag;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.RoosterItemListViewWrapper;
 import nl.rivm.screenit.model.colon.RoosterItemStatus;
 import nl.rivm.screenit.model.colon.RoosterListViewFilter;
-import nl.rivm.screenit.model.colon.dto.ColonRoosterBeperkingenDto;
-import nl.rivm.screenit.model.colon.enums.ColonRoosterBeperking;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
 import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.rivm.screenit.repository.colon.ColonAfspraakslotRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.colon.AfspraakService;
+import nl.rivm.screenit.specification.colon.ColonAfspraakslotSpecification;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.planning.model.IAppointment;
 import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
+import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment_;
 import nl.topicuszorg.wicket.planning.model.appointment.recurrence.AbstractRecurrence;
 import nl.topicuszorg.wicket.planning.model.appointment.recurrence.MonthlyRecurrence;
 import nl.topicuszorg.wicket.planning.model.appointment.recurrence.NoRecurrence;
@@ -72,7 +67,9 @@ import nl.topicuszorg.wicket.planning.services.RecurrenceService;
 import nl.topicuszorg.wicket.planning.util.Periode;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -104,12 +101,6 @@ public class RoosterServiceImpl implements RoosterService
 	@Autowired
 	private ColonAfspraakslotRepository afspraakslotRepository;
 
-	@Autowired
-	private ColonRoosterBeperkingService roosterBeperkingService;
-
-	@Autowired
-	private ColonFeestdagService feestdagService;
-
 	@Override
 	public List<RoosterItem> getRooster(Periode periode, List<Kamer> kamers)
 	{
@@ -124,10 +115,8 @@ public class RoosterServiceImpl implements RoosterService
 
 	@Override
 	@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-	public void magRoosterItemOpslaanVerwijderen(RoosterItem roosteritem, RecurrenceOption recurrenceOption, Date recurrenceEditEnd,
-		Date origRecEndDateTime, boolean wijzigen) throws OpslaanVerwijderenTijdBlokException
+	public void magRoosterItemOpslaanVerwijderen(RoosterItem roosteritem, Range<Date> currentViewRange, boolean wijzigen) throws OpslaanVerwijderenTijdBlokException
 	{
-		var currentViewRange = getCurrentViewRange(roosteritem, recurrenceOption, recurrenceEditEnd, origRecEndDateTime);
 		if (roosteritem.getId() != null)
 		{
 
@@ -512,6 +501,40 @@ public class RoosterServiceImpl implements RoosterService
 	}
 
 	@Override
+	public List<RoosterItem> splitAfspraakslot(RoosterItem unsavedObject, Integer aantalBlokken, ColoscopieCentrum intakelocatie)
+	{
+		var duurAfspraakInMinuten = intakelocatie.getAfspraakDefinities().get(0).getDuurAfspraakInMinuten();
+		var afspraakslots = new ArrayList<RoosterItem>();
+		var startDate = DateUtil.toLocalDateTime(unsavedObject.getStartTime());
+		for (int i = 0; i < aantalBlokken; i++)
+		{
+			var splittedAfspraakslot = unsavedObject.transientClone();
+			var recurrence = unsavedObject.getRecurrence();
+			if (recurrence != null && !NoRecurrence.class.isAssignableFrom(Hibernate.getClass(recurrence)))
+			{
+				var clonedRecurrence = recurrence.transientClone();
+				clonedRecurrence.setFirstAppointment(splittedAfspraakslot);
+				splittedAfspraakslot.setRecurrence(clonedRecurrence);
+			}
+			splittedAfspraakslot.setStartTime(DateUtil.toUtilDate(startDate));
+			var endTime = startDate.plusMinutes(duurAfspraakInMinuten);
+			splittedAfspraakslot.setEndTime(DateUtil.toUtilDate(endTime));
+			startDate = endTime;
+			afspraakslots.add(splittedAfspraakslot);
+		}
+		return afspraakslots;
+	}
+
+	@Override
+	public List<RoosterItem> getAfspraakslotsInRange(List<Range<Date>> ranges, RoosterItem afspraakslot)
+	{
+		return afspraakslotRepository.findAll(
+			ColonAfspraakslotSpecification.heeftKamer(afspraakslot.getLocation())
+				.and(ColonAfspraakslotSpecification.valtBinnenRanges(ranges).or(ColonAfspraakslotSpecification.heeftId(afspraakslot.getId()))),
+			Sort.by(Sort.Direction.ASC, AbstractAppointment_.START_TIME));
+	}
+
+	@Override
 	public void valideerTijdslot(AbstractAppointment tijdslot) throws ValidatieException
 	{
 		var startDate = tijdslot.getStartTime();
@@ -520,74 +543,6 @@ public class RoosterServiceImpl implements RoosterService
 		valideerTijdslotStartTijdVeelvoud(startDate);
 		valideerTijdslotStartGewijzigdNaarVerleden(tijdslot, startDate);
 		valideerTijdslotHerhaling(tijdslot, startDate);
-	}
-
-	@Override
-	public void valideerBeperkingen(AbstractAppointment tijdslot, ColonRoosterBeperking beperkingType) throws BeperkingException
-	{
-		var beperkingen = roosterBeperkingService.getRoosterBeperkingen();
-		var feestdagen = feestdagService.getFeestdagen();
-		var exceptie = new BeperkingException();
-		exceptie.setBeperkingType(beperkingType);
-
-		valideerNachtBeperkingBegin(tijdslot, beperkingType, exceptie, beperkingen);
-		valideerNachtBeperkingEind(tijdslot, beperkingType, exceptie, beperkingen);
-		valideerZaterdagBeperking(tijdslot, beperkingType, exceptie, beperkingen);
-		valideerZondagBeperking(tijdslot, beperkingType, exceptie, beperkingen);
-		valideerFeestdagBeperking(tijdslot, beperkingType, exceptie, feestdagen);
-
-		if (!exceptie.getExceptions().isEmpty())
-		{
-			throw exceptie;
-		}
-	}
-
-	private void valideerNachtBeperkingBegin(AbstractAppointment tijdslot, ColonRoosterBeperking beperkingType, BeperkingException exceptie, ColonRoosterBeperkingenDto beperkingen)
-	{
-		if (beperkingen.getNachtBeperkingType() == beperkingType && beperkingen.getNachtBeperkingBegin().isBefore(DateUtil.toLocalTime(tijdslot.getEndTime())))
-		{
-			exceptie.addException(new ValidatieException(beperkingType == ColonRoosterBeperking.HARD ? "error.harde.nachtbeperking.begin" : "error.zachte.nachtbeperking.begin",
-				beperkingen.getNachtBeperkingBegin().toString()));
-		}
-	}
-
-	private void valideerNachtBeperkingEind(AbstractAppointment tijdslot, ColonRoosterBeperking beperkingType, BeperkingException exceptie, ColonRoosterBeperkingenDto beperkingen)
-	{
-		if (beperkingen.getNachtBeperkingType() == beperkingType && beperkingen.getNachtBeperkingEind().isAfter(DateUtil.toLocalTime(tijdslot.getStartTime())))
-		{
-			exceptie.addException(new ValidatieException(beperkingType == ColonRoosterBeperking.HARD ? "error.harde.nachtbeperking.eind" : "error.zachte.nachtbeperking.eind",
-				beperkingen.getNachtBeperkingEind().toString()));
-		}
-	}
-
-	private void valideerZaterdagBeperking(AbstractAppointment tijdslot, ColonRoosterBeperking beperkingType, BeperkingException exceptie, ColonRoosterBeperkingenDto beperkingen)
-	{
-		if (beperkingen.getZaterdagBeperkingType() == beperkingType && DateUtil.toLocalDate(tijdslot.getStartTime()).getDayOfWeek() == DayOfWeek.SATURDAY)
-		{
-			exceptie.addException(
-				new ValidatieException(beperkingType == ColonRoosterBeperking.HARD ? "error.harde.weekendbeperking.zaterdag" : "error.zachte.weekendbeperking.zaterdag"));
-		}
-	}
-
-	private void valideerZondagBeperking(AbstractAppointment tijdslot, ColonRoosterBeperking beperkingType, BeperkingException exceptie, ColonRoosterBeperkingenDto beperkingen)
-	{
-		if (beperkingen.getZondagBeperkingType() == beperkingType && DateUtil.toLocalDate(tijdslot.getStartTime()).getDayOfWeek() == DayOfWeek.SUNDAY)
-		{
-			exceptie.addException(
-				new ValidatieException(beperkingType == ColonRoosterBeperking.HARD ? "error.harde.weekendbeperking.zondag" : "error.zachte.weekendbeperking.zondag"));
-		}
-	}
-
-	private void valideerFeestdagBeperking(AbstractAppointment tijdslot, ColonRoosterBeperking beperkingType, BeperkingException exceptie, List<ColonFeestdag> feestdagen)
-	{
-		var feestdagOpDagTijdslot = feestdagen.stream().filter(feestdag -> DateUtil.isZelfdeDag(tijdslot.getStartTime(), DateUtil.toUtilDate(feestdag.getDatum()))).findFirst()
-			.orElse(null);
-		if (feestdagOpDagTijdslot != null && feestdagOpDagTijdslot.getBeperking() == beperkingType)
-		{
-			exceptie.addException(
-				new ValidatieException(beperkingType == ColonRoosterBeperking.HARD ? "error.harde.feestdagbeperking" : "error.zachte.feestdagbeperking",
-					feestdagOpDagTijdslot.getNaam()));
-		}
 	}
 
 	@Override

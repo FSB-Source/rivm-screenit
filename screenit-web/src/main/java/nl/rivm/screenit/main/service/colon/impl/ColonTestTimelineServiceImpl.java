@@ -354,10 +354,10 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 			return new ArrayList<>();
 		}
 		Client eersteClient = null;
-		int aantalUitnodigingen = 0;
-		int aantalTestbuizen = 0;
+		var aantalUitnodigingen = 0;
+		var aantalTestbuizen = 0;
 		List<String> errorMelding = new ArrayList<>();
-		for (Client client : clienten)
+		for (var client : clienten)
 		{
 			if (eersteClient == null)
 			{
@@ -368,13 +368,13 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 
 			if (aantalUitnodigingen != getAantalUitnodigingen(client))
 			{
-				String error = "Het aantal uitnodigingen voor client-bsn: " + client.getPersoon().getBsn() + "is niet gelijk aan de overige testcliënten.";
+				var error = "Het aantal uitnodigingen voor client-bsn: " + client.getPersoon().getBsn() + "is niet gelijk aan de overige testcliënten.";
 				LOG.error(error);
 				errorMelding.add(error);
 			}
 			if (aantalTestbuizen != getAantalTestbuizen(client))
 			{
-				String error = "Het aantal testbuizen voor client-bsn: " + client.getPersoon().getBsn() + "is niet gelijk aan de overige testcliënten.";
+				var error = "Het aantal testbuizen voor client-bsn: " + client.getPersoon().getBsn() + "is niet gelijk aan de overige testcliënten.";
 				LOG.error(error);
 				errorMelding.add(error);
 			}
@@ -390,8 +390,8 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 			testTimelineTimeService.calculateBackwards(client.getColonDossier(), TestTimeLineDossierTijdstip.EINDE_RONDE);
 		}
 
-		ColonDossier dossier = client.getColonDossier();
-		ColonScreeningRonde ronde = newColonScreeningRonde(dossier);
+		var dossier = client.getColonDossier();
+		var ronde = newColonScreeningRonde(dossier);
 		geefColonVooraankondiging(ronde);
 
 		if (tijdstip == TestTimeLineDossierTijdstip.DAG_NA_UITNODIGING_ZONDER_FIT)

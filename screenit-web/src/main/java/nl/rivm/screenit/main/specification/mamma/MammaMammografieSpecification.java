@@ -1,4 +1,4 @@
-package nl.rivm.screenit.main.specification;
+package nl.rivm.screenit.main.specification.mamma;
 
 /*-
  * ========================LICENSE_START=================================
@@ -37,7 +37,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import org.springframework.data.jpa.domain.Specification;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class MammografieSpecification
+public class MammaMammografieSpecification
 {
 	public static Specification<Client> heeftBeeldenBeschikbaar()
 	{

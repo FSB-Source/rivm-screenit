@@ -45,7 +45,6 @@ import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
-import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.verslag.followup.MammaFollowUpFollowupPa;
 import nl.rivm.screenit.model.mamma.verslag.followup.MammaFollowUpMonstermateriaal;
 import nl.rivm.screenit.model.mamma.verslag.followup.MammaFollowUpPathologieMedischeObservatie;
@@ -54,7 +53,6 @@ import nl.rivm.screenit.model.mamma.verslag.followup.MammaFollowUpVerrichting;
 import nl.rivm.screenit.model.mamma.verslag.followup.MammaFollowUpVerslagContent;
 import nl.rivm.screenit.model.verslag.DSValue;
 import nl.rivm.screenit.model.verslag.DSValueSet;
-import nl.rivm.screenit.model.verslag.DSValueSetValue;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.UploadDocumentService;
@@ -73,7 +71,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MammaPalgaServiceImpl implements MammaPalgaService
 {
 	@Autowired
@@ -112,11 +109,11 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 	{
 		if (naam != null && loggedInAccount != null)
 		{
-			String logRegel = String.format("Verwijderd: %s", naam);
+			var logRegel = String.format("Verwijderd: %s", naam);
 			logService.logGebeurtenis(LogGebeurtenis.MAMMA_PALGA_CSV_EXPORT, loggedInAccount, logRegel);
 		}
-		List<UploadDocument> exports = palgaDao.getExports();
-		for (UploadDocument export : exports)
+		var exports = palgaDao.getExports();
+		for (var export : exports)
 		{
 			uploadDocumentService.delete(export);
 		}
@@ -184,16 +181,16 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void deleteImports()
 	{
-		List<UploadDocument> imports = palgaDao.getImports();
-		for (UploadDocument importDoc : imports)
+		var imports = palgaDao.getImports();
+		for (var importDoc : imports)
 		{
 			uploadDocumentService.delete(importDoc);
 		}
 	}
 
-	private UploadDocument extractImport(UploadDocument importDocument, String zipWachtwoord) throws ZipException
+	private UploadDocument extractImport(UploadDocument importDocument, String zipWachtwoord) throws IOException
 	{
-		List<File> files = ZipUtil.extractZip(importDocument.getFile(), zipWachtwoord,
+		var files = ZipUtil.extractZip(importDocument.getFile(), zipWachtwoord,
 			locatieFilestore + File.separator + FileStoreLocation.MAMMA_PALGA_CSV_IMPORT.getPath(),
 			true);
 		if (files.size() != 1 || !files.get(0).getName().endsWith(".csv"))
@@ -210,9 +207,9 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 	public MammaPalgaCsvImportMapping maakImportDtoMapping(String[] row)
 	{
 		LOG.debug("Begonnen met aanmaken mappings object.");
-		MammaPalgaCsvImportMapping mapping = new MammaPalgaCsvImportMapping();
+		var mapping = new MammaPalgaCsvImportMapping();
 		int column = 0;
-		for (String headerText : row)
+		for (var headerText : row)
 		{
 			if (StringUtils.isBlank(headerText))
 			{
@@ -322,12 +319,12 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 		{
 			return verslagDao.getDsValue(code, "2.16.840.1.113883.5.1008", Constants.CDA_NULL_FLAVOR_VALUESET_NAME);
 		}
-		DSValueSet dsValueSet = clazz.getDeclaredField(varName).getAnnotation(DSValueSet.class);
-		for (DSValueSetValue dsValue : dsValueSet.values())
+		var dsValueSet = clazz.getDeclaredField(varName).getAnnotation(DSValueSet.class);
+		for (var dsValue : dsValueSet.values())
 		{
 			if (dsValue.code().equals(code))
 			{
-				String codeSystem = dsValue.codeSystem();
+				var codeSystem = dsValue.codeSystem();
 				return verslagDao.getDsValue(code, codeSystem, dsValueSet.name(), false);
 			}
 		}
@@ -343,7 +340,7 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 	@Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
 	public String verwerkImportDto(MammaPalgaCsvImportDto dto, MammaPalgaGrondslag grondslag) throws NoSuchFieldException
 	{
-		MammaDossier dossier = hibernateService.get(MammaDossier.class, dto.getPseudoId());
+		var dossier = hibernateService.get(MammaDossier.class, dto.getPseudoId());
 		if (dossier == null)
 		{
 			return "pseudoId";
@@ -362,17 +359,17 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 			return "bezwaar";
 		}
 
-		MammaScreeningRonde screeningsRonde = verwerkVerslagService.getValideScreeningsRonde(dossier.getClient(), dto.getEindeVerrichting());
+		var screeningsRonde = verwerkVerslagService.getValideScreeningsRonde(dossier.getClient(), dto.getEindeVerrichting());
 
-		MammaFollowUpVerslag verslag = new MammaFollowUpVerslag();
+		var verslag = new MammaFollowUpVerslag();
 		verslag.setScreeningRonde(screeningsRonde);
-		MammaFollowUpVerslagContent verslagContent = new MammaFollowUpVerslagContent();
+		var verslagContent = new MammaFollowUpVerslagContent();
 		verslagContent.setVerslag(verslag);
 
-		MammaFollowUpFollowupPa followupPa = new MammaFollowUpFollowupPa();
+		var followupPa = new MammaFollowUpFollowupPa();
 		followupPa.setVerslagContent(verslagContent);
 
-		MammaFollowUpMonstermateriaal monstermateriaal = new MammaFollowUpMonstermateriaal();
+		var monstermateriaal = new MammaFollowUpMonstermateriaal();
 		monstermateriaal.setFollowupPa(followupPa);
 		monstermateriaal.setLocatietopologie(getDsValue(dto.getLocatie(), "locatietopologie", MammaFollowUpMonstermateriaal.class));
 		monstermateriaal.setLocatieuren(getDsValue(dto.getLocatieInUren(), "locatieuren", MammaFollowUpMonstermateriaal.class));
@@ -391,14 +388,14 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 		vulMeerkeuzeVeldPa(followupPa.getTypeEenduidigBenigneLaesies(), dto.getTypeEenduidigBenigneLaesies(), "typeEenduidigBenigneLaesies");
 		vulMeerkeuzeVeldPa(followupPa.getTypeCis(), dto.getTypeCis(), "typeCis");
 
-		MammaFollowUpPtnmEnGradering ptnmEnGradering = new MammaFollowUpPtnmEnGradering();
+		var ptnmEnGradering = new MammaFollowUpPtnmEnGradering();
 		ptnmEnGradering.setFollowupPa(followupPa);
 		ptnmEnGradering.setPt(getDsValue(dto.getPt(), "pt", MammaFollowUpPtnmEnGradering.class));
 		ptnmEnGradering.setPn(getDsValue(dto.getPn(), "pn", MammaFollowUpPtnmEnGradering.class));
 		followupPa.setPtnmEnGradering(ptnmEnGradering);
 		verslagContent.setFollowupPa(Collections.singletonList(followupPa));
 
-		MammaFollowUpPathologieMedischeObservatie medischeObservatie = new MammaFollowUpPathologieMedischeObservatie();
+		var medischeObservatie = new MammaFollowUpPathologieMedischeObservatie();
 		medischeObservatie.setVerslagContent(verslagContent);
 		medischeObservatie.setDatumAutorisatieUitslag(dto.getDatumEersteAutorisatie());
 		medischeObservatie.setDatumOntvangstMateriaal(dto.getDatumOntvangstMateriaal());
@@ -406,7 +403,7 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 		medischeObservatie.setTnummerLaboratorium(Constants.BK_TNUMMER_ELEKTRONISCH);
 		verslagContent.setPathologieMedischeObservatie(medischeObservatie);
 
-		MammaFollowUpVerrichting verrichting = new MammaFollowUpVerrichting();
+		var verrichting = new MammaFollowUpVerrichting();
 		verrichting.setAanvangVerrichting(dto.getAanvangVerrichting());
 		verrichting.setEindeVerrichting(dto.getEindeVerrichting());
 		verrichting.setVerslagContent(verslagContent);
@@ -418,7 +415,7 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 		verslag.setType(grondslag.getVerslagType());
 		verslag.setDatumVerwerkt(currentDateSupplier.getDate());
 
-		String validatieFout = valideerVerslag(verslag, dto.getVersieProtocol() != null);
+		var validatieFout = valideerVerslag(verslag, dto.getVersieProtocol() != null);
 		if (validatieFout != null)
 		{
 			return "semantisch " + validatieFout;
@@ -437,7 +434,7 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 			return;
 		}
 
-		for (String optie : dtoTeksten.split("\\|"))
+		for (var optie : dtoTeksten.split("\\|"))
 		{
 			targetList.add(getDsValue(optie, varName, MammaFollowUpFollowupPa.class));
 		}
@@ -455,7 +452,7 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 
 	private String valideerVerslag(MammaFollowUpVerslag verslag, boolean isProtocol)
 	{
-		MammaFollowUpVerslagContent verslagContent = verslag.getVerslagContent();
+		var verslagContent = verslag.getVerslagContent();
 		if (verslag.getScreeningRonde() == null)
 		{
 			return "screeningsronde";
@@ -494,10 +491,10 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 
 	private String valideerFollowUpPa(MammaFollowUpFollowupPa followupPa, boolean isProtocol)
 	{
-		MammaFollowUpMonstermateriaal monstermateriaal = followupPa.getMonstermateriaal();
-		DSValue verkrijgingswijze = monstermateriaal.getVerkrijgingswijze();
+		var monstermateriaal = followupPa.getMonstermateriaal();
+		var verkrijgingswijze = monstermateriaal.getVerkrijgingswijze();
 
-		MammaFollowUpPtnmEnGradering ptnmEnGradering = followupPa.getPtnmEnGradering();
+		var ptnmEnGradering = followupPa.getPtnmEnGradering();
 
 		if (verkrijgingswijze == null)
 		{

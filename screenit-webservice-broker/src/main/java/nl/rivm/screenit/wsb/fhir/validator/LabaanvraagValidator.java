@@ -31,10 +31,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.huisartsenportaal.enums.CervixLocatieStatus;
 import nl.rivm.screenit.huisartsenportaal.util.CervixLocatieUtil;
-import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
-import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -97,8 +95,8 @@ public class LabaanvraagValidator
 		{
 			try
 			{
-				LabaanvraagBundle bundle = ((LabaanvraagBundle) resource);
-				CervixLabformulier labformulier = LabaanvraagMapper.INSTANCE.toLabformulier(bundle);
+				var bundle = ((LabaanvraagBundle) resource);
+				var labformulier = LabaanvraagMapper.INSTANCE.toLabformulier(bundle);
 				validateFormMapping(bundle, labformulier);
 				validateFormContent(labformulier);
 			}
@@ -384,14 +382,14 @@ public class LabaanvraagValidator
 
 	private void validateClientGerelateerdeData(LabaanvraagResource resource)
 	{
-		String clientBsn = resource.getClientBsn();
+		var clientBsn = resource.getClientBsn();
 		if (clientBsn == null)
 		{
 			addClientMissingIssues();
 		}
 		else if (BsnUtils.isValidBSN(clientBsn))
 		{
-			Client client = clientService.getClientByBsn(clientBsn);
+			var client = clientService.getClientByBsn(clientBsn);
 			if (client == null)
 			{
 				addClientNotFoundIssues();
@@ -445,10 +443,11 @@ public class LabaanvraagValidator
 	private void validateScreeningRonde(CervixUitstrijkje uitstrijkje, String bsn)
 	{
 		uitstrijkje = (CervixUitstrijkje) Hibernate.unproxy(uitstrijkje);
-		CervixScreeningRonde ontvangstRonde = uitstrijkje.getOntvangstScreeningRonde();
-		if (ontvangstRonde == null)
+		var ontvangstRonde = uitstrijkje.getOntvangstScreeningRonde();
+		var laatsteScreeningRonde = screeningRondeService.getLaatsteScreeningRonde(bsn);
+		if (ontvangstRonde == null && laatsteScreeningRonde.isPresent())
 		{
-			uitstrijkje.setOntvangstScreeningRonde(screeningRondeService.getLaatsteScreeningRonde(bsn));
+			uitstrijkje.setOntvangstScreeningRonde(laatsteScreeningRonde.get());
 		}
 
 		if (!screeningRondeService.heeftValideScreeningRondeVoorDigitaalLabformulier(uitstrijkje))
@@ -478,7 +477,7 @@ public class LabaanvraagValidator
 
 	private void getAndValidateMonsterByMonsterId(LabaanvraagResource resource)
 	{
-		CervixUitstrijkje uitstrijkje = monsterService
+		var uitstrijkje = monsterService
 			.getUitstrijkjeByClientBsnAndMonsterId(resource.getClientBsn(), resource.getMonsterId()).orElse(null);
 		if (uitstrijkje == null)
 		{
@@ -506,7 +505,7 @@ public class LabaanvraagValidator
 
 	private void getAndValidateMonsterByControleLetters(LabaanvraagResource resource)
 	{
-		CervixUitstrijkje uitstrijkje = monsterService
+		var uitstrijkje = monsterService
 			.getUitstrijkjeByClientBsnAndControleLetters(resource.getClientBsn(), resource.getControleLetters()).orElse(null);
 		if (uitstrijkje == null)
 		{
@@ -532,7 +531,7 @@ public class LabaanvraagValidator
 	{
 		if (resource instanceof LabaanvraagBundle)
 		{
-			LabaanvraagBundle bundle = (LabaanvraagBundle) resource;
+			var bundle = (LabaanvraagBundle) resource;
 			if (bundle.getAuthorReferences().size() > 1)
 			{
 				addMappingIssue("meer dan één author reference");
@@ -583,7 +582,7 @@ public class LabaanvraagValidator
 
 	private void validateActieveGoedIngevuldeLocatie(CervixHuisarts huisarts)
 	{
-		boolean huisartsHeeftGeenGoedIngevuldeActieveLocatie = huisarts
+		var huisartsHeeftGeenGoedIngevuldeActieveLocatie = huisarts
 			.getHuisartsLocaties()
 			.stream()
 			.noneMatch(locatie -> locatie.getStatus() == CervixLocatieStatus.ACTIEF && CervixLocatieUtil.isLocatieCompleet(locatie));
@@ -599,7 +598,7 @@ public class LabaanvraagValidator
 	{
 		if (resource instanceof LabaanvraagBundle)
 		{
-			LabaanvraagBundle bundle = (LabaanvraagBundle) resource;
+			var bundle = (LabaanvraagBundle) resource;
 			try
 			{
 				if (bundle.getLaboratorium() == null)

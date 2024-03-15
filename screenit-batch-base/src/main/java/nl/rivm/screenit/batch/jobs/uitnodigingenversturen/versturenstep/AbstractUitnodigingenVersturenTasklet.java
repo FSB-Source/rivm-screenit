@@ -286,6 +286,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 				catch (InterruptedException e)
 				{
 					LOG.error("Fout in sleep", e);
+					Thread.currentThread().interrupt();
 				}
 				message.append("\n<br>Poging ").append(i + 1).append(" (").append(format.format(currentDateSupplier.getDate())).append("): ");
 			}
@@ -545,6 +546,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 		catch (InterruptedException e)
 		{
 			LOG.error("Fout in sleep", e);
+			Thread.currentThread().interrupt();
 		}
 
 		return true;

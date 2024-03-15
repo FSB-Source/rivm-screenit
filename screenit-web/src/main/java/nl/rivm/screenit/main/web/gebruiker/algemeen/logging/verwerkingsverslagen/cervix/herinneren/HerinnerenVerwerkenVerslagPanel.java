@@ -21,17 +21,16 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.logging.verwerkingsverslage
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.main.web.component.BriefTypeLabel;
 import nl.rivm.screenit.model.verwerkingverslag.cervix.CervixHerinnerenRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.cervix.CervixHerinnerenRapportageBriefType;
 
-import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.PropertyListView;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
+import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public class HerinnerenVerwerkenVerslagPanel extends GenericPanel<CervixHerinnerenRapportage>
 {
@@ -53,7 +52,7 @@ public class HerinnerenVerwerkenVerslagPanel extends GenericPanel<CervixHerinner
 			@Override
 			protected void populateItem(ListItem<CervixHerinnerenRapportageBriefType> entry)
 			{
-				entry.add(new BriefTypeLabel("briefType"));
+				entry.add(new Label("briefType.weergaveNaam"));
 				entry.add(new Label("aantal"));
 			}
 		});

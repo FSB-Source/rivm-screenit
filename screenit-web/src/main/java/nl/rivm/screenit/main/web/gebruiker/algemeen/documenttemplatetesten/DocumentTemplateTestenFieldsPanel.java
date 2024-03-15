@@ -21,8 +21,6 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten;
  * =========================LICENSE_END==================================
  */
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -85,8 +83,7 @@ public abstract class DocumentTemplateTestenFieldsPanel extends GenericPanel<Doc
 
 	private final BootstrapDialog printDialog;
 
-	public DocumentTemplateTestenFieldsPanel(final String id,
-		final IModel<DocumentTemplateTestWrapper> wrapperModel)
+	protected DocumentTemplateTestenFieldsPanel(String id, IModel<DocumentTemplateTestWrapper> wrapperModel)
 	{
 		super(id, wrapperModel);
 		this.printDialog = new BootstrapDialog("printDialog");
@@ -98,41 +95,30 @@ public abstract class DocumentTemplateTestenFieldsPanel extends GenericPanel<Doc
 		super.onInitialize();
 		add(printDialog);
 
-		final WebMarkupContainer container = new WebMarkupContainer("container");
+		var container = new WebMarkupContainer("container");
 		container.add(getMergeFieldTestTypeListView(container.getMarkupId()));
 		add(container);
 	}
 
-	public static FormComponent<String> getTextAreaWithStringValidator(final String wicketId,
-		final int maxStringLength)
+	public static FormComponent<String> getTextAreaWithStringValidator(String wicketId, int maxStringLength)
 	{
 		return new TextArea<String>(wicketId)
 			.add(StringValidator.maximumLength(maxStringLength));
 	}
 
-	public static <T> ScreenitDropdown<T> getScreenitDropdown(final String wicketId,
-		final List<T> choices,
-		final ChoiceRenderer<T> choiceRenderer,
-		final boolean nullValid)
+	public static <T> ScreenitDropdown<T> getScreenitDropdown(String wicketId, List<T> choices, ChoiceRenderer<T> choiceRenderer, boolean nullValid)
 	{
 		return new ScreenitDropdown<>(wicketId, choices, choiceRenderer)
 			.setNullValid(nullValid);
 	}
 
-	public static <T> ScreenitDropdown<T> getScreenitDropdown(final String wicketId,
-		final IModel<T> model,
-		final List<? extends T> choices,
-		final boolean nullValid)
+	public static <T> ScreenitDropdown<T> getScreenitDropdown(String wicketId, IModel<T> model, List<? extends T> choices, boolean nullValid)
 	{
 		return new ScreenitDropdown<>(wicketId, model, choices)
 			.setNullValid(nullValid);
 	}
 
-	public static <T> MarkupContainer getScreenitDropdown(final String wicketId,
-		final IModel<T> model,
-		final List<? extends T> choices,
-		final IChoiceRenderer<? super T> renderer,
-		final boolean nullValid)
+	public static <T> MarkupContainer getScreenitDropdown(String wicketId, IModel<T> model, List<? extends T> choices, IChoiceRenderer<? super T> renderer, boolean nullValid)
 	{
 		return new WebMarkupContainer("formContainer")
 			.add(new ScreenitDropdown<>(wicketId, model, choices, renderer)
@@ -140,11 +126,7 @@ public abstract class DocumentTemplateTestenFieldsPanel extends GenericPanel<Doc
 				.setOutputMarkupId(true));
 	}
 
-	public static <T> MarkupContainer getScreenitDropdown(final String wicketId,
-		final IModel<T> model,
-		final IModel<List<T>> choices,
-		final IChoiceRenderer<? super T> renderer,
-		final boolean nullValid)
+	public static <T> MarkupContainer getScreenitDropdown(String wicketId, IModel<T> model, IModel<List<T>> choices, IChoiceRenderer<? super T> renderer, boolean nullValid)
 	{
 		return new WebMarkupContainer("formContainer")
 			.add(new ScreenitDropdown<>(wicketId, model, choices, renderer)
@@ -152,45 +134,36 @@ public abstract class DocumentTemplateTestenFieldsPanel extends GenericPanel<Doc
 				.setOutputMarkupId(true));
 	}
 
-	public static <T> TextField<T> getTextField(final String wicketId,
-		final Class<T> clss)
-	{
-		return new TextField<>(wicketId, clss);
-	}
-
-	public static <T> TextField<T> getTextField(final String wicketId,
-		final IModel<T> model,
-		final Class<T> clss)
+	public static <T> TextField<T> getTextField(String wicketId, IModel<T> model, Class<T> clss)
 	{
 		return new TextField<>(wicketId, model, clss);
 	}
 
-	private ListView<MergeFieldTestType> getMergeFieldTestTypeListView(final String containerMarkupId)
+	private ListView<MergeFieldTestType> getMergeFieldTestTypeListView(String containerMarkupId)
 	{
-		return new ListView<MergeFieldTestType>("mergeTypes", getMergeTypes())
+		return new ListView<>("mergeTypes", getMergeTypes())
 		{
 			@Override
-			protected void populateItem(final ListItem<MergeFieldTestType> item)
+			protected void populateItem(ListItem<MergeFieldTestType> item)
 			{
-				MergeFieldTestType mergeFieldTestType = item.getModelObject();
-				WebMarkupContainer content = getContent(mergeFieldTestType);
+				var mergeFieldTestType = item.getModelObject();
+				var content = getContent(mergeFieldTestType);
 				item.add(content);
 				item.add(getCollapseLink(mergeFieldTestType, content.getMarkupId()));
 			}
 
-			private WebMarkupContainer getCollapseLink(final MergeFieldTestType mergeFieldTestType,
-				final String contentMarkupId)
+			private WebMarkupContainer getCollapseLink(MergeFieldTestType mergeFieldTestType, String contentMarkupId)
 			{
-				WebMarkupContainer collapseLink = new WebMarkupContainer("collapseLink");
+				var collapseLink = new WebMarkupContainer("collapseLink");
 				collapseLink.add(new AttributeAppender("data-parent", new Model<>("#" + containerMarkupId)));
 				collapseLink.add(new AttributeAppender("href", new Model<>("#" + contentMarkupId)));
 				collapseLink.add(new EnumLabel<>("mergeTypeLabel", mergeFieldTestType));
 				return collapseLink;
 			}
 
-			private WebMarkupContainer getContent(final MergeFieldTestType mergeFieldTestType)
+			private WebMarkupContainer getContent(MergeFieldTestType mergeFieldTestType)
 			{
-				WebMarkupContainer content = new WebMarkupContainer("content");
+				var content = new WebMarkupContainer("content");
 				content.add(getFromDBLabel(mergeFieldTestType));
 				content.add(getCheckBox(mergeFieldTestType));
 				content.add(getField(mergeFieldTestType));
@@ -205,14 +178,12 @@ public abstract class DocumentTemplateTestenFieldsPanel extends GenericPanel<Doc
 					: "Vrije tekst invullen?:");
 			}
 
-			private Component getCheckBox(final MergeFieldTestType mergeFieldTestType)
+			private Component getCheckBox(MergeFieldTestType mergeFieldTestType)
 			{
-				if (!mergeFieldTestType.isFromDB()
-					&& mergeFieldTestType.isFreeText())
+				if (!mergeFieldTestType.isFromDB() && mergeFieldTestType.isFreeText())
 				{
 					return new AjaxCheckBox("fromDB", new PropertyModel<>(DocumentTemplateTestenFieldsPanel.this.getModel(), "freeText" + mergeFieldTestType.name()))
 					{
-
 						@Override
 						protected void onUpdate(AjaxRequestTarget target)
 						{
@@ -222,7 +193,6 @@ public abstract class DocumentTemplateTestenFieldsPanel extends GenericPanel<Doc
 				}
 				return new AjaxCheckBox("fromDB", new PropertyModel<>(DocumentTemplateTestenFieldsPanel.this.getModel(), "fromDB" + mergeFieldTestType.name()))
 				{
-
 					@Override
 					protected void onUpdate(AjaxRequestTarget target)
 					{
@@ -231,7 +201,7 @@ public abstract class DocumentTemplateTestenFieldsPanel extends GenericPanel<Doc
 				}.setVisible(mergeFieldTestType.isFromDB());
 			}
 
-			private Fragment getField(final MergeFieldTestType mergeFieldTestType)
+			private Fragment getField(MergeFieldTestType mergeFieldTestType)
 			{
 				if (mergeFieldTestType == MergeFieldTestType.INTAKELOCATIE)
 				{
@@ -244,7 +214,7 @@ public abstract class DocumentTemplateTestenFieldsPanel extends GenericPanel<Doc
 				return new MergeFieldsFragment("fields", DocumentTemplateTestenFieldsPanel.this, mergeFieldTestType, DocumentTemplateTestenFieldsPanel.this.getModel());
 			}
 
-			private Component getExtraField(final MergeFieldTestType mergeFieldTestType)
+			private Component getExtraField(MergeFieldTestType mergeFieldTestType)
 			{
 				return mergeFieldTestType == MergeFieldTestType.BMHKLAB
 					? new BooleanFragment("extraField", DocumentTemplateTestenFieldsPanel.this,
@@ -253,7 +223,7 @@ public abstract class DocumentTemplateTestenFieldsPanel extends GenericPanel<Doc
 			}
 
 			@Override
-			public void renderHead(final IHeaderResponse response)
+			public void renderHead(IHeaderResponse response)
 			{
 				super.renderHead(response);
 				response.render(OnDomReadyHeaderItem.forScript("toggleChevron();"));
@@ -261,16 +231,14 @@ public abstract class DocumentTemplateTestenFieldsPanel extends GenericPanel<Doc
 		};
 	}
 
-	public static Document addDocument(final Document mergedDocument,
-		final Document document)
+	public static Document addDocument(Document mergedDocument, Document document)
 	{
 		return mergedDocument == null
 			? document
 			: getAppendedMergedDocument(mergedDocument, document);
 	}
 
-	private static Document getAppendedMergedDocument(final Document mergedDocument,
-		final Document document)
+	private static Document getAppendedMergedDocument(Document mergedDocument, Document document)
 	{
 		if (headerLacking(document))
 		{
@@ -282,7 +250,7 @@ public abstract class DocumentTemplateTestenFieldsPanel extends GenericPanel<Doc
 		return mergedDocument;
 	}
 
-	private static boolean headerLacking(final Document document)
+	private static boolean headerLacking(Document document)
 	{
 		return Arrays.stream(document.getLastSection().getHeadersFooters().toArray())
 			.noneMatch(nodes -> HeaderFooterType.HEADER_FIRST == nodes.getHeaderFooterType()
@@ -290,24 +258,20 @@ public abstract class DocumentTemplateTestenFieldsPanel extends GenericPanel<Doc
 				|| HeaderFooterType.HEADER_PRIMARY == nodes.getHeaderFooterType());
 	}
 
-	public void createAndShowPDF(final AjaxRequestTarget target,
-		final Document mergedDocument) throws IOException, Exception, FileNotFoundException
+	public void createAndShowPDF(AjaxRequestTarget target, Document mergedDocument) throws Exception
 	{
 		printDialog.openWith(target, new PdfViewerPanel(IDialog.CONTENT_ID, briefService.genereerPdf(mergedDocument, "test_template_brieven", true)));
 	}
 
-	public static MailMergeContext createMailMergeContext(final DocumentTemplateTestWrapper wrapper,
-		final ScreeningOrganisatie screeningOrganisatie)
+	public static MailMergeContext createMailMergeContext(DocumentTemplateTestWrapper wrapper, ScreeningOrganisatie screeningOrganisatie)
 	{
 		var context = maakBasicContext(wrapper, screeningOrganisatie);
 		var brief = maakCervixBrief(wrapper);
 		context.setBrief(brief);
-
 		return context;
 	}
 
-	public static MailMergeContext createMailMergeContext(final DocumentTemplateTestWrapper wrapper,
-		final ScreeningOrganisatie screeningOrganisatie, BriefType printType)
+	public static MailMergeContext createMailMergeContext(DocumentTemplateTestWrapper wrapper, ScreeningOrganisatie screeningOrganisatie, BriefType printType)
 	{
 		var context = maakBasicContext(wrapper, screeningOrganisatie);
 
@@ -335,7 +299,7 @@ public abstract class DocumentTemplateTestenFieldsPanel extends GenericPanel<Doc
 		return context;
 	}
 
-	private static CervixBrief maakCervixBrief(final DocumentTemplateTestWrapper wrapper)
+	private static CervixBrief maakCervixBrief(DocumentTemplateTestWrapper wrapper)
 	{
 		var cervixBrief = new CervixBrief();
 		var cervixUitnodiging = wrapper.getCervixUitnodiging();
@@ -355,8 +319,7 @@ public abstract class DocumentTemplateTestenFieldsPanel extends GenericPanel<Doc
 		return cervixBrief;
 	}
 
-	private static MailMergeContext maakBasicContext(final DocumentTemplateTestWrapper wrapper,
-		final ScreeningOrganisatie screeningOrganisatie)
+	private static MailMergeContext maakBasicContext(DocumentTemplateTestWrapper wrapper, ScreeningOrganisatie screeningOrganisatie)
 	{
 		var bmhkLaboratorium = wrapper.getBmhkLaboratorium();
 		var zasRetouradres = bmhkLaboratorium.getRetouradressen().get(0);
@@ -370,7 +333,7 @@ public abstract class DocumentTemplateTestenFieldsPanel extends GenericPanel<Doc
 		overeenkomst.setScreeningOrganisatie(screeningOrganisatie);
 
 		var context = new MailMergeContext();
-		context.setUseTestValue(Boolean.TRUE);
+		context.setUseTestValue(true);
 		context.setClient(client);
 		context.setCervixUitnodiging(cervixUitnodiging);
 		context.setOvereenkomst(overeenkomst);

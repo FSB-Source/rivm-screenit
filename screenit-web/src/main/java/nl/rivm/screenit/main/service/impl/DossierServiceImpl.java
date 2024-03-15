@@ -1743,7 +1743,7 @@ public class DossierServiceImpl implements DossierService
 					screeningRondeGebeurtenis.setBrief(projectBrief);
 					screeningRondeGebeurtenis.setDatum(projectBrief.getCreatieDatum());
 					screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(projectBrief));
-					extraOmschrijvingen.add(EnumStringUtil.getPropertyString(briefType));
+					extraOmschrijvingen.add(briefType.getWeergaveNaam());
 					if (projectBrief.getHerdruk() != null)
 					{
 						herdrukGebeurtenis(screeningRondeGebeurtenis, extraOmschrijvingen, projectBrief, TypeGebeurtenis.PROJECT_BRIEF_HERDRUK);
@@ -1794,7 +1794,7 @@ public class DossierServiceImpl implements DossierService
 		screeningRondeGebeurtenis.setBrief(brief);
 		screeningRondeGebeurtenis.setDatum(brief.getCreatieDatum());
 		screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(brief));
-		extraOmschrijvingen.add(EnumStringUtil.getPropertyString(brief.getBriefType()));
+		extraOmschrijvingen.add(brief.getBriefType().getWeergaveNaam());
 		if (herdruk != null)
 		{
 			herdrukGebeurtenis(screeningRondeGebeurtenis, extraOmschrijvingen, brief, TypeGebeurtenis.BRIEF_HERDRUK);
@@ -1959,7 +1959,7 @@ public class DossierServiceImpl implements DossierService
 			extraOmschrijvingen.add("Aangemaakt");
 		}
 
-		extraOmschrijvingen.add(EnumStringUtil.getPropertyString(brief.getBriefType()));
+		extraOmschrijvingen.add(brief.getBriefType().getWeergaveNaam());
 
 		MergedBrieven mergedBrieven = BriefUtil.getMergedBrieven(oudeBrief);
 		if (mergedBrieven != null)
@@ -2560,7 +2560,7 @@ public class DossierServiceImpl implements DossierService
 			if ((ProjectBriefActieType.VERVANGENDEBRIEF.equals(actie.getType()) || ProjectBriefActieType.XDAGENNAY.equals(actie.getType())
 				|| ProjectBriefActieType.XMETY.equals(actie.getType())) && actie.getBriefType() != null)
 			{
-				briefType = EnumStringUtil.getPropertyString(actie.getBriefType());
+				briefType = actie.getBriefType().getWeergaveNaam();
 			}
 		}
 

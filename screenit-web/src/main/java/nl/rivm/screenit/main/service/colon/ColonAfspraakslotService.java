@@ -27,18 +27,19 @@ import java.util.List;
 
 import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
 import nl.rivm.screenit.main.exception.BeperkingException;
+import nl.rivm.screenit.main.exception.BulkAanmakenException;
 import nl.rivm.screenit.main.exception.ValidatieException;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.dto.ColonAfspraakslotDto;
+import nl.rivm.screenit.model.colon.enums.ColonRoosterBeperking;
 import nl.rivm.screenit.model.colon.planning.RoosterItem;
+import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
 
 public interface ColonAfspraakslotService
 {
-	List<RoosterItem> splitAfspraakslot(RoosterItem unsavedObject, Integer aantalBlokken, ColoscopieCentrum intakelocatie);
-
 	void createAfspraakslot(ColonAfspraakslotDto afspraakslotDto, InstellingGebruiker instellingGebruiker)
-		throws ValidatieException, OpslaanVerwijderenTijdBlokException, BeperkingException;
+		throws ValidatieException, OpslaanVerwijderenTijdBlokException, BeperkingException, BulkAanmakenException;
 
 	void checkEindTijdOpZelfdeDag(LocalDateTime startDateTime, LocalDateTime endDateTime, ColoscopieCentrum intakelocatie) throws ValidatieException;
 
@@ -51,4 +52,6 @@ public interface ColonAfspraakslotService
 		throws ValidatieException, OpslaanVerwijderenTijdBlokException;
 
 	List<ColonAfspraakslotDto> getAfspraakslots(LocalDate startDate, LocalDate endDate, ColoscopieCentrum intakeLocatie);
+
+	void valideerBeperkingen(AbstractAppointment tijdslot, ColonRoosterBeperking beperkingType) throws BeperkingException;
 }

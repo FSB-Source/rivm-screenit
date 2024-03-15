@@ -22,11 +22,10 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.review;
  */
 
 import java.util.Iterator;
-import java.util.List;
 
-import com.google.common.primitives.Ints;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaConclusieReviewZoekObject;
-import nl.rivm.screenit.main.service.mamma.MammaConclusieReviewService;
+import nl.rivm.screenit.main.service.mamma.impl.MammaConclusieReviewDataProviderServiceImpl;
+import nl.rivm.screenit.main.util.WicketSpringDataUtil;
 import nl.rivm.screenit.model.mamma.MammaConclusieReview;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -36,32 +35,29 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-public class MammaReviewDataProvider extends SortableDataProvider<MammaConclusieReview, String>
+import com.google.common.primitives.Ints;
+
+public class MammaConclusieReviewDataProvider extends SortableDataProvider<MammaConclusieReview, String>
 {
 	@SpringBean
-	private MammaConclusieReviewService conclusieReviewService;
+	private MammaConclusieReviewDataProviderServiceImpl conclusieReviewDataProviderService;
 
-	private IModel<MammaConclusieReviewZoekObject> conclusieFilterOptieModel;
+	private final IModel<MammaConclusieReviewZoekObject> conclusieFilterOptieModel;
 
-	MammaReviewDataProvider(IModel<MammaConclusieReviewZoekObject> conclusieFilterOptieModel)
+	MammaConclusieReviewDataProvider(IModel<MammaConclusieReviewZoekObject> conclusieFilterOptieModel)
 	{
 		Injector.get().inject(this);
-		setSort("laatsteOnderzoek.creatieDatum", SortOrder.ASCENDING);
+		setSort("screeningRonde.laatsteOnderzoek.creatieDatum", SortOrder.ASCENDING);
 		this.conclusieFilterOptieModel = conclusieFilterOptieModel;
 	}
 
 	@Override
 	public Iterator<MammaConclusieReview> iterator(long first, long count)
 	{
-		String sortProperty = null;
-		boolean asc = true;
-		if (getSort() != null)
-		{
-			sortProperty = getSort().getProperty();
-			asc = getSort().isAscending();
-		}
+		var sort = WicketSpringDataUtil.toSpringSort(getSort());
 
-		List<MammaConclusieReview> lijstOnderzoeken = conclusieReviewService.zoekConclusieReviewsVanRadioloog(getZoekObject(), Ints.checkedCast(first), Ints.checkedCast(count), sortProperty, asc);
+		var lijstOnderzoeken = conclusieReviewDataProviderService.findPage(Ints.checkedCast(first), Ints.checkedCast(count), getZoekObject(),
+			sort);
 		return lijstOnderzoeken.iterator();
 	}
 
@@ -73,7 +69,7 @@ public class MammaReviewDataProvider extends SortableDataProvider<MammaConclusie
 	@Override
 	public long size()
 	{
-		return conclusieReviewService.countConclusieReviewsVanRadioloog(getZoekObject());
+		return conclusieReviewDataProviderService.size(getZoekObject());
 	}
 
 	@Override

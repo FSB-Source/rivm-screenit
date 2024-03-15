@@ -92,11 +92,6 @@ class CervixBepaalVervolgLabproces
 			default:
 				throw new IllegalStateException();
 			}
-
-			if (vervolg == null)
-			{
-				throw new IllegalStateException();
-			}
 		}
 		catch (IllegalStateException e)
 		{

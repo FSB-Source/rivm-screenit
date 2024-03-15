@@ -28,7 +28,6 @@ import java.util.Optional;
 import nl.rivm.screenit.dao.colon.IntakelocatieVanTotEnMetFilter;
 import nl.rivm.screenit.exceptions.HeeftAfsprakenException;
 import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
-import nl.rivm.screenit.main.exception.BeperkingException;
 import nl.rivm.screenit.main.exception.ValidatieException;
 import nl.rivm.screenit.main.model.RecurrenceOption;
 import nl.rivm.screenit.model.Client;
@@ -38,7 +37,6 @@ import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.RoosterItemListViewWrapper;
 import nl.rivm.screenit.model.colon.RoosterItemStatus;
 import nl.rivm.screenit.model.colon.RoosterListViewFilter;
-import nl.rivm.screenit.model.colon.enums.ColonRoosterBeperking;
 import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
 import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
@@ -51,8 +49,7 @@ public interface RoosterService
 
 	List<RoosterItem> getRooster(Periode periode, List<Kamer> kamers);
 
-	void magRoosterItemOpslaanVerwijderen(RoosterItem roosteritem, RecurrenceOption recurrenceOption, Date recurrenceEditEnd,
-		Date origRecEndDateTime, boolean wijzigen) throws OpslaanVerwijderenTijdBlokException;
+	void magRoosterItemOpslaanVerwijderen(RoosterItem roosteritem, Range<Date> currentViewRange, boolean wijzigen) throws OpslaanVerwijderenTijdBlokException;
 
 	void magBlokkadeOpslaanVerwijderen(ColonBlokkade blokkade, RecurrenceOption recurrenceOption, Date recurrenceEditEnd, Date origRecEndDateTime, boolean wijzigen,
 		List<Kamer> kamers) throws HeeftAfsprakenException;
@@ -81,11 +78,13 @@ public interface RoosterService
 
 	void valideerTijdslot(AbstractAppointment tijdslot) throws ValidatieException;
 
-	void valideerBeperkingen(AbstractAppointment tijdslot, ColonRoosterBeperking beperkingType) throws BeperkingException;
-
 	ColoscopieCentrum getIntakelocatieVanInstellingGebruiker(InstellingGebruiker instellingGebruiker);
 
 	List<Range<Date>> getNieuweTijdSloten(AbstractAppointment tijdslot, Range<Date> currentViewRange);
 
 	Range<Date> getCurrentViewRange(AbstractAppointment tijdslot, RecurrenceOption recurrenceOption, Date recurrenceEditEnd, Date origRecEndDateTime);
+
+	List<RoosterItem> splitAfspraakslot(RoosterItem unsavedObject, Integer aantalBlokken, ColoscopieCentrum intakelocatie);
+
+	List<RoosterItem> getAfspraakslotsInRange(List<Range<Date>> ranges, RoosterItem afspraakslot);
 }

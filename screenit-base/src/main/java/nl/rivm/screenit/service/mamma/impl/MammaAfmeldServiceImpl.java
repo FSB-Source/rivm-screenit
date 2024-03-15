@@ -35,11 +35,7 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.mamma.MammaAfmelding;
-import nl.rivm.screenit.model.mamma.MammaAfspraak;
-import nl.rivm.screenit.model.mamma.MammaDossier;
-import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
@@ -98,7 +94,7 @@ public class MammaAfmeldServiceImpl implements MammaAfmeldService
 	@Override
 	public void definitieveAfmeldingAanvragen(MammaAfmelding afmelding, boolean rappelBrief)
 	{
-		BriefType briefType = BriefType.MAMMA_AFMELDING_AANVRAAG;
+		var briefType = BriefType.MAMMA_AFMELDING_AANVRAAG;
 		if (rappelBrief)
 		{
 			briefType = BriefType.MAMMA_AFMELDING_HANDTEKENING;
@@ -110,27 +106,26 @@ public class MammaAfmeldServiceImpl implements MammaAfmeldService
 	@Override
 	public void eenmaligAfmelden(MammaAfmelding afmelding, Account account)
 	{
-		MammaScreeningRonde ronde = afmelding.getScreeningRonde();
+		var ronde = afmelding.getScreeningRonde();
 		afspraakEnUitstelAfzeggen(ronde, account);
 	}
 
 	private void afspraakEnUitstelAfzeggen(MammaScreeningRonde ronde, Account account)
 	{
-		Date annuleermoment = millisecondenNaNu(100);
-
-		MammaUitnodiging laatsteUitnodiging = ronde.getLaatsteUitnodiging();
-		MammaAfspraak laatsteAfspraak = laatsteUitnodiging != null ? ronde.getLaatsteUitnodiging().getLaatsteAfspraak() : null;
+		var annuleerMoment = millisecondenNaNu(100);
+		var laatsteUitnodiging = ronde.getLaatsteUitnodiging();
+		var laatsteAfspraak = laatsteUitnodiging != null ? ronde.getLaatsteUitnodiging().getLaatsteAfspraak() : null;
 
 		if (laatsteAfspraak != null)
 		{
-			MammaAfspraakStatus status = account instanceof Client ? MammaAfspraakStatus.GEANNULEERD_CLIENT : MammaAfspraakStatus.GEANNULEERD_VIA_INFOLIJN;
-			baseAfspraakService.afspraakAnnuleren(laatsteAfspraak, status, annuleermoment);
-			LOG.info("Afmelding: laatste afspraak {} is afgezegd", laatsteAfspraak);
+			var status = account instanceof Client ? MammaAfspraakStatus.GEANNULEERD_CLIENT : MammaAfspraakStatus.GEANNULEERD_VIA_INFOLIJN;
+			baseAfspraakService.afspraakAnnuleren(laatsteAfspraak, status, annuleerMoment);
+			LOG.info("Afmelding: laatste afspraak (id: '{}') is afgezegd", laatsteAfspraak.getId());
 		}
 
 		if (ronde.getLaatsteUitstel() != null)
 		{
-			baseUitstelService.uitstelAfzeggen(ronde.getLaatsteUitstel(), MammaUitstelGeannuleerdReden.AFMELDING, annuleermoment);
+			baseUitstelService.uitstelAfzeggen(ronde.getLaatsteUitstel(), MammaUitstelGeannuleerdReden.AFMELDING, annuleerMoment);
 		}
 	}
 
@@ -203,10 +198,10 @@ public class MammaAfmeldServiceImpl implements MammaAfmeldService
 
 	private boolean isDefinitiefAfmeldenMogelijk(Client client, boolean viaClientportaal)
 	{
-		MammaDossier dossier = client.getMammaDossier();
-		MammaAfmelding laatsteDefinitieveAfmelding = dossier.getLaatsteAfmelding();
-		MammaScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
-		boolean kanDefinitiefAfmelden = laatsteDefinitieveAfmelding == null || laatsteDefinitieveAfmelding.getHeraanmeldStatus() == AanvraagBriefStatus.VERWERKT
+		var dossier = client.getMammaDossier();
+		var laatsteDefinitieveAfmelding = dossier.getLaatsteAfmelding();
+		var ronde = dossier.getLaatsteScreeningRonde();
+		var kanDefinitiefAfmelden = laatsteDefinitieveAfmelding == null || laatsteDefinitieveAfmelding.getHeraanmeldStatus() == AanvraagBriefStatus.VERWERKT
 			|| viaClientportaal;
 		if (ronde != null)
 		{
@@ -217,8 +212,8 @@ public class MammaAfmeldServiceImpl implements MammaAfmeldService
 
 	private boolean isEenmaligAfmeldenMogelijk(Client client)
 	{
-		MammaDossier dossier = client.getMammaDossier();
-		MammaScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
+		var dossier = client.getMammaDossier();
+		var ronde = dossier.getLaatsteScreeningRonde();
 		if (ronde != null && ronde.getStatus() == ScreeningRondeStatus.LOPEND)
 		{
 			return rondeHeeftGeenActiefOnderzoek(ronde);
@@ -227,10 +222,9 @@ public class MammaAfmeldServiceImpl implements MammaAfmeldService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<AfmeldingType> getBeschikbareAfmeldopties(Client client, boolean viaClientportaal)
 	{
-		List<AfmeldingType> afmeldingTypes = new ArrayList<>();
+		var afmeldingTypes = new ArrayList<AfmeldingType>();
 		if (isEenmaligAfmeldenMogelijk(client))
 		{
 			afmeldingTypes.add(AfmeldingType.EENMALIG);
@@ -244,7 +238,7 @@ public class MammaAfmeldServiceImpl implements MammaAfmeldService
 
 	private boolean rondeHeeftGeenActiefOnderzoek(MammaScreeningRonde ronde)
 	{
-		MammaAfspraak afspraak = MammaScreeningRondeUtil.getLaatsteAfspraak(ronde);
+		var afspraak = MammaScreeningRondeUtil.getLaatsteAfspraak(ronde);
 		return (afspraak == null || !MammaAfspraakStatus.isGestart(afspraak.getStatus())
 			|| (afspraak.getOnderzoek() != null && MammaOnderzoekStatus.ONDERBROKEN_ZONDER_VERVOLG.equals(afspraak.getOnderzoek().getStatus()))
 			|| screeningRondeService.heeftGeprinteOfTegengehoudenUitslagBrief(ronde)) && !isLaatsteOnderzoekOnderbrokenMetBeelden(ronde);
@@ -252,7 +246,7 @@ public class MammaAfmeldServiceImpl implements MammaAfmeldService
 
 	private boolean isLaatsteOnderzoekOnderbrokenMetBeelden(MammaScreeningRonde ronde)
 	{
-		MammaOnderzoek laatsteOnderzoek = ronde.getLaatsteOnderzoek();
+		var laatsteOnderzoek = ronde.getLaatsteOnderzoek();
 		return laatsteOnderzoek != null && laatsteOnderzoek.getStatus().equals(MammaOnderzoekStatus.ONDERBROKEN)
 			&& MammaMammografieIlmStatus.beeldenBeschikbaarOfBeschikbaarGeweest(laatsteOnderzoek.getMammografie().getIlmStatus());
 	}
@@ -266,7 +260,7 @@ public class MammaAfmeldServiceImpl implements MammaAfmeldService
 
 	private boolean magDefinitiefHeraanmelden(Client client)
 	{
-		MammaAfmelding laatsteDefinitieveAfmelding = client.getMammaDossier().getLaatsteAfmelding();
+		var laatsteDefinitieveAfmelding = client.getMammaDossier().getLaatsteAfmelding();
 		return laatsteDefinitieveAfmelding != null && laatsteDefinitieveAfmelding.getAfmeldingStatus() == AanvraagBriefStatus.VERWERKT
 			&& laatsteDefinitieveAfmelding.getHeraanmeldStatus() != AanvraagBriefStatus.VERWERKT;
 	}
@@ -276,7 +270,7 @@ public class MammaAfmeldServiceImpl implements MammaAfmeldService
 	public boolean magEenmaligHeraanmelden(Client client)
 	{
 		var dossier = client.getMammaDossier();
-		MammaScreeningRonde laatsteRonde = dossier.getLaatsteScreeningRonde();
+		var laatsteRonde = dossier.getLaatsteScreeningRonde();
 		if (magLaatsteRondeHeropenen(laatsteRonde))
 		{
 			return !laatsteRonde.getAangemeld() && dossier.getAangemeld();

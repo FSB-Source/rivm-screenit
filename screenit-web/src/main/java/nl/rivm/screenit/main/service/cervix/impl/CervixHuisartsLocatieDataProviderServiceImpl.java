@@ -26,6 +26,7 @@ import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.repository.cervix.CervixHuisartsLocatieRepository;
 import nl.rivm.screenit.service.cervix.CervixHuisartsLocatieFilter;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -43,7 +44,7 @@ import static nl.rivm.screenit.specification.cervix.CervixHuisartsLocatieSpecifi
 public class CervixHuisartsLocatieDataProviderServiceImpl extends RepositoryDataProviderService<CervixHuisartsLocatie, CervixHuisartsLocatieRepository, CervixHuisartsLocatieFilter>
 {
 	@Override
-	protected Specification<CervixHuisartsLocatie> getSpecification(CervixHuisartsLocatieFilter filter)
+	protected Specification<CervixHuisartsLocatie> getSpecification(CervixHuisartsLocatieFilter filter, Sort sortParam)
 	{
 		return filterOpAchternaamMedewerkerContaining(filter.getAchternaam())
 			.and(filterHuisartsMetAgbCodeContaining(filter.getAgbcode()))

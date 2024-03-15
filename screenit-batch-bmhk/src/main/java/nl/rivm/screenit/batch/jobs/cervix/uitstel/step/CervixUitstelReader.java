@@ -46,7 +46,7 @@ public class CervixUitstelReader extends BaseSpecificationScrollableResultReader
 	{
 		var vandaag = currentDateSupplier.getLocalDate();
 		return CervixUitstelSpecification.heeftClientMetIndicatieAanwezig()
-			.and(CervixUitstelSpecification.heeftPersoonMetOverledenDatum())
+			.and(CervixUitstelSpecification.heeftGeenPersoonMetOverledenDatum())
 			.and(CervixUitstelSpecification.heeftGeenVertrokkenPersoonUitNederlandDatum())
 			.and(CervixUitstelSpecification.heeftLopendeRonde())
 			.and(CervixUitstelSpecification.heeftGeenGeannuleerdDatum())

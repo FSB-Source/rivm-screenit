@@ -42,7 +42,6 @@ import org.hibernate.Hibernate;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.envers.Audited;
-import org.hibernate.envers.NotAudited;
 
 @Entity
 @Table(schema = "algemeen", indexes = { @Index(name = "idx_instelling_gebruiker_actief", columnList = "actief") })
@@ -54,10 +53,8 @@ public class InstellingGebruiker extends OrganisatieMedewerker<Instelling, Gebru
 
 	@OneToMany(mappedBy = "instellingGebruiker")
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "organisatie.cache")
-	@NotAudited
 	private List<InstellingGebruikerRol> rollen = new ArrayList<>();
 
-	@NotAudited
 	@ElementCollection(targetClass = Bevolkingsonderzoek.class)
 	@Column(name = "bevolkingsonderzoeken", nullable = true)
 	@Enumerated(EnumType.STRING)
@@ -189,5 +186,4 @@ public class InstellingGebruiker extends OrganisatieMedewerker<Instelling, Gebru
 	{
 		this.bevolkingsonderzoeken = bevolkingsonderzoeken;
 	}
-
 }

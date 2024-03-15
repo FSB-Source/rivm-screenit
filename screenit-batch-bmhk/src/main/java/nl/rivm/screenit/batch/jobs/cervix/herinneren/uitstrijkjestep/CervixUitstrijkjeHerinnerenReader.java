@@ -21,11 +21,22 @@ package nl.rivm.screenit.batch.jobs.cervix.herinneren.uitstrijkjestep;
  * =========================LICENSE_END==================================
  */
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Root;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.cervix.herinneren.allsteps.CervixHerinnerenReader;
+import nl.rivm.screenit.model.MergedBrieven_;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
+import nl.rivm.screenit.model.cervix.CervixBrief_;
+import nl.rivm.screenit.model.cervix.CervixUitnodiging;
+import nl.rivm.screenit.model.cervix.CervixUitnodiging_;
+import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
+import nl.rivm.screenit.specification.SpecificationUtil;
+import nl.rivm.screenit.specification.cervix.CervixUitnodigingSpecification;
 
-import org.hibernate.Criteria;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -36,15 +47,27 @@ public class CervixUitstrijkjeHerinnerenReader extends CervixHerinnerenReader
 
 	public CervixUitstrijkjeHerinnerenReader()
 	{
-		super(CERVIX_UITSTRIJKJE_HERINNEREN_READER_FETCH_SIZE, PreferenceKey.CERVIX_HERINNERINGS_PERIODE_NON_RESPONDER,
+		super(CERVIX_UITSTRIJKJE_HERINNEREN_READER_FETCH_SIZE,
 			OrganisatieParameterKey.CERVIX_MAX_AANTAL_HERINNERINGEN_UITSTRIJKJE,
-			"mergedBrieven.printDatum");
+			CervixMonsterType.UITSTRIJKJE);
 	}
 
 	@Override
-	protected void voegStepSpecifiekeCriteriaToe(Criteria crit)
+	protected Specification<CervixUitnodiging> createSpecification()
 	{
-		voegAliasEnCriteriaToeMonstertypeUitstrijkje(crit);
+		var maxPeriodeDatum = getMaxPeriodeDatum(PreferenceKey.CERVIX_HERINNERINGS_PERIODE_NON_RESPONDER);
+		return super.createSpecification()
+			.and(CervixUitnodigingSpecification.heeftMergedBrievenVoorDatum(maxPeriodeDatum));
 	}
 
+	@Override
+	protected Order getOrder(Root<CervixUitnodiging> r, CriteriaBuilder cb)
+	{
+		if (getMaxAantalHerinneringen(OrganisatieParameterKey.CERVIX_MAX_AANTAL_HERINNERINGEN_UITSTRIJKJE) != null)
+		{
+			var brief = SpecificationUtil.join(r, CervixUitnodiging_.brief);
+			return cb.asc(SpecificationUtil.join(brief, CervixBrief_.mergedBrieven).get(MergedBrieven_.printDatum));
+		}
+		return null;
+	}
 }

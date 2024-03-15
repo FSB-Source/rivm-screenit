@@ -21,11 +21,9 @@ package nl.rivm.screenit.main.web.component;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 
-import org.apache.wicket.Application;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
 
 public class BriefTypeChoiceRenderer extends ChoiceRenderer<BriefType>
@@ -34,15 +32,10 @@ public class BriefTypeChoiceRenderer extends ChoiceRenderer<BriefType>
 	private static final long serialVersionUID = 1L;
 
 	@Override
-	public Object getDisplayValue(BriefType object)
+	public Object getDisplayValue(BriefType briefType)
 	{
-		String key = EnumStringUtil.getPropertyString(object);
-		String briefnaam = Application.get().getResourceSettings().getLocalizer().getString(key, null);
-		if (!object.isActief())
-		{
-			briefnaam += " " + Application.get().getResourceSettings().getLocalizer().getString("BriefType.niet.meer.in.gebruik", null);
-		}
-		return Bevolkingsonderzoek.getAfkortingen(object.getOnderzoeken()) + " - " + briefnaam;
+		var briefnaam = briefType.getWeergaveNaam();
+		return Bevolkingsonderzoek.getAfkortingen(briefType.getOnderzoeken()) + " - " + briefnaam;
 	}
 
 }

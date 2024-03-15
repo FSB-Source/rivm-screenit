@@ -24,13 +24,17 @@ package nl.rivm.screenit.util;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.model.Client;
@@ -58,6 +62,7 @@ import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 import nl.topicuszorg.wicket.planning.model.Discipline;
 import nl.topicuszorg.wicket.planning.model.appointment.definition.ActionType;
 
+import org.apache.commons.io.FileUtils;
 import org.springframework.util.Assert;
 
 import au.com.bytecode.opencsv.CSVWriter;
@@ -65,6 +70,7 @@ import au.com.bytecode.opencsv.CSVWriter;
 import static nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider.getApplicationContext;
 
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class FillerUtil
 {
 	public static UploadDocument getUploadDocumentEnSlaOp(long id, String naam, String contentType, File file, FileStoreLocation fileStoreLocation)
@@ -81,7 +87,7 @@ public class FillerUtil
 		}
 		catch (IOException e)
 		{
-			e.printStackTrace();
+			throw new IllegalStateException("Kan uploadDocument niet opslaan", e);
 		}
 		return uploadDocument;
 	}
@@ -148,7 +154,7 @@ public class FillerUtil
 	public static void definieerAfspraakDefinitie(AfspraakDefinitie definitie, Discipline discipline)
 	{
 		definitie.setActief(true);
-		definitie.setDuurAfspraakInMinuten(Integer.valueOf(15));
+		definitie.setDuurAfspraakInMinuten(15);
 		definitie.setLabel(ColonTijdSlotType.ROOSTER_ITEM.getTitle());
 		definitie.setType(ActionType.APPOINTMENT);
 		definitie.setTypeAfspraak(TypeAfspraak.AFSPRAAK);
@@ -158,12 +164,12 @@ public class FillerUtil
 
 	public static String stripComments(List<String> list)
 	{
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder buffer = new StringBuilder();
 		for (String line : list)
 		{
 			if (!line.startsWith("//") && !line.startsWith("--"))
 			{
-				buffer.append(line + "\n");
+				buffer.append(line).append("\n");
 			}
 		}
 		return buffer.toString();
@@ -172,10 +178,7 @@ public class FillerUtil
 	public static File createFile(String filePath, List<Client> clienten, List<String> attributen)
 	{
 		File file = new File(filePath);
-		if (file.exists() && !file.delete())
-		{
-			LOG.error("Verwijderen van bestand " + file.getPath() + " lukt niet");
-		}
+		verwijderBestandIndienAanwezig(file);
 
 		try (CSVWriter csvOutput = new CSVWriter(new FileWriter(filePath, true), ','))
 		{
@@ -192,15 +195,27 @@ public class FillerUtil
 		return new File(filePath);
 	}
 
+	private static void verwijderBestandIndienAanwezig(File file)
+	{
+		if (file.exists())
+		{
+			try
+			{
+				Files.delete(file.toPath());
+			}
+			catch (IOException e)
+			{
+				LOG.error("Verwijderen van bestand {} lukt niet", file.getPath(), e);
+			}
+		}
+	}
+
 	private static String[] getHeaders(List<String> attributen)
 	{
 		List<String> headers = new ArrayList<>();
 		headers.add("bsn");
 		headers.add("geboortedatum");
-		for (String attribuut : attributen)
-		{
-			headers.add(attribuut);
-		}
+		headers.addAll(attributen);
 		return headers.toArray(new String[0]);
 	}
 
@@ -210,10 +225,7 @@ public class FillerUtil
 		List<String> values = new ArrayList<>();
 		values.add(client.getPersoon().getBsn());
 		values.add(format.format(client.getPersoon().getGeboortedatum()));
-		for (String value : attributen)
-		{
-			values.add(value);
-		}
+		values.addAll(attributen);
 		return values.toArray(new String[0]);
 	}
 
@@ -235,4 +247,19 @@ public class FillerUtil
 		hibernateService.saveOrUpdate(bestand);
 		return bestand;
 	}
+
+	public static File laadBaseResourceInTempFile(String resourcePath)
+	{
+		try (var inputStream = FillerUtil.class.getResourceAsStream(resourcePath))
+		{
+			var file = File.createTempFile("test", "test");
+			FileUtils.copyInputStreamToFile(Objects.requireNonNull(inputStream), file);
+			return file;
+		}
+		catch (IOException e)
+		{
+			throw new IllegalArgumentException("Kan resource " + resourcePath + " niet in temp file laden", e);
+		}
+	}
+
 }

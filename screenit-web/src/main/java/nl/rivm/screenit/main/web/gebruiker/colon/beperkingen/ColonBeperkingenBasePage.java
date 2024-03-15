@@ -41,7 +41,7 @@ public abstract class ColonBeperkingenBasePage extends AngularBasePage
 	{
 		var contextMenuItems = new ArrayList<GebruikerMenuItem>();
 		contextMenuItems.add(new GebruikerMenuItem("menu.colonscreening.feestdagen", ColonFeestdagenPage.class));
-		contextMenuItems.add(new GebruikerMenuItem("menu.colonscreening.weekend.werkdag", ColonWeekendWerkDagBeperkingenPage.class));
+		contextMenuItems.add(new GebruikerMenuItem("menu.colonscreening.tijd.weekend", ColonWeekendWerkDagBeperkingenPage.class));
 		return contextMenuItems;
 	}
 }

@@ -112,6 +112,7 @@ public class CervixVerrichtingenQueueServiceImpl
 		catch (InterruptedException | JsonProcessingException e)
 		{
 			herindexatieService.logFout(herindexatieDto, totaalAantalVerrichtingen.get(), e);
+			Thread.currentThread().interrupt();
 		}
 		finally
 		{
@@ -215,7 +216,7 @@ public class CervixVerrichtingenQueueServiceImpl
 	{
 		if (bindSessionOnThread)
 		{
-			SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.unbindResource(this.sessionFactory);
+			SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.unbindResource(sessionFactory);
 			SessionFactoryUtils.closeSession(sessionHolder.getSession());
 			bindSessionOnThread = false;
 		}

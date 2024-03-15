@@ -45,9 +45,12 @@ import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Where;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 
 @Entity
 @Table(schema = "algemeen")
+@Audited
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "organisatie.cache")
 @Getter
 @Setter
@@ -69,6 +72,7 @@ public class Rol extends AbstractHibernateObject implements INaam, IActief, IBev
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	@CollectionTable(schema = "algemeen", name = "rol_bevolkingsonderzoeken")
+	@NotAudited
 	private List<Bevolkingsonderzoek> bevolkingsonderzoeken = new ArrayList<>();
 
 	private Boolean actief = true;

@@ -29,7 +29,6 @@
                             <resources>
                                 <resource>
                                     <directory>${basedir}/../screenit-base/src/test/resources/aspose</directory>
-                                    <filtering>true</filtering>
                                 </resource>
                             </resources>
                         </configuration>
@@ -136,47 +135,6 @@
                                 <number>${buildnumber}</number>
                             </additionalProperties>
                             <outputFile>target/classes/build-info.properties</outputFile>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>com.github.eirslett</groupId>
-                <artifactId>frontend-maven-plugin</artifactId>
-                <configuration>
-                    <workingDirectory>../screenit-frontend/medewerkerportaal</workingDirectory>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>install node and yarn</id>
-                        <goals>
-                            <goal>install-node-and-yarn</goal>
-                        </goals>
-                        <phase>generate-resources</phase>
-                        <configuration>
-                            <nodeVersion>${binary.node.version}</nodeVersion>
-                            <yarnVersion>${binary.yarn.version}</yarnVersion>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>yarn install</id>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <phase>generate-resources</phase>
-                        <configuration>
-                            <arguments>install --frozen-lockfile</arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>yarn build</id>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <phase>generate-resources</phase>
-                        <configuration>
-                            <arguments>build</arguments>
                         </configuration>
                     </execution>
                 </executions>

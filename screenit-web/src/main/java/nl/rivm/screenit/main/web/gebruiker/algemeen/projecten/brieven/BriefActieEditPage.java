@@ -237,7 +237,7 @@ public class BriefActieEditPage extends ProjectBasePage
 
 						if (actie.getBriefType() != null)
 						{
-							melding += getString(EnumStringUtil.getPropertyString(actie.getBriefType()));
+							melding += actie.getBriefType().getWeergaveNaam();
 						}
 
 						if (ProjectType.BRIEFPROJECT.equals(project.getType()))

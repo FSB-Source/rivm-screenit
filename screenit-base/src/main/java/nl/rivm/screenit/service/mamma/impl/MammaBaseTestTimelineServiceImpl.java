@@ -22,20 +22,16 @@ package nl.rivm.screenit.service.mamma.impl;
  */
 
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 
 import nl.rivm.screenit.dao.mamma.MammaBaseHL7v24Dao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
-import nl.rivm.screenit.model.mamma.MammaBrief;
-import nl.rivm.screenit.model.mamma.MammaCapaciteitBlok;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaMergedBrieven;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
-import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -104,8 +100,8 @@ public class MammaBaseTestTimelineServiceImpl implements MammaBaseTestTimelineSe
 	public MammaUitnodiging nieuweRondeAfspraakUitnodiging(Client client, MammaScreeningsEenheid screeningsEenheid, MammaStandplaatsRonde standplaatsRonde,
 		boolean stuurHl7Bericht, boolean rekenDossierTerug)
 	{
-		MammaScreeningRonde ronde = nieuweRonde(client, standplaatsRonde, rekenDossierTerug);
-		MammaUitnodiging uitnodiging = factory.maakUitnodiging(ronde, ronde.getStandplaatsRonde(), BriefType.MAMMA_AFSPRAAK_UITNODIGING);
+		var ronde = nieuweRonde(client, standplaatsRonde, rekenDossierTerug);
+		var uitnodiging = factory.maakUitnodiging(ronde, ronde.getStandplaatsRonde(), BriefType.MAMMA_AFSPRAAK_UITNODIGING);
 		verzendLaatsteBrief(ronde);
 
 		maakAfspraak(uitnodiging.getScreeningRonde(), screeningsEenheid, stuurHl7Bericht);
@@ -116,9 +112,9 @@ public class MammaBaseTestTimelineServiceImpl implements MammaBaseTestTimelineSe
 	@Override
 	public MammaUitnodiging nieuweRondeAfspraakUitnodiging(Client client, MammaScreeningsEenheid screeningsEenheid, boolean stuurHl7Bericht, Long uitnodigingsNr)
 	{
-		MammaScreeningRonde ronde = nieuweRonde(client, null, true);
+		var ronde = nieuweRonde(client, null, true);
 		ronde.setUitnodigingsNr(uitnodigingsNr);
-		MammaUitnodiging uitnodiging = factory.maakUitnodiging(ronde, ronde.getStandplaatsRonde(), BriefType.MAMMA_AFSPRAAK_UITNODIGING);
+		var uitnodiging = factory.maakUitnodiging(ronde, ronde.getStandplaatsRonde(), BriefType.MAMMA_AFSPRAAK_UITNODIGING);
 		verzendLaatsteBrief(ronde);
 
 		maakAfspraak(uitnodiging.getScreeningRonde(), screeningsEenheid, stuurHl7Bericht);
@@ -135,8 +131,8 @@ public class MammaBaseTestTimelineServiceImpl implements MammaBaseTestTimelineSe
 	@Override
 	public MammaUitnodiging nieuweRondeMetOpenUitnodiging(Client client, boolean stuurHl7Bericht)
 	{
-		MammaScreeningRonde ronde = nieuweRonde(client, null, true);
-		MammaUitnodiging uitnodiging = factory.maakUitnodiging(ronde, ronde.getStandplaatsRonde(), BriefType.MAMMA_OPEN_UITNODIGING);
+		var ronde = nieuweRonde(client, null, true);
+		var uitnodiging = factory.maakUitnodiging(ronde, ronde.getStandplaatsRonde(), BriefType.MAMMA_OPEN_UITNODIGING);
 		verzendLaatsteBrief(ronde);
 
 		return uitnodiging;
@@ -155,7 +151,7 @@ public class MammaBaseTestTimelineServiceImpl implements MammaBaseTestTimelineSe
 
 		var nu = currentDateSupplier.getLocalDateTime();
 		var afspraakDatum = nu.truncatedTo(ChronoUnit.HOURS).plusMinutes(30 * (nu.getMinute() / 30)).plusWeeks(5);
-		MammaStandplaatsPeriode standplaatsPeriode = screeningsEenheid.getStandplaatsPerioden().get(0);
+		var standplaatsPeriode = screeningsEenheid.getStandplaatsPerioden().get(0);
 		if (standplaatsPeriode == null)
 		{
 			throw new IllegalArgumentException("Screeningeenheid " + screeningsEenheid.getNaam() + " heeft geen standplaatsperiode");
@@ -167,7 +163,7 @@ public class MammaBaseTestTimelineServiceImpl implements MammaBaseTestTimelineSe
 	private MammaScreeningRonde nieuweRonde(Client client, MammaStandplaatsRonde standplaatsRonde, boolean rekenDossierTerug)
 	{
 		baseHL7v24Dao.deleteMessagesForClient(client, true);
-		MammaDossier dossier = client.getMammaDossier();
+		var dossier = client.getMammaDossier();
 		if (rekenDossierTerug)
 		{
 			rekenDossierTerug(dossier, MammaTestTimeLineDossierTijdstip.NIEUWE_RONDE);
@@ -187,18 +183,17 @@ public class MammaBaseTestTimelineServiceImpl implements MammaBaseTestTimelineSe
 
 	private MammaBaseTestTimelineService verzendLaatsteBrief(MammaScreeningRonde ronde)
 	{
-		MammaBrief brief = ronde.getLaatsteBrief();
+		var brief = ronde.getLaatsteBrief();
 
-		MammaMergedBrieven mergedBrieven = new MammaMergedBrieven();
+		var mergedBrieven = new MammaMergedBrieven();
 		mergedBrieven.setCreatieDatum(dateSupplier.getDate());
 		mergedBrieven.setBriefType(brief.getBriefType());
-		mergedBrieven.setBrieven(new ArrayList<>());
 		mergedBrieven.setPrintDatum(dateSupplier.getDate());
 		mergedBrieven.setVerwijderd(true);
 		mergedBrieven.setScreeningOrganisatie(ronde.getDossier().getClient().getPersoon().getGbaAdres().getGbaGemeente().getScreeningOrganisatie());
 		brief.setGegenereerd(true);
 		brief.setMergedBrieven(mergedBrieven);
-		UploadDocument fakeMergeDocument = new UploadDocument();
+		var fakeMergeDocument = new UploadDocument();
 		fakeMergeDocument.setActief(true);
 		fakeMergeDocument.setNaam("dummy_testservice_brief_niet_openen");
 		hibernateService.saveOrUpdate(fakeMergeDocument);
@@ -216,13 +211,13 @@ public class MammaBaseTestTimelineServiceImpl implements MammaBaseTestTimelineSe
 
 	private void koppelAfsprakenLos(MammaDossier dossier)
 	{
-		for (MammaScreeningRonde screeningRonde : dossier.getScreeningRondes())
+		for (var screeningRonde : dossier.getScreeningRondes())
 		{
-			for (MammaUitnodiging uitnodiging : screeningRonde.getUitnodigingen())
+			for (var uitnodiging : screeningRonde.getUitnodigingen())
 			{
-				for (MammaAfspraak afspraak : uitnodiging.getAfspraken())
+				for (var afspraak : uitnodiging.getAfspraken())
 				{
-					MammaCapaciteitBlok capaciteitBlok = afspraak.getCapaciteitBlok();
+					var capaciteitBlok = afspraak.getCapaciteitBlok();
 					if (capaciteitBlok != null)
 					{
 						afspraak.setCapaciteitBlok(null);

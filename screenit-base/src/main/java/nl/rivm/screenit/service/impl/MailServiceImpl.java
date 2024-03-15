@@ -140,7 +140,7 @@ public class MailServiceImpl implements MailService
 		}
 		catch (Exception e)
 		{
-			LOG.error("Niet mogelijk om een registratiemail uit te sturen naar huisarts({}) met agbcode {}", huisarts.getId(), huisarts.getAgbcode(), e);
+			LOG.error("Niet mogelijk om een registratiemail uit te sturen naar huisarts (id: '{}')", huisarts.getId(), e);
 		}
 	}
 

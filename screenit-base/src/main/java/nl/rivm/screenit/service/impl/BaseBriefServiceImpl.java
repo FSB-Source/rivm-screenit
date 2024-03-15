@@ -37,7 +37,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -86,7 +85,6 @@ import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.AfmeldingUtil;
 import nl.rivm.screenit.util.BriefUtil;
-import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.util.JavaScriptPdfHelper;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
@@ -207,7 +205,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void saveBriefDefinitie(BriefDefinitie nieuweBriefDefinitie, File uploadFile, String contentType, String filename, UnaryOperator<String> getString) throws IOException
+	public void saveBriefDefinitie(BriefDefinitie nieuweBriefDefinitie, File uploadFile, String contentType, String filename) throws IOException
 	{
 
 		UploadDocument uploadDocument = new UploadDocument();
@@ -223,13 +221,9 @@ public class BaseBriefServiceImpl implements BaseBriefService
 
 		hibernateService.save(nieuweBriefDefinitie);
 
-		if (getString != null)
-		{
-			logService.logGebeurtenis(LogGebeurtenis.BRIEF_TOEGEVOEGD, nieuweBriefDefinitie.getUploader(),
-				"Brief geupload: " + nieuweBriefDefinitie.getDocument().getNaam() + ", Type: " + getString.apply(
-					EnumStringUtil.getPropertyString(nieuweBriefDefinitie.getBriefType())),
-				nieuweBriefDefinitie.getBriefType().getOnderzoeken());
-		}
+		logService.logGebeurtenis(LogGebeurtenis.BRIEF_TOEGEVOEGD, nieuweBriefDefinitie.getUploader(),
+			"Brief geupload: " + nieuweBriefDefinitie.getDocument().getNaam() + ", Type: " + nieuweBriefDefinitie.getBriefType().getWeergaveNaam(),
+			nieuweBriefDefinitie.getBriefType().getOnderzoeken());
 	}
 
 	private void checkVoorProjectClient(ClientBrief<?, ?, ?> brief, Client client)
@@ -848,10 +842,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	public void setNietGegenereerdeBrievenOpTegenhouden(ScreeningRonde<?, ?, ?, ?> screeningRonde, Collection<BriefType> brieftypes)
 	{
 		screeningRonde.getBrieven().stream().filter(brief -> brieftypes.contains(brief.getBriefType()) && BriefUtil.isNietGegenereerdEnNietVervangen(brief))
-			.forEach(brief ->
-			{
-				hibernateService.saveOrUpdate(BriefUtil.setTegenhouden(brief, true));
-			});
+			.forEach(brief -> hibernateService.saveOrUpdate(BriefUtil.setTegenhouden(brief, true)));
 	}
 
 	@Override

@@ -24,6 +24,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.labformulier.contro
 import java.util.Iterator;
 
 import nl.rivm.screenit.main.service.cervix.impl.CervixHuisartsLocatieDataProviderServiceImpl;
+import nl.rivm.screenit.main.util.WicketSpringDataUtil;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.service.cervix.CervixHuisartsLocatieFilter;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -51,7 +52,8 @@ public class CervixHuisartsLocatieProvider extends SortableDataProvider<CervixHu
 	@Override
 	public Iterator<? extends CervixHuisartsLocatie> iterator(long first, long count)
 	{
-		return huisartsLocatieDataProviderService.findPage(first, count, filter, getSort()).iterator();
+		var sort = WicketSpringDataUtil.toSpringSort(getSort());
+		return huisartsLocatieDataProviderService.findPage(first, count, filter, sort).iterator();
 	}
 
 	@Override

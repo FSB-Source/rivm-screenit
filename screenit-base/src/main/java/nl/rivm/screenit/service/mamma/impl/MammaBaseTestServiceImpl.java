@@ -22,7 +22,6 @@ package nl.rivm.screenit.service.mamma.impl;
  */
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -37,15 +36,11 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactManier;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.UploadDocument;
-import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.mamma.MammaAfmelding;
-import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaBrief;
-import nl.rivm.screenit.model.mamma.MammaDeelnamekans;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaMergedBrieven;
-import nl.rivm.screenit.model.mamma.MammaOpkomstkans;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
@@ -68,7 +63,6 @@ import nl.topicuszorg.util.postcode.PostcodeFormatter;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -114,7 +108,7 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 	@Override
 	public MammaDossier geefDossier(GbaPersoon gbaPersoon)
 	{
-		Client client = testService.maakClient(gbaPersoon);
+		var client = testService.maakClient(gbaPersoon);
 		return client.getMammaDossier();
 	}
 
@@ -122,9 +116,9 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 	@Transactional
 	public MammaScreeningRonde geefScreeningRonde(GbaPersoon gbaPersoon)
 	{
-		MammaDossier dossier = geefDossier(gbaPersoon);
+		var dossier = geefDossier(gbaPersoon);
 
-		MammaScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
+		var ronde = dossier.getLaatsteScreeningRonde();
 		if (ronde == null)
 		{
 			ronde = baseFactory.maakRonde(dossier, hibernateService.loadAll(MammaStandplaatsRonde.class).get(0), false);
@@ -138,25 +132,24 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 	@Transactional
 	public MammaUitnodiging maakUitnodiging(GbaPersoon gbaPersoon, BriefType briefType)
 	{
-		MammaScreeningRonde ronde = geefScreeningRonde(gbaPersoon);
+		var ronde = geefScreeningRonde(gbaPersoon);
 
-		MammaUitnodiging uitnodiging = baseFactory.maakUitnodiging(ronde, ronde.getStandplaatsRonde(), briefType);
+		var uitnodiging = baseFactory.maakUitnodiging(ronde, ronde.getStandplaatsRonde(), briefType);
 		verzendLaatsteBrief(ronde);
 		return uitnodiging;
 	}
 
 	private void verzendLaatsteBrief(MammaScreeningRonde ronde)
 	{
-		MammaBrief brief = ronde.getLaatsteBrief();
+		var brief = ronde.getLaatsteBrief();
 
-		MammaMergedBrieven mergedBrieven = new MammaMergedBrieven();
+		var mergedBrieven = new MammaMergedBrieven();
 		mergedBrieven.setCreatieDatum(dateSupplier.getDate());
 		mergedBrieven.setBriefType(BriefType.MAMMA_OPEN_UITNODIGING);
-		mergedBrieven.setBrieven(new ArrayList<>());
 		mergedBrieven.setPrintDatum(dateSupplier.getDate());
 		mergedBrieven.setVerwijderd(true);
 		brief.setMergedBrieven(mergedBrieven);
-		UploadDocument fakeMergeDocument = new UploadDocument();
+		var fakeMergeDocument = new UploadDocument();
 		fakeMergeDocument.setActief(true);
 		fakeMergeDocument.setNaam("dummy_testservice_brief_niet_openen");
 		hibernateService.saveOrUpdate(fakeMergeDocument);
@@ -166,43 +159,10 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS)
-	public String clientenResetten(String bsns)
-	{
-		int gevondenEnIsVerwijderd = 0;
-		String[] bsnList = bsns.split(",");
-		String result = "Succesvol";
-		for (String bsn : bsnList)
-		{
-			try
-			{
-				if (StringUtils.isBlank(bsn) || bsn.trim().length() != 9)
-				{
-					continue;
-				}
-				Client client = clientDao.getClientByBsn(bsn.trim());
-				if (client == null)
-				{
-					continue;
-				}
-				clientReset(client, false);
-				testService.verwijderClientContacten(client, Bevolkingsonderzoek.MAMMA);
-				gevondenEnIsVerwijderd++;
-			}
-			catch (Exception e)
-			{
-				result = "Fout bij resetten van client met BSN " + bsn;
-				LOG.error("error bij bsn " + bsn, e);
-			}
-		}
-		return result + ". #" + gevondenEnIsVerwijderd + " clienten gereset.";
-	}
-
-	@Override
 	@Transactional
 	public void clientReset(Client client, boolean verwijderAlleBerichten)
 	{
-		MammaDossier dossier = client.getMammaDossier();
+		var dossier = client.getMammaDossier();
 		if (dossier == null)
 		{
 			return;
@@ -216,7 +176,7 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 
 		baseIlmService.verwijderIlmRapportageEntriesVoorClient(client);
 
-		MammaDeelnamekans deelnamekans = dossier.getDeelnamekans();
+		var deelnamekans = dossier.getDeelnamekans();
 		if (deelnamekans != null)
 		{
 			hibernateService.delete(deelnamekans);
@@ -224,7 +184,7 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 
 		baseHL7v24Dao.deleteMessagesForClient(client, verwijderAlleBerichten);
 
-		List<MammaBrief> overgeblevenBrieven = hibernateService.getByParameters(MammaBrief.class, Map.of("client", client));
+		var overgeblevenBrieven = hibernateService.getByParameters(MammaBrief.class, Map.of("client", client));
 		hibernateService.deleteAll(overgeblevenBrieven);
 
 		client.setMammaDossier(null);
@@ -240,10 +200,10 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 	@Transactional
 	public int clientenDefinitiefAfmelden(List<Client> clienten, MammaAfmeldingReden afmeldingReden)
 	{
-		int aantalAfgemeld = 0;
-		for (Client client : clienten)
+		var aantalAfgemeld = 0;
+		for (var client : clienten)
 		{
-			MammaAfmelding afmelding = new MammaAfmelding();
+			var afmelding = new MammaAfmelding();
 			afmelding.setDossier(client.getMammaDossier());
 			afmelding.setType(AfmeldingType.DEFINITIEF);
 			afmelding.setManier(ClientContactManier.DIRECT);
@@ -259,22 +219,22 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 	@Transactional
 	public void maakOfVindClient(String bsn, MammaDoelgroep doelgroep, String postcode, BigDecimal deelnamekans, BigDecimal opkomstkans, Date geboortedatum)
 	{
-		GbaPersoon persoon = new GbaPersoon();
+		var persoon = new GbaPersoon();
 		persoon.setBsn(bsn);
 		persoon.setGeslacht(Geslacht.VROUW);
 		persoon.setGeboortedatum(geboortedatum);
 
-		BagAdres adres = new BagAdres();
+		var adres = new BagAdres();
 		adres.setPostcode(postcode);
 		persoon.setGbaAdres(adres);
 
-		Client client = maakOfVindClient(persoon, doelgroep, deelnamekans, opkomstkans, false);
+		var client = maakOfVindClient(persoon, doelgroep, deelnamekans, opkomstkans, false);
 
 		postcode = PostcodeFormatter.formatPostcode(postcode, false);
 		if (StringUtils.isNotBlank(postcode))
 		{
 
-			BagAdres gbaAdres = client.getPersoon().getGbaAdres();
+			var gbaAdres = client.getPersoon().getGbaAdres();
 			gbaAdres.setPostcode(postcode);
 			hibernateService.saveOrUpdate(gbaAdres);
 		}
@@ -284,8 +244,8 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 	@Transactional
 	public Client maakOfVindClient(GbaPersoon persoon, MammaDoelgroep doelgroep, BigDecimal deelnamekans, BigDecimal opkomstkans, boolean alleenMaken)
 	{
-		Client client = testService.getClientByBsn(persoon.getBsn());
-		boolean bestaandeClient = client != null;
+		var client = testService.getClientByBsn(persoon.getBsn());
+		var bestaandeClient = client != null;
 
 		if (client == null || !alleenMaken)
 		{
@@ -300,12 +260,12 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 
 		if (deelnamekans != null && doelgroep != null && alleenMaken)
 		{
-			MammaDossier dossier = client.getMammaDossier();
+			var dossier = client.getMammaDossier();
 
 			if (!bestaandeClient)
 			{
 				dossier.setDoelgroep(doelgroep);
-				MammaDeelnamekans dossierDeelnamekans = dossier.getDeelnamekans();
+				var dossierDeelnamekans = dossier.getDeelnamekans();
 				dossierDeelnamekans.setDeelnamekans(deelnamekans);
 
 				if (doelgroep.equals(MammaDoelgroep.DUBBELE_TIJD))
@@ -315,13 +275,13 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 				hibernateService.saveOrUpdateAll(dossier, dossierDeelnamekans);
 			}
 
-			for (MammaScreeningRonde screeningRonde : dossier.getScreeningRondes())
+			for (var screeningRonde : dossier.getScreeningRondes())
 			{
-				for (MammaUitnodiging uitnodiging : screeningRonde.getUitnodigingen())
+				for (var uitnodiging : screeningRonde.getUitnodigingen())
 				{
-					for (MammaAfspraak afspraak : uitnodiging.getAfspraken())
+					for (var afspraak : uitnodiging.getAfspraken())
 					{
-						MammaOpkomstkans afspraakOpkomstkans = afspraak.getOpkomstkans();
+						var afspraakOpkomstkans = afspraak.getOpkomstkans();
 						afspraakOpkomstkans.setOpkomstkans(opkomstkans);
 						hibernateService.saveOrUpdate(afspraakOpkomstkans);
 					}

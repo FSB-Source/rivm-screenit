@@ -22,7 +22,6 @@ package nl.rivm.screenit.util;
  */
 
 import java.time.DayOfWeek;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -47,6 +46,7 @@ import nl.rivm.screenit.model.GbaPersoon;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 
@@ -72,6 +72,7 @@ public final class DateUtil
 
 	public static Date plusWerkdagen(Date nu, Integer werkdagen)
 	{
+		Preconditions.checkNotNull(nu, "Nu mag niet null zijn");
 		var dateTime = DateUtil.toLocalDateTime(nu);
 		while (werkdagen > 0)
 		{
@@ -91,6 +92,8 @@ public final class DateUtil
 
 	public static LocalDate plusWerkdagen(LocalDate datum, long aantal)
 	{
+		Preconditions.checkNotNull(datum, "Datum mag niet null zijn");
+
 		while (aantal > 0)
 		{
 			datum = datum.plusDays(1);
@@ -104,6 +107,8 @@ public final class DateUtil
 
 	public static LocalDate minusWerkdagen(LocalDate datum, int aantal)
 	{
+		Preconditions.checkNotNull(datum, "Datum mag niet null zijn");
+
 		while (aantal > 0)
 		{
 			datum = datum.minusDays(1);
@@ -139,7 +144,7 @@ public final class DateUtil
 
 	public static List<Range<Date>> disjunct(Range<Date> target, Range<Date> disjunct)
 	{
-		List<Range<Date>> disjunctionResult = new ArrayList<>();
+		var disjunctionResult = new ArrayList<Range<Date>>();
 		if (overlaps(target, disjunct))
 		{
 			if (target.lowerEndpoint().before(disjunct.lowerEndpoint()))
@@ -160,6 +165,9 @@ public final class DateUtil
 
 	public static int getMonthsBetweenDates(Date startDate, Date endDate)
 	{
+		Preconditions.checkNotNull(startDate, "Start datum mag niet null zijn");
+		Preconditions.checkNotNull(endDate, "Eind datum mag niet null zijn");
+
 		if (startDate.getTime() > endDate.getTime())
 		{
 			Date temp = startDate;
@@ -187,6 +195,8 @@ public final class DateUtil
 
 	public static int getDaysBetweenIgnoreWeekends(LocalDateTime startDate, LocalDateTime endDate, boolean ignoreTimeOfDay)
 	{
+		Preconditions.checkNotNull(startDate, "StartDate mag niet null zijn");
+		Preconditions.checkNotNull(endDate, "EndDate mag niet null zijn");
 
 		if (startDate.equals(endDate))
 		{
@@ -278,14 +288,15 @@ public final class DateUtil
 		{
 			return null;
 		}
-		ZonedDateTime atZone = localDateTime.atZone(SCREENIT_DEFAULT_ZONE);
-		Instant instant = atZone.toInstant();
-		Date date = Date.from(instant);
+
+		var atZone = localDateTime.atZone(SCREENIT_DEFAULT_ZONE);
+		var instant = atZone.toInstant();
+		var date = Date.from(instant);
 		if (LOG.isTraceEnabled())
 		{
-			ZonedDateTime atZoneSD = localDateTime.atZone(ZoneId.systemDefault());
-			Instant instantSD = atZoneSD.toInstant();
-			Date dateSD = Date.from(instantSD);
+			var atZoneSD = localDateTime.atZone(ZoneId.systemDefault());
+			var instantSD = atZoneSD.toInstant();
+			var dateSD = Date.from(instantSD);
 			LOG.trace("Input localDateTime: " + localDateTime + " ZonedDateTime: " + atZone + " Instant: " + instant + " Date: " + date + " ZonedDateTimeSD: " + atZoneSD
 				+ " InstantSD: " + instantSD + " DateSD: " + dateSD + " SD: " + ZoneId.systemDefault());
 		}
@@ -308,14 +319,14 @@ public final class DateUtil
 		{
 			return null;
 		}
-		ZonedDateTime atStartOfDay = localDate.atStartOfDay(SCREENIT_DEFAULT_ZONE);
-		Instant instant = atStartOfDay.toInstant();
-		Date date = Date.from(instant);
+		var atStartOfDay = localDate.atStartOfDay(SCREENIT_DEFAULT_ZONE);
+		var instant = atStartOfDay.toInstant();
+		var date = Date.from(instant);
 		if (LOG.isTraceEnabled())
 		{
-			ZonedDateTime atStartOfDaySD = localDate.atStartOfDay(ZoneId.systemDefault());
-			Instant instantSD = atStartOfDaySD.toInstant();
-			Date dateSD = Date.from(instantSD);
+			var atStartOfDaySD = localDate.atStartOfDay(ZoneId.systemDefault());
+			var instantSD = atStartOfDaySD.toInstant();
+			var dateSD = Date.from(instantSD);
 			LOG.trace("Input localDate: " + localDate + "ZonedDateTime: " + atStartOfDay + " Instant: " + instant + " Date: " + date + " ZonedDateTimeSD: " + atStartOfDaySD
 				+ " InstantSD: " + instantSD + " DateSD: " + dateSD + " SD: " + ZoneId.systemDefault());
 		}
@@ -339,27 +350,35 @@ public final class DateUtil
 
 	public static Date startDag(Date date)
 	{
+		Preconditions.checkNotNull(date, "Datum mag niet null zijn");
+
 		return toUtilDate(toLocalDate(date).atStartOfDay());
 	}
 
 	public static Date startMinuut(Date date)
 	{
+		Preconditions.checkNotNull(date, "Datum mag niet null zijn");
+
 		return toUtilDate(toLocalDateTime(date).withSecond(0).withNano(0));
 	}
 
 	public static Date startSeconde(Date date)
 	{
+		Preconditions.checkNotNull(date, "Datum mag niet null zijn");
+
 		return toUtilDate(toLocalDateTime(date).withNano(0));
 	}
 
 	public static Date eindDag(Date date)
 	{
+		Preconditions.checkNotNull(date, "Datum mag niet null zijn");
+
 		return toUtilDate(toLocalDateTime(date).with(LocalTime.MAX));
 	}
 
 	public static String formatShortDate(Date date)
 	{
-		LocalDate localDate = toLocalDate(date);
+		var localDate = toLocalDate(date);
 		if (localDate != null)
 		{
 			return localDate.format(LOCAL_DATE_FORMAT);
@@ -369,7 +388,7 @@ public final class DateUtil
 
 	public static String formatShortDateTime(Date date)
 	{
-		LocalDateTime localDateTime = toLocalDateTime(date);
+		var localDateTime = toLocalDateTime(date);
 		if (localDateTime != null)
 		{
 			return localDateTime.format(LOCAL_DATE_TIME_FORMAT);
@@ -379,7 +398,7 @@ public final class DateUtil
 
 	public static String formatTime(Date time)
 	{
-		LocalTime localTime = toLocalTime(time);
+		var localTime = toLocalTime(time);
 		if (localTime != null)
 		{
 			return localTime.format(LOCAL_TIME_FORMAT);
@@ -399,21 +418,21 @@ public final class DateUtil
 
 	public static boolean isGeboortedatumGelijk(LocalDate geboortedatum, Client client)
 	{
-		GbaPersoon persoon = client.getPersoon();
-		String gebDatClient = getGeboortedatum(client);
-		String gebDatVergelijk = DateTimeFormatter.ofPattern(persoon.getGeboortedatumPrecisie().getDatePattern()).format(geboortedatum);
+		var persoon = client.getPersoon();
+		var gebDatClient = getGeboortedatum(client);
+		var gebDatVergelijk = DateTimeFormatter.ofPattern(persoon.getGeboortedatumPrecisie().getDatePattern()).format(geboortedatum);
 		return gebDatClient.equals(gebDatVergelijk);
 	}
 
 	public static String formatForPattern(String pattern, Date date)
 	{
-		DateTimeFormatter df = DateTimeFormatter.ofPattern(pattern);
+		var df = DateTimeFormatter.ofPattern(pattern);
 		return df.format(toLocalDateTime(date));
 	}
 
 	public static Date parseDateTimeForPattern(String date, String pattern)
 	{
-		DateTimeFormatter df = DateTimeFormatter.ofPattern(pattern);
+		var df = DateTimeFormatter.ofPattern(pattern);
 		return toUtilDate(LocalDateTime.parse(date, df));
 	}
 
@@ -424,7 +443,7 @@ public final class DateUtil
 
 	public static LocalDate parseLocalDateForPattern(String date, String pattern)
 	{
-		DateTimeFormatter df = DateTimeFormatter.ofPattern(pattern);
+		var df = DateTimeFormatter.ofPattern(pattern);
 		return LocalDate.parse(date, df);
 	}
 
@@ -441,10 +460,10 @@ public final class DateUtil
 
 	public static String getGeboortedatum(GbaPersoon persoon)
 	{
-		String geboortedatumAlsTekst = null;
+		var geboortedatumAlsTekst = "";
 		if (persoon != null && persoon.getGeboortedatum() != null)
 		{
-			String geboortedatumPrecisieDatePattern = Constants.DEFAULT_DATE_FORMAT;
+			var geboortedatumPrecisieDatePattern = Constants.DEFAULT_DATE_FORMAT;
 			if (persoon.getGeboortedatumPrecisie() != null)
 			{
 				geboortedatumPrecisieDatePattern = persoon.getGeboortedatumPrecisie().getDatePattern();
@@ -480,6 +499,8 @@ public final class DateUtil
 
 	public static Date zetSeconden(Date date, int seconden)
 	{
+		Preconditions.checkNotNull(date, "Datum mag niet null zijn");
+
 		return toUtilDate(toLocalDateTime(date).withSecond(seconden));
 	}
 
@@ -501,6 +522,8 @@ public final class DateUtil
 
 	public static Date minusTijdseenheid(Date datum, long hoeveelheid, ChronoUnit tijdseenheid)
 	{
+		Preconditions.checkNotNull(datum, "Datum mag niet null zijn");
+
 		return toUtilDate(toLocalDateTime(datum).minus(hoeveelheid, tijdseenheid));
 	}
 
@@ -516,6 +539,8 @@ public final class DateUtil
 
 	public static Date plusTijdseenheid(Date datum, long hoeveelheid, ChronoUnit tijdseenheid)
 	{
+		Preconditions.checkNotNull(datum, "Datum mag niet null zijn");
+
 		return toUtilDate(toLocalDateTime(datum).plus(hoeveelheid, tijdseenheid));
 	}
 

@@ -37,8 +37,6 @@ import java.util.zip.ZipOutputStream;
 import lombok.extern.slf4j.Slf4j;
 
 import net.lingala.zip4j.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.model.FileHeader;
 
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.service.UploadDocumentService;
@@ -52,15 +50,15 @@ public final class ZipUtil
 	public static Set<File> maakZips(List<UploadDocument> uploadDocumenten, String baseZipNaam, long maxKiloBytesZip) throws IOException
 	{
 		UploadDocumentService uploadDocumentService = ApplicationContextProvider.getApplicationContext().getBean(UploadDocumentService.class);
-		Set<File> zips = new LinkedHashSet<>();
-		int zipNummer = 0;
+		var zips = new LinkedHashSet<File>();
+		var zipNummer = 0;
 		File zipFile = null;
 		ZipOutputStream zipOut = null;
 		int aantalBestandenInZip = 0;
 
 		for (UploadDocument document : uploadDocumenten)
 		{
-			File fileToZip = uploadDocumentService.load(document);
+			var fileToZip = uploadDocumentService.load(document);
 			long zipKiloBytes = zipFile == null ? 0 : (zipFile.length() + fileToZip.length()) / 1024;
 
 			if (zipNummer == 0 || zipKiloBytes >= (maxKiloBytesZip))
@@ -70,7 +68,7 @@ public final class ZipUtil
 					LOG.info("Aantal bestanden in zip" + zipNummer + ": " + aantalBestandenInZip);
 					aantalBestandenInZip = 0;
 				}
-				String zipNaam = maakZipNaam(baseZipNaam, ++zipNummer);
+				var zipNaam = maakZipNaam(baseZipNaam, ++zipNummer);
 				zipFile = File.createTempFile(zipNaam, ".zip");
 				zips.add(zipFile);
 				zipOut = closeEnMaakZipOut(zipFile, zipOut);
@@ -96,15 +94,15 @@ public final class ZipUtil
 
 	public static void zipFileOrDirectory(String fileToZip, String zipFile, boolean excludeContainingFolder) throws IOException
 	{
-		File srcFile = new File(fileToZip);
-		String[] filesToZip = srcFile.list();
-		try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(zipFile));)
+		var srcFile = new File(fileToZip);
+		var filesToZip = srcFile.list();
+		try (var zipOut = new ZipOutputStream(new FileOutputStream(zipFile));)
 		{
 			if (excludeContainingFolder && srcFile.isDirectory())
 			{
-				for (String fileName : filesToZip)
+				for (var fileName : filesToZip)
 				{
-					addToZip("", fileToZip + "/" + fileName, zipOut);
+					addToZip("", fileToZip + File.separator + fileName, zipOut);
 				}
 			}
 			else
@@ -120,11 +118,11 @@ public final class ZipUtil
 
 	private static void addToZip(String path, String srcFile, ZipOutputStream zipOut) throws IOException
 	{
-		File file = new File(srcFile);
-		String filePath = "".equals(path) ? file.getName() : path + "/" + file.getName();
+		var file = new File(srcFile);
+		var filePath = "".equals(path) ? file.getName() : path + "/" + file.getName();
 		if (file.isDirectory())
 		{
-			for (String fileName : file.list())
+			for (var fileName : file.list())
 			{
 				addToZip(filePath, srcFile + "/" + fileName, zipOut);
 			}
@@ -138,7 +136,7 @@ public final class ZipUtil
 	private static void addEntryToZip(String entryPath, String srcFile, ZipOutputStream zipOut) throws IOException
 	{
 		zipOut.putNextEntry(new ZipEntry(entryPath));
-		try (FileInputStream in = new FileInputStream(srcFile);)
+		try (var in = new FileInputStream(srcFile);)
 		{
 
 			byte[] buffer = new byte[1024];
@@ -155,34 +153,36 @@ public final class ZipUtil
 		return StringUtils.join(Arrays.asList(baseZipNaam, "zipNummer", zipNummer, "-"), "-");
 	}
 
-	public static List<File> extractZip(File file, String wachtwoord, String path, boolean verwijderZip) throws ZipException
+	public static List<File> extractZip(File file, String wachtwoord, String path, boolean verwijderZip) throws IOException
 	{
-		ZipFile zipFile = new ZipFile(file);
-		if (zipFile.isEncrypted())
+		try (var zipFile = new ZipFile(file))
 		{
-			if (wachtwoord != null)
+			if (zipFile.isEncrypted())
 			{
-				zipFile.setPassword(wachtwoord.toCharArray());
+				if (wachtwoord != null)
+				{
+					zipFile.setPassword(wachtwoord.toCharArray());
+				}
+				else
+				{
+					throw new IllegalArgumentException("zipFile is encrypted, wachtwoord mag niet null zijn");
+				}
 			}
-			else
+
+			var files = new ArrayList<File>();
+			zipFile.extractAll(path);
+			for (var fileHeader : zipFile.getFileHeaders())
 			{
-				throw new IllegalArgumentException("zipFile is encrypted, wachtwoord mag niet null zijn");
+				var fileName = fileHeader.getFileName();
+				files.add(new File(path + fileName));
 			}
-		}
 
-		List<File> files = new ArrayList<>();
-		zipFile.extractAll(path);
-		for (FileHeader fileHeader : zipFile.getFileHeaders())
-		{
-			String fileName = fileHeader.getFileName();
-			files.add(new File(path + fileName));
+			if (verwijderZip)
+			{
+				file.delete();
+			}
+			return files;
 		}
-
-		if (verwijderZip)
-		{
-			file.delete();
-		}
-		return files;
 	}
 
 }
