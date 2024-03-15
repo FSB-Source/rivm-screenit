@@ -23,7 +23,6 @@ package nl.rivm.screenit.main.service.cervix.impl;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,8 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import javax.xml.bind.JAXBException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -100,8 +97,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.aspose.words.Document;
 
 @Slf4j
 @Service
@@ -165,26 +160,26 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 
 	private String getBetalingsKenmerk(Date date)
 	{
-		List<CervixBetaalopdracht> opdrachten = verrichtingDao.getVandaagGemaakteBetaalOpdrachten();
-		int huidigeOpdrachtNummerVanVandaag = opdrachten.size() + 1;
-		String kenmerknummer = StringUtils.leftPad(String.valueOf(huidigeOpdrachtNummerVanVandaag), 3, "0");
+		var opdrachten = verrichtingDao.getVandaagGemaakteBetaalOpdrachten();
+		var huidigeOpdrachtNummerVanVandaag = opdrachten.size() + 1;
+		var kenmerknummer = StringUtils.leftPad(String.valueOf(huidigeOpdrachtNummerVanVandaag), 3, "0");
 		return DateUtil.formatForPattern(Constants.DATE_FORMAT_YYYYMMDD, date) + kenmerknummer;
 	}
 
 	private String getSepaHash(File sepaBestand) throws IOException, NoSuchAlgorithmException
 	{
 
-		MessageDigest md = MessageDigest.getInstance("SHA-256");
-		StringBuilder hexStringBuilder = new StringBuilder();
+		var md = MessageDigest.getInstance("SHA-256");
+		var hexStringBuilder = new StringBuilder();
 		try (FileInputStream fis = new FileInputStream(sepaBestand))
 		{
-			byte[] dataBytes = new byte[1024];
-			int nread = 0;
+			var dataBytes = new byte[1024];
+			var nread = 0;
 			while ((nread = fis.read(dataBytes)) != -1)
 			{
 				md.update(dataBytes, 0, nread);
 			}
-			byte[] mdbytes = md.digest();
+			var mdbytes = md.digest();
 			for (byte mdbyte : mdbytes)
 			{
 				hexStringBuilder.append(Integer.toHexString(0xFF & mdbyte));
@@ -205,13 +200,13 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 
 	private void berekenEinddatumCervixHuisartsTarief()
 	{
-		List<CervixHuisartsTarief> tarieven = verrichtingDao.getHuisartsTarievenZonderEinddatum();
+		var tarieven = verrichtingDao.getHuisartsTarievenZonderEinddatum();
 		berekenEinddatum(tarieven);
 	}
 
 	private void berekenEinddatumCervixLaboratoriumTarief(BMHKLaboratorium laboratorium)
 	{
-		List<CervixLabTarief> tarieven = verrichtingDao.getLabTarievenZonderEinddatum(laboratorium);
+		var tarieven = verrichtingDao.getLabTarievenZonderEinddatum(laboratorium);
 		berekenEinddatum(tarieven);
 	}
 
@@ -219,10 +214,10 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 	{
 		for (int i = 0; i < tarieven.size(); i++)
 		{
-			CervixTarief oldTarief = tarieven.get(i);
+			var oldTarief = tarieven.get(i);
 			if (i + 1 != tarieven.size())
 			{
-				CervixTarief newTarief = tarieven.get(i + 1);
+				var newTarief = tarieven.get(i + 1);
 				oldTarief.setGeldigTotenmetDatum(DateUtil.toUtilDate(DateUtil.toLocalDate(newTarief.getGeldigVanafDatum()).minusDays(1)));
 			}
 			else if (oldTarief.getGeldigTotenmetDatum() != null)
@@ -235,14 +230,14 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 
 	private String getLogMeldingHuisartsTariefVerwijderd(CervixHuisartsTarief huisartsTarief)
 	{
-		String logMelding = "Huisartstarief met bedrag: " + CervixTariefType.HUISARTS_UITSTRIJKJE.getBedragStringVanTarief(huisartsTarief) + " verwijderd. ";
+		var logMelding = "Huisartstarief met bedrag: " + CervixTariefType.HUISARTS_UITSTRIJKJE.getBedragStringVanTarief(huisartsTarief) + " verwijderd. ";
 		logMelding += "Tarief was" + CervixTariefUtil.getGeldigheidMelding(huisartsTarief);
 		return logMelding;
 	}
 
 	private String getLogMeldingLabTariefVerwijderd(CervixLabTarief labTarief)
 	{
-		String logMelding = "Labtarief verwijderd met de bedragen: ";
+		var logMelding = "Labtarief verwijderd met de bedragen: ";
 		for (CervixTariefType labTariefType : getTariefTypenVoorLaboratorium(labTarief.getBmhkLaboratorium()))
 		{
 			logMelding += String.format("%s:  %s; ", labTariefType.getNaam(), labTariefType.getBedragStringVanTarief(labTarief));
@@ -253,7 +248,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 
 	private String queueHerindexeringVanVerrichtingen(CervixTarief nieuweTarief, List<CervixTarief> oudeTarieven)
 	{
-		String melding = "";
+		var melding = "";
 		for (CervixTarief oudeTarief : oudeTarieven)
 		{
 			if (!melding.isEmpty())
@@ -269,7 +264,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 
 	private String getLogMeldingHuisartsTarief(CervixHuisartsTarief nieuwTarief, String corrigeerOudeTarievenMelding)
 	{
-		String logMelding = "";
+		var logMelding = "";
 		if (corrigeerOudeTarievenMelding.isEmpty())
 		{
 			CervixTarief previousTarief = verrichtingService.getTariefVoorDatum(CervixTariefType.HUISARTS_UITSTRIJKJE,
@@ -303,7 +298,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 
 	private List<CervixTarief> getOudeTarieven(CervixTarief nieuweTarief)
 	{
-		boolean isHuisartsTarief = CervixTariefType.isHuisartsTarief(nieuweTarief);
+		var isHuisartsTarief = CervixTariefType.isHuisartsTarief(nieuweTarief);
 		if (isHuisartsTarief)
 		{
 			return verrichtingDao.getHuisartsTarievenTussen(nieuweTarief.getGeldigVanafDatum(), nieuweTarief.getGeldigTotenmetDatum());
@@ -317,7 +312,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 
 	private String corrigeerOudeTarieven(List<CervixTarief> tarieven, CervixTarief nieuweTarief)
 	{
-		String melding = "";
+		var melding = "";
 		for (CervixTarief oudeTarief : tarieven)
 		{
 			if (!melding.isEmpty())
@@ -360,7 +355,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 
 	private void toevoegenTariefAfronden(CervixTarief tarief, String corrigeerOudeTarievenMelding, Account account)
 	{
-		String melding = "";
+		var melding = "";
 		if (CervixTariefType.isHuisartsTarief(tarief))
 		{
 			berekenEinddatumCervixHuisartsTarief();
@@ -369,8 +364,8 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 		}
 		else
 		{
-			CervixLabTarief labTarief = (CervixLabTarief) tarief;
-			BMHKLaboratorium laboratorium = labTarief.getBmhkLaboratorium();
+			var labTarief = (CervixLabTarief) tarief;
+			var laboratorium = labTarief.getBmhkLaboratorium();
 			berekenEinddatumCervixLaboratoriumTarief(laboratorium);
 			melding = getLogMeldingLabTarief(labTarief, corrigeerOudeTarievenMelding);
 			logService.logGebeurtenis(LogGebeurtenis.CERVIX_LAB_TARIEF_AANGEMAAKT, account, melding, Bevolkingsonderzoek.CERVIX);
@@ -379,16 +374,16 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 
 	private String getLogMeldingLabTarief(CervixLabTarief nieuwTarief, String corrigeerOudeTarievenMelding)
 	{
-		StringBuilder logMeldingBuilder = new StringBuilder();
+		var logMeldingBuilder = new StringBuilder();
 		logMeldingBuilder.append("Laboratorium: ").append(nieuwTarief.getBmhkLaboratorium().getNaam());
 		if (corrigeerOudeTarievenMelding.isEmpty())
 		{
-			CervixTarief previousTarief = verrichtingService.getTariefVoorDatum(CervixTariefType.LAB_CYTOLOGIE_NA_HPV_UITSTRIJKJE,
+			var previousTarief = verrichtingService.getTariefVoorDatum(CervixTariefType.LAB_CYTOLOGIE_NA_HPV_UITSTRIJKJE,
 				DateUtil.toUtilDate(DateUtil.toLocalDate(nieuwTarief.getGeldigVanafDatum()).minusDays(1)),
 				nieuwTarief.getBmhkLaboratorium());
 			for (CervixTariefType labTariefType : getTariefTypenVoorLaboratorium(nieuwTarief.getBmhkLaboratorium()))
 			{
-				String logMelding = String.format("; %s: Van oud bedrag (%s) naar nieuw bedrag %s", labTariefType.getNaam(),
+				var logMelding = String.format("; %s: Van oud bedrag (%s) naar nieuw bedrag %s", labTariefType.getNaam(),
 					labTariefType.getBedragStringVanTarief(previousTarief),
 					labTariefType.getBedragStringVanTarief(nieuwTarief));
 				logMeldingBuilder.append(logMelding);
@@ -429,7 +424,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public Long opslaanBetaalopdracht(CervixBetaalopdracht opdracht)
 	{
-		Date nu = currentDateSupplier.getDate();
+		var nu = currentDateSupplier.getDate();
 		opdracht.setStatusDatum(currentDateSupplier.getDate());
 		if (StringUtils.isEmpty(opdracht.getBetalingskenmerk()))
 		{
@@ -443,7 +438,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 
 		hibernateService.saveOrUpdate(opdracht);
 
-		String melding = "Screeningorganisatie: " + opdracht.getScreeningOrganisatie().getNaam() + "; Betalingskenmerk: " + opdracht.getBetalingskenmerk() + "; "
+		var melding = "Screeningorganisatie: " + opdracht.getScreeningOrganisatie().getNaam() + "; Betalingskenmerk: " + opdracht.getBetalingskenmerk() + "; "
 			+ opdracht.getOmschrijving();
 		logService.logGebeurtenis(LogGebeurtenis.CERVIX_EXPORTEER_BETAALOPDRACHT, ScreenitSession.get().getLoggedInAccount(), melding, Bevolkingsonderzoek.CERVIX);
 
@@ -465,7 +460,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 			}
 			else
 			{
-				String ibanMelding = "";
+				var ibanMelding = "";
 				List<Instelling> instellingen = new ArrayList<>();
 				if (regel.getHuisartsLocatie() != null)
 				{
@@ -485,16 +480,16 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 	}
 
 	@Override
-	public void maakSepaBestand(File sepaBestand, CervixBetaalopdracht betaalOpdracht) throws JAXBException, FileNotFoundException
+	public void maakSepaBestand(File sepaBestand, CervixBetaalopdracht betaalOpdracht)
 	{
-		try (FileOutputStream fileOutputStream = new FileOutputStream(sepaBestand))
+		try (var fileOutputStream = new FileOutputStream(sepaBestand))
 		{
 			Date nu = currentDateSupplier.getDate();
 
-			SEPACreditTransfer transfer = new SEPACreditTransfer();
+			var transfer = new SEPACreditTransfer();
 			transfer.buildGroupHeader(String.valueOf(betaalOpdracht.getId()), betaalOpdracht.getVanTenaamstelling(), nu);
 
-			List<CervixBetaalopdrachtRegel> betaalOpdrachtRegels = betaalOpdracht.getBetaalopdrachtRegels();
+			var betaalOpdrachtRegels = betaalOpdracht.getBetaalopdrachtRegels();
 
 			SEPACreditTransfer.Betaalgroep betaalgroep = null;
 
@@ -505,7 +500,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 					betaalOpdracht.getStatusDatum() == null ? currentDateSupplier.getLocalDate() : DateUtil.toLocalDate(betaalOpdracht.getStatusDatum()),
 					betaalOpdracht.getVanTenaamstelling(), betaalOpdracht.getVanIban(), null);
 
-				for (CervixBetaalopdrachtRegel regel : betaalOpdracht.getBetaalopdrachtRegels())
+				for (var regel : betaalOpdracht.getBetaalopdrachtRegels())
 				{
 					betaalgroep.creditTransfer(betaalOpdracht.getBetalingskenmerk(), regel.getBedrag(), null, regel.getNaarTenaamstelling(), regel.getNaarIban(),
 						betaalOpdracht.getOmschrijving());
@@ -528,12 +523,12 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 	@Override
 	public void maakSpecificatieBestand(File specificatieBestand, CervixBetaalopdracht opdracht) throws Exception
 	{
-		try (FileOutputStream stream = new FileOutputStream(specificatieBestand))
+		try (var stream = new FileOutputStream(specificatieBestand))
 		{
-			MailMergeContext context = new MailMergeContext();
+			var context = new MailMergeContext();
 			context.putValue(MailMergeContext.CONTEXT_SCREENING_ORGANISATIE, opdracht.getScreeningOrganisatie());
 			context.putValue(MailMergeContext.CONTEXT_BMHK_BETAALOPDRACHT, opdracht);
-			Document document = asposeService.processDocumentWithCreator(context, template, new CervixBetaalOpdrachtSpecificatieDocumentCreator(opdracht), true);
+			var document = asposeService.processDocumentWithCreator(context, template, new CervixBetaalOpdrachtSpecificatieDocumentCreator(opdracht), true);
 			document.save(stream, asposeService.getPdfSaveOptions());
 		}
 		catch (HibernateException e)
@@ -566,8 +561,8 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 		Map<String, Object> params = new HashMap<>();
 		params.put("status", BestandStatus.VERWERKT);
 		params.put("screeningOrganisatie", screeningOrganisatie);
-		List<CervixBetaalopdracht> betalingsOpdrachten = hibernateService.getByParameters(CervixBetaalopdracht.class, params);
-		for (CervixBetaalopdracht betaalopdracht : betalingsOpdrachten)
+		var betalingsOpdrachten = hibernateService.getByParameters(CervixBetaalopdracht.class, params);
+		for (var betaalopdracht : betalingsOpdrachten)
 		{
 			betaalopdracht.setStatus(BestandStatus.GEARCHIVEERD);
 			hibernateService.saveOrUpdate(betaalopdracht);
@@ -591,7 +586,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 		checkVoorGesplitsteOudeTarieven(oudeTarieven, nieuweTarief);
 		hibernateService.saveOrUpdate(nieuweTarief);
 
-		String corrigeerOudeTarievenMelding = corrigeerOudeTarieven(oudeTarieven, nieuweTarief);
+		var corrigeerOudeTarievenMelding = corrigeerOudeTarieven(oudeTarieven, nieuweTarief);
 
 		toevoegenTariefAfronden(nieuweTarief, corrigeerOudeTarievenMelding, account);
 		return queueHerindexeringVanVerrichtingen(nieuweTarief, oudeTarieven);
@@ -605,15 +600,15 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 		hibernateService.saveOrUpdate(tarief);
 		if (CervixTariefType.isHuisartsTarief(tarief))
 		{
-			String melding = getLogMeldingHuisartsTariefVerwijderd((CervixHuisartsTarief) HibernateHelper.deproxy(tarief));
+			var melding = getLogMeldingHuisartsTariefVerwijderd((CervixHuisartsTarief) HibernateHelper.deproxy(tarief));
 			berekenEinddatumCervixHuisartsTarief();
 			logService.logGebeurtenis(LogGebeurtenis.CERVIX_HUISARTS_TARIEF_VERWIJDERD, account, melding, Bevolkingsonderzoek.CERVIX);
 		}
 		else
 		{
-			CervixLabTarief labTarief = (CervixLabTarief) HibernateHelper.deproxy(tarief);
-			String verwijderdMelding = getLogMeldingLabTariefVerwijderd(labTarief);
-			String melding = "Laboratorium: " + labTarief.getBmhkLaboratorium().getNaam() + verwijderdMelding;
+			var labTarief = (CervixLabTarief) HibernateHelper.deproxy(tarief);
+			var verwijderdMelding = getLogMeldingLabTariefVerwijderd(labTarief);
+			var melding = "Laboratorium: " + labTarief.getBmhkLaboratorium().getNaam() + verwijderdMelding;
 			berekenEinddatumCervixLaboratoriumTarief(CervixTariefType.getLabTarief(tarief).getBmhkLaboratorium());
 			logService.logGebeurtenis(LogGebeurtenis.CERVIX_LAB_TARIEF_VERWIJDERD, account, melding, Bevolkingsonderzoek.CERVIX);
 		}
@@ -659,12 +654,12 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 			{
 				betaalopdracht = hibernateService.load(CervixBetaalopdracht.class, betaalopdrachtId);
 
-				String specificatieNaam = betaalopdracht.getBetalingskenmerk() + "-specificatie";
-				String specificatieSuffix = "pdf";
+				var specificatieNaam = betaalopdracht.getBetalingskenmerk() + "-specificatie";
+				var specificatieSuffix = "pdf";
 				File specificatie = File.createTempFile(specificatieNaam, specificatieSuffix);
 				cervixBetalingService.maakSpecificatieBestand(specificatie, betaalopdracht);
 
-				UploadDocument document = new UploadDocument();
+				var document = new UploadDocument();
 				document.setActief(true);
 				document.setNaam(specificatieNaam + "." + specificatieSuffix);
 				document.setContentType("application/pdf");
@@ -672,11 +667,11 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 				uploadDocumentService.saveOrUpdate(document, FileStoreLocation.CERVIX_BETALING_PDF, betaalopdracht.getId());
 				betaalopdracht.setSepaSpecificatiePdf(document);
 
-				String sepaNaam = betaalopdracht.getBetalingskenmerk() + "-sepa";
-				String sepaSuffix = "xml";
+				var sepaNaam = betaalopdracht.getBetalingskenmerk() + "-sepa";
+				var sepaSuffix = "xml";
 				File sepaBestand = File.createTempFile(sepaNaam, sepaSuffix);
 				cervixBetalingService.maakSepaBestand(sepaBestand, betaalopdracht);
-				String hashtotaal = getSepaHash(sepaBestand);
+				var hashtotaal = getSepaHash(sepaBestand);
 
 				document = new UploadDocument();
 				document.setActief(true);

@@ -104,6 +104,7 @@ public class PlanningControllerSynchronizedRequestFilter implements Filter
 				LOG.error("Fout bij wachten op kunnen uitvoeren van een taak", e);
 				HttpServletResponse httpServletResponse = (HttpServletResponse) response;
 				httpServletResponse.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+				Thread.currentThread().interrupt();
 			}
 		}
 		LOG.trace("Ended");

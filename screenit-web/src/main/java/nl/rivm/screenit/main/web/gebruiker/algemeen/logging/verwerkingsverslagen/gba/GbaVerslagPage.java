@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.algemeen.logging.verwerkingsverslagen.gba;
 
 /*-
@@ -30,7 +29,6 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.gba.GbaVerwerkingsLog;
-import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.model.IModel;
 import org.wicketstuff.shiro.ShiroConstraint;
@@ -43,13 +41,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA })
 public class GbaVerslagPage extends AlgemeenPage
 {
-
 	private static final long serialVersionUID = 1L;
-
-	public GbaVerslagPage(GbaVerwerkingsLog log)
-	{
-		this(ModelUtil.sModel(log));
-	}
 
 	public GbaVerslagPage(IModel<GbaVerwerkingsLog> model)
 	{

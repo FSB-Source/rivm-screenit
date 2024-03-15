@@ -23,7 +23,6 @@
 <configuration scan="true" scanPeriod="10 seconds">
 
 
-
     <if condition='isDefined("jetty.logging.dir")'>
         <then>
             <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender" append="true">
@@ -32,7 +31,8 @@
                     <fileNamePattern>${jetty.logging.dir}/screenit-batch-bmhk_%d{yyyy-MM-dd}.log.gz</fileNamePattern>
                 </rollingPolicy>
                 <encoder name="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-                    <pattern>%d{yyyyMMdd HH:mm:ss.SSS}[%thread] %-5level %-36.36c{36} - %msg%n</pattern>
+                    <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} %-10([A:%X{A}]) - %msg%n
+                    </pattern>
                 </encoder>
             </appender>
         </then>
@@ -43,7 +43,7 @@
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder name="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>%d{yyyyMMdd HH:mm:ss.SSS}[%thread] %-10([A:%X{A}]) %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} %-10([A:%X{A}]) - %msg%n</pattern>
         </encoder>
     </appender>
 

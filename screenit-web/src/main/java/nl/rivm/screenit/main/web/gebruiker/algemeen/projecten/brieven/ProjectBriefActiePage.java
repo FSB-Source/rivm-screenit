@@ -192,7 +192,7 @@ public class ProjectBriefActiePage extends ProjectBasePage
 
 					if (object.getBriefType() != null)
 					{
-						melding += getString(EnumStringUtil.getPropertyString(object.getBriefType()));
+						melding += object.getBriefType().getWeergaveNaam();
 					}
 
 					if (ProjectType.BRIEFPROJECT.equals(object.getProject().getType()))
@@ -335,7 +335,7 @@ public class ProjectBriefActiePage extends ProjectBasePage
 		var briefType = briefActie.getBriefType();
 		if (briefType != null)
 		{
-			naam = getString(EnumStringUtil.getPropertyString(briefType, null));
+			naam = briefType.getWeergaveNaam();
 		}
 		return naam;
 	}

@@ -30,6 +30,7 @@ import java.util.List;
 
 import nl.rivm.screenit.main.dto.cervix.GekoppeldeUitstrijkendArtsZoekObject;
 import nl.rivm.screenit.main.service.cervix.impl.GekoppeldeUitstrijkendArtsenDataProviderServiceImpl;
+import nl.rivm.screenit.main.util.WicketSpringDataUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitListMultipleChoice;
@@ -42,7 +43,6 @@ import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.huisarts.Aanvull
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.Gemeente;
-import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
@@ -110,9 +110,9 @@ public class GekoppeldeUitstrijkendArtsenPage extends OrganisatieBeheer
 		{
 			gemeentesUitOrganisatie = new SimpleListHibernateModel<>(((ScreeningOrganisatie) getCurrentSelectedOrganisatie()).getGemeentes());
 		}
-		final BootstrapDialog dialog = new BootstrapDialog("dialog");
+		final var dialog = new BootstrapDialog("dialog");
 		add(dialog);
-		final WebMarkupContainer medewerkerContainer = new WebMarkupContainer("medewerkerContainer");
+		final var medewerkerContainer = new WebMarkupContainer("medewerkerContainer");
 		medewerkerContainer.setOutputMarkupId(true);
 
 		add(new OrganisatiePaspoortPanel("paspoort", ModelUtil.cRModel(getCurrentSelectedOrganisatie())));
@@ -122,13 +122,13 @@ public class GekoppeldeUitstrijkendArtsenPage extends OrganisatieBeheer
 
 		zoekForm.add(new TextField<>("zoekAgbCode", new PropertyModel<>(this, "zoekAgbCode")));
 		zoekForm.add(
-			new ScreenitListMultipleChoice<>("zoekGemeente", new PropertyModel<List<Gemeente>>(this, "zoekGemeente"), gemeentesUitOrganisatie,
+			new ScreenitListMultipleChoice<>("zoekGemeente", new PropertyModel<>(this, "zoekGemeente"), gemeentesUitOrganisatie,
 				new ChoiceRenderer<>("naam", "code")
 				{
 					@Override
 					public Object getDisplayValue(Gemeente object)
 					{
-						Object gemeente = super.getDisplayValue(object);
+						var gemeente = super.getDisplayValue(object);
 						if (object.getCode() != null)
 						{
 							return gemeente + " (" + object.getCode() + ")";
@@ -142,9 +142,9 @@ public class GekoppeldeUitstrijkendArtsenPage extends OrganisatieBeheer
 
 		ComponentHelper.addTextField(zoekForm, "zoekMutatiedatumVanaf", false, 10, Date.class, false).setModel(new PropertyModel<>(this, "zoekMutatiedatumVanaf"));
 		ComponentHelper.addTextField(zoekForm, "zoekMutatiedatumTot", false, 10, Date.class, false).setModel(new PropertyModel<>(this, "zoekMutatiedatumTot"));
-		List<CervixHuisartsLocatieMutatieSoort> mutatieSoorten = Arrays.asList(CervixHuisartsLocatieMutatieSoort.values());
-		ScreenitListMultipleChoice<CervixHuisartsLocatieMutatieSoort> multiSoortSelect = new ScreenitListMultipleChoice<CervixHuisartsLocatieMutatieSoort>("mutatiesoort",
-			new PropertyModel<List<CervixHuisartsLocatieMutatieSoort>>(this, "zoekMutatieSoort"),
+		var mutatieSoorten = Arrays.asList(CervixHuisartsLocatieMutatieSoort.values());
+		var multiSoortSelect = new ScreenitListMultipleChoice<>("mutatiesoort",
+			new PropertyModel<>(this, "zoekMutatieSoort"),
 			mutatieSoorten, new EnumChoiceRenderer<>());
 		multiSoortSelect.setRequired(true);
 		zoekForm.add(multiSoortSelect);
@@ -158,7 +158,7 @@ public class GekoppeldeUitstrijkendArtsenPage extends OrganisatieBeheer
 			}
 		});
 
-		List<IColumn<CervixHuisartsLocatie, String>> columns = new ArrayList<IColumn<CervixHuisartsLocatie, String>>();
+		var columns = new ArrayList<IColumn<CervixHuisartsLocatie, String>>();
 		columns.add(new PropertyColumn<>(Model.of("Naam"), "huisarts.naam"));
 		columns.add(new PropertyColumn<>(Model.of("Naam locatie"), "naam"));
 		columns.add(new PropertyColumn<>(Model.of("AGB-code"), "huisarts.agbcode"));
@@ -172,9 +172,9 @@ public class GekoppeldeUitstrijkendArtsenPage extends OrganisatieBeheer
 			public void populateItem(Item<ICellPopulator<CervixHuisartsLocatie>> item, String componentId, IModel<CervixHuisartsLocatie> rowModel)
 			{
 
-				final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm");
-				Date mutatiedatum = rowModel.getObject().getMutatiedatum();
-				String tekst = "Mutatiedatum niet beschikbaar";
+				final var format = new SimpleDateFormat("dd-MM-yyyy HH:mm");
+				var mutatiedatum = rowModel.getObject().getMutatiedatum();
+				var tekst = "Mutatiedatum niet beschikbaar";
 				if (mutatiedatum != null)
 				{
 					tekst = format.format(mutatiedatum);
@@ -182,7 +182,7 @@ public class GekoppeldeUitstrijkendArtsenPage extends OrganisatieBeheer
 				item.add(new Label(componentId, new Model<>(tekst)));
 			}
 		});
-		columns.add(new EnumPropertyColumn<CervixHuisartsLocatie, String, CervixHuisartsLocatieMutatieSoort>(Model.of("Mutatiesoort"), "mutatieSoort", "mutatieSoort"));
+		columns.add(new EnumPropertyColumn<>(Model.of("Mutatiesoort"), "mutatieSoort", "mutatieSoort"));
 		if (ScreenitSession.get().checkPermission(OrganisatieType.HUISARTS.getRecht(), Actie.INZIEN))
 		{
 			columns.add(new PropertyColumn<>(Model.of(""), null)
@@ -190,7 +190,7 @@ public class GekoppeldeUitstrijkendArtsenPage extends OrganisatieBeheer
 				@Override
 				public void populateItem(Item<ICellPopulator<CervixHuisartsLocatie>> item, String componentId, IModel<CervixHuisartsLocatie> rowModel)
 				{
-					IModel<CervixHuisarts> cervixHuisartsIModel = ModelUtil.cModel(rowModel.getObject().getHuisarts());
+					var cervixHuisartsIModel = ModelUtil.cModel(rowModel.getObject().getHuisarts());
 					item.add(new NavigeerNaarCellPanel<>(componentId, cervixHuisartsIModel)
 					{
 						@Override
@@ -211,8 +211,8 @@ public class GekoppeldeUitstrijkendArtsenPage extends OrganisatieBeheer
 
 		IModel<String> totaalLabel = new Model<>("BMHK arts(en)");
 
-		ScreenitDataTable<CervixHuisartsLocatie, String> dataTable = new ScreenitDataTable<CervixHuisartsLocatie, String>("organisaties", columns,
-			new SortableDataProvider<CervixHuisartsLocatie, String>()
+		var dataTable = new ScreenitDataTable<>("organisaties", columns,
+			new SortableDataProvider<>()
 			{
 				private GekoppeldeUitstrijkendArtsZoekObject maakZoekObject()
 				{
@@ -232,8 +232,8 @@ public class GekoppeldeUitstrijkendArtsenPage extends OrganisatieBeheer
 					{
 						setSort("mutatiedatum", SortOrder.ASCENDING);
 					}
-
-					return gekoppeldeUitstrijkendArtsenDataProviderService.findPage(first, count, maakZoekObject(), getSort()).iterator();
+					var sort = WicketSpringDataUtil.toSpringSort(getSort());
+					return gekoppeldeUitstrijkendArtsenDataProviderService.findPage(first, count, maakZoekObject(), sort).iterator();
 				}
 
 				@Override
@@ -282,6 +282,7 @@ public class GekoppeldeUitstrijkendArtsenPage extends OrganisatieBeheer
 		return zoekGemeente.getObject();
 	}
 
+	@SuppressWarnings("Onderstaande methode is nodig voor reflectie, zie: new PropertyModel<>(this, \"zoekGemeente\")")
 	public void setZoekGemeente(List<Gemeente> zoekGemeente)
 	{
 		this.zoekGemeente = ModelUtil.listRModel(zoekGemeente);
@@ -289,7 +290,7 @@ public class GekoppeldeUitstrijkendArtsenPage extends OrganisatieBeheer
 
 	protected void onNavigeerNaar(IModel<CervixHuisarts> rowModel, AjaxRequestTarget target)
 	{
-		CervixHuisarts cervixHuisarts = rowModel.getObject();
+		var cervixHuisarts = rowModel.getObject();
 		setCurrentSelectedOrganisatie(cervixHuisarts);
 		setCurrentSelectedMedewerker(null);
 		setResponsePage(new AanvullendeHaGegevensPage());
@@ -297,8 +298,8 @@ public class GekoppeldeUitstrijkendArtsenPage extends OrganisatieBeheer
 
 	protected boolean magNavigerenNaar(IModel<CervixHuisarts> rowModel)
 	{
-		CervixHuisarts cervixHuisarts = rowModel.getObject();
-		InstellingGebruiker loggedInInstellingGebruiker = ScreenitSession.get().getLoggedInInstellingGebruiker();
+		var cervixHuisarts = rowModel.getObject();
+		var loggedInInstellingGebruiker = ScreenitSession.get().getLoggedInInstellingGebruiker();
 		return autorisatieService.getActieVoorOrganisatie(loggedInInstellingGebruiker, cervixHuisarts, Recht.GEBRUIKER_SCREENINGS_ORG_BEHEER,
 			Recht.GEBRUIKER_BMHK_LABORATORIA_BEHEER) != null;
 	}

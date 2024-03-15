@@ -40,9 +40,11 @@ import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 import org.apache.shiro.authz.Permission;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.envers.Audited;
 
 @Entity
 @Table(schema = "gedeeld")
+@Audited
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "organisatie.cache")
 @Getter
 @Setter

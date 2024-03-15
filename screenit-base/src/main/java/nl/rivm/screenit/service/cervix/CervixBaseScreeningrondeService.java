@@ -21,6 +21,8 @@ package nl.rivm.screenit.service.cervix;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Optional;
+
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.cervix.CervixDossier;
@@ -50,7 +52,7 @@ public interface CervixBaseScreeningrondeService
 
 	boolean heeftValideScreeningRondeVoorDigitaalLabformulier(CervixMonster monster);
 
-	CervixScreeningRonde getLaatsteScreeningRonde(String bsn);
+	Optional<CervixScreeningRonde> getLaatsteScreeningRonde(String bsn);
 
 	boolean heeftMaxAantalZASsenBereikt(CervixScreeningRonde laatsteScreeningRonde, boolean aangevraagdDoorClient);
 

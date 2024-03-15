@@ -29,7 +29,6 @@ import nl.rivm.screenit.main.web.component.panels.UploadDocumentFormComponentPan
 import nl.rivm.screenit.main.web.component.validator.FileValidator;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.FileType;
-import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.mamma.MammaPalgaService;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 
@@ -45,9 +44,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 public class MammaPalgaImportPanel extends Panel
 {
 	@SpringBean
-	private LogService logService;
-
-	@SpringBean
 	private MammaPalgaService palgaService;
 
 	@SpringBean(name = "testModus")
@@ -56,7 +52,7 @@ public class MammaPalgaImportPanel extends Panel
 	public MammaPalgaImportPanel(String id)
 	{
 		super(id);
-		IModel<MammaPalgaUploadDto> importModel = new CompoundPropertyModel<>(new MammaPalgaUploadDto());
+		var importModel = new CompoundPropertyModel<>(new MammaPalgaUploadDto());
 		importModel.getObject().setImportDocument(palgaService.getImport());
 		add(new MammaPalgaImportForm("importForm", importModel));
 	}
@@ -75,7 +71,7 @@ public class MammaPalgaImportPanel extends Panel
 			{
 				validator = new FileValidator(FileType.ZIP);
 			}
-			UploadDocumentFormComponentPanel uploadPanel = new UploadDocumentFormComponentPanel("importDocument", new PropertyModel<>(model, "importDocument"), validator);
+			var uploadPanel = new UploadDocumentFormComponentPanel("importDocument", new PropertyModel<>(model, "importDocument"), validator);
 			add(uploadPanel);
 			add(new TextField<>("zipWachtwoord"));
 			add(new IndicatingAjaxSubmitLink("submit")
@@ -83,7 +79,7 @@ public class MammaPalgaImportPanel extends Panel
 				@Override
 				protected void onSubmit(AjaxRequestTarget target)
 				{
-					UploadDocument importDocument = uploadPanel.getUploadDocumentFromSelectedFile();
+					var importDocument = uploadPanel.getUploadDocumentFromSelectedFile();
 					if (uploadPanel.isVerwijderd())
 					{
 						palgaService.deleteImports();
@@ -122,10 +118,10 @@ public class MammaPalgaImportPanel extends Panel
 
 				private void importZip(UploadDocument importDocument)
 				{
-					String zipWachtwoord = getModelObject().getZipWachtwoord();
+					var zipWachtwoord = getModelObject().getZipWachtwoord();
 					if (zipWachtwoord != null)
 					{
-						String message = palgaService.saveOrUpdateImportZip(importDocument, zipWachtwoord);
+						var message = palgaService.saveOrUpdateImportZip(importDocument, zipWachtwoord);
 						if (message != null)
 						{
 							error(message);
@@ -146,11 +142,4 @@ public class MammaPalgaImportPanel extends Panel
 			});
 		}
 	}
-
-	@Override
-	protected void onInitialize()
-	{
-		super.onInitialize();
-	}
-
 }

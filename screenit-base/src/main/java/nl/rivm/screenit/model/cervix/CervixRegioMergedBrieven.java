@@ -21,6 +21,7 @@ package nl.rivm.screenit.model.cervix;
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Entity;
@@ -39,12 +40,11 @@ import org.hibernate.envers.Audited;
 @Audited
 public class CervixRegioMergedBrieven extends MergedBrieven<CervixRegioBrief>
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@OneToMany(mappedBy = "mergedBrieven", fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade(CascadeType.SAVE_UPDATE)
-	private List<CervixRegioBrief> brieven;
+	private List<CervixRegioBrief> brieven = new ArrayList<>();
 
 	@Override
 	public List<CervixRegioBrief> getBrieven()

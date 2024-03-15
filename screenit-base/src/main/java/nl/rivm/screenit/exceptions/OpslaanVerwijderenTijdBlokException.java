@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
+import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.rivm.screenit.util.DateUtil;
 
 import com.google.common.collect.Range;
@@ -52,6 +53,11 @@ public abstract class OpslaanVerwijderenTijdBlokException extends Exception
 			{
 				var blokkade = (ColonBlokkade) item;
 				range = Range.closed(blokkade.getStartTime(), blokkade.getEndTime());
+			}
+			else if (item instanceof RoosterItem)
+			{
+				var roosterItem = (RoosterItem) item;
+				range = Range.closed(roosterItem.getStartTime(), roosterItem.getEndTime());
 			}
 			else
 			{

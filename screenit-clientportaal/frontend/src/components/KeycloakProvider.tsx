@@ -42,6 +42,13 @@ const KeycloakProvider: React.FC<KeycloakProviderProps> = (props) => {
 
 	keycloak.onAuthRefreshError = props.onAuthRefreshError
 	keycloak.onReady = () => setInitialized(true)
+	keycloak.onTokenExpired = () => {
+		keycloak.updateToken(60).then(success => {
+			if (!success) {
+				props.onAuthRefreshError()
+			}
+		}).catch(props.onAuthRefreshError)
+	}
 
 	useEffect(() => {
 		keycloak.init({

@@ -27,7 +27,6 @@ import java.util.List;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 
-import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -42,17 +41,16 @@ public abstract class RepositoryDataProviderService<T extends AbstractHibernateO
 	@Autowired
 	private SessionFactory sessionFactory;
 
-	protected abstract Specification<T> getSpecification(F filter);
+	protected abstract Specification<T> getSpecification(F filter, Sort sortParam);
 
-	public List<T> findPage(long first, long count, F filter, SortParam<String> sortParam)
+	public List<T> findPage(long first, long count, F filter, Sort sort)
 	{
 		var cb = sessionFactory.getCurrentSession().getCriteriaBuilder();
 		var query = cb.createQuery(getEntityClass());
 		var r = query.from(getEntityClass());
-		var sort = Sort.by(sortParam.isAscending() ? Sort.Direction.ASC : Sort.Direction.DESC, sortParam.getProperty());
 
 		query
-			.where(getSpecification(filter).toPredicate(r, query, cb))
+			.where(getSpecification(filter, sort).toPredicate(r, query, cb))
 			.orderBy(QueryUtils.toOrders(sort, r, cb));
 
 		var hquery = sessionFactory.getCurrentSession().createQuery(query);
@@ -72,7 +70,7 @@ public abstract class RepositoryDataProviderService<T extends AbstractHibernateO
 
 	public long size(F filter)
 	{
-		return getRepository().count(getSpecification(filter));
+		return getRepository().count(getSpecification(filter, Sort.unsorted()));
 	}
 
 	private R getRepository()

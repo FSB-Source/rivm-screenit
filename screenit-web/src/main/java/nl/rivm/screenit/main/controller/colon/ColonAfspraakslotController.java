@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
 import nl.rivm.screenit.main.exception.BeperkingException;
+import nl.rivm.screenit.main.exception.BulkAanmakenException;
 import nl.rivm.screenit.main.exception.ValidatieException;
 import nl.rivm.screenit.main.service.colon.ColonAfspraakslotService;
 import nl.rivm.screenit.main.web.ScreenitSession;
@@ -90,7 +91,7 @@ public class ColonAfspraakslotController
 	@SecurityConstraint(actie = Actie.TOEVOEGEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_NIEUW_ROOSTER, bevolkingsonderzoekScopes = {
 		Bevolkingsonderzoek.COLON })
 	public ResponseEntity<Void> createAfspraakslots(@RequestBody ColonAfspraakslotDto afspraakslotsDto)
-		throws ValidatieException, OpslaanVerwijderenTijdBlokException, BeperkingException
+		throws ValidatieException, OpslaanVerwijderenTijdBlokException, BeperkingException, BulkAanmakenException
 	{
 		afspraakslotService.createAfspraakslot(afspraakslotsDto, ScreenitSession.get().getLoggedInInstellingGebruiker());
 		return ResponseEntity.status(HttpStatus.CREATED).build();

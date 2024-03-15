@@ -21,7 +21,6 @@ package nl.rivm.screenit.service.mamma.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -50,7 +49,6 @@ import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaMammografie;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.berichten.MammaIMSBericht;
 import nl.rivm.screenit.model.mamma.berichten.xds.XdsStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
@@ -118,8 +116,8 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 	@Override
 	public void onderzoekDoorvoerenVanuitSe(MammaOnderzoek onderzoek)
 	{
-		MammaAfspraakStatus afspraakStatus = onderzoek.getAfspraak().getStatus();
-		MammaOnderzoekStatus onderzoekStatus = onderzoek.getStatus();
+		var afspraakStatus = onderzoek.getAfspraak().getStatus();
+		var onderzoekStatus = onderzoek.getStatus();
 		if ((MammaOnderzoekStatus.AFGEROND.equals(onderzoekStatus)
 			|| MammaOnderzoekStatus.ONVOLLEDIG.equals(onderzoekStatus)
 			|| MammaOnderzoekStatus.ONDERBROKEN.equals(onderzoekStatus))
@@ -131,7 +129,8 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 		}
 		else
 		{
-			String errorMessage = String.format("Onderzoek %s mag niet worden doorgevoerd, onderzoekstatus: %s; afspraakstatus: %s.", onderzoek.getId(), onderzoekStatus.name(),
+			var errorMessage = String.format("Onderzoek (id: '%s') mag niet worden doorgevoerd, onderzoekstatus: %s; afspraakstatus: %s.", onderzoek.getId(),
+				onderzoekStatus.name(),
 				afspraakStatus.name());
 			throw new IllegalStateException(errorMessage);
 		}
@@ -139,11 +138,11 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 
 	private void vervolgDoorgevoerdOnderzoek(MammaOnderzoek onderzoek)
 	{
-		boolean heeftEerdereBeeldenBinnenRonde = heeftEerdereBeeldenBinnenRonde(onderzoek);
-		boolean onderzoekOnvolledigZonderFotos = isOnderzoekOnvolledigZonderFotos(onderzoek);
+		var heeftEerdereBeeldenBinnenRonde = heeftEerdereBeeldenBinnenRonde(onderzoek);
+		var onderzoekOnvolledigZonderFotos = isOnderzoekOnvolledigZonderFotos(onderzoek);
 		if (onderzoekOnvolledigZonderFotos && !heeftEerdereBeeldenBinnenRonde)
 		{
-			MammaScreeningRonde screeningRonde = onderzoek.getAfspraak().getUitnodiging().getScreeningRonde();
+			var screeningRonde = onderzoek.getAfspraak().getUitnodiging().getScreeningRonde();
 			briefService.maakBvoBrief(screeningRonde, BriefType.MAMMA_GEEN_ONDERZOEK);
 			setScreeningrondeStatus(screeningRonde, ScreeningRondeStatus.AFGEROND);
 			hibernateService.saveOrUpdate(screeningRonde);
@@ -160,11 +159,11 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 
 	private void onderzoekMetEerdereFotosDoorzetten(MammaOnderzoek onderzoek)
 	{
-		MammaOnderzoek voorgaandeOnderzoek = getAfsprakenMetAnderOnderzoekBinnenRonde(onderzoek)
+		var voorgaandeOnderzoek = getAfsprakenMetAnderOnderzoekBinnenRonde(onderzoek)
 			.map(MammaAfspraak::getOnderzoek)
 			.max(Comparator.comparing(MammaOnderzoek::getCreatieDatum))
 			.orElseThrow(() -> new IllegalStateException("Geen eerder onderzoek kunnen vinden"));
-		MammaMammografie mammografie = voorgaandeOnderzoek.getMammografie();
+		var mammografie = voorgaandeOnderzoek.getMammografie();
 		onderzoek.getMammografie().setIlmStatus(mammografie.getIlmStatus());
 		onderzoek.getMammografie().setIlmStatusDatum(mammografie.getIlmStatusDatum());
 		onderzoek.setStatus(MammaOnderzoekStatus.ONVOLLEDIG);
@@ -207,13 +206,13 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 
 	private MammaBeoordeling maakBeoordelingEnKoppelAanOnderzoek(MammaOnderzoek onderzoek)
 	{
-		MammaBeoordeling beoordeling = new MammaBeoordeling();
+		var beoordeling = new MammaBeoordeling();
 		beoordeling.setStatusDatum(currentDateSupplier.getDate());
 		beoordeling.setStatus(MammaBeoordelingStatus.EERSTE_LEZING);
 		beoordeling.setOpschortReden(MammaBeoordelingOpschortenReden.NIET_OPSCHORTEN);
 		beoordeling.setXdsVerslagStatus(XdsStatus.NIET_AANGEMELD);
 		beoordeling.setOnderzoek(onderzoek);
-		List<MammaBeoordeling> beoordelingen = onderzoek.getBeoordelingen();
+		var beoordelingen = onderzoek.getBeoordelingen();
 		beoordelingen.add(beoordeling);
 		beoordeling.setBeoordelingsEenheid(bepaalBeVoorOnderzoek(onderzoek));
 		onderzoek.setLaatsteBeoordeling(beoordeling);
@@ -223,13 +222,13 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 
 	private BeoordelingsEenheid bepaalBeVoorOnderzoek(MammaOnderzoek onderzoek)
 	{
-		MammaScreeningsEenheid screeningsEenheid = onderzoek.getScreeningsEenheid();
-		BeoordelingsEenheid beoordelingsEenheid = screeningsEenheid.getBeoordelingsEenheid();
+		var screeningsEenheid = onderzoek.getScreeningsEenheid();
+		var beoordelingsEenheid = screeningsEenheid.getBeoordelingsEenheid();
 		if (screeningsEenheid.getTijdelijkeBeoordelingsEenheid() != null && screeningsEenheid.getTijdelijkeBeTotEnMetDatum() != null
 			&& screeningsEenheid.getTijdelijkeBeVanafDatum() != null)
 		{
-			LocalDate vanafDatum = DateUtil.toLocalDate(screeningsEenheid.getTijdelijkeBeVanafDatum());
-			LocalDate totEnMetDatum = DateUtil.toLocalDate(screeningsEenheid.getTijdelijkeBeTotEnMetDatum());
+			var vanafDatum = DateUtil.toLocalDate(screeningsEenheid.getTijdelijkeBeVanafDatum());
+			var totEnMetDatum = DateUtil.toLocalDate(screeningsEenheid.getTijdelijkeBeTotEnMetDatum());
 			if (DateUtil.isWithinRange(vanafDatum, totEnMetDatum, DateUtil.toLocalDate(onderzoek.getCreatieDatum())))
 			{
 				beoordelingsEenheid = screeningsEenheid.getTijdelijkeBeoordelingsEenheid();
@@ -241,8 +240,8 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 	@Override
 	public void ontvangBeeldenVoorOnderzoek(Client client, MammaScreeningRonde ronde, MammaOnderzoekType imsOnderzoekType) throws HL7Exception
 	{
-		MammaOnderzoek onderzoek = ronde.getLaatsteOnderzoek();
-		MammaMammografie mammografie = onderzoek.getMammografie();
+		var onderzoek = ronde.getLaatsteOnderzoek();
+		var mammografie = onderzoek.getMammografie();
 
 		if (imsOnderzoekType != onderzoek.getOnderzoekType())
 		{
@@ -272,8 +271,8 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 		}
 		else if (mammografie.getIlmStatus() != MammaMammografieIlmStatus.BESCHIKBAAR)
 		{
-			String melding = String.format("Inkomend CA bericht voor uitnodgingsnr %s is al verwerkt op %s en kon niet worden omgezet van %s naar BESCHIKBAAR",
-				ronde.getUitnodigingsNr(), mammografie.getIlmStatusDatum(), mammografie.getIlmStatus().name());
+			var melding = String.format("Inkomend CA bericht voor ronde (id: '%s') is al verwerkt op %s en kon niet worden omgezet van %s naar BESCHIKBAAR",
+				ronde.getId(), mammografie.getIlmStatusDatum(), mammografie.getIlmStatus().name());
 			throw new HL7Exception(melding);
 		}
 	}
@@ -281,14 +280,14 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 	@Override
 	public void beeldenVerwijderdVoorOnderzoek(MammaIMSBericht bericht, Client client, boolean error)
 	{
-		Long accessionNumber = bericht.getAccessionNumber();
-		List<MammaMammografie> mammografieen = baseMammografieDao.getMammografieenVanUitnodigingsNummerMetBeeldenTeVerwijderen(accessionNumber);
+		var accessionNumber = bericht.getAccessionNumber();
+		var mammografieen = baseMammografieDao.getMammografieenVanUitnodigingsNummerMetBeeldenTeVerwijderen(accessionNumber);
 
 		mammografieen.forEach(mammografie -> setMammografieStatus(mammografie, !error ? MammaMammografieIlmStatus.VERWIJDERD : MammaMammografieIlmStatus.VERWIJDEREN_MISLUKT));
 		if (error)
 		{
-			String melding = String.format("Fout bij het verwijderen van beelden voor accession number %s. Raadpleeg het IMS systeem voor verdere analyse.", accessionNumber);
-			MammaHl7v24BerichtLogEvent logEvent = new MammaHl7v24BerichtLogEvent();
+			var melding = String.format("Fout bij het verwijderen van beelden voor accession number %s. Raadpleeg het IMS systeem voor verdere analyse.", accessionNumber);
+			var logEvent = new MammaHl7v24BerichtLogEvent();
 			logEvent.setMelding(melding);
 			logEvent.setHl7MessageStructure(bericht.getHl7Bericht());
 			logEvent.setLevel(Level.WARNING);
@@ -306,12 +305,12 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 		if (isOnderzoekOnvolledigZonderFotos(onderzoek)
 			&& onderzoekBeeldenBeschikbaar(onderzoek))
 		{
-			Client client = onderzoek.getAfspraak().getUitnodiging().getBrief().getClient();
+			var client = onderzoek.getAfspraak().getUitnodiging().getBrief().getClient();
 			logService.logGebeurtenis(LogGebeurtenis.MAMMA_ONVOLLEDIG_ZONDER_FOTOS_TOCH_IMS_BEELDEN, client,
 				"Een onderzoek is automatisch omgezet van onvolledig zonder foto's naar onvolledig met foto's doordat er beelden beschikbaar zijn gesteld vanuit het IMS",
 				Bevolkingsonderzoek.MAMMA);
 			onderzoek.setOnvolledigOnderzoek(OnvolledigOnderzoekOption.MET_FOTOS);
-			MammaScreeningRonde screeningRonde = onderzoek.getAfspraak().getUitnodiging().getScreeningRonde();
+			var screeningRonde = onderzoek.getAfspraak().getUitnodiging().getScreeningRonde();
 			setScreeningrondeStatus(screeningRonde, ScreeningRondeStatus.LOPEND);
 			hibernateService.saveOrUpdateAll(screeningRonde, onderzoek);
 			LOG.info("Onvolledig onderzoek zonder foto's omgezet naar met foto's voor onderzoek id: {}, client id: {}", onderzoek.getId(), client.getId());
@@ -377,8 +376,8 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 	private void annuleerAfspraak(MammaOnderzoek onderzoek)
 	{
 
-		MammaDossier dossier = onderzoek.getAfspraak().getUitnodiging().getScreeningRonde().getDossier();
-		MammaAfspraak laatsteAfspraak = dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging().getLaatsteAfspraak();
+		var dossier = onderzoek.getAfspraak().getUitnodiging().getScreeningRonde().getDossier();
+		var laatsteAfspraak = dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging().getLaatsteAfspraak();
 		if (laatsteAfspraak != null)
 		{
 			afspraakService.afspraakAnnuleren(laatsteAfspraak, MammaAfspraakStatus.GEANNULEERD_VIA_INFOLIJN, currentDateSupplier.getDate());
@@ -389,7 +388,7 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<KeyValue> vorigeRondeTeksten(MammaOnderzoek onderzoek, boolean opSE)
 	{
-		List<KeyValue> result = new ArrayList<>();
+		var result = new ArrayList<KeyValue>();
 		if (opSE)
 		{
 			addIfPresent("Extra MBB'er", naamExtraMedewerker(onderzoek), result);
@@ -440,7 +439,7 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 	{
 		if (value != null)
 		{
-			String valueString = value.toString().trim();
+			var valueString = value.toString().trim();
 			if (!valueString.isEmpty())
 			{
 				result.add(new KeyValue(name, valueString));
@@ -477,8 +476,8 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 	@Override
 	public boolean forceerMammografieIlmStatus(long accessionNumber, MammaMammografieIlmStatus status, Account account)
 	{
-		List<MammaMammografie> mammografieen = baseMammografieDao.getMammografieenVanUitnodigingsNummerMetBeeldenTeVerwijderen(accessionNumber);
-		AtomicBoolean isChanged = new AtomicBoolean(false);
+		var mammografieen = baseMammografieDao.getMammografieenVanUitnodigingsNummerMetBeeldenTeVerwijderen(accessionNumber);
+		var isChanged = new AtomicBoolean(false);
 		mammografieen.forEach(mammografie ->
 		{
 			if (mammografie.getIlmStatus() != MammaMammografieIlmStatus.VERWIJDERD)
@@ -489,9 +488,8 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 		});
 		if (isChanged.get())
 		{
-			String melding = String.format("AccessionNumber: %d, status: %s, isBezwaar: %b, isUpload: %b", accessionNumber, status.toString(), false, false);
-			LOG.info(melding);
-			Client client = mammografieen.get(0).getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().getDossier().getClient();
+			var melding = String.format("AccessionNumber: %d, status: %s, isBezwaar: %b, isUpload: %b", accessionNumber, status.toString(), false, false);
+			var client = mammografieen.get(0).getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().getDossier().getClient();
 			logService.logGebeurtenis(LogGebeurtenis.MAMMA_ILM_STATUS_GEFORCEERD, account, client, melding, Bevolkingsonderzoek.MAMMA);
 		}
 		return isChanged.get();
@@ -499,8 +497,8 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 
 	private void updateDossierMammografieVelden(MammaMammografie mammografie)
 	{
-		MammaAfspraak afspraak = mammografie.getOnderzoek().getAfspraak();
-		MammaDossier dossier = afspraak.getUitnodiging().getScreeningRonde().getDossier();
+		var afspraak = mammografie.getOnderzoek().getAfspraak();
+		var dossier = afspraak.getUitnodiging().getScreeningRonde().getDossier();
 		dossier.setLaatsteMammografieAfgerond(currentDateSupplier.getDate());
 		hibernateService.saveOrUpdate(dossier);
 	}
@@ -516,8 +514,8 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 		if (dossier.getLaatsteMammografieAfgerond() != null)
 		{
 			int minimaleIntervalMammografieOnderzoeken = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_INTERVAL_MAMMOGRAFIE_ONDERZOEKEN.name());
-			LocalDate referentieDatum = DateUtil.toLocalDate(dossier.getLaatsteMammografieAfgerond());
-			LocalDate minimaalIntervalOnderzoeken = referentieDatum.plusDays(minimaleIntervalMammografieOnderzoeken);
+			var referentieDatum = DateUtil.toLocalDate(dossier.getLaatsteMammografieAfgerond());
+			var minimaalIntervalOnderzoeken = referentieDatum.plusDays(minimaleIntervalMammografieOnderzoeken);
 			return !minimaalIntervalOnderzoeken.isAfter(currentDateSupplier.getLocalDate());
 		}
 		return true;

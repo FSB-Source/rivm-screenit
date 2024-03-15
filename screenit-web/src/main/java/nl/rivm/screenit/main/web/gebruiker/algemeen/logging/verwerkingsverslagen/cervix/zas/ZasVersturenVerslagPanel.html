@@ -21,55 +21,56 @@
 <html xmlns:wicket="http://wicket.apache.org/">
 <body>
 <wicket:panel>
-    <div class="row-fluid">
-        <div class="span12">
-            <h1 class="pageTitle">
-                Verwerkingsverslag van versturen ZAS naar inpakcentrum
-            </h1>
-        </div>
-    </div>
-    <div class="row-fluid form-horizontal">
-        <fieldset>
-            <div class="span6">
-                <div class="control-group value">
-                    <label class="control-label">Datum verwerking</label>
-                    <div wicket:id="logRegel.gebeurtenisDatum" class="controls">
+	<div class="row-fluid">
+		<div class="span12">
+			<h1 class="pageTitle">
+				Verwerkingsverslag van versturen ZAS naar inpakcentrum
+			</h1>
+		</div>
+	</div>
+	<div class="row-fluid form-horizontal">
+		<fieldset>
+			<div class="span6">
+				<div class="control-group value">
+					<label class="control-label">Datum verwerking</label>
+					<div wicket:id="logRegel.gebeurtenisDatum" class="controls">
 
-                    </div>
-                </div>
-            </div>
-        </fieldset>
+					</div>
+				</div>
+			</div>
+		</fieldset>
 
-        <table class="table table-condensed table-bordered">
-            <thead>
-            <tr>
-                <th>Brief</th>
-                <th>Aantal uitnodigingen verstuurd</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr wicket:id="verstuurd">
-                <td wicket:id="briefType">U1</td>
-                <td wicket:id="aantal">10</td>
-            </tr>
-            </tbody>
-        </table>
+		<table class="table table-condensed table-bordered">
+			<thead>
+			<tr>
+				<th>Brief</th>
+				<th>Aantal uitnodigingen verstuurd</th>
+			</tr>
+			</thead>
+			<tbody>
+			<tr wicket:id="verstuurd">
+				<td wicket:id="briefType.weergaveNaam">U1</td>
+				<td wicket:id="aantal">10</td>
+			</tr>
+			</tbody>
+		</table>
 
-        <table class="table table-condensed table-bordered">
-            <thead>
-            <tr>
-                <th>Project / Groep</th>
-                <th>Aantal uitnodigingen verstuurd</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr wicket:id="groep">
-                <td><span wicket:id="projectGroep.project.naam"></span> / <span wicket:id="projectGroep.naam"></span></td>
-                <td wicket:id="aantal">10</td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
+		<table class="table table-condensed table-bordered">
+			<thead>
+			<tr>
+				<th>Project / Groep</th>
+				<th>Aantal uitnodigingen verstuurd</th>
+			</tr>
+			</thead>
+			<tbody>
+			<tr wicket:id="groep">
+				<td><span wicket:id="projectGroep.project.naam"></span> / <span wicket:id="projectGroep.naam"></span>
+				</td>
+				<td wicket:id="aantal">10</td>
+			</tr>
+			</tbody>
+		</table>
+	</div>
 </wicket:panel>
 </body>
 </html>

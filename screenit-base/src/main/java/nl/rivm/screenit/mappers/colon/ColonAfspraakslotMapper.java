@@ -50,5 +50,6 @@ public interface ColonAfspraakslotMapper
 	@Mapping(source = "kamerId", target = "kamerId")
 	@Mapping(target = "aantalBlokken", ignore = true)
 	@Mapping(target = "alleenValidatie", ignore = true)
+	@Mapping(target = "herhaling", ignore = true)
 	ColonAfspraakslotDto roosterListItemViewWrapperToColonAfspraakDto(RoosterItemListViewWrapper wrapper);
 }

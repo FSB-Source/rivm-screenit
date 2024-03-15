@@ -25,7 +25,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -37,7 +36,6 @@ import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.cervix.CervixLabformulierAanvraag;
-import nl.rivm.screenit.model.cervix.CervixRegioBrief;
 import nl.rivm.screenit.model.cervix.CervixRegioMergedBrieven;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierAanvraagStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -154,9 +152,9 @@ public class LabformulierGenererenWriter implements ItemStreamWriter<Long>
 	@Override
 	public void write(List<? extends Long> items) throws Exception
 	{
-		for (Long id : items)
+		for (var id : items)
 		{
-			CervixLabformulierAanvraag aanvraag = hibernateService.load(CervixLabformulierAanvraag.class, id);
+			var aanvraag = hibernateService.load(CervixLabformulierAanvraag.class, id);
 
 			if (IBANValidator.getInstance().isValid(aanvraag.getHuisartsLocatie().getIban()))
 			{
@@ -176,7 +174,7 @@ public class LabformulierGenererenWriter implements ItemStreamWriter<Long>
 			}
 			else
 			{
-				String melding = String.format("Foutief IBAN voor AGB: %s, locatie: %s", aanvraag.getHuisartsLocatie().getHuisarts().getAgbcode(),
+				var melding = String.format("Foutief IBAN voor AGB: %s, locatie: %s", aanvraag.getHuisartsLocatie().getHuisarts().getAgbcode(),
 					aanvraag.getHuisartsLocatie().getNaam());
 				List<Instelling> instellingen = Collections.singletonList(aanvraag.getHuisartsLocatie().getLocatieAdres().getGbaGemeente().getScreeningOrganisatie());
 				logService.logGebeurtenis(LogGebeurtenis.CERVIX_LABFORMULIER_GENEREREN_IBAN_FOUT, instellingen, null, melding, Bevolkingsonderzoek.CERVIX);
@@ -228,10 +226,10 @@ public class LabformulierGenererenWriter implements ItemStreamWriter<Long>
 		FileOutputStream output = null;
 		try
 		{
-			UploadDocument voorbladTemplate = getNieuwsteBriefDefinitie(BriefType.REGIO_UITSTRIJKEND_ARTS_VOORBLAD_LABFORMULIER);
-			Document asposeDocument = mergeBrief(aanvraag, voorbladTemplate);
+			var voorbladTemplate = getNieuwsteBriefDefinitie(BriefType.REGIO_UITSTRIJKEND_ARTS_VOORBLAD_LABFORMULIER);
+			var asposeDocument = mergeBrief(aanvraag, voorbladTemplate);
 
-			File tmpFile = File.createTempFile("voorbladTmpBrief", "pdf");
+			var tmpFile = File.createTempFile("voorbladTmpBrief", "pdf");
 			output = new FileOutputStream(tmpFile);
 			asposeDocument.save(output, asposeService.getPdfSaveOptions());
 			output.close();
@@ -255,10 +253,10 @@ public class LabformulierGenererenWriter implements ItemStreamWriter<Long>
 		Document chunkDocument = null;
 		try
 		{
-			UploadDocument labfomrulierenTemplate = getNieuwsteBriefDefinitie(BriefType.REGIO_UITSTRIJKEND_ARTS_LABFORMULIER);
-			for (int i = 0; i < aantal; i++)
+			var labfomrulierenTemplate = getNieuwsteBriefDefinitie(BriefType.REGIO_UITSTRIJKEND_ARTS_LABFORMULIER);
+			for (var i = 0; i < aantal; i++)
 			{
-				Document asposeDocument = mergeBrief(aanvraag, labfomrulierenTemplate);
+				var asposeDocument = mergeBrief(aanvraag, labfomrulierenTemplate);
 				if (chunkDocument == null)
 				{
 					chunkDocument = asposeDocument;
@@ -271,7 +269,7 @@ public class LabformulierGenererenWriter implements ItemStreamWriter<Long>
 			labFormulierenMergedBrieven.setAantalBrieven(labFormulierenMergedBrieven.getAantalBrieven() + aantal);
 			labFormulierenMergedBrieven.getBrieven().add(aanvraag.getBrief());
 			aanvraag.getBrief().setMergedBrieven(labFormulierenMergedBrieven);
-			File tmpFile = File.createTempFile("labformulieren", "pdf");
+			var tmpFile = File.createTempFile("labformulieren", "pdf");
 			output = new FileOutputStream(tmpFile);
 			chunkDocument.save(output, asposeService.getPdfSaveOptions());
 			output.close();
@@ -299,15 +297,15 @@ public class LabformulierGenererenWriter implements ItemStreamWriter<Long>
 
 	private String voegNaamgevingAanPdf(CervixRegioMergedBrieven mergedBrieven)
 	{
-		String naam = "";
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH.mm");
+		var naam = "";
+		var sdf = new SimpleDateFormat("yyyy-MM-dd_HH.mm");
 		if (mergedBrieven.getCreatieDatum() != null)
 		{
 			naam += sdf.format(mergedBrieven.getCreatieDatum()) + "-";
 		}
 		if (mergedBrieven.getScreeningOrganisatie() != null)
 		{
-			String soNaam = mergedBrieven.getScreeningOrganisatie().getNaam();
+			var soNaam = mergedBrieven.getScreeningOrganisatie().getNaam();
 			soNaam = soNaam.replaceAll(" ", "_");
 			naam += soNaam + "-";
 		}
@@ -325,7 +323,7 @@ public class LabformulierGenererenWriter implements ItemStreamWriter<Long>
 
 	private String getVolgnummersTekst()
 	{
-		int waarde = volgnummerBatch - volgnummerDocument;
+		var waarde = volgnummerBatch - volgnummerDocument;
 		if (waarde == 0)
 		{
 			return "volgnummer_" + volgnummerDocument;
@@ -338,25 +336,24 @@ public class LabformulierGenererenWriter implements ItemStreamWriter<Long>
 
 	private Document mergeBrief(CervixLabformulierAanvraag aanvraag, UploadDocument document) throws Exception
 	{
-		File briefTemplate = uploadDocumentService.load(document);
-		byte[] briefTemplateBytes = FileUtils.readFileToByteArray(briefTemplate);
-		MailMergeContext context = new MailMergeContext();
+		var briefTemplate = uploadDocumentService.load(document);
+		var briefTemplateBytes = FileUtils.readFileToByteArray(briefTemplate);
+		var context = new MailMergeContext();
 		context.putValue(MailMergeContext.CONTEXT_HA_LAB_FORM_VOLGNUMMER, volgnummerBatch);
 		context.putValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS, aanvraag.getHuisartsLocatie().getHuisarts());
 		context.putValue(MailMergeContext.CONTEXT_HA_LOCATIE, aanvraag.getHuisartsLocatie());
 		context.putValue(MailMergeContext.CONTEXT_HA_AANTAL_FORM, aanvraag.getAantal());
-		Document asposeDocument = asposeService.processDocument(briefTemplateBytes, context);
+		var asposeDocument = asposeService.processDocument(briefTemplateBytes, context);
 		return asposeDocument;
 	}
 
 	private CervixRegioMergedBrieven maakRegioMergedBrieven(BriefType type)
 	{
-		CervixRegioMergedBrieven mergedBrieven = new CervixRegioMergedBrieven();
+		var mergedBrieven = new CervixRegioMergedBrieven();
 		mergedBrieven.setBriefType(type);
 		mergedBrieven.setCreatieDatum(currentDateSupplier.getDate());
 		mergedBrieven.setGeprint(false);
 		mergedBrieven.setScreeningOrganisatie(getScreeningOrganisatie());
-		mergedBrieven.setBrieven(new ArrayList<CervixRegioBrief>());
 		return mergedBrieven;
 	}
 
@@ -365,13 +362,13 @@ public class LabformulierGenererenWriter implements ItemStreamWriter<Long>
 		if (mergedBrieven.getMergedBrieven() == null)
 		{
 			LOG.info(getTechnischeLoggingMergedBriefAanmaken(mergedBrieven));
-			UploadDocument uploadDocument = new UploadDocument();
+			var uploadDocument = new UploadDocument();
 			uploadDocument.setActief(Boolean.TRUE);
 			uploadDocument.setContentType("application/pdf");
 			uploadDocument.setNaam(voegNaamgevingAanPdf(mergedBrieven));
 			uploadDocument.setFile(mergedPdfFile);
 
-			Long fileStoreId = aanvraag.getHuisartsLocatie().getHuisarts().getId();
+			var fileStoreId = aanvraag.getHuisartsLocatie().getHuisarts().getId();
 			uploadDocumentService.saveOrUpdate(uploadDocument, FileStoreLocation.INSTELLING_MERGED_BRIEVEN, fileStoreId);
 
 			mergedBrieven.setMergedBrieven(uploadDocument);

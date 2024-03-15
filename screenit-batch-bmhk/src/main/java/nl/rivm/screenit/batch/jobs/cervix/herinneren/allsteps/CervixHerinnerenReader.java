@@ -21,33 +21,22 @@ package nl.rivm.screenit.batch.jobs.cervix.herinneren.allsteps;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Arrays;
-import java.util.Date;
+import java.time.LocalDate;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationSortableScrollableResultReader;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
-import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
-import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.OrganisatieParameterService;
-import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.query.ScreenitRestrictions;
+import nl.rivm.screenit.specification.cervix.CervixUitnodigingSpecification;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projection;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 
-public abstract class CervixHerinnerenReader extends BaseScrollableResultReader
+public abstract class CervixHerinnerenReader extends BaseSpecificationSortableScrollableResultReader<CervixUitnodiging, Object>
 {
 	@Autowired
 	private ICurrentDateSupplier dateSupplier;
@@ -58,96 +47,57 @@ public abstract class CervixHerinnerenReader extends BaseScrollableResultReader
 	@Autowired
 	private OrganisatieParameterService organisatieParameterService;
 
-	private PreferenceKey periodeParameterKey;
+	private final OrganisatieParameterKey maxAantalParameterKey;
 
-	private OrganisatieParameterKey maxAantalParameterKey;
+	private final CervixMonsterType monsterType;
 
-	private String periodeProperty;
-
-	public CervixHerinnerenReader(int fetchSize, PreferenceKey periodeParameterKey, OrganisatieParameterKey maxAantalParameterKey, String periodeProperty)
+	protected CervixHerinnerenReader(int fetchSize, OrganisatieParameterKey maxAantalParameterKey, CervixMonsterType monsterType)
 	{
 		super.setFetchSize(fetchSize);
-		this.periodeParameterKey = periodeParameterKey;
 		this.maxAantalParameterKey = maxAantalParameterKey;
-		this.periodeProperty = periodeProperty;
+		this.monsterType = monsterType;
 	}
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<CervixUitnodiging> createSpecification()
 	{
-		var crit = session.createCriteria(CervixUitnodiging.class, "uitnodiging");
-		crit.createAlias("uitnodiging.screeningRonde", "ronde");
-		crit.createAlias("ronde.dossier", "dossier");
-		crit.createAlias("dossier.client", "client");
-		crit.createAlias("client.persoon", "persoon");
-
-		crit.createAlias("uitnodiging.brief", "brief");
-		crit.createAlias("brief.mergedBrieven", "mergedBrieven");
-
-		ScreenitRestrictions.addClientBaseRestrictions(crit, "client", "persoon");
-
-		crit.add(Restrictions.eq("ronde.status", ScreeningRondeStatus.LOPEND));
-
-		crit.add(Restrictions.eq("uitnodiging.herinneren", true));
-		crit.add(Restrictions.isNull("uitnodiging.herinnerenGeannuleerdDatum"));
-
-		maakHerinneringsPeriodeCriteria(crit);
-		voegStepSpecifiekeCriteriaToe(crit);
-
-		Integer maxAantalHerinneringen = getMaxAantalHerinneringen(maxAantalParameterKey);
-		if (maxAantalHerinneringen != null)
-		{
-			crit.setMaxResults(maxAantalHerinneringen);
-			crit.addOrder(Order.asc(periodeProperty));
-		}
-
-		return crit;
-	}
-
-	private void maakHerinneringsPeriodeCriteria(Criteria crit)
-	{
-		crit.add(Restrictions.lt(periodeProperty, getMaxPeriodeDatum(periodeParameterKey)));
-	}
-
-	protected void voegAliasEnCriteriaToeMonstertypeZas(Criteria crit)
-	{
-		crit.createAlias("uitnodiging.monster", "zas", JoinType.INNER_JOIN, Restrictions.eq("uitnodiging.monsterType", CervixMonsterType.ZAS));
-	}
-
-	protected void voegCriteriaCheckOpBriefTypeToe(Criteria criteria, BriefType... briefTypes)
-	{
-		criteria.add(Restrictions.in("brief.briefType", Arrays.asList(briefTypes)));
-	}
-
-	protected void voegAliasEnCriteriaToeMonstertypeUitstrijkje(Criteria crit)
-	{
-		crit.createAlias("uitnodiging.monster", "uitstrijkje", JoinType.INNER_JOIN, Restrictions.eq("uitnodiging.monsterType", CervixMonsterType.UITSTRIJKJE));
+		return CervixUitnodigingSpecification.heeftClientMetIndicatieAanwezig()
+			.and(CervixUitnodigingSpecification.heeftGeenVertrokkenPersoonUitNederlandDatum())
+			.and(CervixUitnodigingSpecification.heeftGeenPersoonMetOverledenDatum())
+			.and(CervixUitnodigingSpecification.heeftLopendeRonde())
+			.and(CervixUitnodigingSpecification.heeftHerinneren(true))
+			.and(CervixUitnodigingSpecification.heeftMergedBrieven())
+			.and(CervixUitnodigingSpecification.heeftGeenGeanulleerdeHerinneringDatum())
+			.and(CervixUitnodigingSpecification.heeftMonsterType(monsterType));
 	}
 
 	@Override
-	protected Projection getProjection()
+	protected int getMaxResults()
 	{
-		Integer maxAantalHerinneringen = getMaxAantalHerinneringen(maxAantalParameterKey);
-		if (maxAantalHerinneringen != null)
-		{
-			return Projections.distinct(Projections.projectionList().add(Projections.id()).add(Projections.property(periodeProperty)));
-		}
-		return super.getProjection();
+		var maxAantalHerinneringen = getMaxAantalHerinneringen(maxAantalParameterKey);
+		return maxAantalHerinneringen == null ? -1 : maxAantalHerinneringen;
 	}
 
-	private Date getMaxPeriodeDatum(PreferenceKey preferenceKey)
+	protected LocalDate getMaxPeriodeDatum(PreferenceKey preferenceKey)
 	{
-		Integer preferenceValue = preferenceService.getInteger(preferenceKey.name());
-		return DateUtil.toUtilDate(dateSupplier.getLocalDate().minusWeeks(preferenceValue).plusDays(1));
+		var weken = preferenceService.getInteger(preferenceKey.name());
+		return dateSupplier.getLocalDate().minusWeeks(weken).plusDays(1);
 	}
 
-	private Integer getMaxAantalHerinneringen(OrganisatieParameterKey paramKey)
+	protected Integer getMaxAantalHerinneringen(OrganisatieParameterKey paramKey)
 	{
 		return organisatieParameterService.getOrganisatieParameter(null, paramKey);
 	}
 
-	protected void voegStepSpecifiekeCriteriaToe(Criteria crit)
+	@Override
+	protected Class<CervixUitnodiging> getEntityClass()
 	{
-		throw new IllegalStateException("Deze methode moet overriden worden in specifieke step");
+		return CervixUitnodiging.class;
+	}
+
+	@Override
+	protected Class<Object> getResultClass()
+	{
+		return Object.class;
 	}
 }

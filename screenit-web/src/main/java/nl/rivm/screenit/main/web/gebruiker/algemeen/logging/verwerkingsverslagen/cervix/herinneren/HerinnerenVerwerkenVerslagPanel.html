@@ -23,46 +23,46 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
 <body>
 <wicket:panel>
-    <div class="row-fluid">
-        <div class="span12">
-            <h1 class="pageTitle">
-                Verwerkingsverslag herinneren
-            </h1>
-        </div>
-    </div>
-    <div class="row-fluid form-horizontal">
-        <div class="span6">
-            <div class="control-group value">
-                <label class="control-label">Datum verwerking</label>
-                <div wicket:id="datumVerwerking" class="controls"/>
-            </div>
-        </div>
-    </div>
-    <div class="row-fluid">
-        <div class="span6">
-            <table class="table table-condensed table-bordered">
-                <col/>
-                <col width="80px"/>
-                <tr>
-                    <td>Totaal brieven</td>
-                    <td class="text-right"><span wicket:id="totaalAantal"/></td>
-                </tr>
-            </table>
-        </div>
-    </div>
-    <div class="row-fluid">
-        <div class="span6">
-            Per brief type
-            <table class="table table-condensed table-bordered">
-                <col/>
-                <col width="80px"/>
-                <tr wicket:id="briefTypen">
-                    <td wicket:id="briefType"/>
+	<div class="row-fluid">
+		<div class="span12">
+			<h1 class="pageTitle">
+				Verwerkingsverslag herinneren
+			</h1>
+		</div>
+	</div>
+	<div class="row-fluid form-horizontal">
+		<div class="span6">
+			<div class="control-group value">
+				<label class="control-label">Datum verwerking</label>
+				<div wicket:id="datumVerwerking" class="controls"/>
+			</div>
+		</div>
+	</div>
+	<div class="row-fluid">
+		<div class="span6">
+			<table class="table table-condensed table-bordered">
+				<col/>
+				<col width="80px"/>
+				<tr>
+					<td>Totaal brieven</td>
+					<td class="text-right"><span wicket:id="totaalAantal"/></td>
+				</tr>
+			</table>
+		</div>
+	</div>
+	<div class="row-fluid">
+		<div class="span6">
+			Per brief type
+			<table class="table table-condensed table-bordered">
+				<col/>
+				<col width="80px"/>
+				<tr wicket:id="briefTypen">
+					<td wicket:id="briefType.weergaveNaam"/>
 					<td wicket:id="aantal" class="text-right"/>
-                </tr>
-            </table>
-        </div>
-    </div>
+				</tr>
+			</table>
+		</div>
+	</div>
 </wicket:panel>
 </body>
 </html>

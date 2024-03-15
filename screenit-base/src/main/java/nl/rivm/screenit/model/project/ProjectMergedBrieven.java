@@ -21,6 +21,7 @@ package nl.rivm.screenit.model.project;
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Entity;
@@ -38,12 +39,11 @@ import org.hibernate.envers.Audited;
 @Audited
 public class ProjectMergedBrieven extends MergedBrieven<ProjectBrief>
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@OneToMany(mappedBy = "mergedBrieven", cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade(CascadeType.SAVE_UPDATE)
-	private List<ProjectBrief> brieven;
+	private List<ProjectBrief> brieven = new ArrayList<>();
 
 	@Override
 	public List<ProjectBrief> getBrieven()
@@ -57,5 +57,4 @@ public class ProjectMergedBrieven extends MergedBrieven<ProjectBrief>
 		this.brieven = brieven;
 
 	}
-
 }

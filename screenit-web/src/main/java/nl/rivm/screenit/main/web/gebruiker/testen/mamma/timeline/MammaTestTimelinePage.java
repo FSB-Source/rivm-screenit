@@ -195,7 +195,7 @@ public class MammaTestTimelinePage extends TestenBasePage
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
-				String message = baseTestService.clientenResetten(bsns.getObject());
+				var message = testTimelineService.clientenResetten(bsns.getObject());
 				if (message.contains("Succesvol"))
 				{
 					info(message);

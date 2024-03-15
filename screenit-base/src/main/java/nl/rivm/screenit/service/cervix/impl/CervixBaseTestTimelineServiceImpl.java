@@ -25,7 +25,6 @@ import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
@@ -687,7 +686,6 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 		CervixMergedBrieven mergedBrieven = new CervixMergedBrieven();
 		mergedBrieven.setCreatieDatum(dateSupplier.getDate());
 		mergedBrieven.setBriefType(ronde.getLeeftijdcategorie().getUitnodigingsBrief());
-		mergedBrieven.setBrieven(new ArrayList<>());
 		mergedBrieven.setGeprint(true);
 		mergedBrieven.setPrintDatum(dateSupplier.getDate());
 		mergedBrieven.setVerwijderd(true);
@@ -727,7 +725,6 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 		CervixMergedBrieven mergedBrieven = new CervixMergedBrieven();
 		mergedBrieven.setCreatieDatum(dateSupplier.getDate());
 		mergedBrieven.setBriefType(uitnodiging.getScreeningRonde().getLeeftijdcategorie().getUitnodigingsBrief());
-		mergedBrieven.setBrieven(new ArrayList<>());
 		mergedBrieven.setGeprint(true);
 		mergedBrieven.setPrintDatum(dateSupplier.getDate());
 		mergedBrieven.setVerwijderd(true);

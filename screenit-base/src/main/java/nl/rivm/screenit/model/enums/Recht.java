@@ -569,6 +569,7 @@ public enum Recht implements INaam
 		"Beheer Sentinelcontroles",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
+		Actie.INZIEN,
 		Actie.AANPASSEN,
 		Actie.TOEVOEGEN),
 
@@ -576,6 +577,7 @@ public enum Recht implements INaam
 		"Beheer SKML interne controle",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
+		Actie.INZIEN,
 		Actie.AANPASSEN,
 		Actie.TOEVOEGEN),
 
@@ -583,6 +585,7 @@ public enum Recht implements INaam
 		"Beheer schema externe kwaliteitscontroles",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
+		Actie.INZIEN,
 		Actie.AANPASSEN,
 		Actie.TOEVOEGEN,
 		Actie.VERWIJDEREN),
@@ -1158,7 +1161,7 @@ public enum Recht implements INaam
 		new ToegangLevel[] { ToegangLevel.LANDELIJK }),
 
 	COLON_WEEKEND_WERK_DAG_BEPERKINGEN_BEHEER(
-		"Beheer van beperkingen voor weekend en werkdag",
+		"Beheer van roosterbeperkingen voor tijd en weekend",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
 		Actie.INZIEN, Actie.AANPASSEN);

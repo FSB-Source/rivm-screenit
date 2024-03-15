@@ -369,7 +369,7 @@ public abstract class AfmeldformulierInzienPopupPanel<A extends Afmelding> exten
 	private List<String> creatieDatumCreaterAfmelding(A afmelding)
 	{
 		List<? extends ClientBrief> brieven = briefService.getBrievenVanAfmelding(afmelding, false);
-		return BriefOmschrijvingUtil.getBrievenOmschrijvingen(brieven, this::getString);
+		return BriefOmschrijvingUtil.getBrievenOmschrijvingen(brieven);
 	}
 
 	protected abstract void close(AjaxRequestTarget target);

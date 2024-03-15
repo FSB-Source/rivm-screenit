@@ -360,17 +360,17 @@ public class OrganisatieBasisgegevens extends OrganisatieBeheer
 						var intakelocatie = (ColoscopieCentrum) organisatie;
 						if (intakelocatie.getPostcodeCoordinaten() == null)
 						{
-							ScreenitSession.get().warn(getString(keyOpslaanGelukt));
-							ScreenitSession.get().warn(getString("intakelocatie.coordinaten.niet.gevonden.bij.adres"));
+							getSession().warn(getString(keyOpslaanGelukt));
+							getSession().warn(getString("intakelocatie.coordinaten.niet.gevonden.bij.adres"));
 						}
 						else
 						{
-							info(getString(keyOpslaanGelukt));
+							getSession().info(getString(keyOpslaanGelukt));
 						}
 					}
 					else
 					{
-						info(getString(keyOpslaanGelukt));
+						getSession().info(getString(keyOpslaanGelukt));
 					}
 				}
 			};

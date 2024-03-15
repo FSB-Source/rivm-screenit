@@ -179,7 +179,8 @@ public class LocatieRooster extends GenericPanel<Kamer> implements ICalendarCall
 				protected boolean onBeforeOpslaan(RoosterItem roosteritem) throws ValidatieException, OpslaanVerwijderenTijdBlokException
 				{
 					super.onBeforeOpslaan(roosteritem);
-					roosterService.magRoosterItemOpslaanVerwijderen(roosteritem, getRecurrenceOption(), getRecurrenceEditEnd(), origRecEndDateTime, true);
+					var currentViewRange = roosterService.getCurrentViewRange(roosteritem, getRecurrenceOption(), getRecurrenceEditEnd(), origRecEndDateTime);
+					roosterService.magRoosterItemOpslaanVerwijderen(roosteritem, currentViewRange, true);
 					return true;
 				}
 
@@ -191,7 +192,8 @@ public class LocatieRooster extends GenericPanel<Kamer> implements ICalendarCall
 					{
 						try
 						{
-							roosterService.magRoosterItemOpslaanVerwijderen(objectToDelete, getRecurrenceOption(), getRecurrenceEditEnd(), origRecEndDateTime, false);
+							var currentViewRange = roosterService.getCurrentViewRange(objectToDelete, getRecurrenceOption(), getRecurrenceEditEnd(), origRecEndDateTime);
+							roosterService.magRoosterItemOpslaanVerwijderen(objectToDelete, currentViewRange, false);
 						}
 						catch (OpslaanVerwijderenTijdBlokException e)
 						{

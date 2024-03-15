@@ -39,7 +39,6 @@ import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.MergeFieldTestType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.colon.afmeldbrief.ColonAfmeldDocumentCreator;
-import nl.rivm.screenit.util.EnumStringUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
@@ -105,10 +104,8 @@ public class DocumentTemplateTestenPage extends BaseDocumentTemplateTestenPage
 			visibleBriefTypes.remove(BriefType.CLIENT_BEZWAAR_HANDTEKENING);
 			Comparator<BriefType> com = (o1, o2) ->
 			{
-				String key1 = EnumStringUtil.getPropertyString(o1);
-				String key2 = EnumStringUtil.getPropertyString(o2);
-				String string1 = Bevolkingsonderzoek.getAfkortingen(o1.getOnderzoeken()) + " - " + getString(key1, null);
-				String string2 = Bevolkingsonderzoek.getAfkortingen(o2.getOnderzoeken()) + " - " + getString(key2, null);
+				String string1 = Bevolkingsonderzoek.getAfkortingen(o1.getOnderzoeken()) + " - " + o1.getCodeEnNaam();
+				String string2 = Bevolkingsonderzoek.getAfkortingen(o2.getOnderzoeken()) + " - " + o2.getCodeEnNaam();
 				return string1.compareTo(string2);
 			};
 			visibleBriefTypes.sort(com);

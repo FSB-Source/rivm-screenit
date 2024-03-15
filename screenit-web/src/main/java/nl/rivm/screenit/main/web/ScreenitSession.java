@@ -627,8 +627,8 @@ public class ScreenitSession extends WebSession
 		InstellingGebruiker instellingGebruiker = getLoggedInInstellingGebruiker();
 		if (instellingGebruiker != null)
 		{
-			LOG.info("InstellingGebruiker is aan het inloggen " + instellingGebruiker.getMedewerker().getNaamVolledig() + " in " + instellingGebruiker.getOrganisatie().getNaam()
-				+ " (M" + instellingGebruiker.getId() + "/G" + instellingGebruiker.getMedewerker().getId() + ")");
+			LOG.info("InstellingGebruiker (id: '{}') is aan het inloggen namens {}. (Gid: '{}')", instellingGebruiker.getId(), instellingGebruiker.getOrganisatie().getNaam(),
+				instellingGebruiker.getMedewerker().getId());
 		}
 	}
 

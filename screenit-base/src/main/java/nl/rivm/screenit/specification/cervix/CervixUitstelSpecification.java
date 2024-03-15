@@ -75,7 +75,7 @@ public class CervixUitstelSpecification
 			});
 	}
 
-	public static Specification<CervixUitstel> heeftPersoonMetOverledenDatum()
+	public static Specification<CervixUitstel> heeftGeenPersoonMetOverledenDatum()
 	{
 		return PersoonSpecification.heeftGeenOverledenDatumPredicate()
 			.toSpecification(r ->

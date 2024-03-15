@@ -37,8 +37,6 @@ import nl.rivm.screenit.model.colon.SKMLExternSchema;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
-import nl.rivm.screenit.model.enums.ToegangLevel;
-import nl.rivm.screenit.service.AutorisatieService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
@@ -64,14 +62,10 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON })
 public class SKMLExterneControleSchemaPage extends KwaliteitscontroleBasePage
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@Transient
 	private IModel<SKMLExternSchema> zoekModel;
-
-	@SpringBean
-	private AutorisatieService authService;
 
 	@SpringBean
 	private SKMLExternSchemaService schemaService;
@@ -87,7 +81,6 @@ public class SKMLExterneControleSchemaPage extends KwaliteitscontroleBasePage
 
 		add(new Link<Void>("toevoegen")
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -95,18 +88,9 @@ public class SKMLExterneControleSchemaPage extends KwaliteitscontroleBasePage
 			{
 				setResponsePage(new SKMLExterneControleSchemaToevoegenPage(ModelUtil.cModel(new SKMLExternSchema())));
 			}
-
-			@Override
-			public boolean isVisible()
-			{
-				ToegangLevel level = authService.getToegangLevel(ScreenitSession.get().getLoggedInInstellingGebruiker(), Actie.AANPASSEN, true,
-					Recht.GEBRUIKER_BEHEER_SCHEMA_EXTERNE_CONTROLE);
-				return level != null && ToegangLevel.LANDELIJK == level;
-			}
-		});
+		}.setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BEHEER_SCHEMA_EXTERNE_CONTROLE, Actie.TOEVOEGEN)));
 		add(new Link<Void>("toevoegenXls")
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -114,15 +98,7 @@ public class SKMLExterneControleSchemaPage extends KwaliteitscontroleBasePage
 			{
 				setResponsePage(new SKMLExterneControleSchemaXlsToevoegenPage());
 			}
-
-			@Override
-			public boolean isVisible()
-			{
-				ToegangLevel level = authService.getToegangLevel(ScreenitSession.get().getLoggedInInstellingGebruiker(), Actie.AANPASSEN, true,
-					Recht.GEBRUIKER_BEHEER_SCHEMA_EXTERNE_CONTROLE);
-				return level != null && ToegangLevel.LANDELIJK == level;
-			}
-		});
+		}.setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BEHEER_SCHEMA_EXTERNE_CONTROLE, Actie.TOEVOEGEN)));
 		overzicht = maakSchemaOverzicht();
 		add(overzicht);
 	}
@@ -137,7 +113,6 @@ public class SKMLExterneControleSchemaPage extends KwaliteitscontroleBasePage
 		columns.add(new DateTimePropertyColumn<SKMLExternSchema, String>(Model.of("Deadline"), "deadline", new SimpleDateFormat("dd-MM-yyyy")));
 		columns.add(new AbstractColumn<SKMLExternSchema, String>(Model.of(""))
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -145,7 +120,6 @@ public class SKMLExterneControleSchemaPage extends KwaliteitscontroleBasePage
 			{
 				ScreenitIndicatingAjaxLinkPanel<SKMLExternSchema> linkPanel = new ScreenitIndicatingAjaxLinkPanel<SKMLExternSchema>(componentId, rowModel, "Verwijderen")
 				{
-
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -158,22 +132,16 @@ public class SKMLExterneControleSchemaPage extends KwaliteitscontroleBasePage
 						target.add(overzicht);
 						info("SKML Extern Controle Schema is verwijderd.");
 					}
-
-					@Override
-					public boolean isVisible()
-					{
-						ToegangLevel level = authService.getToegangLevel(ScreenitSession.get().getLoggedInInstellingGebruiker(), Actie.VERWIJDEREN, true,
-							Recht.GEBRUIKER_BEHEER_SCHEMA_EXTERNE_CONTROLE);
-						return level != null && ToegangLevel.LANDELIJK == level && schemaService.magSchemaVerwijderdWorden(getModelObject());
-					}
 				};
 				linkPanel.setOutputMarkupId(true);
 				cellItem.add(linkPanel);
+				linkPanel.setVisible(
+					ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BEHEER_SCHEMA_EXTERNE_CONTROLE, Actie.VERWIJDEREN) && schemaService.magSchemaVerwijderdWorden(
+						linkPanel.getModelObject()));
 			}
 		});
 		ScreenitDataTable<SKMLExternSchema, String> overzicht = new ScreenitDataTable<SKMLExternSchema, String>("overzicht", columns, provider, Model.of("schema's"))
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override

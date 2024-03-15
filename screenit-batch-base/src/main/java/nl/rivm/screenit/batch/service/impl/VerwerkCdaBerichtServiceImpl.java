@@ -27,6 +27,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.exceptions.OngeldigCdaException;
 import nl.rivm.screenit.batch.service.VerwerkCdaBerichtContentService;
 import nl.rivm.screenit.batch.service.VerwerkCdaBerichtService;
@@ -83,6 +85,7 @@ import nl.rivm.screenit.model.logging.BerichtOntvangenLogEvent;
 import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
 import nl.rivm.screenit.model.mamma.verslag.MammaVerslag;
 import nl.rivm.screenit.model.mamma.verslag.followup.MammaFollowUpVerslagContent;
+import nl.rivm.screenit.repository.algemeen.VerslagRepository;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.GebruikersService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -96,20 +99,15 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
+@Slf4j
 public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(VerwerkCdaBerichtServiceImpl.class);
-
 	@Autowired
 	private HibernateService hibernateService;
 
@@ -143,22 +141,26 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 	@Autowired(required = false)
 	private CervixBMHKLaboratoriumDao bmhkLaboratoriumDao;
 
+	@Autowired
+	private VerslagRepository verslagRepository;
+
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void verwerkBericht(Long berichtID) throws Exception
+	public void verwerkBericht(Long berichtID)
 	{
 		LOG.info("Bericht " + berichtID + ": start verwerking.");
-		OntvangenCdaBericht ontvangenCdaBericht = hibernateService.load(OntvangenCdaBericht.class, berichtID);
+		var ontvangenCdaBericht = hibernateService.load(OntvangenCdaBericht.class, berichtID);
 		ontvangenCdaBericht.setStatus(BerichtStatus.VERWERKT);
 		hibernateService.saveOrUpdate(ontvangenCdaBericht);
-		ClinicalDocument cdaDocument = ExtractCDA.getCDADocument(ontvangenCdaBericht.getXmlBericht());
-		BerichtType berichtType = ontvangenCdaBericht.getBerichtType();
+		var cdaDocument = ExtractCDA.getCDADocument(ontvangenCdaBericht.getXmlBericht());
+		var berichtType = ontvangenCdaBericht.getBerichtType();
 		try
 		{
-			Verslag bestaandeVerslag = getVerslagVoorSetID(ontvangenCdaBericht, cdaDocument);
-			if (bestaandeVerslag != null)
+			var bestaandeVerslag = verslagRepository.getVerslagVoorBerichtId(ontvangenCdaBericht.getBerichtId(),
+				ontvangenCdaBericht.getBerichtType().getVerslagType().getClazz());
+			if (bestaandeVerslag.isPresent())
 			{
-				berichtOpnieuwVerwerken(berichtID, cdaDocument, berichtType, bestaandeVerslag);
+				berichtOpnieuwVerwerken(berichtID, cdaDocument, berichtType, bestaandeVerslag.get());
 			}
 			else
 			{
@@ -167,9 +169,9 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 		}
 		catch (OngeldigCdaException e)
 		{
-			String melding = "CDA met berichtId " + ontvangenCdaBericht.getBerichtId() + ", setId " + ontvangenCdaBericht.getSetId() + " en versie "
+			var melding = "CDA met berichtId " + ontvangenCdaBericht.getBerichtId() + ", setId " + ontvangenCdaBericht.getSetId() + " en versie "
 				+ ontvangenCdaBericht.getVersie() + " moet handmatig verwerkt worden. Reden: " + e.getMessage();
-			BerichtOntvangenLogEvent logEvent = new BerichtOntvangenLogEvent();
+			var logEvent = new BerichtOntvangenLogEvent();
 			logEvent.setBericht(ontvangenCdaBericht);
 			logEvent.setMelding(melding);
 			LOG.warn("Bericht " + berichtID + ": verwerkt met melding (zie logevent)");

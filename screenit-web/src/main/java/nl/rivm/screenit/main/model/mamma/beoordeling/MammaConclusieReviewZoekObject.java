@@ -43,11 +43,11 @@ public class MammaConclusieReviewZoekObject implements IDetachable
 
 	private MammaConclusieReviewFilterOptie filterOptie = MammaConclusieReviewFilterOptie.ALLES;
 
-	private Boolean gezienTonen = false;
+	private boolean gezienTonen = false;
 
 	private boolean gezienCoordinerendRadioloogTonen = false;
 
-	private Boolean voorDashboard = false;
+	private boolean voorDashboard = false;
 
 	private Date zoekenVanafEindconclusieDatum;
 

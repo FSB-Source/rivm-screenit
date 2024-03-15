@@ -30,6 +30,8 @@ import lombok.Setter;
 
 import nl.rivm.screenit.model.colon.enums.ColonRoosterBeperking;
 
+import org.apache.commons.collections.CollectionUtils;
+
 @Getter
 @NoArgsConstructor
 public class BeperkingException extends Exception
@@ -42,5 +44,33 @@ public class BeperkingException extends Exception
 	public void addException(ValidatieException exception)
 	{
 		exceptions.add(exception);
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		var other = (BeperkingException) obj;
+		if (other == null)
+		{
+			return false;
+		}
+
+		if (getClass() != obj.getClass())
+		{
+			return false;
+		}
+
+		if (!other.getBeperkingType().equals(getBeperkingType()))
+		{
+			return false;
+		}
+
+		return CollectionUtils.isEqualCollection(other.getExceptions(), getExceptions());
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return beperkingType.hashCode() + exceptions.hashCode();
 	}
 }

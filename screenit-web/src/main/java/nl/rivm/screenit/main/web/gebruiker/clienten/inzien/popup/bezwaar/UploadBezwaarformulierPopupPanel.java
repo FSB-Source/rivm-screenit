@@ -132,7 +132,7 @@ public abstract class UploadBezwaarformulierPopupPanel extends GenericPanel<Bezw
 
 		uploadForm.add(
 			new ListView<>("brievenLijst",
-				BriefOmschrijvingUtil.getBrievenOmschrijvingen(briefService.getBrievenVanBezwaar(model.getObject()), this::getString))
+				BriefOmschrijvingUtil.getBrievenOmschrijvingen(briefService.getBrievenVanBezwaar(model.getObject())))
 			{
 				@Override
 				protected void populateItem(ListItem<String> item)

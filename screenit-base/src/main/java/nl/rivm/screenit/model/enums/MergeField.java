@@ -31,12 +31,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.Constants;
@@ -44,31 +46,21 @@ import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.model.Aanhef;
 import nl.rivm.screenit.model.AfmeldingType;
 import nl.rivm.screenit.model.BMHKLaboratorium;
-import nl.rivm.screenit.model.Brief;
 import nl.rivm.screenit.model.CentraleEenheid;
 import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.Functie;
-import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Gebruiker;
-import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.InpakbareUitnodiging;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.InstellingGebruikerRol;
 import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.OrganisatieType;
-import nl.rivm.screenit.model.RegioBvoContactGegevens;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.Titel;
-import nl.rivm.screenit.model.ZASRetouradres;
 import nl.rivm.screenit.model.cervix.CervixBrief;
-import nl.rivm.screenit.model.cervix.CervixCytologieVerslag;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
-import nl.rivm.screenit.model.cervix.CervixHuisartsAdres;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
-import nl.rivm.screenit.model.cervix.CervixLabformulier;
-import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
@@ -77,7 +69,6 @@ import nl.rivm.screenit.model.cervix.enums.CervixNietAnalyseerbaarReden;
 import nl.rivm.screenit.model.cervix.enums.CervixRedenUitnodiging;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
-import nl.rivm.screenit.model.cervix.verslag.cytologie.CervixCytologieCytologieUitslagBvoBmhkTbvHuisarts;
 import nl.rivm.screenit.model.colon.ColonAfmelding;
 import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
@@ -85,9 +76,7 @@ import nl.rivm.screenit.model.colon.ColonVolgendeUitnodiging;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaBrief;
-import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaLezing;
-import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
@@ -99,10 +88,8 @@ import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaUitstelReden;
 import nl.rivm.screenit.model.mamma.enums.MammaVerzettenReden;
 import nl.rivm.screenit.model.mamma.enums.MammaZijde;
-import nl.rivm.screenit.model.overeenkomsten.AbstractAfgeslotenOvereenkomst;
 import nl.rivm.screenit.model.overeenkomsten.AfgeslotenInstellingOvereenkomst;
 import nl.rivm.screenit.model.overeenkomsten.AfgeslotenMedewerkerOvereenkomst;
-import nl.rivm.screenit.model.project.ProjectBrief;
 import nl.rivm.screenit.model.project.ProjectBriefActieType;
 import nl.rivm.screenit.model.project.ProjectVragenlijstUitzettenVia;
 import nl.rivm.screenit.service.BarcodeService;
@@ -157,13 +144,13 @@ import static nl.rivm.screenit.model.enums.MergeFieldFlag.WAARDE_NIET_TRIMMEN;
 public enum MergeField
 {
 
-	UNIEK_BRIEF_KENMERK("_UNIEK_BRIEF_KENMERK", MergeFieldTestType.OVERIGE, String.class, "K6BD83FL", NIET_NAAR_INPAKCENTRUM)
+	UNIEK_BRIEF_KENMERK("_UNIEK_BRIEF_KENMERK", MergeFieldTestType.OVERIGE, String.class, () -> "K6BD83FL", NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Brief brief = context.getBrief();
-				ColonUitnodiging uitnodiging = context.getColonUitnodiging();
+				var brief = context.getBrief();
+				var uitnodiging = context.getColonUitnodiging();
 				if (brief != null && brief.getId() != null)
 				{
 					return "K" + Long.toHexString(brief.getId()).toUpperCase();
@@ -180,7 +167,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
 					return screeningOrganisatie.getId();
@@ -194,7 +181,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
 					return screeningOrganisatie.getNaam();
@@ -203,12 +190,12 @@ public enum MergeField
 			}
 		},
 
-	SO_LOGO("_SO_LOGO", MergeFieldFlag.NIET_IN_HUISARTSBERICHT, NIET_NAAR_INPAKCENTRUM)
+	SO_LOGO("_SO_LOGO", NIET_IN_HUISARTSBERICHT, NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
 					return screeningOrganisatie.getLogoBrief();
@@ -216,7 +203,7 @@ public enum MergeField
 				return null;
 			}
 		},
-	SO_LOGO_EMAIL("_SO_LOGO_EMAIL", MergeFieldTestType.ZORGINSTELLING, String.class, "")
+	SO_LOGO_EMAIL("_SO_LOGO_EMAIL", MergeFieldTestType.ZORGINSTELLING, String.class, () -> "")
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -225,12 +212,12 @@ public enum MergeField
 			}
 		},
 
-	SO_HANDTEKENING_BESTUURDER("_SO_HANDTEKENING_BESTUURDER", MergeFieldFlag.NIET_IN_HUISARTSBERICHT, NIET_NAAR_INPAKCENTRUM)
+	SO_HANDTEKENING_BESTUURDER("_SO_HANDTEKENING_BESTUURDER", NIET_IN_HUISARTSBERICHT, NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
 					return screeningOrganisatie.getBestuurSign();
@@ -239,12 +226,12 @@ public enum MergeField
 			}
 		},
 
-	SO_HANDTEKENING_RCMDL("_SO_HANDTEKENING_RCMDL", MergeFieldFlag.NIET_IN_HUISARTSBERICHT, NIET_NAAR_INPAKCENTRUM)
+	SO_HANDTEKENING_RCMDL("_SO_HANDTEKENING_RCMDL", NIET_IN_HUISARTSBERICHT, NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
 					return screeningOrganisatie.getRcmdlSign();
@@ -253,12 +240,12 @@ public enum MergeField
 			}
 		},
 
-	SO_KWALITEITSLOGO("_SO_KWALITEITSLOGO", MergeFieldFlag.NIET_IN_HUISARTSBERICHT, NIET_NAAR_INPAKCENTRUM)
+	SO_KWALITEITSLOGO("_SO_KWALITEITSLOGO", NIET_IN_HUISARTSBERICHT, NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
 					return screeningOrganisatie.getKwaliteitslogo();
@@ -281,7 +268,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(getScreeningOrganisatie(context), 0);
+				var adres = getAdres(getScreeningOrganisatie(context), 0);
 				if (adres != null)
 				{
 					return adres.getStraat();
@@ -296,10 +283,10 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(getScreeningOrganisatie(context), 0);
+				var adres = getAdres(getScreeningOrganisatie(context), 0);
 				if (adres != null)
 				{
-					StringBuilder adresString = new StringBuilder();
+					var adresString = new StringBuilder();
 					if (adres.getHuisnummer() != null)
 					{
 						adresString.append(adres.getHuisnummer());
@@ -336,7 +323,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(getScreeningOrganisatie(context), 0);
+				var adres = getAdres(getScreeningOrganisatie(context), 0);
 				if (adres != null)
 				{
 					return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
@@ -351,7 +338,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(getScreeningOrganisatie(context), 0);
+				var adres = getAdres(getScreeningOrganisatie(context), 0);
 				if (adres != null)
 				{
 					return adres.getPlaats();
@@ -366,7 +353,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(getScreeningOrganisatie(context), 1);
+				var adres = getAdres(getScreeningOrganisatie(context), 1);
 				if (adres != null)
 				{
 					return adres.getHuisnummer();
@@ -380,13 +367,13 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
-					RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensDk();
+					var contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensDk();
 					if (contactGegevens != null)
 					{
-						Adres adres = contactGegevens.getPostbusnummerAdres();
+						var adres = contactGegevens.getPostbusnummerAdres();
 						if (adres != null)
 						{
 							return adres.getHuisnummer();
@@ -402,13 +389,13 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
-					RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensBmhk();
+					var contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensBmhk();
 					if (contactGegevens != null)
 					{
-						Adres adres = contactGegevens.getPostbusnummerAdres();
+						var adres = contactGegevens.getPostbusnummerAdres();
 						if (adres != null)
 						{
 							return adres.getHuisnummer();
@@ -424,7 +411,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(getMammaCentraleEenheid(context), 1);
+				var adres = getAdres(getMammaCentraleEenheid(context), 1);
 				if (adres != null)
 				{
 					return adres.getHuisnummer();
@@ -438,7 +425,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(getScreeningOrganisatie(context), 1);
+				var adres = getAdres(getScreeningOrganisatie(context), 1);
 				if (adres != null)
 				{
 					return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
@@ -452,13 +439,13 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
-					RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensDk();
+					var contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensDk();
 					if (contactGegevens != null)
 					{
-						Adres adres = contactGegevens.getPostbusnummerAdres();
+						var adres = contactGegevens.getPostbusnummerAdres();
 						if (adres != null)
 						{
 							return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
@@ -474,13 +461,13 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
-					RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensBmhk();
+					var contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensBmhk();
 					if (contactGegevens != null)
 					{
-						Adres adres = contactGegevens.getPostbusnummerAdres();
+						var adres = contactGegevens.getPostbusnummerAdres();
 						if (adres != null)
 						{
 							return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
@@ -496,7 +483,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(getMammaCentraleEenheid(context), 1);
+				var adres = getAdres(getMammaCentraleEenheid(context), 1);
 				if (adres != null)
 				{
 					return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
@@ -510,7 +497,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(getScreeningOrganisatie(context), 1);
+				var adres = getAdres(getScreeningOrganisatie(context), 1);
 				if (adres != null)
 				{
 					return adres.getPlaats();
@@ -524,13 +511,13 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
-					RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensDk();
+					var contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensDk();
 					if (contactGegevens != null)
 					{
-						Adres adres = contactGegevens.getPostbusnummerAdres();
+						var adres = contactGegevens.getPostbusnummerAdres();
 						if (adres != null)
 						{
 							return adres.getPlaats();
@@ -546,13 +533,13 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
-					RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensBmhk();
+					var contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensBmhk();
 					if (contactGegevens != null)
 					{
-						Adres adres = contactGegevens.getPostbusnummerAdres();
+						var adres = contactGegevens.getPostbusnummerAdres();
 						if (adres != null)
 						{
 							return adres.getPlaats();
@@ -568,7 +555,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(getMammaCentraleEenheid(context), 1);
+				var adres = getAdres(getMammaCentraleEenheid(context), 1);
 				if (adres != null)
 				{
 					return adres.getPlaats();
@@ -582,7 +569,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(getScreeningOrganisatie(context), 2);
+				var adres = getAdres(getScreeningOrganisatie(context), 2);
 				if (adres != null)
 				{
 					return adres.getHuisnummer();
@@ -596,10 +583,10 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				RegioBvoContactGegevens contactGegevens = MergeField.getScreeningOrganisatie(context).getRegioBvoContactGegevensDk();
+				var contactGegevens = MergeField.getScreeningOrganisatie(context).getRegioBvoContactGegevensDk();
 				if (contactGegevens != null)
 				{
-					Adres adres = contactGegevens.getAntwoordnummerAdres();
+					var adres = contactGegevens.getAntwoordnummerAdres();
 					if (adres != null)
 					{
 						return adres.getHuisnummer();
@@ -614,10 +601,10 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				RegioBvoContactGegevens contactGegevens = MergeField.getScreeningOrganisatie(context).getRegioBvoContactGegevensBmhk();
+				var contactGegevens = MergeField.getScreeningOrganisatie(context).getRegioBvoContactGegevensBmhk();
 				if (contactGegevens != null)
 				{
-					Adres adres = contactGegevens.getAntwoordnummerAdres();
+					var adres = contactGegevens.getAntwoordnummerAdres();
 					if (adres != null)
 					{
 						return adres.getHuisnummer();
@@ -632,7 +619,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(getMammaCentraleEenheid(context), 2);
+				var adres = getAdres(getMammaCentraleEenheid(context), 2);
 				if (adres != null)
 				{
 					return adres.getHuisnummer();
@@ -646,7 +633,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(getScreeningOrganisatie(context), 2);
+				var adres = getAdres(getScreeningOrganisatie(context), 2);
 				if (adres != null)
 				{
 					return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
@@ -660,10 +647,10 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				RegioBvoContactGegevens contactGegevens = MergeField.getScreeningOrganisatie(context).getRegioBvoContactGegevensDk();
+				var contactGegevens = MergeField.getScreeningOrganisatie(context).getRegioBvoContactGegevensDk();
 				if (contactGegevens != null)
 				{
-					Adres adres = contactGegevens.getAntwoordnummerAdres();
+					var adres = contactGegevens.getAntwoordnummerAdres();
 					if (adres != null)
 					{
 						return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
@@ -678,10 +665,10 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				RegioBvoContactGegevens contactGegevens = MergeField.getScreeningOrganisatie(context).getRegioBvoContactGegevensBmhk();
+				var contactGegevens = MergeField.getScreeningOrganisatie(context).getRegioBvoContactGegevensBmhk();
 				if (contactGegevens != null)
 				{
-					Adres adres = contactGegevens.getAntwoordnummerAdres();
+					var adres = contactGegevens.getAntwoordnummerAdres();
 					if (adres != null)
 					{
 						return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
@@ -696,7 +683,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(getMammaCentraleEenheid(context), 2);
+				var adres = getAdres(getMammaCentraleEenheid(context), 2);
 				if (adres != null)
 				{
 					return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
@@ -710,7 +697,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(getScreeningOrganisatie(context), 2);
+				var adres = getAdres(getScreeningOrganisatie(context), 2);
 				if (adres != null)
 				{
 					return adres.getPlaats();
@@ -724,10 +711,10 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				RegioBvoContactGegevens contactGegevens = MergeField.getScreeningOrganisatie(context).getRegioBvoContactGegevensDk();
+				var contactGegevens = MergeField.getScreeningOrganisatie(context).getRegioBvoContactGegevensDk();
 				if (contactGegevens != null)
 				{
-					Adres adres = contactGegevens.getAntwoordnummerAdres();
+					var adres = contactGegevens.getAntwoordnummerAdres();
 					if (adres != null)
 					{
 						return adres.getPlaats();
@@ -742,10 +729,10 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				RegioBvoContactGegevens contactGegevens = MergeField.getScreeningOrganisatie(context).getRegioBvoContactGegevensBmhk();
+				var contactGegevens = MergeField.getScreeningOrganisatie(context).getRegioBvoContactGegevensBmhk();
 				if (contactGegevens != null)
 				{
-					Adres adres = contactGegevens.getAntwoordnummerAdres();
+					var adres = contactGegevens.getAntwoordnummerAdres();
 					if (adres != null)
 					{
 						return adres.getPlaats();
@@ -760,7 +747,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(getMammaCentraleEenheid(context), 2);
+				var adres = getAdres(getMammaCentraleEenheid(context), 2);
 				if (adres != null)
 				{
 					return adres.getPlaats();
@@ -780,7 +767,7 @@ public enum MergeField
 			public Object getFieldValue(MailMergeContext context)
 			{
 				String antwoordnummer = null;
-				Adres bmhkRetouradres = getBmhkRetouradres(context.getCervixUitnodiging());
+				var bmhkRetouradres = getBmhkRetouradres(context.getCervixUitnodiging());
 				if (bmhkRetouradres != null && bmhkRetouradres.getHuisnummer() != null)
 				{
 					antwoordnummer = bmhkRetouradres.getHuisnummer().toString();
@@ -801,7 +788,7 @@ public enum MergeField
 			public Object getFieldValue(MailMergeContext context)
 			{
 				String postcode = null;
-				Adres bmhkRetouradres = getBmhkRetouradres(context.getCervixUitnodiging());
+				var bmhkRetouradres = getBmhkRetouradres(context.getCervixUitnodiging());
 				if (bmhkRetouradres != null)
 				{
 					postcode = PostcodeFormatter.formatPostcode(bmhkRetouradres.getPostcode(), true);
@@ -822,7 +809,7 @@ public enum MergeField
 			public Object getFieldValue(MailMergeContext context)
 			{
 				String plaats = null;
-				Adres bmhkRetouradres = getBmhkRetouradres(context.getCervixUitnodiging());
+				var bmhkRetouradres = getBmhkRetouradres(context.getCervixUitnodiging());
 				if (bmhkRetouradres != null)
 				{
 					plaats = bmhkRetouradres.getPlaats();
@@ -851,7 +838,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
 					return screeningOrganisatie.getTelefoon();
@@ -865,10 +852,10 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
-					RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensDk();
+					var contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensDk();
 					if (contactGegevens != null)
 					{
 						return contactGegevens.getTelefoon();
@@ -883,10 +870,10 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
-					RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensBmhk();
+					var contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensBmhk();
 					if (contactGegevens != null)
 					{
 						return contactGegevens.getTelefoon();
@@ -901,7 +888,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
+				var centraleEenheid = getMammaCentraleEenheid(context);
 				if (centraleEenheid != null)
 				{
 					return centraleEenheid.getTelefoon();
@@ -914,7 +901,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
+				var centraleEenheid = getMammaCentraleEenheid(context);
 				if (centraleEenheid != null)
 				{
 					return centraleEenheid.getTelefoon2();
@@ -927,7 +914,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
+				var centraleEenheid = getMammaCentraleEenheid(context);
 				if (centraleEenheid != null)
 				{
 					return centraleEenheid.getTelefoon4();
@@ -941,7 +928,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
+				var centraleEenheid = getMammaCentraleEenheid(context);
 				if (centraleEenheid != null)
 				{
 					return centraleEenheid.getTelefoon3();
@@ -955,7 +942,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
 					return screeningOrganisatie.getTelefoon2();
@@ -970,7 +957,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
 					return screeningOrganisatie.getFax();
@@ -984,7 +971,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
 					return screeningOrganisatie.getEmail();
@@ -998,10 +985,10 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
-					RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensDk();
+					var contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensDk();
 					if (contactGegevens != null)
 					{
 						return contactGegevens.getEmail();
@@ -1016,10 +1003,10 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
-					RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensBmhk();
+					var contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensBmhk();
 					if (contactGegevens != null)
 					{
 						return contactGegevens.getEmail();
@@ -1034,7 +1021,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
+				var centraleEenheid = getMammaCentraleEenheid(context);
 				if (centraleEenheid != null)
 				{
 					return centraleEenheid.getEmail();
@@ -1048,7 +1035,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
+				var centraleEenheid = getMammaCentraleEenheid(context);
 				if (centraleEenheid != null)
 				{
 					return centraleEenheid.getEmail2();
@@ -1062,7 +1049,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
+				var centraleEenheid = getMammaCentraleEenheid(context);
 				if (centraleEenheid != null)
 				{
 					return centraleEenheid.getEmail4();
@@ -1076,7 +1063,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
+				var centraleEenheid = getMammaCentraleEenheid(context);
 				if (centraleEenheid != null)
 				{
 					return centraleEenheid.getEmail3();
@@ -1090,7 +1077,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
 					return screeningOrganisatie.getWebsite();
@@ -1104,7 +1091,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
 					return screeningOrganisatie.getRcmdl();
@@ -1118,7 +1105,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
 					return screeningOrganisatie.getRechtbank();
@@ -1133,7 +1120,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
 					return screeningOrganisatie.getClientPortaalVrijeTekst();
@@ -1147,10 +1134,10 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
-					RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensDk();
+					var contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensDk();
 					if (contactGegevens != null)
 					{
 						return contactGegevens.getClientPortaalVrijeTekst();
@@ -1165,10 +1152,10 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
-					RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensBmhk();
+					var contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensBmhk();
 					if (contactGegevens != null)
 					{
 						return contactGegevens.getClientPortaalVrijeTekst();
@@ -1183,7 +1170,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
+				var centraleEenheid = getMammaCentraleEenheid(context);
 				if (centraleEenheid != null)
 				{
 					return centraleEenheid.getClientPortaalVrijeTekst();
@@ -1197,7 +1184,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
 					return screeningOrganisatie.getIban();
@@ -1211,7 +1198,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
 					return screeningOrganisatie.getIbanTenaamstelling();
@@ -1319,7 +1306,7 @@ public enum MergeField
 
 		},
 
-	FORM_NUMMER("_FORM_NUMMER", MergeFieldTestType.OVERIGE, String.class, "12345", NIET_NAAR_INPAKCENTRUM)
+	FORM_NUMMER("_FORM_NUMMER", MergeFieldTestType.OVERIGE, String.class, () -> "12345", NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -1369,7 +1356,7 @@ public enum MergeField
 			{
 				if (context.getIntakeAfspraak() != null)
 				{
-					Adres adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 0);
+					var adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 0);
 					if (adres != null)
 					{
 						return adres.getStraat();
@@ -1386,10 +1373,10 @@ public enum MergeField
 			{
 				if (context.getIntakeAfspraak() != null)
 				{
-					Adres adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 0);
+					var adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 0);
 					if (adres != null)
 					{
-						StringBuilder adresString = new StringBuilder();
+						var adresString = new StringBuilder();
 						if (adres.getHuisnummer() != null)
 						{
 							adresString.append(adres.getHuisnummer());
@@ -1429,7 +1416,7 @@ public enum MergeField
 			{
 				if (context.getIntakeAfspraak() != null)
 				{
-					Adres adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 0);
+					var adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 0);
 					if (adres != null)
 					{
 						return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
@@ -1447,7 +1434,7 @@ public enum MergeField
 			{
 				if (context.getIntakeAfspraak() != null)
 				{
-					Adres adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 0);
+					var adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 0);
 					if (adres != null)
 					{
 						return adres.getPlaats();
@@ -1465,7 +1452,7 @@ public enum MergeField
 			{
 				if (context.getIntakeAfspraak() != null)
 				{
-					Adres adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 1);
+					var adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 1);
 					if (adres != null)
 					{
 						return adres.getHuisnummer();
@@ -1483,7 +1470,7 @@ public enum MergeField
 			{
 				if (context.getIntakeAfspraak() != null)
 				{
-					Adres adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 1);
+					var adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 1);
 					if (adres != null)
 					{
 						return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
@@ -1501,7 +1488,7 @@ public enum MergeField
 			{
 				if (context.getIntakeAfspraak() != null)
 				{
-					Adres adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 1);
+					var adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 1);
 					if (adres != null)
 					{
 						return adres.getPlaats();
@@ -1602,8 +1589,8 @@ public enum MergeField
 		"_COLON_HERAANMELDEN_TEKST",
 		MergeFieldTestType.OVERIGE,
 		String.class,
-		"",
-		MergeFieldFlag.NIET_IN_HUISARTSBERICHT)
+		() -> "",
+		NIET_IN_HUISARTSBERICHT)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -1625,8 +1612,8 @@ public enum MergeField
 		"_COLON_NIEUWE_FIT_TEKST",
 		MergeFieldTestType.OVERIGE,
 		String.class,
-		"",
-		MergeFieldFlag.NIET_IN_HUISARTSBERICHT)
+		() -> "",
+		NIET_IN_HUISARTSBERICHT)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -1639,6 +1626,8 @@ public enum MergeField
 						return getStringValueFromPreference(PreferenceKey.COLON_NIEUWE_FIT_AANGEVRAAGD_TEKST);
 					case U4_2:
 						return getStringValueFromPreference(PreferenceKey.COLON_NIEUWE_FIT_NA_HERAANMELDING_TEKST);
+					default:
+						return null;
 					}
 				}
 				return null;
@@ -1650,16 +1639,16 @@ public enum MergeField
 		"_COLON_JAAR_VOLGENDE_RONDE",
 		MergeFieldTestType.OVERIGE,
 		String.class,
-		"",
-		MergeFieldFlag.NIET_IN_HUISARTSBERICHT)
+		() -> "",
+		NIET_IN_HUISARTSBERICHT)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
 				if (context.getClient() != null && context.getClient().getColonDossier().getVolgendeUitnodiging() != null)
 				{
-					ColonDossierBaseService dossierService = getBean(ColonDossierBaseService.class);
-					LocalDate datumVolgendeUitnodiging = dossierService.getDatumVolgendeUitnodiging(context.getClient().getColonDossier());
+					var dossierService = getBean(ColonDossierBaseService.class);
+					var datumVolgendeUitnodiging = dossierService.getDatumVolgendeUitnodiging(context.getClient().getColonDossier());
 
 					if (datumVolgendeUitnodiging != null)
 					{
@@ -1675,8 +1664,8 @@ public enum MergeField
 		"_COLON_LAATSTE_RONDE_TEKST",
 		MergeFieldTestType.OVERIGE,
 		String.class,
-		"",
-		MergeFieldFlag.NIET_IN_HUISARTSBERICHT)
+		() -> "",
+		NIET_IN_HUISARTSBERICHT)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -1707,12 +1696,12 @@ public enum MergeField
 			}
 		},
 
-	ZI_ADRES("_ZI_ADRES", MergeFieldTestType.ZORGINSTELLING, String.class, "xxxx")
+	ZI_ADRES("_ZI_ADRES", MergeFieldTestType.ZORGINSTELLING, String.class, () -> "xxxx")
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Instelling zorginstelling = getZorgInstelling(context);
+				var zorginstelling = getZorgInstelling(context);
 				if (zorginstelling != null)
 				{
 					return AdresUtil.getVolledigeAdresString(getAdres(zorginstelling, 0));
@@ -1726,7 +1715,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Instelling zorginstelling = getZorgInstelling(context);
+				var zorginstelling = getZorgInstelling(context);
 				if (zorginstelling != null)
 				{
 					return zorginstelling.getNaam();
@@ -1740,7 +1729,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(getZorgInstelling(context), 0);
+				var adres = getAdres(getZorgInstelling(context), 0);
 				if (adres != null)
 				{
 					return adres.getStraat();
@@ -1754,7 +1743,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(getZorgInstelling(context), 0);
+				var adres = getAdres(getZorgInstelling(context), 0);
 				if (adres != null)
 				{
 					return AdresUtil.getHuisnummerVolledig(adres);
@@ -1768,7 +1757,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(getZorgInstelling(context), 0);
+				var adres = getAdres(getZorgInstelling(context), 0);
 				if (adres != null)
 				{
 					return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
@@ -1782,7 +1771,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(getZorgInstelling(context), 0);
+				var adres = getAdres(getZorgInstelling(context), 0);
 				if (adres != null)
 				{
 					return adres.getPlaats();
@@ -1796,7 +1785,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(getZorgInstelling(context), 1);
+				var adres = getAdres(getZorgInstelling(context), 1);
 				if (adres != null)
 				{
 					return adres.getHuisnummer();
@@ -1810,7 +1799,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(getZorgInstelling(context), 1);
+				var adres = getAdres(getZorgInstelling(context), 1);
 				if (adres != null)
 				{
 					return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
@@ -1825,7 +1814,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(getZorgInstelling(context), 1);
+				var adres = getAdres(getZorgInstelling(context), 1);
 				if (adres != null)
 				{
 					return adres.getPlaats();
@@ -1840,7 +1829,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Instelling zorginstelling = getZorgInstelling(context);
+				var zorginstelling = getZorgInstelling(context);
 				if (zorginstelling != null)
 				{
 					return zorginstelling.getTelefoon();
@@ -1855,7 +1844,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Instelling zorginstelling = getZorgInstelling(context);
+				var zorginstelling = getZorgInstelling(context);
 				if (zorginstelling != null)
 				{
 					return zorginstelling.getFax();
@@ -1870,7 +1859,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Instelling zorginstelling = getZorgInstelling(context);
+				var zorginstelling = getZorgInstelling(context);
 				if (zorginstelling != null)
 				{
 					return zorginstelling.getEmail();
@@ -1885,7 +1874,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Instelling zorginstelling = getZorgInstelling(context);
+				var zorginstelling = getZorgInstelling(context);
 				if (zorginstelling != null)
 				{
 					return zorginstelling.getWebsite();
@@ -1903,7 +1892,7 @@ public enum MergeField
 			}
 		},
 
-	HA_AANHEF("_HA_AANHEF", MergeFieldTestType.BMHKHUISARTS, String.class, "Geachte heer of mevrouw Dokter", NIET_NAAR_INPAKCENTRUM)
+	HA_AANHEF("_HA_AANHEF", MergeFieldTestType.BMHKHUISARTS, String.class, () -> "Geachte heer of mevrouw Dokter", NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -1911,8 +1900,8 @@ public enum MergeField
 				CervixHuisarts arts = context.getValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS);
 				if (arts != null && arts.getOrganisatieMedewerkers() != null && !arts.getOrganisatieMedewerkers().isEmpty())
 				{
-					String aanhef = "Geachte ";
-					Gebruiker gebruiker = arts.getOrganisatieMedewerkers().get(0).getMedewerker();
+					var aanhef = "Geachte ";
+					var gebruiker = arts.getOrganisatieMedewerkers().get(0).getMedewerker();
 					if (gebruiker != null && gebruiker.getAanhef() != null)
 					{
 						if (gebruiker.getAanhef() == Aanhef.DHR)
@@ -1945,7 +1934,7 @@ public enum MergeField
 
 		},
 
-	HA_NAAM("_HA_NAAM", MergeFieldTestType.BMHKHUISARTS, String.class, "Dokter", NIET_NAAR_INPAKCENTRUM)
+	HA_NAAM("_HA_NAAM", MergeFieldTestType.BMHKHUISARTS, String.class, () -> "Dokter", NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -1954,7 +1943,7 @@ public enum MergeField
 				if (arts != null && arts.getOrganisatieMedewerkers() != null && !arts.getOrganisatieMedewerkers().isEmpty())
 				{
 					String naam = null;
-					Gebruiker gebruiker = arts.getOrganisatieMedewerkers().get(0).getMedewerker();
+					var gebruiker = arts.getOrganisatieMedewerkers().get(0).getMedewerker();
 					if (gebruiker != null)
 					{
 						naam = NaamUtil.getNaamGebruiker(gebruiker);
@@ -1967,7 +1956,7 @@ public enum MergeField
 
 		},
 
-	HA_LOCATIE_ID("_HA_LOCATIE_ID", MergeFieldTestType.BMHKHUISARTS, Integer.class, "123456789", NIET_NAAR_INPAKCENTRUM, MergeFieldFlag.QR_CODE)
+	HA_LOCATIE_ID("_HA_LOCATIE_ID", MergeFieldTestType.BMHKHUISARTS, Integer.class, () -> "123456789", NIET_NAAR_INPAKCENTRUM, QR_CODE)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -1982,7 +1971,7 @@ public enum MergeField
 
 		},
 
-	HA_LOCATIE_NAAM("_HA_LOCATIE_NAAM", MergeFieldTestType.BMHKHUISARTS, String.class, "Praktijk van dokter Arts", NIET_NAAR_INPAKCENTRUM)
+	HA_LOCATIE_NAAM("_HA_LOCATIE_NAAM", MergeFieldTestType.BMHKHUISARTS, String.class, () -> "Praktijk van dokter Arts", NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -2003,7 +1992,7 @@ public enum MergeField
 		null,
 		MergeFieldTestType.BMHKHUISARTS,
 		String.class,
-		"8888XXX8888",
+		() -> "8888XXX8888",
 		NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
@@ -2023,7 +2012,7 @@ public enum MergeField
 		"_HA_LOCATIE_ADRES_VOLLEDIG",
 		MergeFieldTestType.BMHKHUISARTS,
 		String.class,
-		"Teststraat 123 B, 8888XX Teststad-Utrecht",
+		() -> "Teststraat 123 B, 8888XX Teststad-Utrecht",
 		NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
@@ -2043,7 +2032,7 @@ public enum MergeField
 
 		},
 
-	HA_LOCATIE_ADRES_STRAATNAAM("_HA_LOCATIE_ADRES_STRAATNAAM", MergeFieldTestType.BMHKHUISARTS, String.class, "Teststraat", NIET_NAAR_INPAKCENTRUM)
+	HA_LOCATIE_ADRES_STRAATNAAM("_HA_LOCATIE_ADRES_STRAATNAAM", MergeFieldTestType.BMHKHUISARTS, String.class, () -> "Teststraat", NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -2062,7 +2051,7 @@ public enum MergeField
 
 		},
 
-	HA_LOCATIE_ADRES_HUISNUMMER_TOEV("_HA_LOCATIE_ADRES_HUISNUMMER_TOEV", MergeFieldTestType.BMHKHUISARTS, String.class, "123 B", NIET_NAAR_INPAKCENTRUM)
+	HA_LOCATIE_ADRES_HUISNUMMER_TOEV("_HA_LOCATIE_ADRES_HUISNUMMER_TOEV", MergeFieldTestType.BMHKHUISARTS, String.class, () -> "123 B", NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -2073,7 +2062,7 @@ public enum MergeField
 					Adres adres = locatie.getLocatieAdres();
 					if (adres != null)
 					{
-						StringBuilder adresString = new StringBuilder();
+						var adresString = new StringBuilder();
 						if (adres.getHuisnummer() != null)
 						{
 							adresString.append(adres.getHuisnummer());
@@ -2105,7 +2094,7 @@ public enum MergeField
 
 		},
 
-	HA_LOCATIE_ADRES_POSTCODE("_HA_LOCATIE_ADRES_POSTCODE", MergeFieldTestType.BMHKHUISARTS, String.class, "8888 XX", NIET_NAAR_INPAKCENTRUM)
+	HA_LOCATIE_ADRES_POSTCODE("_HA_LOCATIE_ADRES_POSTCODE", MergeFieldTestType.BMHKHUISARTS, String.class, () -> "8888 XX", NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -2124,7 +2113,7 @@ public enum MergeField
 
 		},
 
-	HA_LOCATIE_ADRES_PLAATS("_HA_LOCATIE_ADRES_PLAATS", MergeFieldTestType.BMHKHUISARTS, String.class, "Teststad-Utrecht", NIET_NAAR_INPAKCENTRUM)
+	HA_LOCATIE_ADRES_PLAATS("_HA_LOCATIE_ADRES_PLAATS", MergeFieldTestType.BMHKHUISARTS, String.class, () -> "Teststad-Utrecht", NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -2132,7 +2121,7 @@ public enum MergeField
 				CervixHuisartsLocatie locatie = context.getValue(MailMergeContext.CONTEXT_HA_LOCATIE);
 				if (locatie != null)
 				{
-					CervixHuisartsAdres adres = locatie.getLocatieAdres();
+					var adres = locatie.getLocatieAdres();
 					if (adres != null && adres.getWoonplaats() != null)
 					{
 						return adres.getWoonplaats().getNaam();
@@ -2143,7 +2132,7 @@ public enum MergeField
 
 		},
 
-	HA_POST_ADRES_KIX("_HA_POST_ADRES_KIX", RoyalMailCBCBean.class, null, MergeFieldTestType.BMHKHUISARTS, String.class, "8888XXX8888", NIET_NAAR_INPAKCENTRUM)
+	HA_POST_ADRES_KIX("_HA_POST_ADRES_KIX", RoyalMailCBCBean.class, null, MergeFieldTestType.BMHKHUISARTS, String.class, () -> "8888XXX8888", NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -2162,7 +2151,7 @@ public enum MergeField
 		"_HA_POST_ADRES_VOLLEDIG",
 		MergeFieldTestType.BMHKHUISARTS,
 		String.class,
-		"Teststraat 123 B, 8888 XX Teststad-Utrecht",
+		() -> "Teststraat 123 B, 8888 XX Teststad-Utrecht",
 		NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
@@ -2182,7 +2171,7 @@ public enum MergeField
 
 		},
 
-	HA_POST_ADRES_STRAATNAAM("_HA_POST_ADRES_STRAATNAAM", MergeFieldTestType.BMHKHUISARTS, String.class, "Teststraat", NIET_NAAR_INPAKCENTRUM)
+	HA_POST_ADRES_STRAATNAAM("_HA_POST_ADRES_STRAATNAAM", MergeFieldTestType.BMHKHUISARTS, String.class, () -> "Teststraat", NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -2201,7 +2190,7 @@ public enum MergeField
 
 		},
 
-	HA_POST_ADRES_HUISNUMMER_TOEV("_HA_POST_ADRES_HUISNUMMER_TOEV", MergeFieldTestType.BMHKHUISARTS, String.class, "123 B", NIET_NAAR_INPAKCENTRUM)
+	HA_POST_ADRES_HUISNUMMER_TOEV("_HA_POST_ADRES_HUISNUMMER_TOEV", MergeFieldTestType.BMHKHUISARTS, String.class, () -> "123 B", NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -2212,7 +2201,7 @@ public enum MergeField
 					Adres adres = cervixHuisarts.getPostadres();
 					if (adres != null)
 					{
-						StringBuilder adresString = new StringBuilder();
+						var adresString = new StringBuilder();
 						if (adres.getHuisnummer() != null)
 						{
 							adresString.append(adres.getHuisnummer());
@@ -2244,7 +2233,7 @@ public enum MergeField
 
 		},
 
-	HA_POST_ADRES_POSTCODE("_HA_POST_ADRES_POSTCODE", MergeFieldTestType.BMHKHUISARTS, String.class, "8888 XX", NIET_NAAR_INPAKCENTRUM)
+	HA_POST_ADRES_POSTCODE("_HA_POST_ADRES_POSTCODE", MergeFieldTestType.BMHKHUISARTS, String.class, () -> "8888 XX", NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -2263,7 +2252,7 @@ public enum MergeField
 
 		},
 
-	HA_POST_ADRES_PLAATS("_HA_POST_ADRES_PLAATS", MergeFieldTestType.BMHKHUISARTS, String.class, "Teststad-Utrecht", NIET_NAAR_INPAKCENTRUM)
+	HA_POST_ADRES_PLAATS("_HA_POST_ADRES_PLAATS", MergeFieldTestType.BMHKHUISARTS, String.class, () -> "Teststad-Utrecht", NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -2271,7 +2260,7 @@ public enum MergeField
 				CervixHuisarts cervixHuisarts = context.getValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS);
 				if (cervixHuisarts != null)
 				{
-					CervixHuisartsAdres adres = cervixHuisarts.getPostadres();
+					var adres = cervixHuisarts.getPostadres();
 					if (adres != null && adres.getWoonplaats() != null)
 					{
 						return adres.getWoonplaats().getNaam();
@@ -2282,7 +2271,7 @@ public enum MergeField
 
 		},
 
-	HA_REGISTRATIE_CODE("_HA_REGISTRATIE_CODE", MergeFieldTestType.BMHKHUISARTS, String.class, "Wxr-j3O-uKl", NIET_NAAR_INPAKCENTRUM)
+	HA_REGISTRATIE_CODE("_HA_REGISTRATIE_CODE", MergeFieldTestType.BMHKHUISARTS, String.class, () -> "Wxr-j3O-uKl", NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -2298,7 +2287,7 @@ public enum MergeField
 
 		},
 
-	HA_LAB_FORM_VOLGNUMMER("_HA_LAB_FORM_VOLGNUMMER", MergeFieldTestType.BMHKHUISARTS, String.class, "99", NIET_NAAR_INPAKCENTRUM)
+	HA_LAB_FORM_VOLGNUMMER("_HA_LAB_FORM_VOLGNUMMER", MergeFieldTestType.BMHKHUISARTS, String.class, () -> "99", NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -2308,7 +2297,7 @@ public enum MergeField
 
 		},
 
-	HA_AANTAL_FORM("_HA_AANTAL_FORM", MergeFieldTestType.BMHKHUISARTS, String.class, "99", NIET_NAAR_INPAKCENTRUM)
+	HA_AANTAL_FORM("_HA_AANTAL_FORM", MergeFieldTestType.BMHKHUISARTS, String.class, () -> "99", NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -2318,7 +2307,7 @@ public enum MergeField
 
 		},
 
-	HA_AGB_CODE("_HA_AGB_CODE", MergeFieldTestType.BMHKHUISARTS, String.class, "01012345", NIET_NAAR_INPAKCENTRUM)
+	HA_AGB_CODE("_HA_AGB_CODE", MergeFieldTestType.BMHKHUISARTS, String.class, () -> "01012345", NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -2334,7 +2323,7 @@ public enum MergeField
 
 		},
 
-	DATUM_VANDAAG("_DATUM_VANDAAG", MergeFieldTestType.OVERIGE, Date.class, "31-12-2000")
+	DATUM_VANDAAG("_DATUM_VANDAAG", MergeFieldTestType.OVERIGE, Date.class, () -> "31-12-2000")
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -2344,7 +2333,7 @@ public enum MergeField
 
 		},
 
-	DATUM_INTAKE("_DATUM_INTAKE", MergeFieldTestType.INTAKE, Date.class, "01-12-2017")
+	DATUM_INTAKE("_DATUM_INTAKE", MergeFieldTestType.INTAKE, Date.class, () -> "01-12-2017")
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -2358,7 +2347,7 @@ public enum MergeField
 
 		},
 
-	TIJDSTIP_INTAKE("_TIJDSTIP_INTAKE", MergeFieldTestType.INTAKE, String.class, "08:45")
+	TIJDSTIP_INTAKE("_TIJDSTIP_INTAKE", MergeFieldTestType.INTAKE, String.class, () -> "08:45")
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -2373,7 +2362,7 @@ public enum MergeField
 
 		},
 
-	DATUM_VORIGE_INTAKE("_DATUM_VORIGEINTAKE", MergeFieldTestType.INTAKE, Date.class, "29-05-2017")
+	DATUM_VORIGE_INTAKE("_DATUM_VORIGEINTAKE", MergeFieldTestType.INTAKE, Date.class, () -> "29-05-2017")
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -2388,7 +2377,7 @@ public enum MergeField
 
 		},
 
-	TIJDSTIP_VORIGE_INTAKE("_TIJDSTIP_VORIGEINTAKE", MergeFieldTestType.INTAKE, String.class, "10:30")
+	TIJDSTIP_VORIGE_INTAKE("_TIJDSTIP_VORIGEINTAKE", MergeFieldTestType.INTAKE, String.class, () -> "10:30")
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -2446,7 +2435,7 @@ public enum MergeField
 
 		},
 
-	MAMMA_UITNODIGINGSNUMMER("_BK_UITNODIGINGSNUMMER", UitnodigingIdBarcode.class, null, MergeFieldTestType.OVERIGE, String.class, "123456789")
+	MAMMA_UITNODIGINGSNUMMER("_BK_UITNODIGINGSNUMMER", UitnodigingIdBarcode.class, null, MergeFieldTestType.OVERIGE, String.class, () -> "123456789")
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -2456,16 +2445,16 @@ public enum MergeField
 
 		},
 	MAMMA_UITNODIGINGSNUMMER_EMAIL_BARCODE("_BK_UITNODIGINGSNUMMER_EMAIL_BARCODE", UitnodigingIdBarcode.class, null, MergeFieldTestType.OVERIGE, String.class,
-		"<img src='data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAMYAAADRAQAAAAC/M/DTAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAEnRFWHRTb2Z0d2FyZQBCYXJjb2RlNEryjnYuAAAAvUlEQVR4Xu3QMQ6CQBQE0G8s6OQIexO5knRUgrGg5EoYC6+BN8Buiw0jW7jyk68JnSYzBcnwks3sCoCwK+SYDfO39O4EKfv4UygUCoVCoVAoFAqFQqFQfkjM/Iv4HI0tw3aSwpR+E8SZch78Pjel8xVaU1wocVspCPV68fWHBfDzPlse84pUlNwxuVSUXBGKVJS0ccMrSnKM77KU4HCxRV1HyRjPM0WNVqJGK+ni86QspZFKMlNEDqtFh/JVnk4BQA0jieC8AAAAAElFTkSuQmCC' alt='barcode 22'>")
+		() -> "<img src='data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAMYAAADRAQAAAAC/M/DTAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAEnRFWHRTb2Z0d2FyZQBCYXJjb2RlNEryjnYuAAAAvUlEQVR4Xu3QMQ6CQBQE0G8s6OQIexO5knRUgrGg5EoYC6+BN8Buiw0jW7jyk68JnSYzBcnwks3sCoCwK+SYDfO39O4EKfv4UygUCoVCoVAoFAqFQqFQfkjM/Iv4HI0tw3aSwpR+E8SZch78Pjel8xVaU1wocVspCPV68fWHBfDzPlse84pUlNwxuVSUXBGKVJS0ccMrSnKM77KU4HCxRV1HyRjPM0WNVqJGK+ni86QspZFKMlNEDqtFh/JVnk4BQA0jieC8AAAAAElFTkSuQmCC' alt='barcode 22'>")
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				String uitnodigingsNummer = getMammaUitnodigingsNummer(context);
+				var uitnodigingsNummer = getMammaUitnodigingsNummer(context);
 				if (uitnodigingsNummer != null)
 				{
 					var barcodeBean = new UitnodigingIdBarcode();
-					BarcodeService barcodeService = getBean(BarcodeService.class);
+					var barcodeService = getBean(BarcodeService.class);
 					try (var barcodeInputStream = barcodeService.maakBarcodeInputStreamVoorEmail(uitnodigingsNummer, barcodeBean))
 					{
 						var bytes = IOUtils.toByteArray(barcodeInputStream);
@@ -2589,11 +2578,11 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				AbstractAfgeslotenOvereenkomst overeenkomst = context.getOvereenkomst();
+				var overeenkomst = context.getOvereenkomst();
 				if (overeenkomst instanceof AfgeslotenMedewerkerOvereenkomst)
 				{
-					AfgeslotenMedewerkerOvereenkomst afgeslotenKwaliteitsOvereenkomst = (AfgeslotenMedewerkerOvereenkomst) overeenkomst;
-					Adres adres = getAdres(afgeslotenKwaliteitsOvereenkomst.getGebruiker(), 0);
+					var afgeslotenKwaliteitsOvereenkomst = (AfgeslotenMedewerkerOvereenkomst) overeenkomst;
+					var adres = getAdres(afgeslotenKwaliteitsOvereenkomst.getGebruiker());
 					if (adres != null)
 					{
 						return adres.getPlaats();
@@ -2653,7 +2642,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				var screeningOrganisatie = getScreeningOrganisatie(context);
 				if (screeningOrganisatie != null)
 				{
 					return screeningOrganisatie.getVertegenwoordiger();
@@ -2663,14 +2652,14 @@ public enum MergeField
 
 		},
 
-	ZI_GEM_ACHTERNAAM("_ZI_GEM_ACHTERNAAM", MergeFieldTestType.ZORGINSTELLING, String.class, "xxxx")
+	ZI_GEM_ACHTERNAAM("_ZI_GEM_ACHTERNAAM", MergeFieldTestType.ZORGINSTELLING, String.class, () -> "xxxx")
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
 				if (context.getOvereenkomst() instanceof AfgeslotenInstellingOvereenkomst)
 				{
-					AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
+					var afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
 					if (afgeslotenOvereenkomst.getInstelling().getGemachtigde() != null)
 					{
 						return afgeslotenOvereenkomst.getInstelling().getGemachtigde().getAchternaam();
@@ -2681,14 +2670,14 @@ public enum MergeField
 
 		},
 
-	ZI_GEM_TUSSENVOEGSEL("_ZI_GEM_TUSSENVOEGSEL", MergeFieldTestType.ZORGINSTELLING, String.class, "xxxx")
+	ZI_GEM_TUSSENVOEGSEL("_ZI_GEM_TUSSENVOEGSEL", MergeFieldTestType.ZORGINSTELLING, String.class, () -> "xxxx")
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
 				if (context.getOvereenkomst() instanceof AfgeslotenInstellingOvereenkomst)
 				{
-					AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
+					var afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
 					if (afgeslotenOvereenkomst.getInstelling().getGemachtigde() != null)
 					{
 						return afgeslotenOvereenkomst.getInstelling().getGemachtigde().getTussenvoegsel();
@@ -2706,7 +2695,7 @@ public enum MergeField
 			{
 				if (context.getOvereenkomst() instanceof AfgeslotenInstellingOvereenkomst)
 				{
-					AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
+					var afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
 					if (afgeslotenOvereenkomst.getInstelling().getGemachtigde() != null)
 					{
 						return afgeslotenOvereenkomst.getInstelling().getGemachtigde().getVoorletters();
@@ -2717,14 +2706,14 @@ public enum MergeField
 
 		},
 
-	ZI_GEM_AANHEF("_ZI_GEM_AANHEF", MergeFieldTestType.ZORGINSTELLING, String.class, "xxxx")
+	ZI_GEM_AANHEF("_ZI_GEM_AANHEF", MergeFieldTestType.ZORGINSTELLING, String.class, () -> "xxxx")
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
 				if (context.getOvereenkomst() instanceof AfgeslotenInstellingOvereenkomst)
 				{
-					AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
+					var afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
 					if (afgeslotenOvereenkomst.getInstelling().getGemachtigde() != null && afgeslotenOvereenkomst.getInstelling().getGemachtigde().getAanhef() != null)
 					{
 						return afgeslotenOvereenkomst.getInstelling().getGemachtigde().getAanhef().getNaam();
@@ -2735,14 +2724,14 @@ public enum MergeField
 
 		},
 
-	ZI_GEM_TITEL("_ZI_GEM_TITEL", MergeFieldTestType.ZORGINSTELLING, String.class, "xxxx")
+	ZI_GEM_TITEL("_ZI_GEM_TITEL", MergeFieldTestType.ZORGINSTELLING, String.class, () -> "xxxx")
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
 				if (context.getOvereenkomst() instanceof AfgeslotenInstellingOvereenkomst)
 				{
-					AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
+					var afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
 					if (afgeslotenOvereenkomst.getInstelling().getGemachtigde() != null && afgeslotenOvereenkomst.getInstelling().getGemachtigde().getTitel() != null)
 					{
 						return afgeslotenOvereenkomst.getInstelling().getGemachtigde().getTitel().getNaam();
@@ -2753,14 +2742,14 @@ public enum MergeField
 
 		},
 
-	ZI_GEM_FUNCTIE("_ZI_GEM_FUNCTIE", MergeFieldTestType.ZORGINSTELLING, String.class, "xxx")
+	ZI_GEM_FUNCTIE("_ZI_GEM_FUNCTIE", MergeFieldTestType.ZORGINSTELLING, String.class, () -> "xxx")
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
 				if (context.getOvereenkomst() instanceof AfgeslotenInstellingOvereenkomst)
 				{
-					AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
+					var afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
 					if (afgeslotenOvereenkomst.getInstelling().getGemachtigde() != null && afgeslotenOvereenkomst.getInstelling().getGemachtigde().getFunctie() != null)
 					{
 						return afgeslotenOvereenkomst.getInstelling().getGemachtigde().getFunctie().getNaam();
@@ -2843,17 +2832,17 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ProjectBrief brief = context.getProjectBrief();
+				var brief = context.getProjectBrief();
 				if (brief != null)
 				{
 					if (brief.getDefinitie().getType().equals(ProjectBriefActieType.HERINNERING))
 					{
 						brief = brief.getTeHerinnerenBrief();
 					}
-					ProjectVragenlijstUitzettenVia projectVragenlijstUitzettenVia = brief.getDefinitie().getProjectVragenlijstUitzettenVia();
+					var projectVragenlijstUitzettenVia = brief.getDefinitie().getProjectVragenlijstUitzettenVia();
 					if (ProjectVragenlijstUitzettenVia.isWeb(projectVragenlijstUitzettenVia))
 					{
-						ProjectService projectService = getBean(ProjectService.class);
+						var projectService = getBean(ProjectService.class);
 						return projectService.generateVragenlijstUrl(brief);
 					}
 				}
@@ -2867,17 +2856,17 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				ProjectBrief brief = context.getProjectBrief();
+				var brief = context.getProjectBrief();
 				if (brief != null)
 				{
 					if (brief.getDefinitie().getType().equals(ProjectBriefActieType.HERINNERING))
 					{
 						brief = brief.getTeHerinnerenBrief();
 					}
-					ProjectVragenlijstUitzettenVia projectVragenlijstUitzettenVia = brief.getDefinitie().getProjectVragenlijstUitzettenVia();
+					var projectVragenlijstUitzettenVia = brief.getDefinitie().getProjectVragenlijstUitzettenVia();
 					if (ProjectVragenlijstUitzettenVia.isWeb(projectVragenlijstUitzettenVia))
 					{
-						ProjectService projectService = getBean(ProjectService.class);
+						var projectService = getBean(ProjectService.class);
 						return projectService.generateVragenlijstKey(brief);
 					}
 				}
@@ -2915,7 +2904,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixUitnodiging uitnodiging = context.getCervixUitnodiging();
+				var uitnodiging = context.getCervixUitnodiging();
 				if (uitnodiging != null)
 				{
 					setBarcodeTypeFromContext(context);
@@ -2924,6 +2913,17 @@ public enum MergeField
 				return null;
 			}
 
+			private void setBarcodeTypeFromContext(MailMergeContext context)
+			{
+				if (context.getBrief() == null)
+				{
+					setBarcodeType(CervixMonsterIdLabelBarcode.class);
+				}
+				else
+				{
+					setBarcodeType(CervixMonsterIdBarcode.class);
+				}
+			}
 		},
 
 	CERVIX_MONSTER_CONTROLE_LETTERS(
@@ -2939,7 +2939,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixUitnodiging uitnodiging = context.getCervixUitnodiging();
+				var uitnodiging = context.getCervixUitnodiging();
 				return uitnodiging != null
 					&& uitnodiging.getMonsterType().equals(CervixMonsterType.UITSTRIJKJE)
 					? ((CervixUitstrijkje) uitnodiging.getMonster()).getControleLetters()
@@ -2952,13 +2952,13 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixUitnodiging cervixUitnodiging = context.getCervixUitnodiging();
+				var cervixUitnodiging = context.getCervixUitnodiging();
 				if (cervixUitnodiging != null)
 				{
-					CervixMonster monster = cervixUitnodiging.getMonster();
+					var monster = cervixUitnodiging.getMonster();
 					if (monster != null)
 					{
-						BMHKLaboratorium laboratorium = monster.getLaboratorium();
+						var laboratorium = monster.getLaboratorium();
 						if (laboratorium != null)
 						{
 							return laboratorium.getNaam();
@@ -2972,7 +2972,7 @@ public enum MergeField
 					if (cervixHuisartsLocatie != null && cervixHuisartsLocatie.getLocatieAdres() != null && cervixHuisartsLocatie.getLocatieAdres().getWoonplaats() != null
 						&& cervixHuisartsLocatie.getLocatieAdres().getWoonplaats().getGemeente() != null)
 					{
-						BMHKLaboratorium laboratorium = cervixHuisartsLocatie.getLocatieAdres().getWoonplaats().getGemeente().getBmhkLaboratorium();
+						var laboratorium = cervixHuisartsLocatie.getLocatieAdres().getWoonplaats().getGemeente().getBmhkLaboratorium();
 						if (laboratorium != null)
 						{
 							labnaam = laboratorium.getNaam();
@@ -2984,7 +2984,7 @@ public enum MergeField
 						if (cervixHuisarts != null && cervixHuisarts.getPostadres() != null && cervixHuisarts.getPostadres().getWoonplaats() != null
 							&& cervixHuisarts.getPostadres().getWoonplaats().getGemeente() != null)
 						{
-							BMHKLaboratorium laboratorium = cervixHuisarts.getPostadres().getWoonplaats().getGemeente().getBmhkLaboratorium();
+							var laboratorium = cervixHuisarts.getPostadres().getWoonplaats().getGemeente().getBmhkLaboratorium();
 							if (laboratorium != null)
 							{
 								labnaam = laboratorium.getNaam();
@@ -3008,13 +3008,13 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Object deproxy = HibernateHelper.deproxy(context.getBrief());
+				var deproxy = HibernateHelper.deproxy(context.getBrief());
 				if (deproxy instanceof CervixBrief)
 				{
-					CervixBrief brief = (CervixBrief) deproxy;
+					var brief = (CervixBrief) deproxy;
 					if (CervixMonsterUtil.isUitstrijkje(brief.getMonster()))
 					{
-						CervixUitstrijkje monster = CervixMonsterUtil.getUitstrijkje(brief.getMonster());
+						var monster = CervixMonsterUtil.getUitstrijkje(brief.getMonster());
 						if (monster.getCytologieVerslag() != null)
 						{
 							return monster.getCytologieVerslag().getPatholoogNaam();
@@ -3030,10 +3030,10 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Object deproxy = HibernateHelper.deproxy(context.getBrief());
+				var deproxy = HibernateHelper.deproxy(context.getBrief());
 				if (deproxy instanceof CervixBrief)
 				{
-					CervixBrief brief = (CervixBrief) deproxy;
+					var brief = (CervixBrief) deproxy;
 					return getBMHKLaboratoriumOndertekenaar(brief, false);
 				}
 				if (context.getBmhkLaboratorium() != null)
@@ -3045,15 +3045,15 @@ public enum MergeField
 
 		},
 
-	BMHKLAB_HANDTEKENING("_BMHKLAB_HANDTEKENING", MergeFieldFlag.NIET_IN_HUISARTSBERICHT, NIET_NAAR_INPAKCENTRUM)
+	BMHKLAB_HANDTEKENING("_BMHKLAB_HANDTEKENING", NIET_IN_HUISARTSBERICHT, NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Object deproxy = HibernateHelper.deproxy(context.getBrief());
+				var deproxy = HibernateHelper.deproxy(context.getBrief());
 				if (deproxy instanceof CervixBrief)
 				{
-					CervixBrief brief = (CervixBrief) deproxy;
+					var brief = (CervixBrief) deproxy;
 					return getBMHKLaboratoriumOndertekenaar(brief, true);
 				}
 				if (context.getBmhkLaboratorium() != null)
@@ -3070,14 +3070,14 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixUitnodiging uitnodiging = context.getCervixUitnodiging();
+				var uitnodiging = context.getCervixUitnodiging();
 				if (uitnodiging != null)
 				{
-					CervixUitstrijkje uitstrijkje = CervixMonsterUtil.getUitstrijkje(uitnodiging.getMonster());
-					CervixCytologieVerslag verslag = uitstrijkje.getCytologieVerslag();
+					var uitstrijkje = CervixMonsterUtil.getUitstrijkje(uitnodiging.getMonster());
+					var verslag = uitstrijkje.getCytologieVerslag();
 					if (verslag != null)
 					{
-						CervixCytologieCytologieUitslagBvoBmhkTbvHuisarts cytologieUitslagHuisarts = verslag.getVerslagContent().getCytologieUitslagBvoBmhkTbvHuisarts();
+						var cytologieUitslagHuisarts = verslag.getVerslagContent().getCytologieUitslagBvoBmhkTbvHuisarts();
 						return cytologieUitslagHuisarts.getProtocollairVerslag();
 					}
 				}
@@ -3091,14 +3091,14 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixUitnodiging uitnodiging = context.getCervixUitnodiging();
+				var uitnodiging = context.getCervixUitnodiging();
 				if (uitnodiging != null)
 				{
-					CervixUitstrijkje uitstrijkje = CervixMonsterUtil.getUitstrijkje(uitnodiging.getMonster());
-					CervixCytologieVerslag verslag = uitstrijkje.getCytologieVerslag();
+					var uitstrijkje = CervixMonsterUtil.getUitstrijkje(uitnodiging.getMonster());
+					var verslag = uitstrijkje.getCytologieVerslag();
 					if (verslag != null)
 					{
-						CervixCytologieCytologieUitslagBvoBmhkTbvHuisarts cytologieUitslagHuisarts = verslag.getVerslagContent().getCytologieUitslagBvoBmhkTbvHuisarts();
+						var cytologieUitslagHuisarts = verslag.getVerslagContent().getCytologieUitslagBvoBmhkTbvHuisarts();
 						return cytologieUitslagHuisarts.getConclusie();
 					}
 				}
@@ -3112,10 +3112,10 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixUitnodiging uitnodiging = context.getCervixUitnodiging();
+				var uitnodiging = context.getCervixUitnodiging();
 				if (uitnodiging != null)
 				{
-					CervixUitstrijkje uitstrijkje = CervixMonsterUtil.getUitstrijkje(uitnodiging.getMonster());
+					var uitstrijkje = CervixMonsterUtil.getUitstrijkje(uitnodiging.getMonster());
 					if (uitstrijkje.getUitstrijkjeStatus() == CervixUitstrijkjeStatus.NIET_ANALYSEERBAAR)
 					{
 						return uitstrijkje.getNietAnalyseerbaarReden().getNaam();
@@ -3130,14 +3130,14 @@ public enum MergeField
 		"_CERVIX_HERINNERINGSTEKST",
 		MergeFieldTestType.OVERIGE,
 		String.class,
-		"",
+		() -> "",
 		NIET_NAAR_INPAKCENTRUM,
-		MergeFieldFlag.NIET_IN_HUISARTSBERICHT)
+		NIET_IN_HUISARTSBERICHT)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixUitnodiging uitnodiging = getOorspronkelijkeCervixUitnoding(context.getCervixUitnodiging());
+				var uitnodiging = getOorspronkelijkeCervixUitnoding(context.getCervixUitnodiging());
 				if (uitnodiging != null && Boolean.TRUE.equals(uitnodiging.getHerinnering()))
 				{
 					return getStringValueFromPreference(PreferenceKey.CERVIX_HERINNERING_TEKST);
@@ -3151,9 +3151,9 @@ public enum MergeField
 		"_CERVIX_HERAANMELDEN_TEKST",
 		MergeFieldTestType.OVERIGE,
 		String.class,
-		"",
+		() -> "",
 		NIET_NAAR_INPAKCENTRUM,
-		MergeFieldFlag.NIET_IN_HUISARTSBERICHT)
+		NIET_IN_HUISARTSBERICHT)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -3171,14 +3171,14 @@ public enum MergeField
 		"_CERVIX_UITGESTELD_TEKST",
 		MergeFieldTestType.OVERIGE,
 		String.class,
-		"",
+		() -> "",
 		NIET_NAAR_INPAKCENTRUM,
-		MergeFieldFlag.NIET_IN_HUISARTSBERICHT)
+		NIET_IN_HUISARTSBERICHT)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixUitnodiging uitnodiging = getOorspronkelijkeCervixUitnoding(context.getCervixUitnodiging());
+				var uitnodiging = getOorspronkelijkeCervixUitnoding(context.getCervixUitnodiging());
 				if (uitnodiging != null && Boolean.TRUE.equals(uitnodiging.getUitgesteld()))
 				{
 					return getStringValueFromPreference(PreferenceKey.CERVIX_UITGESTELD_TEKST);
@@ -3192,9 +3192,9 @@ public enum MergeField
 		"_CERVIX_NIEUWE_ZAS_AANGEVRAAGD_TEKST",
 		MergeFieldTestType.OVERIGE,
 		String.class,
-		"",
+		() -> "",
 		NIET_NAAR_INPAKCENTRUM,
-		MergeFieldFlag.NIET_IN_HUISARTSBERICHT)
+		NIET_IN_HUISARTSBERICHT)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -3215,14 +3215,14 @@ public enum MergeField
 		"_CERVIX_VERVOLGONDERZOEK_NEGATIEF_TEKST",
 		MergeFieldTestType.OVERIGE,
 		String.class,
-		"Er is geen HPV (humaan papillomavirus) gevonden.",
+		() -> "Er is geen HPV (humaan papillomavirus) gevonden.",
 		NIET_NAAR_INPAKCENTRUM,
-		MergeFieldFlag.NIET_IN_HUISARTSBERICHT)
+		NIET_IN_HUISARTSBERICHT)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixLeeftijdcategorie leeftijdcategorie = getCervixLeeftijdcategorie(context);
+				var leeftijdcategorie = getCervixLeeftijdcategorie(context);
 				if (CervixLeeftijdcategorie._70.equals(leeftijdcategorie) || CervixLeeftijdcategorie._65.equals(leeftijdcategorie))
 				{
 					return getStringValueFromPreference(PreferenceKey.CERVIX_VERVOLGONDERZOEK_NEGATIEF_65PLUS_TEKST);
@@ -3242,14 +3242,14 @@ public enum MergeField
 		"_CERVIX_CYTOLOGIE_POSITIEF_TEKST",
 		MergeFieldTestType.OVERIGE,
 		String.class,
-		"Er is HPV (humaan papillomavirus) gevonden. Ook zijn er afwijkende cellen gevonden.",
+		() -> "Er is HPV (humaan papillomavirus) gevonden. Ook zijn er afwijkende cellen gevonden.",
 		NIET_NAAR_INPAKCENTRUM,
-		MergeFieldFlag.NIET_IN_HUISARTSBERICHT)
+		NIET_IN_HUISARTSBERICHT)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixLeeftijdcategorie leeftijdcategorie = getCervixLeeftijdcategorie(context);
+				var leeftijdcategorie = getCervixLeeftijdcategorie(context);
 				if (CervixLeeftijdcategorie._70.equals(leeftijdcategorie) || CervixLeeftijdcategorie._65.equals(leeftijdcategorie) || CervixLeeftijdcategorie._60.equals(
 					leeftijdcategorie))
 				{
@@ -3267,23 +3267,31 @@ public enum MergeField
 		"_CERVIX_HUISARTS_DOORGEVEN_TOT_DATUM",
 		MergeFieldTestType.OVERIGE,
 		Date.class,
-		"31-12-2017",
+		() -> "31-12-2017",
 		NIET_NAAR_INPAKCENTRUM,
-		MergeFieldFlag.NIET_IN_HUISARTSBERICHT)
+		NIET_IN_HUISARTSBERICHT)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
 				if (context.getBrief() != null && context.getBrief().getBriefType() == BriefType.CERVIX_HUISARTS_ONBEKEND)
 				{
-					CervixBrief brief = (CervixBrief) context.getBrief();
+					var brief = (CervixBrief) context.getBrief();
 					while (brief.getLabformulier() == null)
 					{
 						brief = (CervixBrief) BriefUtil.getHerdruk(brief);
 					}
-					var ontvangstdatum = brief.getLabformulier().getUitstrijkje().getOntvangstdatum();
-					var wachttijdHuisartsDoorgeven = getSimplePreferenceService().getInteger(PreferenceKey.CERVIX_WACHTTIJD_HUISARTS_DOORGEVEN.toString());
-					return new SimpleDateFormat("dd-MM-yyyy").format(DateUtil.plusWerkdagen(ontvangstdatum, wachttijdHuisartsDoorgeven));
+					var uitstrijkje = brief.getLabformulier().getUitstrijkje();
+					if (uitstrijkje != null)
+					{
+						var ontvangstdatum = brief.getLabformulier().getUitstrijkje().getOntvangstdatum();
+						var wachttijdHuisartsDoorgeven = getSimplePreferenceService().getInteger(PreferenceKey.CERVIX_WACHTTIJD_HUISARTS_DOORGEVEN.toString());
+						return DateUtil.formatShortDate(DateUtil.plusWerkdagen(ontvangstdatum, wachttijdHuisartsDoorgeven));
+					}
+					else
+					{
+						LOG.warn("Uitstrijkje voor labformulier (id: '{}') kon niet worden gevonden", brief.getLabformulier().getId());
+					}
 				}
 				return null;
 			}
@@ -3292,7 +3300,7 @@ public enum MergeField
 
 	CERVIX_BETAALOPDRACHT_BETALINGSOMSCHRIJVING(
 		"_BTO_BETALINGSOMSCHRIJVING",
-		MergeFieldFlag.NIET_IN_HUISARTSBERICHT,
+		NIET_IN_HUISARTSBERICHT,
 		NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
@@ -3310,7 +3318,7 @@ public enum MergeField
 
 	CERVIX_BETAALOPDRACHT_BETALINGSKENMERK(
 		"_BTO_BETALINGSKENMERK",
-		MergeFieldFlag.NIET_IN_HUISARTSBERICHT,
+		NIET_IN_HUISARTSBERICHT,
 		NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
@@ -3328,7 +3336,7 @@ public enum MergeField
 
 	CERVIX_BETAALOPDRACHT_GEHEELTOTAALBEDRAG(
 		"_BTO_GEHEELTOTAALBEDRAG",
-		MergeFieldFlag.NIET_IN_HUISARTSBERICHT,
+		NIET_IN_HUISARTSBERICHT,
 		NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
@@ -3347,7 +3355,7 @@ public enum MergeField
 
 	CERVIX_BETAALOPDRACHT_LABS_TOTAALBEDRAG(
 		"_BTO_LABS_TOTAALBEDRAG",
-		MergeFieldFlag.NIET_IN_HUISARTSBERICHT,
+		NIET_IN_HUISARTSBERICHT,
 		NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
@@ -3366,7 +3374,7 @@ public enum MergeField
 
 	CERVIX_BETAALOPDRACHT_HA_AANTAL_UITSTRIJKJES(
 		"_BTO_HA_AANTAL_UITSTRIJKJES",
-		MergeFieldFlag.NIET_IN_HUISARTSBERICHT,
+		NIET_IN_HUISARTSBERICHT,
 		NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
@@ -3383,7 +3391,7 @@ public enum MergeField
 		},
 	CERVIX_BETAALOPDRACHT_HA_TOTAALBEDRAG_UITSTRIJKJES(
 		"_BTO_HA_TOTAALBEDRAG_UITSTRIJKJES",
-		MergeFieldFlag.NIET_IN_HUISARTSBERICHT,
+		NIET_IN_HUISARTSBERICHT,
 		NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
@@ -3400,7 +3408,7 @@ public enum MergeField
 		},
 	CERVIX_BETAALOPDRACHT_HA_TOTAALBEDRAG_CORRECTIES(
 		"_BTO_HA_TOTAALBEDRAG_CORRECTIES",
-		MergeFieldFlag.NIET_IN_HUISARTSBERICHT,
+		NIET_IN_HUISARTSBERICHT,
 		NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
@@ -3417,7 +3425,7 @@ public enum MergeField
 		},
 	CERVIX_BETAALOPDRACHT_HA_AANTAL_CORRECTIES(
 		"_BTO_HA_AANTAL_CORRECTIES",
-		MergeFieldFlag.NIET_IN_HUISARTSBERICHT,
+		NIET_IN_HUISARTSBERICHT,
 		NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
@@ -3433,7 +3441,7 @@ public enum MergeField
 		},
 	CERVIX_BETAALOPDRACHT_HA_TOTAALBEDRAG(
 		"_BTO_HA_TOTAALBEDRAG",
-		MergeFieldFlag.NIET_IN_HUISARTSBERICHT,
+		NIET_IN_HUISARTSBERICHT,
 		NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
@@ -3465,12 +3473,12 @@ public enum MergeField
 			}
 		},
 
-	MAMMA_AFSPRAAK_DATUM("_BK_AFSPRAAK_DATUM", MergeFieldTestType.BKAFSPRAAK, Date.class, "01-12-2017", NIET_NAAR_INPAKCENTRUM)
+	MAMMA_AFSPRAAK_DATUM("_BK_AFSPRAAK_DATUM", MergeFieldTestType.BKAFSPRAAK, Date.class, () -> "01-12-2017", NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				MammaAfspraak afspraak = getLaatsteMammaAfspraak(context);
+				var afspraak = getLaatsteMammaAfspraak(context);
 				if (afspraak != null)
 				{
 					return getFormattedDateMetDagnaam(afspraak.getVanaf());
@@ -3479,12 +3487,12 @@ public enum MergeField
 			}
 		},
 
-	MAMMA_AFSPRAAK_TIJD("_BK_AFSPRAAK_TIJD", MergeFieldTestType.BKAFSPRAAK, String.class, "08:45", NIET_NAAR_INPAKCENTRUM)
+	MAMMA_AFSPRAAK_TIJD("_BK_AFSPRAAK_TIJD", MergeFieldTestType.BKAFSPRAAK, String.class, () -> "08:45", NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				MammaAfspraak afspraak = getLaatsteMammaAfspraak(context);
+				var afspraak = getLaatsteMammaAfspraak(context);
 				if (afspraak != null)
 				{
 					return DateUtil.toLocalTime(afspraak.getVanaf()).format(DateTimeFormatter.ofPattern("HH:mm"));
@@ -3493,20 +3501,17 @@ public enum MergeField
 			}
 		},
 
-	MAMMA_AFSPRAAK_REDEN_VERZET(
-		"_BK_AFSPRAAK_REDEN_VERZET",
-		MergeFieldTestType.BKAFSPRAAK,
-		MammaVerzettenReden.class,
-		null,
+	MAMMA_AFSPRAAK_REDEN_VERZET("_BK_AFSPRAAK_REDEN_VERZET",
+		MergeFieldTestType.BKAFSPRAAK, MammaVerzettenReden.class, () -> null,
 		NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				MammaAfspraak laatsteAfspraak = getLaatsteMammaAfspraak(context);
+				var laatsteAfspraak = getLaatsteMammaAfspraak(context);
 				if (laatsteAfspraak != null && MammaVerzettenReden.briefVerplicht(laatsteAfspraak.getVerzettenReden()))
 				{
-					MammaAfspraak vorigeAfspraak = getEenNaLaatsteAfspraak(laatsteAfspraak.getUitnodiging());
+					var vorigeAfspraak = getEenNaLaatsteAfspraak(laatsteAfspraak.getUitnodiging());
 
 					if (vorigeAfspraak.getStatus().equals(MammaAfspraakStatus.GEPLAND))
 					{
@@ -3521,29 +3526,26 @@ public enum MergeField
 			}
 		},
 
-	MAMMA_AFSPRAAK_LOCATIE_WIJZIGING(
-		"_BK_AFSPRAAK_LOCATIE_WIJZIGING",
-		MergeFieldTestType.BKAFSPRAAK,
-		String.class,
-		getStringValueFromPreference(PreferenceKey.MAMMA_AFSPRAAK_LOCATIE_WIJZIGING_TEKST),
+	MAMMA_AFSPRAAK_LOCATIE_WIJZIGING("_BK_AFSPRAAK_LOCATIE_WIJZIGING",
+		MergeFieldTestType.BKAFSPRAAK, String.class, () -> getStringValueFromPreference(PreferenceKey.MAMMA_AFSPRAAK_LOCATIE_WIJZIGING_TEKST),
 		NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				boolean toonLocatieWijzigingTekst = Boolean.TRUE.equals(context.getValue(MailMergeContext.CONTEXT_MAMMA_TOON_LOCATIE_WIJZIGING_TEKST));
+				var toonLocatieWijzigingTekst = Boolean.TRUE.equals(context.getValue(MailMergeContext.CONTEXT_MAMMA_TOON_LOCATIE_WIJZIGING_TEKST));
 				if (toonLocatieWijzigingTekst)
 				{
 					return getStringValueFromPreference(PreferenceKey.MAMMA_AFSPRAAK_LOCATIE_WIJZIGING_TEKST);
 				}
-				MammaAfspraak laatsteAfspraak = getLaatsteMammaAfspraak(context);
+				var laatsteAfspraak = getLaatsteMammaAfspraak(context);
 				if (laatsteAfspraak != null)
 				{
-					MammaAfspraak vorigeAfspraak = getEenNaLaatsteAfspraak(laatsteAfspraak.getUitnodiging());
+					var vorigeAfspraak = getEenNaLaatsteAfspraak(laatsteAfspraak.getUitnodiging());
 					if (vorigeAfspraak != null)
 					{
-						MammaStandplaatsLocatie vorigeStandplaatsLocatie = vorigeAfspraak.getStandplaatsPeriode().getStandplaatsRonde().getStandplaats().getLocatie();
-						MammaStandplaatsLocatie standplaatsLocatie = laatsteAfspraak.getStandplaatsPeriode().getStandplaatsRonde().getStandplaats().getLocatie();
+						var vorigeStandplaatsLocatie = vorigeAfspraak.getStandplaatsPeriode().getStandplaatsRonde().getStandplaats().getLocatie();
+						var standplaatsLocatie = laatsteAfspraak.getStandplaatsPeriode().getStandplaatsRonde().getStandplaats().getLocatie();
 						if (!AdresUtil.isZelfdeStandplaatsLocatie(vorigeStandplaatsLocatie, standplaatsLocatie))
 						{
 							return getStringValueFromPreference(PreferenceKey.MAMMA_AFSPRAAK_LOCATIE_WIJZIGING_TEKST);
@@ -3559,13 +3561,13 @@ public enum MergeField
 		"_BK_AFSPRAAK_BETREFT",
 		MergeFieldTestType.BKAFSPRAAK,
 		null,
-		getStringValueFromPreference(PreferenceKey.MAMMA_AFSPRAAK_BETREFT_BEVESTIGING_TEKST),
+		() -> getStringValueFromPreference(PreferenceKey.MAMMA_AFSPRAAK_BETREFT_BEVESTIGING_TEKST),
 		NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				MammaAfspraak laatsteAfspraak = getLaatsteMammaAfspraak(context);
+				var laatsteAfspraak = getLaatsteMammaAfspraak(context);
 				if (laatsteAfspraak != null)
 				{
 					List<MammaAfspraak> afspraken = new ArrayList<>(laatsteAfspraak.getUitnodiging().getAfspraken());
@@ -3595,7 +3597,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				MammaStandplaatsLocatie locatie = getMammaStandplaatsLocatieAfspraak(context);
+				var locatie = getMammaStandplaatsLocatieAfspraak(context);
 				if (locatie != null)
 				{
 					return locatie.getStraat();
@@ -3610,15 +3612,15 @@ public enum MergeField
 		"client.mammaDossier.laatsteScreeningRonde.laatsteUitnodiging.laatsteAfspraak.standplaatsPeriode.standplaatsRonde.standplaats.locatie.huisnummer",
 		String.class,
 		NIET_NAAR_INPAKCENTRUM,
-		MergeFieldFlag.WAARDE_NIET_TRIMMEN)
+		WAARDE_NIET_TRIMMEN)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				MammaStandplaatsLocatie locatie = getMammaStandplaatsLocatieAfspraak(context);
+				var locatie = getMammaStandplaatsLocatieAfspraak(context);
 				if (locatie != null && locatie.getToonHuisnummerInBrieven())
 				{
-					String huisnummerString = " " + locatie.getHuisnummer();
+					var huisnummerString = " " + locatie.getHuisnummer();
 					if (locatie.getHuisnummerToevoeging() != null)
 					{
 						huisnummerString += " " + locatie.getHuisnummerToevoeging();
@@ -3640,7 +3642,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				MammaStandplaatsLocatie locatie = getMammaStandplaatsLocatieAfspraak(context);
+				var locatie = getMammaStandplaatsLocatieAfspraak(context);
 				if (locatie != null)
 				{
 					return PostcodeFormatter.formatPostcode(locatie.getPostcode(), true);
@@ -3659,7 +3661,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				MammaStandplaatsLocatie locatie = getMammaStandplaatsLocatieAfspraak(context);
+				var locatie = getMammaStandplaatsLocatieAfspraak(context);
 				if (locatie != null)
 				{
 					return locatie.getPlaats();
@@ -3678,7 +3680,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				MammaStandplaatsLocatie locatie = getMammaStandplaatsLocatieAfspraak(context);
+				var locatie = getMammaStandplaatsLocatieAfspraak(context);
 				if (locatie != null)
 				{
 					return locatie.getLocatieBeschrijving();
@@ -3687,12 +3689,12 @@ public enum MergeField
 			}
 		},
 
-	MAMMA_ONDERZOEK_DATUM("_BK_ONDERZOEK_DATUM", MergeFieldTestType.BKAFSPRAAK, Date.class, "10-10-2018", NIET_NAAR_INPAKCENTRUM)
+	MAMMA_ONDERZOEK_DATUM("_BK_ONDERZOEK_DATUM", MergeFieldTestType.BKAFSPRAAK, Date.class, () -> "10-10-2018", NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				MammaBeoordeling beoordeling = getMammaBeoordeling(context);
+				var beoordeling = getMammaBeoordeling(context);
 				Date onderzoekDatum = null;
 				if (beoordeling != null && beoordeling.getOnderzoek() != null && beoordeling.getOnderzoek().getCreatieDatum() != null)
 				{
@@ -3700,7 +3702,7 @@ public enum MergeField
 				}
 				else
 				{
-					MammaAfspraak afspraak = getAfspraakVanLaatsteOnderzoek(context);
+					var afspraak = getAfspraakVanLaatsteOnderzoek(context);
 					if (afspraak != null)
 					{
 						onderzoekDatum = afspraak.getOnderzoek().getCreatieDatum();
@@ -3723,7 +3725,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Gebruiker radioloog = getMammaRadioloog1(context);
+				var radioloog = getMammaRadioloog1(context);
 				if (radioloog != null)
 				{
 					return radioloog.getOndertekenaar();
@@ -3737,7 +3739,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Gebruiker radioloog = getMammaRadioloog1(context);
+				var radioloog = getMammaRadioloog1(context);
 				if (radioloog != null)
 				{
 					return radioloog.getHandtekening();
@@ -3755,7 +3757,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Gebruiker radioloog = getMammaRadioloog2(context);
+				var radioloog = getMammaRadioloog2(context);
 				if (radioloog != null)
 				{
 					return radioloog.getOndertekenaar();
@@ -3768,7 +3770,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				Gebruiker radioloog = getMammaRadioloog2(context);
+				var radioloog = getMammaRadioloog2(context);
 				if (radioloog != null)
 				{
 					return radioloog.getHandtekening();
@@ -3781,17 +3783,17 @@ public enum MergeField
 		"_BK_ONDERBROKEN_ONDERZOEK_BEELDEN_TEKST",
 		MergeFieldTestType.BKAFSPRAAK,
 		String.class,
-		"Tekst over onderbroken onderzoeken met resp. zonder beelden",
+		() -> "Tekst over onderbroken onderzoeken met resp. zonder beelden",
 		NIET_NAAR_INPAKCENTRUM,
 		NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				MammaAfspraak afspraak = getAfspraakVanLaatsteOnderzoek(context);
+				var afspraak = getAfspraakVanLaatsteOnderzoek(context);
 				if (afspraak != null)
 				{
-					MammaOnderzoek onderzoek = afspraak.getOnderzoek();
+					var onderzoek = afspraak.getOnderzoek();
 					if (onderzoek != null && onderzoek.getMammografie() != null && onderzoek.getStatus() == MammaOnderzoekStatus.ONDERBROKEN)
 					{
 
@@ -3809,22 +3811,22 @@ public enum MergeField
 			}
 		},
 
-	MAMMA_UITSLAG_BIRADS_LINKS("_BK_UITSLAG_BIRADS_LINKS", MergeFieldTestType.BKAFSPRAAK, Integer.class, "1", NIET_NAAR_INPAKCENTRUM)
+	MAMMA_UITSLAG_BIRADS_LINKS("_BK_UITSLAG_BIRADS_LINKS", MergeFieldTestType.BKAFSPRAAK, Integer.class, () -> "1", NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				MammaLezing verslaglezing = getVerslagLezing(context);
+				var verslaglezing = getVerslagLezing(context);
 				return bepaalVerslagBiradsTekst(verslaglezing, MammaZijde.LINKER_BORST);
 			}
 		},
 
-	MAMMA_UITSLAG_BIRADS_RECHTS("_BK_UITSLAG_BIRADS_RECHTS", MergeFieldTestType.BKAFSPRAAK, Integer.class, "1", NIET_NAAR_INPAKCENTRUM)
+	MAMMA_UITSLAG_BIRADS_RECHTS("_BK_UITSLAG_BIRADS_RECHTS", MergeFieldTestType.BKAFSPRAAK, Integer.class, () -> "1", NIET_NAAR_INPAKCENTRUM)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				MammaLezing verslaglezing = getVerslagLezing(context);
+				var verslaglezing = getVerslagLezing(context);
 				return bepaalVerslagBiradsTekst(verslaglezing, MammaZijde.RECHTER_BORST);
 			}
 		},
@@ -3834,7 +3836,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				MammaLezing verslaglezing = getVerslagLezing(context);
+				var verslaglezing = getVerslagLezing(context);
 				return verslaglezing != null && verslaglezing.getBiradsOpmerking() != null ? "Opmerking:" + System.lineSeparator() + verslaglezing.getBiradsOpmerking() : null;
 			}
 		},
@@ -3844,7 +3846,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				MammaLezing verslaglezing = getVerslagLezing(context);
+				var verslaglezing = getVerslagLezing(context);
 				return createLaesiesTekst(verslaglezing);
 			}
 		},
@@ -3854,7 +3856,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				MammaBeoordeling beoordeling = getMammaBeoordelingMetEersteEnOfTweedeLezing(context);
+				var beoordeling = getMammaBeoordelingMetEersteEnOfTweedeLezing(context);
 				if (beoordeling != null && (!beoordeling.getEersteLezing().getNevenbevindingen().isEmpty() || !beoordeling.getTweedeLezing().getNevenbevindingen().isEmpty()))
 				{
 					return getNevenbevindingenEnumString(beoordeling);
@@ -3868,7 +3870,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				MammaBeoordeling beoordeling = getMammaBeoordelingMetEersteEnOfTweedeLezing(context);
+				var beoordeling = getMammaBeoordelingMetEersteEnOfTweedeLezing(context);
 				if (beoordeling != null && (!beoordeling.getEersteLezing().getNevenbevindingen().isEmpty() || !beoordeling.getTweedeLezing().getNevenbevindingen().isEmpty()))
 				{
 					return getNevenBevindingenOpmerkingTekst(beoordeling);
@@ -3887,10 +3889,10 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				MammaBeoordeling beoordeling = getMammaBeoordeling(context);
+				var beoordeling = getMammaBeoordeling(context);
 				if (beoordeling != null)
 				{
-					final MammaBeperktBeoordeelbaarReden reden = MammaBeoordelingUtil.beperktBeoordeelbaarReden(beoordeling);
+					final var reden = MammaBeoordelingUtil.beperktBeoordeelbaarReden(beoordeling);
 					if (reden != null)
 					{
 						if (reden == MammaBeperktBeoordeelbaarReden.FOTOS_MAAR_IN_1_RICHTING_GEMAAKT)
@@ -3912,10 +3914,10 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				MammaBeoordeling beoordeling = getMammaBeoordeling(context);
+				var beoordeling = getMammaBeoordeling(context);
 				if (beoordeling != null)
 				{
-					final MammaBeperktBeoordeelbaarReden reden = MammaBeoordelingUtil.beperktBeoordeelbaarReden(beoordeling);
+					final var reden = MammaBeoordelingUtil.beperktBeoordeelbaarReden(beoordeling);
 					if (reden != null)
 					{
 						switch (reden)
@@ -3942,10 +3944,8 @@ public enum MergeField
 			}
 		},
 
-	MAMMA_UITGESTELD_TEKST(
-		"_BK_UITGESTELD_TEKST",
-		MergeFieldTestType.OVERIGE,
-		String.class, getStringValueFromPreference(PreferenceKey.MAMMA_UITNODIGING_NA_UITSTEL_TEKST),
+	MAMMA_UITGESTELD_TEKST("_BK_UITGESTELD_TEKST",
+		MergeFieldTestType.OVERIGE, String.class, () -> getStringValueFromPreference(PreferenceKey.MAMMA_UITNODIGING_NA_UITSTEL_TEKST),
 		NIET_NAAR_INPAKCENTRUM, NIET_IN_HUISARTSBERICHT)
 		{
 			@Override
@@ -3971,7 +3971,7 @@ public enum MergeField
 			}
 		},
 
-	CLIENT_SIGNALERING_GENDER("_CLIENT_SIGNALERING_GENDER", MergeFieldTestType.OVERIGE, String.class, "", NIET_NAAR_INPAKCENTRUM, NIET_IN_HUISARTSBERICHT)
+	CLIENT_SIGNALERING_GENDER("_CLIENT_SIGNALERING_GENDER", MergeFieldTestType.OVERIGE, String.class, () -> "", NIET_NAAR_INPAKCENTRUM, NIET_IN_HUISARTSBERICHT)
 		{
 			@Override
 			public Object getFieldValue(MailMergeContext context)
@@ -4024,7 +4024,7 @@ public enum MergeField
 					{
 						var vorigeVolgendeUitnodigingVersies = EntityAuditUtil.getEntityHistory(volgendeUitnodiging, MergeField.getHibernateSession(),
 							true);
-						for (Object[] entiteitGeschiedenis : vorigeVolgendeUitnodigingVersies)
+						for (var entiteitGeschiedenis : vorigeVolgendeUitnodigingVersies)
 						{
 							var vorigeRevisieVolgendeUitnodiging = (ColonVolgendeUitnodiging) entiteitGeschiedenis[0];
 							if (vorigeRevisieVolgendeUitnodiging.getDatumVolgendeRonde() != null)
@@ -4045,58 +4045,60 @@ public enum MergeField
 			}
 		};
 
+	@Getter
 	private final String fieldName; 
 
+	@Getter
 	private Class<?> instance; 
 
+	@Getter
 	private MergeFieldTestType type; 
 
-	private String currentValue;
+	private String currentValue; 
 
-	private String initialValue;
+	private Supplier<String> initialTestValueSupplier; 
 
+	@Setter
+	@Getter
 	private Class<? extends AbstractBarcodeBean> barcodeType;
 
-	private boolean barcode = false;
+	@Getter
+	private boolean barcode;
 
-	private boolean qrCode = false;
+	@Getter
+	private boolean qrCode;
 
+	@Getter
 	private Double barcodeHeight;
 
-	private boolean naarInpakcentrum = true;
+	private final boolean naarInpakcentrum;
 
-	private boolean inHuisartsenbericht = true;
+	private final boolean inHuisartsenbericht;
 
-	private boolean waardeTrimmen = true;
+	private final boolean waardeTrimmen;
 
+	@Getter
 	private String property;
 
-	private MergeField(String fieldName)
+	MergeField(String fieldName, MergeFieldFlag... flags)
 	{
 		this.fieldName = fieldName;
-	}
-
-	private MergeField(String fieldName, MergeFieldFlag... flags)
-	{
-		this(fieldName);
-		List<MergeFieldFlag> flagList = Arrays.asList(flags);
+		var flagList = Arrays.asList(flags);
 		this.naarInpakcentrum = !flagList.contains(NIET_NAAR_INPAKCENTRUM);
-		this.inHuisartsenbericht = !flagList.contains(MergeFieldFlag.NIET_IN_HUISARTSBERICHT);
-		this.qrCode = flagList.contains(MergeFieldFlag.QR_CODE);
-		this.barcode &= !flagList.contains(MergeFieldFlag.QR_CODE);
-		this.waardeTrimmen = !flagList.contains(MergeFieldFlag.WAARDE_NIET_TRIMMEN);
+		this.inHuisartsenbericht = !flagList.contains(NIET_IN_HUISARTSBERICHT);
+		this.qrCode = flagList.contains(QR_CODE);
+		this.waardeTrimmen = !flagList.contains(WAARDE_NIET_TRIMMEN);
 	}
 
-	private MergeField(String fieldName, MergeFieldTestType type, Class<?> instance, String defaultValue, MergeFieldFlag... flags)
+	MergeField(String fieldName, MergeFieldTestType type, Class<?> instance, Supplier<String> initialTestValueSupplier, MergeFieldFlag... flags)
 	{
 		this(fieldName, flags);
 		this.type = type;
 		this.instance = instance;
-		this.currentValue = defaultValue;
-		this.initialValue = defaultValue;
+		this.initialTestValueSupplier = initialTestValueSupplier;
 	}
 
-	private MergeField(String fieldName, MergeFieldTestType type, String property, Class<?> instance, MergeFieldFlag... flags)
+	MergeField(String fieldName, MergeFieldTestType type, String property, Class<?> instance, MergeFieldFlag... flags)
 	{
 		this(fieldName, flags);
 		this.type = type;
@@ -4104,90 +4106,33 @@ public enum MergeField
 		this.property = property;
 	}
 
-	private MergeField(String fieldName, Class<? extends AbstractBarcodeBean> barcodeType, Double barcodeHeight, MergeFieldFlag... flags)
+	MergeField(String fieldName, Class<? extends AbstractBarcodeBean> barcodeType, Double barcodeHeight, MergeFieldFlag... flags)
 	{
 		this(fieldName, flags);
 		this.barcodeType = barcodeType;
-		this.barcode = true;
-		this.qrCode = false;
+		barcode = true;
+		qrCode = false;
 		this.barcodeHeight = barcodeHeight;
 	}
 
-	private MergeField(String fieldName, Class<? extends AbstractBarcodeBean> barcodeType, Double barcodeHeight, MergeFieldTestType type, Class<?> instance, String defaultValue,
-		MergeFieldFlag... flags)
+	MergeField(String fieldName, Class<? extends AbstractBarcodeBean> barcodeType, Double barcodeHeight, MergeFieldTestType type, Class<?> instance,
+		Supplier<String> initialTestValueSupplier, MergeFieldFlag... flags)
 	{
-		this(fieldName, type, instance, defaultValue, flags);
+		this(fieldName, type, instance, initialTestValueSupplier, flags);
 		this.barcodeType = barcodeType;
 		this.barcodeHeight = barcodeHeight;
-		this.barcode = true;
-		this.qrCode = false;
+		barcode = true;
+		qrCode = false;
 	}
 
-	private MergeField(String fieldName, Class<? extends AbstractBarcodeBean> barcodeType, Double barcodeHeight, MergeFieldTestType type, String property, Class<?> instance,
+	MergeField(String fieldName, Class<? extends AbstractBarcodeBean> barcodeType, Double barcodeHeight, MergeFieldTestType type, String property, Class<?> instance,
 		MergeFieldFlag... flags)
 	{
 		this(fieldName, type, property, instance, flags);
 		this.barcodeType = barcodeType;
 		this.barcodeHeight = barcodeHeight;
-		this.barcode = true;
-		this.qrCode = false;
-	}
-
-	public Class<? extends AbstractBarcodeBean> getBarcodeType()
-	{
-		return barcodeType;
-	}
-
-	public void setBarcodeType(Class<? extends AbstractBarcodeBean> barcodeType)
-	{
-		this.barcodeType = barcodeType;
-	}
-
-	public void setBarcodeTypeFromContext(MailMergeContext context)
-	{
-		if (context.getBrief() == null)
-		{
-			setBarcodeType(CervixMonsterIdLabelBarcode.class);
-		}
-		else
-		{
-			setBarcodeType(CervixMonsterIdBarcode.class);
-		}
-	}
-
-	public String getFieldName()
-	{
-		return fieldName;
-	}
-
-	public Class<?> getInstance()
-	{
-		return instance;
-	}
-
-	public MergeFieldTestType getType()
-	{
-		return type;
-	}
-
-	public String getProperty()
-	{
-		return property;
-	}
-
-	public Object getCurrentValue()
-	{
-		return currentValue;
-	}
-
-	public boolean isBarcode()
-	{
-		return barcode;
-	}
-
-	public boolean isQRcode()
-	{
-		return qrCode;
+		barcode = true;
+		qrCode = false;
 	}
 
 	public boolean inHuisartsenbericht()
@@ -4205,33 +4150,28 @@ public enum MergeField
 		return naarInpakcentrum;
 	}
 
-	public Double getBarcodeHeight()
-	{
-		return barcodeHeight;
-	}
-
 	public abstract Object getFieldValue(MailMergeContext context);
 
 	public Object getValue(MailMergeContext context)
 	{
-		if (context.getUseTestValue() && currentValue != null)
+		if (context.isUseTestValue() && currentValue != null)
 		{
-			if (Date.class.equals(instance) && currentValue instanceof String)
+			if (Date.class.equals(instance))
 			{
 				Date datum = null;
 				try
 				{
 					datum = new SimpleDateFormat("dd-MM-yyyy").parse(currentValue);
 				}
-				catch (ParseException e)
+				catch (ParseException ignored)
 				{
 
 				}
-				if (datum != null && (this.equals(CLIENT_GEBOORTEDATUM) || this.equals(ZV_GEBOORTEDATUM)))
+				if (datum != null && (equals(CLIENT_GEBOORTEDATUM) || equals(ZV_GEBOORTEDATUM)))
 				{
 					return new SimpleDateFormat("dd-MM-yyyy").format(datum);
 				}
-				else if (datum != null && this.equals(DATUM_VANDAAG))
+				else if (datum != null && equals(DATUM_VANDAAG))
 				{
 					return getFormattedDateZonderDagnaam(datum);
 				}
@@ -4243,12 +4183,12 @@ public enum MergeField
 
 			return currentValue;
 		}
-		return this.getFieldValue(context);
+		return getFieldValue(context);
 	}
 
 	public static MergeField getByFieldname(String fieldname)
 	{
-		for (MergeField mergeField : MergeField.values())
+		for (var mergeField : MergeField.values())
 		{
 			if (fieldname.equals(mergeField.fieldName))
 			{
@@ -4261,7 +4201,7 @@ public enum MergeField
 	public static List<MergeField> getFieldWithType(MergeFieldTestType type)
 	{
 		List<MergeField> fields = new ArrayList<>();
-		for (MergeField field : MergeField.values())
+		for (var field : MergeField.values())
 		{
 			if (type.equals(field.getType()))
 			{
@@ -4273,9 +4213,9 @@ public enum MergeField
 
 	public static void resetDefaultMergeFields()
 	{
-		for (MergeField field : MergeField.values())
+		for (var field : MergeField.values())
 		{
-			field.currentValue = field.initialValue;
+			field.currentValue = field.initialTestValueSupplier != null ? field.initialTestValueSupplier.get() : null;
 		}
 	}
 
@@ -4289,12 +4229,12 @@ public enum MergeField
 		return adres;
 	}
 
-	private static Adres getAdres(Gebruiker gebruiker, int index)
+	private static Adres getAdres(Gebruiker gebruiker)
 	{
 		Adres adres = null;
 		if (gebruiker != null)
 		{
-			adres = getAdresFromList(gebruiker.getAdressen(), index);
+			adres = getAdresFromList(gebruiker.getAdressen(), 0);
 		}
 		return adres;
 	}
@@ -4311,7 +4251,7 @@ public enum MergeField
 
 	private static Adres getClientAdres(MailMergeContext context)
 	{
-		GbaPersoon persoon = context.getClient().getPersoon();
+		var persoon = context.getClient().getPersoon();
 
 		return AdresUtil.getAdres(persoon, LocalDate.now());
 	}
@@ -4320,17 +4260,17 @@ public enum MergeField
 	{
 		if (CollectionUtils.isNotEmpty(afgeslotenOvereenkomst.getGebruiker().getOrganisatieMedewerkers()))
 		{
-			for (InstellingGebruiker orgMede : afgeslotenOvereenkomst.getGebruiker().getOrganisatieMedewerkers())
+			for (var orgMede : afgeslotenOvereenkomst.getGebruiker().getOrganisatieMedewerkers())
 			{
 				if (organisatieMedewerkerActief(orgMede))
 				{
-					Instelling organisatie = orgMede.getOrganisatie();
+					var organisatie = orgMede.getOrganisatie();
 					if (organisatie != null && !Boolean.FALSE.equals(organisatie.getActief()))
 					{
-						OrganisatieType type = organisatie.getOrganisatieType();
+						var type = organisatie.getOrganisatieType();
 						if (OrganisatieType.COLOSCOPIECENTRUM == type || OrganisatieType.COLOSCOPIELOCATIE == type)
 						{
-							Instelling parent = organisatie.getParent();
+							var parent = organisatie.getParent();
 							if (parent != null && !Boolean.FALSE.equals(parent.getActief()) && OrganisatieType.ZORGINSTELLING == parent.getOrganisatieType())
 							{
 								return parent;
@@ -4349,14 +4289,14 @@ public enum MergeField
 
 	private static boolean organisatieMedewerkerActief(InstellingGebruiker orgMede)
 	{
-		boolean inDienst = false;
-		for (InstellingGebruikerRol organisatieMedewerkerRol : orgMede.getRollen())
+		var inDienst = false;
+		for (var organisatieMedewerkerRol : orgMede.getRollen())
 		{
 			if (!Boolean.FALSE.equals(organisatieMedewerkerRol.getActief()))
 			{
-				Date beginDatum = organisatieMedewerkerRol.getBeginDatum();
-				Date eindDatum = organisatieMedewerkerRol.getEindDatum();
-				Date vandaag = DateUtil.toUtilDateMidnight(new Date());
+				var beginDatum = organisatieMedewerkerRol.getBeginDatum();
+				var eindDatum = organisatieMedewerkerRol.getEindDatum();
+				var vandaag = DateUtil.toUtilDateMidnight(new Date());
 				if (beginDatum == null)
 				{
 					beginDatum = vandaag;
@@ -4378,15 +4318,15 @@ public enum MergeField
 
 	private static Instelling getZorgInstelling(MailMergeContext context)
 	{
-		AbstractAfgeslotenOvereenkomst overeenkomst = context.getOvereenkomst();
+		var overeenkomst = context.getOvereenkomst();
 		if (overeenkomst instanceof AfgeslotenInstellingOvereenkomst)
 		{
-			AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
+			var afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
 			return afgeslotenOvereenkomst.getInstelling();
 		}
 		else if (overeenkomst instanceof AfgeslotenMedewerkerOvereenkomst)
 		{
-			AfgeslotenMedewerkerOvereenkomst afgeslotenOvereenkomst = (AfgeslotenMedewerkerOvereenkomst) overeenkomst;
+			var afgeslotenOvereenkomst = (AfgeslotenMedewerkerOvereenkomst) overeenkomst;
 			return getZorginstellingBijKwaliteitsOvereenkomst(afgeslotenOvereenkomst);
 		}
 		return null;
@@ -4457,12 +4397,12 @@ public enum MergeField
 		Adres bmhkRetouradres = null;
 		if (uitnodiging != null)
 		{
-			Gemeente gbaGemeente = uitnodiging.getScreeningRonde().getDossier().getClient().getPersoon().getGbaAdres().getGbaGemeente();
-			BMHKLaboratorium bmhkLaboratorium = gbaGemeente.getBmhkLaboratorium();
-			ScreeningOrganisatie screeningOrganisatie = gbaGemeente.getScreeningOrganisatie();
+			var gbaGemeente = uitnodiging.getScreeningRonde().getDossier().getClient().getPersoon().getGbaAdres().getGbaGemeente();
+			var bmhkLaboratorium = gbaGemeente.getBmhkLaboratorium();
+			var screeningOrganisatie = gbaGemeente.getScreeningOrganisatie();
 			if (bmhkLaboratorium != null)
 			{
-				for (ZASRetouradres retouradres : bmhkLaboratorium.getRetouradressen())
+				for (var retouradres : bmhkLaboratorium.getRetouradressen())
 				{
 					if (retouradres.getRegio().equals(screeningOrganisatie))
 					{
@@ -4473,22 +4413,22 @@ public enum MergeField
 				{
 					if (screeningOrganisatie != null)
 					{
-						melding.append(
-							"BMHK lab '" + bmhkLaboratorium.getNaam() + "' heeft nog geen retouradres voor screeningorganisatie '" + screeningOrganisatie.getNaam() + "'. ");
+						melding.append("BMHK lab '").append(bmhkLaboratorium.getNaam()).append("' heeft nog geen retouradres voor screeningorganisatie '")
+							.append(screeningOrganisatie.getNaam()).append("'. ");
 					}
 					else
 					{
-						melding.append("BMHK lab '" + bmhkLaboratorium.getNaam() + "' heeft nog geen enkele retouradres voor een screeningorganisatie. ");
+						melding.append("BMHK lab '").append(bmhkLaboratorium.getNaam()).append("' heeft nog geen enkele retouradres voor een screeningorganisatie. ");
 					}
 				}
 			}
 			else
 			{
-				melding.append("Gemeente '" + gbaGemeente.getNaam() + "' niet gekoppeld aan BMHK lab. ");
+				melding.append("Gemeente '").append(gbaGemeente.getNaam()).append("' niet gekoppeld aan BMHK lab. ");
 			}
 			if (screeningOrganisatie == null)
 			{
-				melding.append("Gemeente '" + gbaGemeente.getNaam() + "' niet gekoppeld aan screeningorganisatie. ");
+				melding.append("Gemeente '").append(gbaGemeente.getNaam()).append("' niet gekoppeld aan screeningorganisatie. ");
 			}
 		}
 		return bmhkRetouradres;
@@ -4496,13 +4436,13 @@ public enum MergeField
 
 	private static Object getBMHKLaboratoriumOndertekenaar(CervixBrief brief, boolean handtekening)
 	{
-		CervixMonster monster = brief.getMonster();
+		var monster = brief.getMonster();
 		if (monster != null)
 		{
 			var laboratorium = monster.getLaboratorium();
-			switch (monster.getUitnodiging().getMonsterType())
+			var monsterType = monster.getUitnodiging().getMonsterType();
+			if (monsterType == CervixMonsterType.UITSTRIJKJE)
 			{
-			case UITSTRIJKJE:
 				var uitstrijkje = CervixMonsterUtil.getUitstrijkje(monster);
 				switch (uitstrijkje.getUitstrijkjeStatus())
 				{
@@ -4519,7 +4459,9 @@ public enum MergeField
 				default:
 					throw new IllegalStateException();
 				}
-			case ZAS:
+			}
+			else if (monsterType == CervixMonsterType.ZAS)
+			{
 				var zas = CervixMonsterUtil.getZAS(monster);
 				switch (zas.getZasStatus())
 				{
@@ -4534,14 +4476,14 @@ public enum MergeField
 			}
 		}
 
-		CervixLabformulier labformulier = brief.getLabformulier();
+		var labformulier = brief.getLabformulier();
 		if (labformulier != null)
 		{
-			BMHKLaboratorium laboratorium = labformulier.getLaboratorium();
+			var laboratorium = labformulier.getLaboratorium();
 			return getBMHKLaboratoriumOndertekenaar(laboratorium, handtekening);
 		}
 
-		ClientBrief herdruk = BriefUtil.getHerdruk(brief);
+		var herdruk = BriefUtil.getHerdruk(brief);
 		if (herdruk != null)
 		{
 			return getBMHKLaboratoriumOndertekenaar((CervixBrief) herdruk, handtekening);
@@ -4554,9 +4496,9 @@ public enum MergeField
 		return handtekening ? laboratorium.getHandtekeningMedischMircobioloog() : laboratorium.getMedischMircobioloog();
 	}
 
-	private static String getValueVanHeraanmeldenTekstKey(ClientBrief brief)
+	private static String getValueVanHeraanmeldenTekstKey(ClientBrief<?, ?, ?> brief)
 	{
-		HeraanmeldenMergeVeldService heraanmeldenMergeVeldService = getBean(HeraanmeldenMergeVeldService.class);
+		var heraanmeldenMergeVeldService = getBean(HeraanmeldenMergeVeldService.class);
 		return heraanmeldenMergeVeldService.getValueVanHeraanmeldenTekstKey(brief);
 	}
 
@@ -4564,10 +4506,10 @@ public enum MergeField
 	{
 		if (uitnodiging != null)
 		{
-			CervixBrief brief = uitnodiging.getBrief();
+			var brief = uitnodiging.getBrief();
 			if (brief != null && !Boolean.TRUE.equals(uitnodiging.getHerinnering()) && !Boolean.TRUE.equals(uitnodiging.getUitgesteld()))
 			{
-				CervixBrief herdruk = (CervixBrief) BriefUtil.getHerdruk(brief);
+				var herdruk = (CervixBrief) BriefUtil.getHerdruk(brief);
 				if (herdruk != null)
 				{
 					return getOorspronkelijkeCervixUitnoding(herdruk.getUitnodiging());
@@ -4579,11 +4521,11 @@ public enum MergeField
 
 	private static MammaStandplaatsLocatie getMammaStandplaatsLocatieAfspraak(MailMergeContext context)
 	{
-		Brief brief = BriefUtil.getOrigineleBrief(context.getBrief());
-		MammaBaseAfspraakService afspraakService = getBean(MammaBaseAfspraakService.class);
-		MammaAfspraak afspraak = afspraakService.getLaatsteAfspraakVanBriefronde(brief);
+		var brief = BriefUtil.getOrigineleBrief(context.getBrief());
+		var afspraakService = getBean(MammaBaseAfspraakService.class);
+		var afspraak = afspraakService.getLaatsteAfspraakVanBriefronde(brief);
 
-		MammaStandplaatsLocatie locatie = afspraakService.getMammaStandplaatsLocatieAfspraak(afspraak);
+		var locatie = afspraakService.getMammaStandplaatsLocatieAfspraak(afspraak);
 		if (locatie == null)
 		{
 			locatie = getMammaStandplaatsLocatieUitnodiging(context.getClient().getMammaDossier().getLaatsteScreeningRonde());
@@ -4593,8 +4535,8 @@ public enum MergeField
 
 	private static MammaStandplaatsLocatie getMammaStandplaatsLocatieUitnodiging(MammaScreeningRonde ronde)
 	{
-		MammaBaseAfspraakService afspraakService = getBean(MammaBaseAfspraakService.class);
-		MammaUitnodiging uitnodiging = afspraakService.getLaatsteUitnodigingVanScreeningRonde(ronde);
+		var afspraakService = getBean(MammaBaseAfspraakService.class);
+		var uitnodiging = afspraakService.getLaatsteUitnodigingVanScreeningRonde(ronde);
 
 		return afspraakService.getMammaStandplaatsLocatieUitnodiging(uitnodiging);
 	}
@@ -4621,30 +4563,30 @@ public enum MergeField
 
 	private static Gebruiker getMammaRadioloog1(MailMergeContext context)
 	{
-		MammaMergeFieldService mergeFieldService = getBean(MammaMergeFieldService.class);
-		MammaBeoordeling beoordeling = getMammaBeoordeling(context);
+		var mergeFieldService = getBean(MammaMergeFieldService.class);
+		var beoordeling = getMammaBeoordeling(context);
 
 		return mergeFieldService.bepaalRadioloog1(beoordeling);
 	}
 
 	private static Gebruiker getMammaRadioloog2(MailMergeContext context)
 	{
-		MammaMergeFieldService mergeFieldService = getBean(MammaMergeFieldService.class);
-		MammaBeoordeling beoordeling = getMammaBeoordeling(context);
+		var mergeFieldService = getBean(MammaMergeFieldService.class);
+		var beoordeling = getMammaBeoordeling(context);
 
 		return mergeFieldService.bepaalRadioloog2(beoordeling);
 	}
 
 	public static String bepaalVerslagBiradsTekst(MammaLezing verslagLezing, MammaZijde zijde)
 	{
-		MammaBaseBeoordelingService baseBeoordelingService = getBean(MammaBaseBeoordelingService.class);
+		var baseBeoordelingService = getBean(MammaBaseBeoordelingService.class);
 		if (verslagLezing == null)
 		{
 			return null;
 		}
 		if (baseBeoordelingService.iBiradsWaardeGeen(verslagLezing, zijde))
 		{
-			MammaAmputatie amputatie = verslagLezing.getBeoordeling().getOnderzoek().getAmputatie();
+			var amputatie = verslagLezing.getBeoordeling().getOnderzoek().getAmputatie();
 			if (MammaZijde.RECHTER_BORST.equals(zijde) && MammaAmputatie.RECHTERBORST.equals(amputatie))
 			{
 				return "BI-RADS rechts: geen beoordeling vanwege amputatie";
@@ -4678,8 +4620,8 @@ public enum MergeField
 
 	protected MammaBeoordeling getMammaBeoordelingMetEersteEnOfTweedeLezing(MailMergeContext context)
 	{
-		MammaAfspraak laatsteAfspraak = getAfspraakVanLaatsteOnderzoek(context);
-		MammaBaseBeoordelingService beoordelingService = getBean(MammaBaseBeoordelingService.class);
+		var laatsteAfspraak = getAfspraakVanLaatsteOnderzoek(context);
+		var beoordelingService = getBean(MammaBaseBeoordelingService.class);
 		return beoordelingService.getBeoordelingMetEersteEnOfTweedeLezing(laatsteAfspraak);
 	}
 
@@ -4694,15 +4636,15 @@ public enum MergeField
 
 	private static MammaAfspraak getLaatsteMammaAfspraak(MailMergeContext context)
 	{
-		Brief brief = BriefUtil.getOrigineleBrief(context.getBrief());
+		var brief = BriefUtil.getOrigineleBrief(context.getBrief());
 		if (brief instanceof MammaBrief)
 		{
-			MammaBaseAfspraakService afspraakService = getBean(MammaBaseAfspraakService.class);
+			var afspraakService = getBean(MammaBaseAfspraakService.class);
 			return afspraakService.getLaatsteAfspraakVanBriefronde(brief);
 		}
 		else if (context.getClient() != null)
 		{
-			MammaDossier dossier = context.getClient().getMammaDossier();
+			var dossier = context.getClient().getMammaDossier();
 			if (dossier.getLaatsteScreeningRonde() != null && dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging() != null)
 			{
 				return dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging().getLaatsteAfspraak();
@@ -4713,8 +4655,8 @@ public enum MergeField
 
 	private static MammaLezing getVerslagLezing(MailMergeContext context)
 	{
-		MammaBaseBeoordelingService beoordelingService = getBean(MammaBaseBeoordelingService.class);
-		MammaBeoordeling beoordeling = beoordelingService.getBeoordelingMetVerslagLezing(getAfspraakVanLaatsteOnderzoek(context));
+		var beoordelingService = getBean(MammaBaseBeoordelingService.class);
+		var beoordeling = beoordelingService.getBeoordelingMetVerslagLezing(getAfspraakVanLaatsteOnderzoek(context));
 		if (beoordeling != null && beoordeling.getVerslagLezing() != null)
 		{
 			beoordeling.getVerslagLezing().setBeoordeling(beoordeling);
@@ -4729,7 +4671,7 @@ public enum MergeField
 		{
 			return null;
 		}
-		final MammaBaseLaesieService laesieService = getBean(MammaBaseLaesieService.class);
+		final var laesieService = getBean(MammaBaseLaesieService.class);
 		return laesieService.getAllLaesieTekstVoorVerslagLezing(verslaglezing);
 	}
 
@@ -4739,14 +4681,14 @@ public enum MergeField
 		{
 			return null;
 		}
-		MammaBaseBeoordelingService beoordelingService = getBean(MammaBaseBeoordelingService.class);
-		String nevenbevindingOpmerkingTekst = beoordelingService.getNevenbevindingOpmerkingTekst("\n", beoordeling.getEersteLezing(), beoordeling.getTweedeLezing());
+		var beoordelingService = getBean(MammaBaseBeoordelingService.class);
+		var nevenbevindingOpmerkingTekst = beoordelingService.getNevenbevindingOpmerkingTekst("\n", beoordeling.getEersteLezing(), beoordeling.getTweedeLezing());
 		return nevenbevindingOpmerkingTekst != null ? "Nevenbevindingen opmerking(en):" + nevenbevindingOpmerkingTekst : null;
 	}
 
 	public static String getNevenbevindingenEnumString(MammaBeoordeling beoordeling)
 	{
-		MammaBaseBeoordelingService beoordelingService = getBean(MammaBaseBeoordelingService.class);
+		var beoordelingService = getBean(MammaBaseBeoordelingService.class);
 		return String.format("\nNevenbevindingen:\n%s.\n",
 			beoordelingService.getMammaLezingEnumsTekst(MammaLezing::getNevenbevindingen, beoordeling.getEersteLezing(), beoordeling.getTweedeLezing()));
 	}
@@ -4756,11 +4698,11 @@ public enum MergeField
 		if (colonUitnodigingen != null && colonUitnodigingen.size() > 1)
 		{
 			colonUitnodigingen = new ArrayList<>(colonUitnodigingen);
-			Collections.sort(colonUitnodigingen, new PropertyComparator<>("creatieDatum", false, false));
-			ColonUitnodiging eenNaLaatsteUitnodiging = colonUitnodigingen.get(1);
+			colonUitnodigingen.sort(new PropertyComparator<>("creatieDatum", false, false));
+			var eenNaLaatsteUitnodiging = colonUitnodigingen.get(1);
 			if (eenNaLaatsteUitnodiging.getGekoppeldeTest() != null)
 			{
-				PreferenceKey heraanmeldenTekstKey = eenNaLaatsteUitnodiging.getGekoppeldeTest().getHeraanmeldenTekstKey();
+				var heraanmeldenTekstKey = eenNaLaatsteUitnodiging.getGekoppeldeTest().getHeraanmeldenTekstKey();
 				if (heraanmeldenTekstKey != null)
 				{
 					return getStringValueFromPreference(heraanmeldenTekstKey);
@@ -4799,16 +4741,16 @@ public enum MergeField
 
 	private static CervixLeeftijdcategorie getCervixLeeftijdcategorie(MailMergeContext context)
 	{
-		Brief brief = BriefUtil.getOrigineleBrief(context.getBrief());
+		var brief = BriefUtil.getOrigineleBrief(context.getBrief());
 		if (brief instanceof CervixBrief)
 		{
-			CervixBrief cervixBrief = (CervixBrief) brief;
+			var cervixBrief = (CervixBrief) brief;
 			return cervixBrief.getScreeningRonde().getLeeftijdcategorie();
 		}
 		return null;
 	}
 
-	private static <T extends Object> T getBean(Class<T> clazz)
+	private static <T> T getBean(Class<T> clazz)
 	{
 		return ApplicationContextProvider.getApplicationContext().getBean(clazz);
 	}
@@ -4820,7 +4762,7 @@ public enum MergeField
 
 	private static String getStringValueFromPreference(PreferenceKey key)
 	{
-		SimplePreferenceService preferenceService = getSimplePreferenceService();
+		var preferenceService = getSimplePreferenceService();
 		return preferenceService.getString(key.name(), "");
 	}
 

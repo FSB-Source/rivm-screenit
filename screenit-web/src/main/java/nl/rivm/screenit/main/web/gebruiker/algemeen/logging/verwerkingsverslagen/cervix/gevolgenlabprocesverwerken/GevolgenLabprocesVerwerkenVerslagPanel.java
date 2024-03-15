@@ -21,18 +21,17 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.logging.verwerkingsverslage
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.main.web.component.BriefTypeLabel;
 import nl.rivm.screenit.model.verwerkingverslag.cervix.CervixGevolgenLabprocesVerwerkenRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.cervix.CervixGevolgenLabprocesVerwerkenRapportageBriefType;
 import nl.rivm.screenit.model.verwerkingverslag.cervix.CervixGevolgenLabprocesVerwerkenRapportageHuisartsberichtType;
 
-import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.PropertyListView;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
+import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public class GevolgenLabprocesVerwerkenVerslagPanel extends GenericPanel<CervixGevolgenLabprocesVerwerkenRapportage>
 {
@@ -62,7 +61,7 @@ public class GevolgenLabprocesVerwerkenVerslagPanel extends GenericPanel<CervixG
 			@Override
 			protected void populateItem(ListItem<CervixGevolgenLabprocesVerwerkenRapportageBriefType> entry)
 			{
-				entry.add(new BriefTypeLabel("briefType"));
+				entry.add(new Label("briefType.weergaveNaam"));
 				entry.add(new Label("aantal"));
 			}
 		});

@@ -37,22 +37,18 @@ import nl.rivm.screenit.main.service.OngeldigeBerichtenService;
 import nl.rivm.screenit.main.service.colon.ColonDossierService;
 import nl.rivm.screenit.main.service.colon.ColonVervolgonderzoekKeuzesDto;
 import nl.rivm.screenit.model.AanvraagBriefStatus;
-import nl.rivm.screenit.model.Afspraak;
 import nl.rivm.screenit.model.BerichtZoekFilter;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.UploadDocument;
-import nl.rivm.screenit.model.berichten.cda.MeldingOngeldigCdaBericht;
 import nl.rivm.screenit.model.berichten.enums.VerslagType;
 import nl.rivm.screenit.model.colon.ColonAfmelding;
 import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.colon.ColonConclusie;
-import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.ColonHuisartsBericht;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
@@ -62,7 +58,6 @@ import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.ColonGeenOnderzoekReden;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
-import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.rivm.screenit.model.dashboard.DashboardStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -130,19 +125,19 @@ public class ColonDossierServiceImpl implements ColonDossierService
 	private final DashboardService dashboardService;
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void monsterNietBeoordeelbaar(IFOBTTest ifobtTest)
 	{
 		ifobtService.monsterNietBeoordeelbaar(ifobtTest);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void conclusieOpslaan(ColonIntakeAfspraak afspraak, ColonVervolgonderzoekKeuzesDto keuzes, InstellingGebruiker ingelogdeGebruiker,
 		ColonConclusieType oudeConclusieType)
 	{
-		ColonConclusie conclusie = afspraak.getConclusie();
-		boolean nieuweConclusie = conclusie.getId() == null;
+		var conclusie = afspraak.getConclusie();
+		var nieuweConclusie = conclusie.getId() == null;
 		String conclusieDiff = null;
 		conclusie.setType(keuzes.conclusie);
 		if (!keuzes.intakeConclusie && keuzes.conclusie == ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM && !keuzes.verwijzing)
@@ -165,7 +160,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 			}
 
 		}
-		ColonScreeningRonde screeningRonde = afspraak.getColonScreeningRonde();
+		var screeningRonde = afspraak.getColonScreeningRonde();
 		if (!nieuweConclusie)
 		{
 			ColonConclusie oldAfspraakConclusie = null;
@@ -187,7 +182,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 					break;
 				}
 			}
-			List<ColonBrief> aangemaakteConclusieBrieven = briefService.getNietGegenereerdeBrievenVanBriefTypes(screeningRonde.getBrieven(), BriefType.getColonConclusieBrieven());
+			var aangemaakteConclusieBrieven = briefService.getNietGegenereerdeBrievenVanBriefTypes(screeningRonde.getBrieven(), BriefType.getColonConclusieBrieven());
 			verwijderVervolgStappen(screeningRonde, aangemaakteConclusieBrieven);
 		}
 		if (!nieuweConclusie && StringUtils.isBlank(conclusieDiff) && !Boolean.TRUE.equals(keuzes.isDoorverwezenDoorInfolijn))
@@ -200,11 +195,11 @@ public class ColonDossierServiceImpl implements ColonDossierService
 			conclusie.setDoorverwijzingBevestigd(null);
 		}
 
-		LocalDateTime nu = currentDateSupplier.getLocalDateTime();
+		var nu = currentDateSupplier.getLocalDateTime();
 		conclusie.setDatum(DateUtil.toUtilDate(nu));
 		hibernateService.saveOrUpdate(conclusie);
-		Client client = afspraak.getClient();
-		ColonDossier dossier = screeningRonde.getDossier();
+		var client = afspraak.getClient();
+		var dossier = screeningRonde.getDossier();
 		switch (conclusie.getType())
 		{
 		case CT_COLOGRAFIE:
@@ -266,15 +261,15 @@ public class ColonDossierServiceImpl implements ColonDossierService
 		if (AfspraakStatus.GEPLAND.equals(afspraak.getStatus()))
 		{
 			afspraak.setStatus(AfspraakStatus.UITGEVOERD);
-			BerichtZoekFilter filter = new BerichtZoekFilter();
+			var filter = new BerichtZoekFilter();
 			filter.setBsn(client.getPersoon().getBsn());
 			filter.setMldBerichten(true);
 			filter.setPaLabBerichten(true);
-			List<MeldingOngeldigCdaBericht> berichten = ongeldigeBerichtenService.searchOngeldigeBerichten(filter, -1, -1, "datum", true);
-			for (MeldingOngeldigCdaBericht bericht : berichten)
+			var berichten = ongeldigeBerichtenService.searchOngeldigeBerichten(filter, -1, -1, "datum", true);
+			for (var bericht : berichten)
 			{
 				if (Boolean.TRUE.equals(bericht.getActief()) && Boolean.TRUE.equals(bericht.getHerstelbaar())
-					&& Arrays.asList(RoosterDaoImpl.HERVERWERKING_MARKERS).stream().anyMatch(m -> bericht.getMelding().contains(m)))
+					&& Arrays.stream(RoosterDaoImpl.HERVERWERKING_MARKERS).anyMatch(m -> bericht.getMelding().contains(m)))
 				{
 					ongeldigeBerichtenService.berichtOpnieuwAanbieden(bericht);
 				}
@@ -289,7 +284,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 
 	private String diffConclusies(ColonConclusie oldAfspraakConclusie, ColonConclusie conclusie)
 	{
-		String diff = "";
+		var diff = "";
 		boolean diffs;
 		diffs = !Objects.equals(oldAfspraakConclusie.getAsaScore(), conclusie.getAsaScore());
 		diffs |= ObjectUtils.compare(oldAfspraakConclusie.getDatumColoscopie(), conclusie.getDatumColoscopie()) != 0;
@@ -305,28 +300,28 @@ public class ColonDossierServiceImpl implements ColonDossierService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void verwijderScannedAntwoordFormulier(ColonUitnodiging uitnodiging, InstellingGebruiker ingelogdeGebruiker)
 	{
 		uitnodiging = (ColonUitnodiging) HibernateHelper.deproxy(ModelProxyHelper.deproxy(uitnodiging));
 
-		ColonScreeningRonde colonScreeningRonde = uitnodiging.getScreeningRonde();
-		ColonDossier colonDossier = colonScreeningRonde.getDossier();
-		Client client = colonDossier.getClient();
+		var colonScreeningRonde = uitnodiging.getScreeningRonde();
+		var colonDossier = colonScreeningRonde.getDossier();
+		var client = colonDossier.getClient();
 
 		var datumTerugOntvangen = uitnodiging.getDatumTerugOntvangen();
 		var range = Range.closed(DateUtil.toLocalDateTime(datumTerugOntvangen), DateUtil.toLocalDateTime(datumTerugOntvangen).plusSeconds(3));
 
 		ifobtService.verwijderScannedAntwoordFormulier(uitnodiging);
 
-		List<ColonBrief> teVerwijderenBrieven = new ArrayList<>();
-		List<ColonAfmelding> teVerwijderenAfmeldingen = new ArrayList<>();
+		var teVerwijderenBrieven = new ArrayList<ColonBrief>();
+		var teVerwijderenAfmeldingen = new ArrayList<ColonAfmelding>();
 
 		findAfmeldingenEnBrievenToDelete(teVerwijderenAfmeldingen, teVerwijderenBrieven, range, colonScreeningRonde.getAfmeldingen());
 
 		findAfmeldingenEnBrievenToDelete(teVerwijderenAfmeldingen, teVerwijderenBrieven, range, colonDossier.getAfmeldingen());
 
-		for (ColonAfmelding afmelding : teVerwijderenAfmeldingen)
+		for (var afmelding : teVerwijderenAfmeldingen)
 		{
 			if (colonScreeningRonde.equals(afmelding.getScreeningRonde()))
 			{
@@ -339,7 +334,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 		}
 
 		ColonAfmelding nieuweLaatsteAfmelding = null;
-		for (ColonAfmelding bestaandeAfmelding : colonScreeningRonde.getAfmeldingen())
+		for (var bestaandeAfmelding : colonScreeningRonde.getAfmeldingen())
 		{
 			if (nieuweLaatsteAfmelding == null || bestaandeAfmelding.getId() > nieuweLaatsteAfmelding.getId())
 			{
@@ -349,7 +344,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 		colonScreeningRonde.setLaatsteAfmelding(nieuweLaatsteAfmelding);
 
 		nieuweLaatsteAfmelding = null;
-		for (ColonAfmelding bestaandeAfmelding : colonDossier.getAfmeldingen())
+		for (var bestaandeAfmelding : colonDossier.getAfmeldingen())
 		{
 			if (nieuweLaatsteAfmelding == null || bestaandeAfmelding.getId() > nieuweLaatsteAfmelding.getId())
 			{
@@ -360,9 +355,9 @@ public class ColonDossierServiceImpl implements ColonDossierService
 
 		verwijderVervolgStappen(colonScreeningRonde, teVerwijderenBrieven);
 
-		for (ColonAfmelding afmelding : teVerwijderenAfmeldingen)
+		for (var afmelding : teVerwijderenAfmeldingen)
 		{
-			boolean magAfmeldingVerwijderen = colonScreeningRonde.equals(afmelding.getScreeningRonde());
+			var magAfmeldingVerwijderen = colonScreeningRonde.equals(afmelding.getScreeningRonde());
 			if (colonDossier.equals(afmelding.getDossier()))
 			{
 				magAfmeldingVerwijderen = true;
@@ -381,8 +376,8 @@ public class ColonDossierServiceImpl implements ColonDossierService
 
 	private void verwijderVervolgStappen(ColonScreeningRonde colonScreeningRonde, List<ColonBrief> teVerwijderenBrieven)
 	{
-		ColonDossier colonDossier = colonScreeningRonde.getDossier();
-		Client client = colonDossier.getClient();
+		var colonDossier = colonScreeningRonde.getDossier();
+		var client = colonDossier.getClient();
 
 		if (ScreeningRondeStatus.AFGEROND.equals(colonScreeningRonde.getStatus())
 			&& (colonScreeningRonde.getLaatsteAfmelding() == null || colonScreeningRonde.getLaatsteAfmelding().getRondeHeropend())
@@ -417,9 +412,9 @@ public class ColonDossierServiceImpl implements ColonDossierService
 		verwijderBrievenUitRonde(screeningRonde, teVerwijderenBrieven);
 		bepaalNieuweLaatsteBrief(screeningRonde);
 
-		for (ColonBrief brief : teVerwijderenBrieven)
+		for (var brief : teVerwijderenBrieven)
 		{
-			boolean magBriefVerwijderen = screeningRonde.equals(brief.getScreeningRonde()) || client.equals(brief.getClient());
+			var magBriefVerwijderen = screeningRonde.equals(brief.getScreeningRonde()) || client.equals(brief.getClient());
 
 			if (magBriefVerwijderen)
 			{
@@ -431,7 +426,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 	private void bepaalNieuweLaatsteBrief(ColonScreeningRonde colonScreeningRonde)
 	{
 		ColonBrief nieuweLaatsteBrief = null;
-		for (ColonBrief bestaandeBrief : colonScreeningRonde.getBrieven())
+		for (var bestaandeBrief : colonScreeningRonde.getBrieven())
 		{
 			if (nieuweLaatsteBrief == null || DateUtil.compareAfter(bestaandeBrief.getCreatieDatum(), nieuweLaatsteBrief.getCreatieDatum()))
 			{
@@ -443,7 +438,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 
 	private void verwijderBrievenUitRonde(ColonScreeningRonde colonScreeningRonde, List<ColonBrief> teVerwijderenBrieven)
 	{
-		for (ColonBrief brief : teVerwijderenBrieven)
+		for (var brief : teVerwijderenBrieven)
 		{
 			if (colonScreeningRonde.equals(brief.getScreeningRonde()))
 			{
@@ -458,7 +453,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 		brief.setScreeningRonde(null);
 		brief.setIntakeAfspraak(null);
 		brief.setIfobtTest(null);
-		MergedBrieven mergedBrieven = brief.getMergedBrieven();
+		var mergedBrieven = brief.getMergedBrieven();
 		brief.setMergedBrieven(null);
 		if (mergedBrieven != null)
 		{
@@ -471,7 +466,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 	private void findAfmeldingenEnBrievenToDelete(List<ColonAfmelding> teVerwijderenAfmeldingen, List<ColonBrief> teVerwijderenBrieven, Range<LocalDateTime> range,
 		List<ColonAfmelding> afmeldingen)
 	{
-		for (ColonAfmelding afmelding : afmeldingen)
+		for (var afmelding : afmeldingen)
 		{
 			if (range.contains(DateUtil.toLocalDateTime(afmelding.getAfmeldDatum())))
 			{
@@ -508,8 +503,8 @@ public class ColonDossierServiceImpl implements ColonDossierService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean magConclusieAanpassenVerwijderen(ColonIntakeAfspraak afspraak, ColonConclusieType origConclusie)
 	{
-		ColonScreeningRonde screeningRonde = afspraak.getColonScreeningRonde();
-		boolean heeftMdlVerslag = ColonScreeningRondeUtil.heeftAfgerondeVerslag(screeningRonde, VerslagType.MDL);
+		var screeningRonde = afspraak.getColonScreeningRonde();
+		var heeftMdlVerslag = ColonScreeningRondeUtil.heeftAfgerondeVerslag(screeningRonde, VerslagType.MDL);
 		return origConclusie != null
 			&& !AfspraakStatus.isGeannuleerd(afspraak.getStatus())
 			&& screeningRonde.getLaatsteAfspraak().equals(afspraak)
@@ -518,17 +513,17 @@ public class ColonDossierServiceImpl implements ColonDossierService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void conclusieVerwijderen(ColonIntakeAfspraak afspraak, InstellingGebruiker loggedInInstellingGebruiker, ColonConclusieType origConclusie)
 	{
 		afspraak = (ColonIntakeAfspraak) HibernateHelper.deproxy(ModelProxyHelper.deproxy(afspraak));
-		ColonScreeningRonde screeningRonde = afspraak.getColonScreeningRonde();
-		ColonDossier dossier = screeningRonde.getDossier();
-		Client client = dossier.getClient();
-		ColonConclusie conclusie = afspraak.getConclusie();
-		String melding = "Conclusie: " + origConclusie.getOmschrijving() + getOldConclusieInfo(origConclusie, conclusie);
+		var screeningRonde = afspraak.getColonScreeningRonde();
+		var dossier = screeningRonde.getDossier();
+		var client = dossier.getClient();
+		var conclusie = afspraak.getConclusie();
+		var melding = "Conclusie: " + origConclusie.getOmschrijving() + getOldConclusieInfo(origConclusie, conclusie);
 
-		List<ColonBrief> nietGegenereerdeConclusieBrieven = briefService.getNietGegenereerdeBrievenVanBriefTypes(screeningRonde.getBrieven(), BriefType.getColonConclusieBrieven());
+		var nietGegenereerdeConclusieBrieven = briefService.getNietGegenereerdeBrievenVanBriefTypes(screeningRonde.getBrieven(), BriefType.getColonConclusieBrieven());
 
 		verwijderBrieven(client, screeningRonde, nietGegenereerdeConclusieBrieven);
 
@@ -555,16 +550,16 @@ public class ColonDossierServiceImpl implements ColonDossierService
 
 	private String getOldConclusieInfo(ColonConclusieType origConclusie, ColonConclusie conclusie)
 	{
-		String melding = "";
-		SimpleDateFormat formatD = new SimpleDateFormat("dd-MM-yyyy");
-		SimpleDateFormat formatDT = new SimpleDateFormat("dd-MM-yyyy HH:mm");
+		var melding = "";
+		var formatD = new SimpleDateFormat("dd-MM-yyyy");
+		var formatDT = new SimpleDateFormat("dd-MM-yyyy HH:mm");
 
 		melding += "; ";
 		if (conclusie.getDatum() != null)
 		{
 			melding += " datum/tijd " + formatDT.format(conclusie.getDatum()) + ", ";
 		}
-		InstellingGebruiker instellingGebruiker = conclusie.getInstellingGebruiker();
+		var instellingGebruiker = conclusie.getInstellingGebruiker();
 		if (instellingGebruiker != null)
 		{
 			Gebruiker medewerker;
@@ -575,7 +570,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 			catch (ObjectNotFoundException e)
 			{
 
-				Long id = (Long) HibernateHelper.getId(instellingGebruiker);
+				var id = (Long) HibernateHelper.getId(instellingGebruiker);
 				medewerker = hibernateService.load(InstellingGebruiker.class, id).getMedewerker();
 			}
 			melding += NaamUtil.getNaamGebruiker(medewerker) + ", ";
@@ -597,34 +592,34 @@ public class ColonDossierServiceImpl implements ColonDossierService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void verwijderIfobtUitslag(IFOBTTest buis, UploadDocument uploadDocument, InstellingGebruiker ingelogdeGebruiker)
 	{
-		ColonUitnodiging uitnodiging = (ColonUitnodiging) HibernateHelper.deproxy(ModelProxyHelper.deproxy(FITTestUtil.getUitnodiging(buis)));
+		var uitnodiging = (ColonUitnodiging) HibernateHelper.deproxy(ModelProxyHelper.deproxy(FITTestUtil.getUitnodiging(buis)));
 
-		ColonScreeningRonde screeningRonde = buis.getColonScreeningRonde();
-		Client client = screeningRonde.getDossier().getClient();
+		var screeningRonde = buis.getColonScreeningRonde();
+		var client = screeningRonde.getDossier().getClient();
 
-		List<ColonBrief> teVerwijdernBrieven = new ArrayList<>();
+		var teVerwijderenBrieven = new ArrayList<ColonBrief>();
 
-		for (ColonBrief bestaandeBrief : screeningRonde.getBrieven())
+		for (var bestaandeBrief : screeningRonde.getBrieven())
 		{
 			if (isBriefTeVerwijderen(buis, bestaandeBrief))
 			{
-				teVerwijdernBrieven.add(bestaandeBrief);
+				teVerwijderenBrieven.add(bestaandeBrief);
 			}
 		}
 
-		List<ColonIntakeAfspraak> teVerwijderenAfspraken = new ArrayList<>();
-		List<ColonHuisartsBericht> teVerwijderenHuisartsberichten = new ArrayList<>();
+		var teVerwijderenAfspraken = new ArrayList<ColonIntakeAfspraak>();
+		var teVerwijderenHuisartsberichten = new ArrayList<ColonHuisartsBericht>();
 
 		if (FITTestUtil.isOngunstig(buis) && !FITTestUtil.heeftMeerdereOngunstigeUitslagenInZelfdeRonde(buis))
 		{
-			for (ColonIntakeAfspraak afspraak : screeningRonde.getAfspraken())
+			for (var afspraak : screeningRonde.getAfspraken())
 			{
 				teVerwijderenAfspraken.add(afspraak);
 				client.getAfspraken().remove(afspraak);
-				RoosterItem roosterItem = afspraak.getRoosterItem();
+				var roosterItem = afspraak.getRoosterItem();
 				if (roosterItem != null)
 				{
 					roosterItem.getAfspraken().remove(afspraak);
@@ -638,20 +633,20 @@ public class ColonDossierServiceImpl implements ColonDossierService
 		ifobtService.verwijderUitslag(buis, uploadDocument);
 		clientService.projectClientInactiveren(client, ProjectInactiefReden.VALT_UIT_2DE_BUIS_PROJECT, Bevolkingsonderzoek.COLON);
 
-		verwijderVervolgStappen(screeningRonde, teVerwijdernBrieven);
+		verwijderVervolgStappen(screeningRonde, teVerwijderenBrieven);
 
-		for (ColonIntakeAfspraak afspraak : teVerwijderenAfspraken)
+		for (var afspraak : teVerwijderenAfspraken)
 		{
 			screeningRonde.getAfspraken().remove(afspraak);
 
-			Afspraak nieuweAfspraak = afspraak.getNieuweAfspraak();
+			var nieuweAfspraak = afspraak.getNieuweAfspraak();
 			if (nieuweAfspraak != null)
 			{
 				nieuweAfspraak.setOudeAfspraak(null);
 				hibernateService.saveOrUpdate(nieuweAfspraak);
 			}
 
-			Afspraak oudeAfspraak = afspraak.getOudeAfspraak();
+			var oudeAfspraak = afspraak.getOudeAfspraak();
 			if (oudeAfspraak != null)
 			{
 				oudeAfspraak.setNieuweAfspraak(null);
@@ -661,7 +656,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 			hibernateService.delete(afspraak);
 		}
 		screeningRonde.setLaatsteAfspraak(null);
-		for (ColonHuisartsBericht huisartsBericht : teVerwijderenHuisartsberichten)
+		for (var huisartsBericht : teVerwijderenHuisartsberichten)
 		{
 			client.getHuisartsBerichten().remove(huisartsBericht);
 			screeningRonde.getHuisartsBerichten().remove(huisartsBericht);
@@ -682,13 +677,13 @@ public class ColonDossierServiceImpl implements ColonDossierService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void vervangUitslagVerwijderenDocument(IFOBTTest buis, UploadDocument uploadDocument)
 	{
 		if (uploadDocument != null)
 		{
-			ColonUitnodiging uitnodiging = FITTestUtil.getUitnodiging(buis);
-			IFOBTTest gekoppeldeTest = uitnodiging.getGekoppeldeTest();
+			var uitnodiging = FITTestUtil.getUitnodiging(buis);
+			var gekoppeldeTest = uitnodiging.getGekoppeldeTest();
 			if (gekoppeldeTest != null)
 			{
 				gekoppeldeTest.setVerwijderbrief(uploadDocument);
@@ -702,7 +697,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public boolean setUitslagenGecontroleerdEnUpdateDashboard(LogRegel logRegel, InstellingGebruiker medewerker, DashboardStatus dashboardStatus)
 	{
 		var dossier = logRegel.getClient().getColonDossier();
@@ -712,7 +707,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 		var laatstGesignaleerdeIfobt = ifobtDao.getLaatsteIfobtTestMetMissendeUitslagVanDossier(dossier,
 			nu.minusDays(MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN), nu.minusDays(signaleringsTermijn));
 
-		boolean isGedowngrade = dashboardService.updateLogRegelMetDashboardStatus(logRegel, medewerker.getMedewerker().getGebruikersnaam(), dashboardStatus);
+		var isGedowngrade = dashboardService.updateLogRegelMetDashboardStatus(logRegel, medewerker.getMedewerker().getGebruikersnaam(), dashboardStatus);
 
 		logService.logGebeurtenis(LogGebeurtenis.COLON_CONTROLE_MISSENDE_UITSLAGEN_MATCH_GECONTROLEERD, medewerker, dossier.getClient(), Bevolkingsonderzoek.COLON);
 

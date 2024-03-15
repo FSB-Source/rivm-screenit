@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
+
 import nl.rivm.screenit.main.dao.mamma.MammaConclusieReviewDao;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaConclusieReviewZoekObject;
 import nl.rivm.screenit.main.service.mamma.MammaConclusieReviewService;
@@ -45,49 +47,28 @@ import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+@RequiredArgsConstructor
 public class MammaConclusieReviewServiceImpl implements MammaConclusieReviewService
 {
-	@Autowired
-	private MammaConclusieReviewDao conclusieReviewDao;
+	private final MammaConclusieReviewDao conclusieReviewDao;
 
-	@Autowired
-	private MammaConclusieReviewRepository conclusieReviewRepository;
+	private final MammaConclusieReviewRepository conclusieReviewRepository;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private LogService logService;
+	private final LogService logService;
+
+	private final MammaConclusieReviewDataProviderServiceImpl conclusieReviewDataProviderService;
 
 	private static final int DAGEN_VOOR_DATUM_CONCLUSIEREVIEW_FILTER = 30;
-
-	@Override
-	public long countConclusieReviewsVanRadioloog(MammaConclusieReviewZoekObject zoekObject)
-	{
-		return conclusieReviewDao.countConclusieReviewsVanRadioloog(zoekObject);
-	}
-
-	@Override
-	public List<MammaConclusieReview> zoekConclusieReviewsVanRadioloog(MammaConclusieReviewZoekObject zoekObject, int first, int count, String sortProperty, boolean asc)
-	{
-		return conclusieReviewDao.zoekConclusieReviewsVanRadioloog(zoekObject, first, count, sortProperty, asc);
-	}
-
-	@Override
-	public List<Long> zoekBeoordelingIdsMetConclusie(MammaConclusieReviewZoekObject zoekObject, String sortProperty, boolean asc)
-	{
-		return conclusieReviewDao.zoekBeoordelingIdsMetConclusie(zoekObject, sortProperty, asc);
-	}
 
 	@Override
 	public MammaConclusieReview getConclusieReview(MammaScreeningRonde screeningRonde, InstellingGebruiker radioloog)
@@ -151,7 +132,7 @@ public class MammaConclusieReviewServiceImpl implements MammaConclusieReviewServ
 	{
 		if (getConclusieReview(screeningRonde, gebruiker) == null)
 		{
-			MammaConclusieReview conclusieReview = new MammaConclusieReview();
+			var conclusieReview = new MammaConclusieReview();
 			conclusieReview.setScreeningRonde(screeningRonde);
 			conclusieReview.setRadioloog(gebruiker);
 			screeningRonde.getConclusieReviews().add(conclusieReview);
@@ -193,8 +174,8 @@ public class MammaConclusieReviewServiceImpl implements MammaConclusieReviewServ
 	@Override
 	public Date bepaalInitieleConclusieReviewSorteerDatumCoordinerendRadioloog(MammaConclusieReviewZoekObject zoekObject)
 	{
-		var laatsteConclusieReviewDatumRadioloog = zoekConclusieReviewsVanRadioloog(zoekObject, 0, 1,
-			"screeningRonde.followUpConclusieStatusGewijzigdOp", false);
+		var laatsteConclusieReviewDatumRadioloog = conclusieReviewDataProviderService.findPage(0, 1, zoekObject,
+			Sort.by(Sort.Direction.DESC, "screeningRonde.followUpConclusieStatusGewijzigdOp"));
 
 		return laatsteConclusieReviewDatumRadioloog.isEmpty() ? DateUtil.minDagen(currentDateSupplier.getDate(), DAGEN_VOOR_DATUM_CONCLUSIEREVIEW_FILTER) :
 			DateUtil.minDagen(laatsteConclusieReviewDatumRadioloog.get(0).getScreeningRonde().getFollowUpConclusieStatusGewijzigdOp(), DAGEN_VOOR_DATUM_CONCLUSIEREVIEW_FILTER);
@@ -206,8 +187,15 @@ public class MammaConclusieReviewServiceImpl implements MammaConclusieReviewServ
 	{
 		if (!doorCoordinerendRadioloog)
 		{
-			logService.logGebeurtenis(LogGebeurtenis.CONCLUSIE_REVIEW_AFGEROND, gebruiker,
-				client, Bevolkingsonderzoek.MAMMA);
+			if (conclusieReview.getRetourCeReden() != null)
+			{
+				logService.logGebeurtenis(LogGebeurtenis.MAMMA_BEOORDELINGEN_REVIEW_RETOUR_CE, gebruiker,
+					client, conclusieReview.getRetourCeReden().getOmschrijving(), Bevolkingsonderzoek.MAMMA);
+			}
+			else
+			{
+				logService.logGebeurtenis(LogGebeurtenis.CONCLUSIE_REVIEW_AFGEROND, gebruiker, client, Bevolkingsonderzoek.MAMMA);
+			}
 		}
 		else
 		{

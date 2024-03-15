@@ -1,4 +1,4 @@
-package nl.rivm.screenit.dao.cervix;
+package nl.rivm.screenit.repository.cervix;
 
 /*-
  * ========================LICENSE_START=================================
@@ -21,15 +21,9 @@ package nl.rivm.screenit.dao.cervix;
  * =========================LICENSE_END==================================
  */
 
-import java.util.List;
+import nl.rivm.screenit.model.cervix.CervixMergedBrieven;
+import nl.rivm.screenit.repository.BaseJpaRepository;
 
-import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
-import nl.rivm.screenit.model.cervix.CervixUitnodiging;
-
-public interface CervixScreeningrondeDao
+public interface CervixMergedBrievenRepository extends BaseJpaRepository<CervixMergedBrieven>
 {
-	CervixScreeningRonde getLaatsteScreeningRonde(String bsn);
-
-	List<CervixUitnodiging> getTeHerinnerenUitnodigingen(CervixScreeningRonde ronde);
-
 }

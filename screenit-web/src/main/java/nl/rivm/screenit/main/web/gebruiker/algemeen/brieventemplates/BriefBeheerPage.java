@@ -26,9 +26,7 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.main.comparator.EnumResourceComparator;
 import nl.rivm.screenit.main.web.ScreenitSession;
-import nl.rivm.screenit.main.web.component.BriefTypeLabel;
 import nl.rivm.screenit.main.web.component.form.FilterBvoFormPanel;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.modal.ConfirmPanel;
@@ -44,7 +42,6 @@ import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.batch.BvoZoekCriteria;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.FileType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
@@ -56,7 +53,6 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
@@ -77,6 +73,7 @@ import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.lang.Bytes;
+import org.springframework.beans.support.PropertyComparator;
 import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.wicketstuff.shiro.ShiroConstraint;
 
@@ -118,7 +115,7 @@ public class BriefBeheerPage extends AlgemeenPage
 		final WebMarkupContainer brievenContainer = new WebMarkupContainer("brievenContainer");
 		brievenContainer.setOutputMarkupId(true);
 		add(brievenContainer);
-		final WebMarkupContainer uploadHeaderContainer = new WebMarkupContainer("uploadHeader");
+		final var uploadHeaderContainer = new WebMarkupContainer("uploadHeader");
 		uploadHeaderContainer.setVisible(magAanpassen);
 		add(uploadHeaderContainer);
 		add(new FilterBvoFormPanel<>("bvoFilter", zoekCriteria, true, true)
@@ -132,24 +129,25 @@ public class BriefBeheerPage extends AlgemeenPage
 			}
 		});
 
-		brievenContainer.add(new PropertyListView<>("brieven", (IModel<List<BriefDefinitie>>) () -> getBriefDefinities())
+		brievenContainer.add(new PropertyListView<>("brieven", (IModel<List<BriefDefinitie>>) this::getBriefDefinities)
 		{
 			private final IModel<List<FileUpload>> files = new ListModel<>();
 
 			@Override
 			protected void populateItem(final ListItem<BriefDefinitie> item)
 			{
-				BriefDefinitie briefDefinitie = item.getModelObject();
+				var briefDefinitie = item.getModelObject();
 				if (briefDefinitie.getGeldigTot() != null)
 				{
 					item.add(new AttributeModifier("class", "display-none subrow " + subrowClass(briefDefinitie)));
 				}
 
-				BriefType briefType = briefDefinitie.getBriefType();
+				var briefType = briefDefinitie.getBriefType();
+
 				if (briefDefinitie.getGeldigTot() == null)
 				{
 					item.add(new Label("bvo", Bevolkingsonderzoek.getAfkortingen(briefType.getOnderzoeken())));
-					item.add(new BriefTypeLabel("type", briefType).setVisible(briefDefinitie.getGeldigTot() == null));
+					item.add(new Label("type", briefType.getWeergaveNaam()).setVisible(briefDefinitie.getGeldigTot() == null));
 				}
 				else
 				{
@@ -166,7 +164,7 @@ public class BriefBeheerPage extends AlgemeenPage
 						setVisible(item.getModelObject().getDocument() == null);
 					}
 				});
-				Component uitklapknop = new WebMarkupContainer("uitklapknop").setVisible(briefDefinitie.getVolgnummer() != 1 && briefDefinitie.getGeldigTot() == null);
+				var uitklapknop = new WebMarkupContainer("uitklapknop").setVisible(briefDefinitie.getVolgnummer() != 1 && briefDefinitie.getGeldigTot() == null);
 				uitklapknop.add(new AttributeAppender("class", " briefTemplate "));
 				uitklapknop.add(new AttributeAppender("data-value", subrowClass(briefDefinitie)));
 				item.add(uitklapknop);
@@ -223,13 +221,13 @@ public class BriefBeheerPage extends AlgemeenPage
 						if (files.getObject().size() == 1)
 						{
 
-							final FileUpload fileUpload = files.getObject().get(0);
+							final var fileUpload = files.getObject().get(0);
 
 							try
 							{
 								List<Project> projecten = projectService.getAllProjectenWhereProjectBriefActieHasBriefType(item.getModelObject().getBriefType());
 								var uploadDocument = ScreenitSession.get().fileUploadToUploadDocument(fileUpload);
-								if (projecten.size() > 0)
+								if (!projecten.isEmpty())
 								{
 									dialog.openWith(target, new ConfirmPanel(IDialog.CONTENT_ID, new StringResourceModel("confirm.title", this),
 										new StringResourceModel("confirm.content", this).setParameters(namenVanDeProjecten(projecten)),
@@ -259,7 +257,7 @@ public class BriefBeheerPage extends AlgemeenPage
 						}
 					}
 				});
-				final WebMarkupContainer uploadColumnContainer = new WebMarkupContainer("uploadColumn");
+				final var uploadColumnContainer = new WebMarkupContainer("uploadColumn");
 				uploadColumnContainer.setVisible(magAanpassen);
 				uploadColumnContainer.add(uploadForm);
 				item.add(uploadColumnContainer);
@@ -282,7 +280,7 @@ public class BriefBeheerPage extends AlgemeenPage
 	{
 		if (briefDefinities == null)
 		{
-			briefDefinities = ModelUtil.listModel(briefService.getBriefDefinities(zoekCriteria.getObject(), new EnumResourceComparator<>(this)));
+			briefDefinities = ModelUtil.listModel(briefService.getBriefDefinities(zoekCriteria.getObject(), new PropertyComparator<>("codeEnNaam", true, true)));
 		}
 		return briefDefinities.getObject();
 	}
@@ -291,11 +289,11 @@ public class BriefBeheerPage extends AlgemeenPage
 	{
 		try
 		{
-			BriefDefinitie nieuweBriefDefinitie = new BriefDefinitie();
+			var nieuweBriefDefinitie = new BriefDefinitie();
 			nieuweBriefDefinitie.setBriefType(definitie.getBriefType());
 			nieuweBriefDefinitie.setFormulierNummer(definitie.getFormulierNummer());
 			nieuweBriefDefinitie.setUploader(ScreenitSession.get().getLoggedInInstellingGebruiker());
-			briefService.saveBriefDefinitie(nieuweBriefDefinitie, uploadDocument.getFile(), uploadDocument.getContentType(), uploadDocument.getNaam(), this::getString);
+			briefService.saveBriefDefinitie(nieuweBriefDefinitie, uploadDocument.getFile(), uploadDocument.getContentType(), uploadDocument.getNaam());
 		}
 		catch (Exception e)
 		{

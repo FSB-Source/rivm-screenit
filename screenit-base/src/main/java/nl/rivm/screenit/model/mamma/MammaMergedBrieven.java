@@ -38,7 +38,6 @@ import org.hibernate.envers.Audited;
 @Audited
 public class MammaMergedBrieven extends MergedBrieven<MammaBrief>
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@OneToMany(mappedBy = "mergedBrieven", fetch = FetchType.LAZY)
@@ -55,5 +54,4 @@ public class MammaMergedBrieven extends MergedBrieven<MammaBrief>
 	{
 		this.brieven = brieven;
 	}
-
 }

@@ -32,8 +32,6 @@ import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixMonster;
-import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
-import nl.rivm.screenit.model.cervix.CervixZas;
 import nl.rivm.screenit.model.cervix.CervixZasHoudbaarheid;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
@@ -147,10 +145,10 @@ public class CervixVervolgServiceImpl implements CervixVervolgService
 	@Override
 	public void sendHpvOrder(CervixMonster monster, CervixVervolgTekst vervolgTekst, BMHKLaboratorium bmhkLaboratorium)
 	{
-		boolean triggerHpvOrder = false;
-		var cancelOrder = new AtomicBoolean(true);
 		if (organisatieParameterService.getOrganisatieParameter(getBmhkLaboratorium(monster, bmhkLaboratorium), OrganisatieParameterKey.CERVIX_HPV_ORDER_NIEUW, Boolean.FALSE))
 		{
+			boolean triggerHpvOrder;
+			var cancelOrder = new AtomicBoolean(true);
 			if (monster.getUitnodiging().getMonsterType() == CervixMonsterType.UITSTRIJKJE)
 			{
 				triggerHpvOrder = triggerHpvOrderVoorUitstrijkje(monster, vervolgTekst, cancelOrder);
@@ -159,32 +157,31 @@ public class CervixVervolgServiceImpl implements CervixVervolgService
 			{
 				triggerHpvOrder = triggerHpvOrderVoorZAS(monster, vervolgTekst, cancelOrder);
 			}
+			if (triggerHpvOrder)
+			{
+				maakEnQueueHpvOrderMessageTrigger(monster, bmhkLaboratorium, cancelOrder.get());
+			}
 		}
-		if (triggerHpvOrder)
-		{
-			maakEnQueueHpvOrderMessageTrigger(monster, bmhkLaboratorium, cancelOrder.get());
-		}
-
 	}
 
 	private boolean triggerHpvOrderVoorZAS(CervixMonster monster, CervixVervolgTekst vervolgTekst, AtomicBoolean cancelOrder)
 	{
 		boolean triggerHpvOrder = false;
-		CervixZas zas = CervixMonsterUtil.getZAS(monster);
+		var zas = CervixMonsterUtil.getZAS(monster);
 		var vorigeZasVersie = EntityAuditUtil.getPreviousVersionOfEntity(zas, hibernateService.getHibernateSession());
 		CervixZasStatus vorigeZasStatus = null;
 		if (vorigeZasVersie != null)
 		{
 			vorigeZasStatus = vorigeZasVersie.getZasStatus();
 		}
-		CervixZasStatus nieuweZasStatus = zas.getZasStatus();
+		var nieuweZasStatus = zas.getZasStatus();
 		LOG.debug("Monster status change {}, {}=>{}", zas.getMonsterId(), vorigeZasStatus, nieuweZasStatus);
 		if ((vorigeZasStatus == null || nieuweZasStatus != vorigeZasStatus) && nieuweZasStatus == CervixZasStatus.ONTVANGEN && vervolgTekst.isVoorHpvOrder())
 		{
 			cancelOrder.set(false);
 			triggerHpvOrder = true;
 		}
-		else if (vorigeZasStatus != null && vorigeZasStatus == CervixZasStatus.ONTVANGEN &&
+		else if (vorigeZasStatus == CervixZasStatus.ONTVANGEN &&
 			(nieuweZasStatus == CervixZasStatus.VERSTUURD || nieuweZasStatus == CervixZasStatus.NIET_ANALYSEERBAAR))
 		{
 			triggerHpvOrder = true;
@@ -195,14 +192,14 @@ public class CervixVervolgServiceImpl implements CervixVervolgService
 	private boolean triggerHpvOrderVoorUitstrijkje(CervixMonster monster, CervixVervolgTekst vervolgTekst, AtomicBoolean cancelOrder)
 	{
 		boolean triggerHpvOrder = false;
-		CervixUitstrijkje uitstrijkje = CervixMonsterUtil.getUitstrijkje(monster);
+		var uitstrijkje = CervixMonsterUtil.getUitstrijkje(monster);
 		var vorigeUitstrijkjeVersie = EntityAuditUtil.getPreviousVersionOfEntity(uitstrijkje, hibernateService.getHibernateSession());
 		CervixUitstrijkjeStatus vorigeUitstrijkjeStatus = null;
 		if (vorigeUitstrijkjeVersie != null)
 		{
 			vorigeUitstrijkjeStatus = vorigeUitstrijkjeVersie.getUitstrijkjeStatus();
 		}
-		CervixUitstrijkjeStatus nieuweUitstrijkjeStatus = uitstrijkje.getUitstrijkjeStatus();
+		var nieuweUitstrijkjeStatus = uitstrijkje.getUitstrijkjeStatus();
 		LOG.debug("Monster status change {}, {}=>{}", uitstrijkje.getMonsterId(), vorigeUitstrijkjeStatus, nieuweUitstrijkjeStatus);
 		if ((vorigeUitstrijkjeStatus == null || nieuweUitstrijkjeStatus != vorigeUitstrijkjeStatus) && nieuweUitstrijkjeStatus == CervixUitstrijkjeStatus.ONTVANGEN
 			&& vervolgTekst.isVoorHpvOrder())
@@ -210,7 +207,7 @@ public class CervixVervolgServiceImpl implements CervixVervolgService
 			cancelOrder.set(false);
 			triggerHpvOrder = true;
 		}
-		else if (vorigeUitstrijkjeStatus != null && vorigeUitstrijkjeStatus == CervixUitstrijkjeStatus.ONTVANGEN &&
+		else if (vorigeUitstrijkjeStatus == CervixUitstrijkjeStatus.ONTVANGEN &&
 			(nieuweUitstrijkjeStatus == CervixUitstrijkjeStatus.NIET_ONTVANGEN || nieuweUitstrijkjeStatus == CervixUitstrijkjeStatus.NIET_ANALYSEERBAAR))
 		{
 			triggerHpvOrder = true;
@@ -220,7 +217,7 @@ public class CervixVervolgServiceImpl implements CervixVervolgService
 
 	private void maakEnQueueHpvOrderMessageTrigger(CervixMonster monster, BMHKLaboratorium bmhkLaboratorium, boolean cancelOrder)
 	{
-		CervixHL7v24HpvOrderTriggerDto triggerDto = new CervixHL7v24HpvOrderTriggerDto();
+		var triggerDto = new CervixHL7v24HpvOrderTriggerDto();
 		triggerDto.setClazz(((CervixMonster) HibernateHelper.deproxy(monster)).getClass());
 		triggerDto.setMonsterId(monster.getId());
 		triggerDto.setCancelOrder(cancelOrder);

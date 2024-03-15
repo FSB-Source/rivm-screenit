@@ -23,7 +23,6 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.dto.mamma.afspraken.IMammaAfspraakWijzigenFilter;
@@ -31,7 +30,6 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.enums.MammaVerzettenReden;
-import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.model.IDetachable;
@@ -66,11 +64,11 @@ public class MammaAfspraakWijzigenFilter implements IMammaAfspraakWijzigenFilter
 		setTotEnMet(totEnMet);
 		if (standplaats != null)
 		{
-			this.standplaatsenModel.getObject().add(standplaats);
+			standplaatsenModel = ModelUtil.listRModel(List.of(standplaats));
 		}
 		if (screeningsEenheid != null)
 		{
-			this.screeningsEenhedenModel.getObject().add(screeningsEenheid);
+			screeningsEenhedenModel = ModelUtil.listRModel(List.of(screeningsEenheid));
 		}
 	}
 
@@ -142,13 +140,13 @@ public class MammaAfspraakWijzigenFilter implements IMammaAfspraakWijzigenFilter
 	@Override
 	public void setStandplaatsen(List<MammaStandplaats> standplaatsen)
 	{
-		this.standplaatsenModel.setObject(standplaatsen);
+		standplaatsenModel.setObject(standplaatsen);
 	}
 
 	@Override
 	public void setScreeningsEenheden(List<MammaScreeningsEenheid> screeningsEenheden)
 	{
-		this.screeningsEenhedenModel.setObject(screeningsEenheden);
+		screeningsEenhedenModel.setObject(screeningsEenheden);
 	}
 
 	@Override

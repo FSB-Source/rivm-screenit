@@ -287,7 +287,7 @@ public abstract class EditRoosterBlokPanel extends AbstractEditTijdSlotPanel<Roo
 	@Override
 	protected List<RoosterItem> transformTijdSlot(RoosterItem unsavedObject)
 	{
-		return afspraakslotService.splitAfspraakslot(unsavedObject, aantalBlokken.getObject(), ScreenitSession.get().getColoscopieCentrum());
+		return roosterService.splitAfspraakslot(unsavedObject, aantalBlokken.getObject(), ScreenitSession.get().getColoscopieCentrum());
 	}
 
 	@Override

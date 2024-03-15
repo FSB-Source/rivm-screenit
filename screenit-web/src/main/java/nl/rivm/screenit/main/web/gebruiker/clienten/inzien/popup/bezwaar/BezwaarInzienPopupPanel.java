@@ -99,7 +99,7 @@ public abstract class BezwaarInzienPopupPanel extends GenericPanel<BezwaarMoment
 		WebMarkupContainer verstuurdFormulierContainer = new WebMarkupContainer("formulierVerstuurdContainer");
 		add(verstuurdFormulierContainer);
 		verstuurdFormulierContainer.add(
-			new ListView<>("brievenLijst", BriefOmschrijvingUtil.getBrievenOmschrijvingen(briefService.getBrievenVanBezwaar(getModelObject()), this::getString))
+			new ListView<>("brievenLijst", BriefOmschrijvingUtil.getBrievenOmschrijvingen(briefService.getBrievenVanBezwaar(getModelObject())))
 			{
 				@Override
 				protected void populateItem(ListItem<String> item)

@@ -395,6 +395,11 @@ public abstract class AbstractMammaBeoordelenPage extends AbstractMammaBePage
 		}
 	}
 
+	protected List<Long> getBeoordelingenIds()
+	{
+		return beoordelingenIds;
+	}
+
 	protected Class<? extends MammaScreeningBasePage> getWerklijstPageClass()
 	{
 		return werklijstPageClass;

@@ -21,7 +21,6 @@ package nl.rivm.screenit.main.util;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.main.web.component.BriefTypeLabel;
 import nl.rivm.screenit.model.Brief;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -31,11 +30,11 @@ public class GebeurtenisUtil
 {
 	public static void voegBriefTypeOfNaamBriefToe(WebMarkupContainer container, Brief brief)
 	{
-		Label templateNaam = new Label("brief.templateNaam");
+		var templateNaam = new Label("brief.templateNaam");
 		templateNaam.setVisible(brief.getBriefType() == null);
 		container.add(templateNaam);
 
-		BriefTypeLabel briefTypeLabel = new BriefTypeLabel("brief.briefType", brief.getBriefType());
+		var briefTypeLabel = new Label("brief.briefType", brief.getBriefType().getWeergaveNaam());
 		briefTypeLabel.setVisible(brief.getBriefType() != null);
 		container.add(briefTypeLabel);
 	}

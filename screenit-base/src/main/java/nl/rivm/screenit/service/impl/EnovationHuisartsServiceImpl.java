@@ -23,22 +23,21 @@ package nl.rivm.screenit.service.impl;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.dao.EnovationHuisartsDao;
 import nl.rivm.screenit.model.EnovationHuisarts;
 import nl.rivm.screenit.service.EnovationHuisartsService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
+@Slf4j
 public class EnovationHuisartsServiceImpl implements EnovationHuisartsService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(EnovationHuisartsServiceImpl.class);
 
 	@Autowired
 	private EnovationHuisartsDao huisartsDao;
@@ -71,11 +70,11 @@ public class EnovationHuisartsServiceImpl implements EnovationHuisartsService
 	@Override
 	public int valideerKlantnummers(List<String> klantnummers)
 	{
-		List<String> activeKlantnummers = huisartsDao.getKlantnummersVanAlleActiveHuisartens();
+		var activeKlantnummers = huisartsDao.getKlantnummersVanAlleActiveHuisartens();
 		activeKlantnummers.removeAll(klantnummers);
 		if (!activeKlantnummers.isEmpty())
 		{
-			LOG.info("Huisarten verwijderd met volgende klantnummer: " + activeKlantnummers);
+			LOG.info("{} inactieve huisartsen worden 'verwijderd'", activeKlantnummers.size());
 			huisartsDao.verwijderHuisartsen(activeKlantnummers);
 		}
 		return activeKlantnummers.size();

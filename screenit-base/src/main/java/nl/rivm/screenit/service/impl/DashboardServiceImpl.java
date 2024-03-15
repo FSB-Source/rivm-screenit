@@ -192,7 +192,7 @@ public class DashboardServiceImpl implements DashboardService
 	public boolean updateLogRegelMetDashboardStatus(LogRegel logregel, String gebruikersnaam, DashboardStatus dashboardStatus)
 	{
 		logregel.getLogEvent().setLevel(Level.INFO);
-		LOG.info("Gebruiker " + gebruikersnaam + " heeft aangemerkt logregel " + logregel.getId() + " te hebben gezien.");
+		LOG.info("Gebruiker heeft aangemerkt logregel {} te hebben gezien.", logregel.getId());
 		hibernateService.saveOrUpdate(logregel);
 		boolean isGedowngrade = downgradeDashboardStatussenLevelNaarBenedenAlsMogelijk(dashboardStatus);
 		downgradeDashboardStatussenLevelNaarBenedenAlsMogelijk(getDashboardStatussen(dashboardStatus.getType()));

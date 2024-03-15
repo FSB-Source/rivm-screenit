@@ -71,7 +71,7 @@ public class SentinelControlesPage extends KwaliteitscontroleBasePage
 
 	public SentinelControlesPage()
 	{
-		add(new SentineelcontrolesForm("form"));
+		add(new SentineelcontrolesForm("form").setEnabled(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BEHEER_SENTINELCONTROLES, Actie.AANPASSEN)));
 	}
 
 	private class SentineelcontrolesForm extends ScreenitForm<SKMLSentineelControleBarcode>
@@ -108,7 +108,7 @@ public class SentinelControlesPage extends KwaliteitscontroleBasePage
 					logService.logGebeurtenis(LogGebeurtenis.SENTINEL_BARCODES_GEWIJZIGD, ScreenitSession.get().getLoggedInAccount(), Bevolkingsonderzoek.COLON);
 					info("ID's zijn opgeslagen.");
 				}
-			});
+			}.setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BEHEER_SENTINELCONTROLES, Actie.AANPASSEN)));
 		}
 
 		private List<SKMLSentineelControleBarcode> filterSentineelControleBarcodes(List<SKMLSentineelControleBarcode> allSentineels, int setNr)

@@ -28,13 +28,14 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
 import lombok.Getter;
 import lombok.Setter;
 
+import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -42,13 +43,10 @@ import nl.rivm.screenit.main.web.component.SimpleStringResourceModel;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.model.Gemeente;
-import nl.rivm.screenit.model.colon.ColonConclusie;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
-import nl.rivm.screenit.model.colon.planning.AfspraakDefinitie;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamer;
 import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamerFilter;
@@ -82,12 +80,9 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.RadioChoice;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
@@ -99,6 +94,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.apache.wicket.util.string.Strings;
 import org.apache.wicket.validation.validator.DateValidator;
 import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
@@ -188,13 +184,13 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 
 	private void addBriefType()
 	{
-		List<BriefType> choices = getBriefTypes();
+		var choices = getBriefTypes();
 		briefType = Model.of(choices.get(0));
 		if (choices.contains(BriefType.COLON_INTAKE_GEWIJZIGD))
 		{
 			briefType = Model.of(BriefType.COLON_INTAKE_GEWIJZIGD);
 		}
-		ScreenitDropdown<BriefType> briefTypeDropDown = new ScreenitDropdown<>("briefType", briefType, choices, new EnumChoiceRenderer<BriefType>(this));
+		var briefTypeDropDown = new ScreenitDropdown<>("briefType", briefType, choices, new ChoiceRenderer<>("weergaveNaam"));
 		briefTypeDropDown.setVisible(
 			ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_INTAKE_WIJZIGEN_ANDER_BRIEF, Actie.AANPASSEN) && !isDoorverwezen);
 		briefTypeDropDown.setRequired(true);
@@ -203,10 +199,10 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 
 	private List<BriefType> getBriefTypes()
 	{
-		ColonIntakeAfspraak afspraak = getModelObject();
-		ColonScreeningRonde ronde = afspraak.getColonScreeningRonde();
+		var afspraak = getModelObject();
+		var ronde = afspraak.getColonScreeningRonde();
 
-		List<BriefType> choices = new ArrayList<BriefType>();
+		var choices = new ArrayList<BriefType>();
 		if (ronde.getOpenUitnodiging() != null && ronde.getLaatsteAfspraak() == null)
 		{
 			choices.add(BriefType.COLON_BEVESTIGING_INTAKE_AFSRPAAK_NA_OPEN_UITNODIGING);
@@ -221,28 +217,20 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 
 	private void addHuidigeAfspraak()
 	{
-		ColonIntakeAfspraak afspraak = getModelObject();
-		AfspraakStatus status = afspraak.getStatus();
-		ColonConclusie conclusie = afspraak.getConclusie();
-		ColonConclusieType colonConclusieType = conclusie != null ? conclusie.getType() : null;
-		boolean toonHuidigeAfspraak = AfspraakStatus.GEPLAND.equals(status)
+		var afspraak = getModelObject();
+		var status = afspraak.getStatus();
+		var conclusie = afspraak.getConclusie();
+		var colonConclusieType = conclusie != null ? conclusie.getType() : null;
+		var toonHuidigeAfspraak = AfspraakStatus.GEPLAND.equals(status)
 			|| AfspraakStatus.UITGEVOERD.equals(status) && ColonConclusieType.NO_SHOW.equals(colonConclusieType)
 			|| afspraakService.heeftOnafgerondeVerwijzingOmMedischeRedenen(afspraak);
 
 		add(new Label("title").setVisible(toonHuidigeAfspraak));
 
-		IModel<ColoscopieCentrum> centrum = () -> getModelObject().getLocation().getColoscopieCentrum();
-		add(new Label("ccNaam", new PropertyModel<String>(centrum, "naam")));
+		add(new Label("ccNaam", new PropertyModel<>(getModelObject(), "location.coloscopieCentrum.naam")));
 
-		add(new Label("ccAdres", new IModel<String>()
-		{
-			@Override
-			public String getObject()
-			{
-				return org.apache.wicket.util.string.Strings
-					.escapeMarkup(AdresUtil.getVolledigeAdresString(getModelObject().getLocation().getColoscopieCentrum().getAdressen().get(0))).toString();
-			}
-		}).setEscapeModelStrings(false));
+		add(new Label("ccAdres", (IModel<String>) () -> Strings
+			.escapeMarkup(AdresUtil.getVolledigeAdresString(getModelObject().getLocation().getColoscopieCentrum().getAdressen().get(0))).toString()).setEscapeModelStrings(false));
 		add(DateLabel.forDatePattern("startTime", "EEEE dd-MM-yyyy HH:mm"));
 	}
 
@@ -280,14 +268,14 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 
 	private void addOrReplaceTegenhoudenContainer(AjaxRequestTarget target)
 	{
-		Boolean rechtVoorBriefTegenhouden = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_BRIEVEN_TEGENHOUDEN, Actie.AANPASSEN);
-		WebMarkupContainer briefTegenhoudenContainer = new WebMarkupContainer("briefTegenhoudenContainer");
+		var rechtVoorBriefTegenhouden = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_BRIEVEN_TEGENHOUDEN, Actie.AANPASSEN);
+		var briefTegenhoudenContainer = new WebMarkupContainer("briefTegenhoudenContainer");
 		briefTegenhoudenContainer.setVisible(Boolean.TRUE.equals(binnenNietWijzigbaarPeriode.getObject()) ||
 			rechtVoorBriefTegenhouden);
 		briefTegenhoudenContainer.setOutputMarkupPlaceholderTag(true);
 		nieuweAfspraakContainer.addOrReplace(briefTegenhoudenContainer);
 
-		CheckBox briefTegenhoudenCheckBox = ComponentHelper.newCheckBox("briefTegenhouden", briefTegenhouden);
+		var briefTegenhoudenCheckBox = ComponentHelper.newCheckBox("briefTegenhouden", briefTegenhouden);
 		briefTegenhoudenCheckBox.setOutputMarkupPlaceholderTag(true);
 		briefTegenhoudenContainer.addOrReplace(briefTegenhoudenCheckBox);
 
@@ -299,10 +287,10 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 
 	private void addOrReplaceDatumTijdBuitenRoosterContainer(AjaxRequestTarget target)
 	{
-		WebMarkupContainer datumTijdBuitenRoosterContainer = new WebMarkupContainer("datumTijdBuitenRoosterContainer");
+		var datumTijdBuitenRoosterContainer = new WebMarkupContainer("datumTijdBuitenRoosterContainer");
 		datumTijdBuitenRoosterContainer.setOutputMarkupPlaceholderTag(true);
-		DateTimeField datumTijdBuitenRooster = new DateTimeField("datumTijdBuitenRooster",
-			new PropertyModel<Date>(ColonClientAfspraakVerplaatsenPanel.this, "datumTijdBuitenRooster"))
+		var datumTijdBuitenRoosterField = new DateTimeField("datumTijdBuitenRooster",
+			new PropertyModel<>(this, "datumTijdBuitenRooster"))
 		{
 			@Override
 			protected DatePicker<Date> newDatePicker(String wicketId, IModel<Date> model)
@@ -315,7 +303,7 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 			@Override
 			protected TimeField newTimeField(String wicketId, IModel<Date> model)
 			{
-				TimeField timeField = new TimeField(wicketId, model)
+				return new TimeField(wicketId, model)
 				{
 					@Override
 					protected TextField<Integer> getHoursField()
@@ -345,12 +333,11 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 						}
 					}
 				};
-				return timeField;
 			}
 		};
-		datumTijdBuitenRooster.setRequired(true);
+		datumTijdBuitenRoosterField.setRequired(true);
 		datumTijdBuitenRoosterContainer.setVisible(Boolean.TRUE.equals(buitenRooster.getObject()));
-		datumTijdBuitenRoosterContainer.add(datumTijdBuitenRooster);
+		datumTijdBuitenRoosterContainer.add(datumTijdBuitenRoosterField);
 		nieuweAfspraakContainer.addOrReplace(datumTijdBuitenRoosterContainer);
 		if (target != null)
 		{
@@ -360,7 +347,7 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 
 	private void addOrReplaceAfspraakDetailsContainer(AjaxRequestTarget target)
 	{
-		WebMarkupContainer afspraakDetails = new WebMarkupContainer("afspraakDetails");
+		var afspraakDetails = new WebMarkupContainer("afspraakDetails");
 		afspraakDetails.setOutputMarkupPlaceholderTag(true);
 
 		if (gekozenVrijSlotZonderKamer.getIntakeLocatieId() == null)
@@ -371,13 +358,13 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 		}
 		else
 		{
-			ColoscopieCentrum intakeLocatie = hibernateService.get(ColoscopieCentrum.class, gekozenVrijSlotZonderKamer.getIntakeLocatieId());
+			var intakeLocatie = hibernateService.get(ColoscopieCentrum.class, gekozenVrijSlotZonderKamer.getIntakeLocatieId());
 			afspraakDetails.add(new Label("naam", intakeLocatie.getNaam()));
 			afspraakDetails.add(new Label("adres", AdresUtil.getVolledigeAdresString(intakeLocatie.getAdressen().get(0))));
 			afspraakDetails.add(new Label("locatieBeschrijving", intakeLocatie.getLocatieBeschrijving()).setVisible(intakeLocatie.getLocatieBeschrijving() != null));
 		}
 
-		IndicatingAjaxLink wijzigLocatie = new IndicatingAjaxLink<Void>("wijzigLocatie")
+		var wijzigLocatie = new IndicatingAjaxLink<Void>("wijzigLocatie")
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target)
@@ -393,14 +380,14 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 		wijzigLocatie.setVisible(locatieWijzigen && buitenRooster.getObject() && gekozenVrijSlotZonderKamer.getIntakeLocatieId() != null);
 		afspraakDetails.add(wijzigLocatie);
 
-		WebMarkupContainer tijdContainer = new WebMarkupContainer("tijdContainer");
+		var tijdContainer = new WebMarkupContainer("tijdContainer");
 		tijdContainer.setVisible(!buitenRooster.getObject());
 		afspraakDetails.add(tijdContainer);
 
-		DateLabel startTime = DateLabel.forDatePattern("startTime", Model.of(gekozenVrijSlotZonderKamer.getStartTijd()), "EEEE dd-MM-yyyy HH:mm");
+		var startTime = DateLabel.forDatePattern("startTime", Model.of(gekozenVrijSlotZonderKamer.getStartTijd()), "EEEE dd-MM-yyyy HH:mm");
 		tijdContainer.add(startTime);
 
-		IndicatingAjaxLink tijdWijzigen = new IndicatingAjaxLink<Void>("tijdWijzigen")
+		var tijdWijzigen = new IndicatingAjaxLink<Void>("tijdWijzigen")
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target)
@@ -415,7 +402,7 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 		tijdWijzigen.setVisible(gekozenVrijSlotZonderKamer.getStartTijd() != null);
 		tijdContainer.add(tijdWijzigen);
 
-		CheckBox binnenNietWijzigbaarPeriodeCheckBox = ComponentHelper.newCheckBox("binnenNietWijzigbaarPeriode", binnenNietWijzigbaarPeriode);
+		var binnenNietWijzigbaarPeriodeCheckBox = ComponentHelper.newCheckBox("binnenNietWijzigbaarPeriode", binnenNietWijzigbaarPeriode);
 		binnenNietWijzigbaarPeriodeCheckBox.setVisible(magAfspraakBinnenIntakeNietWijzigPeriodePlaatsen);
 		binnenNietWijzigbaarPeriodeCheckBox.add(new AjaxFormComponentUpdatingBehavior("change")
 		{
@@ -434,7 +421,7 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 				addOrReplaceMomentZoekenFilter(target);
 				addOrReplaceMomentZoekenTable(target);
 
-				if (binnenNietWijzigbaarPeriode.getObject())
+				if (Boolean.TRUE.equals(binnenNietWijzigbaarPeriode.getObject()))
 				{
 					briefTegenhouden.setObject(Boolean.TRUE);
 				}
@@ -446,7 +433,7 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 		});
 		afspraakDetails.add(binnenNietWijzigbaarPeriodeCheckBox);
 
-		CheckBox buitenRoosterCheckBox = ComponentHelper.newCheckBox("buitenRooster", buitenRooster);
+		var buitenRoosterCheckBox = ComponentHelper.newCheckBox("buitenRooster", buitenRooster);
 		buitenRoosterCheckBox.setVisible(Boolean.TRUE.equals(binnenNietWijzigbaarPeriode.getObject()));
 		buitenRoosterCheckBox.add(new AjaxFormComponentUpdatingBehavior("change")
 		{
@@ -480,8 +467,8 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 		momentZoekenContainer.setOutputMarkupPlaceholderTag(true);
 		add(momentZoekenContainer);
 
-		VrijSlotZonderKamerFilter vrijSlotZonderKamerFilter = new VrijSlotZonderKamerFilter();
-		ColoscopieCentrum intakelocatie = getModelObject().getLocation().getColoscopieCentrum();
+		var vrijSlotZonderKamerFilter = new VrijSlotZonderKamerFilter();
+		var intakelocatie = getModelObject().getLocation().getColoscopieCentrum();
 		if (!locatieWijzigen)
 		{
 			vrijSlotZonderKamerFilter.setIntakeLocatieId(intakelocatie.getId());
@@ -502,7 +489,7 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 
 	private void addOrReplaceMomentZoekenFilter(AjaxRequestTarget target)
 	{
-		Integer intakeNietWijzigbaar = preferenceService.getInteger(PreferenceKey.INTAKE_NIET_WIJZIGBAAR.name());
+		var intakeNietWijzigbaar = preferenceService.getInteger(PreferenceKey.INTAKE_NIET_WIJZIGBAAR.name());
 		Date vanaf;
 		Date totEnMet;
 		if (Boolean.FALSE.equals(binnenNietWijzigbaarPeriode.getObject()))
@@ -521,32 +508,32 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 
 		filterModel.getObject().setAlleenIntakeLokaties(buitenRooster.getObject());
 
-		Form<VrijSlotZonderKamerFilter> newForm = new Form<>("filterForm", filterModel);
+		var newForm = new Form<>("filterForm", filterModel);
 
-		WebMarkupContainer vanafTotEnMetContainer = new WebMarkupContainer("vanafTotEnMetContainer");
+		var vanafTotEnMetContainer = new WebMarkupContainer("vanafTotEnMetContainer");
 		vanafTotEnMetContainer.setVisible(!buitenRooster.getObject());
 		newForm.add(vanafTotEnMetContainer);
 
-		DatePicker<Date> vanafField = ComponentHelper.newDatePicker("vanaf", null, !binnenNietWijzigbaarPeriode.getObject());
+		var vanafField = ComponentHelper.newDatePicker("vanaf", null, !binnenNietWijzigbaarPeriode.getObject());
 		vanafField.setRequired(true);
 		vanafField.add(DateValidator.minimum(vanaf));
 		vanafTotEnMetContainer.add(vanafField);
 
-		DatePicker<Date> totEnMetField = ComponentHelper.newDatePicker("totEnMet", null, !binnenNietWijzigbaarPeriode.getObject());
+		var totEnMetField = ComponentHelper.newDatePicker("totEnMet", null, !binnenNietWijzigbaarPeriode.getObject());
 		totEnMetField.setRequired(true);
 		vanafTotEnMetContainer.add(totEnMetField);
 		newForm.add(new DependantDateValidator(vanafField, totEnMetField, Operator.AFTER));
 
-		FormComponent<String> naamField = ComponentHelper.addTextField(newForm, "naam", false, 40, String.class, false);
+		var naamField = ComponentHelper.addTextField(newForm, "naam", false, 40, String.class, false);
 		naamField.setVisible(locatieWijzigen);
 
-		FormComponent<String> plaatsField = ComponentHelper.addTextField(newForm, "plaats", false, 40, String.class, false);
+		var plaatsField = ComponentHelper.addTextField(newForm, "plaats", false, 40, String.class, false);
 		plaatsField.setVisible(locatieWijzigen);
 
-		Integer[] afstanden = new Integer[] { 5, 10, 15, 20, 25, 30, 35, 40, 45 };
+		var afstanden = new Integer[] { 5, 10, 15, 20, 25, 30, 35, 40, 45 };
 		newForm.add(new DropDownChoice<>("afstand", Arrays.asList(afstanden)).setNullValid(true).setVisible(locatieWijzigen));
 
-		AjaxSubmitLink zoeken = new AjaxSubmitLink("zoeken", newForm)
+		var zoeken = new AjaxSubmitLink("zoeken", newForm)
 		{
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
@@ -557,7 +544,7 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 		zoeken.setEnabled(!binnenNietWijzigbaarPeriode.getObject() || locatieWijzigen);
 		newForm.add(zoeken);
 
-		if (filterForm == null)
+		if (filterForm == null || target == null)
 		{
 			momentZoekenContainer.add(newForm);
 		}
@@ -571,8 +558,8 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 
 	private void addOrReplaceMomentZoekenTable(AjaxRequestTarget target)
 	{
-		List<IColumn<VrijSlotZonderKamer, String>> columns = new ArrayList<>();
-		if (!buitenRooster.getObject())
+		var columns = new ArrayList<IColumn<VrijSlotZonderKamer, String>>();
+		if (Boolean.FALSE.equals(buitenRooster.getObject()))
 		{
 			columns.add(new DateTimePropertyColumn<>(new SimpleStringResourceModel("label.datumtijd"), "startTijd", "startTime",
 				new SimpleDateFormat("EEEE dd-MM-yyyy HH:mm", ScreenitSession.get().getLocale())));
@@ -595,10 +582,10 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 			}
 		});
 
-		VrijSlotZonderKamerDataProvider vrijSlotZonderKamerDataProvider = new VrijSlotZonderKamerDataProvider(filterModel.getObject(),
+		var vrijSlotZonderKamerDataProvider = new VrijSlotZonderKamerDataProvider(filterModel.getObject(),
 			new PropertyModel<>(getModel(), "client"));
 
-		ScreenitDataTable<VrijSlotZonderKamer, String> newTable = new ScreenitDataTable<VrijSlotZonderKamer, String>("vrijeSloten", columns, vrijSlotZonderKamerDataProvider, 10,
+		var newTable = new ScreenitDataTable<>("vrijeSloten", columns, vrijSlotZonderKamerDataProvider, 10,
 			Model.of("Vrije sloten"))
 		{
 			@Override
@@ -612,7 +599,7 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 			}
 		};
 
-		if (nieuweAfspraakTable == null)
+		if (nieuweAfspraakTable == null || target == null)
 		{
 			momentZoekenContainer.add(newTable);
 		}
@@ -629,10 +616,10 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 		nieuweAfspraakModel = null;
 		if (gekozenVrijSlotZonderKamer.getIntakeLocatieId() != null && (gekozenVrijSlotZonderKamer.getStartTijd() != null || datumTijdBuitenRooster != null))
 		{
-			ColoscopieCentrum intakeLocatie = hibernateService.get(ColoscopieCentrum.class, gekozenVrijSlotZonderKamer.getIntakeLocatieId());
+			var intakeLocatie = hibernateService.get(ColoscopieCentrum.class, gekozenVrijSlotZonderKamer.getIntakeLocatieId());
 
-			Kamer beschikbareKamer = null;
-			if (!buitenRooster.getObject())
+			Kamer beschikbareKamer;
+			if (Boolean.FALSE.equals(buitenRooster.getObject()))
 			{
 				beschikbareKamer = planningService.getBeschikbareKamer(gekozenVrijSlotZonderKamer.getStartTijd(), gekozenVrijSlotZonderKamer.getIntakeLocatieId());
 				if (beschikbareKamer == null)
@@ -642,19 +629,12 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 			}
 			else
 			{
-				List<Kamer> kamers = intakeLocatie.getKamers();
-				for (Kamer kamer : kamers)
-				{
-					if (Boolean.TRUE.equals(kamer.getActief()))
-					{
-						beschikbareKamer = kamer;
-						break;
-					}
-				}
+				var kamers = intakeLocatie.getKamers();
+				beschikbareKamer = kamers.stream().filter(k -> Boolean.TRUE.equals(k.getActief())).findFirst().orElse(null);
 			}
 
-			nieuweAfspraakModel = ModelUtil.cModel(new ColonIntakeAfspraak());
-			ColonIntakeAfspraak nieuweAfspraak = nieuweAfspraakModel.getObject();
+			nieuweAfspraakModel = ModelUtil.ccModel(new ColonIntakeAfspraak());
+			var nieuweAfspraak = nieuweAfspraakModel.getObject();
 			nieuweAfspraak.setLocation(beschikbareKamer);
 			nieuweAfspraak.setActief(true);
 			nieuweAfspraak.setBezwaar(false);
@@ -672,14 +652,14 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 			}
 			nieuweAfspraak.addDiscipline(hibernateService.loadAll(Discipline.class).get(0));
 
-			ColonIntakeAfspraak oudeAfspraak = getModelObject();
+			var oudeAfspraak = getModelObject();
 			nieuweAfspraak.setColonScreeningRonde(oudeAfspraak.getColonScreeningRonde());
 			nieuweAfspraak.setClient(oudeAfspraak.getClient());
 			nieuweAfspraak.setDefinition(oudeAfspraak.getDefinition());
 
-			AfspraakDefinitie afspraakDefinitie = intakeLocatie.getAfspraakDefinities().get(0);
-			Integer duurAfspraakInMinuten = afspraakDefinitie.getDuurAfspraakInMinuten();
-			if (!buitenRooster.getObject())
+			var afspraakDefinitie = intakeLocatie.getAfspraakDefinities().get(0);
+			var duurAfspraakInMinuten = afspraakDefinitie.getDuurAfspraakInMinuten();
+			if (Boolean.FALSE.equals(buitenRooster.getObject()))
 			{
 				nieuweAfspraak.setStartTime(gekozenVrijSlotZonderKamer.getStartTijd());
 				nieuweAfspraak.setEndTime(gekozenVrijSlotZonderKamer.getEindTijd());
@@ -690,8 +670,8 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 				nieuweAfspraak.setEndTime(DateUtil.plusTijdseenheid(nieuweAfspraak.getStartTime(), duurAfspraakInMinuten, ChronoUnit.MINUTES));
 			}
 
-			SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm");
-			ColonIntakeAfspraak laatsteAfspraak = nieuweAfspraak.getColonScreeningRonde().getLaatsteAfspraak();
+			var format = new SimpleDateFormat(Constants.DEFAULT_DATE_TIME_FORMAT);
+			var laatsteAfspraak = nieuweAfspraak.getColonScreeningRonde().getLaatsteAfspraak();
 			if (laatsteAfspraak != null)
 			{
 				return List.of(String.format("coloscopie intake afspraak van %1$s in %2$s van %3$s verplaatsen naar %4$s in %5$s van %6$s",
@@ -712,8 +692,8 @@ public class ColonClientAfspraakVerplaatsenPanel extends GenericPanel<ColonIntak
 
 	public Map<ExtraOpslaanKey, Object> getOpslaanObjecten()
 	{
-		Boolean rechtVoorBriefTegenhouden = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_BRIEVEN_TEGENHOUDEN, Actie.AANPASSEN);
-		Map<ExtraOpslaanKey, Object> opslaanObjecten = new HashMap<>();
+		var rechtVoorBriefTegenhouden = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_BRIEVEN_TEGENHOUDEN, Actie.AANPASSEN);
+		var opslaanObjecten = new EnumMap<>(ExtraOpslaanKey.class);
 		if (nieuweAfspraakModel != null)
 		{
 			ColonIntakeAfspraak nieuweAfspraak = nieuweAfspraakModel.getObject();

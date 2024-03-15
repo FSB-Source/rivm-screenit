@@ -40,10 +40,10 @@ import org.springframework.jms.core.JmsTemplate;
 @Configuration
 public class JmsConfigHuisartsPortaal
 {
-	@Value("${app.activemqUsername}")
+	@Value("${spring.activemq.user}")
 	private String activemqUsername;
 
-	@Value("${app.activemqPassword}")
+	@Value("${spring.activemq.password}")
 	private String activemqPassword;
 
 	@Value("${spring.activemq.broker-url}")
@@ -80,6 +80,7 @@ public class JmsConfigHuisartsPortaal
 			connectionFactory.setUserName(activemqUsername);
 			connectionFactory.setPassword(activemqPassword);
 		}
+
 		List<String> trustedPackages = new ArrayList<>();
 		trustedPackages.add("nl.rivm.screenit");
 		trustedPackages.add("java");

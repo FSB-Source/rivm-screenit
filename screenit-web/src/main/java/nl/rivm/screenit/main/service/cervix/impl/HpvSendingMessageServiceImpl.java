@@ -61,19 +61,19 @@ public class HpvSendingMessageServiceImpl implements HpvSendingMessageService
 	@Override
 	public Map<String, String> verstuurHpvBerichten(List<Message> messages)
 	{
-		Map<String, String> responseMap = new HashMap<String, String>();
-		Connection conn = getConnection();
+		Map<String, String> responseMap = new HashMap<>();
+		var conn = getConnection();
 		try
 		{
 			if (conn != null)
 			{
 				for (Message message : messages)
 				{
-					CervixHpvBerichtWrapper wrapper = new CervixHpvBerichtWrapper((OUL_R22) message);
-					String messageId = wrapper.getMessageId();
-					Message response = conn.getInitiator().sendAndReceive(message);
-					ScreenITResponseV251MessageWrapper responseMessageWrapper = new ScreenITResponseV251MessageWrapper(response);
-					String mapWaarde = responseMessageWrapper.getAcknowledgmentCodeString() + responseMessageWrapper.getMelding();
+					var wrapper = new CervixHpvBerichtWrapper((OUL_R22) message);
+					var messageId = wrapper.getMessageId();
+					var response = conn.getInitiator().sendAndReceive(message);
+					var responseMessageWrapper = new ScreenITResponseV251MessageWrapper(response);
+					var mapWaarde = responseMessageWrapper.getAcknowledgmentCodeString() + responseMessageWrapper.getMelding();
 					responseMap.put(messageId, mapWaarde);
 				}
 			}
@@ -94,12 +94,12 @@ public class HpvSendingMessageServiceImpl implements HpvSendingMessageService
 	public ScreenITResponseV251MessageWrapper verstuurHpvBericht(Message message)
 	{
 		ScreenITResponseV251MessageWrapper wrapper = null;
-		Connection conn = getConnection();
+		var conn = getConnection();
 		try
 		{
 			if (conn != null)
 			{
-				Message response = conn.getInitiator().sendAndReceive(message);
+				var response = conn.getInitiator().sendAndReceive(message);
 				wrapper = new ScreenITResponseV251MessageWrapper(response);
 				LOG.info("Message verstuurd. Response was: " + wrapper.getAcknowledgmentCode());
 			}

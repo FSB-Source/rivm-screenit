@@ -23,9 +23,11 @@ package nl.rivm.screenit.batch.jobs.helpers;
 
 import java.lang.reflect.ParameterizedType;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
+import nl.rivm.screenit.util.functionalinterfaces.TriFunction;
 import nl.topicuszorg.hibernate.object.model.HibernateObject;
 
 import org.hibernate.Query;
@@ -40,13 +42,12 @@ public abstract class BaseSpecificationScrollableResultReader<T extends Hibernat
 
 	protected abstract Specification<T> createSpecification();
 
-	protected CriteriaQuery<R> createProjection(Root<T> r, CriteriaQuery<R> q)
+	protected CriteriaQuery<R> createProjection(Root<T> r, CriteriaQuery<R> q, CriteriaBuilder cb)
 	{
 		return q.select(r.get("id")).distinct(true);
 	}
 
-	@Override
-	protected ScrollableResults createScrollableResults(StatelessSession session)
+	protected ScrollableResults createScrollableResults(TriFunction<CriteriaQuery<R>, Root<T>, CriteriaBuilder, CriteriaQuery<R>> queryConsumer)
 	{
 		if (getMaxResults() == 0)
 		{
@@ -55,10 +56,11 @@ public abstract class BaseSpecificationScrollableResultReader<T extends Hibernat
 
 		var cb = getHibernateSession().getCriteriaBuilder();
 		var query = cb.createQuery(getResultClass());
-
 		var r = query.from(getEntityClass());
 
-		createProjection(r, query).where(createSpecification().toPredicate(r, query, cb));
+		createProjection(r, query, cb).where(createSpecification().toPredicate(r, query, cb));
+
+		query = queryConsumer.apply(query, r, cb);
 
 		var hquery = getHibernateSession().createQuery(query).unwrap(Query.class);
 
@@ -70,12 +72,18 @@ public abstract class BaseSpecificationScrollableResultReader<T extends Hibernat
 		return hquery.setFetchSize(fetchSize).scroll(ScrollMode.FORWARD_ONLY);
 	}
 
-	private Class<T> getEntityClass()
+	@Override
+	protected ScrollableResults createScrollableResults(StatelessSession session)
+	{
+		return createScrollableResults((query, r, cb) -> query);
+	}
+
+	protected Class<T> getEntityClass()
 	{
 		return (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
 	}
 
-	private Class<R> getResultClass()
+	protected Class<R> getResultClass()
 	{
 
 		return (Class<R>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[1];

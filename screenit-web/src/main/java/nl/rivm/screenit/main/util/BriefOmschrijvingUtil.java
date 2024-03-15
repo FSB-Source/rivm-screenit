@@ -23,7 +23,6 @@ package nl.rivm.screenit.main.util;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.function.UnaryOperator;
 
@@ -36,7 +35,6 @@ import nl.rivm.screenit.model.Brief;
 import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.util.BriefUtil;
-import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.util.functionalinterfaces.TriFunction;
 
 import org.apache.commons.lang.StringUtils;
@@ -45,7 +43,7 @@ import org.apache.wicket.model.IModel;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class BriefOmschrijvingUtil
 {
-	public static List<String> getBrievenOmschrijvingen(List<? extends ClientBrief> brieven, UnaryOperator<String> getString)
+	public static List<String> getBrievenOmschrijvingen(List<? extends ClientBrief> brieven)
 	{
 		List<String> brievenStrings = new ArrayList<>();
 		brieven.sort(new BriefCreatieDatumComparator());
@@ -53,7 +51,7 @@ public class BriefOmschrijvingUtil
 		for (var brief : brieven)
 		{
 			StringBuilder builder = new StringBuilder();
-			builder.append(getString.apply(EnumStringUtil.getPropertyString(brief.getBriefType())));
+			builder.append(brief.getBriefType().getWeergaveNaam());
 			builder.append("(");
 			builder.append(formatter.format(brief.getCreatieDatum()));
 			var herdrukBrief = BriefUtil.getHerdruk(brief);
@@ -82,23 +80,13 @@ public class BriefOmschrijvingUtil
 		omschrijving.append(" (");
 		omschrijving.append(getString.apply("label.formulier." + gebeurtenis.name().toLowerCase()));
 		omschrijving.append(": ");
-		omschrijving.append(getString.apply(EnumStringUtil.getPropertyString(brief.getBriefType())));
+		omschrijving.append(brief.getBriefType().getWeergaveNaam());
 		if (StringUtils.isNotBlank(brief.getTemplateNaam()))
 		{
 			omschrijving.append(", ");
 			omschrijving.append(brief.getTemplateNaam());
 		}
 		omschrijving.append(")");
-	}
-
-	public static Date dossierGebeurtenisDatum(Brief brief)
-	{
-		var mergedBrieven = BriefUtil.getMergedBrieven(brief);
-		if (mergedBrieven != null)
-		{
-			return mergedBrieven.getPrintDatum() != null ? mergedBrieven.getPrintDatum() : mergedBrieven.getCreatieDatum();
-		}
-		return brief.getCreatieDatum();
 	}
 
 	public static TypeGebeurtenis bepaalTypeGebeurtenis(Brief brief)
@@ -127,7 +115,7 @@ public class BriefOmschrijvingUtil
 		return BriefUtil.isGegenereerd(brief) && mergedBrieven == null;
 	}
 
-	public static String verwerkExtraOmschrijvingen(String[] extraOmschrijvingen, TriFunction<String, IModel, String, String> getString)
+	public static String verwerkExtraOmschrijvingen(String[] extraOmschrijvingen, TriFunction<String, IModel<?>, String, String> getString)
 	{
 		String extraOmschrijving = "";
 		if (extraOmschrijvingen != null)

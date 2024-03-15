@@ -25,21 +25,20 @@ import java.io.Serializable;
 
 import javax.jms.JMSException;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.activemq.command.ActiveMQObjectMessage;
 import org.apache.activemq.command.ActiveMQTextMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+@Slf4j
 public class ActiveMQHelper
 {
 	private static final ObjectMapper objectMapper = new ObjectMapper();
-
-	private static final Logger LOG = LoggerFactory.getLogger(ActiveMQHelper.class);
 
 	private ActiveMQHelper()
 	{
@@ -52,7 +51,7 @@ public class ActiveMQHelper
 			try
 			{
 				objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-				ObjectWriter writer = objectMapper.writer();
+				var writer = objectMapper.writer();
 				LOG.trace(object.getClass().getSimpleName() + ": " + writer.writeValueAsString(object));
 			}
 			catch (JsonProcessingException e)
@@ -60,7 +59,7 @@ public class ActiveMQHelper
 				LOG.error("Fout bij maken JSON voor ActiveMQObjectMessage bericht", e);
 			}
 		}
-		ActiveMQObjectMessage objectMessage = new ActiveMQObjectMessage();
+		var objectMessage = new ActiveMQObjectMessage();
 		objectMessage.setObject(object);
 		return objectMessage;
 	}
@@ -71,7 +70,7 @@ public class ActiveMQHelper
 		String text = null;
 		try
 		{
-			ActiveMQTextMessage textMessage = new ActiveMQTextMessage();
+			var textMessage = new ActiveMQTextMessage();
 			text = writer.writeValueAsString(object);
 			textMessage.setText(text);
 			return textMessage;

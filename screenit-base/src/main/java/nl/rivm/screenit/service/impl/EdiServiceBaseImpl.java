@@ -231,8 +231,7 @@ public abstract class EdiServiceBaseImpl
 		}
 		else if (MailVerzenden.UIT.equals(mailVerzendOptie))
 		{
-			LOG.warn("Mail versturen staat uit. To: " + outboundMessageData.getAddress() + " | Subject: " + outboundMessageData.getSubject() + " | Message: "
-				+ outboundMessageData.getData());
+			LOG.warn("Mail versturen staat uit.");
 		}
 		return mailVerzendOptie;
 	}

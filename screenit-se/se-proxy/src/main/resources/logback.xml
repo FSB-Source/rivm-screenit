@@ -42,7 +42,8 @@
                     <cleanHistoryOnStart>true</cleanHistoryOnStart>
                 </rollingPolicy>
                 <encoder name="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-                    <pattern>%d{yyyyMMdd HH:mm:ss.SSS} [%thread] %-10([A:%X{A}]) %-5level %logger{36} - %msg%n</pattern>
+                    <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} %-10([A:%X{A}]) - %msg%n
+                    </pattern>
                 </encoder>
             </appender>
         </then>
@@ -53,7 +54,7 @@
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder name="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>%d{yyyyMMdd HH:mm:ss.SSS} [%thread] %-10([A:%X{A}]) %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} %-10([A:%X{A}]) - %msg%n</pattern>
         </encoder>
     </appender>
 

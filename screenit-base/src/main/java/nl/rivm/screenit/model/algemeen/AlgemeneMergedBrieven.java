@@ -21,6 +21,7 @@ package nl.rivm.screenit.model.algemeen;
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Entity;
@@ -42,7 +43,7 @@ public class AlgemeneMergedBrieven extends MergedBrieven<AlgemeneBrief>
 
 	@OneToMany(mappedBy = "mergedBrieven", cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade(CascadeType.SAVE_UPDATE)
-	private List<AlgemeneBrief> brieven;
+	private List<AlgemeneBrief> brieven = new ArrayList<>();
 
 	@Override
 	public List<AlgemeneBrief> getBrieven()

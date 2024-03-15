@@ -24,10 +24,11 @@ package nl.rivm.screenit.service.impl;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.jms.Destination;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.ApplicationEnvironment;
 import nl.rivm.screenit.Constants;
@@ -56,8 +57,6 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.activemq.command.ActiveMQMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jms.core.JmsTemplate;
@@ -67,11 +66,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
+@Slf4j
 public class BerichtToBatchServiceImpl implements BerichtToBatchService
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(BerichtToBatchServiceImpl.class);
-
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
 
@@ -202,7 +199,7 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 			return;
 		}
 
-		MammaHL7v24OrmBerichtTriggerMetClientDto triggerDto = new MammaHL7v24OrmBerichtTriggerMetClientDto();
+		var triggerDto = new MammaHL7v24OrmBerichtTriggerMetClientDto();
 		triggerDto.setClientId(clientId);
 		triggerDto.setAccessionNumber(accessionNumber.toString());
 
@@ -228,13 +225,15 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 		LOG.debug("Sending client message to batch BK HL7 queue");
 	}
 
-	private boolean magBerichtenVerzenden(MammaHL7v24ORMBerichtStatus status, Long accessionNumber) {
+	private boolean magBerichtenVerzenden(MammaHL7v24ORMBerichtStatus status, Long accessionNumber)
+	{
 		var isKetenEnvironment = ApplicationEnvironment.KTN.getEnvNaam().equalsIgnoreCase(applicationEnvironment);
 		var isVerwijderBericht = status == MammaHL7v24ORMBerichtStatus.GOINGTODELETE || status == MammaHL7v24ORMBerichtStatus.DELETE;
 		return !(isKetenEnvironment && isVerwijderBericht && inPocSet(accessionNumber));
 	}
 
-	private boolean inPocSet(Long accessionNumber) {
+	private boolean inPocSet(Long accessionNumber)
+	{
 		var pocSetString = preferenceService.getString(PreferenceKey.INTERNAL_MAMMA_POC_CLIENTEN_SET.name());
 		var pocSetList = Arrays.asList(pocSetString.split(","));
 		return pocSetList.contains(accessionNumber.toString());
@@ -250,7 +249,7 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 	@Override
 	public void queueMammaUploadBeeldenHL7v24BerichtUitgaand(Long accessionNumber, Long clientId, MammaHL7v24ORMBerichtStatus status, Date onderzoeksDatum)
 	{
-		MammaHL7v24OrmBerichtTriggerMetClientDto triggerDto = new MammaHL7v24OrmBerichtTriggerMetClientDto();
+		var triggerDto = new MammaHL7v24OrmBerichtTriggerMetClientDto();
 		triggerDto.setClientId(clientId);
 		triggerDto.setAccessionNumber(accessionNumber.toString());
 		if (status == MammaHL7v24ORMBerichtStatus.SCHEDULED || status == MammaHL7v24ORMBerichtStatus.COMPLETED)
@@ -270,7 +269,7 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 	@Override
 	public void queueMammaKwaliteitsopnameHL7v24BerichtUitgaand(MammaKwaliteitsopnameDto kwaliteitsopname, MammaHL7v24ORMBerichtStatus status)
 	{
-		MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto triggerDto = new MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto();
+		var triggerDto = new MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto();
 		triggerDto.setType(kwaliteitsopname.getType());
 		triggerDto.setScreeningseenheidCode(kwaliteitsopname.getSeCode());
 		triggerDto.setReden(kwaliteitsopname.getReden());
@@ -285,7 +284,7 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 	private void queueHL7(MammaHL7v24ORMBerichtStatus status, MammaAbstractHL7v24OrmBerichtTriggerDto triggerDto, MammaHL7BerichtType berichtType)
 	{
 		triggerDto.setStatus(status);
-		MammaHL7v24Message queueItem = new MammaHL7v24Message();
+		var queueItem = new MammaHL7v24Message();
 		try
 		{
 			queueItem.setDtoJson(objectMapper.writeValueAsString(triggerDto));
@@ -311,8 +310,8 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 	{
 		try
 		{
-			MammaHL7v24Message queueItem = new MammaHL7v24Message();
-			MammaHL7v24AdtBerichtTriggerDto triggerDto = new MammaHL7v24AdtBerichtTriggerDto();
+			var queueItem = new MammaHL7v24Message();
+			var triggerDto = new MammaHL7v24AdtBerichtTriggerDto();
 			triggerDto.setClientId(client.getId());
 			triggerDto.setStatus(MammaHL7ADTBerichtType.PERSOONS_GEGEVENS_GEWIJZIGD);
 			queueItem.setDtoJson(objectMapper.writeValueAsString(triggerDto));
@@ -335,17 +334,16 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 	@Override
 	public void queueMammaBsnWijzigingenImsBericht(Client client, GbaMutatie mutatie)
 	{
-		LOG.info(mutatie.getId() + ": " + mutatie.getAanvullendeInformatie());
-		Matcher matcher = bsnGewijzigdMarkerPattern.matcher(mutatie.getAanvullendeInformatie());
+		var matcher = bsnGewijzigdMarkerPattern.matcher(mutatie.getAanvullendeInformatie());
 		if (matcher.find())
 		{
 			try
 			{
-				String oudBsn = matcher.group(2);
-				String nieuweBsn = matcher.group(3);
+				var oudBsn = matcher.group(2);
+				var nieuweBsn = matcher.group(3);
 
-				MammaHL7v24Message queueItem = new MammaHL7v24Message();
-				MammaHL7v24AdtBerichtTriggerDto triggerDto = new MammaHL7v24AdtBerichtTriggerDto();
+				var queueItem = new MammaHL7v24Message();
+				var triggerDto = new MammaHL7v24AdtBerichtTriggerDto();
 				triggerDto.setOudBsn(oudBsn);
 				triggerDto.setNieuweBsn(nieuweBsn);
 				triggerDto.setStatus(MammaHL7ADTBerichtType.BSN_GEWIJZIGD);
@@ -355,7 +353,7 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 				queueItem.setCreateTime(currentDateSupplier.getDate());
 				queueItem.setHl7BerichtType(MammaHL7BerichtType.IMS_ADT);
 				LOG.debug("Sending message to batch BK HL7 queue");
-				String mammaBsnMarkerMetBsnNummers = String.format("|%s:%s,%s|", Constants.MAMMA_IMS_CLIENT_BSN_GEWIJZIGD_MARKER, oudBsn, nieuweBsn);
+				var mammaBsnMarkerMetBsnNummers = String.format("|%s:%s,%s|", Constants.MAMMA_IMS_CLIENT_BSN_GEWIJZIGD_MARKER, oudBsn, nieuweBsn);
 				mutatie.setAanvullendeInformatie(mutatie.getAanvullendeInformatie().replace(mammaBsnMarkerMetBsnNummers, ""));
 				hibernateService.saveOrUpdateAll(queueItem, mutatie);
 			}

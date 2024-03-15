@@ -104,6 +104,7 @@ public class CervixBepaalHpvBeoordelingServiceImpl implements CervixBepaalHpvBeo
 				var negatieven = geefAantalResultaten(resultValues, CervixHpvBeoordelingWaarde.NEGATIEF);
 				var ongeldige = geefAantalResultaten(resultValues, CervixHpvBeoordelingWaarde.ONGELDIG);
 				var alleenHpvOtherPositiefRestOngeldig = alleenHpvOtherPositiefRestOngeldig(resultValues);
+				var hpv16EnOf18Positief = hpv16EnOf18Positief(resultValues);
 
 				if ((positieven + negatieven + ongeldige) == 3)
 				{
@@ -111,15 +112,7 @@ public class CervixBepaalHpvBeoordelingServiceImpl implements CervixBepaalHpvBeo
 					{
 						beoordeling = CervixHpvBeoordelingWaarde.NEGATIEF;
 					}
-					else if (positieven == 1 && (negatieven == 2 || ongeldige == 2) && !alleenHpvOtherPositiefRestOngeldig)
-					{
-						beoordeling = CervixHpvBeoordelingWaarde.POSITIEF;
-					}
-					else if (positieven == 2 && (negatieven == 1 || ongeldige == 1))
-					{
-						beoordeling = CervixHpvBeoordelingWaarde.POSITIEF;
-					}
-					else if (positieven == 3)
+					else if (hpv16EnOf18Positief || positieven == 1 && negatieven == 2 || positieven == 2 && (negatieven == 1 || ongeldige == 1) || positieven == 3)
 					{
 						beoordeling = CervixHpvBeoordelingWaarde.POSITIEF;
 					}
@@ -135,6 +128,12 @@ public class CervixBepaalHpvBeoordelingServiceImpl implements CervixBepaalHpvBeo
 			throw new IllegalStateException();
 		}
 		return beoordeling;
+	}
+
+	private boolean hpv16EnOf18Positief(Set<CervixHpvResultValue> resultValues)
+	{
+		return resultValues.stream().anyMatch(waarde -> waarde.getResultaatType() == CervixHpvBeoordelingWaarde.POSITIEF &&
+			List.of(CervixHpvResultCode.HPV18, CervixHpvResultCode.HPV16).contains(waarde.getResultCode()));
 	}
 
 	private boolean alleenHpvOtherPositiefRestOngeldig(Set<CervixHpvResultValue> resultValues)

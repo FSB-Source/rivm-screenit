@@ -65,12 +65,12 @@ public class DistributedLockServiceImpl implements DistributedLockService
 	public void lockAndWait(String locknaam, InstellingGebruiker gebruiker)
 	{
 		DistributedLockKey lockKey = new DistributedLockKey(createLocknaamVoorOmgeving(locknaam), gebruiker);
-		LOG.debug("Try to lock: '" + lockKey + "'");
+		LOG.debug("Try to lock: '{}'", locknaam);
 		StopWatch stopWatch = startNewStopwatch();
 
 		lock(lockKey);
 
-		LOG.debug("Lock on '" + lockKey + "' acquired in " + eindtijdStopwatch(stopWatch) + " ms");
+		LOG.debug("Lock on '{}' acquired in {}ms", locknaam, eindtijdStopwatch(stopWatch));
 	}
 
 	@Override
@@ -82,7 +82,7 @@ public class DistributedLockServiceImpl implements DistributedLockService
 
 		try
 		{
-			LOG.debug("Try to lock: '" + lockKey + "'");
+			LOG.debug("Try to lock: '{}'", locknaam);
 			var lockVerkregen = lock.acquire(3, TimeUnit.MILLISECONDS);
 
 			if (lockVerkregen)
@@ -90,13 +90,13 @@ public class DistributedLockServiceImpl implements DistributedLockService
 				locks.put(lockKey, lock);
 			}
 
-			LOG.debug(String.format("Lock met naam %s is %s verkregen", lockKey, lockVerkregen ? "wel" : "niet"));
+			LOG.debug("Lock met naam {} is {} verkregen", lockKey.getLocknaam(), lockVerkregen ? "wel" : "niet");
 
 			return lockVerkregen;
 		}
 		catch (Exception e)
 		{
-			throw new RuntimeException("Onbekende fout bij locken van " + lockKey, e);
+			throw new RuntimeException("Onbekende fout bij locken van " + locknaam, e);
 		}
 	}
 
@@ -112,7 +112,7 @@ public class DistributedLockServiceImpl implements DistributedLockService
 		}
 		catch (Exception e)
 		{
-			throw new RuntimeException("Onbekende fout bij locken van " + lockKey, e);
+			throw new RuntimeException("Onbekende fout bij locken van " + lockKey.getLocknaam(), e);
 		}
 	}
 
@@ -141,7 +141,7 @@ public class DistributedLockServiceImpl implements DistributedLockService
 				{
 					StopWatch stopWatch = startNewStopwatch();
 					lock.release();
-					LOG.debug("Unlocked '" + lockKey.toString() + "' in " + eindtijdStopwatch(stopWatch) + " ms");
+					LOG.debug("Unlocked '" + lockKey.getLocknaam() + "' in " + eindtijdStopwatch(stopWatch) + " ms");
 				}
 			}
 			catch (Exception e)

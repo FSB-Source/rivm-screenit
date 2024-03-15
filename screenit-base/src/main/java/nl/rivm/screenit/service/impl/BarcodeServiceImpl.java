@@ -67,20 +67,13 @@ public class BarcodeServiceImpl implements BarcodeService
 	private ByteArrayInputStream maakBarcodeInputStream(String message, Double barcodeHeight, AbstractBarcodeBean barcodeBean, int resolutie) throws IOException
 	{
 
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		var outputStream = new ByteArrayOutputStream();
 		if (StringUtils.isNotBlank(message))
 		{
-			BitmapCanvasProvider canvas = new BitmapCanvasProvider(outputStream, "image/x-png", resolutie, BufferedImage.TYPE_BYTE_BINARY, false, 0);
+			var canvas = new BitmapCanvasProvider(outputStream, "image/x-png", resolutie, BufferedImage.TYPE_BYTE_BINARY, false, 0);
 			barcodeBean = setupBarcodeBean(barcodeHeight, barcodeBean);
-			try
-			{
-				barcodeBean.generateBarcode(canvas, message);
-				canvas.finish();
-			}
-			catch (IllegalArgumentException iae)
-			{
-				LOG.error(iae.getMessage(), iae);
-			}
+			barcodeBean.generateBarcode(canvas, message);
+			canvas.finish();
 		}
 		return new ByteArrayInputStream(outputStream.toByteArray());
 	}

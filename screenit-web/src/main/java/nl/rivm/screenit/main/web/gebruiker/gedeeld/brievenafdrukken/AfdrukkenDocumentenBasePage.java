@@ -36,7 +36,6 @@ import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.modal.IDialog;
 import nl.rivm.screenit.main.web.component.table.ActiefPropertyColumn;
 import nl.rivm.screenit.main.web.component.table.AjaxImageCellPanel;
-import nl.rivm.screenit.main.web.component.table.BriefTypePropertyColumn;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.component.table.booleanfilter.BooleanFilterPropertyColumn;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerBasePage;
@@ -182,7 +181,7 @@ public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> e
 
 		List<IColumn<MB, String>> columns = new ArrayList<>();
 		columns.add(new PropertyColumn<>(Model.of("Naam document"), "mergedBrieven", "mergedBrieven.naam"));
-		columns.add(new BriefTypePropertyColumn<>(Model.of("Type"), "briefType", "briefType"));
+		columns.add(new PropertyColumn<>(Model.of("Type"), "briefType", "briefType.weergaveNaam"));
 		if (!AlgemeneMergedBrieven.class.equals(mergedBrievenClass))
 		{
 			columns.add(new PropertyColumn<>(Model.of("Screeningsorganisatie"), "screeningOrganisatie", "screeningOrganisatie"));
