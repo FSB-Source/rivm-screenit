@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.project;
 
 /*-
@@ -28,6 +27,9 @@ import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;
@@ -40,50 +42,18 @@ import org.hibernate.envers.Audited;
 @Audited
 @Table(schema = "algemeen")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
+@Getter
+@Setter
 public class ProjectClientAttribuut extends AbstractHibernateObject
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@Cascade({ CascadeType.SAVE_UPDATE })
-	@ManyToOne(optional = false, fetch = FetchType.LAZY)
+	@ManyToOne(optional = false, fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	private ProjectAttribuut attribuut;
 
 	@Column(nullable = false)
 	private String value;
 
 	@Cascade({ CascadeType.SAVE_UPDATE })
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	private ProjectClient projectClient;
-
-	public ProjectClient getProjectClient()
-	{
-		return projectClient;
-	}
-
-	public void setProjectClient(ProjectClient projectClient)
-	{
-		this.projectClient = projectClient;
-	}
-
-	public ProjectAttribuut getAttribuut()
-	{
-		return attribuut;
-	}
-
-	public void setAttribute(ProjectAttribuut attribuut)
-	{
-		this.attribuut = attribuut;
-	}
-
-	public String getValue()
-	{
-		return value;
-	}
-
-	public void setValue(String value)
-	{
-		this.value = value;
-	}
-
 }

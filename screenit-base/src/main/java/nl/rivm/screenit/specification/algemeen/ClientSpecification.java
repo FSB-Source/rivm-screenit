@@ -37,4 +37,15 @@ public class ClientSpecification
 		return (cb, r) ->
 			cb.equal(r.get(Client_.gbaStatus), GbaStatus.INDICATIE_AANWEZIG);
 	}
+
+	public static PathAwarePredicate<Client> heeftActieveClientPredicate()
+	{
+		return (cb, r) ->
+		{
+			var heeftGeenOverledenDatum = PersoonSpecification.heeftGeenOverledenDatumPredicate().withPath(cb, r.get(Client_.persoon));
+			var heeftGeenVertrokkenUitNederlandDatum = PersoonSpecification.heeftGeenVertrokkenUitNederlandDatumPredicate().withPath(cb, r.get(Client_.persoon));
+			var heeftIndicatie = heeftIndicatie().withPath(cb, r);
+			return cb.and(heeftGeenOverledenDatum, heeftGeenVertrokkenUitNederlandDatum, heeftIndicatie);
+		};
+	}
 }

@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import nl.rivm.screenit.dao.colon.AfspraakDefinitieDao;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.AbstractClientContactActiePanel;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActie;
@@ -36,11 +35,11 @@ import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.ColoscopieCentrumWrapper;
 import nl.rivm.screenit.model.colon.Kamer;
-import nl.rivm.screenit.model.colon.planning.AfspraakDefinitie;
 import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.OrganisatieZoekService;
-import nl.rivm.screenit.service.colon.AfspraakService;
+import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
+import nl.rivm.screenit.service.colon.ColonAfspraakDefinitieService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -56,16 +55,16 @@ public class ColonClientContactNieuweAfspraakAanmakenPanel extends AbstractClien
 	private OrganisatieZoekService organisatieZoekService;
 
 	@SpringBean
-	private AfspraakDefinitieDao afspraakDefinitieDao;
-
-	@SpringBean
 	private HibernateService hibernateService;
 
 	@SpringBean
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@SpringBean
-	AfspraakService afspraakService;
+	ColonBaseAfspraakService afspraakService;
+
+	@SpringBean
+	private ColonAfspraakDefinitieService afspraakDefinitieService;
 
 	public ColonClientContactNieuweAfspraakAanmakenPanel(String id, IModel<ClientContactActie> model, IModel<Client> client, List<Object> extraPanelParams)
 	{
@@ -97,13 +96,7 @@ public class ColonClientContactNieuweAfspraakAanmakenPanel extends AbstractClien
 						break;
 					}
 				}
-				List<AfspraakDefinitie> afspraakDefinities = afspraakDefinitieDao.getActieveActieDefinities(intakeLocatie);
-
-				if (afspraakDefinities.size() != 1)
-				{
-					throw new IllegalStateException("No or too many afspraakDefinities in " + intakeLocatie.getNaam());
-				}
-				AfspraakDefinitie afspraakDefinitie = afspraakDefinities.get(0);
+				var afspraakDefinitie = afspraakDefinitieService.getActiefAfspraakDefinitie(intakeLocatie);
 
 				afspraak.setStartTime(currentDateSupplier.getDate());
 				BigDecimal afstand = intakeLocatieWrapper.getAfstand();

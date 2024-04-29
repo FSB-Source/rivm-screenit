@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.service.cervix;
 
 /*-
@@ -29,7 +28,5 @@ import nl.rivm.screenit.model.Gemeente;
 
 public interface CervixBMHKLaboratoriumService
 {
-
-	void saveOrUpdateLaboratorium(BMHKLaboratorium bmhkLaboratorium, List<Gemeente> gemeentes);
-
+	void saveOrUpdateLaboratorium(BMHKLaboratorium bmhkLaboratorium, List<Gemeente> mogelijkeGemeentes);
 }

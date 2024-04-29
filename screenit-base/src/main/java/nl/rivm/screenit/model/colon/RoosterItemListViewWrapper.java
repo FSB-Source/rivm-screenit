@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.colon;
 
 /*-
@@ -26,19 +25,21 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.Date;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class RoosterItemListViewWrapper implements Serializable
 {
 
-	private static final long serialVersionUID = 1L;
+	private Date startDatum;
 
-	private Date startTime;
-
-	private Date endTime;
+	private Date eindDatum;
 
 	private String kamer;
 
@@ -48,13 +49,12 @@ public class RoosterItemListViewWrapper implements Serializable
 
 	private Long roosterItemId;
 
+	private Long kamerId;
+
 	public void setRoosterItemId(BigInteger roosterItemId)
 	{
 		this.roosterItemId = roosterItemId.longValue();
 	}
-
-	private Long kamerId;
-
 	public void setKamerId(BigInteger kamerId)
 	{
 		this.kamerId = kamerId.longValue();

@@ -31,4 +31,6 @@ import org.mapstruct.Mapper;
 public interface ColonFeestdagMapper
 {
 	ColonFeestdag colonFeestdagDtoToColonFeestdag(ColonFeestdagDto colonFeestdagDto);
+
+	ColonFeestdagDto colonFeestdagToColonFeestdagDto(ColonFeestdag colonFeestdag);
 }

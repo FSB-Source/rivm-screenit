@@ -40,7 +40,7 @@ import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamer;
 import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamerFilter;
 import nl.rivm.screenit.service.ClientContactService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.colon.AfspraakService;
+import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 import nl.rivm.screenit.service.colon.PlanningService;
 import nl.rivm.screenit.util.ExceptionConverter;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -71,9 +71,9 @@ public class ColonAfspraakController extends AbstractController
 
 	private final ClientContactService clientContactService;
 
-	private final ColonAfspraakService colonAfspraakService;
+	private final ColonAfspraakService afspraakService;
 
-	private final AfspraakService afspraakService;
+	private final ColonBaseAfspraakService baseAfspraakService;
 
 	private final PlanningService planningService;
 
@@ -141,7 +141,7 @@ public class ColonAfspraakController extends AbstractController
 
 				for (VrijSlotZonderKamer vrijSlot : filterResults)
 				{
-					resultVrijeSloten.add(colonAfspraakService.vanVrijSlotNaarColonVrijSlot(vrijSlot));
+					resultVrijeSloten.add(afspraakService.vanVrijSlotNaarColonVrijSlot(vrijSlot));
 				}
 				return ResponseEntity.ok(resultVrijeSloten);
 			}
@@ -157,7 +157,7 @@ public class ColonAfspraakController extends AbstractController
 		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN)
 			|| clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.COLON_NIEUWE_AFSPRAAK_AANMAKEN))
 		{
-			var huidigeIntakeAfspraak = colonAfspraakService.getHuidigeIntakeAfspraak(client);
+			var huidigeIntakeAfspraak = afspraakService.getHuidigeIntakeAfspraak(client);
 			return ResponseEntity.ok(new ColonIntakeAfspraakDto(huidigeIntakeAfspraak));
 		}
 		return ResponseEntity.ok().build();
@@ -170,7 +170,7 @@ public class ColonAfspraakController extends AbstractController
 		Client client = getClient(authentication, hibernateService);
 		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN))
 		{
-			colonAfspraakService.intakeAfspraakAfzeggen(client);
+			afspraakService.intakeAfspraakAfzeggen(client);
 			return ResponseEntity.ok().build();
 		}
 		return createForbiddenResponse();
@@ -208,7 +208,7 @@ public class ColonAfspraakController extends AbstractController
 		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN)
 			|| clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.COLON_NIEUWE_AFSPRAAK_AANMAKEN))
 		{
-			ColonIntakeAfspraak vorigeAfspraak = colonAfspraakService.getHuidigeIntakeAfspraak(client);
+			ColonIntakeAfspraak vorigeAfspraak = afspraakService.getHuidigeIntakeAfspraak(client);
 
 			if (vorigeAfspraak == null)
 			{
@@ -218,16 +218,16 @@ public class ColonAfspraakController extends AbstractController
 
 			try
 			{
-				ColonIntakeAfspraak nieuweIntakeAfspraak = colonAfspraakService.initNieuweAfspraak(vorigeAfspraak, verplaatsAfspraak);
+				ColonIntakeAfspraak nieuweIntakeAfspraak = afspraakService.initNieuweAfspraak(vorigeAfspraak, verplaatsAfspraak);
 				if (nieuweIntakeAfspraak != null)
 				{
 					if (ClientContactActieType.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN.equals(contactActieType))
 					{
-						afspraakService.verplaatsAfspraak(nieuweIntakeAfspraak, client, COLON_INTAKE_GEWIJZIGD, false, true, false);
+						baseAfspraakService.verplaatsAfspraak(nieuweIntakeAfspraak, client, COLON_INTAKE_GEWIJZIGD, false, true, false);
 					}
 					if (ClientContactActieType.COLON_NIEUWE_AFSPRAAK_AANMAKEN.equals(contactActieType))
 					{
-						afspraakService.maakNieuweAfspraak(client, nieuweIntakeAfspraak, false, true, null, client);
+						baseAfspraakService.maakNieuweAfspraak(client, nieuweIntakeAfspraak, false, true, null, client);
 					}
 				}
 				return ResponseEntity.ok().build();

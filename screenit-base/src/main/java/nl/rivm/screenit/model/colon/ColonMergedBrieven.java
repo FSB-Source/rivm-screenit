@@ -28,6 +28,9 @@ import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.MergedBrieven;
 
 import org.hibernate.annotations.Cascade;
@@ -37,23 +40,11 @@ import org.hibernate.envers.Audited;
 @Entity
 @Table(schema = "colon")
 @Audited
+@Getter
+@Setter
 public class ColonMergedBrieven extends MergedBrieven<ColonBrief>
 {
-	private static final long serialVersionUID = 1L;
-
-	@OneToMany(mappedBy = "mergedBrieven")
+	@OneToMany(mappedBy = "mergedBrieven", cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade(CascadeType.SAVE_UPDATE)
 	private List<ColonBrief> brieven = new ArrayList<>();
-
-	@Override
-	public List<ColonBrief> getBrieven()
-	{
-		return brieven;
-	}
-
-	@Override
-	public void setBrieven(List<ColonBrief> brieven)
-	{
-		this.brieven = brieven;
-	}
 }

@@ -67,7 +67,7 @@ public class BlokkadeListViewPage extends PlanningBasePage
 
 		RoosterListViewFilter filter = new RoosterListViewFilter();
 		filter.setStartDatum(currentDateSupplier.getDate());
-		filter.setEndDatum(currentDateSupplier.getDate());
+		filter.setEindDatum(currentDateSupplier.getDate());
 		filter.setStatus(null);
 
 		final IModel<RoosterListViewFilter> zoekModel = new Model<RoosterListViewFilter>(filter);
@@ -81,7 +81,7 @@ public class BlokkadeListViewPage extends PlanningBasePage
 		FormComponent<Date> startDatum = ComponentHelper.addTextField(form, "startDatum", false, 10, Date.class, false);
 		startDatum.setType(Date.class);
 
-		FormComponent<Date> eindDatum = ComponentHelper.addTextField(form, "endDatum", false, 10, Date.class, false);
+		FormComponent<Date> eindDatum = ComponentHelper.addTextField(form, "eindDatum", false, 10, Date.class, false);
 		eindDatum.setType(Date.class);
 
 		startDatum.add(new AjaxFormComponentUpdatingBehavior("change")

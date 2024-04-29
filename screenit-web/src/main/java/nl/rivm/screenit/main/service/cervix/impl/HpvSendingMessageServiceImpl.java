@@ -21,13 +21,10 @@ package nl.rivm.screenit.main.service.cervix.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
 
 import nl.rivm.screenit.main.service.cervix.HpvSendingMessageService;
 import nl.rivm.screenit.model.berichten.ScreenITResponseV251MessageWrapper;
-import nl.rivm.screenit.model.cervix.berichten.CervixHpvBerichtWrapper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,13 +38,11 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.app.Connection;
 import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.v251.message.OUL_R22;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
 public class HpvSendingMessageServiceImpl implements HpvSendingMessageService
 {
-
 	private static final Logger LOG = LoggerFactory.getLogger(HpvSendingMessageServiceImpl.class);
 
 	private HapiContext context = new DefaultHapiContext();
@@ -59,39 +54,7 @@ public class HpvSendingMessageServiceImpl implements HpvSendingMessageService
 	private String hpvHost;
 
 	@Override
-	public Map<String, String> verstuurHpvBerichten(List<Message> messages)
-	{
-		Map<String, String> responseMap = new HashMap<>();
-		var conn = getConnection();
-		try
-		{
-			if (conn != null)
-			{
-				for (Message message : messages)
-				{
-					var wrapper = new CervixHpvBerichtWrapper((OUL_R22) message);
-					var messageId = wrapper.getMessageId();
-					var response = conn.getInitiator().sendAndReceive(message);
-					var responseMessageWrapper = new ScreenITResponseV251MessageWrapper(response);
-					var mapWaarde = responseMessageWrapper.getAcknowledgmentCodeString() + responseMessageWrapper.getMelding();
-					responseMap.put(messageId, mapWaarde);
-				}
-			}
-		}
-		catch (Exception e)
-		{
-			LOG.error("Er is mis gegaan met het versturen van de berichten", e);
-			return null;
-		}
-		finally
-		{
-			closingConnection(conn);
-		}
-		return responseMap;
-	}
-
-	@Override
-	public ScreenITResponseV251MessageWrapper verstuurHpvBericht(Message message)
+	public ScreenITResponseV251MessageWrapper verstuurHpvBericht(Message message) throws IOException
 	{
 		ScreenITResponseV251MessageWrapper wrapper = null;
 		var conn = getConnection();
@@ -130,7 +93,7 @@ public class HpvSendingMessageServiceImpl implements HpvSendingMessageService
 		return conn;
 	}
 
-	private boolean closingConnection(Connection conn)
+	private boolean closingConnection(Connection conn) throws IOException
 	{
 		if (conn != null && conn.isOpen())
 		{

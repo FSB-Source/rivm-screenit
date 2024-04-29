@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.service.cervix.impl;
 
 /*-
@@ -24,31 +23,39 @@ package nl.rivm.screenit.service.cervix.impl;
 
 import java.util.List;
 
-import nl.rivm.screenit.dao.cervix.CervixBMHKLaboratoriumDao;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.Gemeente;
+import nl.rivm.screenit.repository.algemeen.GemeenteRepository;
+import nl.rivm.screenit.repository.cervix.BmhkLaboratoriumRepository;
 import nl.rivm.screenit.service.cervix.CervixBMHKLaboratoriumService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
 public class CervixBMHKLaboratoriumServiceImpl implements CervixBMHKLaboratoriumService
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(CervixBMHKLaboratoriumServiceImpl.class);
+	@Autowired
+	private GemeenteRepository gemeenteRepository;
 
 	@Autowired
-	private CervixBMHKLaboratoriumDao cervixBMHKLaboratoriumDao;
+	private BmhkLaboratoriumRepository bmhkLaboratoriumRepository;
 
 	@Override
-	public void saveOrUpdateLaboratorium(BMHKLaboratorium bmhkLaboratorium, List<Gemeente> gemeentes)
+	@Transactional
+	public void saveOrUpdateLaboratorium(BMHKLaboratorium laboratorium, List<Gemeente> mogelijkeGemeentes)
 	{
-		cervixBMHKLaboratoriumDao.saveOrUpdateLaboratorium(bmhkLaboratorium, gemeentes);
+		List<Gemeente> gekoppeldeGemeentes = laboratorium.getGemeentes();
+		gekoppeldeGemeentes.forEach(gemeente -> gemeente.setBmhkLaboratorium(laboratorium));
+		gemeenteRepository.saveAll(gekoppeldeGemeentes);
+
+		mogelijkeGemeentes.stream()
+			.filter(gemeente -> !gekoppeldeGemeentes.contains(gemeente) && laboratorium.equals(gemeente.getBmhkLaboratorium()))
+			.forEach(gemeente -> gemeente.setBmhkLaboratorium(null));
+		gemeenteRepository.saveAll(mogelijkeGemeentes);
+
+		bmhkLaboratoriumRepository.save(laboratorium);
 	}
 }

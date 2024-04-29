@@ -53,10 +53,8 @@ public abstract class AngularBasePage extends GebruikerBasePage
 
 	private final List<String> scripts = List.of(
 		"runtime.js",
-		"styles.js",
 		"polyfills.js",
-		"main.js",
-		"vendor.js"
+		"main.js"
 	);
 
 	private final List<String> styles = List.of(
@@ -121,6 +119,7 @@ public abstract class AngularBasePage extends GebruikerBasePage
 
 					tag.getAttributes().put(JavaScriptUtils.ATTR_CSP_NONCE, WebApplication.get().getCspSettings().getNonce(RequestCycle.get()));
 					tag.getAttributes().put(JavaScriptUtils.ATTR_SCRIPT_SRC, medewerkerPortaalResourceUrl + script + "?version=" + ScreenitApplication.get().getVersionString());
+					tag.getAttributes().put(JavaScriptUtils.ATTR_TYPE, "module");
 				}
 			};
 			scriptEl.setOutputMarkupId(true);

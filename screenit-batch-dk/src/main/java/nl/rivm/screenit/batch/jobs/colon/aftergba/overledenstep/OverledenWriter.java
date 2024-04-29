@@ -26,7 +26,7 @@ import lombok.AllArgsConstructor;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
-import nl.rivm.screenit.service.colon.AfspraakService;
+import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 
 import org.springframework.stereotype.Component;
 
@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component;
 public class OverledenWriter extends BaseWriter<ColonIntakeAfspraak>
 {
 
-	private final AfspraakService afspraakService;
+	private final ColonBaseAfspraakService afspraakService;
 
 	@Override
 	public void write(ColonIntakeAfspraak afspraak) throws Exception

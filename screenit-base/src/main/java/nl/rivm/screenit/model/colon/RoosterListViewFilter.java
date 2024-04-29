@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.colon;
 
 /*-
@@ -23,67 +22,43 @@ package nl.rivm.screenit.model.colon;
  */
 
 import java.io.Serializable;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class RoosterListViewFilter implements Serializable, Cloneable
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private RoosterItemStatus status;
 
 	private Date startDatum;
 
-	private Date endDatum;
+	private Date eindDatum;
+
+	private LocalTime startTijd;
+
+	private LocalTime eindTijd;
+
+	private List<Integer> dagen = new ArrayList<>();
+
+	private Long kamerId;
 
 	private boolean rekeningHoudenMetCapaciteitMeeBepaald = true;
 
-	public void resetFilter()
+	public List<Integer> getSqlDagen()
 	{
-		setStatus(null);
-		startDatum = null;
-		endDatum = null;
-		rekeningHoudenMetCapaciteitMeeBepaald = true;
-	}
-
-	public Date getStartDatum()
-	{
-		return startDatum;
-	}
-
-	public void setStartDatum(Date startDatum)
-	{
-		this.startDatum = startDatum;
-	}
-
-	public Date getEndDatum()
-	{
-		return endDatum;
-	}
-
-	public void setEndDatum(Date endDatum)
-	{
-		this.endDatum = endDatum;
-	}
-
-	public RoosterItemStatus getStatus()
-	{
-		return status;
-	}
-
-	public void setStatus(RoosterItemStatus status)
-	{
-		this.status = status;
-	}
-
-	public boolean getRekeningHoudenMetCapaciteitMeeBepaald()
-	{
-		return rekeningHoudenMetCapaciteitMeeBepaald;
-	}
-
-	public void setRekeningHoudenMetCapaciteitMeeBepaald(boolean rekeningHoudenMetCapaciteitMeeBepaald)
-	{
-		this.rekeningHoudenMetCapaciteitMeeBepaald = rekeningHoudenMetCapaciteitMeeBepaald;
+		var clone = new ArrayList<>(dagen);
+		var index = clone.indexOf(7);
+		if (index != -1)
+		{
+			clone.set(index, 0);
+		}
+		return clone;
 	}
 
 	@Override
@@ -95,7 +70,7 @@ public class RoosterListViewFilter implements Serializable, Cloneable
 		}
 		catch (CloneNotSupportedException e)
 		{
-			return null;
+			throw new IllegalStateException(e);
 		}
 	}
 }

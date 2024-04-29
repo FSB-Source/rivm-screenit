@@ -25,14 +25,17 @@ import java.io.IOException;
 
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.dao.cervix.CervixBMHKLaboratoriumDao;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.cervix.berichten.CervixHpvBerichtWrapper;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
+import nl.rivm.screenit.repository.cervix.BmhkLaboratoriumRepository;
+import nl.rivm.screenit.repository.cervix.CervixHpvBerichtRepository;
 import nl.rivm.screenit.service.cervix.CervixFactory;
+import nl.rivm.screenit.specification.cervix.CervixBMHKLaboratoriumSpecification;
+import nl.rivm.screenit.specification.cervix.CervixHpvBerichtSpecification;
 import nl.rivm.screenit.wsb.service.BaseHL7v2Service;
 import nl.rivm.screenit.wsb.service.cervix.HpvHL7v251Service;
 
@@ -51,7 +54,10 @@ import ca.uhn.hl7v2.model.v251.message.OUL_R22;
 public class HpvHL7v251ServiceImpl extends BaseHL7v2Service<OUL_R22> implements HpvHL7v251Service
 {
 	@Autowired
-	private CervixBMHKLaboratoriumDao bmhkLaboratoriumDao;
+	private BmhkLaboratoriumRepository bmhkLaboratoriumRepository;
+
+	@Autowired
+	private CervixHpvBerichtRepository hpvBerichtRepository;
 
 	@Autowired
 	private CervixFactory factory;
@@ -128,7 +134,7 @@ public class HpvHL7v251ServiceImpl extends BaseHL7v2Service<OUL_R22> implements 
 	{
 		var laboratorium = getBmhkLaboratorium(berichtWrapper);
 
-		if (bmhkLaboratoriumDao.isHpvBerichtAlOntvangen(berichtWrapper.getMessageId()))
+		if (hpvBerichtRepository.exists(CervixHpvBerichtSpecification.heeftMessageId(berichtWrapper.getMessageId())))
 		{
 			LOG.warn("Bericht al eerder binnengekomen voor lab: {}", laboratorium.getNaam());
 			var melding = "Bericht (messageID: " + berichtWrapper.getMessageId() + ") al eerder binnengekomen voor lab: " + laboratorium.getNaam();
@@ -144,7 +150,8 @@ public class HpvHL7v251ServiceImpl extends BaseHL7v2Service<OUL_R22> implements 
 	private BMHKLaboratorium getBmhkLaboratorium(CervixHpvBerichtWrapper message) throws HL7Exception
 	{
 		var instrumentId = message.getInstrumentId();
-		var laboratorium = bmhkLaboratoriumDao.getBmhkLaboratoriumfromZInstrumentNames(instrumentId);
+		var laboratorium = bmhkLaboratoriumRepository.findOne(CervixBMHKLaboratoriumSpecification.heeftZInstrumentNames(instrumentId))
+			.orElse(null);
 		if (laboratorium != null)
 		{
 			return laboratorium;

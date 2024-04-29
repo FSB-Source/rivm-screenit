@@ -37,6 +37,9 @@ import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.RoosterItemListViewWrapper;
 import nl.rivm.screenit.model.colon.RoosterItemStatus;
 import nl.rivm.screenit.model.colon.RoosterListViewFilter;
+import nl.rivm.screenit.model.colon.dto.ColonTijdslotDto;
+import nl.rivm.screenit.model.colon.enums.ColonTijdSlotType;
+import nl.rivm.screenit.model.colon.dto.ColonHerhalingDto;
 import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
 import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
@@ -57,6 +60,8 @@ public interface RoosterService
 	void toevoegenHerhaling(AbstractAppointment appointment);
 
 	List<RoosterItemListViewWrapper> getAlleRoosterBlokkenInPeriode(String sortProperty, boolean asc, RoosterListViewFilter filter, ColoscopieCentrum intakeLocatie);
+
+	List<ColonTijdslotDto> searchTijdslots(RoosterListViewFilter filter, long intakelocatieId, ColonTijdSlotType typeTijdslot);
 
 	List<RoosterItemListViewWrapper> getRoosterBlokken(String sortProperty, boolean asc, long first, long count, RoosterListViewFilter filter, ColoscopieCentrum intakeLocatie);
 
@@ -86,5 +91,9 @@ public interface RoosterService
 
 	List<RoosterItem> splitAfspraakslot(RoosterItem unsavedObject, Integer aantalBlokken, ColoscopieCentrum intakelocatie);
 
-	List<RoosterItem> getAfspraakslotsInRange(List<Range<Date>> ranges, RoosterItem afspraakslot);
+	List<RoosterItem> getAfspraakslotsInRangesEnKamer(List<Range<Date>> ranges, RoosterItem afspraakslot);
+
+	List<RoosterItem> getAfspraakslotsInRange(Range<Date> range);
+
+	<S extends AbstractAppointment> List<S> maakHerhalingTijdslotsAan(S tijdslot, ColonHerhalingDto herhalingDto);
 }

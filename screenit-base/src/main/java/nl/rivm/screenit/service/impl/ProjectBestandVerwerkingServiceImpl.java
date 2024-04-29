@@ -235,7 +235,7 @@ public class ProjectBestandVerwerkingServiceImpl implements ProjectBestandVerwer
 			{
 				attribuutVanClient = new ProjectClientAttribuut();
 				attribuutVanClient.setProjectClient(projectClient);
-				attribuutVanClient.setAttribute(attribuut.getKey());
+				attribuutVanClient.setAttribuut(attribuut.getKey());
 				projectClient.getAttributen().add(attribuutVanClient);
 			}
 			attribuutVanClient.setValue(csvWaarde);

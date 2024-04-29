@@ -33,6 +33,9 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Dossier;
 import nl.rivm.screenit.model.colon.enums.InactiveerReden;
@@ -46,6 +49,8 @@ import org.hibernate.envers.NotAudited;
 @Entity
 @Table(schema = "colon")
 @Audited
+@Getter
+@Setter
 public class ColonDossier extends Dossier<ColonScreeningRonde, ColonAfmelding>
 {
 	@OneToOne(mappedBy = "colonDossier", optional = false)
@@ -72,98 +77,8 @@ public class ColonDossier extends Dossier<ColonScreeningRonde, ColonAfmelding>
 	@OneToOne(optional = true, cascade = CascadeType.ALL)
 	private ColonAfmelding laatsteAfmelding;
 
-	@OneToOne(optional = true, mappedBy = "dossier", fetch = FetchType.LAZY)
+	@OneToOne(optional = true, mappedBy = "dossier", fetch = FetchType.LAZY, cascade = javax.persistence.CascadeType.REMOVE)
 	@Cascade(org.hibernate.annotations.CascadeType.DELETE)
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 	private ColonVolgendeUitnodiging volgendeUitnodiging;
-
-	public ColonVooraankondiging getColonVooraankondiging()
-	{
-		return colonVooraankondiging;
-	}
-
-	public void setColonVooraankondiging(ColonVooraankondiging colonVooraankondiging)
-	{
-		this.colonVooraankondiging = colonVooraankondiging;
-	}
-
-	public InactiveerReden getInactiveerReden()
-	{
-		return inactiveerReden;
-	}
-
-	public void setInactiveerReden(InactiveerReden inactiveerReden)
-	{
-		this.inactiveerReden = inactiveerReden;
-	}
-
-	@Override
-	public Client getClient()
-	{
-		return client;
-	}
-
-	@Override
-	public void setClient(Client client)
-	{
-		this.client = client;
-	}
-
-	@Override
-	public List<ColonScreeningRonde> getScreeningRondes()
-	{
-		return screeningRondes;
-	}
-
-	@Override
-	public void setScreeningRondes(List<ColonScreeningRonde> screeningRondes)
-	{
-		this.screeningRondes = screeningRondes;
-	}
-
-	@Override
-	public ColonScreeningRonde getLaatsteScreeningRonde()
-	{
-		return laatsteScreeningRonde;
-	}
-
-	@Override
-	public void setLaatsteScreeningRonde(ColonScreeningRonde laatsteScreeningRonde)
-	{
-		this.laatsteScreeningRonde = laatsteScreeningRonde;
-	}
-
-	@Override
-	public List<ColonAfmelding> getAfmeldingen()
-	{
-		return afmeldingen;
-	}
-
-	@Override
-	public void setAfmeldingen(List<ColonAfmelding> afmeldingen)
-	{
-		this.afmeldingen = afmeldingen;
-	}
-
-	@Override
-	public ColonAfmelding getLaatsteAfmelding()
-	{
-		return laatsteAfmelding;
-	}
-
-	@Override
-	public void setLaatsteAfmelding(ColonAfmelding laatsteAfmelding)
-	{
-		this.laatsteAfmelding = laatsteAfmelding;
-	}
-
-	public ColonVolgendeUitnodiging getVolgendeUitnodiging()
-	{
-		return volgendeUitnodiging;
-	}
-
-	public void setVolgendeUitnodiging(ColonVolgendeUitnodiging volgendeUitnodiging)
-	{
-		this.volgendeUitnodiging = volgendeUitnodiging;
-	}
 }

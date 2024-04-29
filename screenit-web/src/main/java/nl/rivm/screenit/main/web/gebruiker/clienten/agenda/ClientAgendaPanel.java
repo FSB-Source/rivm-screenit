@@ -37,7 +37,7 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.service.ClientService;
-import nl.rivm.screenit.service.colon.AfspraakService;
+import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -57,7 +57,7 @@ public class ClientAgendaPanel extends GenericPanel<Client>
 	private ClientService clientService;
 
 	@SpringBean
-	private AfspraakService afspraakService;
+	private ColonBaseAfspraakService afspraakService;
 
 	public ClientAgendaPanel(String id, IModel<Client> model)
 	{

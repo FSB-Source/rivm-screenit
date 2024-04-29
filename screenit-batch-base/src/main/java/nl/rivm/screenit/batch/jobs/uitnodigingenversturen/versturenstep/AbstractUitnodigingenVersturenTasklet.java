@@ -188,7 +188,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 		jobExecution = stepExecution.getJobExecution();
 
 		controleerAlleBrieven();
-		List<Long> uitnodigingIds = getUitnodigingen();
+		var uitnodigingIds = getUitnodigingen();
 		try
 		{
 			pingOrWaitForWSDL(inpakCentrumEndpointUrl.replace("/DataUpload", WSDL_QUESTION));
@@ -210,20 +210,20 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 			mergedata = new MERGEDATA();
 			bvoAfkorting = getBvoAfkorting();
 
-			int aantalBeschikbareCores = Runtime.getRuntime().availableProcessors();
-			int aantalThreadsVoorGenereren = Math.min(aantalBeschikbareCores * BatchConstants.AANTAL_THREADS_PER_CORE, BatchConstants.MAXIMUM_AANTAL_THREADS);
+			var aantalBeschikbareCores = Runtime.getRuntime().availableProcessors();
+			var aantalThreadsVoorGenereren = Math.min(aantalBeschikbareCores * BatchConstants.AANTAL_THREADS_PER_CORE, BatchConstants.MAXIMUM_AANTAL_THREADS);
 			LOG.info("Gebruik " + aantalThreadsVoorGenereren + " threads om " + uitnodigingIds.size() + " uitnodigingen te genereren.");
-			ForkJoinPool forkJoinPool = new ForkJoinPool(aantalThreadsVoorGenereren);
+			var forkJoinPool = new ForkJoinPool(aantalThreadsVoorGenereren);
 
-			long startMetGenererenTijd = System.currentTimeMillis();
-			for (Long uitnodigingId : uitnodigingIds)
+			var startMetGenererenTijd = System.currentTimeMillis();
+			for (var uitnodigingId : uitnodigingIds)
 			{
 				forkJoinPool.submit(() -> OpenHibernate5Session.withCommittedTransaction().run(() ->
 					genereerUitnodiging(uitnodigingId)));
 			}
 			forkJoinPool.shutdown();
 			forkJoinPool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-			long stopMetGenererenTijd = System.currentTimeMillis();
+			var stopMetGenererenTijd = System.currentTimeMillis();
 			LOG.info("Klaar met genereren van " + gegenereerdeuitnodigingIds.size() + " uitnodigingen, dit duurde " + (stopMetGenererenTijd - startMetGenererenTijd) + "ms");
 			verstuurUitnodigingen(Lists.newArrayList(gegenereerdeuitnodigingIds));
 		}

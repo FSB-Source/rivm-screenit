@@ -37,7 +37,7 @@ import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamer;
-import nl.rivm.screenit.service.colon.AfspraakService;
+import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 import nl.rivm.screenit.service.colon.PlanningService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.planning.model.Discipline;
@@ -52,7 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ColonAfspraakServiceImpl implements ColonAfspraakService
 {
 
-	private final AfspraakService afspraakService;
+	private final ColonBaseAfspraakService afspraakService;
 
 	private final ColonVrijSlotZonderKamerMapper colonVrijSlotZonderKamerMapper;
 

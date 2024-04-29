@@ -104,11 +104,11 @@ public class ScreeningOrganisatie extends Instelling
 	private String ibanTenaamstelling;
 
 	@NotAudited
-	@OneToOne(fetch = FetchType.LAZY, cascade = { CascadeType.ALL })
+	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	private RegioBvoContactGegevens regioBvoContactGegevensDk;
 
 	@NotAudited
-	@OneToOne(fetch = FetchType.LAZY, cascade = { CascadeType.ALL })
+	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	private RegioBvoContactGegevens regioBvoContactGegevensBmhk;
 
 	@Column(nullable = true, precision = HibernateMagicNumber.P3, scale = HibernateMagicNumber.S2)

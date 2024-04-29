@@ -41,6 +41,7 @@ import nl.topicuszorg.planning.model.enums.AppointmentType;
 import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
 import nl.topicuszorg.wicket.planning.model.appointment.recurrence.AbstractRecurrence;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.hibernate.Hibernate;
 import org.hibernate.envers.Audited;
 
@@ -178,6 +179,11 @@ public class ColonBlokkade extends AbstractAppointment implements Comparable<Col
 			{
 				return false;
 			}
+			var otherBlokkade = (ColonBlokkade) obj;
+			return new EqualsBuilder()
+				.append(getStartTime(), otherBlokkade.getStartTime())
+				.append(getLocation(), otherBlokkade.getLocation())
+				.isEquals();
 		}
 		else if (!getId().equals(other.getId()))
 		{

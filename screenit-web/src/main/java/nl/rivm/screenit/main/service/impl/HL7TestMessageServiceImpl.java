@@ -206,7 +206,7 @@ public class HL7TestMessageServiceImpl implements HL7TestMessageService
 		return conn;
 	}
 
-	private boolean closingConnection(Connection conn)
+	private boolean closingConnection(Connection conn) throws IOException
 	{
 		if (conn != null && conn.isOpen())
 		{

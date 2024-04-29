@@ -30,10 +30,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.dm_ict.photo._358.MERGEDATA.UITNODIGING;
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.batch.dao.CervixUitnodigingsDao;
 import nl.rivm.screenit.batch.jobs.cervix.uitnodigingenversturen.ProjectCounterHolder;
 import nl.rivm.screenit.batch.jobs.cervix.uitnodigingenversturen.ZasUitnodigingenVersturenConstants;
 import nl.rivm.screenit.batch.jobs.uitnodigingenversturen.versturenstep.AbstractUitnodigingenVersturenTasklet;
+import nl.rivm.screenit.batch.service.CervixUitnodigingService;
 import nl.rivm.screenit.dao.BaseBriefDao;
 import nl.rivm.screenit.model.BriefDefinitie;
 import nl.rivm.screenit.model.Client;
@@ -68,7 +68,6 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class ZasUitnodigingenVersturenTasklet extends AbstractUitnodigingenVersturenTasklet<CervixUitnodiging>
 {
-
 	private static final String ZAS_TYPE_COMBI = "COMBI";
 
 	private static final String ZAS_TYPE_STANDAARD = "STANDAARD";
@@ -76,8 +75,6 @@ public class ZasUitnodigingenVersturenTasklet extends AbstractUitnodigingenVerst
 	private final LogService logService;
 
 	private final BaseBriefDao briefDao;
-
-	private final CervixUitnodigingsDao uitnodigingsDao;
 
 	private final HibernateService hibernateService;
 
@@ -89,11 +86,12 @@ public class ZasUitnodigingenVersturenTasklet extends AbstractUitnodigingenVerst
 
 	private final SimplePreferenceService simplePreferenceService;
 
-	@SuppressWarnings("unchecked")
+	private final CervixUitnodigingService uitnodigingService;
+
 	@Override
 	protected List<Long> getUitnodigingen()
 	{
-		return uitnodigingsDao.getTeVersturenZasUitnodigingen();
+		return uitnodigingService.getTeVersturenZasUitnodigingen();
 	}
 
 	@Override

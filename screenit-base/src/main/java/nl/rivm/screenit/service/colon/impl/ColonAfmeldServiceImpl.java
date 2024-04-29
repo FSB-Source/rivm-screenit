@@ -48,8 +48,8 @@ import nl.rivm.screenit.model.enums.OpenUitnodigingUitslag;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.OpenUitnodigingService;
-import nl.rivm.screenit.service.colon.AfspraakService;
 import nl.rivm.screenit.service.colon.ColonAfmeldService;
+import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonScreeningsrondeService;
 import nl.rivm.screenit.util.BriefUtil;
@@ -87,7 +87,7 @@ public class ColonAfmeldServiceImpl implements ColonAfmeldService
 	private ColonDossierBaseService dossierBaseService;
 
 	@Autowired
-	private AfspraakService afspraakService;
+	private ColonBaseAfspraakService afspraakService;
 
 	@Autowired
 	private ColonScreeningsrondeService screeningsrondeService;

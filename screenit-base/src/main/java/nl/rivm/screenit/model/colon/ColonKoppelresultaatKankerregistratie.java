@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.colon;
 
 /*-
@@ -31,6 +30,9 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.AbstractKoppelresultaatKankerregistratie;
 import nl.rivm.screenit.model.UploadDocument;
 
@@ -39,11 +41,10 @@ import org.hibernate.annotations.CascadeType;
 
 @Entity
 @Table(schema = "colon", name = "koppelresultaat_kankerregistratie")
+@Getter
+@Setter
 public class ColonKoppelresultaatKankerregistratie extends AbstractKoppelresultaatKankerregistratie<ColonScreeningRonde>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@Temporal(TemporalType.DATE)
 	@Column(nullable = false)
 	private Date incidentiedatum;
@@ -71,154 +72,11 @@ public class ColonKoppelresultaatKankerregistratie extends AbstractKoppelresulta
 
 	private String ypTNM;
 
-	@ManyToOne(optional = false)
+	@ManyToOne(optional = false, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade(CascadeType.SAVE_UPDATE)
 	private UploadDocument uploadedFile;
 
-	@ManyToOne(optional = false)
+	@ManyToOne(optional = false, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade(CascadeType.SAVE_UPDATE)
 	private ColonScreeningRonde screeningsRonde;
-
-	public Date getIncidentiedatum()
-	{
-		return incidentiedatum;
-	}
-
-	public void setIncidentiedatum(Date incidentiedatum)
-	{
-		this.incidentiedatum = incidentiedatum;
-	}
-
-	public Integer getEid()
-	{
-		return eid;
-	}
-
-	public void setEid(Integer eid)
-	{
-		this.eid = eid;
-	}
-
-	public String getCodeZiekenhuisVanDiagnose()
-	{
-		return codeZiekenhuisVanDiagnose;
-	}
-
-	public void setCodeZiekenhuisVanDiagnose(String codeZiekenhuisVanDiagnose)
-	{
-		this.codeZiekenhuisVanDiagnose = codeZiekenhuisVanDiagnose;
-	}
-
-	public String getOmschrijvingZiekenhuisVanDiagnose()
-	{
-		return omschrijvingZiekenhuisVanDiagnose;
-	}
-
-	public void setOmschrijvingZiekenhuisVanDiagnose(String omschrijvingZiekenhuisVanDiagnose)
-	{
-		this.omschrijvingZiekenhuisVanDiagnose = omschrijvingZiekenhuisVanDiagnose;
-	}
-
-	public String getRedenDiagnose()
-	{
-		return redenDiagnose;
-	}
-
-	public void setRedenDiagnose(String redenDiagnose)
-	{
-		this.redenDiagnose = redenDiagnose;
-	}
-
-	public String getTopografie()
-	{
-		return topografie;
-	}
-
-	public void setTopografie(String topografie)
-	{
-		this.topografie = topografie;
-	}
-
-	public String getMorfologie()
-	{
-		return morfologie;
-	}
-
-	public void setMorfologie(String morfologie)
-	{
-		this.morfologie = morfologie;
-	}
-
-	public String getTumorgedrag()
-	{
-		return tumorgedrag;
-	}
-
-	public void setTumorgedrag(String tumorgedrag)
-	{
-		this.tumorgedrag = tumorgedrag;
-	}
-
-	public String getDifferentiatiegraad()
-	{
-		return differentiatiegraad;
-	}
-
-	public void setDifferentiatiegraad(String differentiatiegraad)
-	{
-		this.differentiatiegraad = differentiatiegraad;
-	}
-
-	public String getcTNM()
-	{
-		return cTNM;
-	}
-
-	public void setcTNM(String cTNM)
-	{
-		this.cTNM = cTNM;
-	}
-
-	public String getpTNM()
-	{
-		return pTNM;
-	}
-
-	public void setpTNM(String pTNM)
-	{
-		this.pTNM = pTNM;
-	}
-
-	public String getYpTNM()
-	{
-		return ypTNM;
-	}
-
-	public void setYpTNM(String ypTNM)
-	{
-		this.ypTNM = ypTNM;
-	}
-
-	@Override
-	public ColonScreeningRonde getScreeningsRonde()
-	{
-		return screeningsRonde;
-	}
-
-	@Override
-	public void setScreeningsRonde(ColonScreeningRonde screeningsRonde)
-	{
-		this.screeningsRonde = screeningsRonde;
-	}
-
-	public UploadDocument getUploadedFile()
-	{
-		return uploadedFile;
-	}
-
-	public void setUploadedFile(UploadDocument uploadedFile)
-	{
-		this.uploadedFile = uploadedFile;
-	}
-
 }

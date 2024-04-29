@@ -26,6 +26,7 @@ import java.util.List;
 import nl.rivm.screenit.main.filter.AuthorizationFilter;
 import nl.rivm.screenit.main.web.ScreenitSessionListener;
 import nl.rivm.screenit.main.web.filter.LogFilter;
+import nl.rivm.screenit.main.web.filter.MedewerkerportaalControllerLoggingFilter;
 import nl.rivm.screenit.main.web.filter.PlanningRestErrorHandlerFilter;
 import nl.rivm.screenit.main.web.filter.SecurityHeadersFilter;
 import nl.rivm.screenit.main.web.status.StatusServlet;
@@ -162,6 +163,17 @@ public class FilterConfig
 		filter.setFilter(new AuthorizationFilter());
 		filter.addUrlPatterns("/api/*");
 		filter.setOrder(FilterOrder.AUTHORIZATION.ordinal());
+		return filter;
+	}
+
+	@Bean
+	public FilterRegistrationBean<MedewerkerportaalControllerLoggingFilter> logApiFilter()
+	{
+		var filter = new FilterRegistrationBean<MedewerkerportaalControllerLoggingFilter>();
+		filter.setFilter(new MedewerkerportaalControllerLoggingFilter());
+		filter.addInitParameter("sessionFactoryBeanName", "hibernateSessionFactory");
+		filter.addUrlPatterns("/api/*");
+		filter.setOrder(FilterOrder.LOG.ordinal());
 		return filter;
 	}
 }

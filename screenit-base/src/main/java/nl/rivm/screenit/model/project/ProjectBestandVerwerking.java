@@ -24,6 +24,7 @@ package nl.rivm.screenit.model.project;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -31,27 +32,25 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CascadeType;
 
 @Entity
 @Table(schema = "algemeen")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
+@Getter
+@Setter
 public class ProjectBestandVerwerking extends AbstractHibernateObject
 {
-
-	private static final long serialVersionUID = 1L;
-
-	@OneToOne(fetch = FetchType.LAZY, optional = false, cascade = javax.persistence.CascadeType.ALL)
-	@Cascade({ CascadeType.ALL })
+	@OneToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
 	private ProjectBestand projectBestand;
 
-	@Cascade({ CascadeType.ALL })
-	@OneToMany(fetch = FetchType.EAGER, mappedBy = "verwerking", cascade = javax.persistence.CascadeType.ALL)
+	@OneToMany(fetch = FetchType.EAGER, mappedBy = "verwerking", cascade = CascadeType.ALL)
 	private List<ProjectBestandVerwerkingEntry> meldingen = new ArrayList<>();
 
 	@Column(nullable = false)
@@ -74,94 +73,4 @@ public class ProjectBestandVerwerking extends AbstractHibernateObject
 
 	@Column(nullable = false)
 	private int verwijderd = 0;
-
-	public ProjectBestand getProjectBestand()
-	{
-		return projectBestand;
-	}
-
-	public void setProjectBestand(ProjectBestand projectBestand)
-	{
-		this.projectBestand = projectBestand;
-	}
-
-	public List<ProjectBestandVerwerkingEntry> getMeldingen()
-	{
-		return meldingen;
-	}
-
-	public void setMeldingen(List<ProjectBestandVerwerkingEntry> meldingen)
-	{
-		this.meldingen = meldingen;
-	}
-
-	public int getRegelsVerwerkt()
-	{
-		return regelsVerwerkt;
-	}
-
-	public void setRegelsVerwerkt(int regelsVerwerkt)
-	{
-		this.regelsVerwerkt = regelsVerwerkt;
-	}
-
-	public int getRegelsMislukt()
-	{
-		return regelsMislukt;
-	}
-
-	public void setRegelsMislukt(int regelsMislukt)
-	{
-		this.regelsMislukt = regelsMislukt;
-	}
-
-	public String getAttributenGevonden()
-	{
-		return attributenGevonden;
-	}
-
-	public void setAttributenGevonden(String attributenGevonden)
-	{
-		this.attributenGevonden = attributenGevonden;
-	}
-
-	public int getAttributenGewijzigd()
-	{
-		return attributenGewijzigd;
-	}
-
-	public void setAttributenGewijzigd(int attributenGewijzigd)
-	{
-		this.attributenGewijzigd = attributenGewijzigd;
-	}
-
-	public int getGeinactiveerd()
-	{
-		return geinactiveerd;
-	}
-
-	public void setGeinactiveerd(int geinactiveerd)
-	{
-		this.geinactiveerd = geinactiveerd;
-	}
-
-	public int getGeheractiveerd()
-	{
-		return geheractiveerd;
-	}
-
-	public void setGeheractiveerd(int geheractiveerd)
-	{
-		this.geheractiveerd = geheractiveerd;
-	}
-
-	public int getVerwijderd()
-	{
-		return verwijderd;
-	}
-
-	public void setVerwijderd(int verwijderd)
-	{
-		this.verwijderd = verwijderd;
-	}
 }

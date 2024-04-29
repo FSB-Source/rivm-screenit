@@ -226,6 +226,16 @@ public class SpecificationUtil
 		};
 	}
 
+	public static <T> Specification<T> valtBinnenDatumRange(Range<Date> range, Function<Root<T>, Path<Date>> startPathFunction, Function<Root<T>, Path<Date>> endPathFunction)
+	{
+		return (r, q, cb) ->
+		{
+			var startProperty = startPathFunction.apply(r);
+			var endProperty = endPathFunction.apply(r);
+			return cb.and(cb.greaterThan(endProperty, range.lowerEndpoint()), cb.lessThan(startProperty, range.upperEndpoint()));
+		};
+	}
+
 	private static String escapeLikeString(String s)
 	{
 		return s != null ? s.replaceAll("([_%])", "\\\\$1") : "";

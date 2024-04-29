@@ -30,7 +30,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.dao.ClientDao;
-import nl.rivm.screenit.dao.cervix.CervixDossierDao;
 import nl.rivm.screenit.model.AfmeldingType;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.Client;
@@ -59,6 +58,7 @@ import nl.rivm.screenit.service.DossierFactory;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.TestService;
 import nl.rivm.screenit.service.cervix.CervixBaseDossierService;
+import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
 import nl.rivm.screenit.service.cervix.CervixTestService;
 import nl.rivm.screenit.util.DateUtil;
@@ -97,7 +97,7 @@ public class CervixTestServiceImpl implements CervixTestService
 
 	private final AsposeService asposeService;
 
-	private final CervixDossierDao dossierDao;
+	private final CervixBaseScreeningrondeService screeningrondeService;
 
 	private final DossierFactory dossierFactory;
 
@@ -164,7 +164,7 @@ public class CervixTestServiceImpl implements CervixTestService
 		if (uitstrijkjeStatus == CervixUitstrijkjeStatus.ONTVANGEN)
 		{
 			uitstrijkje.setOntvangstdatum(dateSupplier.getDate());
-			uitstrijkje.setOntvangstScreeningRonde(dossierDao.getOntvangstRonde(uitstrijkje));
+			uitstrijkje.setOntvangstScreeningRonde(screeningrondeService.getOntvangstRondeVoorMonster(uitstrijkje));
 			uitstrijkje.setLaboratorium(bmhkLaboratorium);
 		}
 		return uitstrijkje;

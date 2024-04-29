@@ -64,7 +64,7 @@ import nl.rivm.screenit.model.verwerkingverslag.SelectieRapportageProjectGroepEn
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
-import nl.rivm.screenit.service.colon.AfspraakService;
+import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonUitnodigingService;
 import nl.rivm.screenit.util.ColonScreeningRondeUtil;
@@ -104,7 +104,7 @@ public class ClientSelectieItemWriter implements ItemWriter<ClientCategorieEntry
 
 	private final ColonDossierBaseService dossierBaseService;
 
-	private final AfspraakService afspraakService;
+	private final ColonBaseAfspraakService afspraakService;
 
 	private StepExecution stepExecution;
 

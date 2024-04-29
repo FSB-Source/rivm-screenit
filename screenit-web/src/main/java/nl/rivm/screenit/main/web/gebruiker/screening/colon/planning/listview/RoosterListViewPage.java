@@ -87,7 +87,7 @@ public class RoosterListViewPage extends PlanningBasePage
 
 		var filter = new RoosterListViewFilter();
 		filter.setStartDatum(currentDateSupplier.getDate());
-		filter.setEndDatum(currentDateSupplier.getDate());
+		filter.setEindDatum(currentDateSupplier.getDate());
 		filter.setStatus(null);
 
 		final IModel<RoosterListViewFilter> zoekModel = new Model<>(filter);
@@ -100,13 +100,13 @@ public class RoosterListViewPage extends PlanningBasePage
 				super.onConfigure();
 				RoosterListViewFilter zoekObject = zoekModel.getObject();
 				Date startDatum = zoekObject.getStartDatum();
-				Date endDatum = zoekObject.getEndDatum();
-				if (startDatum.after(endDatum))
+				Date eindDatum = zoekObject.getEindDatum();
+				if (startDatum.after(eindDatum))
 				{
 
-					startDatum = DateUtil.plusDagen(DateUtil.startDag(endDatum), 1);
+					startDatum = DateUtil.plusDagen(DateUtil.startDag(eindDatum), 1);
 				}
-				var periode = Range.closed(startDatum, DateUtil.plusDagen(DateUtil.startDag(endDatum), 1));
+				var periode = Range.closed(startDatum, DateUtil.plusDagen(DateUtil.startDag(eindDatum), 1));
 				setDefaultModelObject(roosterService.getCurrentAantalRoosterBlokken(ScreenitSession.get().getColoscopieCentrum(), periode));
 			}
 
@@ -116,7 +116,7 @@ public class RoosterListViewPage extends PlanningBasePage
 
 		setDefaultModel(zoekModel);
 		List<IColumn<RoosterItemListViewWrapper, String>> columns = new ArrayList<>();
-		columns.add(new DateTimePropertyColumn<>(Model.of("Datum/tijd"), "startTime", "startTime", new SimpleDateFormat("dd-MM-yyyy HH:mm"))
+		columns.add(new DateTimePropertyColumn<>(Model.of("Datum/tijd"), "startDatum", "startDatum", new SimpleDateFormat("dd-MM-yyyy HH:mm"))
 		{
 			@Override
 			public IModel<Object> getDataModel(IModel<RoosterItemListViewWrapper> embeddedModel)
@@ -124,7 +124,7 @@ public class RoosterListViewPage extends PlanningBasePage
 				IModel<?> labelModel = super.getDataModel(embeddedModel);
 
 				String label = labelModel.getObject().toString();
-				label += " - " + new SimpleDateFormat("HH:mm").format(embeddedModel.getObject().getEndTime());
+				label += " - " + new SimpleDateFormat("HH:mm").format(embeddedModel.getObject().getEindDatum());
 				return new Model(label);
 			}
 
@@ -202,9 +202,9 @@ public class RoosterListViewPage extends PlanningBasePage
 
 		});
 
-		FormComponent<Date> endDatum = ComponentHelper.addTextField(form, "endDatum", true, 10, Date.class, false);
-		endDatum.setType(Date.class);
-		endDatum.add(new AjaxFormComponentUpdatingBehavior("change")
+		FormComponent<Date> eindDatum = ComponentHelper.addTextField(form, "eindDatum", true, 10, Date.class, false);
+		eindDatum.setType(Date.class);
+		eindDatum.add(new AjaxFormComponentUpdatingBehavior("change")
 		{
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)

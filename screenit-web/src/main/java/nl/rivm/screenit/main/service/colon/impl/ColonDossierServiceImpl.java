@@ -70,7 +70,7 @@ import nl.rivm.screenit.service.DashboardService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.OrganisatieParameterService;
-import nl.rivm.screenit.service.colon.AfspraakService;
+import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.IFobtService;
 import nl.rivm.screenit.util.AfmeldingUtil;
@@ -112,7 +112,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 
 	private final LogService logService;
 
-	private final AfspraakService afspraakService;
+	private final ColonBaseAfspraakService afspraakService;
 
 	private final IFobtService ifobtService;
 

@@ -21,13 +21,18 @@ package nl.rivm.screenit.main.service.colon.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.math.BigInteger;
+import java.time.DayOfWeek;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import nl.rivm.screenit.dao.colon.IntakelocatieVanTotEnMetFilter;
 import nl.rivm.screenit.dao.colon.RoosterDao;
@@ -40,17 +45,22 @@ import nl.rivm.screenit.main.service.colon.RoosterService;
 import nl.rivm.screenit.model.Afspraak;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.colon.ColonHerhalingsfrequentie;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.RoosterItemListViewWrapper;
 import nl.rivm.screenit.model.colon.RoosterItemStatus;
 import nl.rivm.screenit.model.colon.RoosterListViewFilter;
+import nl.rivm.screenit.model.colon.dto.ColonHerhalingDto;
+import nl.rivm.screenit.model.colon.dto.ColonTijdslotDto;
+import nl.rivm.screenit.model.colon.enums.ColonTijdSlotType;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
 import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.rivm.screenit.repository.colon.ColonAfspraakslotRepository;
+import nl.rivm.screenit.repository.colon.ColonTijdslotRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.colon.AfspraakService;
+import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 import nl.rivm.screenit.specification.colon.ColonAfspraakslotSpecification;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
@@ -84,7 +94,7 @@ public class RoosterServiceImpl implements RoosterService
 	private RoosterDao roosterDao;
 
 	@Autowired
-	private AfspraakService afspraakService;
+	private ColonBaseAfspraakService afspraakService;
 
 	@Autowired
 	private RecurrenceService recurrenceService;
@@ -100,6 +110,9 @@ public class RoosterServiceImpl implements RoosterService
 
 	@Autowired
 	private ColonAfspraakslotRepository afspraakslotRepository;
+
+	@Autowired
+	private ColonTijdslotRepository tijdslotRepository;
 
 	@Override
 	public List<RoosterItem> getRooster(Periode periode, List<Kamer> kamers)
@@ -120,17 +133,18 @@ public class RoosterServiceImpl implements RoosterService
 		if (roosteritem.getId() != null)
 		{
 
-			List<Object> afspraken = afspraakService.getRoosterItemsBezetMetAfspraak(roosteritem.getId(), currentViewRange);
+			var afspraken = afspraakService.getAfsprakenMetRoosterItemInRange(roosteritem.getId(), currentViewRange);
+			List<Object> afsprakenObjects = new ArrayList<>(afspraken);
 			if (!afspraken.isEmpty())
 			{
 
 				if (wijzigen)
 				{
-					throw new HeeftAfsprakenException("error.afspraakslot.wijzig.heeft.afspraken", afspraken);
+					throw new HeeftAfsprakenException("error.afspraakslot.wijzig.heeft.afspraken", afsprakenObjects);
 				}
 				else
 				{
-					throw new HeeftAfsprakenException("error.afspraakslot.verwijder.heeft.afspraken", afspraken);
+					throw new HeeftAfsprakenException("error.afspraakslot.verwijder.heeft.afspraken", afsprakenObjects);
 				}
 			}
 		}
@@ -222,7 +236,7 @@ public class RoosterServiceImpl implements RoosterService
 		if (CollectionUtils.isNotEmpty(teVerwijderenRoosterBlokken))
 		{
 
-			List<Object> afspraken = afspraakService.getAfsprakenKamersInRanges(roosteritem.getLocation(), teVerwijderenRoosterBlokken);
+			var afspraken = afspraakService.getAfsprakenKamersInRanges(roosteritem.getLocation(), teVerwijderenRoosterBlokken);
 			if (!afspraken.isEmpty())
 			{
 
@@ -264,8 +278,7 @@ public class RoosterServiceImpl implements RoosterService
 	}
 
 	@Override
-	public Range<Date> getCurrentViewRange(AbstractAppointment tijdslot, RecurrenceOption recurrenceOption, Date recurrenceEditEnd,
-		Date origRecEndDateTime)
+	public Range<Date> getCurrentViewRange(AbstractAppointment tijdslot, RecurrenceOption recurrenceOption, Date recurrenceEditEnd, Date origRecEndDateTime)
 	{
 		Date viewStartDateTime = null;
 		Date viewEndTime = null;
@@ -378,12 +391,24 @@ public class RoosterServiceImpl implements RoosterService
 
 	@Override
 	@Transactional
-	public List<RoosterItemListViewWrapper> getAlleRoosterBlokkenInPeriode(String sortProperty, boolean asc, RoosterListViewFilter filter,
-		ColoscopieCentrum intakeLocatie)
+	public List<RoosterItemListViewWrapper> getAlleRoosterBlokkenInPeriode(String sortProperty, boolean asc, RoosterListViewFilter filter, ColoscopieCentrum intakeLocatie)
 	{
 		filter = filter.clone();
 		refineFilterDates(filter);
 		return roosterDao.getAlleRoosterBlokkenInPeriode(sortProperty, asc, filter, intakeLocatie);
+	}
+
+	@Override
+	public List<ColonTijdslotDto> searchTijdslots(RoosterListViewFilter filter, long intakelocatieId, ColonTijdSlotType typeTijdslot)
+	{
+		refineFilterDates(filter);
+		return tijdslotRepository.searchTijdslots(intakelocatieId, DateUtil.toLocalDateTime(filter.getStartDatum()), DateUtil.toLocalDateTime(filter.getEindDatum()),
+				filter.getStartTijd(), filter.getEindTijd(), filter.getKamerId(),
+				filter.getSqlDagen(), typeTijdslot.getTitle()).stream()
+			.map(tuple -> new ColonTijdslotDto(((BigInteger) tuple.get("tijdslotId")).longValue(), DateUtil.toLocalDateTime((Date) tuple.get("startDatum")),
+				DateUtil.toLocalDateTime((Date) tuple.get("eindDatum")), (String) tuple.get("kamer"),
+				((BigInteger) tuple.get("kamerId")).longValue()))
+			.collect(Collectors.toList());
 	}
 
 	@Override
@@ -407,11 +432,11 @@ public class RoosterServiceImpl implements RoosterService
 
 	private void refineFilterDates(RoosterListViewFilter filter)
 	{
-		filter.setEndDatum(DateUtil.toUtilDate(DateUtil.toLocalDate(filter.getEndDatum()).plusDays(1)));
+		filter.setEindDatum(DateUtil.toUtilDate(DateUtil.toLocalDate(filter.getEindDatum()).plusDays(1)));
 
-		if (filter.getStartDatum().after(filter.getEndDatum()))
+		if (filter.getStartDatum().after(filter.getEindDatum()))
 		{
-			filter.setStartDatum((Date) filter.getEndDatum().clone());
+			filter.setStartDatum((Date) filter.getEindDatum().clone());
 		}
 		else
 		{
@@ -526,12 +551,17 @@ public class RoosterServiceImpl implements RoosterService
 	}
 
 	@Override
-	public List<RoosterItem> getAfspraakslotsInRange(List<Range<Date>> ranges, RoosterItem afspraakslot)
+	public List<RoosterItem> getAfspraakslotsInRangesEnKamer(List<Range<Date>> ranges, RoosterItem afspraakslot)
 	{
-		return afspraakslotRepository.findAll(
-			ColonAfspraakslotSpecification.heeftKamer(afspraakslot.getLocation())
+		return afspraakslotRepository.findAll(ColonAfspraakslotSpecification.heeftKamer(afspraakslot.getLocation())
 				.and(ColonAfspraakslotSpecification.valtBinnenRanges(ranges).or(ColonAfspraakslotSpecification.heeftId(afspraakslot.getId()))),
 			Sort.by(Sort.Direction.ASC, AbstractAppointment_.START_TIME));
+	}
+
+	@Override
+	public List<RoosterItem> getAfspraakslotsInRange(Range<Date> range)
+	{
+		return afspraakslotRepository.findAll(ColonAfspraakslotSpecification.valtBinnenDatumRange(range), Sort.by(Sort.Direction.ASC, AbstractAppointment_.START_TIME));
 	}
 
 	@Override
@@ -556,6 +586,86 @@ public class RoosterServiceImpl implements RoosterService
 	{
 		var organisatie = instellingGebruiker.getOrganisatie();
 		return (ColoscopieCentrum) HibernateHelper.deproxy(organisatie);
+	}
+
+	@Override
+	public <S extends AbstractAppointment> List<S> maakHerhalingTijdslotsAan(S tijdslot, ColonHerhalingDto herhalingDto)
+	{
+		S tijdslotCone;
+		var vorigeTijdslot = tijdslot;
+		var herhalingTijdslots = new ArrayList<S>();
+		var herhalingEindDatum = DateUtil.eindDag(DateUtil.toUtilDate(herhalingDto.getEindDatum()));
+		while (vorigeTijdslot.getStartTime().before(herhalingEindDatum))
+		{
+			tijdslotCone = getVolgendeTijdslot(vorigeTijdslot, herhalingDto);
+			if (tijdslotCone.getStartTime().before(herhalingEindDatum))
+			{
+				herhalingTijdslots.add(tijdslotCone);
+			}
+			vorigeTijdslot = tijdslotCone;
+		}
+		return herhalingTijdslots;
+	}
+
+	private <S extends AbstractAppointment> S getVolgendeTijdslot(S tijdslot, ColonHerhalingDto herhalingDto)
+	{
+		var tijdslotClone = (S) tijdslot.transientClone();
+
+		var volgendeStartTijd = getStartTijdVolgendeTijdslot(DateUtil.toLocalDateTime(tijdslotClone.getStartTime()), herhalingDto);
+		var volgendeEindTijd = getEindTijdVolgendeTijdslot(tijdslotClone, volgendeStartTijd);
+
+		tijdslotClone.setStartTime(volgendeStartTijd);
+		tijdslotClone.setEndTime(volgendeEindTijd);
+		tijdslotClone.setRecurrence(null);
+		return tijdslotClone;
+	}
+
+	private Date getStartTijdVolgendeTijdslot(LocalDateTime huidigeTijdslotStartTijd, ColonHerhalingDto herhalingDto)
+	{
+		if (herhalingDto.getFrequentie() == ColonHerhalingsfrequentie.DAGELIJKS)
+		{
+			return getStartTijdVolgendeDagelijkseTijdslot(huidigeTijdslotStartTijd, herhalingDto.isAlleenWerkdagen());
+		}
+		var interval = herhalingDto.getFrequentie() == ColonHerhalingsfrequentie.TWEE_WEKELIJKS ? 2 : 1;
+		return getStartTijdVolgendeWekelijkseTijdslot(huidigeTijdslotStartTijd, interval, herhalingDto.getDagen());
+	}
+
+	private <S extends AbstractAppointment> Date getEindTijdVolgendeTijdslot(AbstractAppointment afspraakslot, Date volgendeStartTijd)
+	{
+		long tijdSlotDuurInMillis = afspraakslot.getEndTime().getTime() - afspraakslot.getStartTime().getTime();
+		long volgendeStartTijdInMillis = volgendeStartTijd.getTime() + tijdSlotDuurInMillis;
+		return new Date(volgendeStartTijdInMillis);
+	}
+
+	private Date getStartTijdVolgendeDagelijkseTijdslot(LocalDateTime huidigeTijdslotStartTijd, Boolean businessDaysOnly)
+	{
+		huidigeTijdslotStartTijd = huidigeTijdslotStartTijd.plusDays(1);
+
+		var weekend = Arrays.asList(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY);
+
+		while (Boolean.TRUE.equals(businessDaysOnly) && weekend.contains(huidigeTijdslotStartTijd.getDayOfWeek()))
+		{
+			huidigeTijdslotStartTijd = huidigeTijdslotStartTijd.plusDays(1);
+		}
+		return DateUtil.toUtilDate(huidigeTijdslotStartTijd);
+	}
+
+	private Date getStartTijdVolgendeWekelijkseTijdslot(LocalDateTime huidigeTijdslotStartTijd, int perAantalWeken, List<Integer> weekdagen)
+	{
+		for (var weekDag : weekdagen)
+		{
+			if (weekDag > huidigeTijdslotStartTijd.getDayOfWeek().getValue())
+			{
+				huidigeTijdslotStartTijd = huidigeTijdslotStartTijd.with(DayOfWeek.of(weekDag));
+				return DateUtil.toUtilDate(huidigeTijdslotStartTijd);
+			}
+		}
+		if (!weekdagen.isEmpty())
+		{
+			huidigeTijdslotStartTijd = huidigeTijdslotStartTijd.with(DayOfWeek.of(weekdagen.get(0)));
+		}
+		huidigeTijdslotStartTijd = huidigeTijdslotStartTijd.plusWeeks(perAantalWeken);
+		return DateUtil.toUtilDate(huidigeTijdslotStartTijd);
 	}
 
 	private static void valideerTijdslotStartTijdVoorEindTijd(Date startTijd, Date eindTijd) throws ValidatieException

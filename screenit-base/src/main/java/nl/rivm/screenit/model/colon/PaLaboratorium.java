@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.colon;
 
 /*-
@@ -32,6 +31,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.helper.HibernateMagicNumber;
 
@@ -43,12 +45,11 @@ import org.hibernate.envers.Audited;
 
 @Entity
 @Audited
+@Getter
+@Setter
 public class PaLaboratorium extends Instelling
 {
-
-	private static final long serialVersionUID = 1L;
-
-	@ManyToMany(fetch = FetchType.LAZY)
+	@ManyToMany(fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade(CascadeType.SAVE_UPDATE)
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 	@JoinTable(schema = "colon", name = "org_organisatie_coloscopielocaties", joinColumns = { @JoinColumn(name = "org_organisatie") })
@@ -56,25 +57,4 @@ public class PaLaboratorium extends Instelling
 
 	@Column(nullable = true, length = HibernateMagicNumber.L255)
 	private String fqdn;
-
-	public List<ColoscopieLocatie> getColoscopielocaties()
-	{
-		return coloscopielocaties;
-	}
-
-	public void setColoscopielocaties(List<ColoscopieLocatie> coloscopielocaties)
-	{
-		this.coloscopielocaties = coloscopielocaties;
-	}
-
-	public String getFqdn()
-	{
-		return fqdn;
-	}
-
-	public void setFqdn(String fqdn)
-	{
-		this.fqdn = fqdn;
-	}
-
 }

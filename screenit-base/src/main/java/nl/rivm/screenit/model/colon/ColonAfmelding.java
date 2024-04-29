@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.colon;
 
 /*-
@@ -54,36 +53,28 @@ import org.hibernate.envers.Audited;
 @Setter
 public class ColonAfmelding extends Afmelding<ColonScreeningRonde, ColonDossier, ColonBrief>
 {
-
-	private static final long serialVersionUID = 1L;
-
-	@ManyToOne(optional = true)
+	@ManyToOne(optional = true, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade(CascadeType.SAVE_UPDATE)
 	private ColonScreeningRonde screeningRonde;
 
-	@ManyToOne(optional = true)
+	@ManyToOne(optional = true, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade(CascadeType.SAVE_UPDATE)
 	private ColonDossier dossier;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = true)
-	@Cascade(CascadeType.ALL)
+	@ManyToOne(fetch = FetchType.LAZY, optional = true, cascade = javax.persistence.CascadeType.ALL)
 	private ColonBrief afmeldingAanvraag;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = true)
-	@Cascade(CascadeType.ALL)
+	@ManyToOne(fetch = FetchType.LAZY, optional = true, cascade = javax.persistence.CascadeType.ALL)
 	private ColonBrief afmeldingBevestiging;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = true)
-	@Cascade(CascadeType.ALL)
+	@ManyToOne(fetch = FetchType.LAZY, optional = true, cascade = javax.persistence.CascadeType.ALL)
 	private ColonBrief heraanmeldAanvraag;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = true)
-	@Cascade(CascadeType.ALL)
+	@ManyToOne(fetch = FetchType.LAZY, optional = true, cascade = javax.persistence.CascadeType.ALL)
 	private ColonBrief heraanmeldBevestiging;
 
-	@OneToMany(mappedBy = "afmelding", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "afmelding", fetch = FetchType.LAZY, cascade = javax.persistence.CascadeType.ALL)
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
-	@Cascade(CascadeType.ALL)
 	private List<ColonBrief> brieven = new ArrayList<>();
 
 	@Enumerated(EnumType.STRING)

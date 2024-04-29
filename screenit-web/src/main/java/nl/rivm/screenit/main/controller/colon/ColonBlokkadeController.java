@@ -22,20 +22,28 @@ package nl.rivm.screenit.main.controller.colon;
  */
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
+import nl.rivm.screenit.main.exception.BulkVerwijderenException;
+import nl.rivm.screenit.main.exception.BulkVerwijderenException;
+import nl.rivm.screenit.main.exception.BulkVerwijderenException;
+import nl.rivm.screenit.main.exception.BulkAanmakenException;
 import nl.rivm.screenit.main.exception.ValidatieException;
 import nl.rivm.screenit.main.service.colon.ColonBlokkadeService;
 import nl.rivm.screenit.main.service.colon.RoosterService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.mappers.colon.ColonBlokkadeMapper;
+import nl.rivm.screenit.model.colon.RoosterListViewFilter;
 import nl.rivm.screenit.model.colon.dto.ColonBlokkadeDto;
+import nl.rivm.screenit.model.colon.dto.ColonTijdslotDto;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
@@ -94,7 +102,7 @@ public class ColonBlokkadeController
 	@PostMapping
 	@SecurityConstraint(actie = Actie.TOEVOEGEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_NIEUW_ROOSTER, bevolkingsonderzoekScopes = {
 		Bevolkingsonderzoek.COLON })
-	public ResponseEntity<Void> createBlokkade(@RequestBody ColonBlokkadeDto blokkadeDto) throws ValidatieException, OpslaanVerwijderenTijdBlokException
+	public ResponseEntity<Void> createBlokkade(@RequestBody ColonBlokkadeDto blokkadeDto) throws ValidatieException, OpslaanVerwijderenTijdBlokException, BulkAanmakenException
 	{
 		blokkadeService.createBlokkade(blokkadeDto, ScreenitSession.get().getLoggedInInstellingGebruiker());
 		return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -110,12 +118,59 @@ public class ColonBlokkadeController
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}
 
-	@DeleteMapping("{id}")
+	@GetMapping("/search")
+	@SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_NIEUW_ROOSTER, bevolkingsonderzoekScopes = {
+		Bevolkingsonderzoek.COLON })
+	public List<ColonTijdslotDto> searchBlokkades(
+		@RequestParam() @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDatum,
+		@RequestParam() @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate eindDatum,
+		@RequestParam() @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime startTijd,
+		@RequestParam() @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime eindTijd,
+		@RequestParam(required = false) Long kamerId,
+		@RequestParam() String dagen)
+	{
+		var intakelocatie = ScreenitSession.get().getColoscopieCentrum();
+
+		if (intakelocatie == null)
+		{
+			throw new IllegalStateException("Gebruiker heeft geen intakelocatie.");
+		}
+
+		var filter = new RoosterListViewFilter();
+		filter.setStartDatum(DateUtil.toUtilDate(startDatum));
+		filter.setEindDatum(DateUtil.toUtilDate(eindDatum));
+		filter.setStartTijd(startTijd);
+		filter.setEindTijd(eindTijd);
+		filter.setKamerId(kamerId);
+		filter.setDagen(Stream.of(dagen.split(","))
+			.map(String::trim)
+			.map(Integer::parseInt)
+			.collect(Collectors.toList()));
+
+		return blokkadeService.zoekBlokkades(filter, intakelocatie.getId());
+	}
+
+	@DeleteMapping("{ids}")
 	@SecurityConstraint(actie = Actie.VERWIJDEREN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_NIEUW_ROOSTER, bevolkingsonderzoekScopes = {
 		Bevolkingsonderzoek.COLON })
-	public ResponseEntity<Void> deleteBlokkade(@PathVariable("id") Long id) throws ValidatieException, OpslaanVerwijderenTijdBlokException
+	public ResponseEntity<Void> deleteBlokkades(@PathVariable("ids") String ids, @RequestParam(required = false) Boolean alleenValidatie,
+		@RequestParam(required = false) Boolean bulk)
+		throws BulkVerwijderenException, ValidatieException
 	{
-		blokkadeService.deleteBlokkade(id, ScreenitSession.get().getLoggedInInstellingGebruiker());
+		var blokkadeIds = Stream.of(ids.split(","))
+			.map(String::trim)
+			.map(Long::parseLong)
+			.collect(Collectors.toList());
+
+		if (Boolean.TRUE.equals(bulk))
+		{
+			blokkadeService.bulkDeleteBlokkades(blokkadeIds, ScreenitSession.get().getLoggedInInstellingGebruiker(), alleenValidatie);
+		}
+		else
+		{
+			blokkadeService.deleteBlokkade(blokkadeIds.get(0), ScreenitSession.get().getLoggedInInstellingGebruiker());
+		}
+
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}
 }

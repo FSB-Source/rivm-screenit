@@ -70,9 +70,6 @@ import org.hibernate.envers.NotAudited;
 @Setter
 public class Project extends AbstractHibernateObject implements INaam, IBevolkingsonderzoek
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@Column(nullable = false)
 	private String naam;
 
@@ -102,12 +99,12 @@ public class Project extends AbstractHibernateObject implements INaam, IBevolkin
 	private Instelling organisatie;
 
 	@Cascade({ CascadeType.SAVE_UPDATE })
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	private InstellingGebruiker contactpersoon;
 
 	@NotAudited
 	@Cascade({ CascadeType.SAVE_UPDATE })
-	@ManyToMany(fetch = FetchType.LAZY)
+	@ManyToMany(fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@JoinTable(schema = "algemeen", name = "project_medewerkers")
 	private List<InstellingGebruiker> medewerkers;
 
@@ -117,8 +114,7 @@ public class Project extends AbstractHibernateObject implements INaam, IBevolkin
 	@JoinTable(schema = "algemeen", name = "project_screening_organisaties")
 	private List<Instelling> screeningOrganisaties = new ArrayList<Instelling>();
 
-	@Cascade({ CascadeType.ALL })
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "project")
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "project", cascade = javax.persistence.CascadeType.ALL)
 	private List<ProjectClient> clienten = new ArrayList<>();
 
 	private Boolean excludeerBezwaar = Boolean.FALSE;
@@ -131,21 +127,17 @@ public class Project extends AbstractHibernateObject implements INaam, IBevolkin
 	@CollectionTable(schema = "algemeen", name = "project_excludeer_open_ronde")
 	private List<Bevolkingsonderzoek> excludeerOpenRonde = new ArrayList<>();
 
-	@Cascade({ CascadeType.ALL })
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "project")
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "project", cascade = javax.persistence.CascadeType.ALL)
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 	private List<ProjectGroep> groepen = new ArrayList<>();
 
-	@Cascade({ CascadeType.ALL })
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "project")
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "project", cascade = javax.persistence.CascadeType.ALL)
 	private List<ProjectBriefActie> projectBriefActies = new ArrayList<ProjectBriefActie>();
 
-	@Cascade({ CascadeType.ALL })
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "project")
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "project", cascade = javax.persistence.CascadeType.ALL)
 	private List<ProjectAttribuut> projectAttributen = new ArrayList<ProjectAttribuut>();
 
-	@Cascade({ CascadeType.ALL })
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "project", orphanRemoval = true)
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "project", orphanRemoval = true, cascade = javax.persistence.CascadeType.ALL)
 	private List<ProjectParameter> parameters = new ArrayList<>();
 
 	private Boolean anoniem;
@@ -166,8 +158,7 @@ public class Project extends AbstractHibernateObject implements INaam, IBevolkin
 	@Override
 	public Boolean getExactMatch()
 	{
-
-		return null;
+		return null; 
 	}
 
 	@Override
@@ -175,5 +166,4 @@ public class Project extends AbstractHibernateObject implements INaam, IBevolkin
 	{
 
 	}
-
 }

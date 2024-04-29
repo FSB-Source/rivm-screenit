@@ -31,7 +31,6 @@ import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
-import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.topicuszorg.wicket.planning.dao.AppointmentDao;
 import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
 import nl.topicuszorg.wicket.planning.model.appointment.Location;
@@ -49,12 +48,4 @@ public interface AfspraakDao extends AppointmentDao
 	long countAfsprakenVoorColoscopiecentrum(WerklijstIntakeFilter zoekObject, ColoscopieCentrum coloscopieCentrum, LocalDate vandaag);
 
 	List<Object> getAfsprakenInRanges(Kamer location, List<Range<Date>> verwijderdeRanges);
-
-	RoosterItem getRoosterBlokVoorAfspraak(ColonIntakeAfspraak newAfspraak);
-
-	List<Object> getRoosterItemsBezetMetAfspraak(Long roosterItemId, Range<Date> currentViewRange);
-
-	RoosterItem getVrijRoosterBlokVoorAfspraak(ColonIntakeAfspraak newAfspraak);
-
-	List<ColonIntakeAfspraak> getAfsprakenInRange(Range<Date> range);
 }

@@ -29,7 +29,7 @@ import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.LogService;
-import nl.rivm.screenit.service.colon.AfspraakService;
+import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.stereotype.Component;
@@ -41,7 +41,7 @@ public class OnbevestigdeIntakeVerwijzingenWriter extends BaseWriter<ColonIntake
 
 	private final HibernateService hibernateService;
 
-	private final AfspraakService afspraakService;
+	private final ColonBaseAfspraakService afspraakService;
 
 	private final LogService logService;
 

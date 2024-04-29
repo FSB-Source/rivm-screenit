@@ -53,7 +53,7 @@ import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.colon.AfspraakService;
+import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.util.ColonScreeningRondeUtil;
 import nl.rivm.screenit.util.DateUtil;
@@ -107,7 +107,7 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 	private ICurrentDateSupplier dateSupplier;
 
 	@SpringBean
-	private AfspraakService afspraakService;
+	private ColonBaseAfspraakService afspraakService;
 
 	private ColonConclusieType origConclusie;
 

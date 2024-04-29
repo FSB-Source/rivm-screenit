@@ -35,6 +35,9 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.BestandStatus;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
@@ -50,10 +53,10 @@ import org.hibernate.envers.NotAudited;
 @Audited
 @Table(schema = "algemeen")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
+@Getter
+@Setter
 public class ProjectBestand extends AbstractHibernateObject
 {
-
-	private static final long serialVersionUID = 1L;
 
 	@OneToOne(optional = false, fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade({ CascadeType.SAVE_UPDATE })
@@ -88,8 +91,7 @@ public class ProjectBestand extends AbstractHibernateObject
 	private boolean attributen = false;
 
 	@NotAudited
-	@OneToOne(fetch = FetchType.LAZY, optional = true, mappedBy = "projectBestand")
-	@Cascade({ CascadeType.ALL }) 
+	@OneToOne(fetch = FetchType.LAZY, optional = true, mappedBy = "projectBestand", cascade = javax.persistence.CascadeType.ALL)
 	private ProjectBestandVerwerking verwerking;
 
 	@Column(nullable = true)
@@ -97,124 +99,4 @@ public class ProjectBestand extends AbstractHibernateObject
 
 	@Transient
 	private String toepassenOp;
-
-	public UploadDocument getUploadDocument()
-	{
-		return uploadDocument;
-	}
-
-	public void setUploadDocument(UploadDocument uploadDocument)
-	{
-		this.uploadDocument = uploadDocument;
-	}
-
-	public Project getProject()
-	{
-		return project;
-	}
-
-	public void setProject(Project project)
-	{
-		this.project = project;
-	}
-
-	public ProjectGroep getGroep()
-	{
-		return groep;
-	}
-
-	public void setGroep(ProjectGroep groep)
-	{
-		this.groep = groep;
-	}
-
-	public BestandStatus getStatus()
-	{
-		return status;
-	}
-
-	public void setStatus(BestandStatus status)
-	{
-		this.status = status;
-	}
-
-	public Date getStatusDatum()
-	{
-		return statusDatum;
-	}
-
-	public void setStatusDatum(Date statusDatum)
-	{
-		this.statusDatum = statusDatum;
-	}
-
-	public boolean isPopulatie()
-	{
-		return populatie;
-	}
-
-	public void setPopulatie(boolean populatie)
-	{
-		this.populatie = populatie;
-	}
-
-	public boolean isAttributen()
-	{
-		return attributen;
-	}
-
-	public void setAttributen(boolean attributen)
-	{
-		this.attributen = attributen;
-	}
-
-	public Date getUploadDatum()
-	{
-		return uploadDatum;
-	}
-
-	public void setUploadDatum(Date uploadDatum)
-	{
-		this.uploadDatum = uploadDatum;
-	}
-
-	public String getToepassenOp()
-	{
-		return toepassenOp;
-	}
-
-	public void setToepassenOp(String toepassenOp)
-	{
-		this.toepassenOp = toepassenOp;
-	}
-
-	public ProjectBestandVerwerking getVerwerking()
-	{
-		return verwerking;
-	}
-
-	public void setVerwerking(ProjectBestandVerwerking verwerking)
-	{
-		this.verwerking = verwerking;
-	}
-
-	public ProjectBestandType getType()
-	{
-		return type;
-	}
-
-	public void setType(ProjectBestandType type)
-	{
-		this.type = type;
-	}
-
-	public String getDynamischeInactiveerReden()
-	{
-		return dynamischeInactiveerReden;
-	}
-
-	public void setDynamischeInactiveerReden(String dynamischeInactiveerReden)
-	{
-		this.dynamischeInactiveerReden = dynamischeInactiveerReden;
-	}
 }

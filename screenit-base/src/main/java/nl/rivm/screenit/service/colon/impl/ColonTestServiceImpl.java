@@ -35,7 +35,6 @@ import java.util.Map;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.dao.UitnodigingsDao;
-import nl.rivm.screenit.dao.colon.AfspraakDefinitieDao;
 import nl.rivm.screenit.dao.colon.ColonTestDao;
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;
@@ -73,6 +72,7 @@ import nl.rivm.screenit.service.BaseDossierService;
 import nl.rivm.screenit.service.DossierFactory;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.TestService;
+import nl.rivm.screenit.service.colon.ColonAfspraakDefinitieService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonHuisartsBerichtService;
 import nl.rivm.screenit.service.colon.ColonTestService;
@@ -119,9 +119,6 @@ public class ColonTestServiceImpl implements ColonTestService
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Autowired
-	private AfspraakDefinitieDao afspraakDefinitieDao;
-
-	@Autowired
 	private ColonHuisartsBerichtService huisartsBerichtService;
 
 	@Autowired
@@ -147,6 +144,9 @@ public class ColonTestServiceImpl implements ColonTestService
 
 	@Autowired
 	private BaseDossierService baseDossierService;
+
+	@Autowired
+	private ColonAfspraakDefinitieService afspraakDefinitieService;
 
 	@Override
 	public ColonConclusie maakAfspraakEnConclusie(GbaPersoon filter, Date fitVerwerkingsDatum)
@@ -234,8 +234,9 @@ public class ColonTestServiceImpl implements ColonTestService
 		}
 		if (intakeAfspraak.getDefinition() == null)
 		{
-			var afspraakDefinities = afspraakDefinitieDao.getActieveActieDefinities(intakeAfspraak.getLocation().getColoscopieCentrum());
-			intakeAfspraak.setDefinition(afspraakDefinities.get(0));
+			var intakelocatie = intakeAfspraak.getLocation().getColoscopieCentrum();
+			var afspraakDefinitie = afspraakDefinitieService.getActiefAfspraakDefinitie(intakelocatie);
+			intakeAfspraak.setDefinition(afspraakDefinitie);
 		}
 		if (intakeAfspraak.getEndTime() == null)
 		{

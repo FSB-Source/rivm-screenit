@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.screening.colon.intake;
 
 /*-
@@ -28,7 +27,6 @@ import nl.rivm.screenit.main.service.colon.ColonIntakeAfspraakService;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
-import nl.rivm.screenit.service.colon.AfspraakService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -43,12 +41,9 @@ public class ColonMissendeMdlVerslagenDataProvider extends SortableDataProvider<
 	private final IModel<WerklijstIntakeFilter> zoekModel;
 
 	@SpringBean
-	private ColonIntakeAfspraakService colonAfspraakService;
+	private ColonIntakeAfspraakService intakeAfspraakService;
 
-	@SpringBean
-	private AfspraakService afspraakService;
-
-	private int aantalPerPagina;
+	private final int aantalPerPagina;
 
 	private final IModel<ColoscopieCentrum> intakeLocatie;
 
@@ -64,7 +59,7 @@ public class ColonMissendeMdlVerslagenDataProvider extends SortableDataProvider<
 	@Override
 	public Iterator<? extends ColonIntakeAfspraak> iterator(long first, long count)
 	{
-		return colonAfspraakService.getAfsprakenZonderVerslag(ModelUtil.nullSafeGet(zoekModel), ModelUtil.nullSafeGet(intakeLocatie), first,
+		return intakeAfspraakService.getAfsprakenZonderVerslag(ModelUtil.nullSafeGet(zoekModel), ModelUtil.nullSafeGet(intakeLocatie), first,
 			count > aantalPerPagina ? count : aantalPerPagina,
 			getSort().getProperty(), getSort().isAscending()).iterator();
 	}
@@ -72,7 +67,7 @@ public class ColonMissendeMdlVerslagenDataProvider extends SortableDataProvider<
 	@Override
 	public long size()
 	{
-		return colonAfspraakService.getAantalAfsprakenZonderVerslag(ModelUtil.nullSafeGet(zoekModel), ModelUtil.nullSafeGet(intakeLocatie));
+		return intakeAfspraakService.getAantalAfsprakenZonderVerslag(ModelUtil.nullSafeGet(zoekModel), ModelUtil.nullSafeGet(intakeLocatie));
 	}
 
 	@Override

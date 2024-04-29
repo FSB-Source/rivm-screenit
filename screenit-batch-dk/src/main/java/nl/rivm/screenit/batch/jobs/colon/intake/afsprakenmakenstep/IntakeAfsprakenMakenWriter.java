@@ -30,7 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.colon.intake.IntakeAfsprakenMakenConstants;
 import nl.rivm.screenit.batch.model.ClientAfspraak;
-import nl.rivm.screenit.dao.colon.AfspraakDefinitieDao;
 import nl.rivm.screenit.model.Afspraak;
 import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
@@ -39,7 +38,6 @@ import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.IntakeMakenLogEventRegel;
 import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
-import nl.rivm.screenit.model.colon.planning.AfspraakDefinitie;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.colon.planning.VrijSlot;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -51,7 +49,8 @@ import nl.rivm.screenit.model.logging.IntakeMakenLogEvent;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
-import nl.rivm.screenit.service.colon.AfspraakService;
+import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
+import nl.rivm.screenit.service.colon.ColonAfspraakDefinitieService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonHuisartsBerichtService;
 import nl.rivm.screenit.util.BigDecimalUtil;
@@ -81,13 +80,10 @@ public class IntakeAfsprakenMakenWriter implements ItemWriter<ClientAfspraak>
 	private SimplePreferenceService preferenceService;
 
 	@Autowired
-	private AfspraakDefinitieDao afspraakDefinitieDao;
-
-	@Autowired
 	private BaseBriefService briefService;
 
 	@Autowired
-	private AfspraakService afspraakService;
+	private ColonBaseAfspraakService afspraakService;
 
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
@@ -102,6 +98,9 @@ public class IntakeAfsprakenMakenWriter implements ItemWriter<ClientAfspraak>
 
 	@Autowired
 	private ColonDossierBaseService dossierService;
+
+	@Autowired
+	private ColonAfspraakDefinitieService afspraakDefinitieService;
 
 	private static final int AANTAL_DAGEN = 14;
 
@@ -164,14 +163,8 @@ public class IntakeAfsprakenMakenWriter implements ItemWriter<ClientAfspraak>
 
 						newAfspraak.setAfstand(BigDecimal.valueOf(afspraakOptie.getDistance()));
 						Kamer kamer = hibernateService.load(Kamer.class, vrijSlot.getKamerId());
-						ColoscopieCentrum coloscopieCentrum = kamer.getColoscopieCentrum();
-						List<AfspraakDefinitie> afspraakDefinities = afspraakDefinitieDao.getActieveActieDefinities(coloscopieCentrum);
-
-						if (afspraakDefinities.size() != 1)
-						{
-							throw new IllegalStateException("Geen of te veel afspraakDefinities in IL " + coloscopieCentrum.getNaam());
-						}
-						var afspraakDefinitie = afspraakDefinities.get(0);
+						ColoscopieCentrum intakelocatie = kamer.getColoscopieCentrum();
+						var afspraakDefinitie = afspraakDefinitieService.getActiefAfspraakDefinitie(intakelocatie);
 
 						newAfspraak.setStartTime(vrijSlot.getStartTijd());
 						newAfspraak.setEndTime(vrijSlot.getEindTijd());

@@ -25,7 +25,6 @@ import java.util.List;
 
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.dao.cervix.CervixDossierDao;
 import nl.rivm.screenit.dao.cervix.CervixLabformulierDao;
 import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
@@ -34,6 +33,7 @@ import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.service.cervix.CervixBaseMonsterService;
+import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 import nl.rivm.screenit.service.cervix.CervixLabformulierService;
 import nl.rivm.screenit.service.cervix.CervixVervolgService;
 import nl.rivm.screenit.util.BriefUtil;
@@ -49,19 +49,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
-@Transactional(propagation = Propagation.SUPPORTS)
 public class CervixLabformulierServiceImpl implements CervixLabformulierService
 {
+	private final CervixLabformulierDao labformulierDao;
 
-	private CervixLabformulierDao labformulierDao;
+	private final CervixVervolgService vervolgService;
 
-	private CervixVervolgService vervolgService;
+	private final HibernateService hibernateService;
 
-	private HibernateService hibernateService;
+	private final CervixBaseMonsterService monsterService;
 
-	private CervixBaseMonsterService monsterService;
-
-	private CervixDossierDao dossierDao;
+	private final CervixBaseScreeningrondeService screeningrondeService;
 
 	@Override
 	public List<CervixLabformulier> getLabformulieren(CervixLabformulierenFilter filter, long first, long count, String sortProperty, boolean asc)
@@ -168,7 +166,7 @@ public class CervixLabformulierServiceImpl implements CervixLabformulierService
 					eerderUitstrijkje.setLabformulier(null);
 					labformulier.setUitstrijkje(null);
 
-					eerderUitstrijkje.setOntvangstScreeningRonde(dossierDao.getOntvangstRonde(eerderUitstrijkje));
+					eerderUitstrijkje.setOntvangstScreeningRonde(screeningrondeService.getOntvangstRondeVoorMonster(eerderUitstrijkje));
 					hibernateService.saveOrUpdate(eerderUitstrijkje);
 				}
 				return;
@@ -181,13 +179,13 @@ public class CervixLabformulierServiceImpl implements CervixLabformulierService
 
 			eerderUitstrijkje.setLabformulier(null);
 
-			eerderUitstrijkje.setOntvangstScreeningRonde(dossierDao.getOntvangstRonde(eerderUitstrijkje));
+			eerderUitstrijkje.setOntvangstScreeningRonde(screeningrondeService.getOntvangstRondeVoorMonster(eerderUitstrijkje));
 			hibernateService.saveOrUpdate(eerderUitstrijkje);
 		}
 		labformulier.setUitstrijkje(uitstrijkje);
 		uitstrijkje.setLabformulier(labformulier);
 
-		uitstrijkje.setOntvangstScreeningRonde(dossierDao.getOntvangstRonde(uitstrijkje));
+		uitstrijkje.setOntvangstScreeningRonde(screeningrondeService.getOntvangstRondeVoorMonster(uitstrijkje));
 		hibernateService.saveOrUpdate(uitstrijkje);
 	}
 
@@ -197,7 +195,7 @@ public class CervixLabformulierServiceImpl implements CervixLabformulierService
 	{
 		CervixUitstrijkje uitstrijkje = labformulier.getUitstrijkje();
 		uitstrijkje.setLabformulier(labformulier);
-		uitstrijkje.setOntvangstScreeningRonde(dossierDao.getOntvangstRonde(uitstrijkje));
+		uitstrijkje.setOntvangstScreeningRonde(screeningrondeService.getOntvangstRondeVoorMonster(uitstrijkje));
 		hibernateService.saveOrUpdate(labformulier);
 		vervolgService.digitaalLabformulierKlaarVoorCytologie(uitstrijkje);
 	}
@@ -249,7 +247,7 @@ public class CervixLabformulierServiceImpl implements CervixLabformulierService
 					}
 					else
 					{
-						dossierDao.getOntvangstRonde(uitstrijkje);
+						screeningrondeService.getOntvangstRondeVoorMonster(uitstrijkje);
 					}
 				}
 			}

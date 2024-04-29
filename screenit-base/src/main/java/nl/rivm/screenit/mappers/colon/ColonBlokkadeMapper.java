@@ -38,5 +38,7 @@ public interface ColonBlokkadeMapper
 	@Mapping(source = "endTime", target = "endTime")
 	@Mapping(source = "description", target = "description")
 	@Mapping(target = "alleKamers", ignore = true)
+	@Mapping(target = "alleenValidatie", ignore = true)
+	@Mapping(target = "herhaling", ignore = true)
 	ColonBlokkadeDto colonBlokkadeToDto(ColonBlokkade colonBlokkade);
 }

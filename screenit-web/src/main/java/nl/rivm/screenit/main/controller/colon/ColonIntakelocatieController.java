@@ -21,8 +21,12 @@ package nl.rivm.screenit.main.controller.colon;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
+
 import lombok.AllArgsConstructor;
 
+import nl.rivm.screenit.main.service.colon.RoosterService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.mappers.colon.ColonIntakelocatieMapper;
@@ -32,12 +36,15 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.colon.ColonRoosterService;
+import nl.rivm.screenit.util.DateUtil;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.wicketstuff.shiro.ShiroConstraint;
+
+import com.google.common.collect.Range;
 
 @RestController
 @RequestMapping("/api/colon/intakelocatie")
@@ -46,15 +53,25 @@ public class ColonIntakelocatieController
 {
 	private final ColonIntakelocatieMapper intakelocatieMapper;
 
-	private final ColonRoosterService roosterService;
+	private final ColonRoosterService colonRoosterService;
+
+	private final RoosterService roosterService;
 
 	@GetMapping()
 	@SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_NIEUW_ROOSTER, bevolkingsonderzoekScopes = {
 		Bevolkingsonderzoek.COLON })
-	public ColonIntakelocatieDto getIntakelocatie()
+	public ResponseEntity<ColonIntakelocatieDto> getIntakelocatie()
 	{
 		var intakelocatie = ScreenitSession.get().getColoscopieCentrum();
-		return intakelocatieMapper.intakelocatieToDto(intakelocatie);
+		var now = LocalDate.now();
+		var startOfYear = now.with(TemporalAdjusters.firstDayOfYear());
+		var endOfYear = startOfYear.plusYears(1);
+
+		var periode = Range.closed(DateUtil.toUtilDate(startOfYear), DateUtil.toUtilDate(endOfYear));
+		var huidigAantalAfspraakslots = roosterService.getCurrentAantalRoosterBlokken(intakelocatie, periode);
+		var response = intakelocatieMapper.intakelocatieToDto(intakelocatie);
+		response.setHuidigAantalAfspraakslots(huidigAantalAfspraakslots);
+		return ResponseEntity.ok(response);
 	}
 
 	@GetMapping("/signaleringstermijn")
@@ -64,11 +81,11 @@ public class ColonIntakelocatieController
 	{
 		var signaleringstermijnDto = new ColonSignaleringstermijnDto();
 
-		var signaleringstermijnTekst = roosterService.getSignaleringstermijnTekst();
+		var signaleringstermijnTekst = colonRoosterService.getSignaleringstermijnTekst();
 
 		signaleringstermijnDto.setTekst(signaleringstermijnTekst);
-		signaleringstermijnDto.setSignaleringsTermijnDeadline(roosterService.getSignaleringstermijnDeadline());
-		signaleringstermijnDto.setHeeftGeenCapaciteitBinnenSignaleringsTermijn(roosterService.intakelocatieHeeftGeenCapaciteit(ScreenitSession.get().getColoscopieCentrum()));
+		signaleringstermijnDto.setSignaleringsTermijnDeadline(colonRoosterService.getSignaleringstermijnDeadline());
+		signaleringstermijnDto.setHeeftGeenCapaciteitBinnenSignaleringsTermijn(colonRoosterService.intakelocatieHeeftGeenCapaciteit(ScreenitSession.get().getColoscopieCentrum()));
 
 		return ResponseEntity.ok(signaleringstermijnDto);
 	}

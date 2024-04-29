@@ -27,10 +27,8 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -43,6 +41,7 @@ import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
 import nl.rivm.screenit.exceptions.TijdBlokOverlapException;
 import nl.rivm.screenit.main.exception.BeperkingException;
 import nl.rivm.screenit.main.exception.BulkAanmakenException;
+import nl.rivm.screenit.main.exception.BulkVerwijderenException;
 import nl.rivm.screenit.main.exception.ValidatieException;
 import nl.rivm.screenit.main.service.colon.ColonAfspraakslotService;
 import nl.rivm.screenit.main.service.colon.ColonFeestdagService;
@@ -52,20 +51,21 @@ import nl.rivm.screenit.mappers.colon.ColonAfspraakslotMapper;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.colon.ColonHerhalingsfrequentie;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
-import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.RoosterItemStatus;
 import nl.rivm.screenit.model.colon.RoosterListViewFilter;
 import nl.rivm.screenit.model.colon.dto.ColonAfspraakslotDto;
-import nl.rivm.screenit.model.colon.dto.ColonAfspraakslotHerhalingDto;
+import nl.rivm.screenit.model.colon.dto.ColonHerhalingDto;
 import nl.rivm.screenit.model.colon.dto.ColonRoosterBeperkingenDto;
+import nl.rivm.screenit.model.colon.dto.ColonTijdslotDto;
 import nl.rivm.screenit.model.colon.enums.ColonRoosterBeperking;
+import nl.rivm.screenit.model.colon.enums.ColonTijdSlotType;
 import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.repository.colon.ColonAfspraakslotRepository;
 import nl.rivm.screenit.repository.colon.ColonRoosterItemRepository;
 import nl.rivm.screenit.service.LogService;
-import nl.rivm.screenit.service.colon.AfspraakService;
+import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -101,7 +101,7 @@ public class ColonAfspraakslotServiceImpl implements ColonAfspraakslotService
 
 	private final ColonFeestdagService feestdagService;
 
-	private final AfspraakService afspraakService;
+	private final ColonBaseAfspraakService afspraakService;
 
 	@Override
 	@Transactional
@@ -113,28 +113,71 @@ public class ColonAfspraakslotServiceImpl implements ColonAfspraakslotService
 		var afspraakslot = converteerAfspraakslot(afspraakslotDto, intakelocatie, dbAfspraakslot);
 		var alleenValidatie = afspraakslotDto.isAlleenValidatie();
 
-		var aanTeMakenAfspraakslots = new ArrayList<RoosterItem>();
-		var bulkAanmaken = afspraakslotDto.getHerhaling().getFrequentie() != ColonHerhalingsfrequentie.GEEN_HERHALING;
-
-		aanTeMakenAfspraakslots.add(afspraakslot);
-
-		if (bulkAanmaken)
+		if (afspraakslotDto.getHerhaling().getFrequentie() != ColonHerhalingsfrequentie.GEEN_HERHALING)
 		{
-			aanTeMakenAfspraakslots.addAll(maakHerhalingAfspraakslotsAan(afspraakslot, afspraakslotDto));
-			valideerBulkAfspraakslots(aanTeMakenAfspraakslots, intakelocatie, getCurrentViewRange(afspraakslotDto), alleenValidatie);
+			createBulkAfspraakslots(afspraakslot, afspraakslotDto, instellingGebruiker, intakelocatie, alleenValidatie);
 		}
 		else
 		{
-			valideerAfspraakslot(afspraakslot, intakelocatie, getCurrentViewRange(afspraakslot), !alleenValidatie, false);
+			createEnkelAfspraakslot(afspraakslot, afspraakslotDto, instellingGebruiker, intakelocatie, alleenValidatie);
 		}
+	}
 
+	private void createEnkelAfspraakslot(RoosterItem afspraakslot, ColonAfspraakslotDto afspraakslotDto, InstellingGebruiker instellingGebruiker, ColoscopieCentrum intakelocatie,
+		boolean alleenValidatie)
+		throws ValidatieException, OpslaanVerwijderenTijdBlokException, BeperkingException
+	{
+		var aanTeMakenAfspraakslots = new ArrayList<RoosterItem>();
+		aanTeMakenAfspraakslots.add(afspraakslot);
+
+		valideerAfspraakslot(afspraakslot, intakelocatie, getCurrentViewRange(afspraakslot), !alleenValidatie, false);
 		if (!alleenValidatie)
 		{
-			logAction(afspraakslot, afspraakslotDto.getAantalBlokken(), instellingGebruiker, intakelocatie, null, LogGebeurtenis.ROOSTERBLOK_NIEUW,
+			logAction(afspraakslot, afspraakslotDto.getAantalBlokken(), instellingGebruiker, intakelocatie, null, LogGebeurtenis.AFSPRAAKSLOT_NIEUW,
 				afspraakslotDto.getHerhaling());
 
 			var transformedAfspraakslots = splitAfspraakslots(aanTeMakenAfspraakslots, afspraakslotDto.getAantalBlokken(), intakelocatie);
 			roosterItemRepository.saveAll(transformedAfspraakslots);
+		}
+	}
+
+	private void createBulkAfspraakslots(RoosterItem afspraakslot, ColonAfspraakslotDto afspraakslotDto, InstellingGebruiker instellingGebruiker, ColoscopieCentrum intakelocatie,
+		boolean alleenValidatie)
+		throws BulkAanmakenException
+	{
+		var aanTeMakenAfspraakslots = new ArrayList<RoosterItem>();
+		aanTeMakenAfspraakslots.add(afspraakslot);
+		try
+		{
+			aanTeMakenAfspraakslots.addAll(roosterService.maakHerhalingTijdslotsAan(afspraakslot, afspraakslotDto.getHerhaling()));
+			aanTeMakenAfspraakslots = (ArrayList<RoosterItem>) splitAfspraakslots(aanTeMakenAfspraakslots, afspraakslotDto.getAantalBlokken(), intakelocatie);
+			valideerBulkAfspraakslots(aanTeMakenAfspraakslots, intakelocatie, alleenValidatie, getCurrentViewRange(afspraakslotDto));
+
+			if (!alleenValidatie)
+			{
+				logAction(afspraakslot, afspraakslotDto.getAantalBlokken(), instellingGebruiker, intakelocatie, null, LogGebeurtenis.AFSPRAAKSLOT_NIEUW,
+					afspraakslotDto.getHerhaling());
+
+				roosterItemRepository.saveAll(aanTeMakenAfspraakslots);
+			}
+		}
+		catch (BulkAanmakenException ex)
+		{
+
+			if (alleenValidatie)
+			{
+				throw ex;
+			}
+
+			else if (!aanTeMakenAfspraakslots.isEmpty())
+			{
+				var melding = genereerLogMessage(aanTeMakenAfspraakslots.get(0), null, LogGebeurtenis.AFSPRAAKSLOT_NIEUW, afspraakslotDto.getAantalBlokken(),
+					afspraakslotDto.getHerhaling());
+				melding += ". " + ex.getSamenvatting();
+				logService.logGebeurtenis(LogGebeurtenis.AFSPRAAKSLOT_NIEUW, instellingGebruiker, melding, Bevolkingsonderzoek.COLON);
+
+				roosterItemRepository.saveAll(aanTeMakenAfspraakslots);
+			}
 		}
 	}
 
@@ -158,7 +201,7 @@ public class ColonAfspraakslotServiceImpl implements ColonAfspraakslotService
 		if (!alleenValidatie)
 		{
 			converteerAfspraakslot(afspraakslotDto, intakelocatie, dbAfspraakslot);
-			logAction(dbAfspraakslot, afspraakslotDto.getAantalBlokken(), instellingGebruiker, intakelocatie, originalAfspraakslot, LogGebeurtenis.ROOSTERBLOK_WIJZIG, null);
+			logAction(dbAfspraakslot, afspraakslotDto.getAantalBlokken(), instellingGebruiker, intakelocatie, originalAfspraakslot, LogGebeurtenis.AFSPRAAKSLOT_WIJZIG, null);
 			roosterItemRepository.save(dbAfspraakslot);
 		}
 	}
@@ -171,7 +214,7 @@ public class ColonAfspraakslotServiceImpl implements ColonAfspraakslotService
 		var intakelocatie = roosterService.getIntakelocatieVanInstellingGebruiker(instellingGebruiker);
 		var dbAfspraakslot = roosterService.getRoosterItem(id).orElseThrow(() -> new ValidatieException("error.afspraakslot.niet.gevonden"));
 		var roosterItemStatus = roosterService.getRoosterItemStatus(dbAfspraakslot);
-		roosterService.magRoosterItemOpslaanVerwijderen(dbAfspraakslot, getCurrentViewRange(dbAfspraakslot), true);
+		magAfsrpaakslotOpslaanVerwijderen(dbAfspraakslot, getCurrentViewRange(dbAfspraakslot), false);
 
 		if (roosterItemStatus == RoosterItemStatus.GEBRUIKT_VOOR_CAPACITEIT)
 		{
@@ -179,16 +222,61 @@ public class ColonAfspraakslotServiceImpl implements ColonAfspraakslotService
 		}
 
 		roosterItemRepository.delete(dbAfspraakslot);
-		logAction(dbAfspraakslot, 1, instellingGebruiker, intakelocatie, dbAfspraakslot, LogGebeurtenis.ROOSTERBLOK_VERWIJDEREN, null);
+		logAction(dbAfspraakslot, 1, instellingGebruiker, intakelocatie, dbAfspraakslot, LogGebeurtenis.AFSPRAAKSLOT_VERWIJDEREN, null);
+	}
+
+	@Override
+	@Transactional
+	public void bulkDeleteAfspraakslots(List<Long> ids, InstellingGebruiker instellingGebruiker, boolean alleenValidatie)
+		throws BulkVerwijderenException
+	{
+		var exception = new BulkVerwijderenException(ColonTijdSlotType.ROOSTER_ITEM);
+		var teVerwijderenSlots = new ArrayList<RoosterItem>();
+		ids.forEach(id ->
+		{
+			try
+			{
+				var dbAfspraakslot = roosterService.getRoosterItem(id).orElse(null);
+				if (dbAfspraakslot == null)
+				{
+					exception.aantalNietGevondenOphogen();
+					return;
+				}
+				var roosterItemStatus = roosterService.getRoosterItemStatus(dbAfspraakslot);
+				roosterService.magRoosterItemOpslaanVerwijderen(dbAfspraakslot, getCurrentViewRange(dbAfspraakslot), true);
+
+				if (roosterItemStatus == RoosterItemStatus.GEBRUIKT_VOOR_CAPACITEIT)
+				{
+					exception.aantalGebruiktVoorCapaciteitOphogen();
+					return;
+				}
+				exception.aantalVerwijderenOphogen();
+				teVerwijderenSlots.add(dbAfspraakslot);
+			}
+
+			catch (OpslaanVerwijderenTijdBlokException ex)
+			{
+				exception.aantalMetAfspraakOphogen();
+			}
+		});
+
+		if (alleenValidatie)
+		{
+			throw exception;
+		}
+		else
+		{
+			roosterItemRepository.deleteAll(teVerwijderenSlots);
+			logService.logGebeurtenis(LogGebeurtenis.AFSPRAAKSLOT_VERWIJDEREN, instellingGebruiker, exception.getMessage(), Bevolkingsonderzoek.COLON);
+		}
 	}
 
 	@Override
 	public List<ColonAfspraakslotDto> getAfspraakslots(LocalDate startDate, LocalDate endDate, ColoscopieCentrum intakeLocatie)
 	{
 		var filter = new RoosterListViewFilter();
-
 		filter.setStartDatum(DateUtil.toUtilDate(startDate));
-		filter.setEndDatum(DateUtil.toUtilDate(endDate));
+		filter.setEindDatum(DateUtil.toUtilDate(endDate));
 
 		var gevondenAfspraakslots = roosterService.getAlleRoosterBlokkenInPeriode("startTime", true, filter, intakeLocatie);
 		var afspraakslots = new ArrayList<ColonAfspraakslotDto>();
@@ -197,9 +285,15 @@ public class ColonAfspraakslotServiceImpl implements ColonAfspraakslotService
 			var afspraakslot = afspraakslotRepository.findById(gevondenAfspraakslot.getRoosterItemId()).orElse(null);
 			var afspraakslotStatus = roosterService.getRoosterItemStatus(afspraakslot);
 			gevondenAfspraakslot.setStatus(afspraakslotStatus);
-			afspraakslots.add(afspraakslotMapper.roosterListItemViewWrapperToColonAfspraakDto(gevondenAfspraakslot));
+			afspraakslots.add(afspraakslotMapper.roosterListItemViewWrapperToColonAfspraakslotDto(gevondenAfspraakslot));
 		}
 		return afspraakslots;
+	}
+
+	@Override
+	public List<ColonTijdslotDto> searchAfspraakslots(RoosterListViewFilter filter, long intakelocatieId)
+	{
+		return roosterService.searchTijdslots(filter, intakelocatieId, ColonTijdSlotType.ROOSTER_ITEM);
 	}
 
 	@Override
@@ -252,7 +346,7 @@ public class ColonAfspraakslotServiceImpl implements ColonAfspraakslotService
 	{
 		valideerBeperkingen(afspraakslot, ColonRoosterBeperking.HARD);
 		roosterService.valideerTijdslot(afspraakslot);
-		magRoosterItemOpslaanVerwijderen(afspraakslot, List.of(afspraakslot), currentViewRange, wijzigen);
+		magAfsrpaakslotOpslaanVerwijderen(afspraakslot, currentViewRange, wijzigen);
 
 		checkCapaciteitBerekening(afspraakslot, intakelocatie);
 		checkEindTijdOpZelfdeDag(DateUtil.toLocalDateTime(afspraakslot.getStartTime()), DateUtil.toLocalDateTime(afspraakslot.getEndTime()), intakelocatie);
@@ -263,7 +357,7 @@ public class ColonAfspraakslotServiceImpl implements ColonAfspraakslotService
 		}
 	}
 
-	private void valideerBulkAfspraakslots(List<RoosterItem> aanTeMakenAfspraakslots, ColoscopieCentrum intakelocatie, Range<Date> currentViewRange, boolean alleenValidatie)
+	private void valideerBulkAfspraakslots(List<RoosterItem> aanTeMakenAfspraakslots, ColoscopieCentrum intakelocatie, boolean alleenValidatie, Range<Date> currentViewRange)
 		throws BulkAanmakenException
 	{
 		var bulkAanmakenException = new BulkAanmakenException();
@@ -274,60 +368,58 @@ public class ColonAfspraakslotServiceImpl implements ColonAfspraakslotService
 			{
 				valideerBeperkingen(afspraakslot, ColonRoosterBeperking.HARD);
 				roosterService.valideerTijdslot(afspraakslot);
-				magRoosterItemOpslaanVerwijderen(afspraakslot, aanTeMakenAfspraakslots, currentViewRange, true);
+				magAfsrpaakslotOpslaanVerwijderen(afspraakslot, currentViewRange, true);
 				checkCapaciteitBerekening(afspraakslot, intakelocatie);
 				checkEindTijdOpZelfdeDag(DateUtil.toLocalDateTime(afspraakslot.getStartTime()), DateUtil.toLocalDateTime(afspraakslot.getEndTime()), intakelocatie);
 				valideerBeperkingen(afspraakslot, ColonRoosterBeperking.ZACHT);
 			}
 			catch (ValidatieException | OpslaanVerwijderenTijdBlokException | BeperkingException ex)
 			{
-				if (alleenValidatie)
-				{
-					bulkAanmakenException.addException(afspraakslot, ex);
-					invalideAfspraakslots.add(afspraakslot);
-				}
+				bulkAanmakenException.addException(afspraakslot, ex);
 
-				else if (!(ex instanceof BeperkingException && ((BeperkingException) ex).getBeperkingType() == ColonRoosterBeperking.ZACHT))
+				if (!(ex instanceof BeperkingException && ((BeperkingException) ex).getBeperkingType() == ColonRoosterBeperking.ZACHT))
 				{
 					invalideAfspraakslots.add(afspraakslot);
 				}
 			}
 		}
+
+		aanTeMakenAfspraakslots.removeAll(invalideAfspraakslots);
+
 		if (!bulkAanmakenException.isEmpty())
 		{
 			throw bulkAanmakenException;
 		}
-
-		aanTeMakenAfspraakslots.removeAll(invalideAfspraakslots);
 	}
 
-	public void magRoosterItemOpslaanVerwijderen(RoosterItem afspraakslot, List<RoosterItem> herhalingAfspraakslots, Range<Date> currentViewRange, boolean wijzigen)
+	public void magAfsrpaakslotOpslaanVerwijderen(RoosterItem afspraakslot, Range<Date> currentViewRange, boolean wijzigen)
 		throws OpslaanVerwijderenTijdBlokException
 	{
 		if (afspraakslot.getId() != null)
 		{
 
-			var afspraken = afspraakService.getRoosterItemsBezetMetAfspraak(afspraakslot.getId(), currentViewRange);
+			var afspraken = afspraakService.getAfsprakenMetRoosterItemInRange(afspraakslot.getId(), currentViewRange);
+			List<Object> afsprakenObjects = new ArrayList<>(afspraken);
 			if (!afspraken.isEmpty())
 			{
 
 				if (wijzigen)
 				{
-					throw new HeeftAfsprakenException("error.afspraakslot.wijzig.heeft.afspraken", afspraken);
+					throw new HeeftAfsprakenException("error.afspraakslot.wijzig.heeft.afspraken", afsprakenObjects);
 				}
 				else
 				{
-					throw new HeeftAfsprakenException("error.afspraakslot.verwijder.heeft.afspraken", afspraken);
+					throw new HeeftAfsprakenException("error.afspraakslot.verwijder.heeft.afspraken", afsprakenObjects);
 				}
 			}
 		}
 
-		var nieuweAfspraakslots = getNieuweTijdsloten(herhalingAfspraakslots);
+		var nieuweAfspraakslots = List.of(Range.closed(DateUtil.startMinuut(afspraakslot.getStartTime()), DateUtil.startMinuut(afspraakslot.getEndTime())));
 
 		List<RoosterItem> overlapteAfspraakslots = null;
 		if (wijzigen || afspraakslot.getId() == null) 
 		{
-			overlapteAfspraakslots = roosterService.getAfspraakslotsInRange(nieuweAfspraakslots, afspraakslot);
+			overlapteAfspraakslots = roosterService.getAfspraakslotsInRangesEnKamer(nieuweAfspraakslots, afspraakslot);
 		}
 
 		if (afspraakslot.getId() == null) 
@@ -358,12 +450,6 @@ public class ColonAfspraakslotServiceImpl implements ColonAfspraakslotService
 				throw new TijdBlokOverlapException("error.afspraakslot.heeft.overlap", echteOverlapteAfspraakslots);
 			}
 		}
-	}
-
-	private List<Range<Date>> getNieuweTijdsloten(List<? extends AbstractAppointment> aanTeMakenTijdslots)
-	{
-		return aanTeMakenTijdslots.stream().map(tijdslot -> Range.closed(DateUtil.startMinuut(tijdslot.getStartTime()), DateUtil.startMinuut(tijdslot.getEndTime()))).collect(
-			Collectors.toList());
 	}
 
 	@Override
@@ -497,129 +583,36 @@ public class ColonAfspraakslotServiceImpl implements ColonAfspraakslotService
 	}
 
 	public void logAction(RoosterItem unsavedObject, int aantalBlokken, InstellingGebruiker instellingGebruiker, ColoscopieCentrum intakelocatie,
-		@Nullable RoosterItem origineleAfspraakslot, LogGebeurtenis gebeurtenis, ColonAfspraakslotHerhalingDto herhalingDto)
+		@Nullable RoosterItem origineleAfspraakslot, LogGebeurtenis gebeurtenis, ColonHerhalingDto herhalingDto)
 	{
-		var selectedKamer = unsavedObject.getLocation();
-		if (selectedKamer != null)
-		{
-			logActionKamer(unsavedObject, instellingGebruiker, selectedKamer, origineleAfspraakslot, gebeurtenis, aantalBlokken, herhalingDto);
-		}
-		else
-		{
-			for (Kamer kamer : getActieveKamers(intakelocatie))
-			{
-				logActionKamer(unsavedObject, instellingGebruiker, kamer, origineleAfspraakslot, gebeurtenis, aantalBlokken, herhalingDto);
-			}
-		}
+		var melding = genereerLogMessage(unsavedObject, origineleAfspraakslot, gebeurtenis, aantalBlokken, herhalingDto);
+		logService.logGebeurtenis(gebeurtenis, instellingGebruiker, melding, Bevolkingsonderzoek.COLON);
 	}
 
-	private void logActionKamer(RoosterItem unsavedObject, InstellingGebruiker instellingGebruiker, Kamer kamer, @Nullable RoosterItem originalAfspraakslot,
-		LogGebeurtenis gebeurtenis, int aantalBlokken, ColonAfspraakslotHerhalingDto herhalingDto)
+	private String genereerLogMessage(RoosterItem unsavedAfspraakslot, @Nullable RoosterItem originalAfspraakslot,
+		LogGebeurtenis gebeurtenis, int aantalBlokken, ColonHerhalingDto herhalingDto)
 	{
 		var dateTimeFormat = Constants.getDateTimeFormat();
-		var melding = dateTimeFormat.format(unsavedObject.getStartTime()) + ", " + kamer.getName() + ", " + kamer.getColoscopieCentrum().getNaam();
+		var melding = dateTimeFormat.format(unsavedAfspraakslot.getStartTime()) + ", " + unsavedAfspraakslot.getLocation().getName() + ", " + unsavedAfspraakslot.getLocation()
+			.getColoscopieCentrum()
+			.getNaam();
 
 		if (herhalingDto != null && herhalingDto.getFrequentie() != ColonHerhalingsfrequentie.GEEN_HERHALING)
 		{
-			melding += ", in " + herhalingDto.getFrequentie().getNaam() + " reeks ";
-			melding += " t/m " + herhalingDto.getEindDatum().format(DateUtil.LOCAL_DATE_FORMAT);
+			melding += ", " + herhalingDto.getFrequentie().getNaam() + " t/m " + herhalingDto.getEindDatum().format(DateUtil.LOCAL_DATE_FORMAT);
 		}
 
-		if (gebeurtenis == LogGebeurtenis.ROOSTERBLOK_NIEUW)
+		if (gebeurtenis == LogGebeurtenis.AFSPRAAKSLOT_NIEUW)
 		{
-			melding = "#" + aantalBlokken + " sloten, " + melding;
+			melding = "#" + aantalBlokken + " slots, " + melding;
 		}
-		else if (gebeurtenis == LogGebeurtenis.ROOSTERBLOK_WIJZIG && originalAfspraakslot != null)
+		else if (gebeurtenis == LogGebeurtenis.AFSPRAAKSLOT_WIJZIG && originalAfspraakslot != null)
 		{
 			var origStartTime = originalAfspraakslot.getStartTime();
 			melding = dateTimeFormat.format(origStartTime) + " -> " + melding;
 
 		}
-		logService.logGebeurtenis(gebeurtenis, instellingGebruiker, melding, Bevolkingsonderzoek.COLON);
-	}
 
-	private static List<Kamer> getActieveKamers(ColoscopieCentrum intakelocatie)
-	{
-		return intakelocatie.getKamers().stream().filter(Kamer::getActief).collect(Collectors.toList());
-	}
-
-	private List<RoosterItem> maakHerhalingAfspraakslotsAan(RoosterItem afspraakslot, ColonAfspraakslotDto afspraakslotDto)
-	{
-		RoosterItem afspraakslotCone;
-		var vorigeAfspraakslot = afspraakslot;
-		var herhalingAfspraakslots = new ArrayList<RoosterItem>();
-		var herhalingEindDatum = DateUtil.eindDag(DateUtil.toUtilDate(afspraakslotDto.getHerhaling().getEindDatum()));
-		while (vorigeAfspraakslot.getStartTime().before(herhalingEindDatum))
-		{
-			afspraakslotCone = getVolgendeAfspraak(vorigeAfspraakslot, afspraakslotDto);
-			if (afspraakslotCone.getStartTime().before(herhalingEindDatum))
-			{
-				herhalingAfspraakslots.add(afspraakslotCone);
-			}
-			vorigeAfspraakslot = afspraakslotCone;
-		}
-		return herhalingAfspraakslots;
-	}
-
-	private RoosterItem getVolgendeAfspraak(RoosterItem afspraakslot, ColonAfspraakslotDto afspraakslotDto)
-	{
-		var afspraakslotClone = afspraakslot.transientClone();
-
-		var volgendeStartTijd = getStartTijdVolgendeTijdslot(DateUtil.toLocalDateTime(afspraakslotClone.getStartTime()), afspraakslotDto);
-		var volgendeEindTijd = getEindTijdVolgendeTijdslot(afspraakslotClone, volgendeStartTijd);
-
-		afspraakslotClone.setStartTime(volgendeStartTijd);
-		afspraakslotClone.setEndTime(volgendeEindTijd);
-		afspraakslotClone.setRecurrence(null);
-		return afspraakslotClone;
-	}
-
-	private Date getStartTijdVolgendeTijdslot(LocalDateTime huidigeTijdslotStartTijd, ColonAfspraakslotDto afspraakslotDto)
-	{
-		var herhalingDto = afspraakslotDto.getHerhaling();
-		if (herhalingDto.getFrequentie() == ColonHerhalingsfrequentie.DAGELIJKS)
-		{
-			return getStartTijdVolgendeDagelijkseTijdslot(huidigeTijdslotStartTijd, herhalingDto.isAlleenWerkdagen());
-		}
-		var interval = herhalingDto.getFrequentie() == ColonHerhalingsfrequentie.TWEE_WEKELIJKS ? 2 : 1;
-		return getStartTijdVolgendeWekelijkseTijdslot(huidigeTijdslotStartTijd, interval, herhalingDto.getDagen());
-	}
-
-	private Date getEindTijdVolgendeTijdslot(RoosterItem afspraakslot, Date volgendeStartTijd)
-	{
-		long tijdSlotDuurInMillis = afspraakslot.getEndTime().getTime() - afspraakslot.getStartTime().getTime();
-		long volgendeStartTijdInMillis = volgendeStartTijd.getTime() + tijdSlotDuurInMillis;
-		return new Date(volgendeStartTijdInMillis);
-	}
-
-	private Date getStartTijdVolgendeDagelijkseTijdslot(LocalDateTime huidigeTijdslotStartTijd, Boolean businessDaysOnly)
-	{
-		huidigeTijdslotStartTijd = huidigeTijdslotStartTijd.plusDays(1);
-
-		var weekend = Arrays.asList(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY);
-
-		while (Boolean.TRUE.equals(businessDaysOnly) && weekend.contains(huidigeTijdslotStartTijd.getDayOfWeek()))
-		{
-			huidigeTijdslotStartTijd = huidigeTijdslotStartTijd.plusDays(1);
-		}
-		return DateUtil.toUtilDate(huidigeTijdslotStartTijd);
-	}
-
-	private Date getStartTijdVolgendeWekelijkseTijdslot(LocalDateTime huidigeTijdslotStartTijd, int perAantalWeken, List<Integer> weekdagen)
-	{
-		for (var weekDag : weekdagen)
-		{
-			if (weekDag > huidigeTijdslotStartTijd.getDayOfWeek().getValue())
-			{
-				huidigeTijdslotStartTijd = huidigeTijdslotStartTijd.with(DayOfWeek.of(weekDag));
-				return DateUtil.toUtilDate(huidigeTijdslotStartTijd);
-			}
-		}
-		if (!weekdagen.isEmpty())
-		{
-			huidigeTijdslotStartTijd = huidigeTijdslotStartTijd.with(DayOfWeek.of(weekdagen.get(0)));
-		}
-		huidigeTijdslotStartTijd = huidigeTijdslotStartTijd.plusWeeks(perAantalWeken);
-		return DateUtil.toUtilDate(huidigeTijdslotStartTijd);
+		return melding;
 	}
 }

@@ -27,7 +27,7 @@ import java.util.Iterator;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
-import nl.rivm.screenit.service.colon.AfspraakService;
+import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -42,7 +42,7 @@ public class WerklijstIntakeDataProvider extends SortableDataProvider<ColonIntak
 	private final IModel<WerklijstIntakeFilter> zoekModel;
 
 	@SpringBean
-	private AfspraakService afspraakService;
+	private ColonBaseAfspraakService afspraakService;
 
 	private final IModel<ColoscopieCentrum> coloscopieCentrum;
 
