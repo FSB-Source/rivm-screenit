@@ -18,9 +18,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
-import {addBusinessDays, addDays, addMonths, differenceInDays, isWeekend, max, min, startOfDay, subDays, subMonths} from "date-fns"
+import {addBusinessDays, addDays, addMonths, differenceInDays, format, isWeekend, max, min, startOfDay, subDays, subMonths} from "date-fns"
 import {isNullOfUndefined} from "./EmptyUtil"
 import {cpStore} from "../index"
+import {nl} from "date-fns/locale"
 
 export const berekenOffset = (datumTijd: Date): number => {
 	const lokaalDatum = new Date()
@@ -55,34 +56,35 @@ export const beginDag = (datum: Date): Date => {
 }
 
 export const formatDate = (datum?: Date): string => {
-	return !!datum ? getDateTimeFormat({
-		year: "numeric", month: "2-digit", day: "2-digit",
-	}).format(datum) : ""
+	if (!datum) {
+		return ""
+	}
+
+	return format(datum, "dd-MM-yyyy", {locale: nl})
 }
 
 export const formatTime = (datum?: Date): string => {
-	return !!datum ? getDateTimeFormat({
-		hour: "numeric", minute: "numeric",
-	}).format(datum) : ""
+	if (!datum) {
+		return ""
+	}
+
+	return format(datum, "HH:mm", {locale: nl})
 }
 
 export const formatDateText = (datum?: Date | null): string => {
-	return !!datum ? getDateTimeFormat({
-		year: "numeric", month: "long", day: "numeric",
-	}).format(datum) : ""
+	if (!datum) {
+		return ""
+	}
+
+	return format(datum, "d MMMM yyyy", {locale: nl})
 }
 
 export const formatDateWithDayName = (datum?: Date | null): string => {
-	return !!datum ? getDateTimeFormat({
-		month: "long", day: "numeric", weekday: "long",
-	}).format(datum) : ""
-}
+	if (!datum) {
+		return ""
+	}
 
-export const formatDateTime = (datum?: Date | null): string => {
-	return !!datum ? getDateTimeFormat({
-		year: "numeric", month: "2-digit", day: "2-digit",
-		hour: "numeric", minute: "numeric",
-	}).format(datum) : ""
+	return format(datum, "EEEE d MMMM", {locale: nl})
 }
 
 export const plusDagen = (datum: Date, dagen: number): Date => {
@@ -99,10 +101,6 @@ export const plusMaanden = (datum: Date, maanden: number): Date => {
 
 export const minMaanden = (datum: Date, maanden: number): Date => {
 	return subMonths(datum, maanden)
-}
-
-export const isDatumVoorVandaag = (datum: Date): boolean => {
-	return beginDag(datum).getTime() < vandaag().getTime()
 }
 
 export const isDatumVandaagOfLater = (datum: Date): boolean => {
@@ -143,11 +141,4 @@ export function zoekIndex(lijst: Date[] | undefined, value: Date | undefined): n
 
 export function getAantalDagenTussenDatums(eersteDatum: Date, tweedeDatum: Date) {
 	return differenceInDays(eersteDatum, tweedeDatum)
-}
-
-const getDateTimeFormat = (options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat => {
-	return new Intl.DateTimeFormat("nl-NL", {
-		...options,
-		timeZone: "Europe/Amsterdam",
-	})
 }

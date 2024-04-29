@@ -21,11 +21,15 @@ package nl.rivm.screenit.model;
  * =========================LICENSE_END==================================
  */
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import nl.rivm.screenit.model.helper.HibernateMagicNumber;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
@@ -34,14 +38,13 @@ import nl.topicuszorg.organisatie.model.Adres;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
+@Setter
+@Getter
 @Entity(name = "regio_bvo_contact_gegevens")
 @Table(schema = "algemeen")
 @Audited
 public class RegioBvoContactGegevens extends AbstractHibernateObject
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@Column(length = HibernateMagicNumber.L20)
 	private String telefoon;
 
@@ -52,64 +55,10 @@ public class RegioBvoContactGegevens extends AbstractHibernateObject
 	private String clientPortaalVrijeTekst;
 
 	@NotAudited
-	@OneToOne(fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.ALL })
+	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	private Adres antwoordnummerAdres;
 
 	@NotAudited
-	@OneToOne(fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.ALL })
+	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	private Adres postbusnummerAdres;
-
-	public RegioBvoContactGegevens()
-	{
-	}
-
-	public String getTelefoon()
-	{
-		return telefoon;
-	}
-
-	public void setTelefoon(String telefoon)
-	{
-		this.telefoon = telefoon;
-	}
-
-	public String getEmail()
-	{
-		return email;
-	}
-
-	public void setEmail(String email)
-	{
-		this.email = email;
-	}
-
-	public String getClientPortaalVrijeTekst()
-	{
-		return clientPortaalVrijeTekst;
-	}
-
-	public void setClientPortaalVrijeTekst(String openingstijdentekst)
-	{
-		this.clientPortaalVrijeTekst = openingstijdentekst;
-	}
-
-	public Adres getAntwoordnummerAdres()
-	{
-		return antwoordnummerAdres;
-	}
-
-	public void setAntwoordnummerAdres(Adres antwoordnummer)
-	{
-		this.antwoordnummerAdres = antwoordnummer;
-	}
-
-	public Adres getPostbusnummerAdres()
-	{
-		return postbusnummerAdres;
-	}
-
-	public void setPostbusnummerAdres(Adres postbusnummer)
-	{
-		this.postbusnummerAdres = postbusnummer;
-	}
 }

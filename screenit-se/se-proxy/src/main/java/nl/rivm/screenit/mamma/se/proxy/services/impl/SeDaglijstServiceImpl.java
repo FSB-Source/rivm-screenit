@@ -29,6 +29,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.mamma.se.proxy.model.RequestTypeCentraal;
 import nl.rivm.screenit.mamma.se.proxy.model.SeConfiguratieKey;
 import nl.rivm.screenit.mamma.se.proxy.model.WebsocketBerichtType;
@@ -40,8 +42,6 @@ import nl.rivm.screenit.mamma.se.proxy.services.TransactionQueueService;
 import nl.rivm.screenit.mamma.se.proxy.services.WebSocketProxyService;
 import nl.rivm.screenit.mamma.se.proxy.util.DateUtil;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -50,10 +50,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class SeDaglijstServiceImpl implements SeDaglijstService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(SeDaglijstService.class);
-
 	private final ConcurrentHashMap<LocalDate, String> daglijstCache = new ConcurrentHashMap<>();
 
 	private final ConcurrentHashMap<LocalDate, LinkedBlockingDeque<String>> transactiesVerwerktDoorCentraalNaCachenDaglijst = new ConcurrentHashMap<>();
@@ -92,14 +91,14 @@ public class SeDaglijstServiceImpl implements SeDaglijstService
 			ResponseEntity<String> responseEntity = daglijstRequest(opTeHalenDag);
 			if (responseEntity != null && HttpStatus.OK.equals(responseEntity.getStatusCode()))
 			{
-				LOG.info("Daglijst van [" + opTeHalenDag + "] succesvol binnengehaald van SE-REST-BK");
 				String daglijst = responseEntity.getBody();
 				cacheDaglijst(opTeHalenDag, daglijst);
+				LOG.info("Daglijst van [{}] succesvol binnengehaald van SE-REST-BK (bodysize: {})", opTeHalenDag, daglijst != null ? daglijst.length() : 0);
 				return daglijstCache.get(opTeHalenDag);
 			}
 			else
 			{
-				LOG.warn("Kon daglijst van [" + opTeHalenDag + "] niet ophalen van SE-REST-BK");
+				LOG.warn("Kon daglijst van [{}] niet ophalen van SE-REST-BK", opTeHalenDag);
 				if (responseEntity == null || responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN))
 				{
 					achtergrondRequestService.queueDaglijstRequest(opTeHalenDag, this::haalDaglijstEnBroadcast);
@@ -162,8 +161,8 @@ public class SeDaglijstServiceImpl implements SeDaglijstService
 	public void haalDaglijstenOp()
 	{
 		Integer daglijstOphalenVoorDagen = configuratieService.getConfiguratieIntegerValue(SeConfiguratieKey.SE_DAGLIJST_OPHALEN_VOOR_DAGEN);
-		LOG.info("Schoon cache van daglijsten en verwerkte transacties op en haal daglijst voor gisteren, vandaag en " + daglijstOphalenVoorDagen
-			+ " dag(en) in de toekomst op van SE-REST-BK");
+		LOG.info("Schoon cache van daglijsten en verwerkte transacties op en haal daglijst voor gisteren, vandaag en {} dag(en) in de toekomst op van SE-REST-BK",
+			daglijstOphalenVoorDagen);
 		achtergrondRequestService.verwijderAlleOpTeHalenDaglijsten();
 
 		List<LocalDate> teVerversenDagen = teVerversenDaglijsten(daglijstOphalenVoorDagen);

@@ -28,7 +28,6 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.batch.dao.VerwerkHpvBerichtenDao;
 import nl.rivm.screenit.batch.model.HapiContextType;
 import nl.rivm.screenit.batch.service.CervixBepaalHpvBeoordelingService;
 import nl.rivm.screenit.batch.service.CervixVerwerkHpvBerichtService;
@@ -49,12 +48,14 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
+import nl.rivm.screenit.repository.cervix.CervixHpvBerichtRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.cervix.Cervix2023StartBepalingService;
 import nl.rivm.screenit.service.cervix.CervixBaseMonsterService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
 import nl.rivm.screenit.service.cervix.CervixVervolgService;
+import nl.rivm.screenit.specification.cervix.CervixHpvBerichtSpecification;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -70,8 +71,6 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 {
 	private final CervixBaseMonsterService monsterService;
 
-	private final VerwerkHpvBerichtenDao verwerkHpvBerichtenDao;
-
 	private final HibernateService hibernateService;
 
 	private final ICurrentDateSupplier currentDateSupplier;
@@ -86,11 +85,13 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 
 	private final Cervix2023StartBepalingService cervix2023StartBepalingService;
 
+	private final CervixHpvBerichtRepository hpvBerichtRepository;
+
 	@Override
 	@Transactional
 	public List<CervixHpvBericht> getAlleNietVerwerkteHpvBerichten()
 	{
-		return verwerkHpvBerichtenDao.getAlleNietVerwerkteHpvBerichten();
+		return hpvBerichtRepository.findAll(CervixHpvBerichtSpecification.heeftStatus(BerichtStatus.NIEUW));
 	}
 
 	@Override

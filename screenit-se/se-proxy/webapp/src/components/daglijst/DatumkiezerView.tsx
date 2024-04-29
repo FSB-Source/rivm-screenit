@@ -6,7 +6,6 @@ import nl from "date-fns/locale/nl"
 import {vandaagPlusDagen} from "../../util/DatePickerUtil"
 
 registerLocale("nl", nl)
-declare let Intl: any
 moment.updateLocale("nl", {
 	months: ["januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus", "september", "oktober", "november", "december"],
 	weekdaysMin: ["zo", "ma", "di", "wo", "do", "vr", "za"],
@@ -47,13 +46,9 @@ const DatumkiezerView = (props: DatumkiezerViewStateProps & DatumkiezerViewDispa
 }
 
 const getDatumkiezerValue = (props: DatumkiezerViewStateProps & DatumkiezerViewDispatchProps): string => {
-	const dateFormatOptions = {
-		weekday: "long",
-		year: "numeric",
-		month: "2-digit",
-		day: "2-digit",
-	}
-	return new Intl.DateTimeFormat("nl-NL", dateFormatOptions).format(moment(props.daglijstDatum))
+	moment.locale("nl")
+	const datum = moment(props.daglijstDatum)
+	return datum.format("dddd DD-MM-YYYY")
 }
 
 const getHighlightDates = (props: DatumkiezerViewStateProps & DatumkiezerViewDispatchProps): Date[] => {

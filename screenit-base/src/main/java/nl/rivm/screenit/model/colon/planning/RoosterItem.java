@@ -41,6 +41,7 @@ import nl.rivm.screenit.model.colon.enums.ColonTijdSlotType;
 import nl.topicuszorg.hibernate.object.model.HibernateObject;
 import nl.topicuszorg.wicket.planning.model.schedule.ScheduleItem;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.hibernate.Hibernate;
 import org.hibernate.envers.Audited;
 
@@ -137,10 +138,11 @@ public class RoosterItem extends ScheduleItem implements ITijdObject
 			{
 				return false;
 			}
-			if (!obj.toString().equals(toString()))
-			{
-				return false;
-			}
+			var otherAfspraakslot = (RoosterItem) obj;
+			return new EqualsBuilder()
+				.append(getStartTime(), otherAfspraakslot.getStartTime())
+				.append(getLocation(), otherAfspraakslot.getLocation())
+				.isEquals();
 		}
 		else if (!getId().equals(other.getId()))
 		{

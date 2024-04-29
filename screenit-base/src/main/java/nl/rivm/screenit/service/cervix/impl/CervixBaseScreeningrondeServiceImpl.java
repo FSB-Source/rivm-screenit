@@ -29,16 +29,13 @@ import java.util.Optional;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.model.Account;
-import nl.rivm.screenit.model.Brief_;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.ScreeningRonde_;
 import nl.rivm.screenit.model.cervix.CervixBrief;
-import nl.rivm.screenit.model.cervix.CervixBrief_;
 import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
-import nl.rivm.screenit.model.cervix.CervixScreeningRonde_;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
-import nl.rivm.screenit.model.cervix.CervixUitnodiging_;
 import nl.rivm.screenit.model.cervix.CervixUitstel;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
@@ -47,7 +44,6 @@ import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixZasStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.repository.algemeen.ClientRepository;
 import nl.rivm.screenit.repository.cervix.CervixBetaalopdrachtRegelSpecificatieRepository;
@@ -69,12 +65,12 @@ import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -396,15 +392,15 @@ public class CervixBaseScreeningrondeServiceImpl implements CervixBaseScreeningr
 	public Optional<CervixScreeningRonde> getLaatsteScreeningRonde(String bsn)
 	{
 		return screeningRondeRepository.findFirst(CervixScreeningRondeSpecification.heeftPersoon(bsn),
-			Sort.by(Sort.Order.desc(CervixScreeningRonde_.CREATIE_DATUM)));
+			Sort.by(Sort.Order.desc(ScreeningRonde_.CREATIE_DATUM)));
 	}
 
 	@Override
 	public boolean heeftMaxAantalZASsenBereikt(CervixScreeningRonde laatsteScreeningRonde, boolean aangevraagdDoorClient)
 	{
-		var maxAantalZASaanvragen = getMaxAantalZASAanvragen(aangevraagdDoorClient);
-
-		return screeningRondeRepository.count(getZASsenHandmatigAangevraagdSpecification(laatsteScreeningRonde, aangevraagdDoorClient)) >= maxAantalZASaanvragen;
+		var maxAantalZASAanvragen = getMaxAantalZASAanvragen(aangevraagdDoorClient);
+		return screeningRondeRepository.count(CervixScreeningRondeSpecification.getZASsenHandmatigAangevraagdSpecification(laatsteScreeningRonde, aangevraagdDoorClient))
+			>= maxAantalZASAanvragen;
 	}
 
 	@Override
@@ -434,24 +430,30 @@ public class CervixBaseScreeningrondeServiceImpl implements CervixBaseScreeningr
 		return screeningRonde.getUitnodigingen().stream().anyMatch(uitnodiging -> uitnodiging.getMonster() != null && uitnodiging.getMonster().getOntvangstdatum() != null);
 	}
 
-	private static Specification<CervixScreeningRonde> getZASsenHandmatigAangevraagdSpecification(CervixScreeningRonde ronde, boolean aangevraagdDoorClient)
+	@Override
+	public CervixScreeningRonde getOntvangstRondeVoorMonster(CervixMonster monster)
 	{
-		return ((r, cq, cb) ->
+		var peildatum = monster.getOntvangstdatum();
+		if (monster instanceof CervixUitstrijkje)
 		{
-			var uitnodigingJoin = r.join(CervixScreeningRonde_.UITNODIGINGEN);
-			var uitnodiging = uitnodigingJoin.on(
-				cb.equal(uitnodigingJoin.get(CervixUitnodiging_.SCREENING_RONDE), r));
-
-			var briefJoin = uitnodiging.join(CervixUitnodiging_.BRIEF);
-			var brief = briefJoin.on(cb.equal(briefJoin.get(CervixBrief_.UITNODIGING), uitnodiging.get(CervixUitnodiging_.BRIEF)));
-
-			var juisteRonde = cb.equal(r, ronde);
-			var monsterTypeZAS = cb.equal(uitnodiging.get(CervixUitnodiging_.MONSTER_TYPE), CervixMonsterType.ZAS);
-			var zasAangevraagdDoorClient = cb.equal(uitnodiging.get(CervixUitnodiging_.ZAS_AANGEVRAAGD_DOOR_CLIENT), aangevraagdDoorClient);
-			var filterOpBriefType = cb.not(brief.get(Brief_.BRIEF_TYPE).in(BriefType.getCervixZasUitnodigingNietDirectHerzendbaarBrieven()));
-
-			return cb.and(juisteRonde, monsterTypeZAS, zasAangevraagdDoorClient, filterOpBriefType);
-		});
+			var labformulier = ((CervixUitstrijkje) monster).getLabformulier();
+			if (labformulier != null
+				&& (peildatum == null || DateUtil.compareBefore(labformulier.getScanDatum(), peildatum))
+				&& (labformulier.getStatus() == CervixLabformulierStatus.GECONTROLEERD
+				|| labformulier.getStatus() == CervixLabformulierStatus.GECONTROLEERD_CYTOLOGIE
+				|| labformulier.getStatus() == CervixLabformulierStatus.HUISARTS_ONBEKEND))
+			{
+				peildatum = labformulier.getScanDatum();
+			}
+		}
+		if (peildatum != null)
+		{
+			return screeningRondeRepository.findFirst(
+					CervixScreeningRondeSpecification.heeftMonsterInDossier(monster).and(CervixScreeningRondeSpecification.heeftCreatieDatumNa(peildatum)),
+					Sort.by(AbstractHibernateObject_.ID).descending())
+				.orElseThrow(() -> new IllegalStateException("nog.geen.ronde.op.peildatum"));
+		}
+		return null;
 	}
 
 }

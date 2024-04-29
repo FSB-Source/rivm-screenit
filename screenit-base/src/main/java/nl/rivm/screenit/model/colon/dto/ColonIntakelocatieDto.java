@@ -31,4 +31,8 @@ public class ColonIntakelocatieDto
 	private Long id;
 
 	private String name;
+
+	private Integer aantalGeprognosticeerdeAfspraakslots;
+
+	private Integer huidigAantalAfspraakslots;
 }

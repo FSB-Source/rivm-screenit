@@ -43,13 +43,13 @@ public interface ColonAfspraakslotMapper
 	}
 
 	@Mapping(source = "roosterItemId", target = "id")
-	@Mapping(source = "startTime", target = "startTime", qualifiedByName = "dateToLocalDateTime")
-	@Mapping(source = "endTime", target = "endTime", qualifiedByName = "dateToLocalDateTime")
+	@Mapping(source = "startDatum", target = "startTime", qualifiedByName = "dateToLocalDateTime")
+	@Mapping(source = "eindDatum", target = "endTime", qualifiedByName = "dateToLocalDateTime")
 	@Mapping(source = "kamer", target = "kamer")
 	@Mapping(source = "capaciteitMeeBepaald", target = "capaciteitMeeBepaald")
 	@Mapping(source = "kamerId", target = "kamerId")
 	@Mapping(target = "aantalBlokken", ignore = true)
 	@Mapping(target = "alleenValidatie", ignore = true)
 	@Mapping(target = "herhaling", ignore = true)
-	ColonAfspraakslotDto roosterListItemViewWrapperToColonAfspraakDto(RoosterItemListViewWrapper wrapper);
+	ColonAfspraakslotDto roosterListItemViewWrapperToColonAfspraakslotDto(RoosterItemListViewWrapper wrapper);
 }

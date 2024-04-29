@@ -21,34 +21,24 @@ package nl.rivm.screenit.model.colon.dto;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDateTime;
-
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import nl.rivm.screenit.model.colon.RoosterItemStatus;
 
 @Getter
 @Setter
-public class ColonAfspraakslotDto
+@NoArgsConstructor
+public class ColonAfspraakslotDto extends ColonTijdslotDto
 {
-	private LocalDateTime startTime;
-
-	private LocalDateTime endTime;
-
-	private String kamer;
-
 	private Boolean capaciteitMeeBepaald;
 
 	private RoosterItemStatus status;
-
-	private Long id;
-
-	private Long kamerId;
 
 	private int aantalBlokken = 1;
 
 	private boolean alleenValidatie;
 
-	private ColonAfspraakslotHerhalingDto herhaling;
+	private ColonHerhalingDto herhaling;
 }

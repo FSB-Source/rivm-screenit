@@ -131,7 +131,7 @@ import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 import nl.rivm.screenit.service.cervix.CervixBaseUitnodigingService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
-import nl.rivm.screenit.service.colon.AfspraakService;
+import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 import nl.rivm.screenit.service.colon.ColonHuisartsService;
 import nl.rivm.screenit.service.colon.ColonScreeningsrondeService;
 import nl.rivm.screenit.service.colon.ColonTijdelijkAfmeldenJaartallenService;
@@ -179,7 +179,7 @@ public class ClientContactServiceImpl implements ClientContactService
 	private CoordinatenDao coordinatenDao;
 
 	@Autowired
-	private AfspraakService afspraakService;
+	private ColonBaseAfspraakService afspraakService;
 
 	@Autowired
 	private SimplePreferenceService preferenceService;

@@ -21,8 +21,6 @@ package nl.rivm.screenit.model.colon;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.commons.lang.StringUtils;
-
 public enum ColonHerhalingsfrequentie
 {
 	GEEN_HERHALING,
@@ -32,6 +30,18 @@ public enum ColonHerhalingsfrequentie
 
 	public String getNaam()
 	{
-		return StringUtils.capitalize(name().toLowerCase().replace("_", " "));
+		switch (this)
+		{
+		case GEEN_HERHALING:
+			return "Geen herhaling";
+		case DAGELIJKS:
+			return "Dagelijks";
+		case WEKELIJKS:
+			return "Wekelijks";
+		case TWEE_WEKELIJKS:
+			return "2-wekelijks";
+		default:
+			throw new IllegalArgumentException("Onbekende herhalingsfrequentie: " + this);
+		}
 	}
 }

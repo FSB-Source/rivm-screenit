@@ -208,7 +208,7 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 		}
 		else
 		{
-			selectFromQueryString += "pa.start_time as \"startTime\", pa.end_time as \"endTime\", k.name as \"kamer\", k.id as \"kamerId\", ri.id as \"roosterItemId\", ri.capaciteit_mee_bepaald as \"capaciteitMeeBepaald\"";
+			selectFromQueryString += "pa.start_time as \"startDatum\", pa.end_time as \"eindDatum\", k.name as \"kamer\", k.id as \"kamerId\", ri.id as \"roosterItemId\", ri.capaciteit_mee_bepaald as \"capaciteitMeeBepaald\"";
 		}
 		selectFromQueryString += " from colon.rooster_item ri "
 			+ "inner join colon.plan_appointment pa on ri.id=pa.id " 
@@ -239,7 +239,7 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 			case VRIJ_TE_VERPLAATSEN:
 				whereQueryString += "and not exists(select id from colon.afspraak ia where ia.rooster_item = ri.id and (ia.status=:status1 or ia.status=:status2)) " 
 					+ "and not EXISTS(select b.id from colon.plan_appointment b where b.title='Blokkade' and b.location=k.id and b.start_time<pa.end_time and b.end_time>pa.start_time) ";
-				if (filter.getRekeningHoudenMetCapaciteitMeeBepaald())
+				if (filter.isRekeningHoudenMetCapaciteitMeeBepaald())
 				{
 					whereQueryString += "and ri.capaciteit_mee_bepaald = false";
 				}
@@ -290,8 +290,8 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 
 		SQLQuery criteria = getSession().createSQLQuery(selectFromQueryString + whereQueryString + orderByQueryString);
 		criteria
-			.setParameter("endTime", filter.getEndDatum()) 
-			.setParameter("startTime", filter.getStartDatum()) 
+			.setParameter("endTime", filter.getEindDatum())
+			.setParameter("startTime", filter.getStartDatum())
 			.setParameter("intakelocatie", intakeLocatie.getId());
 
 		for (Entry<String, Object> param : params.entrySet())
@@ -596,7 +596,7 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 	private BaseCriteria<ColonBlokkade> createCriteria(RoosterListViewFilter filter, ColoscopieCentrum intakelocatie)
 	{
 		BaseCriteria<ColonBlokkade> criteria = createCriteria(
-			new Periode(filter.getStartDatum(), DateUtil.plusDagen(DateUtil.startDag(filter.getEndDatum()), 1)), ColonBlokkade.class);
+			new Periode(filter.getStartDatum(), DateUtil.plusDagen(DateUtil.startDag(filter.getEindDatum()), 1)), ColonBlokkade.class);
 		criteria.createAlias("location", "kamer");
 		criteria.add(Restrictions.eq("kamer.actief", true));
 		criteria.add(Restrictions.eq("kamer.coloscopieCentrum", intakelocatie));

@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model;
 
 /*-
@@ -25,6 +24,7 @@ package nl.rivm.screenit.model;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -35,6 +35,9 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.cervix.CervixAfmelding;
 import nl.rivm.screenit.model.colon.ColonAfmelding;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -43,17 +46,16 @@ import nl.rivm.screenit.model.mamma.MammaAfmelding;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CascadeType;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 @Audited
+@Getter
+@Setter
 public abstract class Afmelding<SR extends ScreeningRonde<?, ?, ?, ?>, D extends Dossier<?, ?>, B extends ClientBrief<?, ?, ?>> extends TablePerClassHibernateObject
 {
-
 	@Column(nullable = false)
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date afmeldDatum;
@@ -73,8 +75,7 @@ public abstract class Afmelding<SR extends ScreeningRonde<?, ?, ?, ?>, D extends
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date statusAfmeldDatum;
 
-	@OneToOne(fetch = FetchType.LAZY, optional = true, cascade = javax.persistence.CascadeType.ALL)
-	@Cascade(CascadeType.ALL)
+	@OneToOne(fetch = FetchType.LAZY, optional = true, cascade = CascadeType.ALL)
 	@NotAudited
 	private UploadDocument handtekeningDocumentAfmelding;
 
@@ -93,8 +94,7 @@ public abstract class Afmelding<SR extends ScreeningRonde<?, ?, ?, ?>, D extends
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date statusHeraanmeldDatum;
 
-	@OneToOne(fetch = FetchType.LAZY, optional = true, cascade = javax.persistence.CascadeType.ALL)
-	@Cascade(CascadeType.ALL)
+	@OneToOne(fetch = FetchType.LAZY, optional = true, cascade = CascadeType.ALL)
 	@NotAudited
 	private UploadDocument handtekeningDocumentHeraanmelding;
 
@@ -103,136 +103,6 @@ public abstract class Afmelding<SR extends ScreeningRonde<?, ?, ?, ?>, D extends
 	private Boolean implicieteAfmelding = false;
 
 	private Boolean implicieteHeraanmelding = false;
-
-	public AfmeldingType getType()
-	{
-		return type;
-	}
-
-	public void setType(AfmeldingType type)
-	{
-		this.type = type;
-	}
-
-	public AanvraagBriefStatus getAfmeldingStatus()
-	{
-		return afmeldingStatus;
-	}
-
-	public void setAfmeldingStatus(AanvraagBriefStatus status)
-	{
-		this.afmeldingStatus = status;
-	}
-
-	public Date getStatusHeraanmeldDatum()
-	{
-		return statusHeraanmeldDatum;
-	}
-
-	public void setStatusHeraanmeldDatum(Date statusHeraanmeldDatum)
-	{
-		this.statusHeraanmeldDatum = statusHeraanmeldDatum;
-	}
-
-	public AanvraagBriefStatus getHeraanmeldStatus()
-	{
-		return heraanmeldStatus;
-	}
-
-	public void setHeraanmeldStatus(AanvraagBriefStatus heraanmeldStatus)
-	{
-		this.heraanmeldStatus = heraanmeldStatus;
-	}
-
-	public Boolean getRondeGesloten()
-	{
-		return rondeGesloten;
-	}
-
-	public void setRondeGesloten(Boolean rondeGesloten)
-	{
-		this.rondeGesloten = rondeGesloten;
-	}
-
-	public Date getAfmeldDatum()
-	{
-		return afmeldDatum;
-	}
-
-	public void setAfmeldDatum(Date afmeldDatum)
-	{
-		this.afmeldDatum = afmeldDatum;
-	}
-
-	public Date getHeraanmeldDatum()
-	{
-		return heraanmeldDatum;
-	}
-
-	public void setHeraanmeldDatum(Date heraanmeldDatum)
-	{
-		this.heraanmeldDatum = heraanmeldDatum;
-	}
-
-	public Boolean getRondeHeropend()
-	{
-		return rondeHeropend;
-	}
-
-	public void setRondeHeropend(Boolean rondeHeropend)
-	{
-		this.rondeHeropend = rondeHeropend;
-	}
-
-	public UploadDocument getHandtekeningDocumentAfmelding()
-	{
-		return handtekeningDocumentAfmelding;
-	}
-
-	public void setHandtekeningDocumentAfmelding(UploadDocument handtekeningDocument)
-	{
-		this.handtekeningDocumentAfmelding = handtekeningDocument;
-	}
-
-	public UploadDocument getHandtekeningDocumentHeraanmelding()
-	{
-		return handtekeningDocumentHeraanmelding;
-	}
-
-	public void setHandtekeningDocumentHeraanmelding(UploadDocument handtekeningDocumentHeraanmelding)
-	{
-		this.handtekeningDocumentHeraanmelding = handtekeningDocumentHeraanmelding;
-	}
-
-	public void setClientWilNieuweUitnodiging(Boolean clientWilNieuweUitnodiging)
-	{
-		this.clientWilNieuweUitnodiging = clientWilNieuweUitnodiging;
-	}
-
-	public Date getStatusAfmeldDatum()
-	{
-		return statusAfmeldDatum;
-	}
-
-	public void setStatusAfmeldDatum(Date statusAfmeldDatum)
-	{
-		this.statusAfmeldDatum = statusAfmeldDatum;
-	}
-
-	public ClientContactManier getManier()
-	{
-		return manier;
-	}
-
-	public void setManier(ClientContactManier manier)
-	{
-		this.manier = manier;
-	}
-
-	public Boolean getClientWilNieuweUitnodiging()
-	{
-		return clientWilNieuweUitnodiging;
-	}
 
 	public abstract B getAfmeldingAanvraag();
 
@@ -265,7 +135,7 @@ public abstract class Afmelding<SR extends ScreeningRonde<?, ?, ?, ?>, D extends
 	@Transient
 	public Bevolkingsonderzoek getBevolkingsonderzoek()
 	{
-		Class aClass = Hibernate.getClass(this);
+		var aClass = Hibernate.getClass(this);
 		Bevolkingsonderzoek bevolkingsonderzoek = null;
 		if (aClass == ColonAfmelding.class)
 		{
@@ -280,25 +150,5 @@ public abstract class Afmelding<SR extends ScreeningRonde<?, ?, ?, ?>, D extends
 			bevolkingsonderzoek = Bevolkingsonderzoek.MAMMA;
 		}
 		return bevolkingsonderzoek;
-	}
-
-	public Boolean getImplicieteAfmelding()
-	{
-		return implicieteAfmelding;
-	}
-
-	public void setImplicieteAfmelding(Boolean implicieteAfmelding)
-	{
-		this.implicieteAfmelding = implicieteAfmelding;
-	}
-
-	public Boolean getImplicieteHeraanmelding()
-	{
-		return implicieteHeraanmelding;
-	}
-
-	public void setImplicieteHeraanmelding(Boolean implicieteHeraanmelding)
-	{
-		this.implicieteHeraanmelding = implicieteHeraanmelding;
 	}
 }

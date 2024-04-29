@@ -18,35 +18,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
+import {format} from "date-fns"
+
 export const formatDate = (datum?: Date): string => {
-	return !!datum ? getDateTimeFormat({
-		year: "numeric", month: "2-digit", day: "2-digit",
-	}).format(datum) : ""
-}
+	if (!datum) {
+		return ""
+	}
 
-export const formatTime = (datum?: Date): string => {
-	return !!datum ? getDateTimeFormat({
-		hour: "numeric", minute: "numeric",
-	}).format(datum) : ""
-}
-
-export const formatDateText = (datum?: Date | null): string => {
-	return !!datum ? getDateTimeFormat({
-		year: "numeric", month: "long", day: "numeric",
-	}).format(datum) : ""
-}
-
-export const formatDateWithDayName = (datum?: Date | null): string => {
-	return !!datum ? getDateTimeFormat({
-		month: "long", day: "numeric", weekday: "long",
-	}).format(datum) : ""
+	return format(datum, "dd-MM-yyyy")
 }
 
 export const formatDateTime = (datum?: Date | null): string => {
-	return !!datum ? getDateTimeFormat({
-		year: "numeric", month: "2-digit", day: "2-digit",
-		hour: "numeric", minute: "numeric",
-	}).format(datum) : ""
+	if (!datum) {
+		return ""
+	}
+
+	return format(datum, "dd-MM-yyyy HH:mm")
 }
 
 export const parseDate = (datum?: string | Date | null): Date | null => {
@@ -55,11 +42,4 @@ export const parseDate = (datum?: string | Date | null): Date | null => {
 	}
 	const parsedDate = new Date(datum)
 	return new Date(parsedDate.getTime() + parsedDate.getTimezoneOffset() * 60000)
-}
-
-const getDateTimeFormat = (options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat => {
-	return new Intl.DateTimeFormat("nl-NL", {
-		...options,
-		timeZone: "Europe/Amsterdam",
-	})
 }

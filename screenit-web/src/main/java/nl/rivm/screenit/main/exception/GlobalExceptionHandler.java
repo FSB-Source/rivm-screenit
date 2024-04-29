@@ -50,7 +50,7 @@ public class GlobalExceptionHandler
 	@ExceptionHandler(ValidatieException.class)
 	public ResponseEntity<String> handleValidatieException(ValidatieException ex)
 	{
-		var message = getString(ex.getMessage());
+		var message = ex.getFormattedMessage(GlobalExceptionHandler.this::getString);
 		LOG.error(message);
 		var node = objectMapper.createObjectNode();
 		node.put("message", message);
@@ -60,15 +60,7 @@ public class GlobalExceptionHandler
 	@ExceptionHandler(BeperkingException.class)
 	public ResponseEntity<String> handleBeperkingException(BeperkingException ex) throws IOException
 	{
-		var messages = ex.getExceptions().stream().map(exception ->
-		{
-			var message = getString(exception.getMessageKey());
-			if (exception.getFormatArguments() != null)
-			{
-				message = String.format(message, exception.getFormatArguments()[0]);
-			}
-			return message;
-		}).collect(
+		var messages = ex.getExceptions().stream().map(exception -> exception.getFormattedMessage(GlobalExceptionHandler.this::getString)).collect(
 			Collectors.toList());
 		messages.forEach(LOG::error);
 		var messagesArrayNode = objectMapper.valueToTree(messages);
@@ -93,6 +85,13 @@ public class GlobalExceptionHandler
 		node.put("message", message);
 		node.put("additionalInfo", ex.getAdditionalMessageInfo());
 		return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(node.toString());
+	}
+
+	@ExceptionHandler(BulkVerwijderenException.class)
+	public ResponseEntity<String> handleBulkVerwijderenException(BulkVerwijderenException ex)
+	{
+		LOG.error(ex.getMessage());
+		return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(ex.toJson());
 	}
 
 	@ExceptionHandler(IllegalStateException.class)

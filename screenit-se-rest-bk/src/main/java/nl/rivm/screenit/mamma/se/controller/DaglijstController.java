@@ -24,7 +24,6 @@ package nl.rivm.screenit.mamma.se.controller;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -41,9 +40,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -58,24 +57,30 @@ public class DaglijstController extends AuthorizedController
 	@Autowired
 	private MammaScreeningsEenheidService screeningsEenheidService;
 
-	@RequestMapping(value = "/{datum}", method = RequestMethod.GET)
+	@GetMapping(value = "/{datum}")
 	public ResponseEntity readDaglijst(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate datum, HttpServletRequest request)
 	{
-		String seCode = getSeCode(request);
+		var seCode = getSeCode(request);
 		DaglijstOphaler daglijstOphaler = new DaglijstOphaler(datum, seCode);
-		Future future = executorService.submit(daglijstOphaler);
+		var future = executorService.submit(daglijstOphaler);
 
 		try
 		{
 			LOG.info("Daglijst ophalen queued ({}) dag: {} ", seCode, datum);
 			future.get(asyncRequestTimeoutSeconds, TimeUnit.SECONDS);
-			List<AfspraakSeDto> afspraken = daglijstOphaler.getAfspraken();
+			var afspraken = daglijstOphaler.getAfspraken();
+			LOG.info("Daglijst opgehaald ({}) dag: {} #afspraken: {}", seCode, datum, afspraken.size());
 			return ResponseEntity.ok(afspraken);
 		}
 		catch (TimeoutException e)
 		{
 			LOG.warn("Timeout bij daglijst ophalen", e);
 			return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
+		}
+		catch (InterruptedException e)
+		{
+			Thread.currentThread().interrupt();
+			return createErrorResponse(e);
 		}
 		catch (Exception e)
 		{

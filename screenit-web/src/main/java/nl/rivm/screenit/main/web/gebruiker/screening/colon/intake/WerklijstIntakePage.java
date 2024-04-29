@@ -62,7 +62,7 @@ import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.project.ProjectBrief;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.colon.AfspraakService;
+import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.EnumStringUtil;
@@ -72,7 +72,6 @@ import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.util.postcode.PostcodeFormatter;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.input.validator.BSNValidator;
-import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
@@ -131,7 +130,7 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 	private ColonDossierBaseService dossierBaseService;
 
 	@SpringBean
-	private AfspraakService afspraakService;
+	private ColonBaseAfspraakService afspraakService;
 
 	@SpringBean
 	private SimplePreferenceService preferenceService;

@@ -61,9 +61,7 @@ public abstract class CervixHerinnerenReader extends BaseSpecificationSortableSc
 	@Override
 	protected Specification<CervixUitnodiging> createSpecification()
 	{
-		return CervixUitnodigingSpecification.heeftClientMetIndicatieAanwezig()
-			.and(CervixUitnodigingSpecification.heeftGeenVertrokkenPersoonUitNederlandDatum())
-			.and(CervixUitnodigingSpecification.heeftGeenPersoonMetOverledenDatum())
+		return CervixUitnodigingSpecification.heeftActieveClient()
 			.and(CervixUitnodigingSpecification.heeftLopendeRonde())
 			.and(CervixUitnodigingSpecification.heeftHerinneren(true))
 			.and(CervixUitnodigingSpecification.heeftMergedBrieven())

@@ -22,16 +22,19 @@ package nl.rivm.screenit.main.service.colon.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.util.ArrayList;
 import java.util.List;
 
 import nl.rivm.screenit.main.dao.LocatieDao;
 import nl.rivm.screenit.main.service.colon.LocatieService;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.Kamer;
+import nl.rivm.screenit.repository.colon.ColonKamerRepository;
+import nl.rivm.screenit.specification.colon.ColonKamerSpecification;
+import nl.topicuszorg.wicket.planning.model.appointment.Location_;
 
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,25 +42,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class LocatieServiceImpl implements LocatieService
 {
-
 	@Autowired
 	private LocatieDao locatieDao;
+
+	@Autowired
+	private ColonKamerRepository kamerRepository;
 
 	@Override
 	public List<Kamer> getKamers(ColoscopieCentrum coloscopieCentrum)
 	{
-		List<Kamer> kamers = new ArrayList<>();
-		if (coloscopieCentrum != null)
-		{
-			for (Kamer kamer : coloscopieCentrum.getKamers())
-			{
-				if (Boolean.TRUE.equals(kamer.getActief()))
-				{
-					kamers.add(kamer);
-				}
-			}
-		}
-		return kamers;
+		return kamerRepository.findAll(ColonKamerSpecification.heeftActieveStatus().and(ColonKamerSpecification.heeftIntakelocatie(coloscopieCentrum)),
+			Sort.by(Sort.Order.asc(Location_.ID)));
 	}
 
 	@Override

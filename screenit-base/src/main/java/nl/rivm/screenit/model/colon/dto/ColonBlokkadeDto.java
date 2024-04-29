@@ -21,26 +21,19 @@ package nl.rivm.screenit.model.colon.dto;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDateTime;
-
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class ColonBlokkadeDto
+public class ColonBlokkadeDto extends ColonTijdslotDto
 {
-	private Long id;
-
-	private LocalDateTime startTime;
-
-	private LocalDateTime endTime;
-
-	private String kamer;
-
-	private Long kamerId;
 
 	private String description;
 
 	private Boolean alleKamers;
+
+	private boolean alleenValidatie;
+
+	private ColonHerhalingDto herhaling;
 }

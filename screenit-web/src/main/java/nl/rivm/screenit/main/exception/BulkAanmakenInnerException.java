@@ -24,7 +24,7 @@ package nl.rivm.screenit.main.exception;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import nl.rivm.screenit.model.colon.planning.RoosterItem;
+import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
 
 @Getter
 @AllArgsConstructor
@@ -32,7 +32,7 @@ public class BulkAanmakenInnerException extends Exception
 {
 	private final Exception exception;
 
-	private final RoosterItem afspraakslot;
+	private final AbstractAppointment tijdslot;
 
 	@Override
 	public boolean equals(Object obj)
@@ -48,7 +48,7 @@ public class BulkAanmakenInnerException extends Exception
 			return false;
 		}
 
-		if (!afspraakslot.toString().equalsIgnoreCase(other.afspraakslot.toString()))
+		if (!tijdslot.toString().equalsIgnoreCase(other.tijdslot.toString()))
 		{
 			return false;
 		}
@@ -59,6 +59,6 @@ public class BulkAanmakenInnerException extends Exception
 	@Override
 	public int hashCode()
 	{
-		return afspraakslot.hashCode() + exception.hashCode();
+		return tijdslot.hashCode() + exception.hashCode();
 	}
 }

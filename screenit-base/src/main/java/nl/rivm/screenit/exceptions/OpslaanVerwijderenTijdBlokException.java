@@ -24,6 +24,7 @@ package nl.rivm.screenit.exceptions;
 import java.util.Date;
 import java.util.List;
 
+import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
 import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.rivm.screenit.util.DateUtil;
@@ -58,6 +59,11 @@ public abstract class OpslaanVerwijderenTijdBlokException extends Exception
 			{
 				var roosterItem = (RoosterItem) item;
 				range = Range.closed(roosterItem.getStartTime(), roosterItem.getEndTime());
+			}
+			else if (item instanceof ColonIntakeAfspraak)
+			{
+				var afspraak = (ColonIntakeAfspraak) item;
+				range = Range.closed(afspraak.getStartTime(), afspraak.getEndTime());
 			}
 			else
 			{

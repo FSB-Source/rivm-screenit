@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.project;
 
 /*-
@@ -59,7 +58,6 @@ import org.hibernate.envers.NotAudited;
 @Setter
 public class ProjectClient extends AbstractHibernateObject implements IActief
 {
-
 	@Column(nullable = false)
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date toegevoegd;
@@ -73,7 +71,6 @@ public class ProjectClient extends AbstractHibernateObject implements IActief
 	@ManyToOne(fetch = FetchType.LAZY)
 	private ProjectGroep groep;
 
-	@Cascade({ CascadeType.ALL })
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "projectClient", cascade = javax.persistence.CascadeType.ALL)
 	private List<ProjectClientAttribuut> attributen = new ArrayList<>();
 

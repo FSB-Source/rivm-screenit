@@ -23,6 +23,7 @@ package nl.rivm.screenit.main.exception;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.function.UnaryOperator;
 
 import lombok.Getter;
 
@@ -68,5 +69,15 @@ public class ValidatieException extends Exception
 	public int hashCode()
 	{
 		return messageKey.hashCode() + Arrays.hashCode(formatArguments);
+	}
+
+	public String getFormattedMessage(UnaryOperator<String> getString)
+	{
+		var message = getString.apply(messageKey);
+		if (formatArguments != null)
+		{
+			message = String.format(message, (Object[]) formatArguments);
+		}
+		return message;
 	}
 }

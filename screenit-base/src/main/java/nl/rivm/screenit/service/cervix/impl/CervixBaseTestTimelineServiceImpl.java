@@ -35,7 +35,6 @@ import lombok.AllArgsConstructor;
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.cervix.CervixBepaalVervolgDao;
-import nl.rivm.screenit.dao.cervix.CervixDossierDao;
 import nl.rivm.screenit.dao.cervix.CervixMonsterDao;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.BMHKLaboratorium;
@@ -82,6 +81,7 @@ import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.cervix.Cervix2023StartBepalingService;
 import nl.rivm.screenit.service.cervix.CervixBaseMonsterService;
+import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 import nl.rivm.screenit.service.cervix.CervixBaseTestTimelineHuisartsService;
 import nl.rivm.screenit.service.cervix.CervixBaseTestTimelineService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
@@ -109,8 +109,6 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 
 	private final CervixTestTimelineTimeService testTimelineTimeService;
 
-	private final CervixDossierDao dossierDao;
-
 	private final CervixBepaalVervolgDao bepaalVervolgDao;
 
 	private final SimplePreferenceService preferenceService;
@@ -125,6 +123,8 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 
 	private final CervixBaseTestTimelineHuisartsService testTimelineHuisartsService;
 
+	private final CervixBaseScreeningrondeService screeningrondeService;
+
 	private final Random random = new SecureRandom();
 
 	@Override
@@ -136,7 +136,7 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 		CervixMonster monster = uitnodiging.getMonster();
 		monster.setLaboratorium(laboratorium);
 		monster.setOntvangstdatum(dateSupplier.getDate());
-		monster.setOntvangstScreeningRonde(dossierDao.getOntvangstRonde(monster));
+		monster.setOntvangstScreeningRonde(screeningrondeService.getOntvangstRondeVoorMonster(monster));
 		if (uitnodiging.getMonsterType() == CervixMonsterType.UITSTRIJKJE)
 		{
 			CervixUitstrijkje uitstrijkje = (CervixUitstrijkje) monster;
@@ -376,7 +376,7 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 
 		if (uitstrijkje.getOntvangstScreeningRonde() == null)
 		{
-			uitstrijkje.setOntvangstScreeningRonde(dossierDao.getOntvangstRonde(uitstrijkje));
+			uitstrijkje.setOntvangstScreeningRonde(screeningrondeService.getOntvangstRondeVoorMonster(uitstrijkje));
 		}
 
 		hibernateService.saveOrUpdate(uitstrijkje);

@@ -83,7 +83,7 @@ public class PlanningServiceImpl<T extends VrijSlot> implements PlanningService<
 
 		RoosterListViewFilter filter = new RoosterListViewFilter();
 		filter.setStartDatum(DateUtil.toUtilDate(startDatum));
-		filter.setEndDatum(DateUtil.toUtilDate(eindDatum));
+		filter.setEindDatum(DateUtil.toUtilDate(eindDatum));
 		filter.setStatus(RoosterItemStatus.VRIJ_TE_VERPLAATSEN);
 		filter.setRekeningHoudenMetCapaciteitMeeBepaald(false);
 		Iterator<RoosterItemListViewWrapper> roosterBlokken = roosterDao.getRoosterBlokken("startTime", true, -1, -1, filter, intakelocatie).iterator();
@@ -93,8 +93,8 @@ public class PlanningServiceImpl<T extends VrijSlot> implements PlanningService<
 
 			T slot = factory.createVrijSlot();
 
-			slot.setStartTijd(roosterItem.getStartTime());
-			slot.setEindTijd(roosterItem.getEndTime());
+			slot.setStartTijd(roosterItem.getStartDatum());
+			slot.setEindTijd(roosterItem.getEindDatum());
 			slot.setKamerId(roosterItem.getKamerId());
 			slot.setRoosterItemId(roosterItem.getRoosterItemId());
 			slot.setMaxAantalDeelnemers(1);

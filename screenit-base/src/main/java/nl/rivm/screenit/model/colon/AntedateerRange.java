@@ -31,6 +31,9 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
@@ -42,11 +45,10 @@ import org.hibernate.annotations.CascadeType;
 @Entity
 @Table(schema = "algemeen")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
+@Getter
+@Setter
 public class AntedateerRange extends AbstractHibernateObject
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@Column(nullable = false)
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date vanaf;
@@ -65,67 +67,7 @@ public class AntedateerRange extends AbstractHibernateObject
 	@ManyToOne(fetch = FetchType.LAZY, optional = true)
 	private InstellingGebruiker gestoptDoor;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade(CascadeType.SAVE_UPDATE)
 	private IFobtLaboratorium ifobtLab;
-
-	public Date getVanaf()
-	{
-		return vanaf;
-	}
-
-	public void setVanaf(Date vanaf)
-	{
-		this.vanaf = vanaf;
-	}
-
-	public Date getTot()
-	{
-		return tot;
-	}
-
-	public void setTot(Date tot)
-	{
-		this.tot = tot;
-	}
-
-	public Date getVervangendeDate()
-	{
-		return vervangendeDate;
-	}
-
-	public void setVervangendeDate(Date vervangendeDate)
-	{
-		this.vervangendeDate = vervangendeDate;
-	}
-
-	public IFobtLaboratorium getIfobtLab()
-	{
-		return ifobtLab;
-	}
-
-	public void setIfobtLab(IFobtLaboratorium ifobtLab)
-	{
-		this.ifobtLab = ifobtLab;
-	}
-
-	public InstellingGebruiker getGestartDoor()
-	{
-		return gestartDoor;
-	}
-
-	public void setGestartDoor(InstellingGebruiker gestartDoor)
-	{
-		this.gestartDoor = gestartDoor;
-	}
-
-	public InstellingGebruiker getGestoptDoor()
-	{
-		return gestoptDoor;
-	}
-
-	public void setGestoptDoor(InstellingGebruiker gestoptDoor)
-	{
-		this.gestoptDoor = gestoptDoor;
-	}
 }

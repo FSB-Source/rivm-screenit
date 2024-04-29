@@ -27,6 +27,9 @@ import javax.persistence.Index;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.Afspraak;
 import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.MergedBrieven;
@@ -39,65 +42,34 @@ import org.hibernate.envers.Audited;
 @Table(schema = "colon", indexes = { @Index(name = "idx_colon_brief_gegenereerd", columnList = "gegenereerd"),
 	@Index(name = "idx_colon_brief_vervangendeprojectbrief", columnList = "vervangendeprojectbrief") })
 @Audited
+@Getter
+@Setter
 public class ColonBrief extends ClientBrief<ColonScreeningRonde, ColonAfmelding, ColonBrief>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@ManyToOne(optional = true, fetch = FetchType.LAZY)
 	private Afspraak intakeAfspraak;
 
 	@ManyToOne(optional = true, fetch = FetchType.LAZY)
 	private Afspraak vorigeIntakeAfspraak;
 
-	@ManyToOne(optional = true, fetch = FetchType.LAZY)
+	@ManyToOne(optional = true, fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade({ CascadeType.SAVE_UPDATE })
 	private IFOBTTest ifobtTest;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade({ CascadeType.SAVE_UPDATE })
 	private ColonMergedBrieven mergedBrieven;
 
-	@ManyToOne(optional = true, fetch = FetchType.LAZY)
+	@ManyToOne(optional = true, fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade({ CascadeType.SAVE_UPDATE })
 	private ColonScreeningRonde screeningRonde;
 
-	@ManyToOne(optional = true, fetch = FetchType.LAZY)
+	@ManyToOne(optional = true, fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade({ CascadeType.SAVE_UPDATE })
 	private ColonAfmelding afmelding;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = true)
 	private ColonBrief herdruk;
-
-	public Afspraak getIntakeAfspraak()
-	{
-		return intakeAfspraak;
-	}
-
-	public void setIntakeAfspraak(Afspraak intakeAfspraak)
-	{
-		this.intakeAfspraak = intakeAfspraak;
-	}
-
-	public Afspraak getVorigeIntakeAfspraak()
-	{
-		return vorigeIntakeAfspraak;
-	}
-
-	public void setVorigeIntakeAfspraak(Afspraak vorigeIntakeAfspraak)
-	{
-		this.vorigeIntakeAfspraak = vorigeIntakeAfspraak;
-	}
-
-	public IFOBTTest getIfobtTest()
-	{
-		return ifobtTest;
-	}
-
-	public void setIfobtTest(IFOBTTest ifobtTest)
-	{
-		this.ifobtTest = ifobtTest;
-	}
 
 	@Override
 	public MergedBrieven getMergedBrieven()
@@ -109,41 +81,5 @@ public class ColonBrief extends ClientBrief<ColonScreeningRonde, ColonAfmelding,
 	public void setMergedBrieven(MergedBrieven mergedBrieven)
 	{
 		this.mergedBrieven = (ColonMergedBrieven) mergedBrieven;
-	}
-
-	@Override
-	public ColonScreeningRonde getScreeningRonde()
-	{
-		return screeningRonde;
-	}
-
-	@Override
-	public void setScreeningRonde(ColonScreeningRonde screeningRonde)
-	{
-		this.screeningRonde = screeningRonde;
-	}
-
-	@Override
-	public ColonAfmelding getAfmelding()
-	{
-		return afmelding;
-	}
-
-	@Override
-	public void setAfmelding(ColonAfmelding afmelding)
-	{
-		this.afmelding = afmelding;
-	}
-
-	@Override
-	public ColonBrief getHerdruk()
-	{
-		return herdruk;
-	}
-
-	@Override
-	public void setHerdruk(ColonBrief herdruk)
-	{
-		this.herdruk = herdruk;
 	}
 }

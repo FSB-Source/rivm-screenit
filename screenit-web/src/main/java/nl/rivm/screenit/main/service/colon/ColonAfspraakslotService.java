@@ -28,10 +28,13 @@ import java.util.List;
 import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
 import nl.rivm.screenit.main.exception.BeperkingException;
 import nl.rivm.screenit.main.exception.BulkAanmakenException;
+import nl.rivm.screenit.main.exception.BulkVerwijderenException;
 import nl.rivm.screenit.main.exception.ValidatieException;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.RoosterListViewFilter;
 import nl.rivm.screenit.model.colon.dto.ColonAfspraakslotDto;
+import nl.rivm.screenit.model.colon.dto.ColonTijdslotDto;
 import nl.rivm.screenit.model.colon.enums.ColonRoosterBeperking;
 import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
@@ -51,7 +54,12 @@ public interface ColonAfspraakslotService
 	void deleteAfspraakslot(Long id, InstellingGebruiker instellingGebruiker)
 		throws ValidatieException, OpslaanVerwijderenTijdBlokException;
 
+	void bulkDeleteAfspraakslots(List<Long> id, InstellingGebruiker instellingGebruiker, boolean alleenValidatie)
+		throws BulkVerwijderenException;
+
 	List<ColonAfspraakslotDto> getAfspraakslots(LocalDate startDate, LocalDate endDate, ColoscopieCentrum intakeLocatie);
+
+	List<ColonTijdslotDto> searchAfspraakslots(RoosterListViewFilter filter, long intakelocatieId);
 
 	void valideerBeperkingen(AbstractAppointment tijdslot, ColonRoosterBeperking beperkingType) throws BeperkingException;
 }

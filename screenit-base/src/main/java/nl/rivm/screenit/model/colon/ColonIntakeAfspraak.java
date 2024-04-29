@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.colon;
 
 /*-
@@ -54,9 +53,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class ColonIntakeAfspraak extends Afspraak
 {
-	private static final long serialVersionUID = 1L;
-
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade({ CascadeType.SAVE_UPDATE })
 	private ColonScreeningRonde colonScreeningRonde;
 

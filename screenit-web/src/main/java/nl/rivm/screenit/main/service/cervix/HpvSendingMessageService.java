@@ -21,8 +21,7 @@ package nl.rivm.screenit.main.service.cervix;
  * =========================LICENSE_END==================================
  */
 
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
 
 import nl.rivm.screenit.model.berichten.ScreenITResponseV251MessageWrapper;
 
@@ -30,8 +29,5 @@ import ca.uhn.hl7v2.model.Message;
 
 public interface HpvSendingMessageService
 {
-
-	Map<String, String> verstuurHpvBerichten(List<Message> messages);
-
-	ScreenITResponseV251MessageWrapper verstuurHpvBericht(Message message);
+	ScreenITResponseV251MessageWrapper verstuurHpvBericht(Message message) throws IOException;
 }

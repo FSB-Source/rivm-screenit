@@ -24,7 +24,6 @@ package nl.rivm.screenit.wsb.labformulier;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.regex.Pattern;
 
 import javax.jws.WebMethod;
@@ -39,17 +38,17 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.dao.cervix.CervixBMHKLaboratoriumDao;
-import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
+import nl.rivm.screenit.repository.cervix.BmhkLaboratoriumRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.cervix.CervixLabformulierService;
+import nl.rivm.screenit.specification.cervix.CervixBMHKLaboratoriumSpecification;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.ws.labformulier.Labformulier;
 import nl.rivm.screenit.ws.labformulier.LabformulierDate;
@@ -74,7 +73,7 @@ public class LabformulierServiceImpl implements LabformulierService
 
 	private final CervixLabformulierService labformulierService;
 
-	private final CervixBMHKLaboratoriumDao bmhkLaboratoriumDao;
+	private final BmhkLaboratoriumRepository bmhkLaboratoriumRepository;
 
 	private final ICurrentDateSupplier dateSupplier;
 
@@ -85,12 +84,12 @@ public class LabformulierServiceImpl implements LabformulierService
 	private Integer afkapwaardeLabformulier;
 
 	@Override
-	@WebResult(name = "return", targetNamespace = "")
+	@WebResult(name = "return")
 	@RequestWrapper(localName = "labformulierScanned", targetNamespace = "http://screenit.rivm.nl/", className = "nl.rivm.screenit.Labformulier")
 	@WebMethod
 	@ResponseWrapper(localName = "labformulierScannedResponse", targetNamespace = "http://screenit.rivm.nl/", className = "nl.rivm.screenit.LabformulierScannedResponse")
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void labformulierScanned(@WebParam(name = "labformulier", targetNamespace = "") Labformulier scan) throws LabformulierServiceException_Exception
+	public void labformulierScanned(@WebParam(name = "labformulier") Labformulier scan) throws LabformulierServiceException_Exception
 	{
 		try
 		{
@@ -126,40 +125,37 @@ public class LabformulierServiceImpl implements LabformulierService
 			{
 				throw new LabformulierServiceException_Exception("datumLaatsteMenstruatie is null");
 			}
-			HashMap<String, Object> objid = new HashMap<>();
+			var objid = new HashMap<String, Object>();
 			objid.put("objid", scan.getObjid());
 			if (hibernateService.getUniqueByParameters(CervixLabformulier.class, objid) != null)
 			{
 				throw new LabformulierServiceException_Exception("objid not unique");
 			}
-			BMHKLaboratorium bmhkLaboratorium = bmhkLaboratoriumDao.getBmhkLaboratoriumfromUserIdScanner(scan.getLabIdScanner());
-			if (bmhkLaboratorium == null)
-			{
-				throw new LabformulierServiceException_Exception("Er kon geen lab worden gevonden bij labIdScanner");
-			}
+			var bmhkLaboratorium = bmhkLaboratoriumRepository.findOne(CervixBMHKLaboratoriumSpecification.heeftUserIdScanner(scan.getLabIdScanner()))
+				.orElseThrow(() -> new LabformulierServiceException_Exception("Er kon geen lab worden gevonden bij labIdScanner"));
 			afkapwaardeLabformulier = preferenceService.getInteger(PreferenceKey.AFKAPWAARDE_LABFORMULIER.name());
 			if (afkapwaardeLabformulier == null)
 			{
 				throw new LabformulierServiceException_Exception("Interne fout: Afkapwaarde labformulier niet geconfigureerd");
 			}
 
-			CervixLabformulier labformulier = new CervixLabformulier();
+			var labformulier = new CervixLabformulier();
 			labformulier.setLaboratorium(bmhkLaboratorium);
 			labformulier.setScanDatum(scan.getScanDatum().toGregorianCalendar().getTime());
 			labformulier.setObjid(scan.getObjid());
 
-			List<String> barcodes = scan.getBarcodes();
-			boolean monsterIdAanwezig = false;
-			for (String barcode : barcodes)
+			var barcodes = scan.getBarcodes();
+			var monsterIdAanwezig = false;
+			for (var barcode : barcodes)
 			{
 				if (barcode.contains(Constants.LOCATIEID + "="))
 				{
-					String id = barcode.replace(Constants.LOCATIEID + "=", "").trim();
+					var id = barcode.replace(Constants.LOCATIEID + "=", "").trim();
 					labformulier.setHuisartsLocatie(hibernateService.get(CervixHuisartsLocatie.class, Long.valueOf(id)));
 				}
 				else if (barcode.contains("AGB="))
 				{
-					String id = barcode.replace("AGB=", "").trim();
+					var id = barcode.replace("AGB=", "").trim();
 					labformulier.setHuisartsLocatie(hibernateService.get(CervixHuisartsLocatie.class, Long.valueOf(id)));
 				}
 				else if (Pattern.matches("[0-9]+", barcode))
@@ -245,7 +241,7 @@ public class LabformulierServiceImpl implements LabformulierService
 
 	private Date getDate(LabformulierDate labformulierDate)
 	{
-		Integer dagConf = labformulierDate.getDagConf();
+		var dagConf = labformulierDate.getDagConf();
 		Integer dag = null;
 		if (dagConf != null && dagConf >= afkapwaardeLabformulier)
 		{
@@ -262,7 +258,7 @@ public class LabformulierServiceImpl implements LabformulierService
 			}
 		}
 
-		Integer maandConf = labformulierDate.getMaandConf();
+		var maandConf = labformulierDate.getMaandConf();
 		Integer maand = null;
 		if (maandConf != null && maandConf >= afkapwaardeLabformulier)
 		{
@@ -279,7 +275,7 @@ public class LabformulierServiceImpl implements LabformulierService
 			}
 		}
 
-		Integer jaarConf = labformulierDate.getJaarConf();
+		var jaarConf = labformulierDate.getJaarConf();
 		Integer jaar = null;
 		if (jaarConf != null && jaarConf >= afkapwaardeLabformulier)
 		{
@@ -296,7 +292,7 @@ public class LabformulierServiceImpl implements LabformulierService
 			}
 		}
 
-		Integer datumConf = labformulierDate.getDatumConf();
+		var datumConf = labformulierDate.getDatumConf();
 
 		if (datumConf != null && datumConf >= afkapwaardeLabformulier)
 		{
@@ -304,7 +300,7 @@ public class LabformulierServiceImpl implements LabformulierService
 			{
 				try
 				{
-					int datumDag = Integer.parseInt(labformulierDate.getDatum().substring(0, 2));
+					var datumDag = Integer.parseInt(labformulierDate.getDatum().substring(0, 2));
 					if (!(datumDag < 1 && datumDag > 31))
 					{
 						dag = datumDag;
@@ -319,7 +315,7 @@ public class LabformulierServiceImpl implements LabformulierService
 			{
 				try
 				{
-					int datumMaand = Integer.parseInt(labformulierDate.getDatum().substring(2, 4));
+					var datumMaand = Integer.parseInt(labformulierDate.getDatum().substring(2, 4));
 					if (!(datumMaand < 1 && datumMaand > 12))
 					{
 						maand = datumMaand;
@@ -334,7 +330,7 @@ public class LabformulierServiceImpl implements LabformulierService
 			{
 				try
 				{
-					int datumJaar = Integer.parseInt(labformulierDate.getDatum().substring(6, 8)) + 2000;
+					var datumJaar = Integer.parseInt(labformulierDate.getDatum().substring(6, 8)) + 2000;
 					if (!(datumJaar < 2014 && datumJaar > 2099))
 					{
 						jaar = datumJaar;

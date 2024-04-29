@@ -101,7 +101,6 @@ public class MammaOnderzoek extends AbstractHibernateObject
 	private List<MammaBeoordeling> beoordelingen = new ArrayList<>();
 
 	@OneToOne(fetch = FetchType.LAZY, cascade = javax.persistence.CascadeType.ALL)
-	@Cascade(CascadeType.ALL)
 	private MammaBeoordeling laatsteBeoordeling;
 
 	@OneToOne(fetch = FetchType.LAZY, optional = true, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE,

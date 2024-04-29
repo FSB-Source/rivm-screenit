@@ -27,22 +27,25 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 
 import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
+import nl.rivm.screenit.main.exception.BulkAanmakenException;
+import nl.rivm.screenit.main.exception.BulkVerwijderenException;
 import nl.rivm.screenit.main.exception.ValidatieException;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.RoosterListViewFilter;
 import nl.rivm.screenit.model.colon.dto.ColonBlokkadeDto;
+import nl.rivm.screenit.model.colon.dto.ColonHerhalingDto;
+import nl.rivm.screenit.model.colon.dto.ColonTijdslotDto;
 import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 
 public interface ColonBlokkadeService
 {
 	void createBlokkade(ColonBlokkadeDto blokkadeDto, InstellingGebruiker instellingGebruiker)
-		throws ValidatieException, OpslaanVerwijderenTijdBlokException;
-
-	List<ColonBlokkade> splitBlokkade(ColonBlokkade unsavedObject, boolean alleKamers, ColoscopieCentrum intakelocatie);
+		throws ValidatieException, OpslaanVerwijderenTijdBlokException, BulkAanmakenException;
 
 	void logAction(ColonBlokkade unsavedObject, InstellingGebruiker instellingGebruiker, ColoscopieCentrum intakelocatie, @Nullable ColonBlokkade origineleBlokkade,
-		LogGebeurtenis logGebeurtenis);
+		LogGebeurtenis logGebeurtenis, ColonHerhalingDto herhalingDto, Exception ex);
 
 	String getPeriodeTekst(ColonBlokkade unsavedObject);
 
@@ -51,4 +54,8 @@ public interface ColonBlokkadeService
 	Optional<ColonBlokkade> getBlokkade(Long blokkadeId);
 
 	void updateBlokkade(ColonBlokkadeDto blokkadeDto, InstellingGebruiker loggedInInstellingGebruiker) throws OpslaanVerwijderenTijdBlokException, ValidatieException;
+
+	List<ColonTijdslotDto> zoekBlokkades(RoosterListViewFilter filter, long intakelocatieId);
+
+	void bulkDeleteBlokkades(List<Long> blokkadeIds, InstellingGebruiker loggedInInstellingGebruiker, boolean alleenValidatie) throws BulkVerwijderenException;
 }

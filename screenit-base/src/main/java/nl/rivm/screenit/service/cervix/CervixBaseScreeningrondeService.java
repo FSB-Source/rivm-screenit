@@ -61,4 +61,6 @@ public interface CervixBaseScreeningrondeService
 	boolean nieuweUitnodigingVoorClientMoetPUZijn(CervixScreeningRonde screeningRonde);
 
 	boolean clientHeeftAanOnderzoekMeegedaanInRonde(CervixScreeningRonde screeningRonde);
+
+	CervixScreeningRonde getOntvangstRondeVoorMonster(CervixMonster monster);
 }

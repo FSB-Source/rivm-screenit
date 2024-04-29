@@ -39,7 +39,6 @@ import nl.rivm.screenit.model.colon.MdlVerslag;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
-import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.query.ScreenitRestrictions;
 import nl.topicuszorg.hibernate.criteria.BaseCriteria;
@@ -399,80 +398,4 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 
 		return criteria.list();
 	}
-
-	@Override
-	public List<ColonIntakeAfspraak> getAfsprakenInRange(Range<Date> range)
-	{
-		var criteria = getSession().createCriteria(ColonIntakeAfspraak.class);
-
-		criteria.add(Restrictions.or(Restrictions.eq("status", AfspraakStatus.GEPLAND), Restrictions.eq("status", AfspraakStatus.UITGEVOERD)));
-
-		var disjunction = Restrictions.disjunction();
-		disjunction.add(RangeCriteriaBuilder.closedOpen("startTime", "endTime").overlaps(range));
-		criteria.add(disjunction);
-		criteria.addOrder(Order.asc("startTime"));
-
-		var projectionList = Projections.projectionList()
-			.add(Projections.property("startTime"))
-			.add(Projections.property("endTime"))
-			.add(Projections.property("id"));
-		criteria.setProjection(projectionList);
-
-		return criteria.list();
-	}
-
-	@Override
-	public RoosterItem getRoosterBlokVoorAfspraak(ColonIntakeAfspraak newAfspraak)
-	{
-		Criteria criteria = getSession().createCriteria(RoosterItem.class);
-
-		criteria.add(Restrictions.eq("location", newAfspraak.getLocation()));
-
-		var range = Range.closed(newAfspraak.getStartTime(), newAfspraak.getEndTime());
-		criteria.add(RangeCriteriaBuilder.closedOpen("startTime", "endTime").overlaps(range));
-
-		return (RoosterItem) criteria.uniqueResult();
-	}
-
-	@Override
-	public RoosterItem getVrijRoosterBlokVoorAfspraak(ColonIntakeAfspraak newAfspraak)
-	{
-		Criteria criteria = getSession().createCriteria(RoosterItem.class);
-
-		criteria.add(Restrictions.eq("location", newAfspraak.getLocation()));
-		criteria.add(Restrictions.eq("startTime", newAfspraak.getStartTime()));
-		criteria.add(Restrictions.isEmpty("afspraken"));
-
-		criteria.setMaxResults(1);
-		return (RoosterItem) criteria.uniqueResult();
-	}
-
-	@Override
-	public List<Object> getRoosterItemsBezetMetAfspraak(Long roosterItemId, Range<Date> currentViewRange)
-	{
-		Criteria criteria = getSession().createCriteria(Afspraak.class, "this");
-
-		criteria.add(Restrictions.or(Restrictions.eq("status", AfspraakStatus.GEPLAND), Restrictions.eq("status", AfspraakStatus.UITGEVOERD)));
-
-		criteria.addOrder(Order.desc("this.startTime"));
-
-		criteria.createAlias("this.roosterItem", "roosterItem");
-
-		DetachedCriteria subcriteria = DetachedCriteria.forClass(RoosterItem.class);
-		subcriteria.createAlias("recurrence", "recurrence");
-		subcriteria.createAlias("recurrence.appointments", "recurrenceItems", JoinType.LEFT_OUTER_JOIN);
-		subcriteria.add(Restrictions.eq("recurrenceItems.id", roosterItemId));
-		subcriteria.setProjection(Projections.id());
-
-		criteria.add(RangeCriteriaBuilder.closedOpen("this.startTime", "this.endTime").overlaps(currentViewRange));
-		criteria.add(Restrictions.or(Restrictions.eq("roosterItem.id", roosterItemId), Subqueries.propertyIn("roosterItem.id", subcriteria)));
-
-		ProjectionList projectionList = Projections.projectionList()
-			.add(Projections.property("this.startTime"))
-			.add(Projections.property("this.endTime"))
-			.add(Projections.property("this.id"));
-		criteria.setProjection(Projections.distinct(projectionList));
-		return criteria.list();
-	}
-
 }

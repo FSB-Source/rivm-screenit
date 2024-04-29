@@ -28,10 +28,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import nl.rivm.screenit.exceptions.HeeftAfsprakenException;
 import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
+import nl.rivm.screenit.exceptions.TijdBlokOverlapException;
 import nl.rivm.screenit.model.colon.enums.ColonRoosterBeperking;
 import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.rivm.screenit.util.DateUtil;
+import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
 
 import org.apache.wicket.Application;
 
@@ -48,9 +51,9 @@ public class BulkAanmakenException extends Exception
 
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
-	public void addException(RoosterItem afspraakslot, Exception exception)
+	public void addException(AbstractAppointment tijdslot, Exception exception)
 	{
-		var innerException = new BulkAanmakenInnerException(exception, afspraakslot);
+		var innerException = new BulkAanmakenInnerException(exception, tijdslot);
 		if (!innerExceptions.contains(innerException))
 		{
 			innerExceptions.add(innerException);
@@ -68,26 +71,26 @@ public class BulkAanmakenException extends Exception
 		String message;
 		ColonRoosterBeperking type;
 		ObjectNode node;
-		RoosterItem afspraakslot;
+		AbstractAppointment tijdslot;
 		for (var innerException : innerExceptions)
 		{
 			if (innerException.getException() instanceof BeperkingException)
 			{
 				for (var validatieException : ((BeperkingException) innerException.getException()).getExceptions())
 				{
-					message = getMessage(validatieException);
 					type = getExceptionType(innerException.getException());
-					afspraakslot = innerException.getAfspraakslot();
-					node = createNode(type, message, afspraakslot);
+					tijdslot = innerException.getTijdslot();
+					message = getMessage(validatieException, tijdslot);
+					node = createNode(type, message, tijdslot);
 					exceptions.add(node);
 				}
 			}
 			else
 			{
-				message = getMessage(innerException.getException());
 				type = getExceptionType(innerException.getException());
-				afspraakslot = innerException.getAfspraakslot();
-				node = createNode(type, message, afspraakslot);
+				tijdslot = innerException.getTijdslot();
+				message = getMessage(innerException.getException(), tijdslot);
+				node = createNode(type, message, tijdslot);
 				exceptions.add(node);
 			}
 		}
@@ -105,29 +108,29 @@ public class BulkAanmakenException extends Exception
 		}
 	}
 
-	private ObjectNode createNode(ColonRoosterBeperking type, String exception, RoosterItem afspraakslot)
+	private ObjectNode createNode(ColonRoosterBeperking type, String exception, AbstractAppointment tijdslot)
 	{
 		var node = objectMapper.createObjectNode();
 		node.put("type", type.name());
 		node.put("exception", exception);
-		node.set("afspraakslot", afspraakslotToJson(afspraakslot));
+		node.set("tijdslot", tijdslotToJson(tijdslot));
 		return node;
 	}
 
-	private ObjectNode afspraakslotToJson(RoosterItem afspraakslot)
+	private ObjectNode tijdslotToJson(AbstractAppointment tijdslot)
 	{
 		var node = objectMapper.createObjectNode();
-		node.put("id", afspraakslot.getId());
-		node.put("startTime", DateUtil.formatTime(afspraakslot.getStartTime()));
-		node.put("endTime", DateUtil.formatTime(afspraakslot.getEndTime()));
-		node.put("datum", DateUtil.formatShortDate(afspraakslot.getStartTime()));
+		node.put("id", tijdslot.getId());
+		node.put("startTime", DateUtil.formatTime(tijdslot.getStartTime()));
+		node.put("endTime", DateUtil.formatTime(tijdslot.getEndTime()));
+		node.put("datum", DateUtil.formatShortDate(tijdslot.getStartTime()));
 		return node;
 	}
 
 	private ColonRoosterBeperking getExceptionType(Exception exception)
 	{
-		var hardeExcepties = List.of("OpslaanVerwijderenTijdBlokException", "ValidatieException", "HeeftAfsprakenException");
-		if (hardeExcepties.contains(exception.getClass().getSimpleName()))
+		var hardeExcepties = List.of(OpslaanVerwijderenTijdBlokException.class, ValidatieException.class, HeeftAfsprakenException.class, TijdBlokOverlapException.class);
+		if (hardeExcepties.contains(exception.getClass()))
 		{
 			return ColonRoosterBeperking.HARD;
 		}
@@ -140,36 +143,57 @@ public class BulkAanmakenException extends Exception
 		return ColonRoosterBeperking.ZACHT;
 	}
 
-	private String getMessage(Exception exception)
+	private String getMessage(Exception exception, AbstractAppointment tijdslot)
 	{
 		String message;
 		if (exception instanceof ValidatieException)
 		{
 			var validatieException = (ValidatieException) exception;
-			message = getString(validatieException.getMessageKey());
-			if (validatieException.getFormatArguments() != null)
-			{
-				message = String.format(message, validatieException.getFormatArguments()[0]);
-			}
+			message = validatieException.getFormattedMessage(BulkAanmakenException.this::getString);
 		}
-		else if (exception instanceof OpslaanVerwijderenTijdBlokException)
+		else if (exception instanceof TijdBlokOverlapException)
 		{
-			var overlapException = (OpslaanVerwijderenTijdBlokException) exception;
-			message = getString(overlapException.getMessage());
-			if (overlapException.getAdditionalMessageInfo() != null)
-			{
-				message += " " + overlapException.getAdditionalMessageInfo();
-			}
+			message = getString(tijdslot instanceof RoosterItem ? "error.afspraakslot.heeft.overlap.bulk" : "error.blokkade.heeft.overlap.bulk");
 		}
 		else
 		{
-			message = exception.getMessage();
+			message = getString(exception.getMessage());
 		}
 		return message;
 	}
 
 	private String getString(String key)
 	{
-		return Application.get().getResourceSettings().getLocalizer().getString(key, null);
+		return Application.get().getResourceSettings().getLocalizer().getString(key, null, key);
+	}
+
+	public String getSamenvatting()
+	{
+		var samenvatting = "";
+
+		var zachteBeperkingen = innerExceptions.stream().filter(e -> e.getException() instanceof BeperkingException)
+			.map(e -> (BeperkingException) e.getException()).filter(e -> e.getBeperkingType() == ColonRoosterBeperking.ZACHT).count();
+		var hardeBeperkingen = innerExceptions.stream().filter(e ->
+		{
+			if (e.getException() instanceof BeperkingException)
+			{
+				return ((BeperkingException) e.getException()).getBeperkingType() == ColonRoosterBeperking.HARD;
+			}
+			return true;
+		}).count();
+
+		if (zachteBeperkingen > 0)
+		{
+			samenvatting += String.format("%d aangemaakt op afwijkende dag/tijd", zachteBeperkingen);
+		}
+		if (hardeBeperkingen > 0)
+		{
+			if (!samenvatting.isEmpty())
+			{
+				samenvatting += ", ";
+			}
+			samenvatting += String.format("%d niet aangemaakt", hardeBeperkingen);
+		}
+		return samenvatting;
 	}
 }

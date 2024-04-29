@@ -228,7 +228,7 @@ public abstract class AbstractEditTijdSlotPanel<T extends AbstractAppointment> e
 				}
 				catch (ValidatieException ex)
 				{
-					error(String.format(getString(ex.getMessage()), ex.getFormatArguments()));
+					error(ex.getFormattedMessage(AbstractEditTijdSlotPanel.this::getString));
 				}
 				catch (OpslaanVerwijderenTijdBlokException ex)
 				{

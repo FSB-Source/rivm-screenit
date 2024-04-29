@@ -79,7 +79,7 @@ public class Mail extends AbstractHibernateObject
 	@Enumerated(EnumType.STRING)
 	private MailServerKeuze mailserver;
 
-	@OneToMany(mappedBy = "mail", cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "mail", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<MailAttachment> attachments;
 
 }

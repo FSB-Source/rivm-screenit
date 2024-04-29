@@ -218,7 +218,7 @@ public abstract class EditRoosterBlokPanel extends AbstractEditTijdSlotPanel<Roo
 				}
 				catch (ValidatieException ex)
 				{
-					error(String.format(getString(ex.getMessage()), ex.getFormatArguments()));
+					error(ex.getFormattedMessage(EditRoosterBlokPanel.this::getString));
 				}
 			}
 

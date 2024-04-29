@@ -21,62 +21,31 @@ package nl.rivm.screenit.model.project;
  * =========================LICENSE_END==================================
  */
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CascadeType;
 
+@Setter
+@Getter
 @Entity
 @Table(schema = "algemeen")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 public class ProjectBestandVerwerkingEntry extends AbstractHibernateObject
 {
-
-	private static final long serialVersionUID = 1L;
-
-	@Cascade({ CascadeType.ALL })
-	@ManyToOne(fetch = FetchType.EAGER, optional = false, cascade = javax.persistence.CascadeType.ALL)
+	@ManyToOne(fetch = FetchType.EAGER, optional = false, cascade = CascadeType.ALL)
 	private ProjectBestandVerwerking verwerking;
 
 	private Integer regelNummer;
 
 	private String melding;
-
-	public ProjectBestandVerwerking getVerwerking()
-	{
-		return verwerking;
-	}
-
-	public void setVerwerking(ProjectBestandVerwerking verwerking)
-	{
-		this.verwerking = verwerking;
-	}
-
-	public Integer getRegelNummer()
-	{
-		return regelNummer;
-	}
-
-	public void setRegelNummer(Integer regelNummer)
-	{
-		this.regelNummer = regelNummer;
-	}
-
-	public String getMelding()
-	{
-		return melding;
-	}
-
-	public void setMelding(String melding)
-	{
-		this.melding = melding;
-	}
-
 }

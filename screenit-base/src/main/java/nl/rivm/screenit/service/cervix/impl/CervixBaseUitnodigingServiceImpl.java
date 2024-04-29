@@ -27,7 +27,6 @@ import java.util.List;
 
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.dao.cervix.CervixDossierDao;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.InstellingGebruiker;
@@ -67,8 +66,6 @@ public class CervixBaseUitnodigingServiceImpl implements CervixBaseUitnodigingSe
 
 	private ICurrentDateSupplier dateSupplier;
 
-	private CervixDossierDao dossierDao;
-
 	private CervixBaseScreeningrondeService baseScreeningrondeService;
 
 	private CervixLabformulierService labformulierService;
@@ -96,7 +93,7 @@ public class CervixBaseUitnodigingServiceImpl implements CervixBaseUitnodigingSe
 			if (monster.getOntvangstdatum() == null)
 			{
 				monster.setOntvangstdatum(dateSupplier.getDate());
-				monster.setOntvangstScreeningRonde(dossierDao.getOntvangstRonde(monster));
+				monster.setOntvangstScreeningRonde(baseScreeningrondeService.getOntvangstRondeVoorMonster(monster));
 				var bmhkLaboratorium = (BMHKLaboratorium) HibernateHelper.deproxy(loggedInInstellingGebruiker.getOrganisatie());
 				monster.setLaboratorium(bmhkLaboratorium);
 				labformulierService.updateLabformulierLaboratoriumNaOntvangstMonster(monster);

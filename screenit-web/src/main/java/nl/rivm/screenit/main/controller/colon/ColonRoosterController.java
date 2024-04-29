@@ -102,7 +102,7 @@ public class ColonRoosterController
 	public ColonRoosterInstellingenDto getInstellingen()
 	{
 		var instellingen = new ColonRoosterInstellingenDto();
-		instellingen.setGeprognotiseerdeVanafDatum(uitnodigingService.getGeprognotiseerdeIntakeDatum(true).with(DayOfWeek.MONDAY));
+		instellingen.setGeprognosticeerdeVanafDatum(uitnodigingService.getGeprognotiseerdeIntakeDatum(true).with(DayOfWeek.MONDAY));
 		instellingen.setDuurAfspraakInMinuten(ScreenitSession.get().getColoscopieCentrum().getAfspraakDefinities().get(0).getDuurAfspraakInMinuten());
 
 		return instellingen;

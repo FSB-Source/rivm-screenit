@@ -446,6 +446,6 @@ public abstract class EditBlokkadePanel extends AbstractEditTijdSlotPanel<ColonB
 		var logGebeurtenis = unsavedObject.getId() != null ? LogGebeurtenis.COLON_BLOKKADES_WIJZIG : LogGebeurtenis.COLON_BLOKKADES_NIEUW;
 		var origBlokkade = EntityAuditUtil.getPreviousVersionOfEntity(unsavedObject, hibernateService.getHibernateSession());
 
-		blokkadeService.logAction(unsavedObject, instellingGebruiker, intakelocatie, origBlokkade, logGebeurtenis);
+		blokkadeService.logAction(unsavedObject, instellingGebruiker, intakelocatie, origBlokkade, logGebeurtenis, null, null);
 	}
 }

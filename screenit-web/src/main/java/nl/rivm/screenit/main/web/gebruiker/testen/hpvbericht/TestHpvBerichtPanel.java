@@ -21,10 +21,10 @@ package nl.rivm.screenit.main.web.gebruiker.testen.hpvbericht;
  * =========================LICENSE_END==================================
  */
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import nl.rivm.screenit.dao.cervix.CervixBMHKLaboratoriumDao;
 import nl.rivm.screenit.main.service.cervix.HpvSendingMessageService;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.model.berichten.ScreenITResponseV251MessageWrapper;
@@ -32,6 +32,8 @@ import nl.rivm.screenit.model.cervix.berichten.CervixHpvOrderCode;
 import nl.rivm.screenit.model.cervix.berichten.CervixHpvResultCode;
 import nl.rivm.screenit.model.cervix.berichten.CervixHpvResultValue;
 import nl.rivm.screenit.model.cervix.enums.CervixHpvResultaatBerichtBron;
+import nl.rivm.screenit.repository.cervix.CervixHpvBerichtRepository;
+import nl.rivm.screenit.specification.cervix.CervixHpvBerichtSpecification;
 import nl.rivm.screenit.util.cervix.hpv_berichtgenerator.CervixHpvBerichtGenerator;
 import nl.rivm.screenit.util.cervix.hpv_berichtgenerator.CervixHpvBerichtGeneratorMonsterWrapper;
 import nl.rivm.screenit.util.cervix.hpv_berichtgenerator.CervixHpvBerichtGeneratorWrapper;
@@ -61,7 +63,7 @@ public class TestHpvBerichtPanel extends GenericPanel<CervixHpvBerichtGeneratorW
 	private WebMarkupContainer uitslagenContainer;
 
 	@SpringBean
-	private CervixBMHKLaboratoriumDao cervixBMHKLaboratoriumDao;
+	private CervixHpvBerichtRepository hpvBerichtRepository;
 
 	@SpringBean
 	private HpvSendingMessageService hpvSendingMessageService;
@@ -91,15 +93,22 @@ public class TestHpvBerichtPanel extends GenericPanel<CervixHpvBerichtGeneratorW
 				super.onSubmit(target);
 				CervixHpvBerichtGeneratorWrapper wrapper = getModelObject();
 				String alAangeleverd = "";
-				if (cervixBMHKLaboratoriumDao.isHpvBerichtAlOntvangen(wrapper.getMessageId()))
+				if (hpvBerichtRepository.exists(CervixHpvBerichtSpecification.heeftMessageId(wrapper.getMessageId())))
 				{
-
 					alAangeleverd = ", Bericht al een keer aangeleverd met dit messageId. Dit bericht wordt daarom niet meer verwerkt door de batch maar levert wel een AA op!";
 				}
 
 				Message hl7bericht = CervixHpvBerichtGenerator.geefHL7Bericht(wrapper);
 
-				ScreenITResponseV251MessageWrapper result = hpvSendingMessageService.verstuurHpvBericht(hl7bericht);
+				ScreenITResponseV251MessageWrapper result = null;
+				try
+				{
+					result = hpvSendingMessageService.verstuurHpvBericht(hl7bericht);
+				}
+				catch (IOException e)
+				{
+					throw new RuntimeException(e);
+				}
 
 				String melding = "Bericht verstuurd, Code: ";
 				if (result != null)

@@ -31,10 +31,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -57,16 +55,6 @@ import nl.rivm.screenit.service.BarcodeService;
 import nl.rivm.screenit.service.UploadDocumentService;
 
 import org.apache.commons.lang.StringUtils;
-import org.ghost4j.Ghostscript;
-import org.ghost4j.GhostscriptException;
-import org.ghost4j.display.PageRaster;
-import org.ghost4j.display.PageRasterDisplayCallback;
-import org.ghost4j.document.DocumentException;
-import org.ghost4j.document.PDFDocument;
-import org.ghost4j.document.PSDocument;
-import org.ghost4j.renderer.AbstractRemoteRenderer;
-import org.ghost4j.renderer.RendererException;
-import org.ghost4j.util.DiskStore;
 import org.krysalis.barcode4j.impl.code128.Code128Bean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -76,8 +64,6 @@ import com.aspose.words.FieldMergingArgs;
 import com.aspose.words.IFieldMergingCallback;
 import com.aspose.words.ImageFieldMergingArgs;
 import com.aspose.words.License;
-import com.aspose.words.MergeFieldImageDimension;
-import com.aspose.words.MergeFieldImageDimensionUnit;
 import com.aspose.words.PdfSaveOptions;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
@@ -249,86 +235,6 @@ public class AsposeServiceImpl implements AsposeService
 		return mergeField;
 	}
 
-	@Setter
-	private static class EPSRenderer extends AbstractRemoteRenderer
-	{
-		public static final int OPTION_ANTIALIASING_NONE = 0;
-
-		public static final int OPTION_ANTIALIASING_HIGH = 4;
-
-		private int antialiasing = OPTION_ANTIALIASING_HIGH;
-
-		private int resolution = 75;
-
-		public EPSRenderer()
-		{
-
-			supportedDocumentClasses = new Class[2];
-			supportedDocumentClasses[0] = PDFDocument.class;
-			supportedDocumentClasses[1] = PSDocument.class;
-		}
-
-		@Override
-		public List<PageRaster> run(org.ghost4j.document.Document document, int begin, int end) throws IOException, RendererException, org.ghost4j.document.DocumentException
-		{
-
-			assertDocumentSupported(document);
-
-			var gs = Ghostscript.getInstance();
-
-			var diskStore = DiskStore.getInstance();
-			var inputDiskStoreKey = diskStore.generateUniqueKey();
-
-			document.write(diskStore.addFile(inputDiskStoreKey));
-
-			var displayCallback = new PageRasterDisplayCallback();
-
-			var gsArgs = new String[] { "-dQUIET", "-dNOPAUSE", "-dBATCH", "-dSAFER", "-dEPSCrop", "-dFirstPage=" + (begin + 1), "-dLastPage=" + (end + 1), "-sDEVICE=display",
-				"-sDisplayHandle=0", "-dDisplayFormat=16#804", "-r" + resolution, "-f", diskStore.getFile(inputDiskStoreKey).getAbsolutePath() };
-
-			if (antialiasing != OPTION_ANTIALIASING_NONE)
-			{
-				gsArgs = Arrays.copyOf(gsArgs, gsArgs.length + 2);
-				gsArgs[gsArgs.length - 2] = "-dTextAlphaBits=" + antialiasing;
-				gsArgs[gsArgs.length - 1] = "-dGraphicsAlphaBits=" + antialiasing;
-			}
-
-			try
-			{
-				synchronized (gs)
-				{
-
-					gs.setDisplayCallback(displayCallback);
-
-					gs.initialize(gsArgs);
-					gs.exit();
-				}
-			}
-			catch (GhostscriptException e)
-			{
-				throw new RendererException(e);
-			}
-			finally
-			{
-
-				try
-				{
-					Ghostscript.deleteInstance();
-				}
-				catch (GhostscriptException e)
-				{
-					throw new RendererException(e);
-				}
-
-				diskStore.removeFile(inputDiskStoreKey);
-			}
-
-			return displayCallback.getRasters();
-
-		}
-
-	}
-
 	private final class MailMergeImageCallback implements IFieldMergingCallback
 	{
 		private final MailMergeContext context;
@@ -351,7 +257,7 @@ public class AsposeServiceImpl implements AsposeService
 
 		@Override
 		public void imageFieldMerging(ImageFieldMergingArgs field)
-			throws IOException, InstantiationException, IllegalAccessException, RendererException, DocumentException, NoSuchMethodException, InvocationTargetException
+			throws IOException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException
 		{
 
 			var afdrukObject = getAfdrukObject(field.getFieldName(), context);
@@ -388,35 +294,22 @@ public class AsposeServiceImpl implements AsposeService
 			}
 		}
 
-		private void imageMerger(ImageFieldMergingArgs field, UploadDocument uploadDocument) throws IOException, RendererException, DocumentException
+		private void imageMerger(ImageFieldMergingArgs field, UploadDocument uploadDocument) throws IOException
 		{
 			var mergeFieldFile = uploadDocumentService.load(uploadDocument);
+
 			if (uploadDocument.getContentType().equals("image/x-eps") || uploadDocument.getContentType().equals("application/postscript"))
 			{
-				var document = new PSDocument();
-				document.load(mergeFieldFile);
-				var renderer = new EPSRenderer();
-				renderer.setResolution(100);
-
-				var images = renderer.render(document);
-				var image = (BufferedImage) images.get(0);
-
-				var png = File.createTempFile("image", ".png");
-				ImageIO.write(image, "png", png);
-				field.setImage(image);
-				field.setImageHeight(new MergeFieldImageDimension(40, MergeFieldImageDimensionUnit.POINT));
-				field.setImageWidth(new MergeFieldImageDimension(160, MergeFieldImageDimensionUnit.POINT));
+				throw new UnsupportedOperationException("Het is niet meer mogelijk om EPS bestanden te gebruiken");
 			}
-			else
+
+			try (var inputStream = new FileInputStream(mergeFieldFile))
 			{
-				try (var inputStream = new FileInputStream(mergeFieldFile))
-				{
-					field.setImageStream(inputStream);
-				}
-				catch (Exception e)
-				{
-					LOG.error(e.getMessage(), e);
-				}
+				field.setImageStream(inputStream);
+			}
+			catch (Exception e)
+			{
+				LOG.error(e.getMessage(), e);
 			}
 		}
 

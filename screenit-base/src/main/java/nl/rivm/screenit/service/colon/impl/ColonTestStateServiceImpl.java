@@ -33,7 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.dao.UitnodigingsDao;
-import nl.rivm.screenit.dao.colon.AfspraakDefinitieDao;
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
@@ -57,7 +56,6 @@ import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
-import nl.rivm.screenit.model.colon.planning.AfspraakDefinitie;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.GbaStatus;
@@ -65,6 +63,7 @@ import nl.rivm.screenit.model.enums.RedenNietTeBeoordelen;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.DossierFactory;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.colon.ColonAfspraakDefinitieService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonTestStateService;
 import nl.rivm.screenit.util.DateUtil;
@@ -94,9 +93,6 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 	private ClientDao clientDao;
 
 	@Autowired
-	private AfspraakDefinitieDao afspraakDefinitieDao;
-
-	@Autowired
 	private BaseBriefService briefService;
 
 	@Autowired
@@ -113,6 +109,9 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 
 	@Autowired
 	private ColonDossierBaseService dossierService;
+
+	@Autowired
+	private ColonAfspraakDefinitieService afspraakDefinitieService;
 
 	@Override
 	public String setClientInState(TestModel model)
@@ -572,8 +571,9 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 		}
 		if (intakeAfspraak.getDefinition() == null)
 		{
-			List<AfspraakDefinitie> afspraakDefinities = afspraakDefinitieDao.getActieveActieDefinities(intakeAfspraak.getLocation().getColoscopieCentrum());
-			intakeAfspraak.setDefinition(afspraakDefinities.get(0));
+			var intakelocatie = intakeAfspraak.getLocation().getColoscopieCentrum();
+			var afspraakDefinitie = afspraakDefinitieService.getActiefAfspraakDefinitie(intakelocatie);
+			intakeAfspraak.setDefinition(afspraakDefinitie);
 		}
 		if (intakeAfspraak.getEndTime() == null)
 		{

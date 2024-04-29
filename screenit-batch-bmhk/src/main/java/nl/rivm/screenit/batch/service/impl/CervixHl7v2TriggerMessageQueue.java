@@ -239,21 +239,17 @@ public class CervixHl7v2TriggerMessageQueue
 						if (sendRunCounter % 10 == 0)
 						{
 							LOG.info("Lab {}: Heartbeat HL7v2 berichten queue", labNaam);
-							checkLab();
+							if (!isLabAanwezig())
+							{
+								break;
+							}
 						}
 						Thread.sleep(MILLIS_WAIT_TIME);
 					}
 				}
 				catch (Exception e)
 				{
-					LOG.error("Lab {}: Fout tijdens het versturen van HL7v2 berichten.", labNaam, e);
-					var logMessage = String.format("Lab %s: Er is een onbekende fout opgetreden tijdens het versturen van HL7v2 berichten, neem contact op met Topicus.",
-						labNaam);
-					if (e instanceof HL7v2ConnectionException)
-					{
-						logMessage = String.format("Lab %s: %s %s", labNaam, e.getMessage(), e.getCause() != null ? e.getCause().getMessage() : null);
-					}
-					logService.logGebeurtenis(LogGebeurtenis.CERVIX_HL7V2_BERICHT_BATCH_GESTOPT, null, logMessage, Bevolkingsonderzoek.CERVIX);
+					logException(e);
 					break;
 				}
 				finally
@@ -265,14 +261,33 @@ public class CervixHl7v2TriggerMessageQueue
 			stopped = true;
 		}
 
-		private void checkLab()
+		private void logException(Exception e)
+		{
+			LOG.error("Lab {}: Fout tijdens het versturen van HL7v2 berichten.", labNaam, e);
+			var logMessage = String.format("Lab %s: Er is een onbekende fout opgetreden tijdens het versturen van HL7v2 berichten, neem contact op met Topicus.",
+				labNaam);
+			if (e instanceof HL7v2ConnectionException)
+			{
+				logMessage = String.format("Lab %s: %s %s", labNaam, e.getMessage(), e.getCause() != null ? e.getCause().getMessage() : null);
+			}
+			logService.logGebeurtenis(LogGebeurtenis.CERVIX_HL7V2_BERICHT_BATCH_GESTOPT, null, logMessage, Bevolkingsonderzoek.CERVIX);
+			if (e instanceof InterruptedException)
+			{
+				Thread.currentThread().interrupt();
+			}
+		}
+
+		private boolean isLabAanwezig()
 		{
 			bindSession();
+			boolean labAanwezig = true;
 			if (getLaboratorium() == null)
 			{
-				throw new IllegalStateException(String.format("Lab '%s' met id '%s' niet (meer) beschikbaar", labNaam, labId));
+				LOG.error("Lab '{}' met id '{}' niet (meer) beschikbaar", labNaam, labId);
+				labAanwezig = false;
 			}
 			unbindSessionFactory();
+			return labAanwezig;
 		}
 
 		private void closeHl7Connections(ScreenITHL7MessageContext connectionContext)
@@ -560,6 +575,10 @@ public class CervixHl7v2TriggerMessageQueue
 					logService.logGebeurtenis(LogGebeurtenis.CERVIX_HL7V2_BERICHT_VERSTUREN_MISLUKT, getClient(getMonster(hl7BerichtTriggerDto)), logMelding,
 						Bevolkingsonderzoek.CERVIX));
 				verstuurProblemen = true;
+			}
+			if (e instanceof InterruptedException)
+			{
+				Thread.currentThread().interrupt();
 			}
 		}
 

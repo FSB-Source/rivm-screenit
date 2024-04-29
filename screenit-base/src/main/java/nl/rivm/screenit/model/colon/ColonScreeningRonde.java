@@ -69,7 +69,7 @@ public class ColonScreeningRonde extends ScreeningRonde<ColonDossier, ColonBrief
 	@OneToOne(optional = true, cascade = CascadeType.ALL)
 	private IFOBTTest laatsteIFOBTTestExtra;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@ManyToOne(fetch = FetchType.LAZY, optional = true, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Audited(targetAuditMode = NOT_AUDITED)
 	@Cascade(org.hibernate.annotations.CascadeType.SAVE_UPDATE)
 	private EnovationHuisarts colonHuisarts;

@@ -24,7 +24,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.monster;
 import java.util.ArrayList;
 import java.util.List;
 
-import nl.rivm.screenit.dao.cervix.CervixDossierDao;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
@@ -63,9 +62,6 @@ public abstract class CervixUitnodigingZasPanel extends CervixUitnodigingPanel<C
 
 	@SpringBean
 	private ICurrentDateSupplier dateSupplier;
-
-	@SpringBean
-	private CervixDossierDao dossierDao;
 
 	private ScreenitDropdown<CervixZasStatus> zasStatusDropdown = null;
 
