@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
-import nl.rivm.screenit.main.dao.mamma.MammaConclusieReviewDao;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaConclusieReviewZoekObject;
 import nl.rivm.screenit.main.service.mamma.MammaConclusieReviewService;
 import nl.rivm.screenit.model.Client;
@@ -56,8 +55,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MammaConclusieReviewServiceImpl implements MammaConclusieReviewService
 {
-	private final MammaConclusieReviewDao conclusieReviewDao;
-
 	private final MammaConclusieReviewRepository conclusieReviewRepository;
 
 	private final ICurrentDateSupplier currentDateSupplier;
@@ -124,7 +121,7 @@ public class MammaConclusieReviewServiceImpl implements MammaConclusieReviewServ
 	{
 		if (MammaFollowUpConclusieStatus.conclusieReviewStatussen().contains(screeningRonde.getFollowUpConclusieStatus()))
 		{
-			conclusieReviewDao.getRadiologenMetLezingVanRondeEnZonderReview(screeningRonde).forEach(r -> maakConclusieReview(r, screeningRonde));
+			conclusieReviewRepository.getRadiologenMetLezingVanRondeEnZonderReview(screeningRonde).forEach(r -> maakConclusieReview(r, screeningRonde));
 		}
 	}
 

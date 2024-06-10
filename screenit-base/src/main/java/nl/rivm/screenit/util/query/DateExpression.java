@@ -22,18 +22,13 @@ package nl.rivm.screenit.util.query;
  */
 
 import java.util.ArrayList;
-import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
-
-import nl.rivm.screenit.ScreenITPostgreSQLDialect;
 
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.criterion.CriteriaQuery;
 import org.hibernate.criterion.Criterion;
-import org.hibernate.dialect.Dialect;
-import org.hibernate.dialect.function.SQLFunction;
 import org.hibernate.engine.spi.TypedValue;
 import org.hibernate.type.DateType;
 
@@ -57,41 +52,19 @@ public class DateExpression implements Criterion
 	@Override
 	public String toSqlString(Criteria criteria, CriteriaQuery criteriaQuery) throws HibernateException
 	{
-		Dialect dialect = criteriaQuery.getFactory().getDialect();
-		StringBuffer fragment = new StringBuffer();
+		var fragment = new StringBuffer();
 
-		if (dialect instanceof ScreenITPostgreSQLDialect)
+		var columns = criteriaQuery.getColumnsUsingProjection(criteria, propertyName);
+
+		fragment.append(" date_trunc('day', ");
+		fragment.append(columns[0]);
+		fragment.append(" ) ");
+		fragment.append(operator);
+		fragment.append(" ? ");
+
+		if (columns.length > 1)
 		{
-			String[] columns = criteriaQuery.getColumnsUsingProjection(criteria, propertyName);
-
-			fragment.append(" date_trunc('day', ");
-			fragment.append(columns[0]);
-			fragment.append(" ) ");
-			fragment.append(operator);
-			fragment.append(" ? ");
-
-			if (columns.length > 1)
-			{
-				LOG.warn("multi column fields not supported");
-			}
-		}
-		else
-		{
-
-			String aggregateName = "trunc";
-			SQLFunction function = dialect.getFunctions().get(aggregateName);
-
-			if (function == null)
-			{
-				throw new HibernateException("Couldnt find function for aggregate: " + aggregateName + " in Dialect: " + dialect);
-			}
-
-			List<String> functionArgs = new ArrayList<>(1);
-			functionArgs.add(criteriaQuery.getColumn(criteria, propertyName));
-
-			fragment.append(function.render(new DateType(), functionArgs, criteriaQuery.getFactory()));
-			fragment.append(operator);
-			fragment.append(" ? ");
+			LOG.warn("multi column fields not supported");
 		}
 		return fragment.toString();
 	}
@@ -99,7 +72,7 @@ public class DateExpression implements Criterion
 	@Override
 	public TypedValue[] getTypedValues(Criteria criteria, CriteriaQuery criteriaQuery) throws HibernateException
 	{
-		List<TypedValue> list = new ArrayList<>();
+		var list = new ArrayList<TypedValue>();
 		list.add(new TypedValue(DateType.INSTANCE, value));
 		return list.toArray(new TypedValue[list.size()]);
 	}

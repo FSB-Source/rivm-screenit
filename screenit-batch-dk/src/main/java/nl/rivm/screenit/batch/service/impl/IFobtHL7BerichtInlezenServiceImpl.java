@@ -31,7 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 import nl.rivm.screenit.batch.service.IFobtHL7BerichtInlezenService;
 import nl.rivm.screenit.dao.KwaliteitscontroleDao;
 import nl.rivm.screenit.dao.colon.IFOBTResultDao;
-import nl.rivm.screenit.dao.colon.IFobtDao;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Instelling;
@@ -57,6 +56,7 @@ import nl.rivm.screenit.model.verwerkingverslag.IfobtVerwerkingRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.IfobtVerwerkingRapportageEntry;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.colon.ColonBaseFitService;
 import nl.rivm.screenit.util.FITTestUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -91,7 +91,7 @@ public class IFobtHL7BerichtInlezenServiceImpl implements IFobtHL7BerichtInlezen
 	private LogService logService;
 
 	@Autowired
-	private IFobtDao ifobtDao;
+	private ColonBaseFitService fitService;
 
 	@Autowired
 	private KwaliteitscontroleDao kwaliteitscontroleDao;
@@ -138,7 +138,7 @@ public class IFobtHL7BerichtInlezenServiceImpl implements IFobtHL7BerichtInlezen
 					boolean onbekendeBarcode = false;
 					String barcode = ifobtResult.getSid();
 					LOG.info("Barcode verwerken: " + barcode);
-					IFOBTTest ifobtTest = ifobtDao.getIfobtTest(barcode);
+					IFOBTTest ifobtTest = fitService.getFit(barcode).orElse(null);
 
 					IFOBTUitslag uitslag = new IFOBTUitslag();
 					uitslag.setAnalyseDatum(ifobtResult.getDateTimeResult());
@@ -149,7 +149,7 @@ public class IFobtHL7BerichtInlezenServiceImpl implements IFobtHL7BerichtInlezen
 
 						if (skmlBarcode == null)
 						{
-							boolean isVerwijderdeBarcode = ifobtDao.isVerwijderdeBarcode(barcode);
+							boolean isVerwijderdeBarcode = fitService.isVerwijderdeBarcode(barcode);
 							String melding = String.format("FIT of controle buis met barcode %s in bestand %s bestaat niet%s.", barcode, ifobtResult.getBestandsNaam(),
 								isVerwijderdeBarcode ? " meer" : "");
 							logService.logGebeurtenis(LogGebeurtenis.IFOBT_ONBEKENDE_BARCODE, null, melding, Bevolkingsonderzoek.COLON);
@@ -256,10 +256,9 @@ public class IFobtHL7BerichtInlezenServiceImpl implements IFobtHL7BerichtInlezen
 
 	private IFOBTBestand createOrGetBestand(IFOBTResult ifobtResult)
 	{
-		IFOBTBestand bestand = ifobtDao.getIfobtBestand(ifobtResult.getBestandsNaam());
-		if (bestand == null)
+		return fitService.getIfobtBestand(ifobtResult.getBestandsNaam()).orElseGet(() ->
 		{
-			bestand = new IFOBTBestand();
+			var bestand = new IFOBTBestand();
 			bestand.setStatus(IFOBTBestandStatus.NIEUW);
 			bestand.setStatusDatum(currentDateSupplier.getDate());
 			bestand.setInstumentId(ifobtResult.getInstrumentID());
@@ -277,8 +276,8 @@ public class IFobtHL7BerichtInlezenServiceImpl implements IFobtHL7BerichtInlezen
 
 			hibernateService.saveOrUpdate(bestand);
 
-		}
-		return bestand;
+			return bestand;
+		});
 	}
 
 	private void logAction(IFOBTTest ifobt)

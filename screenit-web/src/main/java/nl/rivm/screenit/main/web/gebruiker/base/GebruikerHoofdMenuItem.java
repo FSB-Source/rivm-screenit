@@ -57,6 +57,7 @@ import nl.rivm.screenit.main.web.gebruiker.gedeeld.brievenafdrukken.CervixRegioA
 import nl.rivm.screenit.main.web.gebruiker.gedeeld.brievenafdrukken.ColonAfdrukkenDocumentenPage;
 import nl.rivm.screenit.main.web.gebruiker.gedeeld.brievenafdrukken.MammaAfdrukkenDocumentenPage;
 import nl.rivm.screenit.main.web.gebruiker.gedeeld.brievenafdrukken.ProjectAfdrukkenDocumentenPage;
+import nl.rivm.screenit.main.web.gebruiker.mamma.dense2.Dense2UitwisselingPage;
 import nl.rivm.screenit.main.web.gebruiker.rapportage.RapportagePage;
 import nl.rivm.screenit.main.web.gebruiker.screening.cervix.facturatie.CervixBetalingPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.cervix.hl7v2berichten.CervixVerwerkHL7v2FoutBerichtenPage;
@@ -194,6 +195,7 @@ public enum GebruikerHoofdMenuItem
 				contextMenuItems.add(new GebruikerMenuItem("menu.all.afdrukkendocumenten", MammaAfdrukkenDocumentenPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.mammascreening.palga", MammaPalgaUitwisselingPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.mammascreening.sestatus", MammaSEStatusPage.class));
+				contextMenuItems.add(new GebruikerMenuItem("menu.mammascreening.dense2", Dense2UitwisselingPage.class));
 				return new GebruikerMenuItem("menu.mamma", contextMenuItems);
 			}
 

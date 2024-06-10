@@ -61,7 +61,7 @@ public class Rol extends AbstractHibernateObject implements INaam, IActief, IBev
 	private String description;
 
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "rol")
-	@Where(clause = "actief = 'true'")
+	@Where(clause = "actief = true")
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "organisatie.cache")
 	private List<Permissie> permissies = new ArrayList<>();
 

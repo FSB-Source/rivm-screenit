@@ -21,23 +21,18 @@ package nl.rivm.screenit.mamma.se.proxy.model;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class LogGefaaldeTransactieGebeurtenisAction extends ActionDto
 {
-    private String logMessage;
+    private final String logMessage;
 
     public LogGefaaldeTransactieGebeurtenisAction(String seCode)
     {
         super(SEActieType.LOG_GEBEURTENIS_GEFAALDE_TRANSACTIE);
         logMessage = "Gefaalde transactie op SE met code " + seCode + ". Neem contact op met de leverancier.";
-    }
-
-    public String getLogMessage()
-    {
-        return logMessage;
-    }
-
-    public void setLogMessage(String logMessage)
-    {
-        this.logMessage = logMessage;
     }
 }

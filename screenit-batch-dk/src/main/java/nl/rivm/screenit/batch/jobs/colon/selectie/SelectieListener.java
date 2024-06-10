@@ -30,7 +30,6 @@ import java.util.Map.Entry;
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
-import nl.rivm.screenit.batch.repository.ColonScreeningRondeRepository;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Level;
@@ -40,6 +39,7 @@ import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.model.logging.SelectieRondeBeeindigdLogEvent;
 import nl.rivm.screenit.model.verwerkingverslag.SelectieRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.SelectieRapportageEntry;
+import nl.rivm.screenit.repository.colon.ColonScreeningRondeRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;

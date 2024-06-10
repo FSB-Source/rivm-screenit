@@ -30,6 +30,7 @@ import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.MammaTestTimeli
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.enums.MammaOnderzoekType;
+import nl.rivm.screenit.model.mamma.enums.MammaDenseWaarde;
 import nl.rivm.screenit.model.mamma.enums.OnderbrokenOnderzoekOption;
 import nl.rivm.screenit.model.mamma.enums.OnvolledigOnderzoekOption;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
@@ -47,15 +48,16 @@ public class TestMammaOnderzoekAfrondenPopup extends TestMammaAbstractPopupPanel
 
 	private IModel<Boolean> afwijkingModel = Model.of();
 
+	private IModel<MammaDenseWaarde> densiteitModel = Model.of();
+
 	public TestMammaOnderzoekAfrondenPopup(String id, IModel<List<Client>> clientModel)
 	{
 		super(id, clientModel);
-
 		ComponentHelper.addDropDownChoice(this, "onvolledig", false, Arrays.asList(OnvolledigOnderzoekOption.values()), false).setModel(onvolledigModel);
 		ComponentHelper.addDropDownChoice(this, "onderbroken", false, Arrays.asList(OnderbrokenOnderzoekOption.values()), false).setModel(onderbrokenModel);
 		ComponentHelper.addDropDownChoice(this, "typeOnderzoek", true, Arrays.asList(MammaOnderzoekType.values()), false).setModel(onderzoeksTypeModel);
+		ComponentHelper.addDropDownChoice(this, "densiteit", false, Arrays.asList(MammaDenseWaarde.values()), false).setModel(densiteitModel);
 		this.add(ComponentHelper.newCheckBox("afwijking", afwijkingModel));
-
 	}
 
 	@Override
@@ -71,7 +73,8 @@ public class TestMammaOnderzoekAfrondenPopup extends TestMammaAbstractPopupPanel
 			InstellingGebruiker instellingGebruiker = ScreenitSession.get().getLoggedInInstellingGebruiker();
 			boolean versturenHl7Berichten = ((MammaTestTimelinePage) getPage()).getVerstuurHl7Berichten().getObject();
 			testTimelineService.rondOnderzoekAf(MammaScreeningRondeUtil.getLaatsteAfspraak(client.getMammaDossier().getLaatsteScreeningRonde()), instellingGebruiker,
-				versturenHl7Berichten, onvolledigModel.getObject(), onderbrokenModel.getObject(), onderzoeksTypeModel.getObject(), afwijkingModel.getObject());
+				versturenHl7Berichten, onvolledigModel.getObject(), onderbrokenModel.getObject(), onderzoeksTypeModel.getObject(), afwijkingModel.getObject(),
+				densiteitModel.getObject());
 		}
 
 	}

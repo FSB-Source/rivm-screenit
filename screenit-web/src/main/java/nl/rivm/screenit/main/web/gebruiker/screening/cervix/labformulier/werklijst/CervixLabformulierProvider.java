@@ -49,7 +49,7 @@ public class CervixLabformulierProvider extends SortableDataProvider<CervixLabfo
 	{
 		Injector.get().inject(this);
 		this.filter = filter;
-		setSort("labformulier.scanDatum", SortOrder.ASCENDING);
+		setSort("scanDatum", SortOrder.ASCENDING);
 	}
 
 	@Override

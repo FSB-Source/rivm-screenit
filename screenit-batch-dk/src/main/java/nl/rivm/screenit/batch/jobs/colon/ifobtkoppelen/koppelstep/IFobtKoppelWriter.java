@@ -42,7 +42,7 @@ import nl.rivm.screenit.model.colon.IFOBTType;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.logging.IfobtKoppelingBeeindigdLogEvent;
-import nl.rivm.screenit.service.colon.IFobtService;
+import nl.rivm.screenit.service.colon.ColonBaseFitService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang.StringUtils;
@@ -63,7 +63,7 @@ public class IFobtKoppelWriter implements ItemWriter<VERZONDENUITNODIGING>
 	private HibernateService hibernateService;
 
 	@Autowired
-	private IFobtService iFobtService;
+	private ColonBaseFitService fitService;
 
 	private StepExecution stepExecution;
 
@@ -156,7 +156,7 @@ public class IFobtKoppelWriter implements ItemWriter<VERZONDENUITNODIGING>
 			{
 				if (uitnodiging.equals(screeningRonde.getLaatsteUitnodiging()))
 				{
-					iFobtService.setStatus(test, IFOBTTestStatus.ACTIEF);
+					fitService.setStatus(test, IFOBTTestStatus.ACTIEF);
 					if (ifobtType.equals(IFOBTType.GOLD))
 					{
 						screeningRonde.setLaatsteIFOBTTest(test);
@@ -168,7 +168,7 @@ public class IFobtKoppelWriter implements ItemWriter<VERZONDENUITNODIGING>
 				}
 				else
 				{
-					iFobtService.setStatus(test, IFOBTTestStatus.VERLOREN);
+					fitService.setStatus(test, IFOBTTestStatus.VERLOREN);
 				}
 				if (ifobtType.equals(IFOBTType.GOLD))
 				{
@@ -218,8 +218,8 @@ public class IFobtKoppelWriter implements ItemWriter<VERZONDENUITNODIGING>
 		this.hibernateService = hibernateService;
 	}
 
-	public void setIfobtService(IFobtService iFobtService)
+	public void setIfobtService(ColonBaseFitService fitService)
 	{
-		this.iFobtService = iFobtService;
+		this.fitService = fitService;
 	}
 }

@@ -43,7 +43,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	actie = Actie.INZIEN,
 	checkScope = true,
 	constraint = ShiroConstraint.HasPermission,
-	recht = Recht.GEBRUIKER_LOCATIE_ROOSTER,
+	recht = { Recht.GEBRUIKER_LOCATIE_ROOSTER, Recht.GEBRUIKER_LOCATIE_NIEUW_ROOSTER },
 	organisatieTypeScopes = OrganisatieType.COLOSCOPIECENTRUM,
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON })
 public class PlanningBasePage extends ColonScreeningBasePage

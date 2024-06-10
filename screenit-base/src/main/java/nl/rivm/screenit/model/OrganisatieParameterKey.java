@@ -76,7 +76,14 @@ public enum OrganisatieParameterKey
 	MAMMA_ILM_APPLICATIE_LOGGING_VERWIJDEREN_UITVOEREN(OrganisatieType.RIVM, Boolean.class, null, Bevolkingsonderzoek.MAMMA),
 	MAMMA_ILM_RONDES_VERWIJDEREN_UITVOEREN(OrganisatieType.RIVM, Boolean.class, null, Bevolkingsonderzoek.MAMMA),
 	MAMMA_ILM_MAX_TIJD_MINUTEN(OrganisatieType.RIVM, Integer.class, 600, Bevolkingsonderzoek.MAMMA),
-	MAMMA_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN(OrganisatieType.RIVM, Integer.class, 366, Bevolkingsonderzoek.MAMMA);
+	MAMMA_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN(OrganisatieType.RIVM, Integer.class, 366, Bevolkingsonderzoek.MAMMA),
+	MAMMA_DENSE2_CEM_PROJECT(OrganisatieType.RIVM, String.class, null, Bevolkingsonderzoek.MAMMA),
+	MAMMA_DENSE2_MRI_PROJECT(OrganisatieType.RIVM, String.class, null, Bevolkingsonderzoek.MAMMA),
+	MAMMA_DENSE2_CONTROLEGROEP_PROJECT(OrganisatieType.RIVM, String.class, null, Bevolkingsonderzoek.MAMMA),
+	MAMMA_DENSE2_HERINNEREN_CEM_PROJECT(OrganisatieType.RIVM, String.class, null, Bevolkingsonderzoek.MAMMA),
+	MAMMA_DENSE2_HERINNEREN_MRI_PROJECT(OrganisatieType.RIVM, String.class, null, Bevolkingsonderzoek.MAMMA),
+	MAMMA_DENSE2_EXCLUDE_PROJECTEN(OrganisatieType.RIVM, String.class, null, Bevolkingsonderzoek.MAMMA),
+	MAMMA_DENSE_2_INITIELE_METING_OPSLAAN(OrganisatieType.RIVM, Boolean.class, null, Bevolkingsonderzoek.MAMMA);
 
 	private final OrganisatieType organisatieType;
 

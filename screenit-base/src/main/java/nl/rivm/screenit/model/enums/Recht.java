@@ -1164,7 +1164,12 @@ public enum Recht implements INaam
 		"Beheer van roosterbeperkingen voor tijd en weekend",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
-		Actie.INZIEN, Actie.AANPASSEN);
+		Actie.INZIEN, Actie.AANPASSEN),
+
+	MAMMA_DENSE_2(
+		"Uitwisselen van DENSE-2 gegevens",
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
+		new ToegangLevel[] { ToegangLevel.LANDELIJK }, Actie.AANPASSEN);
 
 	private final String omschrijving;
 

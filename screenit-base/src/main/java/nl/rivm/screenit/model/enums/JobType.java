@@ -182,6 +182,8 @@ public enum JobType
 	MAMMA_CONTROLE_MISSENDE_UITSLAGEN(BatchApplicationType.MAMMA, new Bevolkingsonderzoek[] { MAMMA },
 		new OrganisatieParameterKey[] { OrganisatieParameterKey.MAMMA_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN }),
 
+	MAMMA_DENSE2_CSV_EXPORT(BatchApplicationType.MAMMA, new Bevolkingsonderzoek[] { MAMMA }),
+
 	COORDINATEN(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { COLON, CERVIX, MAMMA }),
 
 	BEZWAAR_BRIEVEN(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { COLON, CERVIX, MAMMA }),

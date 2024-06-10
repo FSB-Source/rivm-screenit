@@ -35,7 +35,6 @@ import java.util.Map;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.dao.UitnodigingsDao;
-import nl.rivm.screenit.dao.colon.ColonTestDao;
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.DossierStatus;
@@ -67,6 +66,7 @@ import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.model.enums.HuisartsBerichtType;
 import nl.rivm.screenit.model.enums.RedenNietTeBeoordelen;
+import nl.rivm.screenit.repository.colon.ColonUitnodigingRepository;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BaseDossierService;
 import nl.rivm.screenit.service.DossierFactory;
@@ -131,9 +131,6 @@ public class ColonTestServiceImpl implements ColonTestService
 	private UitnodigingsDao uitnodigingsDao;
 
 	@Autowired
-	private ColonTestDao colonTestDao;
-
-	@Autowired
 	private RecurrenceService recurrenceService;
 
 	@Autowired
@@ -147,6 +144,9 @@ public class ColonTestServiceImpl implements ColonTestService
 
 	@Autowired
 	private ColonAfspraakDefinitieService afspraakDefinitieService;
+
+	@Autowired
+	private ColonUitnodigingRepository uitnodigingRepository;
 
 	@Override
 	public ColonConclusie maakAfspraakEnConclusie(GbaPersoon filter, Date fitVerwerkingsDatum)
@@ -942,7 +942,7 @@ public class ColonTestServiceImpl implements ColonTestService
 	@Override
 	public int markeerNogNietNaarInpakcentrumVerstuurdeUitnodigingenAlsVerstuurd()
 	{
-		return colonTestDao.markeerNogNietNaarInpakcentrumVerstuurdeUitnodigingenAlsVerstuurd();
+		return uitnodigingRepository.markeerNogNietNaarInpakcentrumVerstuurdeUitnodigingenAlsVerstuurd(currentDateSupplier.getDate());
 	}
 
 	@Override

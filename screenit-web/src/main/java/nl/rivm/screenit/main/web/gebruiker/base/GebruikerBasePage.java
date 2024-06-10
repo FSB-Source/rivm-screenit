@@ -126,9 +126,9 @@ public abstract class GebruikerBasePage extends BasePage
 	@SpringBean
 	private IScreenitRealm realm;
 
-	private AbstractDefaultAjaxBehavior keepAliveBehavior;
+	protected AbstractDefaultAjaxBehavior keepAliveBehavior;
 
-	private AbstractDefaultAjaxBehavior logoutBehavior;
+	protected AbstractDefaultAjaxBehavior logoutBehavior;
 
 	protected BootstrapDialog dialog;
 

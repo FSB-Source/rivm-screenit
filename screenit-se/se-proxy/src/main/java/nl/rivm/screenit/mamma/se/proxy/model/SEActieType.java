@@ -23,5 +23,6 @@ package nl.rivm.screenit.mamma.se.proxy.model;
 
 public enum SEActieType
 {
-    LOG_GEBEURTENIS_GEFAALDE_TRANSACTIE
+	LOG_GEBEURTENIS_GEFAALDE_TRANSACTIE,
+	DENSITEITMETING
 }

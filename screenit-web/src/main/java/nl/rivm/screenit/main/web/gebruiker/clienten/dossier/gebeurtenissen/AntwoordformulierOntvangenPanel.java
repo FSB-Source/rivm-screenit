@@ -49,7 +49,7 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.UploadDocumentService;
-import nl.rivm.screenit.service.colon.IFobtService;
+import nl.rivm.screenit.service.colon.ColonBaseFitService;
 import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.util.FITTestUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -83,7 +83,7 @@ public class AntwoordformulierOntvangenPanel extends AbstractGebeurtenisDetailPa
 	private ColonDossierService colonDossierService;
 
 	@SpringBean
-	private IFobtService ifobtService;
+	private ColonBaseFitService colonFitService;
 
 	@SpringBean
 	private SimplePreferenceService preferenceService;

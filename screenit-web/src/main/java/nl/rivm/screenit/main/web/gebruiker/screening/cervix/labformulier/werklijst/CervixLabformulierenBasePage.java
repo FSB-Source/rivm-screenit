@@ -122,8 +122,8 @@ public abstract class CervixLabformulierenBasePage extends CervixScreeningBasePa
 		add(labformulierenFilter);
 
 		columns = new ArrayList<>();
-		columns.add(new PropertyColumn<>(Model.of(getString("barcode")), "labformulier.barcode", "barcode"));
-		columns.add(new PropertyColumn<>(Model.of("Cliënt"), "persoon.achternaam", "uitstrijkje.uitnodiging.screeningRonde.dossier.client")
+		columns.add(new PropertyColumn<>(Model.of(getString("barcode")), "barcode", "barcode"));
+		columns.add(new PropertyColumn<>(Model.of("Cliënt"), "uitstrijkje.uitnodiging.screeningRonde.dossier.client", "uitstrijkje.uitnodiging.screeningRonde.dossier.client")
 		{
 			@Override
 			public IModel<Object> getDataModel(IModel<CervixLabformulier> labformulierModel)
@@ -132,12 +132,13 @@ public abstract class CervixLabformulierenBasePage extends CervixScreeningBasePa
 				return new Model(client != null ? NaamUtil.titelVoorlettersTussenvoegselEnAanspreekAchternaam(client) : "");
 			}
 		});
-		columns.add(new GeboortedatumColumn<>("persoon.geboortedatum", "uitstrijkje.uitnodiging.screeningRonde.dossier.client.persoon"));
-		columns.add(new PropertyColumn<>(Model.of("BSN"), "persoon.bsn", "uitstrijkje.uitnodiging.screeningRonde.dossier.client.persoon.bsn"));
-		columns.add(new PropertyColumn<>(Model.of("Scandatum"), "labformulier.scanDatum", "scanDatum"));
+		columns.add(new GeboortedatumColumn<>("uitstrijkje.uitnodiging.screeningRonde.dossier.client.persoon", "uitstrijkje.uitnodiging.screeningRonde.dossier.client.persoon"));
+		columns.add(new PropertyColumn<>(Model.of("BSN"), "uitstrijkje.uitnodiging.screeningRonde.dossier.client.persoon.bsn",
+			"uitstrijkje.uitnodiging.screeningRonde.dossier.client.persoon.bsn"));
+		columns.add(new PropertyColumn<>(Model.of("Scandatum"), "scanDatum", "scanDatum"));
 		if (labformulierStatussenVisible)
 		{
-			columns.add(new EnumPropertyColumn<CervixLabformulier, String, CervixLabformulierStatus>(Model.of("Status formulier"), "labformulier.status", "status"));
+			columns.add(new EnumPropertyColumn<CervixLabformulier, String, CervixLabformulierStatus>(Model.of("Status formulier"), "status", "status"));
 		}
 		if (naHuisartsOnbekendVisible)
 		{
@@ -170,7 +171,7 @@ public abstract class CervixLabformulierenBasePage extends CervixScreeningBasePa
 		}
 		else
 		{
-			CervixLabformulierProvider labformulierProvider = new CervixLabformulierProvider(filter);
+			var labformulierProvider = new CervixLabformulierProvider(filter);
 
 			ScreenitDataTable<CervixLabformulier, String> labformulieren = new ScreenitDataTable<>("labformulieren", columns, labformulierProvider, 10,
 				Model.of("labformulieren"))

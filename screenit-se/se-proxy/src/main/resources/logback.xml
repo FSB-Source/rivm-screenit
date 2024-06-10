@@ -58,9 +58,14 @@
     </appender>
 
     <logger name="nl" level="DEBUG"/>
-    <logger name="org.dcm4che3.net.Connection" level="DEBUG"/>
-    <logger name="org.dcm4che3" level="DEBUG"/>
+    <logger name="org.dcm4che3.net.Connection" level="INFO"/>
+    <logger name="org.dcm4che3.net.Association" level="INFO"/>
+    <logger name="org.dcm4che3" level="WARN"/>
     <logger name="org.springframework.boot.web.filter.OrderedRequestContextFilter" level="INFO"/>
+
+    
+    <logger name="org.dcm4che3.net.Dimse" level="INFO"/>
+    
 
     <root level="info">
         <appender-ref ref="STDOUT"/>

@@ -19,12 +19,16 @@
  * =========================LICENSE_END==================================
  */
 .footer {
-    position: absolute;
-    bottom: 0;
-    width: 20%;
-    height: 60px;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  padding-right: 120px;
+}
+
+.footer-right {
+  float: right;
 }
 
 .btn.errorTest {
-    background-color: #be0000;
+  background-color: #be0000;
 }

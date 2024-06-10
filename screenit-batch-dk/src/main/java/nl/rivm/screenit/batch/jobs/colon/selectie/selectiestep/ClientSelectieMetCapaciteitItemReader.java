@@ -34,6 +34,7 @@ import nl.rivm.screenit.model.enums.JobStartParameter;
 import nl.rivm.screenit.model.verwerkingverslag.SelectieRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.SelectieRapportageGewijzigdGebiedEntry;
 import nl.rivm.screenit.service.ProjectService;
+import nl.rivm.screenit.service.colon.ColonUitnodigingService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.batch.core.JobParameters;
@@ -61,6 +62,9 @@ public class ClientSelectieMetCapaciteitItemReader extends AbstractClientSelecti
 
 	@Autowired
 	private ProjectService projectService;
+
+	@Autowired
+	private ColonUitnodigingService uitnodigingService;
 
 	private Collection<ColonUitnodigingsgebiedSelectieContext> uitnodigingsgebieden;
 
@@ -129,12 +133,13 @@ public class ClientSelectieMetCapaciteitItemReader extends AbstractClientSelecti
 		selectieContext.clientDao = clientDao;
 		selectieContext.fitService = fitService;
 		selectieContext.uitnodigingsDao = uitnodigingsDao;
+		selectieContext.uitnodigingService = uitnodigingService;
 		selectieContext.hibernateService = hibernateService;
 		selectieContext.uitnodigingsGebiedCapaciteitService = uitnodigingsGebiedCapactieitService;
 		selectieContext.fetchSize = fetchSize;
 		selectieContext.minimaleLeeftijd = minimaleLeeftijd;
 		selectieContext.maximaleLeeftijd = maximaleLeeftijd;
-		selectieContext.init(uitnodigingsDao.getUitnodigingCohorten(), projectGroepen);
+		selectieContext.init(uitnodigingService.getUitnodigingCohorten(), projectGroepen);
 
 		cursor = new ClientSelectieMetCapaciteitItemCursor(selectieContext, uitnodigingsgebieden);
 	}

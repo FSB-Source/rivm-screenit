@@ -21,12 +21,8 @@ package nl.rivm.screenit.service.colon.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Iterator;
-
-import nl.rivm.screenit.dao.colon.HuisartsBerichtDao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.EnovationHuisarts;
-import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.colon.ColonHuisartsBericht;
 import nl.rivm.screenit.model.colon.ColonHuisartsBerichtStatus;
@@ -40,33 +36,12 @@ import nl.rivm.screenit.util.BezwaarUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
 public class ColonHuisartsBerichtServiceImpl implements ColonHuisartsBerichtService
 {
-	@Autowired(required = false)
-	private HuisartsBerichtDao berichtDao;
-
 	@Autowired
 	private ColonEdiService ediService;
-
-	@Override
-	@Transactional(propagation = Propagation.SUPPORTS)
-	public long countBerichten(ColonHuisartsBericht zoekObject, Instelling regioObject)
-	{
-		return berichtDao.countBerichten(zoekObject, regioObject);
-	}
-
-	@Override
-	@Transactional(propagation = Propagation.SUPPORTS)
-	public Iterator<? extends ColonHuisartsBericht> searchBerichten(ColonHuisartsBericht zoekObject, Instelling regioObject, String sortProperty,
-		boolean ascending, int first, int count, boolean werklijst)
-	{
-		return berichtDao.searchBerichten(zoekObject, regioObject, sortProperty, ascending, first, count, werklijst);
-	}
 
 	@Override
 	public void verstuurColonHuisartsBericht(Client client, ColonScreeningRonde colonScreeningRonde, HuisartsBerichtType berichtType,

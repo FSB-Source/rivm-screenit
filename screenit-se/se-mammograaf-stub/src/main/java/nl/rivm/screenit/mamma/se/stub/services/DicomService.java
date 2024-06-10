@@ -35,11 +35,11 @@ public interface DicomService
 
 	void sendMppsUpdate(Attributes mppsMessage, boolean foutMelding) throws Exception;
 
-	Attributes loadDicomResource(String xmlFileName) throws Exception;
-
 	Attributes getResults();
 
 	String getCurrentMppsUid();
 
 	String getAETitle();
+
+	void sendDenseReport(Attributes denseReport) throws Exception;
 }

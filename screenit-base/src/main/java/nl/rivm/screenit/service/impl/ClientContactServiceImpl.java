@@ -132,11 +132,11 @@ import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 import nl.rivm.screenit.service.cervix.CervixBaseUitnodigingService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
 import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
+import nl.rivm.screenit.service.colon.ColonBaseFitService;
 import nl.rivm.screenit.service.colon.ColonHuisartsService;
 import nl.rivm.screenit.service.colon.ColonScreeningsrondeService;
 import nl.rivm.screenit.service.colon.ColonTijdelijkAfmeldenJaartallenService;
 import nl.rivm.screenit.service.colon.ColonUitnodigingService;
-import nl.rivm.screenit.service.colon.IFobtService;
 import nl.rivm.screenit.service.mamma.MammaAfmeldService;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
@@ -206,7 +206,7 @@ public class ClientContactServiceImpl implements ClientContactService
 	private ColonUitnodigingService colonUitnodigingsService;
 
 	@Autowired
-	private IFobtService ifobtService;
+	private ColonBaseFitService fitService;
 
 	@Autowired
 	private CervixFactory factory;
@@ -1359,7 +1359,7 @@ public class ClientContactServiceImpl implements ClientContactService
 			IFOBTTest test = laatsteUitnodiging.getGekoppeldeTest();
 			if (test != null && !IFOBTTestStatus.VERWIJDERD.equals(test.getStatus()) && !IFOBTTestStatus.VERLOREN.equals(test.getStatus()))
 			{
-				ifobtService.markeerBuisAlsVerloren(laatsteUitnodiging);
+				fitService.markeerBuisAlsVerloren(laatsteUitnodiging);
 			}
 			ColonUitnodiging nieuweUitnodiging = colonUitnodigingsService.cloneUitnodiging(laatsteUitnodiging, true);
 			if (nieuweUitnodiging != null)

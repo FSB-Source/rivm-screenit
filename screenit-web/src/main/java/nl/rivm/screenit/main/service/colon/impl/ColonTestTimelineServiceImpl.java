@@ -86,11 +86,11 @@ import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.TestService;
 import nl.rivm.screenit.service.colon.ColonAfspraakDefinitieService;
+import nl.rivm.screenit.service.colon.ColonBaseFitService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonStudietestService;
 import nl.rivm.screenit.service.colon.ColonUitnodigingService;
 import nl.rivm.screenit.service.colon.ColonVerwerkVerslagService;
-import nl.rivm.screenit.service.colon.IFobtService;
 import nl.rivm.screenit.util.ColonScreeningRondeUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.FITTestUtil;
@@ -121,7 +121,7 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 	private TestTimelineTimeService testTimelineTimeService;
 
 	@Autowired
-	private IFobtService ifobtService;
+	private ColonBaseFitService fitService;
 
 	@Autowired
 	private ColonStudietestService studietestService;
@@ -708,7 +708,7 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 	{
 		if (buis.getType() != IFOBTType.STUDIE)
 		{
-			ifobtService.uitslagFitOntvangen(buis);
+			fitService.uitslagFitOntvangen(buis);
 		}
 		else
 		{

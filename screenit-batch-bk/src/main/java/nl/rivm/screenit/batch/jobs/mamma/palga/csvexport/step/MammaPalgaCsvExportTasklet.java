@@ -42,6 +42,7 @@ import nl.rivm.screenit.model.enums.JobStartParameter;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaPalgaService;
+import nl.rivm.screenit.util.CsvUtil;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.rivm.screenit.util.StringUtil;
 import nl.rivm.screenit.util.ZipUtil;
@@ -133,10 +134,10 @@ public class MammaPalgaCsvExportTasklet implements Tasklet
 		file = new File(path + fileName);
 		try (var csvOutput = new CSVWriter(new FileWriter(file, false), ';', CSVWriter.NO_QUOTE_CHARACTER))
 		{
-			LOG.info("Start vullen van CSV voor download: " + fileName + ", aantal clienten: " + clientenIds.size());
+			LOG.info("Start vullen van CSV voor download: {}, aantal clienten: {}", fileName, clientenIds.size());
 			clientenIds.forEach(clientId -> csvOutput.writeNext(getGegevensVanClient(clientId).toArray(new String[] {})));
 		}
-		truncateLastLine(file);
+		CsvUtil.truncateLastLine(file);
 		document.setFile(file);
 		document.setNaam(fileName);
 		document.setPath(file.getPath().replace(locatieFilestore, ""));

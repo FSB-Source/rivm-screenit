@@ -21,8 +21,14 @@ package nl.rivm.screenit.model.project;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import nl.rivm.screenit.model.enums.Recht;
 
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@Getter
 public enum ProjectType
 {
 	BRIEFPROJECT("Briefproject", Recht.GEBRUIKER_BRIEFPROJECT_OVERZICHT),
@@ -34,20 +40,9 @@ public enum ProjectType
 
 	private final Recht recht;
 
-	private ProjectType(String naam, Recht recht)
-	{
-		this.naam = naam;
-		this.recht = recht;
-	}
-
-	public Recht getRecht()
-	{
-		return recht;
-	}
-
 	@Override
 	public String toString()
 	{
-		return this.naam;
+		return naam;
 	}
 }

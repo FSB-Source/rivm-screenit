@@ -22,6 +22,7 @@ package nl.rivm.screenit.specification;
  */
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -80,6 +81,11 @@ public class SpecificationUtil
 	public static <S> Specification<S> skipWhenNull(Object object, Specification<S> specification)
 	{
 		return (r, q, cb) -> object == null ? null : specification.toPredicate(r, q, cb);
+	}
+
+	public static <S> Specification<S> skipWhenFalsy(boolean object, Specification<S> specification)
+	{
+		return (r, q, cb) -> !object ? null : specification.toPredicate(r, q, cb);
 	}
 
 	public static Predicate skipWhenBlankPredicate(String keyword, Predicate predicate)
@@ -176,6 +182,11 @@ public class SpecificationUtil
 		return (r, q, cb) -> betweenDatesPredicate(vanaf, totEnMet).withPath(cb, pathSupplier.apply(r));
 	}
 
+	public static <S> Specification<S> betweenLocalDateTimes(LocalDateTime vanaf, LocalDateTime totEnMet, Function<Root<S>, Path<Date>> pathSupplier)
+	{
+		return (r, q, cb) -> betweenLocalDateTimesPredicate(vanaf, totEnMet).withPath(cb, pathSupplier.apply(r));
+	}
+
 	public static <S> Specification<S> betweenLocalDates(LocalDate vanaf, LocalDate totEnMet, Function<Root<S>, Path<LocalDate>> pathSupplier)
 	{
 		return (r, q, cb) -> betweenLocalDatesPredicate(vanaf, totEnMet).withPath(cb, pathSupplier.apply(r));
@@ -187,6 +198,26 @@ public class SpecificationUtil
 	}
 
 	public static PathAwarePredicate<Date> betweenDatesPredicate(LocalDate vanaf, LocalDate totEnMet)
+	{
+		return (cb, r) ->
+		{
+			var predicates = new ArrayList<Predicate>();
+
+			if (vanaf != null)
+			{
+				predicates.add(cb.greaterThanOrEqualTo(r, DateUtil.toUtilDate(vanaf)));
+			}
+
+			if (totEnMet != null)
+			{
+				predicates.add(cb.lessThan(r, DateUtil.toUtilDate(totEnMet.plusDays(1))));
+			}
+
+			return composePredicates(cb, predicates);
+		};
+	}
+
+	public static PathAwarePredicate<Date> betweenLocalDateTimesPredicate(LocalDateTime vanaf, LocalDateTime totEnMet)
 	{
 		return (cb, r) ->
 		{

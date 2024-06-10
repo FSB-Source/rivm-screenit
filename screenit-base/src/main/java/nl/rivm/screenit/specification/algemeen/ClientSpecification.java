@@ -21,13 +21,22 @@ package nl.rivm.screenit.specification.algemeen;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.GbaPersoon_;
 import nl.rivm.screenit.model.enums.GbaStatus;
+import nl.rivm.screenit.specification.SpecificationUtil;
+import nl.rivm.screenit.specification.mamma.MammaDossierSpecification;
+import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.util.functionalinterfaces.EntityAwarePredicate;
 import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
+
+import org.springframework.data.jpa.domain.Specification;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ClientSpecification
@@ -38,14 +47,32 @@ public class ClientSpecification
 			cb.equal(r.get(Client_.gbaStatus), GbaStatus.INDICATIE_AANWEZIG);
 	}
 
-	public static PathAwarePredicate<Client> heeftActieveClientPredicate()
+	public static EntityAwarePredicate<Client> heeftActieveClientPredicate()
 	{
 		return (cb, r) ->
 		{
-			var heeftGeenOverledenDatum = PersoonSpecification.heeftGeenOverledenDatumPredicate().withPath(cb, r.get(Client_.persoon));
-			var heeftGeenVertrokkenUitNederlandDatum = PersoonSpecification.heeftGeenVertrokkenUitNederlandDatumPredicate().withPath(cb, r.get(Client_.persoon));
+			var persoon = SpecificationUtil.join(r, Client_.persoon);
+			var heeftGeenOverledenDatum = PersoonSpecification.heeftGeenOverledenDatumPredicate().withPath(cb, persoon);
+			var heeftGeenVertrokkenUitNederlandDatum = PersoonSpecification.heeftGeenVertrokkenUitNederlandDatumPredicate().withPath(cb, persoon);
 			var heeftIndicatie = heeftIndicatie().withPath(cb, r);
 			return cb.and(heeftGeenOverledenDatum, heeftGeenVertrokkenUitNederlandDatum, heeftIndicatie);
 		};
+	}
+
+	public static Specification<Client> heeftGeboorteJaarVoorLeeftijdBereik(int minimaleLeeftijd, int maximaleLeeftijd, LocalDate peildatum)
+	{
+		return (r, q, cb) ->
+		{
+			var persoon = SpecificationUtil.join(r, Client_.persoon);
+			var geboorteDatum = persoon.get(GbaPersoon_.geboortedatum);
+			var maxGeboortedatum = DateUtil.toUtilDate(LocalDate.of(peildatum.getYear() - minimaleLeeftijd, 12, 31));
+			var minGeboortedatum = DateUtil.toUtilDate(LocalDate.of(peildatum.getYear() - maximaleLeeftijd, 1, 1));
+			return cb.and(cb.greaterThanOrEqualTo(geboorteDatum, minGeboortedatum), cb.lessThanOrEqualTo(geboorteDatum, maxGeboortedatum));
+		};
+	}
+
+	public static Specification<Client> woontNietInTehuis()
+	{
+		return MammaDossierSpecification.woontNietInTehuisPredicate().toSpecification(r -> SpecificationUtil.join(r, Client_.mammaDossier));
 	}
 }

@@ -70,6 +70,8 @@ import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaUitstelGeannuleerdReden;
 import nl.rivm.screenit.model.mamma.enums.MammaVerzettenReden;
+import nl.rivm.screenit.repository.mamma.MammaBaseAfspraakRepository;
+import nl.rivm.screenit.repository.mamma.MammaCapaciteitBlokRepository;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BerichtToBatchService;
 import nl.rivm.screenit.service.BerichtToSeRestBkService;
@@ -82,6 +84,7 @@ import nl.rivm.screenit.service.mamma.MammaBaseKandidaatAfsprakenDeterminatiePer
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.service.mamma.MammaBaseUitstelService;
+import nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
@@ -95,7 +98,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 @Slf4j
 public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 {
@@ -137,6 +139,12 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 
 	@Autowired
 	private BaseBriefService baseBriefService;
+
+	@Autowired
+	private MammaBaseAfspraakRepository baseAfspraakRepository;
+
+	@Autowired
+	private MammaCapaciteitBlokRepository capaciteitBlokRepository;
 
 	@Override
 	public List<MammaKandidaatAfspraakDto> getKandidaatAfspraken(Client client, IMammaAfspraakWijzigenFilter filter)
@@ -424,15 +432,15 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 		return afspraakDao.countAfspraken(screeningsEenheid, vanaf, totEnMet, afspraakStatussen);
 	}
 
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	@Override
-	public int koppelNietGekoppeldeAfspraken(MammaCapaciteitBlok capaciteitsBlok, boolean runDry)
+	public int koppelNietGekoppeldeAfspraken(MammaCapaciteitBlok capaciteitBlok, boolean runDry)
 	{
 		int aantalAfspraken = 0;
-		if (capaciteitsBlok.getBlokType() != MammaCapaciteitBlokType.GEEN_SCREENING)
+		if (capaciteitBlok.getBlokType() != MammaCapaciteitBlokType.GEEN_SCREENING)
 		{
 			LOG.debug("Zoek afspraken voor cap.blok om te kunnen (her)koppelen");
-			var afspraken = afspraakDao.getNietGekoppeldeAfspraken(capaciteitsBlok);
+			var afspraken = getNietGekoppeldeAfspraken(capaciteitBlok);
 			aantalAfspraken = afspraken.size();
 			if (!runDry)
 			{
@@ -440,14 +448,33 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 				{
 					LOG.info("Afspraak van " + Constants.getDateTimeFormat().format(afspraak.getVanaf()) + " + voor client met id "
 						+ afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient().getId() + " gekoppeld aan cap.blok");
-					capaciteitsBlok.getAfspraken().add(afspraak);
-					afspraak.setCapaciteitBlok(capaciteitsBlok);
-					hibernateService.saveOrUpdate(afspraak);
+					capaciteitBlok.getAfspraken().add(afspraak);
+					afspraak.setCapaciteitBlok(capaciteitBlok);
 				}
-				hibernateService.saveOrUpdate(capaciteitsBlok);
+				capaciteitBlokRepository.save(capaciteitBlok);
 			}
 		}
 		return aantalAfspraken;
+	}
+
+	private List<MammaAfspraak> getNietGekoppeldeAfspraken(MammaCapaciteitBlok capaciteitBlok)
+	{
+		var specification = MammaAfspraakSpecification.heeftStatuses(List.of(MammaAfspraakStatus.GEPLAND))
+			.and(MammaAfspraakSpecification.begintTussen(DateUtil.toLocalDateTime(capaciteitBlok.getVanaf()), DateUtil.toLocalDateTime(capaciteitBlok.getTot())))
+			.and(MammaAfspraakSpecification.heeftGeenCapaciteitBlok())
+			.and(MammaAfspraakSpecification.heeftScreeningsEenheid(capaciteitBlok.getScreeningsEenheid()));
+
+		var blokType = capaciteitBlok.getBlokType();
+		if (blokType.equals(MammaCapaciteitBlokType.TEHUIS))
+		{
+			specification = specification.and(MammaAfspraakSpecification.heeftClientInTehuis());
+		}
+		else
+		{
+			specification = specification.and(MammaAfspraakSpecification.heeftGeenClientInTehuis()).and(MammaAfspraakSpecification.heeftDoelgroep(blokType.getDoelgroepen()));
+		}
+
+		return baseAfspraakRepository.findAll(specification);
 	}
 
 	@Override

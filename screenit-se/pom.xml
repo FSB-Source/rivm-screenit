@@ -68,8 +68,7 @@
         </testResources>
 
         <plugins>
-            <!-- SPRING BOOT MANAGED PLUGINS, WARE HET NIET DAT DE nl.topicuszorg.parent enkele properties overschrijft...
-             Zodoende staan hier nog wel properties, maar op termijn kan dat eruit. -->
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-help-plugin</artifactId>
@@ -93,7 +92,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <!-- Source en target tags zijn speciaal voor IntelliJ -->
+
                     <release>${java.version}</release>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
@@ -225,12 +224,13 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>license-maven-plugin</artifactId>
                 <configuration>
-                    <!-- Alle licenties staan beschreven in ./licenties.txt. Deze worden geimplementeerd in de volgende locaties: 1. ./package.json 2. ./pom.xml 3. ./screenit-frontend/medewerkerportaal/package.json  -->
+
                     <excludedGroups>^nl\.topicuszorg\..*|^nl\.rivm\..*</excludedGroups>
                     <licenseMerges>
                         <licenseMerge>
                             <![CDATA[Apache-2.0|Apache Software License - Version 2.0|Apache Software Licenses|Similar to Apache License but with the acknowledgment clause removed|Mockrunner License, based on Apache Software License, version 1.1|The Apache Software License|The Apache License, Version 2.0|Apache 2.0|Apache License 2.0|Apache License, version 2.0|Apache License, Version 2.0|The Apache Software License, Version 2.0|Apache 2|Apache Software License 2.0|ASL, version 2]]></licenseMerge>
-                        <licenseMerge><![CDATA[BSD-2-Clause|BSD-2 License|BSD New license|BSD 2-Clause License|The BSD License|BSD licence]]></licenseMerge>
+                        <licenseMerge>
+                            <![CDATA[BSD-2-Clause|BSD-2 License|BSD New license|BSD 2-Clause License|The BSD 2-Clause License|The BSD License|BSD licence]]></licenseMerge>
                         <licenseMerge><![CDATA[BSD-3-Clause|3-Clause BSD License|BSD-3-clause|BSD 3-clause|Go License|BSD License 3|The BSD 3-Clause License]]></licenseMerge>
                         <licenseMerge>
                             <![CDATA[BSD|BSD License|BSD-license|0BSD|Kirkk.com BSD License|HSQLDB License, a BSD open source license|New BSD License|Revised BSD]]></licenseMerge>

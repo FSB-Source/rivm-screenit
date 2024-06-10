@@ -71,7 +71,7 @@
     <logger name="nl.rivm.screenit.main.service.impl.AsyncMessageReceiverImpl" level="TRACE"/>
     <logger name="nl.rivm.screenit.main.service.impl.BatchServiceImpl" level="TRACE"/>
     <logger name="nl.rivm.screenit.main.service.mamma.impl.MammaBeoordelingServiceImpl" level="INFO"/>
-    <logger name="nl.rivm.screenit.service.colon.impl.IFobtServiceImpl" level="TRACE"/>
+    <logger name="nl.rivm.screenit.service.colon.impl.ColonFitServiceImpl" level="TRACE"/>
     <logger name="nl.rivm.screenit.service.impl.ZorgmailImportServiceImpl" level="DEBUG"/>
     <logger name="nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.route.MammaStandplaatsPeriodeSortable" level="DEBUG"/>
     <logger name="nl.rivm.screenit.service.mamma.impl.MammaBaseConceptPlanningsApplicatieImpl" level="TRACE"/>

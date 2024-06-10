@@ -102,7 +102,7 @@ public interface ProjectDao
 
 	Long getAantalAttributenVoorProjectClient(ProjectClient filter);
 
-	ProjectClient getProjectClient(Client client, ProjectBestand bestand);
+	ProjectClient getProjectClient(Client client, Project project);
 
 	ProjectAttribuut getProjectAttribuut(ProjectAttribuut attribuut);
 

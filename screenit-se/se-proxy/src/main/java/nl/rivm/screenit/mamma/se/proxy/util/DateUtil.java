@@ -48,13 +48,18 @@ public class DateUtil
 
 	public static void setOffset(Duration newOffset)
 	{
-		LOG.info("De tijd is gewijzigd van " + getCurrentDateTime().toString() + " naar " + ZonedDateTime.now(SCREENIT_DEFAULT).plus(newOffset).toString());
+		LOG.info("De tijd is gewijzigd van {} naar {}", getCurrentDateTime(), ZonedDateTime.now(SCREENIT_DEFAULT).plus(newOffset));
 		DateUtil.offset = newOffset;
 	}
 
 	public static LocalDateTime getCurrentDateTime()
 	{
 		return LocalDateTime.now(SCREENIT_DEFAULT).plus(DateUtil.offset);
+	}
+
+	public static LocalDate getCurrentDate()
+	{
+		return getCurrentDateTime().toLocalDate();
 	}
 
 	public static boolean isVandaag(LocalDate localDate)

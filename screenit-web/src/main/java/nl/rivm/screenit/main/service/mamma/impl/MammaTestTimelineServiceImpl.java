@@ -34,6 +34,8 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.dao.mamma.MammaBaseAfspraakDao;
 import nl.rivm.screenit.main.dao.mamma.MammaScreeningsEenheidDao;
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenissen;
@@ -75,9 +77,11 @@ import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaBIRADSWaarde;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
+import nl.rivm.screenit.model.mamma.enums.MammaDenseWaarde;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
+import nl.rivm.screenit.model.mamma.enums.MammaMassaDensiteit;
 import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
 import nl.rivm.screenit.model.mamma.enums.OnderbrokenOnderzoekOption;
 import nl.rivm.screenit.model.mamma.enums.OnvolledigOnderzoekOption;
@@ -104,8 +108,6 @@ import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.util.bsn.BsnUtils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -115,10 +117,9 @@ import au.com.bytecode.opencsv.CSVReader;
 import ca.uhn.hl7v2.HL7Exception;
 
 @Service
+@Slf4j
 public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaTestTimelineServiceImpl.class);
-
 	@Autowired
 	private HibernateService hibernateService;
 
@@ -439,12 +440,12 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 
 	@Override
 	@Transactional
-	public MammaOnderzoek maakOnderzoekVoorBe(MammaAfspraak afspraak, InstellingGebruiker mbber, MammaScreeningsEenheid se)
+	public MammaOnderzoek maakOnderzoekVoorBe(MammaAfspraak afspraak, InstellingGebruiker instellingGebruiker, MammaScreeningsEenheid se)
 	{
-		return maakOnderzoekVoorBe(afspraak, mbber, se, true);
+		return maakOnderzoekVoorBe(afspraak, instellingGebruiker, se, true);
 	}
 
-	private MammaOnderzoek maakOnderzoekVoorBe(MammaAfspraak afspraak, InstellingGebruiker mbber, MammaScreeningsEenheid se, boolean verstuurHl7Berichten)
+	private MammaOnderzoek maakOnderzoekVoorBe(MammaAfspraak afspraak, InstellingGebruiker instellingGebruiker, MammaScreeningsEenheid se, boolean verstuurHl7Berichten)
 	{
 		var onderzoek = afspraak.getOnderzoek();
 		var screeningRonde = afspraak.getUitnodiging().getScreeningRonde();
@@ -459,7 +460,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 			{
 				berichtToBatchService.queueMammaHL7v24BerichtUitgaand(client, MammaHL7v24ORMBerichtStatus.STARTED);
 			}
-			var mammografie = maakMammaMammografie(onderzoek, mbber);
+			var mammografie = maakMammaMammografie(onderzoek, instellingGebruiker);
 			onderzoek.setMammografie(mammografie);
 			screeningRonde.setLaatsteOnderzoek(onderzoek);
 			hibernateService.saveOrUpdateAll(afspraak, mammografie.getVisueleInspectieAfbeelding(), mammografie,
@@ -473,7 +474,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 		dossier.setLaatsteMammografieAfgerond(mammografie.getAfgerondOp());
 
 		var beoordeling = onderzoekService.voegInitieleBeoordelingToe(onderzoek);
-		setSignalerenVoorOnderzoek(mbber, onderzoek, false);
+		setSignalerenVoorOnderzoek(instellingGebruiker, onderzoek, false);
 
 		if (afspraak.getStatus() != MammaAfspraakStatus.BEEINDIGD)
 		{
@@ -492,7 +493,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 	@Override
 	@Transactional
 	public void rondOnderzoekAf(MammaAfspraak afspraak, InstellingGebruiker instellingGebruiker, boolean verstuurHl7Berichten, OnvolledigOnderzoekOption onvolledigOnderzoekOption,
-		OnderbrokenOnderzoekOption onderbrokenOnderzoekOption, MammaOnderzoekType onderzoeksType, boolean afwijkingGesignaleerd)
+		OnderbrokenOnderzoekOption onderbrokenOnderzoekOption, MammaOnderzoekType onderzoeksType, boolean afwijkingGesignaleerd, MammaDenseWaarde densiteit)
 	{
 		var onderzoek = afspraak.getOnderzoek();
 		var client = afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient();
@@ -504,6 +505,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 		}
 		onderzoekAfronden(onderzoek);
 		var mammografie = maakMammaMammografie(onderzoek, instellingGebruiker);
+		mammografie.setDensiteit(densiteit);
 		onderzoek.setMammografie(mammografie);
 		hibernateService.saveOrUpdateAll(mammografie.getVisueleInspectieAfbeelding(), mammografie, dossier);
 		var huisarts = enovationHuisartsService.zoekHuisartsen(new EnovationHuisarts(), "achternaam", true, 0, 1).iterator().next();
@@ -607,9 +609,9 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 		onderzoek.setAfgerondOp(currentDateSupplier.getDate());
 	}
 
-	private MammaMammografie maakMammaMammografie(MammaOnderzoek onderzoek, InstellingGebruiker mbber)
+	private MammaMammografie maakMammaMammografie(MammaOnderzoek onderzoek, InstellingGebruiker instellingGebruiker)
 	{
-		return baseFactory.maakMammografie(onderzoek, mbber, new MammaAnnotatieAfbeelding());
+		return baseFactory.maakMammografie(onderzoek, instellingGebruiker, new MammaAnnotatieAfbeelding());
 	}
 
 	@Override
@@ -1067,7 +1069,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 				var afwijkingGesignaleerd = isAfwijkingGesignaleerd(onderzoek);
 				var onderzoeker = bepaalOnderzoeker(afspraak, ingelogdeGebruiker);
 				rondOnderzoekAf(afspraak, onderzoeker, false, onderzoek.getOnvolledigOnderzoek(), onderzoek.getOnderbrokenOnderzoek(), onderzoek.getOnderzoekType(),
-					afwijkingGesignaleerd);
+					afwijkingGesignaleerd, null);
 			}
 			doorvoerenOnderzoek(afspraak);
 		}
@@ -1076,7 +1078,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 
 	private static boolean isAfwijkingGesignaleerd(MammaOnderzoek onderzoek)
 	{
-		return onderzoek.getSignaleren() != null && onderzoek.getSignaleren().getHeeftAfwijkingen();
+		return onderzoek.getSignaleren() != null && onderzoek.getSignaleren().isHeeftAfwijkingen();
 	}
 
 	private static InstellingGebruiker bepaalOnderzoeker(MammaAfspraak afspraak, InstellingGebruiker ingelogdeGebruiker)

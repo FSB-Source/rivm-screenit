@@ -26,9 +26,10 @@ import java.util.Date;
 
 import javax.persistence.FlushModeType;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.dao.UitnodigingsDao;
 import nl.rivm.screenit.model.DossierStatus;
-import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -38,7 +39,6 @@ import nl.rivm.screenit.model.enums.SmsStatus;
 import nl.rivm.screenit.model.mamma.MammaAdhocMeekijkverzoek;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaAnnotatieAfbeelding;
-import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.mamma.MammaCapaciteitBlok;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaKansberekeningAfspraakEvent;
@@ -54,6 +54,7 @@ import nl.rivm.screenit.model.mamma.MammaUitstel;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
+import nl.rivm.screenit.model.mamma.enums.MammaMassaDensiteit;
 import nl.rivm.screenit.model.mamma.enums.MammaUitstelReden;
 import nl.rivm.screenit.model.mamma.enums.MammaVerzettenReden;
 import nl.rivm.screenit.model.mamma.enums.MammaVisitatieOnderzoekStatus;
@@ -71,8 +72,6 @@ import nl.rivm.screenit.service.mamma.MammaVolgendeUitnodigingService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -80,11 +79,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.REQUIRED)
+@Slf4j
 public class MammaBaseFactoryImpl implements MammaBaseFactory
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaBaseFactoryImpl.class);
-
 	@Autowired
 	private BaseBriefService briefService;
 
@@ -123,13 +120,14 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 	private Boolean testModus;
 
 	@Override
+	@Transactional
 	public MammaScreeningRonde maakRonde(MammaDossier dossier, MammaStandplaatsRonde standplaatsRonde, boolean isGeforceerd)
 	{
-		Date nu = dateSupplier.getDate();
+		var nu = dateSupplier.getDate();
 
 		LOG.info("MammaScreeningRonde aanmaken voor client: {}", dossier.getClient().getId());
 
-		MammaScreeningRonde vorigeRonde = dossier.getLaatsteScreeningRonde();
+		var vorigeRonde = dossier.getLaatsteScreeningRonde();
 		if (vorigeRonde != null && vorigeRonde.getStatus() == ScreeningRondeStatus.LOPEND)
 		{
 			vorigeRonde.setStatus(ScreeningRondeStatus.AFGEROND);
@@ -139,9 +137,9 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 			logService.logGebeurtenis(LogGebeurtenis.MAMMA_RONDE_VERLOPEN, dossier.getClient(), Bevolkingsonderzoek.MAMMA);
 		}
 
-		String postcode = ApplicationContextProvider.getApplicationContext().getBean(ClientService.class).getGbaPostcode(dossier.getClient());
+		var postcode = ApplicationContextProvider.getApplicationContext().getBean(ClientService.class).getGbaPostcode(dossier.getClient());
 
-		MammaScreeningRonde ronde = new MammaScreeningRonde();
+		var ronde = new MammaScreeningRonde();
 		ronde.setStatus(ScreeningRondeStatus.LOPEND);
 		ronde.setStatusDatum(nu);
 		ronde.setCreatieDatum(nu);
@@ -162,19 +160,20 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 	}
 
 	@Override
+	@Transactional
 	public MammaUitnodiging maakUitnodiging(MammaScreeningRonde screeningRonde, MammaStandplaatsRonde standplaatsRonde, BriefType briefType)
 	{
 		LOG.info("MammaUitnodiging aanmaken voor client: {} ", screeningRonde.getDossier().getClient().getId());
 
-		Date nu = dateSupplier.getDate();
-		MammaUitnodiging uitnodiging = new MammaUitnodiging();
+		var nu = dateSupplier.getDate();
+		var uitnodiging = new MammaUitnodiging();
 		uitnodiging.setCreatieDatum(nu);
 		uitnodiging.setUitnodigingsDatum(nu);
 		uitnodiging.setScreeningRonde(screeningRonde);
 		uitnodiging.setStandplaatsRonde(standplaatsRonde);
 		uitnodiging.setHerinnered(false);
 
-		Double afstand = standplaatsService.bepaalAfstand(standplaatsRonde.getStandplaats(), screeningRonde.getDossier().getClient());
+		var afstand = standplaatsService.bepaalAfstand(standplaatsRonde.getStandplaats(), screeningRonde.getDossier().getClient());
 		uitnodiging.setAfstand(afstand != null ? BigDecimal.valueOf(afstand) : null);
 
 		screeningRonde.getUitnodigingen().add(uitnodiging);
@@ -184,7 +183,7 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 
 		if (briefType != null)
 		{
-			MammaBrief brief = briefService.maakBvoBrief(screeningRonde, briefType);
+			var brief = briefService.maakBvoBrief(screeningRonde, briefType);
 			uitnodiging.setBrief(brief);
 			brief.setUitnodiging(uitnodiging);
 			hibernateService.saveOrUpdateAll(brief, uitnodiging);
@@ -196,12 +195,13 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 	}
 
 	@Override
+	@Transactional
 	public MammaAfspraak maakDummyAfspraak(MammaUitnodiging uitnodiging, Date vanaf, MammaCapaciteitBlok capaciteitBlok, MammaStandplaatsPeriode standplaatsPeriode,
 		MammaVerzettenReden verzettenReden)
 	{
-		MammaAfspraak afspraak = new MammaAfspraak();
-		GbaPersoon persoon = uitnodiging.getScreeningRonde().getDossier().getClient().getPersoon();
-		String postcode = persoon.getTijdelijkGbaAdres() != null ? persoon.getTijdelijkGbaAdres().getPostcode() : persoon.getGbaAdres().getPostcode();
+		var afspraak = new MammaAfspraak();
+		var persoon = uitnodiging.getScreeningRonde().getDossier().getClient().getPersoon();
+		var postcode = persoon.getTijdelijkGbaAdres() != null ? persoon.getTijdelijkGbaAdres().getPostcode() : persoon.getGbaAdres().getPostcode();
 
 		afspraak.setUitnodiging(uitnodiging);
 		afspraak.setVanaf(vanaf);
@@ -213,11 +213,11 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 		afspraak.setPostcode(postcode);
 		afspraak.setCreatiedatum(dateSupplier.getDate());
 
-		MammaKansberekeningAfspraakEvent afspraakEvent = new MammaKansberekeningAfspraakEvent();
+		var afspraakEvent = new MammaKansberekeningAfspraakEvent();
 		afspraakEvent.setAfspraak(afspraak);
 		afspraak.setAfspraakEvent(afspraakEvent);
 
-		MammaOpkomstkans opkomstkans = new MammaOpkomstkans();
+		var opkomstkans = new MammaOpkomstkans();
 		opkomstkans.setAfspraak(afspraak);
 		afspraak.setOpkomstkans(opkomstkans);
 
@@ -235,11 +235,11 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 		boolean isGeforceerdeAfspraak, SmsStatus smsStatus)
 	{
 		hibernateService.getHibernateSession().setFlushMode(FlushModeType.COMMIT);
-		String postcode = ApplicationContextProvider.getApplicationContext().getBean(ClientService.class).getGbaPostcode(screeningRonde.getDossier().getClient());
+		var postcode = ApplicationContextProvider.getApplicationContext().getBean(ClientService.class).getGbaPostcode(screeningRonde.getDossier().getClient());
 
-		MammaOpkomstkans opkomstkans = new MammaOpkomstkans();
+		var opkomstkans = new MammaOpkomstkans();
 
-		MammaAfspraak afspraak = new MammaAfspraak();
+		var afspraak = new MammaAfspraak();
 		afspraak.setCreatiedatum(dateSupplier.getDate());
 		afspraak.setStandplaatsPeriode(standplaatsPeriode);
 		afspraak.setVerzettenReden(verzettenReden);
@@ -253,13 +253,13 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 		afspraak.setSmsStatus(smsStatus);
 		opkomstkans.setAfspraak(afspraak);
 
-		MammaUitnodiging laatsteUitnodiging = screeningRonde.getLaatsteUitnodiging();
+		var laatsteUitnodiging = screeningRonde.getLaatsteUitnodiging();
 		laatsteUitnodiging.getAfspraken().add(afspraak);
 		laatsteUitnodiging.setLaatsteAfspraak(afspraak);
 		afspraak.setUitnodiging(laatsteUitnodiging);
 		laatsteUitnodiging.setHerinnered(false);
 
-		MammaKansberekeningAfspraakEvent afspraakEvent = new MammaKansberekeningAfspraakEvent();
+		var afspraakEvent = new MammaKansberekeningAfspraakEvent();
 		afspraakEvent.setAfspraak(afspraak);
 		afspraak.setAfspraakEvent(afspraakEvent);
 
@@ -289,10 +289,9 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public MammaUitstel maakUitstel(MammaScreeningRonde screeningRonde, MammaStandplaats standplaats, Date streefDatum, MammaUitstelReden uitstelReden)
 	{
-		MammaUitstel uitstel = new MammaUitstel();
+		var uitstel = new MammaUitstel();
 		uitstel.setStandplaats(standplaats);
 		uitstel.setStreefDatum(streefDatum);
 		uitstel.setUitstelReden(uitstelReden);
@@ -303,16 +302,16 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 	}
 
 	@Override
+	@Transactional
 	public MammaMammografie maakMammografie(MammaOnderzoek onderzoek, InstellingGebruiker instellingGebruiker, MammaAnnotatieAfbeelding afbeelding)
 	{
-		MammaMammografie mammografie = new MammaMammografie();
+		var mammografie = new MammaMammografie();
 		mammografie.setAfgerondOp(dateSupplier.getDate());
 		mammografie.setIlmStatus(MammaMammografieIlmStatus.NIET_BESCHIKBAAR);
 		mammografie.setIlmStatusDatum(dateSupplier.getDate());
 		mammografie.setAfgerondDoor(instellingGebruiker);
 		mammografie.setOnderzoek(onderzoek);
 		mammografie.setVisueleInspectieAfbeelding(afbeelding);
-		mammografie.setOnderzoek(onderzoek);
 		onderzoek.setMammografie(mammografie);
 
 		hibernateService.saveOrUpdateAll(onderzoek, mammografie);
@@ -323,6 +322,7 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 	}
 
 	@Override
+	@Transactional
 	public Long getNextUniqueMammaUitnodigingsNr()
 	{
 		long nextUitnodigingsNr = uitnodigingsDao.getNextUitnodigingsId();
@@ -337,9 +337,10 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 	}
 
 	@Override
+	@Transactional
 	public MammaAdhocMeekijkverzoek maakAdhocMeekijkverzoek(MammaOnderzoek onderzoek, String reden)
 	{
-		MammaAdhocMeekijkverzoek meekijkverzoek = new MammaAdhocMeekijkverzoek();
+		var meekijkverzoek = new MammaAdhocMeekijkverzoek();
 		meekijkverzoek.setVolgnummer(kwaliteitscontroleService.getNextAdhocMeekrijkverzoekVolgnummer());
 		meekijkverzoek.setOnderzoek(onderzoek);
 		onderzoek.setMeekijkverzoek(meekijkverzoek);

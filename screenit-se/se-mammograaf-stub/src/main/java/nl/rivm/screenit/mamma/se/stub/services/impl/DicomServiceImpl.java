@@ -22,16 +22,14 @@ package nl.rivm.screenit.mamma.se.stub.services.impl;
  */
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.GeneralSecurityException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 import javax.annotation.PostConstruct;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.mamma.se.stub.services.DicomService;
-import nl.rivm.screenit.mamma.se.stub.services.DicomXmlLoader;
 
 import org.dcm4che3.data.Attributes;
 import org.dcm4che3.data.Tag;
@@ -39,6 +37,7 @@ import org.dcm4che3.data.UID;
 import org.dcm4che3.net.ApplicationEntity;
 import org.dcm4che3.net.Association;
 import org.dcm4che3.net.Connection;
+import org.dcm4che3.net.DataWriterAdapter;
 import org.dcm4che3.net.Device;
 import org.dcm4che3.net.DimseRSPHandler;
 import org.dcm4che3.net.IncompatibleConnectionException;
@@ -47,16 +46,13 @@ import org.dcm4che3.net.Status;
 import org.dcm4che3.net.pdu.AAssociateRQ;
 import org.dcm4che3.net.pdu.PresentationContext;
 import org.dcm4che3.util.UIDUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class DicomServiceImpl implements DicomService
 {
-
-	@Autowired
-	private DicomXmlLoader dicomXmlLoader;
 
 	@Value("${PROXY_URL}")
 	private String proxyUrl;
@@ -91,15 +87,15 @@ public class DicomServiceImpl implements DicomService
 
 	private void configureExecuters()
 	{
-		ExecutorService executorService = Executors.newCachedThreadPool();
-		ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+		var executorService = Executors.newCachedThreadPool();
+		var scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
 		device.setExecutor(executorService);
 		device.setScheduledExecutor(scheduledExecutorService);
 	}
 
 	private void configureLocalConnection()
 	{
-		Connection connection = new Connection();
+		var connection = new Connection();
 		connection.setPort(11113);
 		connection.setPackPDV(false);
 		device.addConnection(connection);
@@ -116,17 +112,12 @@ public class DicomServiceImpl implements DicomService
 		remote.setPackPDV(false);
 	}
 
-	@Override
-	public Attributes loadDicomResource(String xmlFileName) throws Exception
-	{
-		InputStream is = getClass().getResourceAsStream("/" + xmlFileName);
-		return dicomXmlLoader.loadXML(is);
-	}
-
 	private void addPresentationContexts(AAssociateRQ associateRequest)
 	{
 		associateRequest.addPresentationContext(new PresentationContext(1, UID.ModalityWorklistInformationModelFind, ONLY_DEF_TS));
 		associateRequest.addPresentationContext(new PresentationContext(2, UID.ModalityPerformedProcedureStep, ONLY_DEF_TS));
+		associateRequest.addPresentationContext(new PresentationContext(3, UID.MammographyCADSRStorage, ONLY_DEF_TS));
+
 	}
 
 	@Override
@@ -134,13 +125,13 @@ public class DicomServiceImpl implements DicomService
 	{
 		openConnection();
 		result = new Attributes();
-		DimseRSPHandler rspHandler = new DimseRSPHandler(association.nextMessageID())
+		var rspHandler = new DimseRSPHandler(association.nextMessageID())
 		{
 			@Override
 			public void onDimseRSP(Association as, Attributes cmd, Attributes worklistItem)
 			{
 				super.onDimseRSP(as, cmd, worklistItem);
-				int status = cmd.getInt(Tag.Status, -1);
+				var status = cmd.getInt(Tag.Status, -1);
 				if (Status.isPending(status))
 				{
 					result = worklistItem;
@@ -223,5 +214,31 @@ public class DicomServiceImpl implements DicomService
 	public String getAETitle()
 	{
 		return aeTitle;
+	}
+
+	@Override
+	public void sendDenseReport(Attributes denseReport) throws Exception
+	{
+		openConnection();
+		association.cstore(UID.MammographyCADSRStorage, UIDUtils.createUID(), Priority.NORMAL,
+			new DataWriterAdapter(denseReport), UID.ImplicitVRLittleEndian, getStoreDenseDimseRSPHandler());
+		closeConnection();
+	}
+
+	private DimseRSPHandler getStoreDenseDimseRSPHandler()
+	{
+		return new DimseRSPHandler(association.nextMessageID())
+		{
+			@Override
+			public void onDimseRSP(Association association, Attributes command, Attributes data)
+			{
+				result = command;
+				super.onDimseRSP(association, command, data);
+				if (command.getInt(Tag.Status, -1) != Status.Success)
+				{
+					LOG.warn("C-STORE error: {}", command);
+				}
+			}
+		};
 	}
 }

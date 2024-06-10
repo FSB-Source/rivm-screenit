@@ -29,7 +29,9 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -58,6 +60,8 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.S3Object;
+import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
 
 import static org.apache.commons.lang3.StringUtils.chomp;
 
@@ -262,29 +266,54 @@ public class S3FileServiceImpl implements FileService, InitializingBean
 	@Override
 	public List<String> listFiles(String directory) throws IOException
 	{
-		if (StringUtils.isBlank(directory))
-		{
-			return new ArrayList<>();
-		}
 		try
 		{
-			var resultaat = new ArrayList<String>();
-			var request = ListObjectsV2Request
-				.builder()
-				.bucket(s3bucketName)
-				.prefix(directory)
-				.build();
-			var response = s3.listObjectsV2Paginator(request);
-
-			response.stream().forEach(page -> page.contents().forEach(s3Object -> resultaat.add(s3Object.key())));
-
-			return resultaat;
+			var response = getObjectsFromDirectory(directory);
+			if (response == null)
+			{
+				return new ArrayList<>();
+			}
+			return response.stream().flatMap(page -> page.contents().stream()).map(S3Object::key).collect(Collectors.toList());
 		}
 		catch (S3Exception e)
 		{
 			LOG.error("Fout bij ophalen van bestandlijst in map {} uit S3 door {}", directory, e.getMessage(), e);
 			throw new IOException(e);
 		}
+	}
+
+	@Override
+	public List<String> listFilesGesorteerd(String directory) throws IOException
+	{
+		var response = getObjectsFromDirectory(directory);
+		if (response == null)
+		{
+			return new ArrayList<>();
+		}
+		try
+		{
+			return response.stream().flatMap(page -> page.contents().stream()).sorted(Comparator.comparing(S3Object::lastModified).reversed()).map(S3Object::key).collect(
+				Collectors.toList());
+		}
+		catch (S3Exception e)
+		{
+			LOG.error("Fout bij ophalen van bestandlijst in map {} uit S3 door {}", directory, e.getMessage(), e);
+			throw new IOException(e);
+		}
+	}
+
+	private ListObjectsV2Iterable getObjectsFromDirectory(String directory)
+	{
+		if (StringUtils.isBlank(directory))
+		{
+			return null;
+		}
+		var request = ListObjectsV2Request
+			.builder()
+			.bucket(s3bucketName)
+			.prefix(directory)
+			.build();
+		return s3.listObjectsV2Paginator(request);
 	}
 
 	@Override
