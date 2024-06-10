@@ -38,9 +38,9 @@ import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectInactiefReden;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.colon.ColonBaseFitService;
 import nl.rivm.screenit.service.colon.ColonStudietestService;
 import nl.rivm.screenit.service.colon.ColonUitnodigingService;
-import nl.rivm.screenit.service.colon.IFobtService;
 import nl.rivm.screenit.service.impl.ProjectUitslagenUploadException;
 import nl.rivm.screenit.util.FITTestUtil;
 import nl.rivm.screenit.util.ProjectUtil;
@@ -58,7 +58,7 @@ public class ColonStudietestServiceImpl implements ColonStudietestService
 {
 	@Lazy
 	@Autowired
-	private IFobtService iFobtService;
+	private ColonBaseFitService fitService;
 
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
@@ -87,10 +87,10 @@ public class ColonStudietestServiceImpl implements ColonStudietestService
 			ProjectClient projectclient = ProjectUtil.getHuidigeProjectClient(uitnodiging.getScreeningRonde().getDossier().getClient(), currentDateSupplier.getDate());
 			if (projectclient != null && ProjectUtil.isClientActiefInProject(projectclient, currentDateSupplier.getDate()))
 			{
-				iFobtService.bepaalEnSetHeraanmeldenTekstKey(studietest);
+				fitService.bepaalEnSetHeraanmeldenTekstKey(studietest);
 				if (studietest.getHeraanmeldenTekstKey() != null)
 				{
-					iFobtService.heraanmelden(studietest.getColonScreeningRonde(), currentDateSupplier.getLocalDateTime());
+					fitService.heraanmelden(studietest.getColonScreeningRonde(), currentDateSupplier.getLocalDateTime());
 					clientIsHeraangemeld = true;
 				}
 			}
@@ -185,7 +185,7 @@ public class ColonStudietestServiceImpl implements ColonStudietestService
 	@Override
 	public void verwerkUitslag(IFOBTTest studietest)
 	{
-		iFobtService.setStatus(studietest, IFOBTTestStatus.UITGEVOERD);
+		fitService.setStatus(studietest, IFOBTTestStatus.UITGEVOERD);
 		studietest.setVerwerkingsDatum(currentDateSupplier.getDate());
 
 		colonUitnodigingService.verwijderUitgesteldeUitslagDatum(studietest.getColonUitnodigingExtra());

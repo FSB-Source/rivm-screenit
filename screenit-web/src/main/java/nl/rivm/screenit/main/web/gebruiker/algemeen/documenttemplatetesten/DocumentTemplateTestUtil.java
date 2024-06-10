@@ -209,6 +209,7 @@ public class DocumentTemplateTestUtil
 	private static void colonDossier(Client client)
 	{
 		ColonDossier dossier = new ColonDossier();
+		client.setColonDossier(dossier);
 		dossier.setClient(client);
 		dossier.setStatus(DossierStatus.ACTIEF);
 

@@ -25,12 +25,17 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+@Getter
+@Setter
 public class CervixLabformulierenFilter implements Serializable
 {
 	private static final long serialVersionUID = 1L;
@@ -79,109 +84,10 @@ public class CervixLabformulierenFilter implements Serializable
 		this.digitaal = digitaal;
 	}
 
-	public Long getInstellingId()
-	{
-		return instellingId;
-	}
-
-	public void setInstellingId(Long instellingId)
-	{
-		this.instellingId = instellingId;
-	}
-
-	public String getMonsterId()
-	{
-		return monsterId;
-	}
-
-	public void setMonsterId(String monsterId)
-	{
-		this.monsterId = monsterId;
-	}
-
-	public String getBsn()
-	{
-		return bsn;
-	}
-
-	public void setBsn(String bsn)
-	{
-		this.bsn = bsn;
-	}
-
-	public List<CervixLabformulierStatus> getLabformulierStatussen()
-	{
-		return labformulierStatussen;
-	}
-
-	public void setLabformulierStatussen(List<CervixLabformulierStatus> labformulierStatussen)
-	{
-		this.labformulierStatussen = labformulierStatussen;
-	}
-
-	public Date getScanDatumVanaf()
-	{
-		return scanDatumVanaf;
-	}
-
-	public void setScanDatumVanaf(Date scanDatumVanaf)
-	{
-		this.scanDatumVanaf = scanDatumVanaf;
-	}
-
-	public Date getScanDatumTotEnMet()
-	{
-		return scanDatumTotEnMet;
-	}
-
-	public void setScanDatumTotEnMet(Date scanDatumTotEnMet)
-	{
-		this.scanDatumTotEnMet = scanDatumTotEnMet;
-	}
-
-	public OrganisatieType getOrganisatieType()
-	{
-		return organisatieType;
-	}
-
-	public void setOrganisatieType(OrganisatieType organisatieType)
-	{
-		this.organisatieType = organisatieType;
-	}
-
-	public LabprocesStap getLabprocesStap()
-	{
-		return labprocesStap;
-	}
-
-	public void setLabprocesStap(LabprocesStap labprocesStap)
-	{
-		this.labprocesStap = labprocesStap;
-	}
-
-	public Date getGeboortedatum()
-	{
-		return geboortedatum;
-	}
-
-	public void setGeboortedatum(Date geboortedatum)
-	{
-		this.geboortedatum = geboortedatum;
-	}
-
 	@Override
 	public String toString()
 	{
 		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
 	}
 
-	public Boolean getDigitaal()
-	{
-		return digitaal;
-	}
-
-	public void setDigitaal(Boolean digitaal)
-	{
-		this.digitaal = digitaal;
-	}
 }

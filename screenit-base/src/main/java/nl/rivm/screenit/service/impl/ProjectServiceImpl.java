@@ -47,7 +47,6 @@ import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
-import nl.rivm.screenit.model.enums.ToegangLevel;
 import nl.rivm.screenit.model.formulieren.ScreenitFormulierInstantie;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectAttribuut;
@@ -59,11 +58,12 @@ import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.rivm.screenit.model.project.ProjectImportMelding;
 import nl.rivm.screenit.model.project.ProjectType;
-import nl.rivm.screenit.model.project.ProjectVragenlijst;
 import nl.rivm.screenit.model.project.ProjectVragenlijstAntwoordenHolder;
 import nl.rivm.screenit.model.project.ProjectVragenlijstStatus;
 import nl.rivm.screenit.model.project.ProjectVragenlijstUitzettenVia;
+import nl.rivm.screenit.model.project.Project_;
 import nl.rivm.screenit.model.vragenlijsten.VragenlijstAntwoorden;
+import nl.rivm.screenit.repository.algemeen.ProjectRepository;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.ClientDoelgroepService;
@@ -72,6 +72,7 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.ProjectService;
 import nl.rivm.screenit.service.UploadDocumentService;
+import nl.rivm.screenit.specification.algemeen.ProjectSpecification;
 import nl.rivm.screenit.util.AfmeldingUtil;
 import nl.rivm.screenit.util.BezwaarUtil;
 import nl.rivm.screenit.util.DateUtil;
@@ -82,6 +83,7 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -127,6 +129,9 @@ public class ProjectServiceImpl implements ProjectService
 	@Autowired
 	private String applicationUrl;
 
+	@Autowired
+	private ProjectRepository projectRepository;
+
 	public ProjectServiceImpl()
 	{
 		executerService = Executors.newSingleThreadExecutor();
@@ -140,12 +145,12 @@ public class ProjectServiceImpl implements ProjectService
 		{
 			if (project.getType().equals(ProjectType.BRIEFPROJECT))
 			{
-				String melding = "Briefprojectnaam: " + project.getNaam();
+				var melding = "Briefprojectnaam: " + project.getNaam();
 				logService.logGebeurtenis(LogGebeurtenis.BRIEFPROJECT_AANGEMAAKT, instellingGebruiker, melding);
 			}
 			else
 			{
-				String melding = "Projectnaam: " + project.getNaam();
+				var melding = "Projectnaam: " + project.getNaam();
 				logService.logGebeurtenis(LogGebeurtenis.PROJECT_AANGEMAAKT, instellingGebruiker, melding);
 			}
 		}
@@ -153,12 +158,12 @@ public class ProjectServiceImpl implements ProjectService
 		{
 			if (project.getType().equals(ProjectType.BRIEFPROJECT))
 			{
-				String melding = "Briefprojectnaam: " + project.getNaam();
+				var melding = "Briefprojectnaam: " + project.getNaam();
 				logService.logGebeurtenis(LogGebeurtenis.BRIEFPROJECT_GEWIJZIGD, instellingGebruiker, melding);
 			}
 			else
 			{
-				String melding = "Projectnaam: " + project.getNaam();
+				var melding = "Projectnaam: " + project.getNaam();
 				logService.logGebeurtenis(LogGebeurtenis.PROJECT_GEWIJZIGD, instellingGebruiker, melding);
 			}
 		}
@@ -171,6 +176,18 @@ public class ProjectServiceImpl implements ProjectService
 		SortState<String> sortState)
 	{
 		return projectDao.getProjecten(zoekObject, instellingIdsProject, instellingIdsBriefproject, first, count, sortState);
+	}
+
+	@Override
+	public List<Project> getProjectenVanType(ProjectType projectType)
+	{
+		return projectRepository.findAll(ProjectSpecification.heeftProjectType(projectType), Sort.by(Sort.Order.asc(Project_.NAAM)));
+	}
+
+	@Override
+	public List<Project> getProjecten()
+	{
+		return projectRepository.findAll(Sort.by(Sort.Order.asc(Project_.NAAM)));
 	}
 
 	@Override
@@ -205,7 +222,7 @@ public class ProjectServiceImpl implements ProjectService
 
 	private Map<ProjectImportMelding, List<String>> putAllMeldingInHash(Map<ProjectImportMelding, List<String>> meldingen, List<String> nieuweMeldingen)
 	{
-		for (String melding : nieuweMeldingen)
+		for (var melding : nieuweMeldingen)
 		{
 			meldingen.computeIfAbsent(ProjectImportMelding.ERROR, s -> new ArrayList<>()).add(melding);
 		}
@@ -227,12 +244,12 @@ public class ProjectServiceImpl implements ProjectService
 			throw new IllegalStateException("Deze cliënt heeft een verkeerde gba status.");
 		}
 
-		Project project = groep.getProject();
-		List<Bevolkingsonderzoek> excludeerAfmeldingOnderzoeken = project.getExcludeerAfmelding();
+		var project = groep.getProject();
+		var excludeerAfmeldingOnderzoeken = project.getExcludeerAfmelding();
 		if (excludeerAfmeldingOnderzoeken.size() > 0)
 		{
 
-			for (Bevolkingsonderzoek excludeerOnderzoek : excludeerAfmeldingOnderzoeken)
+			for (var excludeerOnderzoek : excludeerAfmeldingOnderzoeken)
 			{
 				if (doelgroepService.behoortTotDoelgroep(client, excludeerOnderzoek)
 					&& AfmeldingUtil.isEenmaligOfDefinitefAfgemeld(clientService.getDossier(client, excludeerOnderzoek)))
@@ -245,12 +262,12 @@ public class ProjectServiceImpl implements ProjectService
 
 		if (groep.getProject().getType().equals(ProjectType.PROJECT))
 		{
-			ProjectClient huidigeProjectClient = ProjectUtil.getHuidigeProjectClient(client, currentDateSupplier.getDate(), false);
+			var huidigeProjectClient = ProjectUtil.getHuidigeProjectClient(client, currentDateSupplier.getDate(), false);
 			if (huidigeProjectClient != null)
 			{
 				throw new IllegalStateException("Deze cliënt doet al mee aan het project '" + huidigeProjectClient.getProject().getNaam() + "'");
 			}
-			else if (ProjectUtil.getProjectClientVanProject(client, project) != null)
+			else if (projectDao.getProjectClient(client, project) != null)
 			{
 				throw new IllegalStateException("Deze cliënt is al aan dit project gekoppeld of is al gekoppeld geweest.");
 			}
@@ -323,10 +340,10 @@ public class ProjectServiceImpl implements ProjectService
 	{
 		List<ProjectType> projectTypes = new ArrayList<>();
 
-		for (ProjectType projectType : ProjectType.values())
+		for (var projectType : ProjectType.values())
 		{
 
-			ToegangLevel level = autorisatieService.getToegangLevel(instellingGebruiker, minimumActie, checkBvo, projectType.getRecht());
+			var level = autorisatieService.getToegangLevel(instellingGebruiker, minimumActie, checkBvo, projectType.getRecht());
 			if (level != null)
 			{
 				projectTypes.add(projectType);
@@ -338,7 +355,7 @@ public class ProjectServiceImpl implements ProjectService
 	@Override
 	public String generateVragenlijstUrl(ProjectBrief projectBrief)
 	{
-		StringBuilder sb = new StringBuilder(applicationUrl);
+		var sb = new StringBuilder(applicationUrl);
 		if (!applicationUrl.endsWith("/"))
 		{
 			sb.append("/");
@@ -351,11 +368,11 @@ public class ProjectServiceImpl implements ProjectService
 	@Override
 	public String generateVragenlijstKey(ProjectBrief projectBrief)
 	{
-		StringBuilder sb = new StringBuilder("B");
+		var sb = new StringBuilder("B");
 		sb.append(projectBrief.getId().toString());
-		String controleGetal = projectBrief.getProjectClient().getClient().getId().toString();
+		var controleGetal = projectBrief.getProjectClient().getClient().getId().toString();
 		sb.append(controleGetal.substring(controleGetal.length() - 4));
-		for (int i = sb.length() - 4; i > 0; i = i - 4)
+		for (var i = sb.length() - 4; i > 0; i = i - 4)
 		{
 			sb.insert(i, '-');
 		}
@@ -402,7 +419,7 @@ public class ProjectServiceImpl implements ProjectService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public boolean addVragenlijstAanTemplate(MailMergeContext context, Document chunkDocument, ProjectBriefActie actie, ProjectBrief projectBrief) throws Exception
 	{
-		ProjectVragenlijst vragenlijst = actie.getVragenlijst();
+		var vragenlijst = actie.getVragenlijst();
 		if (vragenlijst != null && ProjectVragenlijstUitzettenVia.isPapier(actie.getProjectVragenlijstUitzettenVia()))
 		{
 			Document vragenlijstDocument = null;
@@ -417,8 +434,8 @@ public class ProjectServiceImpl implements ProjectService
 				}
 				else
 				{
-					File vragenlijstTemplate = uploadDocumentService.load(vragenlijstFormulierInstantie.getTemplateVanGebruiker());
-					byte[] vragenlijstTemplateBytes = FileUtils.readFileToByteArray(vragenlijstTemplate);
+					var vragenlijstTemplate = uploadDocumentService.load(vragenlijstFormulierInstantie.getTemplateVanGebruiker());
+					var vragenlijstTemplateBytes = FileUtils.readFileToByteArray(vragenlijstTemplate);
 					vragenlijstDocument = asposeService.processDocument(vragenlijstTemplateBytes, context);
 				}
 			}
@@ -427,15 +444,15 @@ public class ProjectServiceImpl implements ProjectService
 				chunkDocument.getLastSection().getHeadersFooters().linkToPrevious(false);
 				chunkDocument.appendDocument(vragenlijstDocument, ImportFormatMode.KEEP_SOURCE_FORMATTING);
 
-				ProjectVragenlijstAntwoordenHolder holder = new ProjectVragenlijstAntwoordenHolder();
+				var holder = new ProjectVragenlijstAntwoordenHolder();
 				holder.setStatus(ProjectVragenlijstStatus.AANGEMAAKT);
 				holder.setVragenlijst(vragenlijst);
 
-				VragenlijstAntwoorden<ProjectVragenlijstAntwoordenHolder> antwoorden = new VragenlijstAntwoorden<ProjectVragenlijstAntwoordenHolder>();
+				var antwoorden = new VragenlijstAntwoorden<ProjectVragenlijstAntwoordenHolder>();
 				antwoorden.setFormulierInstantie(vragenlijstFormulierInstantie);
 				antwoorden.setAntwoordenHolder(holder);
 				holder.setVragenlijstAntwoorden(antwoorden);
-				FormulierResultaatImpl resultaat = new FormulierResultaatImpl();
+				var resultaat = new FormulierResultaatImpl();
 				resultaat.setFormulierInstantie(vragenlijstFormulierInstantie);
 				antwoorden.setResultaat(resultaat);
 				hibernateService.saveOrUpdate(antwoorden);
@@ -473,8 +490,8 @@ public class ProjectServiceImpl implements ProjectService
 	@Override
 	public void projectAttribuutOpslaan(ProjectAttribuut attribuut)
 	{
-		String naamAttribuut = attribuut.getNaam();
-		String projectNaam = attribuut.getProject().getNaam();
+		var naamAttribuut = attribuut.getNaam();
+		var projectNaam = attribuut.getProject().getNaam();
 
 		naamAttribuut = naamAttribuut.replaceAll(" ", "").toLowerCase();
 		projectNaam = projectNaam.replaceAll(" ", "").toLowerCase();
@@ -488,8 +505,8 @@ public class ProjectServiceImpl implements ProjectService
 		Account loggedInAccount) throws IOException
 	{
 
-		Date nu = currentDateSupplier.getDate();
-		UploadDocument upload = new UploadDocument();
+		var nu = currentDateSupplier.getDate();
+		var upload = new UploadDocument();
 		upload.setContentType(contentType);
 		upload.setNaam(filenaam);
 		upload.setFile(file);
@@ -515,8 +532,8 @@ public class ProjectServiceImpl implements ProjectService
 	public void queueProjectBestandVoorUitslagen(Project project, ProjectBestand uitslagenBestand, String contentType, String filenaam, File file, Account loggedInAccount)
 		throws IOException
 	{
-		Date nu = currentDateSupplier.getDate();
-		UploadDocument upload = new UploadDocument();
+		var nu = currentDateSupplier.getDate();
+		var upload = new UploadDocument();
 		upload.setContentType(contentType);
 		upload.setNaam(filenaam);
 		upload.setFile(file);
@@ -541,7 +558,7 @@ public class ProjectServiceImpl implements ProjectService
 	public void queueProjectBestandVoorClientWijzigingen(Project project, ProjectBestand projectBestand, UploadDocument uploadDocument, String contentType, String filenaam,
 		File file, Account loggedInAccount) throws IOException
 	{
-		Date nu = currentDateSupplier.getDate();
+		var nu = currentDateSupplier.getDate();
 		uploadDocumentService.saveOrUpdate(uploadDocument, FileStoreLocation.PROJECT_INACTIVEREN, project.getId());
 
 		projectBestand.setUploadDocument(uploadDocument);
@@ -560,15 +577,15 @@ public class ProjectServiceImpl implements ProjectService
 	@Override
 	public void queueProjectBestandVoorPopulatie(ProjectGroep groep, String contentType, String filenaam, File file, Account loggedInAccount) throws IOException
 	{
-		Date nu = currentDateSupplier.getDate();
-		UploadDocument upload = new UploadDocument();
+		var nu = currentDateSupplier.getDate();
+		var upload = new UploadDocument();
 		upload.setContentType(contentType);
 		upload.setNaam(filenaam);
 		upload.setFile(file);
 		upload.setActief(true);
 		uploadDocumentService.saveOrUpdate(upload, FileStoreLocation.PROJECT_BESTAND, groep.getProject().getId());
 
-		ProjectBestand bestand = new ProjectBestand();
+		var bestand = new ProjectBestand();
 		bestand.setType(ProjectBestandType.POPULATIE);
 		bestand.setPopulatie(true);
 		bestand.setUploadDocument(upload);
@@ -635,7 +652,7 @@ public class ProjectServiceImpl implements ProjectService
 	{
 		valideerRulesPopulatie(groep, client);
 
-		ProjectClient projectClient = new ProjectClient();
+		var projectClient = new ProjectClient();
 		projectClient.setGroep(groep);
 		projectClient.setProject(groep.getProject());
 		projectClient.setClient(client);
@@ -652,7 +669,7 @@ public class ProjectServiceImpl implements ProjectService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void verwijderProjectGroep(ProjectGroep groep, Account loggedInAccount)
 	{
-		Project project = groep.getProject();
+		var project = groep.getProject();
 		project.getGroepen().remove(groep);
 		List<UploadDocument> documentenTeVerwijderen = new ArrayList<>();
 		if (groep.getProjectImport() != null && groep.getProjectImport().getUploadDocument() != null)
@@ -689,8 +706,8 @@ public class ProjectServiceImpl implements ProjectService
 		groep.setActiefDatum(currentDateSupplier.getDate());
 		hibernateService.saveOrUpdate(groep);
 
-		Project project = groep.getProject();
-		String melding = project.getNaam() + " Groep: " + groep.getNaam() + " Populatie: " + groep.getPopulatie()
+		var project = groep.getProject();
+		var melding = project.getNaam() + " Groep: " + groep.getNaam() + " Populatie: " + groep.getPopulatie()
 			+ " en is op " + (groep.getActief() ? "actief" : "inactief") + " gezet.";
 		if (project.getType().equals(ProjectType.BRIEFPROJECT))
 		{

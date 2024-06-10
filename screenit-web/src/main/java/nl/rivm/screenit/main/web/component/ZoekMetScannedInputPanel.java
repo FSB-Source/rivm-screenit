@@ -21,7 +21,6 @@ package nl.rivm.screenit.main.web.component;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.service.colon.IFobtService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.input.behavior.FocusBehavior;
 
@@ -36,7 +35,6 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class ZoekMetScannedInputPanel extends Panel
 {
@@ -44,9 +42,6 @@ public class ZoekMetScannedInputPanel extends Panel
 	private static final long serialVersionUID = 1L;
 
 	private final IModel<String> scanInput = Model.of();
-
-	@SpringBean
-	private IFobtService ifobtService;
 
 	public ZoekMetScannedInputPanel(String id)
 	{

@@ -51,4 +51,6 @@ public interface FileService
 
 	List<String> listFiles(String directory) throws IOException;
 
+	List<String> listFilesGesorteerd(String directory) throws IOException;
+
 }

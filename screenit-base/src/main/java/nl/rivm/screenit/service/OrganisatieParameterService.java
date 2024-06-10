@@ -35,4 +35,9 @@ public interface OrganisatieParameterService
 	<T> T getOrganisatieParameter(Instelling organisatie, OrganisatieParameterKey parameterKey, T defaultValue);
 
 	void saveOrUpdateOrganisatieParameters(List<OrganisatieParameter> parameters, InstellingGebruiker loggedInInstellingGebruiker);
+
+	OrganisatieParameter getParameter(Instelling organisatie, OrganisatieParameterKey parameterKey);
+
+	OrganisatieParameter maakOfUpdateOrganisatieParameter(OrganisatieParameterKey key, String value, Instelling organisatie);
+
 }

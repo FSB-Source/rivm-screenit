@@ -338,7 +338,7 @@ public class MammaBeoordelenLezingPanel extends AbstractBEAccordionPanel<MammaLe
 
 	private boolean heeftAfwijkingen()
 	{
-		return beoordelingPanel.getModelObject().getOnderzoek().getSignaleren().getHeeftAfwijkingen();
+		return beoordelingPanel.getModelObject().getOnderzoek().getSignaleren().isHeeftAfwijkingen();
 	}
 
 	private boolean lezingNietOpgeslagen()

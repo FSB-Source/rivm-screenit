@@ -22,16 +22,12 @@ package nl.rivm.screenit.dao.colon;
  */
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Set;
 
-import nl.rivm.screenit.model.PostcodeGebied;
 import nl.rivm.screenit.model.UitnodigingsGebied;
 
 public interface ColonUitnodigingsgebiedDao
 {
-	List<PostcodeGebied> findOverlappendePostcodeGebieden(PostcodeGebied postcode);
-
 	long countPersonenInUitnodigingsGebied(UitnodigingsGebied uitnodigingsGebied, Integer minimaleLeeftijd, Integer maximaleLeeftijd, Integer uitnodigingsInterval,
 		LocalDate laatsteDagVanHuidigJaar, Set<Integer> alleGeboortejarenTotMetHuidigJaar);
 

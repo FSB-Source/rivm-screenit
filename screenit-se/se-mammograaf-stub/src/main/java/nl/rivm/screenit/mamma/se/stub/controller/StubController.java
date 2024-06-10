@@ -35,7 +35,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.mamma.se.stub.SeStubApplication;
 import nl.rivm.screenit.mamma.se.stub.services.DicomService;
+import nl.rivm.screenit.mamma.se.stub.services.DicomXmlLoader;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.dcm4che3.data.Attributes;
 import org.dcm4che3.data.DatePrecision;
@@ -47,7 +49,6 @@ import org.dcm4che3.data.VR;
 import org.dcm4che3.net.Status;
 import org.dcm4che3.util.UIDUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -61,17 +62,19 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Slf4j
 public class StubController
 {
-	private Map<String, String> viewResults;
+	private static final String WERKLIJST_TEMPLATE = "werklijst";
+
+	private final Map<String, String> viewResults;
 
 	private Attributes lastWorklistItem;
 
-	private SimpleDateFormat formatter;
+	private final SimpleDateFormat formatter;
 
 	@Autowired
 	private DicomService dicomService;
 
-	@Value("${AE_TITLE}")
-	private String aeTitle;
+	@Autowired
+	private DicomXmlLoader dicomXmlLoader;
 
 	private Duration offset = Duration.ZERO;
 
@@ -81,7 +84,7 @@ public class StubController
 		viewResults = new HashMap<>();
 
 		formatter = new SimpleDateFormat();
-		formatter.applyPattern("dd-MM-YYYY");
+		formatter.applyPattern("dd-MM-yyyy");
 	}
 
 	@PostMapping("/wijzigDatumTijd/{datumTijd}")
@@ -98,7 +101,7 @@ public class StubController
 	public String getWerklijst(Model model, @RequestParam(value = "foutMelding", required = false) boolean foutMelding,
 		@RequestParam(value = "accessionNumber", required = false) String accessionNumber) throws Exception
 	{
-		Attributes worklistRequest = dicomService.loadDicomResource("mwlRequestTemplate.xml");
+		Attributes worklistRequest = dicomXmlLoader.loadDicomFromResource("mwlRequestTemplate.xml");
 
 		Sequence scheduledProcedure = worklistRequest.getSequence(Tag.ScheduledProcedureStepSequence);
 
@@ -106,7 +109,7 @@ public class StubController
 
 		scheduledProcedure.get(0).setDate(Tag.ScheduledProcedureStepStartDate, VR.DA, foutMelding ? DateUtils.addDays(date, -1) : date);
 
-		if (accessionNumber != null)
+		if (StringUtils.isNotBlank(accessionNumber))
 		{
 			worklistRequest.setString(Tag.AccessionNumber, VR.SH, accessionNumber);
 		}
@@ -117,42 +120,43 @@ public class StubController
 
 		vulWerklijstResultaten(lastWorklistItem);
 
-		viewResults.put("DissableWorklist", "false");
+		viewResults.put("DisableWorklist", "false");
+		viewResults.put("ShowMppsResult", "false");
+		viewResults.put("ShowDenseResult", "false");
 		viewResults.put("AETitle", dicomService.getAETitle());
-		viewResults.put("InputAccessionNumber", accessionNumber != null ? accessionNumber : lastWorklistItem.getString(Tag.AccessionNumber));
+		viewResults.put("InputAccessionNumber", StringUtils.isNotBlank(accessionNumber) ? accessionNumber : null);
 
 		model.addAllAttributes(viewResults);
 
-		return "werklijst";
+		return WERKLIJST_TEMPLATE;
 	}
 
 	@RequestMapping("/mppsInProgress")
 	public String sendModalityPerfomedProcedureStepInProgress(Model model, @RequestParam(value = "foutMelding", required = false) boolean foutMelding) throws Exception
 	{
-		Attributes mppsInProgress = dicomService.loadDicomResource("mppsInProgessTemplate.xml");
+		Attributes mppsInProgress = dicomXmlLoader.loadDicomFromResource("mppsInProgessTemplate.xml");
 
 		updateMppsCreateFromWorklist(mppsInProgress);
 
 		mppsInProgress.setDate(Tag.PerformedProcedureStepStartDateAndTime, new DatePrecision(Calendar.SECOND), getCurrentUtilDate());
 
 		dicomService.sendMppsCreate(mppsInProgress, foutMelding);
-		vulMPPSResultaten(dicomService.getResults());
+		vulMppsResultaten(dicomService.getResults());
 
-		viewResults.put("MppsUid", dicomService.getCurrentMppsUid());
 		viewResults.put("SoortMpps", "Onderzoek gestart");
-		viewResults.put("DissableMPPS", "false");
-		viewResults.put("DissableWorklist", "true");
+		viewResults.put("ShowMppsResult", "true");
+		viewResults.put("DisableWorklist", "true");
 
 		model.addAllAttributes(viewResults);
 
-		return "mppsBericht";
+		return WERKLIJST_TEMPLATE;
 	}
 
 	@RequestMapping("/mppsCompleted/{zijde}")
 	public String sendModalityPerfomedProcedureStepCompleted(Model model, @PathVariable String zijde, @RequestParam(value = "foutMelding", required = false) boolean foutMelding)
 		throws Exception
 	{
-		Attributes mppsCompleted = dicomService.loadDicomResource("mppsCompletedTemplate.xml");
+		Attributes mppsCompleted = dicomXmlLoader.loadDicomFromResource("mppsCompletedTemplate.xml");
 
 		mppsCompleted.setDate(Tag.PerformedProcedureStepEndDateAndTime, new DatePrecision(Calendar.SECOND), getCurrentUtilDate());
 
@@ -179,18 +183,18 @@ public class StubController
 		dicomService.sendMppsUpdate(mppsCompleted, foutMelding);
 
 		viewResults.put("SoortMpps", "Afgerond");
-		viewResults.put("DissableMPPS", "true");
-		viewResults.put("DissableWorklist", "false");
+		viewResults.put("ShowMppsResult", "true");
+		viewResults.put("DisableWorklist", "false");
 
 		model.addAllAttributes(viewResults);
 
-		return "mppsBericht";
+		return WERKLIJST_TEMPLATE;
 	}
 
 	@RequestMapping("/mppsDiscontinued")
 	public String sendModalityPerfomedProcedureStepDiscontinued(Model model) throws Exception
 	{
-		Attributes mppsDiscontinued = dicomService.loadDicomResource("mppsDiscontinuedTemplate.xml");
+		Attributes mppsDiscontinued = dicomXmlLoader.loadDicomFromResource("mppsDiscontinuedTemplate.xml");
 		mppsDiscontinued.setDate(Tag.PerformedProcedureStepEndDateAndTime, new DatePrecision(Calendar.SECOND), getCurrentUtilDate());
 
 		maakSerieFotos(mppsDiscontinued, "R CC");
@@ -198,12 +202,40 @@ public class StubController
 		dicomService.sendMppsUpdate(mppsDiscontinued, false);
 
 		viewResults.put("SoortMpps", "Afgebroken");
-		viewResults.put("DissableMPPS", "true");
-		viewResults.put("DissableWorklist", "false");
+		viewResults.put("ShowMppsResult", "true");
+		viewResults.put("DisableWorklist", "false");
 
 		model.addAllAttributes(viewResults);
 
-		return "mppsBericht";
+		return WERKLIJST_TEMPLATE;
+	}
+
+	@PostMapping("/sendDense")
+	public String sendDenseReport(Model model, @RequestParam("denseWaarde") String denseWaarde) throws Exception
+	{
+		var accessionNumber = lastWorklistItem.getString(Tag.AccessionNumber);
+		LOG.info("Stuur dense rapport voor AccessionNumber {} en densewaarde {}", accessionNumber, denseWaarde);
+
+		var reportXml = dicomXmlLoader.loadResourceAsString("dense-structured-report.xml")
+			.replace("<!-- DENSEWAARDE -->", denseWaarde);
+
+		var denseReport = dicomXmlLoader.loadDicomFromXmlString(reportXml);
+		denseReport.setString(Tag.AccessionNumber, VR.SH, accessionNumber);
+		updateClientInfoInDicombericht(denseReport);
+
+		dicomService.sendDenseReport(denseReport);
+		vulDenseResultaten(dicomService.getResults());
+
+		viewResults.put("ShowDenseResult", "true");
+
+		model.addAllAttributes(viewResults);
+		return WERKLIJST_TEMPLATE;
+	}
+
+	private void vulDenseResultaten(Attributes denseResponse)
+	{
+		viewResults.put("DenseStatus", getStatusTekst(denseResponse));
+		viewResults.put("DenseResponseUid", denseResponse.getString(Tag.AffectedSOPInstanceUID));
 	}
 
 	private void vulWerklijstResultaten(Attributes inTeVullenData)
@@ -235,31 +267,23 @@ public class StubController
 		viewResults.put("EmptyWorklist", String.valueOf(!lastWorklistItem.containsValue(Tag.AccessionNumber)));
 	}
 
-	private void vulMPPSResultaten(Attributes inTeVullenData)
+	private void vulMppsResultaten(Attributes mppsResponse)
 	{
-		viewResults.put("Uid", dicomService.getCurrentMppsUid());
+		viewResults.put("MppsUid", dicomService.getCurrentMppsUid());
+		viewResults.put("MppsStatus", getStatusTekst(mppsResponse));
+		viewResults.put("MppsResponseUid", mppsResponse.getString(Tag.AffectedSOPInstanceUID));
+	}
 
-		int status = inTeVullenData.getInt(Tag.Status, -1);
-		if (status == Status.Success)
-		{
-			viewResults.put("Status", "Success");
-		}
-		else
-		{
-			viewResults.put("Status", "Failed");
-		}
-
-		viewResults.put("ResponseUid", inTeVullenData.getString(Tag.AffectedSOPInstanceUID));
+	private String getStatusTekst(Attributes response)
+	{
+		return response.getInt(Tag.Status, -1) == Status.Success ? "Success" : "Failed";
 	}
 
 	private void updateMppsCreateFromWorklist(Attributes mppsInProgress)
 	{
-		mppsInProgress.setString(Tag.PatientID, VR.LO, lastWorklistItem.getString(Tag.PatientID));
-		mppsInProgress.setString(Tag.PatientSex, VR.CS, lastWorklistItem.getString(Tag.PatientSex));
-		mppsInProgress.setString(Tag.PatientName, VR.PN, lastWorklistItem.getString(Tag.PatientName));
+		updateClientInfoInDicombericht(mppsInProgress);
 
 		mppsInProgress.setString(Tag.StudyID, VR.SH, "1");
-		mppsInProgress.setString(Tag.PatientBirthDate, VR.DA, lastWorklistItem.getString(Tag.PatientBirthDate));
 
 		Attributes scheduledStepAttributes = new Attributes();
 		Attributes worklistProcedureStep = lastWorklistItem.getSequence(Tag.ScheduledProcedureStepSequence).get(0);
@@ -273,6 +297,14 @@ public class StubController
 		scheduledStepAttributes.setString(Tag.RequestedProcedureID, VR.SH, lastWorklistItem.getString(Tag.RequestedProcedureID));
 
 		mppsInProgress.newSequence(Tag.ScheduledStepAttributesSequence, 1).add(scheduledStepAttributes);
+	}
+
+	private void updateClientInfoInDicombericht(Attributes dicomBericht)
+	{
+		dicomBericht.setString(Tag.PatientID, VR.LO, lastWorklistItem.getString(Tag.PatientID));
+		dicomBericht.setString(Tag.PatientSex, VR.CS, lastWorklistItem.getString(Tag.PatientSex));
+		dicomBericht.setString(Tag.PatientName, VR.PN, lastWorklistItem.getString(Tag.PatientName));
+		dicomBericht.setString(Tag.PatientBirthDate, VR.DA, lastWorklistItem.getString(Tag.PatientBirthDate));
 	}
 
 	private void maakSerieFotos(Attributes attributes, String positie)

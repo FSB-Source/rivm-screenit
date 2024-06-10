@@ -27,11 +27,9 @@ import java.util.List;
 
 import nl.rivm.screenit.dao.mamma.MammaBaseAfspraakDao;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
-import nl.rivm.screenit.model.mamma.MammaCapaciteitBlok;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
-import nl.rivm.screenit.model.mamma.enums.MammaCapaciteitBlokType;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
@@ -56,30 +54,6 @@ public class MammaBaseAfspraakDaoImpl extends AbstractAutowiredDao implements Ma
 
 	@Autowired
 	private HibernateService hibernateService;
-
-	@Override
-	public List<MammaAfspraak> getNietGekoppeldeAfspraken(MammaCapaciteitBlok capaciteitsBlok)
-	{
-		Criteria crit = createAfsprakenCriteria(capaciteitsBlok.getScreeningsEenheid(), false);
-		afspraakStatussen(crit, MammaAfspraakStatus.GEPLAND);
-		vanafTot(crit, capaciteitsBlok.getVanaf(), capaciteitsBlok.getTot());
-
-		crit.createAlias("uitnodiging.screeningRonde", "screeningronde");
-		crit.createAlias("screeningronde.dossier", "dossier");
-
-		crit.add(Restrictions.isNull("afspraak.capaciteitBlok"));
-		MammaCapaciteitBlokType blokType = capaciteitsBlok.getBlokType();
-		if (!blokType.equals(MammaCapaciteitBlokType.TEHUIS))
-		{
-			crit.add(Restrictions.in("dossier.doelgroep", blokType.getDoelgroepen()));
-			crit.add(Restrictions.isNull("dossier.tehuis"));
-		}
-		else
-		{
-			crit.add(Restrictions.isNotNull("dossier.tehuis"));
-		}
-		return crit.list();
-	}
 
 	@Override
 	public List<MammaAfspraak> getAfspraken(MammaScreeningsEenheid screeningsEenheid, LocalDate vanaf, LocalDate totEnMet, MammaAfspraakStatus... afspraakStatussen)

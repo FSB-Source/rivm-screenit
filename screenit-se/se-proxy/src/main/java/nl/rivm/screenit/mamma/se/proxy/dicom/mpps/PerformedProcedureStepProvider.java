@@ -25,7 +25,6 @@ import nl.rivm.screenit.mamma.se.proxy.services.MammografenStatusService;
 import nl.rivm.screenit.mamma.se.proxy.services.WerklijstStoreService;
 
 import org.dcm4che3.data.Attributes;
-import org.dcm4che3.data.Sequence;
 import org.dcm4che3.data.Tag;
 import org.dcm4che3.net.Association;
 import org.dcm4che3.net.Status;
@@ -42,9 +41,9 @@ public class PerformedProcedureStepProvider extends BasicMPPSSCP
 
 	private static final String COMPLETED = "COMPLETED";
 
-	private WerklijstStoreService werklijstStoreService;
+	private final WerklijstStoreService werklijstStoreService;
 
-	private MammografenStatusService mammografenStatusService;
+	private final MammografenStatusService mammografenStatusService;
 
 	public PerformedProcedureStepProvider(WerklijstStoreService werklijstStoreService, MammografenStatusService mammografenStatusService)
 	{
@@ -55,8 +54,8 @@ public class PerformedProcedureStepProvider extends BasicMPPSSCP
 	@Override
 	protected Attributes create(Association as, Attributes rq, Attributes requestData, Attributes rsp) throws DicomServiceException
 	{
-		String sopInstanceUid = rq.getString(Tag.AffectedSOPInstanceUID);
-		MppsRecord mppsRecord = createMppsRecord(requestData, sopInstanceUid);
+		var sopInstanceUid = rq.getString(Tag.AffectedSOPInstanceUID);
+		var mppsRecord = createMppsRecord(requestData, sopInstanceUid);
 
 		if (werklijstStoreService.getMppsRecord(sopInstanceUid) != null)
 		{
@@ -67,7 +66,7 @@ public class PerformedProcedureStepProvider extends BasicMPPSSCP
 
 		werklijstStoreService.addNietAfgerondeWerklijstItem(sopInstanceUid, mppsRecord);
 
-		LOG.info("Received N-CREATE {}", mppsRecord);
+		LOG.info("Received N-CREATE {}", mppsRecord.logTekst());
 		mammografenStatusService.registreerLaatstSuccesvolleMppsBerichtVanMammograaf(as);
 
 		return super.create(as, rq, requestData, rsp);
@@ -75,9 +74,7 @@ public class PerformedProcedureStepProvider extends BasicMPPSSCP
 
 	private MppsRecord createMppsRecord(Attributes requestData, String sopInstanceUid)
 	{
-		MppsRecord mppsRecord = new MppsRecord(sopInstanceUid);
-		mppsRecord.setPatientName(requestData.getString(Tag.PatientName));
-		mppsRecord.setPatientID(requestData.getString(Tag.PatientID));
+		var mppsRecord = new MppsRecord(sopInstanceUid);
 		mppsRecord.setAccessionNumber(requestData.getSequence(Tag.ScheduledStepAttributesSequence).get(0).getString(Tag.AccessionNumber));
 		mppsRecord.setStatus(requestData.getString(Tag.PerformedProcedureStepStatus));
 		return mppsRecord;
@@ -86,7 +83,7 @@ public class PerformedProcedureStepProvider extends BasicMPPSSCP
 	@Override
 	protected Attributes set(Association as, Attributes rq, Attributes requestData, Attributes rsp) throws DicomServiceException
 	{
-		String sopInstanceUid = rq.getString(Tag.RequestedSOPInstanceUID);
+		var sopInstanceUid = rq.getString(Tag.RequestedSOPInstanceUID);
 
 		if (werklijstStoreService.getMppsRecord(sopInstanceUid) == null)
 		{
@@ -95,10 +92,10 @@ public class PerformedProcedureStepProvider extends BasicMPPSSCP
 			throw new DicomServiceException(Status.NoSuchObjectInstance).setUID(Tag.AffectedSOPInstanceUID, sopInstanceUid);
 		}
 
-		MppsRecord mppsRecord = werklijstStoreService.getMppsRecord(sopInstanceUid);
+		var mppsRecord = werklijstStoreService.getMppsRecord(sopInstanceUid);
 		updateMppsRecord(requestData, mppsRecord, sopInstanceUid);
 
-		LOG.info("Received N-SET {}", mppsRecord);
+		LOG.info("Received N-SET {}", mppsRecord.logTekst());
 		mammografenStatusService.registreerLaatstSuccesvolleMppsBerichtVanMammograaf(as);
 
 		return super.create(as, rq, requestData, rsp);
@@ -107,7 +104,7 @@ public class PerformedProcedureStepProvider extends BasicMPPSSCP
 	private void updateMppsRecord(Attributes requestData, MppsRecord mppsRecord, String sopInstanceUid)
 	{
 
-		String status = requestData.getString(Tag.PerformedProcedureStepStatus);
+		var status = requestData.getString(Tag.PerformedProcedureStepStatus);
 		mppsRecord.setStatus(status);
 		if (status.equals(PerformedProcedureStepProvider.DISCONTINUED) || status.equals(PerformedProcedureStepProvider.COMPLETED))
 		{
@@ -120,33 +117,33 @@ public class PerformedProcedureStepProvider extends BasicMPPSSCP
 
 	private void setDiscontinuedReasonIfExists(Attributes requestData, MppsRecord mppsRecord)
 	{
-		Sequence reasonSequence = requestData.getSequence(Tag.PerformedProcedureStepDiscontinuationReasonCodeSequence);
+		var reasonSequence = requestData.getSequence(Tag.PerformedProcedureStepDiscontinuationReasonCodeSequence);
 		if (reasonSequence != null && !reasonSequence.isEmpty())
 		{
-			String code = reasonSequence.get(0).getString(Tag.CodeValue);
-			String scheme = reasonSequence.get(0).getString(Tag.CodingSchemeDesignator);
-			String meaning = reasonSequence.get(0).getString(Tag.CodeMeaning);
+			var code = reasonSequence.get(0).getString(Tag.CodeValue);
+			var scheme = reasonSequence.get(0).getString(Tag.CodingSchemeDesignator);
+			var meaning = reasonSequence.get(0).getString(Tag.CodeMeaning);
 			mppsRecord.setDiscontinuedReason(String.join(" - ", code, scheme, meaning));
 		}
 	}
 
 	private void setImageSidesIfExists(Attributes requestData, MppsRecord mppsRecord)
 	{
-		Sequence performedSeriesSequence = requestData.getSequence(Tag.PerformedSeriesSequence);
+		var performedSeriesSequence = requestData.getSequence(Tag.PerformedSeriesSequence);
 		if (performedSeriesSequence != null && !performedSeriesSequence.isEmpty())
 		{
 			mppsRecord.setBeeldenRechts(false);
 			mppsRecord.setBeeldenLinks(false);
-			for (Attributes attributes : performedSeriesSequence)
+			for (var attributes : performedSeriesSequence)
 			{
-				String protocolName = attributes.getString(Tag.ProtocolName);
+				var protocolName = attributes.getString(Tag.ProtocolName);
 				if (protocolName == null || protocolName.isEmpty())
 				{
 					LOG.info("Sla zijde check over voor attributes: {} ", attributes);
 				}
 				else
 				{
-					String zijde = protocolName.substring(0, 1).toUpperCase();
+					var zijde = protocolName.substring(0, 1).toUpperCase();
 					switch (zijde)
 					{
 					case "R":
@@ -156,7 +153,7 @@ public class PerformedProcedureStepProvider extends BasicMPPSSCP
 						mppsRecord.setBeeldenLinks(true);
 						break;
 					default:
-						LOG.warn("Kan geen mammogram zijde lezen uit ProtocolName: " + protocolName);
+						LOG.warn("Kan geen mammogram zijde lezen uit ProtocolName: {}", protocolName);
 					}
 				}
 			}

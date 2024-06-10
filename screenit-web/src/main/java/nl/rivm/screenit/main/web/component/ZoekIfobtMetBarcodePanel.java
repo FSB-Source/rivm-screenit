@@ -22,7 +22,7 @@ package nl.rivm.screenit.main.web.component;
  */
 
 import nl.rivm.screenit.model.colon.IFOBTTest;
-import nl.rivm.screenit.service.colon.IFobtService;
+import nl.rivm.screenit.service.colon.ColonBaseFitService;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -31,10 +31,8 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 public class ZoekIfobtMetBarcodePanel extends ZoekMetScannedInputPanel
 {
 
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
-	private IFobtService ifobtService;
+	private ColonBaseFitService colonFitService;
 
 	public ZoekIfobtMetBarcodePanel(String id)
 	{
@@ -46,8 +44,8 @@ public class ZoekIfobtMetBarcodePanel extends ZoekMetScannedInputPanel
 	{
 		if (StringUtils.isNotBlank(getScanInput()))
 		{
-			IFOBTTest ifobtTest = ifobtService.getIfobtTest(getScanInput());
-			ifobtFound(ifobtTest, target);
+			var fit = colonFitService.getFit(getScanInput()).orElse(null);
+			ifobtFound(fit, target);
 		}
 		else
 		{

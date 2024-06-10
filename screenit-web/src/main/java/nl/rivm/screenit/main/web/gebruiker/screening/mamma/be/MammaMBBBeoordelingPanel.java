@@ -88,7 +88,7 @@ public class MammaMBBBeoordelingPanel extends AbstractBEAccordionPanel<MammaOnde
 		panelContainer.add(afwijkingContainer);
 
 		MammaSignaleren signaleren = getModelObject().getSignaleren();
-		boolean heeftAfwijkingen = signaleren != null && signaleren.getHeeftAfwijkingen();
+		boolean heeftAfwijkingen = signaleren != null && signaleren.isHeeftAfwijkingen();
 
 		Label afwijkingLabel = new Label("afwijkingTekst", new Model<>(heeftAfwijkingen ? "Wel signalering" : "Geen signalering"));
 		afwijkingContainer.add(afwijkingLabel);

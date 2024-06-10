@@ -21,11 +21,15 @@ package nl.rivm.screenit.mamma.se.stub.services;
  * =========================LICENSE_END==================================
  */
 
-import java.io.InputStream;
+import java.io.IOException;
 
 import org.dcm4che3.data.Attributes;
 
 public interface DicomXmlLoader
 {
-	Attributes loadXML(InputStream is) throws Exception;
+	String loadResourceAsString(String xmlFileName) throws IOException;
+
+	Attributes loadDicomFromResource(String xmlFileName) throws Exception;
+
+	Attributes loadDicomFromXmlString(String reportXml) throws Exception;
 }

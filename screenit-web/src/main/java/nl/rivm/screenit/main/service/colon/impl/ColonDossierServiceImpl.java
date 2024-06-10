@@ -31,7 +31,6 @@ import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.dao.colon.IFobtDao;
 import nl.rivm.screenit.dao.colon.impl.RoosterDaoImpl;
 import nl.rivm.screenit.main.service.OngeldigeBerichtenService;
 import nl.rivm.screenit.main.service.colon.ColonDossierService;
@@ -71,8 +70,8 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
+import nl.rivm.screenit.service.colon.ColonBaseFitService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
-import nl.rivm.screenit.service.colon.IFobtService;
 import nl.rivm.screenit.util.AfmeldingUtil;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.ColonScreeningRondeUtil;
@@ -114,9 +113,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 
 	private final ColonBaseAfspraakService afspraakService;
 
-	private final IFobtService ifobtService;
-
-	private final IFobtDao ifobtDao;
+	private final ColonBaseFitService fitService;
 
 	private final ColonDossierBaseService dossierBaseService;
 
@@ -128,7 +125,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 	@Transactional
 	public void monsterNietBeoordeelbaar(IFOBTTest ifobtTest)
 	{
-		ifobtService.monsterNietBeoordeelbaar(ifobtTest);
+		fitService.monsterNietBeoordeelbaar(ifobtTest);
 	}
 
 	@Override
@@ -312,7 +309,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 		var datumTerugOntvangen = uitnodiging.getDatumTerugOntvangen();
 		var range = Range.closed(DateUtil.toLocalDateTime(datumTerugOntvangen), DateUtil.toLocalDateTime(datumTerugOntvangen).plusSeconds(3));
 
-		ifobtService.verwijderScannedAntwoordFormulier(uitnodiging);
+		fitService.verwijderScannedAntwoordFormulier(uitnodiging);
 
 		var teVerwijderenBrieven = new ArrayList<ColonBrief>();
 		var teVerwijderenAfmeldingen = new ArrayList<ColonAfmelding>();
@@ -630,7 +627,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 			teVerwijderenHuisartsberichten.addAll(screeningRonde.getHuisartsBerichten());
 		}
 
-		ifobtService.verwijderUitslag(buis, uploadDocument);
+		fitService.verwijderUitslag(buis, uploadDocument);
 		clientService.projectClientInactiveren(client, ProjectInactiefReden.VALT_UIT_2DE_BUIS_PROJECT, Bevolkingsonderzoek.COLON);
 
 		verwijderVervolgStappen(screeningRonde, teVerwijderenBrieven);
@@ -704,8 +701,8 @@ public class ColonDossierServiceImpl implements ColonDossierService
 		var signaleringsTermijn = organisatieParameterService.getOrganisatieParameter(null, OrganisatieParameterKey.COLON_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN, 30);
 
 		var nu = currentDateSupplier.getLocalDate();
-		var laatstGesignaleerdeIfobt = ifobtDao.getLaatsteIfobtTestMetMissendeUitslagVanDossier(dossier,
-			nu.minusDays(MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN), nu.minusDays(signaleringsTermijn));
+		var laatstGesignaleerdeIfobt = fitService.getLaatsteFitMetMissendeUitslagVanDossier(dossier,
+			nu.minusDays(MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN), nu.minusDays(signaleringsTermijn)).orElse(null);
 
 		var isGedowngrade = dashboardService.updateLogRegelMetDashboardStatus(logRegel, medewerker.getMedewerker().getGebruikersnaam(), dashboardStatus);
 

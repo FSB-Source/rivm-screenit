@@ -29,6 +29,9 @@ import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BezwaarType;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
@@ -36,6 +39,8 @@ import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
+@Setter
+@Getter
 @Entity
 @Table(schema = "algemeen")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
@@ -54,34 +59,4 @@ public class Bezwaar extends AbstractHibernateObject
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	private BezwaarMoment bezwaarMoment;
-
-	public Bevolkingsonderzoek getBevolkingsonderzoek()
-	{
-		return bevolkingsonderzoek;
-	}
-
-	public void setBevolkingsonderzoek(Bevolkingsonderzoek bevolkingsonderzoek)
-	{
-		this.bevolkingsonderzoek = bevolkingsonderzoek;
-	}
-
-	public BezwaarMoment getBezwaarMoment()
-	{
-		return bezwaarMoment;
-	}
-
-	public void setBezwaarMoment(BezwaarMoment bezwaarMoment)
-	{
-		this.bezwaarMoment = bezwaarMoment;
-	}
-
-	public void setType(BezwaarType type)
-	{
-		this.type = type;
-	}
-
-	public BezwaarType getType()
-	{
-		return type;
-	}
 }

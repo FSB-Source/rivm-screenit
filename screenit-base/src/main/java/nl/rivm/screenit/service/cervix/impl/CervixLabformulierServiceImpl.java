@@ -25,17 +25,20 @@ import java.util.List;
 
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.dao.cervix.CervixLabformulierDao;
 import nl.rivm.screenit.model.MergedBrieven;
+import nl.rivm.screenit.model.OrganisatieType;
+import nl.rivm.screenit.model.TablePerClassHibernateObject_;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixLabformulierenFilter;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
+import nl.rivm.screenit.repository.cervix.CervixLabFormulierRepository;
 import nl.rivm.screenit.service.cervix.CervixBaseMonsterService;
 import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 import nl.rivm.screenit.service.cervix.CervixLabformulierService;
 import nl.rivm.screenit.service.cervix.CervixVervolgService;
+import nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.EntityAuditUtil;
@@ -43,15 +46,37 @@ import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.SessionFactory;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.primitives.Ints;
+
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterHeeftDigitaal;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterHeeftGeboortedatum;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterHeeftLabformulierStatussen;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterHeeftMonsterId;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterHeeftOrganisatieType;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterHeeftScanDatumTotEnMet;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterHeeftScanDatumVanaf;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterLabProcesStapIsControlerenVoorCytologie;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterLabProcesStapIsCytopathologie;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterLabProcesStapIsHuisartsOnbekend;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterLabProcesStapIsHuisartsOnbekendOfControlerenVoorCytologie;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterOrganisatieTypeIsScreeningorganisatie;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.heeftGeldigHuisartsbericht;
 
 @Service
 @AllArgsConstructor
 public class CervixLabformulierServiceImpl implements CervixLabformulierService
 {
-	private final CervixLabformulierDao labformulierDao;
+	private final CervixLabFormulierRepository labFormulierRepository;
+
+	private final SessionFactory sessionFactory;
 
 	private final CervixVervolgService vervolgService;
 
@@ -64,19 +89,75 @@ public class CervixLabformulierServiceImpl implements CervixLabformulierService
 	@Override
 	public List<CervixLabformulier> getLabformulieren(CervixLabformulierenFilter filter, long first, long count, String sortProperty, boolean asc)
 	{
-		return labformulierDao.getLabformulieren(filter, first, count, sortProperty, asc);
+		var sort = Sort.by(asc ? Sort.Direction.ASC : Sort.Direction.DESC, sortProperty);
+		var size = Ints.checkedCast(Math.min(count, 10));
+		var page = Ints.checkedCast(first / 10);
+		var pageable = PageRequest.of(page, size, sort);
+		return labFormulierRepository.findAll(labFormulierSpecification(filter, false, sortProperty), pageable).toList();
 	}
 
 	@Override
 	public int countLabformulieren(CervixLabformulierenFilter filter)
 	{
-		return labformulierDao.countLabformulieren(filter);
+		return (int) labFormulierRepository.count(labFormulierSpecification(filter, true, null));
 	}
 
 	@Override
 	public List<Long> getLabformulierenIds(CervixLabformulierenFilter filter, String sortProperty, boolean asc)
 	{
-		return labformulierDao.getLabformulierenIds(filter, sortProperty, asc);
+		var currentSession = sessionFactory.getCurrentSession();
+		var cb = currentSession.getCriteriaBuilder();
+		var q = cb.createQuery(Long.class);
+		var r = q.from(CervixLabformulier.class);
+
+		var spec = labFormulierSpecification(filter, false, sortProperty);
+		var predicate = spec.toPredicate(r, q, cb);
+		q.where(predicate);
+
+		q.select(r.get(TablePerClassHibernateObject_.id));
+
+		var order = asc ? cb.asc(r.get(sortProperty)) : cb.desc(r.get(sortProperty));
+		q.orderBy(order);
+
+		var typedQuery = currentSession.createQuery(q);
+		return typedQuery.getResultList();
+	}
+
+	public static Specification<CervixLabformulier> labFormulierSpecification(CervixLabformulierenFilter filter, boolean usedForCountOrIdList, String sortProperty)
+	{
+		if (filter.getLabprocesStap() == null)
+		{
+			throw new IllegalStateException("LabprocesStap cannot be null");
+		}
+
+		if (filter.getOrganisatieType() != OrganisatieType.RIVM && filter.getOrganisatieType() != OrganisatieType.BMHK_LABORATORIUM
+			&& filter.getOrganisatieType() != OrganisatieType.SCREENINGSORGANISATIE)
+		{
+			throw new IllegalStateException("OrganisatieType isn't compatible");
+		}
+
+		var specification =
+			filterHeeftOrganisatieType(filter)
+				.and(filterHeeftMonsterId(filter))
+				.and(filterHeeftLabformulierStatussen(filter))
+				.and(filterHeeftScanDatumVanaf(filter))
+				.and(filterHeeftScanDatumTotEnMet(filter))
+				.and(filterHeeftGeboortedatum(filter))
+				.and(heeftGeldigHuisartsbericht(filter))
+				.and(filterLabProcesStapIsHuisartsOnbekendOfControlerenVoorCytologie(filter))
+				.and(filterLabProcesStapIsHuisartsOnbekend(filter))
+				.and(filterLabProcesStapIsControlerenVoorCytologie(filter))
+				.and(filterLabProcesStapIsCytopathologie(filter))
+				.and(filterOrganisatieTypeIsScreeningorganisatie(filter))
+				.and(filterHeeftDigitaal(filter));
+
+		if (!usedForCountOrIdList || filter.getBsn() != null || filter.getGeboortedatum() != null || (sortProperty != null && sortProperty.contains("persoon"))
+			|| filter.getOrganisatieType() == OrganisatieType.SCREENINGSORGANISATIE)
+		{
+			specification = specification.and(CervixLabformulierSpecification.filterBsnCheck(filter));
+		}
+
+		return specification;
 	}
 
 	@Override

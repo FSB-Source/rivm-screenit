@@ -26,10 +26,13 @@ import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.filter.SecurityHeadersFilter;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.PlanningBasePage;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.RoosterAantallenPerJaarPanel;
+import nl.rivm.screenit.main.web.security.SecurityConstraint;
+import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.colon.enums.ColonTijdSlotType;
 import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
 import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.rivm.screenit.model.enums.Actie;
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
@@ -45,8 +48,16 @@ import org.apache.wicket.markup.head.PriorityHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.wicketstuff.shiro.ShiroConstraint;
 import org.wicketstuff.wiquery.ui.JQueryUIJavaScriptResourceReference;
 
+@SecurityConstraint(
+	actie = Actie.INZIEN,
+	checkScope = true,
+	constraint = ShiroConstraint.HasPermission,
+	recht = Recht.GEBRUIKER_LOCATIE_ROOSTER,
+	organisatieTypeScopes = OrganisatieType.COLOSCOPIECENTRUM,
+	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON })
 public class RoosterPage extends PlanningBasePage
 {
 	@SpringBean

@@ -21,33 +21,28 @@ package nl.rivm.screenit.mamma.se.proxy.dicom.mpps;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import lombok.Setter;
+
 public class MppsRecord
 {
 	private final String sopInstanceUid;
 
-	private String patientName;
-
-	private String patientID;
-
+	@Getter
+	@Setter
 	private String accessionNumber;
 
+	@Setter
 	private String status;
 
+	@Setter
 	private String discontinuedReason;
 
+	@Setter
 	private boolean beeldenLinks = false;
 
+	@Setter
 	private boolean beeldenRechts = false;
-
-	void setBeeldenLinks(boolean beeldenLinks)
-	{
-		this.beeldenLinks = beeldenLinks;
-	}
-
-	void setBeeldenRechts(boolean beeldenRechts)
-	{
-		this.beeldenRechts = beeldenRechts;
-	}
 
 	public boolean hasBeeldenLinks()
 	{
@@ -64,42 +59,10 @@ public class MppsRecord
 		this.sopInstanceUid = sopInstanceUid;
 	}
 
-	void setPatientName(String patientName)
-	{
-		this.patientName = patientName;
-	}
-
-	void setPatientID(String patientID)
-	{
-		this.patientID = patientID;
-	}
-
-	void setAccessionNumber(String accessionNumber)
-	{
-		this.accessionNumber = accessionNumber;
-	}
-
-	public String getAccessionNumber()
-	{
-		return accessionNumber;
-	}
-
-	void setStatus(String status)
-	{
-		this.status = status;
-	}
-
-	void setDiscontinuedReason(String discontinuedReason)
-	{
-		this.discontinuedReason = discontinuedReason;
-	}
-
-	@Override
-	public String toString()
+	public String logTekst()
 	{
 		String statusTekst = discontinuedReason == null ? status : String.format("%s (%s)", status, discontinuedReason);
-		return String.format("SopInstanceUid: %s Patient: %s (%s), Studie-id: %s, Status: %s, %s",
-			sopInstanceUid, patientName, patientID, accessionNumber, statusTekst, beeldenZijdeString());
+		return String.format("SopInstanceUid: %s, Studie-id: %s, Status: %s, %s", sopInstanceUid, accessionNumber, statusTekst, beeldenZijdeString());
 	}
 
 	private String beeldenZijdeString()

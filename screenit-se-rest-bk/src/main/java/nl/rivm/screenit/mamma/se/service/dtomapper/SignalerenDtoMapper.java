@@ -22,7 +22,6 @@ package nl.rivm.screenit.mamma.se.service.dtomapper;
  */
 
 import nl.rivm.screenit.mamma.se.dto.onderzoek.SignalerenSeDto;
-import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaSignaleren;
 
@@ -39,7 +38,7 @@ public class SignalerenDtoMapper
 	{
 		SignalerenSeDto signalerenDto = new SignalerenSeDto();
 		signalerenDto.setId(signaleren.getId());
-		signalerenDto.setHeeftAfwijkingen(signaleren.getHeeftAfwijkingen());
+		signalerenDto.setHeeftAfwijkingen(signaleren.isHeeftAfwijkingen());
 		signalerenDto.setDoorsnedeAfbeeldingen(doorsnedeAfbeeldingenDtoMapper.createDoorsnedeAfbeeldingenDtoFromAanzichten(signaleren.getRechtsVerticaleDoorsnede(),
 			signaleren.getLinksVerticaleDoorsnede(), signaleren.getRechtsHorizontaleDoorsnede(), signaleren.getLinksHorizontaleDoorsnede()));
 		return signalerenDto;

@@ -21,11 +21,8 @@ package nl.rivm.screenit.service.colon;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Iterator;
-
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.EnovationHuisarts;
-import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.colon.ColonHuisartsBericht;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
@@ -33,12 +30,6 @@ import nl.rivm.screenit.model.enums.HuisartsBerichtType;
 
 public interface ColonHuisartsBerichtService
 {
-
-	long countBerichten(ColonHuisartsBericht zoekObject, Instelling regioObject);
-
-	Iterator<? extends ColonHuisartsBericht> searchBerichten(ColonHuisartsBericht zoekObject, Instelling regioObject, String sortProperty, boolean ascending, int first, int count,
-		boolean werklijst);
-
 	ColonHuisartsBericht verstuurColonHuisartsBericht(Client client, ColonScreeningRonde colonScreeningRonde, EnovationHuisarts huisarts, HuisartsBerichtType berichtType,
 		MailMergeContext context, boolean opnieuwVerzonden);
 

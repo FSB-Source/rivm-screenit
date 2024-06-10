@@ -151,6 +151,8 @@ public enum DashboardType
 
 	MAMMA_CONTROLE_MISSENDE_UITSLAGEN("Controle missende uitslagen", Bevolkingsonderzoek.MAMMA),
 
+	MAMMA_DENSE2_CSV_EXPORT("DENSE2 csv exporteren", List.of(OrganisatieType.RIVM), Bevolkingsonderzoek.MAMMA),
+
 	ALGEMENE_BRIEVEN_GENEREREN("Algemene brieven genereren", Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
 
 	BEZWAAR_BRIEVEN_GENEREREN("Bezwaar brieven genereren", Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),

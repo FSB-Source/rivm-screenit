@@ -21,8 +21,13 @@ package nl.rivm.screenit.mamma.se.dto.actions;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import nl.rivm.screenit.model.enums.Recht;
 
+@Getter
+@RequiredArgsConstructor
 public enum SEActieType
 {
 	INSCHRIJVEN(Recht.GEBRUIKER_SCREENING_MAMMA_SE_INSCHRIJVEN),
@@ -54,17 +59,8 @@ public enum SEActieType
 	SET_VISUELE_INSPECTIE_AFBEELDING(Recht.GEBRUIKER_SCREENING_MAMMA_SE_INSCHRIJVEN),
 	WIJZIGINGEN_GEMAAKT(Recht.GEBRUIKER_SCREENING_MAMMA_SE_INSCHRIJVEN),
 	START_KWALITEITSOPNAME(Recht.GEBRUIKER_SCREENING_MAMMA_SE_KWALITEITSOPNAME),
-	BEEINDIG_KWALITEITSOPNAME(Recht.GEBRUIKER_SCREENING_MAMMA_SE_KWALITEITSOPNAME);
+	BEEINDIG_KWALITEITSOPNAME(Recht.GEBRUIKER_SCREENING_MAMMA_SE_KWALITEITSOPNAME),
+	DENSITEITMETING(null);
 
-	private Recht recht;
-
-	SEActieType(Recht recht)
-	{
-		this.recht = recht;
-	}
-
-	public Recht getRecht()
-	{
-		return recht;
-	}
+	private final Recht recht;
 }

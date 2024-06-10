@@ -33,6 +33,9 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
@@ -42,6 +45,8 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.envers.Audited;
 
+@Setter
+@Getter
 @Entity
 @Table(
 	schema = "mamma",
@@ -52,8 +57,6 @@ import org.hibernate.envers.Audited;
 @Audited
 public class MammaSignaleren extends AbstractHibernateObject
 {
-	private static final long serialVersionUID = 1L;
-
 	@OneToOne(optional = false, mappedBy = "signaleren", fetch = FetchType.LAZY)
 	private MammaOnderzoek onderzoek;
 
@@ -81,85 +84,6 @@ public class MammaSignaleren extends AbstractHibernateObject
 	private Date afgerondOp;
 
 	@Column(nullable = false)
-	private Boolean heeftAfwijkingen;
+	private boolean heeftAfwijkingen;
 
-	public MammaOnderzoek getOnderzoek()
-	{
-		return onderzoek;
-	}
-
-	public void setOnderzoek(MammaOnderzoek onderzoek)
-	{
-		this.onderzoek = onderzoek;
-	}
-
-	public MammaAnnotatieAfbeelding getRechtsVerticaleDoorsnede()
-	{
-		return rechtsVerticaleDoorsnede;
-	}
-
-	public void setRechtsVerticaleDoorsnede(MammaAnnotatieAfbeelding rechtsVerticaleDoorsnede)
-	{
-		this.rechtsVerticaleDoorsnede = rechtsVerticaleDoorsnede;
-	}
-
-	public MammaAnnotatieAfbeelding getLinksVerticaleDoorsnede()
-	{
-		return linksVerticaleDoorsnede;
-	}
-
-	public void setLinksVerticaleDoorsnede(MammaAnnotatieAfbeelding linksVerticaleDoorsnede)
-	{
-		this.linksVerticaleDoorsnede = linksVerticaleDoorsnede;
-	}
-
-	public MammaAnnotatieAfbeelding getRechtsHorizontaleDoorsnede()
-	{
-		return rechtsHorizontaleDoorsnede;
-	}
-
-	public void setRechtsHorizontaleDoorsnede(MammaAnnotatieAfbeelding rechtsHorizontaleDoorsnede)
-	{
-		this.rechtsHorizontaleDoorsnede = rechtsHorizontaleDoorsnede;
-	}
-
-	public MammaAnnotatieAfbeelding getLinksHorizontaleDoorsnede()
-	{
-		return linksHorizontaleDoorsnede;
-	}
-
-	public void setLinksHorizontaleDoorsnede(MammaAnnotatieAfbeelding linksHorizontaleDoorsnede)
-	{
-		this.linksHorizontaleDoorsnede = linksHorizontaleDoorsnede;
-	}
-
-	public InstellingGebruiker getAfgerondDoor()
-	{
-		return afgerondDoor;
-	}
-
-	public void setAfgerondDoor(InstellingGebruiker afgerondDoor)
-	{
-		this.afgerondDoor = afgerondDoor;
-	}
-
-	public Date getAfgerondOp()
-	{
-		return afgerondOp;
-	}
-
-	public void setAfgerondOp(Date afgerondOp)
-	{
-		this.afgerondOp = afgerondOp;
-	}
-
-	public Boolean getHeeftAfwijkingen()
-	{
-		return heeftAfwijkingen;
-	}
-
-	public void setHeeftAfwijkingen(Boolean heeftAfwijkingen)
-	{
-		this.heeftAfwijkingen = heeftAfwijkingen;
-	}
 }

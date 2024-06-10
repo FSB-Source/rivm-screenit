@@ -23,11 +23,9 @@ package nl.rivm.screenit.dao.colon.impl;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import nl.rivm.screenit.dao.colon.ColonUitnodigingsgebiedDao;
-import nl.rivm.screenit.model.PostcodeGebied;
 import nl.rivm.screenit.model.UitnodigingsGebied;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
@@ -35,7 +33,6 @@ import nl.rivm.screenit.util.query.DateRestrictions;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.hibernate.Criteria;
-import org.hibernate.criterion.LogicalExpression;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
@@ -50,27 +47,6 @@ public class ColonUitnodigingsgebiedDaoImpl extends AbstractAutowiredDao impleme
 {
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
-
-	@Override
-	public List<PostcodeGebied> findOverlappendePostcodeGebieden(PostcodeGebied postcode)
-	{
-		Criteria crit = this.getSession().createCriteria(PostcodeGebied.class);
-
-		LogicalExpression vanPostcode = Restrictions.and(Restrictions.le("vanPostcode", postcode.getVanPostcode().toUpperCase()),
-			Restrictions.ge("totPostcode", postcode.getVanPostcode().toUpperCase()));
-
-		LogicalExpression totPostcode = Restrictions.and(Restrictions.le("vanPostcode", postcode.getTotPostcode().toUpperCase()),
-			Restrictions.ge("totPostcode", postcode.getTotPostcode().toUpperCase()));
-
-		crit.add(Restrictions.or(vanPostcode, totPostcode));
-
-		if (postcode.getId() != null)
-		{
-			crit.add(Restrictions.ne("id", postcode.getId()));
-		}
-
-		return crit.list();
-	}
 
 	@Override
 	public long countPersonenInUitnodigingsGebied(UitnodigingsGebied uitnodigingsGebied, Integer minimaleLeeftijd, Integer maximaleLeeftijd, Integer uitnodigingsInterval,

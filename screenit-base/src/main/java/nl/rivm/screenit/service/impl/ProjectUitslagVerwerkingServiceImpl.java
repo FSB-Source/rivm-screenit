@@ -25,7 +25,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import nl.rivm.screenit.dao.colon.IFobtDao;
 import nl.rivm.screenit.model.colon.ColonGeinterpreteerdeUitslag;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
@@ -34,8 +33,8 @@ import nl.rivm.screenit.model.project.ProjectBestand;
 import nl.rivm.screenit.model.project.ProjectBestandVerwerking;
 import nl.rivm.screenit.model.project.ProjectBestandVerwerkingEntry;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.colon.ColonBaseFitService;
 import nl.rivm.screenit.service.colon.ColonStudietestService;
-import nl.rivm.screenit.service.colon.IFobtService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.slf4j.Logger;
@@ -52,10 +51,7 @@ public class ProjectUitslagVerwerkingServiceImpl implements ProjectUitslagVerwer
 	private static final Logger LOG = LoggerFactory.getLogger(ProjectUitslagVerwerkingServiceImpl.class);
 
 	@Autowired
-	private IFobtService iFobtService;
-
-	@Autowired
-	private IFobtDao iFobtDao;
+	private ColonBaseFitService fitService;
 
 	@Autowired
 	private ColonStudietestService studietestService;
@@ -129,14 +125,12 @@ public class ProjectUitslagVerwerkingServiceImpl implements ProjectUitslagVerwer
 
 		try
 		{
-			String barcode = context.getBarcodeVanHuidigeRegel().trim();
-			IFOBTTest studietest = iFobtService.getIfobtTest(barcode);
-
-			if (studietest == null)
+			var barcode = context.getBarcodeVanHuidigeRegel().trim();
+			var studietest = fitService.getFit(barcode).orElseThrow(() ->
 			{
-				boolean isVerwijderdeBarcode = iFobtDao.isVerwijderdeBarcode(barcode);
-				throw new ProjectUitslagenUploadException(String.format("Aan deze barcode zijn geen clientgegevens %sgekoppeld", isVerwijderdeBarcode ? "meer " : ""));
-			}
+				var isVerwijderdeBarcode = fitService.isVerwijderdeBarcode(barcode);
+				return new ProjectUitslagenUploadException(String.format("Aan deze barcode zijn geen clientgegevens %sgekoppeld", isVerwijderdeBarcode ? "meer " : ""));
+			});
 
 			clientIsHeraangemeld = studietestService.studietestHeraanmeldenIndienNodig(studietest);
 
@@ -220,7 +214,7 @@ public class ProjectUitslagVerwerkingServiceImpl implements ProjectUitslagVerwer
 
 	private void checkVervaldatumStudietest(IFOBTTest studietest) throws ProjectUitslagenUploadException
 	{
-		iFobtService.checkVervaldatumVerlopen(studietest);
+		fitService.checkVervaldatumVerlopen(studietest);
 		if (studietest.getStatus().equals(IFOBTTestStatus.VERVALDATUMVERLOPEN))
 		{
 			throw new ProjectUitslagenUploadException("De houdbaarheidsdatum van de studietest is verlopen");

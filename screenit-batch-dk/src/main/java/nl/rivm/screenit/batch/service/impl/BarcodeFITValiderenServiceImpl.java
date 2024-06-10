@@ -29,7 +29,6 @@ import nl.rivm.screenit.KoppelConstants;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.service.BarcodeValiderenService;
 import nl.rivm.screenit.dao.BaseHoudbaarheidDao;
-import nl.rivm.screenit.dao.colon.IFobtDao;
 import nl.rivm.screenit.model.colon.ColonOnderzoeksVariant;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
 import nl.rivm.screenit.model.colon.IFOBTTest;
@@ -40,6 +39,7 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.service.BaseHoudbaarheidService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.colon.ColonBaseFitService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -59,7 +59,7 @@ public class BarcodeFITValiderenServiceImpl extends BaseValiderenService impleme
 	private BaseHoudbaarheidService houdbaarheidService;
 
 	@Autowired
-	private IFobtDao iFobtDao;
+	private ColonBaseFitService fitService;
 
 	@Autowired
 	private BaseHoudbaarheidDao houdbaarheidDao;
@@ -121,15 +121,17 @@ public class BarcodeFITValiderenServiceImpl extends BaseValiderenService impleme
 				}
 				if (StringUtils.isNotBlank(ifobtBarcodeGold))
 				{
-					IFOBTTest bestaandeIfobtGoldTest = iFobtDao.getIfobtTest(ifobtBarcodeGold);
-					if (bestaandeIfobtGoldTest != null && IFOBTType.GOLD.equals(bestaandeIfobtGoldTest.getType())
-						&& !bestaandeIfobtGoldTest.getColonUitnodiging().equals(colonUitnodiging))
+					fitService.getFit(ifobtBarcodeGold).ifPresent(bestaandeIfobtGoldTest ->
 					{
-						addFout(foutmeldingen, String.format(KoppelConstants.COLON_BUISID_AL_GEKOPPELD, verzondenUitnodiging.getID(),
-							StringUtils.defaultIfBlank(ifobtBarcodeGold, "<geen>"),
-							StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId, "",
-							bestaandeIfobtGoldTest.getColonUitnodiging().getUitnodigingsId()));
-					}
+						if (IFOBTType.GOLD.equals(bestaandeIfobtGoldTest.getType())
+							&& !bestaandeIfobtGoldTest.getColonUitnodiging().equals(colonUitnodiging))
+						{
+							addFout(foutmeldingen, String.format(KoppelConstants.COLON_BUISID_AL_GEKOPPELD, verzondenUitnodiging.getID(),
+								StringUtils.defaultIfBlank(ifobtBarcodeGold, "<geen>"),
+								StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId, "",
+								bestaandeIfobtGoldTest.getColonUitnodiging().getUitnodigingsId()));
+						}
+					});
 					if (colonUitnodiging.getGekoppeldeTest() != null && !colonUitnodiging.getGekoppeldeTest().getBarcode().equals(ifobtBarcodeGold))
 					{
 						addFout(foutmeldingen, String.format(KoppelConstants.COLON_UITNODIGINGSID_AL_GEKOPPELD, verzondenUitnodiging.getID(), ifobtBarcodeGold,
@@ -158,7 +160,7 @@ public class BarcodeFITValiderenServiceImpl extends BaseValiderenService impleme
 				}
 				if (StringUtils.isNotBlank(ifobtBarcodeExtra))
 				{
-					IFOBTTest bestaandeIfobtExtraTest = iFobtDao.getIfobtTest(ifobtBarcodeExtra);
+					IFOBTTest bestaandeIfobtExtraTest = fitService.getFit(ifobtBarcodeExtra).orElse(null);
 					if (bestaandeIfobtExtraTest != null && IFOBTType.STUDIE.equals(bestaandeIfobtExtraTest.getType())
 						&& !bestaandeIfobtExtraTest.getColonUitnodigingExtra().equals(colonUitnodiging))
 					{
@@ -228,9 +230,9 @@ public class BarcodeFITValiderenServiceImpl extends BaseValiderenService impleme
 		this.houdbaarheidService = houdbaarheidService;
 	}
 
-	public void setiFobtDao(IFobtDao iFobtDao)
+	public void setFitService(ColonBaseFitService fitService)
 	{
-		this.iFobtDao = iFobtDao;
+		this.fitService = fitService;
 	}
 
 	public void setCurrentDateSupplier(ICurrentDateSupplier currentDateSupplier)

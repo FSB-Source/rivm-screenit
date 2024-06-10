@@ -23,7 +23,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.niettebeoordelen;
 
 import java.util.Arrays;
 
-import nl.rivm.screenit.dao.colon.IFobtDao;
 import nl.rivm.screenit.main.service.colon.ColonDossierService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ZoekIfobtMetBarcodePanel;
@@ -45,6 +44,7 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.RedenNietTeBeoordelen;
 import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.colon.ColonBaseFitService;
 import nl.topicuszorg.wicket.hibernate.CglibHibernateModel;
 import nl.topicuszorg.wicket.hibernate.SimpleListHibernateModel;
 import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
@@ -81,7 +81,7 @@ public class NietTeBeoordelenMonstersPage extends ColonScreeningBasePage
 	private InstellingService instellingService;
 
 	@SpringBean
-	private IFobtDao iFobtDao;
+	private ColonBaseFitService fitService;
 
 	private final IModel<IFOBTTest> ifobtTestModel = new CglibHibernateModel<>();
 
@@ -118,7 +118,7 @@ public class NietTeBeoordelenMonstersPage extends ColonScreeningBasePage
 				}
 				else
 				{
-					boolean isVerwijderdeBarcode = iFobtDao.isVerwijderdeBarcode(getScanInput());
+					boolean isVerwijderdeBarcode = fitService.isVerwijderdeBarcode(getScanInput());
 					error(String.format(getString("error.barcode.niet.gekoppeld"), isVerwijderdeBarcode ? "meer " : ""));
 				}
 

@@ -23,5 +23,6 @@ package nl.rivm.screenit.mamma.se.proxy.model;
 
 public enum SETransactieType
 {
-    LOG_GEBEURTENIS_SE,
+	LOG_GEBEURTENIS_SE,
+	STRUCTURED_REPORT_ONTVANGEN
 }
