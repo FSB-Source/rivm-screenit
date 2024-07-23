@@ -86,7 +86,7 @@ import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.TestService;
 import nl.rivm.screenit.service.colon.ColonAfspraakDefinitieService;
-import nl.rivm.screenit.service.colon.ColonBaseFitService;
+import nl.rivm.screenit.service.colon.ColonBaseFITService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonStudietestService;
 import nl.rivm.screenit.service.colon.ColonUitnodigingService;
@@ -121,7 +121,7 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 	private TestTimelineTimeService testTimelineTimeService;
 
 	@Autowired
-	private ColonBaseFitService fitService;
+	private ColonBaseFITService fitService;
 
 	@Autowired
 	private ColonStudietestService studietestService;

@@ -24,7 +24,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.blokkade;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.dao.mamma.MammaBaseStandplaatsDao;
@@ -44,8 +43,7 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaBlokkade;
-import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
-import nl.rivm.screenit.model.mamma.MammaStandplaats;
+import nl.rivm.screenit.model.mamma.MammaBlokkade_;
 import nl.rivm.screenit.model.mamma.enums.MammaBlokkadeType;
 import nl.rivm.screenit.service.InstellingService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -68,7 +66,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
-import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
 @SecurityConstraint(
 	actie = Actie.INZIEN,
@@ -78,9 +75,6 @@ import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.MAMMA })
 public class MammaBlokkadeBeheerPage extends MammaPlanningBasePage
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private InstellingService instellingService;
 
@@ -97,7 +91,7 @@ public class MammaBlokkadeBeheerPage extends MammaPlanningBasePage
 		dialog = new BootstrapDialog("dialog");
 		add(dialog);
 
-		ScreeningOrganisatie sessionSO = ScreenitSession.get().getScreeningOrganisatie();
+		var sessionSO = ScreenitSession.get().getScreeningOrganisatie();
 
 		IModel<MammaBlokkade> zoekObjectModel;
 		if (ScreenitSession.get().isZoekObjectGezetForComponent(MammaBlokkadeBeheerPage.class))
@@ -106,7 +100,7 @@ public class MammaBlokkadeBeheerPage extends MammaPlanningBasePage
 		}
 		else
 		{
-			MammaBlokkade zoekObject = new MammaBlokkade();
+			var zoekObject = new MammaBlokkade();
 			zoekObject.setActief(true);
 			zoekObject.setRegio(sessionSO);
 			zoekObjectModel = ModelUtil.cModel(zoekObject);
@@ -114,50 +108,49 @@ public class MammaBlokkadeBeheerPage extends MammaPlanningBasePage
 		}
 		setDefaultModel(zoekObjectModel);
 
-		Form<MammaBlokkade> form = new Form<>("form");
+		var form = new Form<MammaBlokkade>("form");
 		add(form);
 
-		ScreenitDropdown<ScreeningOrganisatie> regio = new ScreenitDropdown<>("regio",
+		var regio = new ScreenitDropdown<>("regio",
 			ModelUtil.listRModel(instellingService.getActieveInstellingen(ScreeningOrganisatie.class), true), new ChoiceRenderer<>("naam"));
 		regio.setVisible(sessionSO == null);
 		regio.setNullValid(true);
 		form.add(regio);
 
-		ScreenitDropdown<MammaScreeningsEenheid> screeningsEenheid = new ScreenitDropdown<>("screeningsEenheid",
+		var screeningsEenheid = new ScreenitDropdown<>("screeningsEenheid",
 			ModelUtil.listRModel(screeningsEenheidDao.getActieveScreeningsEenhedenVoorScreeningOrganisatie(sessionSO)), new ChoiceRenderer<>("naam"));
 		screeningsEenheid.setNullValid(true);
 		form.add(screeningsEenheid);
 
-		ScreenitDropdown<MammaStandplaats> standplaats = new ScreenitDropdown<>("standplaats",
+		var standplaats = new ScreenitDropdown<>("standplaats",
 			ModelUtil.listRModel(baseStandplaatsDao.getActieveStandplaatsen(sessionSO)), new ChoiceRenderer<>("naam"));
 		standplaats.setNullValid(true);
 		form.add(standplaats);
 
-		ScreenitDropdown<MammaBlokkadeType> type = new ScreenitDropdown<>("type", Arrays.asList(MammaBlokkadeType.values()), new EnumChoiceRenderer<>());
+		var type = new ScreenitDropdown<>("type", Arrays.asList(MammaBlokkadeType.values()), new EnumChoiceRenderer<>());
 		type.setNullValid(true);
 		form.add(type);
 
-		DatePicker<Date> vanaf = ComponentHelper.newYearDatePicker("vanaf");
+		var vanaf = ComponentHelper.newYearDatePicker("vanaf");
 		form.add(vanaf);
 
-		DatePicker<Date> totEnMet = ComponentHelper.newYearDatePicker("totEnMet");
+		var totEnMet = ComponentHelper.newYearDatePicker("totEnMet");
 		form.add(totEnMet);
 
 		form.add(new DependantDateValidator(vanaf, totEnMet, DependantDateValidator.Operator.AFTER));
 
-		WebMarkupContainer blokkadesContainer = new WebMarkupContainer("blokkadesContainer");
+		var blokkadesContainer = new WebMarkupContainer("blokkadesContainer");
 		blokkadesContainer.setOutputMarkupId(true);
 		add(blokkadesContainer);
 
 		List<IColumn<MammaBlokkade, String>> columns = new ArrayList<>();
-		columns.add(new EnumPropertyColumn<>(Model.of("Type"), "blokkade.type", "type"));
-		columns.add(new AbstractColumn<MammaBlokkade, String>(Model.of("Blokkade"))
+		columns.add(new EnumPropertyColumn<>(Model.of("Type"), "type", "type"));
+		columns.add(new AbstractColumn<>(Model.of("Blokkade"))
 		{
-
 			@Override
 			public void populateItem(Item<ICellPopulator<MammaBlokkade>> cell, String id, IModel<MammaBlokkade> blokkadeModel)
 			{
-				MammaBlokkade blokkade = blokkadeModel.getObject();
+				var blokkade = blokkadeModel.getObject();
 				String label = null;
 				switch (blokkade.getType())
 				{
@@ -174,16 +167,13 @@ public class MammaBlokkadeBeheerPage extends MammaPlanningBasePage
 				cell.add(new Label(id, label));
 			}
 		});
-		SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
-		columns.add(new DateTimePropertyColumn<>(Model.of("Vanaf"), "vanaf", "blokkade.vanaf", format));
-		columns.add(new DateTimePropertyColumn<>(Model.of("Tot en met"), "totEnMet", "blokkade.totEnMet", format));
+		var format = new SimpleDateFormat("dd-MM-yyyy");
+		columns.add(new DateTimePropertyColumn<>(Model.of("Vanaf"), "vanaf", MammaBlokkade_.VANAF, format));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Tot en met"), "totEnMet", MammaBlokkade_.TOT_EN_MET, format));
 		columns.add(new ActiefPropertyColumn<>(Model.of(""), "actief", blokkadesContainer, zoekObjectModel));
 
-		AjaxSubmitLink blokkadeZoeken = new AjaxSubmitLink("blokkadeZoeken")
+		var blokkadeZoeken = new AjaxSubmitLink("blokkadeZoeken")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -197,17 +187,13 @@ public class MammaBlokkadeBeheerPage extends MammaPlanningBasePage
 
 		form.add(blokkadeZoeken);
 
-		blokkadesContainer.add(new ScreenitDataTable<MammaBlokkade, String>("blokkades", columns, new MammaBlokkadeProvider(zoekObjectModel), 10, Model.of("blokkade(s)"))
+		blokkadesContainer.add(new ScreenitDataTable<>("blokkades", columns, new MammaBlokkadeProvider(zoekObjectModel), 10, Model.of("blokkade(s)"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<MammaBlokkade> blokkadeModel)
 			{
 				dialog.openWith(target, new MammaBlokkadeEditPanel(IDialog.CONTENT_ID, blokkadeModel, null)
 				{
-
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -226,17 +212,13 @@ public class MammaBlokkadeBeheerPage extends MammaPlanningBasePage
 			}
 		});
 
-		AjaxLink<Void> blokkade = new AjaxLink<Void>("blokkade")
+		AjaxLink<Void> blokkade = new AjaxLink<>("blokkade")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
 				dialog.openWith(target, new MammaBlokkadeEditPanel(IDialog.CONTENT_ID, null, null)
 				{
-
 					private static final long serialVersionUID = 1L;
 
 					@Override

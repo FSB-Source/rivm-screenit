@@ -282,11 +282,25 @@ public final class DateUtil
 		return toLocalDateTime(utilDate).toLocalTime();
 	}
 
-	public static Date toUtilDate(LocalDateTime localDateTime)
+	public static Date toUtilDate(Temporal temporal)
 	{
-		if (localDateTime == null)
+		if (temporal == null)
 		{
 			return null;
+		}
+
+		LocalDateTime localDateTime;
+		if (temporal instanceof LocalDate)
+		{
+			localDateTime = ((LocalDate) temporal).atStartOfDay();
+		}
+		else if (temporal instanceof LocalDateTime)
+		{
+			localDateTime = (LocalDateTime) temporal;
+		}
+		else
+		{
+			throw new IllegalArgumentException("Unsupported Temporal type: " + temporal.getClass());
 		}
 
 		var atZone = localDateTime.atZone(SCREENIT_DEFAULT_ZONE);
@@ -311,26 +325,6 @@ public final class DateUtil
 			return null;
 		}
 		return toUtilDate(localTime.atDate(localDate));
-	}
-
-	public static Date toUtilDate(LocalDate localDate)
-	{
-		if (localDate == null)
-		{
-			return null;
-		}
-		var atStartOfDay = localDate.atStartOfDay(SCREENIT_DEFAULT_ZONE);
-		var instant = atStartOfDay.toInstant();
-		var date = Date.from(instant);
-		if (LOG.isTraceEnabled())
-		{
-			var atStartOfDaySD = localDate.atStartOfDay(ZoneId.systemDefault());
-			var instantSD = atStartOfDaySD.toInstant();
-			var dateSD = Date.from(instantSD);
-			LOG.trace("Input localDate: " + localDate + "ZonedDateTime: " + atStartOfDay + " Instant: " + instant + " Date: " + date + " ZonedDateTimeSD: " + atStartOfDaySD
-				+ " InstantSD: " + instantSD + " DateSD: " + dateSD + " SD: " + ZoneId.systemDefault());
-		}
-		return date;
 	}
 
 	public static Date toUtilDateMidnight(LocalDate localDate)

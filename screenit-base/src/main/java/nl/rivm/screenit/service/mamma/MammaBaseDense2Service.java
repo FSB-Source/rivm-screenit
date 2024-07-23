@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:screenit-base/src/main/java/nl/rivm/screenit/service/cervix/CervixBaseVerrichtingService.java
+package nl.rivm.screenit.service.cervix;
+========
 package nl.rivm.screenit.service.mamma;
+>>>>>>>> refs/heads/main:screenit-base/src/main/java/nl/rivm/screenit/service/mamma/MammaBaseDense2Service.java
 
 /*-
  * ========================LICENSE_START=================================
@@ -21,6 +25,21 @@ package nl.rivm.screenit.service.mamma;
  * =========================LICENSE_END==================================
  */
 
+<<<<<<<< HEAD:screenit-base/src/main/java/nl/rivm/screenit/service/cervix/CervixBaseVerrichtingService.java
+import java.util.Date;
+import java.util.List;
+
+import nl.rivm.screenit.model.BMHKLaboratorium;
+import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
+import nl.rivm.screenit.model.cervix.facturatie.CervixTarief;
+import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting;
+
+public interface CervixBaseVerrichtingService
+{
+	CervixTarief getTariefVoorDatum(Date verrichtingsDatum, BMHKLaboratorium bmhkLaboratorium);
+
+	List<CervixVerrichting> getVerrichtingenVoorTarief(Long oudTariefId, CervixTarief nieuweTarief, CervixTariefType tariefType);
+========
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -39,7 +58,13 @@ public interface MammaBaseDense2Service
 
 	void genereerCsv(List<Client> clienten) throws IOException;
 
-	List<Client> getExportClienten();
+	void voegToeAanCsv(List<Client> clienten) throws IOException;
+
+	List<Client> getExportClientenEersteStudieronde();
+
+	List<Client> getExportClientenTweedeStudieronde();
 
 	String getExportDirectory();
+
+	boolean clientZitInDense2Project(Client client, MammaDense2ConfiguratieDto configuratie);
 }

@@ -69,6 +69,6 @@ abstract class CachingController<TCache extends List> extends AuthorizedControll
 
 	private boolean needCacheRefresh()
 	{
-		return lastCachedMoment == null || lastCachedMoment.isBefore(LocalDateTime.now().minusMinutes(MAX_CACHE_AGE_MINUTES));
+		return lastCachedMoment == null || lastCachedMoment.isBefore(LocalDateTime.now().minusMinutes(MAX_CACHE_AGE_MINUTES)) || cache.isEmpty();
 	}
 }

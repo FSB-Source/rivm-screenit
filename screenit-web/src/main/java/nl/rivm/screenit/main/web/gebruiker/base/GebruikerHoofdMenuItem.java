@@ -83,7 +83,6 @@ import nl.rivm.screenit.main.web.gebruiker.screening.colon.kwaliteitscontrole.re
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.niettebeoordelen.NietTeBeoordelenMonstersPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.overeenkomstenzoeken.OvereenkomstZoekenBeheerPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.rooster.RoosterAngularPage;
-import nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.rooster.RoosterPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.proefbvo.ProefBVOAfmeldenPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.verslagen.VerwerkteBerichtenOverzichtPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.zoekenopbarcode.ZoekenOpBarcodePage;
@@ -219,7 +218,7 @@ public enum GebruikerHoofdMenuItem
 				contextMenuItems.add(new GebruikerMenuItem("menu.colonscreening.verslagen", VerwerkteBerichtenOverzichtPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.screening.verwerkenongeldigeberichten", ColonVerwerkOngeldigeBerichtenPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.colonscreening.proefbvo", ProefBVOAfmeldenPage.class));
-				contextMenuItems.add(new GebruikerMenuItem("menu.colonscreening.rooster", RoosterPage.class, RoosterAngularPage.class));
+				contextMenuItems.add(new GebruikerMenuItem("menu.colonscreening.rooster", RoosterAngularPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.colonscreening.werklijstintake", ColonGeplandeIntakesWerklijstPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.all.afdrukkendocumenten", ColonAfdrukkenDocumentenPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.colonscreening.roosterbeperkingen", ColonFeestdagenPage.class, ColonWeekendWerkDagBeperkingenPage.class));

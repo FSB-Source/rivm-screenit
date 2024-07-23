@@ -21,19 +21,11 @@ package nl.rivm.screenit.service.cervix;
  * =========================LICENSE_END==================================
  */
 
-import java.util.List;
-
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
-import nl.rivm.screenit.model.cervix.CervixLabformulierenFilter;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 
 public interface CervixLabformulierService
 {
-	List<CervixLabformulier> getLabformulieren(CervixLabformulierenFilter filter, long first, long count, String sortProperty, boolean asc);
-
-	int countLabformulieren(CervixLabformulierenFilter filter);
-
-	List<Long> getLabformulierenIds(CervixLabformulierenFilter filter, String sortProperty, boolean asc);
 
 	void valideerLabformulier(CervixLabformulier labformulier);
 

@@ -40,11 +40,16 @@ import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
+import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaVerzettenReden;
+
+import org.apache.commons.lang3.tuple.Pair;
+
+import com.google.common.collect.Range;
 
 public interface MammaBaseAfspraakService
 {
@@ -53,9 +58,15 @@ public interface MammaBaseAfspraakService
 
 	List<MammaKandidaatAfspraakDto> filterKandidaatAfsprakenOpDagEnDagdeel(List<MammaKandidaatAfspraakDto> afspraken, MammaDagEnDagdeelFilter filter);
 
-	long countAfspraken(long standplaatsPeriodeId, MammaAfspraakStatus... afspraakStatussen);
+	boolean heeftAfspraken(long standplaatsPeriodeId, MammaAfspraakStatus... afspraakStatussen);
 
 	long countAfspraken(MammaScreeningsEenheid screeningsEenheid, LocalDate vanaf, LocalDate totEnMet, MammaAfspraakStatus... afspraakStatussen);
+
+	Pair<Date, Date> getEersteEnLaatsteAfspraakMomenten(long standplaatsPeriodeId, LocalDate vanaf, LocalDate totEnMet, MammaAfspraakStatus... afspraakStatussen);
+
+	long countAfspraken(MammaStandplaats standplaats, LocalDate vanaf, LocalDate totEnMet, MammaAfspraakStatus... afspraakStatussen);
+
+	List<MammaAfspraak> getAfspraken(MammaStandplaats standplaats, Range<Date> periode, MammaAfspraakStatus... afspraakStatussen);
 
 	int koppelNietGekoppeldeAfspraken(MammaCapaciteitBlok persistentBlok, boolean runDry);
 
@@ -66,6 +77,8 @@ public interface MammaBaseAfspraakService
 	LocalDate laatstMogelijkeAfspraakDatum(MammaDossier dossier);
 
 	List<MammaAfspraak> getAfspraken(MammaScreeningsEenheid screeningsEenheid, LocalDate vanaf, LocalDate totEnMet, MammaAfspraakStatus... afspraakStatussen);
+
+	List<MammaAfspraak> getAfspraken(String seCode, LocalDate vanaf, LocalDate totEnMet, MammaAfspraakStatus... afspraakStatussen);
 
 	void bepaalBenodigdeCapaciteit(List<MammaAfspraak> afspraken, MammaScreeningsEenheid screeningsEenheid);
 

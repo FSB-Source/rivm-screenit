@@ -33,7 +33,7 @@ import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.colon.ClientCategorieEntry;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
-import nl.rivm.screenit.service.colon.ColonBaseFitService;
+import nl.rivm.screenit.service.colon.ColonBaseFITService;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.hibernate.Criteria;
@@ -65,9 +65,9 @@ public class ClientSelectieItemCursor implements ClientSelectieItemIterator
 
 	private final LocalDate vandaag;
 
-	private final ColonBaseFitService fitService;
+	private final ColonBaseFITService fitService;
 
-	public ClientSelectieItemCursor(Session hibernateSession, int fetchSize, ExecutionContext context, List<Long> uitgenodigdeClientIds, ColonBaseFitService fitService,
+	public ClientSelectieItemCursor(Session hibernateSession, int fetchSize, ExecutionContext context, List<Long> uitgenodigdeClientIds, ColonBaseFITService fitService,
 		LocalDate vandaag)
 	{
 		this.hibernateSession = hibernateSession;

@@ -26,10 +26,7 @@ import java.util.List;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.mamma.MammaBaseTehuisClientenDao;
-import nl.rivm.screenit.dao.mamma.MammaBaseTehuisDao;
 import nl.rivm.screenit.main.service.mamma.IMammaTehuisDto;
-import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
-import nl.rivm.screenit.main.service.mamma.MammaTehuisService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.component.table.ActiefPropertyColumn;
@@ -41,12 +38,16 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
+import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode_;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
+import nl.rivm.screenit.model.mamma.MammaStandplaats_;
 import nl.rivm.screenit.model.mamma.MammaTehuis;
-import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.model.mamma.MammaTehuis_;
 import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
+import nl.rivm.screenit.service.mamma.MammaBaseTehuisService;
 import nl.rivm.screenit.service.mamma.enums.MammaTehuisSelectie;
+import nl.topicuszorg.organisatie.model.Organisatie_;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
@@ -83,18 +84,24 @@ public class MammaTehuisZoekenPage extends MammaPlanningBasePage
 	private MammaBaseStandplaatsService standplaatsService;
 
 	@SpringBean
-	private MammaTehuisService tehuisService;
-
-	@SpringBean
-	private ICurrentDateSupplier dateSupplier;
+	private MammaBaseTehuisService tehuisService;
 
 	@SpringBean
 	private MammaBaseTehuisClientenDao baseTehuisClientenDao;
 
-	@SpringBean
-	private MammaBaseTehuisDao baseTehuisDao;
-
 	private final boolean magSoAanpassen;
+
+	private static final String SCREENINGORGANISATIE_PROPERTY = "tehuis." + MammaTehuis_.STANDPLAATS + "." + MammaStandplaats_.REGIO + "." + Organisatie_.NAAM;
+
+	private static final String TEHUIS_NAAM_PROPERTY = "tehuis." + MammaTehuis_.NAAM;
+
+	private static final String STANDPLAATS_NAAM_PROPERTY = "tehuis." + MammaTehuis_.STANDPLAATS + "." + MammaStandplaats_.NAAM;
+
+	private static final String STANDPLAATS_PERIODE_VANAF_PROPERTY = "standplaatsPeriode." + MammaStandplaatsPeriode_.VANAF;
+
+	private static final String TEHUIS_UITGENODIGD_PROPERTY = "tehuis." + MammaTehuis_.UITGENODIGD;
+
+	private static final String TEHUIS_ACTIEF_PROPERTY = "tehuis." + MammaTehuis_.ACTIEF;
 
 	public MammaTehuisZoekenPage()
 	{
@@ -115,21 +122,22 @@ public class MammaTehuisZoekenPage extends MammaPlanningBasePage
 			zoekObject.setActief(true);
 		}
 
-		MammaTehuisDataProvider tehuisDataProvider = new MammaTehuisDataProvider("standplaatsPeriode.vanaf", criteriaModel);
+		MammaTehuisDataProvider tehuisDataProvider = new MammaTehuisDataProvider(STANDPLAATS_PERIODE_VANAF_PROPERTY, criteriaModel);
 
 		final WebMarkupContainer refreshContainer = new WebMarkupContainer("refreshContainer");
 		refreshContainer.setOutputMarkupId(Boolean.TRUE);
 		add(refreshContainer);
 
 		List<IColumn<IMammaTehuisDto, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<>(Model.of("Tehuis"), "tehuis.naam", "tehuis.naam"));
+		columns.add(new PropertyColumn<>(Model.of("Tehuis"), TEHUIS_NAAM_PROPERTY, TEHUIS_NAAM_PROPERTY));
 		if (ingelogdNamensRegio == null)
 		{
-			columns.add(new PropertyColumn<>(Model.of("Screeningsorganisatie"), "tehuis.regio.naam", "tehuis.standplaats.regio.naam"));
+			columns.add(new PropertyColumn<>(Model.of("Screeningsorganisatie"), SCREENINGORGANISATIE_PROPERTY, SCREENINGORGANISATIE_PROPERTY));
 		}
 
-		columns.add(new PropertyColumn<>(Model.of("Standplaats"), "tehuis.standplaats.naam", "tehuis.standplaats.naam"));
-		columns.add(new DateTimePropertyColumn<>(Model.of("Standplaatsronde vanaf"), "standplaatsPeriode.vanaf", "standplaatsPeriode.vanaf", Constants.getDateFormat()));
+		columns.add(new PropertyColumn<>(Model.of("Standplaats"), STANDPLAATS_NAAM_PROPERTY, STANDPLAATS_NAAM_PROPERTY));
+		columns.add(
+			new DateTimePropertyColumn<>(Model.of("Standplaatsronde vanaf"), STANDPLAATS_PERIODE_VANAF_PROPERTY, STANDPLAATS_PERIODE_VANAF_PROPERTY, Constants.getDateFormat()));
 		columns.add(new PropertyColumn<IMammaTehuisDto, String>(Model.of("Gekoppeld"), "dossiers.size")
 		{
 			@Override
@@ -139,7 +147,7 @@ public class MammaTehuisZoekenPage extends MammaPlanningBasePage
 				return Model.of(Long.toString(aantalGekoppeldeClienten));
 			}
 		});
-		columns.add(new DateTimePropertyColumn<>(Model.of("Laatste keer uitgenodigd"), "tehuis.uitgenodigd", "tehuis.uitgenodigd", Constants.getDateFormat()));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Laatste keer uitgenodigd"), TEHUIS_UITGENODIGD_PROPERTY, TEHUIS_UITGENODIGD_PROPERTY, Constants.getDateFormat()));
 		columns.add(new PropertyColumn<IMammaTehuisDto, String>(Model.of("Uit te nodigen"), "")
 		{
 			@Override
@@ -164,18 +172,16 @@ public class MammaTehuisZoekenPage extends MammaPlanningBasePage
 				}
 			}
 		});
-		columns.add(new ActiefPropertyColumn<>(Model.of(""), "actief", refreshContainer, criteriaModel));
+		columns.add(new ActiefPropertyColumn<>(Model.of(""), TEHUIS_ACTIEF_PROPERTY, refreshContainer, criteriaModel));
 
 		refreshContainer.add(new ScreenitDataTable<IMammaTehuisDto, String>("resultaten", columns, tehuisDataProvider, 10, Model.of("tehuizen"))
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<IMammaTehuisDto> model)
 			{
 				MammaTehuis tehuis = model.getObject().getTehuis();
-				MammaStandplaatsRonde standplaatsRonde = baseTehuisDao.getHuidigeStandplaatsRonde(tehuis.getStandplaats());
+				MammaStandplaatsRonde standplaatsRonde = tehuisService.getHuidigeStandplaatsRondeVoorStandplaats(tehuis.getStandplaats());
 				if (standplaatsRonde != null)
 				{
 					setResponsePage(new MammaTehuisEditPage(ModelUtil.cModel(tehuis)));
@@ -190,8 +196,6 @@ public class MammaTehuisZoekenPage extends MammaPlanningBasePage
 
 		AjaxLink<Void> toevoegen = new IndicatingAjaxLink<Void>("tehuisToevoegen")
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick(AjaxRequestTarget target)
@@ -219,8 +223,6 @@ public class MammaTehuisZoekenPage extends MammaPlanningBasePage
 
 		IndicatingAjaxSubmitLink zoekenButton = new IndicatingAjaxSubmitLink("zoeken", zoekForm)
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)

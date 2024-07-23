@@ -24,10 +24,10 @@ package nl.rivm.screenit.model.colon.berichten;
 import java.util.ArrayList;
 import java.util.List;
 
-import nl.rivm.screenit.model.colon.IFOBTResult;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import nl.rivm.screenit.model.colon.IFOBTResult;
 
 import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Varies;
@@ -39,17 +39,17 @@ import ca.uhn.hl7v2.model.v251.message.OUL_R22;
 import ca.uhn.hl7v2.model.v251.segment.MSH;
 import ca.uhn.hl7v2.model.v251.segment.OBX;
 
+@Slf4j
+@Getter
 public class ColonIFobtHL7BerichtWrapper
 {
-	private String labId;
+	private final String labId;
 
-	private String messageId;
+	private final String messageId;
 
-	private List<IFOBTResult> results = new ArrayList<>();
+	private final List<IFOBTResult> results = new ArrayList<>();
 
-	private OUL_R22 message;
-
-	private static final Logger LOG = LoggerFactory.getLogger(ColonIFobtHL7BerichtWrapper.class);
+	private final OUL_R22 message;
 
 	public ColonIFobtHL7BerichtWrapper(OUL_R22 message) throws DataTypeException
 	{
@@ -107,25 +107,5 @@ public class ColonIFobtHL7BerichtWrapper
 			results.add(ifobtResult);
 		}
 
-	}
-
-	public String getMessageId()
-	{
-		return messageId;
-	}
-
-	public String getLabId()
-	{
-		return labId;
-	}
-
-	public List<IFOBTResult> getResults()
-	{
-		return results;
-	}
-
-	public OUL_R22 getMessage()
-	{
-		return message;
 	}
 }

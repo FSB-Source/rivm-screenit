@@ -48,7 +48,7 @@ public class CervixHuisartsSpecification
 
 	public static Specification<CervixHuisarts> filterOpAgbCodeContaining(String agbCode)
 	{
-		return CervixHuisartsSpecification.filterOpAgbCodeContainingPredicate(agbCode).toSpecification();
+		return filterOpAgbCodeContainingPredicate(agbCode).toSpecification();
 	}
 
 	public static PathAwarePredicate<CervixHuisarts> filterOpAgbCodeContainingPredicate(String agbCode)

@@ -170,6 +170,18 @@ function addOnchangeBoxes() {
 	}
 }
 
+function initDatadog(applicationId, clientToken) {
+	window.DD_RUM && window.DD_RUM.init({
+		clientToken,
+		applicationId,
+		site: "datadoghq.eu",
+		service: "medewerkerportaal",
+		sessionReplaySampleRate: 0,
+		trackUserInteractions: false,
+		defaultPrivacyLevel: "mask-user-input",
+	});
+}
+
 document.addEventListener('DOMContentLoaded', function () {
 	addOnchangeSuperBoxes();
 	addOnchangeBoxes();

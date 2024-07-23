@@ -24,6 +24,7 @@ package nl.rivm.screenit.main.web.gebruiker.base;
 
 import java.util.List;
 
+import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.SimpleStringResourceModel;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -36,10 +37,10 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
 
+import static nl.rivm.screenit.main.web.gebruiker.screening.mamma.afspraken.MammaAfsprakenBlokPanel.AFSPRAAK_VERZETTEN_KOMT_VANUIT_AFSPRAKENKALENDER;
+
 public abstract class ContextMenuPanel extends Panel
 {
-
-	private static final long serialVersionUID = 1L;
 
 	public ContextMenuPanel(String id)
 	{
@@ -49,8 +50,6 @@ public abstract class ContextMenuPanel extends Panel
 		final Class<? extends GebruikerBasePage> activeContextMenuClass = getActiveContextMenuClass();
 		ListView<GebruikerMenuItem> contextMenu = new ListView<GebruikerMenuItem>("contextMenu", allowedContextMenuItems)
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void populateItem(ListItem<GebruikerMenuItem> item)
@@ -82,6 +81,11 @@ public abstract class ContextMenuPanel extends Panel
 				link.add(menuTab.getPrefix("prefix"));
 				link.add(new Label("naam", new SimpleStringResourceModel(menuTab.getResourceTag())));
 				link.add(menuTab.getPostfix("postfix"));
+
+				if (ScreenitSession.get().isZoekObjectGezetForComponent(AFSPRAAK_VERZETTEN_KOMT_VANUIT_AFSPRAKENKALENDER))
+				{
+					zoekIcon.setVisible(false);
+				}
 			}
 
 		};

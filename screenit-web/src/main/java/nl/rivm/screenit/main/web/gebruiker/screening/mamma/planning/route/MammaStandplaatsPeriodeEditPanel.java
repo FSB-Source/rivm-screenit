@@ -334,7 +334,7 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 			MammaCapaciteit capaciteit = baseCapaciteitsBlokService.getCapaciteit(baseCapaciteitsBlokService
 				.getNietGeblokkeerdeCapaciteitsBlokDtos(standplaatsPeriode, DateUtil.toUtilDate(vanaf.atStartOfDay()),
 					DateUtil.toUtilDate(totEnMet.atTime(Constants.BK_EINDTIJD_DAG)),
-					EnumSet.of(MammaCapaciteitBlokType.REGULIER, MammaCapaciteitBlokType.TEHUIS)));
+					EnumSet.of(MammaCapaciteitBlokType.REGULIER, MammaCapaciteitBlokType.TEHUIS), null));
 
 			BigDecimal beschikbareCapaciteitRegulier = capaciteit.getCapaciteit(MammaCapaciteitBlokType.REGULIER).beschikbareCapaciteit;
 			BigDecimal beschikbareCapaciteitTehuis = capaciteit.getCapaciteit(MammaCapaciteitBlokType.TEHUIS).beschikbareCapaciteit;

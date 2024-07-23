@@ -23,7 +23,7 @@ package nl.rivm.screenit.batch.config;
 
 import nl.rivm.screenit.batch.base.config.JmsBatchBaseConfig;
 import nl.rivm.screenit.batch.jms.listener.JMSVerwerkCdaBerichtListener;
-import nl.rivm.screenit.batch.jms.listener.JMSVerwerkIFobtBerichtListener;
+import nl.rivm.screenit.batch.jms.listener.JMSVerwerkFITBerichtListener;
 import nl.rivm.screenit.config.JmsConfig;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 
@@ -55,7 +55,7 @@ public class JmsListenerConfig
 	}
 
 	@Bean
-	public DefaultMessageListenerContainer verwerkIFobtBerichtListenerContainer(JMSVerwerkIFobtBerichtListener verwerkIFobtBerichtListener)
+	public DefaultMessageListenerContainer verwerkIFobtBerichtListenerContainer(JMSVerwerkFITBerichtListener verwerkIFobtBerichtListener)
 	{
 		var listenerContainer = new DefaultMessageListenerContainer();
 		listenerContainer.setConnectionFactory(jmsConfig.jmsFactory());

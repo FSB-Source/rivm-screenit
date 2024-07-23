@@ -22,6 +22,7 @@ package nl.rivm.screenit.repository.algemeen;
  */
 
 import java.util.List;
+import java.util.Optional;
 
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.repository.BaseJpaRepository;
@@ -29,4 +30,7 @@ import nl.rivm.screenit.repository.BaseJpaRepository;
 public interface ScreeningOrganisatieRepository extends BaseJpaRepository<ScreeningOrganisatie>
 {
 	List<ScreeningOrganisatie> findAllByActiefTrueOrderByNaam();
+
+	Optional<ScreeningOrganisatie> findByNaam(String naam);
+
 }

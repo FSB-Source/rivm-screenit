@@ -57,6 +57,7 @@ public class MammaPrimaireParametersPanel extends BasePrimaireParametersPanel
 		form.add(new TextField<>("mammaAfspraakVerzettenZonderClientContactVanafAantalWerkdagen", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
 		form.add(new TextField<>("mammaAfspraakZoekenStandaardFilterEinddatumDagenInToekomst", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
 		form.add(new TextField<>("mammaAfspraakZoekenAantalMinutenInToekomst", Integer.class).add(RangeValidator.minimum(0)).add(RangeValidator.maximum(1440)).setRequired(true));
+		form.add(new TextField<>("mammaAfspraakReserveringGeldigVoor", Integer.class).add(RangeValidator.minimum(0)).add(RangeValidator.maximum(10)).setRequired(true));
 		form.add(new TextField<>("mammaCapaciteitVolledigBenutTotEnMetAantalWerkdagen", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
 		form.add(new TextField<>("mammaBevestigingsbriefNietVerzendenBinnenAantalWerkdagen", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
 		form.add(new TextField<>("mammaBulkVerzettenInVerledenAantalWeken", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));

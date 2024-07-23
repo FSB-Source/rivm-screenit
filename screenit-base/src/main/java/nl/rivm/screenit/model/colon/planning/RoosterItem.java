@@ -34,7 +34,6 @@ import javax.persistence.Transient;
 import lombok.Getter;
 import lombok.Setter;
 
-import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.model.Afspraak;
 import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.enums.ColonTijdSlotType;
@@ -92,12 +91,7 @@ public class RoosterItem extends ScheduleItem implements ITijdObject
 	@Override
 	protected String getTooltip()
 	{
-		return String.format("%s<br/>%s<br/>%s - %s<br/>%s",
-			getTitle(),
-			getScheduleSet().getDisplayname(),
-			Constants.getTimeFormat().format(getStartTime()),
-			Constants.getTimeFormat().format(getEndTime()),
-			getLocation().getCalendarDisplayName());
+		return "";
 	}
 
 	@Transient

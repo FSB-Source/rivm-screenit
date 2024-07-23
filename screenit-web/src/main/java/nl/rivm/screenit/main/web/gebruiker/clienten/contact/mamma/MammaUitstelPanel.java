@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.validator.WerkdagValidator;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.AbstractClientContactActiePanel;
@@ -57,6 +58,8 @@ import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+
+import static nl.rivm.screenit.main.web.gebruiker.screening.mamma.afspraken.MammaAfsprakenBlokPanel.AFSPRAAK_VERZETTEN_KOMT_VANUIT_AFSPRAKENKALENDER;
 
 public class MammaUitstelPanel extends AbstractClientContactActiePanel<MammaUitstel>
 {
@@ -128,8 +131,7 @@ public class MammaUitstelPanel extends AbstractClientContactActiePanel<MammaUits
 
 		add(ComponentHelper.newDatePicker("streefDatum").setRequired(true).add(new WerkdagValidator()));
 
-		boolean vanuitPlanning = getPage().getMetaData(ClientContactPanel.CREATE_CONTEXT_KEY).bkVanuitPlanning;
-		Component clientContactCheckBox = ComponentHelper.newCheckBox("clientContact", clientContact).setVisible(vanuitPlanning);
+		Component clientContactCheckBox = ComponentHelper.newCheckBox("clientContact", clientContact).setVisible(isVanuitPlanningOfAfsprakenkalender());
 		add(clientContactCheckBox);
 
 		CheckBox briefAanmakenCheckBox = ComponentHelper.newCheckBox("briefAanmaken", briefAanmaken);
@@ -150,8 +152,7 @@ public class MammaUitstelPanel extends AbstractClientContactActiePanel<MammaUits
 	public void validate()
 	{
 		super.validate();
-		boolean vanuitPlanning = getPage().getMetaData(ClientContactPanel.CREATE_CONTEXT_KEY).bkVanuitPlanning;
-		if (vanuitPlanning && !Boolean.TRUE.equals(clientContact.getObject()))
+		if (isVanuitPlanningOfAfsprakenkalender() && !Boolean.TRUE.equals(clientContact.getObject()))
 		{
 			error(getString("geen.client.contact"));
 		}
@@ -204,5 +205,11 @@ public class MammaUitstelPanel extends AbstractClientContactActiePanel<MammaUits
 	{
 		super.onDetach();
 		ModelUtil.nullSafeDetach(standplaatsPeriodeModel);
+	}
+
+	private boolean isVanuitPlanningOfAfsprakenkalender()
+	{
+		return getPage().getMetaData(ClientContactPanel.CREATE_CONTEXT_KEY).bkVanuitPlanning || ScreenitSession.get()
+			.isZoekObjectGezetForComponent(AFSPRAAK_VERZETTEN_KOMT_VANUIT_AFSPRAKENKALENDER);
 	}
 }

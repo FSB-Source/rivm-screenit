@@ -26,7 +26,7 @@ import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.handler.CervixHpvHL7v251Handler;
-import nl.rivm.screenit.handler.ColonIFobtHL7v251Handler;
+import nl.rivm.screenit.handler.ColonFITHL7v251Handler;
 import nl.rivm.screenit.handler.MammaHL7v24Handler;
 import nl.rivm.screenit.wsb.service.ScreenITHL7v2ServerService;
 import nl.rivm.screenit.wsb.service.mamma.MammaBeeldenOntvangenService;
@@ -135,7 +135,7 @@ public class ScreenITHL7v2ServerServiceImpl implements ScreenITHL7v2ServerServic
 		if (incomingIfobtPort != null)
 		{
 			LOG.info("FIT HL7v251 server wordt opgezet, op poort: {}", incomingIfobtPort);
-			Application handler = new ColonIFobtHL7v251Handler(OUL_R22.class);
+			Application handler = new ColonFITHL7v251Handler(OUL_R22.class);
 			ApplicationWrapper wrapper = new ApplicationWrapper(handler);
 			createServer(wrapper, incomingIfobtPort);
 			LOG.info("FIT HL7v251 server is aangemaakt.");

@@ -58,7 +58,7 @@ public class ColonFeestdagController
 
 	@GetMapping
 	@SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = { Recht.COLON_FEESTDAGEN_BEHEER,
-		Recht.GEBRUIKER_LOCATIE_NIEUW_ROOSTER }, bevolkingsonderzoekScopes = {
+		Recht.GEBRUIKER_LOCATIE_ROOSTER }, bevolkingsonderzoekScopes = {
 		Bevolkingsonderzoek.COLON })
 	public ResponseEntity<List<ColonFeestdag>> getFeestdagen(@RequestParam Optional<String> startDatum, @RequestParam Optional<String> eindDatum)
 	{

@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.colon;
 
 /*-
@@ -26,6 +25,9 @@ import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.Instelling;
 
 import org.hibernate.envers.Audited;
@@ -33,11 +35,10 @@ import org.hibernate.envers.NotAudited;
 
 @Entity
 @Audited
+@Getter
+@Setter
 public class IFobtLaboratorium extends Instelling
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private String labId;
 
 	private String labIdScanner;
@@ -48,43 +49,4 @@ public class IFobtLaboratorium extends Instelling
 	@NotAudited
 	private AntedateerRange laatsteAntedateerRange;
 
-	public String getLabId()
-	{
-		return labId;
-	}
-
-	public void setLabId(String labId)
-	{
-		this.labId = labId;
-	}
-
-	public String getLabIdScanner()
-	{
-		return labIdScanner;
-	}
-
-	public void setLabIdScanner(String labIdScanner)
-	{
-		this.labIdScanner = labIdScanner;
-	}
-
-	public String getQbasenummer()
-	{
-		return qbasenummer;
-	}
-
-	public void setQbasenummer(String qbasenummer)
-	{
-		this.qbasenummer = qbasenummer;
-	}
-
-	public AntedateerRange getLaatsteAnteDateerRange()
-	{
-		return laatsteAntedateerRange;
-	}
-
-	public void setLaatsteAnteDateerRange(AntedateerRange laatsteAnteDateerRange)
-	{
-		this.laatsteAntedateerRange = laatsteAnteDateerRange;
-	}
 }

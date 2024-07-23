@@ -37,7 +37,7 @@ import org.springframework.data.jpa.domain.Specification;
 @FunctionalInterface
 public interface PathAwarePredicate<T>
 {
-	Predicate withPath(CriteriaBuilder cb, Path<T> r);
+	Predicate withPath(CriteriaBuilder cb, Path<? extends T> r);
 
 	default Specification<T> toSpecification()
 	{

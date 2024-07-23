@@ -25,23 +25,46 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.criteria.Predicate;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
+import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.ScreeningOrganisatie_;
+import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
+import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting;
 import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting_;
 import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
 
 import org.springframework.data.jpa.domain.Specification;
 
+import static nl.rivm.screenit.specification.SpecificationUtil.composePredicates;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNull;
+import static nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification.verrichtingJoin;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixVerrichtingSpecification
 {
+
+	public static Specification<CervixBoekRegel> heeftNietVerrichtingType(CervixTariefType verrichtingType)
+	{
+		return (r, q, cb) -> cb.notEqual(verrichtingJoin(r).get(CervixVerrichting_.type), verrichtingType);
+	}
+
+	public static Specification<CervixBoekRegel> filterVerrichtingType(CervixTariefType type)
+	{
+		return skipWhenNull(type, (r, q, cb) -> cb.equal(verrichtingJoin(r).get(CervixVerrichting_.type), type));
+	}
+
+	public static Specification<CervixVerrichting> filterVerrichtingTypeVoorVerrichting(CervixTariefType type)
+	{
+		return skipWhenNull(type, (r, q, cb) -> cb.equal(r.get(CervixVerrichting_.type), type));
+	}
 
 	public static Specification<CervixVerrichting> filterVerrichtingType(boolean huisartsVerichtingType, boolean labTariefTypes)
 	{
@@ -64,9 +87,30 @@ public class CervixVerrichtingSpecification
 		};
 	}
 
-	public static Specification<CervixVerrichting> filterVerrichtingDatumTotEnMet(LocalDate verrichtingDatum)
+	public static Specification<CervixBoekRegel> filterHuisartsLocatie(CervixHuisartsLocatie huisartsLocatie)
 	{
-		return skipWhenNull(verrichtingDatum, (r, q, cb) -> cb.lessThan(r.get(CervixVerrichting_.verrichtingsDatum), DateUtil.toUtilDate(verrichtingDatum.plusDays(1))));
+		return skipWhenNull(huisartsLocatie, (r, q, cb) -> cb.equal(verrichtingJoin(r).get(CervixVerrichting_.huisartsLocatie), huisartsLocatie));
+	}
+
+	public static Specification<CervixBoekRegel> verichtingsDatumValtTussenVoorBoekRegel(LocalDate vanafDatum, LocalDate totEnMetDatum)
+	{
+		return (r, q, cb) -> verichtingsDatumValtTussenPredicate(vanafDatum, totEnMetDatum).withPath(cb, verrichtingJoin(r));
+	}
+
+	public static Specification<CervixVerrichting> verichtingsDatumValtTussenVoorVerrichting(LocalDate vanafDatum, LocalDate totEnMetDatum)
+	{
+		return (r, q, cb) -> verichtingsDatumValtTussenPredicate(vanafDatum, totEnMetDatum).withPath(cb, r);
+	}
+
+	public static Specification<CervixVerrichting> isKleinerDanVerrichtingsDatumVoorVerrichting(LocalDate totEnMetDatum)
+	{
+		return skipWhenNull(totEnMetDatum, (r, q, cb) -> isKleinerDanVerichtingsDatumPredicate(totEnMetDatum).withPath(cb, r));
+	}
+
+	public static Specification<CervixBoekRegel> filterRegio(ScreeningOrganisatie screeningOrganisatie)
+	{
+		return skipWhenNull(screeningOrganisatie,
+			(r, q, cb) -> cb.equal(verrichtingJoin(r).get(CervixVerrichting_.regio), screeningOrganisatie));
 	}
 
 	public static Specification<CervixVerrichting> filterVerrichtingBinnenRegio(Long screeningOrganisatieId)
@@ -79,4 +123,27 @@ public class CervixVerrichtingSpecification
 			return cb.equal(regioId, screeningOrganisatieId);
 		});
 	}
+
+	private static PathAwarePredicate<CervixVerrichting> verichtingsDatumValtTussenPredicate(LocalDate vanafDatum, LocalDate totEnMetDatum)
+	{
+		return (cb, r) ->
+		{
+			var predicates = new ArrayList<Predicate>();
+			if (vanafDatum != null)
+			{
+				predicates.add(cb.greaterThanOrEqualTo(r.get(CervixVerrichting_.verrichtingsDatum), DateUtil.toUtilDate(vanafDatum)));
+			}
+			if (totEnMetDatum != null)
+			{
+				predicates.add(isKleinerDanVerichtingsDatumPredicate(totEnMetDatum).withPath(cb, r));
+			}
+			return composePredicates(cb, predicates);
+		};
+	}
+
+	private static PathAwarePredicate<CervixVerrichting> isKleinerDanVerichtingsDatumPredicate(LocalDate totEnMetDatum)
+	{
+		return (cb, r) -> cb.lessThan(r.get(CervixVerrichting_.verrichtingsDatum), DateUtil.toUtilDate(totEnMetDatum.plusDays(1)));
+	}
+
 }

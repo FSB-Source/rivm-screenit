@@ -43,7 +43,7 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
-import nl.rivm.screenit.service.colon.ColonBaseFitService;
+import nl.rivm.screenit.service.colon.ColonBaseFITService;
 import nl.rivm.screenit.service.colon.ColonScreeningsrondeService;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.ColonScreeningRondeUtil;
@@ -86,7 +86,7 @@ public class ColonScreeningsrondeServiceImpl implements ColonScreeningsrondeServ
 
 	@Autowired
 	@Lazy
-	private ColonBaseFitService fitService;
+	private ColonBaseFITService fitService;
 
 	@Override
 	public boolean heeftUitslag(ColonUitnodiging uitnodiging, boolean checkAlleenUitslagGecommuiceerd)

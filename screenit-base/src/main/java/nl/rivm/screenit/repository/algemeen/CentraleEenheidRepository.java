@@ -21,9 +21,12 @@ package nl.rivm.screenit.repository.algemeen;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Optional;
+
 import nl.rivm.screenit.model.CentraleEenheid;
 import nl.rivm.screenit.repository.BaseJpaRepository;
 
 public interface CentraleEenheidRepository extends BaseJpaRepository<CentraleEenheid>
 {
+	Optional<CentraleEenheid> findByNaam(String naam);
 }

@@ -43,6 +43,7 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.mamma.MammaAfspraakReserveringService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -74,6 +75,9 @@ public class ClientZoekenPanel extends Panel
 	@SpringBean
 	private LogService logService;
 
+	@SpringBean
+	private MammaAfspraakReserveringService afspraakReserveringService;
+
 	private final IModel<String> briefkenmerkModel = new Model<>();
 
 	private final WebMarkupContainer tabelContainer;
@@ -93,6 +97,13 @@ public class ClientZoekenPanel extends Panel
 		tabelContainer.setVisible(false);
 		tabelContainer.add(new WebMarkupContainer("tabel"));
 		add(tabelContainer);
+
+		verwijderMogelijkeAfspraakReserveringenVanMedewerker();
+	}
+
+	private void verwijderMogelijkeAfspraakReserveringenVanMedewerker()
+	{
+		afspraakReserveringService.verwijderReserveringenVanMedewerker(ScreenitSession.get().getLoggedInInstellingGebruiker());
 	}
 
 	private void logAction(LogGebeurtenis gebeurtenis, Client client, String briefkenmerk)

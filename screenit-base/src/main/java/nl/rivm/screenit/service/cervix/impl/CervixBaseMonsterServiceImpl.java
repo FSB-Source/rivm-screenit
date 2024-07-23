@@ -21,14 +21,16 @@ package nl.rivm.screenit.service.cervix.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.OrganisatieType;
-import nl.rivm.screenit.model.cervix.CervixHpvAnalyseresultaten;
+import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.cervix.CervixMonster;
+import nl.rivm.screenit.model.cervix.CervixMonster_;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
 import nl.rivm.screenit.model.cervix.berichten.CervixHpvResultValue;
@@ -38,15 +40,27 @@ import nl.rivm.screenit.repository.cervix.CervixBaseMonsterRepository;
 import nl.rivm.screenit.repository.cervix.CervixUitstrijkjeRepository;
 import nl.rivm.screenit.repository.cervix.CervixZasRepository;
 import nl.rivm.screenit.service.cervix.CervixBaseMonsterService;
-import nl.rivm.screenit.specification.cervix.CervixMonsterSpecification;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.hibernate.envers.AuditReaderFactory;
 import org.hibernate.envers.query.AuditEntity;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import static nl.rivm.screenit.specification.cervix.CervixMonsterSpecification.heeftActieveClient;
+import static nl.rivm.screenit.specification.cervix.CervixMonsterSpecification.heeftBsn;
+import static nl.rivm.screenit.specification.cervix.CervixMonsterSpecification.heeftControleLetters;
+import static nl.rivm.screenit.specification.cervix.CervixMonsterSpecification.heeftDossier;
+import static nl.rivm.screenit.specification.cervix.CervixMonsterSpecification.heeftGeenSignalering;
+import static nl.rivm.screenit.specification.cervix.CervixMonsterSpecification.heeftMonsterId;
+import static nl.rivm.screenit.specification.cervix.CervixMonsterSpecification.heeftMonsterMetMissendeUitslag;
+import static nl.rivm.screenit.specification.cervix.CervixMonsterSpecification.heeftOntvangstDatumOpOfVoor;
+import static nl.rivm.screenit.specification.cervix.CervixMonsterSpecification.heeftUitstrijkjeMonsterId;
+import static nl.rivm.screenit.specification.cervix.CervixMonsterSpecification.heeftZasMonsterId;
 
 @Service
 @AllArgsConstructor
@@ -64,37 +78,37 @@ public class CervixBaseMonsterServiceImpl implements CervixBaseMonsterService
 	@Override
 	public Optional<CervixUitstrijkje> getUitstrijkjeByClientBsnAndMonsterId(String bsn, String monsterId)
 	{
-		return uitstrijkjeRepository.findOne(CervixMonsterSpecification.heeftUitstrijkjeMonsterId(monsterId).and(CervixMonsterSpecification.heeftBsn(bsn)));
+		return uitstrijkjeRepository.findOne(heeftUitstrijkjeMonsterId(monsterId).and(heeftBsn(bsn)));
 	}
 
 	@Override
 	public Optional<CervixUitstrijkje> getUitstrijkjeByClientBsnAndControleLetters(String bsn, String controleLetters)
 	{
-		return uitstrijkjeRepository.findOne(CervixMonsterSpecification.heeftControleLetters(controleLetters).and(CervixMonsterSpecification.heeftBsn(bsn)));
+		return uitstrijkjeRepository.findOne(heeftControleLetters(controleLetters).and(heeftBsn(bsn)));
 	}
 
 	@Override
 	public Optional<CervixUitstrijkje> getUitstrijkje(String monsterId)
 	{
-		return uitstrijkjeRepository.findOne(CervixMonsterSpecification.heeftUitstrijkjeMonsterId(monsterId));
+		return uitstrijkjeRepository.findOne(heeftUitstrijkjeMonsterId(monsterId));
 	}
 
 	@Override
 	public Optional<CervixZas> getZas(String monsterId)
 	{
-		return zasRepository.findOne(CervixMonsterSpecification.heeftZasMonsterId(monsterId));
+		return zasRepository.findOne(heeftZasMonsterId(monsterId));
 	}
 
 	@Override
 	public Optional<CervixMonster> getMonster(String monsterId)
 	{
-		return monsterRepository.findOne(CervixMonsterSpecification.heeftMonsterId(monsterId));
+		return monsterRepository.findOne(heeftMonsterId(monsterId));
 	}
 
 	@Override
 	public boolean monsterHeeftHpvBeoordelingMetGenotypeOther(CervixMonster monsterHpvUitslag)
 	{
-		CervixHpvAnalyseresultaten analyseresultaten = monsterHpvUitslag.getLaatsteHpvBeoordeling().getAnalyseresultaten();
+		var analyseresultaten = monsterHpvUitslag.getLaatsteHpvBeoordeling().getAnalyseresultaten();
 
 		return analyseresultaten != null && CervixHpvResultValue.NEG_HPV16.equals(analyseresultaten.getHpv16()) && CervixHpvResultValue.NEG_HPV18.equals(
 			analyseresultaten.getHpv18()) && CervixHpvResultValue.POS_OTHER_HR_HPV.equals(analyseresultaten.getHpvohr());
@@ -124,5 +138,21 @@ public class CervixBaseMonsterServiceImpl implements CervixBaseMonsterService
 			.addProjection(AuditEntity.id().count());
 
 		return ((Long) auditQuery.getSingleResult()) > 0;
+	}
+
+	@Override
+	public Optional<CervixMonster> getLaatsteMonsterMetMissendeUitslagVanDossier(CervixDossier dossier, LocalDate signalerenVanaf, LocalDate minimaleSignaleringsDatum)
+	{
+		return monsterRepository.findFirst(maakMonsterMetMissendeUitslagSpecification(signalerenVanaf, minimaleSignaleringsDatum).and(heeftDossier(dossier)),
+			Sort.by(Sort.Direction.ASC, CervixMonster_.ONTVANGSTDATUM));
+	}
+
+	@Override
+	public Specification<CervixMonster> maakMonsterMetMissendeUitslagSpecification(LocalDate signalerenVanaf, LocalDate minimaleSignaleringsDatum)
+	{
+		return heeftOntvangstDatumOpOfVoor(minimaleSignaleringsDatum)
+			.and(heeftGeenSignalering(signalerenVanaf))
+			.and(heeftMonsterMetMissendeUitslag())
+			.and(heeftActieveClient());
 	}
 }

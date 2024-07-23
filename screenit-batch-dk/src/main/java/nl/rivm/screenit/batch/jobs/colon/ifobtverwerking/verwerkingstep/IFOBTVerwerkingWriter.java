@@ -39,7 +39,7 @@ import nl.rivm.screenit.model.logging.IfobtVerwerkingBeeindigdLogEvent;
 import nl.rivm.screenit.model.verwerkingverslag.IfobtVerwerkingRapportageEntry;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
-import nl.rivm.screenit.service.colon.ColonBaseFitService;
+import nl.rivm.screenit.service.colon.ColonBaseFITService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.batch.core.StepExecution;
@@ -60,7 +60,7 @@ public class IFOBTVerwerkingWriter implements ItemWriter<IFOBTUitslag>
 	private LogService logService;
 
 	@Autowired
-	private ColonBaseFitService fitService;
+	private ColonBaseFITService fitService;
 
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;

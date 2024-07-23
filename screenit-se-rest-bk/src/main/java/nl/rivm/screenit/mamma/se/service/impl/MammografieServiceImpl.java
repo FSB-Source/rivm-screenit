@@ -31,6 +31,7 @@ import nl.rivm.screenit.mamma.se.dto.actions.MammografieOpslaanDto;
 import nl.rivm.screenit.mamma.se.service.MammaAfspraakService;
 import nl.rivm.screenit.mamma.se.service.MammografieService;
 import nl.rivm.screenit.mamma.se.service.dtomapper.AfbeeldingDtoMapper;
+import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
@@ -41,6 +42,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaDenseWaarde;
 import nl.rivm.screenit.repository.mamma.MammaScreeningRondeRepository;
 import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.mamma.MammaBaseAnnotatieAfbeeldingService;
+import nl.rivm.screenit.service.mamma.MammaBaseDense2Service;
 import nl.rivm.screenit.service.mamma.MammaBaseFactory;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -63,6 +65,8 @@ public class MammografieServiceImpl implements MammografieService
 	private final MammaScreeningRondeRepository screeningRondeRepository;
 
 	private final OrganisatieParameterService organisatieParameterService;
+
+	private final MammaBaseDense2Service dense2Service;
 
 	@Override
 	@Transactional
@@ -164,15 +168,17 @@ public class MammografieServiceImpl implements MammografieService
 			.orElseThrow(() -> new IllegalStateException("Screeningronde voor densemeting niet gevonden voor accessionnumber: " + action.getAccessionNumber()));
 
 		var densiteit = action.getDensiteit();
-		if (magDensiteitOpslaan(densiteit))
+		var client = screeningRonde.getDossier().getClient();
+		if (magDensiteitOpslaan(densiteit, client))
 		{
 			getOfMaakMammografie(screeningRonde.getLaatsteOnderzoek()).setDensiteit(densiteit);
 		}
 	}
 
-	private boolean magDensiteitOpslaan(MammaDenseWaarde densiteit)
+	private boolean magDensiteitOpslaan(MammaDenseWaarde densiteit, Client client)
 	{
 		var initieleMetingOpslaan = organisatieParameterService.getOrganisatieParameter(null, OrganisatieParameterKey.MAMMA_DENSE_2_INITIELE_METING_OPSLAAN, false);
-		return Boolean.TRUE.equals(initieleMetingOpslaan) && densiteit == MammaDenseWaarde.D;
+		var clientInDense2Project = dense2Service.clientZitInDense2Project(client, dense2Service.getConfiguratie());
+		return clientInDense2Project || (Boolean.TRUE.equals(initieleMetingOpslaan) && densiteit == MammaDenseWaarde.D);
 	}
 }

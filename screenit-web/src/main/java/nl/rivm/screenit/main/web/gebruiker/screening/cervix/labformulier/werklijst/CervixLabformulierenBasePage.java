@@ -35,6 +35,7 @@ import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.base.ZoekenContextMenuItem;
 import nl.rivm.screenit.main.web.gebruiker.screening.cervix.CervixScreeningBasePage;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.GbaPersoon_;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.batch.BatchJob;
@@ -65,6 +66,9 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+
+import static nl.rivm.screenit.main.service.cervix.impl.CervixLabformulierDataProviderServiceImpl.CLIENT_PROPERTY;
+import static nl.rivm.screenit.main.service.cervix.impl.CervixLabformulierDataProviderServiceImpl.PERSOON_PROPERTY;
 
 @ZoekenContextMenuItem
 public abstract class CervixLabformulierenBasePage extends CervixScreeningBasePage
@@ -123,7 +127,9 @@ public abstract class CervixLabformulierenBasePage extends CervixScreeningBasePa
 
 		columns = new ArrayList<>();
 		columns.add(new PropertyColumn<>(Model.of(getString("barcode")), "barcode", "barcode"));
-		columns.add(new PropertyColumn<>(Model.of("Cliënt"), "uitstrijkje.uitnodiging.screeningRonde.dossier.client", "uitstrijkje.uitnodiging.screeningRonde.dossier.client")
+		columns.add(
+			new PropertyColumn<>(Model.of("Cliënt"), PERSOON_PROPERTY + "." + GbaPersoon_.ACHTERNAAM,
+				CLIENT_PROPERTY)
 		{
 			@Override
 			public IModel<Object> getDataModel(IModel<CervixLabformulier> labformulierModel)
@@ -132,9 +138,10 @@ public abstract class CervixLabformulierenBasePage extends CervixScreeningBasePa
 				return new Model(client != null ? NaamUtil.titelVoorlettersTussenvoegselEnAanspreekAchternaam(client) : "");
 			}
 		});
-		columns.add(new GeboortedatumColumn<>("uitstrijkje.uitnodiging.screeningRonde.dossier.client.persoon", "uitstrijkje.uitnodiging.screeningRonde.dossier.client.persoon"));
-		columns.add(new PropertyColumn<>(Model.of("BSN"), "uitstrijkje.uitnodiging.screeningRonde.dossier.client.persoon.bsn",
-			"uitstrijkje.uitnodiging.screeningRonde.dossier.client.persoon.bsn"));
+		columns.add(new GeboortedatumColumn<>(PERSOON_PROPERTY + "." + GbaPersoon_.GEBOORTEDATUM,
+			PERSOON_PROPERTY));
+		columns.add(new PropertyColumn<>(Model.of("BSN"), PERSOON_PROPERTY + "." + GbaPersoon_.BSN,
+			PERSOON_PROPERTY + "." + GbaPersoon_.BSN));
 		columns.add(new PropertyColumn<>(Model.of("Scandatum"), "scanDatum", "scanDatum"));
 		if (labformulierStatussenVisible)
 		{

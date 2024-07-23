@@ -23,8 +23,8 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.bmhklaboratoriu
 
 import java.util.Iterator;
 
-import nl.rivm.screenit.dao.cervix.CervixVerrichtingDao;
-import nl.rivm.screenit.model.SortState;
+import nl.rivm.screenit.main.service.cervix.CervixVerrichtingService;
+import nl.rivm.screenit.main.util.WicketSpringDataUtil;
 import nl.rivm.screenit.model.cervix.facturatie.CervixLabTarief;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -38,9 +38,9 @@ public class CervixLaboratoriumTarievenDataProvider extends SortableDataProvider
 {
 
 	@SpringBean
-	private CervixVerrichtingDao cervixVerrichtingDao;
+	private CervixVerrichtingService verrichtingService;
 
-	private IModel<CervixLabTarief> zoekObject;
+	private final IModel<CervixLabTarief> zoekObject;
 
 	public CervixLaboratoriumTarievenDataProvider(IModel<CervixLabTarief> labTarief)
 	{
@@ -52,14 +52,13 @@ public class CervixLaboratoriumTarievenDataProvider extends SortableDataProvider
 	@Override
 	public Iterator<? extends CervixLabTarief> iterator(long first, long count)
 	{
-		return cervixVerrichtingDao.getLabTarieven(ModelUtil.nullSafeGet(zoekObject), first, count, new SortState<String>(getSort().getProperty(), getSort().isAscending()))
-			.iterator();
+		return verrichtingService.getLabTarieven(ModelUtil.nullSafeGet(zoekObject).getBmhkLaboratorium(), first, count, WicketSpringDataUtil.toSpringSort(getSort())).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return cervixVerrichtingDao.countLabTarieven(ModelUtil.nullSafeGet(zoekObject));
+		return verrichtingService.countLabTarieven(ModelUtil.nullSafeGet(zoekObject).getBmhkLaboratorium());
 	}
 
 	@Override

@@ -35,9 +35,6 @@ import nl.rivm.screenit.model.colon.enums.SKMLSentineelControleType;
 @Table(schema = "colon")
 public class SKMLSentineelControleBarcode extends SKMLControleBarcode
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private SKMLSentineelControleType sentineelType;

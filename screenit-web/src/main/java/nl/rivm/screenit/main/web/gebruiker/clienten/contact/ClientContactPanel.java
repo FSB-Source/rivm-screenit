@@ -59,6 +59,7 @@ import nl.rivm.screenit.model.mamma.MammaUitstel;
 import nl.rivm.screenit.service.ClientContactService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.mamma.MammaAfspraakReserveringService;
 import nl.rivm.screenit.service.mamma.MammaBaseDossierService;
 import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.util.ExceptionConverter;
@@ -123,6 +124,9 @@ public class ClientContactPanel extends GenericPanel<Client>
 
 	@SpringBean
 	private ICurrentDateSupplier currentDateSupplier;
+
+	@SpringBean
+	private MammaAfspraakReserveringService mammaAfspraakReserveringService;
 
 	private IModel<ClientDossierFilter> zoekObjectModel;
 
@@ -575,6 +579,17 @@ public class ClientContactPanel extends GenericPanel<Client>
 			{
 				target.add(opmerkingTextarea.setEnabled(isOpmerkingToegestaan()));
 			}
+			if (!medewerkerMagReserveringenBehouden())
+			{
+				mammaAfspraakReserveringService.verwijderReserveringenVanMedewerker(ScreenitSession.get().getLoggedInInstellingGebruiker());
+			}
+		}
+
+		private boolean medewerkerMagReserveringenBehouden()
+		{
+			return selectedActies.stream()
+				.anyMatch(a -> List.of(ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_WIJZIGEN, ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN_FORCEREN).contains(a));
 		}
 
 		private boolean isOpmerkingToegestaan()

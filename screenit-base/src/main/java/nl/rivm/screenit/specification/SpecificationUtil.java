@@ -21,12 +21,7 @@ package nl.rivm.screenit.specification;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.function.Function;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.From;
@@ -41,13 +36,8 @@ import javax.persistence.metamodel.SingularAttribute;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
-
 import org.apache.commons.lang.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
-
-import com.google.common.collect.Range;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class SpecificationUtil
@@ -83,9 +73,14 @@ public class SpecificationUtil
 		return (r, q, cb) -> object == null ? null : specification.toPredicate(r, q, cb);
 	}
 
-	public static <S> Specification<S> skipWhenFalsy(boolean object, Specification<S> specification)
+	public static <S> Specification<S> skipWhenNotTrue(Boolean value, Specification<S> specification)
 	{
-		return (r, q, cb) -> !object ? null : specification.toPredicate(r, q, cb);
+		return (r, q, cb) -> Boolean.TRUE.equals(value) ? specification.toPredicate(r, q, cb) : null;
+	}
+
+	public static <S> Specification<S> skipWhenFalsy(boolean value, Specification<S> specification)
+	{
+		return (r, q, cb) -> !value ? null : specification.toPredicate(r, q, cb);
 	}
 
 	public static Predicate skipWhenBlankPredicate(String keyword, Predicate predicate)
@@ -130,15 +125,15 @@ public class SpecificationUtil
 			.orElseGet(() -> root.join(attribute, joinType));
 	}
 
-	public static <X, Y, Z> From<X, Y> join(From<Z, X> from, ListAttribute<? super X, Y> attribute)
+	public static <X, Y, Z> Join<X, Y> join(From<Z, X> from, ListAttribute<? super X, Y> attribute)
 	{
 		return join(from, attribute, JoinType.INNER);
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <X, Y, Z> From<X, Y> join(From<Z, X> from, ListAttribute<? super X, Y> attribute, JoinType joinType)
+	public static <X, Y, Z> Join<X, Y> join(From<Z, X> from, ListAttribute<? super X, Y> attribute, JoinType joinType)
 	{
-		return (From<X, Y>) from
+		return (Join<X, Y>) from
 			.getJoins()
 			.stream()
 			.filter(join -> join.getAttribute().getName().equals(attribute.getName()) && join.getJoinType() == joinType)
@@ -146,15 +141,15 @@ public class SpecificationUtil
 			.orElseGet(() -> from.join(attribute, joinType));
 	}
 
-	public static <X, Y, Z> From<X, Y> join(From<Z, X> from, SingularAttribute<? super X, Y> attribute)
+	public static <X, Y, Z> Join<X, Y> join(From<Z, X> from, SingularAttribute<? super X, Y> attribute)
 	{
 		return join(from, attribute, JoinType.INNER);
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <X, Y, Z> From<X, Y> join(From<Z, X> from, SingularAttribute<? super X, Y> attribute, JoinType joinType)
+	public static <X, Y, Z> Join<X, Y> join(From<Z, X> from, SingularAttribute<? super X, Y> attribute, JoinType joinType)
 	{
-		return (From<X, Y>) from
+		return (Join<X, Y>) from
 			.getJoins()
 			.stream()
 			.filter(join -> join.getAttribute().getName().equals(attribute.getName()) && join.getJoinType() == joinType)
@@ -170,101 +165,6 @@ public class SpecificationUtil
 	public static Predicate composePredicatesOr(CriteriaBuilder cb, List<Predicate> predicates)
 	{
 		return cb.or(predicates.toArray(Predicate[]::new));
-	}
-
-	public static <S> Specification<S> betweenDates(Range<LocalDate> range, Function<Root<S>, Path<Date>> pathSupplier)
-	{
-		return betweenDates(range.lowerEndpoint(), range.upperEndpoint(), pathSupplier);
-	}
-
-	public static <S> Specification<S> betweenDates(LocalDate vanaf, LocalDate totEnMet, Function<Root<S>, Path<Date>> pathSupplier)
-	{
-		return (r, q, cb) -> betweenDatesPredicate(vanaf, totEnMet).withPath(cb, pathSupplier.apply(r));
-	}
-
-	public static <S> Specification<S> betweenLocalDateTimes(LocalDateTime vanaf, LocalDateTime totEnMet, Function<Root<S>, Path<Date>> pathSupplier)
-	{
-		return (r, q, cb) -> betweenLocalDateTimesPredicate(vanaf, totEnMet).withPath(cb, pathSupplier.apply(r));
-	}
-
-	public static <S> Specification<S> betweenLocalDates(LocalDate vanaf, LocalDate totEnMet, Function<Root<S>, Path<LocalDate>> pathSupplier)
-	{
-		return (r, q, cb) -> betweenLocalDatesPredicate(vanaf, totEnMet).withPath(cb, pathSupplier.apply(r));
-	}
-
-	public static PathAwarePredicate<Date> betweenDatesPredicate(Range<LocalDate> range)
-	{
-		return betweenDatesPredicate(range.lowerEndpoint(), range.upperEndpoint());
-	}
-
-	public static PathAwarePredicate<Date> betweenDatesPredicate(LocalDate vanaf, LocalDate totEnMet)
-	{
-		return (cb, r) ->
-		{
-			var predicates = new ArrayList<Predicate>();
-
-			if (vanaf != null)
-			{
-				predicates.add(cb.greaterThanOrEqualTo(r, DateUtil.toUtilDate(vanaf)));
-			}
-
-			if (totEnMet != null)
-			{
-				predicates.add(cb.lessThan(r, DateUtil.toUtilDate(totEnMet.plusDays(1))));
-			}
-
-			return composePredicates(cb, predicates);
-		};
-	}
-
-	public static PathAwarePredicate<Date> betweenLocalDateTimesPredicate(LocalDateTime vanaf, LocalDateTime totEnMet)
-	{
-		return (cb, r) ->
-		{
-			var predicates = new ArrayList<Predicate>();
-
-			if (vanaf != null)
-			{
-				predicates.add(cb.greaterThanOrEqualTo(r, DateUtil.toUtilDate(vanaf)));
-			}
-
-			if (totEnMet != null)
-			{
-				predicates.add(cb.lessThan(r, DateUtil.toUtilDate(totEnMet.plusDays(1))));
-			}
-
-			return composePredicates(cb, predicates);
-		};
-	}
-
-	public static PathAwarePredicate<LocalDate> betweenLocalDatesPredicate(LocalDate vanaf, LocalDate totEnMet)
-	{
-		return (cb, r) ->
-		{
-			var predicates = new ArrayList<Predicate>();
-
-			if (vanaf != null)
-			{
-				predicates.add(cb.greaterThanOrEqualTo(r, vanaf));
-			}
-
-			if (totEnMet != null)
-			{
-				predicates.add(cb.lessThan(r, totEnMet.plusDays(1)));
-			}
-
-			return composePredicates(cb, predicates);
-		};
-	}
-
-	public static <T> Specification<T> valtBinnenDatumRange(Range<Date> range, Function<Root<T>, Path<Date>> startPathFunction, Function<Root<T>, Path<Date>> endPathFunction)
-	{
-		return (r, q, cb) ->
-		{
-			var startProperty = startPathFunction.apply(r);
-			var endProperty = endPathFunction.apply(r);
-			return cb.and(cb.greaterThan(endProperty, range.lowerEndpoint()), cb.lessThan(startProperty, range.upperEndpoint()));
-		};
 	}
 
 	private static String escapeLikeString(String s)

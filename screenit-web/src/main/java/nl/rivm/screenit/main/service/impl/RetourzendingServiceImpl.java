@@ -67,7 +67,7 @@ import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
-import nl.rivm.screenit.service.colon.ColonBaseFitService;
+import nl.rivm.screenit.service.colon.ColonBaseFITService;
 import nl.rivm.screenit.service.colon.ColonScreeningsrondeService;
 import nl.rivm.screenit.service.colon.ColonUitnodigingService;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
@@ -127,7 +127,7 @@ public class RetourzendingServiceImpl implements RetourzendingService
 	private HibernateService hibernateService;
 
 	@Autowired
-	private ColonBaseFitService colonFitService;
+	private ColonBaseFITService colonFitService;
 
 	@Autowired
 	private BaseBriefService briefService;

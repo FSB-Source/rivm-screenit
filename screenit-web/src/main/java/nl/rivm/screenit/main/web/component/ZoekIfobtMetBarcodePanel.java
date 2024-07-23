@@ -22,7 +22,7 @@ package nl.rivm.screenit.main.web.component;
  */
 
 import nl.rivm.screenit.model.colon.IFOBTTest;
-import nl.rivm.screenit.service.colon.ColonBaseFitService;
+import nl.rivm.screenit.service.colon.ColonBaseFITService;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -32,7 +32,7 @@ public class ZoekIfobtMetBarcodePanel extends ZoekMetScannedInputPanel
 {
 
 	@SpringBean
-	private ColonBaseFitService colonFitService;
+	private ColonBaseFITService colonFitService;
 
 	public ZoekIfobtMetBarcodePanel(String id)
 	{

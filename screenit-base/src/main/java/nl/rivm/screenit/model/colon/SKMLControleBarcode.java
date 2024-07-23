@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.colon;
 
 /*-
@@ -32,6 +31,9 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.colon.enums.IFOBTUitslagType;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
@@ -39,13 +41,12 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 @Entity
+@Getter
+@Setter
 @Table(schema = "colon")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 public class SKMLControleBarcode extends AbstractHibernateObject implements Comparable<SKMLControleBarcode>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@Column(nullable = true)
 	private String barcode;
 
@@ -56,36 +57,6 @@ public class SKMLControleBarcode extends AbstractHibernateObject implements Comp
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(nullable = true)
 	private Date datum;
-
-	public String getBarcode()
-	{
-		return barcode;
-	}
-
-	public void setBarcode(String barcode)
-	{
-		this.barcode = barcode;
-	}
-
-	public IFOBTUitslagType getType()
-	{
-		return type;
-	}
-
-	public void setType(IFOBTUitslagType type)
-	{
-		this.type = type;
-	}
-
-	public Date getDatum()
-	{
-		return datum;
-	}
-
-	public void setDatum(Date datum)
-	{
-		this.datum = datum;
-	}
 
 	@Override
 	public int compareTo(SKMLControleBarcode o)

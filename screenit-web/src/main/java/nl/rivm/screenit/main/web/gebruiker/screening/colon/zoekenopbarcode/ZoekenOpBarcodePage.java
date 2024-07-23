@@ -43,7 +43,7 @@ import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
-import nl.rivm.screenit.service.colon.ColonBaseFitService;
+import nl.rivm.screenit.service.colon.ColonBaseFITService;
 import nl.topicuszorg.wicket.hibernate.SimpleHibernateModel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -65,7 +65,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 public class ZoekenOpBarcodePage extends ColonScreeningBasePage
 {
 	@SpringBean
-	private ColonBaseFitService colonFitService;
+	private ColonBaseFITService colonFitService;
 
 	private final IModel<Client> clientModel = new SimpleHibernateModel<>();
 

@@ -68,7 +68,6 @@ import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
 public abstract class MammaBlokkadeEditPanel extends GenericPanel<MammaBlokkade>
 {
-
 	@SpringBean
 	private MammaScreeningsEenheidDao screeningsEenheidDao;
 
@@ -112,7 +111,6 @@ public abstract class MammaBlokkadeEditPanel extends GenericPanel<MammaBlokkade>
 
 		add(new AjaxLink<Void>("close")
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -147,7 +145,6 @@ public abstract class MammaBlokkadeEditPanel extends GenericPanel<MammaBlokkade>
 
 		type.add(new AjaxFormComponentUpdatingBehavior("change")
 		{
-
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
@@ -177,7 +174,6 @@ public abstract class MammaBlokkadeEditPanel extends GenericPanel<MammaBlokkade>
 		final ConfirmingIndicatingAjaxSubmitLink inActiveren = new ConfirmingIndicatingAjaxSubmitLink("inActiveren", dialog,
 			"popupOverlapMeldingInactiveren")
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			private StringBuilder errorMessage;
@@ -216,7 +212,6 @@ public abstract class MammaBlokkadeEditPanel extends GenericPanel<MammaBlokkade>
 
 		form.add(new ConfirmingIndicatingAjaxSubmitLink("opslaan", dialog, "popupOverlapMelding")
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			private StringBuilder errorMessage;
@@ -317,7 +312,7 @@ public abstract class MammaBlokkadeEditPanel extends GenericPanel<MammaBlokkade>
 			}
 		}
 
-		List<MammaBlokkade> overlappendeBlokkades = baseBlokkadeService.getOverlappendeBlokkades(blokkade);
+		List<MammaBlokkade> overlappendeBlokkades = baseBlokkadeService.getOverlappendeBlokkadesVanZelfdeType(blokkade);
 		if (CollectionUtils.isNotEmpty(overlappendeBlokkades))
 		{
 			if (errorMessage.length() > 0)

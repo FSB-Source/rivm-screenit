@@ -22,6 +22,7 @@ package nl.rivm.screenit.specification.cervix;
  */
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Date;
 
 import lombok.AccessLevel;
@@ -127,7 +128,7 @@ public class CervixUitnodigingSpecification
 
 	public static Specification<CervixUitnodiging> heeftBriefMetBrieftype(BriefType... briefTypes)
 	{
-		return CervixBriefSpecification.heeftBriefInBrieftype(briefTypes).toSpecification(r -> SpecificationUtil.join(r, CervixUitnodiging_.brief));
+		return CervixBriefSpecification.heeftBriefInBrieftypes(Arrays.asList(briefTypes)).toSpecification(r -> SpecificationUtil.join(r, CervixUitnodiging_.brief));
 	}
 
 	public static Specification<CervixUitnodiging> heeftScreeningRonde(CervixScreeningRonde screeningRonde)

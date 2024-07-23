@@ -24,7 +24,6 @@ package nl.rivm.screenit.batch.service.impl;
 import java.util.List;
 
 import nl.rivm.screenit.batch.service.CervixHerindexeerVerrichtingenService;
-import nl.rivm.screenit.dao.cervix.CervixVerrichtingDao;
 import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.model.cervix.facturatie.CervixLabTarief;
@@ -39,6 +38,7 @@ import nl.rivm.screenit.service.HuisartsenportaalSyncService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.cervix.Cervix2023StartBepalingService;
 import nl.rivm.screenit.service.cervix.CervixBaseBetalingService;
+import nl.rivm.screenit.service.cervix.CervixBaseVerrichtingService;
 import nl.rivm.screenit.util.cervix.CervixHuisartsToDtoUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -67,7 +67,7 @@ public class CervixHerindexeerVerrichtingenServiceImpl implements CervixHerindex
 	private HuisartsenportaalSyncService huisartsenportaalSyncService;
 
 	@Autowired
-	private CervixVerrichtingDao verrichtingDao;
+	private CervixBaseVerrichtingService verrichtingService;
 
 	@Autowired
 	private LogService logService;
@@ -110,7 +110,7 @@ public class CervixHerindexeerVerrichtingenServiceImpl implements CervixHerindex
 
 	private int bepaalBoekregelsVoorVerrichtingen(CervixTarief oudeTarief, CervixTarief nieuweTarief, CervixTariefType tariefType)
 	{
-		List<CervixVerrichting> verrichtingen = verrichtingDao.getVerrichtingenVoorTarief(oudeTarief.getId(), nieuweTarief, tariefType);
+		List<CervixVerrichting> verrichtingen = verrichtingService.getVerrichtingenVoorTarief(oudeTarief.getId(), nieuweTarief, tariefType);
 		verrichtingen.forEach(v -> bepaalBoekregelsVoorVerrichting(v, oudeTarief, nieuweTarief));
 		return verrichtingen.size();
 	}

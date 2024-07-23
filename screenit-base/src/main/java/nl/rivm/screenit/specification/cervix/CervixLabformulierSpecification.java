@@ -21,6 +21,7 @@ package nl.rivm.screenit.specification.cervix;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.criteria.From;
@@ -52,39 +53,45 @@ import nl.rivm.screenit.model.cervix.CervixLabformulier_;
 import nl.rivm.screenit.model.cervix.CervixLabformulierenFilter;
 import nl.rivm.screenit.model.cervix.CervixMonster_;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde_;
+import nl.rivm.screenit.model.cervix.CervixUitnodiging_;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje_;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieOrderStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.cervix.enums.CervixHuisartsBerichtStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
-import nl.rivm.screenit.specification.SpecificationUtil;
+import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.util.DateUtil;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 
+import static nl.rivm.screenit.model.cervix.CervixLabformulierenFilter.LabprocesStap;
 import static nl.rivm.screenit.model.cervix.CervixLabformulierenFilter.LabprocesStap.CONTROLEREN_VOOR_CYTOLOGIE;
 import static nl.rivm.screenit.model.cervix.CervixLabformulierenFilter.LabprocesStap.CYTOLOGIE;
 import static nl.rivm.screenit.model.cervix.CervixLabformulierenFilter.LabprocesStap.HUISARTS_ONBEKEND;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmpty;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenFalsy;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNull;
+import static nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification.labformulierJoin;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 
 public class CervixLabformulierSpecification
 {
 
-	public static Specification<CervixLabformulier> filterHeeftOrganisatieType(CervixLabformulierenFilter filter)
+	public static Specification<CervixLabformulier> filterHeeftOrganisatieType(OrganisatieType organisatieType, Long instellingId)
 	{
 		return (r, q, cb) ->
 		{
-			if (filter.getOrganisatieType() == OrganisatieType.BMHK_LABORATORIUM)
+			if (organisatieType == OrganisatieType.BMHK_LABORATORIUM)
 			{
-				return cb.equal(SpecificationUtil.join(r, CervixLabformulier_.laboratorium).get(SingleTableHibernateObject_.id), filter.getInstellingId());
+				return cb.equal(join(r, CervixLabformulier_.laboratorium).get(SingleTableHibernateObject_.id), instellingId);
 			}
-			else if (filter.getOrganisatieType() == OrganisatieType.SCREENINGSORGANISATIE)
+			else if (organisatieType == OrganisatieType.SCREENINGSORGANISATIE)
 			{
-				return cb.equal(screeningOrganisatieJoin(r).get(SingleTableHibernateObject_.id), filter.getInstellingId());
+				return cb.equal(screeningOrganisatieJoin(r).get(SingleTableHibernateObject_.id), instellingId);
 			}
 			else
 			{
@@ -93,49 +100,39 @@ public class CervixLabformulierSpecification
 		};
 	}
 
-	public static Specification<CervixLabformulier> filterHeeftMonsterId(CervixLabformulierenFilter filter)
+	public static Specification<CervixLabformulier> filterHeeftMonsterId(String monsterId)
 	{
-		return skipWhenNull(filter.getMonsterId(), (r, q, cb) -> cb.equal(r.get(ScannedFormulier_.barcode), filter.getMonsterId()));
+		return skipWhenNull(monsterId, (r, q, cb) -> cb.equal(r.get(ScannedFormulier_.barcode), monsterId));
 	}
 
-	public static Specification<CervixLabformulier> filterHeeftLabformulierStatussen(CervixLabformulierenFilter filter)
+	public static Specification<CervixLabformulier> filterHeeftLabformulierStatussen(List<CervixLabformulierStatus> labformulierStatussen)
+	{
+		return skipWhenEmpty(labformulierStatussen, (r, q, cb) -> r.get(CervixLabformulier_.status).in(labformulierStatussen));
+	}
+
+	public static Specification<CervixLabformulier> filterHeeftScanDatumVanaf(Date scanDatumVanaf)
+	{
+		return skipWhenNull(scanDatumVanaf, (r, q, cb) -> cb.greaterThanOrEqualTo(r.get(ScannedFormulier_.scanDatum), scanDatumVanaf));
+	}
+
+	public static Specification<CervixLabformulier> filterHeeftScanDatumTotEnMet(Date scanDatumTotEnMet)
+	{
+		return skipWhenNull(scanDatumTotEnMet,
+			(r, q, cb) -> cb.lessThanOrEqualTo(r.get(ScannedFormulier_.scanDatum), DateUtil.eindDag(scanDatumTotEnMet)));
+	}
+
+	public static Specification<CervixLabformulier> filterHeeftGeboortedatum(Date geboorteDatum)
+	{
+		return skipWhenNull(geboorteDatum, (r, q, cb) -> cb.equal(persoonJoin(r, JoinType.INNER).get(GbaPersoon_.geboortedatum), geboorteDatum));
+	}
+
+	public static Specification<CervixLabformulier> heeftGeldigHuisartsbericht(LabprocesStap labprocesStap, String bsn)
 	{
 		return (r, q, cb) ->
 		{
-			if (!filter.getLabformulierStatussen().isEmpty())
-			{
-				return r.get(CervixLabformulier_.status).in(filter.getLabformulierStatussen());
-			}
-			else
-			{
-				return cb.disjunction();
-			}
-		};
-	}
-
-	public static Specification<CervixLabformulier> filterHeeftScanDatumVanaf(CervixLabformulierenFilter filter)
-	{
-		return skipWhenNull(filter.getScanDatumVanaf(), (r, q, cb) -> cb.greaterThanOrEqualTo(r.get(ScannedFormulier_.scanDatum), filter.getScanDatumVanaf()));
-	}
-
-	public static Specification<CervixLabformulier> filterHeeftScanDatumTotEnMet(CervixLabformulierenFilter filter)
-	{
-		return skipWhenNull(filter.getScanDatumTotEnMet(),
-			(r, q, cb) -> cb.lessThanOrEqualTo(r.get(ScannedFormulier_.scanDatum), DateUtil.eindDag(filter.getScanDatumTotEnMet())));
-	}
-
-	public static Specification<CervixLabformulier> filterHeeftGeboortedatum(CervixLabformulierenFilter filter)
-	{
-		return skipWhenNull(filter.getGeboortedatum(), (r, q, cb) -> cb.equal(persoonJoin(r).get(GbaPersoon_.geboortedatum), filter.getGeboortedatum()));
-	}
-
-	public static Specification<CervixLabformulier> heeftGeldigHuisartsbericht(CervixLabformulierenFilter filter)
-	{
-		return (r, q, cb) ->
-		{
-			var joinType = getJoinTypeVanLabprocesStap(filter);
-			var uitstrijkjeJoin = SpecificationUtil.join(r, CervixLabformulier_.uitstrijkje, joinType);
-			var huisartsBerichtJoin = SpecificationUtil.join(uitstrijkjeJoin, CervixUitstrijkje_.huisartsBericht, JoinType.LEFT);
+			var joinType = getJoinTypeVanLabprocesStap(labprocesStap, bsn);
+			var uitstrijkjeJoin = join(r, CervixLabformulier_.uitstrijkje, joinType);
+			var huisartsBerichtJoin = join(uitstrijkjeJoin, CervixUitstrijkje_.huisartsBericht, JoinType.LEFT);
 			return cb.and(
 				cb.or(cb.isNull(huisartsBerichtJoin.get(CervixHuisartsBericht_.status)), cb.notEqual(huisartsBerichtJoin.get(CervixHuisartsBericht_.status),
 					CervixHuisartsBerichtStatus.VERSTUURD)),
@@ -144,14 +141,14 @@ public class CervixLabformulierSpecification
 		};
 	}
 
-	public static Specification<CervixLabformulier> filterLabProcesStapIsHuisartsOnbekendOfControlerenVoorCytologie(CervixLabformulierenFilter filter)
+	public static Specification<CervixLabformulier> filterLabProcesStapIsHuisartsOnbekendOfControlerenVoorCytologie(LabprocesStap labprocesStap)
 	{
-		return skipWhenFalsy(filter.getLabprocesStap() == HUISARTS_ONBEKEND || filter.getLabprocesStap() == CONTROLEREN_VOOR_CYTOLOGIE, (r, q, cb) ->
+		return skipWhenFalsy(labprocesStap == HUISARTS_ONBEKEND || labprocesStap == CONTROLEREN_VOOR_CYTOLOGIE, (r, q, cb) ->
 		{
-			var uitstrijkjeJoin = SpecificationUtil.join(r, CervixLabformulier_.uitstrijkje);
-			var screeningRondeJoin = SpecificationUtil.join(uitstrijkjeJoin, CervixMonster_.ontvangstScreeningRonde);
-			var monsterJoin = SpecificationUtil.join(screeningRondeJoin, CervixScreeningRonde_.monsterHpvUitslag);
-			var hpvBeoordelingJoin = SpecificationUtil.join(monsterJoin, CervixMonster_.laatsteHpvBeoordeling);
+			var uitstrijkjeJoin = join(r, CervixLabformulier_.uitstrijkje);
+			var screeningRondeJoin = join(uitstrijkjeJoin, CervixMonster_.ontvangstScreeningRonde);
+			var monsterJoin = join(screeningRondeJoin, CervixScreeningRonde_.monsterHpvUitslag);
+			var hpvBeoordelingJoin = join(monsterJoin, CervixMonster_.laatsteHpvBeoordeling);
 			return cb.and(
 				cb.equal(hpvBeoordelingJoin.get(CervixHpvBeoordeling_.hpvUitslag), CervixHpvBeoordelingWaarde.POSITIEF),
 				heeftStatussen(List.of(CervixUitstrijkjeStatus.ONTVANGEN, CervixUitstrijkjeStatus.GEANALYSEERD_OP_HPV_POGING_1,
@@ -163,59 +160,54 @@ public class CervixLabformulierSpecification
 		});
 	}
 
-	public static Specification<CervixLabformulier> filterLabProcesStapIsHuisartsOnbekend(CervixLabformulierenFilter filter)
+	public static Specification<CervixLabformulier> filterLabProcesStapIsHuisartsOnbekend(LabprocesStap labprocesStap)
 	{
-		return skipWhenFalsy(filter.getLabprocesStap() == HUISARTS_ONBEKEND, (r, q, cb) ->
+		return skipWhenFalsy(labprocesStap == HUISARTS_ONBEKEND, (r, q, cb) ->
 		{
-			var huisartsOnbekendBriefJoin = SpecificationUtil.join(r, CervixLabformulier_.huisartsOnbekendBrief);
-			var mergedBrievenJoin = SpecificationUtil.join(huisartsOnbekendBriefJoin, CervixBrief_.mergedBrieven);
+			var huisartsOnbekendBriefJoin = join(r, CervixLabformulier_.huisartsOnbekendBrief);
+			var mergedBrievenJoin = join(huisartsOnbekendBriefJoin, CervixBrief_.mergedBrieven);
 			return cb.equal(mergedBrievenJoin.get(MergedBrieven_.geprint), true);
 		});
 	}
 
-	public static Specification<CervixLabformulier> filterLabProcesStapIsControlerenVoorCytologie(CervixLabformulierenFilter filter)
+	public static Specification<CervixLabformulier> filterLabProcesStapIsControlerenVoorCytologie(LabprocesStap labprocesStap)
 	{
-		return skipWhenFalsy(filter.getLabprocesStap() == CONTROLEREN_VOOR_CYTOLOGIE, (r, q, cb) ->
+		return skipWhenFalsy(labprocesStap == CONTROLEREN_VOOR_CYTOLOGIE, (r, q, cb) ->
 		{
-			var uitstrijkjeJoin = SpecificationUtil.join(r, CervixLabformulier_.uitstrijkje);
+			var uitstrijkjeJoin = join(r, CervixLabformulier_.uitstrijkje);
 			return cb.and(cb.isNull(uitstrijkjeJoin.get(CervixUitstrijkje_.cytologieOrder)),
 				cb.isNull(uitstrijkjeJoin.get(CervixUitstrijkje_.huisartsBericht)));
 		});
 	}
 
-	public static Specification<CervixLabformulier> filterLabProcesStapIsCytopathologie(CervixLabformulierenFilter filter)
+	public static Specification<CervixLabformulier> filterLabProcesStapIsCytopathologie(LabprocesStap labprocesStap)
 	{
-		return skipWhenFalsy(filter.getLabprocesStap() == CYTOLOGIE, (r, q, cb) ->
+		return skipWhenFalsy(labprocesStap == CYTOLOGIE, (r, q, cb) ->
 		{
-			var uitstrijkjeJoin = SpecificationUtil.join(r, CervixLabformulier_.uitstrijkje);
-			var cytologieOrderJoin = SpecificationUtil.join(uitstrijkjeJoin, CervixUitstrijkje_.cytologieOrder);
+			var uitstrijkjeJoin = join(r, CervixLabformulier_.uitstrijkje);
+			var cytologieOrderJoin = join(uitstrijkjeJoin, CervixUitstrijkje_.cytologieOrder);
 			return cb.equal(cytologieOrderJoin.get(CervixCytologieOrder_.status), CervixCytologieOrderStatus.VERSTUURD);
 		});
 	}
 
-	public static Specification<CervixLabformulier> filterBsnCheck(CervixLabformulierenFilter filter)
+	public static Specification<CervixLabformulier> filterBsnCheck(LabprocesStap labprocesStap, String bsn)
 	{
-		return skipWhenNull(filter.getBsn(), (r, q, cb) ->
+		return skipWhenEmpty(bsn, (r, q, cb) ->
 		{
-			var joinType = getJoinTypeVanLabprocesStap(filter);
-			var uitstrijkjeJoin = SpecificationUtil.join(r, CervixLabformulier_.uitstrijkje, joinType);
-			var screeningRondeJoin = SpecificationUtil.join(uitstrijkjeJoin, CervixMonster_.ontvangstScreeningRonde, joinType);
-			var dossierJoin = SpecificationUtil.join(screeningRondeJoin, CervixScreeningRonde_.dossier, joinType);
-			var clientJoin = SpecificationUtil.join(dossierJoin, CervixDossier_.client, joinType);
-			var persoonJoin = SpecificationUtil.join(clientJoin, Client_.persoon, joinType);
-			return cb.equal(persoonJoin.get(GbaPersoon_.bsn), filter.getBsn());
+			var joinType = getJoinTypeVanLabprocesStap(labprocesStap, bsn);
+			return cb.equal(persoonJoin(r, joinType).get(GbaPersoon_.bsn), bsn);
 		});
 	}
 
-	public static Specification<CervixLabformulier> filterOrganisatieTypeIsScreeningorganisatie(CervixLabformulierenFilter filter)
+	public static Specification<CervixLabformulier> filterOrganisatieTypeIsScreeningorganisatie(OrganisatieType organisatieType, Long instellingId)
 	{
-		return skipWhenFalsy(filter.getOrganisatieType() == OrganisatieType.SCREENINGSORGANISATIE,
-			(r, q, cb) -> cb.and(cb.equal(screeningOrganisatieJoin(r).get(SingleTableHibernateObject_.id), filter.getInstellingId())));
+		return skipWhenFalsy(organisatieType == OrganisatieType.SCREENINGSORGANISATIE,
+			(r, q, cb) -> cb.and(cb.equal(screeningOrganisatieJoin(r).get(SingleTableHibernateObject_.id), instellingId)));
 	}
 
-	public static Specification<CervixLabformulier> filterHeeftDigitaal(CervixLabformulierenFilter filter)
+	public static Specification<CervixLabformulier> filterHeeftDigitaal(Boolean heeftDigitaal)
 	{
-		return skipWhenNull(filter.getDigitaal(), (r, q, cb) -> cb.equal(r.get(CervixLabformulier_.digitaal), filter.getDigitaal()));
+		return skipWhenNull(heeftDigitaal, (r, q, cb) -> cb.equal(r.get(CervixLabformulier_.digitaal), heeftDigitaal));
 	}
 
 	public static Specification<CervixLabformulier> heeftStatussen(List<CervixUitstrijkjeStatus> statussen)
@@ -227,11 +219,11 @@ public class CervixLabformulierSpecification
 		};
 	}
 
-	private static JoinType getJoinTypeVanLabprocesStap(CervixLabformulierenFilter filter)
+	private static JoinType getJoinTypeVanLabprocesStap(LabprocesStap labprocesStap, String bsn)
 	{
-		if (filter.getLabprocesStap() == HUISARTS_ONBEKEND ||
-			filter.getLabprocesStap() == CONTROLEREN_VOOR_CYTOLOGIE ||
-			filter.getBsn() != null)
+		if (labprocesStap == HUISARTS_ONBEKEND ||
+			labprocesStap == CONTROLEREN_VOOR_CYTOLOGIE ||
+			StringUtils.isNotBlank(bsn))
 		{
 			return JoinType.INNER;
 		}
@@ -241,20 +233,26 @@ public class CervixLabformulierSpecification
 		}
 	}
 
-	private static From<Client, GbaPersoon> persoonJoin(Root<CervixLabformulier> labformulierRoot)
+	public static From<Client, GbaPersoon> persoonJoin(Root<CervixLabformulier> labformulierRoot, JoinType joinType)
 	{
-		var uitstrijkjeJoin = SpecificationUtil.join(labformulierRoot, CervixLabformulier_.uitstrijkje);
-		var screeningRondeJoin = SpecificationUtil.join(uitstrijkjeJoin, CervixMonster_.ontvangstScreeningRonde);
-		var dossierJoin = SpecificationUtil.join(screeningRondeJoin, CervixScreeningRonde_.dossier);
-		var clientJoin = SpecificationUtil.join(dossierJoin, CervixDossier_.client);
-		return SpecificationUtil.join(clientJoin, Client_.persoon);
+		var uitstrijkjeJoin = join(labformulierRoot, CervixLabformulier_.uitstrijkje, joinType);
+		var uitnodigingJoin = join(uitstrijkjeJoin, CervixMonster_.uitnodiging, joinType);
+		var screeningRondeJoin = join(uitnodigingJoin, CervixUitnodiging_.screeningRonde, joinType);
+		var dossierJoin = join(screeningRondeJoin, CervixScreeningRonde_.dossier, joinType);
+		var clientJoin = join(dossierJoin, CervixDossier_.client, joinType);
+		return join(clientJoin, Client_.persoon, joinType);
 	}
 
 	private static From<Gemeente, ScreeningOrganisatie> screeningOrganisatieJoin(Root<CervixLabformulier> labformulierRoot)
 	{
-		var persoonJoin = persoonJoin(labformulierRoot);
-		var adresJoin = SpecificationUtil.join(persoonJoin, GbaPersoon_.gbaAdres);
-		var gemeenteJoin = SpecificationUtil.join(adresJoin, BagAdres_.gbaGemeente);
-		return SpecificationUtil.join(gemeenteJoin, Gemeente_.screeningOrganisatie);
+		var persoonJoin = persoonJoin(labformulierRoot, JoinType.INNER);
+		var adresJoin = join(persoonJoin, GbaPersoon_.gbaAdres);
+		var gemeenteJoin = join(adresJoin, BagAdres_.gbaGemeente);
+		return join(gemeenteJoin, Gemeente_.screeningOrganisatie);
+	}
+
+	public static Specification<CervixBoekRegel> filterDatumUitstrijkje(Date datumUitstrijkje)
+	{
+		return skipWhenNull(datumUitstrijkje, (r, q, cb) -> cb.equal(labformulierJoin(r, cb, JoinType.INNER).get(CervixLabformulier_.datumUitstrijkje), datumUitstrijkje));
 	}
 }

@@ -33,7 +33,7 @@ import nl.rivm.screenit.model.project.ProjectBestand;
 import nl.rivm.screenit.model.project.ProjectBestandVerwerking;
 import nl.rivm.screenit.model.project.ProjectBestandVerwerkingEntry;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.colon.ColonBaseFitService;
+import nl.rivm.screenit.service.colon.ColonBaseFITService;
 import nl.rivm.screenit.service.colon.ColonStudietestService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -51,7 +51,7 @@ public class ProjectUitslagVerwerkingServiceImpl implements ProjectUitslagVerwer
 	private static final Logger LOG = LoggerFactory.getLogger(ProjectUitslagVerwerkingServiceImpl.class);
 
 	@Autowired
-	private ColonBaseFitService fitService;
+	private ColonBaseFITService fitService;
 
 	@Autowired
 	private ColonStudietestService studietestService;

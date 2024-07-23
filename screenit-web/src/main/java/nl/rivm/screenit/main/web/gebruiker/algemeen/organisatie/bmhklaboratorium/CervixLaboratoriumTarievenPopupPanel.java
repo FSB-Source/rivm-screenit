@@ -21,10 +21,8 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.bmhklaboratoriu
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
-
-import nl.rivm.screenit.dao.cervix.CervixVerrichtingDao;
 import nl.rivm.screenit.main.service.cervix.CervixBetalingService;
+import nl.rivm.screenit.main.service.cervix.CervixVerrichtingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.form.BigDecimalField;
@@ -33,7 +31,6 @@ import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
 import nl.rivm.screenit.model.cervix.facturatie.CervixLabTarief;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.cervix.CervixTariefUtil;
 import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
@@ -51,7 +48,6 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.validator.DateValidator;
 import org.hibernate.Hibernate;
-import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
 public abstract class CervixLaboratoriumTarievenPopupPanel extends GenericPanel<CervixLabTarief>
 {
@@ -59,37 +55,34 @@ public abstract class CervixLaboratoriumTarievenPopupPanel extends GenericPanel<
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@SpringBean
-	private CervixVerrichtingDao verrichtingDao;
+	private CervixVerrichtingService verrichtingService;
 
 	@SpringBean
 	private CervixBetalingService betalingService;
 
-	@SpringBean
-	private OrganisatieParameterService organisatieParameterService;
-
 	public CervixLaboratoriumTarievenPopupPanel(String id)
 	{
-		super(id, ModelUtil.cModel(new CervixLabTarief()));
+		super(id, ModelUtil.ccModel(new CervixLabTarief()));
 
-		BMHKLaboratorium instelling = (BMHKLaboratorium) ScreenitSession.get().getCurrentSelectedOrganisatie();
-		CervixLabTarief tarief = getModelObject();
+		var instelling = (BMHKLaboratorium) ScreenitSession.get().getCurrentSelectedOrganisatie();
+		var tarief = getModelObject();
 		tarief.setBmhkLaboratorium(instelling);
 
-		CervixLabTarief latest = verrichtingDao.getLatestLabTarief(instelling);
+		var latest = verrichtingService.getLatestLabTarief(instelling);
 		CervixTariefUtil.vulTarief(tarief, latest);
 
 		var organisatie = ScreenitSession.get().getCurrentSelectedOrganisatie();
 
-		Form<CervixLabTarief> form = new Form<>("form", getModel());
+		var form = new Form<>("form", getModel());
 
-		form.add(new ListView<CervixTariefType>("tariefTypen", betalingService.getTariefTypenVoorLaboratorium((BMHKLaboratorium) Hibernate.unproxy(organisatie)))
+		form.add(new ListView<>("tariefTypen", betalingService.getTariefTypenVoorLaboratorium((BMHKLaboratorium) Hibernate.unproxy(organisatie)))
 		{
 			@Override
-			protected void populateItem(ListItem listItem)
+			protected void populateItem(ListItem<CervixTariefType> listItem)
 			{
-				var tariefType = (CervixTariefType) listItem.getModelObject();
+				var tariefType = listItem.getModelObject();
 
-				var label = new EnumLabel<CervixTariefType>("label", tariefType);
+				var label = new EnumLabel<>("label", tariefType);
 				listItem.add(label);
 
 				var field = new BigDecimalField("tarief");
@@ -101,7 +94,7 @@ public abstract class CervixLaboratoriumTarievenPopupPanel extends GenericPanel<
 			}
 		});
 
-		DatePicker<Date> startDatumDatePicker = ComponentHelper.newDatePicker("geldigVanafDatum");
+		var startDatumDatePicker = ComponentHelper.newDatePicker("geldigVanafDatum");
 		startDatumDatePicker.setRequired(true);
 		startDatumDatePicker.add(DateValidator.minimum(DateUtil.plusDagen(currentDateSupplier.getDateMidnight(), 1)));
 		startDatumDatePicker.setLabel(Model.of("Geldig vanaf"));
@@ -112,8 +105,8 @@ public abstract class CervixLaboratoriumTarievenPopupPanel extends GenericPanel<
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				CervixLabTarief tarief = ModelProxyHelper.deproxy(form.getModelObject());
-				if (verrichtingDao.getLaboratoriumTarief(tarief) != null)
+				var tarief = ModelProxyHelper.deproxy(form.getModelObject());
+				if (verrichtingService.heeftLaboratoriumTarief(tarief))
 				{
 					error("Er is al een tarief met dezelfde geldig vanaf datum, selecteer een andere datum.");
 				}

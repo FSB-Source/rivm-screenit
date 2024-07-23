@@ -22,6 +22,7 @@ package nl.rivm.screenit.service.mamma;
  */
 
 import java.util.List;
+import java.util.Optional;
 
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Client;
@@ -65,5 +66,5 @@ public interface MammaBaseOnderzoekService
 
 	boolean heeftBinnenMammografieIntervalGeenOnderzoekGehad(MammaDossier dossier);
 
-	MammaOnderzoek getLaatsteOnderzoekMetMissendeUitslagVanDossier(MammaDossier dossier);
+	Optional<MammaOnderzoek> getLaatsteOnderzoekMetMissendeUitslagVanDossier(MammaDossier dossier);
 }

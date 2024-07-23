@@ -26,11 +26,15 @@ import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.mamma.MammaAfspraak_;
 import nl.rivm.screenit.model.mamma.MammaDossier_;
+import nl.rivm.screenit.model.mamma.MammaMammografie;
 import nl.rivm.screenit.model.mamma.MammaMammografie_;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
 import nl.rivm.screenit.model.mamma.enums.MammaDenseWaarde;
+import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.specification.SpecificationUtil;
 
 import org.springframework.data.jpa.domain.Specification;
@@ -48,5 +52,22 @@ public class MammaMammografieSpecification
 			var mammografieJoin = SpecificationUtil.join(onderzoekJoin, MammaOnderzoek_.mammografie);
 			return cb.equal(mammografieJoin.get(MammaMammografie_.densiteit), densiteit);
 		};
+	}
+
+	public static Specification<MammaMammografie> heeftUitnodigingsNummer(long uitnodigingsNummer)
+	{
+		return (r, q, cb) ->
+		{
+			var onderzoekJoin = SpecificationUtil.join(r, MammaMammografie_.onderzoek);
+			var afspraakJoin = SpecificationUtil.join(onderzoekJoin, MammaOnderzoek_.afspraak);
+			var uitnodigingJoin = SpecificationUtil.join(afspraakJoin, MammaAfspraak_.uitnodiging);
+			var rondeJoin = SpecificationUtil.join(uitnodigingJoin, MammaUitnodiging_.screeningRonde);
+			return cb.equal(rondeJoin.get(MammaScreeningRonde_.uitnodigingsNr), uitnodigingsNummer);
+		};
+	}
+
+	public static Specification<MammaMammografie> heeftIlmStatus(MammaMammografieIlmStatus ilmStatus)
+	{
+		return (r, q, cb) -> cb.equal(r.get(MammaMammografie_.ilmStatus), ilmStatus);
 	}
 }

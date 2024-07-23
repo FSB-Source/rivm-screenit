@@ -27,6 +27,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MammaDense2Constants
 {
-	public static final String AANTAL_CLIENTEN_IN_EXPORT = "mamma.aantal_clienten_in_export";
+	public static final String AANTAL_CLIENTEN_IN_EXPORT_EERSTE_STUDIERONDE = "mamma.aantal_clienten_in_export_eerste_studieronde";
+
+	public static final String AANTAL_CLIENTEN_IN_EXPORT_TWEEDE_STUDIERONDE = "mamma.aantal_clienten_in_export_tweede_studieronde";
 
 }

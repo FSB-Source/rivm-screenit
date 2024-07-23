@@ -24,6 +24,9 @@ package nl.rivm.screenit.service.mamma.impl;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +54,7 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.mamma.MammaBaseDense2Service;
 import nl.rivm.screenit.specification.algemeen.ClientSpecification;
+import nl.rivm.screenit.specification.algemeen.ProjectSpecification;
 import nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification;
 import nl.rivm.screenit.specification.mamma.MammaMammografieSpecification;
 import nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification;
@@ -84,6 +88,11 @@ public class MammaBaseDense2ServiceImpl implements MammaBaseDense2Service
 	private final String locatieFilestore;
 
 	private final ClientService clientService;
+
+	private LocalDate getMinimaleOnderzoekDatum()
+	{
+		return currentDateSupplier.getLocalDate().minusDays(27);
+	}
 
 	@Override
 	public String getExportDirectory()
@@ -163,6 +172,7 @@ public class MammaBaseDense2ServiceImpl implements MammaBaseDense2Service
 		organisatieParameterService.saveOrUpdateOrganisatieParameters(parameters, instellingGebruiker);
 	}
 
+	@Override
 	public void genereerCsv(List<Client> clienten) throws IOException
 	{
 		leegExportsFolder();
@@ -170,20 +180,51 @@ public class MammaBaseDense2ServiceImpl implements MammaBaseDense2Service
 		var fileName = "T1T7_" + currentDateSupplier.getLocalDateTime().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) + ".csv";
 		var fullFilePath = getExportDirectory() + File.separator + fileName;
 		var file = File.createTempFile(fileName, ".csv");
-		try (var csvOutput = new CSVWriter(new FileWriter(file, false), ';', CSVWriter.NO_QUOTE_CHARACTER))
-		{
-			csvOutput.writeNext(new String[] { "PseudoID", "Postcode" });
-			LOG.info("Start vullen van CSV voor download: {}, aantal clienten: {}", fileName, clienten.size());
-			clienten.forEach(
-				client -> csvOutput.writeNext(new String[] { Long.toString(client.getMammaDossier().getId()), clientService.getGbaPostcode(client).substring(0, 4) }));
-		}
-		CsvUtil.truncateLastLine(file);
-		fileService.save(fullFilePath, file);
-		fileService.delete(file.getPath());
+		schrijfClientenInCsv(clienten, fullFilePath, file, false);
 	}
 
 	@Override
-	public List<Client> getExportClienten()
+	public void voegToeAanCsv(List<Client> clienten) throws IOException
+	{
+		var exportBestand = getExport();
+		if (exportBestand == null)
+		{
+			LOG.info("Geen export bestand van eerste studieronde gevonden, nieuwe export wordt aangemaakt");
+			genereerCsv(clienten);
+			return;
+		}
+
+		var tempFilePath = Files.createTempFile(exportBestand.getName(), ".csv");
+		var tempFile = tempFilePath.toFile();
+		Files.copy(exportBestand.toPath(), tempFilePath, StandardCopyOption.REPLACE_EXISTING);
+		schrijfClientenInCsv(clienten, exportBestand.getPath(), tempFile, true);
+	}
+
+	private void schrijfClientenInCsv(List<Client> clienten, String exportBestandPad, File tijdelijkeExportBestand, boolean aanvullen) throws IOException
+	{
+		try (var csvOutput = new CSVWriter(new FileWriter(tijdelijkeExportBestand, aanvullen), ';', CSVWriter.NO_QUOTE_CHARACTER))
+		{
+			if (aanvullen)
+			{
+
+				csvOutput.writeNext(new String[] { "" });
+			}
+			else
+			{
+
+				csvOutput.writeNext(new String[] { "PseudoID", "Postcode" });
+			}
+			clienten.forEach(
+				client -> csvOutput.writeNext(
+					new String[] { Long.toString(client.getMammaDossier().getId()), clientService.getGbaPostcode(client).substring(0, 4) }));
+		}
+		CsvUtil.truncateLastLine(tijdelijkeExportBestand);
+		fileService.save(exportBestandPad, tijdelijkeExportBestand);
+		fileService.delete(tijdelijkeExportBestand.getPath());
+	}
+
+	@Override
+	public List<Client> getExportClientenEersteStudieronde()
 	{
 
 		var minimaleLeeftijd = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_LEEFTIJD.name()) - 1;
@@ -194,14 +235,47 @@ public class MammaBaseDense2ServiceImpl implements MammaBaseDense2Service
 			ClientSpecification.heeftActieveClientPredicate().toSpecification()
 				.and(MammaMammografieSpecification.heeftClientLaatsteOnderzoekMetDensiteit(MammaDenseWaarde.D))
 				.and(ClientSpecification.heeftGeboorteJaarVoorLeeftijdBereik(minimaleLeeftijd, maximaleLeeftijd, currentDateSupplier.getLocalDate()))
-				.and(MammaOnderzoekSpecification.heeftClientOnderzoekAangemaaktVanaf(minimaleOnderzoeksDatum))
+				.and(MammaOnderzoekSpecification.heeftClientLaatsteOnderzoekAangemaaktVanaf(getMinimaleOnderzoekDatum()))
 				.and(MammaBeoordelingSpecification.heeftClientLaatsteOnderzoekBeoordelingStatus(MammaBeoordelingStatus.UITSLAG_GUNSTIG))
 				.and(MammaOnderzoekSpecification.heeftClientLaatsteOnderzoekVolledig()),
-			Sort.by(Sort.Direction.DESC, "mammaDossier.laatsteScreeningRonde.laatsteOnderzoek.mammografie.afgerondOp")
+			getSorteerVolgorde()
 		);
 		return clienten.stream()
-			.filter(c -> !heeftBezwaar(c) && !heeftClientAlMeegedaan(c, configuratie) && !zitClientInExclusieProjecten(c, configuratie))
+			.filter(c -> !heeftBezwaar(c) && !clientZitInDense2Project(c, configuratie) && !zitClientInExclusieProjecten(c, configuratie))
 			.collect(Collectors.toList());
+	}
+
+	@Override
+	public boolean clientZitInDense2Project(Client client, MammaDense2ConfiguratieDto configuratie)
+	{
+		var projectClienten = ProjectUtil.getHuidigeProjectClienten(client, currentDateSupplier.getDate(), true);
+		for (var projectClient : projectClienten)
+		{
+			if (configuratie.getDenseProjecten().stream().anyMatch(p -> p.equalsIgnoreCase(projectClient.getProject().getNaam())))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	@Override
+	public List<Client> getExportClientenTweedeStudieronde()
+	{
+		var configuratie = getConfiguratie();
+		var minimaleProjectDatum = currentDateSupplier.getLocalDate().minusDays(27);
+		return clientRepository.findAll(MammaOnderzoekSpecification.heeftClientLaatsteOnderzoekAangemaaktVanaf(getMinimaleOnderzoekDatum())
+				.and(MammaBeoordelingSpecification.heeftClientLaatsteOnderzoekBeoordelingStatus(MammaBeoordelingStatus.UITSLAG_GUNSTIG))
+				.and(ProjectSpecification.heeftClientInProjectMetNaam(configuratie.getDenseOnderzoekProjecten()))
+				.and(ProjectSpecification.heeftProjectClientVoorDatum(minimaleProjectDatum)),
+			getSorteerVolgorde()
+		);
+	}
+
+	private Sort getSorteerVolgorde()
+	{
+		return Sort.by(Sort.Direction.DESC, "mammaDossier.laatsteScreeningRonde.laatsteOnderzoek.creatieDatum");
 	}
 
 	private void leegExportsFolder()

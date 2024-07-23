@@ -36,6 +36,9 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.SingleTableHibernateObject;
@@ -54,6 +57,8 @@ import org.hibernate.envers.NotAudited;
 @Table(schema = "mamma", name = "fotobespreking")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "mamma.cache")
 @Audited
+@Setter
+@Getter
 public class MammaFotobespreking extends SingleTableHibernateObject implements MammaIKwaliteitscontrole
 {
 	@Column(nullable = false, length = HibernateMagicNumber.L256, unique = true)
@@ -92,106 +97,4 @@ public class MammaFotobespreking extends SingleTableHibernateObject implements M
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
 	private MammobridgeRole role;
-
-	public BeoordelingsEenheid getBeoordelingsEenheid()
-	{
-		return beoordelingsEenheid;
-	}
-
-	public void setBeoordelingsEenheid(BeoordelingsEenheid beoordelingsEenheid)
-	{
-		this.beoordelingsEenheid = beoordelingsEenheid;
-	}
-
-	public MammaScreeningsEenheid getScreeningsEenheid()
-	{
-		return screeningsEenheid;
-	}
-
-	public void setScreeningsEenheid(MammaScreeningsEenheid screeningsEenheid)
-	{
-		this.screeningsEenheid = screeningsEenheid;
-	}
-
-	public MammaFotobesprekingType getType()
-	{
-		return type;
-	}
-
-	public void setType(MammaFotobesprekingType type)
-	{
-		this.type = type;
-	}
-
-	public String getOmschrijving()
-	{
-		return omschrijving;
-	}
-
-	public void setOmschrijving(String omschrijving)
-	{
-		this.omschrijving = omschrijving;
-	}
-
-	public Date getAfgerondOp()
-	{
-		return afgerondOp;
-	}
-
-	@Override
-	public void setAfgerondOp(Date afgerondOp)
-	{
-		this.afgerondOp = afgerondOp;
-	}
-
-	public Date getAangemaaktOp()
-	{
-		return aangemaaktOp;
-	}
-
-	public void setAangemaaktOp(Date aangemaaktOp)
-	{
-		this.aangemaaktOp = aangemaaktOp;
-	}
-
-	public InstellingGebruiker getAangemaaktDoor()
-	{
-		return aangemaaktDoor;
-	}
-
-	public void setAangemaaktDoor(InstellingGebruiker aangemaaktDoor)
-	{
-		this.aangemaaktDoor = aangemaaktDoor;
-	}
-
-	public Date getGestartOp()
-	{
-		return gestartOp;
-	}
-
-	@Override
-	public void setGestartOp(Date gestartOp)
-	{
-		this.gestartOp = gestartOp;
-	}
-
-	public List<MammaFotobesprekingOnderzoek> getOnderzoeken()
-	{
-		return onderzoeken;
-	}
-
-	public void setOnderzoeken(List<MammaFotobesprekingOnderzoek> onderzoeken)
-	{
-		this.onderzoeken = onderzoeken;
-	}
-
-	public MammobridgeRole getRole()
-	{
-		return role;
-	}
-
-	public void setRole(MammobridgeRole role)
-	{
-		this.role = role;
-	}
 }

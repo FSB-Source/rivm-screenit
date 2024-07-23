@@ -24,16 +24,17 @@ package nl.rivm.screenit.mamma.se.service.impl;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.dao.mamma.MammaBaseAfspraakDao;
 import nl.rivm.screenit.dao.mamma.MammaBaseStandplaatsPeriodeDao;
 import nl.rivm.screenit.mamma.se.dao.MammaAfsprakenDao;
 import nl.rivm.screenit.mamma.se.dto.actions.AfspraakMakenPassantDto;
 import nl.rivm.screenit.mamma.se.dto.actions.AfspraakSignalerenDto;
+import nl.rivm.screenit.mamma.se.repository.MammaAfspraakRepository;
 import nl.rivm.screenit.mamma.se.service.MammaAfspraakService;
 import nl.rivm.screenit.mamma.se.service.PassantInschrijvenValidatorService;
 import nl.rivm.screenit.mamma.se.service.PassantValidatorResult;
@@ -42,6 +43,7 @@ import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.dashboard.DashboardType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
+import nl.rivm.screenit.model.mamma.MammaAfspraak_;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
@@ -61,9 +63,12 @@ import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.afsprakenWaarvanOnderzoekNietIsDoorgevoerdAfgelopen2Maanden;
 
 @Slf4j
 @Service
@@ -73,9 +78,6 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 
 	@Autowired
 	private MammaAfsprakenDao afsprakenDao;
-
-	@Autowired
-	private MammaBaseAfspraakDao baseAfspraakDao;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -116,6 +118,9 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 	@Autowired
 	private MailService mailService;
 
+	@Autowired
+	private MammaAfspraakRepository afspraakRepository;
+
 	@Override
 	public void setAfspraakStatus(AfspraakSignalerenDto actionDto, MammaAfspraakStatus nieuweStatus, InstellingGebruiker gebruiker)
 	{
@@ -134,8 +139,13 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 	@Override
 	public LocalDate getDatumVanOudsteNietAfgeslotenOnderzoek(String seCode)
 	{
-		var datum = baseAfspraakDao.readDatumVanOudsteNietAfgeslotenOnderzoek(currentDateSupplier.getLocalDate(), seCode);
-		return DateUtil.toLocalDate(datum);
+		var datum = afspraakRepository.findFirst(
+			afsprakenWaarvanOnderzoekNietIsDoorgevoerdAfgelopen2Maanden(currentDateSupplier.getLocalDate(), seCode),
+			Sort.by(Sort.Order.asc(MammaAfspraak_.VANAF)),
+			Date.class,
+			(cb, r) -> List.of(r.get(MammaAfspraak_.VANAF)));
+
+		return datum.map(DateUtil::toLocalDate).orElse(null);
 	}
 
 	@Override

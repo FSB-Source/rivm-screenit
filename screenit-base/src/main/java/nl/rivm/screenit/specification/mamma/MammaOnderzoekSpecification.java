@@ -45,7 +45,7 @@ import org.springframework.data.jpa.domain.Specification;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class MammaOnderzoekSpecification
 {
-	public static Specification<Client> heeftClientOnderzoekAangemaaktVanaf(LocalDate datum)
+	public static Specification<Client> heeftClientLaatsteOnderzoekAangemaaktVanaf(LocalDate datum)
 	{
 		return (r, q, cb) -> cb.greaterThanOrEqualTo(onderzoekJoin(r).get(MammaOnderzoek_.creatieDatum), DateUtil.toUtilDate(datum));
 	}

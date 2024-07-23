@@ -26,7 +26,7 @@ import lombok.AllArgsConstructor;
 import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.repository.colon.ColonIntakelocatieRepository;
-import nl.rivm.screenit.service.colon.ColonRoosterService;
+import nl.rivm.screenit.service.colon.ColonIntakelocatieService;
 import nl.rivm.screenit.specification.colon.ColonIntakelocatieSpecification;
 
 import org.springframework.data.jpa.domain.Specification;
@@ -36,11 +36,11 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class ColonGeenCapaciteitSignaleringReader extends BaseSpecificationScrollableResultReader<ColoscopieCentrum, ColonIntakelocatieRepository>
 {
-	private final ColonRoosterService roosterService;
+	private final ColonIntakelocatieService intakelocatieService;
 
 	@Override
 	protected Specification<ColoscopieCentrum> createSpecification()
 	{
-		return ColonIntakelocatieSpecification.heeftGeenCapaciteitBinnenDatum(roosterService.getSignaleringstermijnBereik()).and(ColonIntakelocatieSpecification.isActief());
+		return ColonIntakelocatieSpecification.heeftGeenCapaciteitBinnenDatum(intakelocatieService.getSignaleringstermijnBereik()).and(ColonIntakelocatieSpecification.isActief());
 	}
 }

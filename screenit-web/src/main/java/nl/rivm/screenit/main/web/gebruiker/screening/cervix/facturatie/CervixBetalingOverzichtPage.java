@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.service.cervix.CervixBetalingService;
+import nl.rivm.screenit.main.service.cervix.CervixVerrichtingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.price.BigDecimalPriceLabel;
@@ -42,9 +43,8 @@ import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdrachtRegelSpecifi
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
-import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.DistributedLockService;
-import nl.rivm.screenit.service.cervix.CervixVerrichtingService;
+import nl.rivm.screenit.service.InstellingService;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -69,10 +69,10 @@ import org.wicketstuff.shiro.ShiroConstraint;
 public class CervixBetalingOverzichtPage extends CervixScreeningBasePage
 {
 	@SpringBean
-	private CervixBetalingService cervixBetalingService;
+	private CervixBetalingService betalingService;
 
 	@SpringBean
-	private CervixVerrichtingService cervixVerrichtingService;
+	private CervixVerrichtingService verrichtingService;
 
 	@SpringBean
 	private InstellingService instellingService;
@@ -92,7 +92,7 @@ public class CervixBetalingOverzichtPage extends CervixScreeningBasePage
 	{
 		var organisatie = instellingService.getScreeningOrganisatie(screeningsOrganisatieId);
 		betaalopdrachtModel = ModelUtil
-			.cModel(cervixVerrichtingService.createBetaalOpdracht(organisatie, boekregels));
+			.cModel(verrichtingService.createBetaalOpdracht(organisatie, boekregels));
 
 		Form<CervixBetaalopdracht> form = new Form<CervixBetaalopdracht>("form", betaalopdrachtModel);
 		add(form);
@@ -165,9 +165,9 @@ public class CervixBetalingOverzichtPage extends CervixScreeningBasePage
 					try
 					{
 						CervixBetaalopdracht opdracht = form.getModelObject();
-						cervixBetalingService.archiveerBestaandeOpdrachten(opdracht.getScreeningOrganisatie());
-						Long opdrachtId = cervixBetalingService.opslaanBetaalopdracht(opdracht);
-						cervixBetalingService.genereerCervixBetalingsSpecificatieEnSepaBestand(opdrachtId);
+						betalingService.archiveerBestaandeOpdrachten(opdracht.getScreeningOrganisatie());
+						Long opdrachtId = betalingService.opslaanBetaalopdracht(opdracht, ScreenitSession.get().getLoggedInInstellingGebruiker());
+						betalingService.genereerCervixBetalingsSpecificatieEnSepaBestand(opdrachtId);
 						setResponsePage(CervixBetalingSepaBestandenPage.class);
 						ScreenitSession.get().info(getString("sepa.bestand.genereren"));
 					}

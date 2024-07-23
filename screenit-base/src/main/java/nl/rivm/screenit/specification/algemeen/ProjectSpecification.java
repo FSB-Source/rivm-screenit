@@ -21,12 +21,20 @@ package nl.rivm.screenit.specification.algemeen;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+import java.util.List;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
+import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.project.Project;
+import nl.rivm.screenit.model.project.ProjectClient_;
 import nl.rivm.screenit.model.project.ProjectType;
 import nl.rivm.screenit.model.project.Project_;
+import nl.rivm.screenit.specification.SpecificationUtil;
+import nl.rivm.screenit.util.DateUtil;
 
 import org.springframework.data.jpa.domain.Specification;
 
@@ -37,4 +45,24 @@ public class ProjectSpecification
 	{
 		return (r, q, cb) -> cb.equal(r.get(Project_.type), projectType);
 	}
+
+	public static Specification<Client> heeftProjectClientVoorDatum(LocalDate datum)
+	{
+		return (r, q, cb) ->
+		{
+			var projectClientJoin = SpecificationUtil.join(r, Client_.projecten);
+			return cb.lessThan(projectClientJoin.get(ProjectClient_.toegevoegd), DateUtil.toUtilDate(datum));
+		};
+	}
+
+	public static Specification<Client> heeftClientInProjectMetNaam(List<String> projectNamen)
+	{
+		return (r, q, cb) ->
+		{
+			var projectClientJoin = SpecificationUtil.join(r, Client_.projecten);
+			var project = SpecificationUtil.join(projectClientJoin, ProjectClient_.project);
+			return project.get(Project_.naam).in(projectNamen);
+		};
+	}
+
 }

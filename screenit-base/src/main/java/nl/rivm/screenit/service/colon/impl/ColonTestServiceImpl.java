@@ -85,9 +85,6 @@ import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.wicket.planning.model.Discipline;
 import nl.topicuszorg.wicket.planning.model.appointment.Location;
-import nl.topicuszorg.wicket.planning.model.appointment.recurrence.AbstractRecurrence;
-import nl.topicuszorg.wicket.planning.model.appointment.recurrence.NoRecurrence;
-import nl.topicuszorg.wicket.planning.services.RecurrenceService;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.criterion.Order;
@@ -101,7 +98,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.REQUIRED)
+@Transactional
 public class ColonTestServiceImpl implements ColonTestService
 {
 	private static final Logger LOG = LoggerFactory.getLogger(ColonTestServiceImpl.class);
@@ -129,9 +126,6 @@ public class ColonTestServiceImpl implements ColonTestService
 
 	@Autowired
 	private UitnodigingsDao uitnodigingsDao;
-
-	@Autowired
-	private RecurrenceService recurrenceService;
 
 	@Autowired
 	private DossierFactory dossierFactory;
@@ -967,16 +961,6 @@ public class ColonTestServiceImpl implements ColonTestService
 				}
 				roosterBlok.getAfspraken().clear();
 				hibernateService.saveOrUpdate(roosterBlok);
-			}
-		}
-		List<Long> alleRecurrences = hibernateService.getHibernateSession().createCriteria(AbstractRecurrence.class).setProjection(Projections.id()).list();
-		for (var recurrenceId : alleRecurrences)
-		{
-			var recurrence = hibernateService.get(AbstractRecurrence.class, recurrenceId);
-			if (recurrence != null && !NoRecurrence.class.isAssignableFrom(recurrence.getClass()))
-			{
-				aantalRoosterItemsVerwijderd += recurrence.getAppointments().size();
-				recurrenceService.deleteHerhalingChain(recurrence);
 			}
 		}
 

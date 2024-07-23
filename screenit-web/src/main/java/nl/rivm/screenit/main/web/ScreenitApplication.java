@@ -139,7 +139,7 @@ public class ScreenitApplication extends WebApplication
 			.add(CSPDirective.FONT_SRC, CSPDirectiveSrcValue.SELF)
 			.add(CSPDirective.FRAME_ANCESTORS, CSPDirectiveSrcValue.SELF)
 			.add(CSPDirective.IMG_SRC, "data:")
-			.add(CSPDirective.CONNECT_SRC, "https://browser-intake-datadoghq.eu");
+			.add(CSPDirective.CONNECT_SRC, "https://browser-intake-datadoghq.eu", "https://www.datadoghq-browser-agent.com");
 		getSecuritySettings().setCrossOriginOpenerPolicyConfiguration(CrossOriginOpenerPolicyConfiguration.CoopMode.SAME_ORIGIN_ALLOW_POPUPS);
 
 		ScreenitAnnotationsShiroAuthorizationStrategy authz = new ScreenitAnnotationsShiroAuthorizationStrategy();

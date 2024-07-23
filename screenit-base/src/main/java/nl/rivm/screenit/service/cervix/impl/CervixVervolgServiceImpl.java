@@ -27,7 +27,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.dao.cervix.CervixBepaalVervolgDao;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
@@ -44,6 +43,7 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.MessageService;
 import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.cervix.CervixBaseMonsterService;
+import nl.rivm.screenit.service.cervix.CervixBepaalVervolgService;
 import nl.rivm.screenit.service.cervix.CervixVervolgService;
 import nl.rivm.screenit.service.cervix.enums.CervixVervolgTekst;
 import nl.rivm.screenit.util.EntityAuditUtil;
@@ -69,7 +69,7 @@ public class CervixVervolgServiceImpl implements CervixVervolgService
 	private SimplePreferenceService preferenceService;
 
 	@Autowired
-	private CervixBepaalVervolgDao bepaalVervolgDao;
+	private CervixBepaalVervolgService bepaalVervolgService;
 
 	@Autowired
 	private BaseHoudbaarheidService houdbaarheidService;
@@ -102,7 +102,7 @@ public class CervixVervolgServiceImpl implements CervixVervolgService
 		}
 
 		return new CervixBepaalVervolgLabproces(
-			new CervixBepaalVervolgContext(monster, isZasHoudbaar, dateSupplier.getLocalDateTime(), startdatumGenotypering, bepaalVervolgDao, monsterService,
+			new CervixBepaalVervolgContext(monster, isZasHoudbaar, dateSupplier.getLocalDateTime(), startdatumGenotypering, bepaalVervolgService, monsterService,
 				preferenceService.getInteger(PreferenceKey.CERVIX_INTERVAL_CONTROLE_UITSTRIJKJE.name()), digitaalLabformulier)).bepaalVervolg();
 	}
 

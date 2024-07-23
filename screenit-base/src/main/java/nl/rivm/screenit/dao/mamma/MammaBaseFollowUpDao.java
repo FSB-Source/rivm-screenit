@@ -35,11 +35,6 @@ import nl.rivm.screenit.model.mamma.MammaFollowUpRadiologieVerslag;
 
 public interface MammaBaseFollowUpDao
 {
-	List<MammaFollowUpRadiologieVerslag> zoekRadiologieVerslagen(Instelling instelling, MammaFollowUpDoorverwezenFilterOptie doorverwezenFilterOptie, int first, int count,
-		SortState<String> sortState);
-
-	long countRadiologieVerslagen(Instelling instelling, MammaFollowUpDoorverwezenFilterOptie doorverwezenFilterOptie);
-
 	List<MammaFollowUpInstellingRadiologieDto> zoekOpenstaandeRadiologieVerslagenPerOrganisatie(ScreeningOrganisatie regio,
 		MammaFollowUpDoorverwezenFilterOptie doorverwezenFilterOptie, Integer jaar);
 

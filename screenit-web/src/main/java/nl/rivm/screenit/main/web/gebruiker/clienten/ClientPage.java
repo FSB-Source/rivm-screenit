@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nl.rivm.screenit.main.dao.ClientContactDao;
+import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerBasePage;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerHoofdMenuItem;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
@@ -39,6 +40,7 @@ import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.ClientDossierPage;
 import nl.rivm.screenit.main.web.gebruiker.clienten.inzien.ClientInzienPage;
 import nl.rivm.screenit.main.web.gebruiker.clienten.project.ClientProjectenPage;
 import nl.rivm.screenit.main.web.gebruiker.clienten.verslag.ClientVerslagenPage;
+import nl.rivm.screenit.main.web.gebruiker.screening.mamma.afspraken.MammaAfsprakenDagOverzichtPage;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContact;
 import nl.rivm.screenit.model.enums.GbaStatus;
@@ -57,6 +59,8 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static nl.rivm.screenit.main.web.gebruiker.screening.mamma.afspraken.MammaAfsprakenBlokPanel.AFSPRAAK_VERZETTEN_KOMT_VANUIT_AFSPRAKENKALENDER;
 
 public abstract class ClientPage extends GebruikerBasePage
 {
@@ -112,8 +116,18 @@ public abstract class ClientPage extends GebruikerBasePage
 	protected List<GebruikerMenuItem> getContextMenuItems()
 	{
 		List<GebruikerMenuItem> contextMenuItems = new ArrayList<>();
-		contextMenuItems.add(new GebruikerMenuItem("label.clientzoeken", ClientZoekenPage.class));
+
+		if (ScreenitSession.get().isZoekObjectGezetForComponent(AFSPRAAK_VERZETTEN_KOMT_VANUIT_AFSPRAKENKALENDER) && (boolean) ScreenitSession.get()
+			.getZoekObject(AFSPRAAK_VERZETTEN_KOMT_VANUIT_AFSPRAKENKALENDER).getObject())
+		{
+			contextMenuItems.add(new GebruikerMenuItem("label.afsprakenbeheer", MammaAfsprakenDagOverzichtPage.class));
+		}
+		else
+		{
+			contextMenuItems.add(new GebruikerMenuItem("label.clientzoeken", ClientZoekenPage.class));
+		}
 		clientDossierTabsMaken(contextMenuItems);
+
 		return contextMenuItems;
 	}
 

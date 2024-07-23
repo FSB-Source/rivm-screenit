@@ -44,7 +44,7 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.RedenNietTeBeoordelen;
 import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.LogService;
-import nl.rivm.screenit.service.colon.ColonBaseFitService;
+import nl.rivm.screenit.service.colon.ColonBaseFITService;
 import nl.topicuszorg.wicket.hibernate.CglibHibernateModel;
 import nl.topicuszorg.wicket.hibernate.SimpleListHibernateModel;
 import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
@@ -81,7 +81,7 @@ public class NietTeBeoordelenMonstersPage extends ColonScreeningBasePage
 	private InstellingService instellingService;
 
 	@SpringBean
-	private ColonBaseFitService fitService;
+	private ColonBaseFITService fitService;
 
 	private final IModel<IFOBTTest> ifobtTestModel = new CglibHibernateModel<>();
 

@@ -21,21 +21,32 @@ package nl.rivm.screenit.service.mamma.impl;
  * =========================LICENSE_END==================================
  */
 
+import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
+import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
+import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode_;
+import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.model.mamma.MammaTehuis;
+import nl.rivm.screenit.repository.mamma.MammaStandplaatsPeriodeRepository;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.mamma.MammaBaseTehuisService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import static nl.rivm.screenit.specification.mamma.MammaStandplaatsSpecification.heeftStandplaatsOpOfNaDatum;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
@@ -47,6 +58,15 @@ public class MammaBaseTehuisServiceImpl implements MammaBaseTehuisService
 
 	@Autowired
 	private LogService logService;
+
+	@Autowired
+	private MammaStandplaatsPeriodeRepository standplaatsPeriodeRepository;
+
+	@Autowired
+	private SimplePreferenceService preferenceService;
+
+	@Autowired
+	private ICurrentDateSupplier dateSupplier;
 
 	@Override
 	public boolean saveOrUpdateTehuis(MammaTehuis tehuis, InstellingGebruiker ingelogdeGebruiker)
@@ -85,5 +105,16 @@ public class MammaBaseTehuisServiceImpl implements MammaBaseTehuisService
 
 		hibernateService.saveOrUpdateAll(tehuis, tehuis.getStandplaats());
 		return hasDiffText;
+	}
+
+	@Override
+	public MammaStandplaatsRonde getHuidigeStandplaatsRondeVoorStandplaats(MammaStandplaats standplaats)
+	{
+		var afspraakVanafAantalWerkdagen = preferenceService.getInteger(PreferenceKey.MAMMA_AFSPRAAK_BIJ_UITNODIGEN_VANAF_AANTAL_WERKDAGEN.name());
+		var afsprakenVanafDatum = DateUtil.plusWerkdagen(dateSupplier.getLocalDate(), afspraakVanafAantalWerkdagen);
+
+		var periode = standplaatsPeriodeRepository.findFirst(heeftStandplaatsOpOfNaDatum(standplaats, afsprakenVanafDatum),
+			Sort.by(Sort.Direction.ASC, MammaStandplaatsPeriode_.VANAF));
+		return periode.map(MammaStandplaatsPeriode::getStandplaatsRonde).orElse(null);
 	}
 }

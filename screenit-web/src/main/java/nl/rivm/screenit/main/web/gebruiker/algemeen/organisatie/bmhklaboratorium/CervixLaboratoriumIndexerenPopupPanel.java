@@ -21,10 +21,8 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.bmhklaboratoriu
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
-
-import nl.rivm.screenit.dao.cervix.CervixVerrichtingDao;
 import nl.rivm.screenit.main.service.cervix.CervixBetalingService;
+import nl.rivm.screenit.main.service.cervix.CervixVerrichtingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.form.BigDecimalField;
@@ -51,12 +49,11 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.hibernate.Hibernate;
-import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
 public abstract class CervixLaboratoriumIndexerenPopupPanel extends GenericPanel<CervixLabTarief>
 {
 	@SpringBean
-	private CervixVerrichtingDao verrichtingDao;
+	private CervixVerrichtingService verrichtingService;
 
 	@SpringBean
 	private CervixBetalingService betalingService;
@@ -65,27 +62,27 @@ public abstract class CervixLaboratoriumIndexerenPopupPanel extends GenericPanel
 	{
 		super(id, ModelUtil.ccModel(new CervixLabTarief()));
 
-		BMHKLaboratorium instelling = (BMHKLaboratorium) ScreenitSession.get().getCurrentSelectedOrganisatie();
-		CervixLabTarief tarief = getModelObject();
+		var instelling = (BMHKLaboratorium) ScreenitSession.get().getCurrentSelectedOrganisatie();
+		var tarief = getModelObject();
 		tarief.setBmhkLaboratorium(instelling);
 
-		CervixLabTarief latest = verrichtingDao.getLatestLabTarief(instelling);
+		var latest = verrichtingService.getLatestLabTarief(instelling);
 		CervixTariefUtil.vulTarief(tarief, latest);
 
 		var organisatie = ScreenitSession.get().getCurrentSelectedOrganisatie();
 
-		Form<CervixLabTarief> form = new Form<>("form", getModel());
+		var form = new Form<>("form", getModel());
 
 		form.add(new CervixHerindexeringWaarschuwingPanel("waarschuwing"));
 
-		form.add(new ListView<CervixTariefType>("tariefTypen", betalingService.getTariefTypenVoorLaboratorium((BMHKLaboratorium) Hibernate.unproxy(organisatie)))
+		form.add(new ListView<>("tariefTypen", betalingService.getTariefTypenVoorLaboratorium((BMHKLaboratorium) Hibernate.unproxy(organisatie)))
 		{
 			@Override
-			protected void populateItem(ListItem listItem)
+			protected void populateItem(ListItem<CervixTariefType> listItem)
 			{
-				var tariefType = (CervixTariefType) listItem.getModelObject();
+				var tariefType = listItem.getModelObject();
 
-				var label = new EnumLabel<CervixTariefType>("label", tariefType);
+				var label = new EnumLabel<>("label", tariefType);
 				listItem.add(label);
 
 				var field = new BigDecimalField("tarief");
@@ -97,12 +94,12 @@ public abstract class CervixLaboratoriumIndexerenPopupPanel extends GenericPanel
 			}
 		});
 
-		DatePicker<Date> startDatumDatePicker = ComponentHelper.newDatePicker("geldigVanafDatum");
+		var startDatumDatePicker = ComponentHelper.newDatePicker("geldigVanafDatum");
 		startDatumDatePicker.setRequired(true);
 		startDatumDatePicker.setLabel(Model.of("Geldig van"));
 		form.add(startDatumDatePicker);
 
-		DatePicker<Date> eindDatumDatePicker = ComponentHelper.newDatePicker("geldigTotenmetDatum");
+		var eindDatumDatePicker = ComponentHelper.newDatePicker("geldigTotenmetDatum");
 		eindDatumDatePicker.setLabel(Model.of("Geldig t/m"));
 		form.add(eindDatumDatePicker);
 
@@ -115,8 +112,8 @@ public abstract class CervixLaboratoriumIndexerenPopupPanel extends GenericPanel
 			{
 				try
 				{
-					CervixTarief nieuweTarief = (CervixTarief) HibernateHelper.deproxy(ModelProxyHelper.deproxy(form.getModelObject()));
-					String melding = betalingService.toevoegenIndexatieTarief(nieuweTarief, ScreenitSession.get().getLoggedInAccount());
+					var nieuweTarief = (CervixTarief) HibernateHelper.deproxy(ModelProxyHelper.deproxy(form.getModelObject()));
+					var melding = betalingService.toevoegenIndexatieTarief(nieuweTarief, ScreenitSession.get().getLoggedInAccount());
 					opslaan(target, melding);
 				}
 				catch (IllegalArgumentException e)

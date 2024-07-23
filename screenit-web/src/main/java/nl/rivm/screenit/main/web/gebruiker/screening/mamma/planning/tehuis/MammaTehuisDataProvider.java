@@ -22,31 +22,25 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.tehuis;
  */
 
 import java.util.Iterator;
-import java.util.concurrent.Callable;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.main.service.mamma.IMammaTehuisDto;
-import nl.rivm.screenit.main.service.mamma.MammaTehuisService;
-import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
-import nl.rivm.screenit.model.mamma.MammaTehuis;
+import nl.rivm.screenit.main.service.mamma.impl.MammaBaseTehuisDataProviderServiceImpl;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.injection.Injector;
-import org.apache.wicket.model.IDetachable;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import com.google.common.primitives.Ints;
-
+@Slf4j
 public class MammaTehuisDataProvider extends SortableDataProvider<IMammaTehuisDto, String>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
-	private MammaTehuisService tehuisService;
+	private MammaBaseTehuisDataProviderServiceImpl tehuisDataProviderService;
 
 	private IModel<MammaTehuisFilter> criteria;
 
@@ -57,83 +51,22 @@ public class MammaTehuisDataProvider extends SortableDataProvider<IMammaTehuisDt
 		this.criteria = criteria;
 	}
 
-	private class MammaTehuisDto implements IMammaTehuisDto, IDetachable
-	{
-
-		private IModel<MammaTehuis> tehuis;
-
-		private IModel<MammaStandplaatsPeriode> periode;
-
-		@Override
-		public void setTehuis(MammaTehuis tehuis)
-		{
-			this.tehuis = ModelUtil.sModel(tehuis);
-		}
-
-		@Override
-		public MammaTehuis getTehuis()
-		{
-			return ModelUtil.nullSafeGet(tehuis);
-		}
-
-		@Override
-		public void setStandplaatsPeriode(MammaStandplaatsPeriode periode)
-		{
-			this.periode = ModelUtil.sModel(periode);
-		}
-
-		@Override
-		public MammaStandplaatsPeriode getStandplaatsPeriode()
-		{
-			return ModelUtil.nullSafeGet(periode);
-		}
-
-		@Override
-		public Boolean getActief()
-		{
-			return getTehuis().getActief();
-		}
-
-		@Override
-		public void setActief(Boolean actief)
-		{
-			getTehuis().setActief(actief);
-		}
-
-		@Override
-		public void detach()
-		{
-			ModelUtil.nullSafeDetach(tehuis);
-			ModelUtil.nullSafeDetach(periode);
-		}
-
-	}
-
 	@Override
 	public Iterator<? extends IMammaTehuisDto> iterator(long first, long count)
 	{
-		return tehuisService.zoekTehuizen(criteria.getObject().getTehuis(), criteria.getObject().getRegio(), Ints.checkedCast(first), Ints.checkedCast(count),
-			getSort().getProperty(), getSort().isAscending(), new Callable<IMammaTehuisDto>()
-			{
-
-				@Override
-				public IMammaTehuisDto call()
-				{
-					return new MammaTehuisDto();
-				}
-			}).iterator();
+		return tehuisDataProviderService.zoekTehuizen(criteria.getObject(), first, count, getSort()).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return tehuisService.countTehuizen(criteria.getObject().getTehuis(), criteria.getObject().getRegio());
+		return tehuisDataProviderService.size(criteria.getObject());
 	}
 
 	@Override
-	public IModel<IMammaTehuisDto> model(IMammaTehuisDto object)
+	public IModel<IMammaTehuisDto> model(IMammaTehuisDto tehuis)
 	{
-		return Model.of(object);
+		return Model.of(tehuis);
 	}
 
 	@Override

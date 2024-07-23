@@ -21,12 +21,16 @@ package nl.rivm.screenit.service.cervix;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import nl.rivm.screenit.model.Instelling;
+import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
+
+import org.springframework.data.jpa.domain.Specification;
 
 public interface CervixBaseMonsterService
 {
@@ -46,4 +50,8 @@ public interface CervixBaseMonsterService
 	boolean magInstellingMonsterInzien(Instelling instelling, CervixMonster monster);
 
 	boolean isVerwijderdMonster(String monsterId);
+
+	Optional<CervixMonster> getLaatsteMonsterMetMissendeUitslagVanDossier(CervixDossier dossier, LocalDate signalerenVanaf, LocalDate minimaleSignaleringsDatum);
+
+	Specification<CervixMonster> maakMonsterMetMissendeUitslagSpecification(LocalDate signalerenVanaf, LocalDate minimaleSignaleringsDatum);
 }

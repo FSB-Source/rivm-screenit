@@ -42,7 +42,7 @@ import nl.rivm.screenit.model.colon.IFOBTType;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.logging.IfobtKoppelingBeeindigdLogEvent;
-import nl.rivm.screenit.service.colon.ColonBaseFitService;
+import nl.rivm.screenit.service.colon.ColonBaseFITService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang.StringUtils;
@@ -63,7 +63,7 @@ public class IFobtKoppelWriter implements ItemWriter<VERZONDENUITNODIGING>
 	private HibernateService hibernateService;
 
 	@Autowired
-	private ColonBaseFitService fitService;
+	private ColonBaseFITService fitService;
 
 	private StepExecution stepExecution;
 
@@ -218,7 +218,7 @@ public class IFobtKoppelWriter implements ItemWriter<VERZONDENUITNODIGING>
 		this.hibernateService = hibernateService;
 	}
 
-	public void setIfobtService(ColonBaseFitService fitService)
+	public void setIfobtService(ColonBaseFITService fitService)
 	{
 		this.fitService = fitService;
 	}

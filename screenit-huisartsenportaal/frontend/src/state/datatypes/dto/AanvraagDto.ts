@@ -30,11 +30,6 @@ export interface AanvraagDto extends AbstractDtoReferenceObject {
 	aangevraagdDoor?: string;
 }
 
-export interface NieuweAanvraagDto {
-	aantal: number;
-	locatie: LocatieDto | null;
-}
-
 export enum AanvraagStatus {
 	AANGEVRAAGD = "AANGEVRAAGD",
 	AFGEDRUKT_KLAAR_OM_TE_VERSTUREN = "AFGEDRUKT_KLAAR_OM_TE_VERSTUREN",

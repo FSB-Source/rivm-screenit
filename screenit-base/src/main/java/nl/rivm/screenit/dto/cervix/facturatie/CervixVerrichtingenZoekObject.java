@@ -24,9 +24,18 @@ package nl.rivm.screenit.dto.cervix.facturatie;
 import java.io.Serializable;
 import java.util.Date;
 
+import lombok.Getter;
+import lombok.Setter;
+
+import nl.rivm.screenit.model.BMHKLaboratorium;
+import nl.rivm.screenit.model.ScreeningOrganisatie;
+import nl.rivm.screenit.model.cervix.CervixHuisarts;
+import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
 
-public class CervixVerrichtingenZoekObject implements Serializable
+@Setter
+@Getter
+public class CervixVerrichtingenZoekObject implements Serializable, Cloneable
 {
 	private String monsterId;
 
@@ -50,113 +59,17 @@ public class CervixVerrichtingenZoekObject implements Serializable
 
 	private boolean alleenVerrichtingen = false;
 
-	public String getMonsterId()
-	{
-		return monsterId;
-	}
+	private BMHKLaboratorium bmhkLaboratorium;
 
-	public void setMonsterId(String monsterId)
-	{
-		this.monsterId = monsterId;
-	}
+	private ScreeningOrganisatie screeningOrganisatie;
 
-	public Date getGeboorteDatum()
-	{
-		return geboorteDatum;
-	}
+	private CervixHuisarts huisarts;
 
-	public void setGeboorteDatum(Date geboorteDatum)
-	{
-		this.geboorteDatum = geboorteDatum;
-	}
+	private CervixHuisartsLocatie huisartsLocatie;
 
-	public String getBsn()
+	@Override
+	public CervixVerrichtingenZoekObject clone() throws CloneNotSupportedException
 	{
-		return bsn;
-	}
-
-	public void setBsn(String bsn)
-	{
-		this.bsn = bsn;
-	}
-
-	public Date getVerrichtingsDatumVanaf()
-	{
-		return verrichtingsDatumVanaf;
-	}
-
-	public void setVerrichtingsDatumVanaf(Date verrichtingsDatumVanaf)
-	{
-		this.verrichtingsDatumVanaf = verrichtingsDatumVanaf;
-	}
-
-	public Date getVerrichtingsDatumTotenmet()
-	{
-		return verrichtingsDatumTotenmet;
-	}
-
-	public void setVerrichtingsDatumTotenmet(Date verrichtingsDatumTotenmet)
-	{
-		this.verrichtingsDatumTotenmet = verrichtingsDatumTotenmet;
-	}
-
-	public String getBetalingskenmerk()
-	{
-		return betalingskenmerk;
-	}
-
-	public void setBetalingskenmerk(String betalingskenmerk)
-	{
-		this.betalingskenmerk = betalingskenmerk;
-	}
-
-	public boolean isAlleenZonderBetalingskenmerk()
-	{
-		return alleenZonderBetalingskenmerk;
-	}
-
-	public void setAlleenZonderBetalingskenmerk(boolean alleenZonderBetalingskenmerk)
-	{
-		this.alleenZonderBetalingskenmerk = alleenZonderBetalingskenmerk;
-	}
-
-	public CervixTariefType getVerrichtingsType()
-	{
-		return verrichtingsType;
-	}
-
-	public void setVerrichtingsType(CervixTariefType verrichtingsType)
-	{
-		this.verrichtingsType = verrichtingsType;
-	}
-
-	public Date getDatumUitstrijkje()
-	{
-		return datumUitstrijkje;
-	}
-
-	public void setDatumUitstrijkje(Date datumUitstrijkje)
-	{
-		this.datumUitstrijkje = datumUitstrijkje;
-	}
-
-	public Boolean getDebet()
-	{
-		return debet;
-	}
-
-	public void setDebet(Boolean debet)
-	{
-		this.debet = debet;
-	}
-
-	public boolean isAlleenVerrichtingen()
-	{
-		return alleenVerrichtingen;
-	}
-
-	public void setAlleenVerrichtingen(boolean alleenVerrichtingen)
-	{
-		this.alleenVerrichtingen = alleenVerrichtingen;
+		return (CervixVerrichtingenZoekObject) super.clone();
 	}
 }

@@ -21,7 +21,6 @@ package nl.rivm.screenit.service.mamma.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -41,15 +40,12 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogRegel;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaDossier;
-import nl.rivm.screenit.model.mamma.MammaKansberekeningScreeningRondeEvent;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaFactorType;
 import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
-import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectInactiefReden;
 import nl.rivm.screenit.service.BaseClientContactService;
 import nl.rivm.screenit.service.BaseDossierService;
@@ -59,6 +55,7 @@ import nl.rivm.screenit.service.DashboardService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.mamma.MammaAfmeldService;
+import nl.rivm.screenit.service.mamma.MammaAfspraakReserveringService;
 import nl.rivm.screenit.service.mamma.MammaBaseDossierService;
 import nl.rivm.screenit.service.mamma.MammaBaseFactory;
 import nl.rivm.screenit.service.mamma.MammaBaseFollowUpService;
@@ -70,6 +67,7 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -134,6 +132,9 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 	private DashboardService dashboardService;
 
 	@Autowired
+	private MammaAfspraakReserveringService afspraakReserveringService;
+
+	@Autowired
 	private LogService logService;
 
 	@Override
@@ -178,25 +179,25 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 	{
 		if (heeftGbaPostcode(dossier) && clientService.isLevendeInwonerNederlandMetGbaIndicatie(dossier.getClient()))
 		{
-			MammaScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
+			var ronde = dossier.getLaatsteScreeningRonde();
 			if (ronde != null && !ronde.getMinderValideOnderzoekZiekenhuis()
 				&& (ronde.getStatus() == ScreeningRondeStatus.LOPEND || viaSePassant && afmeldService.magEenmaligHeraanmelden(dossier.getClient())))
 			{
-				MammaUitnodiging laatsteUitnodiging = ronde.getLaatsteUitnodiging();
+				var laatsteUitnodiging = ronde.getLaatsteUitnodiging();
 				if (laatsteUitnodiging != null)
 				{
-					MammaAfspraak laatsteAfspraak = laatsteUitnodiging.getLaatsteAfspraak();
+					var laatsteAfspraak = laatsteUitnodiging.getLaatsteAfspraak();
 					MammaOnderzoek onderzoekVanLaatsteAfspraak = null;
 					if (laatsteAfspraak != null)
 					{
 						onderzoekVanLaatsteAfspraak = laatsteAfspraak.getOnderzoek();
 					}
-					boolean isOnderzoekVanLaatsteAfspraakOnderbrokenOfOpgeschort = onderzoekVanLaatsteAfspraak != null && onderzoekVanLaatsteAfspraak.isDoorgevoerd()
+					var isOnderzoekVanLaatsteAfspraakOnderbrokenOfOpgeschort = onderzoekVanLaatsteAfspraak != null && onderzoekVanLaatsteAfspraak.isDoorgevoerd()
 						&& (onderzoekVanLaatsteAfspraak.getStatus() == MammaOnderzoekStatus.ONDERBROKEN
 						|| onderzoekVanLaatsteAfspraak.getStatus() == MammaOnderzoekStatus.ONDERBROKEN_ZONDER_VERVOLG
 						|| MammaBeoordelingStatus.OPGESCHORT.equals(onderzoekVanLaatsteAfspraak.getLaatsteBeoordeling().getStatus()) && !viaClientportaal);
 
-					boolean isLaatsteAfspraakNoShow = laatsteAfspraak != null && laatsteAfspraak.getStatus() == MammaAfspraakStatus.GEPLAND
+					var isLaatsteAfspraakNoShow = laatsteAfspraak != null && laatsteAfspraak.getStatus() == MammaAfspraakStatus.GEPLAND
 						&& laatsteAfspraak.getVanaf().compareTo(currentDateSupplier.getDate()) < 0;
 
 					return !isOnvolledigOnderzoek(ronde.getLaatsteOnderzoek()) &&
@@ -220,13 +221,13 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 	{
 		if (heeftGbaPostcode(dossier) && clientService.isLevendeInwonerNederlandMetGbaIndicatie(dossier.getClient()))
 		{
-			MammaScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
+			var ronde = dossier.getLaatsteScreeningRonde();
 			if (ronde != null && ronde.getStatus() == ScreeningRondeStatus.LOPEND)
 			{
-				MammaUitnodiging laatsteUitnodiging = ronde.getLaatsteUitnodiging();
+				var laatsteUitnodiging = ronde.getLaatsteUitnodiging();
 				if (laatsteUitnodiging != null)
 				{
-					MammaAfspraak laatsteAfspraak = laatsteUitnodiging.getLaatsteAfspraak();
+					var laatsteAfspraak = laatsteUitnodiging.getLaatsteAfspraak();
 					if (laatsteAfspraak != null && !isAfspraakMakenMogelijk(dossier, false, false))
 					{
 						return laatsteAfspraak.getStatus() == MammaAfspraakStatus.GEPLAND && !isOnvolledigOnderzoek(ronde.getLaatsteOnderzoek());
@@ -250,15 +251,15 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 	@Override
 	public boolean isAfspraakForcerenMogelijk(MammaDossier dossier)
 	{
-		boolean magAfspraakForceren = false;
+		var magAfspraakForceren = false;
 		if (dossier.getLaatsteScreeningRonde() != null)
 		{
-			MammaOnderzoek onderzoek = dossier.getLaatsteScreeningRonde().getLaatsteOnderzoek();
+			var onderzoek = dossier.getLaatsteScreeningRonde().getLaatsteOnderzoek();
 
 			if (onderzoek != null && onderzoek.isDoorgevoerd() && onderzoek.getMammografie() != null)
 			{
 				int maxDagenUitstellenForceren = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_INTERVAL_UITNODIGINGEN.name());
-				LocalDate afspraakDatum180Dagen = DateUtil.toLocalDate(onderzoek.getMammografie().getAfgerondOp()).plusDays(maxDagenUitstellenForceren);
+				var afspraakDatum180Dagen = DateUtil.toLocalDate(onderzoek.getMammografie().getAfgerondOp()).plusDays(maxDagenUitstellenForceren);
 				magAfspraakForceren = currentDateSupplier.getLocalDate().isBefore(afspraakDatum180Dagen);
 			}
 		}
@@ -275,12 +276,12 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 		{
 			return false;
 		}
-		MammaScreeningRonde laatsteRonde = dossier.getLaatsteScreeningRonde();
+		var laatsteRonde = dossier.getLaatsteScreeningRonde();
 		if (laatsteRonde == null)
 		{
 			return true;
 		}
-		MammaOnderzoek laatsteOnderzoek = laatsteRonde.getLaatsteOnderzoek();
+		var laatsteOnderzoek = laatsteRonde.getLaatsteOnderzoek();
 		if (laatsteRonde.getStatus() == ScreeningRondeStatus.LOPEND)
 		{
 			if (laatsteRonde.getLaatsteUitnodiging() == null)
@@ -309,7 +310,7 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 	{
 		if (laatsteOnderzoek != null)
 		{
-			boolean onderzoekHeeftEenUitslag = laatsteOnderzoek.getLaatsteBeoordeling() != null
+			var onderzoekHeeftEenUitslag = laatsteOnderzoek.getLaatsteBeoordeling() != null
 				&& MammaBeoordelingStatus.isUitslagStatus(laatsteOnderzoek.getLaatsteBeoordeling().getStatus());
 
 			return !onderzoekService.isOnderzoekOnvolledigZonderFotos(laatsteOnderzoek) && !onderzoekHeeftEenUitslag
@@ -338,7 +339,7 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 			LOG.info("Standplaats {} niet in route", standplaats.getId());
 			throw new MammaStandplaatsVanPostcodeOnbekendException();
 		}
-		MammaScreeningRonde ronde = baseFactory.maakRonde(client.getMammaDossier(), standplaatsPeriode.getStandplaatsRonde(), true);
+		var ronde = baseFactory.maakRonde(client.getMammaDossier(), standplaatsPeriode.getStandplaatsRonde(), true);
 
 		baseFactory.maakUitnodiging(ronde, ronde.getStandplaatsRonde(),
 			screeningrondeService.bepaalBriefTypeVoorOpenUitnodiging(volgendeUitnodigingService.isSuspect(client.getMammaDossier()),
@@ -357,15 +358,17 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 	{
 		if (dossier != null)
 		{
-			Client client = dossier.getClient();
+			var client = dossier.getClient();
 
 			baseClientContactService.verwijderClientContacten(client, Bevolkingsonderzoek.MAMMA);
 
 			screeningrondeService.verwijderAlleScreeningRondes(dossier);
 
+			afspraakReserveringService.verwijderReserveringenVoorClient(client);
+
 			opruimenDossier(dossier);
 
-			MammaKansberekeningScreeningRondeEvent screeningRondeEvent = dossier.getScreeningRondeEvent();
+			var screeningRondeEvent = dossier.getScreeningRondeEvent();
 			if (screeningRondeEvent != null)
 			{
 				dossier.setScreeningRondeEvent(null);
@@ -379,7 +382,7 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 
 			hibernateService.saveOrUpdate(client);
 
-			ProjectClient projectClient = ProjectUtil.getHuidigeProjectClient(client, currentDateSupplier.getDate(), false);
+			var projectClient = ProjectUtil.getHuidigeProjectClient(client, currentDateSupplier.getDate(), false);
 			if (projectClient != null)
 			{
 				clientService.projectClientInactiveren(projectClient, ProjectInactiefReden.VERWIJDERING_VAN_DOSSIER, Bevolkingsonderzoek.MAMMA);
@@ -403,18 +406,19 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 	public boolean setUitslagenGecontroleerdEnUpdateDashboard(LogRegel logRegel, InstellingGebruiker medewerker, DashboardStatus dashboardStatus)
 	{
 		var dossier = logRegel.getClient().getMammaDossier();
+
 		var laatsteOnderzoekZonderUitslag = baseOnderzoekService.getLaatsteOnderzoekMetMissendeUitslagVanDossier(dossier);
 		var status = dashboardService.updateLogRegelMetDashboardStatus(logRegel, medewerker.getMedewerker().getGebruikersnaam(), dashboardStatus);
 
 		logService.logGebeurtenis(LogGebeurtenis.MAMMA_CONTROLE_MISSENDE_UITSLAGEN_MATCH_GECONTROLEERD, medewerker, dossier.getClient(), Bevolkingsonderzoek.MAMMA);
 
-		if (laatsteOnderzoekZonderUitslag == null)
+		if (laatsteOnderzoekZonderUitslag.isEmpty())
 		{
 			LOG.warn("Er is geen onderzoek zonder uitslag gevonden voor dossier {}", dossier.getId());
 		}
 		else
 		{
-			dossier.setDatumLaatstGecontroleerdeSignalering(laatsteOnderzoekZonderUitslag.getAfgerondOp());
+			dossier.setDatumLaatstGecontroleerdeSignalering(laatsteOnderzoekZonderUitslag.get().getAfgerondOp());
 			hibernateService.saveOrUpdate(dossier);
 		}
 		return status;

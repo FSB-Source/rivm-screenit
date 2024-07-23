@@ -24,12 +24,11 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.huisarts.factur
 import java.util.Iterator;
 
 import nl.rivm.screenit.dto.cervix.facturatie.CervixVerrichtingenZoekObject;
+import nl.rivm.screenit.main.service.cervix.CervixVerrichtingService;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
-import nl.rivm.screenit.service.cervix.CervixVerrichtingService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -37,11 +36,12 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvid
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.springframework.data.domain.Sort;
 
 public class CervixHuisartsVerrichtingenDataProvider extends SortableDataProvider<CervixBoekRegel, String>
 {
 
-	private IModel<CervixVerrichtingenZoekObject> cervixVerrichtingenCriteria;
+	private IModel<CervixVerrichtingenZoekObject> verrichtingenZoekObjectModel;
 
 	private IModel<CervixHuisarts> geselecteerdeHuisarts;
 
@@ -50,14 +50,14 @@ public class CervixHuisartsVerrichtingenDataProvider extends SortableDataProvide
 	private IModel<ScreeningOrganisatie> screeningOrganisatieModel;
 
 	@SpringBean
-	private CervixVerrichtingService cervixVerrichtingService;
+	private CervixVerrichtingService verrichtingService;
 
-	public CervixHuisartsVerrichtingenDataProvider(IModel<CervixVerrichtingenZoekObject> cervixVerrichtingenCriteria, IModel<ScreeningOrganisatie> screeningOrganisatieModel,
+	public CervixHuisartsVerrichtingenDataProvider(IModel<CervixVerrichtingenZoekObject> verrichtingenZoekObjectModel, IModel<ScreeningOrganisatie> screeningOrganisatieModel,
 		IModel<CervixHuisarts> geselecteerdeHuisarts, IModel<CervixHuisartsLocatie> huisartsLocatieModel)
 	{
 		Injector.get().inject(this);
 		setSort("verrichting.verrichtingsDatum", SortOrder.DESCENDING);
-		this.cervixVerrichtingenCriteria = cervixVerrichtingenCriteria;
+		this.verrichtingenZoekObjectModel = verrichtingenZoekObjectModel;
 		this.geselecteerdeHuisarts = geselecteerdeHuisarts;
 		this.huisartsLocatieModel = huisartsLocatieModel;
 		this.screeningOrganisatieModel = screeningOrganisatieModel;
@@ -66,17 +66,17 @@ public class CervixHuisartsVerrichtingenDataProvider extends SortableDataProvide
 	@Override
 	public Iterator<? extends CervixBoekRegel> iterator(long first, long count)
 	{
-		return cervixVerrichtingService.getHuisartsVerrichtingen(cervixVerrichtingenCriteria.getObject(), screeningOrganisatieModel.getObject(),
-			geselecteerdeHuisarts.getObject(), huisartsLocatieModel.getObject(),
-			new SortState<>(getSort().getProperty(), getSort().isAscending()), first, count)
+		return verrichtingService.getHuisartsVerrichtingen(verrichtingenZoekObjectModel.getObject(), screeningOrganisatieModel.getObject(),
+				geselecteerdeHuisarts.getObject(), huisartsLocatieModel.getObject(),
+				Sort.by(getSort().isAscending() ? Sort.Direction.ASC : Sort.Direction.DESC, getSort().getProperty()), first, count)
 			.iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return cervixVerrichtingService
-			.countHuisartsVerrichtingen(cervixVerrichtingenCriteria.getObject(), screeningOrganisatieModel.getObject(), geselecteerdeHuisarts.getObject(),
+		return verrichtingService
+			.countHuisartsVerrichtingen(verrichtingenZoekObjectModel.getObject(), screeningOrganisatieModel.getObject(), geselecteerdeHuisarts.getObject(),
 				huisartsLocatieModel.getObject());
 	}
 
@@ -95,7 +95,7 @@ public class CervixHuisartsVerrichtingenDataProvider extends SortableDataProvide
 	public void detach()
 	{
 		super.detach();
-		ModelUtil.nullSafeDetach(cervixVerrichtingenCriteria);
+		ModelUtil.nullSafeDetach(verrichtingenZoekObjectModel);
 		ModelUtil.nullSafeDetach(geselecteerdeHuisarts);
 		ModelUtil.nullSafeDetach(huisartsLocatieModel);
 		ModelUtil.nullSafeDetach(screeningOrganisatieModel);

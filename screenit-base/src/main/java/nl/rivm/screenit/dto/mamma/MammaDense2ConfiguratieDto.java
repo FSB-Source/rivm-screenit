@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:screenit-batch-dk/src/main/java/nl/rivm/screenit/batch/service/ColonFITHL7BerichtInlezenService.java
+package nl.rivm.screenit.batch.service;
+========
 package nl.rivm.screenit.dto.mamma;
+>>>>>>>> refs/heads/main:screenit-base/src/main/java/nl/rivm/screenit/dto/mamma/MammaDense2ConfiguratieDto.java
 
 /*-
  * ========================LICENSE_START=================================
@@ -23,6 +27,18 @@ package nl.rivm.screenit.dto.mamma;
 
 import java.util.List;
 
+<<<<<<<< HEAD:screenit-batch-dk/src/main/java/nl/rivm/screenit/batch/service/ColonFITHL7BerichtInlezenService.java
+import nl.rivm.screenit.model.colon.berichten.ColonIFobtUitslagBericht;
+import nl.rivm.screenit.model.logging.IfobtVerwerkingBeeindigdLogEvent;
+
+public interface ColonFITHL7BerichtInlezenService
+{
+	List<ColonIFobtUitslagBericht> getAlleNietVerwerkteFitBerichten();
+
+	void verwerkOntvangenFitBericht(ColonIFobtUitslagBericht bericht);
+
+	void logError(ColonIFobtUitslagBericht ontvangenBericht, String message, IfobtVerwerkingBeeindigdLogEvent verwerkingLogEvent);
+========
 import lombok.Getter;
 import lombok.Setter;
 
@@ -49,5 +65,10 @@ public class MammaDense2ConfiguratieDto
 	public List<String> getDenseProjecten()
 	{
 		return List.of(cem, mri, controleGroep, herinneringCem, herinneringMri);
+	}
+
+	public List<String> getDenseOnderzoekProjecten()
+	{
+		return List.of(cem, mri);
 	}
 }

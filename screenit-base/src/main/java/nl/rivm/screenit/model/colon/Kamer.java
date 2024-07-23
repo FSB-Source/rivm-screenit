@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.colon;
 
 /*-
@@ -25,45 +24,26 @@ package nl.rivm.screenit.model.colon;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
-import javax.persistence.Transient;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import nl.rivm.screenit.model.IActief;
 import nl.topicuszorg.wicket.planning.model.appointment.Location;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.hibernate.Hibernate;
 import org.hibernate.envers.Audited;
 
 @Entity
 @Audited
+@Getter
+@Setter
 public class Kamer extends Location implements IActief
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private Boolean actief;
 
 	@ManyToOne(fetch = FetchType.EAGER)
 	private ColoscopieCentrum coloscopieCentrum;
-
-	@Override
-	@Transient
-	public String getDisplayname()
-	{
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public Boolean getActief()
-	{
-		return actief;
-	}
-
-	@Override
-	public void setActief(Boolean actief)
-	{
-		this.actief = actief;
-	}
 
 	@Override
 	public int hashCode()
@@ -92,26 +72,11 @@ public class Kamer extends Location implements IActief
 		Kamer other = (Kamer) obj;
 		if (getId() == null)
 		{
-			if (other.getId() != null)
-			{
-				return false;
-			}
+			return other.getId() == null;
 		}
-		else if (!getId().equals(other.getId()))
+		else
 		{
-			return false;
+			return getId().equals(other.getId());
 		}
-		return true;
 	}
-
-	public ColoscopieCentrum getColoscopieCentrum()
-	{
-		return coloscopieCentrum;
-	}
-
-	public void setColoscopieCentrum(ColoscopieCentrum coloscopieCentrum)
-	{
-		this.coloscopieCentrum = coloscopieCentrum;
-	}
-
 }

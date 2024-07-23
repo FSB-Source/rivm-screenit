@@ -77,7 +77,6 @@ import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public abstract class MammaBulkVerzettenPopup extends GenericPanel<MammaBulkVerzettenFilter>
 {
-
 	private static final long serialVersionUID = 1L;
 
 	private BootstrapDialog confirmPopup;
@@ -283,7 +282,7 @@ public abstract class MammaBulkVerzettenPopup extends GenericPanel<MammaBulkVerz
 		Date totEnMet = DateUtil.toUtilDate(filter.getTotEnMetLocalDate().plusDays(1));
 
 		Collection<MammaCapaciteitBlokDto> capaciteitsBlokken = baseCapaciteitsBlokService.getNietGeblokkeerdeCapaciteitsBlokDtos(standplaatsPeriode, vanaf, totEnMet,
-			EnumSet.of(MammaCapaciteitBlokType.REGULIER));
+			EnumSet.of(MammaCapaciteitBlokType.REGULIER), null);
 		capaciteit = baseCapaciteitsBlokService.getCapaciteit(capaciteitsBlokken);
 
 		benodigdeCapaciteitContainer.addOrReplace(
@@ -295,8 +294,8 @@ public abstract class MammaBulkVerzettenPopup extends GenericPanel<MammaBulkVerz
 		Date minDag = Collections.max(Arrays.asList(gekozenStandplaatsPeriodeModel.getObject().getVanaf(), afspraakVerzettenZonderClientContactVanaf));
 		Date maxDag = gekozenStandplaatsPeriodeModel.getObject().getScreeningsEenheid().getVrijgegevenTotEnMet() != null
 			? Collections
-				.min(Arrays.asList(gekozenStandplaatsPeriodeModel.getObject().getTotEnMet(),
-					gekozenStandplaatsPeriodeModel.getObject().getScreeningsEenheid().getVrijgegevenTotEnMet()))
+			.min(Arrays.asList(gekozenStandplaatsPeriodeModel.getObject().getTotEnMet(),
+				gekozenStandplaatsPeriodeModel.getObject().getScreeningsEenheid().getVrijgegevenTotEnMet()))
 			: gekozenStandplaatsPeriodeModel.getObject().getTotEnMet();
 
 		vanaf.remove(dateValidatorMinimum);

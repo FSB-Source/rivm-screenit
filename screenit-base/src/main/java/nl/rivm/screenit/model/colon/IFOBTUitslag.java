@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.colon;
 
 /*-
@@ -33,20 +32,22 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.colon.enums.IFOBTUitslagType;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
+@Getter
+@Setter
 @Entity
 @Table(schema = "colon")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 public class IFOBTUitslag extends AbstractHibernateObject
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@Enumerated(EnumType.STRING)
 	private IFOBTUitslagType type;
 
@@ -59,55 +60,4 @@ public class IFOBTUitslag extends AbstractHibernateObject
 
 	@ManyToOne
 	private IFOBTBestand bestand;
-
-	public IFOBTUitslagType getType()
-	{
-		return type;
-	}
-
-	public void setType(IFOBTUitslagType type)
-	{
-		this.type = type;
-	}
-
-	public String getBarcode()
-	{
-		return barcode;
-	}
-
-	public void setBarcode(String barcode)
-	{
-		this.barcode = barcode;
-	}
-
-	public Date getAnalyseDatum()
-	{
-		return analyseDatum;
-	}
-
-	public void setAnalyseDatum(Date analyseDatum)
-	{
-		this.analyseDatum = analyseDatum;
-	}
-
-	public BigDecimal getUitslag()
-	{
-		return uitslag;
-	}
-
-	public void setUitslag(BigDecimal uitslag)
-	{
-		this.uitslag = uitslag;
-	}
-
-	public IFOBTBestand getBestand()
-	{
-		return bestand;
-	}
-
-	public void setBestand(IFOBTBestand bestand)
-	{
-		this.bestand = bestand;
-	}
-
 }

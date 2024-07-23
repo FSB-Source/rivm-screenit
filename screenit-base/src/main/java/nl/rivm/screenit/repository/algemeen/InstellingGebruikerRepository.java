@@ -21,9 +21,12 @@ package nl.rivm.screenit.repository.algemeen;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Optional;
+
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.repository.BaseJpaRepository;
 
 public interface InstellingGebruikerRepository extends BaseJpaRepository<InstellingGebruiker>
 {
+	Optional<InstellingGebruiker> findByMedewerkerGebruikersnaam(String gebruikersnaam);
 }

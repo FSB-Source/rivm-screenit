@@ -29,11 +29,7 @@ import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.mamma.MammaBaseScreeningrondeDao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.BriefType;
-import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.mamma.MammaDossier;
-import nl.rivm.screenit.model.mamma.MammaKansberekeningAfspraakEvent;
-import nl.rivm.screenit.model.mamma.MammaKansberekeningScreeningRondeEvent;
-import nl.rivm.screenit.model.mamma.MammaOpkomstkans;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
@@ -104,14 +100,14 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 	@Transactional
 	public void verwijderAlleScreeningRondes(MammaDossier dossier)
 	{
-		List<MammaScreeningRonde> rondes = dossier.getScreeningRondes();
+		var rondes = dossier.getScreeningRondes();
 
 		dossier.setLaatsteScreeningRonde(null);
 		dossier.setScreeningRondes(new ArrayList<>());
 		hibernateService.saveOrUpdate(dossier);
 		if (CollectionUtils.isNotEmpty(rondes))
 		{
-			for (MammaScreeningRonde ronde : rondes)
+			for (var ronde : rondes)
 			{
 				verwijderScreeningRonde(ronde, true);
 			}
@@ -140,8 +136,8 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 		baseUitwisselportaalService.verwijderDownloadVerzoeken(screeningRonde);
 		baseKwaliteitscontroleService.verwijderKwaliteitscontroleOnderzoeken(screeningRonde);
 
-		MammaDossier dossier = screeningRonde.getDossier();
-		boolean isRondeMetLaatsteBeoordelingMetUitslag = dossier.getLaatsteBeoordelingMetUitslag() != null &&
+		var dossier = screeningRonde.getDossier();
+		var isRondeMetLaatsteBeoordelingMetUitslag = dossier.getLaatsteBeoordelingMetUitslag() != null &&
 			dossier.getLaatsteBeoordelingMetUitslag().getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().equals(screeningRonde);
 		if (isRondeMetLaatsteBeoordelingMetUitslag)
 		{
@@ -159,7 +155,7 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 		hibernateService.deleteAll(screeningRonde.getFollowUpVerslagen());
 		hibernateService.deleteAll(screeningRonde.getFollowUpRadiologieVerslagen());
 
-		MammaKansberekeningScreeningRondeEvent screeningRondeEvent = screeningRonde.getScreeningRondeEvent();
+		var screeningRondeEvent = screeningRonde.getScreeningRondeEvent();
 		if (screeningRondeEvent != null)
 		{
 			screeningRonde.setScreeningRondeEvent(null);
@@ -214,12 +210,12 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 					hibernateService.deleteAll(afspraak.getOnderzoek().getBeoordelingen());
 					hibernateService.delete(afspraak.getOnderzoek());
 				}
-				MammaOpkomstkans opkomstkans = afspraak.getOpkomstkans();
+				var opkomstkans = afspraak.getOpkomstkans();
 				if (opkomstkans != null)
 				{
 					hibernateService.delete(opkomstkans);
 				}
-				MammaKansberekeningAfspraakEvent afspraakEvent = afspraak.getAfspraakEvent();
+				var afspraakEvent = afspraak.getAfspraakEvent();
 				if (afspraakEvent != null)
 				{
 					hibernateService.delete(afspraakEvent);
@@ -227,7 +223,7 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 				hibernateService.delete(afspraak);
 			});
 
-			MammaBrief uitnodigingBrief = uitnodiging.getBrief();
+			var uitnodigingBrief = uitnodiging.getBrief();
 			if (uitnodigingBrief != null)
 			{
 				hibernateService.delete(uitnodigingBrief);
@@ -265,7 +261,7 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 	@Override
 	public Integer getJaarLaatsteVerwijzing(Client client)
 	{
-		MammaScreeningRonde laatsteScreeningRondeMetPositieveUitslag = getLaatsteScreeningRondeMetPositieveUitslag(client);
+		var laatsteScreeningRondeMetPositieveUitslag = getLaatsteScreeningRondeMetPositieveUitslag(client);
 		return laatsteScreeningRondeMetPositieveUitslag != null
 			? DateUtil.toLocalDate(laatsteScreeningRondeMetPositieveUitslag.getLaatsteOnderzoek().getCreatieDatum()).getYear()
 			: null;

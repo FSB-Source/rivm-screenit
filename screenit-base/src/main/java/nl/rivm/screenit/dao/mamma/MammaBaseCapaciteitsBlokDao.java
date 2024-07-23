@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.dto.mamma.afspraken.MammaCapaciteitBlokDto;
+import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.mamma.MammaCapaciteitBlok;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
@@ -39,6 +40,6 @@ public interface MammaBaseCapaciteitsBlokDao
 	Long countCapaciteitsBlokken(MammaScreeningsEenheid screeningEenheid, Date start, Date end, Collection<MammaCapaciteitBlokType> blokTypes);
 
 	Collection<MammaCapaciteitBlokDto> getNietGeblokkeerdeCapaciteitsBlokDtos(MammaStandplaatsPeriode standplaatsPeriode, Date start, Date end,
-		Collection<MammaCapaciteitBlokType> blokTypes);
+		Collection<MammaCapaciteitBlokType> blokTypes, Client client);
 
 }

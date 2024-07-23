@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,7 +37,7 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.dao.mamma.MammaBaseAfspraakDao;
+import lombok.extern.slf4j.Slf4j;
 import nl.rivm.screenit.main.dao.mamma.MammaScreeningsEenheidDao;
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenissen;
 import nl.rivm.screenit.main.model.testen.TestTimelineModel;
@@ -86,6 +87,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
 import nl.rivm.screenit.model.mamma.enums.OnderbrokenOnderzoekOption;
 import nl.rivm.screenit.model.mamma.enums.OnvolledigOnderzoekOption;
 import nl.rivm.screenit.repository.algemeen.ClientRepository;
+import nl.rivm.screenit.repository.mamma.MammaBaseAfspraakRepository;
 import nl.rivm.screenit.service.BerichtToBatchService;
 import nl.rivm.screenit.service.DeelnamemodusDossierService;
 import nl.rivm.screenit.service.EnovationHuisartsService;
@@ -115,6 +117,8 @@ import org.springframework.transaction.annotation.Transactional;
 import au.com.bytecode.opencsv.CSVParser;
 import au.com.bytecode.opencsv.CSVReader;
 import ca.uhn.hl7v2.HL7Exception;
+
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.afsprakenWaarvanOnderzoekNietIsDoorgevoerdAfgelopen2Maanden;
 
 @Service
 @Slf4j
@@ -184,13 +188,13 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 	private MammaVolgendeUitnodigingService volgendeUitnodigingService;
 
 	@Autowired
-	private MammaBaseAfspraakDao baseAfspraakDao;
-
-	@Autowired
 	private ClientRepository clientRepository;
 
 	@Autowired
 	private TestService testService;
+
+	@Autowired
+	private MammaBaseAfspraakRepository baseAfspraakRepository;
 
 	@Override
 	public String setDeelnamekansen(InputStream inputStream)
@@ -921,12 +925,6 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 	}
 
 	@Override
-	public void setUitnodigingsNr(MammaScreeningRonde ronde, Long uitnodigingsNr)
-	{
-		ronde.setUitnodigingsNr(uitnodigingsNr);
-	}
-
-	@Override
 	@Transactional
 	public void verslagGoedkeurenDoorCE(MammaBeoordeling beoordeling, InstellingGebruiker ingelogdeGebruiker)
 	{
@@ -1030,7 +1028,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 	@Transactional
 	public void sluitAlleDagenTotEnMetGisteren(MammaScreeningsEenheid screeningsEenheid, InstellingGebruiker ingelogdeGebruiker) throws IllegalStateException
 	{
-		var afspraken = baseAfspraakDao.readAfsprakenWaarvanOnderzoekNietIsDoorgevoerd(currentDateSupplier.getLocalDate(), screeningsEenheid.getCode());
+		var afspraken = readAfsprakenWaarvanOnderzoekNietIsDoorgevoerd(currentDateSupplier.getLocalDate(), screeningsEenheid.getCode());
 
 		var nietAfgerondeAfspraken = new ArrayList<MammaAfspraak>();
 		for (var afspraak : afspraken)
@@ -1132,5 +1130,11 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 			}
 		}
 		return result + ". #" + gevondenEnIsVerwijderd + " clienten gereset.";
+	}
+
+	@Override
+	public List<MammaAfspraak> readAfsprakenWaarvanOnderzoekNietIsDoorgevoerd(LocalDate vandaag, String seCode)
+	{
+		return baseAfspraakRepository.findAll(afsprakenWaarvanOnderzoekNietIsDoorgevoerdAfgelopen2Maanden(vandaag, seCode));
 	}
 }

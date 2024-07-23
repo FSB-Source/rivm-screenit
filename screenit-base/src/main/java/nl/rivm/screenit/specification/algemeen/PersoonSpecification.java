@@ -28,7 +28,14 @@ import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.GbaPersoon_;
+import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
+import nl.rivm.screenit.specification.SpecificationUtil;
 import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
+
+import org.springframework.data.jpa.domain.Specification;
+
+import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNull;
+import static nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification.persoonJoin;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PersoonSpecification
@@ -59,5 +66,15 @@ public class PersoonSpecification
 	public static PathAwarePredicate<GbaPersoon> heeftGeenVertrokkenUitNederlandDatumPredicate()
 	{
 		return (cb, r) -> cb.isNull(r.get(GbaPersoon_.datumVertrokkenUitNederland));
+	}
+
+	public static Specification<CervixBoekRegel> filterGeboortedatum(Date geboortedatum)
+	{
+		return skipWhenNull(geboortedatum, (r, q, cb) -> cb.equal(persoonJoin(r).get(GbaPersoon_.geboortedatum), geboortedatum));
+	}
+
+	public static Specification<CervixBoekRegel> filterBsn(String bsn)
+	{
+		return SpecificationUtil.skipWhenEmpty(bsn, (r, q, cb) -> cb.equal(persoonJoin(r).get(GbaPersoon_.bsn), bsn));
 	}
 }

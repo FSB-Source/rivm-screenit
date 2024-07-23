@@ -31,8 +31,6 @@ import org.apache.wicket.model.IModel;
 
 public class MammaTehuisFilter implements IActief, IDetachable
 {
-	private static final long serialVersionUID = 1L;
-
 	private final IModel<MammaTehuis> tehuis = ModelUtil.cModel(new MammaTehuis());
 
 	private IModel<ScreeningOrganisatie> regio;

@@ -1,6 +1,5 @@
 {
-  "title": "Aanvragen laboratoriumformulieren",
-  "description": "Heeft u geen of onvoldoende laboratoriumformulieren dan kunt u deze bijbestellen. Daarvoor kunt u het onderstaande formulier invullen.",
+  "title": "Papieren labformulieren aanvragen niet meer mogelijk",
   "table": {
     "header": {
       "aangevraagdOp": "Aangevraagd op",
@@ -10,20 +9,13 @@
       "aangevraagdDoor": "Aangevraagd door",
       "locatie": "Locatie"
     },
-    "totaal": "Aantal aanvragen:"
-  },
-  "form": {
-    "title": "Aanvraag toevoegen",
-    "labels": {
-      "aantal": "Aantal",
-      "locatie": "Locatie"
-    },
-    "submit": "Indienen",
-    "toast": {
-      "success": "De laboratoriumformulieren zijn succesvol aangevraagd"
-    }
+    "totaal": "Aantal aanvragen:",
+    "title": "Historisch overzicht"
   },
   "algemeneMeldingen": {
-    "digitaalLabformulier": "Bevolkingsonderzoek Nederland is voor het bevolkingsonderzoek baarmoederhalskanker overgestapt op digitaal aanvragen. Wilt u weten hoe u kunt overstappen? Kijk voor meer informatie op onze website."
+    "digitaalLabformulier": "Bevolkingsonderzoek Nederland is voor het bevolkingsonderzoek baarmoederhalskanker overgestapt op digitaal aanvragen. Wilt u weten hoe u kunt overstappen? Kijk voor meer informatie op onze website.",
+    "geenLabformulieren": "Het is niet meer mogelijk om via dit portaal papieren laboratoriumformulieren te bestellen. Wij verzoeken u om het labformulier digitaal in te vullen via ZorgDomein of VIPLive. Voor meer info kijk op ",
+    "onzeWebsite": "onze website.",
+    "telefonischContact": "Of neem telefonisch contact op met onze informatielijn: zij kunnen u verder helpen."
   }
 }

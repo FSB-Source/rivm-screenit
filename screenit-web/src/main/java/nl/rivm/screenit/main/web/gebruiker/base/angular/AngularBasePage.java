@@ -32,6 +32,7 @@ import nl.rivm.screenit.main.web.gebruiker.base.GebruikerBasePage;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.core.util.string.JavaScriptUtils;
 import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.CssUrlReferenceHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
@@ -154,6 +155,10 @@ public abstract class AngularBasePage extends GebruikerBasePage
 		{
 			response.render(
 				new CssUrlReferenceHeaderItem(medewerkerPortaalResourceUrl + style + "?version=" + ScreenitApplication.get().getVersionString(), "screen", "stylesheet"));
+		}
+		if (Boolean.TRUE.equals(testModus))
+		{
+			response.render(CssHeaderItem.forUrl("assets/css/test.css"));
 		}
 	}
 

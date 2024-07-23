@@ -51,6 +51,6 @@ public interface MammaBaseCapaciteitsBlokService
 	MammaCapaciteitBlok getCapaciteitsBlokOpTijdstipVoorSe(Client client, MammaScreeningsEenheid screeningsEenheid, Date nu);
 
 	Collection<MammaCapaciteitBlokDto> getNietGeblokkeerdeCapaciteitsBlokDtos(MammaStandplaatsPeriode standplaatsPeriode, Date vanaf, Date totEnMet,
-		Collection<MammaCapaciteitBlokType> blokTypes);
+		Collection<MammaCapaciteitBlokType> blokTypes, Client client);
 
 }

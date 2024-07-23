@@ -209,7 +209,10 @@ public abstract class MammaAfspraakZoekenPanel extends GenericPanel<Client>
 				{
 					warn(getString(waarschuwing));
 				}
-				this.setVisible(false);
+				if (!hasErrorMessage())
+				{
+					this.setVisible(false);
+				}
 				target.add(this);
 			}
 		};

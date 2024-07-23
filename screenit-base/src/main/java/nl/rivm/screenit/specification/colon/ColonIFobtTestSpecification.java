@@ -54,6 +54,7 @@ import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 
 import org.springframework.data.jpa.domain.Specification;
 
+import static nl.rivm.screenit.specification.DateSpecification.truncate;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -89,8 +90,8 @@ public class ColonIFobtTestSpecification
 			var dossierJoin = SpecificationUtil.join(screeningRondeJoin, ColonScreeningRonde_.dossier);
 			return cb.and(
 				cb.greaterThan(dossierJoin.get(Dossier_.datumLaatstGecontroleerdeSignalering), DateUtil.toUtilDate(signalerenVanaf)),
-				cb.greaterThan(DateSpecification.truncateToDay(r.get(IFOBTTest_.analyseDatum), cb),
-					DateSpecification.truncateToDay(dossierJoin.get(Dossier_.datumLaatstGecontroleerdeSignalering), cb)));
+				cb.greaterThan(truncate("day", r.get(IFOBTTest_.analyseDatum), cb),
+					truncate("day", dossierJoin.get(Dossier_.datumLaatstGecontroleerdeSignalering), cb)));
 		};
 	}
 
@@ -107,7 +108,7 @@ public class ColonIFobtTestSpecification
 			var screeningRondeJoin = SpecificationUtil.join(r, IFOBTTest_.colonScreeningRonde);
 			var dossierJoin = SpecificationUtil.join(screeningRondeJoin, ColonScreeningRonde_.dossier);
 			return cb.or(
-				cb.lessThanOrEqualTo(DateSpecification.truncateToDay(dossierJoin.get(Dossier_.datumLaatstGecontroleerdeSignalering), cb),
+				cb.lessThanOrEqualTo(truncate("day", dossierJoin.get(Dossier_.datumLaatstGecontroleerdeSignalering), cb),
 					DateUtil.toUtilDate(signalerenVanaf)),
 				cb.isNull(dossierJoin.get(Dossier_.datumLaatstGecontroleerdeSignalering))
 			);
@@ -154,8 +155,8 @@ public class ColonIFobtTestSpecification
 			subquery.select(uitnodigingRoot);
 			subquery.where(cb.equal(SpecificationUtil.join(uitnodigingRoot, ColonUitnodiging_.screeningRonde, JoinType.INNER).get(ColonScreeningRonde_.dossier),
 					dossierJoin.get(TablePerClassHibernateObject_.id)),
-				cb.equal(DateSpecification.truncateToDay(uitnodigingRoot.get(Uitnodiging_.creatieDatum), cb),
-					DateSpecification.truncateToDay(r.get(IFOBTTest_.statusDatum), cb)));
+				cb.equal(truncate("day", uitnodigingRoot.get(Uitnodiging_.creatieDatum), cb),
+					truncate("day", r.get(IFOBTTest_.statusDatum), cb)));
 			return cb.not(cb.exists(subquery));
 		};
 	}
@@ -171,8 +172,8 @@ public class ColonIFobtTestSpecification
 			subquery.select(uitnodigingZonderFitRoot);
 			subquery.where(
 				cb.equal(uitnodigingZonderFitRoot.get(ColonUitnodiging_.screeningRonde).get(ColonScreeningRonde_.dossier), dossierJoin.get(TablePerClassHibernateObject_.id)),
-				cb.equal(DateSpecification.truncateToDay(uitnodigingZonderFitRoot.get(Uitnodiging_.creatieDatum), cb),
-					DateSpecification.truncateToDay(r.get(IFOBTTest_.statusDatum), cb)),
+				cb.equal(truncate("day", uitnodigingZonderFitRoot.get(Uitnodiging_.creatieDatum), cb),
+					truncate("day", r.get(IFOBTTest_.statusDatum), cb)),
 				cb.isNull(uitnodigingZonderFitRoot.get(ColonUitnodiging_.gekoppeldeTest)));
 			return cb.exists(subquery);
 		};

@@ -27,7 +27,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nl.rivm.screenit.Constants;
+import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.clienten.ClientContactActieTypeWrapper;
+import nl.rivm.screenit.main.web.gebruiker.clienten.contact.ClientContactPage;
 import nl.rivm.screenit.main.web.gebruiker.gedeeld.MammaDoelgroepIndicatorPanel;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.formatter.TelefoonnummersFormatter;
 import nl.rivm.screenit.model.Client;
@@ -67,6 +69,12 @@ public class MammaAfsprakenBlokPanel extends GenericPanel<List<MammaAfspraak>>
 {
 
 	private final HibernateCheckBoxListContainer<MammaAfspraak> selectedAfspraken;
+
+	public static final String AFSPRAAK_VERZETTEN_DATUM = "AfspraakVerzetten.datum";
+
+	public static final String AFSPRAAK_VERZETTEN_SCREENINGSEENHEID = "AfspraakVerzetten.screeningsEenheid";
+
+	public static final String AFSPRAAK_VERZETTEN_KOMT_VANUIT_AFSPRAKENKALENDER = "AfspraakVerzetten.komtVanuitAfsprakenKalender";
 
 	@SpringBean
 	private ICurrentDateSupplier dateSupplier;
@@ -129,11 +137,15 @@ public class MammaAfsprakenBlokPanel extends GenericPanel<List<MammaAfspraak>>
 						extraParameters.add(Constants.CONTACT_EXTRA_PARAMETER_VANUIT_BK_PLANNING);
 						extraParameters.add(currentDay);
 
+						ScreenitSession.get().setZoekObject(AFSPRAAK_VERZETTEN_DATUM, Model.of(currentDay));
+						ScreenitSession.get().setZoekObject(AFSPRAAK_VERZETTEN_SCREENINGSEENHEID, ModelUtil.sModel(afspraak.getStandplaatsPeriode().getScreeningsEenheid()));
+						ScreenitSession.get().setZoekObject(AFSPRAAK_VERZETTEN_KOMT_VANUIT_AFSPRAKENKALENDER, Model.of(true));
+
 						ClientContactActieTypeWrapper clientContactActieTypeWrapper = afspraak.getVanaf().compareTo(dateSupplier.getDate()) < 0
 							? ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN
 							: ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_WIJZIGEN;
 
-						setResponsePage(new MammaAfspraakVerzettenAfmeldenPage(ModelUtil.sModel(afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient()),
+						setResponsePage(new ClientContactPage(ModelUtil.sModel(afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient()),
 							extraParameters, clientContactActieTypeWrapper));
 					}
 				};

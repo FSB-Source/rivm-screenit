@@ -23,6 +23,7 @@ package nl.rivm.screenit.main.service.mamma;
 
 import java.io.File;
 import java.io.InputStream;
+import java.time.LocalDate;
 import java.util.List;
 
 import nl.rivm.screenit.main.model.testen.TestTimelineModel;
@@ -37,7 +38,6 @@ import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaLezing;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
-import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.enums.MammaDenseWaarde;
 import nl.rivm.screenit.model.mamma.enums.OnderbrokenOnderzoekOption;
@@ -79,8 +79,6 @@ public interface MammaTestTimelineService
 
 	int importPocClienten(File file, InstellingGebruiker instellingGebruiker, MammaScreeningsEenheid screeningsEenheid, ImportPocOpties importPocOpties);
 
-	void setUitnodigingsNr(MammaScreeningRonde afspraak, Long uitnodigingsNr);
-
 	void doorvoerenAdhocMeekijkverzoek(MammaOnderzoek onderzoek);
 
 	void doorvoerenOnderzoekStarten(MammaAfspraak afspraak, InstellingGebruiker ingelogdeInstellingGebruiker, boolean verstuurHl7Berichten);
@@ -94,4 +92,6 @@ public interface MammaTestTimelineService
 	String getBsnsMetBeeldenBeschikbaar();
 
 	String clientenResetten(String bsns);
+
+	List<MammaAfspraak> readAfsprakenWaarvanOnderzoekNietIsDoorgevoerd(LocalDate vandaag, String seCode);
 }

@@ -22,16 +22,21 @@ package nl.rivm.screenit.dao.mamma.impl;
  */
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.RequiredArgsConstructor;
+
+import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.mamma.MammaBaseCapaciteitsBlokDao;
 import nl.rivm.screenit.dto.mamma.afspraken.MammaAfspraakDto;
+import nl.rivm.screenit.dto.mamma.afspraken.MammaAfspraakReserveringView;
 import nl.rivm.screenit.dto.mamma.afspraken.MammaCapaciteitBlokDto;
+import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.mamma.MammaBlokkade;
 import nl.rivm.screenit.model.mamma.MammaCapaciteitBlok;
@@ -40,8 +45,11 @@ import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.enums.MammaCapaciteitBlokType;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
 import nl.rivm.screenit.model.mamma.enums.MammaFactorType;
+import nl.rivm.screenit.repository.mamma.MammaAfspraakReserveringRepository;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
+import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.hibernate.Criteria;
 import org.hibernate.Hibernate;
@@ -49,7 +57,6 @@ import org.hibernate.HibernateException;
 import org.hibernate.criterion.CriteriaQuery;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
@@ -57,24 +64,27 @@ import org.hibernate.criterion.Subqueries;
 import org.hibernate.engine.spi.TypedValue;
 import org.hibernate.sql.JoinType;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+@RequiredArgsConstructor
 public class MammaBaseCapaciteitsBlokDaoImpl extends AbstractAutowiredDao implements MammaBaseCapaciteitsBlokDao
 {
+	private final MammaAfspraakReserveringRepository afspraakReserveringRepository;
+
+	private final SimplePreferenceService preferenceService;
+
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	public List<MammaCapaciteitBlok> getCapaciteitsBlokken(MammaScreeningsEenheid screeningEenheid, Date start, Date end, Collection<MammaCapaciteitBlokType> blokTypes)
 	{
-		Criteria crit = getCapaciteitsBlokkenCriteria(screeningEenheid, start, end, blokTypes);
+		var crit = getCapaciteitsBlokkenCriteria(screeningEenheid, start, end, blokTypes);
 		return crit.list();
 	}
 
 	private Criteria getCapaciteitsBlokkenCriteria(MammaScreeningsEenheid screeningEenheid, Date start, Date end, Collection<MammaCapaciteitBlokType> blokTypes)
 	{
-		Criteria crit = getSession().createCriteria(MammaCapaciteitBlok.class);
+		var crit = getSession().createCriteria(MammaCapaciteitBlok.class);
 		crit.add(Restrictions.eq("screeningsEenheid", screeningEenheid));
 		crit.add(Restrictions.le("vanaf", end));
 		crit.add(Restrictions.ge("tot", start));
@@ -88,12 +98,12 @@ public class MammaBaseCapaciteitsBlokDaoImpl extends AbstractAutowiredDao implem
 
 	@Override
 	public Collection<MammaCapaciteitBlokDto> getNietGeblokkeerdeCapaciteitsBlokDtos(MammaStandplaatsPeriode standplaatsPeriode, Date start, Date end,
-		Collection<MammaCapaciteitBlokType> blokTypes)
+		Collection<MammaCapaciteitBlokType> blokTypes, Client client)
 	{
-		MammaScreeningsEenheid screeningsEenheid = standplaatsPeriode.getScreeningsEenheid();
-		ScreeningOrganisatie screeningOrganisatie = (ScreeningOrganisatie) Hibernate.unproxy(screeningsEenheid.getBeoordelingsEenheid().getParent().getRegio());
+		var screeningsEenheid = standplaatsPeriode.getScreeningsEenheid();
+		var screeningOrganisatie = (ScreeningOrganisatie) Hibernate.unproxy(screeningsEenheid.getBeoordelingsEenheid().getParent().getRegio());
 
-		Criteria crit = getSession().createCriteria(MammaCapaciteitBlok.class, "blok");
+		var crit = getSession().createCriteria(MammaCapaciteitBlok.class, "blok");
 
 		crit.createAlias("blok.afspraken", "afspraak", JoinType.LEFT_OUTER_JOIN);
 		crit.createAlias("afspraak.uitnodiging", "uitnodiging", JoinType.LEFT_OUTER_JOIN);
@@ -112,7 +122,7 @@ public class MammaBaseCapaciteitsBlokDaoImpl extends AbstractAutowiredDao implem
 
 		crit.add(Restrictions.or(Restrictions.isNull("afspraak.id"), Restrictions.eqProperty("uitnodiging.laatsteAfspraak.id", "afspraak.id")));
 
-		DetachedCriteria blokkadesOpEenBlokSubquery = DetachedCriteria.forClass(MammaBlokkade.class, "blokkade");
+		var blokkadesOpEenBlokSubquery = DetachedCriteria.forClass(MammaBlokkade.class, "blokkade");
 		blokkadesOpEenBlokSubquery.setProjection(Projections.id());
 		blokkadesOpEenBlokSubquery.add(Restrictions.eq("blokkade.actief", true));
 		blokkadesOpEenBlokSubquery.add(Restrictions.le("blokkade.vanaf", end));
@@ -120,7 +130,7 @@ public class MammaBaseCapaciteitsBlokDaoImpl extends AbstractAutowiredDao implem
 		blokkadesOpEenBlokSubquery.add(new ToDatePropertyExpression("blokkade.vanaf", "blok.tot", "<="));
 		blokkadesOpEenBlokSubquery.add(new ToDatePropertyExpression("blokkade.totEnMet", "blok.tot", ">="));
 
-		Disjunction blokkadeTypeDisjunction = Restrictions.disjunction();
+		var blokkadeTypeDisjunction = Restrictions.disjunction();
 		blokkadesOpEenBlokSubquery.add(blokkadeTypeDisjunction);
 
 		blokkadeTypeDisjunction.add(Restrictions.eq("blokkade.screeningsEenheid.id", screeningsEenheid.getId()));
@@ -153,25 +163,12 @@ public class MammaBaseCapaciteitsBlokDaoImpl extends AbstractAutowiredDao implem
 		);
 
 		Map<Long, MammaCapaciteitBlokDto> capaciteitBlokDtoMap = new HashMap<>();
-		MammaAfspraakDto vorigeAfspraakDto = null;
-		MammaCapaciteitBlokDto vorigeCapaciteitBlokDto = null;
 		List<Object[]> list = crit.list();
-		for (Object[] rowItems : list)
+		for (var rowItems : list)
 		{
-			Long capaciteitBlokId = (Long) rowItems[1];
-			LocalDateTime afspraakVanaf = DateUtil.toLocalDateTime((Date) rowItems[0]);
-			MammaCapaciteitBlokDto capaciteitBlokDto = capaciteitBlokDtoMap.get(capaciteitBlokId);
-			if (vorigeAfspraakDto != null)
-			{
-				if (capaciteitBlokDto != null)
-				{
-					vorigeAfspraakDto.setTot(afspraakVanaf.toLocalTime());
-				}
-				else if (vorigeCapaciteitBlokDto != null)
-				{
-					vorigeAfspraakDto.setTot(vorigeCapaciteitBlokDto.tot);
-				}
-			}
+			var capaciteitBlokId = (Long) rowItems[1];
+			var afspraakVanaf = DateUtil.toLocalDateTime((Date) rowItems[0]);
+			var capaciteitBlokDto = capaciteitBlokDtoMap.get(capaciteitBlokId);
 			if (capaciteitBlokDto == null)
 			{
 				capaciteitBlokDto = new MammaCapaciteitBlokDto();
@@ -181,44 +178,88 @@ public class MammaBaseCapaciteitsBlokDaoImpl extends AbstractAutowiredDao implem
 				capaciteitBlokDto.blokType = (MammaCapaciteitBlokType) rowItems[8];
 				capaciteitBlokDto.aantalOnderzoeken = (Integer) rowItems[9];
 				capaciteitBlokDto.minderValideAfspraakMogelijk = (Boolean) rowItems[10];
-				BigDecimal aantalOnderzoeken = new BigDecimal(capaciteitBlokDto.aantalOnderzoeken);
+				var aantalOnderzoeken = new BigDecimal(capaciteitBlokDto.aantalOnderzoeken);
 				capaciteitBlokDto.beschikbareCapaciteit = aantalOnderzoeken.multiply(capaciteitBlokDto.blokType.getFactorType().getFactor(screeningOrganisatie));
 				capaciteitBlokDto.standplaatsPeriode = standplaatsPeriode;
 				capaciteitBlokDtoMap.put(capaciteitBlokId, capaciteitBlokDto);
-				vorigeAfspraakDto = null;
-				vorigeCapaciteitBlokDto = capaciteitBlokDto;
 			}
 			if (afspraakVanaf != null)
 			{
-				MammaDoelgroep doelgroep = (MammaDoelgroep) rowItems[2];
-				Long tehuisId = (Long) rowItems[3];
-				Boolean eersteOnderzoek = (Boolean) rowItems[4];
-				BigDecimal opkomstkans = (BigDecimal) rowItems[5];
-				BigDecimal factor = MammaFactorType.getFactorType(tehuisId != null, doelgroep, eersteOnderzoek).getFactor(screeningOrganisatie);
-				MammaAfspraakDto afspraakDto = new MammaAfspraakDto();
+				var doelgroep = (MammaDoelgroep) rowItems[2];
+				var tehuisId = (Long) rowItems[3];
+				var eersteOnderzoek = (Boolean) rowItems[4];
+				var opkomstkans = (BigDecimal) rowItems[5];
+				var factor = MammaFactorType.getFactorType(tehuisId != null, doelgroep, eersteOnderzoek).getFactor(screeningOrganisatie);
+				var afspraakDto = new MammaAfspraakDto();
 				afspraakDto.setCapaciteitBlokDto(capaciteitBlokDto);
 				afspraakDto.setVanaf(afspraakVanaf);
 				afspraakDto.setBenodigdeCapaciteit(factor.multiply(opkomstkans));
 				afspraakDto.setMinderValide(doelgroep.equals(MammaDoelgroep.MINDER_VALIDE));
 				afspraakDto.setDubbeleTijd(doelgroep.equals(MammaDoelgroep.DUBBELE_TIJD));
 				capaciteitBlokDto.afspraakDtos.add(afspraakDto);
-				vorigeAfspraakDto = afspraakDto;
 			}
-			BigDecimal benodigdeCapaciteit = capaciteitBlokDto.afspraakDtos.stream().map(MammaAfspraakDto::getBenodigdeCapaciteit).reduce(BigDecimal.ZERO,
+			var benodigdeCapaciteit = capaciteitBlokDto.afspraakDtos.stream().map(MammaAfspraakDto::getBenodigdeCapaciteit).reduce(BigDecimal.ZERO,
 				BigDecimal::add);
 			capaciteitBlokDto.vrijeCapaciteit = capaciteitBlokDto.beschikbareCapaciteit.subtract(benodigdeCapaciteit);
 		}
-		if (vorigeAfspraakDto != null && vorigeCapaciteitBlokDto != null)
-		{
-			vorigeAfspraakDto.setTot(vorigeCapaciteitBlokDto.tot);
-		}
+		haalAfspraakReserveringenOpEnVoegToeAanCapaciteitBlokken(capaciteitBlokDtoMap, screeningOrganisatie, client);
+		sorteerCapaciteitBlokkenOpAfspraakTijdEnZetAfspraakTot(capaciteitBlokDtoMap);
 		return capaciteitBlokDtoMap.values();
+	}
+
+	private void haalAfspraakReserveringenOpEnVoegToeAanCapaciteitBlokken(Map<Long, MammaCapaciteitBlokDto> capaciteitBlokDtoMap, ScreeningOrganisatie screeningOrganisatie,
+		Client client)
+	{
+		var maximaleReserveringsTijd = preferenceService.getInteger(PreferenceKey.MAMMA_AFSPRAAK_RESERVERING_GELDIG_VOOR.name(), 0);
+		var vroegstOpTeHalenReservering = currentDateSupplier.getLocalDateTime().minusMinutes(maximaleReserveringsTijd);
+
+		var capaciteitblokIds = capaciteitBlokDtoMap.keySet();
+		var clientId = client != null ? client.getId() : null;
+		var reserveringDtos = afspraakReserveringRepository.haalReserveringenOpVoorCapaciteitsblokken(vroegstOpTeHalenReservering, capaciteitblokIds, clientId);
+		reserveringDtos.forEach(reservering -> converteerReserveringNaarAfspraakInCapaciteitBlok(reservering, capaciteitBlokDtoMap, screeningOrganisatie));
+	}
+
+	private void converteerReserveringNaarAfspraakInCapaciteitBlok(MammaAfspraakReserveringView reservering, Map<Long, MammaCapaciteitBlokDto> capaciteitBlokDtoMap,
+		ScreeningOrganisatie screeningOrganisatie)
+	{
+		var doelgroep = reservering.getDoelgroep();
+		var factor = MammaFactorType.getFactorType(reservering.getTehuisId() != null, doelgroep, reservering.getEersteOnderzoek()).getFactor(screeningOrganisatie);
+
+		var capaciteitBlokDto = capaciteitBlokDtoMap.get(reservering.getCapaciteitBlokId());
+		var afspraakDto = new MammaAfspraakDto();
+		afspraakDto.setCapaciteitBlokDto(capaciteitBlokDto);
+		afspraakDto.setVanaf(reservering.getVanaf());
+		afspraakDto.setBenodigdeCapaciteit(factor.multiply(reservering.getOpkomstkans()));
+		afspraakDto.setMinderValide(doelgroep.equals(MammaDoelgroep.MINDER_VALIDE));
+		afspraakDto.setDubbeleTijd(doelgroep.equals(MammaDoelgroep.DUBBELE_TIJD));
+		capaciteitBlokDto.afspraakDtos.add(afspraakDto);
+	}
+
+	private void sorteerCapaciteitBlokkenOpAfspraakTijdEnZetAfspraakTot(Map<Long, MammaCapaciteitBlokDto> capaciteitBlokDtoMap)
+	{
+		capaciteitBlokDtoMap.values().forEach(capaciteitBlokDto ->
+		{
+			capaciteitBlokDto.afspraakDtos.sort(Comparator.comparing(MammaAfspraakDto::getVanaf));
+			MammaAfspraakDto vorigeAfspraakDto = null;
+			for (var afspraakDto : capaciteitBlokDto.afspraakDtos)
+			{
+				if (vorigeAfspraakDto != null)
+				{
+					vorigeAfspraakDto.setTot(afspraakDto.getVanaf().toLocalTime());
+				}
+				vorigeAfspraakDto = afspraakDto;
+			}
+			if (vorigeAfspraakDto != null)
+			{
+				vorigeAfspraakDto.setTot(capaciteitBlokDto.tot);
+			}
+		});
 	}
 
 	@Override
 	public Long countCapaciteitsBlokken(MammaScreeningsEenheid screeningEenheid, Date start, Date end, Collection<MammaCapaciteitBlokType> blokTypes)
 	{
-		Criteria crit = getCapaciteitsBlokkenCriteria(screeningEenheid, start, end, blokTypes);
+		var crit = getCapaciteitsBlokkenCriteria(screeningEenheid, start, end, blokTypes);
 		crit.setProjection(Projections.rowCount());
 		return (Long) crit.uniqueResult();
 	}
@@ -243,10 +284,10 @@ public class MammaBaseCapaciteitsBlokDaoImpl extends AbstractAutowiredDao implem
 		@Override
 		public String toSqlString(Criteria criteria, CriteriaQuery criteriaQuery) throws HibernateException
 		{
-			final String[] lhsColumns = criteriaQuery.findColumns(propertyName, criteria);
-			final String[] rhsColumns = criteriaQuery.findColumns(otherPropertyName, criteria);
+			final var lhsColumns = criteriaQuery.findColumns(propertyName, criteria);
+			final var rhsColumns = criteriaQuery.findColumns(otherPropertyName, criteria);
 
-			return "date(" + lhsColumns[0] + ")" + op + "date(" + rhsColumns[0] + ")";
+			return lhsColumns[0] + "::date " + op + rhsColumns[0] + "::date";
 		}
 
 		@Override

@@ -36,9 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.mamma.MammaBaseBeoordelingDao;
-import nl.rivm.screenit.dao.mamma.MammaBaseKwaliteitscontroleDao;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.EnovationHuisarts;
 import nl.rivm.screenit.model.INaam;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -53,7 +51,6 @@ import nl.rivm.screenit.model.mamma.MammaAsymmetrieLaesie;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaCalcificatiesLaesie;
 import nl.rivm.screenit.model.mamma.MammaDossier;
-import nl.rivm.screenit.model.mamma.MammaFotobesprekingOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaLaesie;
 import nl.rivm.screenit.model.mamma.MammaLaesieIcoon;
 import nl.rivm.screenit.model.mamma.MammaLezing;
@@ -77,6 +74,7 @@ import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingReserveringService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.MammaBaseFollowUpService;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
+import nl.rivm.screenit.service.mamma.MammaBaseKwaliteitscontroleService;
 import nl.rivm.screenit.service.mamma.MammaBaseLezingService;
 import nl.rivm.screenit.service.mamma.MammaBaseOnderzoekService;
 import nl.rivm.screenit.service.mamma.MammaHuisartsBerichtService;
@@ -92,11 +90,9 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.REQUIRED)
 @Slf4j
 public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingService
 {
@@ -135,7 +131,7 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	private MammaBaseFollowUpService followUpService;
 
 	@Autowired
-	private MammaBaseKwaliteitscontroleDao baseKwaliteitscontroleDao;
+	private MammaBaseKwaliteitscontroleService baseKwaliteitscontroleService;
 
 	@Autowired
 	private MammaBaseOnderzoekService onderzoekService;
@@ -150,21 +146,18 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	private MammaVolgendeUitnodigingService volgendeUitnodigingService;
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean isBiradsVerwijzen(MammaBIRADSWaarde biradsWaarde)
 	{
 		return MammaBIRADSWaarde.getVerwijzendBIRADSWaarden().contains(biradsWaarde);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean isBiradsNietVerwijzen(MammaBIRADSWaarde biradsWaarde)
 	{
 		return MammaBIRADSWaarde.getNietVerwijzendBIRADSWaarden().contains(biradsWaarde);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean isLezingVerwijzen(MammaLezing lezing)
 	{
 		return isBiradsVerwijzen(lezing.getBiradsLinks()) || isBiradsVerwijzen(lezing.getBiradsRechts());
@@ -177,6 +170,7 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	}
 
 	@Override
+	@Transactional
 	public void bevestigLezing(MammaBeoordeling beoordeling, boolean verstuurHl7Berichten)
 	{
 		if (MammaBeoordelingStatus.EERSTE_LEZING_OPGESLAGEN.equals(beoordeling.getStatus()))
@@ -205,8 +199,8 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 
 	private boolean isBeoordelingDiscrepant(MammaBeoordeling beoordeling)
 	{
-		MammaBIRADSWaarde birads1 = getHoogsteBirads(beoordeling.getEersteLezing());
-		MammaBIRADSWaarde birads2 = getHoogsteBirads(beoordeling.getTweedeLezing());
+		var birads1 = getHoogsteBirads(beoordeling.getEersteLezing());
+		var birads2 = getHoogsteBirads(beoordeling.getTweedeLezing());
 
 		return isBiradsDiscrepant(birads1, birads2);
 	}
@@ -235,7 +229,7 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	public void verstuurXdsBericht(MammaBeoordeling beoordeling)
 	{
 		beoordeling.setXdsVerslagStatus(XdsStatus.TE_VERZENDEN);
-		MammaDossier dossier = getScreeningRonde(beoordeling).getDossier();
+		var dossier = getScreeningRonde(beoordeling).getDossier();
 		if (dossier.getXdsStatus() == XdsStatus.NIET_AANGEMELD)
 		{
 			dossier.setXdsStatus(XdsStatus.TE_VERZENDEN);
@@ -244,6 +238,7 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	}
 
 	@Override
+	@Transactional
 	public void opgeschortOnderzoekTerugNaarWerklijst(MammaBeoordeling beoordeling)
 	{
 		beoordeling.setOpschortGebruiker(null);
@@ -259,6 +254,7 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	}
 
 	@Override
+	@Transactional
 	public void discrepantieAfrondenEnNaarArbitrageZetten(MammaBeoordeling beoordeling, MammaLezing discrepantieLezing)
 	{
 		if (MammaBeoordelingStatus.DISCREPANTIE.equals(beoordeling.getStatus()))
@@ -273,6 +269,7 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	}
 
 	@Override
+	@Transactional
 	public void setStatusNaarVerslagGereed(MammaBeoordeling beoordeling)
 	{
 		if (MammaBeoordelingStatus.VERSLAG_MAKEN.equals(beoordeling.getStatus()) || MammaBeoordelingStatus.VERSLAG_AFGEKEURD.equals(beoordeling.getStatus()))
@@ -287,7 +284,6 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean isDiscrepantieVerwijzingVerplicht(MammaBeoordeling beoordeling, MammaZijde zijde)
 	{
 		return MammaBeoordelingStatus.DISCREPANTIE.equals(beoordeling.getStatus()) && isBiradsDiscrepantOpZijde(beoordeling, zijde);
@@ -295,8 +291,8 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 
 	private boolean isBiradsDiscrepantOpZijde(MammaBeoordeling beoordeling, MammaZijde zijde)
 	{
-		MammaBIRADSWaarde birads1 = getBirads(beoordeling.getEersteLezing(), zijde);
-		MammaBIRADSWaarde birads2 = getBirads(beoordeling.getTweedeLezing(), zijde);
+		var birads1 = getBirads(beoordeling.getEersteLezing(), zijde);
+		var birads2 = getBirads(beoordeling.getTweedeLezing(), zijde);
 
 		return isBiradsDiscrepant(birads1, birads2);
 	}
@@ -307,7 +303,6 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public MammaBIRADSWaarde defaultBiradsWaarde(MammaBeoordeling beoordeling, MammaZijde zijde)
 	{
 		if (MammaBeoordelingStatus.EERSTE_LEZING.equals(beoordeling.getStatus()) || MammaBeoordelingStatus.TWEEDE_LEZING.equals(beoordeling.getStatus()))
@@ -326,6 +321,7 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	}
 
 	@Override
+	@Transactional
 	public void slaLezingOpEnVerwerkStatus(MammaBeoordeling beoordeling, MammaLezing lezing, InstellingGebruiker gebruiker, StringResolver stringResolverMethod)
 	{
 		wisBiradsBijOnbeoordeelbaar(lezing);
@@ -362,6 +358,7 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	}
 
 	@Override
+	@Transactional
 	public void verwerkBeoordelingStatusGunstigMetNevenbevindingen(MammaBeoordeling beoordeling)
 	{
 		bepaalVervolgStapEnZetStatus(beoordeling, true);
@@ -378,6 +375,7 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	}
 
 	@Override
+	@Transactional
 	public void slaLezingOp(MammaBeoordeling beoordeling, MammaLezing lezing)
 	{
 		koppelLezingAanBeoordeling(beoordeling, lezing);
@@ -436,13 +434,13 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 
 	private void valideerGeldigeBeoordelaarDiscrepantieOfArbitrage(MammaBeoordeling beoordeling, MammaLezing lezing)
 	{
-		InstellingGebruiker huidigeBeoordelaar = lezing.getBeoordelaar();
-		boolean isBeoordeeldDoorEersteOfTweedeBeoordelaar = beoordeling.getEersteLezing().getBeoordelaar().equals(huidigeBeoordelaar) ||
+		var huidigeBeoordelaar = lezing.getBeoordelaar();
+		var isBeoordeeldDoorEersteOfTweedeBeoordelaar = beoordeling.getEersteLezing().getBeoordelaar().equals(huidigeBeoordelaar) ||
 			beoordeling.getTweedeLezing().getBeoordelaar().equals(huidigeBeoordelaar);
 
-		boolean discrepantieSituatie = MammaLezingType.DISCREPANTIE_LEZING.equals(lezing.getLezingType())
+		var discrepantieSituatie = MammaLezingType.DISCREPANTIE_LEZING.equals(lezing.getLezingType())
 			&& (isBeoordeeldDoorEersteOfTweedeBeoordelaar || huidigeBeoordelaar == null);
-		boolean arbitrageSituatie = MammaLezingType.ARBITRAGE_LEZING.equals(lezing.getLezingType()) && !isBeoordeeldDoorEersteOfTweedeBeoordelaar;
+		var arbitrageSituatie = MammaLezingType.ARBITRAGE_LEZING.equals(lezing.getLezingType()) && !isBeoordeeldDoorEersteOfTweedeBeoordelaar;
 
 		if (!discrepantieSituatie && !arbitrageSituatie)
 		{
@@ -451,34 +449,32 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public MammaScreeningRonde getScreeningRonde(MammaBeoordeling beoordeling)
 	{
 		return beoordeling.getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde();
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public MammaBeoordeling getBeoordelingVanLezing(MammaLezing lezing)
 	{
 		return baseBeoordelingDao.getBeoordelingVanLezing(lezing);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public Client getClientVanBeoordeling(MammaBeoordeling beoordeling)
 	{
 		return getScreeningRonde(beoordeling).getDossier().getClient();
 	}
 
 	@Override
+	@Transactional
 	public void setStatus(MammaBeoordeling beoordeling, MammaBeoordelingStatus status)
 	{
 		beoordeling.setStatus(status);
 		beoordeling.setStatusDatum(currentDateSupplier.getDate());
 		if (MammaBeoordelingStatus.isUitslagStatus(status))
 		{
-			MammaDossier dossier = beoordeling.getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().getDossier();
+			var dossier = beoordeling.getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().getDossier();
 			dossier.setLaatsteBeoordelingMetUitslag(beoordeling);
 			hibernateService.saveOrUpdate(dossier);
 			followUpService.refreshUpdateFollowUpConclusie(dossier);
@@ -495,7 +491,7 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 		beoordeling.setToegewezenGebruiker(gebruiker);
 		beoordeling.setToegewezenOp(currentDateSupplier.getDate());
 		String melding;
-		MammaBeoordeling vorigeBeoordeling = EntityAuditUtil.getLastVersionOfEntity(beoordeling, hibernateService.getHibernateSession());
+		var vorigeBeoordeling = EntityAuditUtil.getLastVersionOfEntity(beoordeling, hibernateService.getHibernateSession());
 		if (beoordeling.getVerslagLezing() != null && vorigeBeoordeling != null)
 		{
 			if (vorigeBeoordeling.getToegewezenGebruiker() != null && vorigeBeoordeling.getToegewezenOp() != null)
@@ -530,8 +526,8 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 		}
 		else
 		{
-			MammaBIRADSWaarde biradsEen = getBirads(beoordeling.getEersteLezing(), zijde);
-			MammaBIRADSWaarde biradsTwee = getBirads(beoordeling.getTweedeLezing(), zijde);
+			var biradsEen = getBirads(beoordeling.getEersteLezing(), zijde);
+			var biradsTwee = getBirads(beoordeling.getTweedeLezing(), zijde);
 			return biradsEen.equals(biradsTwee) ? biradsEen : null;
 		}
 	}
@@ -568,7 +564,7 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 		}
 		else
 		{
-			boolean heeftOnderzoekNevenbevindingen = heeftOnderzoekNevenbevindingen(beoordeling);
+			var heeftOnderzoekNevenbevindingen = heeftOnderzoekNevenbevindingen(beoordeling);
 			if (heeftOnderzoekNevenbevindingen && (MammaBeoordelingStatus.TWEEDE_LEZING_OPGESLAGEN.equals(beoordeling.getStatus()) ||
 				MammaBeoordelingStatus.ARBITRAGE.equals(beoordeling.getStatus())))
 			{
@@ -582,8 +578,8 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 					hl7BerichtenToBatchService.queueMammaHL7v24BerichtUitgaand(getClientVanBeoordeling(beoordeling), MammaHL7v24ORMBerichtStatus.AUTHORISED);
 				}
 
-				MammaScreeningRonde ronde = getScreeningRonde(beoordeling);
-				final MammaBeperktBeoordeelbaarReden beperktBeoordeelbaarReden = MammaBeoordelingUtil.beperktBeoordeelbaarReden(beoordeling);
+				var ronde = getScreeningRonde(beoordeling);
+				final var beperktBeoordeelbaarReden = MammaBeoordelingUtil.beperktBeoordeelbaarReden(beoordeling);
 				if (beperktBeoordeelbaarReden == null)
 				{
 					maakGunstigeUitlagBrief(ronde, BriefType.MAMMA_GUNSTIGE_UITSLAG, false);
@@ -597,8 +593,8 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 						maakGunstigeUitlagBrief(ronde, BriefType.MAMMA_BEPERKT_BEOORDEELBAAR, false);
 						break;
 					case PROTHESE_MEER_DAN_0_PUNT_8:
-						boolean gunstigeUitslagBriefIsGemaakt = maakGunstigeUitlagBrief(ronde, BriefType.MAMMA_BEPERKT_BEOORDEELBAAR_PROTHESE, false);
-						final EnovationHuisarts huisarts = beoordeling.getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().getHuisarts();
+						var gunstigeUitslagBriefIsGemaakt = maakGunstigeUitlagBrief(ronde, BriefType.MAMMA_BEPERKT_BEOORDEELBAAR_PROTHESE, false);
+						final var huisarts = beoordeling.getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().getHuisarts();
 						if (huisarts != null && gunstigeUitslagBriefIsGemaakt)
 						{
 							huisartsBerichtService.verstuurHuisartsBericht(beoordeling, huisarts, HuisartsBerichtType.MAMMA_PROTHESE_MEER_DAN_80_PROCENT, false);
@@ -668,9 +664,9 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	@Override
 	public MammaLezing maakVerslagLezing(MammaBeoordeling beoordeling, MammaLezing uitgangsituatieLezing, InstellingGebruiker beoordelaar, boolean onervarenRadioloog)
 	{
-		MammaLezing verslagLezing = new MammaLezing();
+		var verslagLezing = new MammaLezing();
 		verslagLezing.setLezingType(MammaLezingType.VERSLAG_LEZING);
-		List<MammaLaesie> mammaLaesies = createMammaLaesies(uitgangsituatieLezing, verslagLezing);
+		var mammaLaesies = createMammaLaesies(uitgangsituatieLezing, verslagLezing);
 		verslagLezing.setLaesies(mammaLaesies);
 		verslagLezing.setBeoordelaar(beoordelaar);
 		verslagLezing.setOnervarenRadioloog(onervarenRadioloog);
@@ -682,9 +678,9 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	private List<MammaLaesie> createMammaLaesies(MammaLezing uitgangsituatieLezing, MammaLezing verslagLezing)
 	{
 		List<MammaLaesie> mammaLaesies = new ArrayList<>();
-		for (MammaLaesie mammaLaesie : uitgangsituatieLezing.getLaesies())
+		for (var mammaLaesie : uitgangsituatieLezing.getLaesies())
 		{
-			MammaLaesie kopieMammaLaesie = cloneLaesie(mammaLaesie);
+			var kopieMammaLaesie = cloneLaesie(mammaLaesie);
 			kopieMammaLaesie.setLezing(verslagLezing);
 			mammaLaesies.add(kopieMammaLaesie);
 		}
@@ -693,17 +689,17 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 
 	private MammaLaesie cloneLaesie(MammaLaesie mammaLaesie)
 	{
-		MammaLaesie kopieMammaLaesie = createLaesie(mammaLaesie.getMammaLaesieType());
+		var kopieMammaLaesie = createLaesie(mammaLaesie.getMammaLaesieType());
 		kopieMammaLaesie.setMammaZijde(mammaLaesie.getMammaZijde());
 		kopieMammaLaesie.setNummer(mammaLaesie.getNummer());
 		if (mammaLaesie.getHorizontaleDoorsnedeIcoon() != null)
 		{
-			MammaLaesieIcoon mammaLaesieIcoonHorizontaal = cloneMammaLaesieIcoon(mammaLaesie.getHorizontaleDoorsnedeIcoon());
+			var mammaLaesieIcoonHorizontaal = cloneMammaLaesieIcoon(mammaLaesie.getHorizontaleDoorsnedeIcoon());
 			kopieMammaLaesie.setHorizontaleDoorsnedeIcoon(mammaLaesieIcoonHorizontaal);
 		}
 		if (mammaLaesie.getVerticaleDoorsnedeIcoon() != null)
 		{
-			MammaLaesieIcoon mammaLaesieIcoonVerticaal = cloneMammaLaesieIcoon(mammaLaesie.getVerticaleDoorsnedeIcoon());
+			var mammaLaesieIcoonVerticaal = cloneMammaLaesieIcoon(mammaLaesie.getVerticaleDoorsnedeIcoon());
 			kopieMammaLaesie.setVerticaleDoorsnedeIcoon(mammaLaesieIcoonVerticaal);
 		}
 		return kopieMammaLaesie;
@@ -728,14 +724,13 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 
 	private MammaLaesieIcoon cloneMammaLaesieIcoon(MammaLaesieIcoon mammaLaesieIcoon)
 	{
-		MammaLaesieIcoon kopieMammaLaesieIcoon = new MammaLaesieIcoon();
+		var kopieMammaLaesieIcoon = new MammaLaesieIcoon();
 		kopieMammaLaesieIcoon.setPositieX(mammaLaesieIcoon.getPositieX());
 		kopieMammaLaesieIcoon.setPositieY(mammaLaesieIcoon.getPositieY());
 		return kopieMammaLaesieIcoon;
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public Boolean isUitslagGunstig(MammaBeoordeling beoordeling)
 	{
 		if (beoordeling != null
@@ -743,17 +738,14 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 		{
 			return MammaBeoordelingStatus.UITSLAG_GUNSTIG.equals(beoordeling.getStatus());
 		}
-		else
-		{
-			return null;
-		}
+
+		return null;
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public MammaBIRADSWaarde getResultaatVoorZijde(MammaBeoordeling beoordeling, MammaZijde zijde)
 	{
-		Boolean uitslagGunstig = isUitslagGunstig(beoordeling);
+		var uitslagGunstig = isUitslagGunstig(beoordeling);
 		if (uitslagGunstig == null)
 		{
 			return null;
@@ -777,10 +769,9 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean iBiradsWaardeGeen(MammaLezing verslagLezing, MammaZijde zijde)
 	{
-		MammaBIRADSWaarde biradsWaarde = getBirads(verslagLezing, zijde);
+		var biradsWaarde = getBirads(verslagLezing, zijde);
 		return MammaBIRADSWaarde.GEEN.equals(biradsWaarde);
 	}
 
@@ -806,11 +797,10 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public MammaLezing getOrineleVerslagLezing(MammaBeoordeling beoordeling)
 	{
-		List<Object[]> entityHistory = EntityAuditUtil.getEntityHistory(beoordeling, hibernateService.getHibernateSession(), true);
-		for (int i = entityHistory.size(); i > 0; i--)
+		var entityHistory = EntityAuditUtil.getEntityHistory(beoordeling, hibernateService.getHibernateSession(), true);
+		for (var i = entityHistory.size(); i > 0; i--)
 		{
 			MammaBeoordeling beoordelingRev = EntityAuditUtil.getRevisionEntity(entityHistory.get(i - 1));
 			if (beoordelingRev.getToegewezenGebruiker() != null && beoordelingRev.getToegewezenOp() != null)
@@ -826,7 +816,6 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public String getMammaLezingEnumsTekst(Function<MammaLezing, List<? extends INaam>> getEnumListFromLezing, MammaLezing... lezingen)
 	{
 		if (Arrays.stream(lezingen).noneMatch(Objects::isNull))
@@ -846,10 +835,9 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<String> getNevenBevindingenOpmerkingenAsList(MammaBeoordeling beoordeling)
 	{
-		ArrayList<String> opmerkingen = new ArrayList<>();
+		var opmerkingen = new ArrayList<String>();
 		if (beoordeling != null && beoordeling.getEersteLezing() != null && beoordeling.getTweedeLezing() != null)
 		{
 			if (beoordeling.getEersteLezing().getNevenbevindingOpmerking() != null)
@@ -865,7 +853,6 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean heeftBeoordelingNevenbevindingen(MammaBeoordeling beoordeling)
 	{
 		return beoordeling.getEersteLezing() != null && beoordeling.getTweedeLezing() != null
@@ -873,12 +860,11 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public String getNevenbevindingOpmerkingTekst(String lineBreak, MammaLezing... lezingen)
 	{
 		if (lezingen != null && lezingen.length > 0)
 		{
-			String opmerkingen = Arrays.stream(lezingen)
+			var opmerkingen = Arrays.stream(lezingen)
 				.filter(Objects::nonNull)
 				.map(MammaLezing::getNevenbevindingOpmerking)
 				.filter(StringUtils::isNotBlank)
@@ -889,7 +875,6 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public MammaBeoordeling getBeoordelingMetVerslagLezing(MammaAfspraak afspraak)
 	{
 		if (afspraak != null && afspraak.getOnderzoek() != null)
@@ -908,7 +893,6 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public MammaBeoordeling getBeoordelingMetEersteEnOfTweedeLezing(MammaAfspraak afspraak)
 	{
 		if (afspraak != null && afspraak.getOnderzoek() != null)
@@ -946,19 +930,21 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	}
 
 	@Override
+	@Transactional
 	public void annuleerBeoordeling(MammaBeoordeling beoordeling)
 	{
 		setStatus(beoordeling, MammaBeoordelingStatus.GEANNULEERD);
 		hibernateService.saveOrUpdate(beoordeling);
 
-		MammaDossier dossier = beoordeling.getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().getDossier();
-		MammaBeoordeling laatsteBeoordelingMetUitslag = baseBeoordelingDao.getLaatsteBeoordelingMetUitslag(dossier);
+		var dossier = beoordeling.getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().getDossier();
+		var laatsteBeoordelingMetUitslag = baseBeoordelingDao.getLaatsteBeoordelingMetUitslag(dossier);
 		dossier.setLaatsteBeoordelingMetUitslag(laatsteBeoordelingMetUitslag);
 		hibernateService.saveOrUpdate(dossier);
 		followUpService.refreshUpdateFollowUpConclusie(dossier);
 	}
 
 	@Override
+	@Transactional
 	public void valideerEnHerbeoordeelBeoordeling(MammaBeoordeling laatsteBeoordeling, InstellingGebruiker ingelogdeGebruiker)
 	{
 		if (beoordelingReserveringService.gereserveerdDoorIemandAnders(ingelogdeGebruiker, laatsteBeoordeling))
@@ -976,18 +962,17 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean beoordelingZitInActieveFotobespreking(MammaBeoordeling beoordeling)
 	{
-		MammaScreeningRonde ronde = getScreeningRonde(beoordeling);
-		List<MammaFotobesprekingOnderzoek> fbOnderzoeken = baseKwaliteitscontroleDao.getKwaliteitscontroleOnderzoeken(ronde, MammaFotobesprekingOnderzoek.class);
-		return fbOnderzoeken.stream().anyMatch(fbOnderzoek -> fbOnderzoek.getFotobespreking().getAfgerondOp() == null && fbOnderzoek.getBeoordeling().equals(beoordeling));
+		var ronde = getScreeningRonde(beoordeling);
+		var onderzoeken = baseKwaliteitscontroleService.getFotobesprekingOnderzoeken(ronde);
+		return onderzoeken.stream().anyMatch(onderzoek -> onderzoek.getFotobespreking().getAfgerondOp() == null && onderzoek.getBeoordeling().equals(beoordeling));
 	}
 
 	private void herbeoordeelBeoordeling(MammaBeoordeling laatsteBeoordeling)
 	{
 		annuleerBeoordeling(laatsteBeoordeling);
-		MammaScreeningRonde ronde = getScreeningRonde(laatsteBeoordeling);
+		var ronde = getScreeningRonde(laatsteBeoordeling);
 		screeningrondeService.heropenScreeningRonde(ronde);
 		onderzoekService.voegNieuweBeoordelingToe(laatsteBeoordeling.getOnderzoek());
 
@@ -995,7 +980,6 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public MammaBeoordeling getLaatsteBeoordelingMetUitslag(MammaDossier dossier)
 	{
 		return baseBeoordelingDao.getLaatsteBeoordelingMetUitslag(dossier);

@@ -21,13 +21,14 @@ package nl.rivm.screenit.service.mamma;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.model.mamma.MammaDossier;
+import java.util.List;
+
+import nl.rivm.screenit.model.mamma.MammaFotobesprekingOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 
 public interface MammaBaseKwaliteitscontroleService
 {
-
-	void verwijderKwaliteitscontroleOnderzoeken(MammaDossier dossier);
+	List<MammaFotobesprekingOnderzoek> getFotobesprekingOnderzoeken(MammaScreeningRonde screeningRonde);
 
 	void verwijderKwaliteitscontroleOnderzoeken(MammaScreeningRonde screeningRonde);
 

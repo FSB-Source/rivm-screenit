@@ -32,12 +32,17 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 @Entity
+@Getter
+@Setter
 @Table(schema = "colon")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 public class IfobtVerwerkingRapportage extends AbstractHibernateObject
@@ -48,24 +53,4 @@ public class IfobtVerwerkingRapportage extends AbstractHibernateObject
 
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date datumVerwerking;
-
-	public Date getDatumVerwerking()
-	{
-		return datumVerwerking;
-	}
-
-	public void setDatumVerwerking(Date datumVerwerking)
-	{
-		this.datumVerwerking = datumVerwerking;
-	}
-
-	public List<IfobtVerwerkingRapportageEntry> getBestanden()
-	{
-		return bestanden;
-	}
-
-	public void setBestanden(List<IfobtVerwerkingRapportageEntry> bestanden)
-	{
-		this.bestanden = bestanden;
-	}
 }

@@ -26,12 +26,14 @@ import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling_;
 import nl.rivm.screenit.model.mamma.MammaDossier_;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.specification.SpecificationUtil;
+import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
 
 import org.springframework.data.jpa.domain.Specification;
 
@@ -48,5 +50,10 @@ public class MammaBeoordelingSpecification
 			var beoordelingJoin = SpecificationUtil.join(onderzoekJoin, MammaOnderzoek_.laatsteBeoordeling);
 			return cb.equal(beoordelingJoin.get(MammaBeoordeling_.status), status);
 		};
+	}
+
+	public static PathAwarePredicate<MammaBeoordeling> heeftStatusPredicate(MammaBeoordelingStatus status)
+	{
+		return (cb, r) -> cb.equal(r.get(MammaBeoordeling_.status), status);
 	}
 }

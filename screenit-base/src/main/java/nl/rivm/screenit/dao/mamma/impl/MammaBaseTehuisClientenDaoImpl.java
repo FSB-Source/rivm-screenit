@@ -28,7 +28,6 @@ import java.util.List;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.mamma.MammaBaseTehuisClientenDao;
-import nl.rivm.screenit.dao.mamma.MammaBaseTehuisDao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.enums.Deelnamemodus;
@@ -36,6 +35,7 @@ import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.model.mamma.MammaTehuis;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.mamma.MammaBaseTehuisService;
 import nl.rivm.screenit.service.mamma.enums.MammaTehuisSelectie;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.query.ScreenitRestrictions;
@@ -65,7 +65,7 @@ public class MammaBaseTehuisClientenDaoImpl extends AbstractAutowiredDao impleme
 	private ICurrentDateSupplier dateSupplier;
 
 	@Autowired
-	private MammaBaseTehuisDao tehuisDao;
+	private MammaBaseTehuisService tehuisService;
 
 	private NativeQuery createQuery(MammaTehuis tehuis, MammaTehuisSelectie tehuisSelectie, Adres zoekAdres, boolean count, String sortProperty, Boolean isAscending)
 	{
@@ -74,7 +74,7 @@ public class MammaBaseTehuisClientenDaoImpl extends AbstractAutowiredDao impleme
 		Integer maximaleLeeftijd = preferenceService.getInteger(PreferenceKey.MAMMA_MAXIMALE_LEEFTIJD.name());
 		Integer minimaleLeeftijd = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_LEEFTIJD.name());
 
-		MammaStandplaatsRonde huidigeStandplaatsRonde = tehuisDao.getHuidigeStandplaatsRonde(tehuis.getStandplaats());
+		MammaStandplaatsRonde huidigeStandplaatsRonde = tehuisService.getHuidigeStandplaatsRondeVoorStandplaats(tehuis.getStandplaats());
 		if (huidigeStandplaatsRonde == null)
 		{
 			return null;

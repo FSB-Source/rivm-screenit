@@ -24,11 +24,11 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.bmhklaboratoriu
 import java.util.Iterator;
 
 import nl.rivm.screenit.dto.cervix.facturatie.CervixVerrichtingenZoekObject;
+import nl.rivm.screenit.main.service.cervix.CervixVerrichtingService;
+import nl.rivm.screenit.main.util.WicketSpringDataUtil;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
-import nl.rivm.screenit.service.cervix.CervixVerrichtingService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -40,21 +40,21 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 public class CervixLabVerrichtingenDataProvider extends SortableDataProvider<CervixBoekRegel, String>
 {
 
-	private IModel<CervixVerrichtingenZoekObject> cervixVerrichtingenCriteria;
+	private final IModel<CervixVerrichtingenZoekObject> verrichtingenZoekObjectModel;
 
-	private IModel<BMHKLaboratorium> geselecteerdeOrganisatie;
+	private final IModel<BMHKLaboratorium> geselecteerdeOrganisatie;
 
-	private IModel<ScreeningOrganisatie> screeningOrganisatieModel;
+	private final IModel<ScreeningOrganisatie> screeningOrganisatieModel;
 
 	@SpringBean
-	private CervixVerrichtingService cervixVerrichtingService;
+	private CervixVerrichtingService verrichtingService;
 
-	public CervixLabVerrichtingenDataProvider(IModel<CervixVerrichtingenZoekObject> cervixVerrichtingenCriteria, IModel<ScreeningOrganisatie> screeningOrganisatieModel,
+	public CervixLabVerrichtingenDataProvider(IModel<CervixVerrichtingenZoekObject> verrichtingenZoekObjectModel, IModel<ScreeningOrganisatie> screeningOrganisatieModel,
 		IModel<BMHKLaboratorium> geselecteerdeOrganisatie)
 	{
 		Injector.get().inject(this);
 		setSort("verrichting.verrichtingsDatum", SortOrder.DESCENDING);
-		this.cervixVerrichtingenCriteria = cervixVerrichtingenCriteria;
+		this.verrichtingenZoekObjectModel = verrichtingenZoekObjectModel;
 		this.geselecteerdeOrganisatie = geselecteerdeOrganisatie;
 		this.screeningOrganisatieModel = screeningOrganisatieModel;
 	}
@@ -62,16 +62,16 @@ public class CervixLabVerrichtingenDataProvider extends SortableDataProvider<Cer
 	@Override
 	public Iterator<? extends CervixBoekRegel> iterator(long first, long count)
 	{
-		return cervixVerrichtingService.getLabVerrichtingen(cervixVerrichtingenCriteria.getObject(), screeningOrganisatieModel.getObject(), geselecteerdeOrganisatie.getObject(),
-			new SortState<>(getSort().getProperty(), getSort().isAscending()), first, count)
+		return verrichtingService.getLabVerrichtingen(verrichtingenZoekObjectModel.getObject(), screeningOrganisatieModel.getObject(), geselecteerdeOrganisatie.getObject(),
+				WicketSpringDataUtil.toSpringSort(getSort()), first, count)
 			.iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return cervixVerrichtingService
-			.countLabVerrichtingen(cervixVerrichtingenCriteria.getObject(), screeningOrganisatieModel.getObject(), geselecteerdeOrganisatie.getObject());
+		return verrichtingService
+			.countLabVerrichtingen(verrichtingenZoekObjectModel.getObject(), screeningOrganisatieModel.getObject(), geselecteerdeOrganisatie.getObject());
 	}
 
 	@Override
@@ -89,7 +89,7 @@ public class CervixLabVerrichtingenDataProvider extends SortableDataProvider<Cer
 	public void detach()
 	{
 		super.detach();
-		ModelUtil.nullSafeDetach(cervixVerrichtingenCriteria);
+		ModelUtil.nullSafeDetach(verrichtingenZoekObjectModel);
 		ModelUtil.nullSafeDetach(geselecteerdeOrganisatie);
 		ModelUtil.nullSafeDetach(screeningOrganisatieModel);
 	}

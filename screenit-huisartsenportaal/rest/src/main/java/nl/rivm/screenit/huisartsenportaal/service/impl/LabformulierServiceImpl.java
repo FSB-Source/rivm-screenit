@@ -41,13 +41,10 @@ import nl.rivm.screenit.huisartsenportaal.service.SynchronisatieService;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jms.IllegalStateException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
 public class LabformulierServiceImpl implements LabformulierService
 {
 	@Autowired
@@ -82,34 +79,7 @@ public class LabformulierServiceImpl implements LabformulierService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
-	public LabformulierAanvraag saveAanvraag(Huisarts huisarts, AanvraagDto aanvraagDto) throws IllegalStateException
-	{
-		Locatie locatie = null;
-		if (aanvraagDto.getLocatie() != null && aanvraagDto.getLocatie().getHuisartsportaalId() != null)
-		{
-			locatie = locatieRepository.findByHuisartsportaalId(aanvraagDto.getLocatie().getHuisartsportaalId());
-		}
-		if (locatie == null && aanvraagDto.getLocatie() != null && aanvraagDto.getLocatie().getScreenitId() != null)
-		{
-			locatie = locatieRepository.findByScreenitId(aanvraagDto.getLocatie().getScreenitId());
-		}
-
-		LabformulierAanvraag aanvraag = new LabformulierAanvraag();
-		aanvraag.setHuisarts(huisarts);
-		aanvraag.setLocatie(locatie);
-		aanvraag.setAantal(aanvraagDto.getAantal());
-		aanvraag.setAanvraagDatum(new Date());
-		aanvraag.setAangevraagdDoor(huisarts.getAchternaam());
-		aanvraag.setStatus(AanvraagStatus.AANGEVRAAGD);
-		aanvraag.setStatusDatum(new Date());
-		aanvragenRepository.save(aanvraag);
-
-		return aanvraag;
-	}
-
-	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public LabformulierAanvraag saveScreenITAanvraag(AanvraagDto aanvraagDto)
 	{
 
@@ -188,24 +158,6 @@ public class LabformulierServiceImpl implements LabformulierService
 		modelMapper.map(aanvraag, aanvraagDto);
 
 		return aanvraagDto;
-	}
-
-	@Override
-	public LabformulierAanvraag convertToEntity(AanvraagDto aanvraagDto)
-	{
-
-		LabformulierAanvraag aanvraag = new LabformulierAanvraag();
-		if (aanvraagDto.getScreenitId() == null)
-		{
-			aanvragenRepository.findByScreenitId(aanvraagDto.getScreenitId());
-		}
-		modelMapper.map(aanvraagDto, aanvraag);
-		return aanvraag;
-	}
-
-	public void setModelMapper(ModelMapper modelMapper)
-	{
-		this.modelMapper = modelMapper;
 	}
 
 	@Override

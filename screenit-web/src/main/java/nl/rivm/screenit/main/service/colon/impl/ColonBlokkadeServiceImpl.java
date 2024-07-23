@@ -223,7 +223,7 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 		throws ValidatieException, OpslaanVerwijderenTijdBlokException
 	{
 		roosterService.valideerTijdslot(blokkade);
-		heeftOverlappendeBlokkades(blokkade, true);
+		heeftOverlappendeBlokkades(blokkade, kamers, true);
 		heeftAfspraken(blokkade, currentViewRange, kamers, wijzigen, bulk);
 	}
 
@@ -251,7 +251,7 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 		}
 	}
 
-	private void heeftOverlappendeBlokkades(ColonBlokkade blokkade, boolean wijzigen) throws OpslaanVerwijderenTijdBlokException
+	private void heeftOverlappendeBlokkades(ColonBlokkade blokkade, List<Kamer> kamers, boolean wijzigen) throws OpslaanVerwijderenTijdBlokException
 	{
 
 		var nieuweBlokkade = Range.closed(DateUtil.startMinuut(blokkade.getStartTime()), DateUtil.startMinuut(blokkade.getEndTime()));
@@ -259,7 +259,7 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 		List<ColonBlokkade> overlapteBlokkades = null;
 		if (wijzigen || blokkade.getId() == null) 
 		{
-			overlapteBlokkades = getBlokkadeTijden(nieuweBlokkade, blokkade);
+			overlapteBlokkades = getBlokkadeTijden(nieuweBlokkade, kamers);
 		}
 
 		if (blokkade.getId() == null) 
@@ -355,13 +355,13 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 		return intakelocatie.getKamers().stream().filter(Kamer::getActief).collect(Collectors.toList());
 	}
 
-	private List<ColonBlokkade> getBlokkadeTijden(Range<Date> range, ColonBlokkade blokkade)
+	private List<ColonBlokkade> getBlokkadeTijden(Range<Date> range, List<Kamer> kamers)
 	{
 		var specification = ColonBlokkadeSpecification.valtBinnenDatumRange(range);
-		if (blokkade.getLocation() != null)
+		if (!kamers.isEmpty())
 		{
 
-			specification = specification.and(ColonBlokkadeSpecification.heeftKamer(blokkade.getLocation()));
+			specification = specification.and(ColonBlokkadeSpecification.heeftKamerUitLijst(kamers));
 		}
 		return blokkadeRepository.findAll(specification, Sort.by(Sort.Direction.ASC, AbstractAppointment_.START_TIME));
 	}

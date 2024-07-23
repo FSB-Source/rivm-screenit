@@ -24,9 +24,9 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.labformulier.werkli
 import java.util.Iterator;
 import java.util.List;
 
+import nl.rivm.screenit.main.service.cervix.impl.CervixLabformulierDataProviderServiceImpl;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixLabformulierenFilter;
-import nl.rivm.screenit.service.cervix.CervixLabformulierService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -38,10 +38,8 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 public class CervixLabformulierProvider extends SortableDataProvider<CervixLabformulier, String>
 {
 
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
-	private CervixLabformulierService labformulierService;
+	private CervixLabformulierDataProviderServiceImpl labformulierService;
 
 	private CervixLabformulierenFilter filter;
 
@@ -55,13 +53,13 @@ public class CervixLabformulierProvider extends SortableDataProvider<CervixLabfo
 	@Override
 	public Iterator<? extends CervixLabformulier> iterator(long first, long count)
 	{
-		return labformulierService.getLabformulieren(filter, first, count, getSort().getProperty(), getSort().isAscending()).iterator();
+		return labformulierService.findPage(first, count, filter, getSort()).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return labformulierService.countLabformulieren(filter);
+		return labformulierService.size(filter);
 	}
 
 	@Override

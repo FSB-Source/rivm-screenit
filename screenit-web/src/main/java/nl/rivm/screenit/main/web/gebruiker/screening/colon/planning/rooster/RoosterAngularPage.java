@@ -24,16 +24,16 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.rooster;
 import java.util.ArrayList;
 import java.util.List;
 
-import nl.rivm.screenit.main.web.gebruiker.base.angular.AngularBasePage;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerHoofdMenuItem;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
+import nl.rivm.screenit.main.web.gebruiker.base.angular.AngularBasePage;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.blokkadesview.BlokkadeListViewPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.listview.RoosterListViewPage;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.enums.Actie;
-import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.Recht;
 
 import org.wicketstuff.shiro.ShiroConstraint;
 
@@ -41,7 +41,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	actie = Actie.INZIEN,
 	checkScope = true,
 	constraint = ShiroConstraint.HasPermission,
-	recht = Recht.GEBRUIKER_LOCATIE_NIEUW_ROOSTER,
+	recht = Recht.GEBRUIKER_LOCATIE_ROOSTER,
 	organisatieTypeScopes = OrganisatieType.COLOSCOPIECENTRUM,
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON }
 )
@@ -64,7 +64,6 @@ public class RoosterAngularPage extends AngularBasePage
 	{
 		var contextMenuItems = new ArrayList<GebruikerMenuItem>();
 		contextMenuItems.add(new GebruikerMenuItem("label.planning.rooster", RoosterAngularPage.class));
-		contextMenuItems.add(new GebruikerMenuItem("label.planning.rooster", RoosterPage.class));
 		contextMenuItems.add(new GebruikerMenuItem("label.planning.roosterblok.listview", RoosterListViewPage.class));
 		contextMenuItems.add(new GebruikerMenuItem("label.planning.blokkade.listview", BlokkadeListViewPage.class));
 		return contextMenuItems;

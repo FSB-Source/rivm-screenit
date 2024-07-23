@@ -138,9 +138,9 @@ public class MammaBaseCapaciteitsBlokServiceImpl implements MammaBaseCapaciteits
 
 	@Override
 	public Collection<MammaCapaciteitBlokDto> getNietGeblokkeerdeCapaciteitsBlokDtos(MammaStandplaatsPeriode standplaatsPeriode, Date vanaf, Date totEnMet,
-		Collection<MammaCapaciteitBlokType> blokTypes)
+		Collection<MammaCapaciteitBlokType> blokTypes, Client client)
 	{
-		return capaciteitsBlokDao.getNietGeblokkeerdeCapaciteitsBlokDtos(standplaatsPeriode, vanaf, totEnMet, blokTypes);
+		return capaciteitsBlokDao.getNietGeblokkeerdeCapaciteitsBlokDtos(standplaatsPeriode, vanaf, totEnMet, blokTypes, client);
 	}
 
 	@Override

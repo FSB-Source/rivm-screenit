@@ -25,7 +25,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import nl.rivm.screenit.dao.cervix.CervixVerrichtingDao;
 import nl.rivm.screenit.main.service.cervix.CervixBetalingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.SimpleStringResourceModel;
@@ -50,7 +49,7 @@ import nl.rivm.screenit.model.enums.ToegangLevel;
 import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
-import nl.rivm.screenit.service.cervix.CervixVerrichtingService;
+import nl.rivm.screenit.service.cervix.CervixBaseVerrichtingService;
 import nl.rivm.screenit.util.EnumStringUtil;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
@@ -82,13 +81,10 @@ public class CervixLaboratoriumTarievenPage extends OrganisatieBeheer
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@SpringBean
-	private CervixVerrichtingService verrichtingService;
+	private CervixBaseVerrichtingService verrichtingService;
 
 	@SpringBean
 	private CervixBetalingService betalingService;
-
-	@SpringBean
-	private CervixVerrichtingDao verrichtingDao;
 
 	@SpringBean
 	private AutorisatieService autorisatieService;

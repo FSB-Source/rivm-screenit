@@ -67,7 +67,7 @@ import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonHuisartsBerichtService;
-import nl.rivm.screenit.specification.SpecificationUtil;
+import nl.rivm.screenit.specification.DateSpecification;
 import nl.rivm.screenit.specification.colon.ColonAfspraakSpecification;
 import nl.rivm.screenit.specification.colon.ColonRoosterItemSpecification;
 import nl.rivm.screenit.util.BriefUtil;
@@ -731,7 +731,7 @@ public class ColonBaseAfspraakServiceImpl implements ColonBaseAfspraakService
 	{
 		return afspraakRepository.findAll(
 			ColonAfspraakSpecification.heeftKamer(kamer).and(ColonAfspraakSpecification.heeftStatuses(List.of(AfspraakStatus.GEPLAND, AfspraakStatus.UITGEVOERD))
-				.and(SpecificationUtil.valtBinnenDatumRange(range, r -> r.get(AbstractAppointment_.startTime), r -> r.get(AbstractAppointment_.endTime)))),
+				.and(DateSpecification.valtBinnenDatumRange(range, r -> r.get(AbstractAppointment_.startTime), r -> r.get(AbstractAppointment_.endTime)))),
 			Sort.by(Sort.Order.asc(AbstractAppointment_.START_TIME)));
 	}
 
@@ -740,7 +740,7 @@ public class ColonBaseAfspraakServiceImpl implements ColonBaseAfspraakService
 	{
 		var range = Range.closed(newAfspraak.getStartTime(), newAfspraak.getEndTime());
 		return roosterItemRepository.findFirst(ColonRoosterItemSpecification.heeftKamer(newAfspraak.getLocation())
-				.and(SpecificationUtil.valtBinnenDatumRange(range, r -> r.get(AbstractAppointment_.startTime), r -> r.get(AbstractAppointment_.endTime))),
+				.and(DateSpecification.valtBinnenDatumRange(range, r -> r.get(AbstractAppointment_.startTime), r -> r.get(AbstractAppointment_.endTime))),
 			Sort.by(Sort.Order.asc(AbstractAppointment_.START_TIME))).orElse(null);
 	}
 
@@ -749,7 +749,7 @@ public class ColonBaseAfspraakServiceImpl implements ColonBaseAfspraakService
 	{
 		var afspraken = afspraakRepository.findAll(ColonAfspraakSpecification.heeftStatuses(List.of(AfspraakStatus.GEPLAND, AfspraakStatus.UITGEVOERD))
 				.and(ColonAfspraakSpecification.heeftRoosterItemRecurrence(roosterItemId))
-				.and(SpecificationUtil.valtBinnenDatumRange(currentViewRange, r -> r.get(AbstractAppointment_.startTime), r -> r.get(AbstractAppointment_.endTime))),
+				.and(DateSpecification.valtBinnenDatumRange(currentViewRange, r -> r.get(AbstractAppointment_.startTime), r -> r.get(AbstractAppointment_.endTime))),
 			Sort.by(Sort.Order.asc(AbstractAppointment_.START_TIME)));
 
 		return afspraken.stream().collect(groupingBy(AbstractAppointment::getId)).values().stream().map(a -> a.get(0)).collect(Collectors.toList());

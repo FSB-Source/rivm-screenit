@@ -21,39 +21,50 @@
 import BasePage from "../BasePage"
 import styles from "./LabformulierenAanvragenPage.module.scss"
 import properties from "./LabformulierenAanvragenPage.json"
-import validatieProperties from "../../util/ValidatieUtil.json"
 import {getString} from "../../util/TekstPropertyUtil"
 import BaseTabelComponent from "../../components/tabel/BaseTabelComponent"
 import {LabformulierAanvragenOverzichtDto} from "../../state/datatypes/dto/LabformulierAanvragenOverzichtDto"
-import {getAanvraagStatusText, NieuweAanvraagDto} from "../../state/datatypes/dto/AanvraagDto"
-import {useAppSelector, useAppThunkDispatch} from "../../index"
-import {LocatieDto, LocatieStatus} from "../../state/datatypes/dto/LocatieDto"
-import {Form, Formik} from "formik"
-import {Button, Col, Row} from "react-bootstrap"
-import FormTextField from "../../components/form/text/FormTextField"
-import FormSelectField from "../../components/form/select/FormSelectField"
+import {getAanvraagStatusText} from "../../state/datatypes/dto/AanvraagDto"
 import classNames from "classnames"
-import * as Yup from "yup"
-import {loadingThunkAction} from "../../api/LoadingThunkAction"
-import {validatingRequest} from "../../util/Backend"
-import {createActionPushToast} from "../../state/ToastsState"
-import {ToastType} from "../../state/datatypes/Toast"
 import React from "react"
 import {formatDateTime} from "../../util/DateUtil"
+import {Col, Row} from "react-bootstrap"
 import TabelPagineringComponent from "../../components/tabel/TabelPagineringComponent"
 
 const LabformulierenAanvragenPage = () => {
-	const dispatch = useAppThunkDispatch()
-	const huisarts = useAppSelector((state) => state.huisarts)!
-	const locaties = useAppSelector((state) => state.locaties)?.values.locaties.filter(locatie => locatie.status === LocatieStatus.ACTIEF) || []
-
-	dispatch(createActionPushToast({type: ToastType.INFO, message: getString(properties.algemeneMeldingen.digitaalLabformulier)}))
-
-	return <BasePage title={getString(properties.title)} description={getString(properties.description)}>
+	return <BasePage title={getString(properties.title)}>
 		<div className={styles.style}>
+			<div className={"d-block mx-2 mb-3"}>{getString(properties.algemeneMeldingen.geenLabformulieren)}
+				<a href="https:
+				   target="_blank" rel="noreferrer">{getString(properties.algemeneMeldingen.onzeWebsite)}</a>
+				<div className={"my-2"}>{getString(properties.algemeneMeldingen.telefonischContact)}</div>
+				<div className={styles.table}>
+					<div className={styles.tr}>
+						<span>Noord</span>
+						<span><a href="tel:0505208888">050 – 520 88 88</a></span>
+					</div>
+					<div className={styles.tr}>
+						<span>Oost</span>
+						<span><a href="tel:0881186330">088 – 118 63 30</a></span>
+					</div>
+					<div className={styles.tr}>
+						<span>Zuid</span>
+						<span><a href="tel:0880001322">088 – 000 13 22</a></span>
+					</div>
+					<div className={styles.tr}>
+						<span>Midden West</span>
+						<span><a href="tel:0882669020">088 – 266 90 20</a></span>
+					</div>
+					<div className={styles.tr}>
+						<span>Zuid West</span>
+						<span><a href="tel:0882482000 ">088 – 248 20 00</a></span>
+					</div>
+				</div>
+			</div>
 			<BaseTabelComponent<LabformulierAanvragenOverzichtDto> resultsPerPage={10} url={"/aanvragen/huisarts"}>
 				{(props) => (
 					<>
+						<h3 className={styles.historyOverzicht}>{getString(properties.table.title)}</h3>
 						<div className={classNames(styles.tableContainer, "mb-3")}>
 							<table>
 								<thead>
@@ -82,65 +93,17 @@ const LabformulierenAanvragenPage = () => {
 						</div>
 						<Row>
 							<Col md={6}>
-								<span>{getString(properties.table.totaal)} <b>{props.results?.aantalAanvragen || 0}</b></span>
+								<span>{getString(properties.table.totaal)} <b>{props.results?.aantalAanvragen ?? 0}</b></span>
 							</Col>
 							<Col md={6}>
 								<Row>
 									<TabelPagineringComponent
-										pageCount={Math.ceil(Math.max(1, props.results?.aantalAanvragen || 0) / 10)} page={props.page}
+										pageCount={Math.ceil(Math.max(1, props.results?.aantalAanvragen ?? 0) / 10)} page={props.page}
 										setPage={props.setPage}
 									/>
 								</Row>
 							</Col>
 						</Row>
-						<Formik<NieuweAanvraagDto>
-							initialValues={{
-								aantal: 0,
-								locatie: null,
-							}}
-							validationSchema={Yup.object({
-								aantal: Yup.number()
-									.min(10, getString(validatieProperties.min, [getString(properties.form.labels.aantal)]))
-									.max(25, getString(validatieProperties.max, [getString(properties.form.labels.aantal)]))
-									.required(getString(validatieProperties.required)),
-								locatie: Yup.mixed().required(getString(validatieProperties.required)),
-							})}
-							onSubmit={(values) => {
-								dispatch(loadingThunkAction(validatingRequest("/aanvragen/huisarts/" + huisarts.huisartsportaalId, "POST", values))).then(() => {
-									dispatch(createActionPushToast({type: ToastType.SUCCESS, message: getString(properties.form.toast.success)}))
-									props.refresh()
-								})
-							}}
-						>
-							{(formikProps) => <Form className={classNames(styles.aanvraagForm, "rounded", "mt-4", "pb-3")}>
-								<Row className={"pt-3"}>
-									<h4>{getString(properties.form.title)}</h4>
-								</Row>
-								<hr/>
-								<Row className={"px-4"}>
-									<Col md={6}>
-										<FormTextField className={"row my-3"} property={"aantal"} label={getString(properties.form.labels.aantal)} required type={"number"}
-													   error={formikProps.errors.aantal}/>
-									</Col>
-									<Col md={6}>
-										<FormSelectField<LocatieDto>
-											className={"row my-3"} clearable required error={formikProps.errors.locatie}
-											options={locaties.map(locatie => {
-												return {value: locatie, label: locatie.naam}
-											})} setValue={(v) => formikProps.setFieldValue("locatie", v)} property={"locatie"}
-											label={getString(properties.form.labels.locatie)}/>
-									</Col>
-								</Row>
-								<Row className={"pt-2 px-4"}>
-									<Col md={9}/>
-									<Col md={3}>
-										<Button type={"submit"}>
-											{getString(properties.form.submit)}
-										</Button>
-									</Col>
-								</Row>
-							</Form>}
-						</Formik>
 					</>
 				)}
 			</BaseTabelComponent>

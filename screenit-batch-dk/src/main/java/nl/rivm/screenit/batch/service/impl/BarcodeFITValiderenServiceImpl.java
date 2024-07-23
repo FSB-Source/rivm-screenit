@@ -39,7 +39,7 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.service.BaseHoudbaarheidService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.colon.ColonBaseFitService;
+import nl.rivm.screenit.service.colon.ColonBaseFITService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -59,7 +59,7 @@ public class BarcodeFITValiderenServiceImpl extends BaseValiderenService impleme
 	private BaseHoudbaarheidService houdbaarheidService;
 
 	@Autowired
-	private ColonBaseFitService fitService;
+	private ColonBaseFITService fitService;
 
 	@Autowired
 	private BaseHoudbaarheidDao houdbaarheidDao;
@@ -230,7 +230,7 @@ public class BarcodeFITValiderenServiceImpl extends BaseValiderenService impleme
 		this.houdbaarheidService = houdbaarheidService;
 	}
 
-	public void setFitService(ColonBaseFitService fitService)
+	public void setFitService(ColonBaseFITService fitService)
 	{
 		this.fitService = fitService;
 	}

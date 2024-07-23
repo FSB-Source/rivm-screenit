@@ -53,8 +53,9 @@ public class MammaDense2Listener extends BaseLogListener
 	@Override
 	protected LogEvent getEindLogEvent()
 	{
-		var aantalClienten = getJobExecution().getExecutionContext().getLong(MammaDense2Constants.AANTAL_CLIENTEN_IN_EXPORT, 0L);
-		return new LogEvent("DENSE2 export afgehandeld: " + aantalClienten + " populatie");
+		var aantalClientenT1 = getJobExecution().getExecutionContext().getLong(MammaDense2Constants.AANTAL_CLIENTEN_IN_EXPORT_EERSTE_STUDIERONDE, 0L);
+		var aantalClientenT7 = getJobExecution().getExecutionContext().getLong(MammaDense2Constants.AANTAL_CLIENTEN_IN_EXPORT_TWEEDE_STUDIERONDE, 0L);
+		return new LogEvent("DENSE2 export afgehandeld: Eerste studieronde " + aantalClientenT1 + " populatie," + " tweede studieronde " + aantalClientenT7 + " populatie");
 	}
 
 	@Override

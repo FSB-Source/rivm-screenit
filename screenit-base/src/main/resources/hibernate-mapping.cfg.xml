@@ -336,6 +336,7 @@
         <mapping class="nl.rivm.screenit.model.mamma.MammaMammografie"/>
         <mapping class="nl.rivm.screenit.model.mamma.MammaSignaleren"/>
         <mapping class="nl.rivm.screenit.model.mamma.MammaAfspraak"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaAfspraakReservering"/>
         <mapping class="nl.rivm.screenit.model.mamma.MammaOpkomstkans"/>
         <mapping class="nl.rivm.screenit.model.mamma.MammaBeoordeling"/>
         <mapping class="nl.rivm.screenit.model.mamma.MammaLezing"/>

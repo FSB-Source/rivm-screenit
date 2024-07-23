@@ -69,7 +69,7 @@ public class ColonAfspraakslotController
 	private final ColonAfspraakslotService afspraakslotService;
 
 	@GetMapping
-	@SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_NIEUW_ROOSTER, bevolkingsonderzoekScopes = {
+	@SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_ROOSTER, bevolkingsonderzoekScopes = {
 		Bevolkingsonderzoek.COLON })
 	public List<ColonAfspraakslotDto> getAfspraakslots(@RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
 		@RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate)
@@ -95,7 +95,7 @@ public class ColonAfspraakslotController
 	}
 
 	@GetMapping("/search")
-	@SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_NIEUW_ROOSTER, bevolkingsonderzoekScopes = {
+	@SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_ROOSTER, bevolkingsonderzoekScopes = {
 		Bevolkingsonderzoek.COLON })
 	public List<ColonTijdslotDto> searchAfspraakslots(@RequestParam() @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDatum,
 		@RequestParam() @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate eindDatum,
@@ -125,7 +125,7 @@ public class ColonAfspraakslotController
 	}
 
 	@PostMapping
-	@SecurityConstraint(actie = Actie.TOEVOEGEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_NIEUW_ROOSTER, bevolkingsonderzoekScopes = {
+	@SecurityConstraint(actie = Actie.TOEVOEGEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_ROOSTER, bevolkingsonderzoekScopes = {
 		Bevolkingsonderzoek.COLON })
 	public ResponseEntity<Void> createAfspraakslots(@RequestBody ColonAfspraakslotDto afspraakslotsDto)
 		throws ValidatieException, OpslaanVerwijderenTijdBlokException, BeperkingException, BulkAanmakenException
@@ -135,7 +135,7 @@ public class ColonAfspraakslotController
 	}
 
 	@PutMapping("{id}")
-	@SecurityConstraint(actie = Actie.AANPASSEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_NIEUW_ROOSTER, bevolkingsonderzoekScopes = {
+	@SecurityConstraint(actie = Actie.AANPASSEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_ROOSTER, bevolkingsonderzoekScopes = {
 		Bevolkingsonderzoek.COLON })
 	public ResponseEntity<Void> updateAfspraakslot(@PathVariable("id") Long id, @RequestBody ColonAfspraakslotDto afspraakslotDto)
 		throws ValidatieException, OpslaanVerwijderenTijdBlokException, BeperkingException
@@ -145,7 +145,7 @@ public class ColonAfspraakslotController
 	}
 
 	@DeleteMapping("{ids}")
-	@SecurityConstraint(actie = Actie.VERWIJDEREN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_NIEUW_ROOSTER, bevolkingsonderzoekScopes = {
+	@SecurityConstraint(actie = Actie.VERWIJDEREN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_ROOSTER, bevolkingsonderzoekScopes = {
 		Bevolkingsonderzoek.COLON })
 	public ResponseEntity<Void> deleteAfspraakslots(@PathVariable("ids") String ids, @RequestParam(required = false) Boolean alleenValidatie,
 		@RequestParam(required = false) Boolean bulk)

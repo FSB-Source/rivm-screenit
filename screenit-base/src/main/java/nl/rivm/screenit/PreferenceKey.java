@@ -295,6 +295,8 @@ public enum PreferenceKey
 
 	MAMMA_AFSPRAAK_ZOEKEN_AANTAL_MINUTEN_IN_TOEKOMST("Afspraak zoeken minimaal aantal minuten in de toekomst", Integer.class),
 
+	MAMMA_AFSPRAAK_RESERVERING_GELDIG_VOOR("Afspraak reservering geldig voor", Integer.class),
+
 	MAMMA_AFSPRAAK_VERZETTEN_ZONDER_CLIENT_CONTACT_VANAF_AANTAL_WERKDAGEN("Afspraak verzetten zonder client contact vanaf", Integer.class),
 
 	MAMMA_CAPACITEIT_VOLLEDIG_BENUT_TOT_EN_MET_AANTAL_WERKDAGEN("Capaciteit volledig benut tot en met", Integer.class),

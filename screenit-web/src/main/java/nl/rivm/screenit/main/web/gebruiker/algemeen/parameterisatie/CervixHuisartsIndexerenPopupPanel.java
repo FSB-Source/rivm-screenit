@@ -22,10 +22,9 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie;
  */
 
 import java.math.BigDecimal;
-import java.util.Date;
 
-import nl.rivm.screenit.dao.cervix.CervixVerrichtingDao;
 import nl.rivm.screenit.main.service.cervix.CervixBetalingService;
+import nl.rivm.screenit.main.service.cervix.CervixVerrichtingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.form.BigDecimalField;
@@ -44,12 +43,11 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
 public abstract class CervixHuisartsIndexerenPopupPanel extends GenericPanel<CervixHuisartsTarief>
 {
 	@SpringBean
-	private CervixVerrichtingDao verrichtingDao;
+	private CervixVerrichtingService verrichtingService;
 
 	@SpringBean
 	private CervixBetalingService betalingService;
@@ -58,8 +56,8 @@ public abstract class CervixHuisartsIndexerenPopupPanel extends GenericPanel<Cer
 	{
 		super(id, ModelUtil.ccModel(new CervixHuisartsTarief()));
 
-		CervixHuisartsTarief tarief = getModelObject();
-		CervixHuisartsTarief latest = verrichtingDao.getLatestHuisartsTarief();
+		var tarief = getModelObject();
+		var latest = verrichtingService.getLatestHuisartsTarief();
 		if (latest != null)
 		{
 			tarief.setTarief(latest.getTarief());
@@ -69,21 +67,21 @@ public abstract class CervixHuisartsIndexerenPopupPanel extends GenericPanel<Cer
 			tarief.setTarief(BigDecimal.ZERO);
 		}
 
-		Form<CervixHuisartsTarief> form = new Form<>("form", getModel());
+		var form = new Form<>("form", getModel());
 
 		form.add(new CervixHerindexeringWaarschuwingPanel("waarschuwing"));
 
-		BigDecimalField tariefField = new BigDecimalField("tarief");
+		var tariefField = new BigDecimalField("tarief");
 		tariefField.setRequired(true);
 		form.add(tariefField);
 		form.add(new BigDecimalPuntFormValidator(tariefField));
 
-		DatePicker<Date> startDatumDatePicker = ComponentHelper.newDatePicker("geldigVanafDatum");
+		var startDatumDatePicker = ComponentHelper.newDatePicker("geldigVanafDatum");
 		startDatumDatePicker.setRequired(true);
 		startDatumDatePicker.setLabel(Model.of("Geldig van"));
 		form.add(startDatumDatePicker);
 
-		DatePicker<Date> eindDatumDatePicker = ComponentHelper.newDatePicker("geldigTotenmetDatum");
+		var eindDatumDatePicker = ComponentHelper.newDatePicker("geldigTotenmetDatum");
 		eindDatumDatePicker.setLabel(Model.of("Geldig t/m"));
 		form.add(eindDatumDatePicker);
 
@@ -96,8 +94,8 @@ public abstract class CervixHuisartsIndexerenPopupPanel extends GenericPanel<Cer
 			{
 				try
 				{
-					CervixTarief nieuweTarief = (CervixTarief) HibernateHelper.deproxy(ModelProxyHelper.deproxy(form.getModelObject()));
-					String melding = betalingService.toevoegenIndexatieTarief(nieuweTarief, ScreenitSession.get().getLoggedInAccount());
+					var nieuweTarief = (CervixTarief) HibernateHelper.deproxy(ModelProxyHelper.deproxy(form.getModelObject()));
+					var melding = betalingService.toevoegenIndexatieTarief(nieuweTarief, ScreenitSession.get().getLoggedInAccount());
 					opslaan(target, melding);
 				}
 				catch (IllegalArgumentException e)
