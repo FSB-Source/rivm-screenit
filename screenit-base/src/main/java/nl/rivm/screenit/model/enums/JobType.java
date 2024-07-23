@@ -65,8 +65,6 @@ public enum JobType
 
 	HUISARTS_ONTKOPPELEN_JOB_DK(new JobFlag[] { BLOCK_MANUAL_START, BLOCK_CRON_TRIGGER }, BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
 
-	ONEINDIGE_ROOSTERITEMS_UITROLLEN(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
-
 	BRIEVEN_GENEREREN(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
 
 	COLON_ILM(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
@@ -181,6 +179,8 @@ public enum JobType
 
 	MAMMA_CONTROLE_MISSENDE_UITSLAGEN(BatchApplicationType.MAMMA, new Bevolkingsonderzoek[] { MAMMA },
 		new OrganisatieParameterKey[] { OrganisatieParameterKey.MAMMA_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN }),
+
+	MAMMA_DENSE2_CSV_EXPORT(BatchApplicationType.MAMMA, new Bevolkingsonderzoek[] { MAMMA }),
 
 	COORDINATEN(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { COLON, CERVIX, MAMMA }),
 

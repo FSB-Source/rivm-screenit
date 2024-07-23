@@ -69,53 +69,6 @@ public class MammaBaseFollowUpDaoImpl extends AbstractAutowiredDao implements Ma
 	@Autowired
 	private ICurrentDateSupplier dateSupplier;
 
-	@Override
-	public List<MammaFollowUpRadiologieVerslag> zoekRadiologieVerslagen(Instelling instelling, MammaFollowUpDoorverwezenFilterOptie doorverwezenFilterOptie, int first, int count,
-		SortState<String> sortState)
-	{
-		Criteria crit = createRadiologieVerslagenCriteria(instelling, doorverwezenFilterOptie);
-		String sortProperty = sortState.getSortParam();
-		if (sortProperty != null)
-		{
-			if (sortProperty.startsWith("persoon."))
-			{
-				crit.createAlias("screeningRonde.dossier", "dossier1");
-				crit.createAlias("dossier1.client", "client");
-				crit.createAlias("client.persoon", "persoon");
-			}
-			if (sortState.isAsc())
-			{
-				crit.addOrder(Order.asc(sortProperty));
-			}
-			else
-			{
-				crit.addOrder(Order.desc(sortProperty));
-			}
-		}
-		crit.setFirstResult(Math.max(first, 0));
-		if (count > 0)
-		{
-			crit.setMaxResults(count);
-		}
-		return crit.list();
-	}
-
-	@Override
-	public long countRadiologieVerslagen(Instelling instelling, MammaFollowUpDoorverwezenFilterOptie doorverwezenFilterOptie)
-	{
-		Criteria crit = createRadiologieVerslagenCriteria(instelling, doorverwezenFilterOptie);
-		crit.setProjection(Projections.rowCount());
-		return (Long) crit.uniqueResult();
-	}
-
-	private Criteria createRadiologieVerslagenCriteria(Instelling instelling, MammaFollowUpDoorverwezenFilterOptie doorverwezenFilterOptie)
-	{
-		Criteria radiologieVerslagLaatsteBeoordelingMetUitslag = getRadiologieVerslagLaatsteBeoordelingMetUitslag(doorverwezenFilterOptie);
-		radiologieVerslagLaatsteBeoordelingMetUitslag.add(Restrictions.eq("radiologieVerslag.aangemaaktIn", instelling));
-
-		return radiologieVerslagLaatsteBeoordelingMetUitslag;
-	}
-
 	private Criteria getRadiologieVerslagLaatsteBeoordelingMetUitslag(MammaFollowUpDoorverwezenFilterOptie doorverwezenFilterOptie)
 	{
 		Criteria radiologieVerslagLaatsteBeoordelingMetUitslag = getSession().createCriteria(MammaFollowUpRadiologieVerslag.class, "radiologieVerslag");

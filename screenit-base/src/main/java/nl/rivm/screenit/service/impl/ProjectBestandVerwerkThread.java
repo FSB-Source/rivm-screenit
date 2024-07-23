@@ -21,7 +21,6 @@ package nl.rivm.screenit.service.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.io.File;
 import java.io.IOException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -65,22 +64,22 @@ public class ProjectBestandVerwerkThread extends OpenHibernate5SessionInThread
 	protected void runInternal()
 	{
 
-		ProjectBestand bestand = hibernateService.load(ProjectBestand.class, id);
-		ProjectBestandVerwerkingContext context = null;
+		var bestand = hibernateService.load(ProjectBestand.class, id);
+		BaseProjectBestandVerwerkingContext context = null;
 
-		ProjectBestandVerwerking verwerking = new ProjectBestandVerwerking();
+		var verwerking = new ProjectBestandVerwerking();
 		verwerking.setProjectBestand(bestand);
 		bestand.setVerwerking(verwerking);
 
 		try
 		{
-			File file = uploadDocumentService.load(bestand.getUploadDocument());
-			context = new ProjectBestandVerwerkingContext(bestand, file);
+			var file = uploadDocumentService.load(bestand.getUploadDocument());
+			context = new DefaultProjectBestandVerwerkingContext(bestand, file);
+			context.init();
 			projectBestandVerwerkingService.voorbereidingVoorVerwerking(context, bestand);
 
-			while (context.isErEenNieuweRegel())
+			while (context.volgendeRegel())
 			{
-
 				projectBestandVerwerkingService.verwerkRegel(context);
 			}
 			projectBestandVerwerkingService.setBestandStatus(bestand, BestandStatus.VERWERKT);

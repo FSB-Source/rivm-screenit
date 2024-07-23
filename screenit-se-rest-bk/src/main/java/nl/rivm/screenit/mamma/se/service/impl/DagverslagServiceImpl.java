@@ -34,7 +34,6 @@ import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 
-import nl.rivm.screenit.dao.mamma.MammaBaseBlokkadeDao;
 import nl.rivm.screenit.dao.mamma.MammaBaseStandplaatsPeriodeDao;
 import nl.rivm.screenit.mamma.se.dao.MammaScreeningsEenheidDao;
 import nl.rivm.screenit.mamma.se.dto.DagAfsluitingDto;
@@ -51,6 +50,7 @@ import nl.rivm.screenit.model.mamma.MammaCapaciteitBlok;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaCapaciteitBlokType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.mamma.MammaBaseBlokkadeService;
 import nl.rivm.screenit.service.mamma.MammaBaseCapaciteitsBlokService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.EnvironmentUtil;
@@ -76,7 +76,7 @@ public class DagverslagServiceImpl implements DagverslagService
 
 	private final MammaScreeningsEenheidDao screeningsEenheidDao;
 
-	private final MammaBaseBlokkadeDao baseBlokkadeDao;
+	private final MammaBaseBlokkadeService baseBlokkadeService;
 
 	private final MammaBaseStandplaatsPeriodeDao baseStandplaatsPeriodeDao;
 
@@ -168,7 +168,7 @@ public class DagverslagServiceImpl implements DagverslagService
 			return new DagPlanningSamenvattingDto();
 		}
 		var standplaats = standplaatsPeriode.getStandplaatsRonde().getStandplaats();
-		var actieveBlokkades = baseBlokkadeDao.getActieveBlokkadesVoorSE(standplaats, screeningsEenheid, datum);
+		var actieveBlokkades = baseBlokkadeService.getActieveBlokkadesVoorSE(standplaats, screeningsEenheid, DateUtil.toLocalDate(datum));
 
 		if (!actieveBlokkades.isEmpty() || (!EnvironmentUtil.getBooleanEnvironmentVariable("SE_DAGVERSLAG_INCL_CAPACITEIT", true) && DateUtil.isZelfdeDag(
 			currentDateSupplier.getLocalDate(), datum)))

@@ -35,7 +35,7 @@ import nl.rivm.screenit.model.colon.dto.ColonSignaleringstermijnDto;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
-import nl.rivm.screenit.service.colon.ColonRoosterService;
+import nl.rivm.screenit.service.colon.ColonIntakelocatieService;
 import nl.rivm.screenit.util.DateUtil;
 
 import org.springframework.http.ResponseEntity;
@@ -53,12 +53,12 @@ public class ColonIntakelocatieController
 {
 	private final ColonIntakelocatieMapper intakelocatieMapper;
 
-	private final ColonRoosterService colonRoosterService;
+	private final ColonIntakelocatieService intakelocatieService;
 
 	private final RoosterService roosterService;
 
 	@GetMapping()
-	@SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_NIEUW_ROOSTER, bevolkingsonderzoekScopes = {
+	@SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_ROOSTER, bevolkingsonderzoekScopes = {
 		Bevolkingsonderzoek.COLON })
 	public ResponseEntity<ColonIntakelocatieDto> getIntakelocatie()
 	{
@@ -75,17 +75,18 @@ public class ColonIntakelocatieController
 	}
 
 	@GetMapping("/signaleringstermijn")
-	@SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_NIEUW_ROOSTER, bevolkingsonderzoekScopes = {
+	@SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_ROOSTER, bevolkingsonderzoekScopes = {
 		Bevolkingsonderzoek.COLON })
 	public ResponseEntity<ColonSignaleringstermijnDto> getSignaleringstermijn()
 	{
 		var signaleringstermijnDto = new ColonSignaleringstermijnDto();
 
-		var signaleringstermijnTekst = colonRoosterService.getSignaleringstermijnTekst();
+		var signaleringstermijnTekst = intakelocatieService.getSignaleringstermijnTekst();
 
 		signaleringstermijnDto.setTekst(signaleringstermijnTekst);
-		signaleringstermijnDto.setSignaleringsTermijnDeadline(colonRoosterService.getSignaleringstermijnDeadline());
-		signaleringstermijnDto.setHeeftGeenCapaciteitBinnenSignaleringsTermijn(colonRoosterService.intakelocatieHeeftGeenCapaciteit(ScreenitSession.get().getColoscopieCentrum()));
+		signaleringstermijnDto.setSignaleringsTermijnDeadline(intakelocatieService.getSignaleringstermijnDeadline());
+		signaleringstermijnDto.setHeeftGeenCapaciteitBinnenSignaleringsTermijn(
+			intakelocatieService.intakelocatieHeeftGeenCapaciteit(ScreenitSession.get().getColoscopieCentrum()));
 
 		return ResponseEntity.ok(signaleringstermijnDto);
 	}

@@ -259,10 +259,11 @@ public class ClientSelectieMetCapaciteitPerGebiedItemCursor implements Iterator<
 			projectGroupId = ((ProjectGroupUitnodiging) uitnodigingsTaak).projectGroupId;
 		}
 		var uitnodigingsDao = selectieContext.uitnodigingsDao;
+		var uitnodigingService = selectieContext.uitnodigingService;
 		if (uitnodigingsTaak instanceof EersteRondeUitnodiging)
 		{
 			var cohortJaar = ((EersteRondeUitnodiging) uitnodigingsTaak).cohortJaar;
-			geboorteJaren = uitnodigingsDao.getUitnodigingCohort(cohortJaar).getGeboortejaren().stream()
+			geboorteJaren = uitnodigingService.getUitnodigingCohort(cohortJaar).getGeboortejaren().stream()
 				.map(UitnodigingCohortGeboortejaren::getGeboortejaren)
 				.collect(Collectors.toList());
 			geboorteJaren.removeAll(verwerkteGeboortjaren);

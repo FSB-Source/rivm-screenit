@@ -36,6 +36,7 @@ import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.panels.ApplicatieInfoPanel;
 import nl.rivm.screenit.main.web.filter.SecurityHeadersFilter;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.medewerker.MedewerkerBasisgegevens;
+import nl.rivm.screenit.main.web.gebruiker.clienten.ClientPage;
 import nl.rivm.screenit.main.web.gebruiker.dashboard.DashboardPage;
 import nl.rivm.screenit.main.web.gebruiker.login.uzipas.zorgid.session.SessionCheckingPanel;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.AbstractMammaBePage;
@@ -95,6 +96,8 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.StringValue;
 import org.wicketstuff.wiquery.core.javascript.JsStatement;
 
+import static nl.rivm.screenit.main.web.gebruiker.screening.mamma.afspraken.MammaAfsprakenBlokPanel.AFSPRAAK_VERZETTEN_KOMT_VANUIT_AFSPRAKENKALENDER;
+
 public abstract class GebruikerBasePage extends BasePage
 {
 	private static final String FADE_ALERT_SUCCES_SCRIPT = "fadeAlertSucces()";
@@ -126,9 +129,9 @@ public abstract class GebruikerBasePage extends BasePage
 	@SpringBean
 	private IScreenitRealm realm;
 
-	private AbstractDefaultAjaxBehavior keepAliveBehavior;
+	protected AbstractDefaultAjaxBehavior keepAliveBehavior;
 
-	private AbstractDefaultAjaxBehavior logoutBehavior;
+	protected AbstractDefaultAjaxBehavior logoutBehavior;
 
 	protected BootstrapDialog dialog;
 
@@ -268,6 +271,11 @@ public abstract class GebruikerBasePage extends BasePage
 		if (isHeeftImsKoppelingRecht())
 		{
 			createImsErrorCallback();
+		}
+
+		if (!(this instanceof ClientPage))
+		{
+			ScreenitSession.get().setZoekObject(AFSPRAAK_VERZETTEN_KOMT_VANUIT_AFSPRAKENKALENDER, null);
 		}
 	}
 

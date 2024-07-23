@@ -1,0 +1,12 @@
+type: specs.openrewrite.org/v1beta/recipe
+name: nl.rivm.screenit.recipe.hamcrest2assertj
+recipeList:
+  - org.openrewrite.java.testing.hamcrest.MigrateHamcrestToAssertJ
+  - org.openrewrite.java.testing.hamcrest.HamcrestNotMatcherToAssertJ:
+      notMatcher: hasItems
+      assertion: doesNotContain
+  - org.openrewrite.java.testing.hamcrest.HamcrestNotMatcherToAssertJ:
+      notMatcher: empty
+      assertion: isNotEmpty
+  - org.openrewrite.java.testing.assertj.StaticImports
+  - org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions

@@ -113,6 +113,21 @@
 
         <plugins>
             <plugin>
+                <groupId>org.openrewrite.maven</groupId>
+                <artifactId>rewrite-maven-plugin</artifactId>
+                <configuration>
+                    <activeRecipes>
+                        <recipe>nl.rivm.screenit.recipe.hamcrest2assertj</recipe>
+                    </activeRecipes>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.openrewrite.recipe</groupId>
+                        <artifactId>rewrite-testing-frameworks</artifactId>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>flatten-maven-plugin</artifactId>
                 <configuration>
@@ -421,12 +436,6 @@
                                     </excludes>
                                 </bannedDependencies>
                                 <bannedDependencies>
-                                    <message>We gebruiken hamcrest en geen assertj</message>
-                                    <excludes>
-                                        <exclude>org.assertj:assertj-core</exclude>
-                                    </excludes>
-                                </bannedDependencies>
-                                <bannedDependencies>
                                     <message>findbugs maven release komen tegenwoordig van com.google.code.findbugs, dus onderstaande zou moeten worden com.google.code.findbugs
                                     </message>
                                     <excludes>
@@ -445,6 +454,12 @@
                                     <excludes>
                                         <exclude>commons-logging:commons-logging-api:[99.0-does-not-exist]</exclude>
                                         <exclude>commons-logging:commons-logging:[99.0-does-not-exist]</exclude>
+                                    </excludes>
+                                </bannedDependencies>
+                                <bannedDependencies>
+                                    <message>We gebruiken assertj en geen hamcrest</message>
+                                    <excludes>
+                                        <exclude>org.hamcrest</exclude>
                                     </excludes>
                                 </bannedDependencies>
                                 <conflictRule implementation="nl.topicuszorg.enforcer.rule.ConflictRule">
@@ -605,7 +620,8 @@
                     <licenseMerges>
                         <licenseMerge>
                             <![CDATA[Apache-2.0|Apache Software License - Version 2.0|Apache Software Licenses|Similar to Apache License but with the acknowledgment clause removed|Mockrunner License, based on Apache Software License, version 1.1|The Apache Software License|The Apache License, Version 2.0|Apache 2.0|Apache License 2.0|Apache License, version 2.0|Apache License, Version 2.0|The Apache Software License, Version 2.0|Apache 2|Apache Software License 2.0|ASL, version 2]]></licenseMerge>
-                        <licenseMerge><![CDATA[BSD-2-Clause|BSD-2 License|BSD New license|BSD 2-Clause License|The BSD License|BSD licence]]></licenseMerge>
+                        <licenseMerge>
+                            <![CDATA[BSD-2-Clause|BSD-2 License|BSD New license|The BSD 2-Clause License|BSD 2-Clause License|The BSD License|BSD licence]]></licenseMerge>
                         <licenseMerge><![CDATA[BSD-3-Clause|3-Clause BSD License|BSD-3-clause|BSD 3-clause|Go License|BSD License 3|The BSD 3-Clause License]]></licenseMerge>
                         <licenseMerge>
                             <![CDATA[BSD|BSD License|BSD-license|0BSD|Kirkk.com BSD License|HSQLDB License, a BSD open source license|New BSD License|Revised BSD]]></licenseMerge>

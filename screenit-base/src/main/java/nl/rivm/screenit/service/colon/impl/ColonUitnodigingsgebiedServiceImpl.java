@@ -49,10 +49,12 @@ import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.ColoscopieCentrumColonCapaciteitVerdeling;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.repository.algemeen.PostcodeGebiedRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.colon.ColonUitnodigingService;
 import nl.rivm.screenit.service.colon.ColonUitnodigingsgebiedService;
+import nl.rivm.screenit.specification.algemeen.PostcodeGebiedSpecification;
 import nl.rivm.screenit.util.BigDecimalUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.PercentageUtil;
@@ -85,10 +87,13 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 
 	private final ColonUitnodigingService uitnodigingService;
 
+	private final PostcodeGebiedRepository postcodeGebiedRepository;
+
 	@Override
-	public List<PostcodeGebied> findOverlappendePostcodeGebieden(PostcodeGebied postcode)
+	public List<PostcodeGebied> findOverlappendePostcodeGebieden(PostcodeGebied postcodeGebied)
 	{
-		return uitnodigingsGebiedDao.findOverlappendePostcodeGebieden(postcode);
+		var specification = PostcodeGebiedSpecification.isAnderPostcodeGebied(postcodeGebied).and(PostcodeGebiedSpecification.heeftOverlappendePostcode(postcodeGebied));
+		return postcodeGebiedRepository.findAll(specification);
 	}
 
 	@Override

@@ -54,6 +54,10 @@ public interface ProjectService
 
 	List<Project> getProjecten(Project zoekObject, List<Long> instellingIdsProject, List<Long> instellingIdsBriefproject, long first, long count, SortState<String> sortState);
 
+	List<Project> getProjectenVanType(ProjectType type);
+
+	List<Project> getProjecten();
+
 	long getCountProjecten(Project zoekObject, List<Long> instellingIdsProject, List<Long> instellingIdsBriefproject);
 
 	Iterator<ProjectGroep> getGroepen(ProjectGroep zoekObject, long first, long count, SortState<String> sortState);

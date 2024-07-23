@@ -82,12 +82,9 @@ const MammaAfspraakMakenForm = (props: MammaAfspraakMakenFormProps) => {
 	}, [beschikbaarheidOpgehaald, beschikbareDagen, props])
 
 	useEffect(() => {
-		if (beschikbareDagen.length !== 0 && beschikbaarheidOpgehaald) {
-			if (formikRef.current) {
-				formikRef.current.initialValues.vanaf = beschikbareDagen[0]
-				formikRef.current.handleSubmit()
-			} else {
-			}
+		if (beschikbareDagen.length !== 0 && beschikbaarheidOpgehaald && formikRef.current) {
+			formikRef.current.initialValues.vanaf = formikRef.current.values.vanaf = beschikbareDagen[0]
+			formikRef.current.handleSubmit()
 		}
 	}, [beschikbaarheidOpgehaald, beschikbareDagen])
 
@@ -153,18 +150,18 @@ const MammaAfspraakMakenForm = (props: MammaAfspraakMakenFormProps) => {
 				   validationSchema={validatieSchema}
 				   onSubmit={(values) => props.onSubmitSucces(values, beschikbareDagen)}>
 
-		{formikProps => (
+		{({errors, values, initialValues, setFieldValue, handleSubmit}) => (
 			<SearchForm className={styles.style} title={getString(properties.form.titel)}>
 				<ScreenitDropdown propertyName={"plaats"}
-								  invalidMessage={formikProps.errors.plaats}
-								  value={formikProps.values.plaats}
-								  initialValue={formikProps.initialValues.plaats}
+								  invalidMessage={errors.plaats}
+								  value={values.plaats}
+								  initialValue={initialValues.plaats}
 								  options={standplaatsOpties(props.laatsteStandplaatsZoekFilter)}
 								  placeholder={getString(properties.form.placeholder.plaats)}
 								  onChange={(event) => {
 									  props.onChange()
-									  formikProps.setFieldValue("afstand", undefined)
-									  formikProps.setFieldValue("plaats", event.target.value)
+									  setFieldValue("afstand", undefined)
+									  setFieldValue("plaats", event.target.value)
 									  setGekozenPlaats(event.target.value as string)
 									  setGekozenAfstand(undefined)
 								  }}/>
@@ -172,33 +169,33 @@ const MammaAfspraakMakenForm = (props: MammaAfspraakMakenFormProps) => {
 				{beschikbaarheidOpgehaald && <ScreenitDatePicker className={styles.datepicker}
 																 propertyName={"vanaf"}
 																 label={getString(properties.form.placeholder.datum)}
-																 value={formikProps.values.vanaf}
+																 value={values.vanaf}
 																 beschikbareDagen={beschikbareDagen}
-																 errorLabel={formikProps.errors.vanaf}
+																 errorLabel={errors.vanaf}
 																 onChange={value => {
-																	 formikProps.setFieldValue("vanaf", value)
-																	 value && isValid(value) && formikProps.handleSubmit()
+																	 setFieldValue("vanaf", value)
+																	 value && isValid(value) && handleSubmit()
 																 }}/>}
 				{!beschikbaarheidOpgehaald && <CircularProgress/>}
 
 				<div className={classNames(styles.advancedSearchButton)}
 					 onClick={() => {
-						 formikProps.setFieldValue("afstand", undefined)
+						 setFieldValue("afstand", undefined)
 						 setAdvancedSearch(!isAdvancedSearch)
 					 }}>
 					<AdvancedSearchLinkComponent advancedSearch={isAdvancedSearch}/>
 				</div>
 
 				{isAdvancedSearch && <ScreenitDropdown propertyName={"afstand"}
-													   invalidMessage={formikProps.errors.afstand}
-													   value={formikProps.values.afstand}
-													   initialValue={formikProps.initialValues.afstand}
+													   invalidMessage={errors.afstand}
+													   value={values.afstand}
+													   initialValue={initialValues.afstand}
 													   options={afstandOpties()}
 													   placeholder={getString(properties.form.placeholder.afstand)}
 													   onChange={(event) => {
 														   props.onChange()
-														   formikProps.setFieldValue("afstand", event.target.value)
-														   formikProps.setFieldValue("plaats", undefined)
+														   setFieldValue("afstand", event.target.value)
+														   setFieldValue("plaats", undefined)
 														   setGekozenAfstand(event.target.value as string)
 														   setGekozenPlaats(undefined)
 													   }}/>}
@@ -208,7 +205,7 @@ const MammaAfspraakMakenForm = (props: MammaAfspraakMakenFormProps) => {
 						displayArrow={ArrowType.ARROW_RIGHT}
 						onClick={() => {
 							if (beschikbaarheidOpgehaald) {
-								formikProps.handleSubmit()
+								handleSubmit()
 								props.onZoekenClick && props.onZoekenClick()
 							}
 						}}/>

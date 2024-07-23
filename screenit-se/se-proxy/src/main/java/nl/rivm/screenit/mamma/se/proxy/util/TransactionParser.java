@@ -74,19 +74,20 @@ public class TransactionParser
 	{
 		if (transactionNode != null)
 		{
-			return LocalDate.parse(transactionNode.path("afspraakVanafDatum").asText());
+			var afspraakVanafDatum = transactionNode.path("afspraakVanafDatum");
+			return afspraakVanafDatum.isNull() ? DateUtil.getCurrentDate() : LocalDate.parse(afspraakVanafDatum.asText());
 		}
-		return DateUtil.getCurrentDateTime().toLocalDate(); 
+		return DateUtil.getCurrentDate(); 
 	}
 
 	public String getAfspraakId()
 	{
-		String afspraakId = "onbekend";
+		var afspraakId = "onbekend";
 
 		if (transactionNode != null)
 		{
-			JsonNode actions = transactionNode.path("actions");
-			if (actions.size() > 0)
+			var actions = transactionNode.path("actions");
+			if (!actions.isEmpty())
 			{
 				return actions.get(0).path("afspraakId").toString();
 			}
@@ -109,7 +110,7 @@ public class TransactionParser
 	{
 		if (transactionNode != null)
 		{
-			long clientId = transactionNode.path(path).asLong(-1L);
+			var clientId = transactionNode.path(path).asLong(-1L);
 			return clientId != -1 ? clientId : null;
 		}
 		return null;

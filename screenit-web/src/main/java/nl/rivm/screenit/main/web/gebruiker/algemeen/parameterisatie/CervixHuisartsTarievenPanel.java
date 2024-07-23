@@ -39,7 +39,7 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
 import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.cervix.CervixVerrichtingService;
+import nl.rivm.screenit.service.cervix.CervixBaseVerrichtingService;
 import nl.rivm.screenit.util.AutorisatieUtil;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
 
@@ -63,7 +63,7 @@ public class CervixHuisartsTarievenPanel extends GenericPanel<CervixHuisartsTari
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@SpringBean
-	private CervixVerrichtingService cervixVerrichtingService;
+	private CervixBaseVerrichtingService cervixVerrichtingService;
 
 	@SpringBean
 	private CervixBetalingService betalingService;

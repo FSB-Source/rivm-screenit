@@ -30,11 +30,14 @@ import javax.xml.bind.JAXBException;
 import nl.rivm.screenit.dto.cervix.facturatie.CervixBetalingsZoekObject;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.BMHKLaboratorium;
+import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.model.cervix.facturatie.CervixTarief;
+
+import org.springframework.data.domain.Sort;
 
 public interface CervixBetalingService
 {
@@ -42,7 +45,7 @@ public interface CervixBetalingService
 
 	void genereerCervixBetalingsSpecificatieEnSepaBestand(Long betaalopdrachtId);
 
-	Long opslaanBetaalopdracht(CervixBetaalopdracht opdracht);
+	Long opslaanBetaalopdracht(CervixBetaalopdracht opdracht, InstellingGebruiker ingelogedeGebruiker);
 
 	void maakSepaBestand(File sepaBestand, CervixBetaalopdracht betaalOpdracht) throws JAXBException, FileNotFoundException;
 
@@ -59,4 +62,8 @@ public interface CervixBetalingService
 	void verwijderCervixTarief(CervixTarief tarief, Account account);
 
 	List<CervixBoekRegel> getVerrichtingenVoorBetaling(CervixBetalingsZoekObject zoekObject);
+
+	List<CervixBetaalopdracht> getBetaalOpdrachten(Sort sort, long first, long count);
+
+	Long countBetaalOpdrachten();
 }

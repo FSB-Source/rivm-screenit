@@ -21,12 +21,13 @@ package nl.rivm.screenit.specification.cervix;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Arrays;
+import java.util.List;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.model.Brief_;
+import nl.rivm.screenit.model.ClientBrief_;
 import nl.rivm.screenit.model.cervix.CervixBrief;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
@@ -34,8 +35,18 @@ import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixBriefSpecification
 {
-	public static PathAwarePredicate<CervixBrief> heeftBriefInBrieftype(BriefType... briefTypes)
+	public static PathAwarePredicate<CervixBrief> heeftBriefInBrieftypes(List<BriefType> briefTypes)
 	{
-		return (cb, r) -> r.get(Brief_.briefType).in(Arrays.asList(briefTypes));
+		return (cb, r) -> r.get(Brief_.briefType).in(briefTypes);
+	}
+
+	public static PathAwarePredicate<CervixBrief> isGegenereerd(boolean isGegenereerd)
+	{
+		return (cb, r) -> cb.equal(r.get(Brief_.gegenereerd), isGegenereerd);
+	}
+
+	public static PathAwarePredicate<CervixBrief> heeftVervangendeProjectBrief(boolean heeftVervangendeProjectBrief)
+	{
+		return (cb, r) -> cb.equal(r.get(ClientBrief_.vervangendeProjectBrief), heeftVervangendeProjectBrief);
 	}
 }

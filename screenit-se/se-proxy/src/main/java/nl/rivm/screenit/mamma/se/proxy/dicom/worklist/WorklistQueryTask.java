@@ -23,18 +23,15 @@ package nl.rivm.screenit.mamma.se.proxy.dicom.worklist;
 
 import java.time.format.DateTimeFormatter;
 
-import nl.rivm.screenit.mamma.se.proxy.model.ScreenITWerklijstItem;
 import nl.rivm.screenit.mamma.se.proxy.services.MammografenStatusService;
 import nl.rivm.screenit.mamma.se.proxy.services.WerklijstStoreService;
 import nl.rivm.screenit.mamma.se.proxy.util.DateUtil;
 
 import org.dcm4che3.data.Attributes;
-import org.dcm4che3.data.Sequence;
 import org.dcm4che3.data.Tag;
 import org.dcm4che3.net.Association;
 import org.dcm4che3.net.pdu.PresentationContext;
 import org.dcm4che3.net.service.BasicQueryTask;
-import org.dcm4che3.net.service.DicomServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,13 +39,11 @@ public class WorklistQueryTask extends BasicQueryTask
 {
 	private static final Logger LOG = LoggerFactory.getLogger(WorklistQueryTask.class);
 
-	private Attributes keys;
-
 	private Attributes currentWorklistItem;
 
-	private WerklijstStoreService werklijstStoreService;
+	private final WerklijstStoreService werklijstStoreService;
 
-	private MammografenStatusService mammografenStatusService;
+	private final MammografenStatusService mammografenStatusService;
 
 	WorklistQueryTask(Association as, PresentationContext pc, Attributes rq, Attributes keys, WerklijstStoreService werklijstStoreService,
 		MammografenStatusService mammografenStatusService)
@@ -56,30 +51,29 @@ public class WorklistQueryTask extends BasicQueryTask
 		super(as, pc, rq, keys);
 		this.werklijstStoreService = werklijstStoreService;
 		this.mammografenStatusService = mammografenStatusService;
-		this.keys = keys;
 		currentWorklistItem = findNextItem();
 	}
 
 	@Override
-	public boolean hasMoreMatches() throws DicomServiceException
+	public boolean hasMoreMatches()
 	{
 		return currentWorklistItem != null;
 	}
 
 	@Override
-	public Attributes nextMatch() throws DicomServiceException
+	public Attributes nextMatch()
 	{
-		Attributes temp = currentWorklistItem;
+		var temp = currentWorklistItem;
 		currentWorklistItem = null; 
 		return temp;
 	}
 
 	private Attributes findNextItem() 
 	{
-		ScreenITWerklijstItem screenITWerklijstItem = werklijstStoreService.getWerklijstItemVoorMammograaf(as.getCallingAET());
-		Attributes dicomWorklistItem = new MammograafWorklistItemBuilder(screenITWerklijstItem).getMammograafWorklistItem();
+		var screenITWerklijstItem = werklijstStoreService.getWerklijstItemVoorMammograaf(as.getCallingAET());
+		var dicomWorklistItem = new MammograafWorklistItemBuilder(screenITWerklijstItem).getMammograafWorklistItem();
 
-		StringBuilder foutMeldingStringBuilder = new StringBuilder();
+		var foutMeldingStringBuilder = new StringBuilder();
 
 		if (dicomWorklistItem != null)
 		{
@@ -92,8 +86,6 @@ public class WorklistQueryTask extends BasicQueryTask
 			{
 				controleerAccessionNumber(foutMeldingStringBuilder, dicomWorklistItem);
 				controleerMammograafDatum(foutMeldingStringBuilder);
-
-				LOG.error("Mismatch between dicomWorklistItem (" + dicomWorklistItem + ") and keys (" + keys + ")");
 			}
 		}
 		else
@@ -103,7 +95,9 @@ public class WorklistQueryTask extends BasicQueryTask
 
 		if (foutMeldingStringBuilder.length() > 0)
 		{
-			mammografenStatusService.registreerDmwlFout(as, foutMeldingStringBuilder.toString());
+			var foutMelding = foutMeldingStringBuilder.toString();
+			LOG.warn("Mismatch between dicomWorklistItem: {}", foutMelding);
+			mammografenStatusService.registreerDmwlFout(as, foutMelding);
 		}
 		else
 		{
@@ -125,8 +119,8 @@ public class WorklistQueryTask extends BasicQueryTask
 
 	private void controleerMammograafDatum(StringBuilder foutMeldingStringBuilder)
 	{
-		String mammograafDatum = getDatumVanAttributes(keys);
-		String huidigeDatum = DateUtil.getCurrentDateTime().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+		var mammograafDatum = getDatumVanAttributes(keys);
+		var huidigeDatum = DateUtil.getCurrentDateTime().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 		if (mammograafDatum != null && !huidigeDatum.equals(mammograafDatum))
 		{
 			foutMeldingStringBuilder.append("ScheduledProcedureStepStartDate: (verwacht=").append(huidigeDatum).append(", werkelijk=").append(mammograafDatum).append(") ");
@@ -136,7 +130,7 @@ public class WorklistQueryTask extends BasicQueryTask
 
 	private String getDatumVanAttributes(Attributes attributes)
 	{
-		Sequence scheduledProcedureSequence = attributes.getSequence(Tag.ScheduledProcedureStepSequence);
+		var scheduledProcedureSequence = attributes.getSequence(Tag.ScheduledProcedureStepSequence);
 		return scheduledProcedureSequence != null && !scheduledProcedureSequence.isEmpty() ? scheduledProcedureSequence.get(0).getString(Tag.ScheduledProcedureStepStartDate)
 			: null;
 	}

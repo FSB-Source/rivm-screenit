@@ -31,7 +31,6 @@ import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.repository.cervix.CervixBoekRegelRepository;
 import nl.rivm.screenit.service.HuisartsenportaalSyncService;
 import nl.rivm.screenit.service.UploadDocumentService;
-import nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification;
 import nl.rivm.screenit.util.cervix.CervixHuisartsToDtoUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -41,6 +40,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import static nl.rivm.screenit.specification.cervix.CervixBetaalopdrachtSpecification.heeftOpdrachtID;
+import static nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification.baseSpecification;
+import static nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification.metSpecificatie;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -64,9 +67,9 @@ public class CervixVerwijderSepaDataServiceImpl implements CervixVerwijderSepaDa
 	{
 		Pageable limit = PageRequest.of(0, aantal);
 		return boekRegelRepository
-			.findAll(CervixBoekRegelSpecification.baseSpecification()
-				.and(CervixBoekRegelSpecification.metOpdrachtID(id))
-				.and(CervixBoekRegelSpecification.metSpecificatie()), limit)
+			.findAll(baseSpecification()
+				.and(heeftOpdrachtID(id))
+				.and(metSpecificatie()), limit)
 			.getContent();
 	}
 
@@ -74,8 +77,8 @@ public class CervixVerwijderSepaDataServiceImpl implements CervixVerwijderSepaDa
 	public long aantalTeVerwerkenBoekregels(Long id)
 	{
 		return boekRegelRepository
-			.count(CervixBoekRegelSpecification.baseSpecification()
-				.and(CervixBoekRegelSpecification.metOpdrachtID(id)));
+			.count(baseSpecification()
+				.and(heeftOpdrachtID(id)));
 	}
 
 	@Override

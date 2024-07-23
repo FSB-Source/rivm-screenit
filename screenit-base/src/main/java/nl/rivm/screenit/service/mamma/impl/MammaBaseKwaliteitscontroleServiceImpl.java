@@ -23,15 +23,13 @@ package nl.rivm.screenit.service.mamma.impl;
 
 import java.util.List;
 
-import nl.rivm.screenit.dao.mamma.MammaBaseKwaliteitscontroleDao;
 import nl.rivm.screenit.model.mamma.MammaAdhocMeekijkverzoek;
-import nl.rivm.screenit.model.mamma.MammaDossier;
-import nl.rivm.screenit.model.mamma.MammaFotobespreking;
 import nl.rivm.screenit.model.mamma.MammaFotobesprekingOnderzoek;
-import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.rivm.screenit.model.mamma.MammaVisitatie;
 import nl.rivm.screenit.model.mamma.MammaVisitatieOnderzoek;
+import nl.rivm.screenit.repository.mamma.MammaAdhocMeekijkverzoekRepository;
+import nl.rivm.screenit.repository.mamma.MammaFotobesprekingOnderzoekRepository;
+import nl.rivm.screenit.repository.mamma.MammaVisitatieOnderzoekRepository;
 import nl.rivm.screenit.service.mamma.MammaBaseKwaliteitscontroleService;
 import nl.rivm.screenit.util.DatabaseSequence;
 import nl.rivm.screenit.util.SequenceGenerator;
@@ -39,84 +37,64 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static nl.rivm.screenit.specification.mamma.MammaKwaliteitscontroleSpecification.adhocMeekijkverzoekHeeftScreeningRonde;
+import static nl.rivm.screenit.specification.mamma.MammaKwaliteitscontroleSpecification.fotoBesprekingHeeftScreeningRonde;
+import static nl.rivm.screenit.specification.mamma.MammaKwaliteitscontroleSpecification.visitatieHeeftScreeningRonde;
+
 @Service
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MammaBaseKwaliteitscontroleServiceImpl implements MammaBaseKwaliteitscontroleService
 {
 	@Autowired
-	private MammaBaseKwaliteitscontroleDao kwaliteitscontroleDao;
-
-	@Autowired
 	private HibernateService hibernateService;
 
+	@Autowired
+	private MammaFotobesprekingOnderzoekRepository fotobesprekingOnderzoekRepository;
+
+	@Autowired
+	private MammaVisitatieOnderzoekRepository visitatieOnderzoekRepository;
+
+	@Autowired
+	private MammaAdhocMeekijkverzoekRepository adhocMeekijkverzoekRepository;
+
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
-	public void verwijderKwaliteitscontroleOnderzoeken(MammaDossier dossier)
+	public List<MammaFotobesprekingOnderzoek> getFotobesprekingOnderzoeken(MammaScreeningRonde screeningRonde)
 	{
-		List<MammaFotobesprekingOnderzoek> fbOnderzoeken = kwaliteitscontroleDao.getKwaliteitscontroleOnderzoeken(dossier, MammaFotobesprekingOnderzoek.class);
-
-		verwijderFotobesprekingOnderzoeken(fbOnderzoeken);
-
-		List<MammaVisitatieOnderzoek> vOnderzoeken = kwaliteitscontroleDao.getKwaliteitscontroleOnderzoeken(dossier, MammaVisitatieOnderzoek.class);
-
-		verwijderVisitatieOnderzoeken(vOnderzoeken);
-
-		List<MammaAdhocMeekijkverzoek> verzoeken = kwaliteitscontroleDao.getKwaliteitscontroleOnderzoeken(dossier, MammaAdhocMeekijkverzoek.class);
-
-		verwijderAdhocMeekijkverzoeken(verzoeken);
+		return fotobesprekingOnderzoekRepository.findAll(fotoBesprekingHeeftScreeningRonde(screeningRonde));
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void verwijderKwaliteitscontroleOnderzoeken(MammaScreeningRonde screeningRonde)
 	{
-		List<MammaFotobesprekingOnderzoek> fbOnderzoeken = kwaliteitscontroleDao.getKwaliteitscontroleOnderzoeken(screeningRonde, MammaFotobesprekingOnderzoek.class);
-
-		verwijderFotobesprekingOnderzoeken(fbOnderzoeken);
-
-		List<MammaVisitatieOnderzoek> vOnderzoeken = kwaliteitscontroleDao.getKwaliteitscontroleOnderzoeken(screeningRonde, MammaVisitatieOnderzoek.class);
-
-		verwijderVisitatieOnderzoeken(vOnderzoeken);
-
-		List<MammaAdhocMeekijkverzoek> verzoeken = kwaliteitscontroleDao.getKwaliteitscontroleOnderzoeken(screeningRonde, MammaAdhocMeekijkverzoek.class);
-
-		verwijderAdhocMeekijkverzoeken(verzoeken);
+		visitatieOnderzoekRepository.findAll(visitatieHeeftScreeningRonde(screeningRonde)).forEach(this::verwijderVisitatieOnderzoek);
+		adhocMeekijkverzoekRepository.findAll(adhocMeekijkverzoekHeeftScreeningRonde(screeningRonde)).forEach(this::verwijderAdhocMeekijkverzoek);
+		fotobesprekingOnderzoekRepository.findAll(fotoBesprekingHeeftScreeningRonde(screeningRonde)).forEach(this::verwijderFotobesprekingOnderzoek);
 	}
 
-	private void verwijderVisitatieOnderzoeken(List<MammaVisitatieOnderzoek> vOnderzoeken)
+	private void verwijderVisitatieOnderzoek(MammaVisitatieOnderzoek onderzoek)
 	{
-		for (MammaVisitatieOnderzoek onderzoek : vOnderzoeken)
-		{
-			MammaVisitatie visitatie = onderzoek.getVisitatie();
-			visitatie.getOnderzoeken().remove(onderzoek);
-			hibernateService.delete(onderzoek);
-			hibernateService.saveOrUpdate(visitatie);
-		}
+		var visitatie = onderzoek.getVisitatie();
+		visitatie.getOnderzoeken().remove(onderzoek);
+		hibernateService.delete(onderzoek);
+		hibernateService.saveOrUpdate(visitatie);
 	}
 
-	private void verwijderAdhocMeekijkverzoeken(List<MammaAdhocMeekijkverzoek> verzoeken)
+	private void verwijderAdhocMeekijkverzoek(MammaAdhocMeekijkverzoek verzoek)
 	{
-		for (MammaAdhocMeekijkverzoek verzoek : verzoeken)
-		{
-			MammaOnderzoek onderzoek = verzoek.getOnderzoek();
-			onderzoek.setMeekijkverzoek(null);
-			hibernateService.delete(verzoek);
-			hibernateService.saveOrUpdate(onderzoek);
-		}
+		var onderzoek = verzoek.getOnderzoek();
+		onderzoek.setMeekijkverzoek(null);
+		hibernateService.delete(verzoek);
+		hibernateService.saveOrUpdate(onderzoek);
 	}
 
-	private void verwijderFotobesprekingOnderzoeken(List<MammaFotobesprekingOnderzoek> fbOnderzoeken)
+	private void verwijderFotobesprekingOnderzoek(MammaFotobesprekingOnderzoek onderzoek)
 	{
-		for (MammaFotobesprekingOnderzoek onderzoek : fbOnderzoeken)
-		{
-			MammaFotobespreking fotobespreking = onderzoek.getFotobespreking();
-			fotobespreking.getOnderzoeken().remove(onderzoek);
-			hibernateService.delete(onderzoek);
-			hibernateService.saveOrUpdate(fotobespreking);
-		}
+		var fotobespreking = onderzoek.getFotobespreking();
+		fotobespreking.getOnderzoeken().remove(onderzoek);
+		hibernateService.delete(onderzoek);
+		hibernateService.saveOrUpdate(fotobespreking);
 	}
 
 	@Override

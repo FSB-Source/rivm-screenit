@@ -24,7 +24,6 @@ package nl.rivm.screenit.main.service.cervix.impl;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.dao.cervix.CervixMonsterDao;
 import nl.rivm.screenit.main.service.cervix.CervixDossierService;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
@@ -36,6 +35,7 @@ import nl.rivm.screenit.service.DashboardService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.OrganisatieParameterService;
+import nl.rivm.screenit.service.cervix.CervixBaseMonsterService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.stereotype.Service;
@@ -58,7 +58,7 @@ public class CervixDossierServiceImpl implements CervixDossierService
 
 	private final OrganisatieParameterService organisatieParameterService;
 
-	private final CervixMonsterDao cervixMonsterDao;
+	private final CervixBaseMonsterService monsterService;
 
 	private final LogService logService;
 
@@ -71,7 +71,7 @@ public class CervixDossierServiceImpl implements CervixDossierService
 		var signalerenVanaf = nu.minusDays(MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN);
 		var minimaleSignaleringsDatum = nu.minusDays(
 			organisatieParameterService.getOrganisatieParameter(null, OrganisatieParameterKey.CERVIX_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN, 30));
-		var laatsteMonsterZonderUitslag = cervixMonsterDao.getLaatsteMonsterMetMissendeUitslagVanDossier(dossier, signalerenVanaf, minimaleSignaleringsDatum);
+		var laatsteMonsterZonderUitslag = monsterService.getLaatsteMonsterMetMissendeUitslagVanDossier(dossier, signalerenVanaf, minimaleSignaleringsDatum).orElse(null);
 		var status = dashboardService.updateLogRegelMetDashboardStatus(logRegel, medewerker.getMedewerker().getGebruikersnaam(), dashboardStatus);
 
 		logService.logGebeurtenis(LogGebeurtenis.CERVIX_CONTROLE_MISSENDE_UITSLAGEN_MATCH_GECONTROLEERD, medewerker, dossier.getClient(), Bevolkingsonderzoek.CERVIX);

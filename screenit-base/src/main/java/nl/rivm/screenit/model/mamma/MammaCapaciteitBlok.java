@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -49,7 +50,9 @@ import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Cascade;
 import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 
 @Entity
 @Table(
@@ -107,5 +110,10 @@ public class MammaCapaciteitBlok extends AbstractHibernateObject
 
 	@OneToMany(mappedBy = "capaciteitBlok", fetch = FetchType.LAZY)
 	private final List<MammaAfspraak> afspraken = new ArrayList<>();
+
+	@OneToMany(mappedBy = "capaciteitBlok", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+	@Cascade(org.hibernate.annotations.CascadeType.DELETE)
+	@NotAudited
+	private List<MammaAfspraakReservering> afspraakReserveringen;
 
 }

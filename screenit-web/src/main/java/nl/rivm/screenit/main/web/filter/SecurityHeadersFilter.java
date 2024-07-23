@@ -34,7 +34,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.wicket.csp.CSPHeaderConfiguration;
 import org.apache.wicket.csp.CSPHeaderMode;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.http.WebResponse;
@@ -75,16 +74,16 @@ public class SecurityHeadersFilter implements Filter
 
 	public static void allowExtraConnectSrcInContentSecurityPolicy(WebResponse response, String extraConnectSrc)
 	{
-			var cspSettings = WebApplication.get().getCspSettings();
-			CSPHeaderConfiguration cspHeaderConfiguration = cspSettings.getConfiguration().get(CSPHeaderMode.BLOCKING);
-			String headerValue = cspHeaderConfiguration.renderHeaderValue(cspSettings, getRequestCycle());
+		var cspSettings = WebApplication.get().getCspSettings();
+		var cspHeaderConfiguration = cspSettings.getConfiguration().get(CSPHeaderMode.BLOCKING);
+		var headerValue = cspHeaderConfiguration.renderHeaderValue(cspSettings, getRequestCycle());
 
-			headerValue = headerValue.replace("connect-src 'self'", "");
-			String connectieString = "connect-src 'self' " + extraConnectSrc;
+		var connectSrcStartIndex = headerValue.indexOf("connect-src");
+		var connectSrcEndIndex = headerValue.indexOf(";", connectSrcStartIndex);
+		var connectSrcString = headerValue.substring(connectSrcStartIndex, connectSrcEndIndex) + " " + extraConnectSrc;
+		var cspString = headerValue.substring(0, connectSrcStartIndex) + connectSrcString + headerValue.substring(connectSrcEndIndex);
 
-			String cspString = String.join(";", headerValue, connectieString);
-
-			response.setHeader("Content-Security-Policy", cspString);
+		response.setHeader("Content-Security-Policy", cspString);
 	}
 
 	@Override

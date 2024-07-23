@@ -132,10 +132,10 @@ public class Project extends AbstractHibernateObject implements INaam, IBevolkin
 	private List<ProjectGroep> groepen = new ArrayList<>();
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "project", cascade = javax.persistence.CascadeType.ALL)
-	private List<ProjectBriefActie> projectBriefActies = new ArrayList<ProjectBriefActie>();
+	private List<ProjectBriefActie> projectBriefActies = new ArrayList<>();
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "project", cascade = javax.persistence.CascadeType.ALL)
-	private List<ProjectAttribuut> projectAttributen = new ArrayList<ProjectAttribuut>();
+	private List<ProjectAttribuut> projectAttributen = new ArrayList<>();
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "project", orphanRemoval = true, cascade = javax.persistence.CascadeType.ALL)
 	private List<ProjectParameter> parameters = new ArrayList<>();

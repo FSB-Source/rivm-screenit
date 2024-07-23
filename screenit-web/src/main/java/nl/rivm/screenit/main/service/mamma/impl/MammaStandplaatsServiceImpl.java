@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.dao.mamma.MammaBaseAfspraakDao;
 import nl.rivm.screenit.dao.mamma.MammaBaseStandplaatsDao;
 import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
 import nl.rivm.screenit.model.Client;
@@ -60,6 +59,7 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.impl.PersoonCoordinaten;
+import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.service.mamma.MammaBaseConceptPlanningsApplicatie;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.util.AdresUtil;
@@ -97,7 +97,7 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 	private MammaBaseStandplaatsService baseStandplaatsService;
 
 	@Autowired
-	private MammaBaseAfspraakDao baseAfspraakDao;
+	private MammaBaseAfspraakService baseAfspraakService;
 
 	@Autowired
 	private BaseBriefService baseBriefService;
@@ -309,7 +309,7 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 		}
 
 		Set<MammaAfspraak> afspraken = new HashSet<>();
-		periodesVoorZoeken.asRanges().forEach(range -> afspraken.addAll(baseAfspraakDao.getAfspraken(standplaats, range, MammaAfspraakStatus.GEPLAND)));
+		periodesVoorZoeken.asRanges().forEach(range -> afspraken.addAll(baseAfspraakService.getAfspraken(standplaats, range, MammaAfspraakStatus.GEPLAND)));
 		return afspraken;
 	}
 
@@ -379,7 +379,7 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 	public String controleerUitnodigingenNaVeranderingLocatie(MammaStandplaats standplaats)
 	{
 		var vandaag = dateSupplier.getLocalDate();
-		var aantalAfsprakenVoorStandplaats = baseAfspraakDao.countAfspraken(standplaats, vandaag, null, MammaAfspraakStatus.GEPLAND);
+		var aantalAfsprakenVoorStandplaats = baseAfspraakService.countAfspraken(standplaats, vandaag, null, MammaAfspraakStatus.GEPLAND);
 
 		MammaStandplaatsLocatie tijdelijkAdres = standplaats.getTijdelijkeLocatie();
 		var aantalAfsprakenTijdensTijdelijkeLocatie = 0L;
@@ -390,7 +390,7 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 			{
 				var startDatumTijdelijkeLocatie = DateUtil.toLocalDate(tijdelijkAdres.getStartDatum());
 				var zoekTijdelijkeLocatieVanaf = Collections.max(List.of(startDatumTijdelijkeLocatie, vandaag));
-				aantalAfsprakenTijdensTijdelijkeLocatie = baseAfspraakDao.countAfspraken(standplaats, zoekTijdelijkeLocatieVanaf, eindDatumTijdelijkeLocatie,
+				aantalAfsprakenTijdensTijdelijkeLocatie = baseAfspraakService.countAfspraken(standplaats, zoekTijdelijkeLocatieVanaf, eindDatumTijdelijkeLocatie,
 					MammaAfspraakStatus.GEPLAND);
 			}
 		}
@@ -415,10 +415,10 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 		{
 			if (!nieuweStartDatum.isEqual(DateUtil.toLocalDate(oudePeriode.lowerEndpoint())) || !nieuweEindDatum.isEqual(DateUtil.toLocalDate(oudePeriode.upperEndpoint())))
 			{
-				long aantalAfsprakenBinnenOudeLocatie = baseAfspraakDao.countAfspraken(standplaats, DateUtil.toLocalDate(oudePeriode.lowerEndpoint()),
+				long aantalAfsprakenBinnenOudeLocatie = baseAfspraakService.countAfspraken(standplaats, DateUtil.toLocalDate(oudePeriode.lowerEndpoint()),
 					DateUtil.toLocalDate(oudePeriode.upperEndpoint()),
 					MammaAfspraakStatus.GEPLAND);
-				long aantalAfsprakenBinnenNieuweLocatie = baseAfspraakDao.countAfspraken(standplaats, nieuweStartDatum, nieuweEindDatum, MammaAfspraakStatus.GEPLAND);
+				long aantalAfsprakenBinnenNieuweLocatie = baseAfspraakService.countAfspraken(standplaats, nieuweStartDatum, nieuweEindDatum, MammaAfspraakStatus.GEPLAND);
 
 				if (aantalAfsprakenBinnenOudeLocatie > 0 || aantalAfsprakenBinnenNieuweLocatie > 0)
 				{
@@ -433,7 +433,7 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 				}
 			}
 			if (!AdresUtil.getVolledigeAdresString(locatie).equals(oudeAdres)
-				&& baseAfspraakDao.countAfspraken(standplaats, DateUtil.toLocalDate(oudePeriode.lowerEndpoint()), DateUtil.toLocalDate(oudePeriode.upperEndpoint()),
+				&& baseAfspraakService.countAfspraken(standplaats, DateUtil.toLocalDate(oudePeriode.lowerEndpoint()), DateUtil.toLocalDate(oudePeriode.upperEndpoint()),
 				MammaAfspraakStatus.GEPLAND) > 0)
 			{
 				return "zijn.al.uitnodigingen.locatie.change";
@@ -441,7 +441,7 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 		}
 		else
 		{
-			if (baseAfspraakDao.countAfspraken(standplaats, nieuweStartDatum, nieuweEindDatum, MammaAfspraakStatus.GEPLAND) > 0)
+			if (baseAfspraakService.countAfspraken(standplaats, nieuweStartDatum, nieuweEindDatum, MammaAfspraakStatus.GEPLAND) > 0)
 			{
 				return "zijn.al.uitnodigingen.locatie.change";
 			}

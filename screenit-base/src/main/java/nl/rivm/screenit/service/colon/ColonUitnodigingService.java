@@ -22,10 +22,12 @@ package nl.rivm.screenit.service.colon;
  */
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 
 import nl.rivm.screenit.model.BriefDefinitie;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
+import nl.rivm.screenit.model.colon.UitnodigingCohort;
 
 public interface ColonUitnodigingService
 {
@@ -41,4 +43,10 @@ public interface ColonUitnodigingService
 	void berekenEnSetUitgesteldeUitslagDatum(ColonUitnodiging uitnodiging);
 
 	void verwijderUitgesteldeUitslagDatum(ColonUitnodiging uitnodiging);
+
+	List<Long> getTeVersturenUitnodigingen();
+
+	List<Integer> getUitnodigingCohorten();
+
+	UitnodigingCohort getUitnodigingCohort(int jaar);
 }

@@ -32,7 +32,5 @@ public class EnvironmentData
 {
 	private String module;
 
-	private String callback;
-
 	private String session;
 }

@@ -21,9 +21,12 @@ package nl.rivm.screenit.mamma.se.stub.services.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
-import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import nl.rivm.screenit.mamma.se.stub.services.DicomXmlLoader;
@@ -36,15 +39,34 @@ import org.springframework.stereotype.Service;
 public class DicomXmlLoaderImpl implements DicomXmlLoader
 {
 	@Override
-	public Attributes loadXML(InputStream is) throws Exception
+	public String loadResourceAsString(String xmlFileName) throws IOException
 	{
-		Attributes dicomObject = new Attributes();
+		var xmlFile = Objects.requireNonNull(getClass().getResourceAsStream("/" + xmlFileName));
+		return new String(xmlFile.readAllBytes(), StandardCharsets.UTF_8);
+	}
+
+	@Override
+	public Attributes loadDicomFromResource(String xmlFileName) throws Exception
+	{
+		var inputStream = getClass().getResourceAsStream("/" + xmlFileName);
+		return loadXml(inputStream);
+	}
+
+	@Override
+	public Attributes loadDicomFromXmlString(String dicomXmlDocument) throws Exception
+	{
+		return loadXml(new ByteArrayInputStream(dicomXmlDocument.getBytes()));
+	}
+
+	private Attributes loadXml(InputStream is) throws Exception
+	{
+		var dicomObject = new Attributes();
 		var factory = SAXParserFactory.newInstance();
 		factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
 		factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-		SAXParser saxParser = factory.newSAXParser();
+		var saxParser = factory.newSAXParser();
 
-		ContentHandlerAdapter contentHandlerAdapter = new ContentHandlerAdapter(dicomObject);
+		var contentHandlerAdapter = new ContentHandlerAdapter(dicomObject);
 		saxParser.parse(is, contentHandlerAdapter);
 		return dicomObject;
 	}

@@ -28,6 +28,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.mamma.se.proxy.SeProxyApplication;
 import nl.rivm.screenit.mamma.se.proxy.model.CacheProxyActie;
 import nl.rivm.screenit.mamma.se.proxy.model.RequestTypeCentraal;
@@ -37,8 +39,6 @@ import nl.rivm.screenit.mamma.se.proxy.services.SeStatusService;
 import nl.rivm.screenit.mamma.se.proxy.util.DateUtil;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
@@ -51,11 +51,13 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 @Service
+@Slf4j
 public class ProxyServiceImpl implements ProxyService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(ProxyServiceImpl.class);
-
 	private final Map<String, ResponseEntity> cachedResponses = new ConcurrentHashMap<>();
 
 	@Value("${SE_REST_URL}")
@@ -144,12 +146,34 @@ public class ProxyServiceImpl implements ProxyService
 		if ((cacheActie == CacheProxyActie.ALTIJD_OPHALEN_ALS_ONLINE && seStatusService.isOnline()) || !cachedResponses.containsKey(url))
 		{
 			ResponseEntity<T> response = sendUncheckedProxyRequest(requestEntity, responseType);
-			if (response.getStatusCode().equals(HttpStatus.OK))
+			if (cacheResponse(requestEntity, response))
 			{
 				cachedResponses.put(url, response);
 			}
 		}
 		return cachedResponses.getOrDefault(url, new ResponseEntity(HttpStatus.GATEWAY_TIMEOUT));
+	}
+
+	private <T> boolean cacheResponse(RequestEntity requestEntity, ResponseEntity<T> responseEntity)
+	{
+		var huisartsenRequest = requestEntity.getUrl().toString().contains(RequestTypeCentraal.GET_HUISARTSEN.getPathPostfix());
+		var statusOk = responseEntity.getStatusCode().equals(HttpStatus.OK);
+		if (!huisartsenRequest || !statusOk)
+		{
+			return statusOk;
+		}
+
+		var isEmptyResponse = false;
+		var requestBody = (String) responseEntity.getBody();
+		try
+		{
+			isEmptyResponse = new ObjectMapper().readTree(requestBody).isEmpty();
+		}
+		catch (JsonProcessingException ex)
+		{
+			LOG.error("Error while processing JSON response", ex);
+		}
+		return requestBody != null && !isEmptyResponse;
 	}
 
 	@Override

@@ -21,26 +21,23 @@ package nl.rivm.screenit.service.colon.impl;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.dao.colon.IFOBTResultDao;
-import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ProjectParameterKey;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
-import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColonOnderzoeksVariant;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
-import nl.rivm.screenit.model.colon.ColonUitnodiging;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.IFOBTType;
+import nl.rivm.screenit.model.colon.enums.IFOBTBestandStatus;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.project.ProjectBestand;
-import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectInactiefReden;
+import nl.rivm.screenit.repository.colon.ColonFITUitslagRepository;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.colon.ColonBaseFITService;
 import nl.rivm.screenit.service.colon.ColonStudietestService;
 import nl.rivm.screenit.service.colon.ColonUitnodigingService;
-import nl.rivm.screenit.service.colon.IFobtService;
 import nl.rivm.screenit.service.impl.ProjectUitslagenUploadException;
 import nl.rivm.screenit.util.FITTestUtil;
 import nl.rivm.screenit.util.ProjectUtil;
@@ -49,16 +46,14 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class ColonStudietestServiceImpl implements ColonStudietestService
 {
 	@Lazy
 	@Autowired
-	private IFobtService iFobtService;
+	private ColonBaseFITService fitService;
 
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
@@ -71,26 +66,26 @@ public class ColonStudietestServiceImpl implements ColonStudietestService
 	private HibernateService hibernateService;
 
 	@Autowired
-	private ColonUitnodigingService colonUitnodigingService;
+	private ColonUitnodigingService uitnodigingService;
 
 	@Autowired
-	private IFOBTResultDao ifobtResultDao;
+	private ColonFITUitslagRepository fitUitslagRepository;
 
 	@Override
 	public Boolean studietestHeraanmeldenIndienNodig(IFOBTTest studietest)
 	{
-		boolean clientIsHeraangemeld = false;
-		ColonUitnodiging uitnodiging = FITTestUtil.getUitnodiging(studietest);
+		var clientIsHeraangemeld = false;
+		var uitnodiging = FITTestUtil.getUitnodiging(studietest);
 
 		if (uitnodiging != null)
 		{
-			ProjectClient projectclient = ProjectUtil.getHuidigeProjectClient(uitnodiging.getScreeningRonde().getDossier().getClient(), currentDateSupplier.getDate());
+			var projectclient = ProjectUtil.getHuidigeProjectClient(uitnodiging.getScreeningRonde().getDossier().getClient(), currentDateSupplier.getDate());
 			if (projectclient != null && ProjectUtil.isClientActiefInProject(projectclient, currentDateSupplier.getDate()))
 			{
-				iFobtService.bepaalEnSetHeraanmeldenTekstKey(studietest);
+				fitService.bepaalEnSetHeraanmeldenTekstKey(studietest);
 				if (studietest.getHeraanmeldenTekstKey() != null)
 				{
-					iFobtService.heraanmelden(studietest.getColonScreeningRonde(), currentDateSupplier.getLocalDateTime());
+					fitService.heraanmelden(studietest.getColonScreeningRonde(), currentDateSupplier.getLocalDateTime());
 					clientIsHeraangemeld = true;
 				}
 			}
@@ -99,10 +94,11 @@ public class ColonStudietestServiceImpl implements ColonStudietestService
 	}
 
 	@Override
+	@Transactional
 	public void projectClientInactiverenBijVergelijkendOnderzoek(ColonScreeningRonde screeningRonde)
 	{
-		Client client = screeningRonde.getDossier().getClient();
-		ProjectClient projectClient = ProjectUtil.getHuidigeProjectClient(client, currentDateSupplier.getDate());
+		var client = screeningRonde.getDossier().getClient();
+		var projectClient = ProjectUtil.getHuidigeProjectClient(client, currentDateSupplier.getDate());
 		if (projectClient != null
 			&& ColonOnderzoeksVariant.VERGELIJKEND.name().equals(ProjectUtil.getParameter(projectClient.getProject(), ProjectParameterKey.COLON_ONDERZOEKSVARIANT)))
 		{
@@ -111,6 +107,7 @@ public class ColonStudietestServiceImpl implements ColonStudietestService
 	}
 
 	@Override
+	@Transactional
 	public void controleerUitslagenbestandOpFouten(IFOBTTest studietest, ProjectBestand uitslagenbestand) throws ProjectUitslagenUploadException
 	{
 		geefFoutBijInactiefInProject(uitslagenbestand, studietest);
@@ -123,8 +120,8 @@ public class ColonStudietestServiceImpl implements ColonStudietestService
 
 	private void geefFoutBijInactiefInProject(ProjectBestand uitslagenBestand, IFOBTTest studietest) throws ProjectUitslagenUploadException
 	{
-		Client client = studietest.getColonScreeningRonde().getDossier().getClient();
-		ProjectClient projectClient = ProjectUtil.getHuidigeProjectClient(client, currentDateSupplier.getDate());
+		var client = studietest.getColonScreeningRonde().getDossier().getClient();
+		var projectClient = ProjectUtil.getHuidigeProjectClient(client, currentDateSupplier.getDate());
 		if (projectClient == null || uitslagenBestand != null && !projectClient.getProject().equals(uitslagenBestand.getProject()))
 		{
 			throw new ProjectUitslagenUploadException("De cliënt is niet actief in dit project");
@@ -133,12 +130,12 @@ public class ColonStudietestServiceImpl implements ColonStudietestService
 
 	private void geefFoutAlsFITNietVerwerktIs(IFOBTTest studietest) throws ProjectUitslagenUploadException
 	{
-		ColonUitnodiging uitnodiging = FITTestUtil.getUitnodiging(studietest);
-		IFOBTTest reguliereTest = uitnodiging.getGekoppeldeTest();
+		var uitnodiging = FITTestUtil.getUitnodiging(studietest);
+		var reguliereTest = uitnodiging.getGekoppeldeTest();
 
 		if (!reguliereTest.getStatus().equals(IFOBTTestStatus.UITGEVOERD))
 		{
-			if (ifobtResultDao.fitUitslagGeanalyseerdMaarNietVerwerkt(reguliereTest.getBarcode()))
+			if (!fitUitslagRepository.findByBarcodeAndBestandStatusNot(reguliereTest.getBarcode(), IFOBTBestandStatus.VERWERKT).isEmpty())
 			{
 				throw new ProjectUitslagenUploadException("De FIT/Gold is wel geanalyseerd, maar nog niet verwerkt");
 			}
@@ -164,9 +161,9 @@ public class ColonStudietestServiceImpl implements ColonStudietestService
 
 	private void geefFoutAlsOngunstigeUitslagVerstuurdIs(IFOBTTest studietest) throws ProjectUitslagenUploadException
 	{
-		ColonIntakeAfspraak afspraak = studietest.getColonScreeningRonde().getLaatsteAfspraak();
-		ColonUitnodiging uitnodiging = FITTestUtil.getUitnodiging(studietest);
-		IFOBTTest reguliereTest = uitnodiging.getGekoppeldeTest();
+		var afspraak = studietest.getColonScreeningRonde().getLaatsteAfspraak();
+		var uitnodiging = FITTestUtil.getUitnodiging(studietest);
+		var reguliereTest = uitnodiging.getGekoppeldeTest();
 		if (FITTestUtil.isGunstig(reguliereTest) && afspraak != null)
 		{
 			throw new ProjectUitslagenUploadException("De intake afspraak is ingepland, de uitslag van de studietest kan niet gewijzigd worden");
@@ -175,7 +172,7 @@ public class ColonStudietestServiceImpl implements ColonStudietestService
 
 	private void geefFoutBijVerstrekenWachttijd(IFOBTTest studietest) throws ProjectUitslagenUploadException
 	{
-		ColonUitnodiging uitnodiging = FITTestUtil.getUitnodiging(studietest);
+		var uitnodiging = FITTestUtil.getUitnodiging(studietest);
 		if (uitnodiging != null && uitnodiging.getUitgesteldeUitslagDatum() != null && uitnodiging.getUitgesteldeUitslagDatum().before(currentDateSupplier.getDate()))
 		{
 			throw new ProjectUitslagenUploadException("De wachtperiode is verstreken");
@@ -183,12 +180,13 @@ public class ColonStudietestServiceImpl implements ColonStudietestService
 	}
 
 	@Override
+	@Transactional
 	public void verwerkUitslag(IFOBTTest studietest)
 	{
-		iFobtService.setStatus(studietest, IFOBTTestStatus.UITGEVOERD);
+		fitService.setStatus(studietest, IFOBTTestStatus.UITGEVOERD);
 		studietest.setVerwerkingsDatum(currentDateSupplier.getDate());
 
-		colonUitnodigingService.verwijderUitgesteldeUitslagDatum(studietest.getColonUitnodigingExtra());
+		uitnodigingService.verwijderUitgesteldeUitslagDatum(studietest.getColonUitnodigingExtra());
 
 		hibernateService.saveOrUpdateAll(studietest);
 	}

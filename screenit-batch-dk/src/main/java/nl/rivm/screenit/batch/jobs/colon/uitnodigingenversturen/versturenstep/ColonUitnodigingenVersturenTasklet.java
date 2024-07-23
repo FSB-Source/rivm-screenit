@@ -31,7 +31,6 @@ import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.colon.uitnodigingenversturen.UitnodigingenVersturenConstants;
 import nl.rivm.screenit.batch.jobs.colon.uitnodigingenversturen.UitnodigingenVersturenProjectGroepCounterHolder;
 import nl.rivm.screenit.batch.jobs.uitnodigingenversturen.versturenstep.AbstractUitnodigingenVersturenTasklet;
-import nl.rivm.screenit.dao.colon.ColonUitnodigingsDao;
 import nl.rivm.screenit.model.BriefDefinitie;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Instelling;
@@ -64,13 +63,11 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class ColonUitnodigingenVersturenTasklet extends AbstractUitnodigingenVersturenTasklet<ColonUitnodiging>
 {
-	private ColonUitnodigingsDao uitnodigingsDao;
+	private ColonUitnodigingService uitnodigingService;
 
 	private HibernateService hibernateService;
 
 	private LogService logService;
-
-	private ColonUitnodigingService colonUitnodigingService;
 
 	private ICurrentDateSupplier currentDateSupplier;
 
@@ -83,7 +80,7 @@ public class ColonUitnodigingenVersturenTasklet extends AbstractUitnodigingenVer
 	@Override
 	protected List<Long> getUitnodigingen()
 	{
-		return uitnodigingsDao.getTeVersturenUitnodigingen();
+		return uitnodigingService.getTeVersturenUitnodigingen();
 	}
 
 	@Override
@@ -219,7 +216,7 @@ public class ColonUitnodigingenVersturenTasklet extends AbstractUitnodigingenVer
 	@Override
 	protected BriefDefinitie getBriefDefinitie(ColonUitnodiging uitnodiging)
 	{
-		return colonUitnodigingService.getBriefType(uitnodiging);
+		return uitnodigingService.getBriefType(uitnodiging);
 	}
 
 	@Override

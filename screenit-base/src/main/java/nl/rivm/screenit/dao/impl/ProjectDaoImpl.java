@@ -847,10 +847,10 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 	}
 
 	@Override
-	public ProjectClient getProjectClient(Client client, ProjectBestand bestand)
+	public ProjectClient getProjectClient(Client client, Project project)
 	{
 		Criteria crit = getSession().createCriteria(ProjectClient.class);
-		crit.add(Restrictions.eq("project", bestand.getProject()));
+		crit.add(Restrictions.eq("project", project));
 		crit.add(Restrictions.eq("client", client));
 		return (ProjectClient) crit.uniqueResult();
 	}

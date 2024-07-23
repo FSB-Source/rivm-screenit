@@ -42,6 +42,7 @@ import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningDoorrekenenManager;
 import nl.rivm.screenit.model.mamma.enums.MammaMeldingNiveau;
 import nl.rivm.screenit.model.mamma.enums.MammaPlanningStatus;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Propagation;
@@ -124,7 +125,7 @@ public class PlanningActieController
 			PlanningConceptMeldingenDto meldingenDto = new PlanningConceptMeldingenDto();
 			meldingenDto.niveau = MammaMeldingNiveau.PROBLEEM;
 
-			for (Map.Entry<Long, Date[]> entry : e.getAfsprakenBuitenStandplaatsPeriodeMap().entrySet())
+			for (Map.Entry<Long, Pair<Date, Date>> entry : e.getAfsprakenBuitenStandplaatsPeriodeMap().entrySet())
 			{
 				PlanningMeldingDto meldingDto = new PlanningMeldingDto();
 				meldingDto.niveau = MammaMeldingNiveau.PROBLEEM;

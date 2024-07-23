@@ -24,21 +24,12 @@ package nl.rivm.screenit.dao.colon;
 import java.util.List;
 
 import nl.rivm.screenit.model.UitnodigingsGebied;
-import nl.rivm.screenit.model.colon.UitnodigingCohort;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 
 import org.hibernate.ScrollableResults;
 
 public interface ColonUitnodigingsDao
 {
-
-	List<Long> getTeVersturenUitnodigingen();
-
-	List<Integer> getUitnodigingCohorten();
-
-	UitnodigingCohort getUitnodigingCohort(int jaar);
-
 	ScrollableResults getUitnodigingsCursor(ColonUitnodigingCategorie uitnodigingscategorie, UitnodigingsGebied uitnodigingsgebied, List<Integer> geboorteJaren,
 		Integer minimaleLeeftijd, Integer maximaleLeeftijd, Long projectGroupId, List<Long> exclusieGroepIds, int fetchSize);
-
 }

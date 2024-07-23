@@ -194,15 +194,6 @@ public enum Recht implements INaam
 			}
 		},
 
-	GEBRUIKER_LOCATIE_NIEUW_ROOSTER("Beheer nieuw rooster", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON })
-		{
-			@Override
-			public List<OrganisatieType> getOrganisatieTypes()
-			{
-				return Collections.singletonList(OrganisatieType.COLOSCOPIECENTRUM);
-			}
-		},
-
 	GEBRUIKER_UITNODIGING_VERSTUREN("Uitnodiging versturen", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON }),
 
 	GEBRUIKER_SCREENING_SCANNING("Screening scanning", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON }),
@@ -799,7 +790,7 @@ public enum Recht implements INaam
 		new ToegangLevel[] { ToegangLevel.INSTELLING, ToegangLevel.REGIO, ToegangLevel.LANDELIJK }),
 
 	GEBRUIKER_SCREENING_MAMMA_AFSPRAKEN_BEHEER(
-		"Afspraken beheer",
+		"Afsprakenbeheer",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.REGIO, ToegangLevel.LANDELIJK },
 		Actie.INZIEN),
@@ -1164,7 +1155,12 @@ public enum Recht implements INaam
 		"Beheer van roosterbeperkingen voor tijd en weekend",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
-		Actie.INZIEN, Actie.AANPASSEN);
+		Actie.INZIEN, Actie.AANPASSEN),
+
+	MAMMA_DENSE_2(
+		"Uitwisselen van DENSE-2 gegevens",
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
+		new ToegangLevel[] { ToegangLevel.LANDELIJK }, Actie.AANPASSEN);
 
 	private final String omschrijving;
 

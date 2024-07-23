@@ -23,6 +23,7 @@ package nl.rivm.screenit.service.colon.impl;
 
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,24 +31,26 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.BaseBriefDao;
-import nl.rivm.screenit.dao.colon.ColonUitnodigingsDao;
 import nl.rivm.screenit.model.BriefDefinitie;
 import nl.rivm.screenit.model.ProjectParameterKey;
-import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
-import nl.rivm.screenit.model.colon.IFOBTTest;
+import nl.rivm.screenit.model.colon.ColonUitnodiging_;
 import nl.rivm.screenit.model.colon.UitnodigingCohort;
 import nl.rivm.screenit.model.colon.UitnodigingCohortGeboortejaren;
+import nl.rivm.screenit.model.colon.UitnodigingCohort_;
 import nl.rivm.screenit.model.enums.BriefType;
-import nl.rivm.screenit.model.project.ProjectClient;
+import nl.rivm.screenit.repository.colon.UitnodigingCohortRepository;
 import nl.rivm.screenit.service.BaseUitnodigingService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.colon.ColonScreeningsrondeService;
 import nl.rivm.screenit.service.colon.ColonUitnodigingService;
+import nl.rivm.screenit.specification.algemeen.UitnodigingCohortSpecification;
+import nl.rivm.screenit.specification.colon.ColonUitnodigingSpecification;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
+import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -80,7 +83,10 @@ public class ColonUitnodigingServiceImpl implements ColonUitnodigingService
 	private BaseUitnodigingService baseUitnodigingService;
 
 	@Autowired
-	private ColonUitnodigingsDao uitnodigingsDao;
+	private SessionFactory sessionFactory;
+
+	@Autowired
+	private UitnodigingCohortRepository uitnodigingCohortRepository;
 
 	@Override
 	public BriefDefinitie getBriefType(ColonUitnodiging colonUitnodiging)
@@ -108,10 +114,10 @@ public class ColonUitnodigingServiceImpl implements ColonUitnodigingService
 	@Override
 	public LocalDate getGeprognotiseerdeIntakeDatum(boolean vooraankondigen)
 	{
-		Integer ifobtRetourPeriode = simplePreferenceService.getInteger(PreferenceKey.IFOBTRETOURPERIODE.name());
-		Integer ifobtAnalysePeriode = simplePreferenceService.getInteger(PreferenceKey.IFOBTANALYSEPERIODE.name());
-		Integer intakeAfspraakPeriode = simplePreferenceService.getInteger(PreferenceKey.INTAKEAFSPRAAKPERIODE.name());
-		Integer vooraankondigingsPeriode = simplePreferenceService.getInteger(PreferenceKey.VOORAANKONDIGINSPERIODE.name());
+		var ifobtRetourPeriode = simplePreferenceService.getInteger(PreferenceKey.IFOBTRETOURPERIODE.name());
+		var ifobtAnalysePeriode = simplePreferenceService.getInteger(PreferenceKey.IFOBTANALYSEPERIODE.name());
+		var intakeAfspraakPeriode = simplePreferenceService.getInteger(PreferenceKey.INTAKEAFSPRAAKPERIODE.name());
+		var vooraankondigingsPeriode = simplePreferenceService.getInteger(PreferenceKey.VOORAANKONDIGINSPERIODE.name());
 
 		var geprognotiseerdeIntakeDatum = currentDateSupplier.getLocalDate().plusDays(ifobtRetourPeriode).plusDays(ifobtAnalysePeriode).plusDays(intakeAfspraakPeriode);
 
@@ -126,7 +132,7 @@ public class ColonUitnodigingServiceImpl implements ColonUitnodigingService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public ColonUitnodiging cloneUitnodiging(ColonUitnodiging uitnodiging, boolean checkAlleenUitslagGecommuniceerd)
 	{
-		ColonScreeningRonde screeningRonde = uitnodiging.getScreeningRonde();
+		var screeningRonde = uitnodiging.getScreeningRonde();
 		ColonUitnodiging nieuweUitnodiging = null;
 		if (screeningsrondeService.heeftUitslag(uitnodiging, checkAlleenUitslagGecommuniceerd))
 		{
@@ -152,9 +158,9 @@ public class ColonUitnodigingServiceImpl implements ColonUitnodigingService
 	public Set<Integer> getAlleGeboortejarenTotMetHuidigJaar()
 	{
 		Set<Integer> geboortejaren = new HashSet<>();
-		for (int jaar = EERSTE_COHORT_JAAR_DK; jaar <= currentDateSupplier.getLocalDate().getYear(); jaar++)
+		for (var jaar = EERSTE_COHORT_JAAR_DK; jaar <= currentDateSupplier.getLocalDate().getYear(); jaar++)
 		{
-			UitnodigingCohort uitnodigingCohort = uitnodigingsDao.getUitnodigingCohort(jaar);
+			var uitnodigingCohort = getUitnodigingCohort(jaar);
 			if (uitnodigingCohort != null)
 			{
 				geboortejaren.addAll(uitnodigingCohort.getGeboortejaren().stream().map(UitnodigingCohortGeboortejaren::getGeboortejaren)
@@ -167,20 +173,54 @@ public class ColonUitnodigingServiceImpl implements ColonUitnodigingService
 	@Override
 	public void berekenEnSetUitgesteldeUitslagDatum(ColonUitnodiging uitnodiging)
 	{
-		ProjectClient projectClient = ProjectUtil.getHuidigeProjectClient(uitnodiging.getScreeningRonde().getDossier().getClient(), currentDateSupplier.getDate());
+		var projectClient = ProjectUtil.getHuidigeProjectClient(uitnodiging.getScreeningRonde().getDossier().getClient(), currentDateSupplier.getDate());
 
 		if (ProjectUtil.hasParameterSet(projectClient, ProjectParameterKey.COLON_WACHTTIJD_UITSLAG_STUDIETEST))
 		{
-			IFOBTTest gekoppeldeTest = uitnodiging.getGekoppeldeTest();
-			int wachttijd = Integer.parseInt(ProjectUtil.getParameter(projectClient.getProject(), ProjectParameterKey.COLON_WACHTTIJD_UITSLAG_STUDIETEST));
-			LocalDate analysedatum = DateUtil.toLocalDate(gekoppeldeTest.getAnalyseDatum());
+			var gekoppeldeTest = uitnodiging.getGekoppeldeTest();
+			var wachttijd = Integer.parseInt(ProjectUtil.getParameter(projectClient.getProject(), ProjectParameterKey.COLON_WACHTTIJD_UITSLAG_STUDIETEST));
+			var analysedatum = DateUtil.toLocalDate(gekoppeldeTest.getAnalyseDatum());
 			uitnodiging.setUitgesteldeUitslagDatum(DateUtil.toUtilDate(DateUtil.plusWerkdagen(analysedatum, wachttijd)));
 		}
+	}
+
+	@Override
+	public List<Long> getTeVersturenUitnodigingen()
+	{
+		var currentSession = sessionFactory.getCurrentSession();
+		var cb = currentSession.getCriteriaBuilder();
+		var q = cb.createQuery(Long.class);
+		var r = q.from(ColonUitnodiging.class);
+		var specification = ColonUitnodigingSpecification.heeftActieveClient()
+			.and(ColonUitnodigingSpecification.heeftGeenVerstuurdDatum())
+			.and(ColonUitnodigingSpecification.heeftUitnodigingsDatumVoorDatum(currentDateSupplier.getDate()))
+			.and(ColonUitnodigingSpecification.heeftGeenBriefTypes(List.of(BriefType.COLON_UITNODIGING_INTAKE, BriefType.COLON_GUNSTIGE_UITSLAG)));
+
+		var query = q.select(r.get(ColonUitnodiging_.id)).where(specification.toPredicate(r, q, cb));
+		return currentSession.createQuery(query).getResultList();
 	}
 
 	@Override
 	public void verwijderUitgesteldeUitslagDatum(ColonUitnodiging uitnodiging)
 	{
 		uitnodiging.setUitgesteldeUitslagDatum(null);
+	}
+
+	@Override
+	public List<Integer> getUitnodigingCohorten()
+	{
+		var currentSession = sessionFactory.getCurrentSession();
+		var cb = currentSession.getCriteriaBuilder();
+		var q = cb.createQuery(Integer.class);
+		var r = q.from(UitnodigingCohort.class);
+		var specification = UitnodigingCohortSpecification.heeftJaarMinderOfGelijkAan(currentDateSupplier.getLocalDate().getYear());
+		var query = q.select(r.get(UitnodigingCohort_.jaar)).where(specification.toPredicate(r, q, cb)).orderBy(cb.asc(r.get(UitnodigingCohort_.jaar)));
+		return currentSession.createQuery(query).getResultList();
+	}
+
+	@Override
+	public UitnodigingCohort getUitnodigingCohort(int jaar)
+	{
+		return uitnodigingCohortRepository.findOne(UitnodigingCohortSpecification.heeftJaar(jaar)).orElse(null);
 	}
 }

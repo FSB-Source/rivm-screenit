@@ -114,21 +114,6 @@ public class ProjectUtil
 		return resultProjectClienten;
 	}
 
-	public static ProjectClient getProjectClientVanProject(Client client, Project project)
-	{
-		if (client != null && project != null)
-		{
-			for (ProjectClient pClient : client.getProjecten())
-			{
-				if (pClient.getProject() != null && pClient.getProject().equals(project))
-				{
-					return pClient;
-				}
-			}
-		}
-		return null;
-	}
-
 	public static ProjectClient getHuidigeProjectClient(Client client, Date date)
 	{
 		return getHuidigeProjectClient(client, date, true);

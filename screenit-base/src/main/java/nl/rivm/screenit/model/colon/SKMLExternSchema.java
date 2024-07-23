@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.colon;
 
 /*-
@@ -30,19 +29,21 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 @Entity
+@Getter
+@Setter
 @Table(schema = "colon")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 public class SKMLExternSchema extends AbstractHibernateObject
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@Column(nullable = false)
 	private Integer jaar;
 
@@ -58,54 +59,4 @@ public class SKMLExternSchema extends AbstractHibernateObject
 
 	@Column(nullable = false)
 	private Boolean actief;
-
-	public Integer getJaar()
-	{
-		return jaar;
-	}
-
-	public void setJaar(Integer jaar)
-	{
-		this.jaar = jaar;
-	}
-
-	public Integer getRonde()
-	{
-		return ronde;
-	}
-
-	public void setRonde(Integer ronde)
-	{
-		this.ronde = ronde;
-	}
-
-	public String getLetter()
-	{
-		return letter;
-	}
-
-	public void setLetter(String letter)
-	{
-		this.letter = letter;
-	}
-
-	public Date getDeadline()
-	{
-		return deadline;
-	}
-
-	public void setDeadline(Date deadline)
-	{
-		this.deadline = deadline;
-	}
-
-	public Boolean getActief()
-	{
-		return actief;
-	}
-
-	public void setActief(Boolean actief)
-	{
-		this.actief = actief;
-	}
 }

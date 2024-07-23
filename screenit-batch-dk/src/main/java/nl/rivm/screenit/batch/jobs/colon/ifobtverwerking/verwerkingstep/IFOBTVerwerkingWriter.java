@@ -27,7 +27,6 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.jobs.colon.ifobtverwerking.IfobtVerwerkingConstants;
-import nl.rivm.screenit.dao.colon.IFobtDao;
 import nl.rivm.screenit.model.colon.IFOBTBestand;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.IFOBTType;
@@ -40,7 +39,7 @@ import nl.rivm.screenit.model.logging.IfobtVerwerkingBeeindigdLogEvent;
 import nl.rivm.screenit.model.verwerkingverslag.IfobtVerwerkingRapportageEntry;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
-import nl.rivm.screenit.service.colon.IFobtService;
+import nl.rivm.screenit.service.colon.ColonBaseFITService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.batch.core.StepExecution;
@@ -55,16 +54,13 @@ public class IFOBTVerwerkingWriter implements ItemWriter<IFOBTUitslag>
 {
 
 	@Autowired
-	private IFobtDao ifobtDao;
-
-	@Autowired
 	private HibernateService hibernateService;
 
 	@Autowired
 	private LogService logService;
 
 	@Autowired
-	private IFobtService iFobtService;
+	private ColonBaseFITService fitService;
 
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
@@ -84,7 +80,7 @@ public class IFOBTVerwerkingWriter implements ItemWriter<IFOBTUitslag>
 
 		for (var ifobtResult : items)
 		{
-			var ifobtTest = ifobtDao.getIfobtTest(ifobtResult.getBarcode());
+			var ifobtTest = fitService.getFit(ifobtResult.getBarcode()).orElse(null);
 
 			if (bestand == null || !bestand.equals(ifobtResult.getBestand()))
 			{
@@ -121,7 +117,7 @@ public class IFOBTVerwerkingWriter implements ItemWriter<IFOBTUitslag>
 
 					zetAnalysegegevensOverNaarFit(bestand, ifobtResult, ifobtTest);
 
-					iFobtService.uitslagFitOntvangen(ifobtTest);
+					fitService.uitslagFitOntvangen(ifobtTest);
 
 					verslagEntry.setAantalVerwerkingen(verslagEntry.getAantalVerwerkingen() + 1);
 				}

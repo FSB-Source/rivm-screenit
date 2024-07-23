@@ -22,20 +22,21 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
  */
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 import nl.rivm.screenit.dto.mamma.afspraken.MammaKandidaatAfspraakDto;
 import nl.rivm.screenit.exceptions.MammaTijdNietBeschikbaarException;
+import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.AbstractClientContactActiePanel;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaCapaciteitBlok;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
-import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.mamma.enums.MammaVerzettenReden;
+import nl.rivm.screenit.service.ClientContactService;
+import nl.rivm.screenit.service.mamma.MammaAfspraakReserveringService;
 import nl.rivm.screenit.service.mamma.MammaBaseFactory;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -61,6 +62,12 @@ public class MammaAfspraakKiezenPanel extends AbstractClientContactActiePanel<Cl
 	@SpringBean
 	private MammaBaseFactory baseFactory;
 
+	@SpringBean
+	private ClientContactService clientContactService;
+
+	@SpringBean
+	private MammaAfspraakReserveringService afspraakReserveringService;
+
 	public MammaAfspraakKiezenPanel(String id, IModel<Client> clientModel)
 	{
 		super(id, clientModel);
@@ -80,14 +87,24 @@ public class MammaAfspraakKiezenPanel extends AbstractClientContactActiePanel<Cl
 				{
 					return;
 				}
-				MammaCapaciteitBlok capaciteitBlok = hibernateService.load(MammaCapaciteitBlok.class, kandidaatAfspraakDto.getCapaciteitBlokId());
-				MammaStandplaatsPeriode standplaatsPeriode = hibernateService.load(MammaStandplaatsPeriode.class, kandidaatAfspraakDto.getStandplaatsPeriodeId());
-				MammaUitnodiging uitnodiging = getModelObject().getMammaDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging();
+				var capaciteitBlok = hibernateService.load(MammaCapaciteitBlok.class, kandidaatAfspraakDto.getCapaciteitBlokId());
+				var standplaatsPeriode = hibernateService.load(MammaStandplaatsPeriode.class, kandidaatAfspraakDto.getStandplaatsPeriodeId());
+				var uitnodiging = getModelObject().getMammaDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging();
 
-				Date vanaf = DateUtil.toUtilDate(kandidaatAfspraakDto.getTijd(), kandidaatAfspraakDto.getDatum());
-				MammaAfspraak dummyAfspraak = baseFactory.maakDummyAfspraak(uitnodiging, vanaf, capaciteitBlok, standplaatsPeriode, verzettenReden);
+				var vanaf = DateUtil.toUtilDate(kandidaatAfspraakDto.getTijd(), kandidaatAfspraakDto.getDatum());
+				var dummyAfspraak = baseFactory.maakDummyAfspraak(uitnodiging, vanaf, capaciteitBlok, standplaatsPeriode, verzettenReden);
 
-				MammaAfspraakPanel afspraakPanel = new MammaAfspraakPanel("nieuweAfspraakPanel", dummyAfspraak, true)
+				if (clientContactService.isAfspraakTijdBezet(dummyAfspraak, ((MammaAfspraakZoekenPanel) afspraakZoekenPanel).getFilterModel().getObject()))
+				{
+					error(getString("mamma.afspraakoptie.niet.meer.beschikbaar.klik.op.zoeken"));
+					return;
+				}
+				else
+				{
+					afspraakReserveringService.maakAfspraakReservering(dummyAfspraak, ScreenitSession.get().getLoggedInInstellingGebruiker());
+				}
+
+				var afspraakPanel = new MammaAfspraakPanel("nieuweAfspraakPanel", dummyAfspraak, true)
 				{
 					@Override
 					protected void wijzigMoment(AjaxRequestTarget target)
@@ -126,8 +143,8 @@ public class MammaAfspraakKiezenPanel extends AbstractClientContactActiePanel<Cl
 	@Override
 	public List<String> getOpslaanMeldingen()
 	{
-		MammaAfspraak afspraak = getNieuweAfspraak();
-		SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE dd-MM-yyyy HH:mm");
+		var afspraak = getNieuweAfspraak();
+		var dateFormat = new SimpleDateFormat("EEEE dd-MM-yyyy HH:mm");
 		return List.of(String.format("De afspraak wordt verzet naar %s in %s met %s", dateFormat.format(afspraak.getVanaf()),
 			afspraak.getStandplaatsPeriode().getStandplaatsRonde().getStandplaats().getNaam(),
 			afspraak.getCapaciteitBlok().getScreeningsEenheid().getNaam()));
@@ -140,7 +157,7 @@ public class MammaAfspraakKiezenPanel extends AbstractClientContactActiePanel<Cl
 		{
 			throw new MammaTijdNietBeschikbaarException();
 		}
-		Map<ExtraOpslaanKey, Object> opslaanObjecten = super.getOpslaanObjecten();
+		var opslaanObjecten = super.getOpslaanObjecten();
 		opslaanObjecten.put(ExtraOpslaanKey.AFSPRAAK, ModelProxyHelper.deproxy(getNieuweAfspraak()));
 		opslaanObjecten.put(ExtraOpslaanKey.MAMMA_AFSPRAAK_FILTER, ((MammaAfspraakZoekenPanel) afspraakZoekenPanel).getFilterModel().getObject());
 		if (nieuweAfspraakPanel instanceof AbstractClientContactActiePanel)

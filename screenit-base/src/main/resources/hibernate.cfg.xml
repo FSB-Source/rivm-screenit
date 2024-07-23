@@ -62,7 +62,7 @@
         <property name="hibernate.jdbc.batch_size">20</property>
         <property name="hibernate.jdbc.lob.non_contextual_creation">true</property>
         <property name="org.hibernate.envers.revision_on_collection_change">false</property>
-
+        <property name="hibernate.metadata_builder_contributor">nl.rivm.screenit.config.BaseHibernateConfig</property>
         <property name="default_schema">gedeeld</property>
     </session-factory>
 </hibernate-configuration>

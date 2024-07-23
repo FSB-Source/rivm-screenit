@@ -21,14 +21,10 @@ package nl.rivm.screenit.service.cervix.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.dao.cervix.CervixLabformulierDao;
 import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
-import nl.rivm.screenit.model.cervix.CervixLabformulierenFilter;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
@@ -51,7 +47,6 @@ import org.springframework.transaction.annotation.Transactional;
 @AllArgsConstructor
 public class CervixLabformulierServiceImpl implements CervixLabformulierService
 {
-	private final CervixLabformulierDao labformulierDao;
 
 	private final CervixVervolgService vervolgService;
 
@@ -60,24 +55,6 @@ public class CervixLabformulierServiceImpl implements CervixLabformulierService
 	private final CervixBaseMonsterService monsterService;
 
 	private final CervixBaseScreeningrondeService screeningrondeService;
-
-	@Override
-	public List<CervixLabformulier> getLabformulieren(CervixLabformulierenFilter filter, long first, long count, String sortProperty, boolean asc)
-	{
-		return labformulierDao.getLabformulieren(filter, first, count, sortProperty, asc);
-	}
-
-	@Override
-	public int countLabformulieren(CervixLabformulierenFilter filter)
-	{
-		return labformulierDao.countLabformulieren(filter);
-	}
-
-	@Override
-	public List<Long> getLabformulierenIds(CervixLabformulierenFilter filter, String sortProperty, boolean asc)
-	{
-		return labformulierDao.getLabformulierenIds(filter, sortProperty, asc);
-	}
 
 	@Override
 	@Transactional(propagation = Propagation.NEVER)

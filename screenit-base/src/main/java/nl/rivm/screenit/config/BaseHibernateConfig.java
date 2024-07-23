@@ -29,6 +29,7 @@ import java.util.Optional;
 import javax.sql.DataSource;
 
 import nl.rivm.screenit.cache.JNDIJGroupsCacheManagerPeerProviderFactory;
+import nl.rivm.screenit.util.query.ExtractYearMetadataBuilderContributor;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.dao.impl.HibernateSearchServiceImpl;
 import nl.topicuszorg.hibernate.spring.dao.impl.HibernateServiceImpl;
@@ -36,6 +37,7 @@ import nl.topicuszorg.hibernate.spring.util.naming.ImplicitHibernate4LegacyNamin
 import nl.topicuszorg.hibernate.spring.util.naming.PhysicalHibernate4LegacyNamingStrategy;
 import nl.topicuszorg.hibernate.spring.util.sessionfactory.TopicusPostConfigurationSessionFactoryBean;
 
+import org.hibernate.boot.spi.MetadataBuilderContributor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -127,5 +129,11 @@ public class BaseHibernateConfig
 		SharedEntityManagerBean sharedEntityManager = new SharedEntityManagerBean();
 		sharedEntityManager.setEntityManagerFactory(hibernateSessionFactory.getObject());
 		return sharedEntityManager;
+	}
+
+	@Bean
+	public MetadataBuilderContributor extractYearFunctionContributor()
+	{
+		return new ExtractYearMetadataBuilderContributor();
 	}
 }

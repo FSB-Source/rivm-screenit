@@ -26,7 +26,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import nl.rivm.screenit.dao.colon.IFobtDao;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ZoekIfobtMetBarcodePanel;
 import nl.rivm.screenit.main.web.component.table.ClientColumn;
@@ -44,6 +43,7 @@ import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.service.colon.ColonBaseFITService;
 import nl.topicuszorg.wicket.hibernate.SimpleHibernateModel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -65,7 +65,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 public class ZoekenOpBarcodePage extends ColonScreeningBasePage
 {
 	@SpringBean
-	private IFobtDao iFobtDao;
+	private ColonBaseFITService colonFitService;
 
 	private final IModel<Client> clientModel = new SimpleHibernateModel<>();
 
@@ -95,7 +95,7 @@ public class ZoekenOpBarcodePage extends ColonScreeningBasePage
 				}
 				else
 				{
-					boolean isVerwijderdeBarcode = iFobtDao.isVerwijderdeBarcode(getScanInput());
+					boolean isVerwijderdeBarcode = colonFitService.isVerwijderdeBarcode(getScanInput());
 					info(String.format(getString("error.barcode.niet.gekoppeld"), isVerwijderdeBarcode ? "meer " : ""));
 					info("Geen cli\u00EBnt gevonden");
 				}

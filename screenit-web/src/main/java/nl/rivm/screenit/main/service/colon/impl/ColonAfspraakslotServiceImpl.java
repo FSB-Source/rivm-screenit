@@ -243,7 +243,7 @@ public class ColonAfspraakslotServiceImpl implements ColonAfspraakslotService
 					return;
 				}
 				var roosterItemStatus = roosterService.getRoosterItemStatus(dbAfspraakslot);
-				roosterService.magRoosterItemOpslaanVerwijderen(dbAfspraakslot, getCurrentViewRange(dbAfspraakslot), true);
+				magAfsrpaakslotOpslaanVerwijderen(dbAfspraakslot, getCurrentViewRange(dbAfspraakslot), true);
 
 				if (roosterItemStatus == RoosterItemStatus.GEBRUIKT_VOOR_CAPACITEIT)
 				{

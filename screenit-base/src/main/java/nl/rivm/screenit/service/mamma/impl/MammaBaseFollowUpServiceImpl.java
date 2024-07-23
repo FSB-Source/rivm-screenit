@@ -60,19 +60,6 @@ public class MammaBaseFollowUpServiceImpl implements MammaBaseFollowUpService
 	private HibernateService hibernateService;
 
 	@Override
-	public List<MammaFollowUpRadiologieVerslag> zoekRadiologieVerslagen(Instelling instelling, MammaFollowUpDoorverwezenFilterOptie doorverwezenFilterOptie, int first, int count,
-		SortState<String> sortState)
-	{
-		return followUpDao.zoekRadiologieVerslagen(instelling, doorverwezenFilterOptie, first, count, sortState);
-	}
-
-	@Override
-	public long countRadiologieVerslagen(Instelling instelling, MammaFollowUpDoorverwezenFilterOptie doorverwezenFilterOptie)
-	{
-		return followUpDao.countRadiologieVerslagen(instelling, doorverwezenFilterOptie);
-	}
-
-	@Override
 	public List<MammaFollowUpInstellingRadiologieDto> zoekOpenstaandeRadiologieVerslagenPerOrganisatie(ScreeningOrganisatie regio,
 		MammaFollowUpDoorverwezenFilterOptie doorverwezenFilterOptie, Integer jaar)
 	{

@@ -53,24 +53,15 @@ public abstract class MammaStandplaatsPeriodeSortable extends Sortable<PlanningS
 	@SpringBean
 	private MammaBaseAfspraakService baseAfspraakService;
 
-	private IModel<MammaScreeningsEenheid> screeningsEenheidModel;
+	private final IModel<MammaScreeningsEenheid> screeningsEenheidModel;
 
 	private Sortable<PlanningStandplaatsPeriodeDto> connectedSortable;
-
-	private Integer volgnrBovensteStandplaatsperiodeInView;
 
 	public MammaStandplaatsPeriodeSortable(String id, MammaScreeningsEenheid screeningsEenheid, IModel<List<PlanningStandplaatsPeriodeDto>> list, Options options)
 	{
 		super(id, list, options);
-		volgnrBovensteStandplaatsperiodeInView = list.getObject().stream().mapToInt(standplaatsPeriode -> standplaatsPeriode.screeningsEenheidVolgNr).min()
-			.orElse(bepaalVolgnrGeenStandplaatsInView(screeningsEenheid));
 
 		screeningsEenheidModel = ModelUtil.sModel(screeningsEenheid);
-	}
-
-	private int bepaalVolgnrGeenStandplaatsInView(MammaScreeningsEenheid screeningsEenheid)
-	{
-		return screeningsEenheid.getStandplaatsPerioden().stream().mapToInt(MammaStandplaatsPeriode::getScreeningsEenheidVolgNr).max().orElse(0);
 	}
 
 	protected MammaScreeningsEenheid getScreeningsEenheid()
@@ -86,10 +77,13 @@ public abstract class MammaStandplaatsPeriodeSortable extends Sortable<PlanningS
 		{
 			var naarBenedenTeVerplaatsenStandplaatsPeriode = getNaarBenedenTeVerplaatsenStandplaatsPeriode(rijNummerWaarheenGeschovenIs);
 
-			if (magGeplaatstWordenOpPlekStandplaatsperiode(naarBenedenTeVerplaatsenStandplaatsPeriode))
+			if (naarBenedenTeVerplaatsenStandplaatsPeriode.isEmpty() || magGeplaatstWordenOpPlekStandplaatsperiode(naarBenedenTeVerplaatsenStandplaatsPeriode.get()))
 			{
 				modelChanging();
-				int nieuwVolgnr = getNieuwVolgnummer(naarBenedenTeVerplaatsenStandplaatsPeriode);
+
+				var nieuwVolgnr = naarBenedenTeVerplaatsenStandplaatsPeriode.map(p -> p.screeningsEenheidVolgNr)
+					.orElse(bepaalVolgNummerIndienGeenPeriodeVerplaatstWordt(teVerplaatsenStandplaatsPeriode));
+
 				standplaatsPeriodeService.updateSortList(nieuwVolgnr, teVerplaatsenStandplaatsPeriode, getScreeningsEenheid(),
 					ScreenitSession.get().getLoggedInInstellingGebruiker());
 				finalizeMovement(target, true);
@@ -110,10 +104,13 @@ public abstract class MammaStandplaatsPeriodeSortable extends Sortable<PlanningS
 
 		var naarBenedenTeVerplaatsenStandplaatsPeriode = getNaarBenedenTeVerplaatsenStandplaatsPeriode(rijNummerWaarheenGeschovenIs);
 
-		if (magGeplaatstWordenOpPlekStandplaatsperiode(naarBenedenTeVerplaatsenStandplaatsPeriode))
+		if (naarBenedenTeVerplaatsenStandplaatsPeriode.isEmpty() || magGeplaatstWordenOpPlekStandplaatsperiode(naarBenedenTeVerplaatsenStandplaatsPeriode.get()))
 		{
 			modelChanging();
-			int nieuwVolgnr = getNieuwVolgnummer(naarBenedenTeVerplaatsenStandplaatsPeriode);
+
+			var nieuwVolgnr = naarBenedenTeVerplaatsenStandplaatsPeriode.map(p -> p.screeningsEenheidVolgNr)
+				.orElse(bepaalVolgNummerIndienGeenPeriodeVerplaatstWordt(teVerplaatsenStandplaatsPeriode));
+
 			standplaatsPeriodeService.updateSortList(nieuwVolgnr, teVerplaatsenStandplaatsPeriode, getScreeningsEenheid(),
 				ScreenitSession.get().getLoggedInInstellingGebruiker());
 			super.onReceive(target, teVerplaatsenStandplaatsPeriode, rijNummerWaarheenGeschovenIs - 1);
@@ -127,9 +124,21 @@ public abstract class MammaStandplaatsPeriodeSortable extends Sortable<PlanningS
 		}
 	}
 
-	private int getNieuwVolgnummer(Optional<PlanningStandplaatsPeriodeDto> planningStandplaatsPeriodeDto)
+	private int bepaalVolgNummerIndienGeenPeriodeVerplaatstWordt(PlanningStandplaatsPeriodeDto teVerplaatsenStandplaatsPeriode)
 	{
-		return planningStandplaatsPeriodeDto.map(planningStandplaatsPeriode -> planningStandplaatsPeriode.screeningsEenheidVolgNr).orElse(volgnrBovensteStandplaatsperiodeInView);
+		if (getModelObject().isEmpty())
+		{
+			return bepaalVolgnummerGeenStandplaatsInView();
+		}
+		return teVerplaatsenStandplaatsPeriode.screeningsEenheidVolgNr;
+	}
+
+	private int bepaalVolgnummerGeenStandplaatsInView()
+	{
+		var standplaatsPerioden = getScreeningsEenheid().getStandplaatsPerioden();
+		var optioneleMaximaleVolgnummerUitVerleden = standplaatsPerioden.stream().mapToInt(MammaStandplaatsPeriode::getScreeningsEenheidVolgNr).max();
+
+		return optioneleMaximaleVolgnummerUitVerleden.isEmpty() ? 0 : optioneleMaximaleVolgnummerUitVerleden.getAsInt() + 1;
 	}
 
 	private Optional<PlanningStandplaatsPeriodeDto> getNaarBenedenTeVerplaatsenStandplaatsPeriode(int rijNummer)
@@ -139,11 +148,10 @@ public abstract class MammaStandplaatsPeriodeSortable extends Sortable<PlanningS
 		return periodes.size() <= rijNummer - 1 ? Optional.empty() : Optional.of(periodes.get(rijNummer - 1));
 	}
 
-	private boolean magGeplaatstWordenOpPlekStandplaatsperiode(Optional<PlanningStandplaatsPeriodeDto> standplaatsPeriodeDtoOptional)
+	private boolean magGeplaatstWordenOpPlekStandplaatsperiode(PlanningStandplaatsPeriodeDto standplaatsPeriodeDto)
 	{
-		return standplaatsPeriodeDtoOptional.isEmpty() || (standplaatsPeriodeDtoOptional.get().prognose &&
-			(standplaatsPeriodeDtoOptional.get().id == null ||
-				baseAfspraakService.countAfspraken(standplaatsPeriodeDtoOptional.get().id, MammaAfspraakStatus.GEPLAND) == 0));
+		return standplaatsPeriodeDto.prognose &&
+			(standplaatsPeriodeDto.id == null || !baseAfspraakService.heeftAfspraken(standplaatsPeriodeDto.id, MammaAfspraakStatus.GEPLAND));
 	}
 
 	@Override

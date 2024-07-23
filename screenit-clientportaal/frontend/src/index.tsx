@@ -27,7 +27,7 @@ import {loadState, saveState} from "./utils/StorageUtil"
 import {Provider, useDispatch} from "react-redux"
 import {BrowserRouter} from "react-router-dom"
 import App from "./App"
-import thunk, {ThunkDispatch} from "redux-thunk"
+import {thunk, ThunkDispatch} from "redux-thunk"
 import {State} from "./datatypes/State"
 import IdleTimerWrapper from "./wrapper/IdleTimerWrapper"
 import {datadogRum} from "@datadog/browser-rum"
@@ -45,17 +45,27 @@ export function useThunkDispatch(): ReduxThunkDispatch {
 	return useDispatch<ReduxThunkDispatch>()
 }
 
-const composeEnhancers = (process.env.NODE_ENV !== "production" && (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) || compose
+const composeEnhancers =
+	(process.env.NODE_ENV !== "production" &&
+		(window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) ||
+	compose
 
-export const cpStore: Store = createStore(cpReducers, loadState(), composeEnhancers(applyMiddleware(thunk)))
+export const cpStore: Store = createStore(
+	cpReducers,
+	loadState(),
+	composeEnhancers(applyMiddleware(thunk)),
+)
 cpStore.subscribe(() => {
 	saveState()
 })
 
-if (process.env.NODE_ENV !== "production") {
+const isAcceptatie = window.location.hostname === "acc.mijn.bevolkingsonderzoeknederland.nl"
+const isProductie = window.location.hostname === "mijn.bevolkingsonderzoeknederland.nl"
+
+if (isAcceptatie || isProductie) {
 	datadogRum.init({
-		applicationId: "9247fc9b-d035-4f9f-9d74-f9140c41c834",
-		clientToken: "pub4c285cbd766641dd2f560ee6b9a9cb63",
+		applicationId: isAcceptatie ? "9247fc9b-d035-4f9f-9d74-f9140c41c834" : "20ecf71c-5501-45b0-a633-b7a097b0348f",
+		clientToken: isAcceptatie ? "pub4c285cbd766641dd2f560ee6b9a9cb63" : "pub172ddfb3747a8a76a8dd9ea1797bcdc0",
 		site: "datadoghq.eu",
 		service: "clientportaal",
 		sessionReplaySampleRate: 0,
@@ -65,18 +75,22 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 interface MetaElement extends HTMLElement {
-	content: string
+	content: string;
 }
 
 const emotionCache = createCache({
 	key: "emotion-cache",
-	nonce: (document.querySelector("meta[property=\"csp-nonce\"]") as MetaElement).content || "",
+	nonce:
+		(document.querySelector("meta[property=\"csp-nonce\"]") as MetaElement)
+			.content || "",
 })
 const component = document.getElementById("root")
 const root = createRoot(component!)
 
 root.render(
-	<KeycloakProvider onAuthRefreshError={() => cpStore.dispatch(setLoggingOutAction(true))}>
+	<KeycloakProvider
+		onAuthRefreshError={() => cpStore.dispatch(setLoggingOutAction(true))}
+	>
 		<ErrorBoundary>
 			<Provider store={cpStore}>
 				<CacheProvider value={emotionCache}>

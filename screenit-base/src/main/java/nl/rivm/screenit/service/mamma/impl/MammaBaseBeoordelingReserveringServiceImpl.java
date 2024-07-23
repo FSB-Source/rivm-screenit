@@ -46,7 +46,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
 public class MammaBaseBeoordelingReserveringServiceImpl implements MammaBaseBeoordelingReserveringService
 {
 	private static final Logger LOG = LoggerFactory.getLogger(MammaBaseBeoordelingReserveringServiceImpl.class);
@@ -177,7 +176,7 @@ public class MammaBaseBeoordelingReserveringServiceImpl implements MammaBaseBeoo
 		return ingelogdeGebruiker.equals(beoordeling.getReserveringhouder()) && !heeftVerlopenReservering(beoordeling);
 	}
 
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	@Override
 	public void reserveringenVrijgeven(InstellingGebruiker ingelogdeGebruiker)
 	{
@@ -186,7 +185,7 @@ public class MammaBaseBeoordelingReserveringServiceImpl implements MammaBaseBeoo
 		LOG.info("Vrijgegeven beoordeling id's: {} ", vrijTeGevenBeoordelingen.stream().map(b -> b.getId().toString()).collect(Collectors.joining(",")));
 	}
 
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	@Override
 	public void geefBeoordelingVrij(MammaBeoordeling beoordeling)
 	{

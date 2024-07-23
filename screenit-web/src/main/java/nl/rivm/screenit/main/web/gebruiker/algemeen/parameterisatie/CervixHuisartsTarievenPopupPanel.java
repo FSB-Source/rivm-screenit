@@ -22,10 +22,9 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie;
  */
 
 import java.math.BigDecimal;
-import java.util.Date;
 
-import nl.rivm.screenit.dao.cervix.CervixVerrichtingDao;
 import nl.rivm.screenit.main.service.cervix.CervixBetalingService;
+import nl.rivm.screenit.main.service.cervix.CervixVerrichtingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.form.BigDecimalField;
@@ -33,7 +32,6 @@ import nl.rivm.screenit.main.web.component.validator.BigDecimalPuntFormValidator
 import nl.rivm.screenit.model.cervix.facturatie.CervixHuisartsTarief;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -44,7 +42,6 @@ import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.validator.DateValidator;
-import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
 public abstract class CervixHuisartsTarievenPopupPanel extends GenericPanel<CervixHuisartsTarief>
 {
@@ -52,10 +49,7 @@ public abstract class CervixHuisartsTarievenPopupPanel extends GenericPanel<Cerv
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@SpringBean
-	private HibernateService hibernateService;
-
-	@SpringBean
-	private CervixVerrichtingDao verrichtingDao;
+	private CervixVerrichtingService verrichtingService;
 
 	@SpringBean
 	private CervixBetalingService betalingService;
@@ -64,8 +58,8 @@ public abstract class CervixHuisartsTarievenPopupPanel extends GenericPanel<Cerv
 	{
 		super(id, ModelUtil.ccModel(new CervixHuisartsTarief()));
 
-		CervixHuisartsTarief tarief = getModelObject();
-		CervixHuisartsTarief latest = verrichtingDao.getLatestHuisartsTarief();
+		var tarief = getModelObject();
+		var latest = verrichtingService.getLatestHuisartsTarief();
 		if (latest != null)
 		{
 			tarief.setTarief(latest.getTarief());
@@ -75,14 +69,14 @@ public abstract class CervixHuisartsTarievenPopupPanel extends GenericPanel<Cerv
 			tarief.setTarief(BigDecimal.ZERO);
 		}
 
-		Form<CervixHuisartsTarief> form = new Form<>("form", getModel());
+		var form = new Form<>("form", getModel());
 
-		BigDecimalField tariefField = new BigDecimalField("tarief");
+		var tariefField = new BigDecimalField("tarief");
 		tariefField.setRequired(true);
 		form.add(tariefField);
 		form.add(new BigDecimalPuntFormValidator(tariefField));
 
-		DatePicker<Date> startDatumDatePicker = ComponentHelper.newDatePicker("geldigVanafDatum");
+		var startDatumDatePicker = ComponentHelper.newDatePicker("geldigVanafDatum");
 		startDatumDatePicker.setRequired(true);
 		startDatumDatePicker.add(DateValidator.minimum(DateUtil.toUtilDate(currentDateSupplier.getLocalDate().plusDays(1))));
 		startDatumDatePicker.setLabel(Model.of("Geldig vanaf"));
@@ -93,8 +87,8 @@ public abstract class CervixHuisartsTarievenPopupPanel extends GenericPanel<Cerv
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				CervixHuisartsTarief tarief = (CervixHuisartsTarief) ModelProxyHelper.deproxy(form.getModelObject());
-				if (verrichtingDao.getHuisartsTarief(tarief.getGeldigVanafDatum()) != null)
+				var tarief = ModelProxyHelper.deproxy(form.getModelObject());
+				if (verrichtingService.heeftHuisartsTarief(tarief.getGeldigVanafDatum()))
 				{
 					error("Er is al een tarief met dezelfde geldig vanaf datum, selecteer een andere datum.");
 				}

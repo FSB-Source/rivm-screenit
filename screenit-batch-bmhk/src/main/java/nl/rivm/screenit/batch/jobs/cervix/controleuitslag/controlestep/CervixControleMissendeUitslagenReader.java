@@ -21,58 +21,62 @@ package nl.rivm.screenit.batch.jobs.cervix.controleuitslag.controlestep;
  * =========================LICENSE_END==================================
  */
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.dao.cervix.impl.CervixRestrictions;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationSortableScrollableResultReader;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
+import nl.rivm.screenit.model.TablePerClassHibernateObject_;
 import nl.rivm.screenit.model.cervix.CervixMonster;
+import nl.rivm.screenit.model.cervix.CervixMonster_;
+import nl.rivm.screenit.model.cervix.CervixScreeningRonde_;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.OrganisatieParameterService;
+import nl.rivm.screenit.service.cervix.CervixBaseMonsterService;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projection;
-import org.hibernate.criterion.Projections;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import static nl.rivm.screenit.Constants.MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN;
 
 @Component
 @AllArgsConstructor
-public class CervixControleMissendeUitslagenReader extends BaseScrollableResultReader
+public class CervixControleMissendeUitslagenReader extends BaseSpecificationSortableScrollableResultReader<CervixMonster, Object>
 {
+	private final CervixBaseMonsterService monsterService;
+
 	private final ICurrentDateSupplier currentDateSupplier;
 
 	private final OrganisatieParameterService organisatieParameterService;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected javax.persistence.criteria.Order getOrder(Root<CervixMonster> r, CriteriaBuilder cb)
 	{
-		try
-		{
-			var vandaag = currentDateSupplier.getLocalDate();
-			var minimaleSignaleringsDatum = vandaag.minusDays(
-				organisatieParameterService.getOrganisatieParameter(null, OrganisatieParameterKey.CERVIX_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN, 30));
-			var signalerenVanaf = vandaag.minusDays(MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN);
-
-			var criteria = session.createCriteria(CervixMonster.class, "rootMonster");
-			CervixRestrictions.addMissendeUitslagRestrictions(criteria, signalerenVanaf, minimaleSignaleringsDatum);
-			criteria.addOrder(Order.asc("dossier.id"));
-			return criteria;
-		}
-		catch (Exception e)
-		{
-			crashMelding("Fout bij het bepalen van missende uitslagen BMHK", e);
-			throw e;
-		}
+		return cb.asc(r.get(CervixMonster_.ontvangstScreeningRonde).get(CervixScreeningRonde_.dossier).get(TablePerClassHibernateObject_.id));
 	}
 
 	@Override
-	protected Projection getProjection()
+	protected Specification<CervixMonster> createSpecification()
 	{
-		return Projections.distinct(Projections.property("dossier.id"));
+		var vandaag = currentDateSupplier.getLocalDate();
+		var minimaleSignaleringsDatum = vandaag.minusDays(
+			organisatieParameterService.getOrganisatieParameter(null, OrganisatieParameterKey.CERVIX_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN, 30));
+		var signalerenVanaf = vandaag.minusDays(MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN);
+		return monsterService.maakMonsterMetMissendeUitslagSpecification(signalerenVanaf, minimaleSignaleringsDatum);
+	}
+
+	@Override
+	protected CriteriaQuery<Object> createProjection(Root<CervixMonster> r, CriteriaQuery<Object> q, CriteriaBuilder cb)
+	{
+		return q.select(r.get(CervixMonster_.ontvangstScreeningRonde).get(CervixScreeningRonde_.dossier).get(TablePerClassHibernateObject_.id)).distinct(true);
+	}
+
+	@Override
+	protected Class<Object> getResultClass()
+	{
+		return Object.class;
 	}
 }

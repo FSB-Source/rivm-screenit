@@ -24,7 +24,8 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.blokkade;
 
 import java.util.Iterator;
 
-import nl.rivm.screenit.dao.mamma.MammaBaseBlokkadeDao;
+import nl.rivm.screenit.main.service.mamma.impl.MammaBlokkadeDataProviderServiceImpl;
+import nl.rivm.screenit.main.util.WicketSpringDataUtil;
 import nl.rivm.screenit.model.mamma.MammaBlokkade;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -34,17 +35,12 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import com.google.common.primitives.Ints;
-
 public class MammaBlokkadeProvider extends SortableDataProvider<MammaBlokkade, String>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private IModel<MammaBlokkade> zoekObjectModel;
 
 	@SpringBean
-	private MammaBaseBlokkadeDao baseBlokkadeDao;
+	private MammaBlokkadeDataProviderServiceImpl blokkadeDataProviderService;
 
 	public MammaBlokkadeProvider(IModel<MammaBlokkade> zoekObjectModel)
 	{
@@ -56,14 +52,15 @@ public class MammaBlokkadeProvider extends SortableDataProvider<MammaBlokkade, S
 	@Override
 	public Iterator<? extends MammaBlokkade> iterator(long first, long count)
 	{
-		return baseBlokkadeDao.getBlokkades(zoekObjectModel.getObject(), Ints.checkedCast(first), Ints.checkedCast(count), getSort().getProperty(), getSort().isAscending())
-			.iterator();
+		var sort = WicketSpringDataUtil.toSpringSort(getSort());
+
+		return blokkadeDataProviderService.findPage(first, count, zoekObjectModel.getObject(), sort).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return baseBlokkadeDao.countBlokkades(zoekObjectModel.getObject());
+		return blokkadeDataProviderService.size(zoekObjectModel.getObject());
 	}
 
 	@Override

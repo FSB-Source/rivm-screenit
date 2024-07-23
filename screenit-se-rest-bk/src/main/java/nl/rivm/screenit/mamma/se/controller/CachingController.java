@@ -22,11 +22,12 @@ package nl.rivm.screenit.mamma.se.controller;
  */
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-abstract class CachingController<TCache> extends AuthorizedController
+abstract class CachingController<TCache extends List> extends AuthorizedController
 {
 	private static final Logger LOG = LoggerFactory.getLogger(CachingController.class);
 
@@ -51,8 +52,8 @@ abstract class CachingController<TCache> extends AuthorizedController
 			{
 				if (needCacheRefresh())
 				{
-					LOG.info("Refresh cache for {}", this.getClass().getName());
 					cache = getDataToPutInCache();
+					LOG.info("Cache refreshed for {} (#elements {})", getClass().getSimpleName(), cache.size());
 					lastCachedMoment = LocalDateTime.now();
 				}
 			}
@@ -68,6 +69,6 @@ abstract class CachingController<TCache> extends AuthorizedController
 
 	private boolean needCacheRefresh()
 	{
-		return lastCachedMoment == null || lastCachedMoment.isBefore(LocalDateTime.now().minusMinutes(MAX_CACHE_AGE_MINUTES));
+		return lastCachedMoment == null || lastCachedMoment.isBefore(LocalDateTime.now().minusMinutes(MAX_CACHE_AGE_MINUTES)) || cache.isEmpty();
 	}
 }

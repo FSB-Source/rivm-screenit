@@ -77,7 +77,7 @@ public class MammaIMSBericht extends AbstractHibernateObject
 	private String bsn;
 
 	@Column(nullable = false)
-	private Long accessionNumber;
+	private long accessionNumber;
 
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)

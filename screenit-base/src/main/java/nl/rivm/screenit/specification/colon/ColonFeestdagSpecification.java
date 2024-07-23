@@ -29,10 +29,12 @@ import lombok.AllArgsConstructor;
 import nl.rivm.screenit.model.colon.ColonFeestdag;
 import nl.rivm.screenit.model.colon.ColonFeestdag_;
 import nl.rivm.screenit.model.colon.dto.ColonFeestdagDto;
-import nl.rivm.screenit.specification.SpecificationUtil;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 
 import org.springframework.data.jpa.domain.Specification;
+
+import static nl.rivm.screenit.specification.DateSpecification.betweenLocalDates;
+import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNull;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ColonFeestdagSpecification
@@ -49,11 +51,11 @@ public class ColonFeestdagSpecification
 
 	public static Specification<ColonFeestdag> heeftDatumInRange(LocalDate startDatum, LocalDate eindDatum)
 	{
-		return SpecificationUtil.betweenLocalDates(startDatum, eindDatum, r -> r.get(ColonFeestdag_.datum));
+		return betweenLocalDates(startDatum, eindDatum, r -> r.get(ColonFeestdag_.datum));
 	}
 
 	public static Specification<ColonFeestdag> isNietFeestdag(ColonFeestdagDto feestdagDto)
 	{
-		return SpecificationUtil.skipWhenNull(feestdagDto.getId(), (r, q, cb) -> cb.notEqual(r.get(AbstractHibernateObject_.id), feestdagDto.getId()));
+		return skipWhenNull(feestdagDto.getId(), (r, q, cb) -> cb.notEqual(r.get(AbstractHibernateObject_.id), feestdagDto.getId()));
 	}
 }

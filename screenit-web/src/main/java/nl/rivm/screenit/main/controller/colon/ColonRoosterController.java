@@ -63,7 +63,7 @@ public class ColonRoosterController
 	private final ColonRoosterBeperkingService beperkingService;
 
 	@GetMapping("/kamers")
-	@SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_NIEUW_ROOSTER, bevolkingsonderzoekScopes = {
+	@SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_ROOSTER, bevolkingsonderzoekScopes = {
 		Bevolkingsonderzoek.COLON })
 	public List<KamerDto> getKamers()
 	{
@@ -79,7 +79,7 @@ public class ColonRoosterController
 
 	@GetMapping("/beperkingen")
 	@SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = { Recht.COLON_WEEKEND_WERK_DAG_BEPERKINGEN_BEHEER,
-		Recht.GEBRUIKER_LOCATIE_NIEUW_ROOSTER }, bevolkingsonderzoekScopes = {
+		Recht.GEBRUIKER_LOCATIE_ROOSTER }, bevolkingsonderzoekScopes = {
 		Bevolkingsonderzoek.COLON })
 	public ResponseEntity<ColonRoosterBeperkingenDto> getRoosterBeperkingen()
 	{
@@ -97,7 +97,7 @@ public class ColonRoosterController
 	}
 
 	@GetMapping("/instellingen")
-	@SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_NIEUW_ROOSTER, bevolkingsonderzoekScopes = {
+	@SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_ROOSTER, bevolkingsonderzoekScopes = {
 		Bevolkingsonderzoek.COLON })
 	public ColonRoosterInstellingenDto getInstellingen()
 	{

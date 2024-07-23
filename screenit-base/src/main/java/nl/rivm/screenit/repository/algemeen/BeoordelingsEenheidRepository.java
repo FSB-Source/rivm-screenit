@@ -21,9 +21,12 @@ package nl.rivm.screenit.repository.algemeen;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Optional;
+
 import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.repository.BaseJpaRepository;
 
 public interface BeoordelingsEenheidRepository extends BaseJpaRepository<BeoordelingsEenheid>
 {
+	Optional<BeoordelingsEenheid> findByNaam(String naam);
 }

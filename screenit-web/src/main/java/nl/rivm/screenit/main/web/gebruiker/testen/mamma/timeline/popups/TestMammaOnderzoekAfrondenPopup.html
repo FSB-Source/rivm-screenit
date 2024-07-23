@@ -23,27 +23,33 @@
     <div class="control-group span7 form-horizontal">
     	<div class="row">
 			<div class="control-group">
-				<label class="control-label">Type onderzoek</label>
+				<label class="control-label" for="typeOnderzoek">Type onderzoek</label>
 				<div class="controls">
-					<select wicket:id="typeOnderzoek"></select>
+					<select wicket:id="typeOnderzoek" id="typeOnderzoek"></select>
 				</div>
 			</div>
 			<div class="control-group">
-				<label class="control-label">Onvolledig</label>
+				<label class="control-label" for="onvolledig">Onvolledig</label>
 				<div class="controls">
-					<select wicket:id="onvolledig"></select>
+					<select wicket:id="onvolledig" id="onvolledig"></select>
 				</div>
 			</div>
 			<div class="control-group">
-				<label class="control-label">Onderbroken</label>
+				<label class="control-label" for="onderbroken">Onderbroken</label>
 				<div class="controls">
-					<select wicket:id="onderbroken"></select>
+					<select wicket:id="onderbroken" id="onderbroken"></select>
 				</div>
 			</div>
 			<div class="control-group">
-				<label class="control-label">Afwijking</label>
+				<label class="control-label" for="afwijking">Afwijking</label>
 				<div class="controls">
-					<input wicket:id="afwijking" type="checkbox"></input>
+					<input wicket:id="afwijking" id="afwijking" type="checkbox">
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="densiteit">Densiteit</label>
+				<div class="controls">
+					<select type="text" wicket:id="densiteit" id="densiteit"></select>
 				</div>
 			</div>
 		</div>

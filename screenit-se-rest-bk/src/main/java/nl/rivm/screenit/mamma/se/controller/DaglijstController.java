@@ -112,6 +112,7 @@ public class DaglijstController extends AuthorizedController
 			}
 			else
 			{
+				LOG.warn("Geen toestemming voor daglijst inzien ({}) dag: {}", seCode, opTeHalenDatum);
 				afspraken = new ArrayList<>();
 			}
 		}

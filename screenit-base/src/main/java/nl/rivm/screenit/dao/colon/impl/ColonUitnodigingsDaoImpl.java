@@ -25,24 +25,14 @@ import java.util.List;
 
 import nl.rivm.screenit.dao.colon.ColonUitnodigingsDao;
 import nl.rivm.screenit.model.UitnodigingsGebied;
-import nl.rivm.screenit.model.colon.ColonBrief;
-import nl.rivm.screenit.model.colon.ColonUitnodiging;
-import nl.rivm.screenit.model.colon.UitnodigingCohort;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
-import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.query.ScreenitRestrictions;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.hibernate.Criteria;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
@@ -54,48 +44,6 @@ public class ColonUitnodigingsDaoImpl extends AbstractAutowiredDao implements Co
 {
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
-
-	@Override
-	public List<Long> getTeVersturenUitnodigingen()
-	{
-		Criteria criteria = getSession().createCriteria(ColonUitnodiging.class);
-		criteria.createAlias("screeningRonde", "screeningRondeUitnodiging");
-		criteria.createAlias("screeningRondeUitnodiging.dossier", "dossier");
-		criteria.createAlias("dossier.client", "client");
-		criteria.createAlias("client.persoon", "persoon");
-
-		ScreenitRestrictions.addClientBaseRestrictions(criteria, "client", "persoon");
-
-		criteria.add(Restrictions.isNull("verstuurdDatum"));
-		criteria.add(Restrictions.le("uitnodigingsDatum", currentDateSupplier.getDate()));
-
-		DetachedCriteria subquery = DetachedCriteria.forClass(ColonBrief.class, "brief");
-		subquery.setProjection(Projections.id());
-		subquery.add(Restrictions.eqProperty("brief.screeningRonde", "screeningRondeUitnodiging.id"));
-		subquery.add(Restrictions.or(Restrictions.eq("brief.briefType", BriefType.COLON_UITNODIGING_INTAKE), Restrictions.eq("brief.briefType", BriefType.COLON_GUNSTIGE_UITSLAG)));
-
-		criteria.add(Subqueries.notExists(subquery));
-		criteria.setProjection(Projections.id());
-		return criteria.list();
-	}
-
-	@Override
-	public List<Integer> getUitnodigingCohorten()
-	{
-		Criteria crit = this.getSession().createCriteria(UitnodigingCohort.class);
-		crit.add(Restrictions.le("jaar", currentDateSupplier.getLocalDate().getYear()));
-		crit.addOrder(Order.asc("jaar"));
-		crit.setProjection(Projections.property("jaar"));
-		return crit.list();
-	}
-
-	@Override
-	public UitnodigingCohort getUitnodigingCohort(int jaar)
-	{
-		Criteria crit = this.getSession().createCriteria(UitnodigingCohort.class);
-		crit.add(Restrictions.eq("jaar", jaar));
-		return (UitnodigingCohort) crit.uniqueResult();
-	}
 
 	@Override
 	public ScrollableResults getUitnodigingsCursor(ColonUitnodigingCategorie uitnodigingscategorie, UitnodigingsGebied uitnodigingsgebied, List<Integer> geboorteJaren,

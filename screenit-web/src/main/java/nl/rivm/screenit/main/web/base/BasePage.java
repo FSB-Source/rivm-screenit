@@ -49,7 +49,13 @@ public abstract class BasePage extends WebPage
 	private static final long serialVersionUID = 1L;
 
 	@SpringBean(name = "testModus")
-	private Boolean testModus;
+	protected Boolean testModus;
+
+	@SpringBean(name = "datadogApplicationId")
+	protected String datadogApplicationId;
+
+	@SpringBean(name = "datadogToken")
+	protected String datadogToken;
 
 	public BasePage()
 	{
@@ -81,12 +87,19 @@ public abstract class BasePage extends WebPage
 		response.render(JavaScriptHeaderItem.forUrl("assets/js/laadEvents.js"));
 		response.render(JavaScriptHeaderItem.forUrl("assets/js/brieventemplates/brieventemplatesUitklappen.js"));
 
+		response.render(JavaScriptHeaderItem.forUrl("https://www.datadoghq-browser-agent.com/eu1/v5/datadog-rum.js"));
+		response.render(JavaScriptHeaderItem.forScript("initDatadog('" + datadogApplicationId + "','" + datadogToken + "')", "datadog"));
+
 		if (!(this instanceof AngularBasePage))
 		{
 			response.render(CssHeaderItem.forUrl("assets/js/libs/select2/select2.css"));
 			response.render(CssHeaderItem.forUrl("assets/css/colonis-ui/jquery-ui-1.8.16.custom.css"));
 			response.render(CssHeaderItem.forUrl("assets/js/libs/qtip/jquery.qtip.min.css"));
 			response.render(CssHeaderItem.forUrl("assets/css/base_styles.css"));
+			if (Boolean.TRUE.equals(testModus))
+			{
+				response.render(CssHeaderItem.forUrl("assets/css/test.css"));
+			}
 		}
 
 		response.render(JavaScriptHeaderItem.forUrl("assets/js/datepicker/datepickerShow.js"));
@@ -95,11 +108,6 @@ public abstract class BasePage extends WebPage
 		response.render(JavaScriptHeaderItem.forUrl("assets/js/datepicker/datepickerVandaag.js"));
 
 		response.render(JavaScriptHeaderItem.forUrl("assets/js/button/buttonFormValues.js"));
-
-		if (Boolean.TRUE.equals(testModus))
-		{
-			response.render(CssHeaderItem.forUrl("assets/css/test.css"));
-		}
 
 		String bevatFormulieren;
 		if (bevatFormulieren())

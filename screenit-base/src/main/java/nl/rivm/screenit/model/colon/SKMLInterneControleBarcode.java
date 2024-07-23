@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.colon;
 
 /*-
@@ -26,15 +25,17 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.colon.enums.IFOBTUitslagType;
 
 @Entity
 @Table(schema = "colon")
+@Setter
+@Getter
 public class SKMLInterneControleBarcode extends SKMLControleBarcode
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@ManyToOne(optional = false)
 	private IFobtLaboratorium laboratorium;
 
@@ -49,45 +50,4 @@ public class SKMLInterneControleBarcode extends SKMLControleBarcode
 		super();
 		setType(IFOBTUitslagType.INTERN);
 	}
-
-	public IFobtLaboratorium getLaboratorium()
-	{
-		return laboratorium;
-	}
-
-	public void setLaboratorium(IFobtLaboratorium laboratorium)
-	{
-		this.laboratorium = laboratorium;
-	}
-
-	public Integer getQbaseId()
-	{
-		return qbaseId;
-	}
-
-	public void setQbaseId(Integer qbaseId)
-	{
-		this.qbaseId = qbaseId;
-	}
-
-	public Integer getVolgorde()
-	{
-		return volgorde;
-	}
-
-	public void setVolgorde(Integer volgorde)
-	{
-		this.volgorde = volgorde;
-	}
-
-	public String getControleTekst()
-	{
-		return controleTekst;
-	}
-
-	public void setControleTekst(String controleTekst)
-	{
-		this.controleTekst = controleTekst;
-	}
-
 }

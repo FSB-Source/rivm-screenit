@@ -77,6 +77,8 @@ import org.apache.wicket.validation.ValidationError;
 import org.apache.wicket.validation.validator.DateValidator;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
+import static nl.rivm.screenit.main.web.gebruiker.screening.mamma.afspraken.MammaAfsprakenBlokPanel.AFSPRAAK_VERZETTEN_KOMT_VANUIT_AFSPRAKENKALENDER;
+
 public abstract class MammaAfspraakWijzigenFilterPanel extends GenericPanel<MammaAfspraakWijzigenFilter>
 {
 
@@ -145,8 +147,9 @@ public abstract class MammaAfspraakWijzigenFilterPanel extends GenericPanel<Mamm
 			values.removeAll(MammaVerzettenReden.BRIEF_VERPLICHT);
 			filter.setVerzettenReden(MammaVerzettenReden.CLIENT_CONTACT);
 		}
-		boolean vanuitPlanning = panelCreateContext.bkVanuitPlanning;
-		if (!vanuitPlanning)
+		boolean vanuitPlanningOfAfsprakenkalender =
+			panelCreateContext.bkVanuitPlanning || ScreenitSession.get().isZoekObjectGezetForComponent(AFSPRAAK_VERZETTEN_KOMT_VANUIT_AFSPRAKENKALENDER);
+		if (!vanuitPlanningOfAfsprakenkalender)
 		{
 			filter.setVerzettenReden(MammaVerzettenReden.CLIENT_CONTACT);
 		}
@@ -159,7 +162,7 @@ public abstract class MammaAfspraakWijzigenFilterPanel extends GenericPanel<Mamm
 		redenContainer.setOutputMarkupPlaceholderTag(true);
 		redenContainer.add(reden);
 
-		redenContainer.setVisible(vanuitPlanning && !uitstellen && values.size() > 1);
+		redenContainer.setVisible(vanuitPlanningOfAfsprakenkalender && !uitstellen && values.size() > 1);
 		form.add(redenContainer);
 
 		WebMarkupContainer standplaatsenContainer = new WebMarkupContainer("standplaatsenContainer");

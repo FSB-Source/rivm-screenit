@@ -21,13 +21,17 @@ package nl.rivm.screenit.service.mamma.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.util.List;
 
-import nl.rivm.screenit.dao.mamma.MammaBaseBlokkadeDao;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaBlokkade;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
+import nl.rivm.screenit.model.mamma.MammaStandplaats;
+import nl.rivm.screenit.repository.mamma.MammaBaseBlokkadeRepository;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.mamma.MammaBaseBlokkadeService;
 import nl.rivm.screenit.service.mamma.MammaBaseConceptPlanningsApplicatie;
@@ -35,19 +39,23 @@ import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static nl.rivm.screenit.specification.mamma.MammaBaseBlokkadeSpecification.filterStandplaats;
+import static nl.rivm.screenit.specification.mamma.MammaBaseBlokkadeSpecification.heeftOverlapMet;
+import static nl.rivm.screenit.specification.mamma.MammaBaseBlokkadeSpecification.heeftScreeningsEenheid;
+import static nl.rivm.screenit.specification.mamma.MammaBaseBlokkadeSpecification.heeftScreeningsOrganisatie;
+import static nl.rivm.screenit.specification.mamma.MammaBaseBlokkadeSpecification.heeftZelfdeScreeningsEenheidRegioOfStandplaats;
+import static nl.rivm.screenit.specification.mamma.MammaBaseBlokkadeSpecification.isActief;
+import static nl.rivm.screenit.specification.mamma.MammaBaseBlokkadeSpecification.isGeldigOp;
+import static nl.rivm.screenit.specification.mamma.MammaBaseBlokkadeSpecification.isNietBlokkade;
+
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
 public class MammaBaseBlokkadeServiceImpl implements MammaBaseBlokkadeService
 {
-
-	@Autowired
-	private MammaBaseBlokkadeDao blokkadeDao;
-
 	@Autowired
 	private HibernateService hibernateService;
 
@@ -55,24 +63,39 @@ public class MammaBaseBlokkadeServiceImpl implements MammaBaseBlokkadeService
 	private MammaBaseConceptPlanningsApplicatie conceptPlanningsApplicatie;
 
 	@Autowired
+	private MammaBaseBlokkadeRepository blokkadeRepository;
+
+	@Autowired
 	private LogService logService;
 
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	@Override
-	public List<MammaBlokkade> getOverlappendeBlokkades(MammaBlokkade blokkade)
+	public List<MammaBlokkade> getOverlappendeBlokkadesVanZelfdeType(MammaBlokkade blokkade)
 	{
-		return blokkadeDao.getOverlappendeBlokkades(blokkade);
+		return blokkadeRepository.findAll(heeftOverlapMet(blokkade)
+			.and(heeftZelfdeScreeningsEenheidRegioOfStandplaats(blokkade))
+			.and(isActief(blokkade.getActief()))
+			.and(isNietBlokkade(blokkade)));
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	public List<MammaBlokkade> getActieveBlokkadesVoorSE(MammaStandplaats standplaats, MammaScreeningsEenheid screeningsEenheid, LocalDate dag)
+	{
+		return blokkadeRepository.findAll(isActief(true)
+			.and(isGeldigOp(dag))
+			.and(heeftScreeningsEenheid(screeningsEenheid)
+				.or(heeftScreeningsOrganisatie((ScreeningOrganisatie) Hibernate.unproxy(screeningsEenheid.getBeoordelingsEenheid().getParent().getRegio())))
+				.or(filterStandplaats(standplaats))));
+	}
+
+	@Override
+	@Transactional
 	public void saveOrUpdate(MammaBlokkade blokkade, InstellingGebruiker ingelogdeGebruiker)
 	{
-		String melding = "";
-		String diffToLatestVersion = EntityAuditUtil.getDiffToLatestVersion(blokkade, hibernateService.getHibernateSession());
+		var melding = "";
+		var diffToLatestVersion = EntityAuditUtil.getDiffToLatestVersion(blokkade, hibernateService.getHibernateSession());
 
-		boolean isNieuw = blokkade.getId() == null;
-		String blokkadeNaam = "";
+		var isNieuw = blokkade.getId() == null;
+		var blokkadeNaam = "";
 		if (blokkade.getScreeningsEenheid() != null)
 		{
 			blokkadeNaam = "screeningseenheid " + blokkade.getScreeningsEenheid().getNaam();
@@ -89,14 +112,14 @@ public class MammaBaseBlokkadeServiceImpl implements MammaBaseBlokkadeService
 		{
 			melding += "Blokkade '" + blokkadeNaam + "' aangemaakt.";
 		}
-		else if (diffToLatestVersion.length() > 0)
+		else if (!diffToLatestVersion.isEmpty())
 		{
 			melding += "Blokkade '" + blokkadeNaam + "' gewijzigd (" + diffToLatestVersion + ").";
 		}
 		if (StringUtils.isNotBlank(melding))
 		{
 			logService.logGebeurtenis(LogGebeurtenis.MAMMA_BLOKKADE, ingelogdeGebruiker, melding, Bevolkingsonderzoek.MAMMA);
-			hibernateService.saveOrUpdate(blokkade);
+			blokkadeRepository.save(blokkade);
 			conceptPlanningsApplicatie.sendBlokkade(blokkade, isNieuw);
 		}
 	}

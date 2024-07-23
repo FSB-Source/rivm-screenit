@@ -23,11 +23,11 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.exchange.followup;
 
 import java.util.Iterator;
 
+import nl.rivm.screenit.main.service.mamma.impl.MammaFollowUpRadiologieInstellingDataProviderServiceImpl;
+import nl.rivm.screenit.main.util.WicketSpringDataUtil;
 import nl.rivm.screenit.model.Instelling;
-import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.enums.MammaFollowUpDoorverwezenFilterOptie;
 import nl.rivm.screenit.model.mamma.MammaFollowUpRadiologieVerslag;
-import nl.rivm.screenit.service.mamma.MammaBaseFollowUpService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -35,17 +35,16 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvid
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-
-import com.google.common.primitives.Ints;
+import org.jetbrains.annotations.NotNull;
 
 public class MammaFollowUpRadiologieInstellingProvider extends SortableDataProvider<MammaFollowUpRadiologieVerslag, String>
 {
+	private final IModel<Instelling> instellingModel;
+
+	private final IModel<MammaFollowUpDoorverwezenFilterOptie> doorverwezenFilterOptieModel;
+
 	@SpringBean
-	private MammaBaseFollowUpService followUpService;
-
-	private IModel<Instelling> instellingModel;
-
-	private IModel<MammaFollowUpDoorverwezenFilterOptie> doorverwezenFilterOptieModel;
+	private MammaFollowUpRadiologieInstellingDataProviderServiceImpl followUpRadiologieInstellingDataProviderService;
 
 	MammaFollowUpRadiologieInstellingProvider(IModel<Instelling> instellingModel, IModel<MammaFollowUpDoorverwezenFilterOptie> doorverwezenFilterOptieModel)
 	{
@@ -58,16 +57,25 @@ public class MammaFollowUpRadiologieInstellingProvider extends SortableDataProvi
 	@Override
 	public Iterator<? extends MammaFollowUpRadiologieVerslag> iterator(long first, long count)
 	{
-		return followUpService
-			.zoekRadiologieVerslagen(ModelUtil.nullSafeGet(instellingModel), ModelUtil.nullSafeGet(doorverwezenFilterOptieModel), Ints.checkedCast(first), Ints.checkedCast(count),
-				new SortState<String>(getSort().getProperty(), getSort().isAscending()))
-			.iterator();
+		var sort = WicketSpringDataUtil.toSpringSort(getSort());
+		var followUpRadiologieInstellingOptieFilter = maakInstellingOptieFilter();
+
+		return followUpRadiologieInstellingDataProviderService.findPage(first, count, followUpRadiologieInstellingOptieFilter, sort).iterator();
+
+	}
+
+	@NotNull
+	private MammaFollowUpRadiologieInstellingOptieFilter maakInstellingOptieFilter()
+	{
+		return new MammaFollowUpRadiologieInstellingOptieFilter(doorverwezenFilterOptieModel.getObject(), instellingModel.getObject());
 	}
 
 	@Override
 	public long size()
 	{
-		return followUpService.countRadiologieVerslagen(ModelUtil.nullSafeGet(instellingModel), ModelUtil.nullSafeGet(doorverwezenFilterOptieModel));
+		var followUpRadiologieInstellingOptieFilter = maakInstellingOptieFilter();
+
+		return followUpRadiologieInstellingDataProviderService.size(followUpRadiologieInstellingOptieFilter);
 	}
 
 	@Override

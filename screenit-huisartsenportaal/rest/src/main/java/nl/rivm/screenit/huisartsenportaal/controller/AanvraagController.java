@@ -21,16 +21,10 @@ package nl.rivm.screenit.huisartsenportaal.controller;
  * =========================LICENSE_END==================================
  */
 
-import javax.validation.Valid;
-
-import nl.rivm.screenit.huisartsenportaal.dto.AanvraagDto;
 import nl.rivm.screenit.huisartsenportaal.dto.AanvraagTotalenDto;
 import nl.rivm.screenit.huisartsenportaal.dto.AanvragenZoekObjectDto;
-import nl.rivm.screenit.huisartsenportaal.model.Huisarts;
-import nl.rivm.screenit.huisartsenportaal.model.LabformulierAanvraag;
 import nl.rivm.screenit.huisartsenportaal.service.LabformulierService;
 import nl.rivm.screenit.huisartsenportaal.service.LocatieService;
-import nl.rivm.screenit.huisartsenportaal.service.SynchronisatieService;
 import nl.rivm.screenit.huisartsenportaal.validator.LabformulierenAanvragenValidator;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,9 +52,6 @@ public class AanvraagController extends BaseController
 	private LocatieService locatieService;
 
 	@Autowired
-	private SynchronisatieService synchronisatieService;
-
-	@Autowired
 	private LabformulierenAanvragenValidator maximaleLabformulierenAanvragenValidator;
 
 	@InitBinder
@@ -75,22 +66,6 @@ public class AanvraagController extends BaseController
 	{
 		AanvraagTotalenDto aanvragen = labformulierService.getAanvragenHuisarts(getIngelogdeHuisarts(), zoekObjectDto.getResultOptions());
 		return new ResponseEntity<>(aanvragen, HttpStatus.OK);
-	}
-
-	@RequestMapping(value = "/huisarts/{huisartsId}", method = RequestMethod.POST)
-	@PreAuthorize("hasRole('ROLE_AANVRAGEN')")
-	public ResponseEntity postAanvraag(@PathVariable String huisartsId, @Valid @RequestBody AanvraagDto aanvraagDto, BindingResult result)
-	{
-		if (result.hasErrors())
-		{
-			return ResponseEntity.badRequest().body(result.getAllErrors());
-		}
-
-		Huisarts huisarts = getIngelogdeHuisarts();
-		LabformulierAanvraag aanvraag = labformulierService.saveAanvraag(huisarts, aanvraagDto);
-		synchronisatieService.syncAanvraag(aanvraag);
-
-		return ResponseEntity.ok(null);
 	}
 
 	@RequestMapping(value = "/locatie/{locatieId}/stats", method = RequestMethod.GET)

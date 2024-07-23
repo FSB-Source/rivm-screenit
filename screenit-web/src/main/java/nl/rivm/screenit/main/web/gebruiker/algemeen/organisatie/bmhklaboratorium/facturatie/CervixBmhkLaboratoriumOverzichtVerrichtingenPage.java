@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.dto.cervix.facturatie.CervixVerrichtingenZoekObject;
 import nl.rivm.screenit.main.service.cervix.CervixBetalingService;
+import nl.rivm.screenit.main.service.cervix.CervixVerrichtingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
@@ -47,22 +48,28 @@ import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.OrganisatieBehee
 import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.OrganisatiePaspoortPanel;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.BMHKLaboratorium;
+import nl.rivm.screenit.model.GbaPersoon_;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
+import nl.rivm.screenit.model.cervix.CervixLabformulier_;
 import nl.rivm.screenit.model.cervix.CervixMonster;
+import nl.rivm.screenit.model.cervix.CervixMonster_;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
+import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht_;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
+import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel_;
 import nl.rivm.screenit.model.cervix.facturatie.CervixLabTarief;
+import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting_;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.InstellingService;
-import nl.rivm.screenit.service.cervix.CervixVerrichtingService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
+import nl.topicuszorg.organisatie.model.Organisatie_;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.SimpleHibernateModel;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -71,7 +78,6 @@ import nl.topicuszorg.wicket.input.validator.DependantDateValidator.Operator;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -99,6 +105,12 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.hibernate.Hibernate;
 import org.wicketstuff.shiro.ShiroConstraint;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
+
+import static nl.rivm.screenit.main.service.cervix.impl.AbstractCervixBoekregelsDataProviderServiceImpl.BETAALOPDRACHT_PROPERTY;
+import static nl.rivm.screenit.main.service.cervix.impl.AbstractCervixBoekregelsDataProviderServiceImpl.LABFORMULIER_PROPERTY;
+import static nl.rivm.screenit.main.service.cervix.impl.AbstractCervixBoekregelsDataProviderServiceImpl.MONSTER_PROPERTY;
+import static nl.rivm.screenit.main.service.cervix.impl.AbstractCervixBoekregelsDataProviderServiceImpl.PERSOON_PROPERTY;
+import static nl.rivm.screenit.main.service.cervix.impl.AbstractCervixBoekregelsDataProviderServiceImpl.REGIO_PROPERTY;
 
 @SecurityConstraint(
 	actie = Actie.INZIEN,
@@ -351,23 +363,25 @@ public class CervixBmhkLaboratoriumOverzichtVerrichtingenPage extends Organisati
 		SimpleDateFormat dateFormatter = new SimpleDateFormat("dd-MM-yyyy");
 
 		List<IColumn<CervixBoekRegel, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<>(Model.of("Screeningsorganisatie"), "regio.naam", "verrichting.regio.naam"));
-		columns.add(new ClientColumn<>("persoon.achternaam", "verrichting.client"));
-		columns.add(new GeboortedatumColumn<>("persoon.geboortedatum", "verrichting.client.persoon"));
-		columns.add(new PropertyColumn<>(Model.of("BSN"), "persoon.bsn", "verrichting.client.persoon.bsn"));
-		columns.add(new PropertyColumn<>(Model.of("Monster-id"), "monster.monsterId", "verrichting.monster.monsterId"));
-		columns.add(new EnumPropertyColumn<CervixBoekRegel, String, CervixTariefType>(Model.of("Type verrichting"), "verrichting.type", "verrichting.type"));
-		columns.add(new DateTimePropertyColumn<>(Model.of("Verrichtingsdatum"), "verrichting.verrichtingsDatum", "verrichting.verrichtingsDatum", dateFormatter));
-		columns.add(new DateTimePropertyColumn<>(Model.of("Ontvangst monster"), "verrichting.monster.ontvangstdatum", "monster.ontvangstdatum", dateFormatter));
+		columns.add(new PropertyColumn<>(Model.of("Screeningsorganisatie"), REGIO_PROPERTY + "." + Organisatie_.NAAM, REGIO_PROPERTY + "." + Organisatie_.NAAM));
+		columns.add(new ClientColumn<>(PERSOON_PROPERTY + "." + GbaPersoon_.ACHTERNAAM, CervixBoekRegel_.VERRICHTING + "." + CervixVerrichting_.CLIENT));
+		columns.add(new GeboortedatumColumn<>(PERSOON_PROPERTY + "." + GbaPersoon_.GEBOORTEDATUM, PERSOON_PROPERTY));
+		columns.add(new PropertyColumn<>(Model.of("BSN"), PERSOON_PROPERTY + "." + GbaPersoon_.BSN, PERSOON_PROPERTY + "." + GbaPersoon_.BSN));
+		columns.add(new PropertyColumn<>(Model.of("Monster-id"), MONSTER_PROPERTY + "." + CervixMonster_.MONSTER_ID, MONSTER_PROPERTY + "." + CervixMonster_.MONSTER_ID));
+		columns.add(new EnumPropertyColumn<CervixBoekRegel, String, CervixTariefType>(Model.of("Type verrichting"), CervixBoekRegel_.VERRICHTING + "." + CervixVerrichting_.TYPE,
+			CervixBoekRegel_.VERRICHTING + "." + CervixVerrichting_.TYPE));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Verrichtingsdatum"), CervixBoekRegel_.VERRICHTING + "." + CervixVerrichting_.VERRICHTINGS_DATUM,
+			CervixBoekRegel_.VERRICHTING + "." + CervixVerrichting_.VERRICHTINGS_DATUM, dateFormatter));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Ontvangst monster"), MONSTER_PROPERTY + "." + CervixMonster_.ONTVANGSTDATUM,
+			MONSTER_PROPERTY + "." + CervixMonster_.ONTVANGSTDATUM, dateFormatter));
 		columns
-			.add(new DateTimePropertyColumn<>(Model.of("Ontvangst formulier"), "verrichting.monster.labformulier.scanDatum", "labformulier.scanDatum",
-				dateFormatter)
+			.add(new DateTimePropertyColumn<>(Model.of("Ontvangst formulier"), LABFORMULIER_PROPERTY + "." + CervixLabformulier_.SCAN_DATUM,
+				LABFORMULIER_PROPERTY + "." + CervixLabformulier_.SCAN_DATUM, dateFormatter)
 			{
 
 				@Override
 				public IModel<Object> getDataModel(IModel<CervixBoekRegel> embeddedModel)
 				{
-					SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
 					CervixMonster monster = embeddedModel.getObject().getVerrichting().getMonster();
 					if (CervixMonsterUtil.isZAS(monster))
 					{
@@ -406,9 +420,11 @@ public class CervixBmhkLaboratoriumOverzichtVerrichtingenPage extends Organisati
 				cellItem.add(new BigDecimalPriceLabel(componentId, bedrag));
 			}
 		});
-		columns.add(new DateTimePropertyColumn<>(Model.of("Betalingsdatum"), "specificatie.betaalopdrachtRegel.betaalopdracht.statusDatum", "betaalopdracht.statusDatum",
+		columns.add(new DateTimePropertyColumn<>(Model.of("Betalingsdatum"), BETAALOPDRACHT_PROPERTY + "." + CervixBetaalopdracht_.STATUS_DATUM,
+			BETAALOPDRACHT_PROPERTY + "." + CervixBetaalopdracht_.STATUS_DATUM,
 			dateFormatter));
-		columns.add(new PropertyColumn<>(Model.of("Betalingskenmerk"), "betaalopdracht.betalingskenmerk", "specificatie.betaalopdrachtRegel.betaalopdracht.betalingskenmerk"));
+		columns.add(new PropertyColumn<>(Model.of("Betalingskenmerk"), BETAALOPDRACHT_PROPERTY + "." + CervixBetaalopdracht_.BETALINGSKENMERK,
+			BETAALOPDRACHT_PROPERTY + "." + CervixBetaalopdracht_.BETALINGSKENMERK));
 
 		bmhkLaboratoriumVerrichtingenTabel = new ScreenitDataTable<>("bmhkLaboratoriumVerrichtingenTabel", columns,
 			verrichtingenDataProvider, Model.of("boekingsregels"))

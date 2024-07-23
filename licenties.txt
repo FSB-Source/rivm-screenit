@@ -108,6 +108,7 @@ Similar to Apache License but with the acknowledgment clause removed;
 The Apache License, Version 2.0;
 The Apache Software License, Version 2.0;
 The Apache Software License;
+The BSD 2-Clause License;
 The BSD 3-Clause License;
 The BSD License;
 The JSON License;

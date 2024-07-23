@@ -21,14 +21,8 @@ package nl.rivm.screenit.dao.cervix;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDate;
-
-import nl.rivm.screenit.model.cervix.CervixDossier;
-import nl.rivm.screenit.model.cervix.CervixMonster;
-
 public interface CervixMonsterDao
 {
 	Long getNextMonsterId();
 
-	CervixMonster getLaatsteMonsterMetMissendeUitslagVanDossier(CervixDossier dossier, LocalDate signalerenVanaf, LocalDate minimaleSignaleringsDatum);
 }

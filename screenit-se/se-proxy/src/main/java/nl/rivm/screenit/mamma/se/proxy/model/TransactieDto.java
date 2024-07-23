@@ -25,74 +25,38 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class TransactieDto
 {
-    private SETransactieType type;
+	private SETransactieType type;
 
-    private Long clientId;
+	private Long clientId;
 
-    private Long instellingGebruikerId;
+	private String uitnodigingsNr;
 
-    private String afspraakVanafDatum;
+	private Long instellingGebruikerId;
 
-    private List<ActionDto> actions;
+	private String afspraakVanafDatum;
 
-    public TransactieDto(SETransactieType type, Long clientId, Long instellingGebruikerId, List<ActionDto> actions, LocalDate afspraakVanafDatum)
-    {
-        this.type = type;
-        this.clientId = clientId;
-        this.instellingGebruikerId = instellingGebruikerId;
-        this.actions = actions;
-        this.afspraakVanafDatum = afspraakVanafDatum.format(DateTimeFormatter.ISO_LOCAL_DATE);
-    }
+	private List<ActionDto> actions;
 
-    public SETransactieType getType()
-    {
-        return type;
-    }
+	public TransactieDto(SETransactieType type, Long clientId, Long instellingGebruikerId, List<ActionDto> actions, LocalDate afspraakVanafDatum)
+	{
+		this.type = type;
+		this.clientId = clientId;
+		this.instellingGebruikerId = instellingGebruikerId;
+		this.actions = actions;
+		this.afspraakVanafDatum = afspraakVanafDatum.format(DateTimeFormatter.ISO_LOCAL_DATE);
+	}
 
-    public void setType(SETransactieType type)
-    {
-        this.type = type;
-    }
-
-    public Long getClientId()
-    {
-        return clientId;
-    }
-
-    public void setClientId(Long clientId)
-    {
-        this.clientId = clientId;
-    }
-
-    public Long getInstellingGebruikerId()
-    {
-        return instellingGebruikerId;
-    }
-
-    public void setInstellingGebruikerId(Long instellingGebruikerId)
-    {
-        this.instellingGebruikerId = instellingGebruikerId;
-    }
-
-    public List<ActionDto> getActions()
-    {
-        return actions;
-    }
-
-    public void setActions(List<ActionDto> actions)
-    {
-        this.actions = actions;
-    }
-
-    public String getAfspraakVanafDatum()
-    {
-        return afspraakVanafDatum;
-    }
-
-    public void setAfspraakVanafDatum(String afspraakVanafDatum)
-    {
-        this.afspraakVanafDatum = afspraakVanafDatum;
-    }
+	public TransactieDto(SETransactieType type, String uitnodigingsNr, List<ActionDto> actions)
+	{
+		this.type = type;
+		this.uitnodigingsNr = uitnodigingsNr;
+		this.actions = actions;
+	}
 }

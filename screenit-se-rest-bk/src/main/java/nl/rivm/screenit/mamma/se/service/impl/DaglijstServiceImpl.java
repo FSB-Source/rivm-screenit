@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.dao.mamma.MammaBaseAfspraakDao;
 import nl.rivm.screenit.mamma.se.dao.ClientIdentificatie;
 import nl.rivm.screenit.mamma.se.dao.MammaAfsprakenDao;
 import nl.rivm.screenit.mamma.se.dto.AfspraakSeDto;
@@ -54,6 +53,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.MailService;
+import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.MammaBaseDossierService;
 import nl.rivm.screenit.service.mamma.MammaBaseOnderzoekService;
@@ -75,7 +75,7 @@ public class DaglijstServiceImpl implements DaglijstService
 	private MammaAfsprakenDao afsprakenDao;
 
 	@Autowired
-	private MammaBaseAfspraakDao baseAfspraakDao;
+	private MammaBaseAfspraakService afspraakService;
 
 	@Autowired
 	private MammaBaseDossierService baseDossierService;
@@ -117,7 +117,7 @@ public class DaglijstServiceImpl implements DaglijstService
 	@Override
 	public List<AfspraakSeDto> readDaglijst(LocalDate datum, String seCode)
 	{
-		var afspraakDtos = baseAfspraakDao
+		var afspraakDtos = afspraakService
 			.getAfspraken(seCode, datum, datum, MammaAfspraakStatus.NIET_GEANNULEERD.toArray(new MammaAfspraakStatus[] {}))
 			.stream()
 			.filter(afspraak -> afspraak.getId().equals(afspraak.getUitnodiging().getLaatsteAfspraak().getId())

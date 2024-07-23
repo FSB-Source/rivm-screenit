@@ -37,11 +37,14 @@ import nl.rivm.screenit.model.cervix.facturatie.CervixTarief;
 import nl.rivm.screenit.repository.cervix.CervixBoekRegelRepository;
 import nl.rivm.screenit.service.cervix.Cervix2023StartBepalingService;
 import nl.rivm.screenit.service.cervix.CervixBaseBetalingService;
-import nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification;
 import nl.rivm.screenit.util.cervix.CervixTariefUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.stereotype.Service;
+
+import static nl.rivm.screenit.specification.cervix.CervixBetaalopdrachtRegelSpecification.isHuisartsBetaalopdrachtRegel;
+import static nl.rivm.screenit.specification.cervix.CervixBetaalopdrachtSpecification.heeftOpdrachtID;
+import static nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification.metDebet;
 
 @Slf4j
 @Service
@@ -58,9 +61,9 @@ public class CervixBaseBetalingServiceImpl implements CervixBaseBetalingService
 	public long totaalAantalHuisartsBoekRegelsInBetaalopdracht(CervixBetaalopdracht betaalopdracht, boolean debet)
 	{
 		return boekRegelRepository
-			.count(CervixBoekRegelSpecification.metOpdrachtID(betaalopdracht.getId())
-				.and(CervixBoekRegelSpecification.isHuisartsBetaalopdrachtRegel())
-				.and(CervixBoekRegelSpecification.metDebet(debet)));
+			.count(heeftOpdrachtID(betaalopdracht.getId())
+				.and(isHuisartsBetaalopdrachtRegel())
+				.and(metDebet(debet)));
 	}
 
 	@Override
@@ -73,9 +76,9 @@ public class CervixBaseBetalingServiceImpl implements CervixBaseBetalingService
 		root.alias("boekRegel");
 
 		query.select(cb.sum(cb.treat(root.get(CervixBoekRegel_.tarief), CervixHuisartsTarief.class).get(CervixHuisartsTarief_.tarief)));
-		query.where(CervixBoekRegelSpecification.metOpdrachtID(betaalopdracht.getId())
-			.and(CervixBoekRegelSpecification.isHuisartsBetaalopdrachtRegel())
-			.and(CervixBoekRegelSpecification.metDebet(debet)).toPredicate(root, query, cb));
+		query.where(heeftOpdrachtID(betaalopdracht.getId())
+			.and(isHuisartsBetaalopdrachtRegel())
+			.and(metDebet(debet)).toPredicate(root, query, cb));
 
 		var result = entityManager.createQuery(query).getSingleResult();
 		return result != null ? result : BigDecimal.ZERO;

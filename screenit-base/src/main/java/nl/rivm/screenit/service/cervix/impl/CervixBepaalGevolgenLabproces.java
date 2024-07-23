@@ -81,7 +81,7 @@ class CervixBepaalGevolgenLabproces
 
 	void bepaalGevolgenUitstrijkjeVervolgonderzoekOnbeoordeelbaar()
 	{
-		if (!context.bepaalVervolgDao.anderUitstrijkjeOnbeoordeelbaar(context.huidigUitstrijkje))
+		if (!context.bepaalVervolgService.anderUitstrijkjeOnbeoordeelbaar(context.huidigUitstrijkje))
 		{
 			vervolg.setVervolg(BriefType.CERVIX_UITSTRIJKJE_NIET_ANALYSEERBAAR_OF_CYTOLOGIE_ONBEOORDEELBAAR, HuisartsBerichtType.CERVIX_VERVOLGONDERZOEK_CYTOLOGIE_UITSLAG); 
 		}
@@ -187,7 +187,7 @@ class CervixBepaalGevolgenLabproces
 		}
 		else
 		{
-			if (!context.bepaalVervolgDao.anderUitstrijkjeOnbeoordeelbaar(context.huidigUitstrijkje))
+			if (!context.bepaalVervolgService.anderUitstrijkjeOnbeoordeelbaar(context.huidigUitstrijkje))
 			{
 				vervolg.setVervolg(BriefType.CERVIX_UITSTRIJKJE_NIET_ANALYSEERBAAR_OF_CYTOLOGIE_ONBEOORDEELBAAR, HuisartsBerichtType.CERVIX_UITSTRIJKJE_CYTOLOGIE_UITSLAG); 
 			}
@@ -229,7 +229,7 @@ class CervixBepaalGevolgenLabproces
 
 	void bepaalGevolgenUitstrijkjeHpvOnbeoordeelbaar()
 	{
-		if (!context.bepaalVervolgDao.anderUitstrijkjeOnbeoordeelbaar(context.huidigUitstrijkje))
+		if (!context.bepaalVervolgService.anderUitstrijkjeOnbeoordeelbaar(context.huidigUitstrijkje))
 		{
 			vervolg.setVervolg(BriefType.CERVIX_UITSTRIJKJE_NIET_ANALYSEERBAAR_OF_HPV_ONBEOORDEELBAAR, HuisartsBerichtType.CERVIX_UITSTRIJKJE_HPV_ONBEOORDEELBAAR); 
 		}
@@ -278,7 +278,7 @@ class CervixBepaalGevolgenLabproces
 		}
 		else
 		{
-			if (context.bepaalVervolgDao.uitstrijkjeOnbeoordeelbaarCytologie(context.ontvangstRonde))
+			if (context.bepaalVervolgService.uitstrijkjeOnbeoordeelbaarCytologie(context.ontvangstRonde))
 			{
 				vervolg.setVervolg(BriefType.CERVIX_ZAS_NA_CYTOLOGIE_ONBEOORDEELBAAR); 
 			}
@@ -297,7 +297,7 @@ class CervixBepaalGevolgenLabproces
 		}
 		else
 		{
-			if (context.bepaalVervolgDao.uitstrijkjeOnbeoordeelbaarCytologie(context.ontvangstRonde))
+			if (context.bepaalVervolgService.uitstrijkjeOnbeoordeelbaarCytologie(context.ontvangstRonde))
 			{
 				vervolg.setVervolg(BriefType.CERVIX_ZAS_NA_CYTOLOGIE_ONBEOORDEELBAAR); 
 			}
@@ -371,7 +371,7 @@ class CervixBepaalGevolgenLabproces
 
 	void bepaalGevolgenZasHpvOnbeoordeelbaar()
 	{
-		if (!context.bepaalVervolgDao.andereZasOngeldig(context.huidigeZas))
+		if (!context.bepaalVervolgService.andereZasOngeldig(context.huidigeZas))
 		{
 			vervolg.setVervolg(BriefType.CERVIX_ZAS_NIET_ANALYSEERBAAR_OF_ONBEOORDEELBAAR); 
 		}

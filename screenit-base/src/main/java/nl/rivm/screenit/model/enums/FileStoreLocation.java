@@ -169,7 +169,9 @@ public enum FileStoreLocation
 
 	MAMMA_UPLOAD_BEELDEN(File.separator + "mamma" + File.separator + "uploadBeelden", false, false),
 
-	REGRESSIETEST(File.separator + "test" + File.separator, false, false);
+	REGRESSIETEST(File.separator + "test" + File.separator, false, false),
+
+	MAMMA_DENSE2_CSV_EXPORT(File.separator + "mamma" + File.separator + "dense2", false, false);
 
 	private final String path;
 

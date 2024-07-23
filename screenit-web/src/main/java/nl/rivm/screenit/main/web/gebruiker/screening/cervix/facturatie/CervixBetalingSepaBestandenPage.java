@@ -21,7 +21,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.facturatie;
  * =========================LICENSE_END==================================
  */
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +43,7 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.DistributedLockService;
 import nl.rivm.screenit.service.LogService;
+import nl.topicuszorg.organisatie.model.Organisatie_;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -58,10 +58,17 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import static nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht_.BETALINGSKENMERK;
+import static nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht_.HASHTOTAAL;
+import static nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht_.OMSCHRIJVING;
+import static nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht_.SCREENING_ORGANISATIE;
+import static nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht_.SEPA_DOCUMENT;
+import static nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht_.STATUS_DATUM;
+
 public class CervixBetalingSepaBestandenPage extends CervixScreeningBasePage
 {
 	@SpringBean
-	private CervixBetalingService cervixBetalingService;
+	private CervixBetalingService betalingService;
 
 	@SpringBean
 	private LogService logService;
@@ -79,23 +86,22 @@ public class CervixBetalingSepaBestandenPage extends CervixScreeningBasePage
 
 	private WebMarkupContainer getCervixBetalingopdrachtTabelContainer()
 	{
-		WebMarkupContainer container = new WebMarkupContainer("sepaBestandTabelContainer");
+		var container = new WebMarkupContainer("sepaBestandTabelContainer");
 		container.setOutputMarkupId(true);
 
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy");
-
-		List<IColumn<CervixBetaalopdracht, String>> betaalOpdrachtColumns = new ArrayList<>();
-		betaalOpdrachtColumns.add(new DateTimePropertyColumn<>(Model.of("Status datum"), "statusDatum", "statusDatum", simpleDateFormat));
-		betaalOpdrachtColumns.add(new PropertyColumn<>(Model.of("Betalingskenmerk"), "betalingskenmerk", "betalingskenmerk"));
-		betaalOpdrachtColumns.add(new PropertyColumn<>(Model.of("Omschrijving"), "omschrijving", "omschrijving"));
-		betaalOpdrachtColumns.add(new PropertyColumn<>(Model.of("Screeningorganisatie"), "screeningOrganisatie.naam", "screeningOrganisatie.naam"));
+		var betaalOpdrachtColumns = new ArrayList<IColumn<CervixBetaalopdracht, String>>();
+		betaalOpdrachtColumns.add(new DateTimePropertyColumn<>(Model.of("Status datum"), STATUS_DATUM, STATUS_DATUM, Constants.getDateFormat()));
+		betaalOpdrachtColumns.add(new PropertyColumn<>(Model.of("Betalingskenmerk"), BETALINGSKENMERK, BETALINGSKENMERK));
+		betaalOpdrachtColumns.add(new PropertyColumn<>(Model.of("Omschrijving"), OMSCHRIJVING, OMSCHRIJVING));
+		betaalOpdrachtColumns.add(
+			new PropertyColumn<>(Model.of("Screeningorganisatie"), SCREENING_ORGANISATIE + "." + Organisatie_.NAAM, SCREENING_ORGANISATIE + "." + Organisatie_.NAAM));
 		betaalOpdrachtColumns.add(new AbstractColumn<>(Model.of("Status"))
 		{
 
 			@Override
 			public void populateItem(Item<ICellPopulator<CervixBetaalopdracht>> cellItem, String componentId, IModel<CervixBetaalopdracht> rowModel)
 			{
-				BestandStatus status = rowModel.getObject().getStatus();
+				var status = rowModel.getObject().getStatus();
 				if (BestandStatus.CRASH.equals(status))
 				{
 					cellItem.add(new AjaxImageCellPanel<>(componentId, rowModel, "icon-refresh")
@@ -107,10 +113,10 @@ public class CervixBetalingSepaBestandenPage extends CervixScreeningBasePage
 							{
 								try
 								{
-									cervixBetalingService.opslaanBetaalopdracht(rowModel.getObject());
-									cervixBetalingService.genereerCervixBetalingsSpecificatieEnSepaBestand(rowModel.getObject().getId());
+									betalingService.opslaanBetaalopdracht(rowModel.getObject(), ScreenitSession.get().getLoggedInInstellingGebruiker());
+									betalingService.genereerCervixBetalingsSpecificatieEnSepaBestand(rowModel.getObject().getId());
 
-									WebMarkupContainer container = getCervixBetalingopdrachtTabelContainer();
+									var container = getCervixBetalingopdrachtTabelContainer();
 									betalingOpdrachtenContainer.replaceWith(container);
 									betalingOpdrachtenContainer = container;
 									target.add(betalingOpdrachtenContainer);
@@ -141,7 +147,7 @@ public class CervixBetalingSepaBestandenPage extends CervixScreeningBasePage
 			@Override
 			protected void loggingBijOnClick(IModel<CervixBetaalopdracht> rowModel)
 			{
-				String melding = "Betalingskenmerk: " + rowModel.getObject().getBetalingskenmerk();
+				var melding = "Betalingskenmerk: " + rowModel.getObject().getBetalingskenmerk();
 				logService.logGebeurtenis(LogGebeurtenis.CERVIX_SEPA_SPECIFICATIE_DOCUMENT_GEDOWNLOAD, ScreenitSession.get().getLoggedInAccount(), melding,
 					Bevolkingsonderzoek.CERVIX);
 			}
@@ -152,13 +158,13 @@ public class CervixBetalingSepaBestandenPage extends CervixScreeningBasePage
 				return !BestandStatus.CRASH.equals(rowModel.getObject().getStatus());
 			}
 		});
-		betaalOpdrachtColumns.add(new PropertyColumn<>(Model.of("Controlegetal (SHA-256)"), "hashtotaal", "hashtotaal"));
-		betaalOpdrachtColumns.add(new CervixBetalingSepaUploadDocumentColumn<>(Model.of("SEPA document"), "sepaDocument")
+		betaalOpdrachtColumns.add(new PropertyColumn<>(Model.of("Controlegetal (SHA-256)"), HASHTOTAAL, HASHTOTAAL));
+		betaalOpdrachtColumns.add(new CervixBetalingSepaUploadDocumentColumn<>(Model.of("SEPA document"), SEPA_DOCUMENT)
 		{
 			@Override
 			protected void loggingBijOnClick(IModel<CervixBetaalopdracht> rowModel)
 			{
-				String melding = "Betalingskenmerk: " + rowModel.getObject().getBetalingskenmerk();
+				var melding = "Betalingskenmerk: " + rowModel.getObject().getBetalingskenmerk();
 				logService.logGebeurtenis(LogGebeurtenis.CERVIX_SEPA_DOCUMENT_GEDOWNLOAD, ScreenitSession.get().getLoggedInAccount(), melding, Bevolkingsonderzoek.CERVIX);
 			}
 
@@ -212,7 +218,7 @@ public class CervixBetalingSepaBestandenPage extends CervixScreeningBasePage
 
 			});
 		}
-		ScreenitDataTable<CervixBetaalopdracht, String> dataTable = new ScreenitDataTable<>("sepaBestandTable", betaalOpdrachtColumns,
+		var dataTable = new ScreenitDataTable<>("sepaBestandTable", betaalOpdrachtColumns,
 			new CervixBetalingSepaBestandenDataProvider(), Model.of("Betalingsopdrachten"));
 
 		container.add(dataTable);
@@ -223,7 +229,7 @@ public class CervixBetalingSepaBestandenPage extends CervixScreeningBasePage
 	{
 		try
 		{
-			cervixBetalingService.verwijderSepaBestanden(model.getObject());
+			betalingService.verwijderSepaBestanden(model.getObject());
 		}
 		catch (IllegalArgumentException e)
 		{

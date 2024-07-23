@@ -23,6 +23,7 @@ package nl.rivm.screenit.main.service.mamma;
 
 import java.io.File;
 import java.io.InputStream;
+import java.time.LocalDate;
 import java.util.List;
 
 import nl.rivm.screenit.main.model.testen.TestTimelineModel;
@@ -37,8 +38,8 @@ import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaLezing;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
-import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
+import nl.rivm.screenit.model.mamma.enums.MammaDenseWaarde;
 import nl.rivm.screenit.model.mamma.enums.OnderbrokenOnderzoekOption;
 import nl.rivm.screenit.model.mamma.enums.OnvolledigOnderzoekOption;
 
@@ -48,10 +49,10 @@ public interface MammaTestTimelineService
 
 	List<TestVervolgKeuzeOptie> getSnelKeuzeOpties(Client client);
 
-	MammaOnderzoek maakOnderzoekVoorBe(MammaAfspraak afspraak, InstellingGebruiker mbber, MammaScreeningsEenheid se);
+	MammaOnderzoek maakOnderzoekVoorBe(MammaAfspraak afspraak, InstellingGebruiker instellingGebruiker, MammaScreeningsEenheid se);
 
 	void rondOnderzoekAf(MammaAfspraak afspraak, InstellingGebruiker instellingGebruiker, boolean verstuurHl7Berichten, OnvolledigOnderzoekOption onvolledigOnderzoekOption,
-		OnderbrokenOnderzoekOption onderbrokenOnderzoekOption, MammaOnderzoekType onderzoeksType, boolean afwijkingGesignaleerd);
+		OnderbrokenOnderzoekOption onderbrokenOnderzoekOption, MammaOnderzoekType onderzoeksType, boolean afwijkingGesignaleerd, MammaDenseWaarde densiteit);
 
 	void voegLezingToe(MammaBeoordeling beoordeling, MammaLezing lezing, InstellingGebruiker gebruiker);
 
@@ -78,8 +79,6 @@ public interface MammaTestTimelineService
 
 	int importPocClienten(File file, InstellingGebruiker instellingGebruiker, MammaScreeningsEenheid screeningsEenheid, ImportPocOpties importPocOpties);
 
-	void setUitnodigingsNr(MammaScreeningRonde afspraak, Long uitnodigingsNr);
-
 	void doorvoerenAdhocMeekijkverzoek(MammaOnderzoek onderzoek);
 
 	void doorvoerenOnderzoekStarten(MammaAfspraak afspraak, InstellingGebruiker ingelogdeInstellingGebruiker, boolean verstuurHl7Berichten);
@@ -93,4 +92,6 @@ public interface MammaTestTimelineService
 	String getBsnsMetBeeldenBeschikbaar();
 
 	String clientenResetten(String bsns);
+
+	List<MammaAfspraak> readAfsprakenWaarvanOnderzoekNietIsDoorgevoerd(LocalDate vandaag, String seCode);
 }

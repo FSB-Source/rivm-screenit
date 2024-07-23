@@ -36,7 +36,7 @@ import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.service.DigitaalBerichtTemplateService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.MailService;
-import nl.rivm.screenit.service.colon.ColonRoosterService;
+import nl.rivm.screenit.service.colon.ColonIntakelocatieService;
 
 import org.springframework.stereotype.Component;
 
@@ -50,13 +50,13 @@ public class ColonGeenCapaciteitSignaleringWriter extends BaseWriter<ColoscopieC
 
 	private final LogService logService;
 
-	private final ColonRoosterService roosterService;
+	private final ColonIntakelocatieService intakelocatieService;
 
 	@Override
 	protected void write(ColoscopieCentrum intakelocatie)
 	{
 		var emails = getIntakelocatieSignaleringEmails(intakelocatie);
-		var signaleringstermijnTekst = roosterService.getSignaleringstermijnTekst();
+		var signaleringstermijnTekst = intakelocatieService.getSignaleringstermijnTekst();
 
 		if (!emails.isEmpty())
 		{

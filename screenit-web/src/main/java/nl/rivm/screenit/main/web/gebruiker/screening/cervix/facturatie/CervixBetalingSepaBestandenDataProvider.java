@@ -23,8 +23,8 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.facturatie;
 
 import java.util.Iterator;
 
-import nl.rivm.screenit.dao.cervix.CervixVerrichtingDao;
-import nl.rivm.screenit.model.SortState;
+import nl.rivm.screenit.main.service.cervix.CervixBetalingService;
+import nl.rivm.screenit.main.util.WicketSpringDataUtil;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -37,7 +37,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 public class CervixBetalingSepaBestandenDataProvider extends SortableDataProvider<CervixBetaalopdracht, String>
 {
 	@SpringBean
-	private CervixVerrichtingDao cervixVerrichtingDao;
+	private CervixBetalingService betalingService;
 
 	public CervixBetalingSepaBestandenDataProvider()
 	{
@@ -48,24 +48,19 @@ public class CervixBetalingSepaBestandenDataProvider extends SortableDataProvide
 	@Override
 	public Iterator<? extends CervixBetaalopdracht> iterator(long first, long count)
 	{
-		return cervixVerrichtingDao.getBetaalOpdrachten(new SortState<>(getSort().getProperty(), getSort().isAscending()), first, count).iterator();
+		return betalingService.getBetaalOpdrachten(WicketSpringDataUtil.toSpringSort(getSort()), first, count).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return cervixVerrichtingDao.countBetaalOpdrachten();
+		return betalingService.countBetaalOpdrachten();
 	}
 
 	@Override
-	public IModel<CervixBetaalopdracht> model(CervixBetaalopdracht cervixBetaalopdracht)
+	public IModel<CervixBetaalopdracht> model(CervixBetaalopdracht betaalopdracht)
 	{
-		return ModelUtil.sModel(cervixBetaalopdracht);
+		return ModelUtil.sModel(betaalopdracht);
 	}
 
-	@Override
-	public void detach()
-	{
-		super.detach();
-	}
 }

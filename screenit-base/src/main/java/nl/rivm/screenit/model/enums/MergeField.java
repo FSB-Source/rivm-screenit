@@ -99,7 +99,7 @@ import nl.rivm.screenit.service.cervix.CervixBaseBetalingService;
 import nl.rivm.screenit.service.cervix.impl.CervixMonsterIdBarcode;
 import nl.rivm.screenit.service.cervix.impl.CervixMonsterIdLabelBarcode;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
-import nl.rivm.screenit.service.colon.ColonRoosterService;
+import nl.rivm.screenit.service.colon.ColonIntakelocatieService;
 import nl.rivm.screenit.service.impl.UitnodigingIdBarcode;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
@@ -1692,7 +1692,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				return getBean(ColonRoosterService.class).getSignaleringstermijnTekst();
+				return getBean(ColonIntakelocatieService.class).getSignaleringstermijnTekst();
 			}
 		},
 

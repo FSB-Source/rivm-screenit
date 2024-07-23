@@ -21,16 +21,18 @@ package nl.rivm.screenit.exceptions;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.util.DateUtil;
-
 import java.util.Date;
 import java.util.Map;
 
+import nl.rivm.screenit.util.DateUtil;
+
+import org.apache.commons.lang3.tuple.Pair;
+
 public class OpslaanAfsprakenBuitenStandplaatsPeriodeException extends Exception
 {
-	private Map<Long, Date[]> afsprakenBuitenStandplaatsPeriodeMap;
+	private Map<Long, Pair<Date, Date>> afsprakenBuitenStandplaatsPeriodeMap;
 
-	public OpslaanAfsprakenBuitenStandplaatsPeriodeException(Map<Long, Date[]> afsprakenBuitenStandplaatsPeriodeMap)
+	public OpslaanAfsprakenBuitenStandplaatsPeriodeException(Map<Long, Pair<Date, Date>> afsprakenBuitenStandplaatsPeriodeMap)
 	{
 		super();
 		this.afsprakenBuitenStandplaatsPeriodeMap = afsprakenBuitenStandplaatsPeriodeMap;
@@ -40,18 +42,18 @@ public class OpslaanAfsprakenBuitenStandplaatsPeriodeException extends Exception
 	public String getMessage()
 	{
 		String afsprakenBuitenStandplaatsPeriodeMelding = "";
-		for (Map.Entry<Long, Date[]> entry : afsprakenBuitenStandplaatsPeriodeMap.entrySet())
+		for (Map.Entry<Long, Pair<Date, Date>> entry : afsprakenBuitenStandplaatsPeriodeMap.entrySet())
 		{
 			afsprakenBuitenStandplaatsPeriodeMelding += getMessage(entry.getValue()) + "\n";
 		}
 		return afsprakenBuitenStandplaatsPeriodeMelding;
 	}
 
-	public String getMessage(Date[] eersteEnLaatsteAfspraakDatums)
+	public String getMessage(Pair<Date, Date> eersteEnLaatsteAfspraakDatums)
 	{
 		String afsprakenBuitenStandplaatsPeriodeMelding = "";
-		Date eersteAfspraakVanaf = eersteEnLaatsteAfspraakDatums[0];
-		Date laatsteAfspraakVanaf = eersteEnLaatsteAfspraakDatums[1];
+		Date eersteAfspraakVanaf = eersteEnLaatsteAfspraakDatums.getLeft();
+		Date laatsteAfspraakVanaf = eersteEnLaatsteAfspraakDatums.getRight();
 
 		if (eersteAfspraakVanaf != null)
 		{
@@ -66,7 +68,7 @@ public class OpslaanAfsprakenBuitenStandplaatsPeriodeException extends Exception
 		return afsprakenBuitenStandplaatsPeriodeMelding;
 	}
 
-	public Map<Long, Date[]> getAfsprakenBuitenStandplaatsPeriodeMap()
+	public Map<Long, Pair<Date, Date>> getAfsprakenBuitenStandplaatsPeriodeMap()
 	{
 		return afsprakenBuitenStandplaatsPeriodeMap;
 	}

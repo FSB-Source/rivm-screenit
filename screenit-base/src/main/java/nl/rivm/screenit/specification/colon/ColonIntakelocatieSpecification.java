@@ -39,6 +39,8 @@ import org.springframework.data.jpa.domain.Specification;
 
 import com.google.common.collect.Range;
 
+import static nl.rivm.screenit.specification.DateSpecification.betweenDatesPredicate;
+
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ColonIntakelocatieSpecification
 {
@@ -58,7 +60,7 @@ public class ColonIntakelocatieSpecification
 			subquery.select(subqueryRoot).where(
 				cb.and(
 				cb.equal(subqueryRoot.get(Kamer_.coloscopieCentrum), r),
-				SpecificationUtil.betweenDatesPredicate(bereik)
+					betweenDatesPredicate(bereik)
 					.withPath(cb, appointmentJoin.get(AbstractAppointment_.startTime)),
 					cb.equal(appointmentJoin.get(AbstractAppointment_.title), ColonTijdSlotType.ROOSTER_ITEM.getTitle()))
 			);

@@ -49,6 +49,12 @@ public class ColonBlokkadeSpecification
 			cb.equal(cb.treat(r.get(AbstractAppointment_.location), Kamer.class), kamer);
 	}
 
+	public static Specification<ColonBlokkade> heeftKamerUitLijst(List<Kamer> kamers)
+	{
+		return (r, q, cb) ->
+			cb.treat(r.get(AbstractAppointment_.location), Kamer.class).in(kamers);
+	}
+
 	public static Specification<ColonBlokkade> valtBinnenRanges(List<Range<Date>> ranges)
 	{
 		return (r, q, cb) ->

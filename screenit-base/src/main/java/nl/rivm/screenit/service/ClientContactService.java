@@ -24,6 +24,7 @@ package nl.rivm.screenit.service;
 import java.util.List;
 import java.util.Map;
 
+import nl.rivm.screenit.dto.mamma.afspraken.IMammaAfspraakWijzigenFilter;
 import nl.rivm.screenit.model.Aanhef;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.AfmeldingType;
@@ -37,6 +38,7 @@ import nl.rivm.screenit.model.TijdelijkAdres;
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.model.enums.NieuweIfobtResultaat;
+import nl.rivm.screenit.model.mamma.MammaAfspraak;
 
 public interface ClientContactService
 {
@@ -81,5 +83,7 @@ public interface ClientContactService
 	boolean heeftOpenMammaAfspraak(Client client);
 
 	boolean magNieuweIntakeAfspraakMakenNaHeraanmelding(ColonDossier colonDossier);
+
+	boolean isAfspraakTijdBezet(MammaAfspraak nieuweAfspraak, IMammaAfspraakWijzigenFilter afspraakWijzigenFilter);
 
 }

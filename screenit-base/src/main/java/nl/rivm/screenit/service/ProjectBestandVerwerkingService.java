@@ -23,17 +23,17 @@ package nl.rivm.screenit.service;
 
 import nl.rivm.screenit.model.enums.BestandStatus;
 import nl.rivm.screenit.model.project.ProjectBestand;
-import nl.rivm.screenit.service.impl.ProjectBestandVerwerkingContext;
+import nl.rivm.screenit.service.impl.BaseProjectBestandVerwerkingContext;
 
 public interface ProjectBestandVerwerkingService
 {
 
-	void voorbereidingVoorVerwerking(ProjectBestandVerwerkingContext context, ProjectBestand bestand);
+	void voorbereidingVoorVerwerking(BaseProjectBestandVerwerkingContext context, ProjectBestand bestand);
 
 	void setBestandStatus(ProjectBestand bestand, BestandStatus status);
 
 	void setBestandStatus(ProjectBestand bestand, BestandStatus status, String melding);
 
-	void verwerkRegel(ProjectBestandVerwerkingContext context);
+	void verwerkRegel(BaseProjectBestandVerwerkingContext context);
 
 }

@@ -24,39 +24,26 @@ package nl.rivm.screenit.main.service.mamma.impl;
 import java.text.Normalizer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.dao.mamma.MammaBaseTehuisClientenDao;
-import nl.rivm.screenit.dao.mamma.MammaBaseTehuisDao;
-import nl.rivm.screenit.main.service.mamma.IMammaTehuisDto;
 import nl.rivm.screenit.main.service.mamma.MammaTehuisService;
 import nl.rivm.screenit.main.web.ScreenitSession;
-import nl.rivm.screenit.model.CentraleEenheid;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.IDocument;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.MailMergeContext;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
-import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaBrief;
-import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaMergedBrieven;
-import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
-import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.model.mamma.MammaTehuis;
 import nl.rivm.screenit.model.mamma.MammaTehuisOpmerking;
-import nl.rivm.screenit.model.mamma.MammaUitnodiging;
-import nl.rivm.screenit.model.mamma.MammaUitstel;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaUitstelGeannuleerdReden;
 import nl.rivm.screenit.model.mamma.enums.MammaUitstelReden;
@@ -65,7 +52,6 @@ import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.impl.IBrievenGeneratorHelper;
-import nl.rivm.screenit.service.mamma.MammaBaseDossierService;
 import nl.rivm.screenit.service.mamma.MammaBaseFactory;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
 import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
@@ -78,28 +64,19 @@ import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.support.PropertyComparator;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+@Slf4j
 public class MammaTehuisServiceImpl implements MammaTehuisService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaTehuisServiceImpl.class);
-
 	@Autowired
 	private HibernateService hibernateService;
 
 	@Autowired
 	private LogService logService;
-
-	@Autowired
-	private MammaBaseTehuisDao baseTehuisDao;
 
 	@Autowired
 	private MammaBaseTehuisClientenDao baseTehuisClientenDao;
@@ -120,9 +97,6 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 	private MammaBaseScreeningrondeService baseScreeningrondeService;
 
 	@Autowired
-	private MammaBaseDossierService baseDossierService;
-
-	@Autowired
 	private MammaBaseUitstelService baseUitstelService;
 
 	@Autowired
@@ -138,62 +112,11 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 
 	private static final BriefType BRIEF_TYPE_SUSPECT_UITNODIGING = BriefType.MAMMA_UITNODIGING_SUSPECT;
 
-	@Override
-	public List<IMammaTehuisDto> zoekTehuizen(MammaTehuis tehuisFilter, ScreeningOrganisatie screeningOrganisatie, int first, int count, String sortProperty, boolean asc,
-		Callable<IMammaTehuisDto> dtoFactory)
-	{
-		String querySortProperty = "";
-		int queryFirst = first;
-		int queryCount = count;
-		if (sortProperty.startsWith("tehuis"))
-		{
-			querySortProperty = sortProperty.replace("tehuis.", "");
-		}
-		else
-		{
-			querySortProperty = null;
-			queryFirst = -1;
-			queryCount = -1;
-		}
-		List<MammaTehuis> tehuizen = baseTehuisDao.zoekTehuizen(tehuisFilter, screeningOrganisatie, queryFirst, queryCount, querySortProperty, asc);
-
-		List<IMammaTehuisDto> tehuisDtos = new ArrayList<>();
-		for (MammaTehuis tehuis : tehuizen)
-		{
-			try
-			{
-				IMammaTehuisDto tehuisDto = dtoFactory.call();
-				tehuisDto.setTehuis(tehuis);
-				MammaStandplaatsRonde huidigeStandplaatsRonde = baseTehuisDao.getHuidigeStandplaatsRonde(tehuis.getStandplaats());
-				MammaStandplaatsPeriode eersteStandplaatsPeriode = huidigeStandplaatsRonde != null ? huidigeStandplaatsRonde.getStandplaatsPerioden().stream()
-					.min(Comparator.comparing(MammaStandplaatsPeriode::getVanaf)).orElse(null) : null;
-				tehuisDto.setStandplaatsPeriode(eersteStandplaatsPeriode);
-				tehuisDtos.add(tehuisDto);
-			}
-			catch (Exception e)
-			{
-				LOG.error("Fout bij aanmaken van tehuis dto", e);
-			}
-		}
-		if (!sortProperty.startsWith("tehuis"))
-		{
-			Collections.sort(tehuisDtos, new PropertyComparator<>(sortProperty, false, asc));
-			tehuisDtos = tehuisDtos.subList(first, first + count);
-		}
-		return tehuisDtos;
-	}
-
-	@Override
-	public long countTehuizen(MammaTehuis tehuis, ScreeningOrganisatie screeningOrganisatie)
-	{
-		return baseTehuisDao.countTehuizen(tehuis, screeningOrganisatie);
-	}
-
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	@Override
 	public void deactiveerTehuis(MammaTehuis tehuis, InstellingGebruiker instellingGebruiker)
 	{
-		for (MammaDossier dossier : tehuis.getDossiers())
+		for (var dossier : tehuis.getDossiers())
 		{
 			dossier.setTehuis(null);
 			hibernateService.saveOrUpdate(dossier);
@@ -203,7 +126,7 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 		baseTehuisService.saveOrUpdateTehuis(tehuis, instellingGebruiker);
 	}
 
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	@Override
 	public boolean saveOrUpdateTehuisOpmerking(MammaTehuisOpmerking opmerking, MammaTehuis tehuis, InstellingGebruiker loggedInInstellingGebruiker)
 	{
@@ -218,8 +141,8 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 			tehuis = opmerking.getTehuis();
 		}
 
-		String melding = "";
-		String diffToLatestVersion = EntityAuditUtil.getDiffToLatestVersion(opmerking, hibernateService.getHibernateSession());
+		var melding = "";
+		var diffToLatestVersion = EntityAuditUtil.getDiffToLatestVersion(opmerking, hibernateService.getHibernateSession());
 
 		if (opmerking.getId() == null)
 		{
@@ -238,27 +161,27 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 		return false;
 	}
 
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	@Override
 	public void uitnodigen(MammaTehuis tehuis, AtomicInteger aantalClientenMetProjectBrief, AtomicInteger aantalClientenMetBrieven,
 		AtomicInteger aantalClientenMetSuspectBrieven, InstellingGebruiker ingelogdeInstellingGebruiker)
 	{
-		MammaStandplaatsRonde standplaatsRonde = baseTehuisDao.getHuidigeStandplaatsRonde(tehuis.getStandplaats());
+		var standplaatsRonde = baseTehuisService.getHuidigeStandplaatsRondeVoorStandplaats(tehuis.getStandplaats());
 		List<MammaBrief> uitnodigingen = new ArrayList<>();
 		List<MammaBrief> suspectUitnodigingen = new ArrayList<>();
 
-		List<Client> clienten = baseTehuisClientenDao.getClienten(tehuis, MammaTehuisSelectie.UIT_TE_NODIGEN, null);
-		for (Client client : clienten)
+		var clienten = baseTehuisClientenDao.getClienten(tehuis, MammaTehuisSelectie.UIT_TE_NODIGEN, null);
+		for (var client : clienten)
 		{
-			MammaDossier dossier = client.getMammaDossier();
-			boolean krijgtSuspectBrief = volgendeUitnodigingService.isSuspect(dossier);
+			var dossier = client.getMammaDossier();
+			var krijgtSuspectBrief = volgendeUitnodigingService.isSuspect(dossier);
 
-			MammaScreeningRonde screeningRonde = baseFactory.maakRonde(dossier, standplaatsRonde, false);
+			var screeningRonde = baseFactory.maakRonde(dossier, standplaatsRonde, false);
 
-			BriefType briefType = krijgtSuspectBrief ? BRIEF_TYPE_SUSPECT_UITNODIGING : BRIEF_TYPE_TEHUIS_UITNODIGING;
-			MammaUitnodiging uitnodiging = baseFactory.maakUitnodiging(screeningRonde, standplaatsRonde, briefType);
+			var briefType = krijgtSuspectBrief ? BRIEF_TYPE_SUSPECT_UITNODIGING : BRIEF_TYPE_TEHUIS_UITNODIGING;
+			var uitnodiging = baseFactory.maakUitnodiging(screeningRonde, standplaatsRonde, briefType);
 
-			MammaBrief brief = uitnodiging.getBrief();
+			var brief = uitnodiging.getBrief();
 			if (!brief.isVervangendeProjectBrief())
 			{
 				if (krijgtSuspectBrief)
@@ -275,10 +198,10 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 				aantalClientenMetProjectBrief.incrementAndGet();
 			}
 		}
-		Date nu = dateSupplier.getDate();
+		var nu = dateSupplier.getDate();
 		if (!uitnodigingen.isEmpty() || aantalClientenMetProjectBrief.get() > 0)
 		{
-			String melding = uitnodigingen.size() + suspectUitnodigingen.size() + aantalClientenMetProjectBrief.get() + " cliënten uitgenodigd";
+			var melding = uitnodigingen.size() + suspectUitnodigingen.size() + aantalClientenMetProjectBrief.get() + " cliënten uitgenodigd";
 			if (suspectUitnodigingen.size() + aantalClientenMetProjectBrief.get() > 0)
 			{
 				melding += " waarvan ";
@@ -292,7 +215,7 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 				}
 			}
 
-			MammaTehuisOpmerking opmerking = new MammaTehuisOpmerking();
+			var opmerking = new MammaTehuisOpmerking();
 			opmerking.setCreatieDatum(nu);
 			opmerking.setActief(true);
 			opmerking.setOpmerking(melding);
@@ -318,11 +241,11 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 	public List<String> koppelClient(MammaTehuis tehuis, Client client)
 	{
 		List<String> meldingen = new ArrayList<>();
-		MammaDossier dossier = client.getMammaDossier();
+		var dossier = client.getMammaDossier();
 
-		MammaScreeningRonde screeningRonde = dossier.getLaatsteScreeningRonde();
+		var screeningRonde = dossier.getLaatsteScreeningRonde();
 
-		MammaUitstel uitstel = screeningRonde != null ? screeningRonde.getLaatsteUitstel() : null;
+		var uitstel = screeningRonde != null ? screeningRonde.getLaatsteUitstel() : null;
 
 		if (uitstel != null && uitstel.getGeannuleerdOp() == null && uitstel.getUitnodiging() == null)
 		{
@@ -338,7 +261,7 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 			}
 		}
 
-		MammaAfspraak laatsteAfspraak = MammaScreeningRondeUtil.getLaatsteAfspraak(screeningRonde);
+		var laatsteAfspraak = MammaScreeningRondeUtil.getLaatsteAfspraak(screeningRonde);
 		if (laatsteAfspraak != null && laatsteAfspraak.getStatus().equals(MammaAfspraakStatus.GEPLAND) && laatsteAfspraak.getVanaf().compareTo(dateSupplier.getDate()) >= 0)
 		{
 			meldingen.add("client.gekoppeld.heeft.afspraak");
@@ -356,10 +279,10 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 	public List<String> ontkoppelClient(MammaTehuis tehuis, Client client)
 	{
 		List<String> meldingen = new ArrayList<>();
-		MammaDossier dossier = client.getMammaDossier();
-		MammaScreeningRonde screeningRonde = dossier.getLaatsteScreeningRonde();
+		var dossier = client.getMammaDossier();
+		var screeningRonde = dossier.getLaatsteScreeningRonde();
 
-		MammaAfspraak laatsteAfspraak = MammaScreeningRondeUtil.getLaatsteAfspraak(screeningRonde);
+		var laatsteAfspraak = MammaScreeningRondeUtil.getLaatsteAfspraak(screeningRonde);
 		if (laatsteAfspraak != null && laatsteAfspraak.getStatus().equals(MammaAfspraakStatus.GEPLAND) && laatsteAfspraak.getVanaf().compareTo(dateSupplier.getDate()) >= 0)
 		{
 			meldingen.add("client.ontkoppeld.heeft.afspraak");
@@ -375,9 +298,9 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 
 	private void genereerBrieven(MammaTehuis tehuis, List<MammaBrief> uitnodigingen, AtomicInteger aantalClienten, BriefType briefType)
 	{
-		Date nu = dateSupplier.getDate();
+		var nu = dateSupplier.getDate();
 
-		MammaMergedBrieven mergedBrieven = new MammaMergedBrieven();
+		var mergedBrieven = new MammaMergedBrieven();
 		mergedBrieven.setScreeningOrganisatie(tehuis.getStandplaats().getRegio());
 		mergedBrieven.setCreatieDatum(nu);
 		mergedBrieven.setBriefType(briefType);
@@ -415,15 +338,15 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 		@Override
 		public String getMergedBrievenNaam(MammaMergedBrieven brieven)
 		{
-			String naam = "";
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH.mm");
+			var naam = "";
+			var sdf = new SimpleDateFormat("yyyy-MM-dd_HH.mm");
 			if (brieven.getCreatieDatum() != null)
 			{
 				naam += sdf.format(brieven.getCreatieDatum()) + "-";
 			}
 			if (brieven.getScreeningOrganisatie() != null)
 			{
-				String soNaam = brieven.getScreeningOrganisatie().getNaam();
+				var soNaam = brieven.getScreeningOrganisatie().getNaam();
 				soNaam = soNaam.replace(" ", "_");
 				naam += soNaam + "-";
 			}
@@ -445,7 +368,7 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 		@Override
 		public void additionalMergedContext(MailMergeContext context)
 		{
-			CentraleEenheid ce = clientService.bepaalCe(context.getClient());
+			var ce = clientService.bepaalCe(context.getClient());
 			context.putValue(MailMergeContext.CONTEXT_MAMMA_CE, ce);
 		}
 

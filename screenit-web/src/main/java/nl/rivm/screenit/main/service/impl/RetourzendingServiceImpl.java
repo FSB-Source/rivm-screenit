@@ -67,9 +67,9 @@ import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
+import nl.rivm.screenit.service.colon.ColonBaseFITService;
 import nl.rivm.screenit.service.colon.ColonScreeningsrondeService;
 import nl.rivm.screenit.service.colon.ColonUitnodigingService;
-import nl.rivm.screenit.service.colon.IFobtService;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -127,7 +127,7 @@ public class RetourzendingServiceImpl implements RetourzendingService
 	private HibernateService hibernateService;
 
 	@Autowired
-	private IFobtService ifobtService;
+	private ColonBaseFITService colonFitService;
 
 	@Autowired
 	private BaseBriefService briefService;
@@ -385,7 +385,7 @@ public class RetourzendingServiceImpl implements RetourzendingService
 		}
 		if (uitnodiging instanceof ColonUitnodiging)
 		{
-			ifobtService.markeerBuisAlsVerloren((ColonUitnodiging) uitnodiging);
+			colonFitService.markeerBuisAlsVerloren((ColonUitnodiging) uitnodiging);
 		}
 
 		hibernateService.saveOrUpdate(uitnodiging);

@@ -23,8 +23,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie;
 
 import java.util.Iterator;
 
-import nl.rivm.screenit.dao.cervix.CervixVerrichtingDao;
-import nl.rivm.screenit.model.SortState;
+import nl.rivm.screenit.main.service.cervix.CervixVerrichtingService;
 import nl.rivm.screenit.model.cervix.facturatie.CervixHuisartsTarief;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -33,12 +32,13 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvid
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.springframework.data.domain.Sort;
 
 public class CervixHuisartsTarievenDataProvider extends SortableDataProvider<CervixHuisartsTarief, String>
 {
 
 	@SpringBean
-	private CervixVerrichtingDao cervixVerrichtingDao;
+	private CervixVerrichtingService verrichtingService;
 
 	public CervixHuisartsTarievenDataProvider()
 	{
@@ -55,13 +55,14 @@ public class CervixHuisartsTarievenDataProvider extends SortableDataProvider<Cer
 	@Override
 	public Iterator iterator(long first, long count)
 	{
-		return cervixVerrichtingDao.getHuisartsTarieven(null, first, count, new SortState<String>(getSort().getProperty(), getSort().isAscending())).iterator();
+		return verrichtingService.getHuisartsTarieven(first, count, Sort.by(getSort().isAscending() ? Sort.Direction.ASC : Sort.Direction.DESC, getSort().getProperty()))
+			.iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return cervixVerrichtingDao.countHuisartsTarieven(null);
+		return verrichtingService.countHuisartsTarieven();
 	}
 
 }

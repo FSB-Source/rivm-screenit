@@ -36,13 +36,9 @@ public interface LabformulierService
 
 	LabformulierAanvraag saveScreenITAanvraag(AanvraagDto aanvraagDto);
 
-	LabformulierAanvraag saveAanvraag(Huisarts huisarts, AanvraagDto aanvraagDto);
-
 	AanvraagStatistiekenDto getAanvraagStatistiekenLocatie(Long locatiePortaalId);
 
 	AanvraagDto convertToDto(LabformulierAanvraag aanvraag);
-
-	LabformulierAanvraag convertToEntity(AanvraagDto aanvraagDto);
 
 	void verwijderNogNietVerstuurdeLabformulierenVanLocatie(Locatie locatie);
 

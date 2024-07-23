@@ -38,8 +38,8 @@ import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting;
 import nl.rivm.screenit.service.HuisartsenportaalSyncService;
 import nl.rivm.screenit.service.cervix.Cervix2023StartBepalingService;
+import nl.rivm.screenit.service.cervix.CervixBaseVerrichtingService;
 import nl.rivm.screenit.service.cervix.CervixVerrichtingFactory;
-import nl.rivm.screenit.service.cervix.CervixVerrichtingService;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.cervix.CervixHuisartsToDtoUtil;
@@ -59,7 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CervixVerrichtingFactoryImpl implements CervixVerrichtingFactory
 {
 	@Autowired
-	private CervixVerrichtingService verrichtingService;
+	private CervixBaseVerrichtingService verrichtingService;
 
 	@Autowired
 	private HuisartsenportaalSyncService huisartsenportaalSyncService;
@@ -178,7 +178,7 @@ public class CervixVerrichtingFactoryImpl implements CervixVerrichtingFactory
 		verrichting.setType(tariefType);
 		hibernateService.saveOrUpdate(verrichting);
 		var boekRegel = new CervixBoekRegel();
-		var tarief = verrichtingService.getTariefVoorDatum(tariefType, verrichtingsDatum, laboratorium);
+		var tarief = verrichtingService.getTariefVoorDatum(verrichtingsDatum, laboratorium);
 		boekRegel.setTarief(tarief);
 		boekRegel.setDebet(false);
 		boekRegel.setVerrichting(verrichting);

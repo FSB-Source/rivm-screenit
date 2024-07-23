@@ -32,7 +32,6 @@ import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.cervix.order.CervixOrderConstants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.batch.service.CervixOrderBerichtService;
-import nl.rivm.screenit.dao.cervix.CervixBepaalVervolgDao;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieReden;
@@ -41,6 +40,7 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.cervix.CervixBaseMonsterService;
+import nl.rivm.screenit.service.cervix.CervixBepaalVervolgService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
 import nl.rivm.screenit.service.cervix.impl.CervixBepaalVervolgContext;
 import nl.rivm.screenit.util.DateUtil;
@@ -62,7 +62,7 @@ public class CervixOrderAanmaakWriter extends BaseWriter<CervixUitstrijkje>
 
 	private ICurrentDateSupplier dateSupplier;
 
-	private CervixBepaalVervolgDao bepaalVervolgDao;
+	private CervixBepaalVervolgService bepaalVervolgService;
 
 	private CervixBaseMonsterService monsterService;
 
@@ -97,19 +97,19 @@ public class CervixOrderAanmaakWriter extends BaseWriter<CervixUitstrijkje>
 				.get(PreferenceKey.CERVIX_START_AANLEVERING_GENOTYPERING_EN_INVOERING_TRIAGE.name());
 
 			var vervolgContext = new CervixBepaalVervolgContext(uitstrijkje, false, dateSupplier.getLocalDateTime(),
-				DateUtil.parseLocalDateForPattern(startdatumAanleveringGenotyperingString, Constants.DATE_FORMAT_YYYYMMDD), bepaalVervolgDao, monsterService,
+				DateUtil.parseLocalDateForPattern(startdatumAanleveringGenotyperingString, Constants.DATE_FORMAT_YYYYMMDD), bepaalVervolgService, monsterService,
 				preferenceService.getInteger(PreferenceKey.CERVIX_INTERVAL_CONTROLE_UITSTRIJKJE.name()));
 
 			if (vervolgContext.inVervolgonderzoekDatum != null)
 			{
-				if (bepaalVervolgDao.anderUitstrijkjeOnbeoordeelbaarCytologie(vervolgContext.huidigUitstrijkje))
+				if (bepaalVervolgService.anderUitstrijkjeOnbeoordeelbaarCytologie(vervolgContext.huidigUitstrijkje))
 				{
 					return CervixCytologieReden.HERHALING_VERVOLGONDERZOEK;
 				}
 				return CervixCytologieReden.VERVOLGONDERZOEK;
 			}
 
-			if (bepaalVervolgDao.anderUitstrijkjeOnbeoordeelbaarCytologie(vervolgContext.huidigUitstrijkje))
+			if (bepaalVervolgService.anderUitstrijkjeOnbeoordeelbaarCytologie(vervolgContext.huidigUitstrijkje))
 			{
 				return CervixCytologieReden.HERHALING_INITIEEL_NA_ONBEOORDEELBAARHEID;
 			}

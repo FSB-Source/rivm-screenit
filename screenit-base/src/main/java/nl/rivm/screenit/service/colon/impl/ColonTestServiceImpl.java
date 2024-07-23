@@ -35,7 +35,6 @@ import java.util.Map;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.dao.UitnodigingsDao;
-import nl.rivm.screenit.dao.colon.ColonTestDao;
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.DossierStatus;
@@ -67,6 +66,7 @@ import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.model.enums.HuisartsBerichtType;
 import nl.rivm.screenit.model.enums.RedenNietTeBeoordelen;
+import nl.rivm.screenit.repository.colon.ColonUitnodigingRepository;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BaseDossierService;
 import nl.rivm.screenit.service.DossierFactory;
@@ -85,9 +85,6 @@ import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.wicket.planning.model.Discipline;
 import nl.topicuszorg.wicket.planning.model.appointment.Location;
-import nl.topicuszorg.wicket.planning.model.appointment.recurrence.AbstractRecurrence;
-import nl.topicuszorg.wicket.planning.model.appointment.recurrence.NoRecurrence;
-import nl.topicuszorg.wicket.planning.services.RecurrenceService;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.criterion.Order;
@@ -101,7 +98,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.REQUIRED)
+@Transactional
 public class ColonTestServiceImpl implements ColonTestService
 {
 	private static final Logger LOG = LoggerFactory.getLogger(ColonTestServiceImpl.class);
@@ -131,12 +128,6 @@ public class ColonTestServiceImpl implements ColonTestService
 	private UitnodigingsDao uitnodigingsDao;
 
 	@Autowired
-	private ColonTestDao colonTestDao;
-
-	@Autowired
-	private RecurrenceService recurrenceService;
-
-	@Autowired
 	private DossierFactory dossierFactory;
 
 	@Autowired
@@ -147,6 +138,9 @@ public class ColonTestServiceImpl implements ColonTestService
 
 	@Autowired
 	private ColonAfspraakDefinitieService afspraakDefinitieService;
+
+	@Autowired
+	private ColonUitnodigingRepository uitnodigingRepository;
 
 	@Override
 	public ColonConclusie maakAfspraakEnConclusie(GbaPersoon filter, Date fitVerwerkingsDatum)
@@ -942,7 +936,7 @@ public class ColonTestServiceImpl implements ColonTestService
 	@Override
 	public int markeerNogNietNaarInpakcentrumVerstuurdeUitnodigingenAlsVerstuurd()
 	{
-		return colonTestDao.markeerNogNietNaarInpakcentrumVerstuurdeUitnodigingenAlsVerstuurd();
+		return uitnodigingRepository.markeerNogNietNaarInpakcentrumVerstuurdeUitnodigingenAlsVerstuurd(currentDateSupplier.getDate());
 	}
 
 	@Override
@@ -967,16 +961,6 @@ public class ColonTestServiceImpl implements ColonTestService
 				}
 				roosterBlok.getAfspraken().clear();
 				hibernateService.saveOrUpdate(roosterBlok);
-			}
-		}
-		List<Long> alleRecurrences = hibernateService.getHibernateSession().createCriteria(AbstractRecurrence.class).setProjection(Projections.id()).list();
-		for (var recurrenceId : alleRecurrences)
-		{
-			var recurrence = hibernateService.get(AbstractRecurrence.class, recurrenceId);
-			if (recurrence != null && !NoRecurrence.class.isAssignableFrom(recurrence.getClass()))
-			{
-				aantalRoosterItemsVerwijderd += recurrence.getAppointments().size();
-				recurrenceService.deleteHerhalingChain(recurrence);
 			}
 		}
 

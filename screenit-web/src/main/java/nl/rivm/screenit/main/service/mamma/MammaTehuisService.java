@@ -22,21 +22,15 @@ package nl.rivm.screenit.main.service.mamma;
  */
 
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.mamma.MammaTehuis;
 import nl.rivm.screenit.model.mamma.MammaTehuisOpmerking;
 
 public interface MammaTehuisService
 {
-	List<IMammaTehuisDto> zoekTehuizen(MammaTehuis tehuis, ScreeningOrganisatie screeningOrganisatie, int first, int count, String sortProperty, boolean asc,
-		Callable<IMammaTehuisDto> dtoFactory);
-
-	long countTehuizen(MammaTehuis tehuis, ScreeningOrganisatie screeningOrganisatie);
-
 	void deactiveerTehuis(MammaTehuis tehuis, InstellingGebruiker instellingGebruiker);
 
 	boolean saveOrUpdateTehuisOpmerking(MammaTehuisOpmerking opmerking, MammaTehuis tehuis, InstellingGebruiker instellingGebruiker);
@@ -47,4 +41,5 @@ public interface MammaTehuisService
     List<String> koppelClient(MammaTehuis tehuis, Client client);
 
     List<String> ontkoppelClient(MammaTehuis tehuis, Client client);
+
 }

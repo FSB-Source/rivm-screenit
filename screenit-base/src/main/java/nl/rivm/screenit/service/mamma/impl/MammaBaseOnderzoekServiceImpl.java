@@ -21,9 +21,11 @@ package nl.rivm.screenit.service.mamma.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -31,8 +33,6 @@ import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.dao.mamma.MammaBaseMammografieDao;
-import nl.rivm.screenit.dao.mamma.MammaBaseOnderzoekDao;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.Client;
@@ -48,6 +48,7 @@ import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaMammografie;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.berichten.MammaIMSBericht;
 import nl.rivm.screenit.model.mamma.berichten.xds.XdsStatus;
@@ -57,12 +58,16 @@ import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
 import nl.rivm.screenit.model.mamma.enums.OnvolledigOnderzoekOption;
+import nl.rivm.screenit.repository.mamma.MammaBaseOnderzoekRepository;
+import nl.rivm.screenit.repository.mamma.MammaMammografieRepository;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.service.mamma.MammaBaseIlmService;
 import nl.rivm.screenit.service.mamma.MammaBaseOnderzoekService;
+import nl.rivm.screenit.specification.mamma.MammaMammografieSpecification;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.KeyValue;
 import nl.rivm.screenit.util.NaamUtil;
@@ -73,11 +78,23 @@ import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import ca.uhn.hl7v2.HL7Exception;
+
+import static nl.rivm.screenit.Constants.MAMMA_MAX_AANTAL_MAANDEN_GEEN_UITSLAG_ONDERBROKEN_ONDERZOEK;
+import static nl.rivm.screenit.Constants.MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN;
+import static nl.rivm.screenit.model.OrganisatieParameterKey.MAMMA_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN;
+import static nl.rivm.screenit.specification.mamma.MammaBaseOnderzoekSpecification.heeftActieveClient;
+import static nl.rivm.screenit.specification.mamma.MammaBaseOnderzoekSpecification.heeftDossierWatOvereenKomtMetRonde;
+import static nl.rivm.screenit.specification.mamma.MammaBaseOnderzoekSpecification.heeftIlmStatusBeschikbaarOfGeweest;
+import static nl.rivm.screenit.specification.mamma.MammaBaseOnderzoekSpecification.heeftMissendeUitslag;
+import static nl.rivm.screenit.specification.mamma.MammaBaseOnderzoekSpecification.heeftOnderzoekStatusNietOnderbroken;
+import static nl.rivm.screenit.specification.mamma.MammaBaseOnderzoekSpecification.heeftOnderzoekStatusOnderbroken;
+import static nl.rivm.screenit.specification.mamma.MammaBaseOnderzoekSpecification.heeftOnderzoekZonderUitslagBrieven;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
@@ -97,7 +114,7 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Autowired
-	private MammaBaseMammografieDao baseMammografieDao;
+	private MammaMammografieRepository mammografieRepository;
 
 	@Autowired
 	@Lazy
@@ -111,7 +128,10 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 	private SimplePreferenceService preferenceService;
 
 	@Autowired
-	private MammaBaseOnderzoekDao baseOnderzoekDao;
+	private MammaBaseOnderzoekRepository onderzoekRepository;
+
+	@Autowired
+	private OrganisatieParameterService organisatieParameterService;
 
 	@Override
 	public void onderzoekDoorvoerenVanuitSe(MammaOnderzoek onderzoek)
@@ -281,7 +301,7 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 	public void beeldenVerwijderdVoorOnderzoek(MammaIMSBericht bericht, Client client, boolean error)
 	{
 		var accessionNumber = bericht.getAccessionNumber();
-		var mammografieen = baseMammografieDao.getMammografieenVanUitnodigingsNummerMetBeeldenTeVerwijderen(accessionNumber);
+		var mammografieen = getMammografienMetUitnodigingsNummer(accessionNumber);
 
 		mammografieen.forEach(mammografie -> setMammografieStatus(mammografie, !error ? MammaMammografieIlmStatus.VERWIJDERD : MammaMammografieIlmStatus.VERWIJDEREN_MISLUKT));
 		if (error)
@@ -298,6 +318,11 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 		{
 			baseIlmService.verwijderIlmBezwaarPoging(client.getMammaDossier(), accessionNumber);
 		}
+	}
+
+	private List<MammaMammografie> getMammografienMetUitnodigingsNummer(long accessionNumber)
+	{
+		return mammografieRepository.findAll(MammaMammografieSpecification.heeftUitnodigingsNummer(accessionNumber));
 	}
 
 	private void beeldenAlBeschikbaarControle(MammaOnderzoek onderzoek)
@@ -476,7 +501,7 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 	@Override
 	public boolean forceerMammografieIlmStatus(long accessionNumber, MammaMammografieIlmStatus status, Account account)
 	{
-		var mammografieen = baseMammografieDao.getMammografieenVanUitnodigingsNummerMetBeeldenTeVerwijderen(accessionNumber);
+		var mammografieen = getMammografienMetUitnodigingsNummer(accessionNumber);
 		var isChanged = new AtomicBoolean(false);
 		mammografieen.forEach(mammografie ->
 		{
@@ -523,8 +548,26 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	@Override
-	public MammaOnderzoek getLaatsteOnderzoekMetMissendeUitslagVanDossier(MammaDossier dossier)
+	public Optional<MammaOnderzoek> getLaatsteOnderzoekMetMissendeUitslagVanDossier(MammaDossier dossier)
 	{
-		return baseOnderzoekDao.getLaatsteOnderzoekMetMissendeUitslagVanDossier(dossier);
+		var signaleringsTermijn = organisatieParameterService.getOrganisatieParameter(null, MAMMA_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN, 30);
+		var vandaag = currentDateSupplier.getLocalDate();
+
+		var signalerenVanaf = vandaag.minusDays(MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN);
+		var minimaleSignaleringsDatum = vandaag.minusDays(signaleringsTermijn);
+
+		var vandaagMinAantalMaandenGeenUitslag = vandaag.minusMonths(MAMMA_MAX_AANTAL_MAANDEN_GEEN_UITSLAG_ONDERBROKEN_ONDERZOEK);
+		var minimaleSignaleringsDatumOnderbrokenOnderzoek = vandaag.minusDays(
+			Math.min(signaleringsTermijn + ChronoUnit.DAYS.between(vandaagMinAantalMaandenGeenUitslag, vandaag),
+				MAMMA_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN.getMaxValue()));
+
+		return onderzoekRepository.findFirst(heeftMissendeUitslag(signalerenVanaf)
+				.and(heeftOnderzoekStatusNietOnderbroken(minimaleSignaleringsDatum)
+					.or(heeftOnderzoekStatusOnderbroken(minimaleSignaleringsDatumOnderbrokenOnderzoek)))
+				.and(heeftIlmStatusBeschikbaarOfGeweest())
+				.and(heeftOnderzoekZonderUitslagBrieven())
+				.and(heeftDossierWatOvereenKomtMetRonde(dossier))
+				.and(heeftActieveClient()),
+			Sort.by(Sort.Order.desc(MammaOnderzoek_.AFGEROND_OP)));
 	}
 }

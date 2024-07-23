@@ -24,7 +24,6 @@ package nl.rivm.screenit.service.mamma.impl;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -44,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dto.mamma.afspraken.MammaCapaciteitBlokDto;
 import nl.rivm.screenit.dto.mamma.afspraken.MammaScreeningsEenheidDto;
+import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
@@ -161,7 +161,7 @@ public class MammaBaseKandidaatAfsprakenDeterminatiePeriodeImpl implements Mamma
 	@Override
 	public LocalDate getHuidigeDagVoorPlannenAfspraken()
 	{
-		LocalDateTime nu = dateSupplier.getLocalDateTime();
+		var nu = dateSupplier.getLocalDateTime();
 		return nu.toLocalTime().isBefore(Constants.BK_EINDTIJD_DAG) ? nu.toLocalDate() : nu.toLocalDate().plusDays(1);
 	}
 
@@ -176,7 +176,7 @@ public class MammaBaseKandidaatAfsprakenDeterminatiePeriodeImpl implements Mamma
 		standplaatsPeriodeTotEnMetMap.put(standplaatsPeriode, totEnMet);
 
 		meerdereKandidaten = true;
-		return getKandidaatAfspraken(corrigeerNegatieveVrijeCapaciteit);
+		return getKandidaatAfspraken(corrigeerNegatieveVrijeCapaciteit, dossier.getClient());
 	}
 
 	@Override
@@ -196,14 +196,14 @@ public class MammaBaseKandidaatAfsprakenDeterminatiePeriodeImpl implements Mamma
 		init(standplaatsPeriodes, dossier, voorlopigeOpkomstkans, capaciteitVolledigBenutTotEnMetAantalWerkdagen);
 
 		var uitnodigenVanafDatum = DateUtil.plusWerkdagen(vandaagOfMorgen, afspraakBijUitnodigenVanafAantalWerkdagen);
-		for (MammaStandplaatsPeriode standplaatsPeriode : standplaatsPeriodes)
+		for (var standplaatsPeriode : standplaatsPeriodes)
 		{
 			standplaatsPeriodeVanafMap.put(standplaatsPeriode, Collections.max(Arrays.asList(uitnodigenVanafDatum, DateUtil.toLocalDate(standplaatsPeriode.getVanaf()))));
 			standplaatsPeriodeTotEnMetMap.put(standplaatsPeriode,
 				DateUtil.toLocalDate(Collections.min(Arrays.asList(standplaatsPeriode.getScreeningsEenheid().getUitnodigenTotEnMet(), standplaatsPeriode.getTotEnMet()))));
 		}
 
-		List<MammaKandidaatAfspraak> kandidaatAfspraken = getKandidaatAfspraken(false);
+		var kandidaatAfspraken = getKandidaatAfspraken(false, dossier.getClient());
 		if (kandidaatAfspraken.isEmpty())
 		{
 			throw new MammaOnvoldoendeVrijeCapaciteitException();
@@ -211,7 +211,7 @@ public class MammaBaseKandidaatAfsprakenDeterminatiePeriodeImpl implements Mamma
 		return kandidaatAfspraken.get(0);
 	}
 
-	private void bepaalDeterminatiePeriode()
+	private void bepaalDeterminatiePeriode(Client client)
 	{
 		var nietGeblokkeerdeCapaciteitsBlokken = new ArrayList<MammaCapaciteitBlokDto>();
 
@@ -221,8 +221,7 @@ public class MammaBaseKandidaatAfsprakenDeterminatiePeriodeImpl implements Mamma
 			var totEnMetDate = DateUtil.toUtilDate(standplaatsPeriodeTotEnMetMap.get(standplaatsPeriode).atTime(Constants.BK_EINDTIJD_DAG));
 
 			var standplaatsPeriodeNietGeblokkeerdeCapaciteitsBlokken = capaciteitsBlokService.getNietGeblokkeerdeCapaciteitsBlokDtos(
-				standplaatsPeriode,
-				vanafDate, totEnMetDate, blokType == null ? null : Collections.singletonList(blokType));
+				standplaatsPeriode, vanafDate, totEnMetDate, blokType == null ? null : Collections.singletonList(blokType), client);
 
 			nietGeblokkeerdeCapaciteitsBlokken.addAll(standplaatsPeriodeNietGeblokkeerdeCapaciteitsBlokken);
 		}
@@ -250,11 +249,11 @@ public class MammaBaseKandidaatAfsprakenDeterminatiePeriodeImpl implements Mamma
 			.collect(Collectors.toList());
 	}
 
-	private List<MammaKandidaatAfspraak> getKandidaatAfspraken(boolean corrigeerNegatieveVrijeCapaciteit)
+	private List<MammaKandidaatAfspraak> getKandidaatAfspraken(boolean corrigeerNegatieveVrijeCapaciteit, Client client)
 	{
-		bepaalDeterminatiePeriode();
+		bepaalDeterminatiePeriode(client);
 
-		MammaCapaciteit.BlokTypeCapaciteit totaleCapaciteit = capaciteit.getCapaciteit(blokType);
+		var totaleCapaciteit = capaciteit.getCapaciteit(blokType);
 
 		var kandidaatAfspraken = new ArrayList<MammaKandidaatAfspraak>();
 		if (isMindervalide && standplaatsPeriodeList.get(0).getStandplaatsRonde().getMinderValideUitwijkStandplaats() != null)
@@ -269,14 +268,14 @@ public class MammaBaseKandidaatAfsprakenDeterminatiePeriodeImpl implements Mamma
 			return kandidaatAfspraken;
 		}
 
-		int aantalKandidatenVrijeCapaciteit = totaleVrijeCapaciteit.divide(benodigdeCapaciteit, 5, RoundingMode.HALF_UP).setScale(0, RoundingMode.UP).intValue();
-		int maxAantalKandidatenTonen = totaleCapaciteit.beschikbareCapaciteit.divide(TEN, 5, RoundingMode.HALF_UP).setScale(0, RoundingMode.UP).intValue();
-		int maxZoekPogingen = aantalKandidatenVrijeCapaciteit + 1;
+		var aantalKandidatenVrijeCapaciteit = totaleVrijeCapaciteit.divide(benodigdeCapaciteit, 5, RoundingMode.HALF_UP).setScale(0, RoundingMode.UP).intValue();
+		var maxAantalKandidatenTonen = totaleCapaciteit.beschikbareCapaciteit.divide(TEN, 5, RoundingMode.HALF_UP).setScale(0, RoundingMode.UP).intValue();
+		var maxZoekPogingen = aantalKandidatenVrijeCapaciteit + 1;
 
 		LOG.debug("totaleVrijeCapaciteit: {}, benodigdeCapaciteit: {}, aantalKandidatenVrijeCapaciteit: {}, maxAantalKandidatenTonen zonder extraOpties: {}, extraOpties: {}",
 			totaleVrijeCapaciteit, benodigdeCapaciteit, aantalKandidatenVrijeCapaciteit, maxAantalKandidatenTonen, extraOpties);
 
-		for (int i = 0; i < maxZoekPogingen; i++)
+		for (var i = 0; i < maxZoekPogingen; i++)
 		{
 			if (aantalKandidatenVrijeCapaciteit == 0 || !extraOpties && maxAantalKandidatenTonen == 0
 				|| !meerdereKandidaten && !kandidaatAfspraken.isEmpty())
@@ -300,7 +299,7 @@ public class MammaBaseKandidaatAfsprakenDeterminatiePeriodeImpl implements Mamma
 	private void bepaalDoelCapaciteit(MammaCapaciteitBlokType blokType, boolean corrigeerNegatieveVrijeCapaciteit)
 	{
 		BigDecimal aflopendPerDag;
-		MammaCapaciteit.BlokTypeCapaciteit blokTypeCapaciteit = capaciteit.getCapaciteit(blokType);
+		var blokTypeCapaciteit = capaciteit.getCapaciteit(blokType);
 		if (blokTypeCapaciteit.getVrijeCapaciteit(corrigeerNegatieveVrijeCapaciteit).compareTo(BigDecimal.ZERO) <= 0)
 		{
 			aflopendPerDag = BigDecimal.ZERO;
@@ -366,7 +365,7 @@ public class MammaBaseKandidaatAfsprakenDeterminatiePeriodeImpl implements Mamma
 			this.datum = datum;
 			aflopendDag = new BigDecimal(ChronoUnit.DAYS.between(aflopendVanaf, datum.plusDays(1L)));
 
-			AtomicReference<BigDecimal> totaleBeschikbareDagCapaciteit = new AtomicReference<>(BigDecimal.ZERO);
+			var totaleBeschikbareDagCapaciteit = new AtomicReference<BigDecimal>(BigDecimal.ZERO);
 
 			dateCapaciteitBlokMap.get(datum)
 				.forEach(capaciteitBlok ->
@@ -491,7 +490,7 @@ public class MammaBaseKandidaatAfsprakenDeterminatiePeriodeImpl implements Mamma
 
 		private void maakMindervalidePeriodesEnBepaalBeschikbareCapaciteit()
 		{
-			BigDecimal beschikbareCapaciteitMindervalidePeriodes = BigDecimal.ZERO;
+			var beschikbareCapaciteitMindervalidePeriodes = BigDecimal.ZERO;
 			beschikbareCapaciteitMindervalidePeriodes = beschikbareCapaciteitMindervalidePeriodes.add(maakMindervalidePeriode(screeningsEenheidDto.getMinderValidePeriode1()));
 			beschikbareCapaciteitMindervalidePeriodes = beschikbareCapaciteitMindervalidePeriodes.add(maakMindervalidePeriode(screeningsEenheidDto.getMinderValidePeriode2()));
 			beschikbareCapaciteit = beschikbareCapaciteitMindervalidePeriodes;
@@ -551,7 +550,7 @@ public class MammaBaseKandidaatAfsprakenDeterminatiePeriodeImpl implements Mamma
 			{
 				if (!datum.isBefore(aflopendVanaf))
 				{
-					MammaCapaciteit.BlokTypeCapaciteit blokTypeCapaciteit = capaciteit.capaciteitMap.get(blokType);
+					var blokTypeCapaciteit = capaciteit.capaciteitMap.get(blokType);
 					blokTypeCapaciteit.benutteCapaciteit = blokTypeCapaciteit.benutteCapaciteit.add(benodigdeCapaciteit);
 					blokTypeCapaciteit.vrijeCapaciteit = blokTypeCapaciteit.vrijeCapaciteit.subtract(benodigdeCapaciteit);
 					if (blokTypeCapaciteit.vrijeCapaciteit.compareTo(BigDecimal.ZERO) < 0)

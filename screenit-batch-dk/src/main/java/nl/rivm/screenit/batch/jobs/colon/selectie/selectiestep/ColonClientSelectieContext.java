@@ -33,7 +33,8 @@ import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.dao.colon.ColonUitnodigingsDao;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.rivm.screenit.model.project.ProjectGroep;
-import nl.rivm.screenit.service.colon.IFobtService;
+import nl.rivm.screenit.service.colon.ColonBaseFITService;
+import nl.rivm.screenit.service.colon.ColonUitnodigingService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 @Slf4j
@@ -181,9 +182,11 @@ public class ColonClientSelectieContext
 
 	public ColonUitnodigingsDao uitnodigingsDao;
 
+	public ColonUitnodigingService uitnodigingService;
+
 	public ClientDao clientDao;
 
-	public IFobtService fitService;
+	public ColonBaseFITService fitService;
 
 	public void init(List<Integer> uitnodigingsJaren, List<ProjectGroep> projectGroepen)
 	{

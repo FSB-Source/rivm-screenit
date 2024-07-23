@@ -1,4 +1,4 @@
-import {UPDATE_FORM_FIELD} from "../actions/FormActions"
+import {UPDATE_FORM_FIELD, UpdateFormFieldAction} from "../actions/FormActions"
 import {KIES_GEEN_HUISARTS_OPTIE, KIES_HUISARTS} from "../actions/HuisartsActions"
 import {BEZWAAR_AANVRAGEN} from "../actions/AfspraakActions"
 import {WIJZIGINGEN_GEMAAKT, WIJZIGINGEN_VERWERKT} from "../actions/WijzigingenActions"
@@ -45,11 +45,11 @@ import {
 } from "../actions/SignalerenActions"
 import {SET_TIJDELIJK_ADRES} from "../actions/ClientActions"
 import {CLEAR_CACHE} from "../actions/ClearCacheActions"
-import {Reducer} from "redux"
+import {Reducer, UnknownAction} from "redux"
 
 let laatsteIndentificatie: string | undefined
 
-const WijzigingenReducer: Reducer<boolean> = (stateSlice = false, action) => {
+const WijzigingenReducer: Reducer<boolean> = (stateSlice = false, action: UnknownAction): boolean => {
 	switch (action.type) {
 		case WIJZIGINGEN_GEMAAKT:
 			const identificatieNrElement = document.getElementById("Identificatienummer")
@@ -65,13 +65,14 @@ const WijzigingenReducer: Reducer<boolean> = (stateSlice = false, action) => {
 				return stateSlice
 			}
 
-			if (action.formField && action.formField.label && action.formField.value && action.formField.value.identificatienummer) {
-				if (action.formField.label === "Identificatienummer") {
-					if (action.formField.value.identificatienummer === laatsteIndentificatie) {
+			const updateFormFieldAction = action as UpdateFormFieldAction
+			if (action.formField && updateFormFieldAction.formField.label && updateFormFieldAction.formField.value?.identificatienummer) {
+				if (updateFormFieldAction.formField.label === "Identificatienummer") {
+					if (updateFormFieldAction.formField.value.identificatienummer === laatsteIndentificatie) {
 						return stateSlice
 					}
 
-					laatsteIndentificatie = action.formField.value.identificatienummer
+					laatsteIndentificatie = updateFormFieldAction.formField.value.identificatienummer
 				}
 			}
 			return true

@@ -23,6 +23,7 @@ package nl.rivm.screenit.service.mamma;
 
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
+import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.model.mamma.MammaTehuis;
 
 public interface MammaBaseTehuisService
@@ -31,4 +32,6 @@ public interface MammaBaseTehuisService
 	boolean saveOrUpdateTehuis(MammaTehuis tehuis, InstellingGebruiker account);
 
 	boolean saveOrUpdateTehuis(MammaTehuis tehuis, MammaStandplaats origineleStandplaats, InstellingGebruiker ingelogdeGebruiker);
+
+	MammaStandplaatsRonde getHuidigeStandplaatsRondeVoorStandplaats(MammaStandplaats standplaats);
 }

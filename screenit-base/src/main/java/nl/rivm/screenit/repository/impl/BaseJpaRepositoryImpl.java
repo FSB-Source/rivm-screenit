@@ -21,11 +21,17 @@ package nl.rivm.screenit.repository.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 
 import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Selection;
 
 import nl.rivm.screenit.repository.BaseJpaRepository;
+import nl.rivm.screenit.specification.SQueryBuilder;
 import nl.topicuszorg.hibernate.object.model.HibernateObject;
 
 import org.hibernate.proxy.HibernateProxy;
@@ -49,6 +55,33 @@ public class BaseJpaRepositoryImpl<T extends HibernateObject> extends SimpleJpaR
 		var typedQuery = getQuery(specification, sort);
 		typedQuery.setMaxResults(1);
 		return typedQuery.getResultList().stream().findFirst();
+	}
+
+	@Override
+	public <P> List<P> findAll(Specification<T> specification, Class<P> projectionClass, BiFunction<CriteriaBuilder, Root<T>, List<Selection<?>>> selectionFunctions)
+	{
+		return SQueryBuilder.ofProjection(projectionClass, getDomainClass(), selectionFunctions).where(specification).createHQuery().getResultList();
+	}
+
+	@Override
+	public <P> List<P> findAll(Specification<T> specification, Sort sort, Class<P> projectionClass, BiFunction<CriteriaBuilder, Root<T>, List<Selection<?>>> selectionFunctions)
+	{
+		return SQueryBuilder.ofProjection(projectionClass, getDomainClass(), selectionFunctions).where(specification).orderBy(sort).createHQuery().getResultList();
+	}
+
+	@Override
+	public <P> Optional<P> findFirst(Specification<T> specification, Sort sort, Class<P> projectionClass,
+		BiFunction<CriteriaBuilder, Root<T>, List<Selection<?>>> selectionFunctions)
+	{
+		return SQueryBuilder.ofProjection(projectionClass, getDomainClass(), selectionFunctions).where(specification).orderBy(sort).createHQuery().setMaxResults(1).getResultList()
+			.stream().findFirst();
+	}
+
+	@Override
+	public <P> Optional<P> findOne(Specification<T> specification, Class<P> projectionClass, BiFunction<CriteriaBuilder, Root<T>, List<Selection<?>>> selectionFunctions)
+	{
+		return Optional.ofNullable(
+			SQueryBuilder.ofProjection(projectionClass, getDomainClass(), selectionFunctions).where(specification).createHQuery().setMaxResults(2).uniqueResult());
 	}
 
 	@Override

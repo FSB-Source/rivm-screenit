@@ -32,8 +32,10 @@ import nl.rivm.screenit.main.web.gebruiker.base.GebruikerBasePage;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.core.util.string.JavaScriptUtils;
 import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.CssUrlReferenceHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -41,6 +43,7 @@ import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.wicketstuff.wiquery.core.javascript.JsStatement;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -72,7 +75,6 @@ public abstract class AngularBasePage extends GebruikerBasePage
 		super.onInitialize();
 
 		var environmentData = new EnvironmentData();
-		environmentData.setCallback("/");
 		environmentData.setSession(ScreenitSession.get().getId());
 
 		var appRoot = new WebMarkupContainer("appRoot")
@@ -154,11 +156,19 @@ public abstract class AngularBasePage extends GebruikerBasePage
 			response.render(
 				new CssUrlReferenceHeaderItem(medewerkerPortaalResourceUrl + style + "?version=" + ScreenitApplication.get().getVersionString(), "screen", "stylesheet"));
 		}
+		if (Boolean.TRUE.equals(testModus))
+		{
+			response.render(CssHeaderItem.forUrl("assets/css/test.css"));
+		}
 	}
 
 	@Override
 	protected void setupTimeout(IHeaderResponse response)
 	{
-
+		var jsStatement = new JsStatement();
+		jsStatement.append("window.screenit = window.screenit || {};");
+		jsStatement.append("window.screenit.keepAliveCallback=" + keepAliveBehavior.getCallbackFunction() + ";");
+		jsStatement.append("window.screenit.logoutCallback=" + logoutBehavior.getCallbackFunction() + ";");
+		response.render(OnDomReadyHeaderItem.forScript(jsStatement.render()));
 	}
 }

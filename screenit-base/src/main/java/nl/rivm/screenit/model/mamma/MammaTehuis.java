@@ -35,6 +35,9 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.IActief;
 import nl.rivm.screenit.model.helper.HibernateMagicNumber;
 import nl.rivm.screenit.util.DiffSpecs;
@@ -50,11 +53,10 @@ import org.hibernate.envers.Audited;
 @Table(schema = "mamma", name = "tehuis")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "mamma.cache")
 @Audited
+@Getter
+@Setter
 public class MammaTehuis extends AbstractHibernateObject implements IActief
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@Column(nullable = false, length = HibernateMagicNumber.L255)
 	private String naam;
 
@@ -97,101 +99,5 @@ public class MammaTehuis extends AbstractHibernateObject implements IActief
 	public Boolean getActief()
 	{
 		return actief;
-	}
-
-	@Override
-	public void setActief(Boolean actief)
-	{
-		this.actief = actief;
-	}
-
-	public String getNaam()
-	{
-		return naam;
-	}
-
-	public void setNaam(String naam)
-	{
-		this.naam = naam;
-	}
-
-	public MammaStandplaats getStandplaats()
-	{
-		return standplaats;
-	}
-
-	public void setStandplaats(MammaStandplaats standplaats)
-	{
-		this.standplaats = standplaats;
-	}
-
-	public List<MammaDossier> getDossiers()
-	{
-		return dossiers;
-	}
-
-	public void setDossiers(List<MammaDossier> dossier)
-	{
-		this.dossiers = dossier;
-	}
-
-	public Adres getAanschrijfAdres()
-	{
-		return aanschrijfAdres;
-	}
-
-	public void setAanschrijfAdres(Adres adres)
-	{
-		this.aanschrijfAdres = adres;
-	}
-
-	public String getContactpersoon()
-	{
-		return contactpersoon;
-	}
-
-	public void setContactpersoon(String contactpersoon)
-	{
-		this.contactpersoon = contactpersoon;
-	}
-
-	public List<MammaTehuisAdres> getAdressen()
-	{
-		return adressen;
-	}
-
-	public void setAdressen(List<MammaTehuisAdres> adressen)
-	{
-		this.adressen = adressen;
-	}
-
-	public List<MammaTehuisOpmerking> getOpmerkingen()
-	{
-		return opmerkingen;
-	}
-
-	public void setOpmerkingen(List<MammaTehuisOpmerking> opmerkingen)
-	{
-		this.opmerkingen = opmerkingen;
-	}
-
-	public String getTelefoonnummer()
-	{
-		return telefoonnummer;
-	}
-
-	public void setTelefoonnummer(String telefoonnummer)
-	{
-		this.telefoonnummer = telefoonnummer;
-	}
-
-	public Date getUitgenodigd()
-	{
-		return uitgenodigd;
-	}
-
-	public void setUitgenodigd(Date uitgenodigd)
-	{
-		this.uitgenodigd = uitgenodigd;
 	}
 }

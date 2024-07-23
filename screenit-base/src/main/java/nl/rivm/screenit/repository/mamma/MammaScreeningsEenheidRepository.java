@@ -21,9 +21,12 @@ package nl.rivm.screenit.repository.mamma;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Optional;
+
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.repository.BaseJpaRepository;
 
 public interface MammaScreeningsEenheidRepository extends BaseJpaRepository<MammaScreeningsEenheid>
 {
+	Optional<MammaScreeningsEenheid> findByNaam(String naam);
 }

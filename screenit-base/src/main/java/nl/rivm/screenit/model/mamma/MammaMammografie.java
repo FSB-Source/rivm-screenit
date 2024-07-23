@@ -35,8 +35,13 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.mamma.enums.MammaDenseWaarde;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
+import nl.rivm.screenit.model.mamma.enums.MammaMassaDensiteit;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;
@@ -45,6 +50,8 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.envers.Audited;
 
+@Setter
+@Getter
 @Entity
 @Table(
 	schema = "mamma",
@@ -77,63 +84,7 @@ public class MammaMammografie extends AbstractHibernateObject
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date ilmStatusDatum;
 
-	public MammaOnderzoek getOnderzoek()
-	{
-		return onderzoek;
-	}
-
-	public void setOnderzoek(MammaOnderzoek onderzoek)
-	{
-		this.onderzoek = onderzoek;
-	}
-
-	public MammaAnnotatieAfbeelding getVisueleInspectieAfbeelding()
-	{
-		return visueleInspectieAfbeelding;
-	}
-
-	public void setVisueleInspectieAfbeelding(MammaAnnotatieAfbeelding visueleInspectieAfbeelding)
-	{
-		this.visueleInspectieAfbeelding = visueleInspectieAfbeelding;
-	}
-
-	public InstellingGebruiker getAfgerondDoor()
-	{
-		return afgerondDoor;
-	}
-
-	public void setAfgerondDoor(InstellingGebruiker afgerondDoor)
-	{
-		this.afgerondDoor = afgerondDoor;
-	}
-
-	public Date getAfgerondOp()
-	{
-		return afgerondOp;
-	}
-
-	public void setAfgerondOp(Date afgerondOp)
-	{
-		this.afgerondOp = afgerondOp;
-	}
-
-	public MammaMammografieIlmStatus getIlmStatus()
-	{
-		return ilmStatus;
-	}
-
-	public void setIlmStatus(MammaMammografieIlmStatus ilmStatus)
-	{
-		this.ilmStatus = ilmStatus;
-	}
-
-	public Date getIlmStatusDatum()
-	{
-		return ilmStatusDatum;
-	}
-
-	public void setIlmStatusDatum(Date ilmStatusDatum)
-	{
-		this.ilmStatusDatum = ilmStatusDatum;
-	}
+	@Column
+	@Enumerated(EnumType.STRING)
+	private MammaDenseWaarde densiteit;
 }

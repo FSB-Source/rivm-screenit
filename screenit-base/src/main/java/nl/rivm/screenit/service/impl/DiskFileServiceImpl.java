@@ -29,9 +29,11 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -210,6 +212,18 @@ public class DiskFileServiceImpl implements FileService
 	@Override
 	public List<String> listFiles(String directory)
 	{
-		return Arrays.stream(Objects.requireNonNull(new File(directory).listFiles())).map(File::getPath).collect(Collectors.toList());
+		return getFileStream(directory).map(File::getPath).collect(Collectors.toList());
+	}
+
+	@Override
+	public List<String> listFilesGesorteerd(String directory)
+	{
+		return getFileStream(directory).sorted(Comparator.comparingLong(File::lastModified).reversed()).map(File::getPath)
+			.collect(Collectors.toList());
+	}
+
+	private Stream<File> getFileStream(String directory)
+	{
+		return Arrays.stream(Objects.requireNonNull(new File(directory).listFiles()));
 	}
 }

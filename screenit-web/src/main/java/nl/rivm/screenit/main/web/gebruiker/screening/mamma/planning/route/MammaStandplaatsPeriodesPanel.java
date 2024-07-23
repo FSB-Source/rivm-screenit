@@ -327,7 +327,7 @@ public class MammaStandplaatsPeriodesPanel extends Panel
 
 				boolean magVerplaatsen = magAanpassen && !totEnMetDatumDefinitief
 					&& (standplaatsPeriodeDto.id == null
-					|| baseAfspraakService.countAfspraken(standplaatsPeriodeDto.id, MammaAfspraakStatus.NIET_GEANNULEERD.toArray(new MammaAfspraakStatus[] {})) == 0);
+					|| !baseAfspraakService.heeftAfspraken(standplaatsPeriodeDto.id, MammaAfspraakStatus.NIET_GEANNULEERD.toArray(new MammaAfspraakStatus[] {})));
 				item.add(new WebMarkupContainer("handle").setVisible(magVerplaatsen));
 				item.add(new EmptyPanel("emptyHandle").setVisible(!magVerplaatsen));
 			}
@@ -355,7 +355,7 @@ public class MammaStandplaatsPeriodesPanel extends Panel
 						{
 							magBeginDatumWijzigen = standplaatsPeriodeDto.screeningsEenheidVolgNr == 0
 								&& (standplaatsPeriodeDto.id == null
-								|| baseAfspraakService.countAfspraken(standplaatsPeriodeDto.id, MammaAfspraakStatus.NIET_GEANNULEERD.toArray(new MammaAfspraakStatus[] {})) == 0);
+								|| !baseAfspraakService.heeftAfspraken(standplaatsPeriodeDto.id, MammaAfspraakStatus.NIET_GEANNULEERD.toArray(new MammaAfspraakStatus[] {})));
 							magEindDatumWijzigen = true;
 						}
 						if (perioden.size() > huidigeStandplaatsPeriodeIndex + 1)

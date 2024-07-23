@@ -22,97 +22,131 @@
 
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Mammograaf stub</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
-    <link rel="stylesheet" th:href="@{/bootstrap/css/bootstrap.min.css}"/>
-    <script>
-        function updateAccessionNumber() {
-            console.log(document.getElementById('accessionNumber').value);
-        }
-    </script>
+	<title>Mammograaf stub</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
+	<link rel="stylesheet" th:href="@{/bootstrap/css/bootstrap.min.css}"/>
 </head>
 <body>
-
 <div class="container-fluid">
-    <div class="card">
-        <div class="card-header">
-            <div class="row">
-                <div class="col-sm">
-                    <h4 style="margin-top: 10px" th:text="'Werklijst ' + ${AETitle}"/>
-                </div>
-                <form th:style="${DissableWorklist} ? 'display:none' : 'display:block'" action="/werklijst" method="get">
-                    <div class="col-sm">
-                        <div class="row float-right">
-                            <h5 style="margin: auto 10px">C-FIND Accession Number</h5>
-                            <input style="height: 35px; width: 150px; margin: auto 10px" type="text" name="accessionNumber" id="accessionNumber" min="1"
-                                   th:value="${InputAccessionNumber}"/>
-                            <button type="submit" class="btn btn-secondary btn-lg">Werklijst opnieuw ophalen</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-        <div class="card-body">
-            <table class="table">
-                <thead>
-                <tr>
-                    <th scope="col">Patient naam</th>
-                    <th scope="col">Geslacht</th>
-                    <th scope="col">Geboortedatum</th>
-                    <th scope="col">PatientID</th>
-                    <th scope="col">Accession Number</th>
-                    <th scope="col">Referring Physician Name</th>
-                    <th scope="col">Scheduled Procedure Step Sequence - Scheduled Protocol Code Sequence - Code Value</th>
-                    <th scope="col">Requested Procedure Code Sequence - Code Value</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <th scope="row">
-                        <p th:text="${PatientName}"/>
-                    </th>
-                    <td>
-                        <p th:text="${PatientSex}"/>
-                    </td>
-                    <td>
-                        <p th:text="${PatientBirthDate}"/>
-                    </td>
-                    <td>
-                        <p th:text="${PatientID}"/>
-                    </td>
-                    <td>
-                        <p th:text="${AccessionNumber}"/>
-                    </td>
-                    <td>
-                        <p th:text="${ReferringPhysicianName}"/>
-                    </td>
-                    <td>
-                        <p th:text="${ScheduledProtocolCodeSequence}"/>
-                    </td>
-                    <td>
-                        <p th:text="${RequestedProcedureCodeSequence}"/>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <div class="card">
-        <div class="card-header">
-            <h4>Stuur een MPPS bericht</h4>
-        </div>
-        <div class="card-body" th:style="${EmptyWorklist} ? 'display:none' : 'display:block'">
-            <a class="btn btn-secondary btn-lg" href="/mppsInProgress">Onderzoek gestart</a>
-            <a class="btn btn-secondary btn-lg errorTest" href="/mppsInProgress?foutMelding=true">Onderzoek gestart (Foutmelding)</a>
-        </div>
-    </div>
+	<div class="card">
+		<div class="card-header">
+			<div class="row">
+				<div class="col-sm">
+					<h4 style="margin-top: 10px" th:text="'Werklijst ' + ${AETitle}"/>
+				</div>
+				<form th:style="${DisableWorklist} ? 'display:none' : 'display:block'" action="/werklijst" method="get">
+					<div class="col-sm">
+						<div class="row float-right">
+							<h5 style="margin: auto 10px">C-FIND Accession Number</h5>
+							<input style="height: 35px; width: 150px; margin: auto 10px" type="text" name="accessionNumber" id="accessionNumber" min="1"
+								   th:value="${InputAccessionNumber}"/>
+							<button type="submit" class="btn btn-secondary btn-lg">Werklijst opnieuw ophalen</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+		<div class="card-body">
+			<table class="table">
+				<thead>
+				<tr>
+					<th scope="col">Patient naam</th>
+					<th scope="col">Geslacht</th>
+					<th scope="col">Geboortedatum</th>
+					<th scope="col">PatientID</th>
+					<th scope="col">Accession Number</th>
+					<th scope="col">Referring Physician Name</th>
+					<th scope="col">Scheduled Procedure Step Sequence - Scheduled Protocol Code Sequence - Code Value</th>
+					<th scope="col">Requested Procedure Code Sequence - Code Value</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr>
+					<th scope="row"><p th:text="${PatientName}"/></th>
+					<td><p th:text="${PatientSex}"/></td>
+					<td><p th:text="${PatientBirthDate}"/></td>
+					<td><p th:text="${PatientID}"/></td>
+					<td><p th:text="${AccessionNumber}"/></td>
+					<td><p th:text="${ReferringPhysicianName}"/></td>
+					<td><p th:text="${ScheduledProtocolCodeSequence}"/></td>
+					<td><p th:text="${RequestedProcedureCodeSequence}"/></td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div class="card" th:style="${EmptyWorklist} ? 'display:none' : 'display:block'">
+		<div class="card-header">
+			<h4>MPPS (Module Performed Procedure Step)</h4>
+		</div>
+		<div class="card-body" th:style="${DisableWorklist} ? 'display:none' : 'display:block'">
+			<a class="btn btn-secondary btn-lg" href="/mppsInProgress">Onderzoek gestart</a>
+			<a class="btn btn-secondary btn-lg errorTest" href="/mppsInProgress?foutMelding=true">Onderzoek gestart (Foutmelding)</a>
+		</div>
+		<div class="card-body" th:style="${DisableWorklist} ? 'display:block' : 'display:none'">
+			<a class="btn btn-secondary btn-lg" href="/mppsCompleted/rechts">Beelden Rechts</a>
+			<a class="btn btn-secondary btn-lg" href="/mppsCompleted/links">Beelden Links</a>
+			<a class="btn btn-secondary btn-lg" href="/mppsCompleted/beide">Beelden Beide Zijden</a>
+			<a class="btn btn-secondary btn-lg" href="/mppsDiscontinued">Afgebroken</a>
+			<a class="btn btn-secondary btn-lg errorTest" href="/mppsCompleted/beide?foutMelding=true">Beelden (Foutmelding)</a>
+		</div>
+		<div class="card-body" th:style="${ShowMppsResult} ? 'display:block' : 'display:none'">
+			<table class="table">
+				<thead>
+				<tr>
+					<th scope="col">Bericht status</th>
+					<th scope="col">Request id</th>
+					<th scope="col">Status</th>
+					<th scope="col">Response id</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr>
+					<th scope="row"><p th:text="${SoortMpps}"/></th>
+					<td><p th:text="${MppsUid}"/></td>
+					<td><p th:text="${MppsStatus}"/></td>
+					<td><p th:text="${MppsResponseUid}"/></td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<div class="card" th:style="${EmptyWorklist} ? 'display:none' : 'display:block'">
+		<div class="card-header">
+			<h4>Densiteit rapport</h4>
+		</div>
+		<div class="card-body">
+			<form action="/sendDense" method="post">
+				<label for="denseWaarde">Dense waarde</label>
+				<input type="text" name="denseWaarde" id="denseWaarde" maxlength="10"/>
+				<button type="submit" class="btn btn-secondary btn-lg">Stuur rapport</button>
+			</form>
+		</div>
+		<div class="card-body" th:style="${ShowDenseResult} ? 'display:block' : 'display:none'">
+			<table class="table">
+				<thead>
+				<tr>
+					<th scope="col">Status</th>
+					<th scope="col">Response id</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr>
+					<td><p th:text="${DenseStatus}"/></td>
+					<td><p th:text="${DenseResponseUid}"/></td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
 </div>
 
 <footer class="footer">
-    <div class="container">
-        <span class="text-muted">Versie: <p th:text="${Versie}"/></span>
-    </div>
+	<div class="footer-right text-muted">
+		<span>Versie: </span><span th:text="${Versie}"/>
+	</div>
 </footer>
 </body>
 </html>

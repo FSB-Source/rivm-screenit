@@ -31,10 +31,12 @@ import nl.rivm.screenit.huisartsenportaal.dto.LocatieDto;
 import nl.rivm.screenit.huisartsenportaal.enums.CervixLocatieStatus;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.Woonplaats_;
+import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixHuisartsAdres_;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie_;
 import nl.rivm.screenit.model.cervix.enums.CervixHuisartsLocatieMutatieSoort;
+import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.specification.SpecificationUtil;
 import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
 import nl.topicuszorg.organisatie.model.Medewerker_;
@@ -44,7 +46,9 @@ import nl.topicuszorg.organisatie.model.Organisatie_;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 
+import static nl.rivm.screenit.specification.DateSpecification.betweenDates;
 import static nl.rivm.screenit.specification.SpecificationUtil.containsCaseInsensitive;
+import static nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification.huisartsLocatieJoin;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixHuisartsLocatieSpecification
@@ -99,7 +103,7 @@ public class CervixHuisartsLocatieSpecification
 
 	public static Specification<CervixHuisartsLocatie> valtBinnenMutatieDatum(LocalDate vanaf, LocalDate totEnMet)
 	{
-		return SpecificationUtil.betweenDates(vanaf, totEnMet, r -> r.get(CervixHuisartsLocatie_.mutatiedatum));
+		return betweenDates(vanaf, totEnMet, r -> r.get(CervixHuisartsLocatie_.mutatiedatum));
 	}
 
 	public static Specification<CervixHuisartsLocatie> valtBinnenGemeentes(List<Gemeente> gemeentes)
@@ -147,6 +151,11 @@ public class CervixHuisartsLocatieSpecification
 	{
 		return SpecificationUtil.skipWhenEmpty(straat,
 			(r, q, cb) -> containsCaseInsensitive(cb, SpecificationUtil.join(r, CervixHuisartsLocatie_.locatieAdres).get(CervixHuisartsAdres_.straat), straat));
+	}
+
+	public static Specification<CervixBoekRegel> heeftHuisarts(CervixHuisarts huisarts)
+	{
+		return (r, q, cb) -> cb.equal(huisartsLocatieJoin(r).get(CervixHuisartsLocatie_.huisarts), huisarts);
 	}
 
 }

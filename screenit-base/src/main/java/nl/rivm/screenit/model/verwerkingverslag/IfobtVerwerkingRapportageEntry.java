@@ -25,6 +25,9 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;
@@ -33,11 +36,12 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
+@Getter
+@Setter
 @Table(schema = "colon")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 public class IfobtVerwerkingRapportageEntry extends AbstractHibernateObject
 {
-
 	@ManyToOne
 	@JsonIgnore
 	private IfobtVerwerkingRapportage rapportage;
@@ -47,44 +51,4 @@ public class IfobtVerwerkingRapportageEntry extends AbstractHibernateObject
 	private String bestandsNaam;
 
 	private Long aantalVerwerkingen = Long.valueOf(0);
-
-	public IfobtVerwerkingRapportage getRapportage()
-	{
-		return rapportage;
-	}
-
-	public void setRapportage(IfobtVerwerkingRapportage rapportage)
-	{
-		this.rapportage = rapportage;
-	}
-
-	public Long getAantalVerwerkingen()
-	{
-		return aantalVerwerkingen;
-	}
-
-	public void setAantalVerwerkingen(Long aantalVerwerkingen)
-	{
-		this.aantalVerwerkingen = aantalVerwerkingen;
-	}
-
-	public Long getIfobtBestandId()
-	{
-		return ifobtBestandId;
-	}
-
-	public void setIfobtBestandId(Long ifobtBestandId)
-	{
-		this.ifobtBestandId = ifobtBestandId;
-	}
-
-	public String getBestandsNaam()
-	{
-		return bestandsNaam;
-	}
-
-	public void setBestandsNaam(String bestandsNaam)
-	{
-		this.bestandsNaam = bestandsNaam;
-	}
 }

@@ -21,15 +21,20 @@ package nl.rivm.screenit.service.mamma;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.util.List;
 
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.mamma.MammaBlokkade;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
+import nl.rivm.screenit.model.mamma.MammaStandplaats;
 
 public interface MammaBaseBlokkadeService
 {
 
-	List<MammaBlokkade> getOverlappendeBlokkades(MammaBlokkade mammaBlokkade);
+	List<MammaBlokkade> getOverlappendeBlokkadesVanZelfdeType(MammaBlokkade mammaBlokkade);
+
+	List<MammaBlokkade> getActieveBlokkadesVoorSE(MammaStandplaats standplaats, MammaScreeningsEenheid se, LocalDate dag);
 
 	void saveOrUpdate(MammaBlokkade blokkade, InstellingGebruiker ingelogdeGebruiker);
 }

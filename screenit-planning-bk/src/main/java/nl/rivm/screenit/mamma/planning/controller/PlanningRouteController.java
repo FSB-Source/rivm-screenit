@@ -124,6 +124,12 @@ public class PlanningRouteController
 	public void put(@RequestBody PlanningRouteWijzigenDto gewijzigdeStandplaatsPeriodeDto)
 	{
 		PlanningScreeningsEenheid screeningsEenheidNaar = PlanningScreeningsEenheidIndex.get(gewijzigdeStandplaatsPeriodeDto.screeningsEenheidId);
+
+		if (!gewijzigdeStandplaatsPeriodeMagConceptOverschrijven(gewijzigdeStandplaatsPeriodeDto))
+		{
+			return;
+		}
+
 		PlanningStandplaatsPeriode standplaatsPeriode;
 		PlanningStandplaatsPeriode gewijzigdVanafPeriode = null;
 		if (gewijzigdeStandplaatsPeriodeDto.standplaatsPeriodeConceptId == null)
@@ -199,6 +205,18 @@ public class PlanningRouteController
 		PlanningDoorrekenenManager.run();
 	}
 
+	private boolean gewijzigdeStandplaatsPeriodeMagConceptOverschrijven(PlanningRouteWijzigenDto gewijzigdeStandplaatsPeriodeDto)
+	{
+		var screeningsEenheidNaar = PlanningScreeningsEenheidIndex.get(gewijzigdeStandplaatsPeriodeDto.screeningsEenheidId);
+
+		return screeningsEenheidNaar.getStandplaatsPeriodeNavigableSet().stream()
+			.noneMatch(p ->
+			{
+				var teControlerenVolgnummer = p.getScreeningsEenheidVolgNr();
+				return teControlerenVolgnummer != null && teControlerenVolgnummer.equals(gewijzigdeStandplaatsPeriodeDto.volgNr) && Boolean.FALSE.equals(p.getPrognose());
+			});
+	}
+
 	@PutMapping(value = "/splitsStandplaatsPeriode/{standplaatsPeriodeConceptId}")
 	public void splitsStandplaatsPeriode(@PathVariable UUID standplaatsPeriodeConceptId)
 	{
@@ -251,7 +269,7 @@ public class PlanningRouteController
 		NavigableSet<PlanningStandplaatsPeriode> standplaatsPeriodeNavigableSet = screeningsEenheid.getStandplaatsPeriodeNavigableSet();
 		return standplaatsPeriodeNavigableSet.stream()
 			.filter(standplaatsPeriode -> standplaatsPeriode.getPrognose()
-				&& (standplaatsPeriode.getId() == null || baseAfspraakService.countAfspraken(standplaatsPeriode.getId(), MammaAfspraakStatus.GEPLAND) == 0))
+				&& (standplaatsPeriode.getId() == null || !baseAfspraakService.heeftAfspraken(standplaatsPeriode.getId(), MammaAfspraakStatus.GEPLAND)))
 			.findFirst();
 	}
 

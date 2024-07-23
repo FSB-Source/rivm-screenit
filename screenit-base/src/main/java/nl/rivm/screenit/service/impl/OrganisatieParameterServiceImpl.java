@@ -41,6 +41,7 @@ import nl.rivm.screenit.model.OrganisatieParameter;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.repository.algemeen.OrganisatieParameterRepository;
 import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.OrganisatieParameterService;
@@ -58,7 +59,6 @@ import ca.uhn.hl7v2.util.StringUtil;
 @Slf4j
 @Service
 @AllArgsConstructor
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class OrganisatieParameterServiceImpl implements OrganisatieParameterService
 {
 	private static final String GEEN_WAARDE = "(geen waarde)";
@@ -68,6 +68,8 @@ public class OrganisatieParameterServiceImpl implements OrganisatieParameterServ
 	private HibernateService hibernateService;
 
 	private LogService logService;
+
+	private OrganisatieParameterRepository organisatieParameterRepository;
 
 	private final Map<String, Long> paramKeyIds = new ConcurrentHashMap<>();
 
@@ -91,18 +93,15 @@ public class OrganisatieParameterServiceImpl implements OrganisatieParameterServ
 		return getParamViaCache(organisatie, parameterKey, defaultValue);
 	}
 
-	private OrganisatieParameter getParameter(Instelling organisatie, OrganisatieParameterKey parameterKey)
+	@Override
+	public OrganisatieParameter getParameter(Instelling organisatie, OrganisatieParameterKey parameterKey)
 	{
 		Map<String, Object> queryParams = new HashMap<>();
 		queryParams.put("key", parameterKey);
 
 		if (organisatie == null)
 		{
-			List<Instelling> organisaties = instellingService.getInstellingByOrganisatieTypes(List.of(parameterKey.getOrganisatieType()));
-			if (!organisaties.isEmpty())
-			{
-				organisatie = organisaties.get(0);
-			}
+			organisatie = getInstellingByOrganisatieType(parameterKey);
 		}
 		if (organisatie != null)
 		{
@@ -110,6 +109,16 @@ public class OrganisatieParameterServiceImpl implements OrganisatieParameterServ
 		}
 
 		return hibernateService.getUniqueByParameters(OrganisatieParameter.class, queryParams);
+	}
+
+	private Instelling getInstellingByOrganisatieType(OrganisatieParameterKey parameterKey)
+	{
+		var organisaties = instellingService.getInstellingByOrganisatieTypes(List.of(parameterKey.getOrganisatieType()));
+		if (!organisaties.isEmpty())
+		{
+			return organisaties.get(0);
+		}
+		return null;
 	}
 
 	private static <T> T getValueFromParam(OrganisatieParameterKey parameterKey, T defaultValue, OrganisatieParameter orgParam)
@@ -178,6 +187,37 @@ public class OrganisatieParameterServiceImpl implements OrganisatieParameterServ
 		{
 			logService.logGebeurtenis(LogGebeurtenis.PARAMETERISATIE_WIJZIG, loggedInInstellingGebruiker, "Nieuwe waarde(n): " + StringUtils.join(nieuweValues, ", "),
 				bvos.toArray(new Bevolkingsonderzoek[bvos.size()]));
+		}
+	}
+
+	@Override
+	@Transactional
+	public OrganisatieParameter maakOfUpdateOrganisatieParameter(OrganisatieParameterKey key, String value, Instelling organisatie)
+	{
+		var bestaandeParameter = getParameter(organisatie, key);
+		if (bestaandeParameter == null)
+		{
+			var organisatieParameter = new OrganisatieParameter();
+			organisatieParameter.setKey(key);
+			if (organisatie == null)
+			{
+				organisatie = getInstellingByOrganisatieType(key);
+			}
+			if (organisatie != null)
+			{
+				organisatieParameter.setOrganisatie(organisatie);
+				organisatie.getParameters().add(organisatieParameter);
+			}
+			organisatieParameter.setValue(value);
+			organisatieParameter.setParameterNaam(key.name());
+			organisatieParameterRepository.save(organisatieParameter);
+			return organisatieParameter;
+		}
+		else
+		{
+			bestaandeParameter.setValue(value);
+			bestaandeParameter.setParameterNaam(key.name());
+			return bestaandeParameter;
 		}
 	}
 
