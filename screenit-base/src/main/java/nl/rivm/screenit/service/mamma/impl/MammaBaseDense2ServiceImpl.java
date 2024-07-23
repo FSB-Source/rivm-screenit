@@ -229,6 +229,7 @@ public class MammaBaseDense2ServiceImpl implements MammaBaseDense2Service
 
 		var minimaleLeeftijd = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_LEEFTIJD.name()) - 1;
 		var maximaleLeeftijd = preferenceService.getInteger(PreferenceKey.MAMMA_MAXIMALE_LEEFTIJD.name()) - 4;
+		var minimaleOnderzoeksDatum = currentDateSupplier.getLocalDate().minusDays(27);
 		var configuratie = getConfiguratie();
 		var clienten = clientRepository.findAll(
 			ClientSpecification.heeftActieveClientPredicate().toSpecification()
@@ -300,4 +301,17 @@ public class MammaBaseDense2ServiceImpl implements MammaBaseDense2Service
 		return client.getProjecten().stream().anyMatch(p -> configuratie.getExcludeProjecten() != null && configuratie.getExcludeProjecten().contains(p.getProject().getId()));
 	}
 
+	private boolean heeftClientAlMeegedaan(Client client, MammaDense2ConfiguratieDto configuratie)
+	{
+		var projectClienten = ProjectUtil.getHuidigeProjectClienten(client, currentDateSupplier.getDate(), true);
+		for (var projectClient : projectClienten)
+		{
+			if (configuratie.getDenseProjecten().stream().anyMatch(p -> p.equalsIgnoreCase(projectClient.getProject().getNaam())))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
 }

@@ -24,14 +24,18 @@ package nl.rivm.screenit.service.cervix.impl;
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.model.MergedBrieven;
+import nl.rivm.screenit.model.OrganisatieType;
+import nl.rivm.screenit.model.TablePerClassHibernateObject_;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
+import nl.rivm.screenit.repository.cervix.CervixLabFormulierRepository;
 import nl.rivm.screenit.service.cervix.CervixBaseMonsterService;
 import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 import nl.rivm.screenit.service.cervix.CervixLabformulierService;
 import nl.rivm.screenit.service.cervix.CervixVervolgService;
+import nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.EntityAuditUtil;
@@ -39,9 +43,29 @@ import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.SessionFactory;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.primitives.Ints;
+
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterHeeftDigitaal;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterHeeftGeboortedatum;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterHeeftLabformulierStatussen;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterHeeftMonsterId;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterHeeftOrganisatieType;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterHeeftScanDatumTotEnMet;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterHeeftScanDatumVanaf;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterLabProcesStapIsControlerenVoorCytologie;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterLabProcesStapIsCytopathologie;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterLabProcesStapIsHuisartsOnbekend;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterLabProcesStapIsHuisartsOnbekendOfControlerenVoorCytologie;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterOrganisatieTypeIsScreeningorganisatie;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.heeftGeldigHuisartsbericht;
 
 @Service
 @AllArgsConstructor
