@@ -46,6 +46,7 @@ import nl.rivm.screenit.model.colon.IFOBTTest_;
 import nl.rivm.screenit.model.colon.IFOBTType;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.specification.DateSpecification;
 import nl.rivm.screenit.specification.SpecificationUtil;
 import nl.rivm.screenit.specification.algemeen.ClientSpecification;
 import nl.rivm.screenit.util.DateUtil;
@@ -59,6 +60,10 @@ import static nl.rivm.screenit.specification.SpecificationUtil.join;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ColonIFobtTestSpecification
 {
+	public static Specification<IFOBTTest> heeftBarcode(String barcode)
+	{
+		return (r, q, cb) -> cb.equal(r.get(IFOBTTest_.barcode), barcode);
+	}
 
 	public static Specification<IFOBTTest> heeftDossier(ColonDossier dossier)
 	{

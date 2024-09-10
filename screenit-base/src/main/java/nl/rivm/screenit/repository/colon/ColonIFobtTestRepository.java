@@ -1,4 +1,4 @@
-package nl.rivm.screenit.specification;
+package nl.rivm.screenit.repository.colon;
 
 /*-
  * ========================LICENSE_START=================================
@@ -21,31 +21,9 @@ package nl.rivm.screenit.specification;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
+import nl.rivm.screenit.model.colon.IFOBTTest;
+import nl.rivm.screenit.repository.BaseJpaRepository;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Path;
-
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-
-import org.hibernate.query.criteria.internal.CriteriaBuilderImpl;
-import org.hibernate.query.criteria.internal.compile.RenderingContext;
-import org.hibernate.query.criteria.internal.expression.LiteralExpression;
-
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class DateSpecification
+public interface ColonIFobtTestRepository extends BaseJpaRepository<IFOBTTest>
 {
-	public static Expression<Date> truncateToDay(Path<Date> datePath, CriteriaBuilder cb)
-	{
-		return cb.function("date_trunc", Date.class, new LiteralExpression<>((CriteriaBuilderImpl) cb, "day")
-		{
-			@Override
-			public String render(RenderingContext renderingContext)
-			{
-				return "'day'";
-			}
-		}, datePath);
-	}
 }
