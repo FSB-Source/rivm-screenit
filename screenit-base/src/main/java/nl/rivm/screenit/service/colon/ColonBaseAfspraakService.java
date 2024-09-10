@@ -46,8 +46,6 @@ public interface ColonBaseAfspraakService extends AppointmentService
 
 	List<? extends IAppointment> getAppointments(Location locatie, Date start, Date end, boolean showSchedule);
 
-	List<Afspraak> getAppointments(Client client);
-
 	void verplaatsAfspraak(ColonIntakeAfspraak nieuweAfspraak, Account account, BriefType briefType, boolean briefTegenhouden, boolean uitRooster,
 		boolean verwezenMedischeRedenenDoorInfolijn);
 
@@ -55,8 +53,6 @@ public interface ColonBaseAfspraakService extends AppointmentService
 
 	void maakNieuweAfspraak(Client client, ColonIntakeAfspraak nieuweAfspraak, boolean briefTegenhouden, boolean uitRooster,
 		BriefType briefType, Account account);
-
-	List<Afspraak> getHistorischeAppointments(Client client);
 
 	List<ColonIntakeAfspraak> getAfsprakenVoorColoscopiecentrum(WerklijstIntakeFilter zoekObject, ColoscopieCentrum coloscopieCentrum, long first, long count,
 		String property, boolean ascending);
@@ -71,9 +67,7 @@ public interface ColonBaseAfspraakService extends AppointmentService
 
 	boolean heeftOnafgerondeVerwijzingOmMedischeRedenen(Afspraak afspraak);
 
-	List<Object> getAfsprakenKamersInRanges(Kamer kamer, List<Range<Date>> verwijderdeIntervals);
-
-	List<Afspraak> getAfsprakenKamersInRange(Kamer kamer, Range<Date> verwijderdeIntervals);
+	List<Afspraak> getAfsprakenKamersInRange(Kamer kamer, Range<LocalDateTime> verwijderdeIntervals);
 
 	RoosterItem getRoosterBlokVoorAfspraak(ColonIntakeAfspraak newAfspraak);
 
@@ -82,8 +76,6 @@ public interface ColonBaseAfspraakService extends AppointmentService
 	void setAfspraakStatus(Afspraak afspraak, AfspraakStatus status);
 
 	void afspraakAfzeggen(ColonIntakeAfspraak afspraak, AfspraakStatus status, LocalDateTime nu, boolean communicatieTegenhouden);
-
-	List<Afspraak> getAfsprakenMetRoosterItemInRange(Long roosterItemId, Range<Date> currentViewInterval);
 
 	boolean isDoorverwezenOmMedischeRedenenZonderNieuweAfspraak(Client client);
 

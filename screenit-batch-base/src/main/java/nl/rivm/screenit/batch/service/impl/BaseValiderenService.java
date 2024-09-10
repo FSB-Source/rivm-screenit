@@ -23,27 +23,26 @@ package nl.rivm.screenit.batch.service.impl;
 
 import java.util.List;
 
+import lombok.Setter;
+
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.service.LogService;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import generated.KOPPELDATA;
 
+@Setter
 public abstract class BaseValiderenService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(BaseValiderenService.class);
-
 	@Autowired
 	protected LogService logService;
 
 	protected String getMatchingFieldValue(KOPPELDATA.VERZONDENUITNODIGING verzondenUitnodiging, String matchingFieldName)
 	{
-		for (KOPPELDATA.VERZONDENUITNODIGING.MATCHINGFIELDS.MATCHINGFIELD matchingField : verzondenUitnodiging.getMATCHINGFIELDS().getMATCHINGFIELD())
+		for (var matchingField : verzondenUitnodiging.getMATCHINGFIELDS().getMATCHINGFIELD())
 		{
 			if (matchingField.getNAME().equalsIgnoreCase(matchingFieldName))
 			{
@@ -56,7 +55,7 @@ public abstract class BaseValiderenService
 
 	protected void addFout(List<String> foutmeldingen, String melding)
 	{
-		LogEvent logEvent = new LogEvent();
+		var logEvent = new LogEvent();
 		logEvent.setMelding(melding);
 		logEvent.setLevel(Level.WARNING);
 
@@ -66,11 +65,6 @@ public abstract class BaseValiderenService
 	}
 
 	protected abstract void logKoppelenFout(LogEvent logEvent);
-
-	public void setLogService(LogService logService)
-	{
-		this.logService = logService;
-	}
 
 	protected boolean barcodeAlTeruggekoppeld(List<String> barcodes, String barcodeNieuw)
 	{

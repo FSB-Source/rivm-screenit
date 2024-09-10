@@ -69,8 +69,8 @@ public abstract class OpslaanVerwijderenTijdBlokException extends Exception
 			{
 				Object[] roosterItemTijden = (Object[]) item;
 
-				var startDateTimeBestaand = DateUtil.startSeconde((Date) roosterItemTijden[0]);
-				var endDateTimeBestaand = DateUtil.startSeconde((Date) roosterItemTijden[1]);
+				var startDateTimeBestaand = DateUtil.startMinuut((Date) roosterItemTijden[0]);
+				var endDateTimeBestaand = DateUtil.startMinuut((Date) roosterItemTijden[1]);
 				range = Range.closed(startDateTimeBestaand, endDateTimeBestaand);
 			}
 			if (i > 0)

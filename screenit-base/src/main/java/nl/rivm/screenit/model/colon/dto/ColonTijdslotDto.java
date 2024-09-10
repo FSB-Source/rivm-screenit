@@ -44,4 +44,6 @@ public class ColonTijdslotDto
 
 	private Long kamerId;
 
+	private ColonHerhalingDto herhaling;
+
 }

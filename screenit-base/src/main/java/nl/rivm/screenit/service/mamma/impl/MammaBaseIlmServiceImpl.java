@@ -21,9 +21,8 @@ package nl.rivm.screenit.service.mamma.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
-import nl.rivm.screenit.dao.mamma.MammaBaseIlmDao;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -31,8 +30,8 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaIlmBezwaarPoging;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
-import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaIlmBeeldenStatusRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaIlmBeeldenStatusRapportageEntry;
+import nl.rivm.screenit.repository.mamma.MammaIlmBeeldenStatusRapportageEntryRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.mamma.MammaBaseIlmService;
@@ -42,39 +41,33 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
+@RequiredArgsConstructor
 public class MammaBaseIlmServiceImpl implements MammaBaseIlmService
 {
 	private static final Logger LOG = LoggerFactory.getLogger(MammaBaseIlmServiceImpl.class);
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
-	private LogService logService;
+	private final LogService logService;
 
-	@Autowired
-	private MammaBaseIlmDao baseIlmDao;
+	private final MammaIlmBeeldenStatusRapportageEntryRepository ilmBeeldenStatusRapportageEntryRepository;
 
-	@Autowired
-	private MammaBaseUitwisselportaalService baseUitwisselportaalService;
+	private final MammaBaseUitwisselportaalService baseUitwisselportaalService;
 
-	@Autowired
-	private MammaBaseOnderzoekService baseOnderzoekService;
+	private final MammaBaseOnderzoekService baseOnderzoekService;
 
 	@Override
 	public void maakIlmBezwaarPoging(MammaDossier dossier, long accessionNumber, boolean isUploaded)
 	{
-		MammaIlmBezwaarPoging ilmBezwaarPoging = new MammaIlmBezwaarPoging();
+		var ilmBezwaarPoging = new MammaIlmBezwaarPoging();
 		ilmBezwaarPoging.setAccessionNumber(accessionNumber);
 		ilmBezwaarPoging.setStatusDatum(currentDateSupplier.getLocalDateTime());
 		ilmBezwaarPoging.setUploaded(isUploaded);
@@ -86,9 +79,9 @@ public class MammaBaseIlmServiceImpl implements MammaBaseIlmService
 	@Override
 	public boolean verwijderIlmBezwaarPoging(MammaDossier dossier, long accessionNumber)
 	{
-		List<MammaIlmBezwaarPoging> bezwaarPogingen = dossier.getIlmBezwaarPogingen();
+		var bezwaarPogingen = dossier.getIlmBezwaarPogingen();
 
-		MammaIlmBezwaarPoging bezwaarPoging = bezwaarPogingen.stream().filter(entry -> entry.getAccessionNumber() == accessionNumber).findFirst().orElse(null);
+		var bezwaarPoging = bezwaarPogingen.stream().filter(entry -> entry.getAccessionNumber() == accessionNumber).findFirst().orElse(null);
 		if (bezwaarPoging != null)
 		{
 			bezwaarPogingen.remove(bezwaarPoging);
@@ -102,7 +95,7 @@ public class MammaBaseIlmServiceImpl implements MammaBaseIlmService
 	@Override
 	public void verwijderIlmBezwaarPogingen(MammaDossier dossier)
 	{
-		List<MammaIlmBezwaarPoging> bezwaarPogingen = dossier.getIlmBezwaarPogingen();
+		var bezwaarPogingen = dossier.getIlmBezwaarPogingen();
 		hibernateService.deleteAll(bezwaarPogingen);
 		hibernateService.saveOrUpdateAll(dossier);
 	}
@@ -131,10 +124,10 @@ public class MammaBaseIlmServiceImpl implements MammaBaseIlmService
 
 	private boolean forceerVerwijderIlmBezwaarPoging(Client client, long accessionNumber, Account account)
 	{
-		boolean isVerwijderd = verwijderIlmBezwaarPoging(client.getMammaDossier(), accessionNumber);
+		var isVerwijderd = verwijderIlmBezwaarPoging(client.getMammaDossier(), accessionNumber);
 		if (isVerwijderd)
 		{
-			String melding = String.format("AccessionNumber: %d, status: %s, isBezwaar: %b, isUploaded: %b",
+			var melding = String.format("AccessionNumber: %d, status: %s, isBezwaar: %b, isUploaded: %b",
 				accessionNumber, MammaMammografieIlmStatus.VERWIJDERD, false, false);
 			LOG.info(melding);
 			logService.logGebeurtenis(LogGebeurtenis.MAMMA_ILM_STATUS_GEFORCEERD, account, client, melding, Bevolkingsonderzoek.MAMMA);
@@ -145,10 +138,10 @@ public class MammaBaseIlmServiceImpl implements MammaBaseIlmService
 	@Override
 	public void verwijderIlmRapportageEntriesVoorClient(Client client)
 	{
-		List<MammaIlmBeeldenStatusRapportageEntry> entries = baseIlmDao.getRapportageEntriesVoorClient(client);
-		for (MammaIlmBeeldenStatusRapportageEntry entry : entries)
+		var entries = ilmBeeldenStatusRapportageEntryRepository.findByClient(client);
+		for (var entry : entries)
 		{
-			MammaIlmBeeldenStatusRapportage rapportage = entry.getRapportage();
+			var rapportage = entry.getRapportage();
 			rapportage.getEntries().remove(entry);
 			hibernateService.saveOrUpdate(rapportage);
 		}

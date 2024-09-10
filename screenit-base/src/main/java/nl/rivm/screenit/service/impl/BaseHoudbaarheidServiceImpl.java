@@ -22,46 +22,68 @@ package nl.rivm.screenit.service.impl;
  */
 
 import java.time.LocalDate;
-import java.util.Date;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.dao.BaseHoudbaarheidDao;
-import nl.rivm.screenit.model.AbstractHoudbaarheid;
+import nl.rivm.screenit.model.cervix.CervixZasHoudbaarheid;
+import nl.rivm.screenit.model.colon.IFOBTVervaldatum;
+import nl.rivm.screenit.repository.cervix.CervixZasHoudbaarheidRepository;
+import nl.rivm.screenit.repository.colon.ColonFITHoudbaarheidRepository;
 import nl.rivm.screenit.service.BaseHoudbaarheidService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.specification.cervix.CervixZasHoudbaarheidSpecification;
+import nl.rivm.screenit.specification.colon.ColonFITHoudbaarheidSpecification;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
 public class BaseHoudbaarheidServiceImpl implements BaseHoudbaarheidService
 {
-	@Autowired
-	private BaseHoudbaarheidDao houdbaarheidDao;
-
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Autowired
 	private SimplePreferenceService simplePreferenceService;
 
+	@Autowired
+	private CervixZasHoudbaarheidRepository zasHoudbaarheidRepository;
+
+	@Autowired
+	private ColonFITHoudbaarheidRepository fitHoudbaarheidRepository;
+
 	@Override
-	public <H extends AbstractHoudbaarheid> boolean isHoudbaar(Class<H> clazz, String barcode)
+	public boolean isZasHoudbaar(String barcode)
 	{
-		H houdbaarheid = houdbaarheidDao.getHoudbaarheidVoor(clazz, barcode);
-		Date nu = currentDateSupplier.getDate();
+		var houdbaarheid = getZasHoudbaarheidVoor(barcode);
+		var nu = currentDateSupplier.getDate();
+		return houdbaarheid != null && houdbaarheid.getVervalDatum().after(nu);
+	}
+
+	@Override
+	public boolean isFitHoudbaar(String barcode)
+	{
+		var houdbaarheid = getFitHoudbaarheidVoor(barcode);
+		var nu = currentDateSupplier.getDate();
 		return houdbaarheid != null && !houdbaarheid.getVervalDatum().before(nu);
+	}
+
+	@Override
+	public CervixZasHoudbaarheid getZasHoudbaarheidVoor(String barcode)
+	{
+		return zasHoudbaarheidRepository.findOne(CervixZasHoudbaarheidSpecification.heeftBarcodeInRange(barcode)).orElse(null);
+	}
+
+	@Override
+	public IFOBTVervaldatum getFitHoudbaarheidVoor(String barcode)
+	{
+		return fitHoudbaarheidRepository.findOne(ColonFITHoudbaarheidSpecification.heeftBarcodeInRange(barcode)).orElse(null);
 	}
 
 	@Override
 	public LocalDate getMinstensHoudbaarTotMet(LocalDate vandaag, PreferenceKey minimaleHoudbaarheidMonstersVoorControleKey)
 	{
-		Integer periodeMinimaleHoudbaarheidIfobtMonstersVoorControle = simplePreferenceService.getInteger(minimaleHoudbaarheidMonstersVoorControleKey.name());
+		var periodeMinimaleHoudbaarheidIfobtMonstersVoorControle = simplePreferenceService.getInteger(minimaleHoudbaarheidMonstersVoorControleKey.name());
 		if (periodeMinimaleHoudbaarheidIfobtMonstersVoorControle == null)
 		{
 			periodeMinimaleHoudbaarheidIfobtMonstersVoorControle = 61;

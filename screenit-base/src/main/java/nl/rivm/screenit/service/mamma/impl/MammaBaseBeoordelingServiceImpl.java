@@ -35,7 +35,6 @@ import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.dao.mamma.MammaBaseBeoordelingDao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.INaam;
 import nl.rivm.screenit.model.InstellingGebruiker;
@@ -49,6 +48,7 @@ import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaArchitectuurverstoringLaesie;
 import nl.rivm.screenit.model.mamma.MammaAsymmetrieLaesie;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
+import nl.rivm.screenit.model.mamma.MammaBeoordeling_;
 import nl.rivm.screenit.model.mamma.MammaCalcificatiesLaesie;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaLaesie;
@@ -65,6 +65,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaLaesieType;
 import nl.rivm.screenit.model.mamma.enums.MammaLezingType;
 import nl.rivm.screenit.model.mamma.enums.MammaZijde;
+import nl.rivm.screenit.repository.mamma.MammaBeoordelingRepository;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BaseScreeningRondeService;
 import nl.rivm.screenit.service.BerichtToBatchService;
@@ -89,8 +90,13 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.heeftLezing;
+import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.heeftDossier;
+import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.heeftUitslagStatus;
 
 @Service
 @Slf4j
@@ -120,10 +126,6 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	@Lazy
 	@Autowired
 	private MammaHuisartsBerichtService huisartsBerichtService;
-
-	@Autowired
-	private MammaBaseBeoordelingDao baseBeoordelingDao;
-
 	@Autowired
 	private MammaBaseKansberekeningService kansberekeningService;
 
@@ -145,6 +147,9 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	@Autowired
 	private MammaVolgendeUitnodigingService volgendeUitnodigingService;
 
+	@Autowired
+	private MammaBeoordelingRepository beoordelingRepository;
+
 	@Override
 	public boolean isBiradsVerwijzen(MammaBIRADSWaarde biradsWaarde)
 	{
@@ -164,6 +169,7 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	}
 
 	@Override
+	@Transactional
 	public void bevestigLezing(MammaBeoordeling beoordeling)
 	{
 		bevestigLezing(beoordeling, true);
@@ -455,9 +461,9 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	}
 
 	@Override
-	public MammaBeoordeling getBeoordelingVanLezing(MammaLezing lezing)
+	public Optional<MammaBeoordeling> getBeoordelingVanLezing(MammaLezing lezing)
 	{
-		return baseBeoordelingDao.getBeoordelingVanLezing(lezing);
+		return beoordelingRepository.findOne(heeftLezing(lezing));
 	}
 
 	@Override
@@ -937,7 +943,7 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 		hibernateService.saveOrUpdate(beoordeling);
 
 		var dossier = beoordeling.getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().getDossier();
-		var laatsteBeoordelingMetUitslag = baseBeoordelingDao.getLaatsteBeoordelingMetUitslag(dossier);
+		var laatsteBeoordelingMetUitslag = getLaatsteBeoordelingMetUitslag(dossier);
 		dossier.setLaatsteBeoordelingMetUitslag(laatsteBeoordelingMetUitslag);
 		hibernateService.saveOrUpdate(dossier);
 		followUpService.refreshUpdateFollowUpConclusie(dossier);
@@ -982,7 +988,9 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	@Override
 	public MammaBeoordeling getLaatsteBeoordelingMetUitslag(MammaDossier dossier)
 	{
-		return baseBeoordelingDao.getLaatsteBeoordelingMetUitslag(dossier);
+		return beoordelingRepository.findFirst(heeftDossier(dossier).and(heeftUitslagStatus()),
+				Sort.by(Sort.Direction.DESC, MammaBeoordeling_.STATUS_DATUM))
+			.orElse(null);
 	}
 
 }

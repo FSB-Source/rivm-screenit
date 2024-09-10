@@ -25,7 +25,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
-import nl.rivm.screenit.dao.mamma.MammaBaseScreeningrondeDao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
@@ -38,6 +37,7 @@ import nl.rivm.screenit.model.mamma.verslag.followup.MammaFollowUpPtnmEnGraderin
 import nl.rivm.screenit.model.mamma.verslag.followup.MammaFollowUpVerrichting;
 import nl.rivm.screenit.model.mamma.verslag.followup.MammaFollowUpVerslagContent;
 import nl.rivm.screenit.service.mamma.MammaBaseFollowUpService;
+import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
 import nl.rivm.screenit.service.mamma.MammaVerwerkVerslagService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -57,7 +57,7 @@ public class MammaVerwerkVerslagServiceImpl implements MammaVerwerkVerslagServic
 	private HibernateService hibernateService;
 
 	@Autowired
-	private MammaBaseScreeningrondeDao screeningrondeDao;
+	private MammaBaseScreeningrondeService screeningrondeService;
 
 	@Autowired
 	private MammaBaseFollowUpService followUpService;
@@ -186,7 +186,7 @@ public class MammaVerwerkVerslagServiceImpl implements MammaVerwerkVerslagServic
 	@Override
 	public MammaScreeningRonde getValideScreeningsRonde(Client client, Date onderzoeksdatum)
 	{
-		return screeningrondeDao.getLaatsteScreeningRondeMetUitslag(client, onderzoeksdatum);
+		return screeningrondeService.getLaatsteScreeningRondeMetUitslag(client, onderzoeksdatum);
 	}
 
 	@Override

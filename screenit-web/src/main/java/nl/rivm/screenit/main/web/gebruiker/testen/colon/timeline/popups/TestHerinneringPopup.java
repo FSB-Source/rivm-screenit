@@ -70,7 +70,7 @@ public class TestHerinneringPopup extends AbstractTestBasePopupPanel
 		TestTimeLineDossierTijdstip tijdStip = dossierTijdStipModel.getObject();
 		for (Client client : getModelObject())
 		{
-			colonTestTimeLineService.ifobtHerinneringVersturen(client, tijdStip);
+			colonTestTimeLineService.fitHerinneringVersturen(client, tijdStip);
 		}
 	}
 

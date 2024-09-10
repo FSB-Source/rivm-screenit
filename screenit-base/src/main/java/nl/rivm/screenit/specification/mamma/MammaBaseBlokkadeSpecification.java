@@ -22,6 +22,7 @@ package nl.rivm.screenit.specification.mamma;
  */
 
 import java.time.LocalDate;
+import java.util.Date;
 
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
@@ -43,7 +44,13 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.util.Pair;
 
+import com.google.common.collect.BoundType;
+import com.google.common.collect.Range;
+
+import static nl.rivm.screenit.specification.RangeSpecification.bevat;
+import static nl.rivm.screenit.specification.RangeSpecification.overlapt;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNull;
 
@@ -66,6 +73,11 @@ public class MammaBaseBlokkadeSpecification
 		};
 	}
 
+	public static Specification<MammaBlokkade> isActief()
+	{
+		return isActief(true);
+	}
+
 	public static Specification<MammaBlokkade> isActief(Boolean actief)
 	{
 		return (r, q, cb) -> cb.equal(r.get(MammaBlokkade_.actief), actief);
@@ -78,9 +90,8 @@ public class MammaBaseBlokkadeSpecification
 
 	public static Specification<MammaBlokkade> isGeldigOp(LocalDate dag)
 	{
-		return (r, q, cb) -> cb.and(
-			cb.lessThanOrEqualTo(r.get(MammaBlokkade_.vanaf), DateUtil.toUtilDate(dag)),
-			cb.greaterThanOrEqualTo(r.get(MammaBlokkade_.totEnMet), DateUtil.toUtilDate(dag)));
+		return bevat(r -> r.get(MammaBlokkade_.vanaf), r -> r.get(MammaBlokkade_.totEnMet), Pair.of(BoundType.CLOSED, BoundType.CLOSED),
+			DateUtil.toUtilDate(dag));
 	}
 
 	public static Specification<MammaBlokkade> heeftScreeningsOrganisatie(ScreeningOrganisatie screeningOrganisatie)
@@ -88,7 +99,7 @@ public class MammaBaseBlokkadeSpecification
 		return (r, q, cb) -> cb.equal(r.get(MammaBlokkade_.regio), screeningOrganisatie);
 	}
 
-	public static Specification<MammaBlokkade> filterStandplaats(MammaStandplaats standplaats)
+	public static Specification<MammaBlokkade> filterOpStandplaats(MammaStandplaats standplaats)
 	{
 		return skipWhenNull(standplaats, heeftStandplaats(standplaats));
 	}
@@ -115,10 +126,13 @@ public class MammaBaseBlokkadeSpecification
 
 	public static Specification<MammaBlokkade> heeftOverlapMet(MammaBlokkade blokkade)
 	{
+		return overlapt(Range.closed(blokkade.getVanaf(), blokkade.getTotEnMet()),
+			r -> r.get(MammaBlokkade_.vanaf), r -> r.get(MammaBlokkade_.totEnMet));
+	}
 
-		return isGeldigOp(DateUtil.toLocalDate(blokkade.getVanaf()))
-			.or(isGeldigOp(DateUtil.toLocalDate(blokkade.getTotEnMet())))
-			.or(wordtVolledigOverlapt(blokkade));
+	public static Specification<MammaBlokkade> heeftOverlapMetPeriode(Range<Date> periode)
+	{
+		return overlapt(periode, r -> r.get(MammaBlokkade_.vanaf), r -> r.get(MammaBlokkade_.totEnMet));
 	}
 
 	public static Specification<MammaBlokkade> filterOpRegio(ScreeningOrganisatie organisatie)
@@ -143,13 +157,6 @@ public class MammaBaseBlokkadeSpecification
 		return join(r, MammaBlokkade_.screeningsEenheid, JoinType.LEFT);
 	}
 
-	private static Specification<MammaBlokkade> wordtVolledigOverlapt(MammaBlokkade blokkade)
-	{
-		return (r, q, cb) -> cb.and(
-			cb.greaterThan(r.get(MammaBlokkade_.vanaf), blokkade.getVanaf()),
-			cb.lessThan(r.get(MammaBlokkade_.totEnMet), blokkade.getTotEnMet()));
-	}
-
 	public static Specification<MammaBlokkade> filterOpTotEnMetNietVoor(LocalDate datum)
 	{
 		return skipWhenNull(datum, (r, q, cb) -> cb.greaterThanOrEqualTo(r.get(MammaBlokkade_.totEnMet), DateUtil.toUtilDate(datum)));
@@ -168,11 +175,6 @@ public class MammaBaseBlokkadeSpecification
 	public static Specification<MammaBlokkade> filterOpType(MammaBlokkadeType type)
 	{
 		return skipWhenNull(type, heeftType(type));
-	}
-
-	public static Specification<MammaBlokkade> filterOpStandplaats(MammaStandplaats standplaats)
-	{
-		return skipWhenNull(standplaats, heeftStandplaats(standplaats));
 	}
 
 	private static Specification<MammaBlokkade> heeftType(MammaBlokkadeType type)

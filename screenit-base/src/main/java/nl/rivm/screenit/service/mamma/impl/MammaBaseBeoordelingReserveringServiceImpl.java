@@ -22,17 +22,16 @@ package nl.rivm.screenit.service.mamma.impl;
  */
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import nl.rivm.screenit.dao.mamma.MammaBaseBeoordelingDao;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.enums.MammaBeLezerSoort;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
+import nl.rivm.screenit.repository.mamma.MammaBeoordelingRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingReserveringService;
 import nl.rivm.screenit.util.DateUtil;
@@ -45,6 +44,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.isVrijTeGeven;
+
 @Service
 public class MammaBaseBeoordelingReserveringServiceImpl implements MammaBaseBeoordelingReserveringService
 {
@@ -54,7 +55,7 @@ public class MammaBaseBeoordelingReserveringServiceImpl implements MammaBaseBeoo
 		Duration.ofMinutes(30); 
 
 	@Autowired
-	private MammaBaseBeoordelingDao beoordelingDao;
+	private MammaBeoordelingRepository beoordelingRepository;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -66,13 +67,13 @@ public class MammaBaseBeoordelingReserveringServiceImpl implements MammaBaseBeoo
 	@Transactional(propagation = Propagation.REQUIRES_NEW) 
 	public List<Long> reserveerBeoordelingen(Long startBeoordelingId, List<Long> beoordelingenIds, InstellingGebruiker ingelogdeGebruiker, MammaBeLezerSoort lezerSoort)
 	{
-		List<Long> komendeGereserveerdeIds = new ArrayList<>();
-		List<Long> overgeslagenIds = new ArrayList<>();
-		int startIndex = Math.max(beoordelingenIds.indexOf(startBeoordelingId), 0); 
-		for (int teReserverenIndex = startIndex; teReserverenIndex < beoordelingenIds.size()
+		var komendeGereserveerdeIds = new ArrayList<Long>();
+		var overgeslagenIds = new ArrayList<Long>();
+		var startIndex = Math.max(beoordelingenIds.indexOf(startBeoordelingId), 0); 
+		for (var teReserverenIndex = startIndex; teReserverenIndex < beoordelingenIds.size()
 			&& komendeGereserveerdeIds.size() < getMaximumAantalTeReserverenBeoordelingen(lezerSoort); teReserverenIndex++)
 		{
-			MammaBeoordeling beoordeling = hibernateService.get(MammaBeoordeling.class, beoordelingenIds.get(teReserverenIndex));
+			var beoordeling = hibernateService.get(MammaBeoordeling.class, beoordelingenIds.get(teReserverenIndex));
 			hibernateService.reload(beoordeling); 
 			if (!gereserveerdDoorIemandAnders(ingelogdeGebruiker, beoordeling) && statusToegestaan(beoordeling, lezerSoort, ingelogdeGebruiker))
 			{
@@ -156,10 +157,10 @@ public class MammaBaseBeoordelingReserveringServiceImpl implements MammaBaseBeoo
 			return true;
 		}
 
-		LocalDateTime reserveringstijd = DateUtil.toLocalDateTime(beoordeling.getReserveringsmoment());
-		LocalDateTime reserveringVerlopenTijd = reserveringstijd.plus(MAX_RESERVERINGSTIJD).plusMinutes(1); 
+		var reserveringstijd = DateUtil.toLocalDateTime(beoordeling.getReserveringsmoment());
+		var reserveringVerlopenTijd = reserveringstijd.plus(MAX_RESERVERINGSTIJD).plusMinutes(1); 
 
-		LocalDateTime nu = currentDateSupplier.getLocalDateTime();
+		var nu = currentDateSupplier.getLocalDateTime();
 		return nu.isAfter(reserveringVerlopenTijd);
 	}
 
@@ -180,7 +181,7 @@ public class MammaBaseBeoordelingReserveringServiceImpl implements MammaBaseBeoo
 	@Override
 	public void reserveringenVrijgeven(InstellingGebruiker ingelogdeGebruiker)
 	{
-		List<MammaBeoordeling> vrijTeGevenBeoordelingen = beoordelingDao.getVrijTeGevenBeoordelingen(ingelogdeGebruiker);
+		var vrijTeGevenBeoordelingen = beoordelingRepository.findAll(isVrijTeGeven(ingelogdeGebruiker));
 		vrijTeGevenBeoordelingen.forEach(this::geefBeoordelingVrij);
 		LOG.info("Vrijgegeven beoordeling id's: {} ", vrijTeGevenBeoordelingen.stream().map(b -> b.getId().toString()).collect(Collectors.joining(",")));
 	}

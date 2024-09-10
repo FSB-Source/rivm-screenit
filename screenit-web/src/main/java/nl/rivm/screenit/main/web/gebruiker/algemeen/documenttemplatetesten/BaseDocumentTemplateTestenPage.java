@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import nl.rivm.screenit.dao.UitnodigingsDao;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.BriefTypeChoiceRenderer;
+import nl.rivm.screenit.main.web.component.ScreenitForm;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.component.validator.FileValidator;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.AlgemeenPage;
@@ -104,6 +105,8 @@ public abstract class BaseDocumentTemplateTestenPage extends AlgemeenPage
 
 	private final TemplateBron bron;
 
+	protected final IModel<MergeField> mergeFieldModel = Model.of();
+
 	@SpringBean
 	private InstellingService instellingService;
 
@@ -125,11 +128,11 @@ public abstract class BaseDocumentTemplateTestenPage extends AlgemeenPage
 	@SpringBean
 	private MammaBaseStandplaatsService standplaatsService;
 
-	private IModel<List<FileUpload>> fileUploads = new ListModel<>();
+	private final IModel<List<FileUpload>> fileUploads = new ListModel<>();
 
 	private final DocumentTemplateTestenFieldsPanel fieldsContainer;
 
-	private IModel<DocumentTemplateTestWrapper> wrapperModel = Model.of(new DocumentTemplateTestWrapper());
+	private final IModel<DocumentTemplateTestWrapper> wrapperModel = Model.of(new DocumentTemplateTestWrapper());
 
 	public BaseDocumentTemplateTestenPage()
 	{
@@ -242,6 +245,51 @@ public abstract class BaseDocumentTemplateTestenPage extends AlgemeenPage
 
 		};
 		form.add(fieldsContainer);
+		addMergFieldSelector(form);
+	}
+
+	private void addMergFieldSelector(Form form)
+	{
+		var mergeFieldForm = new ScreenitForm<>("mergeFieldForm");
+		form.add(mergeFieldForm);
+		var mergeFieldDropdown = new ScreenitDropdown<>("mergeField", mergeFieldModel, List.of(MergeField.values()), new ChoiceRenderer<>("fieldName"));
+		mergeFieldDropdown.setNullValid(true);
+		mergeFieldDropdown.add(new AjaxFormComponentUpdatingBehavior("change")
+		{
+
+			@Override
+			protected void onUpdate(AjaxRequestTarget target)
+			{
+				BaseDocumentTemplateTestenPage.this.mergeFieldChanged(target);
+				target.add(form);
+			}
+		});
+		mergeFieldForm.add(mergeFieldDropdown);
+	}
+
+	protected List<BriefType> zichtbareBriefTypesMetMergeField(List<BriefType> visibleBriefTypes, MergeField mergeField)
+	{
+		var briefTypes = new ArrayList<BriefType>();
+		for (var briefType : visibleBriefTypes)
+		{
+			if (briefType.isActief())
+			{
+				var nieuwsteBriefDefinitie = briefService.getNieuwsteBriefDefinitie(briefType);
+				if (nieuwsteBriefDefinitie != null)
+				{
+					var briefTemplate = uploadDocumentService.load(nieuwsteBriefDefinitie.getDocument());
+					if (asposeService.heeftMergeField(briefTemplate, mergeField))
+					{
+						briefTypes.add(briefType);
+					}
+				}
+			}
+		}
+		return briefTypes;
+	}
+
+	protected void mergeFieldChanged(AjaxRequestTarget target)
+	{
 
 	}
 

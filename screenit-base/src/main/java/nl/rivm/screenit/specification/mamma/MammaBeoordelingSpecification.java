@@ -26,11 +26,16 @@ import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.mamma.MammaAfspraak_;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling_;
+import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaDossier_;
+import nl.rivm.screenit.model.mamma.MammaLezing;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.specification.SpecificationUtil;
 import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
@@ -56,4 +61,39 @@ public class MammaBeoordelingSpecification
 	{
 		return (cb, r) -> cb.equal(r.get(MammaBeoordeling_.status), status);
 	}
+
+	public static Specification<MammaBeoordeling> isVrijTeGeven(InstellingGebruiker ingelogdeGebruiker) {
+		return (r, q, cb) -> cb.and(
+			cb.equal(r.get(MammaBeoordeling_.reserveringhouder), ingelogdeGebruiker),
+			cb.not(r.get(MammaBeoordeling_.status).in(MammaBeoordelingStatus.EERSTE_LEZING_OPGESLAGEN, MammaBeoordelingStatus.TWEEDE_LEZING_OPGESLAGEN)
+		));
+	}
+
+	public static Specification<MammaBeoordeling> heeftLezing(MammaLezing lezing) {
+		return (r, q, cb) -> cb.or(
+			cb.equal(r.get(MammaBeoordeling_.eersteLezing), lezing),
+			cb.equal(r.get(MammaBeoordeling_.tweedeLezing), lezing),
+			cb.equal(r.get(MammaBeoordeling_.discrepantieLezing), lezing),
+			cb.equal(r.get(MammaBeoordeling_.arbitrageLezing), lezing),
+			cb.equal(r.get(MammaBeoordeling_.verslagLezing), lezing)
+		);
+	}
+
+	public static Specification<MammaBeoordeling> heeftUitslagStatus()
+	{
+		return (r, q, cb) -> r.get(MammaBeoordeling_.status).in(MammaBeoordelingStatus.uitslagStatussen());
+	}
+
+	public static Specification<MammaBeoordeling> heeftDossier(MammaDossier dossier)
+	{
+		return (r, q, cb) ->
+		{
+			var onderzoekJoin = SpecificationUtil.join(r, MammaBeoordeling_.onderzoek);
+			var afspraakJoin = SpecificationUtil.join(onderzoekJoin, MammaOnderzoek_.afspraak);
+			var uitnodigingJoin = SpecificationUtil.join(afspraakJoin, MammaAfspraak_.uitnodiging);
+			var screeningRondeJoin = SpecificationUtil.join(uitnodigingJoin, MammaUitnodiging_.screeningRonde);
+			return cb.equal(screeningRondeJoin.get(MammaScreeningRonde_.dossier), dossier);
+		};
+	}
+
 }

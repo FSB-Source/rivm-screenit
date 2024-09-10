@@ -44,7 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static nl.rivm.screenit.specification.mamma.MammaBaseBlokkadeSpecification.filterStandplaats;
+import static nl.rivm.screenit.specification.mamma.MammaBaseBlokkadeSpecification.filterOpStandplaats;
 import static nl.rivm.screenit.specification.mamma.MammaBaseBlokkadeSpecification.heeftOverlapMet;
 import static nl.rivm.screenit.specification.mamma.MammaBaseBlokkadeSpecification.heeftScreeningsEenheid;
 import static nl.rivm.screenit.specification.mamma.MammaBaseBlokkadeSpecification.heeftScreeningsOrganisatie;
@@ -84,7 +84,7 @@ public class MammaBaseBlokkadeServiceImpl implements MammaBaseBlokkadeService
 			.and(isGeldigOp(dag))
 			.and(heeftScreeningsEenheid(screeningsEenheid)
 				.or(heeftScreeningsOrganisatie((ScreeningOrganisatie) Hibernate.unproxy(screeningsEenheid.getBeoordelingsEenheid().getParent().getRegio())))
-				.or(filterStandplaats(standplaats))));
+				.or(filterOpStandplaats(standplaats))));
 	}
 
 	@Override

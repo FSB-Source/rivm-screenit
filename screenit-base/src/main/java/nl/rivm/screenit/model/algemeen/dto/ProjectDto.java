@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:screenit-web/src/main/java/nl/rivm/screenit/main/web/gebruiker/screening/mamma/exchange/followup/MammaFollowUpRadiologieInstellingOptieFilter.java
-package nl.rivm.screenit.main.web.gebruiker.screening.mamma.exchange.followup;
-========
 package nl.rivm.screenit.model.algemeen.dto;
->>>>>>>> refs/heads/main:screenit-base/src/main/java/nl/rivm/screenit/model/algemeen/dto/ProjectDto.java
 
 /*-
  * ========================LICENSE_START=================================
@@ -25,23 +21,6 @@ package nl.rivm.screenit.model.algemeen.dto;
  * =========================LICENSE_END==================================
  */
 
-<<<<<<<< HEAD:screenit-web/src/main/java/nl/rivm/screenit/main/web/gebruiker/screening/mamma/exchange/followup/MammaFollowUpRadiologieInstellingOptieFilter.java
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-
-import nl.rivm.screenit.model.Instelling;
-import nl.rivm.screenit.model.enums.MammaFollowUpDoorverwezenFilterOptie;
-
-@Getter
-@Setter
-@AllArgsConstructor
-public class MammaFollowUpRadiologieInstellingOptieFilter
-{
-	MammaFollowUpDoorverwezenFilterOptie mammaFollowUpDoorverwezenFilterOptie;
-
-	Instelling instelling;
-========
 import java.io.Serializable;
 import java.time.LocalDate;
 
@@ -59,5 +38,4 @@ public class ProjectDto implements Serializable
 	private LocalDate eindDatum;
 
 	private Long id;
->>>>>>>> refs/heads/main:screenit-base/src/main/java/nl/rivm/screenit/model/algemeen/dto/ProjectDto.java
 }

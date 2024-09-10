@@ -21,11 +21,8 @@ package nl.rivm.screenit.specification.colon;
  * =========================LICENSE_END==================================
  */
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import javax.persistence.criteria.Predicate;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -38,6 +35,9 @@ import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment_;
 import org.springframework.data.jpa.domain.Specification;
 
 import com.google.common.collect.Range;
+
+import static nl.rivm.screenit.specification.DateSpecification.overlaptLocalDate;
+import static nl.rivm.screenit.specification.DateSpecification.overlaptLocalDateTime;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ColonAfspraakslotSpecification
@@ -53,27 +53,13 @@ public class ColonAfspraakslotSpecification
 		return SpecificationUtil.skipWhenNull(id, (r, q, cb) -> cb.equal(r.get(AbstractAppointment_.id), id));
 	}
 
-	public static Specification<RoosterItem> valtBinnenRanges(List<Range<Date>> ranges)
+	public static Specification<RoosterItem> valtBinnenDatumTijdRange(Range<LocalDateTime> range)
 	{
-		return (r, q, cb) ->
-		{
-			var predicates = new ArrayList<Predicate>();
-			for (var range : ranges)
-			{
-				predicates.add(valtBinnenDatumRange(range).toPredicate(r, q, cb));
-			}
-			return SpecificationUtil.composePredicatesOr(cb, predicates);
-		};
+		return overlaptLocalDateTime(range, r -> r.get(AbstractAppointment_.startTime), r -> r.get(AbstractAppointment_.endTime));
 	}
 
-	public static Specification<RoosterItem> valtBinnenDatumRange(Range<Date> range)
+	public static Specification<RoosterItem> valtBinnenDatumRange(Range<LocalDate> range)
 	{
-		return (r, q, cb) ->
-		{
-			var startProperty = r.get(AbstractAppointment_.startTime);
-			var endProperty = r.get(AbstractAppointment_.endTime);
-			return cb.and(cb.greaterThan(endProperty, range.lowerEndpoint()), cb.lessThan(startProperty, range.upperEndpoint())
-			);
-		};
+		return overlaptLocalDate(range, r -> r.get(AbstractAppointment_.startTime), r -> r.get(AbstractAppointment_.endTime));
 	}
 }

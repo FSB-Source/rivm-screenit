@@ -63,6 +63,9 @@ import nl.rivm.screenit.model.project.ProjectVragenlijstStatus;
 import nl.rivm.screenit.model.project.ProjectVragenlijstUitzettenVia;
 import nl.rivm.screenit.model.project.Project_;
 import nl.rivm.screenit.model.vragenlijsten.VragenlijstAntwoorden;
+import nl.rivm.screenit.repository.algemeen.ProjectBriefActieRepository;
+import nl.rivm.screenit.repository.algemeen.ProjectBriefRepository;
+import nl.rivm.screenit.repository.algemeen.ProjectClientRepository;
 import nl.rivm.screenit.repository.algemeen.ProjectRepository;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.AutorisatieService;
@@ -72,12 +75,13 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.ProjectService;
 import nl.rivm.screenit.service.UploadDocumentService;
-import nl.rivm.screenit.specification.algemeen.ProjectSpecification;
+import nl.rivm.screenit.specification.algemeen.ProjectBriefActieSpecification;
 import nl.rivm.screenit.util.AfmeldingUtil;
 import nl.rivm.screenit.util.BezwaarUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.formulieren2.persistence.resultaat.FormulierResultaatImpl;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.io.FileUtils;
@@ -90,6 +94,24 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.aspose.words.Document;
 import com.aspose.words.ImportFormatMode;
+
+import static nl.rivm.screenit.specification.algemeen.ProjectBriefActieSpecification.heeftActieveClientInProjectVoorProjectBriefActie;
+import static nl.rivm.screenit.specification.algemeen.ProjectBriefActieSpecification.heeftClient;
+import static nl.rivm.screenit.specification.algemeen.ProjectBriefActieSpecification.isProjectBriefActieTypeVervangendeBrief;
+import static nl.rivm.screenit.specification.algemeen.ProjectBriefSpecification.heeftActieveClientInProjectVoorProjectBrief;
+import static nl.rivm.screenit.specification.algemeen.ProjectBriefSpecification.heeftDefinitieGelijkAanBaseActie;
+import static nl.rivm.screenit.specification.algemeen.ProjectBriefSpecification.heeftDefinitieVragenlijst;
+import static nl.rivm.screenit.specification.algemeen.ProjectBriefSpecification.heeftGeenVerstuurdeBrief;
+import static nl.rivm.screenit.specification.algemeen.ProjectBriefSpecification.heeftPrintDatumNaOfOpDatum;
+import static nl.rivm.screenit.specification.algemeen.ProjectBriefSpecification.heeftVragenlijstAntwoordenStatusNullOfNietAfgerond;
+import static nl.rivm.screenit.specification.algemeen.ProjectClientSpecification.heeftActieveClient;
+import static nl.rivm.screenit.specification.algemeen.ProjectClientSpecification.heeftActieveClientInProjectVoorProjectClient;
+import static nl.rivm.screenit.specification.algemeen.ProjectClientSpecification.heeftExcludeerAfmelding;
+import static nl.rivm.screenit.specification.algemeen.ProjectClientSpecification.heeftProject;
+import static nl.rivm.screenit.specification.algemeen.ProjectClientSpecification.isNietInProjectBrief;
+import static nl.rivm.screenit.specification.algemeen.ProjectSpecification.heeftBriefTypeInProject;
+import static nl.rivm.screenit.specification.algemeen.ProjectSpecification.heeftEindDatumNaVandaag;
+import static nl.rivm.screenit.specification.algemeen.ProjectSpecification.heeftProjectType;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -131,6 +153,15 @@ public class ProjectServiceImpl implements ProjectService
 
 	@Autowired
 	private ProjectRepository projectRepository;
+
+	@Autowired
+	private ProjectClientRepository projectClientRepository;
+
+	@Autowired
+	private ProjectBriefRepository projectBriefRepository;
+
+	@Autowired
+	private ProjectBriefActieRepository projectBriefActieRepository;
 
 	public ProjectServiceImpl()
 	{
@@ -181,7 +212,7 @@ public class ProjectServiceImpl implements ProjectService
 	@Override
 	public List<Project> getProjectenVanType(ProjectType projectType)
 	{
-		return projectRepository.findAll(ProjectSpecification.heeftProjectType(projectType), Sort.by(Sort.Order.asc(Project_.NAAM)));
+		return projectRepository.findAll(heeftProjectType(projectType), Sort.by(Sort.Order.asc(Project_.NAAM)));
 	}
 
 	@Override
@@ -320,19 +351,39 @@ public class ProjectServiceImpl implements ProjectService
 	@Override
 	public List<ProjectClient> getValideClientenVanProject(Project project, ProjectBriefActie definitie)
 	{
-		return projectDao.getValideClientenVanProject(project, definitie);
+		var vandaag = currentDateSupplier.getLocalDate();
+
+		var spec = heeftProject(project)
+			.and(heeftActieveClient())
+			.and(heeftExcludeerAfmelding(project.getExcludeerAfmelding()))
+			.and(isNietInProjectBrief(definitie))
+			.and(heeftActieveClientInProjectVoorProjectClient(vandaag));
+
+		return projectClientRepository.findAll(spec);
 	}
 
 	@Override
 	public List<Project> getAllProjectenWhereProjectBriefActieHasBriefType(BriefType type)
 	{
-		return projectDao.getAllProjectenWhereProjectBriefActieHasBriefType(type);
+		var vandaag = currentDateSupplier.getLocalDate();
+
+		return projectRepository.findWith(heeftBriefTypeInProject(type)
+			.and(heeftEindDatumNaVandaag(vandaag)), q -> q.distinct(true).all());
 	}
 
 	@Override
 	public List<ProjectBrief> getAllProjectBriefForHerinnering(ProjectBriefActie actie, Date verstuurdOp)
 	{
-		return projectDao.getAllProjectBriefForHerinnering(actie, verstuurdOp);
+
+		var vandaag = currentDateSupplier.getLocalDate();
+
+		var spec = heeftActieveClientInProjectVoorProjectBrief(vandaag)
+			.and(heeftDefinitieVragenlijst())
+			.and(heeftPrintDatumNaOfOpDatum(verstuurdOp))
+			.and(heeftDefinitieGelijkAanBaseActie(actie))
+			.and(heeftVragenlijstAntwoordenStatusNullOfNietAfgerond())
+			.and(heeftGeenVerstuurdeBrief(actie));
+		return projectBriefRepository.findAll(spec);
 	}
 
 	@Override
@@ -406,7 +457,14 @@ public class ProjectServiceImpl implements ProjectService
 	@Override
 	public ProjectBriefActie getProjectBriefActie(Client client, BriefType briefType)
 	{
-		return projectDao.getProjectBriefActie(client, briefType);
+		var vandaag = currentDateSupplier.getLocalDate();
+
+		var spec = ProjectBriefActieSpecification.heeftBriefTypeInProjectBriefActie(briefType)
+			.and(isProjectBriefActieTypeVervangendeBrief())
+			.and(heeftClient(client))
+			.and(heeftActieveClientInProjectVoorProjectBriefActie(vandaag));
+
+		return projectBriefActieRepository.findFirst(spec, Sort.by(Sort.Direction.DESC, AbstractHibernateObject_.ID)).orElse(null);
 	}
 
 	@Override

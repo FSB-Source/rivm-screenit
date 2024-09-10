@@ -24,8 +24,8 @@ package nl.rivm.screenit.mamma.se.service.impl;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import nl.rivm.screenit.mamma.se.dao.MammografenDao;
 import nl.rivm.screenit.mamma.se.dto.MammograafDto;
+import nl.rivm.screenit.mamma.se.repository.MammaMammograafRepository;
 import nl.rivm.screenit.mamma.se.service.MammografenService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,11 +38,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class MammografenServiceImpl implements MammografenService
 {
 	@Autowired
-	private MammografenDao mammografenDao;
+	private MammaMammograafRepository mammograafRepository;
 
 	@Override
 	public List<MammograafDto> getMammografen(String seCode)
 	{
-		return mammografenDao.getMammografen(seCode).stream().map(entity -> new MammograafDto(entity)).collect(Collectors.toList());
+		return mammograafRepository.findByScreeningsEenheidCode(seCode).stream().map(MammograafDto::new).collect(Collectors.toList());
 	}
 }

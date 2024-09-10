@@ -21,9 +21,12 @@ package nl.rivm.screenit.repository.colon;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Optional;
+
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.repository.BaseJpaRepository;
 
 public interface ColonFITRepository extends BaseJpaRepository<IFOBTTest>
 {
+	Optional<IFOBTTest> findByBarcode(String barcode);
 }

@@ -35,11 +35,9 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.dao.mamma.MammaBaseStandplaatsDao;
 import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.PostcodeCoordinaten;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -52,25 +50,26 @@ import nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsOpmerking;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
+import nl.rivm.screenit.repository.mamma.MammaBaseAfspraakRepository;
+import nl.rivm.screenit.repository.mamma.MammaScreeningRondeRepository;
+import nl.rivm.screenit.repository.mamma.MammaStandplaatsOpmerkingRepository;
+import nl.rivm.screenit.repository.mamma.MammaStandplaatsPeriodeRepository;
 import nl.rivm.screenit.service.BaseBriefService;
-import nl.rivm.screenit.service.ClientService;
-import nl.rivm.screenit.service.CoordinatenService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.UploadDocumentService;
-import nl.rivm.screenit.service.impl.PersoonCoordinaten;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.service.mamma.MammaBaseConceptPlanningsApplicatie;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
+import nl.rivm.screenit.specification.mamma.MammaScreeningRondeSpecification;
+import nl.rivm.screenit.specification.mamma.MammaStandplaatsPeriodeSpecification;
 import nl.rivm.screenit.util.AdresUtil;
-import nl.rivm.screenit.util.BigDecimalUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5SessionInThread;
-import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,6 +81,10 @@ import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
 
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftStandplaatsPeriodeDieAflooptOpOfNa;
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftStandplaatsRonde;
+import static nl.rivm.screenit.specification.mamma.MammaScreeningRondeSpecification.heeftStandplaats;
+
 @Slf4j
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
@@ -89,9 +92,6 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 {
 	@Autowired
 	private HibernateService hibernateService;
-
-	@Autowired
-	private MammaBaseStandplaatsDao standplaatsDao;
 
 	@Autowired
 	private MammaBaseStandplaatsService baseStandplaatsService;
@@ -112,10 +112,19 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 	private ICurrentDateSupplier dateSupplier;
 
 	@Autowired
+	private MammaStandplaatsOpmerkingRepository standplaatsOpmerkingRepository;
+
+	@Autowired
 	private MammaBaseConceptPlanningsApplicatie baseConceptPlanningsApplicatie;
 
 	@Autowired
-	private CoordinatenService coordinatenService;
+	private MammaStandplaatsPeriodeRepository standplaatsPeriodeRepository;
+
+	@Autowired
+	private MammaScreeningRondeRepository screeningRondeRepository;
+
+	@Autowired
+	private MammaBaseAfspraakRepository afspraakRepository;
 
 	private static final ExecutorService EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
 
@@ -139,7 +148,8 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 			List<MammaStandplaatsRonde> teVerwijderenStandplaatsRonden = new ArrayList<>();
 			for (MammaStandplaatsRonde ronde : standplaats.getStandplaatsRonden())
 			{
-				boolean heeftScreeningRondenOfAfspraken = standplaatsDao.heeftStandplaatsRondenBijScreeningsRonden(ronde) || standplaatsDao.heeftAfspraken(ronde);
+				boolean heeftScreeningRondenOfAfspraken =
+					screeningRondeRepository.existsByStandplaatsRonde(ronde) || afspraakRepository.existsByStandplaatsPeriode_StandplaatsRonde(ronde);
 				if (!heeftScreeningRondenOfAfspraken)
 				{
 					teVerwijderenStandplaatsRonden.add(ronde);
@@ -172,23 +182,9 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<MammaStandplaats> zoekStandplaatsen(MammaStandplaats zoekObject, int first, int count, String sortProperty, boolean asc)
-	{
-		return standplaatsDao.zoekStandplaatsen(zoekObject, first, count, sortProperty, asc);
-	}
-
-	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public long countStandplaatsen(MammaStandplaats zoekObject)
-	{
-		return standplaatsDao.countStandplaatsen(zoekObject);
-	}
-
-	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public long countActieveStandplaatsPeriodes(MammaStandplaats standplaats)
 	{
-		return standplaatsDao.countActieveStandplaatsPeriodes(standplaats);
+		return standplaatsPeriodeRepository.count(MammaStandplaatsPeriodeSpecification.heeftActieveStandplaatsPeriode(standplaats, dateSupplier.getDate()));
 	}
 
 	@Override
@@ -354,24 +350,26 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 		{
 			return "inactiveren.title.postcodereeks";
 		}
-		if (!standplaatsDao.magStandplaatsInactiveren(standplaats, dateSupplier.getDateMidnight()))
+		if (heeftAfsprakenOfUitnodigingen(standplaats))
 		{
 			return "inactiveren.bevat.nog.afspraken.of.uitnodiging";
 		}
-
 		return "";
+	}
+
+	private boolean heeftAfsprakenOfUitnodigingen(MammaStandplaats standplaats)
+	{
+		var dateMidnight = dateSupplier.getDateMidnight();
+		return screeningRondeRepository.exists(
+			MammaScreeningRondeSpecification.heeftStandplaatsPeriodeDieAflooptOpOfNa(dateMidnight).and(heeftStandplaats(standplaats))) ||
+			afspraakRepository.exists(heeftStandplaatsPeriodeDieAflooptOpOfNa(dateMidnight).and(heeftStandplaatsRonde(standplaats)));
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public MammaStandplaats getStandplaatsMetPostcode(Client client)
 	{
-		String postcode = ApplicationContextProvider.getApplicationContext().getBean(ClientService.class).getGbaPostcode(client);
-		if (StringUtils.isNotBlank(postcode))
-		{
-			return standplaatsDao.getStandplaatsMetPostcode(postcode);
-		}
-		return null;
+		return baseStandplaatsService.getStandplaatsMetPostcode(client);
 	}
 
 	@Override
@@ -450,42 +448,8 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public Double bepaalAfstand(MammaStandplaats standplaats, Client client)
+	public boolean heeftActieveOpmerking(MammaStandplaats standplaats)
 	{
-		PostcodeCoordinaten standplaatsPostcodeCoordinaten = standplaats.getTijdelijkeLocatie().getStartDatum() != null
-			? standplaats.getTijdelijkeLocatie().getPostcodeCoordinaten()
-			: standplaats.getLocatie().getPostcodeCoordinaten();
-
-		PersoonCoordinaten persoonCoordinaten = coordinatenService.getCoordinatenVanPersoon(client.getPersoon());
-
-		if (persoonCoordinaten.vanAdres != null && standplaatsPostcodeCoordinaten != null)
-		{
-			return BigDecimalUtil.berekenDistance(persoonCoordinaten.vanAdres, standplaatsPostcodeCoordinaten);
-		}
-		else
-		{
-			return null;
-		}
+		return standplaatsOpmerkingRepository.existsByStandplaatsAndActief(standplaats, true);
 	}
-
-	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public MammaStandplaatsLocatie getStandplaatsLocatie(MammaStandplaats standplaats, Date datum)
-	{
-		MammaStandplaatsLocatie locatie;
-		locatie = standplaats.getLocatie();
-		if (standplaats.getTijdelijkeLocatie() != null)
-		{
-			MammaStandplaatsLocatie tijdelijkeLocatie = standplaats.getTijdelijkeLocatie();
-			if ((tijdelijkeLocatie.getStartDatum() != null || tijdelijkeLocatie.getEindDatum() != null) &&
-				(tijdelijkeLocatie.getStartDatum() == null || !DateUtil.compareAfter(tijdelijkeLocatie.getStartDatum(), datum))
-				&& (tijdelijkeLocatie.getEindDatum() == null || !DateUtil.compareBefore(tijdelijkeLocatie.getEindDatum(), datum)))
-			{
-				locatie = tijdelijkeLocatie;
-			}
-		}
-		return locatie;
-	}
-
 }

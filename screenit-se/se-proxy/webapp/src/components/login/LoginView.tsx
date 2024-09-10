@@ -5,10 +5,13 @@ import {NfcOtpResponse, readNFC} from "../../restclient/NfcRestClient"
 import {dismissAllToasts, persistentErrorToast} from "../../util/ToastUtil"
 import {nuTimestamp} from "../../util/DateUtil"
 import classNames from "classnames"
+import {WEBSOCKET_STATUS_OFFLINE, WebsocketStatus} from "../../datatypes/WebsocketStatus"
 
 export type LoginProps = {
 	dubbeleInstantie: boolean;
 	inlogActief: boolean;
+	isTestOmgeving: boolean;
+	websocketStatus: WebsocketStatus
 };
 
 export default class LoginView extends Component<LoginProps, any> {
@@ -98,7 +101,7 @@ export default class LoginView extends Component<LoginProps, any> {
 					<input
 						className={this.props.dubbeleInstantie || this.props.inlogActief ? "btn-primary-se disabled" : "btn btn-success"}
 						type="submit" value="Inloggen"
-						disabled={this.props.dubbeleInstantie || this.props.inlogActief}/>
+						disabled={this.props.dubbeleInstantie || this.props.inlogActief || (this.props.isTestOmgeving && this.props.websocketStatus === WEBSOCKET_STATUS_OFFLINE)}/>
 				</div>
 			</div>
 		</form>

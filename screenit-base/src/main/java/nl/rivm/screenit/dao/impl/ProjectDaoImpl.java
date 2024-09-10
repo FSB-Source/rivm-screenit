@@ -35,15 +35,12 @@ import lombok.extern.slf4j.Slf4j;
 import nl.rivm.screenit.dao.ProjectDao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ProjectParameterKey;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectAttribuut;
 import nl.rivm.screenit.model.project.ProjectBestand;
 import nl.rivm.screenit.model.project.ProjectBestandVerwerkingEntry;
-import nl.rivm.screenit.model.project.ProjectBrief;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectBriefActieType;
 import nl.rivm.screenit.model.project.ProjectClient;
@@ -51,10 +48,8 @@ import nl.rivm.screenit.model.project.ProjectClientAttribuut;
 import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.rivm.screenit.model.project.ProjectStatus;
 import nl.rivm.screenit.model.project.ProjectType;
-import nl.rivm.screenit.model.project.ProjectVragenlijstStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.query.SQLQueryUtil;
-import nl.rivm.screenit.util.query.ScreenitRestrictions;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
@@ -64,11 +59,9 @@ import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.criterion.CriteriaQuery;
-import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.sql.JoinType;
 import org.hibernate.type.LongType;
@@ -418,127 +411,6 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 		return ((Number) crit.uniqueResult()).longValue();
 	}
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public List<ProjectClient> getValideClientenVanProject(Project project, ProjectBriefActie definitie)
-	{
-		var vandaag = currentDateSupplier.getLocalDate();
-		Criteria crit = getSession().createCriteria(ProjectClient.class);
-
-		crit.createAlias("project", "project");
-		crit.add(Restrictions.eq("project", project));
-
-		crit.createAlias("client", "client");
-		crit.createAlias("client.persoon", "persoon", JoinType.INNER_JOIN);
-		ScreenitRestrictions.addClientBaseRestrictions(crit, "client", "persoon");
-
-		List<Bevolkingsonderzoek> onderzoeken = project.getExcludeerAfmelding();
-		if (onderzoeken.contains(Bevolkingsonderzoek.COLON))
-		{
-			crit.createAlias("client.colonDossier", "colonDossier", JoinType.LEFT_OUTER_JOIN);
-			crit.add(Restrictions.or(Restrictions.isNull("colonDossier.id"), Restrictions.eq("colonDossier.aangemeld", Boolean.TRUE)));
-		}
-		if (onderzoeken.contains(Bevolkingsonderzoek.CERVIX))
-		{
-			crit.createAlias("client.cervixDossier", "cervixDossier", JoinType.LEFT_OUTER_JOIN);
-			crit.add(Restrictions.or(Restrictions.isNull("cervixDossier.id"), Restrictions.eq("cervixDossier.aangemeld", Boolean.TRUE)));
-		}
-		if (onderzoeken.contains(Bevolkingsonderzoek.MAMMA))
-		{
-			crit.createAlias("client.mammaDossier", "mammaDossier", JoinType.LEFT_OUTER_JOIN);
-			crit.add(Restrictions.or(Restrictions.isNull("mammaDossier.id"), Restrictions.eq("mammaDossier.aangemeld", Boolean.TRUE)));
-		}
-
-		DetachedCriteria subquery = DetachedCriteria.forClass(ProjectBrief.class);
-		subquery.add(Restrictions.eq("definitie", definitie));
-		subquery.setProjection(Projections.distinct(Projections.property("projectClient")));
-		crit.add(Subqueries.propertyNotIn("id", subquery));
-
-		crit.createAlias("groep", "groep");
-
-		crit.add(ScreenitRestrictions.addClientActiefInProjectCriteria("", "groep", "project", vandaag));
-
-		return crit.list();
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public List<Long> getActieveActiesVoorBrieven(ScreeningOrganisatie so)
-	{
-		var vandaag = currentDateSupplier.getLocalDate();
-		Criteria crit = getSession().createCriteria(ProjectBrief.class);
-		crit.createAlias("projectClient", "projectClient");
-		crit.createAlias("projectClient.groep", "groep");
-		crit.createAlias("projectClient.project", "project");
-		crit.createAlias("projectClient.client", "client");
-		crit.createAlias("client.persoon", "persoon");
-		crit.createAlias("persoon.gbaAdres", "adres");
-		crit.createAlias("adres.gemeente", "gemeente");
-		crit.createAlias("gemeente.screeningOrganisatie", "screeningorganisatie");
-		crit.createAlias("definitie", "definitie");
-
-		crit.add(Restrictions.eq("screeningorganisatie", so));
-
-		crit.add(ScreenitRestrictions.addClientActiefInProjectCriteria("projectClient", "groep", "project", vandaag));
-		ScreenitRestrictions.addClientBaseRestrictions(crit, "client", "persoon");
-
-		crit.setProjection(Projections.property("definitie.id"));
-
-		return crit.list();
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public List<Project> getAllProjectenWhereProjectBriefActieHasBriefType(BriefType type)
-	{
-		Criteria crit = getSession().createCriteria(Project.class);
-		crit.createAlias("projectBriefActies", "acties");
-
-		crit.add(Restrictions.ge("eindDatum", currentDateSupplier.getDateMidnight()));
-		crit.add(Restrictions.eq("acties.briefType", type));
-
-		crit.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
-
-		return crit.list();
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public List<ProjectBrief> getAllProjectBriefForHerinnering(ProjectBriefActie actie, Date verstuurdOp)
-	{
-		var vandaag = currentDateSupplier.getLocalDate();
-		Criteria crit = getSession().createCriteria(ProjectBrief.class);
-		crit.createAlias("projectClient", "projectClient");
-		crit.createAlias("projectClient.groep", "projectGroep");
-		crit.createAlias("projectClient.project", "project");
-		crit.createAlias("mergedBrieven", "mergedBrieven");
-		crit.createAlias("definitie", "definitie");
-		crit.createAlias("vragenlijstAntwoordenHolder", "vragenlijstAntwoorden", JoinType.LEFT_OUTER_JOIN);
-
-		crit.add(ScreenitRestrictions.addClientActiefInProjectCriteria("projectClient", "projectGroep", "project", vandaag));
-
-		crit.add(Restrictions.isNotNull("definitie.vragenlijst"));
-
-		crit.add(Restrictions.ge("mergedBrieven.printDatum", verstuurdOp));
-		crit.add(Restrictions.eq("definitie", actie.getBaseActie()));
-
-		crit.add(
-			Restrictions.or(
-				Restrictions.isNull("vragenlijstAntwoorden.status"),
-				Restrictions.ne("vragenlijstAntwoorden.status", ProjectVragenlijstStatus.AFGEROND)
-			));
-
-		DetachedCriteria subqueryAlVerstuurd = DetachedCriteria.forClass(ProjectBrief.class);
-		subqueryAlVerstuurd.createAlias("mergedBrieven", "mergedBrieven");
-		subqueryAlVerstuurd.add(Restrictions.eq("definitie", actie));
-		subqueryAlVerstuurd.add(Restrictions.isNotNull("mergedBrieven.printDatum"));
-		subqueryAlVerstuurd.setProjection(Projections.property("client.id"));
-
-		crit.add(Subqueries.propertyNotIn("client.id", subqueryAlVerstuurd));
-
-		return crit.list();
-	}
-
 	@Override
 	public boolean isVragenlijstGekoppeldAanNietBeeindigdProject(Long vragenlijstId)
 	{
@@ -619,29 +491,6 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 		crit.setProjection(Projections.rowCount());
 
 		return ((Number) crit.uniqueResult()).longValue();
-	}
-
-	@Override
-	public ProjectBriefActie getProjectBriefActie(Client client, BriefType briefType)
-	{
-		var vandaag = currentDateSupplier.getLocalDate();
-		Criteria criteria = getSession().createCriteria(ProjectBriefActie.class);
-		criteria.createAlias("project", "project");
-		criteria.createAlias("project.clienten", "client");
-		criteria.createAlias("client.groep", "groep");
-
-		criteria.add(Restrictions.eq("briefType", briefType));
-		criteria.add(Restrictions.eq("type", ProjectBriefActieType.VERVANGENDEBRIEF));
-		criteria.add(Restrictions.eq("client.client", client));
-
-		criteria.add(ScreenitRestrictions.addClientActiefInProjectCriteria("client", "groep", "project", vandaag));
-
-		List list = criteria.list();
-		if (!list.isEmpty())
-		{
-			return (ProjectBriefActie) list.get(0);
-		}
-		return null;
 	}
 
 	@Override

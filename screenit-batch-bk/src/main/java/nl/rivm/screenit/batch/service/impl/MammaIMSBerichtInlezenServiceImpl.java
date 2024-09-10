@@ -23,9 +23,10 @@ package nl.rivm.screenit.batch.service.impl;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.service.MammaCStoreService;
 import nl.rivm.screenit.batch.service.MammaIMSBerichtInlezenService;
-import nl.rivm.screenit.dao.mamma.MammaIMSDao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.berichten.enums.BerichtStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -35,6 +36,7 @@ import nl.rivm.screenit.model.logging.MammaHl7v24BerichtLogEvent;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenPoging;
 import nl.rivm.screenit.model.mamma.berichten.MammaIMSBericht;
+import nl.rivm.screenit.repository.mamma.MammaImsBerichtRepository;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.mamma.MammaBaseOnderzoekService;
@@ -42,23 +44,18 @@ import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
 import nl.rivm.screenit.service.mamma.MammaBaseUitwisselportaalService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import ca.uhn.hl7v2.HL7Exception;
 
 @Service
-@Transactional(propagation = Propagation.REQUIRED)
+@Slf4j
 public class MammaIMSBerichtInlezenServiceImpl implements MammaIMSBerichtInlezenService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaIMSBerichtInlezenServiceImpl.class);
-
 	@Autowired
-	private MammaIMSDao mammaIMSDao;
+	private MammaImsBerichtRepository imsBerichtRepository;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -84,10 +81,11 @@ public class MammaIMSBerichtInlezenServiceImpl implements MammaIMSBerichtInlezen
 	@Override
 	public List<MammaIMSBericht> getAlleNietVerwerkteIMSBerichten()
 	{
-		return mammaIMSDao.getAlleNietVerwerkteIMSBerichten();
+		return imsBerichtRepository.getAlleNietVerwerkteImsBerichten();
 	}
 
 	@Override
+	@Transactional
 	public void verwerkBericht(MammaIMSBericht bericht)
 	{
 		Client client = clientService.getClientByBsn(bericht.getBsn());
@@ -184,6 +182,7 @@ public class MammaIMSBerichtInlezenServiceImpl implements MammaIMSBerichtInlezen
 	}
 
 	@Override
+	@Transactional
 	public void markeerBerichtAlsFout(MammaIMSBericht bericht, String melding)
 	{
 		bericht.setBerichtStatus(BerichtStatus.FOUT);

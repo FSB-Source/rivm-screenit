@@ -24,27 +24,22 @@ package nl.rivm.screenit.service.mamma.impl;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.List;
+import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.dao.mamma.MammaBaseUitwisselportaalDao;
 import nl.rivm.screenit.model.Account;
-import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
-import nl.rivm.screenit.model.mamma.MammaBeoordeling;
-import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoekenVerzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenPoging;
-import nl.rivm.screenit.model.mamma.MammaUploadBeeldenVerzoek;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
+import nl.rivm.screenit.repository.mamma.MammaDownloadOnderzoekenVerzoekRepository;
 import nl.rivm.screenit.service.BerichtToBatchService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
@@ -52,6 +47,7 @@ import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseIlmService;
 import nl.rivm.screenit.service.mamma.MammaBaseUitwisselportaalService;
 import nl.rivm.screenit.service.mamma.MammaBaseVerslagService;
+import nl.rivm.screenit.specification.mamma.MammaDownloadOnderzoekenVerzoekSpecification;
 import nl.rivm.screenit.util.ZipUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -60,14 +56,10 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.google.common.collect.ImmutableMap;
 
 @Slf4j
 @Service
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselportaalService
 {
 	@Autowired
@@ -80,7 +72,7 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 	private HibernateService hibernateService;
 
 	@Autowired
-	private MammaBaseUitwisselportaalDao baseUitwisselportaalDao;
+	private MammaDownloadOnderzoekenVerzoekRepository downloadOnderzoekenVerzoekRepository;
 
 	@Autowired
 	private MammaBaseVerslagService baseVerslagService;
@@ -100,23 +92,23 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 	{
 		try
 		{
-			LOG.info("Start ophalen verslag voor " + downloadOnderzoek.getId());
-			MammaBeoordeling beoordeling = downloadOnderzoek.getOnderzoek().getLaatsteBeoordeling();
-			File verslagFile = baseVerslagService.getVerslagFile(beoordeling);
+			LOG.info("Start ophalen verslag voor download onderzoek: {}", downloadOnderzoek.getId());
+			var beoordeling = downloadOnderzoek.getOnderzoek().getLaatsteBeoordeling();
+			var verslagFile = baseVerslagService.getVerslagFile(beoordeling);
 			if (verslagFile != null)
 			{
-				String onderzoekPath = getOnderzoekRootPath(downloadOnderzoek);
-				File targetLocation = new File(onderzoekPath, "verslag.pdf");
+				var onderzoekPath = getOnderzoekRootPath(downloadOnderzoek);
+				var targetLocation = new File(onderzoekPath, "verslag.pdf");
 				FileUtils.copyFile(verslagFile, targetLocation);
 				if (beoordeling.getStatus() == MammaBeoordelingStatus.UITSLAG_GUNSTIG)
 				{
 					FileUtils.deleteQuietly(verslagFile);
 				}
-				LOG.info("Einde ophalen verslag voor " + downloadOnderzoek.getId());
+				LOG.info("Einde ophalen verslag voor download onderzoek: {}", downloadOnderzoek.getId());
 			}
 			else
 			{
-				LOG.warn("Geen verslag kunnen vinden voor beoordeling in download onderzoek: " + downloadOnderzoek.getId());
+				LOG.warn("Geen verslag kunnen vinden voor beoordeling in download onderzoek: {}", downloadOnderzoek.getId());
 			}
 		}
 		catch (Exception e)
@@ -128,13 +120,13 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 	@Override
 	public void kopieerDicomBestandNaarDownloadVerzoekMap(File dicomFile, String seriesNumber, MammaDownloadOnderzoek downloadOnderzoek)
 	{
-		String onderzoekpath = getOnderzoekRootPath(downloadOnderzoek);
-		File beeldDir = new File(
+		var onderzoekpath = getOnderzoekRootPath(downloadOnderzoek);
+		var beeldDir = new File(
 			onderzoekpath + File.separator + "SRS" + StringUtils.leftPad(seriesNumber, 5, "0"));
 		try
 		{
 			FileUtils.copyFileToDirectory(dicomFile, beeldDir);
-			LOG.info("Beeld naar " + beeldDir.getPath() + " gekopieerd.");
+			LOG.info("Beeld naar {} gekopieerd.", beeldDir.getPath());
 		}
 		catch (IOException e)
 		{
@@ -151,19 +143,18 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 
 	private String getVerzoekRootPath(MammaDownloadOnderzoekenVerzoek verzoek)
 	{
-		UploadDocument zipBestand = verzoek.getZipBestand();
-		File zipFile = uploadDocumentService.load(zipBestand);
-		String verzoekRootPath = zipFile.getParent() + File.separator + zipBestand.getId();
-		return verzoekRootPath;
+		var zipBestand = verzoek.getZipBestand();
+		var zipFile = uploadDocumentService.load(zipBestand);
+		return zipFile.getParent() + File.separator + zipBestand.getId();
 	}
 
 	@Override
 	public void zetFilesInZip(MammaDownloadOnderzoekenVerzoek verzoek) throws IOException
 	{
-		File zipBestand = uploadDocumentService.load(verzoek.getZipBestand());
+		var zipBestand = uploadDocumentService.load(verzoek.getZipBestand());
 		try
 		{
-			String verzoekRootPath = getVerzoekRootPath(verzoek);
+			var verzoekRootPath = getVerzoekRootPath(verzoek);
 			ZipUtil.zipFileOrDirectory(verzoekRootPath, zipBestand.getPath(), true);
 			FileUtils.deleteDirectory(new File(verzoekRootPath));
 		}
@@ -175,25 +166,12 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
-	public void verwijderDownloadVerzoeken(MammaDossier dossier)
-	{
-		List<MammaDownloadOnderzoekenVerzoek> verzoeken = baseUitwisselportaalDao.getDownloadVerzoeken(dossier);
-
-		for (MammaDownloadOnderzoekenVerzoek verzoek : verzoeken)
-		{
-			uploadDocumentService.delete(verzoek.getZipBestand());
-			hibernateService.delete(verzoek);
-		}
-	}
-
-	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void verwijderDownloadVerzoeken(MammaScreeningRonde screeningRonde)
 	{
-		List<MammaDownloadOnderzoekenVerzoek> verzoeken = baseUitwisselportaalDao.getDownloadVerzoeken(screeningRonde);
+		var verzoeken = downloadOnderzoekenVerzoekRepository.findAll(MammaDownloadOnderzoekenVerzoekSpecification.heeftScreeningRonde(screeningRonde));
 
-		for (MammaDownloadOnderzoekenVerzoek verzoek : verzoeken)
+		for (var verzoek : verzoeken)
 		{
 			uploadDocumentService.delete(verzoek.getZipBestand());
 			hibernateService.delete(verzoek);
@@ -201,13 +179,13 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void verwijderUploadVerzoeken(MammaScreeningRonde ronde)
 	{
-		List<MammaUploadBeeldenVerzoek> verzoeken = ronde.getUploadBeeldenVerzoeken();
-		for (MammaUploadBeeldenVerzoek verzoek : verzoeken)
+		var verzoeken = ronde.getUploadBeeldenVerzoeken();
+		for (var verzoek : verzoeken)
 		{
-			for (MammaUploadBeeldenPoging uploadPoging : verzoek.getUploadPogingen())
+			for (var uploadPoging : verzoek.getUploadPogingen())
 			{
 				verwijderBeeldenUploadPoging(uploadPoging);
 			}
@@ -218,7 +196,7 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 
 	private void verwijderBeeldenUploadPoging(MammaUploadBeeldenPoging uploadBeeldenPoging)
 	{
-		for (UploadDocument bestand : uploadBeeldenPoging.getBestanden())
+		for (var bestand : uploadBeeldenPoging.getBestanden())
 		{
 			uploadDocumentService.delete(bestand);
 		}
@@ -235,7 +213,7 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void verwijderBeelden(MammaUploadBeeldenPoging uploadBeeldenPoging)
 	{
 		setIlmStatus(uploadBeeldenPoging, MammaMammografieIlmStatus.TE_VERWIJDEREN);
@@ -243,10 +221,10 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void setIlmStatus(MammaUploadBeeldenPoging uploadBeeldenPoging, MammaMammografieIlmStatus ilmStatus)
 	{
-		MammaUploadBeeldenVerzoek uploadBeeldenVerzoek = uploadBeeldenPoging.getUploadBeeldenVerzoek();
+		var uploadBeeldenVerzoek = uploadBeeldenPoging.getUploadBeeldenVerzoek();
 		if (ilmStatus == MammaMammografieIlmStatus.VERWIJDERD)
 		{
 			uploadBeeldenVerzoek.setConclusieBirads(null);
@@ -258,16 +236,16 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public boolean forceerUploadPogingIlmStatus(long accessionNumber, MammaMammografieIlmStatus status, Account account)
 	{
-		MammaUploadBeeldenPoging uploadBeeldenPoging = getUploadPoging(accessionNumber);
+		var uploadBeeldenPoging = getUploadPoging(accessionNumber);
 		if (status != uploadBeeldenPoging.getIlmStatus())
 		{
 			setIlmStatus(uploadBeeldenPoging, MammaMammografieIlmStatus.VERWIJDERD);
-			String melding = String.format("AccessionNumber: %d, status: %s, isBezwaar: %b, isUpload: %b", accessionNumber, status.toString(), false, true);
+			var melding = String.format("AccessionNumber: %d, status: %s, isBezwaar: %b, isUpload: %b", accessionNumber, status.toString(), false, true);
 			LOG.info(melding);
-			Client client = uploadBeeldenPoging.getUploadBeeldenVerzoek().getScreeningRonde().getDossier().getClient();
+			var client = uploadBeeldenPoging.getUploadBeeldenVerzoek().getScreeningRonde().getDossier().getClient();
 			logService.logGebeurtenis(LogGebeurtenis.MAMMA_ILM_STATUS_GEFORCEERD, account, client, melding, Bevolkingsonderzoek.MAMMA);
 			return true;
 		}
@@ -277,6 +255,6 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 	@Override
 	public MammaUploadBeeldenPoging getUploadPoging(Long accessionNumber)
 	{
-		return hibernateService.getUniqueByParameters(MammaUploadBeeldenPoging.class, ImmutableMap.of("accessionNumber", accessionNumber));
+		return hibernateService.getUniqueByParameters(MammaUploadBeeldenPoging.class, Map.of("accessionNumber", accessionNumber));
 	}
 }

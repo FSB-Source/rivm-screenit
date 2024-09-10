@@ -26,7 +26,6 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.dao.mamma.MammaIMSDao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.berichten.enums.BerichtStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -38,6 +37,7 @@ import nl.rivm.screenit.model.logging.MammaHl7v24BerichtLogEvent;
 import nl.rivm.screenit.model.mamma.berichten.MammaHL7OntvangenBerichtWrapper;
 import nl.rivm.screenit.model.mamma.berichten.MammaIMSBericht;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
+import nl.rivm.screenit.repository.mamma.MammaImsBerichtRepository;
 import nl.rivm.screenit.service.BezwaarService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -48,8 +48,6 @@ import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.UncategorizedJmsException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import ca.uhn.hl7v2.AcknowledgmentCode;
 import ca.uhn.hl7v2.HL7Exception;
@@ -57,7 +55,6 @@ import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v24.message.ORM_O01;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
 @Slf4j
 public abstract class MammaHL7V24ServiceImpl extends BaseHL7v2Service<ORM_O01> implements MammaHL7v24Service
 {
@@ -65,7 +62,7 @@ public abstract class MammaHL7V24ServiceImpl extends BaseHL7v2Service<ORM_O01> i
 	private ICurrentDateSupplier dateSupplier;
 
 	@Autowired
-	private MammaIMSDao imsDao;
+	private MammaImsBerichtRepository imsBerichtRepository;
 
 	@Autowired
 	private ClientService clientService;
@@ -141,7 +138,7 @@ public abstract class MammaHL7V24ServiceImpl extends BaseHL7v2Service<ORM_O01> i
 			throw new HL7Exception("Ontvangen IMS bericht heeft niet de verwachte status maar: " + berichtWrapper.getStatus().name());
 		}
 
-		if (imsDao.isBerichtAlOntvangen(berichtWrapper.getMessageId()))
+		if (imsBerichtRepository.isBerichtAlOntvangen(berichtWrapper.getMessageId()))
 		{
 			logBerichtReedsOntvangenEvent(berichtWrapper, client);
 		}

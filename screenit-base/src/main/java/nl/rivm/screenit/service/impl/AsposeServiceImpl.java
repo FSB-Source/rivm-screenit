@@ -31,6 +31,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -177,6 +178,21 @@ public class AsposeServiceImpl implements AsposeService
 			LOG.error("Error tijdens bepalen van waarde voor samenvoegveld: {}", veldnaam);
 			throw e;
 		}
+	}
+
+	@Override
+	public boolean heeftMergeField(File templateFile, MergeField mergeField)
+	{
+		try (InputStream stream = new FileInputStream(templateFile))
+		{
+			var document = new Document(stream);
+			return Arrays.stream(document.getMailMerge().getFieldNames()).anyMatch(f -> f.equals(mergeField.getFieldName()));
+		}
+		catch (Exception e)
+		{
+			LOG.error(e.getMessage(), e);
+		}
+		return false;
 	}
 
 	@Override

@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
+import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.repository.BaseJpaRepository;
 
 import org.springframework.data.jpa.repository.Query;
@@ -40,4 +41,7 @@ public interface MammaBaseAfspraakRepository extends BaseJpaRepository<MammaAfsp
 		+ " order by a.id desc "
 		+ "limit 250")
 	List<Long> findTop250AfsprakenOmSmsTeVersturen(@Param("vanafMoment") Date vanafMoment, @Param("totMoment") Date totMoment);
+
+	boolean existsByStandplaatsPeriode_StandplaatsRonde(MammaStandplaatsRonde standplaatsRonde);
+
 }

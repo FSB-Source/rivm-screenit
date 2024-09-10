@@ -89,7 +89,6 @@ import nl.rivm.screenit.service.mamma.MammaBaseKandidaatAfsprakenDeterminatiePer
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.service.mamma.MammaBaseUitstelService;
-import nl.rivm.screenit.specification.SQueryBuilder;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
@@ -107,7 +106,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Range;
 
-import static nl.rivm.screenit.specification.RangeSpecification.tussen;
+import static nl.rivm.screenit.specification.RangeSpecification.bevat;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.begintTussen;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.filterStatuses;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftClientInTehuis;
@@ -336,17 +335,14 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 	@Override
 	public List<MammaAfspraak> getAfspraken(MammaScreeningsEenheid screeningsEenheid, LocalDate vanaf, LocalDate totEnMet, MammaAfspraakStatus... afspraakStatussen)
 	{
-		var qb = SQueryBuilder.of(MammaAfspraak.class);
+		var afspraken = baseAfspraakRepository.findWith(
+			heeftScreeningsEenheid(screeningsEenheid)
+				.and(begintTussenTotEnMet(vanaf, totEnMet))
+				.and(filterStatuses(Arrays.asList(afspraakStatussen))), q ->
+				q.fetch(g -> g.addSubgraph(MammaAfspraak_.uitnodiging).addSubgraph(MammaUitnodiging_.screeningRonde)
+						.addSubgraph(MammaScreeningRonde_.dossier).addSubgraph(MammaDossier_.client).addSubgraph(Client_.persoon))
+					.all());
 
-		qb.where(heeftScreeningsEenheid(screeningsEenheid)
-			.and(begintTussenTotEnMet(vanaf, totEnMet))
-			.and(filterStatuses(Arrays.asList(afspraakStatussen))));
-
-		var graph = qb.createEntityGraph();
-		graph.addSubgraph(MammaAfspraak_.uitnodiging).addSubgraph(MammaUitnodiging_.screeningRonde).addSubgraph(MammaScreeningRonde_.dossier).addSubgraph(MammaDossier_.client)
-			.addSubgraph(Client_.persoon);
-
-		var afspraken = qb.createHQuery().getResultList();
 		bepaalBenodigdeCapaciteit(afspraken, screeningsEenheid);
 		return afspraken;
 	}
@@ -475,10 +471,14 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 	@Override
 	public Pair<Date, Date> getEersteEnLaatsteAfspraakMomenten(long standplaatsPeriodeId, LocalDate vanaf, LocalDate totEnMet, MammaAfspraakStatus... afspraakStatussen)
 	{
-		var result = baseAfspraakRepository.findOne(filterStatuses(Arrays.asList(afspraakStatussen))
-				.and(begintTussenTotEnMet(vanaf, totEnMet))
-				.and(heeftStandplaatsPeriode(standplaatsPeriodeId)), Object[].class,
-			(cb, r) -> List.of(cb.least(r.get(MammaAfspraak_.vanaf)), cb.greatest(r.get(MammaAfspraak_.vanaf)))).get();
+		var result = baseAfspraakRepository.findWith(filterStatuses(Arrays.asList(afspraakStatussen))
+					.and(begintTussenTotEnMet(vanaf, totEnMet))
+					.and(heeftStandplaatsPeriode(standplaatsPeriodeId)),
+				Object[].class,
+				q -> q.projections((cb, r) -> List.of(cb.least(r.get(MammaAfspraak_.vanaf)), cb.greatest(r.get(MammaAfspraak_.vanaf))))
+					.one()
+			)
+			.orElseThrow();
 
 		return Pair.of((Date) result[0], (Date) result[1]);
 	}
@@ -495,7 +495,7 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 	public List<MammaAfspraak> getAfspraken(MammaStandplaats standplaats, Range<Date> periode, MammaAfspraakStatus... afspraakStatussen)
 	{
 		return baseAfspraakRepository.findAll(filterStatuses(Arrays.asList(afspraakStatussen))
-			.and(tussen(periode, r -> r.get(MammaAfspraak_.vanaf)))
+			.and(bevat(periode, r -> r.get(MammaAfspraak_.vanaf)))
 			.and(heeftStandplaats(standplaats)));
 	}
 

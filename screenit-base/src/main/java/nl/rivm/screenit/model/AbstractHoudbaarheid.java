@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model;
 
 /*-
@@ -29,16 +28,18 @@ import javax.persistence.Entity;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 @Entity
+@Getter
+@Setter
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 public abstract class AbstractHoudbaarheid extends TablePerClassHibernateObject
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@Column(nullable = false)
 	private String barcodeStart;
 
@@ -51,45 +52,4 @@ public abstract class AbstractHoudbaarheid extends TablePerClassHibernateObject
 	@Temporal(TemporalType.DATE)
 	@Column(nullable = false)
 	private Date vervalDatum;
-
-	public String getBarcodeStart()
-	{
-		return barcodeStart;
-	}
-
-	public void setBarcodeStart(String barcodeStart)
-	{
-		this.barcodeStart = barcodeStart;
-	}
-
-	public String getBarcodeEnd()
-	{
-		return barcodeEnd;
-	}
-
-	public void setBarcodeEnd(String barcodeEnd)
-	{
-		this.barcodeEnd = barcodeEnd;
-	}
-
-	public Date getVervalDatum()
-	{
-		return vervalDatum;
-	}
-
-	public void setVervalDatum(Date vervalDatum)
-	{
-		this.vervalDatum = vervalDatum;
-	}
-
-	public Integer getLengthBarcode()
-	{
-		return lengthBarcode;
-	}
-
-	public void setLengthBarcode(Integer lengthBarcode)
-	{
-		this.lengthBarcode = lengthBarcode;
-	}
-
 }

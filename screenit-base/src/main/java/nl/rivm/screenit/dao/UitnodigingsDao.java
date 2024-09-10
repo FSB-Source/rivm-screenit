@@ -26,5 +26,4 @@ public interface UitnodigingsDao
 
 	Long getNextUitnodigingsId();
 
-	boolean uniqueMammaUitnodigingsNr(Long uitnodigingsNr);
 }

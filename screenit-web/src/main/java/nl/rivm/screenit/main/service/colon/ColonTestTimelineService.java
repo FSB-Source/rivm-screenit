@@ -54,9 +54,9 @@ public interface ColonTestTimelineService
 
 	ColonDossier bewerkUitnodiging(Client client, TestTimeLineDossierTijdstip tijdstip);
 
-	IFOBTTest ifobtTestOntvangen(Client client, Boolean verlopen, IFOBTTest buis, int analyseDatumDiff);
+	IFOBTTest fitOntvangen(Client client, Boolean verlopen, IFOBTTest buis, int analyseDatumDiff);
 
-	void ifobtHerinneringVersturen(Client client, TestTimeLineDossierTijdstip tijdstip);
+	void fitHerinneringVersturen(Client client, TestTimeLineDossierTijdstip tijdstip);
 
 	List<TestTimelineRonde> getTimelineRondes(Client client);
 

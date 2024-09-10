@@ -24,13 +24,11 @@ package nl.rivm.screenit.mamma.se.service.impl;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.dao.mamma.MammaBaseStandplaatsPeriodeDao;
 import nl.rivm.screenit.mamma.se.dao.MammaAfsprakenDao;
 import nl.rivm.screenit.mamma.se.dto.actions.AfspraakMakenPassantDto;
 import nl.rivm.screenit.mamma.se.dto.actions.AfspraakSignalerenDto;
@@ -57,6 +55,7 @@ import nl.rivm.screenit.service.MailService;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.service.mamma.MammaBaseCapaciteitsBlokService;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
+import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsPeriodeService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
@@ -98,7 +97,7 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 	private MammaBaseCapaciteitsBlokService baseCapaciteitsBlokService;
 
 	@Autowired
-	private MammaBaseStandplaatsPeriodeDao baseStandplaatsPeriodeDao;
+	private MammaBaseStandplaatsPeriodeService baseStandplaatsPeriodeService;
 
 	@Autowired
 	private MammaBaseKansberekeningService baseKansberekeningService;
@@ -139,11 +138,12 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 	@Override
 	public LocalDate getDatumVanOudsteNietAfgeslotenOnderzoek(String seCode)
 	{
-		var datum = afspraakRepository.findFirst(
+		var datum = afspraakRepository.findWith(
 			afsprakenWaarvanOnderzoekNietIsDoorgevoerdAfgelopen2Maanden(currentDateSupplier.getLocalDate(), seCode),
-			Sort.by(Sort.Order.asc(MammaAfspraak_.VANAF)),
 			Date.class,
-			(cb, r) -> List.of(r.get(MammaAfspraak_.VANAF)));
+			q -> q.sortBy(Sort.by(Sort.Order.asc(MammaAfspraak_.VANAF)))
+				.projection((cb, r) -> r.get(MammaAfspraak_.VANAF))
+				.first());
 
 		return datum.map(DateUtil::toLocalDate).orElse(null);
 	}
@@ -238,7 +238,7 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 	private MammaAfspraak maakAfspraak(InstellingGebruiker gebruiker, MammaScreeningsEenheid screeningsEenheid, Client client, MammaUitnodiging laatsteUitnodiging)
 	{
 		var nu = currentDateSupplier.getDate();
-		var standplaatsPeriode = baseStandplaatsPeriodeDao.getStandplaatsPeriode(screeningsEenheid, nu);
+		var standplaatsPeriode = baseStandplaatsPeriodeService.getStandplaatsPeriodeOpDatum(screeningsEenheid, nu);
 
 		if (standplaatsPeriode == null)
 		{

@@ -23,30 +23,38 @@ package nl.rivm.screenit.repository.impl;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Root;
-import javax.persistence.criteria.Selection;
 
 import nl.rivm.screenit.repository.BaseJpaRepository;
-import nl.rivm.screenit.specification.SQueryBuilder;
+import nl.rivm.screenit.repository.FluentJpaQuery;
 import nl.topicuszorg.hibernate.object.model.HibernateObject;
 
 import org.hibernate.proxy.HibernateProxy;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
+import org.springframework.data.repository.query.FluentQuery;
+import org.springframework.lang.Nullable;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+@Transactional(propagation = Propagation.SUPPORTS)
 
 public class BaseJpaRepositoryImpl<T extends HibernateObject> extends SimpleJpaRepository<T, Long> implements BaseJpaRepository<T>
 {
+	private final EntityManager entityManager;
+
 	public BaseJpaRepositoryImpl(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager)
 	{
 		super(entityInformation, entityManager);
+		this.entityManager = entityManager;
 	}
 
 	@Override
@@ -58,30 +66,16 @@ public class BaseJpaRepositoryImpl<T extends HibernateObject> extends SimpleJpaR
 	}
 
 	@Override
-	public <P> List<P> findAll(Specification<T> specification, Class<P> projectionClass, BiFunction<CriteriaBuilder, Root<T>, List<Selection<?>>> selectionFunctions)
+	public <R> R findWith(Specification<T> specification, Function<FluentJpaQuery<T, T>, R> queryFunction)
 	{
-		return SQueryBuilder.ofProjection(projectionClass, getDomainClass(), selectionFunctions).where(specification).createHQuery().getResultList();
+		return findWith(specification, getDomainClass(), queryFunction);
 	}
 
 	@Override
-	public <P> List<P> findAll(Specification<T> specification, Sort sort, Class<P> projectionClass, BiFunction<CriteriaBuilder, Root<T>, List<Selection<?>>> selectionFunctions)
+	public <R, P> R findWith(Specification<T> specification, Class<P> projectionType, Function<FluentJpaQuery<T, P>, R> queryFunction)
 	{
-		return SQueryBuilder.ofProjection(projectionClass, getDomainClass(), selectionFunctions).where(specification).orderBy(sort).createHQuery().getResultList();
-	}
-
-	@Override
-	public <P> Optional<P> findFirst(Specification<T> specification, Sort sort, Class<P> projectionClass,
-		BiFunction<CriteriaBuilder, Root<T>, List<Selection<?>>> selectionFunctions)
-	{
-		return SQueryBuilder.ofProjection(projectionClass, getDomainClass(), selectionFunctions).where(specification).orderBy(sort).createHQuery().setMaxResults(1).getResultList()
-			.stream().findFirst();
-	}
-
-	@Override
-	public <P> Optional<P> findOne(Specification<T> specification, Class<P> projectionClass, BiFunction<CriteriaBuilder, Root<T>, List<Selection<?>>> selectionFunctions)
-	{
-		return Optional.ofNullable(
-			SQueryBuilder.ofProjection(projectionClass, getDomainClass(), selectionFunctions).where(specification).createHQuery().setMaxResults(2).uniqueResult());
+		var fluentQuery = new FluentJpaQueryImpl<>(specification, this.entityManager, getDomainClass(), projectionType);
+		return queryFunction.apply(fluentQuery);
 	}
 
 	@Override
@@ -100,5 +94,131 @@ public class BaseJpaRepositoryImpl<T extends HibernateObject> extends SimpleJpaR
 			}
 		}
 		return savedEntity;
+	}
+
+	@Override
+	public Optional<T> findById(Long id)
+	{
+		return super.findById(id);
+	}
+
+	@Override
+	public T getReferenceById(Long id)
+	{
+		return super.getReferenceById(id);
+	}
+
+	@Override
+	public boolean existsById(Long id)
+	{
+		return super.existsById(id);
+	}
+
+	@Override
+	public List<T> findAll()
+	{
+		return super.findAll();
+	}
+
+	@Override
+	public List<T> findAllById(Iterable<Long> ids)
+	{
+		return super.findAllById(ids);
+	}
+
+	@Override
+	public List<T> findAll(Sort sort)
+	{
+		return super.findAll(sort);
+	}
+
+	@Override
+	public Page<T> findAll(Pageable pageable)
+	{
+		return super.findAll(pageable);
+	}
+
+	@Override
+	public Optional<T> findOne(@Nullable Specification<T> spec)
+	{
+		return super.findOne(spec);
+	}
+
+	@Override
+	public List<T> findAll(@Nullable Specification<T> spec)
+	{
+		return super.findAll(spec);
+	}
+
+	@Override
+	public Page<T> findAll(@Nullable Specification<T> spec, Pageable pageable)
+	{
+		return super.findAll(spec, pageable);
+	}
+
+	@Override
+	public List<T> findAll(@Nullable Specification<T> spec, Sort sort)
+	{
+		return super.findAll(spec, sort);
+	}
+
+	@Override
+	public <S extends T> Optional<S> findOne(Example<S> example)
+	{
+		return super.findOne(example);
+	}
+
+	@Override
+	public <S extends T> long count(Example<S> example)
+	{
+		return super.count(example);
+	}
+
+	@Override
+	public <S extends T> boolean exists(Example<S> example)
+	{
+		return super.exists(example);
+	}
+
+	@Override
+	public boolean exists(Specification<T> spec)
+	{
+		return super.exists(spec);
+	}
+
+	@Override
+	public <S extends T> List<S> findAll(Example<S> example)
+	{
+		return super.findAll(example);
+	}
+
+	@Override
+	public <S extends T> List<S> findAll(Example<S> example, Sort sort)
+	{
+		return super.findAll(example, sort);
+	}
+
+	@Override
+	public <S extends T> Page<S> findAll(Example<S> example, Pageable pageable)
+	{
+		return super.findAll(example, pageable);
+	}
+
+	@Override
+	public <S extends T, R> R findBy(Example<S> example, Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction)
+	{
+		return super.findBy(example, queryFunction);
+	}
+
+	@Override
+	public long count()
+	{
+		return super.count();
+	}
+
+	@Override
+	public long count(@Nullable Specification<T> spec)
+	{
+		return super.count(spec);
 	}
 }

@@ -50,7 +50,6 @@ import nl.rivm.screenit.model.cervix.CervixHpvBeoordeling_;
 import nl.rivm.screenit.model.cervix.CervixHuisartsBericht_;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixLabformulier_;
-import nl.rivm.screenit.model.cervix.CervixLabformulierenFilter;
 import nl.rivm.screenit.model.cervix.CervixMonster_;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde_;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging_;

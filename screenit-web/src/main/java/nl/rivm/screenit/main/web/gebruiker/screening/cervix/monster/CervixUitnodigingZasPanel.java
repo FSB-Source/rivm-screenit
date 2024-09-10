@@ -31,7 +31,6 @@ import nl.rivm.screenit.main.web.gebruiker.screening.cervix.CervixBarcodeAfdrukk
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixZas;
-import nl.rivm.screenit.model.cervix.CervixZasHoudbaarheid;
 import nl.rivm.screenit.model.cervix.enums.CervixNietAnalyseerbaarReden;
 import nl.rivm.screenit.model.cervix.enums.CervixZasStatus;
 import nl.rivm.screenit.model.enums.Actie;
@@ -103,7 +102,7 @@ public abstract class CervixUitnodigingZasPanel extends CervixUitnodigingPanel<C
 
 	private boolean isHoudbaar(CervixZas zas)
 	{
-		return houdbaarheidService.isHoudbaar(CervixZasHoudbaarheid.class, zas.getMonsterId());
+		return houdbaarheidService.isZasHoudbaar(zas.getMonsterId());
 	}
 
 	@Override

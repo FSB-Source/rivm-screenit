@@ -23,7 +23,6 @@ package nl.rivm.screenit.service.mamma.impl;
 
 import java.time.temporal.ChronoUnit;
 
-import nl.rivm.screenit.dao.mamma.MammaBaseHL7v24Dao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -37,6 +36,7 @@ import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.service.mamma.MammaBaseFactory;
+import nl.rivm.screenit.service.mamma.MammaBaseHL7v24MessageService;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
 import nl.rivm.screenit.service.mamma.MammaBaseTestTimelineService;
 import nl.rivm.screenit.service.mamma.MammaBaseTestTimelineTimeService;
@@ -75,7 +75,7 @@ public class MammaBaseTestTimelineServiceImpl implements MammaBaseTestTimelineSe
 	private MammaBaseKansberekeningService baseKansberekeningService;
 
 	@Autowired
-	private MammaBaseHL7v24Dao baseHL7v24Dao;
+	private MammaBaseHL7v24MessageService baseHL7v24MessageService;
 
 	@Override
 	public MammaUitnodiging nieuweRondeAfspraakUitnodiging(Client client, MammaScreeningsEenheid screeningsEenheid)
@@ -162,7 +162,7 @@ public class MammaBaseTestTimelineServiceImpl implements MammaBaseTestTimelineSe
 
 	private MammaScreeningRonde nieuweRonde(Client client, MammaStandplaatsRonde standplaatsRonde, boolean rekenDossierTerug)
 	{
-		baseHL7v24Dao.deleteMessagesForClient(client, true);
+		baseHL7v24MessageService.verwijderBerichtVoorClient(client, true);
 		var dossier = client.getMammaDossier();
 		if (rekenDossierTerug)
 		{

@@ -28,19 +28,14 @@ import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.NavigableMap;
 
 import javax.annotation.PostConstruct;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.dao.mamma.MammaBaseStandplaatsDao;
 import nl.rivm.screenit.model.AanvraagBriefStatus;
-import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Uitnodiging;
 import nl.rivm.screenit.model.enums.BriefType;
-import nl.rivm.screenit.model.mamma.MammaAfmelding;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
-import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaKansberekeningAfspraakEvent;
@@ -50,7 +45,6 @@ import nl.rivm.screenit.model.mamma.MammaKansberekeningScreeningRondeEvent;
 import nl.rivm.screenit.model.mamma.MammaKansberekeningStandplaatsRondeGemiddelden;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
-import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
@@ -59,6 +53,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaRegioType;
 import nl.rivm.screenit.model.mamma.enums.MammaVerzettenReden;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
+import nl.rivm.screenit.service.mamma.MammaStandplaatsRondeService;
 import nl.rivm.screenit.service.mamma.MammaVolgendeUitnodigingService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.rest.RestApiFactory;
@@ -73,7 +68,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
@@ -94,7 +88,7 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 	private ICurrentDateSupplier dateSupplier;
 
 	@Autowired
-	private MammaBaseStandplaatsDao standplaatsDao;
+	private MammaStandplaatsRondeService standplaatsRondeService;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -147,7 +141,7 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 		if (context.screeningRonde != null)
 		{
 
-			MammaUitnodiging eersteUitnodiging = context.screeningRonde.getUitnodigingen().stream().min(Comparator.comparing(Uitnodiging::getCreatieDatum)).orElse(null);
+			var eersteUitnodiging = context.screeningRonde.getUitnodigingen().stream().min(Comparator.comparing(Uitnodiging::getCreatieDatum)).orElse(null);
 			screeningRondeEvent.setPeilEpochDay(context.screeningRondeCreatieDatum.toEpochDay());
 			screeningRondeEvent.setSuspect(BriefType.MAMMA_UITNODIGING_SUSPECT.equals(eersteUitnodiging.getBrief().getBriefType()));
 		}
@@ -163,8 +157,8 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 	@Override
 	public void updateAfspraakEvent(MammaAfspraak afspraak, boolean zetOpkomst)
 	{
-		MammaKansberekeningAfspraakEvent afspraakEvent = afspraak.getAfspraakEvent();
-		MammaKansberekeningAfspraakContext context = new MammaKansberekeningAfspraakContext(afspraak);
+		var afspraakEvent = afspraak.getAfspraakEvent();
+		var context = new MammaKansberekeningAfspraakContext(afspraak);
 		if (zetOpkomst)
 		{
 			afspraakEvent.setOpkomst(context.afspraakMetOnderzoekSet.contains(afspraakEvent.getAfspraak()));
@@ -176,7 +170,7 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 		afspraakEvent.setVerzettenReden(context.verzettenReden);
 		afspraakEvent.setBriefTypeUitnodiging(context.briefTypeUitnodiging);
 		afspraakEvent.setNaHerinnering(context.uitnodiging.getHerinnered());
-		MammaAfmelding laatsteAfmelding = context.screeningRonde.getLaatsteAfmelding();
+		var laatsteAfmelding = context.screeningRonde.getLaatsteAfmelding();
 		afspraakEvent.setNaHeraanmelding(laatsteAfmelding != null && laatsteAfmelding.getHeraanmeldStatus() == AanvraagBriefStatus.VERWERKT);
 		afspraakEvent.setRondeGeforceerd(context.screeningRonde.isGeforceerd());
 
@@ -193,10 +187,10 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 		kansberekeningEvent.setDoelgroep(context.dossier.getDoelgroep());
 		kansberekeningEvent.setTehuis(context.dossier.getTehuis() != null);
 
-		NavigableMap<LocalDate, MammaScreeningRonde> vorigeScreeningRondeNavigableMap = context.screeningRondeNavigableMap.headMap(peildatum, false);
-		NavigableMap<LocalDate, MammaUitnodiging> vorigeUitnodigingenNavigableMap = context.uitnodigingNavigableMap.headMap(peildatum, false);
-		NavigableMap<LocalDate, MammaAfspraak> vorigeAfspraakNavigableMap = context.afspraakNavigableMap.headMap(peildatum, false);
-		NavigableMap<LocalDate, MammaBeoordeling> vorigeLaatsteBeoordelingNavigableMap = context.laatsteBeoordelingNavigableMap.headMap(peildatum, false);
+		var vorigeScreeningRondeNavigableMap = context.screeningRondeNavigableMap.headMap(peildatum, false);
+		var vorigeUitnodigingenNavigableMap = context.uitnodigingNavigableMap.headMap(peildatum, false);
+		var vorigeAfspraakNavigableMap = context.afspraakNavigableMap.headMap(peildatum, false);
+		var vorigeLaatsteBeoordelingNavigableMap = context.laatsteBeoordelingNavigableMap.headMap(peildatum, false);
 
 		if (context.screeningRonde != null)
 		{
@@ -215,7 +209,7 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 
 		if (!vorigeScreeningRondeNavigableMap.isEmpty())
 		{
-			MammaScreeningRonde vorigeScreeningRonde = vorigeScreeningRondeNavigableMap.lastEntry().getValue();
+			var vorigeScreeningRonde = vorigeScreeningRondeNavigableMap.lastEntry().getValue();
 
 			kansberekeningEvent.setAfgemeldVorigeScreeningRonde(vorigeScreeningRonde == null ? null : !vorigeScreeningRonde.getAangemeld());
 			kansberekeningEvent.setDeelnameVorigeScreeningRonde(context.screeningRondeMetOnderzoekSet.contains(vorigeScreeningRonde));
@@ -235,7 +229,7 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 
 		if (!vorigeAfspraakNavigableMap.isEmpty())
 		{
-			MammaAfspraak vorigeAfspraak = vorigeAfspraakNavigableMap.lastEntry().getValue();
+			var vorigeAfspraak = vorigeAfspraakNavigableMap.lastEntry().getValue();
 			kansberekeningEvent.setOpkomstVorigeAfspraak(context.afspraakMetOnderzoekSet.contains(vorigeAfspraak));
 			kansberekeningEvent.setAfspraakStatusVorigeAfspraak(vorigeAfspraak.getStatus());
 
@@ -254,7 +248,7 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 
 		if (!vorigeLaatsteBeoordelingNavigableMap.isEmpty())
 		{
-			MammaBeoordeling vorigeBeoordeling = vorigeLaatsteBeoordelingNavigableMap.lastEntry().getValue();
+			var vorigeBeoordeling = vorigeLaatsteBeoordelingNavigableMap.lastEntry().getValue();
 			kansberekeningEvent.setBeoordelingStatusVorigeBeoordeling(vorigeBeoordeling.getStatus());
 		}
 	}
@@ -267,28 +261,28 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 	@Override
 	public void fitDossierClassifier()
 	{
-		RestTemplate restTemplate = RestApiFactory.create();
+		var restTemplate = RestApiFactory.create();
 		restTemplate.getForObject(kansberekeningServiceUrl + "fit_dossier_classifier", String.class);
 	}
 
 	@Override
 	public void fitAfsprakenClassifier()
 	{
-		RestTemplate restTemplate = RestApiFactory.create();
+		var restTemplate = RestApiFactory.create();
 		restTemplate.getForObject(kansberekeningServiceUrl + "fit_afspraak_classifier", String.class);
 	}
 
 	@Override
 	public void predictDossiers()
 	{
-		RestTemplate restTemplate = RestApiFactory.create();
+		var restTemplate = RestApiFactory.create();
 		restTemplate.getForObject(kansberekeningServiceUrl + "predict_dossiers", String.class);
 	}
 
 	@Override
 	public void predictAfspraken()
 	{
-		RestTemplate restTemplate = RestApiFactory.create();
+		var restTemplate = RestApiFactory.create();
 		restTemplate.getForObject(kansberekeningServiceUrl + "predict_afspraken", String.class);
 	}
 
@@ -297,11 +291,11 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 	{
 		if (mayUseKansberekening())
 		{
-			RestTemplate restTemplate = RestApiFactory.create(KANSBEREKENING_TIMEOUT_MS);
+			var restTemplate = RestApiFactory.create(KANSBEREKENING_TIMEOUT_MS);
 
 			try
 			{
-				BigDecimal opkomstkans = new BigDecimal(
+				var opkomstkans = new BigDecimal(
 					restTemplate.postForObject(kansberekeningServiceUrl + "predict_afspraak", "[" + new AfspraakEventDto(afspraak) + "]", String.class));
 				return opkomstkans.compareTo(MINIMUM_OPKOMSTKANS) >= 0 ? opkomstkans : MINIMUM_OPKOMSTKANS;
 			}
@@ -348,22 +342,22 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 	public BigDecimal getVoorlopigeOpkomstkans(MammaDossier dossier, MammaStandplaatsPeriode standplaatsPeriode, MammaVerzettenReden verzettenReden,
 		BriefType briefTypeUitnodiging)
 	{
-		MammaBrief dummyBrief = new MammaBrief();
+		var dummyBrief = new MammaBrief();
 		dummyBrief.setBriefType(briefTypeUitnodiging);
 
-		MammaUitnodiging dummyUitnodiging = new MammaUitnodiging();
+		var dummyUitnodiging = new MammaUitnodiging();
 		dummyUitnodiging.setCreatieDatum(dateSupplier.getDate());
 		dummyUitnodiging.setHerinnered(false);
 		dummyUitnodiging.setBrief(dummyBrief);
 
-		MammaScreeningRonde dummyScreeningRonde = new MammaScreeningRonde();
+		var dummyScreeningRonde = new MammaScreeningRonde();
 		dummyScreeningRonde.setCreatieDatum(dateSupplier.getDate());
 		dummyUitnodiging.setScreeningRonde(dummyScreeningRonde);
 
 		dossier.getScreeningRondes().add(dummyScreeningRonde);
 		dummyScreeningRonde.setDossier(dossier);
 
-		BigDecimal voorlopigeOpkomstkans = getVoorlopigeOpkomstkans(dummyUitnodiging, standplaatsPeriode, verzettenReden);
+		var voorlopigeOpkomstkans = getVoorlopigeOpkomstkans(dummyUitnodiging, standplaatsPeriode, verzettenReden);
 		dossier.getScreeningRondes().remove(dummyScreeningRonde);
 		return voorlopigeOpkomstkans;
 	}
@@ -371,12 +365,12 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 	@Override
 	public BigDecimal getVoorlopigeOpkomstkans(MammaUitnodiging uitnodiging, MammaStandplaatsPeriode standplaatsPeriode, MammaVerzettenReden verzettenReden)
 	{
-		MammaAfspraak dummyAfspraak = new MammaAfspraak();
+		var dummyAfspraak = new MammaAfspraak();
 		dummyAfspraak.setStandplaatsPeriode(standplaatsPeriode);
 		dummyAfspraak.setVanaf(dateSupplier.getDate());
 		dummyAfspraak.setStatus(MammaAfspraakStatus.GEPLAND);
 
-		GbaPersoon gbaPersoon = uitnodiging.getScreeningRonde().getDossier().getClient().getPersoon();
+		var gbaPersoon = uitnodiging.getScreeningRonde().getDossier().getClient().getPersoon();
 		dummyAfspraak
 			.setPostcode(gbaPersoon.getTijdelijkGbaAdres() != null && gbaPersoon.getTijdelijkGbaAdres().getPostcode() != null ? gbaPersoon.getTijdelijkGbaAdres().getPostcode()
 				: gbaPersoon.getGbaAdres().getPostcode());
@@ -393,7 +387,7 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 	public void maakDossierEvent(MammaDossier dossier)
 	{
 		getMinimaleLeeftijd(); 
-		MammaKansberekeningScreeningRondeEvent screeningRondeEvent = dossier.getScreeningRondeEvent();
+		var screeningRondeEvent = dossier.getScreeningRondeEvent();
 		if (screeningRondeEvent == null)
 		{
 			screeningRondeEvent = new MammaKansberekeningScreeningRondeEvent();
@@ -412,7 +406,7 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void dossierEventHerzien(MammaDossier dossier)
 	{
-		MammaKansberekeningScreeningRondeEvent screeningRondeEvent = dossier.getScreeningRondeEvent();
+		var screeningRondeEvent = dossier.getScreeningRondeEvent();
 
 		if (screeningRondeEvent != null)
 		{
@@ -425,7 +419,7 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void screeningRondeSampleHerzien(MammaScreeningRonde screeningRonde)
 	{
-		MammaKansberekeningScreeningRondeEvent screeningRondeEvent = screeningRonde.getScreeningRondeEvent();
+		var screeningRondeEvent = screeningRonde.getScreeningRondeEvent();
 		if (screeningRondeEvent != null)
 		{
 			updateScreeningRondeEvent(screeningRonde, true);
@@ -437,25 +431,25 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void kansberekeningHerzien(MammaDossier dossier, LocalDate vanaf)
 	{
-		MammaKansberekeningScreeningRondeEvent dossierEvent = dossier.getScreeningRondeEvent();
+		var dossierEvent = dossier.getScreeningRondeEvent();
 		if (dossierEvent != null && DateUtil.toLocalDate(dossierEvent.getWijzigingsDatum()).isAfter(vanaf))
 		{
 			dossierEventHerzien(dossier);
 		}
 
-		for (MammaScreeningRonde screeningRonde : dossier.getScreeningRondes())
+		for (var screeningRonde : dossier.getScreeningRondes())
 		{
-			MammaKansberekeningScreeningRondeEvent screeningRondeEvent = screeningRonde.getScreeningRondeEvent();
+			var screeningRondeEvent = screeningRonde.getScreeningRondeEvent();
 			if (screeningRondeEvent != null && DateUtil.toLocalDate(screeningRondeEvent.getWijzigingsDatum()).isAfter(vanaf))
 			{
 				screeningRondeSampleHerzien(screeningRonde);
 			}
 
-			for (MammaUitnodiging uitnodiging : screeningRonde.getUitnodigingen())
+			for (var uitnodiging : screeningRonde.getUitnodigingen())
 			{
-				for (MammaAfspraak afspraak : uitnodiging.getAfspraken())
+				for (var afspraak : uitnodiging.getAfspraken())
 				{
-					MammaKansberekeningAfspraakEvent afspraakEvent = afspraak.getAfspraakEvent();
+					var afspraakEvent = afspraak.getAfspraakEvent();
 					if (afspraakEvent != null && DateUtil.toLocalDate(afspraakEvent.getWijzigingsDatum()).isAfter(vanaf))
 					{
 						updateAfspraakEvent(afspraak, false);
@@ -613,41 +607,42 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 
 		private AfspraakEventDto(MammaAfspraak afspraak)
 		{
-			String postcode = afspraak.getPostcode();
-			String postcodeCijfers = postcode.substring(0, 4);
+			var postcode = afspraak.getPostcode();
+			var postcodeCijfers = postcode.substring(0, 4);
 
 			Map<String, Object> parameters = new HashMap<>();
 
 			parameters.put("regioType", MammaRegioType.LANDELIJK);
-			MammaKansberekeningRegioGemiddelden landelijkeGemiddelden = hibernateService.getUniqueByParameters(MammaKansberekeningRegioGemiddelden.class, parameters);
+			var landelijkeGemiddelden = hibernateService.getUniqueByParameters(MammaKansberekeningRegioGemiddelden.class, parameters);
 
 			parameters.put("regioType", MammaRegioType.POSTCODE_CIJFERS);
 			parameters.put("regio", postcodeCijfers);
-			MammaKansberekeningRegioGemiddelden postcodeCijfersGemiddelden = hibernateService.getUniqueByParameters(MammaKansberekeningRegioGemiddelden.class, parameters);
+			var postcodeCijfersGemiddelden = hibernateService.getUniqueByParameters(MammaKansberekeningRegioGemiddelden.class, parameters);
 
 			parameters.put("regioType", MammaRegioType.POSTCODE);
 			parameters.put("regio", postcode);
-			MammaKansberekeningRegioGemiddelden postcodeGemiddelden = hibernateService.getUniqueByParameters(MammaKansberekeningRegioGemiddelden.class, parameters);
+			var postcodeGemiddelden = hibernateService.getUniqueByParameters(MammaKansberekeningRegioGemiddelden.class, parameters);
 
-			MammaStandplaatsRonde standplaatsRonde = afspraak.getStandplaatsPeriode().getStandplaatsRonde();
-			MammaKansberekeningStandplaatsRondeGemiddelden huidigeStandplaatsRondeGemiddelden = standplaatsRonde.getStandplaatsRondeGemiddelden();
+			var standplaatsRonde = afspraak.getStandplaatsPeriode().getStandplaatsRonde();
+			var huidigeStandplaatsRondeGemiddelden = standplaatsRonde.getStandplaatsRondeGemiddelden();
 			if (huidigeStandplaatsRondeGemiddelden == null)
 			{
 
-				standplaatsRonde = standplaatsDao.getVorigeStandplaatsRonde(standplaatsRonde);
+				standplaatsRonde = standplaatsRondeService.getVorigeStandplaatsRonde(standplaatsRonde);
+
 				huidigeStandplaatsRondeGemiddelden = standplaatsRonde != null && standplaatsRonde.getStandplaatsRondeGemiddelden() != null
 					? standplaatsRonde.getStandplaatsRondeGemiddelden()
 					: new MammaKansberekeningStandplaatsRondeGemiddelden();
 			}
 
-			MammaStandplaatsRonde vorigeStandplaatsRonde = standplaatsRonde != null ? standplaatsDao.getVorigeStandplaatsRonde(standplaatsRonde) : null;
-			MammaKansberekeningStandplaatsRondeGemiddelden vorigeStandplaatsRondeGemiddelen = vorigeStandplaatsRonde != null
+			var vorigeStandplaatsRonde = standplaatsRonde != null ? standplaatsRondeService.getVorigeStandplaatsRonde(standplaatsRonde) : null;
+			var vorigeStandplaatsRondeGemiddelen = vorigeStandplaatsRonde != null
 				&& vorigeStandplaatsRonde.getStandplaatsRondeGemiddelden() != null
 				? vorigeStandplaatsRonde.getStandplaatsRondeGemiddelden()
 				: new MammaKansberekeningStandplaatsRondeGemiddelden();
 
 			updateAfspraakEvent(afspraak, false);
-			MammaKansberekeningAfspraakEvent afspraakEvent = afspraak.getAfspraakEvent();
+			var afspraakEvent = afspraak.getAfspraakEvent();
 
 			landelijk_gem_deelname_afgelopen10jaar = landelijkeGemiddelden.getDeelnameAfgelopen10Jaar();
 			landelijk_gem_deelname_afgelopen3jaar = landelijkeGemiddelden.getDeelnameAfgelopen3Jaar();

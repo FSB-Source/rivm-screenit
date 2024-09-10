@@ -25,7 +25,6 @@ import java.io.File;
 import java.io.IOException;
 
 import nl.rivm.screenit.model.Account;
-import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoekenVerzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
@@ -42,8 +41,6 @@ public interface MammaBaseUitwisselportaalService
 	void zetFilesInZip(MammaDownloadOnderzoekenVerzoek verzoek) throws IOException;
 
 	String getOnderzoekRootPath(MammaDownloadOnderzoek downloadOnderzoek);
-
-	void verwijderDownloadVerzoeken(MammaDossier dossier);
 
 	void verwijderDownloadVerzoeken(MammaScreeningRonde screeningRonde);
 

@@ -21,34 +21,26 @@ package nl.rivm.screenit.service.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
-
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.dao.mamma.MammaBaseBeoordelingDao;
-import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.berichten.Verslag;
-import nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht;
 import nl.rivm.screenit.model.berichten.enums.BerichtStatus;
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.berichten.enums.VerslagType;
-import nl.rivm.screenit.model.colon.ColonDossier;
-import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColonVerslag;
 import nl.rivm.screenit.model.colon.MdlVerslag;
 import nl.rivm.screenit.model.colon.PaVerslag;
 import nl.rivm.screenit.model.colon.enums.MdlVervolgbeleid;
 import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
-import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.service.BaseVerslagService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.VerwerkVerslagService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.mamma.MammaBaseFollowUpService;
+import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -77,7 +69,7 @@ public class BaseVerslagServiceImpl implements BaseVerslagService
 	private VerwerkVerslagService verwerkVerslagService;
 
 	@Autowired(required = false)
-	private MammaBaseBeoordelingDao mammaBeoordelingDao;
+	private MammaBaseScreeningrondeService baseScreeningrondeService;
 
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
@@ -86,8 +78,8 @@ public class BaseVerslagServiceImpl implements BaseVerslagService
 	@Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
 	public void verwijderVerslag(Verslag<?, ?> verslag, InstellingGebruiker instellingGebruiker, boolean heropenRondeEnDossier)
 	{
-		VerslagType type = verslag.getType();
-		Class<? extends Verslag<?, ?>> verslagClazz = type.getClazz();
+		var type = verslag.getType();
+		var verslagClazz = type.getClazz();
 		verslag = hibernateService.load(verslagClazz, verslag.getId());
 
 		if (heropenRondeEnDossier)
@@ -95,9 +87,9 @@ public class BaseVerslagServiceImpl implements BaseVerslagService
 			heropenRondeEnDossier(verslag);
 		}
 
-		String melding = createLogMelding(verslag);
+		var melding = createLogMelding(verslag);
 		var screeningRonde = verslag.getScreeningRonde();
-		Client client = screeningRonde.getDossier().getClient();
+		var client = screeningRonde.getDossier().getClient();
 
 		if (instellingGebruiker != null)
 		{
@@ -114,7 +106,7 @@ public class BaseVerslagServiceImpl implements BaseVerslagService
 		verslag.setUitvoerderOrganisatie(null);
 		verslag.setOntvangenBericht(null);
 
-		OntvangenCdaBericht ontvangenBericht = verslag.getOntvangenBericht();
+		var ontvangenBericht = verslag.getOntvangenBericht();
 		if (ontvangenBericht != null)
 		{
 			ontvangenBericht.setStatus(BerichtStatus.VERWIJDERD);
@@ -131,20 +123,20 @@ public class BaseVerslagServiceImpl implements BaseVerslagService
 	{
 		if (type == VerslagType.MDL && VerslagStatus.AFGEROND == verslag.getStatus())
 		{
-			MdlVerslag mdlVerslag = (MdlVerslag) HibernateHelper.deproxy(verslag);
-			ColonScreeningRonde colonScreeningRonde = mdlVerslag.getScreeningRonde();
+			var mdlVerslag = (MdlVerslag) HibernateHelper.deproxy(verslag);
+			var colonScreeningRonde = mdlVerslag.getScreeningRonde();
 			colonScreeningRonde.getVerslagen().remove(mdlVerslag);
 		}
 		else if (type == VerslagType.PA_LAB)
 		{
-			PaVerslag paVerslag = (PaVerslag) HibernateHelper.deproxy(verslag);
-			ColonScreeningRonde colonScreeningRonde = paVerslag.getScreeningRonde();
+			var paVerslag = (PaVerslag) HibernateHelper.deproxy(verslag);
+			var colonScreeningRonde = paVerslag.getScreeningRonde();
 			colonScreeningRonde.getVerslagen().remove(paVerslag);
 		}
 		else if (type == VerslagType.MAMMA_PA_FOLLOW_UP || type == VerslagType.MAMMA_PA_FOLLOW_UP_MONITOR)
 		{
-			MammaFollowUpVerslag followupVerslag = (MammaFollowUpVerslag) HibernateHelper.deproxy(verslag);
-			MammaScreeningRonde mammaScreeningRonde = followupVerslag.getScreeningRonde();
+			var followupVerslag = (MammaFollowUpVerslag) HibernateHelper.deproxy(verslag);
+			var mammaScreeningRonde = followupVerslag.getScreeningRonde();
 			mammaScreeningRonde.getFollowUpVerslagen().remove(followupVerslag);
 		}
 	}
@@ -153,19 +145,19 @@ public class BaseVerslagServiceImpl implements BaseVerslagService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void heropenRondeEnDossier(Verslag<?, ?> verslag)
 	{
-		VerslagType type = verslag.getType();
+		var type = verslag.getType();
 		if (type == VerslagType.MDL && VerslagStatus.AFGEROND == verslag.getStatus())
 		{
-			MdlVerslag mdlVerslag = (MdlVerslag) HibernateHelper.deproxy(verslag);
-			MdlVervolgbeleid vervolgbeleidHuidigVerslag = mdlVerslag.getVervolgbeleid();
+			var mdlVerslag = (MdlVerslag) HibernateHelper.deproxy(verslag);
+			var vervolgbeleidHuidigVerslag = mdlVerslag.getVervolgbeleid();
 			MdlVerslag nieuweLaatsteAfgerondVerslag = null;
-			ColonScreeningRonde screeningRonde = mdlVerslag.getScreeningRonde();
-			boolean geenAnderVerslagMetDefinitiefVervolgbeleid = true;
+			var screeningRonde = mdlVerslag.getScreeningRonde();
+			var geenAnderVerslagMetDefinitiefVervolgbeleid = true;
 			for (ColonVerslag<?> oneOfAllVerslagen : screeningRonde.getVerslagen())
 			{
 				if (VerslagType.MDL == oneOfAllVerslagen.getType() && VerslagStatus.AFGEROND == oneOfAllVerslagen.getStatus() && !oneOfAllVerslagen.equals(mdlVerslag))
 				{
-					MdlVerslag anderMdlVerslag = (MdlVerslag) HibernateHelper.deproxy(oneOfAllVerslagen);
+					var anderMdlVerslag = (MdlVerslag) HibernateHelper.deproxy(oneOfAllVerslagen);
 					if (MdlVervolgbeleid.isDefinitief(anderMdlVerslag.getVervolgbeleid()))
 					{
 						geenAnderVerslagMetDefinitiefVervolgbeleid = false;
@@ -176,34 +168,33 @@ public class BaseVerslagServiceImpl implements BaseVerslagService
 					}
 				}
 			}
-			ColonDossier dossier = screeningRonde.getDossier();
-			if (MdlVervolgbeleid.isDefinitief(vervolgbeleidHuidigVerslag) && geenAnderVerslagMetDefinitiefVervolgbeleid)
+			var dossier = screeningRonde.getDossier();
+			if (MdlVervolgbeleid.isDefinitief(vervolgbeleidHuidigVerslag) && geenAnderVerslagMetDefinitiefVervolgbeleid
+				&& ScreeningRondeStatus.AFGEROND == screeningRonde.getStatus())
 			{
 
-				if (ScreeningRondeStatus.AFGEROND == screeningRonde.getStatus())
-				{
-					screeningRonde.setStatus(ScreeningRondeStatus.LOPEND);
-					screeningRonde.setStatusDatum(currentDateSupplier.getDate());
-					screeningRonde.setAfgerondReden(null);
-					hibernateService.saveOrUpdate(screeningRonde);
+				screeningRonde.setStatus(ScreeningRondeStatus.LOPEND);
+				screeningRonde.setStatusDatum(currentDateSupplier.getDate());
+				screeningRonde.setAfgerondReden(null);
+				hibernateService.saveOrUpdate(screeningRonde);
 
-					if (DossierStatus.INACTIEF == dossier.getStatus())
-					{
-						dossier.setStatus(DossierStatus.ACTIEF);
-						dossier.setInactiveerReden(null);
-						dossier.setInactiefVanaf(null);
-						dossier.setInactiefTotMet(null);
-						hibernateService.saveOrUpdate(dossier);
-					}
+				if (DossierStatus.INACTIEF == dossier.getStatus())
+				{
+					dossier.setStatus(DossierStatus.ACTIEF);
+					dossier.setInactiveerReden(null);
+					dossier.setInactiefVanaf(null);
+					dossier.setInactiefTotMet(null);
+					hibernateService.saveOrUpdate(dossier);
 				}
 			}
+
 			if (nieuweLaatsteAfgerondVerslag != null)
 			{
 				colonDossierService.setVolgendeUitnodigingVoorVerslag(nieuweLaatsteAfgerondVerslag);
 			}
 			else
 			{
-				ColonIntakeAfspraak laatsteAfspraak = screeningRonde.getLaatsteAfspraak();
+				var laatsteAfspraak = screeningRonde.getLaatsteAfspraak();
 				if (laatsteAfspraak != null)
 				{
 					colonDossierService.setVolgendeUitnodingVoorConclusie(laatsteAfspraak);
@@ -214,10 +205,10 @@ public class BaseVerslagServiceImpl implements BaseVerslagService
 
 		else if (type == VerslagType.MAMMA_PA_FOLLOW_UP)
 		{
-			MammaFollowUpVerslag followupVerslag = (MammaFollowUpVerslag) HibernateHelper.deproxy(verslag);
+			var followupVerslag = (MammaFollowUpVerslag) HibernateHelper.deproxy(verslag);
 			followUpService.refreshUpdateFollowUpConclusie(followupVerslag.getScreeningRonde().getDossier());
-			MammaScreeningRonde screeningRonde = followupVerslag.getScreeningRonde();
-			MammaScreeningRonde screeningrondeVoorFollowUp = mammaBeoordelingDao.getScreeningrondeVoorFollowUp(screeningRonde.getDossier().getClient(), null);
+			var screeningRonde = followupVerslag.getScreeningRonde();
+			var screeningrondeVoorFollowUp = baseScreeningrondeService.getLaatsteScreeningRondeMetUitslag(screeningRonde.getDossier().getClient());
 			if (screeningRonde.equals(screeningrondeVoorFollowUp))
 			{
 				screeningRonde.setFollowUpConclusieStatus(null);
@@ -233,7 +224,7 @@ public class BaseVerslagServiceImpl implements BaseVerslagService
 	{
 		String melding;
 		var verwerktVerslag = (Verslag<?, ?>) HibernateHelper.deproxy(verslag);
-		OntvangenCdaBericht ontvangenBericht = verwerktVerslag.getOntvangenBericht();
+		var ontvangenBericht = verwerktVerslag.getOntvangenBericht();
 		if (ontvangenBericht != null)
 		{
 			melding = "Elektronisch bericht: berichtId: " + ontvangenBericht.getBerichtId() + ", setId: " + ontvangenBericht.getSetId() + ", versie: "
@@ -247,7 +238,7 @@ public class BaseVerslagServiceImpl implements BaseVerslagService
 		{
 			melding = "Handmatige invoer: ";
 		}
-		Date datumOnderzoek = verwerktVerslag.getDatumOnderzoek();
+		var datumOnderzoek = verwerktVerslag.getDatumOnderzoek();
 		if (datumOnderzoek != null)
 		{
 			melding += " datum onderzoek " + Constants.getDateFormat().format(datumOnderzoek);

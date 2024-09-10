@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.service.impl;
 
 /*-
@@ -24,29 +23,29 @@ package nl.rivm.screenit.service.impl;
 
 import java.util.List;
 
-import nl.rivm.screenit.dao.StamtabellenDao;
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.model.Functie;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Titel;
+import nl.rivm.screenit.repository.algemeen.FunctieRepository;
+import nl.rivm.screenit.repository.algemeen.TitelRepository;
 import nl.rivm.screenit.service.StamtabellenService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
+@AllArgsConstructor
 public class StamtabellenServiceImpl implements StamtabellenService
 {
+	private FunctieRepository functieRepository;
 
-	@Autowired
-	private StamtabellenDao stamtabellenDao;
+	private TitelRepository titelRepository;
 
 	@Override
 	public List<Titel> getTitels(Gebruiker medewerker)
 	{
-		List<Titel> titels = stamtabellenDao.getTitels();
+		var titels = titelRepository.findByActiefTrueOrderByTitelAsc();
 
 		if (medewerker != null && medewerker.getTitel() != null)
 		{
@@ -66,7 +65,6 @@ public class StamtabellenServiceImpl implements StamtabellenService
 				contains = true;
 			}
 		}
-
 		if (!contains)
 		{
 			titels.add(titel);
@@ -76,7 +74,7 @@ public class StamtabellenServiceImpl implements StamtabellenService
 	@Override
 	public List<Functie> getFuncties(Gebruiker medewerker)
 	{
-		List<Functie> functies = stamtabellenDao.getFuncties();
+		var functies = functieRepository.findByActiefTrueOrderByFunctieAsc();
 
 		if (medewerker != null && medewerker.getFunctie() != null)
 		{
@@ -88,7 +86,6 @@ public class StamtabellenServiceImpl implements StamtabellenService
 					contains = true;
 				}
 			}
-
 			if (!contains)
 			{
 				functies.add(medewerker.getFunctie());
@@ -97,11 +94,4 @@ public class StamtabellenServiceImpl implements StamtabellenService
 
 		return functies;
 	}
-
-	@Override
-	public Functie getFunctie(String functie)
-	{
-		return stamtabellenDao.getFunctie(functie);
-	}
-
 }

@@ -34,7 +34,7 @@ import nl.topicuszorg.organisatie.model.Adres;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.validation.validator.EmailAddressValidator;
+import nl.rivm.screenit.main.web.component.validator.EmailAddressValidator;
 
 public class SpecifiekeContactinformatiePanel extends GenericPanel<Instelling>
 {

@@ -31,7 +31,6 @@ import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixMonster;
-import nl.rivm.screenit.model.cervix.CervixZasHoudbaarheid;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
@@ -98,7 +97,7 @@ public class CervixVervolgServiceImpl implements CervixVervolgService
 		boolean isZasHoudbaar = false;
 		if (CervixMonsterUtil.isZAS(monster))
 		{
-			isZasHoudbaar = houdbaarheidService.isHoudbaar(CervixZasHoudbaarheid.class, monster.getMonsterId());
+			isZasHoudbaar = houdbaarheidService.isZasHoudbaar(monster.getMonsterId());
 		}
 
 		return new CervixBepaalVervolgLabproces(
@@ -145,7 +144,8 @@ public class CervixVervolgServiceImpl implements CervixVervolgService
 	@Override
 	public void sendHpvOrder(CervixMonster monster, CervixVervolgTekst vervolgTekst, BMHKLaboratorium bmhkLaboratorium)
 	{
-		if (organisatieParameterService.getOrganisatieParameter(getBmhkLaboratorium(monster, bmhkLaboratorium), OrganisatieParameterKey.CERVIX_HPV_ORDER_NIEUW, Boolean.FALSE))
+		if (Boolean.TRUE.equals(
+			organisatieParameterService.getOrganisatieParameter(getBmhkLaboratorium(monster, bmhkLaboratorium), OrganisatieParameterKey.CERVIX_HPV_ORDER_NIEUW, Boolean.FALSE)))
 		{
 			boolean triggerHpvOrder;
 			var cancelOrder = new AtomicBoolean(true);

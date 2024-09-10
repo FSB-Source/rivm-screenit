@@ -73,7 +73,7 @@ public class MammaScreeningRondesVerwijderenWriter extends BaseWriter<MammaScree
 	private boolean heeftLaatstePositieveUitslagBinnenBewaartermijn(MammaScreeningRonde ronde)
 	{
 		var client = ronde.getDossier().getClient();
-		var laatsteScreeningRondeMetPositieveUitslag = screeningrondeService.getLaatsteScreeningRondeMetPositieveUitslag(client);
+		var laatsteScreeningRondeMetPositieveUitslag = screeningrondeService.getLaatsteScreeningRondeMetOngunstigeUitslag(client);
 		if (laatsteScreeningRondeMetPositieveUitslag != null)
 		{
 			var bewaartermijnInDagen = preferenceService.getInteger(PreferenceKey.ILM_BEWAARTERMIJN.name());

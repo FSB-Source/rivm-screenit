@@ -46,51 +46,52 @@ import static nl.rivm.screenit.specification.SpecificationUtil.composePredicates
 public class RangeSpecification
 {
 
-	public static <T, D extends Comparable<?>> Specification<T> overlapt(Range<D> range, Function<Root<T>, Path<D>> startPathFunction,
-		Function<Root<T>, Path<D>> endPathFunction)
+	public static <T, V extends Comparable<?>> Specification<T> overlapt(Range<V> range, Function<Root<T>, Path<V>> databaseColumnStartRange,
+		Function<Root<T>, Path<V>> databaseColumnEndRange)
 	{
-		return (r, q, cb) -> overlapt(range, startPathFunction.apply(r), endPathFunction.apply(r)).withPath(cb, r);
+		return (r, q, cb) -> overlapt(range, databaseColumnStartRange.apply(r), databaseColumnEndRange.apply(r)).withPath(cb, r);
 	}
 
-	public static <T, D extends Comparable<?>> PathAwarePredicate<T> overlapt(Range<D> range, Path<D> startPath, Path<D> endPath)
+	public static <T, V extends Comparable<?>> PathAwarePredicate<T> overlapt(Range<V> range, Path<V> databaseColumnStartRange, Path<V> databaseColumnEndRange)
 	{
-		return maakRangePredicates(range, endPath, startPath);
+		return maakRangePredicates(range, databaseColumnEndRange, databaseColumnStartRange);
 	}
 
-	public static <T, D extends Comparable<?>> Specification<T> bevat(D value, Function<Root<T>, Path<D>> startPathFunction, Function<Root<T>, Path<D>> endPathFunction,
-		Pair<BoundType, BoundType> boundTypes)
+	public static <T, V extends Comparable<?>> Specification<T> bevat(Function<Root<T>, Path<V>> databaseColumnStartRange, Function<Root<T>, Path<V>> databaseColumnEndRange,
+		Pair<BoundType, BoundType> boundTypes, V waarde)
 	{
-		return (r, q, cb) -> bevat(value, startPathFunction.apply(r), endPathFunction.apply(r), boundTypes).withPath(cb, r);
+		return (r, q, cb) -> bevat(databaseColumnStartRange.apply(r), databaseColumnEndRange.apply(r), boundTypes, waarde).withPath(cb, r);
 	}
 
-	public static <T, D extends Comparable<?>> PathAwarePredicate<T> bevat(D value, Path<D> startPath, Path<D> endPath,		Pair<BoundType, BoundType> boundTypes)
+	public static <T, V extends Comparable<?>> PathAwarePredicate<T> bevat(Path<V> databaseColumnStartRange, Path<V> databaseColumnEndRange, Pair<BoundType, BoundType> boundTypes,
+		V waarde)
 	{
-		var range = Range.range(value, boundTypes.getFirst(), value, boundTypes.getSecond());
-		return maakRangePredicates(range, startPath, endPath);
+		var range = Range.range(waarde, boundTypes.getSecond(), waarde, boundTypes.getFirst());
+		return maakRangePredicates(range, databaseColumnEndRange, databaseColumnStartRange);
 	}
 
-	public static <T, D extends Comparable<?>> Specification<T> tussen(Range<D> range, Function<Root<T>, Path<D>> pathFunction)
+	public static <T, V extends Comparable<?>> Specification<T> bevat(Range<V> range, Function<Root<T>, Path<V>> databaseColumn)
 	{
-		return (r, q, cb) -> tussen(range, pathFunction.apply(r)).withPath(cb, r);
+		return (r, q, cb) -> bevat(range, databaseColumn.apply(r)).withPath(cb, r);
 	}
 
-	public static <T, D extends Comparable<?>> PathAwarePredicate<T> tussen(Range<D> range, Path<D> path)
+	public static <T, V extends Comparable<?>> PathAwarePredicate<T> bevat(Range<V> range, Path<V> databaseColumn)
 	{
-		return overlapt(range, path, path);
+		return overlapt(range, databaseColumn, databaseColumn);
 	}
 
-	static <T, D extends Comparable<?>> Predicate maakRangePredicates(CriteriaBuilder cb, Root<T> r, Range<D> range,
-		Function<Root<T>, Path<D>> startPathFunction, Function<Root<T>, Path<D>> endPathFunction)
+	static <T, V extends Comparable<?>> Predicate maakRangePredicates(CriteriaBuilder cb, Root<T> r, Range<V> range,
+		Function<Root<T>, Path<V>> databaseColumnStartRange, Function<Root<T>, Path<V>> databaseColumnEndRange)
 	{
-		return maakRangePredicates(cb, range, startPathFunction.apply(r), endPathFunction.apply(r));
+		return maakRangePredicates(cb, range, databaseColumnStartRange.apply(r), databaseColumnEndRange.apply(r));
 	}
 
-	static <T, D extends Comparable<?>> PathAwarePredicate<T> maakRangePredicates(Range<D> range, Path<D> startProperty, Path<D> endProperty)
+	static <T, V extends Comparable<?>> PathAwarePredicate<T> maakRangePredicates(Range<V> range, Path<V> databaseColumnStartRange, Path<V> databaseColumnEndRange)
 	{
-		return (cb, r) -> maakRangePredicates(cb, range, startProperty, endProperty);
+		return (cb, r) -> maakRangePredicates(cb, range, databaseColumnStartRange, databaseColumnEndRange);
 	}
 
-	private static <D extends Comparable> Predicate maakRangePredicates(CriteriaBuilder cb, Range<D> range, Path<D> startProperty, Path<D> endProperty)
+	private static <V extends Comparable> Predicate maakRangePredicates(CriteriaBuilder cb, Range<V> range, Path<V> databaseColumnStartRange, Path<V> databaseColumnEndRange)
 	{
 		var predicates = new ArrayList<Predicate>();
 
@@ -100,22 +101,22 @@ public class RangeSpecification
 			{
 				if (range.lowerBoundType() == BoundType.CLOSED)
 				{
-					predicates.add(cb.greaterThanOrEqualTo(startProperty, range.lowerEndpoint()));
+					predicates.add(cb.greaterThanOrEqualTo(databaseColumnStartRange, range.lowerEndpoint()));
 				}
 				else if (range.lowerBoundType() == BoundType.OPEN)
 				{
-					predicates.add(cb.greaterThan(startProperty, range.lowerEndpoint()));
+					predicates.add(cb.greaterThan(databaseColumnStartRange, range.lowerEndpoint()));
 				}
 			}
 			if (range.hasUpperBound())
 			{
 				if (range.upperBoundType() == BoundType.CLOSED)
 				{
-					predicates.add(cb.lessThanOrEqualTo(endProperty, range.upperEndpoint()));
+					predicates.add(cb.lessThanOrEqualTo(databaseColumnEndRange, range.upperEndpoint()));
 				}
 				else if (range.upperBoundType() == BoundType.OPEN)
 				{
-					predicates.add(cb.lessThan(endProperty, range.upperEndpoint()));
+					predicates.add(cb.lessThan(databaseColumnEndRange, range.upperEndpoint()));
 				}
 			}
 		}

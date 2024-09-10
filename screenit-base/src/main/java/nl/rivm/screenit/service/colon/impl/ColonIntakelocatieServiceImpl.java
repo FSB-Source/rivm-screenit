@@ -63,7 +63,7 @@ public class ColonIntakelocatieServiceImpl implements ColonIntakelocatieService
 			start = start.with(TemporalAdjusters.previous(DayOfWeek.MONDAY));
 		}
 
-		return Range.closedOpen(start, start.plusDays(6));
+		return Range.closed(start, start.plusDays(6));
 	}
 
 	@Override

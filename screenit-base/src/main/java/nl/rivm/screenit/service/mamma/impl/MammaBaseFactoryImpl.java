@@ -54,10 +54,11 @@ import nl.rivm.screenit.model.mamma.MammaUitstel;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
-import nl.rivm.screenit.model.mamma.enums.MammaMassaDensiteit;
 import nl.rivm.screenit.model.mamma.enums.MammaUitstelReden;
 import nl.rivm.screenit.model.mamma.enums.MammaVerzettenReden;
 import nl.rivm.screenit.model.mamma.enums.MammaVisitatieOnderzoekStatus;
+import nl.rivm.screenit.repository.mamma.MammaScreeningRondeRepository;
+import nl.rivm.screenit.repository.mamma.MammaUploadBeeldenPogingRepository;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BerichtToBatchService;
 import nl.rivm.screenit.service.BerichtToSeRestBkService;
@@ -114,6 +115,12 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 
 	@Autowired
 	private MammaVolgendeUitnodigingService volgendeUitnodigingService;
+
+	@Autowired
+	private MammaUploadBeeldenPogingRepository uploadBeeldenPogingRepository;
+
+	@Autowired
+	private MammaScreeningRondeRepository screeningRondeRepository;
 
 	@Autowired
 	@Qualifier("testModus")
@@ -326,7 +333,7 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 	public Long getNextUniqueMammaUitnodigingsNr()
 	{
 		long nextUitnodigingsNr = uitnodigingsDao.getNextUitnodigingsId();
-		if (!Boolean.TRUE.equals(testModus) || uitnodigingsDao.uniqueMammaUitnodigingsNr(nextUitnodigingsNr))
+		if (!Boolean.TRUE.equals(testModus) || !accessionNummerInGebruik(nextUitnodigingsNr))
 		{
 			return nextUitnodigingsNr;
 		}
@@ -334,6 +341,12 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 		{
 			return getNextUniqueMammaUitnodigingsNr();
 		}
+	}
+
+	private boolean accessionNummerInGebruik(long uitnodigingsNummer)
+	{
+		return screeningRondeRepository.existsByUitnodigingsNr(uitnodigingsNummer) || uploadBeeldenPogingRepository.existsByAccessionNumber(
+			uitnodigingsNummer);
 	}
 
 	@Override

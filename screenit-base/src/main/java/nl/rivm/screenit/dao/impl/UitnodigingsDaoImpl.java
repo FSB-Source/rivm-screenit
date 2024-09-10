@@ -22,13 +22,10 @@ package nl.rivm.screenit.dao.impl;
  */
 
 import nl.rivm.screenit.dao.UitnodigingsDao;
-import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.rivm.screenit.model.mamma.MammaUploadBeeldenPoging;
 import nl.rivm.screenit.util.DatabaseSequence;
 import nl.rivm.screenit.util.SequenceGenerator;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
-import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,16 +38,5 @@ public class UitnodigingsDaoImpl extends AbstractAutowiredDao implements Uitnodi
 	public Long getNextUitnodigingsId()
 	{
 		return getSession().doReturningWork(new SequenceGenerator(DatabaseSequence.UITNODIGINGS_ID, getSessionFactory()));
-	}
-
-	@Override
-	public boolean uniqueMammaUitnodigingsNr(Long uitnodigingsNr)
-	{
-		boolean unique = this.getSession().createCriteria(MammaScreeningRonde.class)
-			.add(Restrictions.eq("uitnodigingsNr", uitnodigingsNr)).uniqueResult() == null;
-
-		unique &= this.getSession().createCriteria(MammaUploadBeeldenPoging.class).add(Restrictions.eq("accessionNumber", uitnodigingsNr)).uniqueResult() == null;
-
-		return unique;
 	}
 }
