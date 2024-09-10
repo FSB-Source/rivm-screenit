@@ -75,7 +75,7 @@ public interface MammaBaseBeoordelingService
 
 	boolean iBiradsWaardeGeen(MammaLezing verslagLezing, MammaZijde zijde);
 
-	MammaBeoordeling getBeoordelingVanLezing(MammaLezing lezing);
+	Optional<MammaBeoordeling> getBeoordelingVanLezing(MammaLezing lezing);
 
 	Client getClientVanBeoordeling(MammaBeoordeling beoordeling);
 

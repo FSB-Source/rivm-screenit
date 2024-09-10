@@ -29,11 +29,13 @@ import lombok.AllArgsConstructor;
 import nl.rivm.screenit.model.colon.ColonFeestdag;
 import nl.rivm.screenit.model.colon.ColonFeestdag_;
 import nl.rivm.screenit.model.colon.dto.ColonFeestdagDto;
+import nl.rivm.screenit.specification.RangeSpecification;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 
 import org.springframework.data.jpa.domain.Specification;
 
-import static nl.rivm.screenit.specification.DateSpecification.betweenLocalDates;
+import com.google.common.collect.Range;
+
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNull;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -51,7 +53,8 @@ public class ColonFeestdagSpecification
 
 	public static Specification<ColonFeestdag> heeftDatumInRange(LocalDate startDatum, LocalDate eindDatum)
 	{
-		return betweenLocalDates(startDatum, eindDatum, r -> r.get(ColonFeestdag_.datum));
+		var range = Range.closed(startDatum, eindDatum);
+		return RangeSpecification.bevat(range, r -> r.get(ColonFeestdag_.datum));
 	}
 
 	public static Specification<ColonFeestdag> isNietFeestdag(ColonFeestdagDto feestdagDto)

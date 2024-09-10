@@ -64,8 +64,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wicketstuff.shiro.ShiroConstraint;
 
 @SecurityConstraint(
@@ -76,8 +74,6 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.MAMMA })
 public class MammaStandplaatsEditPage extends MammaPlanningBasePage
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaStandplaatsEditPage.class);
-
 	@SpringBean
 	private MammaStandplaatsService standplaatsService;
 
@@ -247,11 +243,11 @@ public class MammaStandplaatsEditPage extends MammaPlanningBasePage
 		{
 			inActiveren.add(new Label("inActiverenTitle", "Activeren"));
 		}
-		else
+		else if (standplaats.getId() != null)
 		{
 			inActiveren.add(new Label("inActiverenTitle", "Inactiveren"));
 			String inactiverenProperty = standplaatsService.magStandplaatsInactiveren(standplaats);
-			boolean heeftTehuizen = standplaats.getTehuizen().size() > 0;
+			boolean heeftTehuizen = !standplaats.getTehuizen().isEmpty();
 
 			if (heeftTehuizen)
 			{

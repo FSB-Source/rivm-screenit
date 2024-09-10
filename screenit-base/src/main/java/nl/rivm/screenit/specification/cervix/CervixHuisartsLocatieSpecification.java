@@ -46,7 +46,9 @@ import nl.topicuszorg.organisatie.model.Organisatie_;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 
-import static nl.rivm.screenit.specification.DateSpecification.betweenDates;
+import com.google.common.collect.Range;
+
+import static nl.rivm.screenit.specification.DateSpecification.bevatLocalDate;
 import static nl.rivm.screenit.specification.SpecificationUtil.containsCaseInsensitive;
 import static nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification.huisartsLocatieJoin;
 
@@ -103,7 +105,8 @@ public class CervixHuisartsLocatieSpecification
 
 	public static Specification<CervixHuisartsLocatie> valtBinnenMutatieDatum(LocalDate vanaf, LocalDate totEnMet)
 	{
-		return betweenDates(vanaf, totEnMet, r -> r.get(CervixHuisartsLocatie_.mutatiedatum));
+		var range = Range.closed(vanaf, totEnMet);
+		return bevatLocalDate(range, r -> r.get(CervixHuisartsLocatie_.mutatiedatum));
 	}
 
 	public static Specification<CervixHuisartsLocatie> valtBinnenGemeentes(List<Gemeente> gemeentes)

@@ -30,6 +30,7 @@ import OpgehaaldeDagenReducer from "./OpgehaaldeDagenReducer"
 import ConnectieStatusReducer from "./ConnectieStatusReducer"
 import MammografenStatusReducer from "./MammografenStatusReducer"
 import LoginStatusReducer from "./LoginStatusReducer"
+import WebsocketStatusReducer from "./WebsocketStatusReducer"
 
 const seReducers = combineReducers({
 	afsprakenById: AfsprakenReducer,
@@ -63,6 +64,7 @@ const seReducers = combineReducers({
 	opgehaaldeDagen: OpgehaaldeDagenReducer,
 	connectieStatus: ConnectieStatusReducer,
 	mammografenStatus: MammografenStatusReducer,
+	websocketStatus: WebsocketStatusReducer,
 })
 
 export default seReducers

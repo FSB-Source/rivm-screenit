@@ -30,9 +30,7 @@ import lombok.AllArgsConstructor;
 import nl.rivm.screenit.KoppelConstants;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.service.BarcodeValiderenService;
-import nl.rivm.screenit.dao.BaseHoudbaarheidDao;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
-import nl.rivm.screenit.model.cervix.CervixZasHoudbaarheid;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
@@ -53,8 +51,6 @@ public class BarcodeZasValiderenServiceImpl extends BaseValiderenService impleme
 {
 	private final BaseHoudbaarheidService houdbaarheidService;
 
-	private final BaseHoudbaarheidDao houdbaarheidDao;
-
 	private final CervixBaseMonsterService monsterService;
 
 	private final HibernateService hibernateService;
@@ -62,7 +58,7 @@ public class BarcodeZasValiderenServiceImpl extends BaseValiderenService impleme
 	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	public List<String> voerSemantischeValiatieUit(List<KOPPELDATA.VERZONDENUITNODIGING> koppeldata)
+	public List<String> voerSemantischeValidatieUit(List<KOPPELDATA.VERZONDENUITNODIGING> koppeldata)
 	{
 		List<String> foutmeldingen = new ArrayList<>();
 		List<String> barcodesUitKoppeldata = new ArrayList<>();
@@ -70,13 +66,13 @@ public class BarcodeZasValiderenServiceImpl extends BaseValiderenService impleme
 		var vandaag = currentDateSupplier.getLocalDate();
 		var minstensHoudbaarTotMetCervix = houdbaarheidService.getMinstensHoudbaarTotMet(vandaag, PreferenceKey.PERIODE_MINIMALE_HOUDBAARHEID_ZAS_MONSTERS_VOOR_CONTROLE);
 
-		for (KOPPELDATA.VERZONDENUITNODIGING verzondenUitnodiging : koppeldata)
+		for (var verzondenUitnodiging : koppeldata)
 		{
 
-			String zasBarcode = getMatchingFieldValue(verzondenUitnodiging, KoppelConstants.CERVIX_KOPPEL_BARCODE_ZAS);
-			String trackTraceId = getMatchingFieldValue(verzondenUitnodiging, KoppelConstants.KOPPEL_TRACK_ID);
+			var zasBarcode = getMatchingFieldValue(verzondenUitnodiging, KoppelConstants.CERVIX_KOPPEL_BARCODE_ZAS);
+			var trackTraceId = getMatchingFieldValue(verzondenUitnodiging, KoppelConstants.KOPPEL_TRACK_ID);
 
-			CervixUitnodiging cervixUitnodiging = getCervixUitnodiging(verzondenUitnodiging);
+			var cervixUitnodiging = getCervixUitnodiging(verzondenUitnodiging);
 
 			if (cervixUitnodiging == null)
 			{
@@ -104,7 +100,7 @@ public class BarcodeZasValiderenServiceImpl extends BaseValiderenService impleme
 						addFout(foutmeldingen, String.format(KoppelConstants.CERVIX_UITNODIGINGSID_AL_GEKOPPELD, verzondenUitnodiging.getID(), zasBarcode, trackTraceId,
 							cervixUitnodiging.getMonster().getMonsterId()));
 					}
-					CervixZasHoudbaarheid houdbaarheid = houdbaarheidDao.getHoudbaarheidVoor(CervixZasHoudbaarheid.class, zasBarcode);
+					var houdbaarheid = houdbaarheidService.getZasHoudbaarheidVoor(zasBarcode);
 					if (houdbaarheid == null)
 					{
 						addFout(foutmeldingen, String.format(KoppelConstants.CERVIX_HOUDBAARHEID_ONBEKEND, verzondenUitnodiging.getID(),
@@ -131,7 +127,7 @@ public class BarcodeZasValiderenServiceImpl extends BaseValiderenService impleme
 
 	private CervixUitnodiging getCervixUitnodiging(KOPPELDATA.VERZONDENUITNODIGING verzondenUitnodiging)
 	{
-		HashMap<String, Long> parameters = new HashMap<>();
+		var parameters = new HashMap<String, Long>();
 		parameters.put("uitnodigingsId", verzondenUitnodiging.getID());
 		return hibernateService.getUniqueByParameters(CervixUitnodiging.class, parameters);
 	}

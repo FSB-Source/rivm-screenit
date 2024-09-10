@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import nl.rivm.screenit.dao.mamma.MammaBaseStandplaatsDao;
 import nl.rivm.screenit.main.dao.mamma.MammaScreeningsEenheidDao;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -46,6 +45,7 @@ import nl.rivm.screenit.model.mamma.MammaBlokkade;
 import nl.rivm.screenit.model.mamma.MammaBlokkade_;
 import nl.rivm.screenit.model.mamma.enums.MammaBlokkadeType;
 import nl.rivm.screenit.service.InstellingService;
+import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.input.validator.DependantDateValidator;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
@@ -79,10 +79,10 @@ public class MammaBlokkadeBeheerPage extends MammaPlanningBasePage
 	private InstellingService instellingService;
 
 	@SpringBean
-	private MammaBaseStandplaatsDao baseStandplaatsDao;
+	private MammaScreeningsEenheidDao screeningsEenheidDao;
 
 	@SpringBean
-	private MammaScreeningsEenheidDao screeningsEenheidDao;
+	private MammaBaseStandplaatsService standplaatsService;
 
 	private BootstrapDialog dialog;
 
@@ -123,7 +123,7 @@ public class MammaBlokkadeBeheerPage extends MammaPlanningBasePage
 		form.add(screeningsEenheid);
 
 		var standplaats = new ScreenitDropdown<>("standplaats",
-			ModelUtil.listRModel(baseStandplaatsDao.getActieveStandplaatsen(sessionSO)), new ChoiceRenderer<>("naam"));
+			ModelUtil.listRModel(standplaatsService.getActieveStandplaatsen(sessionSO)), new ChoiceRenderer<>("naam"));
 		standplaats.setNullValid(true);
 		form.add(standplaats);
 

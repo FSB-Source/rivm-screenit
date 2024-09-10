@@ -439,6 +439,18 @@ public enum BriefType
 		true, "2_30_104 - Herinnering 30 jarigen",
 		Bevolkingsonderzoek.CERVIX),
 
+	CERVIX_HERINNERING_ZAS_HPV_POSITIEF(
+		OrganisatieType.SCREENINGSORGANISATIE,
+		new ProjectBriefActieType[] { ProjectBriefActieType.VERVANGENDEBRIEF, ProjectBriefActieType.XDAGENNAY },
+		false, "2_30_105 - Herinnering Uitslag ZAS HPV positief",
+		Bevolkingsonderzoek.CERVIX),
+
+	CERVIX_HERINNERING_UITNODIGING_CONTROLEUITSTRIJKJE(
+		OrganisatieType.SCREENINGSORGANISATIE,
+		new ProjectBriefActieType[] { ProjectBriefActieType.VERVANGENDEBRIEF, ProjectBriefActieType.XDAGENNAY },
+		false, "2_30_106 - Herinnering controle uitstrijkje",
+		Bevolkingsonderzoek.CERVIX),
+
 	CERVIX_ZAS_UITNODIGING(
 		OrganisatieType.INPAKCENTRUM,
 		new ProjectBriefActieType[] { ProjectBriefActieType.VERVANGENDEBRIEF, ProjectBriefActieType.XDAGENNAY },
@@ -899,7 +911,8 @@ public enum BriefType
 	private static final List<BriefType> CERVIX_UITSTRIJKJE_OVERIG = Arrays.asList(BriefType.CERVIX_UITNODIGING_CONTROLEUITSTRIJKJE,
 		BriefType.CERVIX_UITSTRIJKJE_NIET_ANALYSEERBAAR_OF_HPV_ONBEOORDEELBAAR, BriefType.CERVIX_UITSTRIJKJE_NIET_ANALYSEERBAAR_OF_CYTOLOGIE_ONBEOORDEELBAAR,
 		BriefType.CERVIX_UITSTRIJKJE_TWEEDE_KEER_ONBEOORDEELBAAR, BriefType.CERVIX_CYTOLOGIE_ONBEOORDEELBAAR, BriefType.CERVIX_ZAS_HPV_POSITIEF,
-		BriefType.CERVIX_ZAS_TWEEDE_KEER_ONBEOORDEELBAAR, BriefType.CERVIX_ZAS_NA_HPV_POSITIEF, BriefType.CERVIX_ZAS_NA_CYTOLOGIE_ONBEOORDEELBAAR);
+		BriefType.CERVIX_ZAS_TWEEDE_KEER_ONBEOORDEELBAAR, BriefType.CERVIX_ZAS_NA_HPV_POSITIEF, BriefType.CERVIX_ZAS_NA_CYTOLOGIE_ONBEOORDEELBAAR,
+		BriefType.CERVIX_HERINNERING_ZAS_HPV_POSITIEF, BriefType.CERVIX_HERINNERING_UITNODIGING_CONTROLEUITSTRIJKJE);
 
 	private static final List<BriefType> CERVIX_ZAS_BRIEVEN = Arrays.asList(BriefType.CERVIX_ZAS_UITNODIGING, BriefType.CERVIX_ZAS_NIET_ANALYSEERBAAR_OF_ONBEOORDEELBAAR,
 		BriefType.CERVIX_ZAS_COMBI_UITNODIGING_30, BriefType.CERVIX_ZAS_NON_RESPONDER);
@@ -937,10 +950,13 @@ public enum BriefType
 		BriefType.CERVIX_ZAS_NA_CYTOLOGIE_POSITIEF,
 		BriefType.CERVIX_ZAS_NA_CYTOLOGIE_POSITIEF_HPVOTHER);
 
+	@Getter
 	private final Bevolkingsonderzoek[] onderzoeken;
 
+	@Getter
 	private final OrganisatieType verzendendeOrganisatieType;
 
+	@Getter
 	private final List<ProjectBriefActieType> briefActieTypes = new ArrayList<>();
 
 	@Getter
@@ -963,21 +979,6 @@ public enum BriefType
 	BriefType(OrganisatieType verzendendeOrganisatieType, boolean vervangen, String codeEnNaam, Bevolkingsonderzoek... onderzoeken)
 	{
 		this(verzendendeOrganisatieType, null, vervangen, codeEnNaam, onderzoeken);
-	}
-
-	public OrganisatieType getVerzendendeOrganisatieType()
-	{
-		return verzendendeOrganisatieType;
-	}
-
-	public Bevolkingsonderzoek[] getOnderzoeken()
-	{
-		return onderzoeken;
-	}
-
-	public List<ProjectBriefActieType> getBriefActieTypes()
-	{
-		return briefActieTypes;
 	}
 
 	public String getBriefCode()
@@ -1014,7 +1015,7 @@ public enum BriefType
 		{
 			List<Bevolkingsonderzoek> briefTypeBvos = new ArrayList<>(Arrays.asList(type.getOnderzoeken()));
 			Collections.sort(briefTypeBvos);
-			if (!exactMatch && CollectionUtils.intersection(briefTypeBvos, filterBvos).size() > 0 || 
+			if (!exactMatch && !CollectionUtils.intersection(briefTypeBvos, filterBvos).isEmpty() || 
 				exactMatch && briefTypeBvos.equals(filterBvos))
 			{
 				briefTypes.add(type);
@@ -1034,7 +1035,7 @@ public enum BriefType
 			List<Bevolkingsonderzoek> briefTypeBvos = new ArrayList<>(Arrays.asList(type.getOnderzoeken()));
 			Collections.sort(briefTypeBvos);
 			boolean isOrganisatieType = organisatieType.equals(type.getVerzendendeOrganisatieType());
-			if (isOrganisatieType && !exactMatch && CollectionUtils.intersection(briefTypeBvos, filterBvos).size() > 0 || 
+			if (isOrganisatieType && !exactMatch && !CollectionUtils.intersection(briefTypeBvos, filterBvos).isEmpty() || 
 				isOrganisatieType && exactMatch && briefTypeBvos.equals(filterBvos))
 			{
 				briefTypes.add(type);
@@ -1048,8 +1049,6 @@ public enum BriefType
 		List<BriefType> briefTypes = new ArrayList<>();
 		for (BriefType type : values())
 		{
-			List<Bevolkingsonderzoek> briefTypeBvos = new ArrayList<>(Arrays.asList(type.getOnderzoeken()));
-			Collections.sort(briefTypeBvos);
 			if (organisatieType.equals(type.getVerzendendeOrganisatieType()))
 			{
 				briefTypes.add(type);
@@ -1149,7 +1148,7 @@ public enum BriefType
 			Deprecated d = f.getAnnotation(Deprecated.class);
 			isActief = d == null;
 		}
-		catch (NoSuchFieldException | SecurityException e)
+		catch (NoSuchFieldException | SecurityException ignored)
 		{
 		}
 		return isActief;

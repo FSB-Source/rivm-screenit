@@ -33,7 +33,6 @@ import nl.rivm.screenit.clientportaal.model.mamma.MammaAfspraakOptieDto;
 import nl.rivm.screenit.clientportaal.model.mamma.MammaAfspraakWijzigenFilterDto;
 import nl.rivm.screenit.clientportaal.model.mamma.MammaAfspraakZoekFilterDto;
 import nl.rivm.screenit.clientportaal.services.mamma.MammaAfspraakService;
-import nl.rivm.screenit.dao.mamma.MammaBaseStandplaatsDao;
 import nl.rivm.screenit.dto.mamma.afspraken.MammaHuidigeAfspraakDto;
 import nl.rivm.screenit.dto.mamma.afspraken.MammaKandidaatAfspraakDto;
 import nl.rivm.screenit.model.Client;
@@ -46,6 +45,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaVerzettenReden;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.service.mamma.MammaBaseFactory;
+import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsPeriodeService;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.DateUtil;
@@ -70,9 +70,9 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 
 	private final ICurrentDateSupplier currentDateSupplier;
 
-	private final MammaBaseStandplaatsDao standplaatsDao;
-
 	private final MammaBaseStandplaatsService standplaatsService;
+
+	private final MammaBaseStandplaatsPeriodeService standplaatsPeriodeService;
 
 	@Override
 	public List<LocalDate> getAlleDatumsMetBeschikbareAfspraken(Client client, String plaats, String afstand)
@@ -106,7 +106,7 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 
 		MammaAfspraakWijzigenFilterDto filterOphalenStandplaatsPerioden = MammaAfspraakWijzigenFilterDto.filterVoorOphalenStandplaatsenViaPlaatsOfAfstand(plaats, afstand, vandaag,
 			vandaag.plusYears(2));
-		List<MammaStandplaatsPeriode> standplaatsPerioden = standplaatsDao.getStandplaatsPerioden(filterOphalenStandplaatsPerioden);
+		List<MammaStandplaatsPeriode> standplaatsPerioden = standplaatsPeriodeService.getStandplaatsPerioden(filterOphalenStandplaatsPerioden);
 
 		return DateUtil.toLocalDate(standplaatsService.getMaximaleVrijgegevenTotEnMetDatum(standplaatsPerioden));
 	}

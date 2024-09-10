@@ -28,14 +28,11 @@ import java.util.List;
 
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
-import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.topicuszorg.wicket.planning.dao.AppointmentDao;
 import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
 import nl.topicuszorg.wicket.planning.model.appointment.Location;
-
-import com.google.common.collect.Range;
 
 public interface AfspraakDao extends AppointmentDao
 {
@@ -47,5 +44,4 @@ public interface AfspraakDao extends AppointmentDao
 
 	long countAfsprakenVoorColoscopiecentrum(WerklijstIntakeFilter zoekObject, ColoscopieCentrum coloscopieCentrum, LocalDate vandaag);
 
-	List<Object> getAfsprakenInRanges(Kamer location, List<Range<Date>> verwijderdeRanges);
 }

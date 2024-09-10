@@ -22,7 +22,6 @@ package nl.rivm.screenit.main.service.mamma;
  */
 
 import java.util.Date;
-import java.util.List;
 
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.InstellingGebruiker;
@@ -36,10 +35,6 @@ import com.google.common.collect.Range;
 public interface MammaStandplaatsService
 {
 	boolean saveOrUpdateStandplaats(MammaStandplaats standplaats, InstellingGebruiker ingelogdeGebruiker);
-
-	List<MammaStandplaats> zoekStandplaatsen(MammaStandplaats zoekObject, int first, int count, String sortProperty, boolean asc);
-
-	long countStandplaatsen(MammaStandplaats zoekObject);
 
 	long countActieveStandplaatsPeriodes(MammaStandplaats standplaats);
 
@@ -56,8 +51,5 @@ public interface MammaStandplaatsService
 
 	String controleerUitnodigingenNaVeranderingTijdelijkeLocatie(MammaStandplaats standplaats, String oudeAdres, Range<Date> oudePeriode);
 
-	Double bepaalAfstand(MammaStandplaats standplaats, Client client);
-
-	MammaStandplaatsLocatie getStandplaatsLocatie(MammaStandplaats standplaats, Date datum);
-
+	boolean heeftActieveOpmerking(MammaStandplaats standplaats);
 }

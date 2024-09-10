@@ -29,7 +29,9 @@ import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.project.Project;
+import nl.rivm.screenit.model.project.ProjectBriefActie_;
 import nl.rivm.screenit.model.project.ProjectClient_;
 import nl.rivm.screenit.model.project.ProjectType;
 import nl.rivm.screenit.model.project.Project_;
@@ -63,6 +65,21 @@ public class ProjectSpecification
 			var project = SpecificationUtil.join(projectClientJoin, ProjectClient_.project);
 			return project.get(Project_.naam).in(projectNamen);
 		};
+	}
+
+	public static Specification<Project> heeftBriefTypeInProject(BriefType type)
+	{
+		return (r, q, cb) ->
+		{
+			var projectBriefActiesJoin = SpecificationUtil.join(r, Project_.projectBriefActies);
+			return cb.equal(projectBriefActiesJoin.get(ProjectBriefActie_.briefType), type);
+		};
+	}
+
+	public static Specification<Project> heeftEindDatumNaVandaag(LocalDate vandaag)
+	{
+		return (r, q, cb) ->
+			cb.greaterThanOrEqualTo(r.get(Project_.eindDatum), DateUtil.toUtilDate(vandaag));
 	}
 
 }

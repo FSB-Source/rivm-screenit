@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.service;
 
 /*-
@@ -34,7 +33,5 @@ public interface StamtabellenService
 	List<Titel> getTitels(Gebruiker medewerker);
 
 	List<Functie> getFuncties(Gebruiker medewerker);
-
-	Functie getFunctie(String functie);
 
 }

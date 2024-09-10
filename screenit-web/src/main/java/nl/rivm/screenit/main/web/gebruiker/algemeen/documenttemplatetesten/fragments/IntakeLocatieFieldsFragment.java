@@ -35,7 +35,7 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.validation.validator.EmailAddressValidator;
+import nl.rivm.screenit.main.web.component.validator.EmailAddressValidator;
 
 public class IntakeLocatieFieldsFragment extends Fragment
 {

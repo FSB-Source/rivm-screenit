@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.standplaats;
 
 /*-
@@ -24,7 +23,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.standplaats
 
 import java.util.Iterator;
 
-import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
+import nl.rivm.screenit.main.service.mamma.impl.MammaStandplaatsDataProviderServiceImpl;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -34,43 +33,35 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import com.google.common.primitives.Ints;
-
 public class MammaStandplaatsDataProvider extends SortableDataProvider<MammaStandplaats, String>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
-	private MammaStandplaatsService standplaatsService;
+	private MammaStandplaatsDataProviderServiceImpl standplaatsDataProvider;
 
-	private IModel<MammaStandplaats> criteria;
+	private final IModel<MammaStandplaats> zoekObjectModel;
 
-	public MammaStandplaatsDataProvider(String sortProperty, IModel<MammaStandplaats> criteria)
+	public MammaStandplaatsDataProvider(String sortProperty, IModel<MammaStandplaats> zoekObjectModel)
 	{
 		Injector.get().inject(this);
 		setSort(sortProperty, SortOrder.ASCENDING);
-		this.criteria = criteria;
+		this.zoekObjectModel = zoekObjectModel;
 	}
 
 	@Override
 	public Iterator<? extends MammaStandplaats> iterator(long first, long count)
 	{
-		MammaStandplaats zoekObject = getZoekObject();
-
-		return standplaatsService.zoekStandplaatsen(zoekObject, Ints.checkedCast(first), Ints.checkedCast(count), getSort().getProperty(), getSort().isAscending()).iterator();
+		return standplaatsDataProvider.findPage(first, count, getZoekObject(), getSort()).iterator();
 	}
 
 	private MammaStandplaats getZoekObject()
 	{
-		return ModelUtil.nullSafeGet(criteria);
+		return ModelUtil.nullSafeGet(zoekObjectModel);
 	}
 
 	@Override
 	public long size()
 	{
-		MammaStandplaats zoekObject = getZoekObject();
-		return standplaatsService.countStandplaatsen(zoekObject);
+		return standplaatsDataProvider.size((getZoekObject()));
 	}
 
 	@Override
@@ -83,6 +74,6 @@ public class MammaStandplaatsDataProvider extends SortableDataProvider<MammaStan
 	public void detach()
 	{
 		super.detach();
-		ModelUtil.nullSafeDetach(criteria);
+		ModelUtil.nullSafeDetach(zoekObjectModel);
 	}
 }

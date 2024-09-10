@@ -22,19 +22,17 @@ package nl.rivm.screenit.main.service.colon.impl;
  */
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.dao.BaseHoudbaarheidDao;
 import nl.rivm.screenit.dao.UitnodigingsDao;
 import nl.rivm.screenit.dao.VerslagDao;
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenissen;
@@ -56,7 +54,6 @@ import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.berichten.enums.VerslagType;
-import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.colon.ColonConclusie;
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
@@ -83,13 +80,13 @@ import nl.rivm.screenit.model.colon.verslag.mdl.MdlVerslagContent;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.BaseBriefService;
+import nl.rivm.screenit.service.BaseHoudbaarheidService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.TestService;
 import nl.rivm.screenit.service.colon.ColonAfspraakDefinitieService;
 import nl.rivm.screenit.service.colon.ColonBaseFITService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonStudietestService;
-import nl.rivm.screenit.service.colon.ColonUitnodigingService;
 import nl.rivm.screenit.service.colon.ColonVerwerkVerslagService;
 import nl.rivm.screenit.util.ColonScreeningRondeUtil;
 import nl.rivm.screenit.util.DateUtil;
@@ -100,11 +97,9 @@ import nl.topicuszorg.wicket.planning.model.Discipline;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.REQUIRED)
 @Slf4j
 public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 {
@@ -139,7 +134,7 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 	private SimplePreferenceService preferenceService;
 
 	@Autowired
-	private BaseHoudbaarheidDao houdbaarheidDao;
+	private BaseHoudbaarheidService houdbaarheidService;
 
 	@Autowired
 	private RetourzendingService retourzendingService;
@@ -160,26 +155,23 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 	private ColonDossierService colonDossierService;
 
 	@Autowired
-	private ColonUitnodigingService colonUitnodigingService;
-
-	@Autowired
 	private ColonAfspraakDefinitieService afspraakDefinitieService;
 
 	@Override
 	public List<TestVervolgKeuzeOptie> getSnelKeuzeOpties(Client client)
 	{
-		List<TestVervolgKeuzeOptie> keuzes = new ArrayList<>();
+		var keuzes = new ArrayList<TestVervolgKeuzeOptie>();
 		if (client.getColonDossier().getLaatsteScreeningRonde() != null
 			&& client.getColonDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging() != null)
 		{
-			for (ColonScreeningRonde ronde : client.getColonDossier().getScreeningRondes())
+			for (var ronde : client.getColonDossier().getScreeningRondes())
 			{
 				if (ronde.getLaatsteUitnodiging() != null)
 				{
-					keuzeAntwoordFormulierEnIfobt(keuzes, ronde);
+					keuzeAntwoordFormulierEnFit(keuzes, ronde);
 					keuzeIntakeAfspraak(keuzes, ronde);
 					keuzeIntakeAfspraakConclusie(keuzes, ronde);
-					keuzeHerinneringIfobt(keuzes, ronde);
+					keuzeHerinneringFit(keuzes, ronde);
 					keuzeRetourZending(keuzes, ronde);
 				}
 			}
@@ -193,11 +185,11 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 		return keuzes;
 	}
 
-	private void keuzeHerinneringIfobt(List<TestVervolgKeuzeOptie> keuzes, ColonScreeningRonde ronde)
+	private void keuzeHerinneringFit(List<TestVervolgKeuzeOptie> keuzes, ColonScreeningRonde ronde)
 	{
 		if (!keuzes.contains(TestVervolgKeuzeOptie.HERINNERING))
 		{
-			for (IFOBTTest test : ronde.getIfobtTesten())
+			for (var test : ronde.getIfobtTesten())
 			{
 				if (!test.isHerinnering() && test.getStatus().equals(IFOBTTestStatus.ACTIEF))
 				{
@@ -208,18 +200,16 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 		}
 	}
 
-	private void keuzeAntwoordFormulierEnIfobt(List<TestVervolgKeuzeOptie> keuzes, ColonScreeningRonde ronde)
+	private void keuzeAntwoordFormulierEnFit(List<TestVervolgKeuzeOptie> keuzes, ColonScreeningRonde ronde)
 	{
 		if (!keuzes.contains(TestVervolgKeuzeOptie.IFOBT))
 		{
-			for (IFOBTTest test : ronde.getIfobtTesten())
+			for (var test : ronde.getIfobtTesten())
 			{
+				if (test.getUitslag() == null)
 				{
-					if (test.getUitslag() == null)
-					{
-						keuzes.add(TestVervolgKeuzeOptie.IFOBT);
-						return;
-					}
+					keuzes.add(TestVervolgKeuzeOptie.IFOBT);
+					return;
 				}
 			}
 		}
@@ -229,7 +219,7 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 	{
 		if (!keuzes.contains(TestVervolgKeuzeOptie.RETOURZENDING))
 		{
-			for (IFOBTTest test : ronde.getIfobtTesten())
+			for (var test : ronde.getIfobtTesten())
 			{
 				if (test.getType().equals(IFOBTType.GOLD) && retourzendingService.isValideColonUitnodiging(test.getColonUitnodiging()) == null)
 				{
@@ -254,7 +244,7 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 
 	private void keuzeIntakeAfspraakConclusie(List<TestVervolgKeuzeOptie> keuzes, ColonScreeningRonde ronde)
 	{
-		ColonIntakeAfspraak afspraak = ronde.getLaatsteAfspraak();
+		var afspraak = ronde.getLaatsteAfspraak();
 		if (afspraak != null)
 		{
 			if (afspraak.getConclusie() == null && !ColonScreeningRondeUtil.heeftAfgerondeVerslag(ronde, VerslagType.MDL))
@@ -265,10 +255,11 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 	}
 
 	@Override
+	@Transactional
 	public List<Client> maakOfVindClienten(TestTimelineModel model)
 	{
 		List<Client> clienten = new ArrayList<>();
-		for (String bsn : model.getBsns())
+		for (var bsn : model.getBsns())
 		{
 			clienten.add(maakOfVindClient(model, bsn));
 		}
@@ -277,12 +268,12 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 
 	private Client maakOfVindClient(TestTimelineModel model, String bsn)
 	{
-		GbaPersoon persoon = new GbaPersoon();
+		var persoon = new GbaPersoon();
 		persoon.setBsn(bsn);
 		persoon.setGeboortedatum(model.getGeboortedatum());
 		persoon.setGeslacht(model.getGeslacht());
 
-		BagAdres adres = new BagAdres();
+		var adres = new BagAdres();
 		adres.setGbaGemeente(model.getGemeente());
 
 		if (model.getGemeente() != null)
@@ -295,14 +286,15 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 	}
 
 	@Override
+	@Transactional
 	public List<Client> maakOfWijzigClienten(TestTimelineModel model)
 	{
 		List<Client> clienten = new ArrayList<>();
-		for (String bsn : model.getBsns())
+		for (var bsn : model.getBsns())
 		{
-			Client client = maakOfVindClient(model, bsn);
+			var client = maakOfVindClient(model, bsn);
 			clienten.add(client);
-			GbaPersoon gbaPersoon = client.getPersoon();
+			var gbaPersoon = client.getPersoon();
 			gbaPersoon.setGeslacht(model.getGeslacht());
 			gbaPersoon.setGeboortedatum(model.getGeboortedatum());
 
@@ -313,10 +305,10 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 
 	private int getAantalUitnodigingen(Client client)
 	{
-		int aantalUitnodigingen = 0;
+		var aantalUitnodigingen = 0;
 		if (heeftLaatsteScreeningsRonde(client))
 		{
-			ColonScreeningRonde screeningRonde = client.getColonDossier().getLaatsteScreeningRonde();
+			var screeningRonde = client.getColonDossier().getLaatsteScreeningRonde();
 			if (screeningRonde.getUitnodigingen() != null && !screeningRonde.getUitnodigingen().isEmpty())
 			{
 				aantalUitnodigingen = screeningRonde.getUitnodigingen().size();
@@ -327,10 +319,10 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 
 	private int getAantalTestbuizen(Client client)
 	{
-		int aantalBuizen = 0;
+		var aantalBuizen = 0;
 		if (heeftLaatsteScreeningsRonde(client))
 		{
-			ColonScreeningRonde screeningRonde = client.getColonDossier().getLaatsteScreeningRonde();
+			var screeningRonde = client.getColonDossier().getLaatsteScreeningRonde();
 			if (screeningRonde.getIfobtTesten() != null && screeningRonde.getIfobtTesten().size() > 0)
 			{
 				aantalBuizen = screeningRonde.getIfobtTesten().size();
@@ -355,7 +347,7 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 		Client eersteClient = null;
 		var aantalUitnodigingen = 0;
 		var aantalTestbuizen = 0;
-		List<String> errorMelding = new ArrayList<>();
+		var errorMeldingen = new ArrayList<String>();
 		for (var client : clienten)
 		{
 			if (eersteClient == null)
@@ -369,19 +361,20 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 			{
 				var error = "Het aantal uitnodigingen voor client-bsn: " + client.getPersoon().getBsn() + "is niet gelijk aan de overige testcliënten.";
 				LOG.error(error);
-				errorMelding.add(error);
+				errorMeldingen.add(error);
 			}
 			if (aantalTestbuizen != getAantalTestbuizen(client))
 			{
 				var error = "Het aantal testbuizen voor client-bsn: " + client.getPersoon().getBsn() + "is niet gelijk aan de overige testcliënten.";
 				LOG.error(error);
-				errorMelding.add(error);
+				errorMeldingen.add(error);
 			}
 		}
-		return errorMelding;
+		return errorMeldingen;
 	}
 
 	@Override
+	@Transactional
 	public ColonDossier maakNieuweScreeningRonde(Client client, TestTimeLineDossierTijdstip tijdstip, ColonOnderzoeksVariant onderzoeksVariant)
 	{
 		if (client.getColonDossier().getLaatsteScreeningRonde() != null)
@@ -414,15 +407,16 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 	}
 
 	@Override
+	@Transactional
 	public ColonDossier bewerkUitnodiging(Client client, TestTimeLineDossierTijdstip tijdstip)
 	{
-		ColonDossier dossier = client.getColonDossier();
-		ColonScreeningRonde ronde = geefLaatsteColonScreeningRonde(dossier);
-		ColonUitnodiging uitnodiging = geefColonUitnodiging(ronde);
+		var dossier = client.getColonDossier();
+		var ronde = geefLaatsteColonScreeningRonde(dossier);
+		var uitnodiging = geefColonUitnodiging(ronde);
 
 		if (TestTimeLineDossierTijdstip.DAG_UITNODIGING_VERSTUREN.equals(tijdstip) || TestTimeLineDossierTijdstip.DAG_NA_UITNODIGING_KOPPELEN.equals(tijdstip))
 		{
-			int aantalDagen = controleerColonUitnodigingVersturen(dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging());
+			var aantalDagen = controleerColonUitnodigingVersturen(dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging());
 			if (aantalDagen > 0)
 			{
 				testTimelineTimeService.calculateBackwards(dossier, aantalDagen);
@@ -437,7 +431,7 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 
 			testTimelineTimeService.calculateBackwards(dossier, 1);
 
-			koppelIFOBTTest(uitnodiging);
+			koppelFit(uitnodiging);
 
 		}
 		return dossier;
@@ -448,29 +442,29 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 		return (int) ChronoUnit.DAYS.between(currentDateSupplier.getLocalDate(), DateUtil.toLocalDate(uitnodiging.getUitnodigingsDatum()));
 	}
 
-	private int bepaalAantalDagenVoorOnvangenAntwoordformulierOfIfobtTest(ColonUitnodiging uitnodiging)
+	private int bepaalAantalDagenVoorOntvangenAntwoordformulierOfFit(ColonUitnodiging uitnodiging)
 	{
 
-		IFOBTTest gold = uitnodiging.getGekoppeldeTest();
+		var gold = uitnodiging.getGekoppeldeTest();
 		if (gold != null && (gold.getAnalyseDatum() != null || IFOBTTestStatus.isUnmutableEindStatus(gold.getStatus()))
 			|| uitnodiging.getAntwoordFormulier() != null && uitnodiging.getAntwoordFormulier().getScanDatum() != null)
 		{
 			return 0;
 		}
 		uitnodiging = uitnodiging.getScreeningRonde().getDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging();
-		Date verstuurdDatum = uitnodiging.getVerstuurdDatum();
+		var verstuurdDatum = uitnodiging.getVerstuurdDatum();
 		if (verstuurdDatum == null)
 		{
 			verstuurdDatum = uitnodiging.getCreatieDatum();
 		}
-		LocalDate datumVerstuurd = DateUtil.toLocalDate(verstuurdDatum).plusDays(DEFAULT_TIJD_TUSSEN_VERSTUURD_EN_UITSLAG_ONTVANGEN);
+		var datumVerstuurd = DateUtil.toLocalDate(verstuurdDatum).plusDays(DEFAULT_TIJD_TUSSEN_VERSTUURD_EN_UITSLAG_ONTVANGEN);
 		return (int) ChronoUnit.DAYS.between(datumVerstuurd, currentDateSupplier.getLocalDate());
 	}
 
 	private ColonScreeningRonde newColonScreeningRonde(ColonDossier dossier)
 	{
-		ColonScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
-		Date nu = currentDateSupplier.getDate();
+		var ronde = dossier.getLaatsteScreeningRonde();
+		var nu = currentDateSupplier.getDate();
 		if (ronde != null)
 		{
 			ronde.setStatus(ScreeningRondeStatus.AFGEROND);
@@ -491,7 +485,7 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 
 	private ColonScreeningRonde geefLaatsteColonScreeningRonde(ColonDossier dossier)
 	{
-		ColonScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
+		var ronde = dossier.getLaatsteScreeningRonde();
 		if (ronde == null)
 		{
 			ronde = newColonScreeningRonde(dossier);
@@ -501,32 +495,32 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 
 	private ColonVooraankondiging geefColonVooraankondiging(ColonScreeningRonde ronde)
 	{
-		ColonDossier dossier = ronde.getDossier();
-		ColonVooraankondiging vooraankondiging = dossier.getColonVooraankondiging();
+		var dossier = ronde.getDossier();
+		var vooraankondiging = dossier.getColonVooraankondiging();
 		if (vooraankondiging == null)
 		{
 			vooraankondiging = new ColonVooraankondiging();
 			vooraankondiging.setClient(dossier.getClient());
-			Date nu = currentDateSupplier.getDate();
+			var nu = currentDateSupplier.getDate();
 			vooraankondiging.setCreatieDatum(nu);
 			dossier.setColonVooraankondiging(vooraankondiging);
-			ColonBrief brief = briefService.maakBvoBrief(ronde, BriefType.COLON_VOORAANKONDIGING);
+			var brief = briefService.maakBvoBrief(ronde, BriefType.COLON_VOORAANKONDIGING);
 			vooraankondiging.setBrief(brief);
 			hibernateService.saveOrUpdateAll(vooraankondiging);
 		}
 		return vooraankondiging;
 	}
 
-	private void koppelIFOBTTest(ColonUitnodiging uitnodiging)
+	private void koppelFit(ColonUitnodiging uitnodiging)
 	{
 		if (uitnodiging != null && uitnodiging.getGekoppeldeTest() == null)
 		{
-			String baseTestBarcode = FITTestUtil.getFITTestBarcode(uitnodiging.getUitnodigingsId());
-			Date nu = currentDateSupplier.getDate();
+			var baseTestBarcode = FITTestUtil.getFITTestBarcode(uitnodiging.getUitnodigingsId());
+			var nu = currentDateSupplier.getDate();
 			if (ColonOnderzoeksVariant.isOfType(uitnodiging.getOnderzoeksVariant(), IFOBTType.GOLD))
 			{
-				ColonScreeningRonde ronde = uitnodiging.getScreeningRonde();
-				IFOBTTest test = new IFOBTTest();
+				var ronde = uitnodiging.getScreeningRonde();
+				var test = new IFOBTTest();
 				test.setDatumVerstuurd(nu);
 				test.setStatus(IFOBTTestStatus.ACTIEF);
 				test.setStatusDatum(nu);
@@ -544,8 +538,8 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 			}
 			if (ColonOnderzoeksVariant.isOfType(uitnodiging.getOnderzoeksVariant(), IFOBTType.STUDIE))
 			{
-				ColonScreeningRonde ronde = uitnodiging.getScreeningRonde();
-				IFOBTTest test = new IFOBTTest();
+				var ronde = uitnodiging.getScreeningRonde();
+				var test = new IFOBTTest();
 				test.setDatumVerstuurd(nu);
 				test.setStatus(IFOBTTestStatus.ACTIEF);
 				test.setStatusDatum(nu);
@@ -565,8 +559,7 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 
 	private ColonUitnodiging newColonUitnodiging(ColonScreeningRonde ronde, ColonUitnodigingCategorie cat, ColonOnderzoeksVariant onderzoeksVariant)
 	{
-
-		ColonUitnodiging colonUitnodiging = new ColonUitnodiging();
+		var colonUitnodiging = new ColonUitnodiging();
 		colonUitnodiging.setUitnodigingsId(uitnodigingsDao.getNextUitnodigingsId());
 		if (ColonUitnodigingCategorie.U1.equals(cat) || ColonUitnodigingCategorie.U2.equals(cat))
 		{
@@ -592,7 +585,7 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 
 	private ColonUitnodiging geefColonUitnodiging(ColonScreeningRonde ronde)
 	{
-		ColonUitnodiging uitnodiging = ronde.getLaatsteUitnodiging();
+		var uitnodiging = ronde.getLaatsteUitnodiging();
 		if (uitnodiging == null)
 		{
 			if (ronde.getDossier().getScreeningRondes().size() == 1)
@@ -610,32 +603,31 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 	@Override
 	public List<TestTimelineRonde> getTimelineRondes(Client client)
 	{
-		List<Bevolkingsonderzoek> onderzoeken = new ArrayList<>();
+		var onderzoeken = new ArrayList<Bevolkingsonderzoek>();
 		onderzoeken.add(Bevolkingsonderzoek.COLON);
-		List<ScreeningRondeGebeurtenissen> rondes = dossierService.getScreeningRondeGebeurtenissen(client, new ClientDossierFilter(onderzoeken, false));
+		var rondes = dossierService.getScreeningRondeGebeurtenissen(client, new ClientDossierFilter(onderzoeken, false));
 
-		List<TestTimelineRonde> timeLineRondes = convertToTimeLineRondes(rondes);
-		return timeLineRondes;
+		return convertToTimelineRondes(rondes);
 	}
 
-	private List<TestTimelineRonde> convertToTimeLineRondes(List<ScreeningRondeGebeurtenissen> rondeDossier)
+	private List<TestTimelineRonde> convertToTimelineRondes(List<ScreeningRondeGebeurtenissen> rondeDossier)
 	{
 		Map<Integer, TestTimelineRonde> rondes = new HashMap<>();
-		for (ScreeningRondeGebeurtenissen ronde : rondeDossier)
+		for (var ronde : rondeDossier)
 		{
-			Integer index = new Integer(ronde.getRondenr() - 1);
-			TestTimelineRonde testTimeLineRonde = null;
+			var index = ronde.getRondenr() - 1;
+			TestTimelineRonde testTimelineRonde;
 			if (!rondes.containsKey(index))
 			{
-				testTimeLineRonde = new TestTimelineRonde();
-				testTimeLineRonde.setRondeNummer(index + 1);
-				rondes.put(index, testTimeLineRonde);
+				testTimelineRonde = new TestTimelineRonde();
+				testTimelineRonde.setRondeNummer(index + 1);
+				rondes.put(index, testTimelineRonde);
 			}
 			else
 			{
-				testTimeLineRonde = rondes.get(index);
+				testTimelineRonde = rondes.get(index);
 			}
-			testTimeLineRonde.setColonScreeningRondeDossier(ronde);
+			testTimelineRonde.setColonScreeningRondeDossier(ronde);
 		}
 		return convertHashMapToList(rondes);
 	}
@@ -643,7 +635,7 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 	private List<TestTimelineRonde> convertHashMapToList(Map<Integer, TestTimelineRonde> map)
 	{
 		List<TestTimelineRonde> rondes = new ArrayList<>();
-		for (Entry<Integer, TestTimelineRonde> ronde : map.entrySet())
+		for (var ronde : map.entrySet())
 		{
 			rondes.add(ronde.getKey(), ronde.getValue());
 		}
@@ -651,20 +643,22 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 	}
 
 	@Override
+	@Transactional
 	public void retourzendingOntvangen(ColonUitnodiging uitnodiging, String reden)
 	{
-		ColonDossier dossier = uitnodiging.getScreeningRonde().getDossier();
+		var dossier = uitnodiging.getScreeningRonde().getDossier();
 		testTimelineTimeService.calculateBackwards(dossier, 5);
 
 		retourzendingService.verwerkRetourzendingHandmatig(null, uitnodiging, reden);
 	}
 
 	@Override
-	public IFOBTTest ifobtTestOntvangen(Client client, Boolean verlopen, IFOBTTest buis, int analyseDatumDiff)
+	@Transactional
+	public IFOBTTest fitOntvangen(Client client, Boolean verlopen, IFOBTTest buis, int analyseDatumDiff)
 	{
 
-		ColonUitnodiging uitnodiging = FITTestUtil.getUitnodiging(buis);
-		int aantalDagen = bepaalAantalDagenVoorOnvangenAntwoordformulierOfIfobtTest(uitnodiging);
+		var uitnodiging = FITTestUtil.getUitnodiging(buis);
+		var aantalDagen = bepaalAantalDagenVoorOntvangenAntwoordformulierOfFit(uitnodiging);
 		if (aantalDagen >= 0)
 		{
 			testTimelineTimeService.calculateBackwards(client.getColonDossier(), aantalDagen);
@@ -674,9 +668,9 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 
 		if (FITTestUtil.heeftUitslag(buis))
 		{
-			IFOBTVervaldatum ifobtVervaldatum = houdbaarheidDao.getHoudbaarheidVoor(IFOBTVervaldatum.class, buis.getBarcode());
+			var fitVervaldatum = houdbaarheidService.getFitHoudbaarheidVoor(buis.getBarcode());
 			IFOBTVervaldatum tijdelijkVervaldatum = null;
-			if (ifobtVervaldatum == null && !Boolean.TRUE.equals(verlopen))
+			if (fitVervaldatum == null && !Boolean.TRUE.equals(verlopen))
 			{
 				tijdelijkVervaldatum = new IFOBTVervaldatum();
 				tijdelijkVervaldatum.setVervalDatum(DateUtil.toUtilDate(vandaag.plusDays(10)));
@@ -686,10 +680,10 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 				tijdelijkVervaldatum.setBarcodeEnd(buis.getBarcode());
 				hibernateService.saveOrUpdate(tijdelijkVervaldatum);
 			}
-			else if (ifobtVervaldatum != null && (buis.getBarcode().startsWith("TGD") || buis.getBarcode().startsWith("TST")))
+			else if (fitVervaldatum != null && (buis.getBarcode().startsWith("TGD") || buis.getBarcode().startsWith("TST")))
 			{
-				ifobtVervaldatum.setVervalDatum(DateUtil.toUtilDate(vandaag.plusDays(10)));
-				hibernateService.saveOrUpdate(ifobtVervaldatum);
+				fitVervaldatum.setVervalDatum(DateUtil.toUtilDate(vandaag.plusDays(10)));
+				hibernateService.saveOrUpdate(fitVervaldatum);
 			}
 			buis.setAnalyseDatum(DateUtil.toUtilDate(vandaag.minusDays(analyseDatumDiff)));
 			buis.setVerwerkingsDatum(DateUtil.toUtilDate(vandaag));
@@ -717,23 +711,25 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 	}
 
 	@Override
+	@Transactional
 	public ColonScreeningRonde naarEindeVanRonde(Client client)
 	{
-		ColonDossier dossier = client.getColonDossier();
+		var dossier = client.getColonDossier();
 		testTimelineTimeService.calculateBackwards(dossier, TestTimeLineDossierTijdstip.EINDE_RONDE);
 		return dossier.getLaatsteScreeningRonde();
 	}
 
 	@Override
-	public void ifobtHerinneringVersturen(Client client, TestTimeLineDossierTijdstip tijdstip)
+	@Transactional
+	public void fitHerinneringVersturen(Client client, TestTimeLineDossierTijdstip tijdstip)
 	{
-		ColonDossier dossier = client.getColonDossier();
+		var dossier = client.getColonDossier();
 		testTimelineTimeService.calculateBackwards(dossier, tijdstip);
 		if (TestTimeLineDossierTijdstip.DAG_NA_HERINNERING_VERSTUREN.equals(tijdstip))
 		{
-			ColonScreeningRonde csr = dossier.getLaatsteScreeningRonde();
-			ColonBrief herinneringsBrief = briefService.maakBvoBrief(csr, BriefType.COLON_HERINNERING);
-			for (IFOBTTest iTest : rappelerendeIfobts(csr))
+			var csr = dossier.getLaatsteScreeningRonde();
+			var herinneringsBrief = briefService.maakBvoBrief(csr, BriefType.COLON_HERINNERING);
+			for (var iTest : rappelerendeFITs(csr))
 			{
 				iTest.setHerinnering(Boolean.TRUE);
 				hibernateService.saveOrUpdate(iTest);
@@ -743,19 +739,10 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 		}
 	}
 
-	private List<IFOBTTest> rappelerendeIfobts(ColonScreeningRonde csr)
+	private List<IFOBTTest> rappelerendeFITs(ColonScreeningRonde csr)
 	{
-		List<IFOBTTest> rappeleren = new ArrayList<>();
-		Date rapelDate = getRapelDate();
-		for (IFOBTTest test : csr.getIfobtTesten())
-		{
-			if (IFOBTTestStatus.ACTIEF.equals(test.getStatus()) && test.getStatusDatum().before(rapelDate))
-			{
-				rappeleren.add(test);
-			}
-		}
-
-		return rappeleren;
+		return csr.getIfobtTesten().stream().filter(fit -> IFOBTTestStatus.ACTIEF.equals(fit.getStatus()) && fit.getStatusDatum().before(getRapelDate()))
+			.collect(Collectors.toList());
 	}
 
 	private Date getRapelDate()
@@ -765,24 +752,26 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 	}
 
 	@Override
+	@Transactional
 	public void verzetDossierAchteruitInTijd(Client client, int aantaldagen)
 	{
-		ColonDossier dossier = client.getColonDossier();
+		var dossier = client.getColonDossier();
 		testTimelineTimeService.calculateBackwards(dossier, aantaldagen);
 	}
 
 	@Override
+	@Transactional
 	public void maaktIntakeAfspraakVoorClient(Client client, ColoscopieCentrum centrum)
 	{
-		ColonDossier dossier = client.getColonDossier();
+		var dossier = client.getColonDossier();
 		testTimelineTimeService.calculateBackwards(client.getColonDossier(), 1);
 
-		ColonScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
+		var ronde = dossier.getLaatsteScreeningRonde();
 
-		ColonBrief brief = briefService.maakBvoBrief(ronde, BriefType.COLON_UITNODIGING_INTAKE);
+		var brief = briefService.maakBvoBrief(ronde, BriefType.COLON_UITNODIGING_INTAKE);
 		brief.setCreatieDatum(DateUtil.minusTijdseenheid(brief.getCreatieDatum(), 5, ChronoUnit.SECONDS));
 
-		ColonIntakeAfspraak intakeAfspraak = ronde.getLaatsteAfspraak();
+		var intakeAfspraak = ronde.getLaatsteAfspraak();
 		if (intakeAfspraak == null)
 		{
 			intakeAfspraak = new ColonIntakeAfspraak();
@@ -807,7 +796,7 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 		if (intakeAfspraak.getLocation() == null)
 		{
 			Kamer actieveKamer = null;
-			for (Kamer kamer : centrum.getKamers())
+			for (var kamer : centrum.getKamers())
 			{
 				if (kamer.getActief())
 				{
@@ -837,15 +826,16 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 	}
 
 	@Override
+	@Transactional
 	public void maakIntakeAfspraakConclusieVoorClient(Client client, ColonConclusieType type)
 	{
-		ColonVervolgonderzoekKeuzesDto keuzes = new ColonVervolgonderzoekKeuzesDto();
-		ColonDossier dossier = client.getColonDossier();
+		var keuzes = new ColonVervolgonderzoekKeuzesDto();
+		var dossier = client.getColonDossier();
 		testTimelineTimeService.calculateBackwards(dossier, TestTimeLineDossierTijdstip.INTAKE_AFSPRAAK_CONCLUSIE);
-		ColonScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
-		ColonIntakeAfspraak intakeAfspraak = ronde.getLaatsteAfspraak();
-		ColonConclusie conclusie = intakeAfspraak.getConclusie();
-		InstellingGebruiker ingelogdeGebruiker = hibernateService.loadAll(InstellingGebruiker.class).get(0);
+		var ronde = dossier.getLaatsteScreeningRonde();
+		var intakeAfspraak = ronde.getLaatsteAfspraak();
+		var conclusie = intakeAfspraak.getConclusie();
+		var ingelogdeGebruiker = hibernateService.loadAll(InstellingGebruiker.class).get(0);
 		keuzes.conclusie = type;
 		if (conclusie == null)
 		{
@@ -887,13 +877,14 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 	}
 
 	@Override
+	@Transactional
 	public void maaktMdlVerslagVoorClient(Client client, ColoscopieLocatie locatie, MdlVervolgbeleid vervolgbeleid, Date datumOnderzoek)
 	{
-		ColonDossier dossier = client.getColonDossier();
+		var dossier = client.getColonDossier();
 		testTimelineTimeService.calculateBackwards(dossier, TestTimeLineDossierTijdstip.MDL_VERSLAG);
-		ColonScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
+		var ronde = dossier.getLaatsteScreeningRonde();
 
-		MdlVerslag verslag = new MdlVerslag();
+		var verslag = new MdlVerslag();
 		verslag.setDatumOnderzoek(datumOnderzoek);
 		verslag.setDatumVerwerkt(currentDateSupplier.getDate());
 		verslag.setInvoerder(locatie.getOrganisatieMedewerkers().get(0));
@@ -903,14 +894,14 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 		verslag.setUitvoerderMedewerker(locatie.getOrganisatieMedewerkers().get(0).getMedewerker());
 		verslag.setUitvoerderOrganisatie(locatie);
 		verslag.setVervolgbeleid(vervolgbeleid);
-		MdlVerslagContent content = new MdlVerslagContent();
+		var content = new MdlVerslagContent();
 		verslag.setVerslagContent(content);
 		if (vervolgbeleid != null)
 		{
-			MdlColoscopieMedischeObservatie coloscopieMedischeObservatie = new MdlColoscopieMedischeObservatie();
+			var coloscopieMedischeObservatie = new MdlColoscopieMedischeObservatie();
 			content.setColoscopieMedischeObservatie(coloscopieMedischeObservatie);
 			coloscopieMedischeObservatie.setVerslagContent(content);
-			MdlDefinitiefVervolgbeleidVoorBevolkingsonderzoekg definitiefVervolgbeleidVoorBevolkingsonderzoekg = new MdlDefinitiefVervolgbeleidVoorBevolkingsonderzoekg();
+			var definitiefVervolgbeleidVoorBevolkingsonderzoekg = new MdlDefinitiefVervolgbeleidVoorBevolkingsonderzoekg();
 			coloscopieMedischeObservatie.setDefinitiefVervolgbeleidVoorBevolkingsonderzoekg(definitiefVervolgbeleidVoorBevolkingsonderzoekg);
 
 			definitiefVervolgbeleidVoorBevolkingsonderzoekg

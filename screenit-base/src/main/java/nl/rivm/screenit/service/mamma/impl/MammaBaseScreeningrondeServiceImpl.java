@@ -26,15 +26,21 @@ import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.dao.mamma.MammaBaseScreeningrondeDao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.model.mamma.MammaAfspraak_;
+import nl.rivm.screenit.model.mamma.MammaBeoordeling_;
 import nl.rivm.screenit.model.mamma.MammaDossier;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
+import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
+import nl.rivm.screenit.repository.mamma.MammaScreeningRondeRepository;
 import nl.rivm.screenit.service.BaseDossierService;
 import nl.rivm.screenit.service.BerichtToBatchService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -50,8 +56,13 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static nl.rivm.screenit.specification.mamma.MammaScreeningRondeSpecification.filterOpBeoordelingVoorDatum;
+import static nl.rivm.screenit.specification.mamma.MammaScreeningRondeSpecification.heeftBeoordelingStatusIn;
+import static nl.rivm.screenit.specification.mamma.MammaScreeningRondeSpecification.heeftClient;
 
 @Service
 public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningrondeService
@@ -61,9 +72,6 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 
 	@Autowired
 	private UploadDocumentService uploadDocumentService;
-
-	@Autowired
-	private MammaBaseScreeningrondeDao baseScreeningrondeDao;
 
 	@Autowired
 	private MammaBaseBeoordelingService baseBeoordelingService;
@@ -85,6 +93,9 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 
 	@Autowired
 	private BaseDossierService baseDossierService;
+
+	@Autowired
+	private MammaScreeningRondeRepository screeningRondeRepository;
 
 	@Override
 	public boolean heeftGeprinteOfTegengehoudenUitslagBrief(MammaScreeningRonde screeningRonde)
@@ -243,25 +254,43 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 	@Override
 	public MammaScreeningRonde getLaatsteScreeningRondeMetUitslag(Client client)
 	{
-		return baseScreeningrondeDao.getLaatsteScreeningRondeMetUitslag(client, null);
+		return getLaatsteScreeningRondeMetUitslag(client, null);
 	}
 
 	@Override
 	public MammaScreeningRonde getLaatsteScreeningRondeMetUitslag(Client client, Date voorDatum)
 	{
-		return baseScreeningrondeDao.getLaatsteScreeningRondeMetUitslag(client, voorDatum);
+		return getLaatsteScreeningRondeMetBeoordelingStatusVoorDatum(client, voorDatum, MammaBeoordelingStatus.uitslagStatussen());
 	}
 
 	@Override
-	public MammaScreeningRonde getLaatsteScreeningRondeMetPositieveUitslag(Client client)
+	public MammaScreeningRonde getLaatsteScreeningRondeMetOngunstigeUitslag(Client client)
 	{
-		return baseScreeningrondeDao.getLaatsteScreeningRondeMetPositieveUitslag(client, null);
+		return getLaatsteScreeningRondeMetBeoordelingStatusVoorDatum(client, null, List.of(MammaBeoordelingStatus.UITSLAG_ONGUNSTIG));
+	}
+
+	private MammaScreeningRonde getLaatsteScreeningRondeMetBeoordelingStatusVoorDatum(Client client, Date voorDatum, List<MammaBeoordelingStatus> beoordelingStatussen)
+	{
+		var sortOpBeoordelingsdatum = getSortOpBeoordingStatusDatumString();
+
+		return screeningRondeRepository.findFirst(
+			heeftClient(client)
+				.and(filterOpBeoordelingVoorDatum(DateUtil.toLocalDate(voorDatum)))
+				.and(heeftBeoordelingStatusIn(beoordelingStatussen)),
+			Sort.by(Sort.Direction.DESC, sortOpBeoordelingsdatum)
+		).orElse(null);
+	}
+
+	private static String getSortOpBeoordingStatusDatumString()
+	{
+		return MammaScreeningRonde_.UITNODIGINGEN + "." + MammaUitnodiging_.AFSPRAKEN + "." + MammaAfspraak_.ONDERZOEK + "." + MammaOnderzoek_.BEOORDELINGEN + "."
+			+ MammaBeoordeling_.STATUS_DATUM;
 	}
 
 	@Override
 	public Integer getJaarLaatsteVerwijzing(Client client)
 	{
-		var laatsteScreeningRondeMetPositieveUitslag = getLaatsteScreeningRondeMetPositieveUitslag(client);
+		var laatsteScreeningRondeMetPositieveUitslag = getLaatsteScreeningRondeMetOngunstigeUitslag(client);
 		return laatsteScreeningRondeMetPositieveUitslag != null
 			? DateUtil.toLocalDate(laatsteScreeningRondeMetPositieveUitslag.getLaatsteOnderzoek().getCreatieDatum()).getYear()
 			: null;

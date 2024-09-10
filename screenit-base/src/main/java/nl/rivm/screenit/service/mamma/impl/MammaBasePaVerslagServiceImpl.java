@@ -21,28 +21,27 @@ package nl.rivm.screenit.service.mamma.impl;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.dao.mamma.MammaBaseScreeningrondeDao;
+import lombok.RequiredArgsConstructor;
+
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.BezwaarType;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.mamma.MammaBasePaVerslagService;
+import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
 import nl.rivm.screenit.util.BezwaarUtil;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+@RequiredArgsConstructor
 public class MammaBasePaVerslagServiceImpl implements MammaBasePaVerslagService
 {
+	private final MammaBaseScreeningrondeService screeningrondeService;
 
-	@Autowired
-	private MammaBaseScreeningrondeDao screeningrondeDao;
-
-	@Autowired
-	private ClientService clientService;
+	private final ClientService clientService;
 
 	@Override
 	public boolean verwachtGegevensVoor(String bsn)
@@ -50,7 +49,7 @@ public class MammaBasePaVerslagServiceImpl implements MammaBasePaVerslagService
 		Client client = clientService.getClientZonderBezwaar(bsn);
 		if (client != null)
 		{
-			client = screeningrondeDao.getLaatsteScreeningRondeMetUitslag(client, null) != null ? client : null;
+			client = screeningrondeService.getLaatsteScreeningRondeMetUitslag(client) != null ? client : null;
 		}
 		return client != null && !BezwaarUtil.isBezwaarActiefVoor(client, BezwaarType.GEEN_DIGITALE_UITWISSELING_MET_HET_ZIEKENHUIS);
 	}

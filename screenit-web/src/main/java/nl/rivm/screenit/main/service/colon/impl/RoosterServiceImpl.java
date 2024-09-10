@@ -23,6 +23,7 @@ package nl.rivm.screenit.main.service.colon.impl;
 
 import java.math.BigInteger;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
@@ -52,7 +53,6 @@ import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.rivm.screenit.repository.colon.ColonAfspraakslotRepository;
 import nl.rivm.screenit.repository.colon.ColonTijdslotRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.specification.colon.ColonAfspraakslotSpecification;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.planning.model.IAppointment;
@@ -72,6 +72,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Range;
+
+import static nl.rivm.screenit.specification.colon.ColonAfspraakslotSpecification.heeftId;
+import static nl.rivm.screenit.specification.colon.ColonAfspraakslotSpecification.heeftKamer;
+import static nl.rivm.screenit.specification.colon.ColonAfspraakslotSpecification.valtBinnenDatumRange;
+import static nl.rivm.screenit.specification.colon.ColonAfspraakslotSpecification.valtBinnenDatumTijdRange;
 
 @Service
 public class RoosterServiceImpl implements RoosterService
@@ -112,7 +117,7 @@ public class RoosterServiceImpl implements RoosterService
 				filter.getSqlDagen(), typeTijdslot.getTitle()).stream()
 			.map(tuple -> new ColonTijdslotDto(((BigInteger) tuple.get("tijdslotId")).longValue(), DateUtil.toLocalDateTime((Date) tuple.get("startDatum")),
 				DateUtil.toLocalDateTime((Date) tuple.get("eindDatum")), (String) tuple.get("kamer"),
-				((BigInteger) tuple.get("kamerId")).longValue()))
+				((BigInteger) tuple.get("kamerId")).longValue(), null))
 			.collect(Collectors.toList());
 	}
 
@@ -169,6 +174,7 @@ public class RoosterServiceImpl implements RoosterService
 				if (AfspraakStatus.VOOR_AGENDA.contains(afspraak.getStatus()))
 				{
 					roosterItemStatus = RoosterItemStatus.INTAKE_GEPLAND;
+					break;
 				}
 			}
 		}
@@ -223,17 +229,17 @@ public class RoosterServiceImpl implements RoosterService
 	}
 
 	@Override
-	public List<RoosterItem> getAfspraakslotsInRangesEnKamer(List<Range<Date>> ranges, RoosterItem afspraakslot)
+	public List<RoosterItem> getAfspraakslotsInRangesEnKamer(Range<LocalDateTime> range, RoosterItem afspraakslot)
 	{
-		return afspraakslotRepository.findAll(ColonAfspraakslotSpecification.heeftKamer(afspraakslot.getLocation())
-				.and(ColonAfspraakslotSpecification.valtBinnenRanges(ranges).or(ColonAfspraakslotSpecification.heeftId(afspraakslot.getId()))),
+		return afspraakslotRepository.findAll(heeftKamer(afspraakslot.getLocation())
+				.and(valtBinnenDatumTijdRange(range).or(heeftId(afspraakslot.getId()))),
 			Sort.by(Sort.Direction.ASC, AbstractAppointment_.START_TIME));
 	}
 
 	@Override
-	public List<RoosterItem> getAfspraakslotsInRange(Range<Date> range)
+	public List<RoosterItem> getAfspraakslotsInRange(Range<LocalDate> range)
 	{
-		return afspraakslotRepository.findAll(ColonAfspraakslotSpecification.valtBinnenDatumRange(range), Sort.by(Sort.Direction.ASC, AbstractAppointment_.START_TIME));
+		return afspraakslotRepository.findAll(valtBinnenDatumRange(range), Sort.by(Sort.Direction.ASC, AbstractAppointment_.START_TIME));
 	}
 
 	@Override
@@ -258,6 +264,18 @@ public class RoosterServiceImpl implements RoosterService
 	{
 		var organisatie = instellingGebruiker.getOrganisatie();
 		return (ColoscopieCentrum) HibernateHelper.deproxy(organisatie);
+	}
+
+	@Override
+	public Range<LocalDateTime> getCurrentViewRange(ColonTijdslotDto tijdslot)
+	{
+		var startDatumTijd = tijdslot.getStartTime();
+		var eindDatumTijd = tijdslot.getEndTime();
+		if (tijdslot.getHerhaling() != null && !tijdslot.getHerhaling().getFrequentie().equals(ColonHerhalingsfrequentie.GEEN_HERHALING))
+		{
+			eindDatumTijd = tijdslot.getHerhaling().getEindDatum().plusDays(1).atStartOfDay();
+		}
+		return Range.open(startDatumTijd, eindDatumTijd);
 	}
 
 	@Override

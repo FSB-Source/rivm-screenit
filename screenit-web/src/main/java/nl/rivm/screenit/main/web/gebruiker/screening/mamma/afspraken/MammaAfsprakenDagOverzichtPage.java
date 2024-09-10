@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.dao.mamma.MammaBaseStandplaatsPeriodeDao;
 import nl.rivm.screenit.main.dao.mamma.MammaScreeningsEenheidDao;
 import nl.rivm.screenit.main.service.mamma.MammaStandplaatsPeriodeService;
 import nl.rivm.screenit.main.util.StandplaatsPeriodeUtil;
@@ -58,6 +57,7 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.service.mamma.MammaBaseBlokkadeService;
 import nl.rivm.screenit.service.mamma.MammaBaseCapaciteitsBlokService;
+import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsPeriodeService;
 import nl.rivm.screenit.util.BigDecimalUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
@@ -111,7 +111,7 @@ public class MammaAfsprakenDagOverzichtPage extends MammaAfsprakenBasePage
 	private MammaBaseBlokkadeService baseBlokkadeService;
 
 	@SpringBean
-	private MammaBaseStandplaatsPeriodeDao baseStandplaatsPeriodeDao;
+	private MammaBaseStandplaatsPeriodeService baseStandplaatsPeriodeService;
 
 	@SpringBean
 	private SimplePreferenceService preferenceService;
@@ -319,7 +319,8 @@ public class MammaAfsprakenDagOverzichtPage extends MammaAfsprakenBasePage
 				else
 				{
 					localDialog.openWith(target, new MammaBulkVerzettenPopup(IDialog.CONTENT_ID, afspraken, screeningsEenheidModel, datumModel,
-						ModelUtil.sModel(baseStandplaatsPeriodeDao.getStandplaatsPeriode(screeningsEenheidModel.getObject(), datum)), standplaatsPeriodesVoorBulkVerzetten)
+						ModelUtil.sModel(baseStandplaatsPeriodeService.getStandplaatsPeriodeOpDatum(screeningsEenheidModel.getObject(), datum)),
+						standplaatsPeriodesVoorBulkVerzetten)
 					{
 						@Override
 						protected void verzettenAfgerond(AjaxRequestTarget target)
@@ -352,7 +353,7 @@ public class MammaAfsprakenDagOverzichtPage extends MammaAfsprakenBasePage
 		var screeningsEenheid = screeningsEenheidModel.getObject();
 		var datum = datumModel.getObject();
 
-		var standplaatsPeriode = baseStandplaatsPeriodeDao.getStandplaatsPeriode(screeningsEenheid, datum);
+		var standplaatsPeriode = baseStandplaatsPeriodeService.getStandplaatsPeriodeOpDatum(screeningsEenheid, datum);
 		var standplaatsPeriodeTekst = "Geen";
 		var format = new SimpleDateFormat("dd-MM-yyyy");
 		MammaStandplaats standplaats = null;

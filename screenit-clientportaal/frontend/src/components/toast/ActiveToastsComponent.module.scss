@@ -45,6 +45,20 @@
 
 		&.error {
 			padding-left: 20px;
+			background: $rood-300;
+
+			i {
+				color: $rood-600;
+			}
+
+			span {
+				@include respond-above(xs) {
+					margin-left: 40px;
+				}
+				@include respond-below(xs) {
+					display: initial;
+				}
+			}
 		}
 
 		@include respond-below(sm) {
@@ -116,12 +130,12 @@
 		}
 
 		.toastClear {
+			border-left: solid $grijs-800 2px;
+			cursor: pointer;
+
 			&.error {
 				border-left: solid $wit-base 2px;
 			}
-
-			border-left: solid $grijs-800 2px;
-			cursor: pointer;
 
 			i {
 				font-size: 1.5rem;
@@ -130,22 +144,6 @@
 
 				@include respond-below(xs) {
 					font-size: 1.3rem;
-				}
-			}
-		}
-
-		&.error {
-			background: $rood-300;
-			i {
-				color: $rood-600;
-			}
-
-			span {
-				@include respond-above(xs) {
-					margin-left: 40px;
-				}
-				@include respond-below(xs) {
-					display: initial;
 				}
 			}
 		}

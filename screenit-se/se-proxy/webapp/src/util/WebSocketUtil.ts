@@ -11,6 +11,8 @@ import {Duration} from "moment"
 import {fetchApiPromise} from "./ApiUtil"
 import {EnvironmentInfo} from "../datatypes/EnvironmentInfo"
 import {Client, Message, Stomp} from "@stomp/stompjs"
+import {createUpdateWebsocketStatusAction} from "../actions/WebsocketStatusActions"
+import {WEBSOCKET_STATUS_OFFLINE, WEBSOCKET_STATUS_ONLINE} from "../datatypes/WebsocketStatus"
 
 export const initWebSocket = (): void => {
 	let websockerUrl = `${(window.location.protocol === "https:" ? "wss:
@@ -27,6 +29,7 @@ export const initWebSocket = (): void => {
 	client.onWebSocketClose = (e): void => {
 		console.log("Verbinding maken met websocket mislukt, opnieuw proberen in 1000ms...")
 		console.log(`WS onWebSocketClose ${JSON.stringify(e)}`)
+		store.dispatch(createUpdateWebsocketStatusAction(WEBSOCKET_STATUS_OFFLINE))
 	}
 	client.onWebSocketError = (e): void => {
 		console.log(`WS onWebSocketError ${JSON.stringify(e)}`)
@@ -42,9 +45,11 @@ export const initWebSocket = (): void => {
 	}
 	client.onDisconnect = (e): void => {
 		console.log(`WS onDisconnect ${JSON.stringify(e)}`)
+		store.dispatch(createUpdateWebsocketStatusAction(WEBSOCKET_STATUS_OFFLINE))
 	}
 	client.onConnect = (e): void => {
 		console.log(`WS onConnect ${JSON.stringify(e)}`)
+		store.dispatch(createUpdateWebsocketStatusAction(WEBSOCKET_STATUS_ONLINE))
 		client.subscribe("/transactionReceive", (message: Message) => {
 			try {
 				verwerkSocketBericht(message)

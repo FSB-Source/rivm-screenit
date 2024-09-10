@@ -22,8 +22,6 @@ package nl.rivm.screenit.service.impl;
  */
 
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 import lombok.extern.slf4j.Slf4j;
@@ -61,12 +59,10 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Component
-@Transactional(propagation = Propagation.REQUIRED)
 public class BaseAfmeldServiceImpl implements BaseAfmeldService
 {
 	@Autowired
@@ -97,10 +93,10 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 	private MammaAfmeldService mammaAfmeldService;
 
 	@Override
+	@Transactional
 	public void definitieveAfmeldingAanvragen(Client client, Afmelding<?, ?, ?> afmelding, boolean rappelBrief, Account account)
 	{
-		LOG.info("Formulier definitieve afmelding " + afmelding.getBevolkingsonderzoek().getAfkorting() + " aanvragen voor client(id: "
-			+ client.getId() + ")");
+		LOG.info("Formulier definitieve afmelding {} aanvragen voor client(id: '{}')", afmelding.getBevolkingsonderzoek().getAfkorting(), client.getId());
 
 		var dossier = koppelDefinitieveAfmelding(client, afmelding);
 		hibernateService.saveOrUpdate(dossier);
@@ -111,10 +107,10 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 	}
 
 	@Override
+	@Transactional
 	public void tijdelijkeAfmeldingAanvragen(Client client, Afmelding<?, ?, ?> afmelding, boolean rappelBrief, Account account)
 	{
-		LOG.info("Formulier tijdelijke afmelding " + afmelding.getBevolkingsonderzoek().getAfkorting() + " aanvragen voor client(id: "
-			+ client.getId() + ")");
+		LOG.info("Formulier tijdelijke afmelding {} aanvragen voor client(id: '{}')", afmelding.getBevolkingsonderzoek().getAfkorting(), client.getId());
 
 		var dossier = koppelTijdelijkeAfmelding(client, afmelding);
 		hibernateService.saveOrUpdate(dossier);
@@ -127,7 +123,7 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 	private void saveAfmeldingMetMetadata(Afmelding afmelding)
 	{
 		afmelding.setAfmeldingStatus(AanvraagBriefStatus.BRIEF);
-		LocalDateTime nu = currentDateSupplier.getLocalDateTime();
+		var nu = currentDateSupplier.getLocalDateTime();
 		afmelding.setStatusAfmeldDatum(DateUtil.toUtilDate(nu.plus(20, ChronoUnit.MILLIS)));
 		afmelding.setAfmeldDatum(DateUtil.toUtilDate(nu.plus(20, ChronoUnit.MILLIS)));
 
@@ -168,7 +164,7 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 			var dossier = ronde.getDossier();
 			ronde.setAfgerondReden("Formulier definitieve/tijdelijke afmelding aangevraagd");
 			ronde.setStatus(ScreeningRondeStatus.AFGEROND);
-			LocalDateTime nu = currentDateSupplier.getLocalDateTime();
+			var nu = currentDateSupplier.getLocalDateTime();
 			ronde.setStatusDatum(DateUtil.toUtilDate(nu.plus(200, ChronoUnit.MILLIS)));
 			ronde.setAangemeld(false);
 
@@ -187,7 +183,7 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 
 	private boolean eenmaligAfmeldenVoorDefinitieveAfmelding(Afmelding definitieveAfmelding, Account account)
 	{
-		ScreeningRonde ronde = definitieveAfmelding.getDossier().getLaatsteScreeningRonde();
+		var ronde = definitieveAfmelding.getDossier().getLaatsteScreeningRonde();
 
 		if (ronde != null && ronde.getStatus() == ScreeningRondeStatus.LOPEND && Boolean.TRUE.equals(ronde.getAangemeld()))
 		{
@@ -211,11 +207,11 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 
 	private void eenmaligAfmelden(Afmelding<?, ?, ?> afmelding, Account account)
 	{
-		LOG.info("Eenmalig afmelden " + afmelding.getBevolkingsonderzoek().getAfkorting() + " aanvragen voor client(id: "
-			+ afmelding.getScreeningRonde().getDossier().getClient().getId() + ")");
+		LOG.info("Eenmalig afmelden {} aanvragen voor client(id: '{}')", afmelding.getBevolkingsonderzoek().getAfkorting(),
+			afmelding.getScreeningRonde().getDossier().getClient().getId());
 
 		afmelding.setAfmeldingStatus(AanvraagBriefStatus.VERWERKT);
-		LocalDateTime nu = currentDateSupplier.getLocalDateTime();
+		var nu = currentDateSupplier.getLocalDateTime();
 		afmelding.setAfmeldDatum(DateUtil.toUtilDate(nu));
 		afmelding.setStatusAfmeldDatum(DateUtil.toUtilDate(nu));
 		afmelding.setRondeGesloten(true);
@@ -234,6 +230,7 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 	}
 
 	@Override
+	@Transactional
 	public void afmelden(Client client, Afmelding<?, ?, ?> afmelding, Account account)
 	{
 		if (afmelding.getType() == AfmeldingType.DEFINITIEF && afmelding.getAfmeldingStatus() == null)
@@ -246,13 +243,14 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 		}
 		else
 		{
-			boolean viaInfolijnAangevraagd = !client.equals(account);
+			var viaInfolijnAangevraagd = !client.equals(account);
 			afmeldenZonderVervolg(client, afmelding, viaInfolijnAangevraagd, account);
 			bvoVervolgAfmelden(afmelding);
 		}
 	}
 
 	@Override
+	@Transactional
 	public void afmeldenZonderVervolg(Client client, Afmelding<?, ?, ?> afmelding, boolean handtekeningDocumentVerplicht, Account account)
 	{
 		ScreeningRonde ronde;
@@ -273,7 +271,7 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 			}
 			dossier = koppelTijdelijkeAfmelding(client, afmelding);
 			tijdelijkAfmelden(afmelding, handtekeningDocumentVerplicht);
-			boolean eenmaligeAfmeldingVoorTijdelijkeAfmeldingGedaan = eenmaligAfmeldenVoorTijdelijkeAfmelding(afmelding, account);
+			var eenmaligeAfmeldingVoorTijdelijkeAfmeldingGedaan = eenmaligAfmeldenVoorTijdelijkeAfmelding(afmelding, account);
 			hibernateService.saveOrUpdate(dossier);
 			if (eenmaligeAfmeldingVoorTijdelijkeAfmeldingGedaan)
 			{
@@ -289,7 +287,7 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 			}
 			dossier = koppelDefinitieveAfmelding(client, afmelding);
 			definitiefAfmelden(afmelding, handtekeningDocumentVerplicht);
-			boolean eenmaligeAfmeldingGedaan = eenmaligAfmeldenVoorDefinitieveAfmelding(afmelding, account);
+			var eenmaligeAfmeldingGedaan = eenmaligAfmeldenVoorDefinitieveAfmelding(afmelding, account);
 			hibernateService.saveOrUpdate(dossier);
 			if (eenmaligeAfmeldingGedaan)
 			{
@@ -348,7 +346,7 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 
 	private ScreeningRonde koppelEenmaligeAfmelding(Client client, Afmelding afmelding)
 	{
-		ScreeningRonde ronde = clientService.getDossier(client, afmelding.getBevolkingsonderzoek()).getLaatsteScreeningRonde();
+		var ronde = clientService.getDossier(client, afmelding.getBevolkingsonderzoek()).getLaatsteScreeningRonde();
 		ronde.getAfmeldingen().add(afmelding);
 		ronde.setLaatsteAfmelding(afmelding);
 		afmelding.setScreeningRonde(ronde);
@@ -366,8 +364,8 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 
 	private void tijdelijkAfmelden(Afmelding<?, ?, ?> afmelding, boolean handtekeningDocumentVerplicht)
 	{
-		LOG.info("Tijdelijk afmelden " + afmelding.getBevolkingsonderzoek().getAfkorting() + " aanvragen voor client(id: "
-			+ afmelding.getScreeningRonde().getDossier().getClient().getId() + ")");
+		LOG.info("Tijdelijk afmelden {} aanvragen voor client(id: {})", afmelding.getBevolkingsonderzoek().getAfkorting(),
+			afmelding.getScreeningRonde().getDossier().getClient().getId());
 
 		var dossier = afmelding.getScreeningRonde().getDossier();
 		afmelding.setRondeGesloten(true);
@@ -381,7 +379,7 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 		var ronde = afmelding.getScreeningRonde();
 		var dossier = ronde.getDossier();
 		var laatstePeildatum = DateUtil.toLocalDate(ronde.getCreatieDatum());
-		var ingangsDatumRondeNaTijdelijkAfmelden = LocalDate.of(afmelding.getTijdelijkAfmeldenTotJaartal(), laatstePeildatum.getMonth(), laatstePeildatum.getDayOfMonth());
+		var ingangsDatumRondeNaTijdelijkAfmelden = laatstePeildatum.withYear(afmelding.getTijdelijkAfmeldenTotJaartal());
 
 		dossier.getVolgendeUitnodiging().setDatumVolgendeRonde(ingangsDatumRondeNaTijdelijkAfmelden);
 	}
@@ -393,7 +391,7 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 			dossier.setAangemeld(false);
 		}
 
-		LocalDateTime nu = currentDateSupplier.getLocalDateTime();
+		var nu = currentDateSupplier.getLocalDateTime();
 		dossier.setInactiefVanaf(DateUtil.toUtilDate(nu));
 		dossier.setStatus(DossierStatus.INACTIEF);
 
@@ -445,6 +443,7 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 	}
 
 	@Override
+	@Transactional
 	public <A extends Afmelding<?, ?, ?>> void heraanmelden(A herAanTeMeldenAfmelding, Account account)
 	{
 		if (herAanTeMeldenAfmelding != null)
@@ -472,6 +471,7 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 	}
 
 	@Override
+	@Transactional
 	public void heraanmeldenZonderVervolg(Afmelding<?, ?, ?> herAanTeMeldenAfmelding)
 	{
 		switch (herAanTeMeldenAfmelding.getType())
@@ -590,7 +590,7 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 
 		if (herAanTeMeldenAfmelding.getHeraanmeldStatus() != AanvraagBriefStatus.VERWERKT)
 		{
-			LocalDateTime nu = currentDateSupplier.getLocalDateTime();
+			var nu = currentDateSupplier.getLocalDateTime();
 			herAanTeMeldenAfmelding.setRondeHeropend(true);
 			herAanTeMeldenAfmelding.setHeraanmeldDatum(DateUtil.toUtilDate(nu));
 			herAanTeMeldenAfmelding.setHeraanmeldStatus(AanvraagBriefStatus.VERWERKT);
@@ -602,6 +602,7 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 	}
 
 	@Override
+	@Transactional
 	public boolean vervangAfmeldingDocument(UploadDocument nieuwDocument, Afmelding<?, ?, ?> afmelding, UploadDocument huidigDocument, ClientBrief<?, ?, ?> brief,
 		Account loggedInAccount)
 	{
@@ -627,6 +628,7 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 	}
 
 	@Override
+	@Transactional
 	public boolean vervangHeraanmeldingDocument(UploadDocument nieuwDocument, Afmelding<?, ?, ?> afmelding, UploadDocument huidigDocument, ClientBrief<?, ?, ?> brief,
 		Account loggedInAccount)
 	{
@@ -652,6 +654,7 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 	}
 
 	@Override
+	@Transactional
 	public void heraanmeldenAlsClientAfgemeldIs(Dossier dossier)
 	{
 		if (AfmeldingUtil.isEenmaligOfDefinitefAfgemeld(dossier))

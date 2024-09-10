@@ -27,15 +27,12 @@ import java.util.Iterator;
 import java.util.List;
 
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectAttribuut;
 import nl.rivm.screenit.model.project.ProjectBestand;
 import nl.rivm.screenit.model.project.ProjectBestandVerwerkingEntry;
-import nl.rivm.screenit.model.project.ProjectBrief;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectClientAttribuut;
@@ -68,15 +65,9 @@ public interface ProjectDao
 
 	long getCountProjectBriefActies(ProjectBriefActie actie);
 
-	List<ProjectClient> getValideClientenVanProject(Project project, ProjectBriefActie definitie);
-
-	List<Long> getActieveActiesVoorBrieven(ScreeningOrganisatie so);
-
-	List<ProjectBrief> getAllProjectBriefForHerinnering(ProjectBriefActie actie, Date verstuurdOp);
-
-	List<Project> getAllProjectenWhereProjectBriefActieHasBriefType(BriefType type);
-
 	boolean isVragenlijstGekoppeldAanNietBeeindigdProject(Long vragenlijstId);
+
+	Long getAantalProjectClientenVanProjectGroep(ProjectGroep groep);
 
 	boolean isVragenlijstGekoppeldAanProject(Long vragenlijstId);
 
@@ -84,11 +75,7 @@ public interface ProjectDao
 
 	Long getAantalInactieveProjectClientenVanProject(Project project);
 
-	Long getAantalProjectClientenVanProjectGroep(ProjectGroep groep);
-
 	Long getAantalInactieveProjectClientenVanProjectGroep(ProjectGroep groep);
-
-	ProjectBriefActie getProjectBriefActie(Client client, BriefType briefType);
 
 	List<ProjectGroep> getActieveProjectGroepenVoorUitnodigingDK();
 

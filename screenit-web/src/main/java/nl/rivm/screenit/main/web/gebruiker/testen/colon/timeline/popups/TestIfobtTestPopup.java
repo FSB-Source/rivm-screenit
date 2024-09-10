@@ -33,7 +33,6 @@ import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.popups.AbstractTestBasePopupPanel;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.colon.ColonGeinterpreteerdeUitslag;
-import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.IFOBTType;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
@@ -64,7 +63,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 {
 	@SpringBean
-	private ColonTestTimelineService colonTestTimelineService;
+	private ColonTestTimelineService testTimelineService;
 
 	@SpringBean
 	private SimplePreferenceService preferenceService;
@@ -81,7 +80,7 @@ public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 
 	private IModel<IFOBTTest> testModel;
 
-	private WebMarkupContainer ifobtTestContainer;
+	private WebMarkupContainer fitContainer;
 
 	private final ScreenitDropdown<IFOBTTest> buisDropDown;
 
@@ -94,21 +93,21 @@ public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 		super(id, clientModel);
 		buisModel = ModelUtil.ccModel(new IFOBTTest());
 
-		ifobtTestContainer = getIfobtContainer();
-		ifobtTestContainer.setVisible(false);
-		add(ifobtTestContainer);
+		fitContainer = getFitContainer();
+		fitContainer.setVisible(false);
+		add(fitContainer);
 
-		List<IFOBTTest> buizenZonderUitslag = new ArrayList<>();
-		for (ColonScreeningRonde ronde : getModelObject().get(0).getColonDossier().getScreeningRondes())
+		var buizenZonderUitslag = new ArrayList<IFOBTTest>();
+		for (var ronde : getModelObject().get(0).getColonDossier().getScreeningRondes())
 		{
-			for (IFOBTTest buis : ronde.getIfobtTesten())
+			for (var buis : ronde.getIfobtTesten())
 			{
 				if (!FITTestUtil.heeftUitslag(buis))
 				{
 					buizenZonderUitslag.add(buis);
-					List<IFOBTTest> buizen = new ArrayList<>();
+					var buizen = new ArrayList<IFOBTTest>();
 					buizen.add(buis);
-					SimpleListHibernateModel<IFOBTTest> buizenModel = new SimpleListHibernateModel<>(buizen);
+					var buizenModel = new SimpleListHibernateModel<>(buizen);
 					buizenMap.put(buis.getId(), buizenModel);
 				}
 			}
@@ -117,16 +116,16 @@ public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 
 		if (getModelObject().size() > 1)
 		{
-			for (Client client : getModelObject().subList(1, getModelObject().size()))
+			for (var client : getModelObject().subList(1, getModelObject().size()))
 			{
-				for (ColonScreeningRonde ronde : client.getColonDossier().getScreeningRondes())
+				for (var ronde : client.getColonDossier().getScreeningRondes())
 				{
-					for (int i = 0; i < ronde.getIfobtTesten().size(); i++)
+					for (var i = 0; i < ronde.getIfobtTesten().size(); i++)
 					{
-						IFOBTTest test = ronde.getIfobtTesten().get(i);
+						var test = ronde.getIfobtTesten().get(i);
 						if (!FITTestUtil.heeftUitslag(test))
 						{
-							SimpleListHibernateModel<IFOBTTest> testBuizen = buizenMap.get(buizenZonderUitslag.get(i).getId());
+							var testBuizen = buizenMap.get(buizenZonderUitslag.get(i).getId());
 							testBuizen.add(test);
 						}
 					}
@@ -169,19 +168,19 @@ public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
-				IFOBTTest buis = buisDropDown.getConvertedInput();
+				var buis = buisDropDown.getConvertedInput();
 				if (buis != null)
 				{
 					testModel = ModelUtil.ccModel(buis);
 				}
 				else
 				{
-					throw new IllegalStateException("Er moet een ifobttest aanwezig zijn!");
+					throw new IllegalStateException("Er moet een FIT aanwezig zijn!");
 				}
-				WebMarkupContainer container = getIfobtContainer();
-				ifobtTestContainer.replaceWith(container);
-				ifobtTestContainer = container;
-				target.add(ifobtTestContainer);
+				var container = getFitContainer();
+				fitContainer.replaceWith(container);
+				fitContainer = container;
+				target.add(fitContainer);
 
 			}
 
@@ -195,21 +194,21 @@ public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 
 	}
 
-	private WebMarkupContainer getIfobtContainer()
+	private WebMarkupContainer getFitContainer()
 	{
-		WebMarkupContainer container = new WebMarkupContainer("ifobtContainer");
+		var container = new WebMarkupContainer("fitContainer");
 		container.setOutputMarkupPlaceholderTag(true);
 
-		boolean studieTest = testModel != null && testModel.getObject().getType() == IFOBTType.STUDIE;
-		TextField<BigDecimal> uitslagText = new TextField<>("uitslag", new PropertyModel<>(testModel, "uitslag"));
+		var studieTest = testModel != null && testModel.getObject().getType() == IFOBTType.STUDIE;
+		var uitslagText = new TextField<BigDecimal>("uitslag", new PropertyModel<>(testModel, "uitslag"));
 		container.add(uitslagText.setOutputMarkupId(true).setVisible(!studieTest));
 
 		DropDownChoice<ColonGeinterpreteerdeUitslag> geinterpreteerdeUitslagDropDown = new ScreenitDropdown<>("geinterpreteerdeUitslag",
 			new PropertyModel<>(testModel, "geinterpreteerdeUitslag"), Arrays.asList(ColonGeinterpreteerdeUitslag.values()), new EnumChoiceRenderer<>());
 		container.add(geinterpreteerdeUitslagDropDown.setRequired(true).setVisible(studieTest));
 
-		Model<BigDecimal> uitslagValueModel = Model.of(new BigDecimal(-1));
-		RadioGroup<BigDecimal> radioGroup = new RadioGroup<>("uitslagSnel", uitslagValueModel);
+		var uitslagValueModel = Model.of(new BigDecimal(-1));
+		var radioGroup = new RadioGroup<BigDecimal>("uitslagSnel", uitslagValueModel);
 		radioGroup.add(new AjaxFormChoiceComponentUpdatingBehavior()
 		{
 			@Override
@@ -221,7 +220,7 @@ public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 
 		});
 
-		BigDecimal normWaardeGold = BigDecimal.valueOf(preferenceService.getInteger(PreferenceKey.IFOBT_NORM_WAARDE.name())).divide(BigDecimal.valueOf(100));
+		var normWaardeGold = BigDecimal.valueOf(preferenceService.getInteger(PreferenceKey.IFOBT_NORM_WAARDE.name())).divide(BigDecimal.valueOf(100));
 		radioGroup.setRequired(true);
 		add(radioGroup);
 		radioGroup.add(new Radio<>("gunstig", Model.of(BigDecimal.ZERO)));
@@ -239,12 +238,12 @@ public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 		List<IFOBTTest> testBuizen = new ArrayList<>();
 		if (testModel.getObject().getId() != null)
 		{
-			Long eersteBuisId = testModel.getObject().getId();
+			var eersteBuisId = testModel.getObject().getId();
 			if (buizenMap.containsKey(eersteBuisId))
 			{
 				testBuizen = buizenMap.get(eersteBuisId).getObject();
 			}
-			for (IFOBTTest buis : testBuizen)
+			for (var buis : testBuizen)
 			{
 				if (!IFOBTTestStatus.NIETTEBEOORDELEN.equals(buis.getStatus()))
 				{
@@ -254,7 +253,7 @@ public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 						try
 						{
 							studietestService.controleerUitslagenbestandOpFouten(buis, null);
-							colonTestTimelineService.ifobtTestOntvangen(buis.getColonScreeningRonde().getDossier().getClient(), verlopenModel.getObject(), buis, 1);
+							testTimelineService.fitOntvangen(buis.getColonScreeningRonde().getDossier().getClient(), verlopenModel.getObject(), buis, 1);
 						}
 						catch (ProjectUitslagenUploadException e)
 						{
@@ -266,7 +265,7 @@ public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 					else
 					{
 						checkEnVerwijderGeinterpreteerdeUitslagExtraBuis(buis);
-						colonTestTimelineService.ifobtTestOntvangen(buis.getColonScreeningRonde().getDossier().getClient(), verlopenModel.getObject(), buis, 1);
+						testTimelineService.fitOntvangen(buis.getColonScreeningRonde().getDossier().getClient(), verlopenModel.getObject(), buis, 1);
 					}
 				}
 			}
@@ -278,10 +277,10 @@ public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 		var uitnodiging = buis.getColonUitnodiging();
 		if (uitnodiging != null && uitnodiging.getGekoppeldeExtraTest() != null)
 		{
-			var andereFIT = uitnodiging.getGekoppeldeExtraTest();
-			if (IFOBTType.STUDIE == andereFIT.getType() && andereFIT.getVerwerkingsDatum() == null && andereFIT.getGeinterpreteerdeUitslag() != null)
+			var andereFit = uitnodiging.getGekoppeldeExtraTest();
+			if (IFOBTType.STUDIE == andereFit.getType() && andereFit.getVerwerkingsDatum() == null && andereFit.getGeinterpreteerdeUitslag() != null)
 			{
-				andereFIT.setGeinterpreteerdeUitslag(null);
+				andereFit.setGeinterpreteerdeUitslag(null);
 			}
 		}
 	}

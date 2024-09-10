@@ -43,7 +43,7 @@ public interface MammaBaseScreeningrondeService
 
 	MammaScreeningRonde getLaatsteScreeningRondeMetUitslag(Client client, Date voorDatum);
 
-	MammaScreeningRonde getLaatsteScreeningRondeMetPositieveUitslag(Client client);
+	MammaScreeningRonde getLaatsteScreeningRondeMetOngunstigeUitslag(Client client);
 
 	Integer getJaarLaatsteVerwijzing(Client client);
 

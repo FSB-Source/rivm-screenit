@@ -61,14 +61,10 @@ public class DocumentTemplateTestenPage extends BaseDocumentTemplateTestenPage
 
 	private List<BriefType> visibleBriefTypes = null;
 
-	public DocumentTemplateTestenPage()
-	{
-	}
-
 	@Override
 	protected List<MergeFieldTestType> getMergeTypes()
 	{
-		List<MergeFieldTestType> values = new ArrayList<>(Arrays.asList(MergeFieldTestType.values()));
+		var values = new ArrayList<>(Arrays.asList(MergeFieldTestType.values()));
 		values.remove(MergeFieldTestType.ZORGINSTELLING);
 		values.remove(MergeFieldTestType.ZORGVERLENER);
 		return values;
@@ -92,23 +88,34 @@ public class DocumentTemplateTestenPage extends BaseDocumentTemplateTestenPage
 	}
 
 	@Override
+	protected void mergeFieldChanged(AjaxRequestTarget target)
+	{
+		visibleBriefTypes = null;
+	}
+
+	@Override
 	protected List<BriefType> getVisibleBriefTypes()
 	{
 		if (visibleBriefTypes == null)
 		{
-			List<Bevolkingsonderzoek> bevolkingsonderzoeken = zoekFilter.getObject().getBevolkingsonderzoeken();
+			var bevolkingsonderzoeken = zoekFilter.getObject().getBevolkingsonderzoeken();
 			visibleBriefTypes = new ArrayList<>(BriefType.getBriefTypes(Boolean.TRUE.equals(zoekFilter.getObject().getExactMatch()),
 				bevolkingsonderzoeken.toArray(new Bevolkingsonderzoek[bevolkingsonderzoeken.size()])));
 			visibleBriefTypes.remove(BriefType.CLIENT_BEZWAAR_AANVRAAG);
 			visibleBriefTypes.remove(BriefType.CLIENT_BEZWAAR_BEVESTIGING);
 			visibleBriefTypes.remove(BriefType.CLIENT_BEZWAAR_HANDTEKENING);
+
 			Comparator<BriefType> com = (o1, o2) ->
 			{
-				String string1 = Bevolkingsonderzoek.getAfkortingen(o1.getOnderzoeken()) + " - " + o1.getCodeEnNaam();
-				String string2 = Bevolkingsonderzoek.getAfkortingen(o2.getOnderzoeken()) + " - " + o2.getCodeEnNaam();
+				var string1 = Bevolkingsonderzoek.getAfkortingen(o1.getOnderzoeken()) + " - " + o1.getCodeEnNaam();
+				var string2 = Bevolkingsonderzoek.getAfkortingen(o2.getOnderzoeken()) + " - " + o2.getCodeEnNaam();
 				return string1.compareTo(string2);
 			};
 			visibleBriefTypes.sort(com);
+		}
+		if (mergeFieldModel.getObject() != null)
+		{
+			visibleBriefTypes = zichtbareBriefTypesMetMergeField(visibleBriefTypes, mergeFieldModel.getObject());
 		}
 		return visibleBriefTypes;
 	}

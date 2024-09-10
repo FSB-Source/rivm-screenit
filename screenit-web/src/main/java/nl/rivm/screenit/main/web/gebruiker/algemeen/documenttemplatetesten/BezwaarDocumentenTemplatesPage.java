@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.document.bezwaar.BezwaarDocumentCreatorOneDatasetCoupleTables;
 import nl.rivm.screenit.main.web.component.bezwaar.edit.BezwaarEditPanel;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
@@ -41,8 +43,6 @@ import nl.rivm.screenit.service.BezwaarService;
 
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wicketstuff.shiro.ShiroConstraint;
 
 import com.aspose.words.Document;
@@ -52,21 +52,13 @@ import com.aspose.words.Document;
 	constraint = ShiroConstraint.HasPermission,
 	recht = Recht.GEBRUIKER_BEHEER_DOCUMENTENTEMPLATES,
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX })
+@Slf4j
 public class BezwaarDocumentenTemplatesPage extends BaseDocumentTemplateTestenPage
 {
-
-	private static final long serialVersionUID = 1L;
-
-	private static final Logger LOG = LoggerFactory.getLogger(BezwaarDocumentenTemplatesPage.class);
-
 	@SpringBean
 	private BezwaarService bezwaarService;
 
 	private List<BezwaarGroupViewWrapper> wrappers;
-
-	public BezwaarDocumentenTemplatesPage()
-	{
-	}
 
 	@Override
 	protected List<BriefType> getVisibleBriefTypes()
@@ -75,13 +67,17 @@ public class BezwaarDocumentenTemplatesPage extends BaseDocumentTemplateTestenPa
 		briefTypes.add(BriefType.CLIENT_BEZWAAR_AANVRAAG);
 		briefTypes.add(BriefType.CLIENT_BEZWAAR_BEVESTIGING);
 		briefTypes.add(BriefType.CLIENT_BEZWAAR_HANDTEKENING);
+		if (mergeFieldModel.getObject() != null)
+		{
+			briefTypes = zichtbareBriefTypesMetMergeField(briefTypes, mergeFieldModel.getObject());
+		}
 		return briefTypes;
 	}
 
 	@Override
 	protected void addAdditionalFormComponents(Form<Void> form)
 	{
-		BezwaarMoment moment = new BezwaarMoment();
+		var moment = new BezwaarMoment();
 		wrappers = bezwaarService.getEditBezwaarGroupViewWrappers(null, moment);
 		form.add(new BezwaarEditPanel("bezwaarAanpassenPanel", wrappers, true));
 	}
@@ -104,7 +100,7 @@ public class BezwaarDocumentenTemplatesPage extends BaseDocumentTemplateTestenPa
 	@Override
 	protected Document proccesDocument(MailMergeContext context, File briefTemplate) throws Exception
 	{
-		BezwaarDocumentCreatorOneDatasetCoupleTables creator = new BezwaarDocumentCreatorOneDatasetCoupleTables(wrappers);
+		var creator = new BezwaarDocumentCreatorOneDatasetCoupleTables(wrappers);
 		return asposeService.processDocumentWithCreator(context, briefTemplate, creator, true);
 	}
 }

@@ -47,8 +47,11 @@ import nl.rivm.screenit.model.GbaPersoon;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
+
+import static nl.rivm.screenit.util.RangeUtil.range;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -588,5 +591,30 @@ public final class DateUtil
 		}
 
 		return !intersects;
+	}
+
+	public static Range<Date> toUtilDateRange(Range<? extends Temporal> range)
+	{
+		var onderGrens = range.hasLowerBound() ? toUtilDate(range.lowerEndpoint()) : null;
+		var onderGrensType = range.hasLowerBound() ? range.lowerBoundType() : null;
+		var bovenGrens = range.hasUpperBound() ? toUtilDate(range.upperEndpoint()) : null;
+		var bovenGrensType = range.hasUpperBound() ? range.upperBoundType() : null;
+
+		return range(onderGrens, onderGrensType, bovenGrens, bovenGrensType);
+	}
+
+	public static Range<LocalDateTime> toLocalDateTimeRange(Range<LocalDate> range)
+	{
+		var onderGrens = range.hasLowerBound() ? range.lowerEndpoint().atStartOfDay() : null;
+		var onderGrensType = range.hasLowerBound() ? range.lowerBoundType() : null;
+		var bovenGrens = range.hasUpperBound() ? range.upperEndpoint().atStartOfDay() : null;
+		var bovenGrensType = range.hasUpperBound() ? range.upperBoundType() : null;
+		if (bovenGrensType == BoundType.CLOSED)
+		{
+			bovenGrens = bovenGrens.plusDays(1);
+			bovenGrensType = BoundType.OPEN;
+		}
+
+		return range(onderGrens, onderGrensType, bovenGrens, bovenGrensType);
 	}
 }

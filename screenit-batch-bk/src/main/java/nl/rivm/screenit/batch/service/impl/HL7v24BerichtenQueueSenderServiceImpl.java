@@ -29,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.config.MammaHL7ConnectieContext;
-import nl.rivm.screenit.batch.dao.MammaHL7v24SendBerichtenQueueDao;
 import nl.rivm.screenit.batch.exception.HL7CreateMessageException;
 import nl.rivm.screenit.batch.model.enums.MammaHL7Connectie;
 import nl.rivm.screenit.batch.service.HL7BaseSendMessageService;
@@ -45,6 +44,7 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.model.logging.MammaHl7v24BerichtLogEvent;
 import nl.rivm.screenit.model.mamma.MammaHL7v24Message;
+import nl.rivm.screenit.repository.mamma.MammaHL7v24MessageRepository;
 import nl.rivm.screenit.service.LogService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
@@ -53,6 +53,8 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.orm.hibernate5.SessionFactoryUtils;
 import org.springframework.orm.hibernate5.SessionHolder;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -75,9 +77,6 @@ public class HL7v24BerichtenQueueSenderServiceImpl
 	private HibernateService hibernateService;
 
 	@Autowired
-	private MammaHL7v24SendBerichtenQueueDao hl7SendBerichtenQueueDao;
-
-	@Autowired
 	private SimplePreferenceService preferenceService;
 
 	@Autowired
@@ -85,6 +84,9 @@ public class HL7v24BerichtenQueueSenderServiceImpl
 
 	@Autowired
 	private SessionFactory sessionFactory;
+
+	@Autowired
+	private MammaHL7v24MessageRepository hl7v24MessageRepository;
 
 	@Autowired
 	private LogService logService;
@@ -204,14 +206,15 @@ public class HL7v24BerichtenQueueSenderServiceImpl
 
 	private boolean verwerkIMSBerichtenQueue(MammaHL7ConnectieContext connectionContext)
 	{
-		List<MammaHL7v24Message> mammaHL7v24Messages = hl7SendBerichtenQueueDao.fetchMessageQueueForIMS(MAMMA_IMS_QUEUE_VERWERK_SIZE);
-		Long queueSize = hl7SendBerichtenQueueDao.fetchQueueSize();
+		var mammaHL7v24Messages = hl7v24MessageRepository.findAll(PageRequest.of(0, MAMMA_IMS_QUEUE_VERWERK_SIZE, Sort.by(Sort.Order.asc("id"))));
+
+		var queueSize = hl7v24MessageRepository.count();
 		if (!mammaHL7v24Messages.isEmpty())
 		{
 			loadPreferences();
 			try
 			{
-				verstuurBerichten(mammaHL7v24Messages, connectionContext);
+				verstuurBerichten(mammaHL7v24Messages.toList(), connectionContext);
 			}
 			catch (HL7Exception e)
 			{

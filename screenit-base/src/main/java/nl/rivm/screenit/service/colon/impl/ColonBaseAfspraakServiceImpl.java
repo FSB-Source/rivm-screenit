@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -67,8 +66,6 @@ import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonHuisartsBerichtService;
-import nl.rivm.screenit.specification.DateSpecification;
-import nl.rivm.screenit.specification.colon.ColonAfspraakSpecification;
 import nl.rivm.screenit.specification.colon.ColonRoosterItemSpecification;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.ColonScreeningRondeUtil;
@@ -91,7 +88,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Range;
 
-import static java.util.stream.Collectors.groupingBy;
+import static nl.rivm.screenit.specification.DateSpecification.overlaptLocalDateTime;
+import static nl.rivm.screenit.specification.colon.ColonAfspraakSpecification.heeftKamer;
+import static nl.rivm.screenit.specification.colon.ColonAfspraakSpecification.heeftStatuses;
 
 @Slf4j
 @Service
@@ -173,38 +172,17 @@ public class ColonBaseAfspraakServiceImpl implements ColonBaseAfspraakService
 	public List<IAppointment> getAppointments(List<Location> locaties, Date start, Date end, boolean showSchedule)
 	{
 		var filter = new Afspraak();
-
 		filter.setStatus(AfspraakStatus.GEPLAND);
 		List<IAppointment> returnValues = new ArrayList<>(afspraakDao.getAfspraken(start, end, filter, locaties, AfspraakStatus.VOOR_AGENDA));
 
 		if (showSchedule)
 		{
 			var roosterFilter = new RoosterItem();
-
 			returnValues.addAll(afspraakDao.getAfspraken(start, end, roosterFilter, locaties, null));
 		}
 
 		return returnValues;
 
-	}
-
-	@Override
-	public List<Afspraak> getAppointments(Client client)
-	{
-		var filter = new Afspraak();
-		filter.setClient(client);
-		filter.setStatus(AfspraakStatus.GEPLAND);
-
-		return afspraakDao.getAfspraken(currentDateSupplier.getDate(), null, filter, null, AfspraakStatus.VOOR_AGENDA);
-	}
-
-	@Override
-	public List<Afspraak> getHistorischeAppointments(Client client)
-	{
-		var filter = new Afspraak();
-		filter.setClient(client);
-
-		return afspraakDao.getAfspraken(null, currentDateSupplier.getDate(), filter, null, null);
 	}
 
 	@Override
@@ -221,7 +199,6 @@ public class ColonBaseAfspraakServiceImpl implements ColonBaseAfspraakService
 
 			var screeningRonde = intakeAfspraak.getColonScreeningRonde();
 			if (screeningRonde.getOpenUitnodiging() == null) 
-
 			{
 				if (screeningRonde.getStatus() == ScreeningRondeStatus.LOPEND)
 				{
@@ -721,38 +698,21 @@ public class ColonBaseAfspraakServiceImpl implements ColonBaseAfspraakService
 	}
 
 	@Override
-	public List<Object> getAfsprakenKamersInRanges(Kamer kamer, List<Range<Date>> verwijderdeRanges)
+	public List<Afspraak> getAfsprakenKamersInRange(Kamer kamer, Range<LocalDateTime> range)
 	{
-		return afspraakDao.getAfsprakenInRanges(kamer, verwijderdeRanges);
-	}
-
-	@Override
-	public List<Afspraak> getAfsprakenKamersInRange(Kamer kamer, Range<Date> range)
-	{
-		return afspraakRepository.findAll(
-			ColonAfspraakSpecification.heeftKamer(kamer).and(ColonAfspraakSpecification.heeftStatuses(List.of(AfspraakStatus.GEPLAND, AfspraakStatus.UITGEVOERD))
-				.and(DateSpecification.valtBinnenDatumRange(range, r -> r.get(AbstractAppointment_.startTime), r -> r.get(AbstractAppointment_.endTime)))),
+		return afspraakRepository.findAll(heeftKamer(kamer)
+				.and(heeftStatuses(List.of(AfspraakStatus.GEPLAND, AfspraakStatus.UITGEVOERD))
+					.and(overlaptLocalDateTime(range, r -> r.get(AbstractAppointment_.startTime), r -> r.get(AbstractAppointment_.endTime)))),
 			Sort.by(Sort.Order.asc(AbstractAppointment_.START_TIME)));
 	}
 
 	@Override
 	public RoosterItem getRoosterBlokVoorAfspraak(ColonIntakeAfspraak newAfspraak)
 	{
-		var range = Range.closed(newAfspraak.getStartTime(), newAfspraak.getEndTime());
+		var range = Range.open(DateUtil.toLocalDateTime(newAfspraak.getStartTime()), DateUtil.toLocalDateTime(newAfspraak.getEndTime()));
 		return roosterItemRepository.findFirst(ColonRoosterItemSpecification.heeftKamer(newAfspraak.getLocation())
-				.and(DateSpecification.valtBinnenDatumRange(range, r -> r.get(AbstractAppointment_.startTime), r -> r.get(AbstractAppointment_.endTime))),
+				.and(overlaptLocalDateTime(range, r -> r.get(AbstractAppointment_.startTime), r -> r.get(AbstractAppointment_.endTime))),
 			Sort.by(Sort.Order.asc(AbstractAppointment_.START_TIME))).orElse(null);
-	}
-
-	@Override
-	public List<Afspraak> getAfsprakenMetRoosterItemInRange(Long roosterItemId, Range<Date> currentViewRange)
-	{
-		var afspraken = afspraakRepository.findAll(ColonAfspraakSpecification.heeftStatuses(List.of(AfspraakStatus.GEPLAND, AfspraakStatus.UITGEVOERD))
-				.and(ColonAfspraakSpecification.heeftRoosterItemRecurrence(roosterItemId))
-				.and(DateSpecification.valtBinnenDatumRange(currentViewRange, r -> r.get(AbstractAppointment_.startTime), r -> r.get(AbstractAppointment_.endTime))),
-			Sort.by(Sort.Order.asc(AbstractAppointment_.START_TIME)));
-
-		return afspraken.stream().collect(groupingBy(AbstractAppointment::getId)).values().stream().map(a -> a.get(0)).collect(Collectors.toList());
 	}
 
 	@Override

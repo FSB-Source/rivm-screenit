@@ -23,6 +23,7 @@ package nl.rivm.screenit.specification.mamma;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.criteria.From;
@@ -56,8 +57,8 @@ import org.springframework.data.jpa.domain.Specification;
 
 import com.google.common.collect.Range;
 
-import static nl.rivm.screenit.specification.DateSpecification.tussenLocalDateTime;
-import static nl.rivm.screenit.specification.RangeSpecification.tussen;
+import static nl.rivm.screenit.specification.DateSpecification.bevatLocalDateTime;
+import static nl.rivm.screenit.specification.RangeSpecification.bevat;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmpty;
 import static nl.rivm.screenit.util.RangeUtil.closedOpen;
@@ -78,7 +79,7 @@ public class MammaAfspraakSpecification
 	public static Specification<MammaAfspraak> begintTussen(LocalDateTime vanaf, LocalDateTime tot)
 	{
 		var range = closedOpen(vanaf, tot);
-		return tussenLocalDateTime(range, r -> r.get(MammaAfspraak_.vanaf));
+		return bevatLocalDateTime(range, r -> r.get(MammaAfspraak_.vanaf));
 	}
 
 	public static Specification<MammaAfspraak> heeftGeenCapaciteitBlok()
@@ -133,13 +134,32 @@ public class MammaAfspraakSpecification
 			var standplaatsPeriodeJoin = join(r, MammaAfspraak_.standplaatsPeriode);
 			var screeningsEenheidJoin = join(standplaatsPeriodeJoin, MammaStandplaatsPeriode_.screeningsEenheid);
 			var onderzoekJoin = join(r, MammaAfspraak_.onderzoek, JoinType.LEFT);
-			var range = Range.open(DateUtil.toUtilDate(vandaag.minusMonths(2)), DateUtil.toUtilDate(vandaag));
+			var afgelopen2Maanden = Range.open(DateUtil.toUtilDate(vandaag.minusMonths(2)), DateUtil.toUtilDate(vandaag));
 			return cb.and(
 				cb.or(
 					r.get(MammaAfspraak_.status).in(MammaAfspraakStatus.INGESCHREVEN, MammaAfspraakStatus.ONDERZOEK, MammaAfspraakStatus.SIGNALEREN),
 					cb.equal(onderzoekJoin.get(MammaOnderzoek_.isDoorgevoerd), false)),
 				cb.equal(screeningsEenheidJoin.get(MammaScreeningsEenheid_.code), seCode),
-				tussen(range, r.get(MammaAfspraak_.vanaf)).withPath(cb, r));
+				bevat(afgelopen2Maanden, r.get(MammaAfspraak_.vanaf)).withPath(cb, r));
+		};
+	}
+
+	public static Specification<MammaAfspraak> heeftStandplaatsPeriodeDieAflooptOpOfNa(Date datum)
+	{
+		return (r, q, cb) ->
+		{
+			var standplaatsPeriodeJoin = join(r, MammaAfspraak_.standplaatsPeriode);
+			return cb.greaterThanOrEqualTo(standplaatsPeriodeJoin.get(MammaStandplaatsPeriode_.totEnMet), datum);
+		};
+	}
+
+	public static Specification<MammaAfspraak> heeftStandplaatsRonde(MammaStandplaats standplaats)
+	{
+		return (r, q, cb) ->
+		{
+			var standplaatsPeriodeJoin = join(r, MammaAfspraak_.standplaatsPeriode);
+			var standplaatsRondeJoin = join(standplaatsPeriodeJoin, MammaStandplaatsPeriode_.standplaatsRonde);
+			return cb.equal(standplaatsRondeJoin.get(MammaStandplaatsRonde_.standplaats), standplaats);
 		};
 	}
 
@@ -154,5 +174,4 @@ public class MammaAfspraakSpecification
 		var screeningRondeJoin = join(uitnodigingJoin, MammaUitnodiging_.screeningRonde);
 		return join(screeningRondeJoin, MammaScreeningRonde_.dossier);
 	}
-
 }

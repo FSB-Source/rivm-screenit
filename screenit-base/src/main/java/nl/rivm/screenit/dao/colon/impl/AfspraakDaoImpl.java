@@ -29,12 +29,10 @@ import java.util.List;
 
 import nl.rivm.screenit.dao.colon.AfspraakDao;
 import nl.rivm.screenit.model.Afspraak;
-import nl.rivm.screenit.model.RangeCriteriaBuilder;
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.ConclusieTypeFilter;
-import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.MdlVerslag;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
@@ -53,9 +51,7 @@ import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.Order;
-import org.hibernate.criterion.ProjectionList;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
@@ -64,7 +60,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 
 @Repository
@@ -371,31 +366,5 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 	{
 		this.getSession().saveOrUpdate(appointment);
 		this.getSession().flush();
-	}
-
-	@Override
-	public List<Object> getAfsprakenInRanges(Kamer location, List<Range<Date>> verwijderdeRanges)
-	{
-		Criteria criteria = getSession().createCriteria(Afspraak.class);
-
-		criteria.add(Restrictions.eq("location", location));
-
-		criteria.add(Restrictions.or(Restrictions.eq("status", AfspraakStatus.GEPLAND), Restrictions.eq("status", AfspraakStatus.UITGEVOERD)));
-
-		Disjunction disjunction = Restrictions.disjunction();
-		for (var range : verwijderdeRanges)
-		{
-			disjunction.add(RangeCriteriaBuilder.closedOpen("startTime", "endTime").overlaps(range));
-		}
-		criteria.add(disjunction);
-		criteria.addOrder(Order.asc("startTime"));
-
-		ProjectionList projectionList = Projections.projectionList()
-			.add(Projections.property("startTime"))
-			.add(Projections.property("endTime"))
-			.add(Projections.property("id"));
-		criteria.setProjection(projectionList);
-
-		return criteria.list();
 	}
 }

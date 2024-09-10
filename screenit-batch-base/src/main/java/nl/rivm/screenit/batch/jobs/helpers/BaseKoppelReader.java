@@ -138,7 +138,7 @@ public abstract class BaseKoppelReader implements ItemStream
 		try
 		{
 			List<KOPPELDATA.VERZONDENUITNODIGING> koppeldataLijst = getKoppeldataLijst();
-			semantischeFoutmeldingen = validerenService.voerSemantischeValiatieUit(koppeldataLijst);
+			semantischeFoutmeldingen = validerenService.voerSemantischeValidatieUit(koppeldataLijst);
 
 			if (!semantischeFoutmeldingen.isEmpty())
 			{

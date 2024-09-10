@@ -26,14 +26,24 @@ import java.time.LocalDate;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
+import nl.rivm.screenit.model.ScreeningOrganisatie;
+import nl.rivm.screenit.model.mamma.MammaPostcodeReeks_;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode_;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde_;
+import nl.rivm.screenit.model.mamma.MammaStandplaats_;
+import nl.topicuszorg.organisatie.model.Adres_;
 
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.util.Pair;
 
+import static com.google.common.collect.BoundType.CLOSED;
+import static nl.rivm.screenit.specification.RangeSpecification.bevat;
+import static nl.rivm.screenit.specification.SpecificationUtil.containsCaseInsensitive;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmpty;
+import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNull;
 import static nl.rivm.screenit.util.DateUtil.toUtilDate;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -47,6 +57,48 @@ public class MammaStandplaatsSpecification
 			return cb.and(
 				cb.equal(rondeJoin.get(MammaStandplaatsRonde_.standplaats), standplaats),
 				cb.greaterThanOrEqualTo(r.get(MammaStandplaatsPeriode_.totEnMet), toUtilDate(afsprakenVanafDatum))
+			);
+		};
+	}
+
+	public static Specification<MammaStandplaats> filterOpNaam(String naam)
+	{
+		return skipWhenEmpty(naam, (r, q, cb) -> containsCaseInsensitive(cb, r.get(MammaStandplaats_.naam), naam));
+	}
+
+	public static Specification<MammaStandplaats> filterOpLocatie(String plaats)
+	{
+		return skipWhenEmpty(plaats, (r, q, cb) ->
+		{
+			var locatieJoin = join(r, MammaStandplaats_.locatie);
+			var tijdelijkeLocatieJoin = join(r, MammaStandplaats_.tijdelijkeLocatie);
+
+			return cb.or(
+				containsCaseInsensitive(cb, locatieJoin.get(Adres_.plaats), plaats),
+				containsCaseInsensitive(cb, tijdelijkeLocatieJoin.get(Adres_.plaats), plaats)
+			);
+		});
+	}
+
+	public static Specification<MammaStandplaats> filterOpRegio(ScreeningOrganisatie screeningOrganisatie)
+	{
+		return skipWhenNull(screeningOrganisatie, (r, q, cb) -> cb.equal(r.get(MammaStandplaats_.regio), screeningOrganisatie));
+	}
+
+	public static Specification<MammaStandplaats> filterOpActief(Boolean actief)
+	{
+		return skipWhenNull(actief, (r, q, cb) -> cb.equal(r.get(MammaStandplaats_.ACTIEF), actief));
+	}
+
+	public static Specification<MammaStandplaats> heeftPostcode(String postcode)
+	{
+		return (r, q, cb) ->
+		{
+			var postcodeReeksJoin = join(r, MammaStandplaats_.postcodeReeksen);
+			return cb.and(
+				bevat(postcodeReeksJoin.get(MammaPostcodeReeks_.vanPostcode), postcodeReeksJoin.get(MammaPostcodeReeks_.totPostcode), Pair.of(CLOSED, CLOSED), postcode)
+					.withPath(cb, r),
+				cb.equal(r.get(MammaStandplaats_.ACTIEF), true)
 			);
 		};
 	}

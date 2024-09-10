@@ -29,7 +29,6 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.dao.ClientDao;
-import nl.rivm.screenit.dao.mamma.MammaBaseHL7v24Dao;
 import nl.rivm.screenit.model.AfmeldingType;
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;
@@ -53,6 +52,7 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.TestService;
 import nl.rivm.screenit.service.mamma.MammaBaseDossierService;
 import nl.rivm.screenit.service.mamma.MammaBaseFactory;
+import nl.rivm.screenit.service.mamma.MammaBaseHL7v24MessageService;
 import nl.rivm.screenit.service.mamma.MammaBaseIlmService;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
 import nl.rivm.screenit.service.mamma.MammaBaseTestService;
@@ -100,10 +100,10 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 	private MammaBaseKansberekeningService baseKansberekeningService;
 
 	@Autowired
-	private MammaBaseHL7v24Dao baseHL7v24Dao;
+	private MammaBaseIlmService baseIlmService;
 
 	@Autowired
-	private MammaBaseIlmService baseIlmService;
+	private MammaBaseHL7v24MessageService baseHL7v24MessageService;
 
 	@Override
 	public MammaDossier geefDossier(GbaPersoon gbaPersoon)
@@ -182,7 +182,7 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 			hibernateService.delete(deelnamekans);
 		}
 
-		baseHL7v24Dao.deleteMessagesForClient(client, verwijderAlleBerichten);
+		baseHL7v24MessageService.verwijderBerichtVoorClient(client, verwijderAlleBerichten);
 
 		var overgeblevenBrieven = hibernateService.getByParameters(MammaBrief.class, Map.of("client", client));
 		hibernateService.deleteAll(overgeblevenBrieven);

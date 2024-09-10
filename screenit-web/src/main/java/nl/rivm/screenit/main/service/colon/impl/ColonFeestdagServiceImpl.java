@@ -53,6 +53,9 @@ import com.google.common.collect.Range;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
+import static nl.rivm.screenit.specification.colon.ColonFeestdagSpecification.heeftDatumInRange;
+import static nl.rivm.screenit.specification.colon.ColonFeestdagSpecification.isActief;
+import static nl.rivm.screenit.specification.colon.ColonFeestdagSpecification.isNietFeestdag;
 
 @Service
 @AllArgsConstructor
@@ -76,7 +79,7 @@ public class ColonFeestdagServiceImpl implements ColonFeestdagService
 	public List<ColonFeestdag> getFeestdagen()
 	{
 		var beginDitJaar = currentDateSupplier.getLocalDate().withDayOfYear(1);
-		var specification = ColonFeestdagSpecification.isActief().and(ColonFeestdagSpecification.heeftDatumVanaf(beginDitJaar));
+		var specification = isActief().and(ColonFeestdagSpecification.heeftDatumVanaf(beginDitJaar));
 		return feestdagRepository.findAll(specification, Sort.by(ColonFeestdag_.DATUM));
 	}
 
@@ -85,7 +88,7 @@ public class ColonFeestdagServiceImpl implements ColonFeestdagService
 	{
 		var startDatum = DateUtil.parseLocalDateForPattern(start, "dd-MM-yyyy");
 		var eindDatum = DateUtil.parseLocalDateForPattern(eind, "dd-MM-yyyy");
-		var specification = ColonFeestdagSpecification.isActief().and(ColonFeestdagSpecification.heeftDatumInRange(startDatum, eindDatum));
+		var specification = isActief().and(heeftDatumInRange(startDatum, eindDatum));
 		return feestdagRepository.findAll(specification, Sort.by(ColonFeestdag_.DATUM));
 	}
 
@@ -174,8 +177,8 @@ public class ColonFeestdagServiceImpl implements ColonFeestdagService
 
 	private List<RoosterItem> getAfspraakslotsOpFeestdag(ColonFeestdagDto feestdag)
 	{
-		var startDag = DateUtil.startDag(DateUtil.toUtilDate(feestdag.getDatum()));
-		var eindDag = DateUtil.eindDag(DateUtil.toUtilDate(feestdag.getDatum()));
+		var startDag = feestdag.getDatum();
+		var eindDag = feestdag.getDatum();
 		var range = Range.closed(startDag, eindDag);
 		return roosterService.getAfspraakslotsInRange(range);
 	}
@@ -183,8 +186,10 @@ public class ColonFeestdagServiceImpl implements ColonFeestdagService
 	private void overlaptMetBestaandeFeestdag(ColonFeestdagDto feestdagDto) throws ValidatieException
 	{
 		var heeftFeestdagenMetOverlap = feestdagRepository.exists(
-			ColonFeestdagSpecification.isActief().and(ColonFeestdagSpecification.heeftDatumInRange(feestdagDto.getDatum(), feestdagDto.getDatum()))
-				.and(ColonFeestdagSpecification.isNietFeestdag(feestdagDto)));
+			isActief()
+				.and(heeftDatumInRange(feestdagDto.getDatum(), feestdagDto.getDatum()))
+				.and(isNietFeestdag(feestdagDto))
+		);
 
 		if (heeftFeestdagenMetOverlap)
 		{

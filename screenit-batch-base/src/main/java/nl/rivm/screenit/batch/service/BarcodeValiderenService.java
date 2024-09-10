@@ -27,5 +27,5 @@ import generated.KOPPELDATA;
 
 public interface BarcodeValiderenService
 {
-	List<String> voerSemantischeValiatieUit(List<KOPPELDATA.VERZONDENUITNODIGING> koppeldata);
+	List<String> voerSemantischeValidatieUit(List<KOPPELDATA.VERZONDENUITNODIGING> koppeldata);
 }

@@ -39,6 +39,4 @@ public class ColonAfspraakslotDto extends ColonTijdslotDto
 	private int aantalBlokken = 1;
 
 	private boolean alleenValidatie;
-
-	private ColonHerhalingDto herhaling;
 }

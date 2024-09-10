@@ -84,7 +84,7 @@ public class CervixHerinnerenWriter extends BaseWriter<CervixUitnodiging>
 			}
 			else
 			{
-				nieuweBrief = maakControleUitstrijkjeBrief(ronde, brief);
+				nieuweBrief = maakUitstrijkjeBrief(ronde, brief);
 			}
 			break;
 		case ZAS:
@@ -114,7 +114,7 @@ public class CervixHerinnerenWriter extends BaseWriter<CervixUitnodiging>
 			}
 			else
 			{
-				nieuweBrief = maakControleUitstrijkjeBrief(ronde, brief);
+				nieuweBrief = maakUitstrijkjeBrief(ronde, brief);
 			}
 			break;
 		case ZAS:
@@ -153,10 +153,22 @@ public class CervixHerinnerenWriter extends BaseWriter<CervixUitnodiging>
 	}
 
 	@NotNull
-	private CervixBrief maakControleUitstrijkjeBrief(CervixScreeningRonde ronde, CervixBrief brief)
+	private CervixBrief maakUitstrijkjeBrief(CervixScreeningRonde ronde, CervixBrief brief)
 	{
-		var nieuweBrief = briefService.maakBvoBrief(ronde, brief.getBriefType());
-		nieuweBrief.setHerdruk(brief);
+		var nieuweBriefType = brief.getBriefType();
+		if (nieuweBriefType == BriefType.CERVIX_UITNODIGING_CONTROLEUITSTRIJKJE)
+		{
+			nieuweBriefType = BriefType.CERVIX_HERINNERING_UITNODIGING_CONTROLEUITSTRIJKJE;
+		}
+		else if (nieuweBriefType == BriefType.CERVIX_ZAS_HPV_POSITIEF)
+		{
+			nieuweBriefType = BriefType.CERVIX_HERINNERING_ZAS_HPV_POSITIEF;
+		}
+		var nieuweBrief = briefService.maakBvoBrief(ronde, nieuweBriefType);
+		if (brief.getBriefType() == nieuweBriefType)
+		{
+			nieuweBrief.setHerdruk(brief);
+		}
 
 		var nieuweUitnodiging = factory.maakUitnodiging(ronde, nieuweBrief);
 		nieuweUitnodiging.setHerinnering(true);

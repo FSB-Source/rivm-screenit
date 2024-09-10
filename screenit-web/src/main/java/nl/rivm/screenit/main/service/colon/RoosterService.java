@@ -21,6 +21,8 @@ package nl.rivm.screenit.main.service.colon;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -68,9 +70,11 @@ public interface RoosterService
 
 	ColoscopieCentrum getIntakelocatieVanInstellingGebruiker(InstellingGebruiker instellingGebruiker);
 
-	List<RoosterItem> getAfspraakslotsInRangesEnKamer(List<Range<Date>> ranges, RoosterItem afspraakslot);
+	List<RoosterItem> getAfspraakslotsInRangesEnKamer(Range<LocalDateTime> range, RoosterItem afspraakslot);
 
-	List<RoosterItem> getAfspraakslotsInRange(Range<Date> range);
+	List<RoosterItem> getAfspraakslotsInRange(Range<LocalDate> range);
 
 	<S extends AbstractAppointment> List<S> maakHerhalingTijdslotsAan(S tijdslot, ColonHerhalingDto herhalingDto);
+
+	Range<LocalDateTime> getCurrentViewRange(ColonTijdslotDto tijdslot);
 }

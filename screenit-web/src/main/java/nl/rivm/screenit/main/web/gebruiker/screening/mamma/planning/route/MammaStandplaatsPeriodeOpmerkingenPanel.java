@@ -21,8 +21,8 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.route;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.dao.mamma.MammaBaseStandplaatsDao;
 import nl.rivm.screenit.dto.mamma.planning.PlanningStandplaatsPeriodeDto;
+import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -35,14 +35,13 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public abstract class MammaStandplaatsPeriodeOpmerkingenPanel extends GenericPanel<PlanningStandplaatsPeriodeDto>
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@SpringBean
-	private MammaBaseStandplaatsDao baseStandplaatsDao;
+	private HibernateService hibernateService;
 
 	@SpringBean
-	private HibernateService hibernateService;
+	private MammaStandplaatsService standplaatsService;
 
 	public MammaStandplaatsPeriodeOpmerkingenPanel(String id, IModel<PlanningStandplaatsPeriodeDto> model)
 	{
@@ -51,7 +50,6 @@ public abstract class MammaStandplaatsPeriodeOpmerkingenPanel extends GenericPan
 
 		AjaxLink<PlanningStandplaatsPeriodeDto> opmerkingen = new AjaxLink<PlanningStandplaatsPeriodeDto>("opmerkingen")
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -61,7 +59,7 @@ public abstract class MammaStandplaatsPeriodeOpmerkingenPanel extends GenericPan
 			}
 		};
 		MammaStandplaats standplaats = hibernateService.get(MammaStandplaats.class, standplaatsPeriodeDto.standplaatsId);
-		if (!baseStandplaatsDao.heeftActieveOpmerking(standplaats))
+		if (!standplaatsService.heeftActieveOpmerking(standplaats))
 		{
 			opmerkingen.add(new AttributeAppender("class", " opacity-05"));
 		}
@@ -69,5 +67,4 @@ public abstract class MammaStandplaatsPeriodeOpmerkingenPanel extends GenericPan
 	}
 
 	protected abstract void openOpmerkingen(AjaxRequestTarget target, IModel<PlanningStandplaatsPeriodeDto> standplaatsPeriodeModel);
-
 }

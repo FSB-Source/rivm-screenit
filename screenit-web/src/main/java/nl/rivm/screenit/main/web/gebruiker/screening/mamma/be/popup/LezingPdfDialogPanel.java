@@ -24,7 +24,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.popup;
 import java.io.File;
 
 import nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten.PdfViewer;
-import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaLezing;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
@@ -46,12 +45,13 @@ public abstract class LezingPdfDialogPanel extends GenericPanel<MammaLezing>
 	{
 		super(id, model);
 
-		MammaBeoordeling beoordeling = baseBeoordelingService.getBeoordelingVanLezing(getModelObject());
-		if (beoordeling != null && beoordeling.getVerslagPdf() != null)
-		{
-			File verslag = uploadDocumentService.load(beoordeling.getVerslagPdf());
-			add(new PdfViewer("verslagPdf", verslag, false));
-		}
+		baseBeoordelingService.getBeoordelingVanLezing(getModelObject())
+			.filter(beoordeling -> beoordeling.getVerslagPdf() != null)
+			.ifPresent(beoordeling ->
+			{
+				File verslag = uploadDocumentService.load(beoordeling.getVerslagPdf());
+				add(new PdfViewer("verslagPdf", verslag, false));
+			});
 	}
 
 	public abstract void close(AjaxRequestTarget target);

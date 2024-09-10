@@ -16,11 +16,11 @@ export class EmailValidator<T extends string | undefined> implements Validation<
 	}
 }
 
-function isEmailadresValideOfLeeg(email: string | undefined): boolean {
-	if (email) {
-		return /^[_A-Za-z0-9-]+(\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*((\.[A-Za-z]{2,})$)/.test(email)
+function isEmailadresValideOfLeeg(email: string | undefined, verplicht = false): boolean {
+	if (!email) {
+		return !verplicht
 	}
-	return true
+	return email.length <= 100 && /^[_A-Za-z0-9-]+(\.[_A-Za-z0-9-]+)*@[a-zA-Z0-9]+([.-][a-zA-Z0-9]+)*\.[a-zA-Z]{2,}$/.test(email)
 }
 
 function validateEmailadres(email: string | undefined, label: string): ValidationError[] {

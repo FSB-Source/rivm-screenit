@@ -26,4 +26,5 @@ import nl.rivm.screenit.repository.BaseJpaRepository;
 
 public interface MammaStandplaatsRondeRepository extends BaseJpaRepository<MammaStandplaatsRonde>
 {
+
 }

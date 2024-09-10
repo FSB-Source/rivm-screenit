@@ -21,13 +21,8 @@ package nl.rivm.screenit.repository;
  * =========================LICENSE_END==================================
  */
 
-import java.util.List;
 import java.util.Optional;
-import java.util.function.BiFunction;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Root;
-import javax.persistence.criteria.Selection;
+import java.util.function.Function;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -40,11 +35,8 @@ public interface BaseJpaRepository<T> extends JpaRepository<T, Long>, JpaSpecifi
 {
 	Optional<T> findFirst(Specification<T> specification, Sort sort);
 
-	<P> List<P> findAll(Specification<T> specification, Class<P> projectionClass, BiFunction<CriteriaBuilder, Root<T>, List<Selection<?>>> selectionFunction);
+	<R> R findWith(Specification<T> specification, Function<FluentJpaQuery<T, T>, R> queryFunction);
 
-	<P> List<P> findAll(Specification<T> specification, Sort sort, Class<P> projectionClass, BiFunction<CriteriaBuilder, Root<T>, List<Selection<?>>> selectionFunction);
+	<R, P> R findWith(Specification<T> specification, Class<P> resultTtype, Function<FluentJpaQuery<T, P>, R> queryFunction);
 
-	<P> Optional<P> findFirst(Specification<T> specification, Sort sort, Class<P> projectionClass, BiFunction<CriteriaBuilder, Root<T>, List<Selection<?>>> selectionFunction);
-
-	<P> Optional<P> findOne(Specification<T> specification, Class<P> projectionClass, BiFunction<CriteriaBuilder, Root<T>, List<Selection<?>>> selectionFunction);
 }

@@ -33,32 +33,29 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import nl.rivm.screenit.dao.mamma.MammaBaseStandplaatsDao;
 import nl.rivm.screenit.dto.mamma.afspraken.IMammaAfspraakWijzigenFilter;
 import nl.rivm.screenit.dto.mamma.afspraken.MammaKandidaatAfspraakDto;
 import nl.rivm.screenit.dto.mamma.afspraken.MammaStandplaatsPeriodeMetAfstandDto;
-import nl.rivm.screenit.model.CentraleEenheid;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.IDocument;
 import nl.rivm.screenit.model.MailMergeContext;
-import nl.rivm.screenit.model.PostcodeCoordinaten;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.mamma.MammaMergedBrieven;
-import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
-import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
+import nl.rivm.screenit.model.mamma.MammaStandplaats_;
+import nl.rivm.screenit.repository.mamma.MammaStandplaatsRepository;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.CoordinatenService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.impl.IBrievenGeneratorHelper;
-import nl.rivm.screenit.service.impl.PersoonCoordinaten;
+import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsPeriodeService;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.service.mamma.MammaBaseUitstelService;
 import nl.rivm.screenit.util.BigDecimalUtil;
@@ -70,10 +67,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Range;
+
+import static nl.rivm.screenit.specification.mamma.MammaStandplaatsSpecification.filterOpActief;
+import static nl.rivm.screenit.specification.mamma.MammaStandplaatsSpecification.filterOpRegio;
+import static nl.rivm.screenit.specification.mamma.MammaStandplaatsSpecification.heeftPostcode;
 
 @Service
 public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsService
@@ -82,9 +84,6 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 
 	@Autowired
 	private HibernateService hibernateService;
-
-	@Autowired
-	private MammaBaseStandplaatsDao standplaatsDao;
 
 	@Autowired
 	@Lazy
@@ -103,6 +102,12 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 	@Autowired
 	private MammaBaseUitstelService uitstelService;
 
+	@Autowired
+	private MammaStandplaatsRepository standplaatsRepository;
+
+	@Autowired
+	private MammaBaseStandplaatsPeriodeService sandplaatsPeriodeService;
+
 	@Override
 	public List<MammaStandplaatsPeriodeMetAfstandDto> getStandplaatsPeriodeMetAfstandDtos(Client client, IMammaAfspraakWijzigenFilter filter)
 	{
@@ -118,14 +123,14 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 		if (filter.getTotEnMet() != null)
 		{
 			Map<Long, Double> afstandenPerStandplaats = new HashMap<>();
-			List<MammaStandplaatsPeriode> standplaatsPerioden = standplaatsDao.getStandplaatsPerioden(filter);
-			List<MammaStandplaatsPeriode> gefilterdeStandplaatsPerioden = standplaatsPerioden.stream()
+			var standplaatsPerioden = sandplaatsPeriodeService.getStandplaatsPerioden(filter);
+			var gefilterdeStandplaatsPerioden = standplaatsPerioden.stream()
 				.filter(standplaats -> !validatieUitvoeren || uitstelService.valideerStandplaatsPeriode(standplaats, filter.getVanaf()) == null)
 				.collect(Collectors.toList());
-			for (MammaStandplaatsPeriode standplaatsPeriode : gefilterdeStandplaatsPerioden)
+			for (var standplaatsPeriode : gefilterdeStandplaatsPerioden)
 			{
-				Long standplaatsId = standplaatsPeriode.getStandplaatsRonde().getStandplaats().getId();
-				Double afstand = afstandenPerStandplaats.get(standplaatsId);
+				var standplaatsId = standplaatsPeriode.getStandplaatsRonde().getStandplaats().getId();
+				var afstand = afstandenPerStandplaats.get(standplaatsId);
 				if (!afstandenPerStandplaats.containsKey(standplaatsId))
 				{
 					afstand = bepaalAfstand(standplaatsPeriode.getStandplaatsRonde().getStandplaats(), filter.getClient());
@@ -155,16 +160,16 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 	public List<String> getStandplaatsPlaatsenVanActievePeriodes(IMammaAfspraakWijzigenFilter filter, boolean uitstellen)
 	{
 		Set<String> plaatsen = new HashSet<>();
-		List<MammaStandplaatsPeriodeMetAfstandDto> standplaatsPeriodeMetAfstandDtos = getStandplaatsPeriodeMetAfstandDtos(filter, uitstellen);
-		for (MammaStandplaatsPeriodeMetAfstandDto standplaatsPeriodeMetAfstandDto : standplaatsPeriodeMetAfstandDtos)
+		var standplaatsPeriodeMetAfstandDtos = getStandplaatsPeriodeMetAfstandDtos(filter, uitstellen);
+		for (var standplaatsPeriodeMetAfstandDto : standplaatsPeriodeMetAfstandDtos)
 		{
-			MammaStandplaatsPeriode standplaatsPeriode = hibernateService.load(MammaStandplaatsPeriode.class,
+			var standplaatsPeriode = hibernateService.load(MammaStandplaatsPeriode.class,
 				standplaatsPeriodeMetAfstandDto.getStandplaatsPeriodeId());
 
-			LocalDate vrijgegevenTotEnMetDatum = DateUtil.toLocalDate(standplaatsPeriode.getScreeningsEenheid().getVrijgegevenTotEnMet());
+			var vrijgegevenTotEnMetDatum = DateUtil.toLocalDate(standplaatsPeriode.getScreeningsEenheid().getVrijgegevenTotEnMet());
 			if ((vrijgegevenTotEnMetDatum != null && !DateUtil.toLocalDate(standplaatsPeriode.getVanaf()).isAfter(vrijgegevenTotEnMetDatum)) || uitstellen)
 			{
-				MammaStandplaats standplaats = standplaatsPeriode.getStandplaatsRonde().getStandplaats();
+				var standplaats = standplaatsPeriode.getStandplaatsRonde().getStandplaats();
 				plaatsen.add(standplaats.getLocatie().getPlaats());
 			}
 		}
@@ -174,15 +179,15 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 	@Override
 	public List<MammaStandplaatsPeriodeMetAfstandDto> getStandplaatsPeriodeMetAfstandDtos(IMammaAfspraakWijzigenFilter filter, boolean uitstellen)
 	{
-		Client client = filter.getClient();
+		var client = filter.getClient();
 
-		String savedPlaats = filter.getPlaats();
+		var savedPlaats = filter.getPlaats();
 		filter.setPlaats(null);
 		if (uitstellen)
 		{
 			filter.setTotEnMet(filter.getVanaf());
 		}
-		List<MammaStandplaatsPeriodeMetAfstandDto> standplaatsPeriodeMetAfstandDtos = getStandplaatsPeriodeMetAfstandDtos(client, filter);
+		var standplaatsPeriodeMetAfstandDtos = getStandplaatsPeriodeMetAfstandDtos(client, filter);
 		filter.setPlaats(savedPlaats);
 		return standplaatsPeriodeMetAfstandDtos;
 	}
@@ -190,10 +195,11 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 	@Override
 	public MammaStandplaats getStandplaatsMetPostcode(Client client)
 	{
-		String postcode = clientService.getGbaPostcode(client);
+		var postcode = clientService.getGbaPostcode(client);
 		if (StringUtils.isNotBlank(postcode))
 		{
-			return standplaatsDao.getStandplaatsMetPostcode(postcode);
+			var standplaats = standplaatsRepository.findOne(heeftPostcode(postcode));
+			return standplaats.orElse(null);
 		}
 		return null;
 	}
@@ -201,13 +207,13 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 	@Override
 	public MammaStandplaatsPeriode getEerstvolgendeStandplaatsPeriode(MammaStandplaats standplaats)
 	{
-		Date vandaag = dateSupplier.getDateMidnight();
+		var vandaag = dateSupplier.getDateMidnight();
 		MammaStandplaatsPeriode eerstVolgendeStandplaatsPeriode = null;
 		if (standplaats != null)
 		{
-			for (MammaStandplaatsRonde ronde : standplaats.getStandplaatsRonden())
+			for (var ronde : standplaats.getStandplaatsRonden())
 			{
-				for (MammaStandplaatsPeriode periode : ronde.getStandplaatsPerioden())
+				for (var periode : ronde.getStandplaatsPerioden())
 				{
 					if (!periode.getTotEnMet().before(vandaag)
 						&& (eerstVolgendeStandplaatsPeriode == null || eerstVolgendeStandplaatsPeriode.getVanaf().after(periode.getVanaf())))
@@ -223,11 +229,11 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 	@Override
 	public Double bepaalAfstand(MammaStandplaats standplaats, Client client)
 	{
-		PostcodeCoordinaten standplaatsPostcodeCoordinaten = standplaats.getTijdelijkeLocatie().getStartDatum() != null
+		var standplaatsPostcodeCoordinaten = standplaats.getTijdelijkeLocatie().getStartDatum() != null
 			? standplaats.getTijdelijkeLocatie().getPostcodeCoordinaten()
 			: standplaats.getLocatie().getPostcodeCoordinaten();
 
-		PersoonCoordinaten persoonCoordinaten = coordinatenService.getCoordinatenVanPersoon(client.getPersoon());
+		var persoonCoordinaten = coordinatenService.getCoordinatenVanPersoon(client.getPersoon());
 
 		if (persoonCoordinaten.vanAdres != null && standplaatsPostcodeCoordinaten != null)
 		{
@@ -246,7 +252,7 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 		locatie = standplaats.getLocatie();
 		if (standplaats.getTijdelijkeLocatie() != null)
 		{
-			MammaStandplaatsLocatie tijdelijkeLocatie = standplaats.getTijdelijkeLocatie();
+			var tijdelijkeLocatie = standplaats.getTijdelijkeLocatie();
 			if ((tijdelijkeLocatie.getStartDatum() != null || tijdelijkeLocatie.getEindDatum() != null) &&
 				(tijdelijkeLocatie.getStartDatum() == null || !DateUtil.compareAfter(tijdelijkeLocatie.getStartDatum(), datum))
 				&& (tijdelijkeLocatie.getEindDatum() == null || !DateUtil.compareBefore(tijdelijkeLocatie.getEindDatum(), datum)))
@@ -263,9 +269,9 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 	{
 		if (!brieven.isEmpty())
 		{
-			Date nu = dateSupplier.getDate();
+			var nu = dateSupplier.getDate();
 
-			MammaMergedBrieven mergedBrieven = new MammaMergedBrieven();
+			var mergedBrieven = new MammaMergedBrieven();
 			mergedBrieven.setScreeningOrganisatie(standplaats.getRegio());
 			mergedBrieven.setCreatieDatum(nu);
 			mergedBrieven.setBriefType(brieven.get(0).getBriefType());
@@ -313,15 +319,15 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 		@Override
 		public String getMergedBrievenNaam(MammaMergedBrieven brieven)
 		{
-			String naam = "";
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH.mm");
+			var naam = "";
+			var sdf = new SimpleDateFormat("yyyy-MM-dd_HH.mm");
 			if (brieven.getCreatieDatum() != null)
 			{
 				naam += sdf.format(brieven.getCreatieDatum()) + "-";
 			}
 			if (brieven.getScreeningOrganisatie() != null)
 			{
-				String soNaam = brieven.getScreeningOrganisatie().getNaam();
+				var soNaam = brieven.getScreeningOrganisatie().getNaam();
 				soNaam = soNaam.replace(" ", "_");
 				naam += soNaam + "-";
 			}
@@ -341,7 +347,7 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 		@Override
 		public void additionalMergedContext(MailMergeContext context)
 		{
-			CentraleEenheid ce = clientService.bepaalCe(context.getClient());
+			var ce = clientService.bepaalCe(context.getClient());
 			context.putValue(MailMergeContext.CONTEXT_MAMMA_CE, ce);
 			context.putValue(MailMergeContext.CONTEXT_MAMMA_TOON_LOCATIE_WIJZIGING_TEKST, Boolean.TRUE);
 		}
@@ -387,7 +393,9 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 	@Override
 	public List<MammaStandplaats> getActieveStandplaatsen(ScreeningOrganisatie voorRegio)
 	{
-		return standplaatsDao.getActieveStandplaatsen(voorRegio);
+		return standplaatsRepository.findAll(filterOpActief(true)
+				.and(filterOpRegio(voorRegio)),
+			Sort.by(Sort.Direction.ASC, MammaStandplaats_.NAAM));
 	}
 
 	@Override
@@ -403,19 +411,19 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 	@Override
 	public MammaStandplaatsPeriode huidigeStandplaatsPeriodeInRouteVanStandplaats(MammaStandplaats standplaats)
 	{
-		MammaStandplaatsPeriode eerstvolgendePeriodeStandplaats = getEerstvolgendeStandplaatsPeriode(standplaats);
+		var eerstvolgendePeriodeStandplaats = getEerstvolgendeStandplaatsPeriode(standplaats);
 		if (eerstvolgendePeriodeStandplaats == null)
 		{
 			return null;
 		}
 
-		LocalDate vandaag = dateSupplier.getLocalDate();
-		MammaScreeningsEenheid screeningsEenheid = eerstvolgendePeriodeStandplaats.getScreeningsEenheid();
-		List<MammaStandplaatsPeriode> gefilterdeStandplaatsPeriodes = screeningsEenheid.getStandplaatsPerioden().stream()
+		var vandaag = dateSupplier.getLocalDate();
+		var screeningsEenheid = eerstvolgendePeriodeStandplaats.getScreeningsEenheid();
+		var gefilterdeStandplaatsPeriodes = screeningsEenheid.getStandplaatsPerioden().stream()
 			.filter(p -> p.getTotEnMet().after(DateUtil.toUtilDate(vandaag)) || DateUtil.compareEquals(p.getTotEnMet(), DateUtil.toUtilDate(vandaag)))
 			.collect(Collectors.toList());
 
-		for (MammaStandplaatsPeriode periode : gefilterdeStandplaatsPeriodes)
+		for (var periode : gefilterdeStandplaatsPeriodes)
 		{
 			if (DateUtil.isWithinRange(DateUtil.toLocalDate(periode.getVanaf()), DateUtil.toLocalDate(periode.getTotEnMet()), vandaag))
 			{

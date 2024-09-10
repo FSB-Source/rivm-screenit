@@ -686,7 +686,7 @@ S2.define('select2/utils',[
 
     var select2Id = element.getAttribute('data-select2-id');
     if (select2Id == null) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       if (element.id) {
         select2Id = element.id;
         element.setAttribute('data-select2-id', select2Id);
@@ -699,8 +699,8 @@ S2.define('select2/utils',[
   };
 
   Utils.StoreData = function (element, name, value) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     var id = Utils.GetUniqueElementId(element);
     if (!Utils.__cache[id]) {
       Utils.__cache[id] = {};
@@ -710,10 +710,10 @@ S2.define('select2/utils',[
   };
 
   Utils.GetData = function (element, name) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     var id = Utils.GetUniqueElementId(element);
     if (name) {
       if (Utils.__cache[id]) {
@@ -729,7 +729,7 @@ S2.define('select2/utils',[
   };
 
   Utils.RemoveData = function (element) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     var id = Utils.GetUniqueElementId(element);
     if (Utils.__cache[id] != null) {
       delete Utils.__cache[id];
@@ -846,13 +846,13 @@ S2.define('select2/results',[
 
     var $selected = $options.filter('[aria-selected=true]');
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     if ($selected.length > 0) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       $selected.first().trigger('mouseenter');
     } else {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       $options.first().trigger('mouseenter');
     }
 
@@ -875,7 +875,7 @@ S2.define('select2/results',[
 
         var item = Utils.GetData(this, 'data');
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
         var id = '' + item.id;
 
         if ((item.element != null && item.element.selected) ||
@@ -1043,7 +1043,7 @@ S2.define('select2/results',[
     });
 
     container.on('open', function () {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       self.$results.attr('aria-expanded', 'true');
       self.$results.attr('aria-hidden', 'false');
 
@@ -1052,7 +1052,7 @@ S2.define('select2/results',[
     });
 
     container.on('close', function () {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       self.$results.attr('aria-expanded', 'false');
       self.$results.attr('aria-hidden', 'true');
       self.$results.removeAttr('aria-activedescendant');
@@ -1093,15 +1093,15 @@ S2.define('select2/results',[
 
       var currentIndex = $options.index($highlighted);
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       if (currentIndex <= 0) {
         return;
       }
 
       var nextIndex = currentIndex - 1;
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       if ($highlighted.length === 0) {
         nextIndex = 0;
       }
@@ -1130,7 +1130,7 @@ S2.define('select2/results',[
 
       var nextIndex = currentIndex + 1;
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       if (nextIndex >= $options.length) {
         return;
       }
@@ -1373,7 +1373,7 @@ S2.define('select2/selection/base',[
     });
 
     container.on('open', function () {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       self.$selection.attr('aria-expanded', 'true');
       self.$selection.attr('aria-owns', resultsId);
 
@@ -1381,7 +1381,7 @@ S2.define('select2/selection/base',[
     });
 
     container.on('close', function () {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       self.$selection.attr('aria-expanded', 'false');
       self.$selection.removeAttr('aria-activedescendant');
       self.$selection.removeAttr('aria-owns');
@@ -1405,10 +1405,10 @@ S2.define('select2/selection/base',[
   BaseSelection.prototype._handleBlur = function (evt) {
     var self = this;
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     window.setTimeout(function () {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       if (
         (document.activeElement == self.$selection[0]) ||
         ($.contains(self.$selection[0], document.activeElement))
@@ -1523,7 +1523,7 @@ S2.define('select2/selection/single',[
     this.$selection.attr('aria-labelledby', id);
 
     this.$selection.on('mousedown', function (evt) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       if (evt.which !== 1) {
         return;
       }
@@ -1534,11 +1534,11 @@ S2.define('select2/selection/single',[
     });
 
     this.$selection.on('focus', function (evt) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     });
 
     this.$selection.on('blur', function (evt) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     });
 
     container.on('focus', function (evt) {
@@ -1628,7 +1628,7 @@ S2.define('select2/selection/multiple',[
       'click',
       '.select2-selection__choice__remove',
       function (evt) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
         if (self.isDisabled()) {
           return;
         }
@@ -1789,14 +1789,14 @@ S2.define('select2/selection/allowClear',[
   };
 
   AllowClear.prototype._handleClear = function (_, evt) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     if (this.isDisabled()) {
       return;
     }
 
     var $clear = this.$selection.find('.select2-selection__clear');
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     if ($clear.length === 0) {
       return;
     }
@@ -1822,11 +1822,11 @@ S2.define('select2/selection/allowClear',[
         data: data[d]
       };
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       this.trigger('unselect', unselectData);
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       if (unselectData.prevented) {
         this.$element.val(previousVal);
         return;
@@ -1977,30 +1977,30 @@ S2.define('select2/selection/search',[
       }
     });
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     var msie = document.documentMode;
     var disableInputEvents = msie && msie <= 11;
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     this.$selection.on(
       'input.searchcheck',
       '.select2-search--inline',
       function (evt) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
         if (disableInputEvents) {
           self.$selection.off('input.search input.searchcheck');
           return;
         }
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
         self.$selection.off('keyup.search');
       }
     );
@@ -2009,9 +2009,9 @@ S2.define('select2/selection/search',[
       'keyup.search input.search',
       '.select2-search--inline',
       function (evt) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
         if (disableInputEvents && evt.type === 'input') {
           self.$selection.off('input.search input.searchcheck');
           return;
@@ -2019,12 +2019,12 @@ S2.define('select2/selection/search',[
 
         var key = evt.which;
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
         if (key == KEYS.SHIFT || key == KEYS.CTRL || key == KEYS.ALT) {
           return;
         }
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
         if (key == KEYS.TAB) {
           return;
         }
@@ -2130,22 +2130,22 @@ S2.define('select2/selection/eventRelay',[
     decorated.call(this, container, $container);
 
     container.on('*', function (name, params) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       if ($.inArray(name, relayEvents) === -1) {
         return;
       }
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       params = params || {};
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       var evt = $.Event('select2:' + name, {
         params: params
       });
 
       self.$element.trigger(evt);
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       if ($.inArray(name, preventableEvents) === -1) {
         return;
       }
@@ -2177,7 +2177,7 @@ S2.define('select2/translation',[
     this.dict = $.extend({}, translation.all(), this.dict);
   };
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
 
   Translation._cache = {};
 
@@ -3063,11 +3063,11 @@ S2.define('select2/data/base',[
   };
 
   BaseAdapter.prototype.bind = function (container, $container) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
   };
 
   BaseAdapter.prototype.destroy = function () {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
   };
 
   BaseAdapter.prototype.generateResultId = function (container, data) {
@@ -3120,7 +3120,7 @@ S2.define('select2/data/select',[
 
     data.selected = true;
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     if ($(data.element).is('option')) {
       data.element.selected = true;
 
@@ -3204,9 +3204,9 @@ S2.define('select2/data/select',[
   };
 
   SelectAdapter.prototype.destroy = function () {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     this.$element.find('*').each(function () {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       Utils.RemoveData(this);
     });
   };
@@ -3279,7 +3279,7 @@ S2.define('select2/data/select',[
     var normalizedData = this._normalizeItem(data);
     normalizedData.element = option;
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     Utils.StoreData(option, 'data', normalizedData);
 
     return $option;
@@ -3415,7 +3415,7 @@ S2.define('select2/data/array',[
 
     var $options = [];
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     function onlyItem (item) {
       return function () {
         return $(this).val() == item.id;
@@ -3425,7 +3425,7 @@ S2.define('select2/data/array',[
     for (var d = 0; d < data.length; d++) {
       var item = this._normalizeItem(data[d]);
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       if ($.inArray(item.id, existingIds) >= 0) {
         var $existingOption = $existing.filter(onlyItem(item));
 
@@ -3502,7 +3502,7 @@ S2.define('select2/data/ajax',[
     var self = this;
 
     if (this._request != null) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       if ($.isFunction(this._request.abort)) {
         this._request.abort();
       }
@@ -3527,7 +3527,7 @@ S2.define('select2/data/ajax',[
         var results = self.processResults(data, params);
 
         if (self.options.get('debug') && window.console && console.error) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
           if (!results || !results.results || !$.isArray(results.results)) {
             console.error(
               'Select2: The AJAX results did not return an array in the ' +
@@ -3538,8 +3538,8 @@ S2.define('select2/data/ajax',[
 
         callback(results);
       }, function () {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
         if ('status' in $request &&
             ($request.status === 0 || $request.status === '0')) {
           return;
@@ -3718,16 +3718,16 @@ S2.define('select2/data/tokenizer',[
     var self = this;
 
     function createAndSelect (data) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       var item = self._normalizeItem(data);
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       var $existingOptions = self.$element.find('option').filter(function () {
         return $(this).val() === item.id;
       });
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       if (!$existingOptions.length) {
         var $option = self.option(item);
         $option.attr('data-select2-tag', true);
@@ -3736,7 +3736,7 @@ S2.define('select2/data/tokenizer',[
         self.addOptions([$option]);
       }
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       select(item);
     }
 
@@ -3751,7 +3751,7 @@ S2.define('select2/data/tokenizer',[
     var tokenData = this.tokenizer(params, this.options, createAndSelect);
 
     if (tokenData.term !== params.term) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       if (this.$search.length) {
         this.$search.val(tokenData.term);
         this.$search.trigger('focus');
@@ -3798,7 +3798,7 @@ S2.define('select2/data/tokenizer',[
 
       callback(data);
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       term = term.substr(i + 1) || '';
       i = 0;
     }
@@ -3957,15 +3957,15 @@ S2.define('select2/dropdown',[
   };
 
   Dropdown.prototype.bind = function () {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
   };
 
   Dropdown.prototype.position = function ($dropdown, $container) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
   };
 
   Dropdown.prototype.destroy = function () {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     this.$dropdown.remove();
   };
 
@@ -4010,11 +4010,11 @@ S2.define('select2/dropdown/search',[
       self._keyUpPrevented = evt.isDefaultPrevented();
     });
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     this.$search.on('input', function (evt) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       $(this).off('keyup');
     });
 
@@ -4243,7 +4243,7 @@ S2.define('select2/dropdown/attachBody',[
       self._showDropdown();
       self._attachPositioningHandler(container);
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       self._bindContainerResultHandlers(container);
     });
 
@@ -4264,7 +4264,7 @@ S2.define('select2/dropdown/attachBody',[
   };
 
   AttachBody.prototype.position = function (decorated, $dropdown, $container) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     $dropdown.attr('class', $container.attr('class'));
 
     $dropdown.removeClass('select2');
@@ -4296,7 +4296,7 @@ S2.define('select2/dropdown/attachBody',[
   AttachBody.prototype._bindContainerResultHandlers =
       function (decorated, container) {
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     if (this._containerResultsHandlersBound) {
       return;
     }
@@ -4407,11 +4407,11 @@ S2.define('select2/dropdown/attachBody',[
       top: container.bottom
     };
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     var $offsetParent = this.$dropdownParent;
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     if ($offsetParent.css('position') === 'static') {
       $offsetParent = $offsetParent.offsetParent();
     }
@@ -4541,8 +4541,8 @@ S2.define('select2/dropdown/selectOnClose',[
     if (params && params.originalSelect2Event != null) {
       var event = params.originalSelect2Event;
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       if (event._type === 'select' || event._type === 'unselect') {
         return;
       }
@@ -4550,14 +4550,14 @@ S2.define('select2/dropdown/selectOnClose',[
 
     var $highlightedResults = this.getHighlightedResults();
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     if ($highlightedResults.length < 1) {
       return;
     }
 
     var data = Utils.GetData($highlightedResults[0], 'data');
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     if (
       (data.element != null && data.element.selected) ||
       (data.element == null && data.selected)
@@ -4595,7 +4595,7 @@ S2.define('select2/dropdown/closeOnSelect',[
   CloseOnSelect.prototype._selectTriggered = function (_, evt) {
     var originalEvent = evt.originalEvent;
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     if (originalEvent && (originalEvent.ctrlKey || originalEvent.metaKey)) {
       return;
     }
@@ -4610,7 +4610,7 @@ S2.define('select2/dropdown/closeOnSelect',[
 });
 
 S2.define('select2/i18n/en',[],function () {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
   return {
     errorLoading: function () {
       return 'The results could not be loaded.';
@@ -4850,7 +4850,7 @@ S2.define('select2/defaults',[
         options.selectionAdapter = SingleSelection;
       }
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       if (options.placeholder != null) {
         options.selectionAdapter = Utils.Decorate(
           options.selectionAdapter,
@@ -4891,11 +4891,11 @@ S2.define('select2/defaults',[
       );
     }
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     options.language = this._resolveLanguage(options.language);
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     options.language.push('en');
 
     var uniqueLanguages = [];
@@ -4920,7 +4920,7 @@ S2.define('select2/defaults',[
 
   Defaults.prototype.reset = function () {
     function stripDiacritics (text) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       function match(a) {
         return DIACRITICS[a] || a;
       }
@@ -4929,47 +4929,47 @@ S2.define('select2/defaults',[
     }
 
     function matcher (params, data) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       if ($.trim(params.term) === '') {
         return data;
       }
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       if (data.children && data.children.length > 0) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
         var match = $.extend(true, {}, data);
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
         for (var c = data.children.length - 1; c >= 0; c--) {
           var child = data.children[c];
 
           var matches = matcher(params, child);
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
           if (matches == null) {
             match.children.splice(c, 1);
           }
         }
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
         if (match.children.length > 0) {
           return match;
         }
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
         return matcher(params, match);
       }
 
       var original = stripDiacritics(data.text).toUpperCase();
       var term = stripDiacritics(params.term).toUpperCase();
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       if (original.indexOf(term) > -1) {
         return data;
       }
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       return null;
     }
 
@@ -5047,7 +5047,7 @@ S2.define('select2/defaults',[
       resolvedLanguages.push(languages[l]);
 
       if (typeof languages[l] === 'string' && languages[l].indexOf('-') > 0) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
         var languageParts = languages[l].split('-');
         var baseLanguage = languageParts[0];
 
@@ -5068,17 +5068,17 @@ S2.define('select2/defaults',[
 
       if (typeof language === 'string') {
         try {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
           languageData = Translation.loadPath(language);
         } catch (e) {
           try {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
             language = this.defaults.amdLanguageBase + language;
             languageData = Translation.loadPath(language);
           } catch (ex) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
             if (debug && window.console && console.warn) {
               console.warn(
                 'Select2: The language file for "' + language + '" could ' +
@@ -5200,34 +5200,34 @@ S2.define('select2/options',[
       return letter.toUpperCase();
     }
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     for (var attr = 0; attr < $e[0].attributes.length; attr++) {
       var attributeName = $e[0].attributes[attr].name;
       var prefix = 'data-';
 
       if (attributeName.substr(0, prefix.length) == prefix) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
         var dataName = attributeName.substring(prefix.length);
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
         var dataValue = Utils.GetData($e[0], dataName);
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
         var camelDataName = dataName.replace(/-([a-z])/g, upperCaseLetter);
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
         dataset[camelDataName] = dataValue;
       }
     }
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     if ($.fn.jquery && $.fn.jquery.substr(0, 2) == '1.' && $e[0].dataset) {
       dataset = $.extend(true, {}, $e[0].dataset, dataset);
     }
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     var data = $.extend(true, {}, Utils.GetData($e[0]), dataset);
 
     data = Utils._convertData(data);
@@ -5279,13 +5279,13 @@ S2.define('select2/core',[
 
     Select2.__super__.constructor.call(this);
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
 
     var tabindex = $element.attr('tabindex') || 0;
     Utils.StoreData($element[0], 'old-tabindex', tabindex);
     $element.attr('tabindex', '-1');
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
 
     var DataAdapter = this.options.get('dataAdapter');
     this.dataAdapter = new DataAdapter($element, this.options);
@@ -5312,40 +5312,40 @@ S2.define('select2/core',[
 
     this.results.position(this.$results, this.$dropdown);
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
 
     var self = this;
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     this._bindAdapters();
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     this._registerDomEvents();
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     this._registerDataEvents();
     this._registerSelectionEvents();
     this._registerDropdownEvents();
     this._registerResultsEvents();
     this._registerEvents();
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     this.dataAdapter.current(function (initialData) {
       self.trigger('selection:update', {
         data: initialData
       });
     });
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     $element.addClass('select2-hidden-accessible');
     $element.attr('aria-hidden', 'true');
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     this._syncAttributes();
 
     Utils.StoreData($element[0], 'select2', this);
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     $element.data('select2', this);
   };
 
@@ -5640,8 +5640,8 @@ S2.define('select2/core',[
     var changed = false;
     var self = this;
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     if (
       evt && evt.target && (
         evt.target.nodeName !== 'OPTION' && evt.target.nodeName !== 'OPTGROUP'
@@ -5651,8 +5651,8 @@ S2.define('select2/core',[
     }
 
     if (!mutations) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
       changed = true;
     } else if (mutations.addedNodes && mutations.addedNodes.length > 0) {
       for (var n = 0; n < mutations.addedNodes.length; n++) {
@@ -5667,8 +5667,8 @@ S2.define('select2/core',[
     } else if ($.isArray(mutations)) {
       $.each(mutations, function(evt, mutation) {
         if (self._isChangeMutation(evt, mutation)) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
           changed = true;
           return false;
         }
@@ -5681,7 +5681,7 @@ S2.define('select2/core',[
     var changed = this._isChangeMutation(evt, mutations);
     var self = this;
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     if (changed) {
       this.dataAdapter.current(function (currentData) {
         self.trigger('selection:update', {
@@ -5791,7 +5791,7 @@ S2.define('select2/core',[
   };
 
   Select2.prototype.focus = function (data) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     if (this.hasFocus()) {
       return;
     }
@@ -5926,7 +5926,7 @@ S2.define('select2/core',[
 S2.define('jquery-mousewheel',[
   'jquery'
 ], function ($) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
   return $;
 });
 
@@ -5939,7 +5939,7 @@ S2.define('jquery.select2',[
   './select2/utils'
 ], function ($, _, Select2, Defaults, Utils) {
   if ($.fn.select2 == null) {
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
     var thisMethods = ['open', 'close', 'destroy'];
 
     $.fn.select2 = function (options) {
@@ -5970,7 +5970,7 @@ S2.define('jquery.select2',[
           ret = instance[options].apply(instance, args);
         });
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
         if ($.inArray(options, thisMethods) > -1) {
           return this;
         }
@@ -5989,22 +5989,22 @@ S2.define('jquery.select2',[
   return Select2;
 });
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
   return {
     define: S2.define,
     require: S2.require
   };
 }());
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
   var select2 = S2.require('jquery.select2');
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
+//047b0e67-2f89-4125-9891-a56aeeb30d90
   jQuery.fn.select2.amd = S2;
 
-//cff4747a-af14-4460-af21-f4dc1ebf3278
+//047b0e67-2f89-4125-9891-a56aeeb30d90
   return select2;
 }));

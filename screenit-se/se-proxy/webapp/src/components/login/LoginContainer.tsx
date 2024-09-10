@@ -6,6 +6,8 @@ import {RootState} from "../../Store"
 const mapStateToProps = (state: RootState): LoginProps => ({
 	dubbeleInstantie: state.dubbeleInstantie,
 	inlogActief: state.loginStatus.inlogActief,
+	isTestOmgeving: state.environmentInfo ? state.environmentInfo.environment === "Test" : false,
+	websocketStatus: state.websocketStatus,
 })
 
 const LoginContainer = connect(mapStateToProps)(LoginView)
