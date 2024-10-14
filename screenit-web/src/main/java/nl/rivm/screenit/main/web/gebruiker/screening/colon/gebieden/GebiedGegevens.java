@@ -48,10 +48,10 @@ import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.Gemeente;
-import nl.rivm.screenit.model.UitnodigingsGebied;
 import nl.rivm.screenit.model.colon.CapaciteitsPercWijziging;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ColoscopieCentrumColonCapaciteitVerdeling;
+import nl.rivm.screenit.model.colon.UitnodigingsGebied;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
@@ -126,17 +126,17 @@ public class GebiedGegevens extends GebiedenBeheerPage
 
 	private Map<String, Integer> newAdherentiePercentages;
 
-	private TransparentWebMarkupContainer fragments;
+	private final TransparentWebMarkupContainer fragments;
 
 	private WebMarkupContainer controleResultaatPanel;
 
-	private IModel<ColoscopieCentrum> intakelocatieModel = new SimpleHibernateModel<ColoscopieCentrum>();
+	private IModel<ColonIntakelocatie> intakelocatieModel = new SimpleHibernateModel<ColonIntakelocatie>();
 
-	private IModel<List<ColoscopieCentrum>> intakelocatiesModel;
+	private IModel<List<ColonIntakelocatie>> intakelocatiesModel;
 
-	private BootstrapDialog dialog;
+	private final BootstrapDialog dialog;
 
-	private Map<Long, IModel<ColoscopieCentrumColonCapaciteitVerdeling>> verwijderdeItemModels = new HashMap<>();
+	private final Map<Long, IModel<ColoscopieCentrumColonCapaciteitVerdeling>> verwijderdeItemModels = new HashMap<>();
 
 	private ScreenitDataTable<ColoscopieCentrumColonCapaciteitVerdeling, String> adherentieTabel;
 
@@ -240,22 +240,22 @@ public class GebiedGegevens extends GebiedenBeheerPage
 		adherentieForm.setOutputMarkupId(true);
 		add(adherentieForm);
 
-		List<ColoscopieCentrum> actieveIntakelocaties = instellingService.getActieveIntakelocaties();
+		List<ColonIntakelocatie> actieveIntakelocaties = instellingService.getActieveIntakelocaties();
 		for (ColoscopieCentrumColonCapaciteitVerdeling verdeling : getPageModel().getObject().getVerdeling())
 		{
-			actieveIntakelocaties.remove(verdeling.getColoscopieCentrum());
+			actieveIntakelocaties.remove(verdeling.getIntakelocatie());
 		}
 		intakelocatiesModel = ModelUtil.listRModel(actieveIntakelocaties);
-		final ScreenitDropdown<ColoscopieCentrum> intakelocaties = ComponentHelper.newDropDownChoice("intakelocaties", intakelocatiesModel,
-			new ChoiceRenderer<ColoscopieCentrum>("naam"));
-		intakelocaties.setModel(new CompoundPropertyModel<>(new PropertyModel<ColoscopieCentrum>(GebiedGegevens.this, "intakelocatie")));
+		final ScreenitDropdown<ColonIntakelocatie> intakelocaties = ComponentHelper.newDropDownChoice("intakelocaties", intakelocatiesModel,
+			new ChoiceRenderer<ColonIntakelocatie>("naam"));
+		intakelocaties.setModel(new CompoundPropertyModel<>(new PropertyModel<ColonIntakelocatie>(GebiedGegevens.this, "intakelocatie")));
 		intakelocaties.setVisible(magAdherentieAanpassen);
 		adherentieForm.add(intakelocaties);
 
 		initAdherentiePercentages();
 
 		List<IColumn<ColoscopieCentrumColonCapaciteitVerdeling, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<ColoscopieCentrumColonCapaciteitVerdeling, String>(Model.of("Naam intakelocatie"), "coloscopieCentrum.naam"));
+		columns.add(new PropertyColumn<ColoscopieCentrumColonCapaciteitVerdeling, String>(Model.of("Naam intakelocatie"), "intakelocatie.naam"));
 		columns.add(new PropertyColumn<ColoscopieCentrumColonCapaciteitVerdeling, String>(Model.of("Huidige adherentiepercentage"), "percentageCapaciteit")
 		{
 
@@ -312,7 +312,7 @@ public class GebiedGegevens extends GebiedenBeheerPage
 						protected void onClick(AjaxRequestTarget target)
 						{
 							ColoscopieCentrumColonCapaciteitVerdeling verdeling = rowModel.getObject();
-							ColoscopieCentrum intakelocatie = verdeling.getColoscopieCentrum();
+							ColonIntakelocatie intakelocatie = verdeling.getIntakelocatie();
 							if (verdeling.getId() != null)
 							{
 								verwijderdeItemModels.put(intakelocatie.getId(), ModelUtil.sModel(verdeling));
@@ -323,7 +323,7 @@ public class GebiedGegevens extends GebiedenBeheerPage
 								uitnodigingsgebied.getVerdeling().remove(verdeling);
 								intakelocatie.getCapaciteitVerdeling().remove(verdeling);
 							}
-							List<ColoscopieCentrum> locaties = intakelocatiesModel.getObject();
+							List<ColonIntakelocatie> locaties = intakelocatiesModel.getObject();
 							locaties.add(intakelocatie);
 							intakelocatiesModel.setObject(new ArrayList<>(locaties));
 							newAdherentiePercentages.remove(ColonRestrictions.getUniekIdOf(verdeling));
@@ -384,8 +384,8 @@ public class GebiedGegevens extends GebiedenBeheerPage
 				UitnodigingsGebied gebied = getPageModel().getObject();
 				if (ModelUtil.nullSafeGet(intakelocatieModel) != null)
 				{
-					ColoscopieCentrum intakelocatie = intakelocatieModel.getObject();
-					List<ColoscopieCentrum> locaties = intakelocatiesModel.getObject();
+					ColonIntakelocatie intakelocatie = intakelocatieModel.getObject();
+					List<ColonIntakelocatie> locaties = intakelocatiesModel.getObject();
 					locaties.remove(intakelocatie);
 					intakelocatiesModel.setObject(new ArrayList<>(locaties));
 					IModel<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeItem = verwijderdeItemModels.get(intakelocatie.getId());
@@ -405,8 +405,8 @@ public class GebiedGegevens extends GebiedenBeheerPage
 
 						nieuweVerdeling.setPercentageAdherentie(0);
 						nieuweVerdeling.setPercentageCapaciteit(0);
-						nieuweVerdeling.setColoscopieCentrum(intakelocatie);
-						intakelocatie = nieuweVerdeling.getColoscopieCentrum(); 
+						nieuweVerdeling.setIntakelocatie(intakelocatie);
+						intakelocatie = nieuweVerdeling.getIntakelocatie(); 
 						intakelocatie.getCapaciteitVerdeling().add(nieuweVerdeling);
 						newAdherentiePercentages.put(ColonRestrictions.getUniekIdOf(nieuweVerdeling), 0);
 					}
@@ -498,12 +498,12 @@ public class GebiedGegevens extends GebiedenBeheerPage
 		return Boolean.TRUE;
 	}
 
-	public ColoscopieCentrum getIntakelocatie()
+	public ColonIntakelocatie getIntakelocatie()
 	{
 		return ModelUtil.nullSafeGet(intakelocatieModel);
 	}
 
-	public void setIntakelocatie(ColoscopieCentrum intakelocatieModel)
+	public void setIntakelocatie(ColonIntakelocatie intakelocatieModel)
 	{
 		this.intakelocatieModel = ModelUtil.sModel(intakelocatieModel);
 	}

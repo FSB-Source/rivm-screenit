@@ -36,9 +36,9 @@ public class ColonTijdslotDto
 {
 	private Long id;
 
-	private LocalDateTime startTime;
+	private LocalDateTime vanaf;
 
-	private LocalDateTime endTime;
+	private LocalDateTime tot;
 
 	private String kamer;
 

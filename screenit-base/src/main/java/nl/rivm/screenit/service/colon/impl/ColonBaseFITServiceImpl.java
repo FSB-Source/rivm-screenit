@@ -37,7 +37,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ProjectParameterKey;
@@ -62,6 +61,7 @@ import nl.rivm.screenit.repository.colon.ColonFITRepository;
 import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BaseHoudbaarheidService;
+import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.colon.ColonBaseFITService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
@@ -128,7 +128,7 @@ public class ColonBaseFITServiceImpl implements ColonBaseFITService
 	private ColonStudietestService studietestService;
 
 	@Autowired
-	private ClientDao clientDao;
+	private ClientService clientService;
 
 	@Autowired
 	private ColonFITRepository fitTestRepository;
@@ -690,7 +690,7 @@ public class ColonBaseFITServiceImpl implements ColonBaseFITService
 			throw new IllegalStateException("Wachttijd verzenden pakket bij 2 op 1 adres op de parameterisatie pagina is niet gezet");
 		}
 
-		var clientenOpAdres = clientDao.getClientenOpAdresMetLimiet(client.getPersoon().getGbaAdres(), minimaleLeeftijd,
+		var clientenOpAdres = clientService.getClientenOpAdresMetLimiet(client.getPersoon().getGbaAdres(), minimaleLeeftijd,
 			maximaleLeeftijd, uitnodigingsInterval);
 		var andereClient = ColonRestrictions.getAndereClient(clientenOpAdres, client);
 

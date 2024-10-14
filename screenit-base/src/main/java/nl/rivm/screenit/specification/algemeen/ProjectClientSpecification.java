@@ -53,7 +53,7 @@ import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 
 import org.springframework.data.jpa.domain.Specification;
 
-import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNull;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ProjectClientSpecification
@@ -107,9 +107,7 @@ public class ProjectClientSpecification
 
 	public static Specification<ProjectClient> heeftActieveClient()
 	{
-		return ClientSpecification.heeftActieveClientPredicate()
-			.toSpecification(r ->
-				join(r, ProjectClient_.client));
+		return ClientSpecification.heeftActieveClient().with(ProjectClient_.client);
 	}
 
 	public static Specification<ProjectClient> heeftActieveClientInProjectVoorProjectClient(LocalDate peildatum)
@@ -127,5 +125,10 @@ public class ProjectClientSpecification
 			);
 			return cb.and(clientIsActief, projectgroepIsActief, projectIsActief);
 		};
+	}
+
+	public static Specification<ProjectClient> filterClient(Client client)
+	{
+		return skipWhenNull(client, (r, q, cb) -> cb.equal(r.get(ProjectClient_.client), client));
 	}
 }

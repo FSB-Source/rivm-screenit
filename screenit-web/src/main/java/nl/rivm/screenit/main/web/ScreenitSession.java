@@ -54,7 +54,7 @@ import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.UploadDocument;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.InlogMethode;
@@ -275,8 +275,7 @@ public class ScreenitSession extends WebSession
 		Gebruiker gebruiker = null;
 		try
 		{
-			gebruiker = gebruikerService.getGebruikerByGebruikersnaam(token.getUsername());
-
+			gebruiker = gebruikerService.getGebruikerByGebruikersnaam(token.getUsername()).orElse(null);
 			if (gebruiker != null && gebruiker.getInlogMethode() != InlogMethode.YUBIKEY)
 			{
 				error(getString(gebruiker.getInlogMethode().getLoginErrorMsg(), null));
@@ -324,7 +323,7 @@ public class ScreenitSession extends WebSession
 		Gebruiker gebruiker = null;
 		try
 		{
-			gebruiker = gebruikerService.getGebruikerByGebruikersnaam(token.getUsername());
+			gebruiker = gebruikerService.getGebruikerByGebruikersnaam(token.getUsername()).orElse(null);
 
 			if (gebruiker != null && gebruiker.getInlogMethode() != InlogMethode.GEBRUIKERSNAAM_WACHTWOORD)
 			{
@@ -589,17 +588,17 @@ public class ScreenitSession extends WebSession
 		return null;
 	}
 
-	public ColoscopieCentrum getColoscopieCentrum()
+	public ColonIntakelocatie getIntakelocatie()
 	{
 		Instelling instelling = getInstelling();
-		if (ColoscopieCentrum.class.isAssignableFrom(Hibernate.getClass(instelling)))
+		if (ColonIntakelocatie.class.isAssignableFrom(Hibernate.getClass(instelling)))
 		{
-			if (!(instelling instanceof ColoscopieCentrum))
+			if (!(instelling instanceof ColonIntakelocatie))
 			{
 				HibernateProxy hibernateProxy = (HibernateProxy) instelling;
-				instelling = (ColoscopieCentrum) hibernateProxy.getHibernateLazyInitializer().getImplementation();
+				instelling = (ColonIntakelocatie) hibernateProxy.getHibernateLazyInitializer().getImplementation();
 			}
-			return (ColoscopieCentrum) instelling;
+			return (ColonIntakelocatie) instelling;
 		}
 		return null;
 	}
@@ -710,7 +709,7 @@ public class ScreenitSession extends WebSession
 		try
 		{
 			securityManager.authenticate(uziToken);
-			Gebruiker gebruiker = gebruikerService.getGebruikerByUzinummer(uziCertInfo.getUziCode());
+			var gebruiker = gebruikerService.getGebruikerByUzinummer(uziCertInfo.getUziCode()).orElse(null);
 
 			if (gebruiker != null && gebruiker.getInlogMethode() != InlogMethode.UZIPAS)
 			{

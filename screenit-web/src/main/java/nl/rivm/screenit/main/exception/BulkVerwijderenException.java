@@ -24,7 +24,7 @@ package nl.rivm.screenit.main.exception;
 import lombok.Getter;
 import lombok.Setter;
 
-import nl.rivm.screenit.model.colon.enums.ColonTijdSlotType;
+import nl.rivm.screenit.model.colon.enums.ColonTijdslotType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -34,7 +34,7 @@ public class BulkVerwijderenException extends Exception
 {
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
-	private final ColonTijdSlotType typeTijdslot;
+	private final ColonTijdslotType typeTijdslot;
 
 	private int aantalVerwijderen;
 
@@ -44,7 +44,7 @@ public class BulkVerwijderenException extends Exception
 
 	private int aantalNietGevonden;
 
-	public BulkVerwijderenException(ColonTijdSlotType typeTijdslot)
+	public BulkVerwijderenException(ColonTijdslotType typeTijdslot)
 	{
 		super();
 		this.typeTijdslot = typeTijdslot;
@@ -74,7 +74,7 @@ public class BulkVerwijderenException extends Exception
 	{
 		var node = objectMapper.createObjectNode();
 		node.put("aantalVerwijderen", aantalVerwijderen);
-		if (typeTijdslot == ColonTijdSlotType.ROOSTER_ITEM)
+		if (typeTijdslot == ColonTijdslotType.AFSPRAAKSLOT)
 		{
 			node.put("aantalGebruiktVoorCapaciteit", aantalGebruiktVoorCapaciteit);
 			node.put("aantalMetAfspraak", aantalMetAfspraak);
@@ -86,7 +86,7 @@ public class BulkVerwijderenException extends Exception
 	@Override
 	public String getMessage()
 	{
-		if (typeTijdslot == ColonTijdSlotType.ROOSTER_ITEM)
+		if (typeTijdslot == ColonTijdslotType.AFSPRAAKSLOT)
 		{
 			return String.format("Bulk verwijderen resultaten: aantalVerwijderen: %d, aantalGebruiktVoorCapaciteit: %d, aantalMetAfspraak: %d, aantalNietGevonden: %d",
 				aantalVerwijderen, aantalGebruiktVoorCapaciteit, aantalMetAfspraak, aantalNietGevonden);

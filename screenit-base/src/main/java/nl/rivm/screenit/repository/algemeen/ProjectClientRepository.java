@@ -21,9 +21,21 @@ package nl.rivm.screenit.repository.algemeen;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Optional;
+
+import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectClient;
+import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.rivm.screenit.repository.BaseJpaRepository;
 
 public interface ProjectClientRepository extends BaseJpaRepository<ProjectClient>
 {
+	Long countByProjectAndActief(Project project, boolean actief);
+
+	Long countByGroepAndActief(ProjectGroep groep, boolean actief);
+
+	Long countByProject(Project project);
+
+	Optional<ProjectClient> findOneByProjectAndClient(Project project, Client client);
 }

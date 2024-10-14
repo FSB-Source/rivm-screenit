@@ -21,7 +21,6 @@ package nl.rivm.screenit.batch.jobs.cervix.verlatedeelnamecovid;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -39,8 +38,8 @@ import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.rivm.screenit.model.project.ProjectStatus;
 import nl.rivm.screenit.model.project.ProjectType;
+import nl.rivm.screenit.service.BaseProjectService;
 import nl.rivm.screenit.service.OrganisatieParameterService;
-import nl.rivm.screenit.service.ProjectService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang3.StringUtils;
@@ -56,7 +55,7 @@ public class CervixVerlateDeelnameCovidJobListener extends BaseLogListener
 	private OrganisatieParameterService organisatieParameterService;
 
 	@Autowired
-	private ProjectService projectService;
+	private BaseProjectService projectService;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -78,10 +77,10 @@ public class CervixVerlateDeelnameCovidJobListener extends BaseLogListener
 		{
 			var zoekObject = new Project();
 			zoekObject.setNaam(projectNaam);
-			zoekObject.setProjectStatussen(Arrays.asList(ProjectStatus.ACTIEF));
-			zoekObject.setProjectTypes(Arrays.asList(ProjectType.PROJECT));
+			zoekObject.setProjectStatussen(List.of(ProjectStatus.ACTIEF));
+			zoekObject.setProjectTypes(List.of(ProjectType.PROJECT));
 			zoekObject.setGroepSelectieType(GroepSelectieType.DYNAMISCH);
-			zoekObject.setBevolkingsonderzoeken(Arrays.asList(Bevolkingsonderzoek.CERVIX));
+			zoekObject.setBevolkingsonderzoeken(List.of(Bevolkingsonderzoek.CERVIX));
 			List<Project> projecten = projectService.getProjecten(zoekObject, Collections.emptyList(), Collections.emptyList(), -1, -1, new SortState<>("naam", true));
 			Project project = null;
 			if (!projecten.isEmpty())

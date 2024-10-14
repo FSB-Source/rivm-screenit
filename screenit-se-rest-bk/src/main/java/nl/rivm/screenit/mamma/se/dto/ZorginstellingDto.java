@@ -35,4 +35,5 @@ public class ZorginstellingDto extends SeDto
 	{
 		this.naam = naam;
 	}
+
 }

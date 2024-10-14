@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import nl.rivm.screenit.mamma.se.dto.MammaHuisartsDto;
@@ -34,14 +35,13 @@ import nl.rivm.screenit.mamma.se.service.InschrijvenService;
 import nl.rivm.screenit.mamma.se.service.MammaAfspraakService;
 import nl.rivm.screenit.mamma.se.service.dtomapper.HuisartsDtoMapper;
 import nl.rivm.screenit.mamma.se.service.dtomapper.TijdelijkAdresDtoMapper;
-import nl.rivm.screenit.model.BezwaarMoment;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.ClientContactManier;
 import nl.rivm.screenit.model.EnovationHuisarts;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.TijdelijkAdres;
 import nl.rivm.screenit.model.algemeen.BezwaarBrief;
+import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
@@ -60,7 +60,6 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -88,7 +87,7 @@ public class InschrijvenServiceImpl implements InschrijvenService
 	private ClientService clientService;
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void inschrijven(InschrijvenDto action, InstellingGebruiker instellingGebruiker, LocalDateTime transactieDatumTijd, MammaScreeningsEenheid screeningsEenheid)
 	{
 		var afspraak = afspraakService.getOfMaakLaatsteAfspraakVanVandaag(action.getAfspraakId(), instellingGebruiker);
@@ -101,7 +100,7 @@ public class InschrijvenServiceImpl implements InschrijvenService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void inschrijvingWijzigen(InschrijvenDto action, InstellingGebruiker instellingGebruiker, LocalDateTime transactieDatumTijd, MammaScreeningsEenheid screeningsEenheid)
 	{
 		var afspraak = afspraakService.getOfMaakLaatsteAfspraakVanVandaag(action.getAfspraakId(), instellingGebruiker);
@@ -152,17 +151,14 @@ public class InschrijvenServiceImpl implements InschrijvenService
 
 		if (Boolean.FALSE.equals(afspraak.getBezwaarAangevraagd()))
 		{
-			BezwaarBrief bezwaarBrief = bezwaarService.getNogNietVerwerkteBezwaarBrief(client.getBezwaarMomenten());
-			if (bezwaarBrief == null)
+			Optional<BezwaarBrief> bezwaarBrief = bezwaarService.getLaatsteBezwaarBriefVanTypeVoorClient(client, BriefType.CLIENT_BEZWAAR_AANVRAAG);
+			if (bezwaarBrief.isEmpty())
 			{
-				BezwaarMoment nieuwBezwaarMoment = new BezwaarMoment();
-				nieuwBezwaarMoment.setClient(client);
-				nieuwBezwaarMoment.setManier(ClientContactManier.AANVRAAG_FORMULIER);
-				bezwaarService.bezwaarAanvragen(client, nieuwBezwaarMoment);
+				bezwaarService.maakBezwaarAanvraag(client);
 			}
 			else
 			{
-				briefHerdrukkenService.opnieuwAanmaken(bezwaarBrief, instellingGebruiker);
+				briefHerdrukkenService.opnieuwAanmaken(bezwaarBrief.get(), instellingGebruiker);
 			}
 			afspraak.setBezwaarAangevraagd(true);
 		}

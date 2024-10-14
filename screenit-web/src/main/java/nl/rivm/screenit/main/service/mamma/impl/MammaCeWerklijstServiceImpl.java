@@ -21,76 +21,93 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import nl.rivm.screenit.main.dao.mamma.MammaBeoordelingDao;
-import nl.rivm.screenit.main.dao.mamma.MammaOnderzoekDao;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaCeWerklijstZoekObject;
 import nl.rivm.screenit.main.service.mamma.MammaCeWerklijstService;
+import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
+import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
+import nl.rivm.screenit.repository.mamma.MammaOnderzoekRepository;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+
+import static nl.rivm.screenit.main.specification.mamma.MammaBeoordelingWerklijstSpecification.ceProcesMonitoringSpecification;
+import static nl.rivm.screenit.main.specification.mamma.MammaBeoordelingWerklijstSpecification.ceWerklijstSpecification;
+import static nl.rivm.screenit.util.DateUtil.minusWerkdagen;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MammaCeWerklijstServiceImpl implements MammaCeWerklijstService
 {
 	@Autowired
 	private MammaBeoordelingDao beoordelingDao;
 
 	@Autowired
-	private MammaOnderzoekDao onderzoekDao;
+	private MammaOnderzoekRepository onderzoekRepository;
+
+	@Autowired
+	private ICurrentDateSupplier currentDateSuplier;
 
 	@Override
-	public long countOnderzoeken(MammaCeWerklijstZoekObject zoekObject)
+	public List<MammaBeoordeling> zoekBeoordelingen(MammaCeWerklijstZoekObject zoekObject, long first, long count, Sort sort)
 	{
-		return beoordelingDao.countCeWerklijstBeoordelingen(zoekObject);
+		return onderzoekRepository.findWith(getCeWerklijstSpecification(zoekObject), MammaBeoordeling.class,
+			q -> q.projection((cb, r) -> r.get(MammaOnderzoek_.laatsteBeoordeling))
+				.sortBy(werklijstSortering(sort))
+				.all(first, count));
+	}
+
+	private Specification<MammaOnderzoek> getCeWerklijstSpecification(MammaCeWerklijstZoekObject zoekObject)
+	{
+		return ceWerklijstSpecification(zoekObject, getPeildatumOngunstigeUitslagen());
+	}
+
+	private LocalDate getPeildatumOngunstigeUitslagen()
+	{
+		return currentDateSuplier.getLocalDate().minusMonths(1);
+	}
+
+	private Sort werklijstSortering(Sort sort)
+	{
+		return sort.and(Sort.by(MammaOnderzoek_.CREATIE_DATUM)); 
 	}
 
 	@Override
-	public List<MammaBeoordeling> zoekOnderzoeken(MammaCeWerklijstZoekObject zoekObject, int first, int count, String sortProperty, boolean ascending)
+	public long countBeoordelingen(MammaCeWerklijstZoekObject zoekObject)
 	{
-		return beoordelingDao.zoekCeBeoordelingen(zoekObject, first, count, sortProperty, ascending);
+		return onderzoekRepository.count(getCeWerklijstSpecification(zoekObject));
 	}
 
 	@Override
-	public List<MammaOnderzoek> zoekOnderbrokenOnderzoeken(MammaCeWerklijstZoekObject zoekObject, int first, int count, String sortProperty, boolean ascending)
+	public List<MammaBeoordeling> zoekProcessmonitoringBeoordelingen(MammaCeWerklijstZoekObject zoekObject, long first, long count, Sort sort)
 	{
-		return onderzoekDao.zoekOnderbrokenOnderzoeken(zoekObject, first, count, sortProperty, ascending);
-	}
-
-	@Override
-	public long countOnderbrokenOnderzoeken(MammaCeWerklijstZoekObject zoekObject)
-	{
-		return onderzoekDao.countOnderbrokenOnderzoeken(zoekObject);
-	}
-
-	@Override
-	public List<MammaBeoordeling> zoekProcessmonitoringBeoordelingen(MammaCeWerklijstZoekObject zoekObject, int first, int count, String sortProperty, boolean ascending)
-	{
-		return beoordelingDao.zoekCeWerklijstProcesmonitoringBeoordelingen(zoekObject, first, count, sortProperty, ascending);
+		return onderzoekRepository.findWith(processMonitoringSpecification(zoekObject), MammaBeoordeling.class,
+			q -> q.projection((cb, r) -> r.get(MammaOnderzoek_.laatsteBeoordeling))
+				.sortBy(werklijstSortering(sort))
+				.all(first, count));
 	}
 
 	@Override
 	public long countProcessmonitoringBeoordelingen(MammaCeWerklijstZoekObject zoekObject)
 	{
-		return beoordelingDao.countCeWerklijstProcesmonitoringBeoordelingen(zoekObject);
+		return onderzoekRepository.count(processMonitoringSpecification(zoekObject));
 	}
 
-	@Override
-	public List<MammaBeoordeling> zoekGeenBeoordelingMogelijk(MammaCeWerklijstZoekObject zoekObject, int first, int count, String sortProperty, boolean ascending)
+	private Specification<MammaOnderzoek> processMonitoringSpecification(MammaCeWerklijstZoekObject zoekObject)
 	{
-		return beoordelingDao.zoekGeenBeoordelingMogelijk(zoekObject, first, count, sortProperty, ascending);
-	}
-
-	@Override
-	public long countGeenBeoordelingMogelijk(MammaCeWerklijstZoekObject zoekObject)
-	{
-		return beoordelingDao.countGeenBeoordelingMogelijk(zoekObject);
+		var peildatumProcesMonitoring = minusWerkdagen(currentDateSuplier.getLocalDate(), 2);
+		return ceProcesMonitoringSpecification(zoekObject, peildatumProcesMonitoring, getPeildatumOngunstigeUitslagen());
 	}
 
 	@Override
@@ -103,5 +120,23 @@ public class MammaCeWerklijstServiceImpl implements MammaCeWerklijstService
 	public long countFollowUpBeoordelingen(MammaCeWerklijstZoekObject zoekObject)
 	{
 		return beoordelingDao.countFollowUpNietGedownloadBeoordelingen(zoekObject);
+	}
+
+	@Override
+	public List<MammaScreeningsEenheid> zoekScreeningsEenhedenMetCeWerklijstBeoordeling(List<MammaBeoordelingStatus> beschikbareBeoordelingStatussen,
+		List<BeoordelingsEenheid> beoordelingsEenheden)
+	{
+		if (CollectionUtils.isEmpty(beoordelingsEenheden))
+		{
+			return new ArrayList<>();
+		}
+
+		var zoekObject = new MammaCeWerklijstZoekObject();
+		zoekObject.setBeoordelingStatussen(beschikbareBeoordelingStatussen);
+		zoekObject.setBeoordelingsEenheden(beoordelingsEenheden);
+
+		return onderzoekRepository.findWith(getCeWerklijstSpecification(zoekObject), MammaScreeningsEenheid.class,
+			q -> q.projection((cb, r) -> r.get(MammaOnderzoek_.screeningsEenheid))
+				.distinct().all());
 	}
 }

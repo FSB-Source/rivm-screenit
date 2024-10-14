@@ -25,7 +25,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.intake;
 import java.util.Iterator;
 
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
 import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -44,27 +44,27 @@ public class WerklijstIntakeDataProvider extends SortableDataProvider<ColonIntak
 	@SpringBean
 	private ColonBaseAfspraakService afspraakService;
 
-	private final IModel<ColoscopieCentrum> coloscopieCentrum;
+	private final IModel<ColonIntakelocatie> intakelocatie;
 
-	public WerklijstIntakeDataProvider(IModel<WerklijstIntakeFilter> zoekModel, ColoscopieCentrum coloscopieCentrum)
+	public WerklijstIntakeDataProvider(IModel<WerklijstIntakeFilter> zoekModel, ColonIntakelocatie intakelocatie)
 	{
 		this.zoekModel = zoekModel;
-		this.coloscopieCentrum = ModelUtil.sModel(coloscopieCentrum);
-		setSort("startTime", SortOrder.ASCENDING);
+		this.intakelocatie = ModelUtil.sModel(intakelocatie);
+		setSort("vanaf", SortOrder.ASCENDING);
 		Injector.get().inject(this);
 	}
 
 	@Override
 	public Iterator<? extends ColonIntakeAfspraak> iterator(long first, long count)
 	{
-		return afspraakService.getAfsprakenVoorColoscopiecentrum(ModelUtil.nullSafeGet(zoekModel), ModelUtil.nullSafeGet(coloscopieCentrum),
+		return afspraakService.getAfsprakenVoorColoscopiecentrum(ModelUtil.nullSafeGet(zoekModel), ModelUtil.nullSafeGet(intakelocatie),
 			first, count, getSort().getProperty(), getSort().isAscending()).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return afspraakService.countAfsprakenVoorColoscopiecentrum(ModelUtil.nullSafeGet(zoekModel), ModelUtil.nullSafeGet(coloscopieCentrum));
+		return afspraakService.countAfsprakenVoorColoscopiecentrum(ModelUtil.nullSafeGet(zoekModel), ModelUtil.nullSafeGet(intakelocatie));
 	}
 
 	@Override

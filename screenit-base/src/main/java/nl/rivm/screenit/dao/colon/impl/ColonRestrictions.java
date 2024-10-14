@@ -31,24 +31,22 @@ import java.util.List;
 import nl.rivm.screenit.model.AfmeldingType;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
-import nl.rivm.screenit.model.UitnodigingsGebied;
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.ColonGeinterpreteerdeUitslag;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
-import nl.rivm.screenit.model.colon.ColonUitnodiging;
 import nl.rivm.screenit.model.colon.ColonVerslag;
 import nl.rivm.screenit.model.colon.ColoscopieCentrumColonCapaciteitVerdeling;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.OpenUitnodiging;
+import nl.rivm.screenit.model.colon.UitnodigingsGebied;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.query.DateRestrictions;
 import nl.rivm.screenit.util.query.DateYearRestrictions;
 import nl.rivm.screenit.util.query.ScreenitRestrictions;
 
@@ -70,8 +68,6 @@ import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
 import org.hibernate.engine.spi.TypedValue;
 import org.hibernate.sql.JoinType;
-
-import static nl.rivm.screenit.model.colon.IFOBTType.GOLD;
 
 public abstract class ColonRestrictions
 {
@@ -161,8 +157,8 @@ public abstract class ColonRestrictions
 			createReferentieCriteria(peildatum, vandaag),
 			Restrictions.eq("dossier.aangemeld", Boolean.TRUE),
 			Restrictions.or(Restrictions.isNull("afspraak.id"),
-				Restrictions.ne("afspraak.status", AfspraakStatus.GEPLAND),
-				Restrictions.le("afspraak.startTime", DateUtil.toUtilDate(DateUtil.minusWerkdagen(peildatum, 5)))));
+				Restrictions.ne("afspraak.status", ColonAfspraakStatus.GEPLAND),
+				Restrictions.le("afspraak.vanaf", DateUtil.minusWerkdagen(peildatum, 5).atStartOfDay())));
 	}
 
 	private static void addProjectMetPrioriteitCriteria(Criteria crit, Long projectGroupId, List<Long> exclusieGroepIds)
@@ -236,7 +232,7 @@ public abstract class ColonRestrictions
 		critAfsprakenZonderVervolg.add(Restrictions.le("testen.statusDatum", uitnodigingsIntervalVerlopen));
 		critAfsprakenZonderVervolg.add(Restrictions.or(
 
-			Restrictions.and(Restrictions.in("afspraak.status", AfspraakStatus.GEANNULEERD), Restrictions.isNull("conclusie.type")), 
+			Restrictions.and(Restrictions.in("afspraak.status", ColonAfspraakStatus.GEANNULEERD), Restrictions.isNull("conclusie.type")), 
 
 			Restrictions.and(Restrictions.eq("afmelding.type", AfmeldingType.EENMALIG), Restrictions.isNull("afmelding.heraanmeldDatum"),
 				Restrictions.isNull("afmelding.heraanmeldStatus"), Restrictions.isNull("conclusie.type")), 
@@ -293,10 +289,10 @@ public abstract class ColonRestrictions
 		critOpenUitnodigingNa2jaar.setProjection(Property.forName("ronde"));
 		critOpenUitnodigingNa2jaar.add(Restrictions.or(
 
-			Restrictions.and(Restrictions.eq("afspraak.status", AfspraakStatus.GEPLAND),
-				new SpecialPropertyExpression("afspraak.startTime", "<", "ouRonde.creatieDatum", " - interval '3' day")), 
+			Restrictions.and(Restrictions.eq("afspraak.status", ColonAfspraakStatus.GEPLAND),
+				new SpecialPropertyExpression("afspraak.vanaf", "<", "ouRonde.creatieDatum", " - interval '3' day")), 
 
-			Restrictions.and(Restrictions.in("afspraak.status", AfspraakStatus.GEANNULEERD), Restrictions.isNull("conclusie.type")), 
+			Restrictions.and(Restrictions.in("afspraak.status", ColonAfspraakStatus.GEANNULEERD), Restrictions.isNull("conclusie.type")), 
 
 			Restrictions.and(Restrictions.eq("afmelding.type", AfmeldingType.EENMALIG), Restrictions.isNull("afmelding.heraanmeldDatum"),
 				Restrictions.isNull("afmelding.heraanmeldStatus"), Restrictions.isNull("conclusie.type")), 
@@ -309,7 +305,7 @@ public abstract class ColonRestrictions
 
 			Restrictions.isNull("ouRonde.laatsteAfspraak"), 
 
-			Restrictions.and(Restrictions.in("ouAfspraak.status", AfspraakStatus.GEANNULEERD), Restrictions.isNull("ouConclusie.type")), 
+			Restrictions.and(Restrictions.in("ouAfspraak.status", ColonAfspraakStatus.GEANNULEERD), Restrictions.isNull("ouConclusie.type")), 
 
 			Restrictions.and(Restrictions.eq("ouAfmelding.type", AfmeldingType.EENMALIG), Restrictions.isNull("ouAfmelding.heraanmeldDatum"),
 				Restrictions.isNull("ouAfmelding.heraanmeldStatus"), Restrictions.isNull("ouConclusie.type")), 
@@ -530,9 +526,9 @@ public abstract class ColonRestrictions
 		else
 		{
 			String transientId = "";
-			if (verdeling.getColoscopieCentrum() != null)
+			if (verdeling.getIntakelocatie() != null)
 			{
-				transientId += verdeling.getColoscopieCentrum().getId().toString();
+				transientId += verdeling.getIntakelocatie().getId().toString();
 			}
 			if (verdeling.getUitnodigingsGebied() != null)
 			{
@@ -607,11 +603,6 @@ public abstract class ColonRestrictions
 			Restrictions.eq(alias + "geinterpreteerdeUitslag", ColonGeinterpreteerdeUitslag.ONGUNSTIG));
 	}
 
-	public static Criterion critOngunstig()
-	{
-		return critOngunstig("");
-	}
-
 	public static void addNogGeenUitslagbriefOntvangenCriteria(Criteria crit, String rondeAlias)
 	{
 		addNogGeenBriefOntvangenVanTypesCriteria(crit, rondeAlias, BriefType.COLON_UITSLAG_BRIEVEN);
@@ -625,86 +616,6 @@ public abstract class ColonRestrictions
 		subquery.add(Restrictions.eqProperty("brief.screeningRonde", rondeAlias + "id"));
 		subquery.add(Restrictions.in("brief.briefType", briefTypes));
 		crit.add(Subqueries.notExists(subquery));
-	}
-
-	public static void addIfobtMissendeUitslagRestrictions(Criteria criteria, LocalDate signalerenVanaf, LocalDate minimaleSignaleringsDatum)
-	{
-		criteria.createAlias("ifobt.colonScreeningRonde", "ronde");
-		criteria.createAlias("ronde.dossier", "dossier");
-		criteria.createAlias("dossier.client", "client");
-		criteria.createAlias("client.persoon", "persoon");
-
-		criteria.add(Restrictions.le("ifobt.statusDatum", DateUtil.toUtilDate(minimaleSignaleringsDatum)));
-		criteria.add(Restrictions.eq("ifobt.type", GOLD));
-
-		criteria.add(
-			Restrictions.or(
-				Restrictions.and(
-					Restrictions.gt("dossier.datumLaatstGecontroleerdeSignalering", DateUtil.toUtilDate(signalerenVanaf)),
-					DateRestrictions.gtProperty("ifobt.analyseDatum", "dossier.datumLaatstGecontroleerdeSignalering")
-				),
-				Restrictions.and(
-					Restrictions.or(
-						DateRestrictions.le("dossier.datumLaatstGecontroleerdeSignalering", DateUtil.toUtilDate(signalerenVanaf)),
-						Restrictions.isNull("dossier.datumLaatstGecontroleerdeSignalering")
-					),
-					Restrictions.gt("ifobt.analyseDatum", DateUtil.toUtilDate(signalerenVanaf))
-				)
-			)
-		);
-
-		var uitslagBriefSubQuery = DetachedCriteria.forClass(ColonBrief.class, "brief");
-		uitslagBriefSubQuery.setProjection(Projections.id());
-		uitslagBriefSubQuery.createAlias("brief.projectBrief", "projectBrief", JoinType.LEFT_OUTER_JOIN);
-		uitslagBriefSubQuery.add(Restrictions.eqProperty("brief.ifobtTest", "ifobt.id"));
-		uitslagBriefSubQuery.add(
-			Restrictions.or(
-				Restrictions.and(
-					Restrictions.eq("brief.vervangendeProjectBrief", false),
-					Restrictions.in("brief.briefType", BriefType.COLON_UITSLAG_BRIEVEN),
-					Restrictions.eq("brief.gegenereerd", true)
-				),
-				Restrictions.and(
-					Restrictions.eq("brief.vervangendeProjectBrief", true),
-					Restrictions.in("projectBrief.briefType", BriefType.COLON_UITSLAG_BRIEVEN),
-					Restrictions.eq("projectBrief.gegenereerd", true)
-				)
-			)
-		);
-
-		var nieuweUitnodigingSubQuery = uitnodigingenVanClientCreatieDatumGelijkStatusDatumIfobt();
-
-		var nieuweUitnodigingZonderGekoppeldeFITSubQuery = uitnodigingenVanClientCreatieDatumGelijkStatusDatumIfobt();
-		nieuweUitnodigingZonderGekoppeldeFITSubQuery.add(Restrictions.isNull("uitnodiging.gekoppeldeTest"));
-
-		criteria.add(Restrictions.or(
-			Restrictions.and(
-				Restrictions.eq("ifobt.status", IFOBTTestStatus.UITGEVOERD),
-				Subqueries.notExists(uitslagBriefSubQuery)
-			),
-			Restrictions.and(
-				Restrictions.in("ifobt.status", Arrays.asList(IFOBTTestStatus.VERVALDATUMVERLOPEN, IFOBTTestStatus.NIETTEBEOORDELEN)),
-				Restrictions.or(
-					Restrictions.and(
-						Subqueries.notExists(nieuweUitnodigingSubQuery),
-						Subqueries.notExists(uitslagBriefSubQuery)
-					),
-					Subqueries.exists(nieuweUitnodigingZonderGekoppeldeFITSubQuery)
-				)
-			)
-		));
-
-		ScreenitRestrictions.addClientBaseRestrictions(criteria, "client", "persoon");
-	}
-
-	private static DetachedCriteria uitnodigingenVanClientCreatieDatumGelijkStatusDatumIfobt()
-	{
-		var nieuweUitnodigingSubQuery = DetachedCriteria.forClass(ColonUitnodiging.class, "uitnodiging");
-		nieuweUitnodigingSubQuery.setProjection(Projections.id());
-		nieuweUitnodigingSubQuery.createAlias("uitnodiging.screeningRonde", "screeningRonde");
-		nieuweUitnodigingSubQuery.add(Restrictions.eqProperty("screeningRonde.dossier", "dossier.id"));
-		nieuweUitnodigingSubQuery.add(DateRestrictions.eqProperty("uitnodiging.creatieDatum", "ifobt.statusDatum"));
-		return nieuweUitnodigingSubQuery;
 	}
 
 	public static Criterion critGunstig(String alias)
@@ -727,13 +638,13 @@ public abstract class ColonRestrictions
 
 		private static final TypedValue[] NO_TYPED_VALUES = new TypedValue[0];
 
-		private String propertyName;
+		private final String propertyName;
 
-		private String otherPropertyName;
+		private final String otherPropertyName;
 
-		private String op;
+		private final String op;
 
-		private String afwijkingOther;
+		private final String afwijkingOther;
 
 		protected SpecialPropertyExpression(String propertyName, String op, String otherPropertyName, String afwijkingOther)
 		{

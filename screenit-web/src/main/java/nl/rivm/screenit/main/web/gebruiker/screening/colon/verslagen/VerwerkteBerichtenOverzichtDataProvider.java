@@ -22,11 +22,11 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.verslagen;
  */
 
 import java.util.Iterator;
-import java.util.List;
 
-import nl.rivm.screenit.model.BerichtZoekFilter;
 import nl.rivm.screenit.main.service.VerslagService;
+import nl.rivm.screenit.model.BerichtZoekFilter;
 import nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht;
+import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -38,8 +38,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 public class VerwerkteBerichtenOverzichtDataProvider extends SortableDataProvider<OntvangenCdaBericht, String>
 {
 
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private VerslagService verslagService;
 
@@ -50,13 +48,12 @@ public class VerwerkteBerichtenOverzichtDataProvider extends SortableDataProvide
 		setSort("ontvangen", SortOrder.DESCENDING);
 		this.filter = filter;
 		Injector.get().inject(this);
-
 	}
 
 	@Override
 	public Iterator<OntvangenCdaBericht> iterator(long first, long count)
 	{
-		List<OntvangenCdaBericht> searchOngeldigeBerichten = verslagService.searchBerichten(ModelUtil.nullSafeGet(filter), first, count, getSort().getProperty(),
+		var searchOngeldigeBerichten = verslagService.zoekBerichten(getZoekObject(), first, count, getSort().getProperty(),
 			getSort().isAscending());
 		return searchOngeldigeBerichten.iterator();
 	}
@@ -64,13 +61,18 @@ public class VerwerkteBerichtenOverzichtDataProvider extends SortableDataProvide
 	@Override
 	public long size()
 	{
-		return verslagService.countBerichten(ModelUtil.nullSafeGet(filter));
+		return verslagService.countBerichten(getZoekObject());
 	}
 
 	@Override
 	public IModel<OntvangenCdaBericht> model(OntvangenCdaBericht object)
 	{
 		return ModelUtil.sModel(object);
+	}
+
+	private BerichtZoekFilter getZoekObject()
+	{
+		return ModelProxyHelper.deproxy(ModelUtil.nullSafeGet(filter));
 	}
 
 }

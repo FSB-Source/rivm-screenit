@@ -31,22 +31,22 @@ import nl.rivm.screenit.main.exception.BulkAanmakenException;
 import nl.rivm.screenit.main.exception.BulkVerwijderenException;
 import nl.rivm.screenit.main.exception.ValidatieException;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.RoosterListViewFilter;
 import nl.rivm.screenit.model.colon.dto.ColonAfspraakslotDto;
 import nl.rivm.screenit.model.colon.dto.ColonTijdslotDto;
 import nl.rivm.screenit.model.colon.enums.ColonRoosterBeperking;
-import nl.rivm.screenit.model.colon.planning.RoosterItem;
-import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
+import nl.rivm.screenit.model.colon.planning.ColonAfspraakslot;
+import nl.rivm.screenit.model.colon.planning.ColonTijdslot;
 
 public interface ColonAfspraakslotService
 {
 	void createAfspraakslot(ColonAfspraakslotDto afspraakslotDto, InstellingGebruiker instellingGebruiker)
 		throws ValidatieException, OpslaanVerwijderenTijdBlokException, BeperkingException, BulkAanmakenException;
 
-	void checkEindTijdOpZelfdeDag(LocalDateTime startDateTime, LocalDateTime endDateTime, ColoscopieCentrum intakelocatie) throws ValidatieException;
+	void checkEindTijdOpZelfdeDag(LocalDateTime startDateTime, LocalDateTime endDateTime, ColonIntakelocatie intakelocatie) throws ValidatieException;
 
-	void checkCapaciteitBerekening(RoosterItem roosterItem, ColoscopieCentrum intakelocatie) throws ValidatieException;
+	void checkCapaciteitBerekening(ColonAfspraakslot afspraakslot, ColonIntakelocatie intakelocatie) throws ValidatieException;
 
 	void updateAfspraakslot(Long id, ColonAfspraakslotDto afspraakslotDto, InstellingGebruiker instellingGebruiker)
 		throws ValidatieException, OpslaanVerwijderenTijdBlokException, BeperkingException;
@@ -57,9 +57,9 @@ public interface ColonAfspraakslotService
 	void bulkDeleteAfspraakslots(List<Long> id, InstellingGebruiker instellingGebruiker, boolean alleenValidatie)
 		throws BulkVerwijderenException;
 
-	List<ColonAfspraakslotDto> getAfspraakslots(LocalDate startDate, LocalDate endDate, ColoscopieCentrum intakeLocatie);
+	List<ColonAfspraakslotDto> getAfspraakslots(LocalDate startDate, LocalDate endDate, ColonIntakelocatie intakeLocatie);
 
 	List<ColonTijdslotDto> searchAfspraakslots(RoosterListViewFilter filter, long intakelocatieId);
 
-	void valideerBeperkingen(AbstractAppointment tijdslot, ColonRoosterBeperking beperkingType) throws BeperkingException;
+	void valideerBeperkingen(ColonTijdslot tijdslot, ColonRoosterBeperking beperkingType) throws BeperkingException;
 }

@@ -24,16 +24,13 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon;
 import java.util.List;
 import java.util.Map;
 
-import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.main.web.gebruiker.clienten.agenda.ColonAfspraakPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.AbstractClientContactActiePanel;
-import nl.rivm.screenit.model.Afspraak;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActie;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
-import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
-import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
+import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -46,7 +43,7 @@ public class ColonClientContactAfspraakWijzigenPanel extends AbstractClientConta
 
 	private static final long serialVersionUID = 1L;
 
-	private ColonAfspraakPanel afspraken;
+	private final ColonAfspraakPanel afspraken;
 
 	private Panel container;
 
@@ -60,9 +57,8 @@ public class ColonClientContactAfspraakWijzigenPanel extends AbstractClientConta
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public void afspraakWijzigen(AjaxRequestTarget target, Afspraak afspraak, boolean locatieWijzigen)
+			public void afspraakWijzigen(AjaxRequestTarget target, ColonIntakeAfspraak intakeAfspraak, boolean locatieWijzigen)
 			{
-				ColonIntakeAfspraak intakeAfspraak = (ColonIntakeAfspraak) HibernateHelper.deproxy(ModelProxyHelper.deproxy(afspraak));
 				ColonClientAfspraakVerplaatsenPanel afspraakVerplaatsen = new ColonClientAfspraakVerplaatsenPanel(container.getId(), ModelUtil.cModel(intakeAfspraak),
 					locatieWijzigen);
 				afspraakVerplaatsen.setOutputMarkupId(true);
@@ -72,9 +68,8 @@ public class ColonClientContactAfspraakWijzigenPanel extends AbstractClientConta
 			}
 
 			@Override
-			public void afspraakAfzeggen(AjaxRequestTarget target, Afspraak afspraak)
+			public void afspraakAfzeggen(AjaxRequestTarget target, ColonIntakeAfspraak intakeAfspraak)
 			{
-				ColonIntakeAfspraak intakeAfspraak = (ColonIntakeAfspraak) HibernateHelper.deproxy(ModelProxyHelper.deproxy(afspraak));
 				ColonClientAfspraakAfzeggenPanel afspraakAfzeggen = new ColonClientAfspraakAfzeggenPanel(container.getId(), ModelUtil.cModel(intakeAfspraak));
 				afspraakAfzeggen.setOutputMarkupId(true);
 				container.replaceWith(afspraakAfzeggen);
@@ -86,18 +81,18 @@ public class ColonClientContactAfspraakWijzigenPanel extends AbstractClientConta
 		afspraken.setOutputMarkupId(true);
 		add(afspraken);
 
-		Afspraak afspraak = (Afspraak) extraPanelParams.stream().filter(p -> p instanceof Afspraak).findFirst().orElse(null);
+		var afspraak = (ColonIntakeAfspraak) extraPanelParams.stream().filter(ColonIntakeAfspraak.class::isInstance).findFirst().orElse(null);
 		if (afspraak != null)
 		{
-			AfspraakStatus status = (AfspraakStatus) extraPanelParams.stream().filter(p -> p instanceof AfspraakStatus).findFirst().orElse(null);
-			if (AfspraakStatus.VERPLAATST.equals(status))
+			ColonAfspraakStatus status = (ColonAfspraakStatus) extraPanelParams.stream().filter(ColonAfspraakStatus.class::isInstance).findFirst().orElse(null);
+			if (ColonAfspraakStatus.VERPLAATST.equals(status))
 			{
-				Boolean loactieWijzigen = (Boolean) extraPanelParams.stream().filter(p -> p instanceof Boolean).findFirst().orElse(null);
-				container = new ColonClientAfspraakVerplaatsenPanel("container", ModelUtil.cModel((ColonIntakeAfspraak) afspraak), loactieWijzigen);
+				Boolean locatieWijzigen = (Boolean) extraPanelParams.stream().filter(Boolean.class::isInstance).findFirst().orElse(null);
+				container = new ColonClientAfspraakVerplaatsenPanel("container", ModelUtil.cModel(afspraak), locatieWijzigen);
 			}
 			else
 			{
-				container = new ColonClientAfspraakAfzeggenPanel("container", ModelUtil.cModel((ColonIntakeAfspraak) afspraak));
+				container = new ColonClientAfspraakAfzeggenPanel("container", ModelUtil.cModel(afspraak));
 			}
 		}
 		else

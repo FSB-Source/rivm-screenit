@@ -21,6 +21,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.afrondenstep;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import lombok.AllArgsConstructor;
@@ -30,8 +31,8 @@ import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
@@ -64,7 +65,7 @@ public class ColonVerlopenRondesReader extends BaseScrollableResultReader
 
 		Date maxLeeftijd = DateUtil.toUtilDate(currentDate.minusYears(preferenceService.getInteger(PreferenceKey.MAXIMALE_LEEFTIJD_COLON.name()) + 1));
 		Date maxLengteRonde = DateUtil.toUtilDate(currentDate.minusDays(preferenceService.getInteger(PreferenceKey.UITNODIGINGSINTERVAL.name())));
-		Date wachttijdNaAfspraak = DateUtil.toUtilDate(currentDate.minusDays(DAGEN_WACHTTIJD_CONCLUSIE));
+		var wachttijdNaAfspraak = currentDate.minusDays(DAGEN_WACHTTIJD_CONCLUSIE).atStartOfDay();
 
 		var criteria = session.createCriteria(ColonScreeningRonde.class, "ronde");
 		criteria.createAlias("ronde.dossier", "dossier");
@@ -91,12 +92,12 @@ public class ColonVerlopenRondesReader extends BaseScrollableResultReader
 		return criteria;
 	}
 
-	private Conjunction conclusieNietBinnenWachtperiodeVerwerkt(Date wachttijdNaAfspraak)
+	private Conjunction conclusieNietBinnenWachtperiodeVerwerkt(LocalDateTime wachttijdNaAfspraak)
 	{
 		return Restrictions.and(
 			Restrictions.isNull("afspraak.conclusie"),
-			Restrictions.eq("afspraak.status", AfspraakStatus.GEPLAND),
-			Restrictions.lt("afspraak.startTime", wachttijdNaAfspraak));
+			Restrictions.eq("afspraak.status", ColonAfspraakStatus.GEPLAND),
+			Restrictions.lt("afspraak.vanaf", wachttijdNaAfspraak));
 	}
 
 	private LogicalExpression ifobtTestIsVerlopen(Date maxLengteRonde)

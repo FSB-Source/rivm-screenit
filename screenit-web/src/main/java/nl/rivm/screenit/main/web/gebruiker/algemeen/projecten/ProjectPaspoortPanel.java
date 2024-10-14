@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten;
 
 /*-
@@ -22,11 +21,11 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten;
  * =========================LICENSE_END==================================
  */
 
+import nl.rivm.screenit.main.service.algemeen.ProjectService;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.ProjectService;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -40,9 +39,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class ProjectPaspoortPanel extends GenericPanel<Project>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private ProjectService projectService;
 

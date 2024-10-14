@@ -25,7 +25,7 @@ import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 
 import org.springframework.stereotype.Component;
@@ -40,7 +40,7 @@ public class OverledenWriter extends BaseWriter<ColonIntakeAfspraak>
 	@Override
 	public void write(ColonIntakeAfspraak afspraak) throws Exception
 	{
-		afspraakService.annuleerAfspraak(afspraak, null, AfspraakStatus.GEANNULEERD_OVERLIJDEN, false);
+		afspraakService.annuleerAfspraak(afspraak, null, ColonAfspraakStatus.GEANNULEERD_OVERLIJDEN, false);
 	}
 
 }

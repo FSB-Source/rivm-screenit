@@ -21,6 +21,7 @@ package nl.rivm.screenit.repository.algemeen;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Date;
 import java.util.Optional;
 
 import nl.rivm.screenit.model.project.Project;
@@ -30,4 +31,6 @@ public interface ProjectRepository extends BaseJpaRepository<Project>
 {
 
 	Optional<Project> findOneByNaam(String naam);
+
+	boolean existsByEindDatumAfterAndProjectBriefActiesVragenlijstId(Date date, Long vragenlijstId);
 }

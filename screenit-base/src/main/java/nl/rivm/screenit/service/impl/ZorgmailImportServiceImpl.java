@@ -29,7 +29,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.dao.EnovationHuisartsDao;
 import nl.rivm.screenit.model.EnovationHuisarts;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.HuisartsGeslacht;
@@ -74,16 +73,13 @@ public class ZorgmailImportServiceImpl implements ZorgmailImportService
 	@Autowired
 	private SimplePreferenceService simplePreferenceService;
 
-	@Autowired
-	private EnovationHuisartsDao huisartsDao;
-
 	@Override
 	public void importHandmatigAdresboek(InputStream csvStream, Boolean ediAdresOverschrijven)
 	{
 		LOG.info("Zorgmail adresboek import is gestart. (EDI-adres overschrijven: " + ediAdresOverschrijven + ")");
 		CSVReader reader = new CSVReader(new InputStreamReader(csvStream), ',');
 		ZorgmailImportVoortgang voortgang = verwerkCsv(reader, ediAdresOverschrijven);
-		huisartsDao.verwijderdeHuisartsenOntkoppelen();
+		enovationHuisartsService.verwijderdeHuisartsenOntkoppelen();
 
 		logService.logGebeurtenis(LogGebeurtenis.HUISARTS_IMPORT_AFGEROND, null,
 			"Importeren van Huisartsen Adresboek is afgerond. Zorgmail adresboek import is voltooid. Aantal nieuwe Huisartsen: " + voortgang.getNieuweHuisartsen()

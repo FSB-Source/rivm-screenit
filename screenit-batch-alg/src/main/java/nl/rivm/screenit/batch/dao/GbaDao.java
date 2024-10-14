@@ -21,13 +21,9 @@ package nl.rivm.screenit.batch.dao;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.model.gba.GbaStamtabel;
-
 import org.hibernate.Criteria;
 
 public interface GbaDao
 {
-	<T extends GbaStamtabel> T getStamtabelByCode(Class<T> clazz, String code);
-
 	Criteria getAllAdressenZonderCoordinanten();
 }

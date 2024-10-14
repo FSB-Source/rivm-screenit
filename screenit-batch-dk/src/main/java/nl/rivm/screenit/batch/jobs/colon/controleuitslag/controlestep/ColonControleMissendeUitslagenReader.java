@@ -21,57 +21,68 @@ package nl.rivm.screenit.batch.jobs.colon.controleuitslag.controlestep;
  * =========================LICENSE_END==================================
  */
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Root;
+
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationSortableScrollableResultReader;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
+import nl.rivm.screenit.model.TablePerClassHibernateObject_;
+import nl.rivm.screenit.model.colon.ColonScreeningRonde_;
 import nl.rivm.screenit.model.colon.IFOBTTest;
+import nl.rivm.screenit.model.colon.IFOBTTest_;
+import nl.rivm.screenit.model.colon.IFOBTType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.OrganisatieParameterService;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projection;
-import org.hibernate.criterion.Projections;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import static nl.rivm.screenit.Constants.MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN;
+import static nl.rivm.screenit.specification.colon.ColonFITSpecification.heeftActieveClient;
+import static nl.rivm.screenit.specification.colon.ColonFITSpecification.heeftFitType;
+import static nl.rivm.screenit.specification.colon.ColonFITSpecification.isStatusDatumVoorOfOp;
+import static nl.rivm.screenit.specification.colon.ColonFITSpecification.valideerFitUitslagStatus;
 
 @Component
 @AllArgsConstructor
-public class ColonControleMissendeUitslagenReader extends BaseScrollableResultReader
+public class ColonControleMissendeUitslagenReader extends BaseSpecificationSortableScrollableResultReader<IFOBTTest, Object>
 {
 	private final ICurrentDateSupplier currentDateSupplier;
 
 	private final OrganisatieParameterService organisatieParameterService;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<IFOBTTest> createSpecification()
 	{
-		try
-		{
-			var signaleringsTermijn = organisatieParameterService.getOrganisatieParameter(null, OrganisatieParameterKey.COLON_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN, 30);
-
-			var criteria = session.createCriteria(IFOBTTest.class, "ifobt");
-			var vandaag = currentDateSupplier.getLocalDate();
-			ColonRestrictions.addIfobtMissendeUitslagRestrictions(criteria, vandaag.minusDays(MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN),
-				vandaag.minusDays(signaleringsTermijn));
-			criteria.addOrder(Order.asc("dossier.id"));
-			return criteria;
-		}
-		catch (Exception e)
-		{
-			crashMelding("Fout bij het bepalen van missende uitslagen DK", e);
-			throw e;
-		}
+		var signaleringstermijn = organisatieParameterService.getOrganisatieParameter(null, OrganisatieParameterKey.COLON_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN, 30);
+		var vandaag = currentDateSupplier.getLocalDate();
+		var signalerenVanaf = vandaag.minusDays(MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN);
+		var minimaleSignaleringsdatum = vandaag.minusDays(signaleringstermijn);
+		return valideerFitUitslagStatus(signalerenVanaf)
+			.and(isStatusDatumVoorOfOp(minimaleSignaleringsdatum))
+			.and(heeftFitType(IFOBTType.GOLD))
+			.and(heeftActieveClient());
 	}
 
 	@Override
-	protected Projection getProjection()
+	protected CriteriaQuery<Object> createProjection(Root<IFOBTTest> r, CriteriaQuery<Object> q, CriteriaBuilder cb)
 	{
-		return Projections.distinct(Projections.property("dossier.id"));
+		return q.select(r.get(IFOBTTest_.colonScreeningRonde).get(ColonScreeningRonde_.dossier).get(TablePerClassHibernateObject_.id)).distinct(true);
+	}
+
+	@Override
+	protected Order getOrder(Root<IFOBTTest> r, CriteriaBuilder cb)
+	{
+		return cb.asc(r.get(IFOBTTest_.colonScreeningRonde).get(ColonScreeningRonde_.dossier).get(TablePerClassHibernateObject_.id));
+	}
+
+	@Override
+	protected Class<Object> getResultClass()
+	{
+		return Object.class;
 	}
 }

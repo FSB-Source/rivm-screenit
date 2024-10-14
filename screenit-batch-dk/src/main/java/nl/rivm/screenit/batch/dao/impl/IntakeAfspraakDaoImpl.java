@@ -29,8 +29,8 @@ import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -86,7 +86,7 @@ public class IntakeAfspraakDaoImpl extends AbstractAutowiredDao implements Intak
 		disjunction.add(Restrictions.isNull("intake.status"));
 		disjunction.add( 
 			Restrictions.and( 
-				Restrictions.ne("intake.status", AfspraakStatus.GEPLAND), 
+				Restrictions.ne("intake.status", ColonAfspraakStatus.GEPLAND), 
 				Restrictions.isNull("conclusie.type") 
 			) 
 		); 

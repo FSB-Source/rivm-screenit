@@ -21,21 +21,29 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.math.BigDecimal;
-import java.math.MathContext;
 import java.time.LocalDate;
 
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
+
 import nl.rivm.screenit.dto.mamma.MammaLezingRapportageDto;
-import nl.rivm.screenit.main.dao.mamma.MammaLezingRapportageDao;
 import nl.rivm.screenit.main.service.mamma.MammaLezingService;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Termijn;
+import nl.rivm.screenit.model.mamma.MammaAfspraak_;
+import nl.rivm.screenit.model.mamma.MammaBeoordeling;
+import nl.rivm.screenit.model.mamma.MammaBeoordeling_;
+import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaLezing;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
 import nl.rivm.screenit.model.mamma.enums.MammaBIRADSWaarde;
 import nl.rivm.screenit.model.mamma.enums.MammaZijde;
+import nl.rivm.screenit.repository.mamma.MammaBeoordelingRepository;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.util.PercentageUtil;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
@@ -45,16 +53,24 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus.UITSLAG_ONGUNSTIG;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.heeftEersteOfTweedeLezingGedaanBinnenTermijn;
+import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.heeftStatus;
+import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.heeftTotDiscrepantieGeleid;
+import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.isGedaanBinnenTermijnDoor;
+import static nl.rivm.screenit.specification.mamma.MammaScreeningRondeSpecification.heeftPreciesEenRonde;
+import static org.springframework.data.jpa.domain.Specification.not;
+
 @Service
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MammaLezingServiceImpl implements MammaLezingService
 {
-
 	@Autowired
 	private LogService logService;
 
 	@Autowired
-	private MammaLezingRapportageDao lezingDao;
+	private MammaBeoordelingRepository beoordelingRepository;
 
 	@Override
 	public MammaLezingRapportageDto getLezingRapportage(InstellingGebruiker instellingGebruiker, LocalDate date, Termijn termijn)
@@ -71,34 +87,46 @@ public class MammaLezingServiceImpl implements MammaLezingService
 			lezingDto.setPercentageVerwijzingenMeerdereRondes(
 				getPercentageRondeVerwijzend(eersteOf2deLezerOngunstigeUitslagVervolgRondesCount(instellingGebruiker, date, termijn), lezingDto.getTotaalAantalLezingen()));
 		}
-
 		return lezingDto;
 	}
 
-	private long getEersteLezingenCount(InstellingGebruiker instellingGebruiker, LocalDate date, Termijn termijn)
+	private long getEersteLezingenCount(InstellingGebruiker radioloog, LocalDate datum, Termijn termijn)
 	{
-		return lezingDao.eersteLezingenCount(instellingGebruiker, date, termijn);
+		return beoordelingRepository.count(isGedaanBinnenTermijnDoor(radioloog, datum, termijn).with(MammaBeoordeling_.eersteLezing));
 	}
 
-	private long getTweedeLezingenCount(InstellingGebruiker instellingGebruiker, LocalDate date, Termijn termijn)
+	private long getTweedeLezingenCount(InstellingGebruiker radioloog, LocalDate datum, Termijn termijn)
 	{
-		return lezingDao.tweedeLezingenCount(instellingGebruiker, date, termijn);
-	}
-
-	private long eersteOf2deLezerOngunstigeUitslagVervolgRondesCount(
-		InstellingGebruiker instellingGebruiker, LocalDate date, Termijn termijn)
-	{
-		return lezingDao.eersteOf2deLezerOngunstigeUitslagVervolgRondesCount(instellingGebruiker, date, termijn);
-	}
-
-	private long eersteOf2deLezerOngunstigeUitslagEersteRondesCount(InstellingGebruiker instellingGebruiker, LocalDate date, Termijn termijn)
-	{
-		return lezingDao.eersteOf2deLezerOngunstigeUitslagEersteRondesCount(instellingGebruiker, date, termijn);
+		return beoordelingRepository.count(isGedaanBinnenTermijnDoor(radioloog, datum, termijn).with(MammaBeoordeling_.tweedeLezing));
 	}
 
 	private long getDiscrepantieLezingenCount(InstellingGebruiker instellingGebruiker, LocalDate date, Termijn termijn)
 	{
-		return lezingDao.discrepantieLezingenCount(instellingGebruiker, date, termijn);
+		return beoordelingRepository.count(heeftEersteOfTweedeLezingGedaanBinnenTermijn(instellingGebruiker, date, termijn).and(heeftTotDiscrepantieGeleid()));
+	}
+
+	private long eersteOf2deLezerOngunstigeUitslagEersteRondesCount(InstellingGebruiker instellingGebruiker, LocalDate date, Termijn termijn)
+	{
+		return beoordelingRepository.count(heeftEersteOfTweedeLezingGedaanBinnenTermijn(instellingGebruiker, date, termijn)
+			.and(heeftStatus(UITSLAG_ONGUNSTIG))
+			.and(heeftPreciesEenRonde().with(r -> dossierJoin(r)))
+		);
+	}
+
+	private long eersteOf2deLezerOngunstigeUitslagVervolgRondesCount(InstellingGebruiker instellingGebruiker, LocalDate date, Termijn termijn)
+	{
+		return beoordelingRepository.count(heeftEersteOfTweedeLezingGedaanBinnenTermijn(instellingGebruiker, date, termijn)
+			.and(heeftStatus(UITSLAG_ONGUNSTIG))
+			.and(not(heeftPreciesEenRonde().with(r -> dossierJoin(r)))));
+	}
+
+	private static Join<?, MammaDossier> dossierJoin(From<?, ? extends MammaBeoordeling> beoordelingRoot)
+	{
+		var onderzoekJoin = join(beoordelingRoot, MammaBeoordeling_.onderzoek);
+		var afspraakJoin = join(onderzoekJoin, MammaOnderzoek_.afspraak);
+		var uitnodigingJoin = join(afspraakJoin, MammaAfspraak_.uitnodiging);
+		var screeningRondeJoin = join(uitnodigingJoin, MammaUitnodiging_.screeningRonde);
+		return join(screeningRondeJoin, MammaScreeningRonde_.dossier);
 	}
 
 	private String getPercentageRondeVerwijzend(long nRondeUitslagen, long totaalBeoordeling1Of2Lezing)

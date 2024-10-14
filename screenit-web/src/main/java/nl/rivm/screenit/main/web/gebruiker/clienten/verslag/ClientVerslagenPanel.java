@@ -36,8 +36,8 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
 import nl.rivm.screenit.model.mamma.verslag.followup.MammaFollowUpVerslagContent;
-import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.VerwerkVerslagService;
+import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 import nl.rivm.screenit.service.mamma.MammaBasePaVerslagService;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -55,7 +55,7 @@ public class ClientVerslagenPanel extends GenericPanel<Client>
 	private Boolean bezwaarOpIntake;
 
 	@SpringBean
-	private ClientService clientService;
+	private ColonBaseAfspraakService baseAfspraakService;
 
 	@SpringBean
 	private VerwerkVerslagService verwerkVerslagService;
@@ -81,7 +81,7 @@ public class ClientVerslagenPanel extends GenericPanel<Client>
 		}
 
 		boolean magToevoegen = magMdlVerslagToevoegen || magPaVerslagToevoegen || magFollowUpPaVerslagToevoegen;
-		bezwaarOpIntake = clientService.heeftClientIntakeConclusieMetBezwaar(client.getPersoon().getBsn());
+		bezwaarOpIntake = baseAfspraakService.heeftClientIntakeAfspraakMetConclusieBezwaar(client.getPersoon().getBsn());
 
 		WebMarkupContainer toevoegen = new WebMarkupContainer("toevoegen");
 		toevoegen.setVisible(magToevoegen);

@@ -23,7 +23,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.standplaats
 
 import java.util.Date;
 
-import nl.rivm.screenit.dao.CoordinatenDao;
 import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.base.BasePage;
@@ -39,6 +38,7 @@ import nl.rivm.screenit.model.enums.FileType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie;
+import nl.rivm.screenit.service.CoordinatenService;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.DateUtil;
@@ -66,7 +66,7 @@ public abstract class MammaStandplaatsEditLocatieAdresPanel extends GenericPanel
 	private MammaBaseAfspraakService baseAfspraakService;
 
 	@SpringBean
-	private CoordinatenDao coordinatenDao;
+	private CoordinatenService coordinatenService;
 
 	private final IModel<MammaStandplaats> standplaatsModel;
 
@@ -153,7 +153,7 @@ public abstract class MammaStandplaatsEditLocatieAdresPanel extends GenericPanel
 				}
 				else
 				{
-					PostcodeCoordinaten coordinaten = coordinatenDao.getCoordinaten(locatie);
+					PostcodeCoordinaten coordinaten = coordinatenService.getCoordinaten(locatie);
 					locatie.setPostcodeCoordinaten(coordinaten);
 					if (coordinaten == null)
 					{

@@ -21,28 +21,40 @@ package nl.rivm.screenit.service.impl;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.dao.CoordinatenDao;
+import java.math.BigDecimal;
+
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.GbaPersoon;
+import nl.rivm.screenit.model.PostcodeCoordinaten;
 import nl.rivm.screenit.model.TijdelijkAdres;
+import nl.rivm.screenit.repository.algemeen.GemeenteRepository;
+import nl.rivm.screenit.repository.algemeen.PostcodeCoordinatenRepository;
 import nl.rivm.screenit.service.CoordinatenService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.AdresUtil;
+import nl.topicuszorg.organisatie.model.Adres;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static nl.rivm.screenit.specification.algemeen.PostcodeCoordinatenSpecification.heeftGeenHuisnummerToevoeging;
+import static nl.rivm.screenit.specification.algemeen.PostcodeCoordinatenSpecification.heeftHuisnummer;
+import static nl.rivm.screenit.specification.algemeen.PostcodeCoordinatenSpecification.heeftHuisnummerToevoeging;
+import static nl.rivm.screenit.specification.algemeen.PostcodeCoordinatenSpecification.heeftPostcode;
+
 @Repository
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class CoordinatenServiceImpl implements CoordinatenService
 {
 	@Autowired
 	private ICurrentDateSupplier dateSupplier;
 
 	@Autowired
-	private CoordinatenDao coordinatenDao;
+	private PostcodeCoordinatenRepository coordinatenRepository;
+
+	@Autowired
+	private GemeenteRepository gemeenteRepository;
 
 	@Override
 	public PersoonCoordinaten getCoordinatenVanPersoon(GbaPersoon persoon)
@@ -52,9 +64,44 @@ public class CoordinatenServiceImpl implements CoordinatenService
 		PersoonCoordinaten coordinatenResults = initEnFillAdres(gbaAdres);
 		if (AdresUtil.isTijdelijkAdres(persoon, dateSupplier.getLocalDate()))
 		{
-			coordinatenResults.vanAdres = coordinatenDao.getCoordinaten(tijdelijkAdres);
+			coordinatenResults.vanAdres = getCoordinaten(tijdelijkAdres);
 		}
 		return coordinatenResults;
+	}
+
+	@Override
+	public PostcodeCoordinaten getCoordinaten(Adres adres)
+	{
+		return getCoordinaten(adres.getPostcode(), adres.getHuisnummer(), adres.getHuisnummerToevoeging(), adres.getHuisletter());
+	}
+
+	@Override
+	public PostcodeCoordinaten getCoordinaten(String postcode, Integer huisnummer, String huisnummerToevoeging, String huisletter)
+	{
+		var specification = heeftPostcode(postcode).and(heeftHuisnummer(huisnummer));
+		if (StringUtils.isBlank(huisnummerToevoeging) && StringUtils.isBlank(huisletter))
+		{
+			specification = specification.and(heeftGeenHuisnummerToevoeging());
+		}
+		else
+		{
+			if (!StringUtils.isBlank(huisnummerToevoeging))
+			{
+				specification = specification.and(heeftHuisnummerToevoeging(huisnummerToevoeging));
+			}
+			else
+			{
+				specification = specification.and(heeftHuisnummerToevoeging(huisletter));
+			}
+		}
+		var result = coordinatenRepository.findOne(specification).orElse(null);
+
+		if (result == null && StringUtils.isNotBlank(huisnummerToevoeging))
+		{
+			result = getCoordinaten(postcode, huisnummer, null, null);
+		}
+
+		return result;
 	}
 
 	private PersoonCoordinaten initEnFillAdres(BagAdres gbaAdres)
@@ -81,9 +128,42 @@ public class CoordinatenServiceImpl implements CoordinatenService
 		if (tijdelijkAdres != null)
 		{
 
-			coordinatenResults.vanTijdelijkAdres = coordinatenDao.getCoordinaten(tijdelijkAdres);
+			coordinatenResults.vanTijdelijkAdres = getCoordinaten(tijdelijkAdres);
 		}
 		return coordinatenResults;
 	}
 
+	@Override
+	@Transactional
+	public void updateGemeenteCoordinaten(String gemcode, String latitude, String longitude)
+	{
+		var gemeente = gemeenteRepository.findOneByCode(gemcode);
+		if (gemeente.isEmpty())
+		{
+			return;
+		}
+		gemeente.get().setLatitude(new BigDecimal(latitude));
+		gemeente.get().setLongitude(new BigDecimal(longitude));
+		gemeenteRepository.save(gemeente.get());
+	}
+
+	@Override
+	@Transactional
+	public void addOrUpdateCoordinaten(String postcode, String huisnr, String huisnummerToevoeging, String lat, String lon)
+	{
+		var bestaandeCoordinaten = getCoordinaten(postcode, Integer.valueOf(huisnr), huisnummerToevoeging, null);
+		if (bestaandeCoordinaten == null)
+		{
+			bestaandeCoordinaten = new PostcodeCoordinaten();
+			bestaandeCoordinaten.setHuisnummer(Integer.valueOf(huisnr));
+			if (StringUtils.isNotBlank(huisnummerToevoeging))
+			{
+				bestaandeCoordinaten.setHuisnummerToevoeging(huisnummerToevoeging);
+			}
+			bestaandeCoordinaten.setPostcode(postcode);
+		}
+		bestaandeCoordinaten.setLatitude(new BigDecimal(lat));
+		bestaandeCoordinaten.setLongitude(new BigDecimal(lon));
+		coordinatenRepository.save(bestaandeCoordinaten);
+	}
 }

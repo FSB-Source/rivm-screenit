@@ -24,19 +24,20 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.ce.werklijst.geenbeo
 import java.util.ArrayList;
 import java.util.List;
 
-import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
-import nl.rivm.screenit.main.web.gebruiker.clienten.ClientContactActieTypeWrapper;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.ce.panels.MammaCeZoekPanel;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.ce.werklijst.AbstractMammaCeWerklijst;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.ce.werklijst.TelefoonnrColumn;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
-import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
+import nl.rivm.screenit.model.mamma.MammaBeoordeling_;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
+import nl.topicuszorg.organisatie.model.Organisatie_;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -44,6 +45,8 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColu
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.wicketstuff.shiro.ShiroConstraint;
+
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
 
 @SecurityConstraint(
 	actie = Actie.INZIEN,
@@ -53,12 +56,13 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.MAMMA })
 public class MammaCeGeenBeoordelingMogelijkWerklijstPage extends AbstractMammaCeWerklijst
 {
-	private MammaCeGeenBeoordelingMogelijkDataProvider geenBeoordelingMogelijkDataProvider;
+	private final MammaCeGeenBeoordelingMogelijkDataProvider geenBeoordelingMogelijkDataProvider;
 
 	public MammaCeGeenBeoordelingMogelijkWerklijstPage()
 	{
 		super();
-		geenBeoordelingMogelijkDataProvider = new MammaCeGeenBeoordelingMogelijkDataProvider("beoordeling.statusDatum", zoekObjectModel);
+		geenBeoordelingMogelijkDataProvider = new MammaCeGeenBeoordelingMogelijkDataProvider(propertyChain(MammaOnderzoek_.LAATSTE_BEOORDELING, MammaBeoordeling_.STATUS_DATUM),
+			zoekObjectModel);
 		createResultTable();
 		MammaCeZoekPanel zoekPanel = new MammaCeZoekPanel("zoekContainer", zoekObjectModel, this, resultatenContainer)
 		{
@@ -92,20 +96,17 @@ public class MammaCeGeenBeoordelingMogelijkWerklijstPage extends AbstractMammaCe
 		columns.add(getBsnColumn());
 		columns.add(new TelefoonnrColumn<>("onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon"));
 		columns.add(getSeColumn());
-		columns.add(new PropertyColumn<>(Model.of("CE"), "centraleEenheid.naam", "onderzoek.screeningsEenheid.beoordelingsEenheid.parent.naam"));
+		columns.add(new PropertyColumn<>(Model.of("CE"),
+			propertyChain(MammaOnderzoek_.LAATSTE_BEOORDELING, MammaBeoordeling_.BEOORDELINGS_EENHEID, Instelling_.PARENT, Organisatie_.NAAM),
+			"onderzoek.screeningsEenheid.beoordelingsEenheid.parent.naam"));
 
-		resultatenContainer.add(new ScreenitDataTable<MammaBeoordeling, String>("resultaten", columns, geenBeoordelingMogelijkDataProvider, 10,
+		resultatenContainer.add(new ScreenitDataTable<>("resultaten", columns, geenBeoordelingMogelijkDataProvider, 10,
 			Model.of("onderzoek(en) waarbij geen beoordeling mogelijk is"))
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<MammaBeoordeling> model)
 			{
 				super.onClick(target, model);
-				List<Object> extraParameters = new ArrayList<>();
-				extraParameters.add(Constants.CONTACT_EXTRA_PARAMETER_VANUIT_BK_PLANNING);
-				extraParameters.add(Constants.CONTACT_EXTRA_PARAMETER_ALLEEN_CLIENT_CONTACT);
-				Client client = model.getObject().getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().getDossier().getClient();
-				ClientContactActieTypeWrapper actie = ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN;
 				setResponsePage(new MammaCeGeenBeoordelingMogelijkPage(model));
 			}
 		});

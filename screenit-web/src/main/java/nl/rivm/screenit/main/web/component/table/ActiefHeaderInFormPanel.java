@@ -27,18 +27,14 @@ import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 public class ActiefHeaderInFormPanel<T extends IActief> extends ActiefHeaderPanel<T>
 {
-
-	private static final long serialVersionUID = 1L;
-
-	public ActiefHeaderInFormPanel(String id, MarkupContainer refreshConainter, IModel<T> searchObjectModel)
+	public ActiefHeaderInFormPanel(String id, MarkupContainer refreshContainer, IModel<T> searchObjectModel)
 	{
-		super(id, refreshConainter, searchObjectModel);
+		super(id, refreshContainer, searchObjectModel);
 	}
 
 	@Override
@@ -46,9 +42,6 @@ public class ActiefHeaderInFormPanel<T extends IActief> extends ActiefHeaderPane
 	{
 		AjaxSubmitLink all = new AjaxSubmitLink("all")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -65,9 +58,6 @@ public class ActiefHeaderInFormPanel<T extends IActief> extends ActiefHeaderPane
 
 		AjaxSubmitLink active = new AjaxSubmitLink("active")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -83,9 +73,6 @@ public class ActiefHeaderInFormPanel<T extends IActief> extends ActiefHeaderPane
 
 		AjaxSubmitLink inactive = new AjaxSubmitLink("inactive")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{

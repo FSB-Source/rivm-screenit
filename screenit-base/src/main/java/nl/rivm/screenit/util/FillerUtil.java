@@ -41,9 +41,6 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Permissie;
 import nl.rivm.screenit.model.Rol;
 import nl.rivm.screenit.model.UploadDocument;
-import nl.rivm.screenit.model.colon.enums.ColonTijdSlotType;
-import nl.rivm.screenit.model.colon.planning.AfspraakDefinitie;
-import nl.rivm.screenit.model.colon.planning.TypeAfspraak;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.BestandStatus;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
@@ -59,8 +56,6 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
-import nl.topicuszorg.wicket.planning.model.Discipline;
-import nl.topicuszorg.wicket.planning.model.appointment.definition.ActionType;
 
 import org.apache.commons.io.FileUtils;
 import org.springframework.util.Assert;
@@ -92,7 +87,7 @@ public class FillerUtil
 		return uploadDocument;
 	}
 
-	public static void addPermissie(Rol rol, Actie actie, Recht recht, ToegangLevel level)
+	public static Permissie addPermissie(Rol rol, Actie actie, Recht recht, ToegangLevel level)
 	{
 		Assert.isTrue(recht.getActie() == null || recht.getActie().length == 0 || Arrays.asList(recht.getActie()).contains(actie), "Acties");
 		Assert.isTrue(recht.getLevel() == null || Arrays.asList(recht.getLevel()).contains(level), "Level");
@@ -102,6 +97,7 @@ public class FillerUtil
 		permissie.setToegangLevel(level);
 		permissie.setRol(rol);
 		rol.getPermissies().add(permissie);
+		return permissie;
 	}
 
 	private static ProjectGroep createGroep(Project project, HibernateService hibernateService)
@@ -149,17 +145,6 @@ public class FillerUtil
 		LOG.debug("Voor project " + project.getNaam() + " zijn er " + populatie + " clienten aangemaakt!");
 		hibernateService.saveOrUpdate(groep);
 		hibernateService.saveOrUpdate(bestand);
-	}
-
-	public static void definieerAfspraakDefinitie(AfspraakDefinitie definitie, Discipline discipline)
-	{
-		definitie.setActief(true);
-		definitie.setDuurAfspraakInMinuten(15);
-		definitie.setLabel(ColonTijdSlotType.ROOSTER_ITEM.getTitle());
-		definitie.setType(ActionType.APPOINTMENT);
-		definitie.setTypeAfspraak(TypeAfspraak.AFSPRAAK);
-		definitie.setPossibleLocations(new ArrayList<>());
-		definitie.addDiscipline(discipline);
 	}
 
 	public static String stripComments(List<String> list)

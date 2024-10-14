@@ -126,7 +126,7 @@ public class SELogin
 
 		try
 		{
-			gebruiker = gebruikerService.getGebruikerByGebruikersnaam(token.getUsername());
+			gebruiker = gebruikerService.getGebruikerByGebruikersnaam(token.getUsername()).orElse(null);
 
 			if (gebruiker == null)
 			{

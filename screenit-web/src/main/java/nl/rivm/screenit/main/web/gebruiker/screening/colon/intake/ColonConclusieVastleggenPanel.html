@@ -22,33 +22,38 @@
 <body>
 <wicket:panel>
 	<div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">x</button>
-        <h3>Vastleggen resultaten intake (BSN: <wicket: wicket:id="client.persoon.bsn"></wicket:> / Geb.datum: <wicket: wicket:id="client.persoon.geboortedatum"></wicket:>)</h3>
-    </div>   
-    <form wicket:id="form">
-        <div class="modal-body">
-            <fieldset class="hero-unit">
-                <h2 class="form-title margin-0" wicket:id="client.persoon.achternaam"></h2>
-            </fieldset>
-            <fieldset class="form-horizontal fieldset-last">            	
-            	<div wicket:id="eersteVraag"></div>
-            	<hr/>
-            	<div class="row-fluid">
-		           <div class="span12">
-		               <div class="control-group">
-		                   <label class="control-label">ASA-score</label>
-		                   <div class="controls">
-		                   		<div class="btn-group">
-			                   		<a  wicket:id="conclusie.asaScore" class="btn">
-		                                <wicket:container wicket:id="label"></wicket:container>
-		                            </a>
-		                         </div>
-		                   </div>
-		               </div>
-		           </div>
-		       	</div>
-                <hr/>
-                <div class="row-fluid">
+		<button type="button" class="close" data-dismiss="modal">x</button>
+		<h3>Vastleggen resultaten intake (BSN:
+			<wicket: wicket:id="client.persoon.bsn"></wicket:>
+			/ Geb.datum:
+			<wicket: wicket:id="client.persoon.geboortedatum"></wicket:>
+			)
+		</h3>
+	</div>
+	<form wicket:id="form">
+		<div class="modal-body">
+			<fieldset class="hero-unit">
+				<h2 class="form-title margin-0" wicket:id="client.persoon.achternaam"></h2>
+			</fieldset>
+			<fieldset class="form-horizontal fieldset-last">
+				<div wicket:id="eersteVraag"></div>
+				<hr/>
+				<div class="row-fluid">
+					<div class="span12">
+						<div class="control-group">
+							<label class="control-label">ASA-score</label>
+							<div class="controls">
+								<div class="btn-group">
+									<a wicket:id="conclusie.asaScore" class="btn">
+										<wicket:container wicket:id="label"></wicket:container>
+									</a>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<hr/>
+				<div class="row-fluid">
 					<div class="span5">
 						<div class="control-group value">
 							<label class="control-label">Zorgverlener intake</label>
@@ -83,7 +88,7 @@
 						<label class="control-label span5">Bezwaar gegevensuitwisseling met SO</label>
 						<div class="controls span7">
 							<div class="btn-group">
-								<a  wicket:id="bezwaar" class="btn">
+								<a wicket:id="bezwaar" class="btn">
 									<wicket:container wicket:id="label"></wicket:container>
 								</a>
 							</div>
@@ -120,7 +125,7 @@
 					<label class="control-label"></label>
 					<div class="controls">
 						<div class="btn-group">
-							<a  wicket:id="conclusie.type" class="btn">
+							<a wicket:id="conclusie.type" class="btn">
 								<wicket:container wicket:id="label"></wicket:container>
 							</a>
 						</div>
@@ -137,7 +142,7 @@
 					<label class="control-label">Reden (optioneel)</label>
 					<div class="controls">
 						<div class="btn-group">
-							<a  wicket:id="conclusie.onHoldReden" class="btn">
+							<a wicket:id="conclusie.onHoldReden" class="btn">
 								<wicket:container wicket:id="label"></wicket:container>
 							</a>
 						</div>
@@ -162,7 +167,7 @@
 			<div>
 				Bevolkingsonderzoek Nederland
 				:
-				<wicket:container wicket:id="location.coloscopieCentrum.regio.telefoon"></wicket:container>
+				<wicket:container wicket:id="kamer.intakelocatie.regio.telefoon"></wicket:container>
 			</div>
 		</fieldset>
 	</wicket:fragment>
@@ -173,7 +178,7 @@
 					<label class="control-label" wicket:id="vraag">Vraag?</label>
 					<div class="controls span4">
 						<div class="btn-group">
-							<a  wicket:id="antwoord" class="btn">
+							<a wicket:id="antwoord" class="btn">
 								<wicket:container wicket:id="label"></wicket:container>
 							</a>
 						</div>
@@ -190,7 +195,7 @@
 					<label class="control-label">Hoeveel jaar na uitslag ontlastingstest?</label>
 					<div class="controls span4">
 						<div class="btn-group">
-							<a  wicket:id="jaar" class="btn">
+							<a wicket:id="jaar" class="btn">
 								<wicket:container wicket:id="label"></wicket:container>
 							</a>
 						</div>
@@ -222,8 +227,8 @@
 							<div class="control-group value">
 								<label class="control-label">Locatie</label>
 								<div class="controls">
-									<span wicket:id="nieuweAfspraak.location.coloscopieCentrum.naam">Coloscopiecentrum 1</span> <span
-										wicket:id="nieuweAfspraak.location.name">Kamer 1</span>
+									<span wicket:id="nieuweAfspraak.kamer.intakelocatie.naam">Coloscopiecentrum 1</span> <span
+										wicket:id="nieuweAfspraak.kamer.naam">Kamer 1</span>
 								</div>
 							</div>
 
@@ -232,7 +237,7 @@
 									<label class="control-label">Datum/tijd</label>
 
 									<div class="controls">
-										<span wicket:id="nieuweAfspraak.startTime"></span>
+										<span wicket:id="nieuweAfspraak.vanaf"></span>
 									</div>
 								</div>
 							</div>

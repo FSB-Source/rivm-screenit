@@ -41,7 +41,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.main.model.AfmeldenDossierGebeurtenis;
 import nl.rivm.screenit.main.model.DossierGebeurtenis;
 import nl.rivm.screenit.main.model.DossierGebeurtenisType;
@@ -70,7 +69,7 @@ import nl.rivm.screenit.model.InpakbareUitnodiging;
 import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
-import nl.rivm.screenit.model.algemeen.AlgemeneBrief;
+import nl.rivm.screenit.model.algemeen.BezwaarBrief;
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.berichten.enums.VerslagType;
 import nl.rivm.screenit.model.cervix.CervixAfmelding;
@@ -96,21 +95,21 @@ import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.colon.ColonConclusie;
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ColonOnderzoeksVariant;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
 import nl.rivm.screenit.model.colon.ColonVerslag;
 import nl.rivm.screenit.model.colon.ColonVooraankondiging;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.IFOBTType;
 import nl.rivm.screenit.model.colon.MdlVerslag;
 import nl.rivm.screenit.model.colon.OpenUitnodiging;
 import nl.rivm.screenit.model.colon.ScannedAntwoordFormulier;
 import nl.rivm.screenit.model.colon.enums.ColonAfmeldingReden;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
 import nl.rivm.screenit.model.colon.enums.RetourzendingWijze;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.DigitaalBerichtType;
@@ -146,6 +145,7 @@ import nl.rivm.screenit.model.project.ProjectVragenlijstAntwoordenHolder;
 import nl.rivm.screenit.model.project.ProjectVragenlijstStatus;
 import nl.rivm.screenit.model.project.ScannedVragenlijst;
 import nl.rivm.screenit.service.BaseDossierAuditService;
+import nl.rivm.screenit.service.ClientContactService;
 import nl.rivm.screenit.service.RondeNummerService;
 import nl.rivm.screenit.service.colon.ColonVerwerkVerslagService;
 import nl.rivm.screenit.service.mamma.MammaBaseFollowUpService;
@@ -181,7 +181,7 @@ import com.google.common.primitives.Ints;
 public class DossierServiceImpl implements DossierService
 {
 
-	private final ClientDao clientDao;
+	private final ClientContactService clientContactService;
 
 	private final HibernateService hibernateService;
 
@@ -334,23 +334,23 @@ public class DossierServiceImpl implements DossierService
 	private void maakDKAfspraakGebeurtenis(ScreeningRondeGebeurtenissen rondeDossier, ColonIntakeAfspraak afspraak)
 	{
 		var screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
-		screeningRondeGebeurtenis.setDatum(afspraak.getDatumLaatsteWijziging());
+		screeningRondeGebeurtenis.setDatum(DateUtil.toUtilDate(afspraak.getGewijzigdOp()));
 		screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.INTAKEAFSPRAAKGEMAAKT);
 		screeningRondeGebeurtenis
-			.setBron(bepaalGebeurtenisBron(afspraak, AuditEntity.property("status").in(new AfspraakStatus[] { AfspraakStatus.GEPLAND, AfspraakStatus.UITGEVOERD })));
+			.setBron(bepaalGebeurtenisBron(afspraak, AuditEntity.property("status").in(new ColonAfspraakStatus[] { ColonAfspraakStatus.GEPLAND, ColonAfspraakStatus.UITGEVOERD })));
 
-		var afspraakTime = Constants.getDateTimeFormat().format(afspraak.getStartTime());
+		var afspraakTime = DateUtil.formatShortDateTime(afspraak.getVanaf());
 
-		var coloscopieCentrum = afspraak.getLocation().getColoscopieCentrum();
+		var intakelocatie = afspraak.getKamer().getIntakelocatie();
 
-		screeningRondeGebeurtenis.setExtraOmschrijving(afspraakTime, " Intakelocatie: " + coloscopieCentrum.getNaam() + ", " + coloscopieCentrum.getEerstePlaats());
+		screeningRondeGebeurtenis.setExtraOmschrijving(afspraakTime, " Intakelocatie: " + intakelocatie.getNaam() + ", " + intakelocatie.getEerstePlaats());
 
 		rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
 
-		if (AfspraakStatus.isGeannuleerd(afspraak.getStatus()))
+		if (ColonAfspraakStatus.isGeannuleerd(afspraak.getStatus()))
 		{
 			screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
-			screeningRondeGebeurtenis.setDatum(afspraak.getAfzegDatum());
+			screeningRondeGebeurtenis.setDatum(DateUtil.toUtilDate(afspraak.getAfgezegdOp()));
 			screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.INTAKEAFSPRAAKAFGEZEGD);
 			screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(afspraak));
 			rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
@@ -558,7 +558,7 @@ public class DossierServiceImpl implements DossierService
 
 	private void conclusieIntakeGebeurtenissen(ScreeningRondeGebeurtenissen rondeDossier, ColonIntakeAfspraak afspraak)
 	{
-		ColoscopieCentrum intakelocatie = afspraak.getLocation().getColoscopieCentrum();
+		ColonIntakelocatie intakelocatie = afspraak.getKamer().getIntakelocatie();
 		AtomicBoolean showVerwijderd = new AtomicBoolean(true);
 		AtomicBoolean first = new AtomicBoolean(true);
 		ColonConclusie prevAuditIntakeConclusie = null;
@@ -587,7 +587,7 @@ public class DossierServiceImpl implements DossierService
 	}
 
 	private void addConclusieGebeurtenissen(ColonConclusie intakeConclusie, ScreeningRondeGebeurtenissen rondeDossier, ColonIntakeAfspraak afspraak,
-		ColoscopieCentrum intakelocatie, boolean heeftActueelEenConclusie, AtomicBoolean showVerwijderd, AtomicBoolean first)
+		ColonIntakelocatie intakelocatie, boolean heeftActueelEenConclusie, AtomicBoolean showVerwijderd, AtomicBoolean first)
 	{
 		boolean heeftAuditedConclusies = false;
 		for (Object auditConclusieRow : EntityAuditUtil.getEntityHistory(intakeConclusie, hibernateService.getHibernateSession(),
@@ -630,7 +630,7 @@ public class DossierServiceImpl implements DossierService
 		}
 	}
 
-	private ScreeningRondeGebeurtenis addConclusieGebeurtenis(ScreeningRondeGebeurtenissen rondeDossier, ColonIntakeAfspraak afspraak, ColoscopieCentrum intakelocatie,
+	private ScreeningRondeGebeurtenis addConclusieGebeurtenis(ScreeningRondeGebeurtenissen rondeDossier, ColonIntakeAfspraak afspraak, ColonIntakelocatie intakelocatie,
 		ColonConclusie conclusie)
 	{
 		ScreeningRondeGebeurtenis screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
@@ -1795,6 +1795,7 @@ public class DossierServiceImpl implements DossierService
 		screeningRondeGebeurtenis.setDatum(brief.getCreatieDatum());
 		screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(brief));
 		extraOmschrijvingen.add(brief.getBriefType().getWeergaveNaam());
+		ClientBrief clientBrief = brief; 
 		if (herdruk != null)
 		{
 			herdrukGebeurtenis(screeningRondeGebeurtenis, extraOmschrijvingen, brief, TypeGebeurtenis.BRIEF_HERDRUK);
@@ -1831,6 +1832,10 @@ public class DossierServiceImpl implements DossierService
 		{
 			screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BRIEF_TEGENHOUDEN);
 		}
+		else if (clientBrief instanceof BezwaarBrief)
+		{
+			screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BEZWAAR_BRIEF_AANGEMAAKT);
+		}
 		else
 		{
 			screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BRIEF_AANGEMAAKT);
@@ -1847,6 +1852,14 @@ public class DossierServiceImpl implements DossierService
 			if (uitnodiging != null && uitnodiging.getGecombineerdeZas() != null)
 			{
 				extraOmschrijvingen.add(0, "samen met ZAS");
+			}
+		}
+		if (brief instanceof BezwaarBrief)
+		{
+			var bezwaarBrief = (BezwaarBrief) brief;
+			if (bezwaarBrief.isVragenOmHandtekening())
+			{
+				extraOmschrijvingen.add(" - handtekening vergeten");
 			}
 		}
 	}
@@ -2005,7 +2018,7 @@ public class DossierServiceImpl implements DossierService
 		for (Object object : alleLaatsteStatussen.values())
 		{
 			CervixUitstrijkje auditedUitstrijkje = EntityAuditUtil.getRevisionEntity(object);
-			if (currentStatus == null || !auditedUitstrijkje.getUitstrijkjeStatus().equals(currentStatus))
+			if (!auditedUitstrijkje.getUitstrijkjeStatus().equals(currentStatus))
 			{
 				ScreenitRevisionEntity revisionEntity = EntityAuditUtil.getRevisionInfo(object);
 				ScreeningRondeGebeurtenis screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
@@ -2144,7 +2157,7 @@ public class DossierServiceImpl implements DossierService
 		for (Object object : alleLaatsteStatussen.values())
 		{
 			CervixZas auditedZas = EntityAuditUtil.getRevisionEntity(object);
-			if (currentStatus == null || !auditedZas.getZasStatus().equals(currentStatus))
+			if (!auditedZas.getZasStatus().equals(currentStatus))
 			{
 				ScreenitRevisionEntity revisionEntity = EntityAuditUtil.getRevisionInfo(object);
 				ScreeningRondeGebeurtenis screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
@@ -2256,7 +2269,7 @@ public class DossierServiceImpl implements DossierService
 	public Iterator<ClientContact> getClientContacten(Client client, List<Bevolkingsonderzoek> bevolkingsonderzoeken, long first, long count, String sortProperty,
 		boolean ascending)
 	{
-		List<ClientContact> clientContacten = clientDao.getClientContacten(client, -1, -1, sortProperty, ascending);
+		var clientContacten = clientContactService.getClientContacten(client, -1, -1, sortProperty, ascending);
 		filterClientContacten(bevolkingsonderzoeken, clientContacten);
 
 		return clientContacten.subList(Ints.checkedCast(first), Ints.checkedCast(first + count)).iterator();
@@ -2265,7 +2278,7 @@ public class DossierServiceImpl implements DossierService
 	@Override
 	public int countClientContacten(Client client, List<Bevolkingsonderzoek> bevolkingsonderzoeken)
 	{
-		List<ClientContact> clientContacten = clientDao.getClientContacten(client);
+		var clientContacten = clientContactService.getClientContacten(client, -1, -1, null, false);
 		filterClientContacten(bevolkingsonderzoeken, clientContacten);
 
 		return clientContacten.size();
@@ -2497,19 +2510,17 @@ public class DossierServiceImpl implements DossierService
 	}
 
 	@Override
-	public List<ScreeningRondeGebeurtenis> getAlgemeneBriefGebeurtenissen(List<AlgemeneBrief> brieven)
+	public List<ScreeningRondeGebeurtenis> getAlgemeneBriefGebeurtenissen(List<ClientBrief<?, ?, ?>> brieven)
 	{
-		List<ScreeningRondeGebeurtenis> gebeurtenissen = new ArrayList<>();
-		brieven.forEach(brief ->
+		return brieven.stream().map(brief ->
 		{
-			ClientBrief herdruk = BriefUtil.getHerdruk(brief);
-			ScreeningRondeGebeurtenis screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
-			List<String> extraOmschrijvingen = new ArrayList<>();
+			var herdruk = BriefUtil.getHerdruk(brief);
+			var screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
+			var extraOmschrijvingen = new ArrayList<String>();
 			maakScreeningRondeGebeurtenisBrief(brief, herdruk, screeningRondeGebeurtenis, extraOmschrijvingen);
 			screeningRondeGebeurtenis.setExtraOmschrijving(extraOmschrijvingen.toArray(new String[] {}));
-			gebeurtenissen.add(screeningRondeGebeurtenis);
-		});
-		return gebeurtenissen;
+			return screeningRondeGebeurtenis;
+		}).collect(Collectors.toList());
 	}
 
 	private ScreeningRondeGebeurtenis getVragenlijstGebeurtenis(ProjectBrief projectBrief)

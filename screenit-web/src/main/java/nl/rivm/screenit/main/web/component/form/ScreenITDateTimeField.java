@@ -24,9 +24,9 @@ package nl.rivm.screenit.main.web.component.form;
 import java.time.LocalDateTime;
 import java.util.Date;
 
+import nl.rivm.screenit.main.web.component.AjaxDateTimeField;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.util.DateUtil;
-import nl.topicuszorg.wicket.planning.web.component.AjaxDateTimeField;
 
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;

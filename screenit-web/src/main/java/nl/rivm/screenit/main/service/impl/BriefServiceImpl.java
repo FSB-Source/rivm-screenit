@@ -22,6 +22,7 @@ package nl.rivm.screenit.main.service.impl;
  */
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import nl.rivm.screenit.main.dao.BriefDao;
 import nl.rivm.screenit.main.service.BriefService;
@@ -98,4 +99,12 @@ public class BriefServiceImpl implements BriefService
 	{
 		return briefDao.getBrievenVanBezwaar(moment);
 	}
+
+	@Override
+	public List<BezwaarBrief> getOorspronkelijkeBevestigingsbrieven(BezwaarMoment bezwaarMoment)
+	{
+		return getBrievenVanBezwaar(bezwaarMoment).stream()
+			.filter(brief -> BriefType.CLIENT_BEZWAAR_BEVESTIGING_BRIEVEN.contains(brief.getBriefType()) && brief.getHerdruk() == null).collect(Collectors.toList());
+	}
+
 }

@@ -22,36 +22,34 @@ package nl.rivm.screenit.service.impl;
  */
 
 import java.util.List;
+import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.dao.MessageDao;
 import nl.rivm.screenit.model.messagequeue.Message;
 import nl.rivm.screenit.model.messagequeue.MessageType;
+import nl.rivm.screenit.model.messagequeue.Message_;
+import nl.rivm.screenit.repository.algemeen.MessageRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.MessageService;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import static nl.rivm.screenit.specification.algemeen.MessageSpecification.filterContext;
+import static nl.rivm.screenit.specification.algemeen.MessageSpecification.heeftType;
+
 @Slf4j
 @Service
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MessageServiceImpl implements MessageService
 {
-	@Autowired
-	private HibernateService hibernateService;
-
-	@Autowired
-	private MessageDao messageDao;
-
 	@Autowired
 	@Qualifier(value = "applicationInstance")
 	private String applicationInstance;
@@ -59,17 +57,20 @@ public class MessageServiceImpl implements MessageService
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
 
+	@Autowired
+	private MessageRepository messageRepository;
+
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void queueMessage(MessageType type, Object content)
 	{
 		queueMessage(type, content, null);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void queueMessage(MessageType type, Object content, String context)
 	{
 		try
@@ -80,7 +81,7 @@ public class MessageServiceImpl implements MessageService
 			newMessage.setContent(objectMapper.writeValueAsString(content));
 			newMessage.setAanmaakMoment(currentDateSupplier.getDate());
 			newMessage.setContext(context);
-			hibernateService.saveOrUpdate(newMessage);
+			messageRepository.save(newMessage);
 		}
 		catch (JsonProcessingException e)
 		{
@@ -89,28 +90,22 @@ public class MessageServiceImpl implements MessageService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void dequeueMessage(Message message)
 	{
-		hibernateService.delete(message);
+		messageRepository.delete(message);
 	}
 
 	@Override
-	public Message getOldestMessage(MessageType type)
+	public Optional<Message> getOldestMessage(MessageType type)
 	{
-		return messageDao.getOldestMessage(type);
-	}
-
-	@Override
-	public List<Message> fetchMessages(MessageType type, int maxFetchSize)
-	{
-		return fetchMessages(type, null, maxFetchSize);
+		return messageRepository.findFirst(heeftType(type), Sort.by(Sort.Order.asc(Message_.ID)));
 	}
 
 	@Override
 	public List<Message> fetchMessages(MessageType type, String context, int maxFetchSize)
 	{
-		return messageDao.fetchMessages(type, context, maxFetchSize);
+		return messageRepository.findAll(heeftType(type).and(filterContext(context)), PageRequest.of(0, maxFetchSize, Sort.by(Sort.Order.asc(Message_.ID)))).getContent();
 	}
 
 	@Override
@@ -125,15 +120,8 @@ public class MessageServiceImpl implements MessageService
 	}
 
 	@Override
-	public Long fetchQueueSize(MessageType type)
-	{
-		return fetchQueueSize(type, null);
-	}
-
-	@Override
 	public Long fetchQueueSize(MessageType type, String context)
 	{
-		return messageDao.fetchQueueSize(type, context);
+		return messageRepository.count(heeftType(type).and(filterContext(context)));
 	}
-
 }

@@ -46,10 +46,10 @@ import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.OrganisatiePaspoortPanel;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
-import nl.rivm.screenit.model.UitnodigingsGebied;
 import nl.rivm.screenit.model.colon.CapaciteitsPercWijziging;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ColoscopieCentrumColonCapaciteitVerdeling;
+import nl.rivm.screenit.model.colon.UitnodigingsGebied;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
@@ -121,7 +121,7 @@ public class AdherentieIntakelocatie extends GebiedenBeheerPage
 
 	private Map<String, Integer> newAdherentiePercentages;
 
-	private TransparentWebMarkupContainer fragments;
+	private final TransparentWebMarkupContainer fragments;
 
 	private WebMarkupContainer controleResultaatPanel;
 
@@ -129,17 +129,17 @@ public class AdherentieIntakelocatie extends GebiedenBeheerPage
 
 	private IModel<List<UitnodigingsGebied>> gebiedenModel;
 
-	private BootstrapDialog dialog;
+	private final BootstrapDialog dialog;
 
-	private Map<Long, IModel<ColoscopieCentrumColonCapaciteitVerdeling>> verwijderdeItemModels = new HashMap<>();
+	private final Map<Long, IModel<ColoscopieCentrumColonCapaciteitVerdeling>> verwijderdeItemModels = new HashMap<>();
 
 	private ScreenitDataTable<ColoscopieCentrumColonCapaciteitVerdeling, String> adherentieTabel;
 
-	private Form<ColoscopieCentrum> adherentieForm;
+	private Form<ColonIntakelocatie> adherentieForm;
 
 	private final boolean magAdherentieAanpassen = magAdherentieAanpassen();
 
-	public AdherentieIntakelocatie(IModel<ColoscopieCentrum> model)
+	public AdherentieIntakelocatie(IModel<ColonIntakelocatie> model)
 	{
 		setDefaultModel(model);
 
@@ -155,7 +155,7 @@ public class AdherentieIntakelocatie extends GebiedenBeheerPage
 
 	}
 
-	private void adherentieBeheer(IModel<ColoscopieCentrum> model)
+	private void adherentieBeheer(IModel<ColonIntakelocatie> model)
 	{
 		adherentieForm = new ScreenitForm<>("adherentieForm", model);
 		adherentieForm.setOutputMarkupId(true);
@@ -299,7 +299,7 @@ public class AdherentieIntakelocatie extends GebiedenBeheerPage
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				ColoscopieCentrum intakelocatie = getPageModelObject();
+				ColonIntakelocatie intakelocatie = getPageModelObject();
 				if (ModelUtil.nullSafeGet(gebiedModel) != null)
 				{
 					UitnodigingsGebied uitnodgingsGebied = gebiedModel.getObject();
@@ -323,7 +323,7 @@ public class AdherentieIntakelocatie extends GebiedenBeheerPage
 
 						nieuweVerdeling.setPercentageAdherentie(0);
 						nieuweVerdeling.setPercentageCapaciteit(0);
-						nieuweVerdeling.setColoscopieCentrum(intakelocatie);
+						nieuweVerdeling.setIntakelocatie(intakelocatie);
 						uitnodgingsGebied = nieuweVerdeling.getUitnodigingsGebied(); 
 						uitnodgingsGebied.getVerdeling().add(nieuweVerdeling);
 						newAdherentiePercentages.put(ColonRestrictions.getUniekIdOf(nieuweVerdeling), 0);
@@ -353,7 +353,7 @@ public class AdherentieIntakelocatie extends GebiedenBeheerPage
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				ColoscopieCentrum intakelocatie = (ColoscopieCentrum) getForm().getDefaultModelObject();
+				ColonIntakelocatie intakelocatie = (ColonIntakelocatie) getForm().getDefaultModelObject();
 				List<CapaciteitsPercWijziging> capaciteitsPercWijzigingen = new ArrayList<>();
 				try
 				{
@@ -417,9 +417,9 @@ public class AdherentieIntakelocatie extends GebiedenBeheerPage
 		this.gebiedModel = ModelUtil.sModel(gebied);
 	}
 
-	private ColoscopieCentrum getPageModelObject()
+	private ColonIntakelocatie getPageModelObject()
 	{
-		return (ColoscopieCentrum) AdherentieIntakelocatie.this.getDefaultModelObject();
+		return (ColonIntakelocatie) AdherentieIntakelocatie.this.getDefaultModelObject();
 	}
 
 	private List<ColoscopieCentrumColonCapaciteitVerdeling> getVerwijderdeItems()
@@ -673,14 +673,14 @@ public class AdherentieIntakelocatie extends GebiedenBeheerPage
 						@Override
 						public void onYesClick(AjaxRequestTarget target)
 						{
-							ColoscopieCentrum intakelocatie = getPageModelObject();
+							ColonIntakelocatie intakelocatie = getPageModelObject();
 							uitnodigingsGebiedService.wijzigingenDoorvoeren(intakelocatie, getVerwijderdeItems(), capaciteitsPercWijzigingen,
 								ScreenitSession.get().getLoggedInInstellingGebruiker());
 							ControleResultaatFragment fragment = ControleResultaatFragment.this;
 							fragment.setVisible(false);
 							target.add(fragment, adherentieTabel);
 							info(getString("wijzigingen.doorgevoerd"));
-							IModel<ColoscopieCentrum> nieuwModel = ModelUtil.cModel(hibernateService.load(ColoscopieCentrum.class, intakelocatie.getId()));
+							IModel<ColonIntakelocatie> nieuwModel = ModelUtil.cModel(hibernateService.load(ColonIntakelocatie.class, intakelocatie.getId()));
 							adherentieForm.setDefaultModel(nieuwModel);
 							initAdherentiePercentages();
 							markeerFormulierenOpgeslagen(target);

@@ -21,8 +21,6 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon;
  * =========================LICENSE_END==================================
  */
 
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,30 +29,27 @@ import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.util.DateUtil;
 
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public class ColonClientAfspraakAfzeggenPanel extends GenericPanel<ColonIntakeAfspraak>
 {
-	private static final long serialVersionUID = 1L;
-
-	private IModel<Boolean> briefTegenhouden = Model.of(Boolean.FALSE);
+	private final IModel<Boolean> briefTegenhouden = Model.of(Boolean.FALSE);
 
 	public ColonClientAfspraakAfzeggenPanel(String id, IModel<ColonIntakeAfspraak> afspraakModel)
 	{
 		super(id, afspraakModel);
-		add(new Label("title"));
-		add(DateLabel.forDatePattern("startTime", "dd-MM-yyyy HH:mm"));
+		add(new Label("vanaf", DateUtil.LOCAL_DATE_TIME_FORMAT.format(afspraakModel.getObject().getVanaf())));
 
-		add(new Label("location.coloscopieCentrum.naam"));
+		add(new Label("kamer.intakelocatie.naam"));
 		briefTegenhoudenContainer();
 	}
 
@@ -71,7 +66,7 @@ public class ColonClientAfspraakAfzeggenPanel extends GenericPanel<ColonIntakeAf
 	{
 		Map<ExtraOpslaanKey, Object> opslaanObjecten = new HashMap<>();
 		opslaanObjecten.put(ExtraOpslaanKey.AFSPRAAK, getModelObject());
-		opslaanObjecten.put(ExtraOpslaanKey.AFSPRAAK_STATUS, AfspraakStatus.GEANNULEERD_VIA_INFOLIJN);
+		opslaanObjecten.put(ExtraOpslaanKey.AFSPRAAK_STATUS, ColonAfspraakStatus.GEANNULEERD_VIA_INFOLIJN);
 		opslaanObjecten.put(ExtraOpslaanKey.AFSPRAAK_BRIEF_TEGENHOUDEN, briefTegenhouden.getObject());
 		return opslaanObjecten;
 
@@ -79,16 +74,16 @@ public class ColonClientAfspraakAfzeggenPanel extends GenericPanel<ColonIntakeAf
 
 	public List<String> getOpslaanMeldingen()
 	{
-		SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm");
 		ColonIntakeAfspraak afspraak = getModelObject();
 		ColonScreeningRonde ronde = afspraak.getColonScreeningRonde();
-		String melding = String.format("coloscopie intake afspraak van %1$s in %2$s van %3$s afzeggen.", format.format(afspraak.getStartTime()), afspraak.getLocation().getName(),
-			afspraak.getLocation().getColoscopieCentrum().getNaam());
+		String melding = String.format("coloscopie intake afspraak van %1$s in %2$s van %3$s afzeggen.", DateUtil.formatShortDateTime(afspraak.getVanaf()),
+			afspraak.getKamer().getNaam(),
+			afspraak.getKamer().getIntakelocatie().getNaam());
 
 		if (ronde.getOpenUitnodiging() == null)
 		{
 			melding += " Hiermee wordt de lopende ronde afgerond.";
 		}
-		return Arrays.asList(melding);
+		return List.of(melding);
 	}
 }

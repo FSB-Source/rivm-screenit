@@ -40,6 +40,7 @@ import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel_;
 import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting_;
 import nl.rivm.screenit.repository.cervix.CervixBoekRegelRepository;
+import nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 
@@ -85,10 +86,10 @@ public abstract class AbstractCervixBoekregelsDataProviderServiceImpl
 	{
 		return filterAlleenVerrichtingen(filter.isAlleenVerrichtingen())
 			.and(filterAlleenZonderBetalingskenmerk(filter.isAlleenZonderBetalingskenmerk()))
-			.and(filterBsn(filter.getBsn()))
+			.and(filterBsn(filter.getBsn()).withRoot(CervixBoekRegelSpecification::persoonJoin))
 			.and(filterDebet(filter.getDebet()))
 			.and(filterOpBetalingskenmerkContaining(filter.getBetalingskenmerk()))
-			.and(filterGeboortedatum(filter.getGeboorteDatum()))
+			.and(filterGeboortedatum(filter.getGeboorteDatum()).withRoot(CervixBoekRegelSpecification::persoonJoin))
 			.and(filterMonsterId(filter.getMonsterId()))
 			.and(filterRegio(filter.getScreeningOrganisatie()))
 			.and(verichtingsDatumValtTussenVoorBoekRegel(DateUtil.toLocalDate(filter.getVerrichtingsDatumVanaf()), DateUtil.toLocalDate(filter.getVerrichtingsDatumTotenmet())))

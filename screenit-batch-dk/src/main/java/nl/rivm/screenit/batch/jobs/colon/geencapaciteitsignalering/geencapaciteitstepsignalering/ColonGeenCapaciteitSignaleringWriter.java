@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.DigitaalBerichtTemplateType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
@@ -42,7 +42,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class ColonGeenCapaciteitSignaleringWriter extends BaseWriter<ColoscopieCentrum>
+public class ColonGeenCapaciteitSignaleringWriter extends BaseWriter<ColonIntakelocatie>
 {
 	private final MailService mailService;
 
@@ -53,7 +53,7 @@ public class ColonGeenCapaciteitSignaleringWriter extends BaseWriter<ColoscopieC
 	private final ColonIntakelocatieService intakelocatieService;
 
 	@Override
-	protected void write(ColoscopieCentrum intakelocatie)
+	protected void write(ColonIntakelocatie intakelocatie)
 	{
 		var emails = getIntakelocatieSignaleringEmails(intakelocatie);
 		var signaleringstermijnTekst = intakelocatieService.getSignaleringstermijnTekst();
@@ -73,7 +73,7 @@ public class ColonGeenCapaciteitSignaleringWriter extends BaseWriter<ColoscopieC
 		}
 	}
 
-	private List<String> getIntakelocatieSignaleringEmails(ColoscopieCentrum intakelocatie)
+	private List<String> getIntakelocatieSignaleringEmails(ColonIntakelocatie intakelocatie)
 	{
 		if (intakelocatie.getEmailSignaleringIntakelocatie() == null)
 		{

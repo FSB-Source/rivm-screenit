@@ -86,4 +86,6 @@ public interface ClientContactService
 
 	boolean isAfspraakTijdBezet(MammaAfspraak nieuweAfspraak, IMammaAfspraakWijzigenFilter afspraakWijzigenFilter);
 
+	List<ClientContact> getClientContacten(Client client, long first, long count, String sortProperty, boolean ascending);
+
 }

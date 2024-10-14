@@ -28,13 +28,14 @@ import lombok.AllArgsConstructor;
 import nl.rivm.screenit.clientportaal.mappers.HuisartsMapper;
 import nl.rivm.screenit.clientportaal.model.HuisartsDto;
 import nl.rivm.screenit.clientportaal.model.HuisartsZoekDto;
-import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActieType;
-import nl.rivm.screenit.model.EnovationHuisarts;
+import nl.rivm.screenit.model.EnovationHuisarts_;
 import nl.rivm.screenit.service.ClientContactService;
 import nl.rivm.screenit.service.EnovationHuisartsService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Propagation;
@@ -64,17 +65,13 @@ public class HuisartsController extends AbstractController
 	@PostMapping
 	public ResponseEntity<List<HuisartsDto>> getHuisartsen(Authentication authentication, @RequestParam Integer paginaNummer, @RequestBody HuisartsZoekDto huisartsZoekobject)
 	{
-		Client client = getClient(authentication, hibernateService);
+		var client = getClient(authentication, hibernateService);
 
 		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.MAMMA_HUISARTS_WIJZIGEN)
 			|| clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.COLON_HUISARTS_WIJZIGEN))
 		{
-			List<EnovationHuisarts> enovationHuisartsen = huisartsService.zoekHuisartsen(
-				huisartsMapper.zoekDtoToHuisarts(huisartsZoekobject),
-				"achternaam",
-				true,
-				paginaNummer * MAX_AANTAL_HUISARTSEN_PER_CALL,
-				MAX_AANTAL_HUISARTSEN_PER_CALL);
+			var enovationHuisartsen = huisartsService.zoekHuisartsen(
+				huisartsMapper.zoekDtoToHuisarts(huisartsZoekobject), PageRequest.of(paginaNummer, MAX_AANTAL_HUISARTSEN_PER_CALL, Sort.by(EnovationHuisarts_.ACHTERNAAM)));
 
 			return ResponseEntity.ok(huisartsMapper.huisartsenToDtos(enovationHuisartsen));
 		}

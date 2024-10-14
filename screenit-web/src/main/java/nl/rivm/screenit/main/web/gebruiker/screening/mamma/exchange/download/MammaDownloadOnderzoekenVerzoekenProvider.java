@@ -23,7 +23,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.exchange.download;
 
 import java.util.Iterator;
 
-import nl.rivm.screenit.main.service.mamma.MammaUitwisselportaalService;
+import nl.rivm.screenit.main.service.mamma.impl.MammaDownloadOnderzoekenVerzoekenDataProviderServiceImpl;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoekenVerzoek;
 import nl.topicuszorg.wicket.search.HibernateDataProvider;
 
@@ -34,7 +34,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 public class MammaDownloadOnderzoekenVerzoekenProvider extends HibernateDataProvider<MammaDownloadOnderzoekenVerzoek>
 {
 	@SpringBean
-	private MammaUitwisselportaalService uitwisselportaalService;
+	private MammaDownloadOnderzoekenVerzoekenDataProviderServiceImpl downloadOnderzoekenVerzoekenDataProviderService;
 
 	public MammaDownloadOnderzoekenVerzoekenProvider(IModel<MammaDownloadOnderzoekenVerzoek> filter)
 	{
@@ -45,20 +45,13 @@ public class MammaDownloadOnderzoekenVerzoekenProvider extends HibernateDataProv
 	@Override
 	public Iterator<MammaDownloadOnderzoekenVerzoek> iterator(long first, long count)
 	{
-		String sortProperty = null;
-		boolean asc = true;
-		if (getSort() != null)
-		{
-			sortProperty = getSort().getProperty();
-			asc = getSort().isAscending();
-		}
-		return uitwisselportaalService.searchVerzoeken(getSearchObject(), first, count, sortProperty, asc).iterator();
+		return downloadOnderzoekenVerzoekenDataProviderService.findPage(first, count, getSearchObject(), getSort()).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return uitwisselportaalService.countVerzoeken(getSearchObject());
+		return downloadOnderzoekenVerzoekenDataProviderService.size(getSearchObject());
 	}
 
 }

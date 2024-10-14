@@ -30,7 +30,6 @@ import javax.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
-import nl.rivm.screenit.model.Afspraak;
 import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.MergedBrieven;
 
@@ -47,10 +46,10 @@ import org.hibernate.envers.Audited;
 public class ColonBrief extends ClientBrief<ColonScreeningRonde, ColonAfmelding, ColonBrief>
 {
 	@ManyToOne(optional = true, fetch = FetchType.LAZY)
-	private Afspraak intakeAfspraak;
+	private ColonIntakeAfspraak intakeAfspraak;
 
 	@ManyToOne(optional = true, fetch = FetchType.LAZY)
-	private Afspraak vorigeIntakeAfspraak;
+	private ColonIntakeAfspraak vorigeIntakeAfspraak;
 
 	@ManyToOne(optional = true, fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade({ CascadeType.SAVE_UPDATE })

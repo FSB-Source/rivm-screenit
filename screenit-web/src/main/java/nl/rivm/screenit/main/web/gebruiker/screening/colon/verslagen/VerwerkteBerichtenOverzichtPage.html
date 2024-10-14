@@ -20,47 +20,47 @@
   -->
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:extend>
-    <h1 class="pageTitle">Verwerkte berichten</h1>
+	<h1 class="pageTitle">Verwerkte berichten</h1>
 
-    <div class="form-horizontal">
-        <fieldset>
-            <form wicket:id="form">
-                <div class="row-fluid">
-                    <div class="span2">
-                        <div class="filter-view">
-                            <div class="form-inline">
-                                <wicket:enclosure child="mldBerichten">
-                                    <label class="checkbox"><input type="checkbox" wicket:id="mldBerichten"> MDL-berichten</label>
-                                </wicket:enclosure>
-                                <wicket:enclosure child="paLabBerichten">
-                                    <label class="checkbox"><input type="checkbox" wicket:id="paLabBerichten"> Pathologie-berichten</label>
-                                </wicket:enclosure>
-                                <wicket:enclosure child="cytologieBerichten">
-                                    <label class="checkbox"><input type="checkbox" wicket:id="cytologieBerichten"> Cytologie-berichten</label>
-                                </wicket:enclosure>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="span4">
-                        <div class="filter-view">
-                            <div class="form-inline">
-                                <label>Zoeken in DocumentId, setId of projectversie</label>
-                                <input type="text" class="text" wicket:id="text">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="span4">
-                        <button class="btn btn-primary" wicket:id="filter">Filteren</button>
-                    </div>
-                    <div class="span2">
-                        <button class="btn btn-primary pull-right" wicket:id="allesOpnieuwVerwerken">Alles opnieuw verwerken</button>
-                    </div>
-                </div>
-            </form>
-        </fieldset>
+	<div class="form-horizontal">
+		<fieldset>
+			<form wicket:id="form">
+				<div class="row-fluid">
+					<div class="span2">
+						<div class="filter-view">
+							<div class="form-inline">
+								<wicket:enclosure child="mdlBerichten">
+									<label class="checkbox"><input type="checkbox" wicket:id="mdlBerichten"> MDL-berichten</label>
+								</wicket:enclosure>
+								<wicket:enclosure child="paLabBerichten">
+									<label class="checkbox"><input type="checkbox" wicket:id="paLabBerichten"> Pathologie-berichten</label>
+								</wicket:enclosure>
+								<wicket:enclosure child="cytologieBerichten">
+									<label class="checkbox"><input type="checkbox" wicket:id="cytologieBerichten"> Cytologie-berichten</label>
+								</wicket:enclosure>
+							</div>
+						</div>
+					</div>
+					<div class="span4">
+						<div class="filter-view">
+							<div class="form-inline">
+								<label>Zoeken in DocumentId, setId of projectversie</label>
+								<input type="text" class="text" wicket:id="text">
+							</div>
+						</div>
+					</div>
+					<div class="span4">
+						<button class="btn btn-primary" wicket:id="filter">Filteren</button>
+					</div>
+					<div class="span2">
+						<button class="btn btn-primary pull-right" wicket:id="allesOpnieuwVerwerken">Alles opnieuw verwerken</button>
+					</div>
+				</div>
+			</form>
+		</fieldset>
 
-        <div wicket:id="tabel"></div>
-    </div>
-    <div wicket:id="dialog"></div>
+		<div wicket:id="tabel"></div>
+	</div>
+	<div wicket:id="dialog"></div>
 </wicket:extend>
 </html>

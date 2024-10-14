@@ -25,12 +25,13 @@ import java.util.Iterator;
 import java.util.List;
 
 import nl.rivm.screenit.model.BeoordelingsEenheid;
-import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.mamma.MammaMammograaf;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
+
+import org.springframework.data.domain.Sort;
 
 public interface MammaScreeningsEenheidService
 {
@@ -38,12 +39,11 @@ public interface MammaScreeningsEenheidService
 
 	List<MammaScreeningsEenheid> getActieveScreeningsEenheden();
 
-	List<MammaScreeningsEenheid> zoekScreeningsEenheden(MammaScreeningsEenheid zoekObject, ScreeningOrganisatie regio, int first, int count, String sortProperty,
-		boolean isAscending);
+	List<MammaScreeningsEenheid> zoekScreeningsEenheden(MammaScreeningsEenheid zoekObject, ScreeningOrganisatie regio, long first, long count, Sort sort);
 
 	long countScreeningsEenheden(MammaScreeningsEenheid screeningsEenheid, ScreeningOrganisatie regio);
 
-	List<MammaScreeningsEenheid> getActieveScreeningsEenhedenVoorBeoordelingsEenheid(Instelling instelling);
+	List<MammaScreeningsEenheid> getActieveScreeningsEenhedenVoorBeoordelingsEenheid(BeoordelingsEenheid instelling);
 
 	String getScreeningsEenhedenNamen(BeoordelingsEenheid beoordelingsEenheid);
 
@@ -55,9 +55,9 @@ public interface MammaScreeningsEenheidService
 
 	List<MammaScreeningsEenheid> getActieveScreeningsEenhedenVoorScreeningOrganisatie(ScreeningOrganisatie screeningOrganisatie);
 
-	long getAantalActieveGekoppeldeOnderzoeken(MammaScreeningsEenheid screeningsEenheid);
+	long getAantalNietDoorgevoerdeOnderzoeken(MammaScreeningsEenheid screeningsEenheid);
 
-	long getAantalNietAfgerondeGekoppeldeBeoordelingen(MammaScreeningsEenheid screeningsEenheid);
+	long getAantalNietAfgerondeBeoordelingen(MammaScreeningsEenheid screeningsEenheid);
 
 	String magWordenGeactiveerd(MammaScreeningsEenheid screeningsEenheid);
 

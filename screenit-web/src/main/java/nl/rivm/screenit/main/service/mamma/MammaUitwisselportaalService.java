@@ -41,10 +41,6 @@ public interface MammaUitwisselportaalService
 
 	void startDownloading();
 
-	List<MammaDownloadOnderzoekenVerzoek> searchVerzoeken(MammaDownloadOnderzoekenVerzoek searchObject, long first, long count, String sortProperty, boolean asc);
-
-	long countVerzoeken(MammaDownloadOnderzoekenVerzoek searchObject);
-
 	void resetDownloadVerzoek(MammaDownloadOnderzoekenVerzoek object) throws IOException;
 
 	Optional<MammaDownloadOnderzoekenVerzoek> geldigDownloadVerzoekVoorIngelogdeGebruiker(long downloadVerzoekid, InstellingGebruiker instellingGebruiker);
@@ -52,8 +48,6 @@ public interface MammaUitwisselportaalService
 	MammaDownloadOnderzoekenVerzoek maakDownloadVerzoekFilter(InstellingGebruiker instellingGebruiker);
 
 	boolean zipKanGedownloadWorden(MammaDownloadOnderzoekenVerzoek downloadOnderzoekenVerzoek);
-
-	List<MammaDownloadOnderzoekenVerzoek> getDownloadVerzoekenGedownload(MammaOnderzoek onderzoek);
 
 	void updateDownloadVerzoekInformatie(MammaDownloadOnderzoekenVerzoek verzoek, InstellingGebruiker loggedInInstellingGebruiker);
 

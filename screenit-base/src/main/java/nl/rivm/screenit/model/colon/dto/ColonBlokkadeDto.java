@@ -28,7 +28,7 @@ import lombok.Setter;
 @Setter
 public class ColonBlokkadeDto extends ColonTijdslotDto
 {
-	private String description;
+	private String omschrijving;
 
 	private Boolean alleKamers;
 

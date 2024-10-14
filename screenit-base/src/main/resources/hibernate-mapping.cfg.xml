@@ -54,13 +54,12 @@
         <mapping class="nl.rivm.screenit.model.Gemeente"/>
         <mapping class="nl.rivm.screenit.model.Woonplaats"/>
         <mapping class="nl.rivm.screenit.model.PostcodeGebied"/>
-        <mapping class="nl.rivm.screenit.model.UitnodigingsGebied"/>
+        <mapping class="nl.rivm.screenit.model.colon.UitnodigingsGebied"/>
         <mapping class="nl.rivm.screenit.model.TijdelijkAdres"/>
         <mapping class="nl.rivm.screenit.model.TijdelijkGbaAdres"/>
         <mapping class="nl.rivm.screenit.model.BagAdres"/>
         <mapping class="nl.rivm.screenit.model.GbaPersoon"/>
         <mapping class="nl.rivm.screenit.model.PostcodeCoordinaten"/>
-        <mapping class="nl.rivm.screenit.model.Afspraak"/>
         <mapping class="nl.rivm.screenit.model.colon.Complicatie"/>
 
         <mapping class="nl.rivm.screenit.model.vragenlijsten.Vragenlijst"/>
@@ -86,7 +85,7 @@
         <mapping class="nl.rivm.screenit.model.Permissie"/>
         <mapping class="nl.rivm.screenit.model.Bezwaar"/>
         <mapping class="nl.rivm.screenit.model.BezwaarMoment"/>
-        <mapping class="nl.rivm.screenit.model.ScreenitPreferenceItem"/>
+        <mapping class="nl.rivm.screenit.model.PreferenceItem"/>
 
         <mapping class="nl.rivm.screenit.model.messagequeue.Message"/>
 
@@ -131,12 +130,11 @@
         <mapping class="nl.rivm.screenit.model.colon.IFOBTVervaldatum"/>
         <mapping class="nl.rivm.screenit.model.colon.ColonVooraankondiging"/>
         <mapping class="nl.rivm.screenit.model.colon.ColonUitnodiging"/>
-        <mapping class="nl.rivm.screenit.model.colon.ColoscopieCentrum"/>
+        <mapping class="nl.rivm.screenit.model.colon.ColonIntakelocatie"/>
         <mapping class="nl.rivm.screenit.model.colon.ColoscopieLocatie"/>
         <mapping class="nl.rivm.screenit.model.colon.IFobtLaboratorium"/>
         <mapping class="nl.rivm.screenit.model.colon.PaLaboratorium"/>
         <mapping class="nl.rivm.screenit.model.colon.ColoscopieCentrumColonCapaciteitVerdeling"/>
-        <mapping class="nl.rivm.screenit.model.colon.Kamer"/>
         <mapping class="nl.rivm.screenit.model.colon.UitnodigingCohort"/>
         <mapping class="nl.rivm.screenit.model.colon.UitnodigingCohortGeboortejaren"/>
         <mapping class="nl.rivm.screenit.model.colon.ScannedAntwoordFormulier"/>
@@ -158,11 +156,11 @@
         <mapping class="nl.rivm.screenit.model.colon.ColonVolgendeUitnodiging"/>
         <mapping class="nl.rivm.screenit.model.colon.ColonFeestdag"/>
 
-
         
-        <mapping class="nl.rivm.screenit.model.colon.planning.AfspraakDefinitie"/>
-        <mapping class="nl.rivm.screenit.model.colon.planning.RoosterItem"/>
+        <mapping class="nl.rivm.screenit.model.colon.planning.ColonAfspraakslot"/>
         <mapping class="nl.rivm.screenit.model.colon.planning.ColonBlokkade"/>
+        <mapping class="nl.rivm.screenit.model.colon.planning.ColonTijdslot"/>
+        <mapping class="nl.rivm.screenit.model.colon.planning.ColonIntakekamer"/>
 
         <mapping class="nl.rivm.screenit.model.BMHKLaboratorium"/>
         <mapping class="nl.rivm.screenit.model.ZASRetouradres"/>

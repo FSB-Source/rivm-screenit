@@ -267,7 +267,7 @@ public class OrganisatieZoekDaoImpl extends AbstractAutowiredDao implements Orga
 					criteria.add(createCriteriaInstelling(root + "id", instellingen));
 				}
 				break;
-			case COLOSCOPIECENTRUM:
+			case INTAKELOCATIE:
 			case COLOSCOPIELOCATIE:
 			case MAMMAPOLI:
 			case RADIOLOGIEAFDELING:

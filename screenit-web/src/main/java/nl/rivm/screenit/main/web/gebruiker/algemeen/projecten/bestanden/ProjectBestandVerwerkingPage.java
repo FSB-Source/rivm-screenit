@@ -45,11 +45,14 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
+import static nl.rivm.screenit.model.project.ProjectBestandVerwerkingEntry_.MELDING;
+import static nl.rivm.screenit.model.project.ProjectBestandVerwerkingEntry_.REGEL_NUMMER;
+
 public class ProjectBestandVerwerkingPage extends ProjectBasePage
 {
 	private static final long serialVersionUID = 1L;
 
-	private IModel<ProjectBestand> bestandModel;
+	private final IModel<ProjectBestand> bestandModel;
 
 	public ProjectBestandVerwerkingPage(IModel<Project> model, IModel<ProjectBestand> bestandModel)
 	{
@@ -103,15 +106,13 @@ public class ProjectBestandVerwerkingPage extends ProjectBasePage
 		WebMarkupContainer container = new WebMarkupContainer("meldingenContainer");
 		container.setOutputMarkupId(true);
 
-		List<IColumn<ProjectBestandVerwerkingEntry, String>> columns = new ArrayList<IColumn<ProjectBestandVerwerkingEntry, String>>();
-		columns.add(new PropertyColumn<>(Model.of("Regelnummer"), "regelNummer", "regelNummer"));
-		columns.add(new PropertyColumn<>(Model.of("Reden regel niet verwerkt"), "melding", "melding"));
+		List<IColumn<ProjectBestandVerwerkingEntry, String>> columns = new ArrayList<>();
+		columns.add(new PropertyColumn<>(Model.of("Regelnummer"), REGEL_NUMMER, REGEL_NUMMER));
+		columns.add(new PropertyColumn<>(Model.of("Reden regel niet verwerkt"), MELDING, MELDING));
 
-		ScreenitDataTable<ProjectBestandVerwerkingEntry, String> dataTable = new ScreenitDataTable<ProjectBestandVerwerkingEntry, String>("meldingen", columns,
+		ScreenitDataTable<ProjectBestandVerwerkingEntry, String> dataTable = new ScreenitDataTable<>("meldingen", columns,
 			new ProjectBestandVerwerkingDataProvider((IModel<ProjectBestandVerwerking>) getDefaultModel()), 10, Model.of("Meldingen"))
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected boolean isRowClickable(IModel<ProjectBestandVerwerkingEntry> rowModel)
 			{

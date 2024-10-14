@@ -20,162 +20,162 @@
   -->
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:extend>
-    <div class="content-inner">
-        <div wicket:id="dialog"></div>
-        <div class="row-fluid form-horizontal">
-            <fieldset>
+	<div class="content-inner">
+		<div wicket:id="dialog"></div>
+		<div class="row-fluid form-horizontal">
+			<fieldset>
 
-                <wicket:container wicket:id="paspoort"></wicket:container>
+				<wicket:container wicket:id="paspoort"></wicket:container>
 
-                <fieldset>
-                    <form wicket:id="adherentieForm">
-                        <div class="row-fluid">
-                            <div class="span12 ">
-                                <div class="btn-top pull-right gebruiker">
+				<fieldset>
+					<form wicket:id="adherentieForm">
+						<div class="row-fluid">
+							<div class="span12 ">
+								<div class="btn-top pull-right gebruiker">
 									<button class="nieuweAdherentie btn btn-primary pull-right margin-left-10px" wicket:id="toevoegen">
 										Uitnodigingsgebied koppelen
 									</button>
 									<select class="nieuweAdherentie" wicket:id="gebieden"></select>
 								</div>
-                                <legend>Adherentie</legend>
-                            </div>
-                        </div>
+								<legend>Adherentie</legend>
+							</div>
+						</div>
 
-                        <div class="row-fluid show-results">
-                            <div class="span12">
-                                <div wicket:id="adherentie"></div>
-                            </div>
-                        </div>
-                        <div class="row-fluid">
-                            <div class="span12">
-                                <div class="form-actions btn-bottom">
-                                    <button class="nieuweAdherentie btn btn-primary" type="submit" wicket:id="controleren">Controleren</button>
-                                </div>
-                            </div>
-                        </div>
-		                <span class="controleren" wicket:id="controleResultaat">
+						<div class="row-fluid show-results">
+							<div class="span12">
+								<div wicket:id="adherentie"></div>
+							</div>
+						</div>
+						<div class="row-fluid">
+							<div class="span12">
+								<div class="form-actions btn-bottom">
+									<button class="nieuweAdherentie btn btn-primary" type="submit" wicket:id="controleren">Controleren</button>
+								</div>
+							</div>
+						</div>
+						<span class="controleren" wicket:id="controleResultaat">
 		                </span>
-                    </form>
-                </fieldset>
-            </fieldset>
-        </div>
-    </div>
-    <wicket:container wicket:id="fragments">
-        <wicket:fragment wicket:id="adherentieFragment">
-            <span><input class="nieuweAdherentie" type="text" wicket:id="nieuweAdherentie"/>% </span>
-        </wicket:fragment>
-        <wicket:fragment wicket:id="tooltipFragment">
-            <table class="table table-bordered table-condensed static">
-                <thead>
-                <tr>
-                    <td>Intakes</td>
-                    <td>Nu</td>
-                    <td>Nieuw</td>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>Cap.%</td>
-                    <td wicket:id="oud">Nu</td>
-                    <td wicket:id="new">Nieuw</td>
-                </tr>
-                <tr>
-                    <td>Adh.%</td>
-                    <td wicket:id="oudAdh">Nu</td>
-                    <td wicket:id="newAdh">Nieuw</td>
-                </tr>
-                <tr>
-                    <td>Prognose</td>
-                    <td wicket:id="oudProgn">Nu</td>
-                    <td wicket:id="newProgn">Nieuw</td>
-                </tr>
-                <tr>
-                    <td>Berekend</td>
-                    <td wicket:id="oudBenIntakes">Nu</td>
-                    <td wicket:id="newBenIntakes"></td>
-                </tr>
-                <tr>
-                    <td>Verschil</td>
-                    <td wicket:id="oudVerschil">Nu</td>
-                    <td wicket:id="newVerschil">Nieuw</td>
-                </tr>
-                </tbody>
-            </table>
-        </wicket:fragment>
-        <wicket:fragment wicket:id="controleResultaatFragment">
-            <br>
-            <div wicket:id="tooltipContainter">
+					</form>
+				</fieldset>
+			</fieldset>
+		</div>
+	</div>
+	<wicket:container wicket:id="fragments">
+		<wicket:fragment wicket:id="adherentieFragment">
+			<span><input class="nieuweAdherentie" type="text" wicket:id="nieuweAdherentie"/>% </span>
+		</wicket:fragment>
+		<wicket:fragment wicket:id="tooltipFragment">
+			<table class="table table-bordered table-condensed static">
+				<thead>
+				<tr>
+					<td>Intakes</td>
+					<td>Nu</td>
+					<td>Nieuw</td>
+				</tr>
+				</thead>
+				<tbody>
+				<tr>
+					<td>Cap.%</td>
+					<td wicket:id="oud">Nu</td>
+					<td wicket:id="new">Nieuw</td>
+				</tr>
+				<tr>
+					<td>Adh.%</td>
+					<td wicket:id="oudAdh">Nu</td>
+					<td wicket:id="newAdh">Nieuw</td>
+				</tr>
+				<tr>
+					<td>Prognose</td>
+					<td wicket:id="oudProgn">Nu</td>
+					<td wicket:id="newProgn">Nieuw</td>
+				</tr>
+				<tr>
+					<td>Berekend</td>
+					<td wicket:id="oudBenIntakes">Nu</td>
+					<td wicket:id="newBenIntakes"></td>
+				</tr>
+				<tr>
+					<td>Verschil</td>
+					<td wicket:id="oudVerschil">Nu</td>
+					<td wicket:id="newVerschil">Nieuw</td>
+				</tr>
+				</tbody>
+			</table>
+		</wicket:fragment>
+		<wicket:fragment wicket:id="controleResultaatFragment">
+			<br>
+			<div wicket:id="tooltipContainter">
 				<div wicket:id="tooltip" class="display-none"></div>
-            </div>
-            <div class="row-fluid">
-                <div class="span12">
-                    <legend>Capaciteit controleren</legend>
-                    (Alle getallen in het onderstaande overzicht geven het verschil aan tussen de prognose intakes en berekende benodigde intakes voor een intakelocatie bij een
-                    uitnodigingsgebied. Middels een mouseover kan de detailinformatie ingezien worden. Door wiskundige afronding van de aantalen intakes kunnen de totalen mogelijk
-                    hoger of lager uitvallen.)
-                </div>
-            </div>
-            <div class="row-fluid show-results">
-                <div class="span12">
-                    <table class="table table-bordered table-condensed static">
-                        <thead>
-                        <tr>
+			</div>
+			<div class="row-fluid">
+				<div class="span12">
+					<legend>Capaciteit controleren</legend>
+					(Alle getallen in het onderstaande overzicht geven het verschil aan tussen de prognose intakes en berekende benodigde intakes voor een intakelocatie bij een
+					uitnodigingsgebied. Middels een mouseover kan de detailinformatie ingezien worden. Door wiskundige afronding van de aantalen intakes kunnen de totalen mogelijk
+					hoger of lager uitvallen.)
+				</div>
+			</div>
+			<div class="row-fluid show-results">
+				<div class="span12">
+					<table class="table table-bordered table-condensed static">
+						<thead>
+						<tr>
 							<th class="text-right">Intakelocaties</th>
-                            <th colspan=2 wicket:id="intakelocaties">
-                                <wicket:container wicket:id="naam"></wicket:container>
-                            </th>
-                            <th colspan=2>Totaal verschil</th>
-                        </tr>
-                        <tr>
-                            <th>Gebieden</th>
-                            <wicket:container wicket:id="oudNieuw">
-                                <th>Nu</th>
-                                <th>Nieuw</th>
-                            </wicket:container>
-                            <th>Nu</th>
-                            <th>Nieuw</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr wicket:id="gebieden">
+							<th colspan=2 wicket:id="intakelocaties">
+								<wicket:container wicket:id="naam"></wicket:container>
+							</th>
+							<th colspan=2>Totaal verschil</th>
+						</tr>
+						<tr>
+							<th>Gebieden</th>
+							<wicket:container wicket:id="oudNieuw">
+								<th>Nu</th>
+								<th>Nieuw</th>
+							</wicket:container>
+							<th>Nu</th>
+							<th>Nieuw</th>
+						</tr>
+						</thead>
+						<tbody>
+						<tr wicket:id="gebieden">
 							<td class="vertical-align-top" wicket:id="naam">Gebied 1</td>
-                            <wicket:container wicket:id="intakelocaties">
-                                <td wicket:id="verschilOud"></td>
-                                <td wicket:id="verschilNieuw"></td>
-                            </wicket:container>
-                            <td wicket:id="totaalVerschilOud"></td>
-                            <td wicket:id="totaalVerschilNieuw"></td>
-                        </tr>
-                        </tbody>
-                        <tfoot>
-                        <tr>
-                            <td>Totaal verschil</td>
-                            <wicket:container wicket:id="totaalIntakelocaties">
-                                <td wicket:id="totaalVerschilOud"/>
-                                <td wicket:id="totaalVerschilNieuw"/>
-                            </wicket:container>
-                            <td wicket:id="totaalOud"></td>
-                            <td wicket:id="totaalNieuw"></td>
-                        </tr>
-                        </tfoot>
-                    </table>
-                    (<i>&lt;geen waarde&gt;: voor de betreffende intakelocatie(s) zijn/is er geen aantal geprognosticeerde roosterblokken ingevuld bij de specifieke gegevens van de
-                    intakelocatie in beheer.</i>)
-                </div>
-            </div>
-            <div class="row-fluid controleren">
-                <div class="span12">
-                    <div class="form-actions btn-bottom">
-                        <button class="btn" wicket:id="annuleren">Annuleren</button>
-                        <button class="btn btn-primary" wicket:id="doorvoeren"
-                                title="Door te klikken op de knop ‘Wijzigingen doorvoeren’ worden zowel de wijzigingen van de adherentieverdeling in het huidige gebied alsook de nieuwe capaciteitspercentages van alle betrokken intakelocaties opgeslagen en wordt het controle overzicht verwijderd van het scherm.">
-                            Wijzigingen doorvoeren
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </wicket:fragment>
+							<wicket:container wicket:id="intakelocaties">
+								<td wicket:id="verschilOud"></td>
+								<td wicket:id="verschilNieuw"></td>
+							</wicket:container>
+							<td wicket:id="totaalVerschilOud"></td>
+							<td wicket:id="totaalVerschilNieuw"></td>
+						</tr>
+						</tbody>
+						<tfoot>
+						<tr>
+							<td>Totaal verschil</td>
+							<wicket:container wicket:id="totaalIntakelocaties">
+								<td wicket:id="totaalVerschilOud"/>
+								<td wicket:id="totaalVerschilNieuw"/>
+							</wicket:container>
+							<td wicket:id="totaalOud"></td>
+							<td wicket:id="totaalNieuw"></td>
+						</tr>
+						</tfoot>
+					</table>
+					(<i>&lt;geen waarde&gt;: voor de betreffende intakelocatie(s) zijn/is er geen aantal geprognosticeerde afspraakslots ingevuld bij de specifieke gegevens van de
+					intakelocatie in beheer.</i>)
+				</div>
+			</div>
+			<div class="row-fluid controleren">
+				<div class="span12">
+					<div class="form-actions btn-bottom">
+						<button class="btn" wicket:id="annuleren">Annuleren</button>
+						<button class="btn btn-primary" wicket:id="doorvoeren"
+								title="Door te klikken op de knop ‘Wijzigingen doorvoeren’ worden zowel de wijzigingen van de adherentieverdeling in het huidige gebied alsook de nieuwe capaciteitspercentages van alle betrokken intakelocaties opgeslagen en wordt het controle overzicht verwijderd van het scherm.">
+							Wijzigingen doorvoeren
+						</button>
+					</div>
+				</div>
+			</div>
+		</wicket:fragment>
 
-    </wicket:container>
+	</wicket:container>
 </wicket:extend>
 </html>

@@ -22,24 +22,24 @@ package nl.rivm.screenit.service.colon;
  */
 
 import java.time.LocalDate;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
-import nl.rivm.screenit.model.colon.Kamer;
-import nl.rivm.screenit.model.colon.planning.VrijSlot;
-import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamer;
-import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamerFilter;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
+import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
+import nl.rivm.screenit.model.colon.dto.VrijSlot;
+import nl.rivm.screenit.model.colon.dto.VrijSlotZonderKamer;
+import nl.rivm.screenit.model.colon.dto.VrijSlotZonderKamerFilter;
 
 public interface PlanningService<T extends VrijSlot>
 {
 
-	List<T> getBeschikbaarheid(LocalDate startTime, LocalDate endTime, ColoscopieCentrum intakelocatie);
+	List<T> getBeschikbaarheid(LocalDate vanaf, LocalDate tot, ColonIntakelocatie intakelocatie);
 
 	List<VrijSlotZonderKamer> getVrijeSlotenZonderKamer(String sortProperty, boolean asc, long first, long count, VrijSlotZonderKamerFilter filter, Client client);
 
 	long getVrijeSlotenZonderKamerCount(VrijSlotZonderKamerFilter filter, Client client);
 
-	Kamer getBeschikbareKamer(Date startTijd, Long intakeLocatieId);
+	ColonIntakekamer getBeschikbareKamer(LocalDateTime startTijd, Long intakelocatieId);
 }

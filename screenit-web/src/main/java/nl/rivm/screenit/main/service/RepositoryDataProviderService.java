@@ -23,27 +23,24 @@ package nl.rivm.screenit.main.service;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.EntityGraph;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Root;
 
 import nl.rivm.screenit.main.util.WicketSpringDataUtil;
+import nl.rivm.screenit.repository.impl.FluentJpaQueryImpl;
 import nl.topicuszorg.hibernate.object.model.HibernateObject;
 import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.hibernate.SessionFactory;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.query.QueryUtils;
-
-import com.google.common.primitives.Ints;
 
 public abstract class RepositoryDataProviderService<T extends HibernateObject, R extends JpaSpecificationExecutor<T>, F>
 {
@@ -60,65 +57,20 @@ public abstract class RepositoryDataProviderService<T extends HibernateObject, R
 
 	public List<T> findAll(F filter)
 	{
-		var cb = sessionFactory.getCurrentSession().getCriteriaBuilder();
-		var query = cb.createQuery(getEntityClass());
-		var r = query.from(getEntityClass());
-		var specification = getSpecification(filter, null).toPredicate(r, query, cb);
-		if (specification != null)
-		{
-			query.where(specification);
-		}
-
-		return sessionFactory.getCurrentSession().createQuery(query).getResultList();
+		return findPage(-1, -1, filter, Sort.unsorted());
 	}
 
 	public List<T> findPage(long first, long count, F filter, Sort sort)
 	{
-		var cb = sessionFactory.getCurrentSession().getCriteriaBuilder();
-		var query = cb.createQuery(getEntityClass());
-		var r = query.from(getEntityClass());
-		var specification = getSpecification(filter, sort).toPredicate(r, query, cb);
-		if (specification != null)
-		{
-			query.where(specification);
-		}
-		query.orderBy(getOrders(sort, r, cb));
+		var jpaQuery = new FluentJpaQueryImpl<>(getSpecification(filter, sort), sessionFactory.getCurrentSession(), getEntityClass(), getEntityClass());
+		jpaQuery.sortBy(getSort(sort), this::addJoinsForSortingOrCreateDedicatedOrders);
+		jpaQuery.fetch(this::fetch);
 
-		var hquery = sessionFactory.getCurrentSession().createQuery(query);
-
-		if (first > -1)
-		{
-			hquery.setFirstResult(Ints.checkedCast(first));
-		}
-
-		if (count > -1)
-		{
-			hquery.setMaxResults(Ints.checkedCast(count));
-		}
-
-		return hquery.getResultList();
+		return jpaQuery.all(first, count);
 	}
 
-	private @NotNull List<Order> getOrders(Sort sort, Root<T> r, CriteriaBuilder cb)
+	protected void fetch(EntityGraph<T> entityGraph)
 	{
-		var orders = new ArrayList<Order>();
-		var splittedSortOrders = new ArrayList<Sort.Order>();
-		for (var order : sort)
-		{
-			var correctedOrder = addJoinsForSortingOrCreateDedicatedOrders(order, r, cb);
-			if (correctedOrder == null)
-			{
-				splittedSortOrders.add(order);
-			}
-			else
-			{
-				orders.addAll(QueryUtils.toOrders(Sort.by(splittedSortOrders), r, cb));
-				orders.add(correctedOrder);
-				splittedSortOrders.clear();
-			}
-		}
-		orders.addAll(QueryUtils.toOrders(Sort.by(splittedSortOrders), r, cb));
-		return orders;
 	}
 
 	protected Order addJoinsForSortingOrCreateDedicatedOrders(Sort.Order order, Root<T> r, CriteriaBuilder cb)

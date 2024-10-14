@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.Constants;
+import nl.rivm.screenit.main.service.algemeen.ProjectService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.NaamChoiceRenderer;
@@ -51,7 +52,6 @@ import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.rivm.screenit.model.project.ProjectType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
-import nl.rivm.screenit.service.ProjectService;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -100,7 +100,7 @@ public class ProjectGroepEditPage extends ProjectBasePage
 
 	private final IModel<List<FileUpload>> clientenBestanden = new ListModel<>();
 
-	private IModel<String> meldingenModel = new Model<>("");
+	private final IModel<String> meldingenModel = new Model<>("");
 
 	private final BootstrapDialog dialog;
 
@@ -180,7 +180,7 @@ public class ProjectGroepEditPage extends ProjectBasePage
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				ProjectGroep groep = (ProjectGroep) form.getModelObject();
+				ProjectGroep groep = form.getModelObject();
 				if (getPushDatumVeranderd(groep))
 				{
 					dialog.openWith(target, new ConfirmPanel(IDialog.CONTENT_ID, Model.of(getString("confirm.uitnodigingen.pushen")), null, new DefaultConfirmCallback()

@@ -22,11 +22,11 @@ package nl.rivm.screenit.main.web.gebruiker.dashboard;
  */
 
 import java.util.Iterator;
-import java.util.List;
 
-import nl.rivm.screenit.model.SortState;
+import nl.rivm.screenit.model.dashboard.DashboardLogRegel_;
 import nl.rivm.screenit.model.dashboard.DashboardStatus;
 import nl.rivm.screenit.model.logging.LogRegel;
+import nl.rivm.screenit.model.logging.LogRegel_;
 import nl.rivm.screenit.service.LogService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -36,13 +36,11 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import com.google.common.primitives.Ints;
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
 
 public class DashboardDataProvider extends SortableDataProvider<LogRegel, String>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private LogService logService;
 
@@ -51,16 +49,14 @@ public class DashboardDataProvider extends SortableDataProvider<LogRegel, String
 	public DashboardDataProvider(IModel<DashboardStatus> criteria)
 	{
 		Injector.get().inject(this);
-		setSort("logRegel.gebeurtenisDatum", SortOrder.DESCENDING);
+		setSort(propertyChain(DashboardLogRegel_.LOG_REGEL, LogRegel_.GEBEURTENIS_DATUM), SortOrder.DESCENDING);
 		this.criteria = criteria;
 	}
 
 	@Override
 	public Iterator<? extends LogRegel> iterator(long first, long count)
 	{
-		List<LogRegel> logregels = logService.getLogRegelsVanDashboard(ModelUtil.nullSafeGet(criteria), Ints.checkedCast(first), Ints.checkedCast(count),
-			new SortState<>(getSort().getProperty(), getSort().isAscending()));
-		return logregels.iterator();
+		return logService.getLogRegelsVanDashboard(ModelUtil.nullSafeGet(criteria), first, count, toSpringSort(getSort())).iterator();
 	}
 
 	@Override

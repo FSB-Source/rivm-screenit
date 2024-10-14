@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.main.dao.mamma.MammaScreeningsEenheidDao;
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenissen;
 import nl.rivm.screenit.main.model.testen.TestTimelineModel;
 import nl.rivm.screenit.main.model.testen.TestTimelineRonde;
@@ -54,11 +53,12 @@ import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.ImportPocOpties
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.EnovationHuisarts;
+import nl.rivm.screenit.model.EnovationHuisarts_;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.MammaOnderzoekType;
@@ -109,6 +109,8 @@ import nl.topicuszorg.util.bsn.BsnUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -116,6 +118,7 @@ import au.com.bytecode.opencsv.CSVParser;
 import au.com.bytecode.opencsv.CSVReader;
 import ca.uhn.hl7v2.HL7Exception;
 
+import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.filterBsn;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.afsprakenWaarvanOnderzoekNietIsDoorgevoerdAfgelopen2Maanden;
 
 @Service
@@ -148,9 +151,6 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 
 	@Autowired
 	private MammaBaseBeoordelingService baseBeoordelingService;
-
-	@Autowired
-	private MammaScreeningsEenheidDao screeningsEenheidDao;
 
 	@Autowired
 	private MammaStandplaatsService standplaatsService;
@@ -200,7 +200,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 		String bsn = null;
 		var result = "Succesvol";
 		var aantal = 0;
-		try (var scanner = new Scanner(inputStream, StandardCharsets.UTF_8.name()))
+		try (var scanner = new Scanner(inputStream, StandardCharsets.UTF_8))
 		{
 			var parser = new CSVParser(';');
 			Map<String, Integer> columnMap = new HashMap<>();
@@ -510,7 +510,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 		mammografie.setDensiteit(densiteit);
 		onderzoek.setMammografie(mammografie);
 		hibernateService.saveOrUpdateAll(mammografie.getVisueleInspectieAfbeelding(), mammografie, dossier);
-		var huisarts = enovationHuisartsService.zoekHuisartsen(new EnovationHuisarts(), "achternaam", true, 0, 1).iterator().next();
+		var huisarts = enovationHuisartsService.zoekHuisartsen(new EnovationHuisarts(), PageRequest.of(0, 1, Sort.by(EnovationHuisarts_.ACHTERNAAM))).iterator().next();
 		ronde.setHuisarts(huisarts);
 		ronde.setDatumVastleggenHuisarts(currentDateSupplier.getDate());
 		verwerkOnvolledigOfOnderbrokenOnderzoek(onvolledigOnderzoekOption, onderbrokenOnderzoekOption, onderzoek);
@@ -760,12 +760,6 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 	private boolean heeftLaatsteScreeningsRonde(Client client)
 	{
 		return client.getMammaDossier().getLaatsteScreeningRonde() != null;
-	}
-
-	@Override
-	public List<MammaScreeningsEenheid> getActieveScreeningsEenheden(ScreeningOrganisatie screeningOrganisatie)
-	{
-		return screeningsEenheidDao.getActieveScreeningsEenhedenVoorScreeningOrganisatie(screeningOrganisatie);
 	}
 
 	@Override
@@ -1094,7 +1088,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 	@Override
 	public String getBsnsMetBeeldenBeschikbaar()
 	{
-		return clientRepository.findAll(MammaMammografieSpecification.heeftBeeldenBeschikbaar())
+		return clientRepository.findAll(MammaMammografieSpecification.heeftBeeldenMogelijkAanwezig())
 			.stream().map(client -> client.getPersoon().getBsn()).collect(Collectors.joining(","));
 	}
 
@@ -1112,7 +1106,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 				{
 					continue;
 				}
-				var client = clientRepository.findOne(ClientRepository.bsnEquals(bsn)).orElse(null);
+				var client = clientRepository.findOne(filterBsn(bsn).with(Client_.persoon)).orElse(null);
 				if (client == null)
 				{
 					continue;

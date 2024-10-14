@@ -34,14 +34,11 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import com.google.common.primitives.Ints;
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
 
 public class MammaAfsprakenDataProvider extends SortableDataProvider<MammaScreeningsEenheid, String>
 {
-
-	private static final long serialVersionUID = 1L;
-
-	private IModel<MammaScreeningsEenheidFilter> filter;
+	private final IModel<MammaScreeningsEenheidFilter> filter;
 
 	@SpringBean
 	private MammaScreeningsEenheidService screeningsEenheidService;
@@ -56,11 +53,8 @@ public class MammaAfsprakenDataProvider extends SortableDataProvider<MammaScreen
 	@Override
 	public Iterator<? extends MammaScreeningsEenheid> iterator(long first, long count)
 	{
-		MammaScreeningsEenheidFilter filterObject = filter.getObject();
-		return screeningsEenheidService
-			.zoekScreeningsEenheden(filterObject.getScreeningsEenheid(), filterObject.getRegio(), Ints.checkedCast(first), Ints.checkedCast(count), getSort().getProperty(),
-				getSort().isAscending())
-			.iterator();
+		var filterObject = filter.getObject();
+		return screeningsEenheidService.zoekScreeningsEenheden(filterObject.getScreeningsEenheid(), filterObject.getRegio(), first, count, toSpringSort(getSort())).iterator();
 	}
 
 	@Override

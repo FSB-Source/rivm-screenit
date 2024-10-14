@@ -64,7 +64,7 @@ public class ConclusieInzienPanel extends AbstractGebeurtenisDetailPanel
 		add(new EnumLabel<ColonConclusieType>("afspraak.conclusie.type"));
 		add(DateLabel.forDatePattern("afspraak.conclusie.datum", "dd-MM-yyyy HH:mm"));
 		add(new Label("afspraak.conclusie.instellingGebruiker.medewerker.naamVolledig"));
-		add(new BooleanLabel("afspraak.bezwaar").setVisible(Boolean.TRUE.equals(afspraak.getBezwaar())));
+		add(new BooleanLabel("afspraak.bezwaar").setVisible(afspraak.isBezwaar()));
 
 		WebMarkupContainer newContainer = new EmptyPanel("container");
 		if (conclusie.getType() != null)

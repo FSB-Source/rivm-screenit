@@ -33,16 +33,12 @@ import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.document.BaseDocumentCreator;
 import nl.rivm.screenit.main.dao.mamma.MammaBeoordelingDao;
 import nl.rivm.screenit.main.model.mamma.beoordeling.BeoordelingenReserveringResult;
-import nl.rivm.screenit.main.model.mamma.beoordeling.MammaBeWerklijstZoekObject;
-import nl.rivm.screenit.main.model.mamma.beoordeling.MammaCeWerklijstZoekObject;
 import nl.rivm.screenit.main.service.mamma.MammaBeoordelingService;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.dto.LaesieDto;
-import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.EnovationHuisarts;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.MailMergeContext;
-import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -54,7 +50,6 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.mamma.MammaLezing;
-import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.enums.MammaBIRADSWaarde;
 import nl.rivm.screenit.model.mamma.enums.MammaBeLezerSoort;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingOpschortenReden;
@@ -81,7 +76,6 @@ import nl.rivm.screenit.service.mamma.be.verslag.MammaVerslagDocumentCreator;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.envers.AuditReaderFactory;
 import org.hibernate.envers.RevisionType;
 import org.hibernate.envers.query.AuditEntity;
@@ -148,54 +142,6 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 	private BaseScreeningRondeService baseScreeningRondeService;
 
 	@Override
-	public List<MammaScreeningsEenheid> zoekScreeningsEenhedenMetBeWerklijstBeoordeling(InstellingGebruiker loggedInInstellingGebruiker,
-		List<MammaBeoordelingStatus> beschikbarePaginaStatussen)
-	{
-		var beWerklijstZoekObject = new MammaBeWerklijstZoekObject();
-		beWerklijstZoekObject.setInstellingGebruiker(loggedInInstellingGebruiker);
-		beWerklijstZoekObject.setBeoordelingStatussen(beschikbarePaginaStatussen);
-		if (loggedInInstellingGebruiker.getOrganisatie().getOrganisatieType().equals(OrganisatieType.BEOORDELINGSEENHEID))
-		{
-			beWerklijstZoekObject.setBeoordelingsEenheid((BeoordelingsEenheid) loggedInInstellingGebruiker.getOrganisatie());
-		}
-		return beoordelingDao.screeningsEenhedenMetBeWerklijstBeoordeling(beWerklijstZoekObject);
-	}
-
-	@Override
-	public List<MammaScreeningsEenheid> zoekScreeningsEenhedenMetCeWerklijstBeoordeling(List<MammaBeoordelingStatus> beschikbareBeoordelingStatussen,
-		List<BeoordelingsEenheid> beoordelingsEenheden)
-	{
-		if (CollectionUtils.isEmpty(beoordelingsEenheden))
-		{
-			return new ArrayList<>();
-		}
-
-		var ceWerklijstZoekObject = new MammaCeWerklijstZoekObject();
-		ceWerklijstZoekObject.setBeoordelingStatussen(beschikbareBeoordelingStatussen);
-		ceWerklijstZoekObject.setBeoordelingsEenheden(beoordelingsEenheden);
-
-		return beoordelingDao.screeningsEenhedenMetCeWerklijstBeoordeling(ceWerklijstZoekObject);
-	}
-
-	@Override
-	public List<MammaBeoordeling> zoekBeoordelingen(MammaBeWerklijstZoekObject zoekObject, Integer first, Integer count, String sortProperty, boolean asc)
-	{
-		return beoordelingDao.zoekBeBeoordelingen(zoekObject, first, count, sortProperty, asc);
-	}
-
-	@Override
-	public long countOnderzoeken(MammaBeWerklijstZoekObject zoekObject)
-	{
-		return beoordelingDao.countBeWerklijstBeoordelingen(zoekObject);
-	}
-
-	@Override
-	public List<Long> zoekBeoordelingenNummers(MammaBeWerklijstZoekObject zoekObject, String sortProperty, boolean asc)
-	{
-		return beoordelingDao.zoekBeoordelingenNummers(zoekObject, sortProperty, asc);
-	}
-
-	@Override
 	public List<MammaBeoordeling> getAlleBeoordelingenMetBeelden(MammaBeoordeling beoordeling)
 	{
 		return beoordelingDao.getAlleVorigeBeoordelingenMetBeelden(beoordeling);
@@ -221,33 +167,6 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 	private boolean isVerwijzing(MammaBeoordeling mammaBeoordeling)
 	{
 		return mammaBeoordeling.getStatus() == MammaBeoordelingStatus.UITSLAG_ONGUNSTIG;
-	}
-
-	@Override
-	public int getAantalBeoordeeldInList(List<Long> beoordelingenIds)
-	{
-		return !beoordelingenIds.isEmpty() ? beoordelingDao.getAantalBeoordeeldInList(beoordelingenIds) : 0;
-	}
-
-	@Override
-	public int getAantalBeoordeeld(MammaBeWerklijstZoekObject zoekObject)
-	{
-		return beoordelingDao.getAantalBeoordeeld(zoekObject);
-	}
-
-	@Transactional(propagation = Propagation.REQUIRED)
-	@Override
-	public void bevestig1eEn2eLezingen(InstellingGebruiker instellingGebruiker)
-	{
-		var zoekObject = new MammaBeWerklijstZoekObject();
-		zoekObject.setInstellingGebruiker(instellingGebruiker);
-		zoekObject.setBeoordelingStatussen(Arrays.asList(MammaBeoordelingStatus.EERSTE_LEZING_OPGESLAGEN, MammaBeoordelingStatus.TWEEDE_LEZING_OPGESLAGEN));
-		var beoordelingen = beoordelingDao.zoekBeBeoordelingen(zoekObject, 0, 0, null, false);
-		for (var beoordeling : beoordelingen)
-		{
-			baseBeoordelingService.bevestigLezing(beoordeling);
-		}
-		logService.logGebeurtenis(LogGebeurtenis.MAMMA_BEOORDELINGEN_GEACCORDEERD, instellingGebruiker, "Aantal beoordelingen: " + beoordelingen.size(), Bevolkingsonderzoek.MAMMA);
 	}
 
 	@Override
@@ -323,15 +242,6 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 			}
 		}
 		return lezing;
-	}
-
-	@Override
-	public boolean is1eOf2eLezingenTeBevestigen(InstellingGebruiker instellingGebruiker)
-	{
-		var zoekObject = new MammaBeWerklijstZoekObject();
-		zoekObject.setInstellingGebruiker(instellingGebruiker);
-		zoekObject.setBeoordelingStatussen(Arrays.asList(MammaBeoordelingStatus.EERSTE_LEZING_OPGESLAGEN, MammaBeoordelingStatus.TWEEDE_LEZING_OPGESLAGEN));
-		return beoordelingDao.getAantalBeoordeeld(zoekObject) > 0;
 	}
 
 	@Override

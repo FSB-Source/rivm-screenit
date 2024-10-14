@@ -21,45 +21,12 @@ package nl.rivm.screenit.dao;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
-import java.util.List;
-
-import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.ClientContact;
-import nl.rivm.screenit.model.UploadDocument;
-import nl.rivm.screenit.model.colon.ColonUitnodiging;
 
 public interface ClientDao
 {
 
 	void saveOrUpdateClient(Client client);
 
-	Client getClientByBsn(String bsn);
-
-	Client getClientZonderBezwaar(String bsn);
-
-	Client getLaatstAfgevoerdeClient(String bsn);
-
-	Client getClientByBsnFromNg01Bericht(String bsn, String anummer);
-
-	Client getClientByANummer(String anummer);
-
-	List<Client> getClientenMetTitel(String titelCode);
-
-	List<Client> zoekClienten(Client zoekObject);
-
-	List<Client> getClientenOpAdresMetLimiet(BagAdres adres, Integer minmaleLeeftijd, Integer maximaleLeeftijd, int uitnodigingsInterval);
-
-	List<ClientContact> getClientContacten(Client client, long first, long count, String sortProperty, boolean ascending);
-
-	List<ClientContact> getClientContacten(Client client);
-
-	boolean heeftClientIntakeConclusieMetBezwaar(String bsn);
-
 	boolean heeftDossierMetRondeOfAfmelding(Client client);
-
-	int countUsedColonHandtekeningBrief(UploadDocument handtekeningDocumentAfmelding, String handtekeningProperty);
-
-	List<ColonUitnodiging> getAllColonUitnodigingenVanClientInPeriode(Client client, Date begin, Date eind);
 }

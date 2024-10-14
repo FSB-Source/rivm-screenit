@@ -24,7 +24,7 @@ package nl.rivm.screenit.clientportaal.model.colon;
 import lombok.Getter;
 import lombok.Setter;
 
-import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamer;
+import nl.rivm.screenit.model.colon.dto.VrijSlotZonderKamer;
 
 @Getter
 @Setter

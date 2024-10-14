@@ -33,7 +33,6 @@ import nl.rivm.screenit.batch.jobs.generalis.gba.exception.GbaImportException;
 import nl.rivm.screenit.batch.jobs.generalis.gba.wrappers.GbaValidatieWrapper;
 import nl.rivm.screenit.batch.service.GbaService;
 import nl.rivm.screenit.batch.service.GbaVraagService;
-import nl.rivm.screenit.dao.CoordinatenDao;
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
@@ -51,8 +50,12 @@ import nl.rivm.screenit.model.gba.GbaVerwerkingEntry;
 import nl.rivm.screenit.model.gba.GbaVerwerkingsLog;
 import nl.rivm.screenit.model.gba.Land;
 import nl.rivm.screenit.model.gba.Nationaliteit;
+import nl.rivm.screenit.repository.algemeen.GemeenteRepository;
+import nl.rivm.screenit.repository.algemeen.LandRepository;
+import nl.rivm.screenit.repository.algemeen.NationaliteitRepository;
 import nl.rivm.screenit.service.BaseGbaVraagService;
 import nl.rivm.screenit.service.ClientService;
+import nl.rivm.screenit.service.CoordinatenService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.TransgenderService;
@@ -97,10 +100,19 @@ public class GbaServiceImpl implements GbaService
 	private GbaDao gbaDao;
 
 	@Autowired
+	private LandRepository landRepository;
+
+	@Autowired
+	private NationaliteitRepository nationaliteitRepository;
+
+	@Autowired
+	private GemeenteRepository gemeenteRepository;
+
+	@Autowired
 	private HibernateService hibernateService;
 
 	@Autowired
-	private CoordinatenDao coordinatenDao;
+	private CoordinatenService coordinatenService;
 
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
@@ -648,7 +660,7 @@ public class GbaServiceImpl implements GbaService
 		}
 
 		boolean adresGegevensGewijzigd = vulAdresMetGbaGegevens(adres, bericht, client, verwerkingLog);
-		adresGegevensGewijzigd |= changeProperty(adres, "postcodeCoordinaten", coordinatenDao.getCoordinaten(adres), true);
+		adresGegevensGewijzigd |= changeProperty(adres, "postcodeCoordinaten", coordinatenService.getCoordinaten(adres), true);
 		persoon.setGbaAdres(adres);
 
 		hibernateService.saveOrUpdate(adres);
@@ -752,7 +764,7 @@ public class GbaServiceImpl implements GbaService
 		{
 
 			String landCode = getStringUitBericht(bericht, GbaRubriek.LAND_CODE);
-			Land land = gbaDao.getStamtabelByCode(Land.class, landCode);
+			var land = landRepository.findOneByCode(landCode).orElse(null);
 			if (land == null)
 			{
 				land = new Land();
@@ -784,7 +796,7 @@ public class GbaServiceImpl implements GbaService
 		{
 
 			String nationaliteitCode = getStringUitBericht(bericht, GbaRubriek.NATIONALITEIT_CODE);
-			Nationaliteit nationaliteit = gbaDao.getStamtabelByCode(Nationaliteit.class, nationaliteitCode);
+			var nationaliteit = nationaliteitRepository.findOneByCode(nationaliteitCode).orElse(null);
 			if (nationaliteit == null)
 			{
 				nationaliteit = new Nationaliteit();
@@ -827,7 +839,7 @@ public class GbaServiceImpl implements GbaService
 		else if (bericht.getRubriekMap().containsKey(GbaRubriek.GEMEENTE_CODE.getNummer()))
 		{
 			String gemeenteCode = getStringUitBericht(bericht, GbaRubriek.GEMEENTE_CODE);
-			Gemeente gemeente = gbaDao.getStamtabelByCode(Gemeente.class, gemeenteCode);
+			var gemeente = gemeenteRepository.findOneByCode(gemeenteCode).orElse(null);
 
 			if (gemeente == null)
 			{
@@ -858,7 +870,7 @@ public class GbaServiceImpl implements GbaService
 
 			if (nieuweGemeenteCode != null)
 			{
-				Gemeente nieuweGemeente = gbaDao.getStamtabelByCode(Gemeente.class, nieuweGemeenteCode);
+				Gemeente nieuweGemeente = gemeenteRepository.findOneByCode(nieuweGemeenteCode).orElse(null);
 				gemeente.setOpvolgGemeente(nieuweGemeente);
 			}
 
@@ -934,8 +946,7 @@ public class GbaServiceImpl implements GbaService
 
 	private Gemeente getOrCreateGemeente(Vo107Bericht bericht, Client client, GbaVerwerkingsLog verwerkingsLog, String gemeenteCode)
 	{
-		Gemeente gemeente = gbaDao.getStamtabelByCode(Gemeente.class, gemeenteCode);
-
+		var gemeente = gemeenteRepository.findOneByCode(gemeenteCode).orElse(null);
 		if (gemeente == null)
 		{
 			gemeente = new Gemeente();

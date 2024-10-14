@@ -41,9 +41,6 @@ import java.util.Scanner;
 
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.dao.ClientDao;
-import nl.rivm.screenit.dao.CoordinatenDao;
-import nl.rivm.screenit.dao.GbaBaseDao;
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientBrief;
@@ -61,6 +58,10 @@ import nl.rivm.screenit.model.project.ProjectBrief;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.rivm.screenit.model.project.ProjectInactiveerDocument;
+import nl.rivm.screenit.repository.algemeen.LandRepository;
+import nl.rivm.screenit.repository.algemeen.NationaliteitRepository;
+import nl.rivm.screenit.service.ClientService;
+import nl.rivm.screenit.service.CoordinatenService;
 import nl.rivm.screenit.service.DossierFactory;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.TestService;
@@ -79,7 +80,6 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Charsets;
@@ -88,7 +88,7 @@ import au.com.bytecode.opencsv.CSVParser;
 
 @Slf4j
 @Service
-@Transactional(propagation = Propagation.REQUIRED)
+@Transactional
 public class TestServiceImpl implements TestService
 {
 	@Autowired
@@ -98,13 +98,16 @@ public class TestServiceImpl implements TestService
 	private MammaBaseKansberekeningService baseKansberekeningService;
 
 	@Autowired
-	private ClientDao clientDao;
+	private ClientService clientService;
 
 	@Autowired
-	private CoordinatenDao coordinatenDao;
+	private CoordinatenService coordinatenService;
 
 	@Autowired
-	private GbaBaseDao gbaDao;
+	private NationaliteitRepository nationaliteitRepository;
+
+	@Autowired
+	private LandRepository landRepository;
 
 	@Autowired
 	private DossierFactory dossierFactory;
@@ -265,12 +268,12 @@ public class TestServiceImpl implements TestService
 	@Override
 	public Client getClientByBsn(String bsn)
 	{
-		return clientDao.getClientByBsn(bsn);
+		return clientService.getClientByBsn(bsn);
 	}
 
 	private Client geefClient(String bsn, Date geboortedatum, Date overlijdensDatum, Geslacht geslacht)
 	{
-		Client client = clientDao.getClientByBsn(bsn);
+		Client client = clientService.getClientByBsn(bsn);
 		if (client == null)
 		{
 			client = new Client();
@@ -473,7 +476,7 @@ public class TestServiceImpl implements TestService
 					Client client = null;
 
 					String bsn = columns[headersIndex.get("BSN")];
-					client = clientDao.getClientByBsn(bsn);
+					client = clientService.getClientByBsn(bsn);
 
 					if (client == null)
 					{
@@ -496,23 +499,21 @@ public class TestServiceImpl implements TestService
 					persoon.setAchternaam(columns[headersIndex.get("Geslachtsnaam")]);
 					persoon.setPartnerTussenvoegsel(columns[headersIndex.get("VoorvNaamEchtgenoot")]);
 					persoon.setPartnerAchternaam(columns[headersIndex.get("GeslachtsnaamEchtgenoot")]);
-					if (org.apache.commons.lang.StringUtils.isNotBlank(columns[headersIndex.get("DatumOverlijden")]))
+					if (StringUtils.isNotBlank(columns[headersIndex.get("DatumOverlijden")]))
 					{
 						persoon.setOverlijdensdatum(new SimpleDateFormat("yyyyMMdd").parse(columns[headersIndex.get("DatumOverlijden")]));
 					}
 
-					Nationaliteit nationaliteit = gbaDao.getStamtabelByCode(Nationaliteit.class,
-						org.apache.commons.lang.StringUtils.leftPad(columns[headersIndex.get("CodeNationaliteit")], 4, "0"));
-
+					var nationaliteit = nationaliteitRepository.findOneByCode(StringUtils.leftPad(columns[headersIndex.get("CodeNationaliteit")], 4, "0")).orElse(null);
 					client.getPersoon().getGbaNationaliteiten().add(nationaliteit);
 
-					nl.rivm.screenit.model.gba.Land geboorteLand = gbaDao.getStamtabelByCode(nl.rivm.screenit.model.gba.Land.class, columns[headersIndex.get("CodeGeboorteland")]);
+					var geboorteLand = landRepository.findOneByCode(columns[headersIndex.get("CodeGeboorteland")]).orElse(null);
 					client.getPersoon().setGbaGeboorteLand(geboorteLand);
 
 					BagAdres adres = new BagAdres();
 					adres.setStraat(columns[headersIndex.get("Straat")]);
 
-					if (org.apache.commons.lang.StringUtils.isNotBlank(columns[headersIndex.get("HuisNummer")]))
+					if (StringUtils.isNotBlank(columns[headersIndex.get("HuisNummer")]))
 					{
 						adres.setHuisnummer(Integer.parseInt(columns[headersIndex.get("HuisNummer")]));
 					}
@@ -525,7 +526,7 @@ public class TestServiceImpl implements TestService
 					String postcode = columns[headersIndex.get("Postcode")];
 					postcode = postcode.toUpperCase().replaceAll(" ", "");
 
-					if (org.apache.commons.lang.StringUtils.isBlank(postcode) )
+					if (StringUtils.isBlank(postcode))
 					{
 						LOG.error("Skipping patient, invalide postcode");
 						continue;
@@ -549,7 +550,7 @@ public class TestServiceImpl implements TestService
 						}
 					}
 					adres.setGbaGemeente(gemeente);
-					adres.setPostcodeCoordinaten(coordinatenDao.getCoordinaten(adres));
+					adres.setPostcodeCoordinaten(coordinatenService.getCoordinaten(adres));
 					persoon.setGbaAdres(adres);
 
 					if (org.apache.commons.lang.StringUtils.isNotBlank(columns[headersIndex.get("DatumVertrekUitNederland")]))
@@ -561,11 +562,11 @@ public class TestServiceImpl implements TestService
 					persoon.setTelefoonnummer2(columns[headersIndex.get("TelNrWerk")]);
 					persoon.setEmailadres(columns[headersIndex.get("EmailAdres")]);
 
-					clientDao.saveOrUpdateClient(client);
+					clientService.saveOrUpdateClient(client);
 
 					importBvoViaCsv.importBvoViaCsv(headersIndex, columns, client);
 
-					clientDao.saveOrUpdateClient(client);
+					clientService.saveOrUpdateClient(client);
 					clienten.add(client);
 
 					dossierFactory.maakDossiers(client);

@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.clienten.verslag;
 
 /*-
@@ -26,6 +25,7 @@ import java.util.Iterator;
 
 import nl.rivm.screenit.main.service.VerslagService;
 import nl.rivm.screenit.model.berichten.Verslag;
+import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -38,8 +38,6 @@ import com.google.common.primitives.Ints;
 
 public class ClientVerslagenDataProvider<V extends Verslag<?, ?>> extends SortableDataProvider<V, String>
 {
-
-	private static final long serialVersionUID = 1L;
 
 	private final IModel<? extends V> zoekModel;
 
@@ -56,14 +54,14 @@ public class ClientVerslagenDataProvider<V extends Verslag<?, ?>> extends Sortab
 	@Override
 	public Iterator<? extends V> iterator(long first, long count)
 	{
-		return verslagService.zoekVerslagen(ModelUtil.nullSafeGet(zoekModel), Ints.checkedCast(first), Ints.checkedCast(count), getSort().getProperty(), getSort().isAscending())
+		return verslagService.zoekVerslagen(getZoekCriteria(), Ints.checkedCast(first), Ints.checkedCast(count), getSort().getProperty(), getSort().isAscending())
 			.iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return verslagService.countVerslagen(ModelUtil.nullSafeGet(zoekModel));
+		return verslagService.countVerslagen(getZoekCriteria());
 	}
 
 	@Override
@@ -77,5 +75,10 @@ public class ClientVerslagenDataProvider<V extends Verslag<?, ?>> extends Sortab
 	{
 		super.detach();
 		ModelUtil.nullSafeDetach(zoekModel);
+	}
+
+	private V getZoekCriteria()
+	{
+		return ModelProxyHelper.deproxy(ModelUtil.nullSafeGet(zoekModel));
 	}
 }

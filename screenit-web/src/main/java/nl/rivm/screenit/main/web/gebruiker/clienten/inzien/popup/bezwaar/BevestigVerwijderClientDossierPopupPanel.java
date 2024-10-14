@@ -25,24 +25,19 @@ import nl.rivm.screenit.main.web.component.ScreenitForm;
 import nl.rivm.screenit.model.BezwaarMoment;
 import nl.rivm.screenit.service.ClientService;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public abstract class BevestigVerwijderClientDossierPopupPanel extends GenericPanel<BezwaarMoment>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private ClientService clientService;
 
-	public BevestigVerwijderClientDossierPopupPanel(String id, boolean bezwaarBRP, boolean clientDossierVerwijderen)
+	protected BevestigVerwijderClientDossierPopupPanel(String id)
 	{
 		super(id);
 
@@ -51,28 +46,13 @@ public abstract class BevestigVerwijderClientDossierPopupPanel extends GenericPa
 
 		uploadForm.add(new AjaxSubmitLink("bevestig")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
 				opslaan(target);
 			}
 		});
-
-		Component bezwaarBRPComponent = new EmptyPanel("bezwaarBRP");
-		if (bezwaarBRP)
-		{
-			bezwaarBRPComponent = new Label("bezwaarBRP", getString("bezwaar.waarschuwing.bezwaarbrp"));
-		}
-		Component clientDossierVerwijderenComponent = new EmptyPanel("clientDossierVerwijderen");
-		if (clientDossierVerwijderen)
-		{
-			clientDossierVerwijderenComponent = new Label("clientDossierVerwijderen", getString("bezwaar.waarschuwing.verwijderendossier"));
-		}
-		uploadForm.add(bezwaarBRPComponent);
-		uploadForm.add(clientDossierVerwijderenComponent);
+		uploadForm.add(new Label("waarschuwing", getString("gebruik.gegevens.waarschuwing")));
 	}
 
 	protected abstract void opslaan(AjaxRequestTarget target);

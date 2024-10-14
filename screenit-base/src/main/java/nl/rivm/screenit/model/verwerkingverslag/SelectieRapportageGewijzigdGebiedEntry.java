@@ -27,7 +27,7 @@ import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import nl.rivm.screenit.model.UitnodigingsGebied;
+import nl.rivm.screenit.model.colon.UitnodigingsGebied;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;

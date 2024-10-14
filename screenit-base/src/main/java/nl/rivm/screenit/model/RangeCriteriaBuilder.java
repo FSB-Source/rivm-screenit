@@ -21,6 +21,7 @@ package nl.rivm.screenit.model;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import org.hibernate.criterion.Criterion;
@@ -39,6 +40,8 @@ public abstract class RangeCriteriaBuilder
 	public abstract Criterion overlaps(String startProperty, String endProperty);
 
 	public abstract Criterion overlaps(Range<Date> range);
+
+	public abstract Criterion overlapsDateTime(Range<LocalDateTime> range);
 
 	public Criterion overlaps(Date startDate, Date endDate)
 	{
@@ -63,6 +66,12 @@ public abstract class RangeCriteriaBuilder
 
 			@Override
 			public Criterion overlaps(Range<Date> range)
+			{
+				return and(gt(openEndProperty, range.lowerEndpoint()), lt(closedStartProperty, range.upperEndpoint()));
+			}
+
+			@Override
+			public Criterion overlapsDateTime(Range<LocalDateTime> range)
 			{
 				return and(gt(openEndProperty, range.lowerEndpoint()), lt(closedStartProperty, range.upperEndpoint()));
 			}

@@ -60,7 +60,7 @@ public class CervixUitnodigingSpecification
 {
 	public static Specification<CervixUitnodiging> heeftActieveClient()
 	{
-		return ClientSpecification.heeftActieveClientPredicate().toSpecification(r ->
+		return ClientSpecification.heeftActieveClient().with(r ->
 		{
 			var ronde = SpecificationUtil.join(r, CervixUitnodiging_.screeningRonde);
 			var dossier = SpecificationUtil.join(ronde, CervixScreeningRonde_.dossier);

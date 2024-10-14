@@ -23,11 +23,14 @@ package nl.rivm.screenit.model;
 
 import java.io.Serializable;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class BerichtZoekFilter implements Serializable
 {
-	private static final long serialVersionUID = 1L;
-
-	private Boolean mldBerichten;
+	private Boolean mdlBerichten;
 
 	private Boolean paLabBerichten;
 
@@ -48,65 +51,4 @@ public class BerichtZoekFilter implements Serializable
 	{
 
 	}
-
-	public Boolean getMldBerichten()
-	{
-		return mldBerichten;
-	}
-
-	public void setMldBerichten(Boolean mldBerichten)
-	{
-		this.mldBerichten = mldBerichten;
-	}
-
-	public Boolean getPaLabBerichten()
-	{
-		return paLabBerichten;
-	}
-
-	public void setPaLabBerichten(Boolean paLabBerichten)
-	{
-		this.paLabBerichten = paLabBerichten;
-	}
-
-	public Boolean getCytologieBerichten()
-	{
-		return cytologieBerichten;
-	}
-
-	public void setCytologieBerichten(Boolean cytologieBerichten)
-	{
-		this.cytologieBerichten = cytologieBerichten;
-	}
-
-	public Boolean getFollowUpBerichten()
-	{
-		return followUpBerichten;
-	}
-
-	public void setFollowUpBerichten(Boolean followUpBerichten)
-	{
-		this.followUpBerichten = followUpBerichten;
-	}
-
-	public String getBsn()
-	{
-		return bsn;
-	}
-
-	public void setBsn(String bsn)
-	{
-		this.bsn = bsn;
-	}
-
-	public String getText()
-	{
-		return text;
-	}
-
-	public void setText(String text)
-	{
-		this.text = text;
-	}
-
 }

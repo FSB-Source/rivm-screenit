@@ -23,7 +23,6 @@ package nl.rivm.screenit.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.dao.ProjectDao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
@@ -38,9 +37,9 @@ import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectClientAttribuut;
 import nl.rivm.screenit.model.project.ProjectInactiefReden;
 import nl.rivm.screenit.model.project.ProjectType;
+import nl.rivm.screenit.service.BaseProjectService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.ProjectBestandVerwerkingService;
-import nl.rivm.screenit.service.ProjectService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.util.collections.CollectionUtils;
@@ -62,10 +61,7 @@ public class ProjectBestandVerwerkingServiceImpl implements ProjectBestandVerwer
 	private HibernateService hibernateService;
 
 	@Autowired
-	private ProjectDao projectDao;
-
-	@Autowired
-	private ProjectService projectService;
+	private BaseProjectService projectService;
 
 	@Override
 	@Transactional
@@ -122,7 +118,7 @@ public class ProjectBestandVerwerkingServiceImpl implements ProjectBestandVerwer
 		{
 			var client = context.getClient();
 
-			var projectClient = projectDao.getProjectClient(client, context.getProject());
+			var projectClient = projectService.getProjectClient(client, context.getProject());
 			var groep = context.getGroep();
 			if (projectClient == null && ProjectBestandType.POPULATIE == context.getType() && groep != null)
 			{
@@ -172,7 +168,7 @@ public class ProjectBestandVerwerkingServiceImpl implements ProjectBestandVerwer
 		for (var attribuut : context.getAttributen())
 		{
 			var waarde = context.getAttribuutWaarde(attribuut);
-			var attribuutVanClient = projectDao.getProjectClientAttribuut(projectClient, attribuut);
+			var attribuutVanClient = projectService.getProjectClientAttribuut(projectClient, attribuut);
 			if (attribuutVanClient == null)
 			{
 				attribuutVanClient = new ProjectClientAttribuut();

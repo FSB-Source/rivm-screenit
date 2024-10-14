@@ -18,11 +18,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
-import {BezwaarType} from "./BezwaarType";
+import {BezwaarType} from "./BezwaarType"
+import {Bevolkingsonderzoek} from "./Bevolkingsonderzoek"
 
 export type Bezwaar = {
-    type: BezwaarType,
-    active: boolean
+	type: BezwaarType,
+	active: boolean,
+	bevolkingsonderzoek?: Bevolkingsonderzoek
 }
 
 export type BezwaarMoment = Bezwaar[]

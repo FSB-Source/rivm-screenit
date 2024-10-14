@@ -32,9 +32,9 @@ import nl.rivm.screenit.exceptions.HeeftAfsprakenException;
 import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
 import nl.rivm.screenit.exceptions.TijdBlokOverlapException;
 import nl.rivm.screenit.model.colon.enums.ColonRoosterBeperking;
-import nl.rivm.screenit.model.colon.planning.RoosterItem;
+import nl.rivm.screenit.model.colon.planning.ColonAfspraakslot;
+import nl.rivm.screenit.model.colon.planning.ColonTijdslot;
 import nl.rivm.screenit.util.DateUtil;
-import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
 
 import org.apache.wicket.Application;
 
@@ -51,7 +51,7 @@ public class BulkAanmakenException extends Exception
 
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
-	public void addException(AbstractAppointment tijdslot, Exception exception)
+	public void addException(ColonTijdslot tijdslot, Exception exception)
 	{
 		var innerException = new BulkAanmakenInnerException(exception, tijdslot);
 		if (!innerExceptions.contains(innerException))
@@ -71,7 +71,7 @@ public class BulkAanmakenException extends Exception
 		String message;
 		ColonRoosterBeperking type;
 		ObjectNode node;
-		AbstractAppointment tijdslot;
+		ColonTijdslot tijdslot;
 		for (var innerException : innerExceptions)
 		{
 			if (innerException.getException() instanceof BeperkingException)
@@ -108,7 +108,7 @@ public class BulkAanmakenException extends Exception
 		}
 	}
 
-	private ObjectNode createNode(ColonRoosterBeperking type, String exception, AbstractAppointment tijdslot)
+	private ObjectNode createNode(ColonRoosterBeperking type, String exception, ColonTijdslot tijdslot)
 	{
 		var node = objectMapper.createObjectNode();
 		node.put("type", type.name());
@@ -117,13 +117,13 @@ public class BulkAanmakenException extends Exception
 		return node;
 	}
 
-	private ObjectNode tijdslotToJson(AbstractAppointment tijdslot)
+	private ObjectNode tijdslotToJson(ColonTijdslot tijdslot)
 	{
 		var node = objectMapper.createObjectNode();
 		node.put("id", tijdslot.getId());
-		node.put("startTime", DateUtil.formatTime(tijdslot.getStartTime()));
-		node.put("endTime", DateUtil.formatTime(tijdslot.getEndTime()));
-		node.put("datum", DateUtil.formatShortDate(tijdslot.getStartTime()));
+		node.put("vanaf", DateUtil.formatLocalTime(tijdslot.getVanaf()));
+		node.put("tot", DateUtil.formatLocalTime(tijdslot.getTot()));
+		node.put("datum", DateUtil.formatShortDate(tijdslot.getVanaf()));
 		return node;
 	}
 
@@ -143,7 +143,7 @@ public class BulkAanmakenException extends Exception
 		return ColonRoosterBeperking.ZACHT;
 	}
 
-	private String getMessage(Exception exception, AbstractAppointment tijdslot)
+	private String getMessage(Exception exception, ColonTijdslot tijdslot)
 	{
 		String message;
 		if (exception instanceof ValidatieException)
@@ -153,7 +153,7 @@ public class BulkAanmakenException extends Exception
 		}
 		else if (exception instanceof TijdBlokOverlapException)
 		{
-			message = getString(tijdslot instanceof RoosterItem ? "error.afspraakslot.heeft.overlap.bulk" : "error.blokkade.heeft.overlap.bulk");
+			message = getString(tijdslot instanceof ColonAfspraakslot ? "error.afspraakslot.heeft.overlap.bulk" : "error.blokkade.heeft.overlap.bulk");
 		}
 		else
 		{

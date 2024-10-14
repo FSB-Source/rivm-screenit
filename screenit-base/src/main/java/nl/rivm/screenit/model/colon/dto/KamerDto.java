@@ -23,10 +23,9 @@ package nl.rivm.screenit.model.colon.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import nl.rivm.screenit.model.colon.Kamer;
+import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
 
 @Getter
 @Setter
@@ -34,10 +33,11 @@ import nl.rivm.screenit.model.colon.Kamer;
 public class KamerDto
 {
 	private Long id;
-	private String name;
 
-	public static KamerDto fromKamer(Kamer kamer)
+	private String naam;
+
+	public static KamerDto fromKamer(ColonIntakekamer kamer)
 	{
-		return new KamerDto(kamer.getId(), kamer.getName());
+		return new KamerDto(kamer.getId(), kamer.getNaam());
 	}
 }

@@ -47,8 +47,8 @@ import nl.rivm.screenit.main.web.gebruiker.testen.colon.timeline.popups.TestColo
 import nl.rivm.screenit.main.web.gebruiker.testen.colon.timeline.popups.TestEindeScreeningRondePopUp;
 import nl.rivm.screenit.main.web.gebruiker.testen.colon.timeline.popups.TestHerinneringPopup;
 import nl.rivm.screenit.main.web.gebruiker.testen.colon.timeline.popups.TestIfobtTestPopup;
-import nl.rivm.screenit.main.web.gebruiker.testen.colon.timeline.popups.TestInakeAfspraakPopup;
 import nl.rivm.screenit.main.web.gebruiker.testen.colon.timeline.popups.TestIntakeAfspraakConclusiePopup;
+import nl.rivm.screenit.main.web.gebruiker.testen.colon.timeline.popups.TestIntakeAfspraakPopup;
 import nl.rivm.screenit.main.web.gebruiker.testen.colon.timeline.popups.TestMDLVerslagPopup;
 import nl.rivm.screenit.main.web.gebruiker.testen.colon.timeline.popups.TestRetourzendingPopup;
 import nl.rivm.screenit.main.web.gebruiker.testen.colon.timeline.popups.TestScreeningRondePopUp;
@@ -83,7 +83,7 @@ public enum TestVervolgKeuzeOptie implements INaam
 
 	VERZET_TIJD("Zet dossier achteruit", TestColonVerzetDatumPopup.class),
 
-	INTAKE_AFSPRAAK("Geef client een intake afspraak", TestInakeAfspraakPopup.class),
+	INTAKE_AFSPRAAK("Geef client een intake afspraak", TestIntakeAfspraakPopup.class),
 
 	INTAKE_AFSPRAAK_CONCLUSIE("Geef intake afspraak een conclusie", TestIntakeAfspraakConclusiePopup.class),
 

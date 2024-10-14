@@ -21,14 +21,13 @@ package nl.rivm.screenit.mamma.se.service.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import nl.rivm.screenit.mamma.se.dao.MammaOnderzoekenDao;
-import nl.rivm.screenit.mamma.se.dao.ZorginstellingenDao;
 import nl.rivm.screenit.mamma.se.dto.ZorginstellingDto;
 import nl.rivm.screenit.mamma.se.dto.actions.MaakDubbeleTijdDto;
 import nl.rivm.screenit.mamma.se.dto.actions.MaakDubbeleTijdRedenDto;
@@ -36,6 +35,7 @@ import nl.rivm.screenit.mamma.se.dto.actions.OnderzoekOpslaanDto;
 import nl.rivm.screenit.mamma.se.dto.actions.SignalerenOpslaanDto;
 import nl.rivm.screenit.mamma.se.dto.onderzoek.OnderzoekSeDto;
 import nl.rivm.screenit.mamma.se.dto.onderzoek.SignalerenSeDto;
+import nl.rivm.screenit.mamma.se.repository.MammaAfspraakRepository;
 import nl.rivm.screenit.mamma.se.service.MammaAfspraakService;
 import nl.rivm.screenit.mamma.se.service.OnderzoekAfrondenService;
 import nl.rivm.screenit.mamma.se.service.OnderzoekService;
@@ -45,6 +45,7 @@ import nl.rivm.screenit.model.ClientContact;
 import nl.rivm.screenit.model.ClientContactActie;
 import nl.rivm.screenit.model.ClientContactActieType;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.ZorgInstelling;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
@@ -53,9 +54,13 @@ import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
+import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
+import nl.rivm.screenit.repository.algemeen.InstellingRepository;
+import nl.rivm.screenit.repository.mamma.MammaOnderzoekRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
+import nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -64,6 +69,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.google.common.collect.Range.closed;
+import static nl.rivm.screenit.mamma.se.specification.InstellingSpecification.heeftSubInstellingVanType;
+import static nl.rivm.screenit.mamma.se.specification.InstellingSpecification.isZorgInstelling;
+import static nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus.BESCHIKBAAR;
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftAfgerondeMammografie;
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftIlmStatus;
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftOnderzoekDoorgevoerd;
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftScreeningsEenheid;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
@@ -80,12 +94,6 @@ public class OnderzoekServiceImpl implements OnderzoekService
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Autowired
-	private ZorginstellingenDao zorginstellingenDao;
-
-	@Autowired
-	private MammaOnderzoekenDao onderzoekDao;
-
-	@Autowired
 	private OnderzoekAfrondenService onderzoekAfrondenService;
 
 	@Autowired
@@ -93,6 +101,15 @@ public class OnderzoekServiceImpl implements OnderzoekService
 
 	@Autowired
 	private MammaAfspraakService afspraakService;
+
+	@Autowired
+	private MammaOnderzoekRepository onderzoekRepository;
+
+	@Autowired
+	private InstellingRepository instellingRepository;
+
+	@Autowired
+	private MammaAfspraakRepository afspraakRepository;
 
 	@Override
 	public void opslaan(OnderzoekOpslaanDto action, InstellingGebruiker gebruiker)
@@ -162,59 +179,67 @@ public class OnderzoekServiceImpl implements OnderzoekService
 	@Override
 	public Map<Long, Integer> getOnderzochtByGebruikerOpDatumVoorSe(Date datum, String seCode)
 	{
-		return onderzoekDao.readOnderzochtVanSeOpWerkdag(datum, seCode);
+		return onderzoekRepository.readOnderzochtVanSeOpWerkdagToMap(datum, DateUtil.eindDag(datum), seCode);
 	}
 
 	@Override
 	public Map<Long, Integer> getAfgerondByGebruikerOpDatumVoorSe(Date datum, String seCode)
 	{
-		return onderzoekDao.readAfgerondVanSeOpWerkdag(datum, seCode);
+		return onderzoekRepository.readOnderzoekStatusCountVanSeOpWerkdagtoMap(datum, DateUtil.eindDag(datum), seCode, MammaOnderzoekStatus.AFGEROND);
 	}
 
 	@Override
 	public Map<Long, Integer> getOnderbrokenByGebruikerOpDatumVoorSe(Date datum, String seCode)
 	{
-		return onderzoekDao.readOnderbrokenVanSeOpWerkdag(datum, seCode);
+		return onderzoekRepository.readOnderzoekStatusCountVanSeOpWerkdagtoMap(datum, DateUtil.eindDag(datum), seCode, MammaOnderzoekStatus.ONDERBROKEN);
 	}
 
 	@Override
 	public Map<Long, Integer> getOnvolledigByGebruikerOpDatumVoorSe(Date datum, String seCode)
 	{
-		return onderzoekDao.readOnvolledigVanSeOpWerkdag(datum, seCode);
+		return onderzoekRepository.readOnderzoekStatusCountVanSeOpWerkdagtoMap(datum, DateUtil.eindDag(datum), seCode, MammaOnderzoekStatus.ONVOLLEDIG);
 	}
 
 	@Override
 	public Map<Long, Integer> getAfwijkingenByGebruikerOpDatumVoorSe(Date datum, String seCode)
 	{
-		return onderzoekDao.readAfwijkingenVanSeOpWerkdag(datum, seCode);
+		return onderzoekRepository.readAfwijkingenVanSeOpWerkdagToMap(datum, DateUtil.eindDag(datum), seCode);
 	}
 
 	@Override
-	public int getAantalOnderzoekenMetBeelden(Date datum, String seCode)
+	public int getAantalOnderzoekenMetBeelden(LocalDate datum, String seCode)
 	{
-		Long count = onderzoekDao.readAantalOnderzoekenMetBeelden(datum, seCode);
-		return count.intValue();
+		var range = closed(datum, datum);
+		return (int) afspraakRepository.count(
+			heeftScreeningsEenheid(seCode).and((heeftAfgerondeMammografie().and(MammaAfspraakSpecification.valtInPeriode(range)))));
 	}
 
 	@Override
-	public int getAantalOnderzoekenMetBeeldenBeschikbaarInIms(Date datum, String seCode)
+	public int getAantalOnderzoekenMetBeeldenBeschikbaarInIms(LocalDate datum, String seCode)
 	{
-		Long count = onderzoekDao.readAantalOnderzoekenMetBeeldenBeschikbaarInIms(datum, seCode);
-		return count.intValue();
+		var range = closed(datum, datum);
+		return (int) afspraakRepository.count(heeftAfgerondeMammografie().and(
+			heeftScreeningsEenheid(seCode)).and(MammaAfspraakSpecification.valtInPeriode(range)).and(heeftIlmStatus(BESCHIKBAAR)));
 	}
 
 	@Override
-	public int getAantalDoorgevoerdVanDag(Date datum, String seCode)
+	public int getAantalDoorgevoerdVanDag(LocalDate datum, String seCode)
 	{
-		Long count = onderzoekDao.readDoorgevoerdeOnderzoekenVanSeOpWerkdag(datum, seCode);
-		return count.intValue();
+		var range = closed(datum, datum);
+		return (int) afspraakRepository.count(
+			heeftAfgerondeMammografie().and(heeftScreeningsEenheid(seCode)).and(MammaAfspraakSpecification.valtInPeriode(range))
+				.and(heeftOnderzoekDoorgevoerd()));
 	}
 
 	@Override
 	public List<ZorginstellingDto> getBKZorginstellingen()
 	{
 		ZorginstellingDtoMapper mapper = new ZorginstellingDtoMapper();
-		return zorginstellingenDao.getBKZorginstellingen().stream().map(mapper::createZorginstellingDto).collect(Collectors.toList());
+		var lijstOrganisatieType = List.of(OrganisatieType.MAMMAPOLI, OrganisatieType.RADIOLOGIEAFDELING);
+		return instellingRepository.findWith(isZorgInstelling()
+				.and(heeftSubInstellingVanType(lijstOrganisatieType)), q -> q.distinct().all())
+			.stream().map(mapper::createZorginstellingDto)
+			.collect(Collectors.toList());
 	}
 
 	private void maakLoggebeurtenisDoelgroepGewijzigd(MammaAfspraak afspraak, InstellingGebruiker account, LocalDateTime transactieDatumTijd)

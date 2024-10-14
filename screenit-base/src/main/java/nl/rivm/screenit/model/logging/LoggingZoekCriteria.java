@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.logging;
 
 /*-
@@ -26,15 +25,17 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 
+@Setter
+@Getter
 public class LoggingZoekCriteria implements Serializable
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private String gebruikersnaam;
 
 	private Date vanaf;
@@ -55,103 +56,4 @@ public class LoggingZoekCriteria implements Serializable
 
 	private Long regio;
 
-	public String getGebruikersnaam()
-	{
-		return gebruikersnaam;
-	}
-
-	public void setGebruikersnaam(String gebruikersnaam)
-	{
-		this.gebruikersnaam = gebruikersnaam;
-	}
-
-	public Date getVanaf()
-	{
-		return vanaf;
-	}
-
-	public void setVanaf(Date vanaf)
-	{
-		this.vanaf = vanaf;
-	}
-
-	public Date getTot()
-	{
-		return tot;
-	}
-
-	public void setTot(Date tot)
-	{
-		this.tot = tot;
-	}
-
-	public List<LogGebeurtenis> getGebeurtenis()
-	{
-		return gebeurtenis;
-	}
-
-	public void setGebeurtenis(List<LogGebeurtenis> gebeurtenis)
-	{
-		this.gebeurtenis = gebeurtenis;
-	}
-
-	public String getBsnClient()
-	{
-		return bsnClient;
-	}
-
-	public void setBsnClient(String bsnClient)
-	{
-		this.bsnClient = bsnClient;
-	}
-
-	public List<Level> getLevel()
-	{
-		return level;
-	}
-
-	public void setLevel(List<Level> level)
-	{
-		this.level = level;
-	}
-
-	public String getMelding()
-	{
-		return melding;
-	}
-
-	public void setMelding(String melding)
-	{
-		this.melding = melding;
-	}
-
-	public List<Bevolkingsonderzoek> getBevolkingsonderzoeken()
-	{
-		return bevolkingsonderzoeken;
-	}
-
-	public void setBevolkingsonderzoeken(List<Bevolkingsonderzoek> bevolkingsonderzoeken)
-	{
-		this.bevolkingsonderzoeken = bevolkingsonderzoeken;
-	}
-
-	public Long getRegio()
-	{
-		return regio;
-	}
-
-	public void setRegio(Long regio)
-	{
-		this.regio = regio;
-	}
-
-	public Long getScreeningsEenheidId()
-	{
-		return screeningsEenheidId;
-	}
-
-	public void setScreeningsEenheidId(Long screeningsEenheidId)
-	{
-		this.screeningsEenheidId = screeningsEenheidId;
-	}
 }

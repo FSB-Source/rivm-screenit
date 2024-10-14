@@ -69,6 +69,10 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
+import static nl.rivm.screenit.model.project.ProjectAttribuut_.NAAM;
+import static nl.rivm.screenit.model.project.ProjectClientAttribuut_.ATTRIBUUT;
+import static nl.rivm.screenit.model.project.ProjectClientAttribuut_.VALUE;
+
 public class ClientProjectGegevens extends ClientPage
 {
 
@@ -88,7 +92,7 @@ public class ClientProjectGegevens extends ClientPage
 
 	private final BootstrapDialog dialog;
 
-	private IModel<ProjectClient> projectClientModel;
+	private final IModel<ProjectClient> projectClientModel;
 
 	public ClientProjectGegevens(IModel<ProjectClient> projectClient)
 	{
@@ -262,8 +266,8 @@ public class ClientProjectGegevens extends ClientPage
 		container.setOutputMarkupId(true);
 
 		List<IColumn<ProjectClientAttribuut, String>> columns = new ArrayList<IColumn<ProjectClientAttribuut, String>>();
-		columns.add(new PropertyColumn<>(Model.of("Attribuutnaam"), "attribuut.naam", "attribuut.naam"));
-		columns.add(new PropertyColumn<>(Model.of("Attribuutwaarde"), "value", "value")
+		columns.add(new PropertyColumn<>(Model.of("Attribuutnaam"), ATTRIBUUT + "." + NAAM, ATTRIBUUT + "." + NAAM));
+		columns.add(new PropertyColumn<>(Model.of("Attribuutwaarde"), VALUE, VALUE)
 		{
 			@Override
 			public IModel<?> getDataModel(IModel<ProjectClientAttribuut> rowModel)

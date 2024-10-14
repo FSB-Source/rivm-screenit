@@ -27,7 +27,7 @@ import java.util.List;
 import nl.rivm.screenit.batch.model.ClientAfspraak;
 import nl.rivm.screenit.batch.model.IntakeSolution;
 import nl.rivm.screenit.batch.service.PlanIntakeAfsprakenService;
-import nl.rivm.screenit.model.colon.planning.VrijSlot;
+import nl.rivm.screenit.model.colon.dto.VrijSlot;
 
 import org.optaplanner.core.api.solver.Solver;
 import org.optaplanner.core.api.solver.SolverFactory;

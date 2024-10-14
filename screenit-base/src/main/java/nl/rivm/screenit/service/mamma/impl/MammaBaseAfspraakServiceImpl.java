@@ -107,7 +107,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.Range;
 
 import static nl.rivm.screenit.specification.RangeSpecification.bevat;
-import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.begintTussen;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.filterStatuses;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftClientInTehuis;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftDoelgroep;
@@ -117,6 +116,7 @@ import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.he
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftStandplaats;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftStandplaatsPeriode;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftStatuses;
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.valtInPeriode;
 
 @Service
 @Slf4j
@@ -527,7 +527,7 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 	private List<MammaAfspraak> getNietGekoppeldeAfspraken(MammaCapaciteitBlok capaciteitBlok)
 	{
 		var specification = heeftStatuses(List.of(MammaAfspraakStatus.GEPLAND))
-			.and(begintTussen(DateUtil.toLocalDateTime(capaciteitBlok.getVanaf()), DateUtil.toLocalDateTime(capaciteitBlok.getTot())))
+			.and(valtInPeriode(DateUtil.toLocalDateTime(capaciteitBlok.getVanaf()), DateUtil.toLocalDateTime(capaciteitBlok.getTot())))
 			.and(heeftGeenCapaciteitBlok())
 			.and(heeftScreeningsEenheid(capaciteitBlok.getScreeningsEenheid()));
 
@@ -708,6 +708,6 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 
 	private static @Nullable Specification<MammaAfspraak> begintTussenTotEnMet(LocalDate vanaf, LocalDate totEnMet)
 	{
-		return begintTussen(vanaf != null ? vanaf.atStartOfDay() : null, totEnMet != null ? totEnMet.plusDays(1).atStartOfDay() : null);
+		return valtInPeriode(vanaf != null ? vanaf.atStartOfDay() : null, totEnMet != null ? totEnMet.plusDays(1).atStartOfDay() : null);
 	}
 }

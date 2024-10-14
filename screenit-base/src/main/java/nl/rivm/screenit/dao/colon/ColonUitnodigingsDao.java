@@ -23,7 +23,7 @@ package nl.rivm.screenit.dao.colon;
 
 import java.util.List;
 
-import nl.rivm.screenit.model.UitnodigingsGebied;
+import nl.rivm.screenit.model.colon.UitnodigingsGebied;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 
 import org.hibernate.ScrollableResults;

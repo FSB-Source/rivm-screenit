@@ -24,7 +24,7 @@ package nl.rivm.screenit.dao.colon;
 import java.time.LocalDate;
 import java.util.Set;
 
-import nl.rivm.screenit.model.UitnodigingsGebied;
+import nl.rivm.screenit.model.colon.UitnodigingsGebied;
 
 public interface ColonUitnodigingsgebiedDao
 {

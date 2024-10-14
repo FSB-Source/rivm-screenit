@@ -65,37 +65,33 @@ public class CervixUitstelSpecification
 
 	public static Specification<CervixUitstel> heeftGeenVertrokkenPersoonUitNederlandDatum()
 	{
-		return PersoonSpecification.heeftGeenVertrokkenUitNederlandDatumPredicate()
-			.toSpecification(r ->
-			{
-				var ronde = join(r, CervixUitstel_.screeningRonde);
-				var dossier = join(ronde, CervixScreeningRonde_.dossier);
-				var client = join(dossier, CervixDossier_.client);
-				return join(client, Client_.persoon);
-			});
+		return PersoonSpecification.woontInNederland().with(r ->
+		{
+			var ronde = join(r, CervixUitstel_.screeningRonde);
+			var dossier = join(ronde, CervixScreeningRonde_.dossier);
+			var client = join(dossier, CervixDossier_.client);
+			return join(client, Client_.persoon);
+		});
 	}
 
 	public static Specification<CervixUitstel> heeftGeenPersoonMetOverledenDatum()
 	{
-		return PersoonSpecification.heeftGeenOverledenDatumPredicate()
-			.toSpecification(r ->
-			{
-				var ronde = join(r, CervixUitstel_.screeningRonde);
-				var dossier = join(ronde, CervixScreeningRonde_.dossier);
-				var client = join(dossier, CervixDossier_.client);
-				return join(client, Client_.persoon);
-			});
+		return PersoonSpecification.isNietOverleden().with(r ->
+		{
+			var ronde = join(r, CervixUitstel_.screeningRonde);
+			var dossier = join(ronde, CervixScreeningRonde_.dossier);
+			var client = join(dossier, CervixDossier_.client);
+			return join(client, Client_.persoon);
+		});
 	}
 
 	public static Specification<CervixUitstel> heeftClientMetIndicatieAanwezig()
 	{
-		return ClientSpecification.heeftIndicatie()
-			.toSpecification(r ->
-			{
-				var ronde = join(r, CervixUitstel_.screeningRonde);
-				var dossier = join(ronde, CervixScreeningRonde_.dossier);
-				return join(dossier, CervixDossier_.client);
-			});
+		return ClientSpecification.heeftIndicatie().with(r ->
+		{
+			var ronde = join(r, CervixUitstel_.screeningRonde);
+			var dossier = join(ronde, CervixScreeningRonde_.dossier);
+			return join(dossier, CervixDossier_.client);
+		});
 	}
-
 }

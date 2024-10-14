@@ -22,6 +22,7 @@ package nl.rivm.screenit.service;
  */
 
 import java.util.List;
+import java.util.Optional;
 
 import nl.rivm.screenit.model.messagequeue.Message;
 import nl.rivm.screenit.model.messagequeue.MessageType;
@@ -36,15 +37,11 @@ public interface MessageService
 
 	void dequeueMessage(Message message);
 
-	Message getOldestMessage(MessageType type);
-
-	List<Message> fetchMessages(MessageType type, int maxFetchSize);
+	Optional<Message> getOldestMessage(MessageType type);
 
 	List<Message> fetchMessages(MessageType type, String context, int maxFetchSize);
 
 	<T> T getContent(Message message) throws JsonProcessingException;
-
-	Long fetchQueueSize(MessageType hpvOrder);
 
 	Long fetchQueueSize(MessageType type, String context);
 }

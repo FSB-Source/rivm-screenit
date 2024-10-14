@@ -32,7 +32,7 @@ import nl.rivm.screenit.batch.jobs.colon.intake.IntakeAfsprakenMakenConstants;
 import nl.rivm.screenit.batch.model.ClientAfspraak;
 import nl.rivm.screenit.batch.service.IntakeAfpraakService;
 import nl.rivm.screenit.batch.service.PlanIntakeAfsprakenService;
-import nl.rivm.screenit.model.colon.planning.VrijSlot;
+import nl.rivm.screenit.model.colon.dto.VrijSlot;
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.logging.IntakeMakenLogEvent;
 import nl.rivm.screenit.service.ICurrentDateSupplier;

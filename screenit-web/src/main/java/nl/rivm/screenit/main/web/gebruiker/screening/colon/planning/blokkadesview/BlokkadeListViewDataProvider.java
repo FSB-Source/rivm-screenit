@@ -25,7 +25,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.blokkadesvi
 import java.util.Iterator;
 
 import nl.rivm.screenit.main.service.colon.RoosterService;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.RoosterListViewFilter;
 import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -39,20 +39,18 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 public class BlokkadeListViewDataProvider extends SortableDataProvider<ColonBlokkade, String>
 {
 
-	private static final long serialVersionUID = 1L;
-
 	private final IModel<RoosterListViewFilter> zoekModel;
 
-	private final IModel<ColoscopieCentrum> intakelocatie;
+	private final IModel<ColonIntakelocatie> intakelocatie;
 
 	@SpringBean
 	private RoosterService roosterService;
 
-	public BlokkadeListViewDataProvider(IModel<RoosterListViewFilter> zoekModel, ColoscopieCentrum intakelocatie)
+	public BlokkadeListViewDataProvider(IModel<RoosterListViewFilter> zoekModel, ColonIntakelocatie intakelocatie)
 	{
 		this.zoekModel = zoekModel;
 		this.intakelocatie = ModelUtil.sModel(intakelocatie);
-		setSort("startTime", SortOrder.ASCENDING);
+		setSort("vanaf", SortOrder.ASCENDING);
 		Injector.get().inject(this);
 
 	}

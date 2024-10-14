@@ -34,6 +34,7 @@ import nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten.fragm
 import nl.rivm.screenit.model.Brief;
 import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
+import nl.rivm.screenit.model.algemeen.BezwaarBrief;
 import nl.rivm.screenit.model.cervix.CervixBrief;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
@@ -103,6 +104,12 @@ public abstract class DocumentTemplateTestenFieldsPanel extends GenericPanel<Doc
 	public static FormComponent<String> getTextAreaWithStringValidator(String wicketId, int maxStringLength)
 	{
 		return new TextArea<String>(wicketId)
+			.add(StringValidator.maximumLength(maxStringLength));
+	}
+
+	public static FormComponent<String> getTextAreaWithStringValidator(String wicketId, int maxStringLength, IModel<String> model)
+	{
+		return new TextArea<>(wicketId, model)
 			.add(StringValidator.maximumLength(maxStringLength));
 	}
 
@@ -271,26 +278,35 @@ public abstract class DocumentTemplateTestenFieldsPanel extends GenericPanel<Doc
 		return context;
 	}
 
-	public static MailMergeContext createMailMergeContext(DocumentTemplateTestWrapper wrapper, ScreeningOrganisatie screeningOrganisatie, BriefType printType)
+	public static MailMergeContext createMailMergeContext(DocumentTemplateTestWrapper wrapper, ScreeningOrganisatie screeningOrganisatie, BriefType printType,
+		boolean zonderHandtekening)
 	{
 		var context = maakBasicContext(wrapper, screeningOrganisatie);
 
 		Brief brief;
 		if (printType != null)
 		{
-			switch (printType.getOnderzoeken()[0])
+			if (BriefType.CLIENT_BEZWAAR_BRIEVEN.contains(printType))
 			{
-			case COLON:
-				brief = new ColonBrief();
-				break;
-			case CERVIX:
-				brief = maakCervixBrief(wrapper);
-				break;
-			case MAMMA:
-				brief = new MammaBrief();
-				break;
-			default:
-				throw new IllegalStateException("Brief heeft altijd een BVO type");
+				brief = new BezwaarBrief();
+				((BezwaarBrief) brief).setVragenOmHandtekening(zonderHandtekening);
+			}
+			else
+			{
+				switch (printType.getOnderzoeken()[0])
+				{
+				case COLON:
+					brief = new ColonBrief();
+					break;
+				case CERVIX:
+					brief = maakCervixBrief(wrapper);
+					break;
+				case MAMMA:
+					brief = new MammaBrief();
+					break;
+				default:
+					throw new IllegalStateException("Brief heeft altijd een BVO type");
+				}
 			}
 			brief.setBriefType(printType);
 			context.setBrief(brief);
@@ -341,7 +357,6 @@ public abstract class DocumentTemplateTestenFieldsPanel extends GenericPanel<Doc
 		context.putValue(MailMergeContext.CONTEXT_MAMMA_CE, ApplicationContextProvider.getApplicationContext().getBean(ClientService.class).bepaalCe(client));
 		context.setIntakeAfspraak(wrapper.getIntakeAfspraak());
 		context.setBmhkLaboratorium(bmhkLaboratorium);
-
 		return context;
 	}
 

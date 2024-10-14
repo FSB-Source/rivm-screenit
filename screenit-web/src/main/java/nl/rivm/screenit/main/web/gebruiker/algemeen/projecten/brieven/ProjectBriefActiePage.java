@@ -50,6 +50,7 @@ import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectBriefActieType;
 import nl.rivm.screenit.model.project.ProjectType;
+import nl.rivm.screenit.model.vragenlijsten.Vragenlijst_;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.UploadDocumentService;
@@ -73,6 +74,13 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
 
+import static nl.rivm.screenit.model.UploadDocument_.NAAM;
+import static nl.rivm.screenit.model.project.ProjectBriefActie_.ACTIEF;
+import static nl.rivm.screenit.model.project.ProjectBriefActie_.DOCUMENT;
+import static nl.rivm.screenit.model.project.ProjectBriefActie_.LAATST_GEWIJZIGD;
+import static nl.rivm.screenit.model.project.ProjectBriefActie_.TYPE;
+import static nl.rivm.screenit.model.project.ProjectBriefActie_.VRAGENLIJST;
+
 @SecurityConstraint(
 	actie = Actie.TOEVOEGEN,
 	checkScope = true,
@@ -95,9 +103,9 @@ public class ProjectBriefActiePage extends ProjectBasePage
 
 	private WebMarkupContainer actieContainer;
 
-	private IModel<ProjectBriefActie> briefActieModel;
+	private final IModel<ProjectBriefActie> briefActieModel;
 
-	private BootstrapDialog dialog;
+	private final BootstrapDialog dialog;
 
 	public ProjectBriefActiePage(IModel<Project> model)
 	{
@@ -146,8 +154,8 @@ public class ProjectBriefActiePage extends ProjectBasePage
 	{
 		WebMarkupContainer briefActieContainer = new WebMarkupContainer("briefActieContainer");
 		briefActieContainer.setOutputMarkupId(true);
-		List<IColumn<ProjectBriefActie, String>> columns = new ArrayList<IColumn<ProjectBriefActie, String>>();
-		columns.add(new EnumPropertyColumn<ProjectBriefActie, String, ProjectBriefActieType>(Model.of("Soort"), "type", "type"));
+		List<IColumn<ProjectBriefActie, String>> columns = new ArrayList<>();
+		columns.add(new EnumPropertyColumn<ProjectBriefActie, String, ProjectBriefActieType>(Model.of("Soort"), TYPE, TYPE));
 		columns.add(new AbstractColumn<>(Model.of("Moment"))
 		{
 			@Override
@@ -157,13 +165,11 @@ public class ProjectBriefActiePage extends ProjectBasePage
 			}
 		});
 
-		columns.add(new PropertyColumn<>(Model.of("Naam"), "document.naam", "document.naam"));
+		columns.add(new PropertyColumn<>(Model.of("Naam"), DOCUMENT + "." + NAAM, DOCUMENT + "." + NAAM));
 
 		FileValidator validator = new FileValidator(FileType.WORD_NIEUW);
-		columns.add(new UploadDocumentColumn<>(Model.of("Uploaden"), "document", briefActieContainer, validator)
+		columns.add(new UploadDocumentColumn<>(Model.of("Uploaden"), DOCUMENT, briefActieContainer, validator)
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void populateItem(Item<ICellPopulator<ProjectBriefActie>> item, String componentId, IModel<ProjectBriefActie> rowModel)
@@ -212,15 +218,12 @@ public class ProjectBriefActiePage extends ProjectBasePage
 			}
 		});
 
-		columns.add(new UploadDocumentDownloadColumn<>(Model.of("Downloaden"), "document"));
-		columns.add(new DateTimePropertyColumn<>(Model.of("Laatst gewijzigd"), "laatstGewijzigd", "laatstGewijzigd", new SimpleDateFormat("dd-MM-yyyy")));
-		columns.add(new PropertyColumn<>(Model.of("Vragenlijst"), "vragenlijst.naam", "vragenlijst.naam"));
+		columns.add(new UploadDocumentDownloadColumn<>(Model.of("Downloaden"), DOCUMENT));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Laatst gewijzigd"), LAATST_GEWIJZIGD, LAATST_GEWIJZIGD, new SimpleDateFormat("dd-MM-yyyy")));
+		columns.add(new PropertyColumn<>(Model.of("Vragenlijst"), VRAGENLIJST + "." + Vragenlijst_.NAAM, VRAGENLIJST + "." + Vragenlijst_.NAAM));
 
 		columns.add(new AbstractColumn<>(Model.of("Details / Test Projectbrief template"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<ProjectBriefActie>> cellItem, String componentId, IModel<ProjectBriefActie> rowModel)
 			{
@@ -250,7 +253,7 @@ public class ProjectBriefActiePage extends ProjectBasePage
 			}
 		});
 
-		columns.add(new ActiefPropertyColumn<>(Model.of("Verwijderen"), "actief", briefActieContainer, briefActieModel, true, dialog,
+		columns.add(new ActiefPropertyColumn<>(Model.of("Verwijderen"), ACTIEF, briefActieContainer, briefActieModel, true, dialog,
 			"projectBriefActiePage.verwijderen")
 		{
 
@@ -289,7 +292,7 @@ public class ProjectBriefActiePage extends ProjectBasePage
 			}
 		});
 
-		ScreenitDataTable<ProjectBriefActie, String> dataTable = new ScreenitDataTable<ProjectBriefActie, String>("projectBriefacties", columns,
+		ScreenitDataTable<ProjectBriefActie, String> dataTable = new ScreenitDataTable<>("projectBriefacties", columns,
 			new BriefActieDataProvider(briefActieModel), 10, Model.of("briefacties"))
 		{
 			@Override

@@ -28,7 +28,10 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.model.Brief_;
+import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.InpakbareUitnodiging_;
+import nl.rivm.screenit.model.SingleTableHibernateObject_;
+import nl.rivm.screenit.model.TablePerClassHibernateObject_;
 import nl.rivm.screenit.model.Uitnodiging_;
 import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.colon.ColonBrief_;
@@ -37,21 +40,26 @@ import nl.rivm.screenit.model.colon.ColonScreeningRonde_;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
 import nl.rivm.screenit.model.colon.ColonUitnodiging_;
 import nl.rivm.screenit.model.enums.BriefType;
-import nl.rivm.screenit.specification.SpecificationUtil;
 import nl.rivm.screenit.specification.algemeen.ClientSpecification;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.domain.Specification;
+
+import com.google.common.collect.Range;
+
+import static nl.rivm.screenit.specification.RangeSpecification.bevat;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ColonUitnodigingSpecification
 {
 	public static Specification<ColonUitnodiging> heeftActieveClient()
 	{
-		return ClientSpecification.heeftActieveClientPredicate().toSpecification(r ->
+		return ClientSpecification.heeftActieveClient().with(r ->
 		{
-			var ronde = SpecificationUtil.join(r, ColonUitnodiging_.screeningRonde);
-			var dossier = SpecificationUtil.join(ronde, ColonScreeningRonde_.dossier);
-			return SpecificationUtil.join(dossier, ColonDossier_.client);
+			var ronde = join(r, ColonUitnodiging_.screeningRonde);
+			var dossier = join(ronde, ColonScreeningRonde_.dossier);
+			return join(dossier, ColonDossier_.client);
 		});
 	}
 
@@ -74,10 +82,27 @@ public class ColonUitnodigingSpecification
 			var briefScreeningRonde = subqueryRoot.get(ColonBrief_.screeningRonde);
 			var uitnodigingScreeningRonde = r.get(ColonUitnodiging_.screeningRonde);
 
-			subquery.select(subqueryRoot.get(InpakbareUitnodiging_.id))
+			subquery.select(subqueryRoot.get(TablePerClassHibernateObject_.id))
 				.where(cb.and(cb.equal(briefScreeningRonde, uitnodigingScreeningRonde), subqueryRoot.get(Brief_.briefType).in(briefTypes)));
 
 			return cb.not(cb.exists(subquery));
+		};
+	}
+
+	public static Specification<ColonUitnodiging> heeftUitnodigingInRange(@NotNull Date begin, @NotNull Date eind)
+	{
+		var range = Range.open(begin, eind);
+		return bevat(range, r -> r.get(Uitnodiging_.creatieDatum));
+	}
+
+	public static Specification<ColonUitnodiging> heeftClient(Client client)
+	{
+		return (r, q, cb) ->
+		{
+			var ronde = join(r, ColonUitnodiging_.screeningRonde);
+			var dossier = join(ronde, ColonScreeningRonde_.dossier);
+			var clientJoin = join(dossier, ColonDossier_.client);
+			return cb.equal(clientJoin.get(SingleTableHibernateObject_.id), client.getId());
 		};
 	}
 }

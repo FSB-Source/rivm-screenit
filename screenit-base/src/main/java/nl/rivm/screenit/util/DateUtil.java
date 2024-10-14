@@ -145,16 +145,16 @@ public final class DateUtil
 		return startTime.plusHours(1).withMinute(0);
 	}
 
-	public static List<Range<Date>> disjunct(Range<Date> target, Range<Date> disjunct)
+	public static List<Range<LocalDateTime>> disjunct(Range<LocalDateTime> target, Range<LocalDateTime> disjunct)
 	{
-		var disjunctionResult = new ArrayList<Range<Date>>();
-		if (overlaps(target, disjunct))
+		var disjunctionResult = new ArrayList<Range<LocalDateTime>>();
+		if (overlapsLocalDateTime(target, disjunct))
 		{
-			if (target.lowerEndpoint().before(disjunct.lowerEndpoint()))
+			if (target.lowerEndpoint().isBefore(disjunct.lowerEndpoint()))
 			{
 				disjunctionResult.add(Range.closed(target.lowerEndpoint(), disjunct.lowerEndpoint()));
 			}
-			if (target.upperEndpoint().after(disjunct.upperEndpoint()))
+			if (target.upperEndpoint().isAfter(disjunct.upperEndpoint()))
 			{
 				disjunctionResult.add(Range.closed(disjunct.upperEndpoint(), target.upperEndpoint()));
 			}
@@ -359,6 +359,13 @@ public final class DateUtil
 		return toUtilDate(toLocalDateTime(date).withSecond(0).withNano(0));
 	}
 
+	public static LocalDateTime startMinuut(LocalDateTime date)
+	{
+		Preconditions.checkNotNull(date, "Datum mag niet null zijn");
+
+		return date.withSecond(0).withNano(0);
+	}
+
 	public static Date startSeconde(Date date)
 	{
 		Preconditions.checkNotNull(date, "Datum mag niet null zijn");
@@ -373,12 +380,28 @@ public final class DateUtil
 		return toUtilDate(toLocalDateTime(date).with(LocalTime.MAX));
 	}
 
+	public static LocalDateTime eindDag(LocalDate date)
+	{
+		Preconditions.checkNotNull(date, "Datum mag niet null zijn");
+
+		return date.atTime(LocalTime.MAX);
+	}
+
 	public static String formatShortDate(Date date)
 	{
 		var localDate = toLocalDate(date);
 		if (localDate != null)
 		{
 			return localDate.format(LOCAL_DATE_FORMAT);
+		}
+		return "";
+	}
+
+	public static String formatShortDate(LocalDateTime date)
+	{
+		if (date != null)
+		{
+			return date.format(LOCAL_DATE_FORMAT);
 		}
 		return "";
 	}
@@ -393,6 +416,15 @@ public final class DateUtil
 		return "";
 	}
 
+	public static String formatShortDateTime(LocalDateTime date)
+	{
+		if (date != null)
+		{
+			return date.format(LOCAL_DATE_TIME_FORMAT);
+		}
+		return "";
+	}
+
 	public static String formatTime(Date time)
 	{
 		var localTime = toLocalTime(time);
@@ -403,12 +435,26 @@ public final class DateUtil
 		return "";
 	}
 
+	public static String formatLocalTime(LocalDateTime time)
+	{
+		if (time != null)
+		{
+			return time.format(LOCAL_TIME_FORMAT);
+		}
+		return "";
+	}
+
 	public static boolean isZelfdeDag(Date date1, Date date2)
 	{
 		return DateUtil.toUtilDateMidnight(date1).compareTo(DateUtil.toUtilDateMidnight(date2)) == 0;
 	}
 
 	public static boolean isZelfdeDag(LocalDate date1, Date date2)
+	{
+		return DateUtil.toUtilDateMidnight(date1).compareTo(DateUtil.toUtilDateMidnight(date2)) == 0;
+	}
+
+	public static boolean isZelfdeDag(LocalDate date1, LocalDate date2)
 	{
 		return DateUtil.toUtilDateMidnight(date1).compareTo(DateUtil.toUtilDateMidnight(date2)) == 0;
 	}
@@ -617,4 +663,5 @@ public final class DateUtil
 
 		return range(onderGrens, onderGrensType, bovenGrens, bovenGrensType);
 	}
+
 }

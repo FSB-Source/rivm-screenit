@@ -26,7 +26,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaBeWerklijstZoekObject;
-import nl.rivm.screenit.main.service.mamma.MammaBeoordelingService;
 import nl.rivm.screenit.main.service.mamma.MammaImsService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.beoordelen.MammaBeoordelenPage;
@@ -39,11 +38,10 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
+
 public class MammaBeoordelingenWerklijstPage extends AbstractMammaBeWerklijstPage
 {
-	@SpringBean
-	private MammaBeoordelingService beoordelingService;
-
 	@SpringBean
 	private MammaImsService imsService;
 
@@ -62,7 +60,7 @@ public class MammaBeoordelingenWerklijstPage extends AbstractMammaBeWerklijstPag
 	@Override
 	public boolean bevestigenButtonEnabled()
 	{
-		return beoordelingService.is1eOf2eLezingenTeBevestigen(ScreenitSession.get().getLoggedInInstellingGebruiker());
+		return beWerklijstService.is1eOf2eLezingenTeBevestigen(ScreenitSession.get().getLoggedInInstellingGebruiker());
 	}
 
 	@Override
@@ -70,7 +68,7 @@ public class MammaBeoordelingenWerklijstPage extends AbstractMammaBeWerklijstPag
 	{
 		ScreenitSession.get().setZoekObject(MammaBeoordelingenWerklijstPage.class, zoekObject); 
 		MammaBeoordeling beoordeling = model.getObject();
-		List<Long> beoordelingenIds = beoordelingService.zoekBeoordelingenNummers(zoekObject.getObject(), sortParam.getProperty(), sortParam.isAscending());
+		List<Long> beoordelingenIds = beWerklijstService.zoekBeoordelingenNummers(zoekObject.getObject(), toSpringSort(sortParam));
 		setResponsePage(new MammaBeoordelenPage(beoordeling.getId(), beoordelingenIds, MammaBeoordelingenWerklijstPage.class));
 	}
 
@@ -90,6 +88,6 @@ public class MammaBeoordelingenWerklijstPage extends AbstractMammaBeWerklijstPag
 	@Override
 	protected void handleImsError(AjaxRequestTarget target, String errorMessage, Long onderzoekId)
 	{
-		error(imsService.handleError(errorMessage, ScreenitSession.get().getLoggedInInstellingGebruiker(), (b) -> getString((String) b), onderzoekId));
+		error(imsService.handleError(errorMessage, ScreenitSession.get().getLoggedInInstellingGebruiker(), b -> getString((String) b), onderzoekId));
 	}
 }

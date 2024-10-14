@@ -29,7 +29,7 @@ import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.main.service.colon.ColonIntakeAfspraakService;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.repository.colon.ColonIntakeAfspraakRepository;
@@ -52,19 +52,19 @@ public class ColonIntakeAfspraakServiceImpl implements ColonIntakeAfspraakServic
 
 	private final ICurrentDateSupplier currentDateSupplier;
 
-	private Specification<ColonIntakeAfspraak> getSpecification(ColoscopieCentrum intakelocatie, WerklijstIntakeFilter zoekObject, ICurrentDateSupplier dateSupplier)
+	private Specification<ColonIntakeAfspraak> getSpecification(ColonIntakelocatie intakelocatie, WerklijstIntakeFilter zoekObject, ICurrentDateSupplier dateSupplier)
 	{
 		return ColonIntakeAfspraakSpecification.heeftGeenVerslagen()
 			.and(ColonIntakeAfspraakSpecification.heeftClientNietOverledenOfVerhuisdVoorColoscopie())
 			.and(ColonIntakeAfspraakSpecification.heeftConclusieType(ColonConclusieType.COLOSCOPIE))
 			.and(ColonIntakeAfspraakSpecification.heeftIntakelocatie(intakelocatie))
-			.and(ColonIntakeAfspraakSpecification.heeftConclusieInVerleden(dateSupplier))
+			.and(ColonIntakeAfspraakSpecification.heeftConclusieInVerleden(dateSupplier.getDateMidnight()))
 
 			.and(ColonIntakeAfspraakSpecification.metFilter(zoekObject));
 	}
 
 	@Override
-	public List<ColonIntakeAfspraak> getAfsprakenZonderVerslag(WerklijstIntakeFilter zoekObject, ColoscopieCentrum intakeLocatie, long start, long size, String sortProperty,
+	public List<ColonIntakeAfspraak> getAfsprakenZonderVerslag(WerklijstIntakeFilter zoekObject, ColonIntakelocatie intakeLocatie, long start, long size, String sortProperty,
 		boolean isAscending)
 	{
 		var page = Double.valueOf(Math.floor((double) start / (double) size));
@@ -75,7 +75,7 @@ public class ColonIntakeAfspraakServiceImpl implements ColonIntakeAfspraakServic
 	}
 
 	@Override
-	public long getAantalAfsprakenZonderVerslag(WerklijstIntakeFilter zoekObject, ColoscopieCentrum intakeLocatie)
+	public long getAantalAfsprakenZonderVerslag(WerklijstIntakeFilter zoekObject, ColonIntakelocatie intakeLocatie)
 	{
 		return intakeAfspraakRepository.count(getSpecification(intakeLocatie, zoekObject, currentDateSupplier));
 	}

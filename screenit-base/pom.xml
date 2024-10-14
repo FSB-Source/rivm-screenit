@@ -247,70 +247,6 @@
         </dependency>
 
         <dependency>
-            <groupId>nl.topicuszorg.wicket-planning</groupId>
-            <artifactId>wicket-planning</artifactId>
-            <scope>compile</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>nl.topicuszorg.wicket-extensions</groupId>
-                    <artifactId>wicket-extensions</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.wicket</groupId>
-                    <artifactId>wicket-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.wicket</groupId>
-                    <artifactId>wicket-extensions</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.wicket</groupId>
-                    <artifactId>wicket-spring</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.wicket</groupId>
-                    <artifactId>wicket-ioc</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.jdom</groupId>
-                    <artifactId>jdom</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-tx</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>nl.topicuszorg.hl7v2</groupId>
-                    <artifactId>hl7v2</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>nl.topicuszorg.wicket-calendar</groupId>
-                    <artifactId>wicket-calendar</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
             <groupId>nl.topicuszorg</groupId>
             <artifactId>preference-module</artifactId>
         </dependency>
@@ -589,7 +525,10 @@
             <groupId>org.codehaus.janino</groupId>
             <artifactId>janino</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.jadira.usertype</groupId>
+            <artifactId>usertype.jodatime</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

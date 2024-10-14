@@ -64,7 +64,7 @@ public abstract class ClientVerslagenOverzichtPanel<V extends Verslag<?, ?>> ext
 	private RondeNummerService rondeNummerService;
 
 	@SpringBean
-	private BaseVerslagService baseVerslagService;
+	private BaseVerslagService verslagService;
 
 	private final ClientVerslagenDataProvider<V> dataProvider;
 
@@ -179,7 +179,7 @@ public abstract class ClientVerslagenOverzichtPanel<V extends Verslag<?, ?>> ext
 			add(new Label("invoerder.organisatie.naam"));
 			if (verslag.getType() == VerslagType.MAMMA_PA_FOLLOW_UP)
 			{
-				add(new Label("bron", baseVerslagService.isElektronischPalgaVerslag((MammaFollowUpVerslag) verslag) ? "Elektronisch" : "Handmatig"));
+				add(new Label("bron", verslagService.isElektronischPalgaVerslag((MammaFollowUpVerslag) verslag) ? "Elektronisch" : "Handmatig"));
 			}
 			else
 			{

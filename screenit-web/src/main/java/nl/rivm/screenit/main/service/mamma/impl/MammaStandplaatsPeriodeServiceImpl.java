@@ -24,68 +24,79 @@ package nl.rivm.screenit.main.service.mamma.impl;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import lombok.RequiredArgsConstructor;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dto.mamma.afspraken.IMammaAfspraakWijzigenFilter;
 import nl.rivm.screenit.dto.mamma.afspraken.MammaStandplaatsPeriodeMetAfstandDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningStandplaatsPeriodeDto;
-import nl.rivm.screenit.main.dao.mamma.MammaStandplaatsPeriodeDao;
 import nl.rivm.screenit.main.exception.MagOpslaanException;
 import nl.rivm.screenit.main.service.mamma.MammaAfspraakService;
 import nl.rivm.screenit.main.service.mamma.MammaStandplaatsPeriodeService;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid_;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
+import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode_;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
+import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde_;
+import nl.rivm.screenit.model.mamma.MammaStandplaats_;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaStandplaatsRondeUitnodigenRapportage;
+import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaStandplaatsRondeUitnodigenRapportage_;
+import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaUitnodigenRapportage_;
+import nl.rivm.screenit.repository.mamma.MammaStandplaatsPeriodeRepository;
+import nl.rivm.screenit.repository.mamma.MammaStandplaatsRondeUitnodigenRapportageRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.service.mamma.MammaBaseConceptPlanningsApplicatie;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
+import nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecification;
+import nl.rivm.screenit.specification.mamma.MammaStandplaatsRondeUitnodigenRapportageSpecification;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.mamma.MammaPlanningUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Range;
 
+import static nl.rivm.screenit.specification.mamma.MammaStandplaatsPeriodeSpecification.begintOpOfNaVrijgegevenTotEnMetDatum;
+import static nl.rivm.screenit.specification.mamma.MammaStandplaatsPeriodeSpecification.eindigtOpOfNaDatum;
+import static nl.rivm.screenit.specification.mamma.MammaStandplaatsPeriodeSpecification.heeftBeoordelingsEenheidEnStandplaatsGekoppeldAanRegio;
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
+
+@RequiredArgsConstructor
 @Service
 public class MammaStandplaatsPeriodeServiceImpl implements MammaStandplaatsPeriodeService
 {
-	@Autowired
-	private MammaBaseConceptPlanningsApplicatie baseConceptPlanningsApplicatie;
 
-	@Autowired
-	private MammaStandplaatsPeriodeDao standplaatsPeriodeDao;
+	private final MammaBaseConceptPlanningsApplicatie baseConceptPlanningsApplicatie;
 
-	@Autowired
-	private MammaBaseStandplaatsService baseStandplaatsService;
+	private final MammaBaseStandplaatsService baseStandplaatsService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
-	private SimplePreferenceService simplePreferenceService;
+	private final SimplePreferenceService simplePreferenceService;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private MammaAfspraakService afspraakService;
+	private final MammaAfspraakService afspraakService;
 
-	@Autowired
-	private MammaBaseAfspraakService baseAfspraakService;
+	private final MammaBaseAfspraakService baseAfspraakService;
+
+	private final MammaStandplaatsPeriodeRepository standplaatsPeriodeRepository;
+
+	private final MammaStandplaatsRondeUitnodigenRapportageRepository standplaatsRondeUitnodigenRapportageRepository;
 
 	@Override
 	public List<PlanningStandplaatsPeriodeDto> getStandplaatsPeriodesSorted(MammaScreeningsEenheid screeningsEenheid)
@@ -96,10 +107,16 @@ public class MammaStandplaatsPeriodeServiceImpl implements MammaStandplaatsPerio
 	@Override
 	public List<MammaStandplaatsPeriode> getStandplaatsPeriodesVoorBulkVerzetten(ScreeningOrganisatie regio)
 	{
-		Date verzettenVanaf = DateUtil.plusWerkdagen(currentDateSupplier.getDateMidnight(),
+		var verzettenVanaf = DateUtil.plusWerkdagen(currentDateSupplier.getLocalDate(),
 			simplePreferenceService.getInteger(PreferenceKey.MAMMA_AFSPRAAK_VERZETTEN_ZONDER_CLIENT_CONTACT_VANAF_AANTAL_WERKDAGEN.name()));
 
-		return standplaatsPeriodeDao.getStandplaatsPeriodesVoorBulkVerzetten(regio, verzettenVanaf);
+		return standplaatsPeriodeRepository.findAll(
+			heeftBeoordelingsEenheidEnStandplaatsGekoppeldAanRegio(regio)
+				.and(begintOpOfNaVrijgegevenTotEnMetDatum())
+				.and(MammaScreeningsEenheidSpecification.heeftVrijgegevenTotEnMetOpOfNaDatum(verzettenVanaf).with(MammaStandplaatsPeriode_.screeningsEenheid))
+				.and(eindigtOpOfNaDatum(verzettenVanaf)),
+			Sort.by(propertyChain(MammaStandplaatsPeriode_.SCREENINGS_EENHEID, MammaScreeningsEenheid_.NAAM),
+				propertyChain(MammaStandplaatsPeriode_.STANDPLAATS_RONDE, MammaStandplaatsRonde_.STANDPLAATS, MammaStandplaats_.NAAM)));
 	}
 
 	@Override
@@ -128,7 +145,10 @@ public class MammaStandplaatsPeriodeServiceImpl implements MammaStandplaatsPerio
 	@Override
 	public MammaStandplaatsRondeUitnodigenRapportage getStandplaatsRondeUitnodigenRapportage(MammaStandplaatsRonde standplaatsRonde)
 	{
-		return standplaatsPeriodeDao.getStandplaatsRondeUitnodigenRapportage(standplaatsRonde);
+		return standplaatsRondeUitnodigenRapportageRepository.findWith(MammaStandplaatsRondeUitnodigenRapportageSpecification.heeftStandplaatsRonde(standplaatsRonde),
+			q -> q.sortBy(Sort.by(
+					Sort.Order.desc(propertyChain(MammaStandplaatsRondeUitnodigenRapportage_.UITNODIGEN_RAPPORTAGE, MammaUitnodigenRapportage_.DATUM_VERWERKING))))
+				.first()).orElse(null);
 	}
 
 	@Override

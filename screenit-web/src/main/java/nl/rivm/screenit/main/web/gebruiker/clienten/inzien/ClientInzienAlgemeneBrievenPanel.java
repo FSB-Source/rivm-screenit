@@ -23,6 +23,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.inzien;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenis;
@@ -34,8 +35,9 @@ import nl.rivm.screenit.main.web.component.modal.IDialogCloseCallback;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.GebeurtenisComparator;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.GebeurtenisPopupBasePanel;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.algemeen.AlgemeneBrief;
+import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.service.BezwaarService;
 import nl.topicuszorg.wicket.model.DetachableListModel;
 import nl.topicuszorg.wicket.model.SortingListModel;
 
@@ -57,6 +59,9 @@ public class ClientInzienAlgemeneBrievenPanel extends GenericPanel<Client>
 {
 	@SpringBean
 	private DossierService dossierService;
+
+	@SpringBean
+	private BezwaarService bezwaarService;
 
 	private final BootstrapDialog dialog;
 
@@ -85,9 +90,9 @@ public class ClientInzienAlgemeneBrievenPanel extends GenericPanel<Client>
 
 	private ListView<ScreeningRondeGebeurtenis> getGebeurtenissenListView()
 	{
-		List<ScreeningRondeGebeurtenis> algemeneBriefGebeurtenissen = dossierService.getAlgemeneBriefGebeurtenissen(teTonenBrieven());
-		IModel<List<ScreeningRondeGebeurtenis>> dossierModel = new DetachableListModel<>(algemeneBriefGebeurtenissen);
-		PropertyListView<ScreeningRondeGebeurtenis> gebeurtenissenListView = new PropertyListView<>("gebeurtenissen",
+		var algemeneBriefGebeurtenissen = dossierService.getAlgemeneBriefGebeurtenissen(teTonenBrieven());
+		var dossierModel = new DetachableListModel<>(algemeneBriefGebeurtenissen);
+		var gebeurtenissenListView = new PropertyListView<>("gebeurtenissen",
 			new SortingListModel<>(dossierModel, new GebeurtenisComparator()))
 		{
 			@Override
@@ -106,7 +111,7 @@ public class ClientInzienAlgemeneBrievenPanel extends GenericPanel<Client>
 						dialog.setCloseCallback((IDialogCloseCallback) target1 ->
 						{
 							listView = getGebeurtenissenListView();
-							WebMarkupContainer nieuwGebCont = new WebMarkupContainer("gebeurtenissenContainer");
+							var nieuwGebCont = new WebMarkupContainer("gebeurtenissenContainer");
 							nieuwGebCont.setOutputMarkupId(true);
 							nieuwGebCont.add(listView);
 							gebeurtenissenContainer.replaceWith(nieuwGebCont);
@@ -124,11 +129,13 @@ public class ClientInzienAlgemeneBrievenPanel extends GenericPanel<Client>
 		return gebeurtenissenListView;
 	}
 
-	private List<AlgemeneBrief> teTonenBrieven()
+	private List<ClientBrief<?, ?, ?>> teTonenBrieven()
 	{
-		return getModelObject().getAlgemeneBrieven()
-			.stream()
-			.filter(b -> b.getBriefType() != BriefType.CLIENT_INZAGE_PERSOONSGEGEVENS_AANVRAAG && b.getBriefType() != BriefType.CLIENT_INZAGE_PERSOONSGEGEVENS_HANDTEKENING)
+		return Stream.concat(
+				getModelObject().getAlgemeneBrieven().stream()
+					.filter(b -> !List.of(BriefType.CLIENT_INZAGE_PERSOONSGEGEVENS_AANVRAAG, BriefType.CLIENT_INZAGE_PERSOONSGEGEVENS_HANDTEKENING).contains(b.getBriefType())),
+				bezwaarService.getBezwaarBrievenVanClient(getModelObject()).stream()
+					.filter(b -> BriefType.CLIENT_BEZWAAR_AANVRAAG_BRIEVEN.contains(b.getBriefType())))
 			.collect(Collectors.toList());
 	}
 

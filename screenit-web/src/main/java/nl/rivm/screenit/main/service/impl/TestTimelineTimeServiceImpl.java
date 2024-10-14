@@ -123,7 +123,7 @@ public class TestTimelineTimeServiceImpl implements TestTimelineTimeService
 		case INTAKE_AFSPRAAK_CONCLUSIE:
 			ColonScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
 			ColonIntakeAfspraak afspraak = ronde.getLaatsteAfspraak();
-			return 3 + DateUtil.getPeriodeTussenTweeDatums(currentDateSupplier.getLocalDate(), DateUtil.toLocalDate(afspraak.getStartTime()), ChronoUnit.DAYS);
+			return 3 + DateUtil.getPeriodeTussenTweeDatums(currentDateSupplier.getLocalDate(), afspraak.getVanaf(), ChronoUnit.DAYS);
 		case MDL_VERSLAG:
 			return 30;
 		default:

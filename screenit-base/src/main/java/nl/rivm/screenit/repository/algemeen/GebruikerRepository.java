@@ -21,6 +21,7 @@ package nl.rivm.screenit.repository.algemeen;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
 import java.util.Optional;
 
 import nl.rivm.screenit.model.Gebruiker;
@@ -33,4 +34,8 @@ public interface GebruikerRepository extends BaseJpaRepository<Gebruiker>
 	Optional<Gebruiker> findByEmailextraAndActief(String emailextra, boolean actief);
 
 	Optional<Gebruiker> findByWachtwoordChangeCode(String changeCode);
+
+	Optional<Gebruiker> findByUzinummer(String uzinummer);
+
+	List<Gebruiker> findByPatholoogIdAndActiefTrue(String patholoogId);
 }

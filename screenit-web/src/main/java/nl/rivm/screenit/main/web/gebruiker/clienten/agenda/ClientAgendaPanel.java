@@ -29,10 +29,9 @@ import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.gebruiker.clienten.ClientContactActieTypeWrapper;
 import nl.rivm.screenit.main.web.gebruiker.clienten.ClientPaspoortPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.ClientContactPage;
-import nl.rivm.screenit.model.Afspraak;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
@@ -51,7 +50,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 public class ClientAgendaPanel extends GenericPanel<Client>
 {
 
-	private BootstrapDialog dialog;
+	private final BootstrapDialog dialog;
 
 	@SpringBean
 	private ClientService clientService;
@@ -85,31 +84,29 @@ public class ClientAgendaPanel extends GenericPanel<Client>
 		{
 
 			@Override
-			public void afspraakWijzigen(AjaxRequestTarget target, Afspraak afspraak, boolean locatieWijzigen)
+			public void afspraakWijzigen(AjaxRequestTarget target, ColonIntakeAfspraak intakeAfspraak, boolean locatieWijzigen)
 			{
-				ColonIntakeAfspraak intakeAfspraak = (ColonIntakeAfspraak) HibernateHelper.deproxy(ModelProxyHelper.deproxy(afspraak));
 				List<Object> extraParameters = new ArrayList<>();
 				extraParameters.add(intakeAfspraak);
 				ClientContactActieTypeWrapper actieTypeWrapper = ClientContactActieTypeWrapper.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN;
-				if (afspraakService.heeftOnafgerondeVerwijzingOmMedischeRedenen(afspraak))
+				if (afspraakService.heeftOnafgerondeVerwijzingOmMedischeRedenen(intakeAfspraak))
 				{
 					actieTypeWrapper = ClientContactActieTypeWrapper.COLON_NIEUWE_AFSPRAAK_AANMAKEN;
 				}
 				else
 				{
-					extraParameters.add(AfspraakStatus.VERPLAATST);
+					extraParameters.add(ColonAfspraakStatus.VERPLAATST);
 					extraParameters.add(Boolean.valueOf(locatieWijzigen));
 				}
 				setResponsePage(new ClientContactPage(ClientAgendaPanel.this.getModel(), extraParameters, actieTypeWrapper));
 			}
 
 			@Override
-			public void afspraakAfzeggen(AjaxRequestTarget target, Afspraak afspraak)
+			public void afspraakAfzeggen(AjaxRequestTarget target, ColonIntakeAfspraak intakeAfspraak)
 			{
-				ColonIntakeAfspraak intakeAfspraak = (ColonIntakeAfspraak) HibernateHelper.deproxy(ModelProxyHelper.deproxy(afspraak));
 				List<Object> extraParameters = new ArrayList<>();
 				extraParameters.add(intakeAfspraak);
-				extraParameters.add(AfspraakStatus.GEANNULEERD_VIA_INFOLIJN);
+				extraParameters.add(ColonAfspraakStatus.GEANNULEERD_VIA_INFOLIJN);
 				setResponsePage(new ClientContactPage(ClientAgendaPanel.this.getModel(), extraParameters, ClientContactActieTypeWrapper.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN));
 			}
 		};

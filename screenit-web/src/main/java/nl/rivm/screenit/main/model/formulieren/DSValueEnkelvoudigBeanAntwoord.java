@@ -21,8 +21,8 @@ package nl.rivm.screenit.main.model.formulieren;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.dao.VerslagDao;
 import nl.rivm.screenit.model.verslag.DSValue;
+import nl.rivm.screenit.service.BaseVerslagService;
 import nl.topicuszorg.formulieren2.beanantwoord.EnkelvoudigBeanAntwoord;
 import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 
@@ -39,9 +39,9 @@ public class DSValueEnkelvoudigBeanAntwoord extends EnkelvoudigBeanAntwoord<DSVa
 		if (value != null && value.getId() == null && StringUtils.isNotBlank(value.getCode()) && StringUtils.isNotBlank(value.getCodeSystem())
 			&& StringUtils.isNotBlank(value.getValueSetName()))
 		{
-			VerslagDao verslagDao = ApplicationContextProvider.getApplicationContext().getBean(VerslagDao.class);
+			BaseVerslagService verslagService = ApplicationContextProvider.getApplicationContext().getBean(BaseVerslagService.class);
 
-			innerSetValue(verslagDao.getDsValue(value.getCode(), value.getCodeSystem(), value.getValueSetName()));
+			innerSetValue(verslagService.getDsValue(value.getCode(), value.getCodeSystem(), value.getValueSetName()));
 		}
 		else
 		{

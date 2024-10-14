@@ -163,7 +163,7 @@ public class AanvullendeSOGegevensPage extends OrganisatieBeheer
 		ibanField.add(new ScreenITIBANValidator());
 		ComponentHelper.addTextField(form, "ibanTenaamstelling", true, 70, inzien);
 
-		List<Gemeente> allNietGekoppeldeGemeentes = gemeenteService.getGemeentesZonderScreeningOrganisatie((ScreeningOrganisatie) model.getObject());
+		List<Gemeente> allNietGekoppeldeGemeentes = gemeenteService.getNietOfAanScreeningsOrganisatieGekoppeldGemeentes((ScreeningOrganisatie) model.getObject());
 
 		SimpleListHibernateModel<Gemeente> choices = new SimpleListHibernateModel<>(allNietGekoppeldeGemeentes);
 		ChoiceRenderer<Gemeente> choiceRenderer = new ChoiceRenderer<Gemeente>("naam", "code")

@@ -24,20 +24,19 @@ package nl.rivm.screenit.service.colon.impl;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.dao.UitnodigingsDao;
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.TestModel;
 import nl.rivm.screenit.model.colon.ColonBrief;
@@ -51,19 +50,20 @@ import nl.rivm.screenit.model.colon.ColonUitnodiging;
 import nl.rivm.screenit.model.colon.ColonVooraankondiging;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.IFOBTType;
-import nl.rivm.screenit.model.colon.Kamer;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
+import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.model.enums.RedenNietTeBeoordelen;
 import nl.rivm.screenit.service.BaseBriefService;
+import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.DossierFactory;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.colon.ColonAfspraakDefinitieService;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonTestStateService;
 import nl.rivm.screenit.util.DateUtil;
@@ -71,16 +71,14 @@ import nl.rivm.screenit.util.FITTestUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
-import nl.topicuszorg.wicket.planning.model.Discipline;
 
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.REQUIRED)
+@Transactional
 @Slf4j
 public class ColonTestStateServiceImpl implements ColonTestStateService
 {
@@ -90,7 +88,7 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 	private static final Integer AANTALDAGENNAUITNODIGING = 55;
 
 	@Autowired
-	private ClientDao clientDao;
+	private ClientService clientService;
 
 	@Autowired
 	private BaseBriefService briefService;
@@ -111,7 +109,7 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 	private ColonDossierBaseService dossierService;
 
 	@Autowired
-	private ColonAfspraakDefinitieService afspraakDefinitieService;
+	private OrganisatieParameterService organisatieParameterService;
 
 	@Override
 	public String setClientInState(TestModel model)
@@ -450,7 +448,7 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 
 	private Client geefClient(String bsn, Date geboortedatum, GbaStatus gbaStatus, Date datumOverlijden, Geslacht geslacht)
 	{
-		Client client = clientDao.getClientByBsn(bsn);
+		Client client = clientService.getClientByBsn(bsn);
 		if (client == null)
 		{
 			client = new Client();
@@ -545,39 +543,35 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 		if (intakeAfspraak == null)
 		{
 			intakeAfspraak = new ColonIntakeAfspraak();
-			intakeAfspraak.setStatus(AfspraakStatus.GEPLAND);
+			intakeAfspraak.setStatus(ColonAfspraakStatus.GEPLAND);
 			intakeAfspraak.setAfstand(BigDecimal.valueOf(2.3));
 			intakeAfspraak.setBezwaar(false);
-			intakeAfspraak.setAfspraaknummer(System.currentTimeMillis());
 			intakeAfspraak.setClient(client);
-			intakeAfspraak.setDatumLaatsteWijziging(currentDateSupplier.getDate());
+			intakeAfspraak.setAangemaaktOp(currentDateSupplier.getLocalDateTime());
+			intakeAfspraak.setGewijzigdOp(currentDateSupplier.getLocalDateTime());
 			client.getAfspraken().add(intakeAfspraak);
 			screeningRonde.setLaatsteAfspraak(intakeAfspraak);
 			screeningRonde.getAfspraken().add(intakeAfspraak);
 			intakeAfspraak.setColonScreeningRonde(screeningRonde);
-			intakeAfspraak.getDisciplines().add(hibernateService.loadAll(Discipline.class).get(0));
 
 		}
 		intakeAfspraak.setBezwaar(false);
-		intakeAfspraak.setStatus(AfspraakStatus.GEPLAND);
-		if (intakeAfspraak.getStartTime() == null)
+		intakeAfspraak.setStatus(ColonAfspraakStatus.GEPLAND);
+		if (intakeAfspraak.getVanaf() == null)
 		{
-			intakeAfspraak.setStartTime(DateUtil.plusDagen(currentDateSupplier.getDate(), 1));
+			intakeAfspraak.setVanaf(currentDateSupplier.getLocalDateTime().plusDays(1));
 		}
-		if (intakeAfspraak.getLocation() == null)
+		if (intakeAfspraak.getKamer() == null)
 		{
-			List<Kamer> all = hibernateService.loadAll(Kamer.class);
-			intakeAfspraak.setLocation(all.get(0));
+			List<ColonIntakekamer> all = hibernateService.loadAll(ColonIntakekamer.class);
+			intakeAfspraak.setKamer(all.get(0));
 		}
-		if (intakeAfspraak.getDefinition() == null)
+
+		if (intakeAfspraak.getTot() == null)
 		{
-			var intakelocatie = intakeAfspraak.getLocation().getColoscopieCentrum();
-			var afspraakDefinitie = afspraakDefinitieService.getActiefAfspraakDefinitie(intakelocatie);
-			intakeAfspraak.setDefinition(afspraakDefinitie);
-		}
-		if (intakeAfspraak.getEndTime() == null)
-		{
-			intakeAfspraak.setEndTime(DateUtil.plusTijdseenheid(intakeAfspraak.getStartTime(), intakeAfspraak.getDefinition().getDuurAfspraakInMinuten(), ChronoUnit.MINUTES));
+			var duurAfspraakInMinuten = (int) organisatieParameterService.getOrganisatieParameter(intakeAfspraak.getKamer().getIntakelocatie(),
+				OrganisatieParameterKey.COLON_DUUR_AFSPRAAK_IN_MINUTEN, 15);
+			intakeAfspraak.setTot(intakeAfspraak.getVanaf().plusMinutes(duurAfspraakInMinuten));
 		}
 
 		hibernateService.saveOrUpdateAll(intakeAfspraak, screeningRonde, client);
@@ -598,7 +592,7 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 			conclusie.setInstellingGebruiker(all.get(0));
 			intakeAfspraak.setConclusie(conclusie);
 		}
-		intakeAfspraak.setStatus(AfspraakStatus.UITGEVOERD);
+		intakeAfspraak.setStatus(ColonAfspraakStatus.UITGEVOERD);
 		hibernateService.saveOrUpdateAll(intakeAfspraak, conclusie);
 		return conclusie;
 	}

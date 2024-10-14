@@ -266,7 +266,7 @@ public class CervixMonsterSpecification
 
 	public static Specification<CervixMonster> heeftActieveClient()
 	{
-		return ClientSpecification.heeftActieveClientPredicate().toSpecification(r ->
+		return ClientSpecification.heeftActieveClient().withRoot(r ->
 		{
 			var dossierJoin = dossierJoin(r);
 			return join(dossierJoin, CervixDossier_.client);

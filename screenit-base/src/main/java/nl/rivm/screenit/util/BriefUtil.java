@@ -21,15 +21,27 @@ package nl.rivm.screenit.util;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import nl.rivm.screenit.model.Brief;
+import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.MergedBrieven;
+import nl.rivm.screenit.model.ScreeningOrganisatie;
+import nl.rivm.screenit.model.algemeen.AlgemeneBrief;
+import nl.rivm.screenit.model.algemeen.BezwaarBrief;
+import nl.rivm.screenit.model.cervix.CervixBrief;
+import nl.rivm.screenit.model.cervix.CervixHuisarts;
+import nl.rivm.screenit.model.cervix.CervixRegioBrief;
 import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.project.ProjectBrief;
+import nl.rivm.screenit.model.project.ProjectBriefActie;
+import nl.rivm.screenit.model.project.ProjectClient;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 
 public class BriefUtil
@@ -186,6 +198,76 @@ public class BriefUtil
 		{
 			return brief.getCreatieDatum();
 		}
+	}
+
+	public static BezwaarBrief maakBezwaarBrief(Client client, BriefType type, Date creatieMoment)
+	{
+		var brief = new BezwaarBrief();
+		vulBrief(brief, type, false, creatieMoment);
+		brief.setClient(client);
+		return brief;
+	}
+
+	public static AlgemeneBrief maakAlgemeneBrief(Client client, BriefType type, Date creatieMoment)
+	{
+		var brief = new AlgemeneBrief();
+		vulBrief(brief, type, false, creatieMoment);
+		brief.setClient(client);
+		return brief;
+	}
+
+	public static CervixRegioBrief maakRegioBrief(ScreeningOrganisatie so, BriefType type, Date creatieMoment, CervixHuisarts arts)
+	{
+		var brief = new CervixRegioBrief();
+		vulBrief(brief, type, false, creatieMoment);
+		brief.setHuisarts(arts);
+		brief.setRegio(so);
+		return brief;
+	}
+
+	public static <B extends ClientBrief<?, ?, ?>> B maakBvoBrief(Client client, BriefType type, Date creatieMoment, boolean gegenereerd)
+	{
+		B brief = maakBrief(type);
+		vulBrief(brief, type, gegenereerd, creatieMoment);
+		brief.setClient(client);
+
+		return brief;
+	}
+
+	private static <B extends ClientBrief<?, ?, ?>> B maakBrief(BriefType type)
+	{
+		var bevolkingsonderzoeken = Arrays.asList(type.getOnderzoeken());
+		if (bevolkingsonderzoeken.equals(List.of(Bevolkingsonderzoek.MAMMA)))
+		{
+			return (B) new MammaBrief();
+		}
+		else if (bevolkingsonderzoeken.equals(List.of(Bevolkingsonderzoek.COLON)))
+		{
+			return (B) new ColonBrief();
+		}
+		else if (bevolkingsonderzoeken.equals(List.of(Bevolkingsonderzoek.CERVIX)))
+		{
+			return (B) new CervixBrief();
+		}
+		throw new IllegalStateException("Deze methode is niet geschikt voor brieftype " + type);
+	}
+
+	public static ProjectBrief maakProjectBrief(ProjectClient pClient, ProjectBriefActie actie, Date creatieDatum)
+	{
+		var pBrief = new ProjectBrief();
+		pBrief.setGegenereerd(false);
+		pBrief.setCreatieDatum(creatieDatum);
+		pBrief.setProjectClient(pClient);
+		pBrief.setClient(pClient.getClient());
+		pBrief.setDefinitie(actie);
+		return pBrief;
+	}
+
+	public static <B extends Brief> void vulBrief(B brief, BriefType type, boolean gegenereerd, Date creatieMoment)
+	{
+		brief.setCreatieDatum(creatieMoment);
+		brief.setGegenereerd(gegenereerd);
+		brief.setBriefType(type);
 	}
 
 }

@@ -33,7 +33,7 @@ import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.dao.IntakeAfspraakDao;
 import nl.rivm.screenit.batch.model.ClientAfspraak;
 import nl.rivm.screenit.batch.service.IntakeAfpraakService;
-import nl.rivm.screenit.model.colon.planning.VrijSlot;
+import nl.rivm.screenit.model.colon.dto.VrijSlot;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LoggingZoekCriteria;
 import nl.rivm.screenit.service.InstellingService;
@@ -153,7 +153,7 @@ public class IntakeAfpraakServiceImpl implements IntakeAfpraakService
 						{
 							foutmeldingTextUitJobContext.append(applicatieLoggingMelding);
 						}
-						LOGGER.warn(technischeLoggingMelding +  additioneleMelding);
+						LOGGER.warn(technischeLoggingMelding + additioneleMelding);
 					}
 
 					continue;

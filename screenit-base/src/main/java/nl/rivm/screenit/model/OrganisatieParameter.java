@@ -50,7 +50,7 @@ public class OrganisatieParameter extends AbstractHibernateObject
 	@Enumerated(EnumType.STRING)
 	private OrganisatieParameterKey key;
 
-	@Column(nullable = true)
+	@Column(length = 2048)
 	private String value;
 
 	@Transient

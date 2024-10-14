@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.main.dao.mamma.MammaScreeningsEenheidDao;
+import nl.rivm.screenit.main.service.mamma.MammaScreeningsEenheidService;
 import nl.rivm.screenit.main.service.mamma.MammaStandplaatsPeriodeService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -92,7 +92,7 @@ public abstract class MammaAfspraakWijzigenFilterPanel extends GenericPanel<Mamm
 	private MammaStandplaatsPeriodeService standplaatsPeriodeService;
 
 	@SpringBean
-	private MammaScreeningsEenheidDao screeningsEenheidDao;
+	private MammaScreeningsEenheidService screeningsEenheidService;
 
 	@SpringBean
 	private SimplePreferenceService simplePreferenceService;
@@ -110,6 +110,7 @@ public abstract class MammaAfspraakWijzigenFilterPanel extends GenericPanel<Mamm
 	private final boolean uitstellen;
 
 	private final IModel<MammaStandplaats> standplaats;
+
 	protected MammaAfspraakWijzigenFilterPanel(String id, IModel<MammaAfspraakWijzigenFilter> filterModel, boolean uitstellen, IModel<MammaStandplaats> standplaats)
 	{
 		super(id, filterModel);
@@ -302,7 +303,7 @@ public abstract class MammaAfspraakWijzigenFilterPanel extends GenericPanel<Mamm
 		}
 
 		List<MammaStandplaats> standplaatsen = baseStandplaatsService.getActieveStandplaatsen(screeningOrganisatie);
-		List<MammaScreeningsEenheid> screeningsEenheden = screeningsEenheidDao.getActieveScreeningsEenhedenVoorScreeningOrganisatie(screeningOrganisatie);
+		List<MammaScreeningsEenheid> screeningsEenheden = screeningsEenheidService.getActieveScreeningsEenhedenVoorScreeningOrganisatie(screeningOrganisatie);
 		if (!buitenRegio)
 		{
 			List<MammaScreeningsEenheid> savedFilterScreeninsEenheden = filter.getScreeningsEenheden();

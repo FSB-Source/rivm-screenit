@@ -25,9 +25,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
-import nl.rivm.screenit.dao.CoordinatenDao;
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.PostcodeCoordinaten;
+import nl.rivm.screenit.service.CoordinatenService;
 import nl.rivm.screenit.util.AdresUtil;
 
 import org.springframework.stereotype.Component;
@@ -38,12 +38,12 @@ import org.springframework.stereotype.Component;
 public class PostcodeCoordinatenClientKoppelWriter extends BaseWriter<BagAdres>
 {
 
-	private final CoordinatenDao coordinatenDao;
+	private final CoordinatenService coordinatenService;
 
 	@Override
 	protected void write(BagAdres item)
 	{
-		PostcodeCoordinaten coordinaten = coordinatenDao.getCoordinaten(item);
+		PostcodeCoordinaten coordinaten = coordinatenService.getCoordinaten(item);
 		item.setPostcodeCoordinaten(coordinaten);
 		if (coordinaten != null)
 		{

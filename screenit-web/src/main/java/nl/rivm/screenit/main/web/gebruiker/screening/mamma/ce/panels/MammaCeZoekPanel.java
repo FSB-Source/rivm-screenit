@@ -26,8 +26,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaCeWerklijstZoekObject;
-import nl.rivm.screenit.main.service.mamma.MammaBeoordelingService;
 import nl.rivm.screenit.main.service.mamma.MammaBeoordelingsEenheidService;
+import nl.rivm.screenit.main.service.mamma.MammaCeWerklijstService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitListMultipleChoice;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.ce.werklijst.AbstractMammaCeWerklijst;
@@ -56,7 +56,7 @@ public abstract class MammaCeZoekPanel extends GenericPanel<MammaCeWerklijstZoek
 	private InstellingService instellingService;
 
 	@SpringBean
-	private MammaBeoordelingService beoordelingService;
+	private MammaCeWerklijstService ceWerklijstService;
 
 	@SpringBean
 	private MammaBeoordelingsEenheidService beoordelingsEenheidService;
@@ -73,7 +73,7 @@ public abstract class MammaCeZoekPanel extends GenericPanel<MammaCeWerklijstZoek
 
 	private boolean toonSeFilter;
 
-	public MammaCeZoekPanel(String id, IModel<MammaCeWerklijstZoekObject> model, AbstractMammaCeWerklijst werklijst, WebMarkupContainer resultTable)
+	protected MammaCeZoekPanel(String id, IModel<MammaCeWerklijstZoekObject> model, AbstractMammaCeWerklijst werklijst, WebMarkupContainer resultTable)
 	{
 		super(id, model);
 		this.werklijst = werklijst;
@@ -149,7 +149,7 @@ public abstract class MammaCeZoekPanel extends GenericPanel<MammaCeWerklijstZoek
 	private List<MammaScreeningsEenheid> getMogelijkeScreeningsEenheden(List<BeoordelingsEenheid> beoordelingsEenheden)
 	{
 		return toonSeFilter
-			? beoordelingService.zoekScreeningsEenhedenMetCeWerklijstBeoordeling(getMammaMogelijkeBeoordelingFilterStatussen(), beoordelingsEenheden)
+			? ceWerklijstService.zoekScreeningsEenhedenMetCeWerklijstBeoordeling(getMammaMogelijkeBeoordelingFilterStatussen(), beoordelingsEenheden)
 			: new ArrayList<>();
 	}
 

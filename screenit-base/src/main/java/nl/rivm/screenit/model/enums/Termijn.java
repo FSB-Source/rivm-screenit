@@ -21,9 +21,29 @@ package nl.rivm.screenit.model.enums;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+
+import com.google.common.collect.Range;
+
+import static java.time.temporal.TemporalAdjusters.firstDayOfYear;
+import static java.time.temporal.TemporalAdjusters.lastDayOfYear;
+
 public enum Termijn
 {
 	VANDAAG,
 
-	KALENDERJAAR
+	KALENDERJAAR;
+
+	public Range<LocalDate> getPeriode(LocalDate peildatum)
+	{
+		switch (this)
+		{
+		case VANDAAG:
+			return Range.closed(peildatum, peildatum);
+		case KALENDERJAAR:
+			return Range.closed(peildatum.with(firstDayOfYear()), peildatum.with(lastDayOfYear()));
+		default:
+			throw new IllegalStateException("Ongeldige termijn: " + this);
+		}
+	}
 }

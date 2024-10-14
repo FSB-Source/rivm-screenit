@@ -32,7 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 import nl.rivm.screenit.batch.exceptions.OngeldigCdaException;
 import nl.rivm.screenit.batch.service.VerwerkCdaBerichtContentService;
 import nl.rivm.screenit.batch.service.VerwerkCdaBerichtService;
-import nl.rivm.screenit.dao.CdaVerslagDao;
 import nl.rivm.screenit.dao.KwaliteitsovereenkomstDao;
 import nl.rivm.screenit.hl7v3.cda.ClinicalDocument;
 import nl.rivm.screenit.hl7v3.cda.EnFamily;
@@ -77,6 +76,7 @@ import nl.rivm.screenit.model.mamma.verslag.MammaVerslag;
 import nl.rivm.screenit.model.mamma.verslag.followup.MammaFollowUpVerslagContent;
 import nl.rivm.screenit.repository.algemeen.VerslagRepository;
 import nl.rivm.screenit.repository.cervix.CervixCytologieOrderRepository;
+import nl.rivm.screenit.service.BaseCdaVerslagService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.GebruikersService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -104,7 +104,7 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 	private HibernateService hibernateService;
 
 	@Autowired
-	private CdaVerslagDao cdaVerslagDao;
+	private BaseCdaVerslagService baseCdaVerslagService;
 
 	@Autowired
 	private ClientService clientService;
@@ -252,7 +252,7 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 	private Verslag getVerslagVoorSetID(OntvangenCdaBericht ontvangenCdaBericht, ClinicalDocument cdaDocument) throws OngeldigCdaException
 	{
 		var setId = ontvangenCdaBericht.getSetId();
-		var verslag = cdaVerslagDao.getVerslag(setId, ontvangenCdaBericht.getBerichtType().getVerslagType().getClazz());
+		var verslag = baseCdaVerslagService.getVerslag(setId, ontvangenCdaBericht.getBerichtType().getVerslagType().getClazz());
 		if (verslag != null)
 		{
 			var bsnNieuwBericht = getBsnFromDocument(cdaDocument);
@@ -307,7 +307,7 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public List<Long> getAlleNietVerwerkteCdaBerichten(Bevolkingsonderzoek bvo)
 	{
-		return cdaVerslagDao.getAlleNietVerwerkteCdaBerichten(bvo);
+		return baseCdaVerslagService.getAlleNietVerwerkteCdaBerichten(bvo);
 	}
 
 	private boolean saveOrReplaceVerslag(Verslag verslag, ClinicalDocument cdaDocument) throws OngeldigCdaException
@@ -1132,7 +1132,7 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 
 			if (StringUtils.isNotBlank(uzinummer))
 			{
-				medewerker = gebruikersService.getGebruikerBy("uzinummer", uzinummer);
+				medewerker = gebruikersService.getGebruikerByUzinummer(uzinummer).orElse(null);
 			}
 			break;
 		case PA_LAB:

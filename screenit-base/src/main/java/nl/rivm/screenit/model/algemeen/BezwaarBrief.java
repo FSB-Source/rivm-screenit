@@ -26,6 +26,9 @@ import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.Afmelding;
 import nl.rivm.screenit.model.BezwaarMoment;
 import nl.rivm.screenit.model.ClientBrief;
@@ -39,30 +42,21 @@ import org.hibernate.envers.Audited;
 @Entity
 @Table(schema = "algemeen")
 @Audited
+@Setter
+@Getter
 public class BezwaarBrief extends ClientBrief<ScreeningRonde, Afmelding, BezwaarBrief>
 {
-
-	private static final long serialVersionUID = 1L;
-
-	@ManyToOne(optional = true, fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY)
 	private BezwaarMoment bezwaarMoment;
 
 	@ManyToOne(fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade({ CascadeType.SAVE_UPDATE })
 	private BezwaarMergedBrieven mergedBrieven;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@ManyToOne(fetch = FetchType.LAZY)
 	private BezwaarBrief herdruk;
 
-	public BezwaarMoment getBezwaarMoment()
-	{
-		return bezwaarMoment;
-	}
-
-	public void setBezwaarMoment(BezwaarMoment bezwaarMoment)
-	{
-		this.bezwaarMoment = bezwaarMoment;
-	}
+	private boolean vragenOmHandtekening = false;
 
 	@Override
 	public Afmelding getAfmelding()

@@ -31,7 +31,7 @@ import nl.rivm.screenit.main.exception.BulkAanmakenException;
 import nl.rivm.screenit.main.exception.BulkVerwijderenException;
 import nl.rivm.screenit.main.exception.ValidatieException;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.RoosterListViewFilter;
 import nl.rivm.screenit.model.colon.dto.ColonBlokkadeDto;
 import nl.rivm.screenit.model.colon.dto.ColonHerhalingDto;
@@ -44,7 +44,7 @@ public interface ColonBlokkadeService
 	void createBlokkade(ColonBlokkadeDto blokkadeDto, InstellingGebruiker instellingGebruiker)
 		throws ValidatieException, OpslaanVerwijderenTijdBlokException, BulkAanmakenException;
 
-	void logAction(ColonBlokkade unsavedObject, InstellingGebruiker instellingGebruiker, ColoscopieCentrum intakelocatie, @Nullable ColonBlokkade origineleBlokkade,
+	void logAction(ColonBlokkade unsavedObject, InstellingGebruiker instellingGebruiker, ColonIntakelocatie intakelocatie, @Nullable ColonBlokkade origineleBlokkade,
 		LogGebeurtenis logGebeurtenis, ColonHerhalingDto herhalingDto, Exception ex);
 
 	String getPeriodeTekst(ColonBlokkade unsavedObject);

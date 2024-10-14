@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import nl.rivm.screenit.main.dao.mamma.MammaScreeningsEenheidDao;
+import nl.rivm.screenit.main.service.mamma.MammaScreeningsEenheidService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
@@ -79,7 +79,7 @@ public class MammaBlokkadeBeheerPage extends MammaPlanningBasePage
 	private InstellingService instellingService;
 
 	@SpringBean
-	private MammaScreeningsEenheidDao screeningsEenheidDao;
+	private MammaScreeningsEenheidService screeningsEenheidService;
 
 	@SpringBean
 	private MammaBaseStandplaatsService standplaatsService;
@@ -118,7 +118,7 @@ public class MammaBlokkadeBeheerPage extends MammaPlanningBasePage
 		form.add(regio);
 
 		var screeningsEenheid = new ScreenitDropdown<>("screeningsEenheid",
-			ModelUtil.listRModel(screeningsEenheidDao.getActieveScreeningsEenhedenVoorScreeningOrganisatie(sessionSO)), new ChoiceRenderer<>("naam"));
+			ModelUtil.listRModel(screeningsEenheidService.getActieveScreeningsEenhedenVoorScreeningOrganisatie(sessionSO)), new ChoiceRenderer<>("naam"));
 		screeningsEenheid.setNullValid(true);
 		form.add(screeningsEenheid);
 

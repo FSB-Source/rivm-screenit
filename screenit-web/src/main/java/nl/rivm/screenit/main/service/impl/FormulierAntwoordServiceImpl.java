@@ -28,7 +28,6 @@ import java.util.List;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.KwaliteitsovereenkomstDao;
-import nl.rivm.screenit.dao.VerslagDao;
 import nl.rivm.screenit.main.model.formulieren.DSBeanAntwoordKeuzeVraagDefinitieImpl;
 import nl.rivm.screenit.main.model.formulieren.DSValueEnkelvoudigBeanAntwoord;
 import nl.rivm.screenit.main.model.formulieren.DsValueAntwoordDefintie;
@@ -42,6 +41,7 @@ import nl.rivm.screenit.model.formulieren.GebruikerAntwoord;
 import nl.rivm.screenit.model.verslag.DSValue;
 import nl.rivm.screenit.model.verslag.DSValueSet;
 import nl.rivm.screenit.model.verslag.DSValueSetValue;
+import nl.rivm.screenit.service.BaseVerslagService;
 import nl.topicuszorg.formulieren2.api.definitie.AntwoordDefinitie;
 import nl.topicuszorg.formulieren2.api.definitie.AntwoordKeuzeVraagDefinitie;
 import nl.topicuszorg.formulieren2.api.resultaat.Antwoord;
@@ -61,11 +61,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class FormulierAntwoordServiceImpl implements AntwoordService
 {
-
 	private static final Logger LOG = LoggerFactory.getLogger(FormulierAntwoordServiceImpl.class);
 
 	@Autowired
-	private VerslagDao verslagDao;
+	private BaseVerslagService verslagService;
 
 	@Autowired
 	private KwaliteitsovereenkomstDao kwaliteitsovereenkomstDao;
@@ -102,7 +101,7 @@ public class FormulierAntwoordServiceImpl implements AntwoordService
 					List<DSValue> nullFlavorValues = new ArrayList<>();
 					for (DSValueSetValue dsValue : valueSet.values())
 					{
-						DSValue dsValueMogelijkAntwoord = verslagDao.getDsValue(dsValue.code(), dsValue.codeSystem(), valueSet.name());
+						DSValue dsValueMogelijkAntwoord = verslagService.getDsValue(dsValue.code(), dsValue.codeSystem(), valueSet.name());
 						if (!dsValue.deprecated() || dsValue.deprecated() && antwoordValue != null && antwoordValue.equals(dsValueMogelijkAntwoord))
 						{
 							DsValueAntwoordDefintie antwoordDefintie = new DsValueAntwoordDefintie();

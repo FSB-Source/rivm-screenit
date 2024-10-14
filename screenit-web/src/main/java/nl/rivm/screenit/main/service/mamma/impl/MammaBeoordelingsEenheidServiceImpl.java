@@ -24,48 +24,70 @@ package nl.rivm.screenit.main.service.mamma.impl;
 import java.util.Collections;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
+
 import nl.rivm.screenit.dao.InstellingDao;
-import nl.rivm.screenit.main.dao.mamma.MammaBeoordelingsEenheidDao;
 import nl.rivm.screenit.main.service.mamma.MammaBeoordelingsEenheidService;
 import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.CentraleEenheid;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.OrganisatieType;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
+import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
+import nl.rivm.screenit.repository.algemeen.BeoordelingsEenheidRepository;
+import nl.rivm.screenit.repository.mamma.MammaBaseOnderzoekRepository;
+import nl.rivm.screenit.repository.mamma.MammaScreeningsEenheidRepository;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.specification.algemeen.BeoordelingsEenheidSpecification;
+import nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification;
+import nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecification;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
+import nl.topicuszorg.organisatie.model.Organisatie_;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+
+import static nl.rivm.screenit.specification.algemeen.BeoordelingsEenheidSpecification.heeftCentraleEenheidIn;
+import static nl.rivm.screenit.specification.algemeen.BeoordelingsEenheidSpecification.heeftScreeningOrganisatie;
+import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.heeftGeenBeoordelingStatusIn;
+import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.isDoorgevoerd;
+import static nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecification.heeftBeoordelingsEenheid;
+import static nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecification.heeftTijdelijkeBeoordelingsEenheidActiefOpMoment;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+@RequiredArgsConstructor
 public class MammaBeoordelingsEenheidServiceImpl implements MammaBeoordelingsEenheidService
 {
+	private final InstellingDao instellingDao;
 
-	@Autowired
-	private MammaBeoordelingsEenheidDao beoordelingsEenheidDao;
+	private final MammaScreeningsEenheidRepository screeningsEenheidRepository;
 
-	@Autowired
-	private InstellingDao instellingDao;
+	private final BeoordelingsEenheidRepository beoordelingsEenheidRepository;
+
+	private final ICurrentDateSupplier currentDateSuplier;
+
+	private final MammaBaseOnderzoekRepository onderzoekRepository;
 
 	@Override
 	public long getAantalActieveGekoppeldeScreeningsEenheden(BeoordelingsEenheid beoordelingsEenheid)
 	{
-		return beoordelingsEenheidDao.getAantalActieveGekoppeldeScreeningsEenheden(beoordelingsEenheid);
+		var nu = currentDateSuplier.getLocalDate();
+		return screeningsEenheidRepository.count(MammaScreeningsEenheidSpecification.isActief()
+			.and(heeftBeoordelingsEenheid(beoordelingsEenheid).or(heeftTijdelijkeBeoordelingsEenheidActiefOpMoment(beoordelingsEenheid, nu)))
+		);
 	}
 
 	@Override
 	public long getAantalNietAfgerondeGekoppeldeOnderzoeken(BeoordelingsEenheid beoordelingsEenheid)
 	{
-		return beoordelingsEenheidDao.getAantalNietAfgerondeGekoppeldeOnderzoeken(beoordelingsEenheid);
+		return onderzoekRepository.count(isDoorgevoerd(false).and(MammaOnderzoekSpecification.heeftBeoordelingsEenheid(beoordelingsEenheid)));
 	}
 
 	@Override
 	public long getAantalNietAfgerondeGekoppeldeBeoordelingen(BeoordelingsEenheid beoordelingsEenheid)
 	{
-		return beoordelingsEenheidDao.getAantalNietAfgerondeGekoppeldeBeoordelingen(beoordelingsEenheid);
+		return onderzoekRepository.count(
+			MammaOnderzoekSpecification.heeftBeoordelingsEenheid(beoordelingsEenheid).and(heeftGeenBeoordelingStatusIn(MammaBeoordelingStatus.eindStatussen())));
+
 	}
 
 	@Override
@@ -113,7 +135,7 @@ public class MammaBeoordelingsEenheidServiceImpl implements MammaBeoordelingsEen
 		case BEOORDELINGSEENHEID:
 			return Collections.singletonList((BeoordelingsEenheid) instelling);
 		case SCREENINGSORGANISATIE:
-			return beoordelingsEenheidDao.getActieveBeoordelingsEenhedenVoorScreeningsOrganisatie((ScreeningOrganisatie) instelling);
+			return getActieveBeoordelingsEenhedenVoorScreeningsOrganisatie(instelling);
 		default:
 			return Collections.emptyList();
 		}
@@ -133,11 +155,29 @@ public class MammaBeoordelingsEenheidServiceImpl implements MammaBeoordelingsEen
 		case RIVM:
 		case KWALITEITSPLATFORM:
 		case SCREENINGSORGANISATIE:
-			return beoordelingsEenheidDao.getActieveBeoordelingsEenhedenVoorCentraleEenheden(centraleEenheden);
+			if (centraleEenheden.isEmpty())
+			{
+				return Collections.emptyList();
+			}
+			return getActieveBeoordelingsEenhedenVoorCentraleEenheden(centraleEenheden);
 		case BEOORDELINGSEENHEID:
 			return Collections.singletonList((BeoordelingsEenheid) instelling);
 		default:
 			return Collections.emptyList();
 		}
+	}
+
+	private List<BeoordelingsEenheid> getActieveBeoordelingsEenhedenVoorScreeningsOrganisatie(Instelling instelling)
+	{
+		return beoordelingsEenheidRepository.findAll(
+			BeoordelingsEenheidSpecification.isActief(true).and(heeftScreeningOrganisatie(instelling)),
+			Sort.by(Organisatie_.NAAM));
+	}
+
+	private List<BeoordelingsEenheid> getActieveBeoordelingsEenhedenVoorCentraleEenheden(List<CentraleEenheid> centraleEenheden)
+	{
+		return beoordelingsEenheidRepository.findAll(
+			BeoordelingsEenheidSpecification.isActief(true).and(heeftCentraleEenheidIn(centraleEenheden)),
+			Sort.by(Organisatie_.NAAM));
 	}
 }

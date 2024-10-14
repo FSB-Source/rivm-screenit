@@ -29,13 +29,14 @@ import java.util.List;
 
 import nl.rivm.screenit.main.web.component.table.ClientColumn;
 import nl.rivm.screenit.main.web.component.table.GeboortedatumColumn;
+import nl.rivm.screenit.main.web.component.table.ScreenitDateTimePropertyColumn;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ConclusieTypeFilter;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
@@ -58,7 +59,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	checkScope = true,
 	constraint = ShiroConstraint.HasPermission,
 	recht = Recht.GEBRUIKER_SCREENING_WERKLIJST_MISSENDE_MDL_VERSLAGEN,
-	organisatieTypeScopes = OrganisatieType.COLOSCOPIECENTRUM,
+	organisatieTypeScopes = OrganisatieType.INTAKELOCATIE,
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON })
 public class ColonMissendeMdlVerslagenWerklijstPage extends WerklijstIntakePage
 {
@@ -67,7 +68,7 @@ public class ColonMissendeMdlVerslagenWerklijstPage extends WerklijstIntakePage
 
 	public ColonMissendeMdlVerslagenWerklijstPage()
 	{
-		super(AfspraakStatus.UITGEVOERD, "title.werklijst.missende");
+		super(ColonAfspraakStatus.UITGEVOERD, "title.werklijst.missende");
 
 		form.setVisible(true);
 		bsnForm.setVisible(true);
@@ -90,7 +91,7 @@ public class ColonMissendeMdlVerslagenWerklijstPage extends WerklijstIntakePage
 		columns.add(new ClientColumn<>("client.persoon.achternaam", "client"));
 		columns.add(new PropertyColumn<>(Model.of("BSN"), "client.persoon.bsn", "client.persoon.bsn"));
 		columns.add(new GeboortedatumColumn<>("client.persoon.geboortedatum", "client.persoon"));
-		columns.add(new DateTimePropertyColumn<>(Model.of("Intakeafspraak"), "startTime", "startTime"));
+		columns.add(new ScreenitDateTimePropertyColumn<>(Model.of("Intakeafspraak"), "vanaf", "vanaf"));
 		columns.add(new DateTimePropertyColumn<>(Model.of("Datum intake conclusie"), "conclusie.datum", "conclusie.datum"));
 		columns.add(new DateTimePropertyColumn<>(Model.of("Datum coloscopie"), "conclusie.datumColoscopie", "conclusie.datumColoscopie", new SimpleDateFormat("dd-MM-yyyy")));
 
@@ -98,7 +99,7 @@ public class ColonMissendeMdlVerslagenWerklijstPage extends WerklijstIntakePage
 	}
 
 	@Override
-	protected IModel<WerklijstIntakeFilter> getNewWerkLijstIntakeFilter(AfspraakStatus afspraakStatus)
+	protected IModel<WerklijstIntakeFilter> getNewWerkLijstIntakeFilter(ColonAfspraakStatus afspraakStatus)
 	{
 		var intakeFilter = super.getNewWerkLijstIntakeFilter(afspraakStatus);
 		var filter = intakeFilter.getObject();
@@ -113,7 +114,7 @@ public class ColonMissendeMdlVerslagenWerklijstPage extends WerklijstIntakePage
 	}
 
 	@Override
-	protected SortableDataProvider<ColonIntakeAfspraak, String> getWerklijstIntakeDataProvider(ColoscopieCentrum intakelocatie, int aantalPerPagina)
+	protected SortableDataProvider<ColonIntakeAfspraak, String> getWerklijstIntakeDataProvider(ColonIntakelocatie intakelocatie, int aantalPerPagina)
 	{
 		return new ColonMissendeMdlVerslagenDataProvider(zoekModel, intakelocatie, aantalPerPagina);
 	}

@@ -34,7 +34,6 @@ import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 
-import nl.rivm.screenit.mamma.se.dao.MammaScreeningsEenheidDao;
 import nl.rivm.screenit.mamma.se.dto.DagAfsluitingDto;
 import nl.rivm.screenit.mamma.se.dto.DagPlanningSamenvattingDto;
 import nl.rivm.screenit.mamma.se.dto.DagProductieDto;
@@ -73,8 +72,6 @@ public class DagverslagServiceImpl implements DagverslagService
 	private final OnderzoekService mammaOnderzoekService;
 
 	private final MammaBaseCapaciteitsBlokService baseCapaciteitsBlokService;
-
-	private final MammaScreeningsEenheidDao screeningsEenheidDao;
 
 	private final MammaBaseBlokkadeService baseBlokkadeService;
 
@@ -135,7 +132,7 @@ public class DagverslagServiceImpl implements DagverslagService
 	}
 
 	@Override
-	public DagAfsluitingDto getDoorgevoerdCountVanDag(String seCode, Date datum)
+	public DagAfsluitingDto getDoorgevoerdCountVanDag(String seCode, LocalDate datum)
 	{
 		var dagAfsluitingDto = new DagAfsluitingDto();
 		dagAfsluitingDto.setAantalDoorgevoerd(mammaOnderzoekService.getAantalDoorgevoerdVanDag(datum, seCode));
@@ -143,7 +140,7 @@ public class DagverslagServiceImpl implements DagverslagService
 	}
 
 	@Override
-	public DagSynchronisatieDto getSynchronisatieCountVanDag(String seCode, Date datum)
+	public DagSynchronisatieDto getSynchronisatieCountVanDag(String seCode, LocalDate datum)
 	{
 		var synchronisatieDto = new DagSynchronisatieDto();
 		synchronisatieDto.setGemaakt(mammaOnderzoekService.getAantalOnderzoekenMetBeelden(datum, seCode));
@@ -160,7 +157,7 @@ public class DagverslagServiceImpl implements DagverslagService
 	@Override
 	public DagPlanningSamenvattingDto getPlanningSamenvattingVanDeDag(String seCode, Date datum)
 	{
-		var screeningsEenheid = screeningsEenheidDao.getActieveScreeningsEenheidByCode(seCode);
+		var screeningsEenheid = screeningsEenheidService.getActieveScreeningsEenheidByCode(seCode);
 		var standplaatsPeriode = baseStandplaatsPeriodeService.getStandplaatsPeriodeOpDatum(screeningsEenheid, datum);
 
 		if (standplaatsPeriode == null)

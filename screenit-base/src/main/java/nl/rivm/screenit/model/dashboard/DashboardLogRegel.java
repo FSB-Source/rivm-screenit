@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.dashboard;
 
 /*-
@@ -28,43 +27,25 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.logging.LogRegel;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
+@Setter
+@Getter
 @Entity
 @Table(schema = "gedeeld", uniqueConstraints = { @UniqueConstraint(name = "dashboardStatusLogRegel", columnNames = { "dashboard_status", "log_regel" }) })
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 public class DashboardLogRegel extends AbstractHibernateObject
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@ManyToOne(fetch = FetchType.EAGER, optional = false)
 	private DashboardStatus dashboardStatus;
 
 	@ManyToOne(fetch = FetchType.EAGER, optional = false)
 	private LogRegel logRegel;
-
-	public DashboardStatus getDashboardStatus()
-	{
-		return dashboardStatus;
-	}
-
-	public void setDashboardStatus(DashboardStatus dashboardStatus)
-	{
-		this.dashboardStatus = dashboardStatus;
-	}
-
-	public LogRegel getLogRegel()
-	{
-		return logRegel;
-	}
-
-	public void setLogRegel(LogRegel logRegel)
-	{
-		this.logRegel = logRegel;
-	}
 }

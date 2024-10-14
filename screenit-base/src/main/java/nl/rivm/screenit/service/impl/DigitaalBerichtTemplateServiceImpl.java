@@ -32,7 +32,7 @@ import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.DigitaalBerichtTemplate;
 import nl.rivm.screenit.model.MailMergeContext;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.enums.DigitaalBerichtTemplateType;
 import nl.rivm.screenit.model.enums.DigitaalBerichtType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
@@ -98,7 +98,7 @@ public class DigitaalBerichtTemplateServiceImpl implements DigitaalBerichtTempla
 	}
 
 	@Override
-	public DigitaalBerichtDTO maakDigitaalBericht(DigitaalBerichtTemplateType type, ColoscopieCentrum intakelocatie)
+	public DigitaalBerichtDTO maakDigitaalBericht(DigitaalBerichtTemplateType type, ColonIntakelocatie intakelocatie)
 	{
 		var template = getDigitaalBerichtTemplate(type);
 		var context = maakMailMergeContext(intakelocatie);
@@ -123,7 +123,7 @@ public class DigitaalBerichtTemplateServiceImpl implements DigitaalBerichtTempla
 		return context;
 	}
 
-	private MailMergeContext maakMailMergeContext(ColoscopieCentrum intakelocatie)
+	private MailMergeContext maakMailMergeContext(ColonIntakelocatie intakelocatie)
 	{
 		var context = new MailMergeContext();
 		context.setIntakelocatie(intakelocatie);

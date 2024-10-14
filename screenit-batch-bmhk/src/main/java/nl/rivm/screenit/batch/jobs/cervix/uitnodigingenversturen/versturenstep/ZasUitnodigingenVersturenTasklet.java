@@ -34,7 +34,6 @@ import nl.rivm.screenit.batch.jobs.cervix.uitnodigingenversturen.ProjectCounterH
 import nl.rivm.screenit.batch.jobs.cervix.uitnodigingenversturen.ZasUitnodigingenVersturenConstants;
 import nl.rivm.screenit.batch.jobs.uitnodigingenversturen.versturenstep.AbstractUitnodigingenVersturenTasklet;
 import nl.rivm.screenit.batch.service.CervixUitnodigingService;
-import nl.rivm.screenit.dao.BaseBriefDao;
 import nl.rivm.screenit.model.BriefDefinitie;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Instelling;
@@ -51,6 +50,7 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.MergeField;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
+import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.InstellingService;
@@ -74,7 +74,7 @@ public class ZasUitnodigingenVersturenTasklet extends AbstractUitnodigingenVerst
 
 	private final LogService logService;
 
-	private final BaseBriefDao briefDao;
+	private final BaseBriefService briefService;
 
 	private final HibernateService hibernateService;
 
@@ -97,7 +97,7 @@ public class ZasUitnodigingenVersturenTasklet extends AbstractUitnodigingenVerst
 	@Override
 	protected BriefDefinitie getBriefDefinitie(CervixUitnodiging uitnodiging)
 	{
-		return briefDao.getNieuwsteBriefDefinitie(uitnodiging.getBrief().getBriefType());
+		return briefService.getNieuwsteBriefDefinitie(uitnodiging.getBrief().getBriefType());
 	}
 
 	@Override

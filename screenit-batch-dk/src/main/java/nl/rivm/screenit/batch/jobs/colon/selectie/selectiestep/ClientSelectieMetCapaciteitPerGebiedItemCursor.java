@@ -35,9 +35,9 @@ import nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep.ColonClientSelect
 import nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep.ColonClientSelectieContext.UitnodigingsTaak;
 import nl.rivm.screenit.batch.service.impl.ColonUitnodigingsgebiedSelectieContext;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.UitnodigingsGebied;
 import nl.rivm.screenit.model.colon.ClientCategorieEntry;
 import nl.rivm.screenit.model.colon.UitnodigingCohortGeboortejaren;
+import nl.rivm.screenit.model.colon.UitnodigingsGebied;
 
 import org.hibernate.ScrollableResults;
 
@@ -45,7 +45,7 @@ import org.hibernate.ScrollableResults;
 public class ClientSelectieMetCapaciteitPerGebiedItemCursor implements Iterator<ClientCategorieEntry>
 {
 
-	private ColonUitnodigingsgebiedSelectieContext uitnodigingsgebiedContext;
+	private final ColonUitnodigingsgebiedSelectieContext uitnodigingsgebiedContext;
 
 	private ScrollableResults cursor;
 
@@ -57,9 +57,9 @@ public class ClientSelectieMetCapaciteitPerGebiedItemCursor implements Iterator<
 
 	private final List<ColonClientSelectieContext.UitnodigingsTaak> taken = new ArrayList<>();
 
-	private Set<Integer> verwerkteGeboortjaren = new HashSet<>();
+	private final Set<Integer> verwerkteGeboortjaren = new HashSet<>();
 
-	private List<Long> exclusieGroepIds = new ArrayList<>();
+	private final List<Long> exclusieGroepIds = new ArrayList<>();
 
 	private final ColonClientSelectieContext selectieContext;
 

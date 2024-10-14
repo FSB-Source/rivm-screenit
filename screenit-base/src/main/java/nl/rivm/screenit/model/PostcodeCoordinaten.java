@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model;
 
 /*-
@@ -30,6 +29,9 @@ import javax.persistence.Index;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.helper.HibernateMagicNumber;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
@@ -37,22 +39,21 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 @Entity
+@Setter
+@Getter
 @Table(schema = "gedeeld", uniqueConstraints = @UniqueConstraint(name = "uc_postcode_coord", columnNames = { "postcode", "huisnummer", "huisnummerToevoeging" }), indexes = {
 	@Index(name = "COORDINATEN_POSTCODE", columnList = "postcode"), @Index(name = "COORDINATEN_HUISNUMMER", columnList = "huisnummer"),
 	@Index(name = "COORDINATEN_HUISNUMMERTOEVOEGING", columnList = "huisnummerToevoeging") })
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 public class PostcodeCoordinaten extends AbstractHibernateObject implements IGeografischeCoordinaten
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@Column(nullable = false, length = HibernateMagicNumber.L7)
 	private String postcode;
 
 	@Column(nullable = false)
 	private Integer huisnummer;
 
-	@Column(nullable = true)
+	@Column
 	private String huisnummerToevoeging;
 
 	@Column(precision = HibernateMagicNumber.P9, scale = HibernateMagicNumber.S6, nullable = false)
@@ -60,58 +61,6 @@ public class PostcodeCoordinaten extends AbstractHibernateObject implements IGeo
 
 	@Column(precision = HibernateMagicNumber.P9, scale = HibernateMagicNumber.S6, nullable = false)
 	private BigDecimal longitude;
-
-	public String getPostcode()
-	{
-		return postcode;
-	}
-
-	public void setPostcode(String postcode)
-	{
-		this.postcode = postcode;
-	}
-
-	@Override
-	public BigDecimal getLatitude()
-	{
-		return latitude;
-	}
-
-	public void setLatitude(BigDecimal latitude)
-	{
-		this.latitude = latitude;
-	}
-
-	@Override
-	public BigDecimal getLongitude()
-	{
-		return longitude;
-	}
-
-	public void setLongitude(BigDecimal longitude)
-	{
-		this.longitude = longitude;
-	}
-
-	public Integer getHuisnummer()
-	{
-		return huisnummer;
-	}
-
-	public void setHuisnummer(Integer huisnummer)
-	{
-		this.huisnummer = huisnummer;
-	}
-
-	public String getHuisnummerToevoeging()
-	{
-		return huisnummerToevoeging;
-	}
-
-	public void setHuisnummerToevoeging(String huisnummerToevoeging)
-	{
-		this.huisnummerToevoeging = huisnummerToevoeging;
-	}
 
 	@Override
 	public String toString()

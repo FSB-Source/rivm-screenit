@@ -31,8 +31,6 @@ import org.apache.wicket.model.IModel;
 public class BerichtenZoekFilter extends BerichtZoekFilter implements IDetachable
 {
 
-	private static final long serialVersionUID = 1L;
-
 	private IModel<ScreeningOrganisatie> screeningOrganisatie;
 
 	@Override

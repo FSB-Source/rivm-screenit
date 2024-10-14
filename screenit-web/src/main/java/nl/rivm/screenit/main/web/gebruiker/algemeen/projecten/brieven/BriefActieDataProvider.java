@@ -23,9 +23,9 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.brieven;
 
 import java.util.Iterator;
 
-import nl.rivm.screenit.model.SortState;
+import nl.rivm.screenit.main.service.algemeen.ProjectService;
+import nl.rivm.screenit.main.util.WicketSpringDataUtil;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
-import nl.rivm.screenit.service.ProjectService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -34,27 +34,27 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import static nl.rivm.screenit.model.project.ProjectBriefActie_.LAATST_GEWIJZIGD;
+
 public class BriefActieDataProvider extends SortableDataProvider<ProjectBriefActie, String>
 {
-
-	private static final long serialVersionUID = 1L;
 
 	@SpringBean
 	private ProjectService projectService;
 
-	private IModel<ProjectBriefActie> zoekObject;
+	private final IModel<ProjectBriefActie> zoekObject;
 
 	public BriefActieDataProvider(IModel<ProjectBriefActie> zoekObject)
 	{
 		Injector.get().inject(this);
-		setSort("laatstGewijzigd", SortOrder.ASCENDING);
+		setSort(LAATST_GEWIJZIGD, SortOrder.ASCENDING);
 		this.zoekObject = zoekObject;
 	}
 
 	@Override
 	public Iterator<? extends ProjectBriefActie> iterator(long first, long count)
 	{
-		return projectService.getProjectBriefActies(ModelUtil.nullSafeGet(zoekObject), first, count, new SortState<>(getSort().getProperty(), getSort().isAscending()));
+		return projectService.getProjectBriefActies(ModelUtil.nullSafeGet(zoekObject), first, count, WicketSpringDataUtil.toSpringSort(getSort())).iterator();
 	}
 
 	@Override

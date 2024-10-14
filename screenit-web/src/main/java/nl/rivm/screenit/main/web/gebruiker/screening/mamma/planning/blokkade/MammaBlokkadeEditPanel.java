@@ -25,13 +25,12 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
-import nl.rivm.screenit.main.dao.mamma.MammaScreeningsEenheidDao;
 import nl.rivm.screenit.main.service.mamma.MammaAfspraakService;
+import nl.rivm.screenit.main.service.mamma.MammaScreeningsEenheidService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.ConfirmingIndicatingAjaxSubmitLink;
@@ -66,10 +65,12 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
+import static nl.rivm.screenit.util.DateUtil.LOCAL_DATE_FORMAT;
+
 public abstract class MammaBlokkadeEditPanel extends GenericPanel<MammaBlokkade>
 {
 	@SpringBean
-	private MammaScreeningsEenheidDao screeningsEenheidDao;
+	private MammaScreeningsEenheidService screeningsEenheidService;
 
 	@SpringBean
 	private MammaBaseStandplaatsService standplaatsService;
@@ -267,7 +268,7 @@ public abstract class MammaBlokkadeEditPanel extends GenericPanel<MammaBlokkade>
 			if (screeningsEenheidModel == null)
 			{
 				ScreenitDropdown<MammaScreeningsEenheid> screeningsEenheid = new ScreenitDropdown<>("screeningsEenheid",
-					ModelUtil.listRModel(screeningsEenheidDao.getActieveScreeningsEenhedenVoorScreeningOrganisatie(sessionSO)), new ChoiceRenderer<>("naam"));
+					ModelUtil.listRModel(screeningsEenheidService.getActieveScreeningsEenhedenVoorScreeningOrganisatie(sessionSO)), new ChoiceRenderer<>("naam"));
 				screeningsEenheidContainer.add(screeningsEenheid.setRequired(true));
 				screeningsEenheidContainer.add(new EmptyPanel("screeningsEenheid.naam"));
 			}
@@ -301,14 +302,14 @@ public abstract class MammaBlokkadeEditPanel extends GenericPanel<MammaBlokkade>
 		final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
 		StringBuilder errorMessage = new StringBuilder();
 
-		Map<MammaScreeningsEenheid, List<Date>> screeningsEenheidDateSetMap = afspraakService.getAfspraakDatums(blokkade);
+		var screeningsEenheidDateSetMap = afspraakService.getAfspraakDatums(blokkade);
 		if (!screeningsEenheidDateSetMap.isEmpty())
 		{
 			errorMessage.append(getString("bestaande.afspraken"));
-			for (Map.Entry<MammaScreeningsEenheid, List<Date>> entry : screeningsEenheidDateSetMap.entrySet())
+			for (var entry : screeningsEenheidDateSetMap.entrySet())
 			{
-				errorMessage.append("<br />" + entry.getKey().getNaam() + ": ");
-				errorMessage.append(String.join(", ", entry.getValue().stream().map(format::format).collect(Collectors.toList())));
+				errorMessage.append("<br />").append(entry.getKey().getNaam()).append(": ");
+				errorMessage.append(entry.getValue().stream().map(d -> d.format(LOCAL_DATE_FORMAT)).collect(Collectors.joining(", ")));
 			}
 		}
 

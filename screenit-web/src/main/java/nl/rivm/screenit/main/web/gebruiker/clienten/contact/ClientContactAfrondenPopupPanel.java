@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.clienten.contact;
 
 /*-
@@ -37,12 +36,9 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 
 public abstract class ClientContactAfrondenPopupPanel extends Panel
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private final BootstrapDialog dialog;
 
-	public ClientContactAfrondenPopupPanel(String id, List<String> meldingen)
+	protected ClientContactAfrondenPopupPanel(String id, List<String> meldingen)
 	{
 		super(id);
 
@@ -61,9 +57,6 @@ public abstract class ClientContactAfrondenPopupPanel extends Panel
 
 		form.add(new ScreenitIndicatingAjaxSubmitLink("doorgaan", form)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{

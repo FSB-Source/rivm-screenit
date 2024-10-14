@@ -26,4 +26,5 @@ import nl.rivm.screenit.repository.BaseJpaRepository;
 
 public interface ProjectBriefActieRepository extends BaseJpaRepository<ProjectBriefActie>
 {
+	boolean existsByVragenlijstId(Long vragenlijstId);
 }

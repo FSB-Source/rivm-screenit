@@ -34,14 +34,14 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import lombok.RequiredArgsConstructor;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dto.mamma.afspraken.IMammaBulkVerzettenFilter;
 import nl.rivm.screenit.dto.mamma.afspraken.MammaKandidaatAfspraakDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningVerzetClientenDto;
-import nl.rivm.screenit.main.dao.mamma.MammaAfspraakDao;
-import nl.rivm.screenit.main.service.DossierService;
 import nl.rivm.screenit.main.service.mamma.MammaAfspraakService;
-import nl.rivm.screenit.main.transformer.AfspraakDatumResultTransformer;
+import nl.rivm.screenit.main.transformer.MammaScreeningsEenheidMetDatumDto;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.TijdelijkAdres;
@@ -50,6 +50,7 @@ import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.DigitaalBerichtTemplateType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
+import nl.rivm.screenit.model.mamma.MammaAfspraak_;
 import nl.rivm.screenit.model.mamma.MammaBlokkade;
 import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.mamma.MammaCapaciteitBlok;
@@ -60,8 +61,13 @@ import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
+import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode_;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
+import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaVerzettenReden;
+import nl.rivm.screenit.repository.mamma.MammaBaseAfspraakRepository;
+import nl.rivm.screenit.repository.mamma.MammaUitnodigingRepository;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BerichtToSeRestBkService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -80,56 +86,53 @@ import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Range;
+
 import static java.time.temporal.ChronoUnit.DAYS;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftStatuses;
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.isLaatsteAfspraakVanUitnodiging;
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.valtInPeriode;
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.valtOnderBlokkadeType;
+import static nl.rivm.screenit.specification.mamma.MammaUitnodigingSpecification.heeftLaatsteAfspraakMetStandplaatsPeriode;
+import static nl.rivm.screenit.specification.mamma.MammaUitnodigingSpecification.heeftLaatsteAfspraakMetStatus;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
+@RequiredArgsConstructor
 public class MammaAfspraakServiceImpl implements MammaAfspraakService
 {
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private MammaBaseConceptPlanningsApplicatie baseConceptPlanningsApplicatie;
+	private final MammaBaseConceptPlanningsApplicatie baseConceptPlanningsApplicatie;
 
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final ICurrentDateSupplier dateSupplier;
 
-	@Autowired
-	private MammaAfspraakDao afspraakDao;
+	private final MammaBaseAfspraakService baseAfspraakService;
 
-	@Autowired
-	private MammaBaseAfspraakService baseAfspraakService;
+	private final LogService logService;
 
-	@Autowired
-	private LogService logService;
+	private final SimplePreferenceService preferenceService;
 
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final MammaBaseStandplaatsService baseStandplaatsService;
 
-	@Autowired
-	private MammaBaseStandplaatsService baseStandplaatsService;
+	private final BerichtToSeRestBkService berichtToSeRestBkService;
 
-	@Autowired
-	private BerichtToSeRestBkService berichtToSeRestBkService;
+	private final MammaBaseKansberekeningService kansberekeningService;
 
-	@Autowired
-	private MammaBaseKansberekeningService kansberekeningService;
+	private final BaseBriefService baseBriefService;
 
-	@Autowired
-	private BaseBriefService baseBriefService;
+	private final MammaDigitaalContactService digitaalContactService;
 
-	@Autowired
-	private MammaDigitaalContactService digitaalContactService;
+	private final MammaUitnodigingRepository uitnodigingRepository;
 
-	@Autowired
-	private DossierService dossierService;
+	private final MammaBaseAfspraakRepository afspraakRepository;
 
 	private static final int STREEF_INTERVAL = 2;
 
@@ -137,22 +140,34 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	@Override
-	public Map<MammaScreeningsEenheid, List<Date>> getAfspraakDatums(MammaBlokkade blokkade)
+	public Map<MammaScreeningsEenheid, List<LocalDate>> getAfspraakDatums(MammaBlokkade blokkade)
 	{
-		List<AfspraakDatumResultTransformer.AfspraakDatum> afspraakDatums = afspraakDao.getAfspraakDatums(blokkade);
-		Map<MammaScreeningsEenheid, List<Date>> screeningsEenheidAfspraakDatumsMap = new HashMap<>();
-
+		var blokkadeRange = Range.closed(DateUtil.toLocalDate(blokkade.getVanaf()), DateUtil.toLocalDate(blokkade.getTotEnMet()));
+		var afsprakenBinnenBlokkadeSpecification = valtInPeriode(blokkadeRange)
+			.and(heeftStatuses(MammaAfspraakStatus.NIET_GEANNULEERD))
+			.and(isLaatsteAfspraakVanUitnodiging())
+			.and(valtOnderBlokkadeType(blokkade));
+		var afspraakDatums = afspraakRepository.findWith(afsprakenBinnenBlokkadeSpecification, MammaScreeningsEenheidMetDatumDto.class,
+			q -> q.projections((cb, r) ->
+					List.of(
+						join(r, MammaAfspraak_.standplaatsPeriode).get(MammaStandplaatsPeriode_.screeningsEenheid),
+						r.get(MammaAfspraak_.vanaf).as(LocalDate.class)
+					))
+				.distinct()
+				.sortBy(Sort.by(MammaAfspraak_.VANAF), (o, r, cb) -> cb.asc(r.get(MammaAfspraak_.vanaf).as(LocalDate.class)))
+				.all());
+		Map<MammaScreeningsEenheid, List<LocalDate>> screeningsEenheidAfspraakDatumsMap = new HashMap<>();
 		afspraakDatums.forEach(afspraakDatum ->
 		{
-			if (screeningsEenheidAfspraakDatumsMap.containsKey(afspraakDatum.screeningsEenheid))
+			if (screeningsEenheidAfspraakDatumsMap.containsKey(afspraakDatum.getScreeningsEenheid()))
 			{
-				screeningsEenheidAfspraakDatumsMap.get(afspraakDatum.screeningsEenheid).add(afspraakDatum.datum);
+				screeningsEenheidAfspraakDatumsMap.get(afspraakDatum.getScreeningsEenheid()).add(afspraakDatum.getDatum());
 			}
 			else
 			{
-				List<Date> datums = new ArrayList<>();
-				datums.add(afspraakDatum.datum);
-				screeningsEenheidAfspraakDatumsMap.put(afspraakDatum.screeningsEenheid, datums);
+				List<LocalDate> datums = new ArrayList<>();
+				datums.add(afspraakDatum.getDatum());
+				screeningsEenheidAfspraakDatumsMap.put(afspraakDatum.getScreeningsEenheid(), datums);
 			}
 		});
 
@@ -163,14 +178,25 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 	@Override
 	public Date getDatumEersteGeplandeAfspraak(Long standplaatsPeriodeId)
 	{
-		return afspraakDao.getDatumEersteGeplandeAfspraak(standplaatsPeriodeId);
+		return getDatumVanAfspraakBinnenStandplaatsPeriodeMetSortOpVanaf(standplaatsPeriodeId, Sort.Direction.ASC);
 	}
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	@Override
 	public Date getDatumLaatsteGeplandeAfspraak(Long standplaatsPeriodeId)
 	{
-		return afspraakDao.getDatumLaatsteGeplandeAfspraak(standplaatsPeriodeId);
+		return getDatumVanAfspraakBinnenStandplaatsPeriodeMetSortOpVanaf(standplaatsPeriodeId, Sort.Direction.DESC);
+	}
+
+	private Date getDatumVanAfspraakBinnenStandplaatsPeriodeMetSortOpVanaf(Long standplaatsPeriodeId, Sort.Direction sortDirection)
+	{
+		return uitnodigingRepository.findWith(heeftLaatsteAfspraakMetStandplaatsPeriode(standplaatsPeriodeId)
+				.and(heeftLaatsteAfspraakMetStatus(MammaAfspraakStatus.GEPLAND)),
+			Date.class,
+			q -> q.projection((cb, r) -> r.get(MammaUitnodiging_.laatsteAfspraak).get(MammaAfspraak_.vanaf))
+				.sortBy(Sort.by(sortDirection, MammaUitnodiging_.LAATSTE_AFSPRAAK + "." + MammaAfspraak_.VANAF))
+				.first()
+		).orElse(null);
 	}
 
 	@Override
@@ -454,7 +480,7 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 					afspraakDatums.add(DateUtil.toLocalDate(afspraak.getVanaf()));
 				}
 			}
-			if (brieven.size() > 0)
+			if (!brieven.isEmpty())
 			{
 				baseConceptPlanningsApplicatie.verzetClienten(verzetClientenDto);
 				berichtToSeRestBkService.notificeerScreeningsEenheidVerversenDaglijst(persistentStandplaatsPeriode.getScreeningsEenheid(), afspraakDatums);

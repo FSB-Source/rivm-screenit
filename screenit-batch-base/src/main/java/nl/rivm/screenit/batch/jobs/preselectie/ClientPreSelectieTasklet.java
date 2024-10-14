@@ -27,7 +27,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.rivm.screenit.service.ProjectService;
+import nl.rivm.screenit.service.BaseProjectService;
 
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -41,7 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ClientPreSelectieTasklet implements Tasklet
 {
 	@Autowired
-	private ProjectService projectService;
+	private BaseProjectService projectService;
 
 	private Bevolkingsonderzoek bvo;
 

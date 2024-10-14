@@ -21,9 +21,17 @@ package nl.rivm.screenit.service;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Date;
+import java.util.List;
+
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.berichten.Verslag;
+import nl.rivm.screenit.model.colon.MdlVerslag;
+import nl.rivm.screenit.model.colon.PaVerslag;
+import nl.rivm.screenit.model.colon.verslag.mdl.MdlVerslagContent;
+import nl.rivm.screenit.model.colon.verslag.pa.PaVerslagContent;
 import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
+import nl.rivm.screenit.model.verslag.DSValue;
 
 public interface BaseVerslagService
 {
@@ -34,4 +42,16 @@ public interface BaseVerslagService
 	String createLogMelding(Verslag<?, ?> verslag);
 
 	boolean isElektronischPalgaVerslag(MammaFollowUpVerslag followUpVerslag);
+
+	MdlVerslag getMdlVerslagMetTNummer(PaVerslagContent verslagContent);
+
+	List<PaVerslag> getPaVerslagMetTNummer(MdlVerslagContent verslagContent);
+
+	DSValue getDsValue(String code, String codeSystem, String valueSetName);
+
+	DSValue getDsValue(String code, String codeSystem, String valueSetName, boolean ignoreCase);
+
+	boolean heeftMdlVerslagenMetOnderzoekDatum(MdlVerslag verslag, Date onderzoekDatum);
+
+	void setBerichtenOpnieuwVerwerken(List<Long> ids);
 }

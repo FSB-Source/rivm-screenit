@@ -21,7 +21,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.popup;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.main.service.mamma.MammaBeoordelingService;
+import nl.rivm.screenit.main.service.mamma.MammaBeWerklijstService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -34,9 +34,9 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 public abstract class MammaLogoutConfirmationDialog extends GenericPanel<Boolean>
 {
 	@SpringBean
-	private MammaBeoordelingService beoordelingService;
+	private MammaBeWerklijstService beWerklijstService;
 
-	public MammaLogoutConfirmationDialog(String id, boolean heeftVerslagenTeBevestigen, boolean heeftOnderzoekenInWerklijst)
+	protected MammaLogoutConfirmationDialog(String id, boolean heeftVerslagenTeBevestigen, boolean heeftOnderzoekenInWerklijst)
 	{
 		super(id);
 		AjaxLink<Void> bevestigingLezingenBtn = new AjaxLink<Void>("bevestigenLezingen")
@@ -44,7 +44,7 @@ public abstract class MammaLogoutConfirmationDialog extends GenericPanel<Boolean
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				beoordelingService.bevestig1eEn2eLezingen(ScreenitSession.get().getLoggedInInstellingGebruiker());
+				beWerklijstService.bevestig1eEn2eLezingen(ScreenitSession.get().getLoggedInInstellingGebruiker());
 				close(target, !heeftOnderzoekenInWerklijst);
 			}
 		};

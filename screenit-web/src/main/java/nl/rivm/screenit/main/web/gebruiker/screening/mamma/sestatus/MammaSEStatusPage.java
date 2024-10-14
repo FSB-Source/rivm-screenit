@@ -37,14 +37,18 @@ import nl.rivm.screenit.main.web.gebruiker.base.GebruikerBasePage;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerHoofdMenuItem;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheidStatus;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheidStatus_;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid_;
 import nl.rivm.screenit.service.BerichtToSeRestBkService;
 import nl.rivm.screenit.util.DateUtil;
+import nl.topicuszorg.organisatie.model.Organisatie_;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -63,6 +67,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.time.Duration;
 import org.wicketstuff.shiro.ShiroConstraint;
+
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
 
 @SecurityConstraint(
 	constraint = ShiroConstraint.HasPermission,
@@ -105,9 +111,10 @@ public class MammaSEStatusPage extends GebruikerBasePage
 	private List<IColumn<MammaScreeningsEenheid, String>> getColumns()
 	{
 		List<IColumn<MammaScreeningsEenheid, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<>(Model.of("Code"), "code", "code"));
-		columns.add(new PropertyColumn<>(Model.of("Screeningsorganisatie"), "regio.naam", "beoordelingsEenheid.parent.regio.naam"));
-		columns.add(new PropertyColumn<>(Model.of("Versie"), "status.versie", "status.versie"));
+		columns.add(new PropertyColumn<>(Model.of("Code"), MammaScreeningsEenheid_.CODE, "code"));
+		columns.add(new PropertyColumn<>(Model.of("Screeningsorganisatie"),
+			propertyChain(MammaScreeningsEenheid_.BEOORDELINGS_EENHEID, Instelling_.PARENT, Instelling_.REGIO, Organisatie_.NAAM), "beoordelingsEenheid.parent.regio.naam"));
+		columns.add(new PropertyColumn<>(Model.of("Versie"), propertyChain(MammaScreeningsEenheid_.STATUS, MammaScreeningsEenheidStatus_.VERSIE), "status.versie"));
 		columns.add(new AbstractColumn<>(Model.of("Stamgegevens aanwezig"))
 		{
 			@Override
@@ -140,8 +147,10 @@ public class MammaSEStatusPage extends GebruikerBasePage
 				}
 			}
 		});
-		columns.add(new ScreenitDateTimePropertyColumn<>(Model.of("Laatste check"), "status.statusMoment", "status.statusMoment"));
-		columns.add(new PropertyColumn<>(Model.of("Online"), "status.laatsteKeerOfflineGegaan", "status.laatsteKeerOfflineGegaan")
+		columns.add(new ScreenitDateTimePropertyColumn<>(Model.of("Laatste check"), propertyChain(MammaScreeningsEenheid_.STATUS, MammaScreeningsEenheidStatus_.STATUS_MOMENT),
+			"status.statusMoment"));
+		columns.add(new PropertyColumn<>(Model.of("Online"), propertyChain(MammaScreeningsEenheid_.STATUS, MammaScreeningsEenheidStatus_.LAATSTE_KEER_OFFLINE_GEGAAN),
+			"status.laatsteKeerOfflineGegaan")
 		{
 			@Override
 			public void populateItem(Item<ICellPopulator<MammaScreeningsEenheid>> cell, String id, IModel<MammaScreeningsEenheid> model)

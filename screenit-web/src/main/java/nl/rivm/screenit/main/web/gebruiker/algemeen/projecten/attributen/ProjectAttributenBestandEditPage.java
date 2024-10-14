@@ -24,6 +24,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.attributen;
 import java.util.ArrayList;
 import java.util.List;
 
+import nl.rivm.screenit.main.service.algemeen.ProjectService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
@@ -37,7 +38,6 @@ import nl.rivm.screenit.model.project.ProjectBestand;
 import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
-import nl.rivm.screenit.service.ProjectService;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
@@ -71,7 +71,7 @@ public class ProjectAttributenBestandEditPage extends ProjectBasePage
 	@SpringBean
 	private LogService logService;
 
-	private IModel<ProjectBestand> bestandModel;
+	private final IModel<ProjectBestand> bestandModel;
 
 	private final IModel<List<FileUpload>> bestanden = new ListModel<>();
 
@@ -127,7 +127,7 @@ public class ProjectAttributenBestandEditPage extends ProjectBasePage
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				ProjectBestand bestand = (ProjectBestand) form.getModelObject();
+				ProjectBestand bestand = form.getModelObject();
 				Project project = getProjectModel().getObject();
 				if (!bestand.isAttributen())
 				{

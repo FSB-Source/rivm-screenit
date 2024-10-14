@@ -84,7 +84,7 @@ public abstract class BezwaarInzienPopupPanel extends GenericPanel<BezwaarMoment
 
 	private WebMarkupContainer uploadForm;
 
-	private IModel<List<FileUpload>> files = new ListModel<>();
+	private final IModel<List<FileUpload>> files = new ListModel<>();
 
 	public BezwaarInzienPopupPanel(String id, IModel<BezwaarMoment> model)
 	{
@@ -109,19 +109,27 @@ public abstract class BezwaarInzienPopupPanel extends GenericPanel<BezwaarMoment
 				}
 			});
 
-		add(DateLabel.forDatePattern("bezwaarDatum", new PropertyModel<>(getModel(), "bezwaarDatum"), "dd-MM-yyyy"));
+		add(DateLabel.forDatePattern("bezwaarDatum", new PropertyModel<>(getModel(), "bezwaarDatum"), "dd-MM-yyyy").setVisible(getModelObject().getBezwaarDatum() != null));
 
 		addVervangenPanel();
 
 		addButtons();
 
-		add(new BezwaarTekstPanel("bezwaarTekstPanel", getModel()));
+		add(new BezwaarTekstPanel("bezwaarTekstPanel", getModel()).setVisible(!getModelObject().getBezwaren().isEmpty()));
 	}
 
 	private void addButtons()
 	{
 
+		var laatsteBrief = getLaatsteBrief();
 		upload = ModelUtil.sModel(getModelObject().getBezwaarBrief());
+		var magNogmaalsVersturen = upload != null;
+		var magDocumentVervangen = ScreenitSession.get().checkPermission(Recht.VERVANGEN_DOCUMENTEN, Actie.AANPASSEN);
+		var heeftTegenhoudenRecht = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_BRIEVEN_TEGENHOUDEN, Actie.AANPASSEN);
+		var magTegenhouden = heeftTegenhoudenRecht && laatsteBrief != null && !BriefUtil.isTegengehouden(laatsteBrief) && BriefUtil.getMergedBrieven(laatsteBrief) == null;
+		var magDoorvoeren = heeftTegenhoudenRecht && BriefUtil.isTegengehouden(laatsteBrief);
+		var footnoteWeergeven = magDoorvoeren || magTegenhouden || magNogmaalsVersturen;
+
 		if (upload != null)
 		{
 			add(new DownloadLink("bezwaarformulierHandImg", new LoadableDetachableModel<>()
@@ -140,8 +148,6 @@ public abstract class BezwaarInzienPopupPanel extends GenericPanel<BezwaarMoment
 			add(empty);
 		}
 
-		boolean magTegenhouden = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_BRIEVEN_TEGENHOUDEN, Actie.AANPASSEN);
-		BezwaarBrief laatsteBrief = getLaatsteBrief();
 		add(new AjaxLink<Void>("tegenhouden")
 		{
 			@Override
@@ -151,7 +157,7 @@ public abstract class BezwaarInzienPopupPanel extends GenericPanel<BezwaarMoment
 				info(getString("info.brieftegenhouden"));
 				close(target);
 			}
-		}.setVisible(magTegenhouden && laatsteBrief != null && !BriefUtil.isTegengehouden(laatsteBrief) && BriefUtil.getMergedBrieven(laatsteBrief) == null));
+		}.setVisible(magTegenhouden));
 
 		add(new AjaxLink<Void>("doorvoeren")
 		{
@@ -162,18 +168,21 @@ public abstract class BezwaarInzienPopupPanel extends GenericPanel<BezwaarMoment
 				info(getString("info.briefactiveren"));
 				close(target);
 			}
-		}.setVisible(magTegenhouden && BriefUtil.isTegengehouden(laatsteBrief)));
+		}.setVisible(magDoorvoeren));
+
 		add(new AjaxLink<Void>("nogmaalsVersturen")
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				BezwaarBrief brief = BezwaarInzienPopupPanel.this.getModelObject().getBevestigingsbrief();
-				briefHerdrukkenService.opnieuwAanmaken(brief, ScreenitSession.get().getLoggedInAccount());
-				info(getString("info.bezwaarnogmaalsverstuurd"));
+				List<BezwaarBrief> bevestigingsbrieven = briefService.getOorspronkelijkeBevestigingsbrieven(BezwaarInzienPopupPanel.this.getModelObject());
+				briefHerdrukkenService.opnieuwAanmaken(bevestigingsbrieven, ScreenitSession.get().getLoggedInAccount());
+				info(getString(
+					bevestigingsbrieven.size() > 1 ? "info.bezwaar.meerdere.bevestigingsbrieven.nogmaals.verstuurd" : "info.bezwaar.enkele.bevestigingsbrief.nogmaals.verstuurd"));
 				close(target);
 			}
-		}.setVisible(getModelObject().getBevestigingsbrief() != null));
+		}.setVisible(magNogmaalsVersturen));
+
 		add(new AjaxLink<Void>("vervangen")
 		{
 			@Override
@@ -182,8 +191,9 @@ public abstract class BezwaarInzienPopupPanel extends GenericPanel<BezwaarMoment
 				uploadForm.setVisible(true);
 				target.add(uploadForm);
 			}
-		}.setVisible(ScreenitSession.get().checkPermission(Recht.VERVANGEN_DOCUMENTEN, Actie.AANPASSEN)));
+		}.setVisible(magDocumentVervangen));
 
+		add(new Label("footnote", getString("info.laatste.brief.footnote")).setVisible(footnoteWeergeven));
 	}
 
 	private void addVervangenPanel()

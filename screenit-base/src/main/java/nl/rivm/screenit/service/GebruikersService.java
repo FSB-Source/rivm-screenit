@@ -21,6 +21,8 @@ package nl.rivm.screenit.service;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Optional;
+
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
@@ -28,11 +30,9 @@ import nl.rivm.screenit.model.ScreeningOrganisatie;
 public interface GebruikersService
 {
 
-	Gebruiker getGebruikerByGebruikersnaam(String gebruikersnaam);
+	Optional<Gebruiker> getGebruikerByGebruikersnaam(String gebruikersnaam);
 
-	Gebruiker getGebruikerByUzinummer(String uzinummer);
-
-	Gebruiker getGebruikerBy(String key, String value);
+	Optional<Gebruiker> getGebruikerByUzinummer(String uzinummer);
 
 	ScreeningOrganisatie getScreeningOrganisatie(Gebruiker gebruiker);
 

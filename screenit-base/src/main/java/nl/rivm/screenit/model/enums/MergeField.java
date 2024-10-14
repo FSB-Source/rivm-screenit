@@ -22,11 +22,11 @@ package nl.rivm.screenit.model.enums;
  */
 
 import java.io.IOException;
-import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,9 +55,11 @@ import nl.rivm.screenit.model.InpakbareUitnodiging;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.MailMergeContext;
+import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.Titel;
+import nl.rivm.screenit.model.algemeen.BezwaarBrief;
 import nl.rivm.screenit.model.cervix.CervixBrief;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
@@ -93,8 +95,9 @@ import nl.rivm.screenit.model.overeenkomsten.AfgeslotenMedewerkerOvereenkomst;
 import nl.rivm.screenit.model.project.ProjectBriefActieType;
 import nl.rivm.screenit.model.project.ProjectVragenlijstUitzettenVia;
 import nl.rivm.screenit.service.BarcodeService;
+import nl.rivm.screenit.service.BaseProjectService;
 import nl.rivm.screenit.service.HeraanmeldenMergeVeldService;
-import nl.rivm.screenit.service.ProjectService;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.cervix.CervixBaseBetalingService;
 import nl.rivm.screenit.service.cervix.impl.CervixMonsterIdBarcode;
 import nl.rivm.screenit.service.cervix.impl.CervixMonsterIdLabelBarcode;
@@ -1329,7 +1332,7 @@ public enum MergeField
 
 				if (context.getIntakeAfspraak() != null)
 				{
-					return context.getIntakeAfspraak().getLocation().getColoscopieCentrum().getNaam();
+					return context.getIntakeAfspraak().getKamer().getIntakelocatie().getNaam();
 				}
 
 				return null;
@@ -1343,7 +1346,7 @@ public enum MergeField
 			{
 				if (context.getIntakeAfspraak() != null)
 				{
-					return AdresUtil.getVolledigeAdresString(getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 0));
+					return AdresUtil.getVolledigeAdresString(getAdres(context.getIntakeAfspraak().getKamer().getIntakelocatie(), 0));
 				}
 				return null;
 			}
@@ -1356,7 +1359,7 @@ public enum MergeField
 			{
 				if (context.getIntakeAfspraak() != null)
 				{
-					var adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 0);
+					var adres = getAdres(context.getIntakeAfspraak().getKamer().getIntakelocatie(), 0);
 					if (adres != null)
 					{
 						return adres.getStraat();
@@ -1373,7 +1376,7 @@ public enum MergeField
 			{
 				if (context.getIntakeAfspraak() != null)
 				{
-					var adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 0);
+					var adres = getAdres(context.getIntakeAfspraak().getKamer().getIntakelocatie(), 0);
 					if (adres != null)
 					{
 						var adresString = new StringBuilder();
@@ -1416,7 +1419,7 @@ public enum MergeField
 			{
 				if (context.getIntakeAfspraak() != null)
 				{
-					var adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 0);
+					var adres = getAdres(context.getIntakeAfspraak().getKamer().getIntakelocatie(), 0);
 					if (adres != null)
 					{
 						return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
@@ -1434,7 +1437,7 @@ public enum MergeField
 			{
 				if (context.getIntakeAfspraak() != null)
 				{
-					var adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 0);
+					var adres = getAdres(context.getIntakeAfspraak().getKamer().getIntakelocatie(), 0);
 					if (adres != null)
 					{
 						return adres.getPlaats();
@@ -1452,7 +1455,7 @@ public enum MergeField
 			{
 				if (context.getIntakeAfspraak() != null)
 				{
-					var adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 1);
+					var adres = getAdres(context.getIntakeAfspraak().getKamer().getIntakelocatie(), 1);
 					if (adres != null)
 					{
 						return adres.getHuisnummer();
@@ -1470,7 +1473,7 @@ public enum MergeField
 			{
 				if (context.getIntakeAfspraak() != null)
 				{
-					var adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 1);
+					var adres = getAdres(context.getIntakeAfspraak().getKamer().getIntakelocatie(), 1);
 					if (adres != null)
 					{
 						return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
@@ -1488,7 +1491,7 @@ public enum MergeField
 			{
 				if (context.getIntakeAfspraak() != null)
 				{
-					var adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 1);
+					var adres = getAdres(context.getIntakeAfspraak().getKamer().getIntakelocatie(), 1);
 					if (adres != null)
 					{
 						return adres.getPlaats();
@@ -1506,7 +1509,7 @@ public enum MergeField
 			{
 				if (context.getIntakeAfspraak() != null)
 				{
-					return context.getIntakeAfspraak().getLocation().getColoscopieCentrum().getTelefoon();
+					return context.getIntakeAfspraak().getKamer().getIntakelocatie().getTelefoon();
 				}
 				return null;
 			}
@@ -1520,7 +1523,7 @@ public enum MergeField
 			{
 				if (context.getIntakeAfspraak() != null)
 				{
-					return context.getIntakeAfspraak().getLocation().getColoscopieCentrum().getFax();
+					return context.getIntakeAfspraak().getKamer().getIntakelocatie().getFax();
 				}
 				return null;
 			}
@@ -1534,7 +1537,7 @@ public enum MergeField
 			{
 				if (context.getIntakeAfspraak() != null)
 				{
-					return context.getIntakeAfspraak().getLocation().getColoscopieCentrum().getEmail();
+					return context.getIntakeAfspraak().getKamer().getIntakelocatie().getEmail();
 				}
 				return null;
 			}
@@ -1548,7 +1551,7 @@ public enum MergeField
 			{
 				if (context.getIntakeAfspraak() != null)
 				{
-					return context.getIntakeAfspraak().getLocation().getColoscopieCentrum().getWebsite();
+					return context.getIntakeAfspraak().getKamer().getIntakelocatie().getWebsite();
 				}
 				return null;
 			}
@@ -1562,9 +1565,9 @@ public enum MergeField
 			{
 				if (context.getIntakeAfspraak() != null)
 				{
-					return context.getIntakeAfspraak().getLocation().getColoscopieCentrum().getLocatieBeschrijving();
+					return getOrganisatieParameterService().getOrganisatieParameter(context.getIntakeAfspraak().getKamer().getIntakelocatie(),
+						OrganisatieParameterKey.COLON_INTAKELOCATIE_BESCHRIJVING);
 				}
-
 				return null;
 			}
 
@@ -1577,12 +1580,28 @@ public enum MergeField
 			{
 				if (context.getIntakeAfspraak() != null)
 				{
-					return context.getIntakeAfspraak().getLocation().getColoscopieCentrum().getAfspraakDefinities().get(0).getDuurAfspraakInMinuten();
+					var organisatieParameterService = getBean(OrganisatieParameterService.class);
+					return organisatieParameterService.getOrganisatieParameter(context.getIntakeAfspraak().getKamer().getIntakelocatie(),
+						OrganisatieParameterKey.COLON_DUUR_AFSPRAAK_IN_MINUTEN);
 				}
 
 				return null;
 			}
 
+		},
+
+	IL_DIGITALE_INTAKE("_IL_DIGITALE_INTAKE")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				if (context.getIntakeAfspraak() != null)
+				{
+					return getOrganisatieParameterService().getOrganisatieParameter(context.getIntakeAfspraak().getKamer().getIntakelocatie(),
+						OrganisatieParameterKey.COLON_DIGITALE_INTAKE);
+				}
+				return null;
+			}
 		},
 
 	COLON_HERAANMELDEN_TEKST(
@@ -2340,7 +2359,7 @@ public enum MergeField
 			{
 				if (context.getIntakeAfspraak() != null)
 				{
-					return getFormattedDateMetDagnaam(context.getIntakeAfspraak().getStartTime());
+					return getFormattedDateMetDagnaam(context.getIntakeAfspraak().getVanaf());
 				}
 				return null;
 			}
@@ -2354,8 +2373,7 @@ public enum MergeField
 			{
 				if (context.getIntakeAfspraak() != null)
 				{
-					DateFormat dateFormat = new SimpleDateFormat("HH:mm");
-					return dateFormat.format(context.getIntakeAfspraak().getStartTime());
+					return DateUtil.formatLocalTime(context.getIntakeAfspraak().getVanaf());
 				}
 				return null;
 			}
@@ -2369,7 +2387,7 @@ public enum MergeField
 			{
 				if (context.getVorigeIntakeAfspraak() != null)
 				{
-					return getFormattedDateMetDagnaam(context.getVorigeIntakeAfspraak().getStartTime());
+					return getFormattedDateMetDagnaam(context.getVorigeIntakeAfspraak().getVanaf());
 				}
 
 				return null;
@@ -2384,8 +2402,7 @@ public enum MergeField
 			{
 				if (context.getVorigeIntakeAfspraak() != null)
 				{
-					DateFormat dateFormat = new SimpleDateFormat("HH:mm");
-					return dateFormat.format(context.getVorigeIntakeAfspraak().getStartTime());
+					return DateUtil.formatLocalTime(context.getVorigeIntakeAfspraak().getVanaf());
 				}
 				return null;
 			}
@@ -2767,7 +2784,7 @@ public enum MergeField
 			{
 				if (context.getOvereenkomst() != null)
 				{
-					return getFormattedDateMetDagnaam(context.getOvereenkomst().getStartDatum());
+					return getFormattedDateMetDagnaam(DateUtil.toLocalDateTime(context.getOvereenkomst().getStartDatum()));
 				}
 				return null;
 			}
@@ -2842,7 +2859,7 @@ public enum MergeField
 					var projectVragenlijstUitzettenVia = brief.getDefinitie().getProjectVragenlijstUitzettenVia();
 					if (ProjectVragenlijstUitzettenVia.isWeb(projectVragenlijstUitzettenVia))
 					{
-						var projectService = getBean(ProjectService.class);
+						var projectService = getBean(BaseProjectService.class);
 						return projectService.generateVragenlijstUrl(brief);
 					}
 				}
@@ -2866,7 +2883,7 @@ public enum MergeField
 					var projectVragenlijstUitzettenVia = brief.getDefinitie().getProjectVragenlijstUitzettenVia();
 					if (ProjectVragenlijstUitzettenVia.isWeb(projectVragenlijstUitzettenVia))
 					{
-						var projectService = getBean(ProjectService.class);
+						var projectService = getBean(BaseProjectService.class);
 						return projectService.generateVragenlijstKey(brief);
 					}
 				}
@@ -4043,6 +4060,19 @@ public enum MergeField
 				}
 				return null;
 			}
+		},
+	GEEN_HANDTEKENING_TEKST("_GEEN_HANDTEKENING_TEKST")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				if (!(context.getBrief() instanceof BezwaarBrief) || !((BezwaarBrief) context.getBrief()).isVragenOmHandtekening())
+				{
+					return null;
+				}
+
+				return getStringValueFromPreference(PreferenceKey.GEEN_HANDTEKENING_BRIEF_TEKST);
+			}
 		};
 
 	@Getter
@@ -4084,10 +4114,10 @@ public enum MergeField
 	{
 		this.fieldName = fieldName;
 		var flagList = Arrays.asList(flags);
-		this.naarInpakcentrum = !flagList.contains(NIET_NAAR_INPAKCENTRUM);
-		this.inHuisartsenbericht = !flagList.contains(NIET_IN_HUISARTSBERICHT);
-		this.qrCode = flagList.contains(QR_CODE);
-		this.waardeTrimmen = !flagList.contains(WAARDE_NIET_TRIMMEN);
+		naarInpakcentrum = !flagList.contains(NIET_NAAR_INPAKCENTRUM);
+		inHuisartsenbericht = !flagList.contains(NIET_IN_HUISARTSBERICHT);
+		qrCode = flagList.contains(QR_CODE);
+		waardeTrimmen = !flagList.contains(WAARDE_NIET_TRIMMEN);
 	}
 
 	MergeField(String fieldName, MergeFieldTestType type, Class<?> instance, Supplier<String> initialTestValueSupplier, MergeFieldFlag... flags)
@@ -4268,7 +4298,7 @@ public enum MergeField
 					if (organisatie != null && !Boolean.FALSE.equals(organisatie.getActief()))
 					{
 						var type = organisatie.getOrganisatieType();
-						if (OrganisatieType.COLOSCOPIECENTRUM == type || OrganisatieType.COLOSCOPIELOCATIE == type)
+						if (OrganisatieType.INTAKELOCATIE == type || OrganisatieType.COLOSCOPIELOCATIE == type)
 						{
 							var parent = organisatie.getParent();
 							if (parent != null && !Boolean.FALSE.equals(parent.getActief()) && OrganisatieType.ZORGINSTELLING == parent.getOrganisatieType())
@@ -4361,6 +4391,18 @@ public enum MergeField
 			screeningOrganisatie = context.getClient().getPersoon().getGbaAdres().getGbaGemeente().getScreeningOrganisatie();
 		}
 		return screeningOrganisatie;
+	}
+
+	private static String getFormattedDateMetDagnaam(LocalDateTime date)
+	{
+		if (date != null)
+		{
+			return date.format(DateUtil.LOCAL_DATE_UITGEBREID_DAG_UITEGEBREID_MAAND_FORMAT);
+		}
+		else
+		{
+			return null;
+		}
 	}
 
 	private static String getFormattedDateMetDagnaam(Date date)
@@ -4758,6 +4800,11 @@ public enum MergeField
 	private static SimplePreferenceService getSimplePreferenceService()
 	{
 		return getBean(SimplePreferenceService.class);
+	}
+
+	private static OrganisatieParameterService getOrganisatieParameterService()
+	{
+		return getBean(OrganisatieParameterService.class);
 	}
 
 	private static String getStringValueFromPreference(PreferenceKey key)

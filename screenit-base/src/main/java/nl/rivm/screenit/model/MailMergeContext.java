@@ -29,8 +29,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
+import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.overeenkomsten.AbstractAfgeslotenOvereenkomst;
 import nl.rivm.screenit.model.project.ProjectAttribuut;
 import nl.rivm.screenit.model.project.ProjectBrief;
@@ -62,13 +63,13 @@ public class MailMergeContext
 
 	private Client client;
 
-	private ColoscopieCentrum intakelocatie;
+	private ColonIntakelocatie intakelocatie;
 
 	private ColonUitnodiging colonUitnodiging;
 
-	private Afspraak intakeAfspraak;
+	private ColonIntakeAfspraak intakeAfspraak;
 
-	private Afspraak vorigeIntakeAfspraak;
+	private ColonIntakeAfspraak vorigeIntakeAfspraak;
 
 	private AbstractAfgeslotenOvereenkomst overeenkomst;
 

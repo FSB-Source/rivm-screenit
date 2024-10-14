@@ -28,7 +28,7 @@
 
         <mapping class="nl.rivm.screenit.model.verslag.DSValue"/>
         <mapping class="nl.rivm.screenit.model.verslag.VerslagContent"/>
-        		<mapping class="nl.rivm.screenit.model.cervix.verslag.cytologie.CervixCytologieCytologieUitslagBvoBmhk"/>
+        <mapping class="nl.rivm.screenit.model.cervix.verslag.cytologie.CervixCytologieCytologieUitslagBvoBmhk"/>
 		<mapping class="nl.rivm.screenit.model.cervix.verslag.cytologie.CervixCytologieCytologieUitslagBvoBmhkTbvHuisarts"/>
 		<mapping class="nl.rivm.screenit.model.cervix.verslag.cytologie.CervixCytologieMonsterBmhk"/>
 		<mapping class="nl.rivm.screenit.model.cervix.verslag.cytologie.CervixCytologieVerrichting"/>

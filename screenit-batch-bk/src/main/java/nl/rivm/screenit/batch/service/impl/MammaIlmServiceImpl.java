@@ -21,24 +21,25 @@ package nl.rivm.screenit.batch.service.impl;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.dao.MammaIlmDao;
+import nl.rivm.screenit.batch.repository.MammaIlmLogEventRepository;
 import nl.rivm.screenit.batch.service.MammaIlmService;
 import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaIlmBeeldenStatusRapportage;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Service
 public class MammaIlmServiceImpl extends AbstractAutowiredDao implements MammaIlmService
 {
 	@Autowired
-	private MammaIlmDao ilmDao;
+	private MammaIlmLogEventRepository logEventRepository;
 
 	@Override
 	public MammaIlmBeeldenStatusRapportage getMeestRecenteStatusRapportage()
 	{
-		return ilmDao.getMeestRecenteStatusRapportage();
+		var rapportages = logEventRepository.haalRapportagesOp(PageRequest.of(0, 1));
+		return rapportages.isEmpty() ? null : rapportages.get(0);
 	}
-
 }

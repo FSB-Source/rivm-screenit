@@ -34,9 +34,9 @@ import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.PostcodeGebied;
-import nl.rivm.screenit.model.UitnodigingsGebied;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ColoscopieCentrumColonCapaciteitVerdeling;
+import nl.rivm.screenit.model.colon.UitnodigingsGebied;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
@@ -192,10 +192,10 @@ public class GemeenteGegevens extends GebiedenBeheerPage
 			@Override
 			public void populateItem(Item<ICellPopulator<UitnodigingsGebied>> cellItem, String componentId, IModel<UitnodigingsGebied> rowModel)
 			{
-				Set<ColoscopieCentrum> centra = new HashSet<ColoscopieCentrum>();
+				Set<ColonIntakelocatie> centra = new HashSet<ColonIntakelocatie>();
 				for (ColoscopieCentrumColonCapaciteitVerdeling verdeling : rowModel.getObject().getVerdeling())
 				{
-					centra.add(verdeling.getColoscopieCentrum());
+					centra.add(verdeling.getIntakelocatie());
 				}
 				cellItem.add(new Label(componentId, Model.of(centra.size())));
 			}

@@ -24,28 +24,27 @@ package nl.rivm.screenit.main.service.mamma;
 import java.util.List;
 
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaCeWerklijstZoekObject;
+import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
-import nl.rivm.screenit.model.mamma.MammaOnderzoek;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
+import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
+
+import org.springframework.data.domain.Sort;
 
 public interface MammaCeWerklijstService
 {
-	long countOnderzoeken(MammaCeWerklijstZoekObject zoekObject);
+	long countBeoordelingen(MammaCeWerklijstZoekObject zoekObject);
 
-	List<MammaBeoordeling> zoekOnderzoeken(MammaCeWerklijstZoekObject zoekObject, int first, int count, String sortProperty, boolean ascending);
+	List<MammaBeoordeling> zoekBeoordelingen(MammaCeWerklijstZoekObject zoekObject, long first, long count, Sort sort);
 
-	List<MammaOnderzoek> zoekOnderbrokenOnderzoeken(MammaCeWerklijstZoekObject zoekObject, int first, int count, String sortProperty, boolean ascending);
-
-	long countOnderbrokenOnderzoeken(MammaCeWerklijstZoekObject zoekObject);
-
-	List<MammaBeoordeling> zoekProcessmonitoringBeoordelingen(MammaCeWerklijstZoekObject zoekObject, int first, int count, String property, boolean ascending);
+	List<MammaBeoordeling> zoekProcessmonitoringBeoordelingen(MammaCeWerklijstZoekObject zoekObject, long first, long count, Sort sort);
 
 	long countProcessmonitoringBeoordelingen(MammaCeWerklijstZoekObject zoekObject);
-
-	List<MammaBeoordeling> zoekGeenBeoordelingMogelijk(MammaCeWerklijstZoekObject zoekObject, int first, int count, String sortProperty, boolean ascending);
-
-	long countGeenBeoordelingMogelijk(MammaCeWerklijstZoekObject zoekObject);
 
 	List<MammaBeoordeling> zoekFollowUpBeoordelingen(MammaCeWerklijstZoekObject zoekObject, int first, int count, String sortProperty, boolean ascending);
 
 	long countFollowUpBeoordelingen(MammaCeWerklijstZoekObject zoekObject);
+
+	List<MammaScreeningsEenheid> zoekScreeningsEenhedenMetCeWerklijstBeoordeling(List<MammaBeoordelingStatus> beschikbareBeoordelingStatussen,
+		List<BeoordelingsEenheid> beoordelingsEenheden);
 }

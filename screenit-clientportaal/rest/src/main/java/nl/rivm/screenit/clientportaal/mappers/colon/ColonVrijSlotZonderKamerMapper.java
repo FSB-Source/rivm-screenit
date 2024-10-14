@@ -23,7 +23,7 @@ package nl.rivm.screenit.clientportaal.mappers.colon;
 
 import nl.rivm.screenit.clientportaal.model.colon.ColonVrijSlotZonderKamerDto;
 import nl.rivm.screenit.mappers.config.ScreenitMapperConfig;
-import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamer;
+import nl.rivm.screenit.model.colon.dto.VrijSlotZonderKamer;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

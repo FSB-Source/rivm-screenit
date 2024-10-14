@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import nl.rivm.screenit.main.service.algemeen.ProjectService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.NaamChoiceRenderer;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
@@ -52,7 +53,6 @@ import nl.rivm.screenit.model.project.ProjectStatus;
 import nl.rivm.screenit.model.project.ProjectType;
 import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.ProjectService;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -71,7 +71,6 @@ import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.Item;
@@ -102,11 +101,13 @@ public class ProjectOverzicht extends AlgemeenPage
 	@SpringBean
 	private ProjectService projectService;
 
-	private IModel<Project> projectZoekModel;
+	private final IModel<Project> projectZoekModel;
 
 	private WebMarkupContainer projectContainer;
 
-	private ToegangLevel toegangLevelProjectOverzicht, toegangLevelBriefprojectOverzicht;
+	private final ToegangLevel toegangLevelProjectOverzicht;
+
+	private final ToegangLevel toegangLevelBriefprojectOverzicht;
 
 	public ProjectOverzicht()
 	{

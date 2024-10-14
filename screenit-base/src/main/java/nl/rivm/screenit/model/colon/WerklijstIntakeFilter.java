@@ -27,14 +27,15 @@ import java.util.Date;
 
 import lombok.Getter;
 import lombok.Setter;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
+
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 
 @Getter
 @Setter
 public class WerklijstIntakeFilter implements Serializable
 {
 
-	private AfspraakStatus status;
+	private ColonAfspraakStatus status;
 
 	private Date vanaf;
 

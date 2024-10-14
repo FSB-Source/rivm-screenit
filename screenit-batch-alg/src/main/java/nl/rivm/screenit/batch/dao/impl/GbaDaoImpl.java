@@ -23,28 +23,15 @@ package nl.rivm.screenit.batch.dao.impl;
 
 import nl.rivm.screenit.batch.dao.GbaDao;
 import nl.rivm.screenit.model.BagAdres;
-import nl.rivm.screenit.model.gba.GbaStamtabel;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-@Transactional(propagation = Propagation.SUPPORTS)
 public class GbaDaoImpl extends AbstractAutowiredDao implements GbaDao
 {
-	@Override
-	public <T extends GbaStamtabel> T getStamtabelByCode(Class<T> clazz, String code)
-	{
-		Criteria crit = this.getSession().createCriteria(clazz);
-		crit.add(Restrictions.eq("code", code));
-
-		return (T) crit.uniqueResult();
-	}
-
 	@Override
 	public Criteria getAllAdressenZonderCoordinanten()
 	{

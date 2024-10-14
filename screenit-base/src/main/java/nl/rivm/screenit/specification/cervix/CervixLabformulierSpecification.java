@@ -71,7 +71,7 @@ import static nl.rivm.screenit.model.cervix.CervixLabformulierenFilter.Labproces
 import static nl.rivm.screenit.model.cervix.CervixLabformulierenFilter.LabprocesStap.HUISARTS_ONBEKEND;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmpty;
-import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenFalsy;
+import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenFalse;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNull;
 import static nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification.labformulierJoin;
 
@@ -142,7 +142,7 @@ public class CervixLabformulierSpecification
 
 	public static Specification<CervixLabformulier> filterLabProcesStapIsHuisartsOnbekendOfControlerenVoorCytologie(LabprocesStap labprocesStap)
 	{
-		return skipWhenFalsy(labprocesStap == HUISARTS_ONBEKEND || labprocesStap == CONTROLEREN_VOOR_CYTOLOGIE, (r, q, cb) ->
+		return skipWhenFalse(labprocesStap == HUISARTS_ONBEKEND || labprocesStap == CONTROLEREN_VOOR_CYTOLOGIE, (r, q, cb) ->
 		{
 			var uitstrijkjeJoin = join(r, CervixLabformulier_.uitstrijkje);
 			var screeningRondeJoin = join(uitstrijkjeJoin, CervixMonster_.ontvangstScreeningRonde);
@@ -161,7 +161,7 @@ public class CervixLabformulierSpecification
 
 	public static Specification<CervixLabformulier> filterLabProcesStapIsHuisartsOnbekend(LabprocesStap labprocesStap)
 	{
-		return skipWhenFalsy(labprocesStap == HUISARTS_ONBEKEND, (r, q, cb) ->
+		return skipWhenFalse(labprocesStap == HUISARTS_ONBEKEND, (r, q, cb) ->
 		{
 			var huisartsOnbekendBriefJoin = join(r, CervixLabformulier_.huisartsOnbekendBrief);
 			var mergedBrievenJoin = join(huisartsOnbekendBriefJoin, CervixBrief_.mergedBrieven);
@@ -171,7 +171,7 @@ public class CervixLabformulierSpecification
 
 	public static Specification<CervixLabformulier> filterLabProcesStapIsControlerenVoorCytologie(LabprocesStap labprocesStap)
 	{
-		return skipWhenFalsy(labprocesStap == CONTROLEREN_VOOR_CYTOLOGIE, (r, q, cb) ->
+		return skipWhenFalse(labprocesStap == CONTROLEREN_VOOR_CYTOLOGIE, (r, q, cb) ->
 		{
 			var uitstrijkjeJoin = join(r, CervixLabformulier_.uitstrijkje);
 			return cb.and(cb.isNull(uitstrijkjeJoin.get(CervixUitstrijkje_.cytologieOrder)),
@@ -181,7 +181,7 @@ public class CervixLabformulierSpecification
 
 	public static Specification<CervixLabformulier> filterLabProcesStapIsCytopathologie(LabprocesStap labprocesStap)
 	{
-		return skipWhenFalsy(labprocesStap == CYTOLOGIE, (r, q, cb) ->
+		return skipWhenFalse(labprocesStap == CYTOLOGIE, (r, q, cb) ->
 		{
 			var uitstrijkjeJoin = join(r, CervixLabformulier_.uitstrijkje);
 			var cytologieOrderJoin = join(uitstrijkjeJoin, CervixUitstrijkje_.cytologieOrder);
@@ -200,7 +200,7 @@ public class CervixLabformulierSpecification
 
 	public static Specification<CervixLabformulier> filterOrganisatieTypeIsScreeningorganisatie(OrganisatieType organisatieType, Long instellingId)
 	{
-		return skipWhenFalsy(organisatieType == OrganisatieType.SCREENINGSORGANISATIE,
+		return skipWhenFalse(organisatieType == OrganisatieType.SCREENINGSORGANISATIE,
 			(r, q, cb) -> cb.and(cb.equal(screeningOrganisatieJoin(r).get(SingleTableHibernateObject_.id), instellingId)));
 	}
 

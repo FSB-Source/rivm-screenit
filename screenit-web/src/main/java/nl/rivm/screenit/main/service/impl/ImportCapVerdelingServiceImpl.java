@@ -39,9 +39,9 @@ import lombok.extern.slf4j.Slf4j;
 import nl.rivm.screenit.main.service.colon.ImportCapVerdelingService;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.UitnodigingsGebied;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ColoscopieCentrumColonCapaciteitVerdeling;
+import nl.rivm.screenit.model.colon.UitnodigingsGebied;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
@@ -247,19 +247,19 @@ public class ImportCapVerdelingServiceImpl implements ImportCapVerdelingService
 	}
 
 	@Nullable
-	private ColoscopieCentrum zoekIntakelocatie(Map<Long, String> ilIdToNaam, Long ilId)
+	private ColonIntakelocatie zoekIntakelocatie(Map<Long, String> ilIdToNaam, Long ilId)
 	{
-		var intakelocatie = hibernateService.get(ColoscopieCentrum.class, ilId);
+		var intakelocatie = hibernateService.get(ColonIntakelocatie.class, ilId);
 		var ilNaam = ilIdToNaam.get(ilId);
 		while ((intakelocatie == null || ilNaam.indexOf(intakelocatie.getNaam()) < 0) && StringUtils.isNotBlank(ilNaam))
 		{
-			intakelocatie = hibernateService.getUniqueByParameters(ColoscopieCentrum.class, Map.of("naam", ilNaam.trim()));
+			intakelocatie = hibernateService.getUniqueByParameters(ColonIntakelocatie.class, Map.of("naam", ilNaam.trim()));
 			ilNaam = ilNaam.substring(1);
 		}
 		return intakelocatie;
 	}
 
-	private static void resetCapaciteitVerdeling(ColoscopieCentrum intakelocatie)
+	private static void resetCapaciteitVerdeling(ColonIntakelocatie intakelocatie)
 	{
 		LOG.info("CapVerdeling stap 2.1: Hele capaciteitsverdeling van IL op 0% zetten");
 		for (ColoscopieCentrumColonCapaciteitVerdeling verdeling : intakelocatie.getCapaciteitVerdeling())
@@ -268,7 +268,7 @@ public class ImportCapVerdelingServiceImpl implements ImportCapVerdelingService
 		}
 	}
 
-	private void werkUitnodigingsgebiedenBij(ColoscopieCentrum intakelocatie, String gemeenteCode, Integer adherentie, Integer capaciteit,
+	private void werkUitnodigingsgebiedenBij(ColonIntakelocatie intakelocatie, String gemeenteCode, Integer adherentie, Integer capaciteit,
 		Set<UitnodigingsGebied> gewijzigdeGebieden)
 	{
 		boolean foundGemeente = werkBestaandeUitnodigingsgebiedenBij(intakelocatie, gemeenteCode, adherentie, capaciteit, gewijzigdeGebieden);
@@ -291,7 +291,7 @@ public class ImportCapVerdelingServiceImpl implements ImportCapVerdelingService
 		}
 	}
 
-	private boolean werkBestaandeUitnodigingsgebiedenBij(ColoscopieCentrum intakelocatie, String gemeenteCode, Integer adherentie, Integer capaciteit,
+	private boolean werkBestaandeUitnodigingsgebiedenBij(ColonIntakelocatie intakelocatie, String gemeenteCode, Integer adherentie, Integer capaciteit,
 		Set<UitnodigingsGebied> gewijzigdeGebieden)
 	{
 		boolean foundGemeente = false;
@@ -324,7 +324,7 @@ public class ImportCapVerdelingServiceImpl implements ImportCapVerdelingService
 		return foundGemeente;
 	}
 
-	private void maakNieuweKoppelingMetUitnodigingsgebiedMetGemeenteCode(ColoscopieCentrum intakelocatie, String gemeenteCode,
+	private void maakNieuweKoppelingMetUitnodigingsgebiedMetGemeenteCode(ColonIntakelocatie intakelocatie, String gemeenteCode,
 		ColoscopieCentrumColonCapaciteitVerdeling nieuweVerdeling, Gemeente gemeente, Set<UitnodigingsGebied> gewijzigdeGebieden)
 	{
 		for (var uitnodigingsGebied : gemeente.getUitnodigingsGebieden())
@@ -333,7 +333,7 @@ public class ImportCapVerdelingServiceImpl implements ImportCapVerdelingService
 				&& StringUtils.isBlank(uitnodigingsGebied.getWoonplaats()))
 			{
 				gewijzigdeGebieden.add(uitnodigingsGebied);
-				nieuweVerdeling.setColoscopieCentrum(intakelocatie);
+				nieuweVerdeling.setIntakelocatie(intakelocatie);
 				nieuweVerdeling.setUitnodigingsGebied(uitnodigingsGebied);
 				uitnodigingsGebied.getVerdeling().add(nieuweVerdeling);
 				hibernateService.saveOrUpdate(uitnodigingsGebied);
@@ -345,12 +345,12 @@ public class ImportCapVerdelingServiceImpl implements ImportCapVerdelingService
 		}
 	}
 
-	private void maakNieuweKoppelingMetUitnodigingsgebiedMetGebiedsnaam(ColoscopieCentrum intakelocatie, String gemeenteCode,
+	private void maakNieuweKoppelingMetUitnodigingsgebiedMetGebiedsnaam(ColonIntakelocatie intakelocatie, String gemeenteCode,
 		ColoscopieCentrumColonCapaciteitVerdeling nieuweVerdeling, Set<UitnodigingsGebied> gewijzigdeGebieden)
 	{
 		var uitnodigingsgebied = hibernateService.getUniqueByParameters(UitnodigingsGebied.class, Map.of("naam", gemeenteCode));
 		gewijzigdeGebieden.add(uitnodigingsgebied);
-		nieuweVerdeling.setColoscopieCentrum(intakelocatie);
+		nieuweVerdeling.setIntakelocatie(intakelocatie);
 		nieuweVerdeling.setUitnodigingsGebied(uitnodigingsgebied);
 		uitnodigingsgebied.getVerdeling().add(nieuweVerdeling);
 		hibernateService.saveOrUpdate(uitnodigingsgebied);
@@ -359,7 +359,7 @@ public class ImportCapVerdelingServiceImpl implements ImportCapVerdelingService
 		hibernateService.saveOrUpdate(nieuweVerdeling);
 	}
 
-	private void verwijderOngebruikteKoppelingenMetGebieden(ColoscopieCentrum intakelocatie, Set<UitnodigingsGebied> gewijzigdeGebieden)
+	private void verwijderOngebruikteKoppelingenMetGebieden(ColonIntakelocatie intakelocatie, Set<UitnodigingsGebied> gewijzigdeGebieden)
 	{
 		LOG.info("CapVerdeling stap 2.3: gemeentes/uitnodigingsgebieden die geen percentage hebben verwijderen (indien van toepassing)");
 		List<ColoscopieCentrumColonCapaciteitVerdeling> verdelingToDelete = new ArrayList<>();

@@ -22,7 +22,7 @@ package nl.rivm.screenit.mappers.colon;
  */
 
 import nl.rivm.screenit.mappers.config.ScreenitMapperConfig;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.dto.ColonIntakelocatieDto;
 
 import org.mapstruct.Mapper;
@@ -32,8 +32,8 @@ import org.mapstruct.Mapping;
 public interface ColonIntakelocatieMapper
 {
 	@Mapping(source = "id", target = "id")
-	@Mapping(source = "naam", target = "name")
+	@Mapping(source = "naam", target = "naam")
 	@Mapping(source = "aantalGeprognostiseerdeRoosterblokken", target = "aantalGeprognosticeerdeAfspraakslots")
 	@Mapping(target = "huidigAantalAfspraakslots", ignore = true)
-	ColonIntakelocatieDto intakelocatieToDto(ColoscopieCentrum instelling);
+	ColonIntakelocatieDto intakelocatieToDto(ColonIntakelocatie instelling);
 }

@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaBeWerklijstZoekObject;
+import nl.rivm.screenit.main.service.mamma.MammaBeWerklijstService;
 import nl.rivm.screenit.main.service.mamma.MammaBeoordelingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -43,15 +44,24 @@ import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.AbstractMammaBePag
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.MammaBeTabelCounterPanel;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.BeoordelingsEenheid;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.GbaPersoon_;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.model.mamma.MammaAfspraak_;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
+import nl.rivm.screenit.model.mamma.MammaBeoordeling_;
+import nl.rivm.screenit.model.mamma.MammaDossier_;
 import nl.rivm.screenit.model.mamma.MammaLezing;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid_;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
@@ -86,6 +96,8 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
 
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
+
 @SecurityConstraint(
 	actie = Actie.INZIEN,
 	checkScope = true,
@@ -95,6 +107,8 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.MAMMA })
 public abstract class AbstractMammaBeWerklijstPage extends AbstractMammaBePage
 {
+	@SpringBean
+	protected MammaBeWerklijstService beWerklijstService;
 
 	@SpringBean
 	private MammaBeoordelingService beoordelingService;
@@ -143,7 +157,7 @@ public abstract class AbstractMammaBeWerklijstPage extends AbstractMammaBePage
 		refreshContainer.setOutputMarkupId(Boolean.TRUE);
 		add(refreshContainer);
 
-		refreshContainer.add(createOnderzoekenTabel());
+		refreshContainer.add(createBeoordelingenTabel());
 
 		zoekForm = new Form<>("form", zoekObjectModel);
 
@@ -205,21 +219,23 @@ public abstract class AbstractMammaBeWerklijstPage extends AbstractMammaBePage
 		logFilter();
 	}
 
-	private Component createOnderzoekenTabel()
+	private Component createBeoordelingenTabel()
 	{
 		final var heeftHandtekeningVoorScreenen = ScreenitSession.get().getLoggedInInstellingGebruiker().getMedewerker().getHandtekening() != null;
 
-		var onderzoekDataProvider = new MammaOnderzoekDataProvider("onderzoek.creatieDatum", zoekObjectModel);
+		var beoordelingenDataProvider = new MammaBeoordelingWerklijstDataProvider(MammaOnderzoek_.CREATIE_DATUM, zoekObjectModel);
 
 		List<IColumn<MammaBeoordeling, String>> columns = new ArrayList<>();
 		columns.add(new DateTimePropertyColumn<>(Model.of("Onderzoeksdatum"), "onderzoek.creatieDatum", Constants.getDateTimeSecondsFormat()));
-		columns.add(new ClientColumn<>("persoon.achternaam", "onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client"));
-		columns.add(new GeboortedatumColumn<>("persoon.geboortedatum", "onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon"));
-		columns.add(new PropertyColumn<>(Model.of("BSN"), "persoon.bsn", "onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon.bsn"));
-		columns.add(new PropertyColumn<>(Model.of("SE"), "se.naam", "onderzoek.screeningsEenheid.naam"));
-		columns.add(new EnumPropertyColumn<>(Model.of("Status"), "beoordeling.status", "status"));
+		columns.add(new ClientColumn<>(propertyChain(persoonSortProperty(), GbaPersoon_.ACHTERNAAM), "onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client"));
+		columns.add(new GeboortedatumColumn<>(propertyChain(persoonSortProperty(), GbaPersoon_.GEBOORTEDATUM),
+			"onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon"));
+		columns.add(new PropertyColumn<>(Model.of("BSN"), propertyChain(persoonSortProperty(), GbaPersoon_.BSN),
+			"onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon.bsn"));
+		columns.add(new PropertyColumn<>(Model.of("SE"), propertyChain(MammaOnderzoek_.SCREENINGS_EENHEID, MammaScreeningsEenheid_.NAAM), "onderzoek.screeningsEenheid.naam"));
+		columns.add(new EnumPropertyColumn<>(Model.of("Status"), propertyChain(MammaOnderzoek_.LAATSTE_BEOORDELING, MammaBeoordeling_.STATUS), "status"));
 
-		return new ScreenitDataTable<>("resultaten", columns, onderzoekDataProvider, 10, Model.of("beoordeling(en)"))
+		return new ScreenitDataTable<>("resultaten", columns, beoordelingenDataProvider, 10, Model.of("beoordeling(en)"))
 		{
 			@Override
 			protected String getCssClass(int index, IModel<MammaBeoordeling> rowModel)
@@ -247,7 +263,7 @@ public abstract class AbstractMammaBeWerklijstPage extends AbstractMammaBePage
 			{
 				if (heeftHandtekeningVoorScreenen)
 				{
-					openBeoordelingScherm(target, model, zoekForm.getModel(), onderzoekDataProvider.getSort());
+					openBeoordelingScherm(target, model, zoekForm.getModel(), beoordelingenDataProvider.getSort());
 				}
 				else
 				{
@@ -263,11 +279,17 @@ public abstract class AbstractMammaBeWerklijstPage extends AbstractMammaBePage
 			@Override
 			public Panel getCustomPanel(String id)
 			{
-				IModel<Integer> beoordeeldModel = () -> beoordelingService.getAantalBeoordeeld(zoekForm.getModel().getObject());
+				IModel<Integer> beoordeeldModel = () -> beWerklijstService.getAantalBeoordeeld(zoekForm.getModel().getObject());
 				IModel<Integer> teBeoordelenModel = () -> (int) getItemCount() - beoordeeldModel.getObject();
 				return new MammaBeTabelCounterPanel(id, teBeoordelenModel, beoordeeldModel);
 			}
 		};
+	}
+
+	private static String persoonSortProperty()
+	{
+		return propertyChain(MammaOnderzoek_.AFSPRAAK, MammaAfspraak_.UITNODIGING, MammaUitnodiging_.SCREENING_RONDE,
+			MammaScreeningRonde_.DOSSIER, MammaDossier_.CLIENT, Client_.PERSOON);
 	}
 
 	private Component createLezingenBevestigenButton()
@@ -277,7 +299,7 @@ public abstract class AbstractMammaBeWerklijstPage extends AbstractMammaBePage
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				beoordelingService.bevestig1eEn2eLezingen(ScreenitSession.get().getLoggedInInstellingGebruiker());
+				beWerklijstService.bevestig1eEn2eLezingen(ScreenitSession.get().getLoggedInInstellingGebruiker());
 				resetZoekObject();
 				target.add(refreshContainer, zoekForm);
 			}
@@ -339,7 +361,7 @@ public abstract class AbstractMammaBeWerklijstPage extends AbstractMammaBePage
 
 	private List<MammaScreeningsEenheid> getMogelijkeScreeningsEenheden()
 	{
-		return beoordelingService.zoekScreeningsEenhedenMetBeWerklijstBeoordeling(ScreenitSession.get().getLoggedInInstellingGebruiker(), getBeschikbarePaginaStatussen());
+		return beWerklijstService.zoekScreeningsEenhedenMetBeWerklijstBeoordeling(ScreenitSession.get().getLoggedInInstellingGebruiker(), getBeschikbarePaginaStatussen());
 	}
 
 	private void resetSeKeuzelijst()

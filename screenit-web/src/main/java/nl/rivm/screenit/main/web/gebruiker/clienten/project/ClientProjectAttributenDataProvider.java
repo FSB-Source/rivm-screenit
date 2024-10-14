@@ -23,8 +23,8 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.project;
 
 import java.util.Iterator;
 
-import nl.rivm.screenit.dao.ProjectDao;
-import nl.rivm.screenit.model.SortState;
+import nl.rivm.screenit.main.service.algemeen.ProjectService;
+import nl.rivm.screenit.main.util.WicketSpringDataUtil;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectClientAttribuut;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -35,30 +35,33 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import static nl.rivm.screenit.model.project.ProjectAttribuut_.NAAM;
+import static nl.rivm.screenit.model.project.ProjectClientAttribuut_.ATTRIBUUT;
+
 public class ClientProjectAttributenDataProvider extends SortableDataProvider<ProjectClientAttribuut, String>
 {
-	private IModel<ProjectClient> filterModel;
+	private final IModel<ProjectClient> filterModel;
 
 	@SpringBean
-	private ProjectDao projectDao;
+	private ProjectService projectService;
 
 	public ClientProjectAttributenDataProvider(IModel<ProjectClient> filterModel)
 	{
 		Injector.get().inject(this);
 		this.filterModel = filterModel;
-		setSort("attribuut.naam", SortOrder.ASCENDING);
+		setSort(ATTRIBUUT + "." + NAAM, SortOrder.ASCENDING);
 	}
 
 	@Override
 	public Iterator<? extends ProjectClientAttribuut> iterator(long first, long count)
 	{
-		return projectDao.getAttributenVoorProjectClient(ModelUtil.nullSafeGet(filterModel), first, count, new SortState<>(getSort().getProperty(), getSort().isAscending()));
+		return projectService.getAttributenVoorProjectClient(ModelUtil.nullSafeGet(filterModel), first, count, WicketSpringDataUtil.toSpringSort(getSort())).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return projectDao.getAantalAttributenVoorProjectClient(ModelUtil.nullSafeGet(filterModel));
+		return projectService.getAantalAttributenVoorProjectClient(ModelUtil.nullSafeGet(filterModel));
 	}
 
 	@Override

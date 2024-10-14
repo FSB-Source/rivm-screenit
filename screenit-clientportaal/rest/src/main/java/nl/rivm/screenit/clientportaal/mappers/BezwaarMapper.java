@@ -38,7 +38,8 @@ public interface BezwaarMapper
 	List<BezwaarDto> bezwarenToDtos(List<BezwaarViewWrapper> bezwaren);
 
 	@Mappings({
-		@Mapping(source = "actief", target = "active")
+		@Mapping(source = "actief", target = "active"),
+		@Mapping(source = "bevolkingsonderzoek", target = "bevolkingsonderzoek")
 	})
 	BezwaarDto bezwaarToDto(BezwaarViewWrapper bezwaar);
 

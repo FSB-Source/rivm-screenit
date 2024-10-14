@@ -25,7 +25,7 @@ import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 
 import org.hibernate.Criteria;
@@ -48,8 +48,8 @@ public class OverledenReader extends BaseScrollableResultReader
 		crit.createAlias("client", "client");
 		crit.createAlias("client.persoon", "persoon");
 
-		crit.add(Restrictions.eq("status", AfspraakStatus.GEPLAND));
-		crit.add(Restrictions.ge("startTime", currentDateDispatcher.getDate()));
+		crit.add(Restrictions.eq("status", ColonAfspraakStatus.GEPLAND));
+		crit.add(Restrictions.ge("vanaf", currentDateDispatcher.getLocalDateTime()));
 		crit.add(Restrictions.isNotNull("persoon.overlijdensdatum"));
 
 		return crit;

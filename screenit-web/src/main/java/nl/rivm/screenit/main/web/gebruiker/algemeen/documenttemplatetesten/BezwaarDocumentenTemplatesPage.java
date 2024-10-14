@@ -41,7 +41,10 @@ import nl.rivm.screenit.model.enums.MergeFieldTestType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.BezwaarService;
 
+import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.RadioChoice;
+import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
 
@@ -63,10 +66,7 @@ public class BezwaarDocumentenTemplatesPage extends BaseDocumentTemplateTestenPa
 	@Override
 	protected List<BriefType> getVisibleBriefTypes()
 	{
-		List<BriefType> briefTypes = new ArrayList<>();
-		briefTypes.add(BriefType.CLIENT_BEZWAAR_AANVRAAG);
-		briefTypes.add(BriefType.CLIENT_BEZWAAR_BEVESTIGING);
-		briefTypes.add(BriefType.CLIENT_BEZWAAR_HANDTEKENING);
+		List<BriefType> briefTypes = BriefType.CLIENT_BEZWAAR_BRIEVEN;
 		if (mergeFieldModel.getObject() != null)
 		{
 			briefTypes = zichtbareBriefTypesMetMergeField(briefTypes, mergeFieldModel.getObject());
@@ -80,6 +80,22 @@ public class BezwaarDocumentenTemplatesPage extends BaseDocumentTemplateTestenPa
 		var moment = new BezwaarMoment();
 		wrappers = bezwaarService.getEditBezwaarGroupViewWrappers(null, moment);
 		form.add(new BezwaarEditPanel("bezwaarAanpassenPanel", wrappers, true));
+
+		var zonderHandtekeningRadioChoice = new RadioChoice<>("zonderHandtekening", zonderHandtekeningModel,
+			new ListModel<>(Arrays.asList(Boolean.FALSE, Boolean.TRUE)),
+			new ChoiceRenderer<>()
+			{
+				@Override
+				public Object getDisplayValue(Boolean object)
+				{
+					return Boolean.TRUE.equals(object) ? "Zonder handtekening" : "Met handtekening";
+				}
+			}
+		);
+		zonderHandtekeningRadioChoice.setPrefix("<label class=\"radio\">");
+		zonderHandtekeningRadioChoice.setSuffix("</label>");
+		zonderHandtekeningRadioChoice.setOutputMarkupId(true);
+		form.add(zonderHandtekeningRadioChoice);
 	}
 
 	@Override
@@ -100,7 +116,7 @@ public class BezwaarDocumentenTemplatesPage extends BaseDocumentTemplateTestenPa
 	@Override
 	protected Document proccesDocument(MailMergeContext context, File briefTemplate) throws Exception
 	{
-		var creator = new BezwaarDocumentCreatorOneDatasetCoupleTables(wrappers);
+		var creator = new BezwaarDocumentCreatorOneDatasetCoupleTables(wrappers, getSelectedType());
 		return asposeService.processDocumentWithCreator(context, briefTemplate, creator, true);
 	}
 }

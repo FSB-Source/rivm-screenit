@@ -24,50 +24,44 @@ package nl.rivm.screenit.util;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-
-import nl.rivm.screenit.model.colon.planning.RoosterItem;
+import nl.rivm.screenit.model.OrganisatieParameterKey;
+import nl.rivm.screenit.model.colon.planning.ColonAfspraakslot;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.wicket.planning.model.appointment.recurrence.AbstractRecurrence;
-import nl.topicuszorg.wicket.planning.model.appointment.recurrence.NoRecurrence;
 
-import org.hibernate.Hibernate;
 import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class RoosterSplitter
+@Component
+public class RoosterSplitter
 {
+	@Autowired
+	private OrganisatieParameterService organisatieParameterService;
 
-	public static void splitRoosterBlok(Object session, RoosterItem unsavedObject)
+	public void splitAfspraakslot(Object session, ColonAfspraakslot unsavedObject)
 	{
-		var startDate = DateUtil.toLocalDateTime(unsavedObject.getStartTime());
-		int diffStartEndMinutes = Math.abs(DateUtil.getPeriodeTussenTweeDatums(startDate, DateUtil.toLocalDateTime(unsavedObject.getEndTime()), ChronoUnit.MINUTES));
+		var startDate = unsavedObject.getVanaf();
+		int diffStartEndMinutes = Math.abs(DateUtil.getPeriodeTussenTweeDatums(startDate, unsavedObject.getTot(), ChronoUnit.MINUTES));
 
-		Integer duurAfspraakInMinuten = unsavedObject.getLocation().getColoscopieCentrum().getAfspraakDefinities().get(0).getDuurAfspraakInMinuten();
+		var duurAfspraakInMinuten = organisatieParameterService.getOrganisatieParameter(unsavedObject.getKamer().getIntakelocatie(),
+			OrganisatieParameterKey.COLON_DUUR_AFSPRAAK_IN_MINUTEN, 15);
 		int berekendAantalBlokken = diffStartEndMinutes / duurAfspraakInMinuten;
-		LocalDateTime endTime;
+		LocalDateTime tot;
 		for (int i = 0; i < berekendAantalBlokken; i++)
 		{
-			RoosterItem splittedRoosterBlok = unsavedObject.transientClone();
-			AbstractRecurrence recurrence = unsavedObject.getRecurrence();
-			if (recurrence != null && !NoRecurrence.class.isAssignableFrom(Hibernate.getClass(recurrence)))
-			{
-				AbstractRecurrence clonedRecurrence = recurrence.transientClone();
-				clonedRecurrence.setFirstAppointment(splittedRoosterBlok);
-				splittedRoosterBlok.setRecurrence(clonedRecurrence);
-			}
-			splittedRoosterBlok.setStartTime(DateUtil.toUtilDate(startDate));
-			endTime = startDate.plusMinutes(duurAfspraakInMinuten);
-			splittedRoosterBlok.setEndTime(DateUtil.toUtilDate(endTime));
-			startDate = endTime;
+			ColonAfspraakslot splittedAfspraakslot = unsavedObject.transientClone();
+			splittedAfspraakslot.setVanaf(startDate);
+			tot = startDate.plusMinutes(duurAfspraakInMinuten);
+			splittedAfspraakslot.setTot(tot);
+			startDate = tot;
 			if (session instanceof Session)
 			{
-				((Session) session).saveOrUpdate(splittedRoosterBlok);
+				((Session) session).saveOrUpdate(splittedAfspraakslot);
 			}
 			else if (session instanceof HibernateService)
 			{
-				((HibernateService) session).saveOrUpdate(splittedRoosterBlok);
+				((HibernateService) session).saveOrUpdate(splittedAfspraakslot);
 			}
 		}
 	}

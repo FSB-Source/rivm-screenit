@@ -25,7 +25,7 @@ import java.util.Iterator;
 
 import nl.rivm.screenit.main.service.colon.ColonIntakeAfspraakService;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -45,9 +45,9 @@ public class ColonMissendeMdlVerslagenDataProvider extends SortableDataProvider<
 
 	private final int aantalPerPagina;
 
-	private final IModel<ColoscopieCentrum> intakeLocatie;
+	private final IModel<ColonIntakelocatie> intakeLocatie;
 
-	public ColonMissendeMdlVerslagenDataProvider(IModel<WerklijstIntakeFilter> zoekModel, ColoscopieCentrum intakeLocatie, int aantalPerPagina)
+	public ColonMissendeMdlVerslagenDataProvider(IModel<WerklijstIntakeFilter> zoekModel, ColonIntakelocatie intakeLocatie, int aantalPerPagina)
 	{
 		this.zoekModel = zoekModel;
 		this.intakeLocatie = ModelUtil.sModel(intakeLocatie);

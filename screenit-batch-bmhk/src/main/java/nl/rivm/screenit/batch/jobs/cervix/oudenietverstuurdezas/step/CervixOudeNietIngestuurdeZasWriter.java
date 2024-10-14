@@ -34,9 +34,9 @@ import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.model.project.GroepInvoer;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectGroep;
+import nl.rivm.screenit.service.BaseProjectService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
-import nl.rivm.screenit.service.ProjectService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -47,7 +47,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class CervixOudeNietIngestuurdeZasWriter extends BaseWriter<Client>
 {
-	private final ProjectService projectService;
+	private final BaseProjectService projectService;
 
 	private final HibernateService hibernateService;
 

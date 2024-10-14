@@ -25,7 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ConclusieTypeFilter;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -47,7 +47,7 @@ public class ColonOpenstaanteIntakesWerklijstPage extends WerklijstIntakePage
 	}
 
 	@Override
-	protected SortableDataProvider<ColonIntakeAfspraak, String> getWerklijstIntakeDataProvider(ColoscopieCentrum intakelocatie, int aantalPerPagina)
+	protected SortableDataProvider<ColonIntakeAfspraak, String> getWerklijstIntakeDataProvider(ColonIntakelocatie intakelocatie, int aantalPerPagina)
 	{
 		var werklijstIntakeDataProvider = super.getWerklijstIntakeDataProvider(intakelocatie, aantalPerPagina);
 		werklijstIntakeDataProvider.setSort("volgendeUitnodiging.peildatum", SortOrder.ASCENDING);

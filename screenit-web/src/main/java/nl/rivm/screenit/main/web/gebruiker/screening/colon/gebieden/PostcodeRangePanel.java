@@ -23,7 +23,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.gebieden;
  */
 
 import nl.rivm.screenit.model.PostcodeGebied;
-import nl.rivm.screenit.model.UitnodigingsGebied;
+import nl.rivm.screenit.model.colon.UitnodigingsGebied;
 import nl.rivm.screenit.service.colon.ColonUitnodigingsgebiedService;
 import nl.topicuszorg.wicket.input.converters.PostcodeConverter;
 import nl.topicuszorg.wicket.input.validator.PostcodeValidator;

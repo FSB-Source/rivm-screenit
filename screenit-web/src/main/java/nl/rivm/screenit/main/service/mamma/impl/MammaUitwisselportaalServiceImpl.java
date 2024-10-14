@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.main.dao.mamma.MammaUitwisselportaalDao;
 import nl.rivm.screenit.main.service.mamma.MammaUitwisselportaalService;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Instelling;
@@ -49,25 +48,34 @@ import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoek;
+import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoek_;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoekenVerzoek;
+import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoekenVerzoek_;
 import nl.rivm.screenit.model.mamma.MammaFollowUpRadiologieVerslag;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
+import nl.rivm.screenit.repository.mamma.MammaDownloadOnderzoekRepository;
 import nl.rivm.screenit.service.BerichtToBatchService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
+import nl.rivm.screenit.specification.mamma.MammaDownloadOnderzoekSpecification;
 import nl.rivm.screenit.util.BezwaarUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.organisatie.model.OrganisatieMedewerker_;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
 
 @Service
 @AllArgsConstructor
@@ -84,7 +92,9 @@ public class MammaUitwisselportaalServiceImpl implements MammaUitwisselportaalSe
 
 	private final UploadDocumentService uploadDocumentService;
 
-	private final MammaUitwisselportaalDao uitwisselportaalDao;
+	private final MammaDownloadOnderzoekenVerzoekenDataProviderServiceImpl downloadOnderzoekenVerzoekenDataProviderService;
+
+	private final MammaDownloadOnderzoekRepository downloadOnderzoekRepository;
 
 	private final LogService logService;
 
@@ -148,18 +158,6 @@ public class MammaUitwisselportaalServiceImpl implements MammaUitwisselportaalSe
 	}
 
 	@Override
-	public List<MammaDownloadOnderzoekenVerzoek> searchVerzoeken(MammaDownloadOnderzoekenVerzoek searchObject, long first, long count, String sortProperty, boolean asc)
-	{
-		return uitwisselportaalDao.searchVerzoeken(searchObject, first, count, sortProperty, asc);
-	}
-
-	@Override
-	public long countVerzoeken(MammaDownloadOnderzoekenVerzoek searchObject)
-	{
-		return uitwisselportaalDao.countVerzoeken(searchObject);
-	}
-
-	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void resetDownloadVerzoek(MammaDownloadOnderzoekenVerzoek verzoek)
 	{
@@ -189,7 +187,7 @@ public class MammaUitwisselportaalServiceImpl implements MammaUitwisselportaalSe
 		var verzoekFilter = maakDownloadVerzoekFilter(instellingGebruiker);
 		verzoekFilter.setId(downloadVerzoekId);
 
-		if (countVerzoeken(verzoekFilter) != 1)
+		if (downloadOnderzoekenVerzoekenDataProviderService.size(verzoekFilter) != 1)
 		{
 			return Optional.empty();
 		}
@@ -225,12 +223,6 @@ public class MammaUitwisselportaalServiceImpl implements MammaUitwisselportaalSe
 			return BezwaarUtil.isBezwaarActiefVoor(client, BezwaarType.GEEN_DIGITALE_UITWISSELING_MET_HET_ZIEKENHUIS, Bevolkingsonderzoek.MAMMA);
 		}
 		return false;
-	}
-
-	@Override
-	public List<MammaDownloadOnderzoekenVerzoek> getDownloadVerzoekenGedownload(MammaOnderzoek onderzoek)
-	{
-		return uitwisselportaalDao.getDownloadVerzoekenGedownload(onderzoek);
 	}
 
 	@Override
@@ -271,7 +263,16 @@ public class MammaUitwisselportaalServiceImpl implements MammaUitwisselportaalSe
 	@Override
 	public Instelling getLaatstGedownloadDoorInstelling(MammaDossier dossier)
 	{
-		return uitwisselportaalDao.getLaatstGedownloadDoorInstelling(dossier);
+		return downloadOnderzoekRepository.findWith(MammaDownloadOnderzoekSpecification.isGedownload().and(MammaDownloadOnderzoekSpecification.heeftDossier(dossier))
+				.and(MammaDownloadOnderzoekSpecification.isGemaaktDoorActieveInstelling()), Instelling.class,
+			q -> q.projection((cb, r) ->
+				{
+					var verzoekJoin = join(r, MammaDownloadOnderzoek_.verzoek);
+					var aangemaaktDoorJoin = join(verzoekJoin, MammaDownloadOnderzoekenVerzoek_.aangemaaktDoor);
+					return aangemaaktDoorJoin.get(OrganisatieMedewerker_.organisatie);
+				})
+				.sortBy(Sort.by(Sort.Order.desc(propertyChain(MammaDownloadOnderzoek_.VERZOEK, MammaDownloadOnderzoekenVerzoek_.GEDOWNLOAD_OP))))
+				.first().orElse(null));
 	}
 
 	@Override
@@ -291,5 +292,4 @@ public class MammaUitwisselportaalServiceImpl implements MammaUitwisselportaalSe
 			MammaMammografieIlmStatus.beeldenBeschikbaar(laatsteOnderzoek.getMammografie().getIlmStatus()) &&
 			Arrays.asList(MammaBeoordelingStatus.UITSLAG_ONGUNSTIG, MammaBeoordelingStatus.UITSLAG_GUNSTIG).contains(laatsteOnderzoek.getLaatsteBeoordeling().getStatus());
 	}
-
 }

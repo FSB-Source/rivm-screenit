@@ -51,9 +51,9 @@ public class ColonFeestdagSpecification
 		return ((r, q, cb) -> cb.greaterThanOrEqualTo(r.get(ColonFeestdag_.datum), datum));
 	}
 
-	public static Specification<ColonFeestdag> heeftDatumInRange(LocalDate startDatum, LocalDate eindDatum)
+	public static Specification<ColonFeestdag> heeftDatumInRange(LocalDate vanaf, LocalDate totEnMet)
 	{
-		var range = Range.closed(startDatum, eindDatum);
+		var range = Range.closed(vanaf, totEnMet);
 		return RangeSpecification.bevat(range, r -> r.get(ColonFeestdag_.datum));
 	}
 

@@ -52,14 +52,17 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import static nl.rivm.screenit.model.UploadDocument_.NAAM;
+import static nl.rivm.screenit.model.project.ProjectBestand_.ATTRIBUTEN;
+import static nl.rivm.screenit.model.project.ProjectBestand_.TYPE;
+import static nl.rivm.screenit.model.project.ProjectBestand_.UPLOAD_DATUM;
+import static nl.rivm.screenit.model.project.ProjectBestand_.UPLOAD_DOCUMENT;
+
 public class ProjectBestandenOverzicht extends ProjectBasePage
 {
+	private final WebMarkupContainer bestandenContainer;
 
-	private static final long serialVersionUID = 1L;
-
-	private WebMarkupContainer bestandenContainer;
-
-	private IModel<ProjectBestand> filterModel;
+	private final IModel<ProjectBestand> filterModel;
 
 	public ProjectBestandenOverzicht(IModel<Project> model)
 	{
@@ -82,12 +85,10 @@ public class ProjectBestandenOverzicht extends ProjectBasePage
 		SimpleDateFormat format = Constants.getDateTimeSecondsFormat();
 
 		List<IColumn<ProjectBestand, String>> columns = new ArrayList<IColumn<ProjectBestand, String>>();
-		columns.add(new PropertyColumn<>(Model.of("Naam"), "uploadDocument.naam", "uploadDocument.naam"));
-		columns.add(new EnumPropertyColumn<ProjectBestand, String, ProjectBestandType>(Model.of("Type"), "type", "type"));
+		columns.add(new PropertyColumn<>(Model.of("Naam"), UPLOAD_DOCUMENT + "." + NAAM, UPLOAD_DOCUMENT + "." + NAAM));
+		columns.add(new EnumPropertyColumn<ProjectBestand, String, ProjectBestandType>(Model.of("Type"), TYPE, TYPE));
 		columns.add(new AbstractColumn<>(Model.of("Toepassen op"))
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void populateItem(Item<ICellPopulator<ProjectBestand>> cellItem, String componentId, IModel<ProjectBestand> rowModel)
@@ -104,8 +105,8 @@ public class ProjectBestandenOverzicht extends ProjectBasePage
 		Map<Boolean, String> presentatie = new HashMap<>();
 		presentatie.put(Boolean.TRUE, "Ja");
 		presentatie.put(Boolean.FALSE, "Nee");
-		columns.add(new BooleanStringPropertyColumn<>(Model.of("Attributen"), presentatie, "attributen"));
-		columns.add(new DateTimePropertyColumn<>(Model.of("Uploaddatum"), "uploadDatum", "uploadDatum", format));
+		columns.add(new BooleanStringPropertyColumn<>(Model.of("Attributen"), presentatie, ATTRIBUTEN));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Uploaddatum"), UPLOAD_DATUM, UPLOAD_DATUM, format));
 		columns.add(new AbstractColumn<>(Model.of("Regels mislukt"))
 		{
 			@Override

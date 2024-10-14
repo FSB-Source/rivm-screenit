@@ -24,8 +24,8 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.route;
 import java.util.ArrayList;
 import java.util.List;
 
-import nl.rivm.screenit.main.dao.mamma.MammaScreeningsEenheidDao;
 import nl.rivm.screenit.main.service.mamma.MammaRouteService;
+import nl.rivm.screenit.main.service.mamma.MammaScreeningsEenheidService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
@@ -104,14 +104,14 @@ public class MammaRoutePage extends MammaPlanningBasePage
 	private MammaRouteService mammaRouteService;
 
 	@SpringBean
-	private MammaScreeningsEenheidDao screeningsEenheidDao;
+	private MammaScreeningsEenheidService screeningsEenheidService;
 
 	public MammaRoutePage(MammaScreeningsEenheid screeningsEenheidInit)
 	{
 		ScreeningOrganisatie sessionSO = ScreenitSession.get().getScreeningOrganisatie();
 
 		this.screeningsEenheidModel1 = ModelUtil.cModel(screeningsEenheidInit);
-		List<MammaScreeningsEenheid> actieveScreeningsEenheden = screeningsEenheidDao.getActieveScreeningsEenhedenVoorScreeningOrganisatie(sessionSO);
+		List<MammaScreeningsEenheid> actieveScreeningsEenheden = screeningsEenheidService.getActieveScreeningsEenhedenVoorScreeningOrganisatie(sessionSO);
 		this.screeningsEenhedenModel1 = ModelUtil.listModel(actieveScreeningsEenheden);
 
 		addSEDropdown1();
@@ -158,7 +158,7 @@ public class MammaRoutePage extends MammaPlanningBasePage
 			protected void onUpdate(AjaxRequestTarget target)
 			{
 				ScreeningOrganisatie sessionSO = ScreenitSession.get().getScreeningOrganisatie();
-				List<MammaScreeningsEenheid> screeningsEenheidList2 = screeningsEenheidDao.getActieveScreeningsEenhedenVoorScreeningOrganisatie(sessionSO);
+				List<MammaScreeningsEenheid> screeningsEenheidList2 = screeningsEenheidService.getActieveScreeningsEenhedenVoorScreeningOrganisatie(sessionSO);
 				screeningsEenheidList2.remove(screeningsEenheidModel1.getObject());
 				screeningsEenhedenModel2.setObject(screeningsEenheidList2);
 				target.add(screeningsEenheid2Container);
@@ -180,7 +180,7 @@ public class MammaRoutePage extends MammaPlanningBasePage
 			if (!beoordelingsEenheid1.equals(beoordelingsEenheid2))
 			{
 				warn(String.format("Let op: '%s' behoort to beoordelingseenheid '%s' en '%s' tot beoordelingseenheid '%s'. " +
-					"Wisselen van standplaatsen betekend een verschuiving van aantallen cliënten naar een andere beoordelingseenheid, mogelijk is dat niet gewenst.",
+						"Wisselen van standplaatsen betekend een verschuiving van aantallen cliënten naar een andere beoordelingseenheid, mogelijk is dat niet gewenst.",
 					screeningsEenheid1.getNaam(), beoordelingsEenheid1.getNaam(), screeningsEenheid2.getNaam(), beoordelingsEenheid2.getNaam()));
 			}
 		}
@@ -205,7 +205,7 @@ public class MammaRoutePage extends MammaPlanningBasePage
 			protected void onUpdate(AjaxRequestTarget target)
 			{
 				ScreeningOrganisatie sessionSO = ScreenitSession.get().getScreeningOrganisatie();
-				List<MammaScreeningsEenheid> screeningsEenheidList1 = screeningsEenheidDao.getActieveScreeningsEenhedenVoorScreeningOrganisatie(sessionSO);
+				List<MammaScreeningsEenheid> screeningsEenheidList1 = screeningsEenheidService.getActieveScreeningsEenhedenVoorScreeningOrganisatie(sessionSO);
 				screeningsEenheidList1.remove(screeningsEenheidModel2.getObject());
 				screeningsEenhedenModel1.setObject(screeningsEenheidList1);
 				target.add(screeningsEenheid1Container);

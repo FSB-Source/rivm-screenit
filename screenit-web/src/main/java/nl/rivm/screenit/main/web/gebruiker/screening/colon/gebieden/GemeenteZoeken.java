@@ -36,13 +36,14 @@ import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.OrganisatieType;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
 import nl.rivm.screenit.service.OrganisatieZoekService;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
+import nl.topicuszorg.organisatie.model.Organisatie_;
 import nl.topicuszorg.wicket.hibernate.SimpleHibernateModel;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -66,6 +67,9 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
 
+import static nl.rivm.screenit.model.Gemeente_.CODE;
+import static nl.rivm.screenit.model.Gemeente_.NAAM;
+
 @SecurityConstraint(
 	actie = Actie.INZIEN,
 	constraint = ShiroConstraint.HasPermission,
@@ -84,7 +88,7 @@ public class GemeenteZoeken extends GebiedenBeheerPage
 	@SpringBean
 	private OrganisatieZoekService organisatieZoekService;
 
-	private IModel<ColoscopieCentrum> selectedIntakelocatie = new SimpleHibernateModel<>();
+	private IModel<ColonIntakelocatie> selectedIntakelocatie = new SimpleHibernateModel<>();
 
 	public GemeenteZoeken()
 	{
@@ -109,8 +113,8 @@ public class GemeenteZoeken extends GebiedenBeheerPage
 			criteriaModel = ModelUtil.cModel(zoekObject);
 		}
 		List<IColumn<Gemeente, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<Gemeente, String>(Model.of("Naam gemeente"), "naam", "naam"));
-		columns.add(new PropertyColumn<Gemeente, String>(Model.of("Code"), "code", "code"));
+		columns.add(new PropertyColumn<Gemeente, String>(Model.of("Naam gemeente"), NAAM, NAAM));
+		columns.add(new PropertyColumn<Gemeente, String>(Model.of("Code"), CODE, CODE));
 		columns.add(new AbstractColumn<Gemeente, String>(Model.of("Aantal gebieden"))
 		{
 
@@ -124,10 +128,9 @@ public class GemeenteZoeken extends GebiedenBeheerPage
 			}
 		});
 
-		ScreenitDataTable<Gemeente, String> gemeentes = new ScreenitDataTable<Gemeente, String>("gemeentes", columns, new GemeenteDataProvider(criteriaModel, "naam"), 10,
+		ScreenitDataTable<Gemeente, String> gemeentes = new ScreenitDataTable<Gemeente, String>("gemeentes", columns, new GemeenteDataProvider(criteriaModel, NAAM), 10,
 			new Model<>("gemeentes"))
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -148,7 +151,6 @@ public class GemeenteZoeken extends GebiedenBeheerPage
 
 		AjaxSubmitLink submitLink = new AjaxSubmitLink("zoeken", zoekForm)
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -167,26 +169,25 @@ public class GemeenteZoeken extends GebiedenBeheerPage
 
 	private void intakelocatieForm()
 	{
-		Form<ColoscopieCentrum> form = new ScreenitForm<>("intakelocatieForm");
+		Form<ColonIntakelocatie> form = new ScreenitForm<>("intakelocatieForm");
 		add(form);
-		Iterator<Instelling> searchOrganisatie = organisatieZoekService.searchOrganisatie(new Instelling(), Arrays.asList(OrganisatieType.COLOSCOPIECENTRUM), null,
-			ScreenitSession.get().getLoggedInInstellingGebruiker(), -1, -1, "naam", true);
-		List<ColoscopieCentrum> intakelocaties = new ArrayList<>();
+		Iterator<Instelling> searchOrganisatie = organisatieZoekService.searchOrganisatie(new Instelling(), Arrays.asList(OrganisatieType.INTAKELOCATIE), null,
+			ScreenitSession.get().getLoggedInInstellingGebruiker(), -1, -1, Organisatie_.NAAM, true);
+		List<ColonIntakelocatie> intakelocaties = new ArrayList<>();
 		while (searchOrganisatie.hasNext())
 		{
-			intakelocaties.add((ColoscopieCentrum) HibernateHelper.deproxy(searchOrganisatie.next()));
+			intakelocaties.add((ColonIntakelocatie) HibernateHelper.deproxy(searchOrganisatie.next()));
 		}
-		IModel<List<ColoscopieCentrum>> values = ModelUtil.listRModel(intakelocaties, false);
-		ScreenitDropdown<ColoscopieCentrum> intakelocatieSelect = new ScreenitDropdown<>("intakelocatie", new PropertyModel<ColoscopieCentrum>(this, "selectedIntakelocatie"),
+		IModel<List<ColonIntakelocatie>> values = ModelUtil.listRModel(intakelocaties, false);
+		ScreenitDropdown<ColonIntakelocatie> intakelocatieSelect = new ScreenitDropdown<>("intakelocatie", new PropertyModel<ColonIntakelocatie>(this, "selectedIntakelocatie"),
 			values);
 
-		intakelocatieSelect.setChoiceRenderer(new ChoiceRenderer<ColoscopieCentrum>("naam"));
+		intakelocatieSelect.setChoiceRenderer(new ChoiceRenderer<ColonIntakelocatie>("naam"));
 		intakelocatieSelect.setRequired(true);
 		form.add(intakelocatieSelect);
 
 		form.add(new IndicatingAjaxButton("verder")
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -197,12 +198,12 @@ public class GemeenteZoeken extends GebiedenBeheerPage
 		});
 	}
 
-	public ColoscopieCentrum getSelectedIntakelocatie()
+	public ColonIntakelocatie getSelectedIntakelocatie()
 	{
 		return ModelUtil.nullSafeGet(selectedIntakelocatie);
 	}
 
-	public void setSelectedIntakelocatie(ColoscopieCentrum selectedIntakelocatie)
+	public void setSelectedIntakelocatie(ColonIntakelocatie selectedIntakelocatie)
 	{
 		this.selectedIntakelocatie = ModelUtil.nullSafeSet(selectedIntakelocatie);
 	}

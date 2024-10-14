@@ -38,10 +38,9 @@ import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.ZorgInstelling;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ColoscopieCentrumWrapper;
 import nl.rivm.screenit.model.colon.ColoscopieCentrumZoekCriteria;
-import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.PaLaboratorium;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.ToegangLevel;
@@ -123,7 +122,7 @@ public class OrganisatieZoekServiceImpl implements OrganisatieZoekService
 		{
 		case BMHK_LABORATORIUM:
 		case ZORGINSTELLING:
-		case COLOSCOPIECENTRUM:
+		case INTAKELOCATIE:
 		case COLOSCOPIELOCATIE:
 		case PA_LABORATORIUM:
 			switch (toegangLevel)
@@ -190,7 +189,7 @@ public class OrganisatieZoekServiceImpl implements OrganisatieZoekService
 	public List<ColoscopieCentrumWrapper> zoekIntakeLocaties(ColoscopieCentrumZoekCriteria zoekObject, Client client, boolean alleenActiefKamers)
 	{
 		Map<OrganisatieType, List<Instelling>> types = new HashMap<>();
-		types.put(OrganisatieType.COLOSCOPIECENTRUM, new ArrayList<Instelling>());
+		types.put(OrganisatieType.INTAKELOCATIE, new ArrayList<Instelling>());
 
 		Instelling searchObject = new Instelling();
 		searchObject.setNaam(zoekObject.getNaam());
@@ -203,11 +202,11 @@ public class OrganisatieZoekServiceImpl implements OrganisatieZoekService
 
 		while (organisatie.hasNext())
 		{
-			ColoscopieCentrum instelling = (ColoscopieCentrum) organisatie.next();
+			ColonIntakelocatie instelling = (ColonIntakelocatie) organisatie.next();
 			if (alleenActiefKamers)
 			{
 				boolean alleKamersInactief = true;
-				for (Kamer kamer : instelling.getKamers())
+				for (var kamer : instelling.getKamers())
 				{
 					if (kamer.getActief())
 					{
@@ -274,7 +273,7 @@ public class OrganisatieZoekServiceImpl implements OrganisatieZoekService
 			break;
 		case MAMMAPOLI:
 		case RADIOLOGIEAFDELING:
-		case COLOSCOPIECENTRUM:
+		case INTAKELOCATIE:
 		case COLOSCOPIELOCATIE:
 			filter = ZorgInstelling.class;
 			break;

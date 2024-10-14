@@ -21,6 +21,7 @@ package nl.rivm.screenit.mamma.se.service;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -53,11 +54,11 @@ public interface OnderzoekService
 
 	Map<Long, Integer> getAfwijkingenByGebruikerOpDatumVoorSe(Date datum, String seCode);
 
-	int getAantalOnderzoekenMetBeelden(Date datum, String seCode);
+	int getAantalOnderzoekenMetBeelden(LocalDate datum, String seCode);
 
-	int getAantalOnderzoekenMetBeeldenBeschikbaarInIms(Date datum, String seCode);
+	int getAantalOnderzoekenMetBeeldenBeschikbaarInIms(LocalDate datum, String seCode);
 
-	int getAantalDoorgevoerdVanDag(Date datum, String seCode);
+	int getAantalDoorgevoerdVanDag(LocalDate datum, String seCode);
 
 	List<ZorginstellingDto> getBKZorginstellingen();
 }

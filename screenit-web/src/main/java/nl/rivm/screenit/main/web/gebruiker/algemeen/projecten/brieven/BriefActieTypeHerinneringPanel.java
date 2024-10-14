@@ -22,7 +22,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.brieven;
  */
 
 import nl.rivm.screenit.model.project.ProjectBriefActie;
-import nl.rivm.screenit.service.ProjectService;
+import nl.rivm.screenit.service.BaseProjectService;
 
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
@@ -34,7 +34,7 @@ public class BriefActieTypeHerinneringPanel extends GenericPanel<ProjectBriefAct
 	private static final long serialVersionUID = 1L;
 
 	@SpringBean
-	private ProjectService projectService;
+	private BaseProjectService projectService;
 
 	public BriefActieTypeHerinneringPanel(String id, IModel<ProjectBriefActie> model)
 	{

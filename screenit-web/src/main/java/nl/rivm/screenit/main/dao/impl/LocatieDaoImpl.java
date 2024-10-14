@@ -25,7 +25,7 @@ package nl.rivm.screenit.main.dao.impl;
 import java.util.List;
 
 import nl.rivm.screenit.main.dao.LocatieDao;
-import nl.rivm.screenit.model.colon.Kamer;
+import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
 import nl.topicuszorg.hibernate.criteria.BaseCriteria;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
@@ -39,9 +39,9 @@ public class LocatieDaoImpl extends AbstractAutowiredDao implements LocatieDao
 {
 
 	@Override
-	public List<Kamer> getKamers(int first, int count, SortParam<String> sort)
+	public List<ColonIntakekamer> getKamers(int first, int count, SortParam<String> sort)
 	{
-		BaseCriteria<Kamer> criteria = new BaseCriteria<Kamer>(Kamer.class);
+		BaseCriteria<ColonIntakekamer> criteria = new BaseCriteria<>(ColonIntakekamer.class);
 		criteria.add(Restrictions.eq("actief", Boolean.TRUE));
 		criteria.createAlias("locatie", "locatie");
 		if (sort == null)

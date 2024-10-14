@@ -55,7 +55,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.batch.service.VerwerkCdaBerichtContentService;
-import nl.rivm.screenit.dao.VerslagDao;
 import nl.rivm.screenit.hl7v3.cda.helper.CDAHelper;
 import nl.rivm.screenit.model.berichten.Verslag;
 import nl.rivm.screenit.model.berichten.VerslagProjectVersionMapping;
@@ -69,6 +68,7 @@ import nl.rivm.screenit.model.verslag.NullFlavourQuantity;
 import nl.rivm.screenit.model.verslag.Quantity;
 import nl.rivm.screenit.model.verslag.VerslagContent;
 import nl.rivm.screenit.model.verslag.VraagElement;
+import nl.rivm.screenit.service.BaseVerslagService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.object.model.HibernateObject;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -99,14 +99,15 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 	private static final Map<String, String> CONCEPT_MAPPING = new HashMap<>();
 
 	@Autowired
-	private VerslagDao verslagDao;
+	private BaseVerslagService verslagService;
 
 	@Autowired
 	private HibernateService hibernateService;
 
 	private static class ConceptExceptionContext
 	{
-		private final VerslagDao verslagDao;
+
+		private final BaseVerslagService verslagService;
 
 		private final XPath xpath;
 
@@ -116,9 +117,9 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 
 		private final String xpathValue;
 
-		private ConceptExceptionContext(VerslagDao verslagDao, Field field, XPath xpath, Node node, String xpathValue)
+		private ConceptExceptionContext(BaseVerslagService verslagService, Field field, XPath xpath, Node node, String xpathValue)
 		{
-			this.verslagDao = verslagDao;
+			this.verslagService = verslagService;
 			this.field = field;
 			this.xpath = xpath;
 			this.node = node;
@@ -269,7 +270,7 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 						dsZoekObject.setCode(dsValueCode);
 						dsZoekObject.setCodeSystem(context.xpath.compile("@codeSystem").evaluate(dsValueNode));
 						dsZoekObject.setValueSetName(dsValueSet.name());
-						dsValue = (DSValue) zoekDsValue(context.xpath, dsValueNode, dsZoekObject, context.verslagDao);
+						dsValue = (DSValue) zoekDsValue(context.xpath, dsValueNode, dsZoekObject, context.verslagService);
 					}
 					return dsValue;
 				}
@@ -677,7 +678,7 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 			ConceptExceptionHandler handler = ConceptExceptionHandler.convertFromCode(vraagElement.code(), verslagType);
 			if (handler != null)
 			{
-				returnValue = handler.getValue(new ConceptExceptionContext(verslagDao, declaredField, xpath, node, xpathValue));
+				returnValue = handler.getValue(new ConceptExceptionContext(verslagService, declaredField, xpath, node, xpathValue));
 			}
 			else
 			{
@@ -694,7 +695,7 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 			ConceptExceptionHandler handler = ConceptExceptionHandler.convertFromCode(vraagElement.code(), verslagType);
 			if (handler != null)
 			{
-				returnValue = handler.getValue(new ConceptExceptionContext(verslagDao, declaredField, xpath, node, ""));
+				returnValue = handler.getValue(new ConceptExceptionContext(verslagService, declaredField, xpath, node, ""));
 			}
 			else
 			{
@@ -795,7 +796,7 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 
 			dsZoekObjectCorrectie(declaredField, verslagType, dsZoekObject);
 
-			returnValue = zoekDsValue(xpath, dsNode, dsZoekObject, verslagDao);
+			returnValue = zoekDsValue(xpath, dsNode, dsZoekObject, verslagService);
 		}
 		else if (type.equals(List.class))
 		{
@@ -820,21 +821,21 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 		return returnValue;
 	}
 
-	private static Object zoekDsValue(XPath xpath, Node node, DSValue zoekValue, VerslagDao verslagDao) throws XPathExpressionException
+	private static Object zoekDsValue(XPath xpath, Node node, DSValue zoekValue, BaseVerslagService verslagService) throws XPathExpressionException
 	{
 		DSValue returnValue = null;
-		returnValue = verslagDao.getDsValue(zoekValue.getCode(), zoekValue.getCodeSystem(), zoekValue.getValueSetName());
+		returnValue = verslagService.getDsValue(zoekValue.getCode(), zoekValue.getCodeSystem(), zoekValue.getValueSetName());
 		if (returnValue == null)
 		{
 			zoekValue.setCode(xpath.compile("@nullFlavor").evaluate(node));
 			if ("OTH".equals(zoekValue.getCode()) || "UNK".equals(zoekValue.getCode()) || "ASKU".equals(zoekValue.getCode()))
 			{
 				zoekValue.setCodeSystem("2.16.840.1.113883.5.1008");
-				returnValue = verslagDao.getDsValue(zoekValue.getCode(), zoekValue.getCodeSystem(), zoekValue.getValueSetName());
+				returnValue = verslagService.getDsValue(zoekValue.getCode(), zoekValue.getCodeSystem(), zoekValue.getValueSetName());
 				if (returnValue == null)
 				{
 					zoekValue.setValueSetName(Constants.CDA_NULL_FLAVOR_VALUESET_NAME);
-					returnValue = verslagDao.getDsValue(zoekValue.getCode(), zoekValue.getCodeSystem(), zoekValue.getValueSetName());
+					returnValue = verslagService.getDsValue(zoekValue.getCode(), zoekValue.getCodeSystem(), zoekValue.getValueSetName());
 				}
 			}
 		}

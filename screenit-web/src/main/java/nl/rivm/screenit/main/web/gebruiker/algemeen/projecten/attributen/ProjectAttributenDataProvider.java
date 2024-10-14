@@ -23,8 +23,8 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.attributen;
 
 import java.util.Iterator;
 
-import nl.rivm.screenit.dao.ProjectDao;
-import nl.rivm.screenit.model.SortState;
+import nl.rivm.screenit.main.service.algemeen.ProjectService;
+import nl.rivm.screenit.main.util.WicketSpringDataUtil;
 import nl.rivm.screenit.model.project.ProjectAttribuut;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -34,33 +34,32 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import static nl.rivm.screenit.model.project.ProjectAttribuut_.NAAM;
+
 public class ProjectAttributenDataProvider extends SortableDataProvider<ProjectAttribuut, String>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
-	private ProjectDao projectDao;
+	private ProjectService projectService;
 
-	private IModel<ProjectAttribuut> filterModel;
+	private final IModel<ProjectAttribuut> filterModel;
 
 	public ProjectAttributenDataProvider(IModel<ProjectAttribuut> filterModel)
 	{
 		Injector.get().inject(this);
-		setSort("naam", SortOrder.ASCENDING);
+		setSort(NAAM, SortOrder.ASCENDING);
 		this.filterModel = filterModel;
 	}
 
 	@Override
 	public Iterator<? extends ProjectAttribuut> iterator(long first, long count)
 	{
-		return projectDao.getProjectAttributen(ModelUtil.nullSafeGet(filterModel), first, count, new SortState<>(getSort().getProperty(), getSort().isAscending()));
+		return projectService.getProjectAttributen(ModelUtil.nullSafeGet(filterModel), first, count, WicketSpringDataUtil.toSpringSort(getSort())).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return projectDao.getAantalProjectAttributen(ModelUtil.nullSafeGet(filterModel));
+		return projectService.getAantalProjectAttributen(ModelUtil.nullSafeGet(filterModel));
 	}
 
 	@Override

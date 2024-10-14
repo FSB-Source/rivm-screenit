@@ -24,7 +24,7 @@ package nl.rivm.screenit.dao.colon.impl;
 import java.util.List;
 
 import nl.rivm.screenit.dao.colon.ColonUitnodigingsDao;
-import nl.rivm.screenit.model.UitnodigingsGebied;
+import nl.rivm.screenit.model.colon.UitnodigingsGebied;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;

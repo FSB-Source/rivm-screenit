@@ -25,7 +25,7 @@ import java.time.LocalDateTime;
 import java.util.Date;
 
 import nl.rivm.screenit.mappers.config.ScreenitMapperConfig;
-import nl.rivm.screenit.model.colon.RoosterItemListViewWrapper;
+import nl.rivm.screenit.model.colon.ColonAfspraakslotListViewWrapper;
 import nl.rivm.screenit.model.colon.dto.ColonAfspraakslotDto;
 import nl.rivm.screenit.util.DateUtil;
 
@@ -42,14 +42,14 @@ public interface ColonAfspraakslotMapper
 		return DateUtil.toLocalDateTime(datum);
 	}
 
-	@Mapping(source = "roosterItemId", target = "id")
-	@Mapping(source = "startDatum", target = "startTime", qualifiedByName = "dateToLocalDateTime")
-	@Mapping(source = "eindDatum", target = "endTime", qualifiedByName = "dateToLocalDateTime")
+	@Mapping(source = "afspraakslotId", target = "id")
+	@Mapping(source = "startDatum", target = "vanaf", qualifiedByName = "dateToLocalDateTime")
+	@Mapping(source = "eindDatum", target = "tot", qualifiedByName = "dateToLocalDateTime")
 	@Mapping(source = "kamer", target = "kamer")
 	@Mapping(source = "capaciteitMeeBepaald", target = "capaciteitMeeBepaald")
 	@Mapping(source = "kamerId", target = "kamerId")
 	@Mapping(target = "aantalBlokken", ignore = true)
 	@Mapping(target = "alleenValidatie", ignore = true)
 	@Mapping(target = "herhaling", ignore = true)
-	ColonAfspraakslotDto roosterListItemViewWrapperToColonAfspraakslotDto(RoosterItemListViewWrapper wrapper);
+	ColonAfspraakslotDto roosterListItemViewWrapperToColonAfspraakslotDto(ColonAfspraakslotListViewWrapper wrapper);
 }

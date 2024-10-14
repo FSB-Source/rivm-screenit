@@ -29,7 +29,6 @@ import java.util.Random;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.model.AfmeldingType;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.Client;
@@ -54,6 +53,7 @@ import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.service.BaseDossierService;
+import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.DossierFactory;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.TestService;
@@ -87,7 +87,7 @@ public class CervixTestServiceImpl implements CervixTestService
 
 	private final ICurrentDateSupplier dateSupplier;
 
-	private final ClientDao clientDao;
+	private final ClientService clientService;
 
 	private final HibernateService hibernateService;
 
@@ -274,7 +274,7 @@ public class CervixTestServiceImpl implements CervixTestService
 				{
 					continue;
 				}
-				var client = clientDao.getClientByBsn(bsn.trim());
+				var client = clientService.getClientByBsn(bsn.trim());
 				if (client == null)
 				{
 					continue;

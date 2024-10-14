@@ -21,8 +21,8 @@ package nl.rivm.screenit.clientportaal.controllers;
  * =========================LICENSE_END==================================
  */
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,10 +42,7 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -54,7 +51,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("bezwaar")
 @AllArgsConstructor
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class BezwaarController extends AbstractController
 {
 	private final HibernateService hibernateService;
@@ -67,51 +63,45 @@ public class BezwaarController extends AbstractController
 
 	private final BezwaarMapper mapper;
 
-	@GetMapping(value = "/{bevolkingsonderzoek}")
-	public ResponseEntity<List<BezwaarDto>> getBezwaren(@PathVariable Bevolkingsonderzoek bevolkingsonderzoek, Authentication authentication)
+	@GetMapping()
+	public ResponseEntity<List<BezwaarDto>> getBezwaren(Authentication authentication)
 	{
-		Client client = getClient(authentication, hibernateService);
+		var client = getClient(authentication, hibernateService);
 
 		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.BEZWAAR))
 		{
-			bezwaarValidatieService.valideerOfClientBehoortTotDoelgroep(client, bevolkingsonderzoek);
-
-			List<BezwaarGroupViewWrapper> bezwaarGroupViewWrappers = bezwaarService
-				.getGroupWrapperForClientPortaal(client.getLaatstVoltooideBezwaarMoment(), bevolkingsonderzoek);
-
-			return ResponseEntity.ok(wrappersToDto(bezwaarGroupViewWrappers, bevolkingsonderzoek));
+			var bezwaarGroupViewWrappers = getBezwaarGroupViewWrappersVoorAlleBvos(client);
+			return ResponseEntity.ok(wrappersToDto(bezwaarGroupViewWrappers));
 		}
 		return createForbiddenResponse();
 	}
 
-	private List<BezwaarDto> wrappersToDto(List<BezwaarGroupViewWrapper> bezwaarGroupViewWrappers, Bevolkingsonderzoek bevolkingsonderzoek)
+	private List<BezwaarDto> wrappersToDto(List<BezwaarGroupViewWrapper> bezwaarGroupViewWrappers)
 	{
 		return mapper.bezwarenToDtos(bezwaarGroupViewWrappers.stream()
-			.filter(b -> b.getBevolkingsonderzoek() == null || b.getBevolkingsonderzoek() == bevolkingsonderzoek)
-			.flatMap(bm -> bm.getBezwaren().stream()).collect(Collectors.toList()));
+			.flatMap(bm -> bm.getBezwaren().stream()).sorted(Comparator.comparing(b -> b.getType().ordinal())).collect(Collectors.toList()));
 	}
 
-	@PostMapping(value = "/{bevolkingsonderzoek}")
-	public ResponseEntity<List<BezwaarDto>> saveBezwaren(@PathVariable Bevolkingsonderzoek bevolkingsonderzoek, @RequestBody BezwaarDto[] bezwaarDtos,
+	@PostMapping()
+	public ResponseEntity<List<BezwaarDto>> saveBezwaren(@RequestBody BezwaarDto[] bezwaarDtos,
 		Authentication authentication)
 	{
-		Client client = getClient(authentication, hibernateService);
+		var client = getClient(authentication, hibernateService);
 
 		if (clientContactService.availableActiesBevatBenodigdeActie(client, ClientContactActieType.BEZWAAR))
 		{
-			bezwaarValidatieService.valideerOfClientBehoortTotDoelgroep(client, bevolkingsonderzoek);
 			bezwaarValidatieService.valideerBezwaarType(bezwaarDtos);
+			var bezwaarGroupViewWrappers = getBezwaarGroupViewWrappersVoorAlleBvos(client);
 
-			List<BezwaarGroupViewWrapper> bezwaarGroupViewWrappers = getBezwaarGroupViewWrappersVoorAlleBvos(client);
+			updateWrappersMetWijzigingenDoorClient(bezwaarDtos, bezwaarGroupViewWrappers);
 
-			updateWrappersMetWijzigingenDoorClient(bevolkingsonderzoek, bezwaarDtos, bezwaarGroupViewWrappers);
-			boolean bezwarenGewijzigd = bezwaarService.bezwarenGewijzigd(client.getLaatstVoltooideBezwaarMoment(), bezwaarGroupViewWrappers, bevolkingsonderzoek);
+			var bezwarenGewijzigd = bezwaarService.bezwarenGewijzigd(client.getLaatstVoltooideBezwaarMoment(), bezwaarGroupViewWrappers);
 			if (!bezwarenGewijzigd)
 			{
 				return ResponseEntity.status(HttpStatus.NOT_MODIFIED).build();
 			}
 			bezwaarService.bezwaarAfrondenVanuitClientPortaal(client, bezwaarGroupViewWrappers);
-			return ResponseEntity.ok(wrappersToDto(bezwaarGroupViewWrappers, bevolkingsonderzoek));
+			return ResponseEntity.ok(wrappersToDto(bezwaarGroupViewWrappers));
 
 		}
 		return createForbiddenResponse();
@@ -119,22 +109,20 @@ public class BezwaarController extends AbstractController
 
 	private List<BezwaarGroupViewWrapper> getBezwaarGroupViewWrappersVoorAlleBvos(Client client)
 	{
-		List<BezwaarGroupViewWrapper> bezwaarGroupViewWrappers = new ArrayList<>();
-		Arrays.stream(Bevolkingsonderzoek.values())
-			.forEach(
-				bvo -> bezwaarGroupViewWrappers
-					.addAll(bezwaarService.getGroupWrapperForClientPortaal(client.getLaatstVoltooideBezwaarMoment(), bvo)));
+		var bezwaarGroupViewWrappers = Arrays.stream(Bevolkingsonderzoek.values())
+			.map(
+				bvo -> bezwaarService.getGroupWrapperForClientPortaal(client.getLaatstVoltooideBezwaarMoment(), bvo)).collect(Collectors.toList());
+		bezwaarGroupViewWrappers.add(bezwaarService.getGroupWrapperForClientPortaal(client.getLaatstVoltooideBezwaarMoment(), null));
 		return bezwaarGroupViewWrappers;
 	}
 
-	private void updateWrappersMetWijzigingenDoorClient(Bevolkingsonderzoek bevolkingsonderzoek, BezwaarDto[] bezwaarDtos,
+	private void updateWrappersMetWijzigingenDoorClient(BezwaarDto[] bezwaarDtos,
 		List<BezwaarGroupViewWrapper> bezwaarGroupViewWrappers)
 	{
 		bezwaarGroupViewWrappers.stream()
-			.filter(g -> g.getBevolkingsonderzoek() == null || g.getBevolkingsonderzoek() == bevolkingsonderzoek)
 			.flatMap(g -> g.getBezwaren().stream())
 			.forEach(b -> Arrays.stream(bezwaarDtos)
-				.filter(bd -> bd.getType() == b.getType())
+				.filter(bd -> bd.getType() == b.getType() && bd.getBevolkingsonderzoek() == b.getBevolkingsonderzoek())
 				.forEach(bd -> b.setActief(bd.getActive())));
 	}
 

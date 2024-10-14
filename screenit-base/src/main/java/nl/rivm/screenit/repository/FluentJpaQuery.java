@@ -28,8 +28,11 @@ import java.util.function.Consumer;
 
 import javax.persistence.EntityGraph;
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
+
+import nl.rivm.screenit.util.functionalinterfaces.TriFunction;
 
 import org.springframework.data.domain.Sort;
 
@@ -37,15 +40,19 @@ public interface FluentJpaQuery<T, P>
 {
 	FluentJpaQuery<T, P> sortBy(Sort sort);
 
+	FluentJpaQuery<T, P> sortBy(Sort sort, TriFunction<Sort.Order, Root<T>, CriteriaBuilder, Order> sortFunction);
+
 	FluentJpaQuery<T, P> projection(BiFunction<CriteriaBuilder, Root<T>, Selection<?>> projectionFunction);
 
 	FluentJpaQuery<T, P> projections(BiFunction<CriteriaBuilder, Root<T>, List<Selection<?>>> projectionFunction);
 
 	FluentJpaQuery<T, P> fetch(Consumer<EntityGraph<T>> entityGraphFunction);
 
-	FluentJpaQuery<T, P> distinct(boolean distinctOn);
+	FluentJpaQuery<T, P> distinct();
 
 	List<P> all();
+
+	List<P> all(long first, long count);
 
 	Optional<P> first();
 

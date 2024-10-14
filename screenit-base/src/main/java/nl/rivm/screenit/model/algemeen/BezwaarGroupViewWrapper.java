@@ -25,47 +25,18 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 
+@Getter
+@Setter
 public class BezwaarGroupViewWrapper implements Serializable
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private String key;
 
 	private Bevolkingsonderzoek bevolkingsonderzoek;
 
 	private List<BezwaarViewWrapper> bezwaren = new ArrayList<BezwaarViewWrapper>();
-
-	public String getKey()
-	{
-		return key;
-	}
-
-	public void setKey(String key)
-	{
-		this.key = key;
-	}
-
-	public Bevolkingsonderzoek getBevolkingsonderzoek()
-	{
-		return bevolkingsonderzoek;
-	}
-
-	public void setBevolkingsonderzoek(Bevolkingsonderzoek bevolkingsonderzoek)
-	{
-		this.bevolkingsonderzoek = bevolkingsonderzoek;
-	}
-
-	public List<BezwaarViewWrapper> getBezwaren()
-	{
-		return bezwaren;
-	}
-
-	public void setBezwaren(List<BezwaarViewWrapper> bezwaren)
-	{
-		this.bezwaren = bezwaren;
-	}
-
 }

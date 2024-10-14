@@ -50,12 +50,12 @@ import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.ConclusieTypeFilter;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -102,7 +102,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	checkScope = true,
 	constraint = ShiroConstraint.HasPermission,
 	recht = Recht.GEBRUIKER_SCREENING_INTAKE_WERKLIJST,
-	organisatieTypeScopes = OrganisatieType.COLOSCOPIECENTRUM,
+	organisatieTypeScopes = OrganisatieType.INTAKELOCATIE,
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON })
 public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 {
@@ -139,14 +139,14 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 
 	private static final int AANTAL_PER_PAGINA = 10;
 
-	protected WerklijstIntakePage(AfspraakStatus filterStatus)
+	protected WerklijstIntakePage(ColonAfspraakStatus filterStatus)
 	{
-		this(filterStatus, "title." + EnumStringUtil.getPropertyString(filterStatus, AfspraakStatus.class));
+		this(filterStatus, "title." + EnumStringUtil.getPropertyString(filterStatus, ColonAfspraakStatus.class));
 	}
 
-	protected WerklijstIntakePage(AfspraakStatus filterStatus, String titleProperty)
+	protected WerklijstIntakePage(ColonAfspraakStatus filterStatus, String titleProperty)
 	{
-		ColoscopieCentrum intakelocatie = ScreenitSession.get().getColoscopieCentrum();
+		ColonIntakelocatie intakelocatie = ScreenitSession.get().getIntakelocatie();
 		add(new Label("intakelocatie", intakelocatie.getNaam()));
 		add(new Label("title", getString(titleProperty)));
 		final BootstrapDialog dialog = new BootstrapDialog("dialog");
@@ -192,7 +192,7 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 		form.setOutputMarkupId(true);
 		add(form);
 
-		boolean afgerondeAfspraken = AfspraakStatus.UITGEVOERD.equals(filterStatus);
+		boolean afgerondeAfspraken = ColonAfspraakStatus.UITGEVOERD.equals(filterStatus);
 		form.setVisible(!afgerondeAfspraken);
 
 		final FormComponent<Date> vanaf = ComponentHelper.addTextField(form, "vanaf", false, 10, Date.class, false);
@@ -231,7 +231,7 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 			false);
 		conclusieType.setOutputMarkupId(true);
 		conclusieType.setNullValid(true);
-		conclusieType.setVisible(!AfspraakStatus.GEPLAND.equals(filterStatus));
+		conclusieType.setVisible(!ColonAfspraakStatus.GEPLAND.equals(filterStatus));
 		form.add(conclusieType);
 		conclusieType.add(new AjaxFormComponentUpdatingBehavior("change")
 		{
@@ -278,7 +278,7 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 	{
 	}
 
-	protected SortableDataProvider<ColonIntakeAfspraak, String> getWerklijstIntakeDataProvider(ColoscopieCentrum intakelocatie, int aantalPerPagina)
+	protected SortableDataProvider<ColonIntakeAfspraak, String> getWerklijstIntakeDataProvider(ColonIntakelocatie intakelocatie, int aantalPerPagina)
 	{
 		return new WerklijstIntakeDataProvider(zoekModel, intakelocatie);
 	}
@@ -316,20 +316,20 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 	protected List<IColumn<ColonIntakeAfspraak, String>> getColumns()
 	{
 		List<IColumn<ColonIntakeAfspraak, String>> columns = new ArrayList<>();
-		columns.add(new ScreenitDateTimePropertyColumn<>(Model.of("Intakeafspraak"), "startTime", "startTime", new SimpleDateFormat("dd-MM-yyyy HH:mm"))
+		columns.add(new ScreenitDateTimePropertyColumn<>(Model.of("Intakeafspraak"), "vanaf", "vanaf", new SimpleDateFormat("dd-MM-yyyy HH:mm"))
 		{
 			@Override
 			public IModel<Object> getDataModel(IModel<ColonIntakeAfspraak> embeddedModel)
 			{
 				IModel<Object> dataModel = super.getDataModel(embeddedModel);
-				if (embeddedModel.getObject().getRoosterItem() == null)
+				if (embeddedModel.getObject().getAfspraakslot() == null)
 				{
 					dataModel.setObject(dataModel.getObject() + " *");
 				}
 				return dataModel;
 			}
 		});
-		columns.add(new PropertyColumn<>(Model.of("Kamer"), "location.name", "location.name"));
+		columns.add(new PropertyColumn<>(Model.of("Kamer"), "kamer.naam", "kamer.naam"));
 		columns.add(new ClientColumn<>("persoon.achternaam", "client"));
 		columns.add(new PropertyColumn<>(Model.of("BSN"), "persoon.bsn", "client.persoon.bsn"));
 		columns.add(new GeboortedatumColumn<>("persoon.geboortedatum", "client.persoon"));
@@ -546,7 +546,7 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 
 	protected abstract List<ConclusieTypeFilter> getFilterOpties();
 
-	protected IModel<WerklijstIntakeFilter> getNewWerkLijstIntakeFilter(AfspraakStatus afspraakStatus)
+	protected IModel<WerklijstIntakeFilter> getNewWerkLijstIntakeFilter(ColonAfspraakStatus afspraakStatus)
 	{
 		ScreenitSession session = ScreenitSession.get();
 		IModel<WerklijstIntakeFilter> intakeFilter;
@@ -628,7 +628,7 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 					@Override
 					protected String load()
 					{
-						long aantal = afspraakService.countAfsprakenVoorColoscopiecentrum(filter, ScreenitSession.get().getColoscopieCentrum());
+						long aantal = afspraakService.countAfsprakenVoorColoscopiecentrum(filter, ScreenitSession.get().getIntakelocatie());
 						return "(" + aantal + ")";
 					}
 

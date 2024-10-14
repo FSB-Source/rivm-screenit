@@ -32,7 +32,6 @@ import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.TestVervolgKe
 import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.ImportPocOpties;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
@@ -66,8 +65,6 @@ public interface MammaTestTimelineService
 	List<Client> maakOfWijzigClienten(TestTimelineModel timelineModel);
 
 	List<String> validateTestClienten(List<Client> clienten);
-
-	List<MammaScreeningsEenheid> getActieveScreeningsEenheden(ScreeningOrganisatie screeningOrganisatie);
 
 	String setDeelnamekansen(InputStream inputStream);
 

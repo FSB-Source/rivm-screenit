@@ -22,7 +22,6 @@ package nl.rivm.screenit.service;
  */
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Comparator;
@@ -33,7 +32,6 @@ import java.util.function.Consumer;
 import nl.rivm.screenit.document.BaseDocumentCreator;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Afmelding;
-import nl.rivm.screenit.model.BezwaarMoment;
 import nl.rivm.screenit.model.Brief;
 import nl.rivm.screenit.model.BriefDefinitie;
 import nl.rivm.screenit.model.Client;
@@ -57,15 +55,15 @@ import com.aspose.words.Document;
 
 public interface BaseBriefService
 {
-	BriefDefinitie getBriefDefinitie(BriefType briefType, Date geldigOp);
-
 	BriefDefinitie getNieuwsteBriefDefinitie(BriefType briefType);
 
 	List<BriefDefinitie> getBriefDefinities(BvoZoekCriteria briefType, Comparator<BriefType> comparator);
 
 	void saveBriefDefinitie(BriefDefinitie definitie, File uploadFile, String contentType, String filename) throws IOException;
 
-	BezwaarBrief maakBezwaarBrief(BezwaarMoment bezwaar, BriefType type, Date date);
+	BezwaarBrief maakBezwaarBrief(Client client, BriefType type, Date date);
+
+	BezwaarBrief maakBezwaarBrief(Client client, BriefType type, Date date, boolean zonderHandtekening);
 
 	AlgemeneBrief maakAlgemeneBrief(Client client, BriefType type);
 
@@ -86,9 +84,9 @@ public interface BaseBriefService
 
 	CervixRegioBrief maakRegioBrief(ScreeningOrganisatie so, BriefType type, Date date, CervixHuisarts arts);
 
-	<B extends ClientBrief<?, ?, ?>> void checkVoorDubbeleBrieven(BriefType type, Client client, Class<B> briefClass);
+	<B extends ClientBrief<?, ?, ?>> void vervangDubbeleAangemaakteBrieven(BriefType type, Client client, Class<B> briefClass);
 
-	boolean clientHeeftOngegenereerdeBriefVanType(BriefType type, Client client, Class<? extends ClientBrief<?, ?, ?>> briefClass);
+	<B extends ClientBrief<?, ?, ?>> boolean clientHeeftOngegenereerdeBriefVanType(BriefType type, Client client, Class<B> briefClass);
 
 	void completePdf(MergedBrieven<?> mergedBrieven);
 
@@ -102,7 +100,7 @@ public interface BaseBriefService
 
 	<B extends Brief> File maakPdfVanBrief(B brief, Consumer<MailMergeContext> context) throws Exception;
 
-	File genereerPdf(Document document, String fileNaam, boolean autoShowPrintdialog) throws FileNotFoundException, Exception;
+	File genereerPdf(Document document, String fileNaam, boolean autoShowPrintdialog) throws Exception;
 
 	<B extends Brief> void setBriefGegenereerd(B brief);
 

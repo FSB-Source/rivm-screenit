@@ -32,11 +32,11 @@ import org.mapstruct.Mapping;
 public interface ColonBlokkadeMapper
 {
 	@Mapping(source = "id", target = "id")
-	@Mapping(source = "location.name", target = "kamer")
-	@Mapping(source = "location.id", target = "kamerId")
-	@Mapping(source = "startTime", target = "startTime")
-	@Mapping(source = "endTime", target = "endTime")
-	@Mapping(source = "description", target = "description")
+	@Mapping(source = "kamer.naam", target = "kamer")
+	@Mapping(source = "kamer.id", target = "kamerId")
+	@Mapping(source = "vanaf", target = "vanaf")
+	@Mapping(source = "tot", target = "tot")
+	@Mapping(source = "omschrijving", target = "omschrijving")
 	@Mapping(target = "alleKamers", ignore = true)
 	@Mapping(target = "alleenValidatie", ignore = true)
 	@Mapping(target = "herhaling", ignore = true)

@@ -24,7 +24,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.ce.werklijst.onderbr
 import java.util.Iterator;
 
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaCeWerklijstZoekObject;
-import nl.rivm.screenit.main.service.mamma.MammaCeWerklijstService;
+import nl.rivm.screenit.main.service.mamma.impl.MammaCeOnderbrokenOnderzoekenDataProviderServiceImpl;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -34,13 +34,11 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import com.google.common.primitives.Ints;
-
 public class MammaCeOnderbrokenOnderzoekenDataProvider extends SortableDataProvider<MammaOnderzoek, String>
 {
 
 	@SpringBean
-	private MammaCeWerklijstService ceWerklijstService;
+	private MammaCeOnderbrokenOnderzoekenDataProviderServiceImpl dataProviderService;
 
 	private IModel<MammaCeWerklijstZoekObject> criteria;
 
@@ -54,17 +52,13 @@ public class MammaCeOnderbrokenOnderzoekenDataProvider extends SortableDataProvi
 	@Override
 	public Iterator<? extends MammaOnderzoek> iterator(long first, long count)
 	{
-		MammaCeWerklijstZoekObject zoekObject = getZoekObject();
-
-		return ceWerklijstService.zoekOnderbrokenOnderzoeken(zoekObject, Ints.checkedCast(first), Ints.checkedCast(count), getSort().getProperty(), getSort().isAscending())
-			.iterator();
+		return dataProviderService.findPage(first, count, getZoekObject(), getSort()).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		MammaCeWerklijstZoekObject zoekObject = getZoekObject();
-		return ceWerklijstService.countOnderbrokenOnderzoeken(zoekObject);
+		return dataProviderService.size(getZoekObject());
 	}
 
 	private MammaCeWerklijstZoekObject getZoekObject()

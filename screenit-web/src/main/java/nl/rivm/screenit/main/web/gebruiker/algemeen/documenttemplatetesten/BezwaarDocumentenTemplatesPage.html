@@ -24,7 +24,7 @@
         <form wicket:id="regioForm">
             <div class="row-fluid">
                 <div class="span12">
-                    <h1 class="pageTitle">Bezwaartemplates testen</h1>
+					<h1 class="pageTitle">Keuze gebruik gegevens templates testen</h1>
                 </div>
             </div>
 
@@ -39,9 +39,12 @@
 								<select class="select-large width-450px" wicket:id="brieven">
 								</select>
 							</div>
-							<form wicket:id="mergeFieldForm">
+							<form wicket:id="mergeFieldForm" class="control-group">
 								<label>met samenvoegveld </label><select wicket:id="mergeField"></select>
 							</form>
+							<div class="control-group">
+								<div wicket:id="zonderHandtekening"/>
+							</div>
 						</div>
 						<div class="span6">
 							<h2>
@@ -66,7 +69,7 @@
 						</div>
                         <div class="span6">
                             <h2>
-                                Bezwaren:
+								Keuzes:
                                 <i class="icon-asterisk icon-purple"></i>
                             </h2>
                             <div class="control-group">

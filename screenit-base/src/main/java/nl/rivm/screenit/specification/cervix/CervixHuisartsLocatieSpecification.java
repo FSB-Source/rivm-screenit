@@ -38,6 +38,7 @@ import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie_;
 import nl.rivm.screenit.model.cervix.enums.CervixHuisartsLocatieMutatieSoort;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.specification.SpecificationUtil;
+import nl.rivm.screenit.util.RangeUtil;
 import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
 import nl.topicuszorg.organisatie.model.Medewerker_;
 import nl.topicuszorg.organisatie.model.OrganisatieMedewerker_;
@@ -46,9 +47,9 @@ import nl.topicuszorg.organisatie.model.Organisatie_;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 
-import com.google.common.collect.Range;
+import com.google.common.collect.BoundType;
 
-import static nl.rivm.screenit.specification.DateSpecification.bevatLocalDate;
+import static nl.rivm.screenit.specification.DateSpecification.bevatLocalDateToDate;
 import static nl.rivm.screenit.specification.SpecificationUtil.containsCaseInsensitive;
 import static nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification.huisartsLocatieJoin;
 
@@ -105,8 +106,8 @@ public class CervixHuisartsLocatieSpecification
 
 	public static Specification<CervixHuisartsLocatie> valtBinnenMutatieDatum(LocalDate vanaf, LocalDate totEnMet)
 	{
-		var range = Range.closed(vanaf, totEnMet);
-		return bevatLocalDate(range, r -> r.get(CervixHuisartsLocatie_.mutatiedatum));
+		var range = RangeUtil.range(vanaf, BoundType.CLOSED, totEnMet, BoundType.CLOSED);
+		return bevatLocalDateToDate(range, r -> r.get(CervixHuisartsLocatie_.mutatiedatum));
 	}
 
 	public static Specification<CervixHuisartsLocatie> valtBinnenGemeentes(List<Gemeente> gemeentes)

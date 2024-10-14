@@ -21,7 +21,6 @@ package nl.rivm.screenit.wsb.service.impl;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.dao.CdaVerslagDao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht;
 import nl.rivm.screenit.model.berichten.cda.PdBerichtResponseCode;
@@ -31,8 +30,10 @@ import nl.rivm.screenit.model.berichten.enums.BerichtType;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.BerichtOntvangenLogEvent;
+import nl.rivm.screenit.service.BaseCdaVerslagService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 import nl.rivm.screenit.wsb.service.CdaVerslagService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -47,7 +48,7 @@ public class CdaVerslagServiceImpl implements CdaVerslagService
 {
 
 	@Autowired
-	private CdaVerslagDao cdaVerslagDao;
+	private BaseCdaVerslagService baseCdaVerslagService;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -58,6 +59,9 @@ public class CdaVerslagServiceImpl implements CdaVerslagService
 	@Autowired
 	private ClientService clientService;
 
+	@Autowired
+	private ColonBaseAfspraakService baseAfspraakService;
+
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
 	public PdBerichtResponseResult valideerBericht(OntvangenCdaBericht ontvangenCdaBericht, String bsn, String remoteAddr, String orgInfo)
@@ -66,7 +70,7 @@ public class CdaVerslagServiceImpl implements CdaVerslagService
 		String berichtId = ontvangenCdaBericht.getBerichtId();
 		BerichtType berichtType = ontvangenCdaBericht.getBerichtType();
 		Bevolkingsonderzoek bvo = berichtType.getBevolkingsonderzoek();
-		if (cdaVerslagDao.isBerichtReedsVerwerkt(berichtId))
+		if (baseCdaVerslagService.isBerichtReedsVerwerkt(berichtId))
 		{
 			PdBerichtResponseCode code = PdBerichtResponseCode.REEDS_CORRECT_VERWERKT;
 			String codeOmschrijving = String.format(code.toString(), berichtId);
@@ -77,7 +81,7 @@ public class CdaVerslagServiceImpl implements CdaVerslagService
 		{
 			String setId = ontvangenCdaBericht.getSetId();
 			Long versie = ontvangenCdaBericht.getVersie();
-			if (cdaVerslagDao.isBerichtReedsOntvangen(setId, versie))
+			if (baseCdaVerslagService.isBerichtReedsOntvangen(setId, versie))
 			{
 				PdBerichtResponseCode code = PdBerichtResponseCode.ONGELDIGE_VERSIE;
 				String codeOmschrijving = String.format(code.toString(), setId, versie);
@@ -94,7 +98,7 @@ public class CdaVerslagServiceImpl implements CdaVerslagService
 
 					meldFout(ontvangenCdaBericht, remoteAddr, orgInfo, result, bvo, code, codeOmschrijving, berichtType.getLbOnbekendeBsn(), BerichtStatus.FOUT);
 				}
-				else if (bvo == Bevolkingsonderzoek.COLON && clientService.heeftClientIntakeConclusieMetBezwaar(bsn))
+				else if (bvo == Bevolkingsonderzoek.COLON && baseAfspraakService.heeftClientIntakeAfspraakMetConclusieBezwaar(bsn))
 				{
 					PdBerichtResponseCode code = PdBerichtResponseCode.CLIENT_BEZWAAR;
 					String codeOmschrijving = String.format(code.toString(), bsn);

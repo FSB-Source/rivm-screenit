@@ -21,6 +21,7 @@ package nl.rivm.screenit.repository.algemeen;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
 import java.util.Optional;
 
 import javax.persistence.criteria.Join;
@@ -30,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import nl.rivm.screenit.model.berichten.Verslag;
 import nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht;
 import nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht_;
+import nl.rivm.screenit.model.berichten.enums.BerichtStatus;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 
 import org.hibernate.SessionFactory;
@@ -43,6 +45,8 @@ public class VerslagRepository
 {
 	private final SessionFactory sessionFactory;
 
+	private static final String ONTVANGEN_CDA_BERICHT_ATTR = "ontvangenCdaBericht";
+
 	public Optional<? extends Verslag> getVerslagVoorBerichtId(String berichtId, Class<? extends Verslag> verslagType)
 	{
 		var em = sessionFactory.getCurrentSession();
@@ -50,13 +54,31 @@ public class VerslagRepository
 		var q = cb.createQuery(verslagType);
 		var r = q.from(em.getMetamodel().entity(verslagType));
 
-		Join<?, OntvangenCdaBericht> ontvangenCdaBericht = r.join("ontvangenCdaBericht");
+		Join<?, OntvangenCdaBericht> ontvangenCdaBericht = r.join(ONTVANGEN_CDA_BERICHT_ATTR);
 		q.where(cb.equal(ontvangenCdaBericht.get(OntvangenCdaBericht_.berichtId), berichtId))
 			.orderBy(QueryUtils.toOrders(Sort.by(Sort.Order.asc(AbstractHibernateObject_.ID)), r, cb));
 
 		var query = em.createQuery(q);
 		query.setMaxResults(1); 
 
-		return query.getResultList().stream().findFirst();
+		return Optional.ofNullable(query.uniqueResult());
+	}
+
+	public Optional<? extends Verslag> getVerslagVoorSetId(String setId, Class<? extends Verslag> verslagType)
+	{
+		var em = sessionFactory.getCurrentSession();
+		var cb = em.getCriteriaBuilder();
+		var q = cb.createQuery(verslagType);
+		var r = q.from(em.getMetamodel().entity(verslagType));
+
+		Join<?, OntvangenCdaBericht> ontvangenCdaBericht = r.join(ONTVANGEN_CDA_BERICHT_ATTR);
+		q.where(cb.and(cb.equal(ontvangenCdaBericht.get(OntvangenCdaBericht_.setId), setId),
+				ontvangenCdaBericht.get(OntvangenCdaBericht_.status).in(List.of(BerichtStatus.VERWERKT, BerichtStatus.VERWERKING))))
+			.orderBy(QueryUtils.toOrders(Sort.by(Sort.Order.asc(ONTVANGEN_CDA_BERICHT_ATTR + "." + OntvangenCdaBericht_.VERSIE)), r, cb));
+
+		var query = em.createQuery(q);
+		query.setMaxResults(1);
+
+		return Optional.ofNullable(query.uniqueResult());
 	}
 }

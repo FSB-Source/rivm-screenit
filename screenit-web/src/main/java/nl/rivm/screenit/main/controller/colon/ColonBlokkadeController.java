@@ -46,7 +46,6 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.util.DateUtil;
-import nl.topicuszorg.wicket.planning.util.Periode;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -61,6 +60,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.wicketstuff.shiro.ShiroConstraint;
+
+import com.google.common.collect.Range;
 
 @Slf4j
 @AllArgsConstructor
@@ -77,7 +78,7 @@ public class ColonBlokkadeController
 	@GetMapping
 	@SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_ROOSTER, bevolkingsonderzoekScopes = {
 		Bevolkingsonderzoek.COLON })
-	public List<ColonBlokkadeDto> getRoosterBlokkades(@RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+	public List<ColonBlokkadeDto> getBlokkades(@RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
 		@RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate)
 	{
 		if (startDate == null)
@@ -90,10 +91,7 @@ public class ColonBlokkadeController
 			throw new IllegalStateException("error.geen.eind.datum");
 		}
 
-		var start = DateUtil.toUtilDate(startDate);
-		var end = DateUtil.toUtilDate(endDate);
-
-		var periode = new Periode(start, end);
+		var periode = Range.closed(startDate.atStartOfDay(), endDate.atStartOfDay());
 		return roosterService.getBlokkades(periode, null).stream().map(blokkadeMapper::colonBlokkadeToDto).collect(Collectors.toList());
 	}
 
@@ -127,7 +125,7 @@ public class ColonBlokkadeController
 		@RequestParam(required = false) Long kamerId,
 		@RequestParam() String dagen)
 	{
-		var intakelocatie = ScreenitSession.get().getColoscopieCentrum();
+		var intakelocatie = ScreenitSession.get().getIntakelocatie();
 
 		if (intakelocatie == null)
 		{

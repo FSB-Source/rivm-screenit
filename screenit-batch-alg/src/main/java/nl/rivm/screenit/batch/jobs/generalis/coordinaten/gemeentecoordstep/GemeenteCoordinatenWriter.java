@@ -25,7 +25,7 @@ import java.util.List;
 
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.dao.CoordinatenDao;
+import nl.rivm.screenit.service.CoordinatenService;
 import nl.rivm.screenit.service.WoonplaatsService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -39,7 +39,7 @@ public class GemeenteCoordinatenWriter implements ItemWriter<String>
 
 	private final HibernateService hibernateService;
 
-	private final CoordinatenDao coordinatenDao;
+	private final CoordinatenService coordinatenService;
 
 	private final WoonplaatsService woonplaatsService;
 
@@ -58,7 +58,7 @@ public class GemeenteCoordinatenWriter implements ItemWriter<String>
 				String woonplaats = lineParts[4];
 				String latitude = lineParts[8];
 				String longitude = lineParts[9];
-				coordinatenDao.addOrUpdateCoordinaten(gemcode, latitude, longitude);
+				coordinatenService.updateGemeenteCoordinaten(gemcode, latitude, longitude);
 				woonplaatsService.saveOrUpdateWoonplaats(plaatscode, woonplaats, gemcode);
 			}
 		}

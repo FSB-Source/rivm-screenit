@@ -25,49 +25,25 @@ import java.io.File;
 import java.util.List;
 
 import nl.rivm.screenit.main.model.mamma.beoordeling.BeoordelingenReserveringResult;
-import nl.rivm.screenit.main.model.mamma.beoordeling.MammaBeWerklijstZoekObject;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.dto.LaesieDto;
-import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.EnovationHuisarts;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaLezing;
-import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.enums.MammaBeLezerSoort;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingOpschortenReden;
-import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaLezingType;
 
 public interface MammaBeoordelingService
 {
-	List<MammaScreeningsEenheid> zoekScreeningsEenhedenMetBeWerklijstBeoordeling(InstellingGebruiker loggedInInstellingGebruiker,
-		List<MammaBeoordelingStatus> beschikbarePaginaStatussen);
-
-	List<MammaScreeningsEenheid> zoekScreeningsEenhedenMetCeWerklijstBeoordeling(List<MammaBeoordelingStatus> beschikbareBeoordelingStatussen,
-		List<BeoordelingsEenheid> beoordelingsEenheden);
-
-	List<MammaBeoordeling> zoekBeoordelingen(MammaBeWerklijstZoekObject zoekObject, Integer first, Integer count, String sortProperty, boolean asc);
-
-	List<Long> zoekBeoordelingenNummers(MammaBeWerklijstZoekObject zoekObject, String sortProperty, boolean asc);
-
-	long countOnderzoeken(MammaBeWerklijstZoekObject zoekObject);
-
 	List<MammaBeoordeling> getAlleBeoordelingenMetBeelden(MammaBeoordeling beoordeling);
 
 	List<MammaBeoordeling> getVorigeTweeTeTonenBeoordelingen(MammaBeoordeling beoordeling);
 
-	int getAantalBeoordeeldInList(List<Long> beoordelingenIds);
-
-	int getAantalBeoordeeld(MammaBeWerklijstZoekObject zoekObject);
-
-	void bevestig1eEn2eLezingen(InstellingGebruiker instellingGebruiker);
-
 	MammaLezing getOrCreate1eOf2eLezing(MammaBeoordeling beoordeling, InstellingGebruiker beoordelaar, boolean onervarenRadioloog);
 
 	MammaLezing getOrCreateDiscrepantieOfArbitrageLezing(MammaBeoordeling beoordeling, MammaLezingType huidigeLezingType, InstellingGebruiker gebruiker);
-
-	boolean is1eOf2eLezingenTeBevestigen(InstellingGebruiker instellingGebruiker);
 
 	Long getVolgendeBeoordelingId(Long huidigeBeoordelingId, List<Long> beoordelingenIds);
 

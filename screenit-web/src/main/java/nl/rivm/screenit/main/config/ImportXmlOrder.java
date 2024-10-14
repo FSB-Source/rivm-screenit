@@ -30,7 +30,6 @@ import org.springframework.core.annotation.Order;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @ImportResource(
 	locations = {
-		"classpath:applicationContext-wicket-planning.xml",
 		"classpath:applicationContext-wicket-password.xml",
 		"classpath:applicationContext-csv2xls.xml",
 	})

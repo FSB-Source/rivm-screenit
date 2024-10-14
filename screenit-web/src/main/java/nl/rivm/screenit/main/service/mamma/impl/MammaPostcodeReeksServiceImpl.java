@@ -21,57 +21,44 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.util.List;
 import java.util.stream.Collectors;
 
-import nl.rivm.screenit.main.dao.mamma.MammaPostcodeReeksDao;
+import lombok.RequiredArgsConstructor;
+
 import nl.rivm.screenit.main.service.mamma.MammaPostcodeReeksService;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaPostcodeReeks;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
+import nl.rivm.screenit.repository.mamma.MammaPostcodeReeksRepository;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.mamma.MammaBaseConceptPlanningsApplicatie;
 import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Range;
+
+import static nl.rivm.screenit.specification.mamma.MammaPostcodeReeksSpecification.filterOpHeeftNietId;
+import static nl.rivm.screenit.specification.mamma.MammaPostcodeReeksSpecification.heeftOverlapMetReeks;
+
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
+@RequiredArgsConstructor
 public class MammaPostcodeReeksServiceImpl implements MammaPostcodeReeksService
 {
-	@Autowired
-	private MammaPostcodeReeksDao postcodeReeksDao;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final LogService logService;
 
-	@Autowired
-	private LogService logService;
+	private final MammaBaseConceptPlanningsApplicatie baseConceptPlanningsApplicatie;
 
-	@Autowired
-	private MammaBaseConceptPlanningsApplicatie baseConceptPlanningsApplicatie;
-
-	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<MammaPostcodeReeks> zoekPostcodeReeksen(MammaPostcodeReeks zoekObject, int first, int count, String sortProperty, boolean asc)
-	{
-		return postcodeReeksDao.zoekPostcodeReeksen(zoekObject, first, count, sortProperty, asc);
-	}
-
-	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public long countPostcodeReeksen(MammaPostcodeReeks zoekObject)
-	{
-		return postcodeReeksDao.countPostcodeReeksen(zoekObject);
-	}
+	private final MammaPostcodeReeksRepository postcodeReeksRepository;
 
 	@Override
 	public boolean saveOrUpdatePostcodeReeks(MammaPostcodeReeks postcodeReeks, InstellingGebruiker loggedInInstellingGebruiker)
@@ -105,8 +92,14 @@ public class MammaPostcodeReeksServiceImpl implements MammaPostcodeReeksService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public String overlaptBestaandeReeks(MammaPostcodeReeks postcodeReeks)
 	{
-		return postcodeReeksDao.overlaptBestaandeReeks(postcodeReeks).stream().map(pr -> pr.getVanPostcode() + "->" + pr.getTotPostcode() + " in '" + pr.getStandplaats().getNaam()
-			+ (!pr.getStandplaats().getActief() ? " (inactief)" : "") + "'")
+		var vanPostcode = postcodeReeks.getVanPostcode().toUpperCase();
+		var totPostcode = postcodeReeks.getTotPostcode().toUpperCase();
+
+		var postcodeRange = Range.closed(vanPostcode, totPostcode);
+
+		return postcodeReeksRepository.findAll(heeftOverlapMetReeks(postcodeRange).and(filterOpHeeftNietId(postcodeReeks.getId()))).stream()
+			.map(pr -> pr.getVanPostcode() + "->" + pr.getTotPostcode() + " in '" + pr.getStandplaats().getNaam()
+				+ (!pr.getStandplaats().getActief() ? " (inactief)" : "") + "'")
 			.collect(Collectors.joining(","));
 	}
 
@@ -122,21 +115,4 @@ public class MammaPostcodeReeksServiceImpl implements MammaPostcodeReeksService
 		hibernateService.saveOrUpdate(standplaats);
 		hibernateService.delete(postcodeReeks);
 	}
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	@Override
-	public String reeksInMeerdereRegios(MammaPostcodeReeks postcodeReeks)
-	{
-		List<ScreeningOrganisatie> reeksInRegios = postcodeReeksDao.reeksInRegios(postcodeReeks);
-		if (reeksInRegios.size() > 1)
-		{
-			return reeksInRegios.stream().map(so -> so.getNaam())
-				.collect(Collectors.joining(","));
-		}
-		else
-		{
-			return "";
-		}
-	}
-
 }

@@ -74,7 +74,7 @@ public class ColonAfspraakslotController
 	public List<ColonAfspraakslotDto> getAfspraakslots(@RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
 		@RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate)
 	{
-		var intakeLocatie = ScreenitSession.get().getColoscopieCentrum();
+		var intakeLocatie = ScreenitSession.get().getIntakelocatie();
 
 		if (intakeLocatie == null)
 		{
@@ -103,7 +103,7 @@ public class ColonAfspraakslotController
 		@RequestParam() @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime eindTijd,
 		@RequestParam(required = false) Long kamerId, @RequestParam() String dagen)
 	{
-		var intakelocatie = ScreenitSession.get().getColoscopieCentrum();
+		var intakelocatie = ScreenitSession.get().getIntakelocatie();
 
 		if (intakelocatie == null)
 		{

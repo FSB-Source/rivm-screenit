@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import nl.rivm.screenit.main.service.algemeen.ProjectService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.table.ActiefPropertyColumn;
@@ -44,7 +45,6 @@ import nl.rivm.screenit.model.project.GroepSelectieType;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.ProjectService;
 import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
@@ -62,6 +62,12 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
+
+import static nl.rivm.screenit.model.project.ProjectGroep_.ACTIEF;
+import static nl.rivm.screenit.model.project.ProjectGroep_.GROEP_INVOER;
+import static nl.rivm.screenit.model.project.ProjectGroep_.NAAM;
+import static nl.rivm.screenit.model.project.ProjectGroep_.POPULATIE;
+import static nl.rivm.screenit.model.project.ProjectGroep_.UITNODIGINGEN_PUSHEN_NA;
 
 @SecurityConstraint(
 	actie = Actie.INZIEN,
@@ -81,7 +87,7 @@ public class PopulatiePage extends ProjectBasePage
 
 	private WebMarkupContainer groepenContainer;
 
-	private IModel<ProjectGroep> zoekModel;
+	private final IModel<ProjectGroep> zoekModel;
 
 	public PopulatiePage(IModel<Project> model)
 	{
@@ -131,8 +137,8 @@ public class PopulatiePage extends ProjectBasePage
 		groepenContainer.setOutputMarkupId(true);
 
 		List<IColumn<ProjectGroep, String>> columns = new ArrayList<IColumn<ProjectGroep, String>>();
-		columns.add(new PropertyColumn<>(Model.of("Naam"), "naam"));
-		columns.add(new PropertyColumn<>(Model.of("Populatie"), "populatie"));
+		columns.add(new PropertyColumn<>(Model.of("Naam"), NAAM));
+		columns.add(new PropertyColumn<>(Model.of("Populatie"), POPULATIE));
 		columns.add(new AbstractColumn<>(Model.of("Inactief"))
 		{
 			@Override
@@ -143,10 +149,10 @@ public class PopulatiePage extends ProjectBasePage
 			}
 		});
 		SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
-		columns.add(new DateTimePropertyColumn<>(Model.of("Push"), "uitnodigingenPushenNa", "uitnodigingenPushenNa", format));
-		columns.add(new EnumPropertyColumn<ProjectGroep, String, GroepInvoer>(Model.of("Type"), "groepInvoer"));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Push"), UITNODIGINGEN_PUSHEN_NA, UITNODIGINGEN_PUSHEN_NA, format));
+		columns.add(new EnumPropertyColumn<ProjectGroep, String, GroepInvoer>(Model.of("Type"), GROEP_INVOER));
 		columns
-			.add(new ActiefPropertyColumn<>(Model.of("Actief"), "actief", groepenContainer, zoekModel, true, dialog, "question.project.inactiveer.groep")
+			.add(new ActiefPropertyColumn<>(Model.of("Actief"), ACTIEF, groepenContainer, zoekModel, true, dialog, "question.project.inactiveer.groep")
 			{
 
 				@Override
@@ -187,7 +193,7 @@ public class PopulatiePage extends ProjectBasePage
 			columns.add(verwijderPropertyColumn);
 		}
 
-		ScreenitDataTable<ProjectGroep, String> dataTable = new ScreenitDataTable<ProjectGroep, String>("groepen", columns, new PopulatieDataProvider(zoekModel), 10,
+		ScreenitDataTable<ProjectGroep, String> dataTable = new ScreenitDataTable<>("groepen", columns, new PopulatieDataProvider(zoekModel), 10,
 			Model.of("Groepen"))
 		{
 

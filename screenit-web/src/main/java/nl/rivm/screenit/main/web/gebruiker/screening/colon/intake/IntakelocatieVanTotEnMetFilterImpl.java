@@ -24,7 +24,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.intake;
 import java.util.Date;
 
 import nl.rivm.screenit.dao.colon.IntakelocatieVanTotEnMetFilter;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.model.IDetachable;
@@ -35,7 +35,7 @@ public class IntakelocatieVanTotEnMetFilterImpl implements IntakelocatieVanTotEn
 
 	private static final long serialVersionUID = 1L;
 
-	private IModel<ColoscopieCentrum> intakelocatie;
+	private IModel<ColonIntakelocatie> intakelocatie;
 
 	private Date vanaf;
 
@@ -43,7 +43,7 @@ public class IntakelocatieVanTotEnMetFilterImpl implements IntakelocatieVanTotEn
 
 	private String bsn;
 
-	public IntakelocatieVanTotEnMetFilterImpl(IModel<ColoscopieCentrum> intakelocatieModel, Date vanaf, Date totEnMet)
+	public IntakelocatieVanTotEnMetFilterImpl(IModel<ColonIntakelocatie> intakelocatieModel, Date vanaf, Date totEnMet)
 	{
 		this.intakelocatie = intakelocatieModel;
 		this.vanaf = vanaf;
@@ -51,13 +51,13 @@ public class IntakelocatieVanTotEnMetFilterImpl implements IntakelocatieVanTotEn
 	}
 
 	@Override
-	public ColoscopieCentrum getIntakelocatie()
+	public ColonIntakelocatie getIntakelocatie()
 	{
 		return ModelUtil.nullSafeGet(intakelocatie);
 	}
 
 	@Override
-	public void setIntakelocatie(ColoscopieCentrum intakelocatie)
+	public void setIntakelocatie(ColonIntakelocatie intakelocatie)
 	{
 		this.intakelocatie = ModelUtil.sModel(intakelocatie);
 	}

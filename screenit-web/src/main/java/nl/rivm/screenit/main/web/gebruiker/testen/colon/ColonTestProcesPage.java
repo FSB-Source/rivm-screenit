@@ -114,9 +114,9 @@ public class ColonTestProcesPage extends TestenBasePage
 	@SpringBean
 	private SimplePreferenceService preferenceService;
 
-	private IModel<String> aantalBrieven = new Model<>("0");
+	private final IModel<String> aantalBrieven = new Model<>("0");
 
-	private IModel<String> bsns = new Model<>("");
+	private final IModel<String> bsns = new Model<>("");
 
 	public ColonTestProcesPage()
 	{
@@ -464,9 +464,9 @@ public class ColonTestProcesPage extends TestenBasePage
 			}
 		});
 
-		WebMarkupContainer verwijderRoosterBlokkenContainer = new WebMarkupContainer("verwijderRoosterBlokkenContainer");
+		WebMarkupContainer verwijderAfspraakslotsContainer = new WebMarkupContainer("verwijderAfspraakslotsContainer");
 
-		verwijderRoosterBlokkenContainer.add(new AjaxLink<Void>("verwijderRoosterBlokken")
+		verwijderAfspraakslotsContainer.add(new AjaxLink<Void>("verwijderAfspraakslots")
 		{
 
 			private static final long serialVersionUID = 1L;
@@ -474,8 +474,8 @@ public class ColonTestProcesPage extends TestenBasePage
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				int aantalRoosterBlokkenVerwijderd = colonTestService.verwijderRoosterBlokken();
-				String infoBericht = "Er zijn " + aantalRoosterBlokkenVerwijderd + " roosterblokken verwijderd";
+				int aantalAfspraakslotsVerwijderd = colonTestService.verwijderAfspraakslots();
+				String infoBericht = "Er zijn " + aantalAfspraakslotsVerwijderd + " afspraakslots verwijderd";
 				info(infoBericht);
 			}
 		});
@@ -484,7 +484,7 @@ public class ColonTestProcesPage extends TestenBasePage
 		add(form2);
 		add(form3);
 		add(form4);
-		add(verwijderRoosterBlokkenContainer);
+		add(verwijderAfspraakslotsContainer);
 
 	}
 

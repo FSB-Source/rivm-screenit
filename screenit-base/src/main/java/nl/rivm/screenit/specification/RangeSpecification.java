@@ -25,16 +25,16 @@ import java.util.ArrayList;
 import java.util.function.Function;
 
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Path;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.From;
 import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
+import nl.rivm.screenit.util.functionalinterfaces.TriFunction;
 
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.util.Pair;
 
 import com.google.common.collect.BoundType;
@@ -46,52 +46,41 @@ import static nl.rivm.screenit.specification.SpecificationUtil.composePredicates
 public class RangeSpecification
 {
 
-	public static <T, V extends Comparable<?>> Specification<T> overlapt(Range<V> range, Function<Root<T>, Path<V>> databaseColumnStartRange,
-		Function<Root<T>, Path<V>> databaseColumnEndRange)
+	public static <T, V extends Comparable<?>> ExtendedSpecification<T> overlapt(Range<V> range,
+		Function<From<?, ? extends T>, Expression<V>> databaseColumnStartRange,
+		Function<From<?, ? extends T>, Expression<V>> databaseColumnEndRange)
 	{
-		return (r, q, cb) -> overlapt(range, databaseColumnStartRange.apply(r), databaseColumnEndRange.apply(r)).withPath(cb, r);
+		return (r, q, cb) -> maakRangePredicates(cb, range, databaseColumnEndRange.apply(r), databaseColumnStartRange.apply(r));
 	}
 
-	public static <T, V extends Comparable<?>> PathAwarePredicate<T> overlapt(Range<V> range, Path<V> databaseColumnStartRange, Path<V> databaseColumnEndRange)
-	{
-		return maakRangePredicates(range, databaseColumnEndRange, databaseColumnStartRange);
-	}
-
-	public static <T, V extends Comparable<?>> Specification<T> bevat(Function<Root<T>, Path<V>> databaseColumnStartRange, Function<Root<T>, Path<V>> databaseColumnEndRange,
+	public static <T, V extends Comparable<?>> ExtendedSpecification<T> bevat(Function<From<?, ? extends T>, Expression<V>> databaseColumnStartRange,
+		Function<From<?, ? extends T>, Expression<V>> databaseColumnEndRange,
 		Pair<BoundType, BoundType> boundTypes, V waarde)
 	{
-		return (r, q, cb) -> bevat(databaseColumnStartRange.apply(r), databaseColumnEndRange.apply(r), boundTypes, waarde).withPath(cb, r);
+		return (r, q, cb) -> bevatPredicate(cb, databaseColumnStartRange.apply(r), databaseColumnEndRange.apply(r), boundTypes, waarde);
 	}
 
-	public static <T, V extends Comparable<?>> PathAwarePredicate<T> bevat(Path<V> databaseColumnStartRange, Path<V> databaseColumnEndRange, Pair<BoundType, BoundType> boundTypes,
-		V waarde)
+	public static <T, V extends Comparable<?>> ExtendedSpecification<T> bevat(
+		TriFunction<From<?, ? extends T>, CriteriaQuery<?>, CriteriaBuilder, Expression<V>> databaseColumnStartRange,
+		TriFunction<From<?, ? extends T>, CriteriaQuery<?>, CriteriaBuilder, Expression<V>> databaseColumnEndRange,
+		Pair<BoundType, BoundType> boundTypes, V waarde)
+	{
+		return (r, q, cb) -> bevatPredicate(cb, databaseColumnStartRange.apply(r, q, cb), databaseColumnEndRange.apply(r, q, cb), boundTypes, waarde);
+	}
+
+	private static <V extends Comparable<?>> Predicate bevatPredicate(CriteriaBuilder cb, Expression<V> start, Expression<V> end, Pair<BoundType, BoundType> boundTypes, V waarde)
 	{
 		var range = Range.range(waarde, boundTypes.getSecond(), waarde, boundTypes.getFirst());
-		return maakRangePredicates(range, databaseColumnEndRange, databaseColumnStartRange);
+		return maakRangePredicates(cb, range, end, start);
 	}
 
-	public static <T, V extends Comparable<?>> Specification<T> bevat(Range<V> range, Function<Root<T>, Path<V>> databaseColumn)
-	{
-		return (r, q, cb) -> bevat(range, databaseColumn.apply(r)).withPath(cb, r);
-	}
-
-	public static <T, V extends Comparable<?>> PathAwarePredicate<T> bevat(Range<V> range, Path<V> databaseColumn)
+	public static <T, V extends Comparable<?>> ExtendedSpecification<T> bevat(Range<V> range, Function<From<?, ? extends T>, Expression<V>> databaseColumn)
 	{
 		return overlapt(range, databaseColumn, databaseColumn);
 	}
 
-	static <T, V extends Comparable<?>> Predicate maakRangePredicates(CriteriaBuilder cb, Root<T> r, Range<V> range,
-		Function<Root<T>, Path<V>> databaseColumnStartRange, Function<Root<T>, Path<V>> databaseColumnEndRange)
-	{
-		return maakRangePredicates(cb, range, databaseColumnStartRange.apply(r), databaseColumnEndRange.apply(r));
-	}
-
-	static <T, V extends Comparable<?>> PathAwarePredicate<T> maakRangePredicates(Range<V> range, Path<V> databaseColumnStartRange, Path<V> databaseColumnEndRange)
-	{
-		return (cb, r) -> maakRangePredicates(cb, range, databaseColumnStartRange, databaseColumnEndRange);
-	}
-
-	private static <V extends Comparable> Predicate maakRangePredicates(CriteriaBuilder cb, Range<V> range, Path<V> databaseColumnStartRange, Path<V> databaseColumnEndRange)
+	static <V extends Comparable> Predicate maakRangePredicates(CriteriaBuilder cb, Range<V> range, Expression<V> databaseColumnStartRange,
+		Expression<V> databaseColumnEndRange)
 	{
 		var predicates = new ArrayList<Predicate>();
 

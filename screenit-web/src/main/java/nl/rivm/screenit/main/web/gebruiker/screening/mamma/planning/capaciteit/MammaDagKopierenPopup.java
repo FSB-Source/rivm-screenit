@@ -25,7 +25,7 @@ import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.Date;
 
-import nl.rivm.screenit.main.dao.mamma.MammaScreeningsEenheidDao;
+import nl.rivm.screenit.main.service.mamma.MammaScreeningsEenheidService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.ConfirmingIndicatingAjaxSubmitLink;
@@ -59,7 +59,7 @@ public abstract class MammaDagKopierenPopup extends GenericPanel<MammaScreenings
 	private MammaBaseConceptPlanningsApplicatie baseConceptPlanningsApplicatie;
 
 	@SpringBean
-	private MammaScreeningsEenheidDao screeningsEenheidDao;
+	private MammaScreeningsEenheidService screeningsEenheidService;
 
 	@SpringBean
 	private ICurrentDateSupplier currentDateSupplier;
@@ -168,7 +168,7 @@ public abstract class MammaDagKopierenPopup extends GenericPanel<MammaScreenings
 	private ScreenitDropdown<MammaScreeningsEenheid> maakDoelScreeningsEenheidPicker()
 	{
 		var screeningsEenheidDropDown = new ScreenitDropdown<>("doelScreeningsEenheid", new PropertyModel<>(this, "doelScreeningEenheid"),
-			ModelUtil.listRModel(screeningsEenheidDao.getActieveScreeningsEenhedenVoorScreeningOrganisatie(ScreenitSession.get().getScreeningOrganisatie())),
+			ModelUtil.listRModel(screeningsEenheidService.getActieveScreeningsEenhedenVoorScreeningOrganisatie(ScreenitSession.get().getScreeningOrganisatie())),
 			new ChoiceRenderer<>("naam"));
 		screeningsEenheidDropDown.setRequired(true);
 		return screeningsEenheidDropDown;

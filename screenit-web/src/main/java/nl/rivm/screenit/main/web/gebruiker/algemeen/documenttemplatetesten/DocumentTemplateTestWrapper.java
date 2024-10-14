@@ -24,9 +24,10 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Gebruiker;
+import nl.rivm.screenit.model.OrganisatieParameter;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.overeenkomsten.AfgeslotenMedewerkerOvereenkomst;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -36,8 +37,6 @@ import org.apache.wicket.model.IModel;
 
 public class DocumentTemplateTestWrapper implements IDetachable
 {
-	private static final long serialVersionUID = 1L;
-
 	private final Client client;
 
 	private final ColonIntakeAfspraak intakeAfspraak;
@@ -140,12 +139,16 @@ public class DocumentTemplateTestWrapper implements IDetachable
 		return bmhkLaboratorium;
 	}
 
-	public void cloneIntakeLocatie(ColoscopieCentrum dbIntakeLocatie)
+	public void cloneIntakeLocatie(ColonIntakelocatie dbIntakeLocatie)
 	{
-		ColoscopieCentrum intakeLocatie = intakeAfspraak.getLocation().getColoscopieCentrum();
+		ColonIntakelocatie intakeLocatie = intakeAfspraak.getKamer().getIntakelocatie();
 		intakeLocatie.setNaam(dbIntakeLocatie.getNaam());
-		intakeLocatie.setLocatieBeschrijving(dbIntakeLocatie.getLocatieBeschrijving());
-		intakeLocatie.getAfspraakDefinities().get(0).setDuurAfspraakInMinuten(dbIntakeLocatie.getAfspraakDefinities().get(0).getDuurAfspraakInMinuten());
+		cloneOrganisatieParameters(intakeLocatie, dbIntakeLocatie);
+		var organisatieParameter = new OrganisatieParameter();
+		organisatieParameter.setOrganisatie(intakeLocatie);
+		organisatieParameter.setValue(dbIntakeLocatie.getParameters().get(0).getValue());
+		organisatieParameter.setKey(dbIntakeLocatie.getParameters().get(0).getKey());
+		intakeLocatie.getParameters().add(organisatieParameter);
 		intakeLocatie.setEmail(dbIntakeLocatie.getEmail());
 		intakeLocatie.setWebsite(dbIntakeLocatie.getWebsite());
 		intakeLocatie.setTelefoon(dbIntakeLocatie.getTelefoon());
@@ -170,6 +173,18 @@ public class DocumentTemplateTestWrapper implements IDetachable
 				intakeLocatie.getAdressen().get(1).setPlaats(dbIntakeLocatie.getAdressen().get(0).getPlaats());
 			}
 		}
+	}
+
+	private void cloneOrganisatieParameters(ColonIntakelocatie intakeLocatie, ColonIntakelocatie dbIntakeLocatie)
+	{
+		dbIntakeLocatie.getParameters().forEach(dbParameter ->
+		{
+			var organisatieParameter = new OrganisatieParameter();
+			organisatieParameter.setOrganisatie(intakeLocatie);
+			organisatieParameter.setValue(dbParameter.getValue());
+			organisatieParameter.setKey(dbParameter.getKey());
+			intakeLocatie.getParameters().add(organisatieParameter);
+		});
 	}
 
 	public boolean isMicrobioloog()

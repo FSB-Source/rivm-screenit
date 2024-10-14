@@ -29,12 +29,10 @@ import nl.rivm.screenit.comparator.BezwaarComparator;
 import nl.rivm.screenit.main.model.BezwaarDossierGebeurtenis;
 import nl.rivm.screenit.main.model.DossierGebeurtenisType;
 import nl.rivm.screenit.main.service.DossierService;
-import nl.rivm.screenit.main.util.BriefOmschrijvingUtil;
 import nl.rivm.screenit.main.web.component.bezwaar.tekst.BezwaarTekstPanel;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.modal.IDialog;
 import nl.rivm.screenit.main.web.gebruiker.clienten.inzien.popup.bezwaar.BezwaarInzienPopupPanel;
-import nl.rivm.screenit.main.web.gebruiker.clienten.inzien.popup.bezwaar.UploadBezwaarformulierPopupPanel;
 import nl.rivm.screenit.model.AanvraagBriefStatus;
 import nl.rivm.screenit.model.BezwaarMoment;
 import nl.rivm.screenit.model.Client;
@@ -64,15 +62,13 @@ public class ClientInzienBezwaarPanel extends GenericPanel<Client>
 
 	private final BootstrapDialog dialog;
 
-	private WebMarkupContainer meldingingenContainer;
+	private WebMarkupContainer meldingenContainer;
 
 	private WebMarkupContainer actueleBezwarenContainer;
 
 	public ClientInzienBezwaarPanel(String id, IModel<Client> model, BootstrapDialog dialog)
 	{
 		super(id, model);
-		Client client = model.getObject(); 
-
 		this.dialog = dialog;
 	}
 
@@ -84,7 +80,7 @@ public class ClientInzienBezwaarPanel extends GenericPanel<Client>
 		addOrReplaceActueleBezwarenContainer();
 	}
 
-	private WebMarkupContainer addOrReplaceActueleBezwarenContainer()
+	private void addOrReplaceActueleBezwarenContainer()
 	{
 		WebMarkupContainer container = new WebMarkupContainer("actueleBezwarenContainer");
 		container.setOutputMarkupPlaceholderTag(true);
@@ -109,10 +105,9 @@ public class ClientInzienBezwaarPanel extends GenericPanel<Client>
 		}
 		actueleBezwarenContainer = container;
 		add(actueleBezwarenContainer);
-		return actueleBezwarenContainer;
 	}
 
-	private WebMarkupContainer addOrReplaceMeldingContainer()
+	private void addOrReplaceMeldingContainer()
 	{
 		WebMarkupContainer container = new WebMarkupContainer("meldingenContainer");
 		container.setOutputMarkupPlaceholderTag(true);
@@ -145,47 +140,26 @@ public class ClientInzienBezwaarPanel extends GenericPanel<Client>
 					@Override
 					protected void onEvent(AjaxRequestTarget target)
 					{
-						BezwaarMoment bezwaar = clientMelding.getBezwaarModel().getObject();
-						if (AanvraagBriefStatus.VERWERKT.equals(bezwaar.getStatus()))
+						dialog.openWith(target, new BezwaarInzienPopupPanel(IDialog.CONTENT_ID, clientMelding.getBezwaarModel())
 						{
-							dialog.openWith(target, new BezwaarInzienPopupPanel(IDialog.CONTENT_ID, clientMelding.getBezwaarModel())
+							@Override
+							protected void close(AjaxRequestTarget target)
 							{
-
-								private static final long serialVersionUID = 1L;
-
-								@Override
-								protected void close(AjaxRequestTarget target)
-								{
-									dialog.close(target);
-								}
-							});
-						}
-						else
-						{
-							dialog.openWith(target, new UploadBezwaarformulierPopupPanel(IDialog.CONTENT_ID, clientMelding.getBezwaarModel(), ClientInzienBezwaarPanel.this, dialog)
-							{
-
-								@Override
-								public void close(AjaxRequestTarget target)
-								{
-									verversMeldingenNaAanpassingBezwaar(clientMelding.getBezwaarModel(), target);
-								}
-							});
-						}
-
+								dialog.close(target);
+							}
+						});
 					}
 
 				});
 				item.add(meldingContainer);
 			}
 		});
-		if (meldingingenContainer != null)
+		if (meldingenContainer != null)
 		{
-			meldingingenContainer.replaceWith(container);
+			meldingenContainer.replaceWith(container);
 		}
-		meldingingenContainer = container;
-		add(meldingingenContainer);
-		return meldingingenContainer;
+		meldingenContainer = container;
+		add(meldingenContainer);
 	}
 
 	private BezwaarMoment getLaatstAfgerondeBezwaarMoment(List<BezwaarMoment> momenten)
@@ -208,24 +182,13 @@ public class ClientInzienBezwaarPanel extends GenericPanel<Client>
 	private String bezwaarOmschrijving(BezwaarMoment bezwaar)
 	{
 		StringBuilder omschrijving = new StringBuilder();
-		omschrijving.append(getString("bezwaar.aangepast"));
+		omschrijving.append(getString("gebruik.gegevens.aangepast"));
 
-		if (!AanvraagBriefStatus.VERWERKT.equals(bezwaar.getStatus()) && bezwaar.getBezwaarAanvraag() != null)
-		{
-			BriefOmschrijvingUtil.addExtraOmschrijving(omschrijving, bezwaar.getBezwaarAanvraag(), this::getString);
-		}
-		else if (AanvraagBriefStatus.VERWERKT == bezwaar.getStatus() && bezwaar.getBezwaarBrief() != null)
+		if (AanvraagBriefStatus.VERWERKT == bezwaar.getStatus() && bezwaar.getBezwaarBrief() != null)
 		{
 			omschrijving.append(" (").append(getString("label.formulier.getekendbezwaar")).append(")");
 		}
 		return omschrijving.toString();
-	}
-
-	public void verversMeldingenNaAanpassingBezwaar(IModel<BezwaarMoment> bezwaarModel, AjaxRequestTarget target)
-	{
-		target.add(addOrReplaceActueleBezwarenContainer());
-		target.add(addOrReplaceMeldingContainer());
-		dialog.close(target);
 	}
 
 	@Override

@@ -53,10 +53,10 @@ import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
 import nl.rivm.screenit.model.colon.IFOBTTest;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.ColonGeenOnderzoekReden;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.dashboard.DashboardStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -215,13 +215,13 @@ public class ColonDossierServiceImpl implements ColonDossierService
 		case CLIENT_WIL_ANDERE_INTAKELOKATIE:
 			if (afspraak.getNieuweAfspraak() != null)
 			{
-				afspraakService.setAfspraakStatus(afspraak, AfspraakStatus.VERPLAATST);
+				afspraakService.setAfspraakStatus(afspraak, ColonAfspraakStatus.VERPLAATST);
 			}
 			break;
 		case NO_SHOW:
 			if (afspraak.getNieuweAfspraak() != null)
 			{
-				afspraakService.setAfspraakStatus(afspraak, AfspraakStatus.VERPLAATST);
+				afspraakService.setAfspraakStatus(afspraak, ColonAfspraakStatus.VERPLAATST);
 			}
 			else
 			{
@@ -255,12 +255,12 @@ public class ColonDossierServiceImpl implements ColonDossierService
 				hibernateService.saveOrUpdate(screeningRonde);
 			}
 		}
-		if (AfspraakStatus.GEPLAND.equals(afspraak.getStatus()))
+		if (ColonAfspraakStatus.GEPLAND.equals(afspraak.getStatus()))
 		{
-			afspraak.setStatus(AfspraakStatus.UITGEVOERD);
+			afspraak.setStatus(ColonAfspraakStatus.UITGEVOERD);
 			var filter = new BerichtZoekFilter();
 			filter.setBsn(client.getPersoon().getBsn());
-			filter.setMldBerichten(true);
+			filter.setMdlBerichten(true);
 			filter.setPaLabBerichten(true);
 			var berichten = ongeldigeBerichtenService.searchOngeldigeBerichten(filter, -1, -1, "datum", true);
 			for (var bericht : berichten)
@@ -503,7 +503,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 		var screeningRonde = afspraak.getColonScreeningRonde();
 		var heeftMdlVerslag = ColonScreeningRondeUtil.heeftAfgerondeVerslag(screeningRonde, VerslagType.MDL);
 		return origConclusie != null
-			&& !AfspraakStatus.isGeannuleerd(afspraak.getStatus())
+			&& !ColonAfspraakStatus.isGeannuleerd(afspraak.getStatus())
 			&& screeningRonde.getLaatsteAfspraak().equals(afspraak)
 			&& !heeftMdlVerslag
 			&& screeningRonde.getDossier().getLaatsteScreeningRonde().equals(screeningRonde);
@@ -513,7 +513,6 @@ public class ColonDossierServiceImpl implements ColonDossierService
 	@Transactional
 	public void conclusieVerwijderen(ColonIntakeAfspraak afspraak, InstellingGebruiker loggedInInstellingGebruiker, ColonConclusieType origConclusie)
 	{
-		afspraak = (ColonIntakeAfspraak) HibernateHelper.deproxy(ModelProxyHelper.deproxy(afspraak));
 		var screeningRonde = afspraak.getColonScreeningRonde();
 		var dossier = screeningRonde.getDossier();
 		var client = dossier.getClient();
@@ -524,7 +523,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 
 		verwijderBrieven(client, screeningRonde, nietGegenereerdeConclusieBrieven);
 
-		afspraak.setStatus(AfspraakStatus.GEPLAND);
+		afspraak.setStatus(ColonAfspraakStatus.GEPLAND);
 		afspraak.setConclusie(null);
 		if (dossier.getStatus().equals(DossierStatus.INACTIEF) && Boolean.TRUE.equals(dossier.getAangemeld()))
 		{
@@ -616,11 +615,11 @@ public class ColonDossierServiceImpl implements ColonDossierService
 			{
 				teVerwijderenAfspraken.add(afspraak);
 				client.getAfspraken().remove(afspraak);
-				var roosterItem = afspraak.getRoosterItem();
-				if (roosterItem != null)
+				var afspraakslot = afspraak.getAfspraakslot();
+				if (afspraakslot != null)
 				{
-					roosterItem.getAfspraken().remove(afspraak);
-					hibernateService.saveOrUpdate(roosterItem);
+					afspraakslot.setAfspraak(null);
+					hibernateService.saveOrUpdate(afspraakslot);
 				}
 			}
 

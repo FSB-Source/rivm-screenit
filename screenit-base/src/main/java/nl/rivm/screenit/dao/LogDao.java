@@ -24,21 +24,11 @@ package nl.rivm.screenit.dao;
 import java.util.List;
 
 import nl.rivm.screenit.model.SortState;
-import nl.rivm.screenit.model.dashboard.DashboardStatus;
 import nl.rivm.screenit.model.logging.LogRegel;
 import nl.rivm.screenit.model.logging.LoggingZoekCriteria;
 
 public interface LogDao
 {
-
-	void saveOrUpdateLogRegel(LogRegel logRegel);
-
-	List<LogRegel> getLogRegelsVanDashboard(DashboardStatus status, int first, int count, SortState<String> sortState);
-
-	List<LogRegel> getLogRegelsVanDashboard(DashboardStatus status);
-
-	long countLogRegelsVanDashboard(DashboardStatus status);
-
 	List<LogRegel> getLogRegels(LoggingZoekCriteria loggingZoekCriteria, int first, int count, SortState<String> sortState);
 
 	long countLogRegels(LoggingZoekCriteria loggingZoekCriteria);

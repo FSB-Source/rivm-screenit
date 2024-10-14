@@ -18,18 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
-import {Bevolkingsonderzoek} from "./Bevolkingsonderzoek"
-
 export enum BezwaarOverigeType {
-    GEEN_OPNAME_VANUIT_BRP = "GEEN_OPNAME_VANUIT_BRP",
-    VERZOEK_VERNIETIGING_DOSSIER = "VERZOEK_VERNIETIGING_DOSSIER",
-    GEEN_UITWISSELING_PALGA = "GEEN_UITWISSELING_PALGA",
-    GEEN_REGISTRATIE_GEBOORTELAND = "GEEN_REGISTRATIE_GEBOORTELAND",
-    GEEN_UITWISSELING_SO_CC = "GEEN_UITWISSELING_SO_CC"
-}
+	UITWISSELING_PATHOLOGIE_DATABANK = "UITWISSELING_PATHOLOGIE_DATABANK",
+	UITWISSELING_COLOSCOPIECENTRUM = "UITWISSELING_COLOSCOPIECENTRUM",
 
-export const getOverigeBezwaren: { [bvo in Bevolkingsonderzoek]: BezwaarOverigeType[] } = {
-    [Bevolkingsonderzoek.MAMMA]: [BezwaarOverigeType.GEEN_OPNAME_VANUIT_BRP, BezwaarOverigeType.VERZOEK_VERNIETIGING_DOSSIER, BezwaarOverigeType.GEEN_REGISTRATIE_GEBOORTELAND],
-    [Bevolkingsonderzoek.CERVIX]: [BezwaarOverigeType.GEEN_OPNAME_VANUIT_BRP, BezwaarOverigeType.VERZOEK_VERNIETIGING_DOSSIER, BezwaarOverigeType.GEEN_UITWISSELING_PALGA, BezwaarOverigeType.GEEN_REGISTRATIE_GEBOORTELAND],
-    [Bevolkingsonderzoek.COLON]: [BezwaarOverigeType.GEEN_OPNAME_VANUIT_BRP, BezwaarOverigeType.VERZOEK_VERNIETIGING_DOSSIER, BezwaarOverigeType.GEEN_REGISTRATIE_GEBOORTELAND, BezwaarOverigeType.GEEN_UITWISSELING_SO_CC],
 }

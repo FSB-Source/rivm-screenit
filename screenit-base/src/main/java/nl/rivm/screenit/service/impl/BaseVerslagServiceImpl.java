@@ -21,38 +21,66 @@ package nl.rivm.screenit.service.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
+import nl.rivm.screenit.model.SingleTableHibernateObject_;
 import nl.rivm.screenit.model.berichten.Verslag;
+import nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht;
+import nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht_;
 import nl.rivm.screenit.model.berichten.enums.BerichtStatus;
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.berichten.enums.VerslagType;
-import nl.rivm.screenit.model.colon.ColonVerslag;
 import nl.rivm.screenit.model.colon.MdlVerslag;
 import nl.rivm.screenit.model.colon.PaVerslag;
 import nl.rivm.screenit.model.colon.enums.MdlVervolgbeleid;
+import nl.rivm.screenit.model.colon.verslag.mdl.MdlTnummerPathologieVerslag;
+import nl.rivm.screenit.model.colon.verslag.mdl.MdlVerslagContent;
+import nl.rivm.screenit.model.colon.verslag.pa.PaVerslagContent;
 import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
+import nl.rivm.screenit.model.verslag.DSValue;
+import nl.rivm.screenit.repository.algemeen.DSValueRepository;
+import nl.rivm.screenit.repository.colon.ColonMdlVerslagRepository;
+import nl.rivm.screenit.repository.colon.ColonPaVerslagRepository;
 import nl.rivm.screenit.service.BaseVerslagService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
-import nl.rivm.screenit.service.VerwerkVerslagService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.mamma.MammaBaseFollowUpService;
 import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftCode;
+import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftCodeSystem;
+import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftDatumOnderzoek;
+import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftNietId;
+import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftScreeningRondeInMdlVerslag;
+import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftScreeningRondeInPaVerslag;
+import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftTNummerIn;
+import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftTNummerInPaVerslag;
+import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftValueSetName;
+import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftVerslagStatus;
+
 @Service
 public class BaseVerslagServiceImpl implements BaseVerslagService
 {
+
 	@Autowired
 	private HibernateService hibernateService;
 
@@ -65,14 +93,20 @@ public class BaseVerslagServiceImpl implements BaseVerslagService
 	@Autowired(required = false)
 	private ColonDossierBaseService colonDossierService;
 
-	@Autowired
-	private VerwerkVerslagService verwerkVerslagService;
-
 	@Autowired(required = false)
 	private MammaBaseScreeningrondeService baseScreeningrondeService;
 
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
+
+	@Autowired
+	private ColonPaVerslagRepository paVerslagRepository;
+
+	@Autowired
+	private DSValueRepository dsValueRepository;
+
+	@Autowired
+	private ColonMdlVerslagRepository mdlVerslagRepository;
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
@@ -153,7 +187,7 @@ public class BaseVerslagServiceImpl implements BaseVerslagService
 			MdlVerslag nieuweLaatsteAfgerondVerslag = null;
 			var screeningRonde = mdlVerslag.getScreeningRonde();
 			var geenAnderVerslagMetDefinitiefVervolgbeleid = true;
-			for (ColonVerslag<?> oneOfAllVerslagen : screeningRonde.getVerslagen())
+			for (var oneOfAllVerslagen : screeningRonde.getVerslagen())
 			{
 				if (VerslagType.MDL == oneOfAllVerslagen.getType() && VerslagStatus.AFGEROND == oneOfAllVerslagen.getStatus() && !oneOfAllVerslagen.equals(mdlVerslag))
 				{
@@ -200,7 +234,6 @@ public class BaseVerslagServiceImpl implements BaseVerslagService
 					colonDossierService.setVolgendeUitnodingVoorConclusie(laatsteAfspraak);
 				}
 			}
-			verwerkVerslagService.ontkoppelOfVerwijderComplicaties(mdlVerslag);
 		}
 
 		else if (type == VerslagType.MAMMA_PA_FOLLOW_UP)
@@ -219,7 +252,6 @@ public class BaseVerslagServiceImpl implements BaseVerslagService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS)
 	public String createLogMelding(Verslag<?, ?> verslag)
 	{
 		String melding;
@@ -251,11 +283,72 @@ public class BaseVerslagServiceImpl implements BaseVerslagService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean isElektronischPalgaVerslag(MammaFollowUpVerslag followUpVerslag)
 	{
 		return followUpVerslag.getInvoerder() == null && followUpVerslag.getVerslagContent() != null
 			&& followUpVerslag.getVerslagContent().getPathologieMedischeObservatie() != null
 			&& Constants.BK_TNUMMER_ELEKTRONISCH.equals(followUpVerslag.getVerslagContent().getPathologieMedischeObservatie().getTnummerLaboratorium());
+	}
+
+	@Override
+	public MdlVerslag getMdlVerslagMetTNummer(PaVerslagContent verslagContent)
+	{
+		var spec = heeftScreeningRondeInMdlVerslag(verslagContent.getVerslag().getScreeningRonde()).and(
+			heeftTNummerInPaVerslag(verslagContent.getPathologieMedischeObservatie().getTnummerLaboratorium()));
+		return mdlVerslagRepository.findFirst(spec, Sort.by(SingleTableHibernateObject_.ID)).orElse(null);
+	}
+
+	@Override
+	public List<PaVerslag> getPaVerslagMetTNummer(MdlVerslagContent verslagContent)
+	{
+		var spec = heeftScreeningRondeInPaVerslag(verslagContent.getVerslag().getScreeningRonde());
+		var tnummerPathologieVerslag = verslagContent.getColoscopieMedischeObservatie().getTnummerPathologieVerslag();
+		var tnummers = tnummerPathologieVerslag.stream().map(MdlTnummerPathologieVerslag::getTnummerPathologieVerslag).filter(StringUtils::isNotBlank)
+			.collect(
+				Collectors.toList());
+		if (!tnummers.isEmpty())
+		{
+			spec = spec.and(heeftTNummerIn(tnummers));
+			return paVerslagRepository.findAll(spec);
+		}
+		return new ArrayList<>();
+	}
+
+	@Override
+	public DSValue getDsValue(String code, String codeSystem, String valueSetName)
+	{
+		return getDsValue(code, codeSystem, valueSetName, false);
+	}
+
+	@Override
+	public DSValue getDsValue(String code, String codeSystem, String valueSetName, boolean ignoreCase)
+	{
+		var spec = heeftCode(code, ignoreCase).and(heeftCodeSystem(codeSystem)).and(heeftValueSetName(valueSetName));
+		return dsValueRepository.findFirst(spec, Sort.by(AbstractHibernateObject_.ID)).orElse(null);
+	}
+
+	@Override
+	public boolean heeftMdlVerslagenMetOnderzoekDatum(MdlVerslag verslag, Date onderzoekDatum)
+	{
+		var specification = heeftScreeningRondeInMdlVerslag(verslag.getScreeningRonde()).and(heeftVerslagStatus(VerslagStatus.AFGEROND)).and(
+			heeftDatumOnderzoek(onderzoekDatum));
+
+		if (verslag.getId() != null)
+		{
+			specification = specification.and(heeftNietId(verslag.getId()));
+		}
+		return mdlVerslagRepository.exists(specification);
+
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public void setBerichtenOpnieuwVerwerken(List<Long> ids)
+	{
+		hibernateService.getHibernateSession().createQuery(
+				"update " + OntvangenCdaBericht.class.getName() + " set " + OntvangenCdaBericht_.STATUS + " = :status where id in (:ids)")
+			.setParameter("status", BerichtStatus.VERWERKING)
+			.setParameterList("ids", ids)
+			.executeUpdate();
 	}
 }

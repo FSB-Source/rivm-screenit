@@ -24,9 +24,9 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon;
 import java.util.Iterator;
 
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.colon.dto.VrijSlotZonderKamer;
+import nl.rivm.screenit.model.colon.dto.VrijSlotZonderKamerFilter;
 import nl.rivm.screenit.service.colon.PlanningService;
-import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamer;
-import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamerFilter;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
@@ -43,9 +43,9 @@ public class VrijSlotZonderKamerDataProvider extends SortableDataProvider<VrijSl
 	@SpringBean
 	private PlanningService planningService;
 
-	private VrijSlotZonderKamerFilter filter;
+	private final VrijSlotZonderKamerFilter filter;
 
-	private IModel<Client> client;
+	private final IModel<Client> client;
 
 	public VrijSlotZonderKamerDataProvider(VrijSlotZonderKamerFilter filter, IModel<Client> client)
 	{
@@ -57,14 +57,14 @@ public class VrijSlotZonderKamerDataProvider extends SortableDataProvider<VrijSl
 	@Override
 	public Iterator<? extends VrijSlotZonderKamer> iterator(long first, long count)
 	{
-		String sortProperty = "startTime";
+		String sortProperty = "vanaf";
 		boolean asc = true;
 		if (getSort() != null)
 		{
 			sortProperty = getSort().getProperty();
 			asc = getSort().isAscending();
 		}
-		if (filter.getAlleenIntakeLokaties() && sortProperty.equals("startTime"))
+		if (filter.getAlleenIntakelocaties() && sortProperty.equals("vanaf"))
 		{
 			sortProperty = "naam";
 			asc = true;

@@ -25,15 +25,22 @@ import java.util.List;
 
 import nl.rivm.screenit.model.EnovationHuisarts;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
+
 public interface EnovationHuisartsService
 {
 	void saveOrUpdate(EnovationHuisarts huisarts);
 
 	EnovationHuisarts getHuisartsByKlantnummer(String klantnummer);
 
-	List<EnovationHuisarts> zoekHuisartsen(EnovationHuisarts zoekObject, String sortProperty, boolean ascending, int first, int count);
-
-	long telHuisartsen(EnovationHuisarts huisarts);
+	List<EnovationHuisarts> zoekHuisartsen(EnovationHuisarts zoekObject, PageRequest pageRequest);
 
 	int valideerKlantnummers(List<String> klantnummers);
+
+	EnovationHuisarts getHuisartsByAgb(String agbCode);
+
+	Specification<EnovationHuisarts> getHuisartsenSpecification(EnovationHuisarts filter);
+
+	void verwijderdeHuisartsenOntkoppelen();
 }

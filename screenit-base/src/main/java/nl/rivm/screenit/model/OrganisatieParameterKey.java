@@ -27,6 +27,12 @@ public enum OrganisatieParameterKey
 {
 	COLON_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN(OrganisatieType.RIVM, Integer.class, 366, Bevolkingsonderzoek.COLON),
 
+	COLON_DUUR_AFSPRAAK_IN_MINUTEN(OrganisatieType.INTAKELOCATIE, Integer.class, 360, Bevolkingsonderzoek.COLON),
+
+	COLON_DIGITALE_INTAKE(OrganisatieType.INTAKELOCATIE, String.class, null, Bevolkingsonderzoek.COLON),
+
+	COLON_INTAKELOCATIE_BESCHRIJVING(OrganisatieType.INTAKELOCATIE, String.class, null, Bevolkingsonderzoek.COLON),
+
 	CERVIX_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN(OrganisatieType.RIVM, Integer.class, 366, Bevolkingsonderzoek.CERVIX),
 
 	CERVIX_MAX_AANTAL_CLIENTEN_SELECTIE(OrganisatieType.BMHK_LABORATORIUM, Integer.class, 3000, Bevolkingsonderzoek.CERVIX),

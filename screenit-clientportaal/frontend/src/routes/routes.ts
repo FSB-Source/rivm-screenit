@@ -36,7 +36,6 @@ import ColonAfspraakAfzeggenPage from "../pages/bvo/colon/ColonAfspraakAfzeggenP
 import ColonAfspraakMakenPage from "../pages/bvo/colon/afspraak/ColonAfspraakMakenPage"
 import AfmeldenPage from "../pages/bvo/gedeeld/AfmeldenPage"
 import HeraanmeldenPage from "../pages/bvo/gedeeld/HeraanmeldenPage"
-import BezwaarPage from "../pages/bvo/BezwaarPage"
 import ProfielPage from "../pages/profiel/ProfielPage"
 import TelefoonnummerWijzigenPage from "../pages/profiel/TelefoonnummerWijzigenPage"
 import TijdelijkAdresWijzigenPage from "../pages/profiel/TijdelijkAdresWijzigenPage"
@@ -47,6 +46,7 @@ import AutoLoginPage from "../pages/authentication/AutoLoginPage"
 import {capitalize} from "@mui/material"
 import AanhefWijzigenPage from "../pages/profiel/AanhefWijzigenPage"
 import EmailWijzigenPage from "../pages/profiel/email/EmailWijzigenPage"
+import BezwaarWijzigenPage from "../pages/profiel/BezwaarWijzigenPage"
 
 export type RoutePath =
 	"/"
@@ -58,7 +58,6 @@ export type RoutePath =
 
 	| "/cervix/"
 	| "/cervix/afmelden/"
-	| "/cervix/bezwaar/"
 	| "/cervix/heraanmelden/"
 	| "/cervix/herdrukken/"
 	| "/cervix/uitstellen/"
@@ -70,7 +69,6 @@ export type RoutePath =
 	| "/colon/afspraak-maken/"
 	| "/colon/afspraak-wijzigen/"
 	| "/colon/afzeggen/"
-	| "/colon/bezwaar/"
 	| "/colon/fit/"
 	| "/colon/heraanmelden/"
 	| "/colon/huisarts/"
@@ -78,7 +76,6 @@ export type RoutePath =
 	| "/mamma/"
 	| "/mamma/afspraak/"
 	| "/mamma/afmelden/"
-	| "/mamma/bezwaar/"
 	| "/mamma/heraanmelden/"
 	| "/mamma/huisarts/"
 	| "/mamma/huisarts/zoeken/"
@@ -89,6 +86,7 @@ export type RoutePath =
 	| "/profiel/telefoonnummer/"
 	| "/profiel/aanspreekvorm/"
 	| "/profiel/email/"
+	| "/profiel/gebruikgegevens/"
 
 export type RouteDef = RouteProps & {
 	name: string
@@ -289,33 +287,6 @@ const routes: RouteDef[] = [
 	},
 	{
 		private: true,
-		path: "/mamma/bezwaar/",
-		name: "Bezwaar",
-		component: BezwaarPage,
-		bvo: Bevolkingsonderzoek.MAMMA,
-		requiredContactActions: [ClientContactActieType.BEZWAAR],
-		redirectPage: "/mamma/",
-	},
-	{
-		private: true,
-		path: "/cervix/bezwaar/",
-		name: "Bezwaar",
-		component: BezwaarPage,
-		bvo: Bevolkingsonderzoek.CERVIX,
-		requiredContactActions: [ClientContactActieType.BEZWAAR],
-		redirectPage: "/cervix/",
-	},
-	{
-		private: true,
-		path: "/colon/bezwaar/",
-		name: "Bezwaar",
-		component: BezwaarPage,
-		bvo: Bevolkingsonderzoek.COLON,
-		requiredContactActions: [ClientContactActieType.BEZWAAR],
-		redirectPage: "/colon/",
-	},
-	{
-		private: true,
 		path: "/profiel/",
 		name: "Profiel",
 		component: ProfielPage,
@@ -350,6 +321,14 @@ const routes: RouteDef[] = [
 		name: "Aanspreekvorm",
 		component: AanhefWijzigenPage,
 		requiredContactActions: [ClientContactActieType.INZAGE_PERSOONSGEGEVENS],
+		redirectPage: "/profiel/",
+	},
+	{
+		private: true,
+		path: "/profiel/gebruikgegevens/",
+		name: "Gebruik gegevens",
+		component: BezwaarWijzigenPage,
+		requiredContactActions: [ClientContactActieType.BEZWAAR],
 		redirectPage: "/profiel/",
 	},
 	{

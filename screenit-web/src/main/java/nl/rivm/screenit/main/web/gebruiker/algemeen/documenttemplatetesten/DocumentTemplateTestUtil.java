@@ -47,12 +47,11 @@ import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.IFOBTType;
-import nl.rivm.screenit.model.colon.Kamer;
-import nl.rivm.screenit.model.colon.planning.AfspraakDefinitie;
+import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaDossier;
@@ -279,23 +278,19 @@ public class DocumentTemplateTestUtil
 
 	public static ColonIntakeAfspraak getDefaultFilledColonIntakeAfspraak()
 	{
-		ColoscopieCentrum il = new ColoscopieCentrum();
+		ColonIntakelocatie il = new ColonIntakelocatie();
 		il.setActief(true);
 
-		AfspraakDefinitie afspraakDefinitie = new AfspraakDefinitie();
-		afspraakDefinitie.setDuurAfspraakInMinuten(15);
-		il.getAfspraakDefinities().add(afspraakDefinitie);
-
 		il.add(getDefaultFilledAdres());
 		il.add(getDefaultFilledAdres());
 
-		Kamer locatie = new Kamer();
-		locatie.setColoscopieCentrum(il);
-		locatie.setName(defaultValue);
-		locatie.setActief(true);
+		var kamer = new ColonIntakekamer();
+		kamer.setIntakelocatie(il);
+		kamer.setNaam(defaultValue);
+		kamer.setActief(true);
 
 		ColonIntakeAfspraak afspraak = new ColonIntakeAfspraak();
-		afspraak.setLocation(locatie);
+		afspraak.setKamer(kamer);
 
 		return afspraak;
 	}

@@ -25,7 +25,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.gebieden;
 import java.util.List;
 
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
-import nl.rivm.screenit.model.UitnodigingsGebied;
+import nl.rivm.screenit.model.colon.UitnodigingsGebied;
 import nl.rivm.screenit.service.GemeenteService;
 
 import org.apache.wicket.markup.html.panel.GenericPanel;

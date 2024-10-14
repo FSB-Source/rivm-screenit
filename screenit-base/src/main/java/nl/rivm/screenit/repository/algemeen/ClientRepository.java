@@ -21,35 +21,20 @@ package nl.rivm.screenit.repository.algemeen;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
+
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.GbaPersoon_;
 import nl.rivm.screenit.model.enums.GbaStatus;
+import nl.rivm.screenit.model.mamma.MammaTehuis;
 import nl.rivm.screenit.repository.BaseJpaRepository;
 
 import org.springframework.data.jpa.domain.Specification;
 
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+
 public interface ClientRepository extends BaseJpaRepository<Client>
 {
-
-	static Specification<Client> baseSpecification()
-	{
-		return ((r, q, cb) -> cb.isNotNull(r));
-	}
-
-	static Specification<Client> bsnEquals(String input)
-	{
-		return ((r, q, cb) -> cb.equal(r.get(Client_.persoon).get(GbaPersoon_.bsn), input));
-	}
-
-	static Specification<Client> gbaStatusEquals(GbaStatus status)
-	{
-		return ((r, q, cb) -> cb.equal(r.get(Client_.gbaStatus), status));
-	}
-
-	static Specification<Client> gbaStatusNotEquals(GbaStatus status)
-	{
-		return ((r, q, cb) -> cb.notEqual(r.get(Client_.gbaStatus), status));
-	}
-
+	List<Client> findClientByMammaDossierTehuis(MammaTehuis tehuis);
 }

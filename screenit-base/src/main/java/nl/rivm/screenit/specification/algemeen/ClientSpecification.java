@@ -22,6 +22,7 @@ package nl.rivm.screenit.specification.algemeen;
  */
 
 import java.time.LocalDate;
+import java.util.List;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -30,40 +31,36 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.GbaPersoon_;
 import nl.rivm.screenit.model.enums.GbaStatus;
-import nl.rivm.screenit.specification.SpecificationUtil;
-import nl.rivm.screenit.specification.mamma.MammaDossierSpecification;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.functionalinterfaces.EntityAwarePredicate;
-import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
+
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.isNietOverleden;
+import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.woontInNederland;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ClientSpecification
 {
-	public static PathAwarePredicate<Client> heeftIndicatie()
+	public static ExtendedSpecification<Client> heeftIndicatie()
 	{
-		return (cb, r) ->
-			cb.equal(r.get(Client_.gbaStatus), GbaStatus.INDICATIE_AANWEZIG);
+		return (r, q, cb) -> cb.equal(r.get(Client_.gbaStatus), GbaStatus.INDICATIE_AANWEZIG);
 	}
 
-	public static EntityAwarePredicate<Client> heeftActieveClientPredicate()
+	public static ExtendedSpecification<Client> heeftActieveClient()
 	{
-		return (cb, r) ->
-		{
-			var persoon = SpecificationUtil.join(r, Client_.persoon);
-			var heeftGeenOverledenDatum = PersoonSpecification.heeftGeenOverledenDatumPredicate().withPath(cb, persoon);
-			var heeftGeenVertrokkenUitNederlandDatum = PersoonSpecification.heeftGeenVertrokkenUitNederlandDatumPredicate().withPath(cb, persoon);
-			var heeftIndicatie = heeftIndicatie().withPath(cb, r);
-			return cb.and(heeftGeenOverledenDatum, heeftGeenVertrokkenUitNederlandDatum, heeftIndicatie);
-		};
+		return isNietOverleden().with(Client_.persoon)
+			.and(woontInNederland().with(Client_.persoon))
+			.and(heeftIndicatie());
 	}
 
 	public static Specification<Client> heeftGeboorteJaarVoorLeeftijdBereik(int minimaleLeeftijd, int maximaleLeeftijd, LocalDate peildatum)
 	{
 		return (r, q, cb) ->
 		{
-			var persoon = SpecificationUtil.join(r, Client_.persoon);
+			var persoon = join(r, Client_.persoon);
 			var geboorteDatum = persoon.get(GbaPersoon_.geboortedatum);
 			var maxGeboortedatum = DateUtil.toUtilDate(LocalDate.of(peildatum.getYear() - minimaleLeeftijd, 12, 31));
 			var minGeboortedatum = DateUtil.toUtilDate(LocalDate.of(peildatum.getYear() - maximaleLeeftijd, 1, 1));
@@ -71,8 +68,59 @@ public class ClientSpecification
 		};
 	}
 
-	public static Specification<Client> woontNietInTehuis()
+	public static Specification<Client> heeftANummer(String anummer)
 	{
-		return MammaDossierSpecification.woontNietInTehuisPredicate().toSpecification(r -> SpecificationUtil.join(r, Client_.mammaDossier));
+		return (r, q, cb) ->
+		{
+			var persoonJoin = join(r, Client_.persoon);
+			if (StringUtils.isNotEmpty(anummer))
+			{
+				return cb.equal(persoonJoin.get(GbaPersoon_.anummer), anummer);
+			}
+			return null;
+		};
+	}
+
+	public static Specification<Client> heeftTitelCode(String titelCode)
+	{
+		return (r, q, cb) ->
+		{
+			var persoonJoin = join(r, Client_.persoon);
+			return cb.equal(persoonJoin.get(GbaPersoon_.titelCode), titelCode);
+		};
+	}
+
+	public static Specification<Client> heeftGbaMutaties()
+	{
+		return (r, q, cb) -> cb.notEqual(cb.size(r.get(Client_.gbaMutaties)), 0);
+	}
+
+	public static Specification<Client> heeftBsnDieEindigtMet(String bsn)
+	{
+		return (r, q, cb) ->
+		{
+			var persoonJoin = join(r, Client_.persoon);
+			return cb.like(persoonJoin.get(GbaPersoon_.bsn), "%" + bsn);
+		};
+	}
+
+	public static Specification<Client> heeftGbaStatus(GbaStatus status)
+	{
+		return (r, q, cb) -> cb.equal(r.get(Client_.gbaStatus), status);
+	}
+
+	public static Specification<Client> heeftNietGbaStatus(GbaStatus status)
+	{
+		return ((r, q, cb) -> cb.notEqual(r.get(Client_.gbaStatus), status));
+	}
+
+	public static Specification<Client> heeftNietGbaStatussen(List<GbaStatus> statussen)
+	{
+		return (r, q, cb) -> cb.not(r.get(Client_.gbaStatus).in(statussen));
+	}
+
+	public static ExtendedSpecification<Client> heeftId(Long id)
+	{
+		return (r, q, cb) -> cb.equal(r.get(Client_.id), id);
 	}
 }

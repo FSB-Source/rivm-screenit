@@ -33,20 +33,20 @@ import org.springframework.data.repository.query.Param;
 public interface ColonIntakeAfspraakRepository extends BaseJpaRepository<ColonIntakeAfspraak>
 {
 	@Query(nativeQuery = true, value = "with time_table as ("
-		+ " select make_time(cast(extract(HOUR from papp.start_time) as INTEGER), cast(extract(MINUTE from papp.start_time) as INTEGER), cast (extract(SECOND from papp.start_time) as DOUBLE PRECISION)) as start_time,"
-		+ " make_time(cast(extract(HOUR from papp.end_time) as INTEGER), cast(extract(MINUTE from papp.end_time) as INTEGER), cast (extract(SECOND from papp.end_time) as DOUBLE PRECISION)) as end_time"
-		+ " from colon.rooster_item ri"
-		+ " inner join colon.plan_appointment papp on ri.id=papp.id"
-		+ " where papp.start_time > now()"
+		+ " select make_time(cast(extract(HOUR from papp.vanaf) as INTEGER), cast(extract(MINUTE from papp.vanaf) as INTEGER), cast (extract(SECOND from papp.vanaf) as DOUBLE PRECISION)) as start_time,"
+		+ " make_time(cast(extract(HOUR from papp.tot) as INTEGER), cast(extract(MINUTE from papp.tot) as INTEGER), cast (extract(SECOND from papp.tot) as DOUBLE PRECISION)) as end_time"
+		+ " from colon.afspraakslot  afs"
+		+ " inner join colon.tijdslot papp on afs.id=papp.id"
+		+ " where papp.vanaf > now()"
 		+ ")"
 		+ "  select COUNT(*)"
 		+ "  from time_table"
 		+ "  where start_time < :startTijd or end_time > :eindTijd")
 	List<Long> countColonIntakeAfsprakenInNacht(@Param("startTijd") LocalTime startTijd, @Param("eindTijd") LocalTime eindTijd);
 
-	@Query(nativeQuery = true, value = "select count(ri.id) as count"
-		+ " from colon.rooster_item ri"
-		+ " inner join colon.plan_appointment pa on ri.id = pa.id"
-		+ " where pa.start_time > now() and DATE_PART('DOW', pa.start_time) = :dag")
+	@Query(nativeQuery = true, value = "select count(afs.id) as count"
+		+ " from colon.afspraakslot  afs"
+		+ " inner join colon.tijdslot ts on afs.id = ts.id"
+		+ " where ts.vanaf > now() and DATE_PART('DOW', ts.vanaf) = :dag")
 	List<Long> countColonIntakeAfsprakenOpDag(@Param("dag") int dag);
 }

@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import nl.rivm.screenit.main.service.MedewerkerService;
+import nl.rivm.screenit.main.service.mamma.MammaBeWerklijstService;
 import nl.rivm.screenit.main.service.mamma.MammaBeoordelingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -58,6 +59,9 @@ public class TestMammaLezingMakenPopup extends TestMammaAbstractPopupPanel
 
 	@SpringBean
 	private MammaBeoordelingService beoordelingService;
+
+	@SpringBean
+	private MammaBeWerklijstService beWerklijstService;
 
 	@SpringBean
 	private MammaBaseBeoordelingService baseBeoordelingService;
@@ -137,9 +141,9 @@ public class TestMammaLezingMakenPopup extends TestMammaAbstractPopupPanel
 				.collect(Collectors.toList()));
 		}
 
-		ScreenitDropdown<InstellingGebruiker> dropDownChoice = new ScreenitDropdown<InstellingGebruiker>("beoordelaar", new PropertyModel<>(lezingModel, "beoordelaar"),
+		ScreenitDropdown<InstellingGebruiker> dropDownChoice = new ScreenitDropdown<>("beoordelaar", new PropertyModel<>(lezingModel, "beoordelaar"),
 			instellingGebruikersListModel);
-		dropDownChoice.setChoiceRenderer(new ChoiceRenderer<InstellingGebruiker>("", "id")
+		dropDownChoice.setChoiceRenderer(new ChoiceRenderer<>("", "id")
 		{
 
 			@Override
@@ -159,7 +163,7 @@ public class TestMammaLezingMakenPopup extends TestMammaAbstractPopupPanel
 
 		if (MammaBeoordelingStatus.EERSTE_LEZING_OPGESLAGEN.equals(huidigeOnderzoeksStatus))
 		{
-			beoordelingService.bevestig1eEn2eLezingen(beoordelaar);
+			beWerklijstService.bevestig1eEn2eLezingen(beoordelaar);
 			huidigeOnderzoeksStatus = MammaBeoordelingStatus.TWEEDE_LEZING;
 		}
 
