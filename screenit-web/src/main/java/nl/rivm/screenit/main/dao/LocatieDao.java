@@ -24,13 +24,13 @@ package nl.rivm.screenit.main.dao;
 
 import java.util.List;
 
-import nl.rivm.screenit.model.colon.Kamer;
+import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
 
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 
 public interface LocatieDao
 {
 
-	List<Kamer> getKamers(int first, int count, SortParam<String> sort);
+	List<ColonIntakekamer> getKamers(int first, int count, SortParam<String> sort);
 
 }

@@ -30,6 +30,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.enums.Level;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
@@ -38,13 +41,12 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 @Entity
+@Getter
+@Setter
 @Table(schema = "gedeeld", uniqueConstraints = { @UniqueConstraint(name = "dashboardOrganisatie", columnNames = { "type", "organisatie" }) })
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 public class DashboardStatus extends AbstractHibernateObject
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private DashboardType type;
@@ -58,44 +60,4 @@ public class DashboardStatus extends AbstractHibernateObject
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private Level level;
-
-	public Level getLevel()
-	{
-		return level;
-	}
-
-	public void setLevel(Level level)
-	{
-		this.level = level;
-	}
-
-	public DashboardType getType()
-	{
-		return type;
-	}
-
-	public void setType(DashboardType type)
-	{
-		this.type = type;
-	}
-
-	public Instelling getOrganisatie()
-	{
-		return organisatie;
-	}
-
-	public void setOrganisatie(Instelling organisatie)
-	{
-		this.organisatie = organisatie;
-	}
-
-	public String getEmailadressen()
-	{
-		return emailadressen;
-	}
-
-	public void setEmailadressen(String emailadressen)
-	{
-		this.emailadressen = emailadressen;
-	}
 }

@@ -21,9 +21,9 @@ package nl.rivm.screenit.repository.colon;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.repository.BaseJpaRepository;
 
-public interface ColonIntakelocatieRepository extends BaseJpaRepository<ColoscopieCentrum>
+public interface ColonIntakelocatieRepository extends BaseJpaRepository<ColonIntakelocatie>
 {
 }

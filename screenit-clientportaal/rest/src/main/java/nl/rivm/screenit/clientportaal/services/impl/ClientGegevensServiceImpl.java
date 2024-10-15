@@ -26,7 +26,6 @@ import lombok.AllArgsConstructor;
 import nl.rivm.screenit.clientportaal.mappers.TijdelijkAdresMapper;
 import nl.rivm.screenit.clientportaal.services.ClientGegevensService;
 import nl.rivm.screenit.clientportaal.validators.TijdelijkAdresValidator;
-import nl.rivm.screenit.dao.CoordinatenDao;
 import nl.rivm.screenit.model.Aanhef;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
@@ -34,6 +33,7 @@ import nl.rivm.screenit.model.TijdelijkAdres;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.ClientContactService;
 import nl.rivm.screenit.service.ClientService;
+import nl.rivm.screenit.service.CoordinatenService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.util.EmailUtil;
@@ -52,7 +52,7 @@ public class ClientGegevensServiceImpl implements ClientGegevensService
 {
 	private final HibernateService hibernateService;
 
-	private final CoordinatenDao coordinatenDao;
+	private final CoordinatenService coordinatenService;
 
 	private final TijdelijkAdresMapper tijdelijkAdresMapper;
 
@@ -136,7 +136,7 @@ public class ClientGegevensServiceImpl implements ClientGegevensService
 			{
 				throw new IllegalStateException("Huidige adres en nieuw adres hebben ander id");
 			}
-			nieuwTijdelijkAdres.setPostcodeCoordinaten(coordinatenDao.getCoordinaten(nieuwTijdelijkAdres));
+			nieuwTijdelijkAdres.setPostcodeCoordinaten(coordinatenService.getCoordinaten(nieuwTijdelijkAdres));
 			tijdelijkAdresMapper.updateTijdelijkAdres(huidigTijdelijkAdres, nieuwTijdelijkAdres);
 			hibernateService.saveOrUpdate(huidigTijdelijkAdres);
 			logService.logGebeurtenis(LogGebeurtenis.WIJZIG_TIJDELIJK_ADRES, client, client);

@@ -52,7 +52,6 @@ import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.BatchConstants;
 import nl.rivm.screenit.batch.service.WebserviceInpakcentrumOpzettenService;
 import nl.rivm.screenit.batch.util.WebservicePingUtil;
-import nl.rivm.screenit.dao.BaseBriefDao;
 import nl.rivm.screenit.model.BriefDefinitie;
 import nl.rivm.screenit.model.InpakbareUitnodiging;
 import nl.rivm.screenit.model.Instelling;
@@ -68,9 +67,9 @@ import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.BaseBriefService;
+import nl.rivm.screenit.service.BaseProjectService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.MailService;
-import nl.rivm.screenit.service.ProjectService;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.util.ZipUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -119,9 +118,6 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 	private HibernateService hibernateService;
 
 	@Autowired
-	private BaseBriefDao briefDao;
-
-	@Autowired
 	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
@@ -138,7 +134,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 	private SimplePreferenceService preferenceService;
 
 	@Autowired
-	private ProjectService projectService;
+	private BaseProjectService projectService;
 
 	@Autowired
 	private BaseBriefService briefService;
@@ -659,7 +655,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 	{
 		for (var briefType : BriefType.values())
 		{
-			if (OrganisatieType.INPAKCENTRUM == briefType.getVerzendendeOrganisatieType() && briefDao.getNieuwsteBriefDefinitie(briefType) == null)
+			if (OrganisatieType.INPAKCENTRUM == briefType.getVerzendendeOrganisatieType() && briefService.getNieuwsteBriefDefinitie(briefType) == null)
 			{
 				return false;
 			}

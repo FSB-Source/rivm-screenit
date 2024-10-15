@@ -38,13 +38,20 @@ import nl.rivm.screenit.main.web.component.table.EnumPropertyColumn;
 import nl.rivm.screenit.main.web.component.table.NotClickablePropertyColumn;
 import nl.rivm.screenit.main.web.component.validator.EmailAddressenValidator;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.logging.LoggingTable;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.GbaPersoon_;
+import nl.rivm.screenit.model.Gebruiker_;
+import nl.rivm.screenit.model.dashboard.DashboardLogRegel_;
 import nl.rivm.screenit.model.dashboard.DashboardStatus;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.model.logging.LogEvent_;
 import nl.rivm.screenit.model.logging.LogRegel;
+import nl.rivm.screenit.model.logging.LogRegel_;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid_;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.DashboardService;
 import nl.rivm.screenit.service.LogService;
@@ -68,6 +75,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
+
 public class DashboardStatusPanel extends GenericPanel<DashboardStatus>
 {
 	@SpringBean
@@ -82,7 +91,7 @@ public class DashboardStatusPanel extends GenericPanel<DashboardStatus>
 	@SpringBean
 	private ClientService clientService;
 
-	private BootstrapDialog confirmDialog;
+	private final BootstrapDialog confirmDialog;
 
 	@SpringBean
 	private ColonDossierService colonDossierService;
@@ -105,12 +114,12 @@ public class DashboardStatusPanel extends GenericPanel<DashboardStatus>
 		List<IColumn<LogRegel, String>> columns = new ArrayList<>();
 
 		columns.add(new EnumPropertyColumn<>(new SimpleStringResourceModel("label.gebeurtenis"),
-			"logRegel.logGebeurtenis", "logGebeurtenis"));
-		columns.add(new DateTimePropertyColumn<>(new SimpleStringResourceModel("label.datumtijd"), "gebeurtenisDatum",
-			"logRegel.gebeurtenisDatum", Constants.getDateTimeSecondsFormat()));
-		columns.add(new PropertyColumn<>(new SimpleStringResourceModel("label.gebruiker"), "gebruiker.gebruikersnaam"));
+			propertyChain(DashboardLogRegel_.LOG_REGEL, LogRegel_.LOG_GEBEURTENIS), LogRegel_.LOG_GEBEURTENIS));
+		columns.add(new DateTimePropertyColumn<>(new SimpleStringResourceModel("label.datumtijd"), LogRegel_.GEBEURTENIS_DATUM,
+			propertyChain(DashboardLogRegel_.LOG_REGEL, LogRegel_.GEBEURTENIS_DATUM), Constants.getDateTimeSecondsFormat()));
+		columns.add(new PropertyColumn<>(new SimpleStringResourceModel("label.gebruiker"), propertyChain(LogRegel_.GEBRUIKER, Gebruiker_.GEBRUIKERSNAAM)));
 
-		columns.add(new PropertyColumn<>(new SimpleStringResourceModel("label.client"), "persoon.achternaam")
+		columns.add(new PropertyColumn<>(new SimpleStringResourceModel("label.client"), propertyChain(Client_.PERSOON, GbaPersoon_.ACHTERNAAM))
 		{
 			@Override
 			public IModel<?> getDataModel(IModel<LogRegel> rowModel)
@@ -121,9 +130,10 @@ public class DashboardStatusPanel extends GenericPanel<DashboardStatus>
 		if (ScreenitSession.get().getOnderzoeken().contains(Bevolkingsonderzoek.MAMMA)
 			&& Arrays.asList(dashboardStatus.getType().getBevolkingsOnderzoek()).contains(Bevolkingsonderzoek.MAMMA))
 		{
-			columns.add(new PropertyColumn<>(Model.of("SE"), "screeningsEenheid.naam", "screeningsEenheid.naam"));
+			columns.add(new PropertyColumn<>(Model.of("SE"), propertyChain(DashboardLogRegel_.LOG_REGEL, LogRegel_.SCREENINGS_EENHEID, MammaScreeningsEenheid_.NAAM),
+				propertyChain(LogRegel_.SCREENINGS_EENHEID, MammaScreeningsEenheid_.NAAM)));
 		}
-		columns.add(new PropertyColumn<>(new SimpleStringResourceModel("label.event.melding"), "logEvent.melding")
+		columns.add(new PropertyColumn<>(new SimpleStringResourceModel("label.event.melding"), propertyChain(LogRegel_.LOG_EVENT, LogEvent_.MELDING))
 		{
 			@Override
 			public void populateItem(final Item<ICellPopulator<LogRegel>> item, final String componentId, final IModel<LogRegel> rowModel)

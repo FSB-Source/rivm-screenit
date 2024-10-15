@@ -24,6 +24,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.kwaliteitscontrole.r
 import java.util.Calendar;
 import java.util.Date;
 
+import nl.rivm.screenit.main.web.component.DatePickerHelper;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerBasePage;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
@@ -32,7 +33,6 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.wicket.planning.web.component.DatePickerHelper;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;

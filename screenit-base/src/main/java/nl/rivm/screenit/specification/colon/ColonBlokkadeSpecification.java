@@ -27,33 +27,27 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
-import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment_;
+import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
+import nl.rivm.screenit.model.colon.planning.ColonTijdslot_;
 
 import org.springframework.data.jpa.domain.Specification;
 
 import com.google.common.collect.Range;
 
-import static nl.rivm.screenit.specification.DateSpecification.overlaptLocalDateTime;
+import static nl.rivm.screenit.specification.RangeSpecification.overlapt;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ColonBlokkadeSpecification
 {
-	public static Specification<ColonBlokkade> heeftKamer(Kamer kamer)
-	{
-		return (r, q, cb) ->
-			cb.equal(cb.treat(r.get(AbstractAppointment_.location), Kamer.class), kamer);
-	}
 
-	public static Specification<ColonBlokkade> heeftKamerUitLijst(List<Kamer> kamers)
+	public static Specification<ColonBlokkade> heeftKamerUitLijst(List<ColonIntakekamer> kamers)
 	{
-		return (r, q, cb) ->
-			cb.treat(r.get(AbstractAppointment_.location), Kamer.class).in(kamers);
+		return (r, q, cb) -> r.get(ColonTijdslot_.kamer).in(kamers);
 	}
 
 	public static Specification<ColonBlokkade> valtBinnenDatumRange(Range<LocalDateTime> range)
 	{
-		return overlaptLocalDateTime(range, r -> r.get(AbstractAppointment_.startTime), r -> r.get(AbstractAppointment_.endTime));
+		return overlapt(range, r -> r.get(ColonTijdslot_.vanaf), r -> r.get(ColonTijdslot_.tot));
 	}
 }

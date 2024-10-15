@@ -34,7 +34,7 @@ import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.UploadDocument;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.IFobtLaboratorium;
 
 import org.hibernate.Criteria;
@@ -46,9 +46,9 @@ public interface InstellingService
 
 	List<InstellingGebruiker> getActieveInstellingGebruikers(@Nonnull Gebruiker medewerker);
 
-	List<ColoscopieCentrum> getActieveIntakelocaties();
+	List<ColonIntakelocatie> getActieveIntakelocaties();
 
-	List<ColoscopieCentrum> getActieveIntakelocatiesBinneRegio(ScreeningOrganisatie regio);
+	List<ColonIntakelocatie> getActieveIntakelocatiesBinneRegio(ScreeningOrganisatie regio);
 
 	List<BeoordelingsEenheid> getActieveBeoordelingseenhedenBinnenRegio(ScreeningOrganisatie regio);
 
@@ -62,7 +62,7 @@ public interface InstellingService
 
 	void saveOrUpdate(Instelling organisatie);
 
-	void saveOrUpdateColoscopieCentrum(ColoscopieCentrum coloscopieCentrum);
+	void saveOrUpdateColoscopieCentrum(ColonIntakelocatie intakelocatie);
 
 	<T extends Instelling> List<T> getActieveInstellingen(Class<T> typeInstelling);
 
@@ -87,4 +87,5 @@ public interface InstellingService
 	ScreeningOrganisatie getScreeningOrganisatie(String regioCode);
 
 	ScreeningOrganisatie getScreeningOrganisatie(long screeningOrganisatieId);
+
 }

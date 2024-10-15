@@ -45,9 +45,9 @@ import nl.rivm.screenit.model.colon.ColonOnderzoeksVariant;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
 import nl.rivm.screenit.model.colon.ColonVooraankondiging;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.Level;
@@ -296,9 +296,9 @@ public class ClientSelectieItemWriter implements ItemWriter<ClientCategorieEntry
 			ColonIntakeAfspraak laatsteAfspraak = eerdereScreeningRonde.getLaatsteAfspraak();
 			eerdereScreeningRonde.setStatus(ScreeningRondeStatus.AFGEROND);
 			eerdereScreeningRonde.setStatusDatum(currentDateSupplier.getDate());
-			if (laatsteAfspraak != null && laatsteAfspraak.getStatus() == AfspraakStatus.GEPLAND)
+			if (laatsteAfspraak != null && laatsteAfspraak.getStatus() == ColonAfspraakStatus.GEPLAND)
 			{
-				afspraakService.annuleerAfspraak(laatsteAfspraak, null, AfspraakStatus.GEANNULEERD_ONBEKEND, true);
+				afspraakService.annuleerAfspraak(laatsteAfspraak, null, ColonAfspraakStatus.GEANNULEERD_ONBEKEND, true);
 			}
 			logService.logGebeurtenis(LogGebeurtenis.RONDE_VERLOPEN, dossier.getClient(), Bevolkingsonderzoek.COLON);
 			hibernateService.saveOrUpdate(eerdereScreeningRonde);

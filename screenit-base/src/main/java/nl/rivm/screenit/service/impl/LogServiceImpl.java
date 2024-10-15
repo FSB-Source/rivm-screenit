@@ -30,6 +30,10 @@ import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.Column;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Root;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,6 +44,8 @@ import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.SortState;
+import nl.rivm.screenit.model.dashboard.DashboardLogRegel;
+import nl.rivm.screenit.model.dashboard.DashboardLogRegel_;
 import nl.rivm.screenit.model.dashboard.DashboardStatus;
 import nl.rivm.screenit.model.enums.BatchApplicationType;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -47,8 +53,12 @@ import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.model.logging.LogRegel;
+import nl.rivm.screenit.model.logging.LogRegel_;
 import nl.rivm.screenit.model.logging.LoggingZoekCriteria;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid_;
+import nl.rivm.screenit.repository.algemeen.DashboardLogRegelRepository;
+import nl.rivm.screenit.repository.algemeen.LogRegelRepository;
 import nl.rivm.screenit.service.DashboardService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
@@ -56,14 +66,19 @@ import nl.rivm.screenit.util.DateUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Strings;
 
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.DashboardLogRegelSpecification.heeftDashboardType;
+import static nl.rivm.screenit.specification.algemeen.DashboardLogRegelSpecification.heeftOrganisatie;
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
+
 @Service(value = "logInformatieService")
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 @Slf4j
 public class LogServiceImpl implements LogService
 {
@@ -97,6 +112,12 @@ public class LogServiceImpl implements LogService
 	@Qualifier("batchApplicationType")
 	private String batchApplicationTypeString;
 
+	@Autowired
+	private LogRegelRepository logRegelRepository;
+
+	@Autowired
+	private DashboardLogRegelRepository dashboardLogRegelRepository;
+
 	@PostConstruct
 	private void init()
 	{
@@ -116,22 +137,39 @@ public class LogServiceImpl implements LogService
 	}
 
 	@Override
-	public List<LogRegel> getLogRegelsVanDashboard(DashboardStatus item, int first, int count, SortState<String> sortState)
+	public List<LogRegel> getLogRegelsVanDashboard(DashboardStatus item, long first, long count, Sort sort)
 	{
-		return logDao.getLogRegelsVanDashboard(item, first, count, sortState);
+		return dashboardLogRegelRepository.findWith(getLogRegelsSpecification(item), LogRegel.class,
+			q -> q.projection((cb, r) -> r.get(DashboardLogRegel_.logRegel)).sortBy(sort, LogServiceImpl::sorteerLogRegels)).all(first, count);
+	}
+
+	private static Order sorteerLogRegels(Sort.Order order, Root<DashboardLogRegel> r, CriteriaBuilder cb)
+	{
+		if (order.getProperty().equals(propertyChain(LogRegel_.SCREENINGS_EENHEID, MammaScreeningsEenheid_.NAAM)))
+		{
+			var logregelJoin = join(r, DashboardLogRegel_.logRegel);
+			join(logregelJoin, LogRegel_.screeningsEenheid, JoinType.LEFT);
+		}
+		return null;
 	}
 
 	@Override
 	public List<LogRegel> getLogRegelsVanDashboard(DashboardStatus item)
 	{
 
-		return logDao.getLogRegelsVanDashboard(item);
+		return dashboardLogRegelRepository.findWith(getLogRegelsSpecification(item), LogRegel.class,
+			q -> q.projection((cb, r) -> r.get(DashboardLogRegel_.logRegel))).all();
 	}
 
 	@Override
 	public long countLogRegelsVanDashboard(DashboardStatus item)
 	{
-		return logDao.countLogRegelsVanDashboard(item);
+		return dashboardLogRegelRepository.count(getLogRegelsSpecification(item));
+	}
+
+	private Specification<DashboardLogRegel> getLogRegelsSpecification(DashboardStatus item)
+	{
+		return heeftDashboardType(item.getType()).and(heeftOrganisatie(item.getOrganisatie()));
 	}
 
 	@Override
@@ -171,7 +209,7 @@ public class LogServiceImpl implements LogService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void createAndSaveLogInformatie(InstellingGebruiker ingelogd, LogGebeurtenis logGebeurtenis, String omschrijving)
 	{
 		if (logGebeurtenis != null)
@@ -182,14 +220,14 @@ public class LogServiceImpl implements LogService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, Account account, Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
 		logGebeurtenis(gebeurtenis, new ArrayList<>(), account, bevolkingsonderzoeken);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, List<Instelling> dashboardOrganisaties, Account account, Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
 		LogEvent logEvent = getLogEvent(gebeurtenis.getDefaultLevel(), null);
@@ -197,14 +235,14 @@ public class LogServiceImpl implements LogService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, Account account, String melding, Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
 		logGebeurtenis(gebeurtenis, new ArrayList<>(), account, melding, bevolkingsonderzoeken);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, List<Instelling> dashboardOrganisaties, Account account, String melding, Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
 		LogEvent logEvent = getLogEvent(gebeurtenis.getDefaultLevel(), melding);
@@ -212,14 +250,14 @@ public class LogServiceImpl implements LogService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, Account account, Client client, Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
 		logGebeurtenis(gebeurtenis, new ArrayList<>(), account, client, bevolkingsonderzoeken);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, List<Instelling> dashboardOrganisaties, Account account, Client client, Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
 		LogEvent logEvent = getLogEvent(gebeurtenis.getDefaultLevel(), null);
@@ -227,14 +265,14 @@ public class LogServiceImpl implements LogService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, Account account, Client client, String melding, Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
 		logGebeurtenis(gebeurtenis, new ArrayList<>(), account, client, melding, bevolkingsonderzoeken);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, List<Instelling> dashboardOrganisaties, Account account, Client client, String melding,
 		Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
@@ -243,21 +281,21 @@ public class LogServiceImpl implements LogService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, LogEvent logEvent, Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
 		logGebeurtenis(gebeurtenis, logEvent, null, null, bevolkingsonderzoeken);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, List<Instelling> dashboardOrganisaties, LogEvent logEvent, Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
 		logGebeurtenis(gebeurtenis, dashboardOrganisaties, logEvent, null, bevolkingsonderzoeken);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, List<Instelling> dashboardOrganisaties, LogEvent logEvent, Account account, Client client,
 		Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
@@ -265,35 +303,35 @@ public class LogServiceImpl implements LogService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, LogEvent logEvent, Account account, Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
 		logGebeurtenis(gebeurtenis, logEvent, account, null, bevolkingsonderzoeken);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, List<Instelling> dashboardOrganisaties, LogEvent logEvent, Account account, Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
 		logGebeurtenis(gebeurtenis, dashboardOrganisaties, logEvent, account, null, bevolkingsonderzoeken);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void logGebeurtenis(LogGebeurtenis logGebeurtenis, LogEvent logEvent, Account account, Client client, Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
 		logGebeurtenis(logGebeurtenis, new ArrayList<>(), logEvent, account, client, bevolkingsonderzoeken);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, MammaScreeningsEenheid screeningsEenheid, List<Instelling> dashboardOrganisaties, Client client, String melding)
 	{
 		logGebeurtenis(gebeurtenis, screeningsEenheid, dashboardOrganisaties, null, client, melding, null);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, MammaScreeningsEenheid screeningsEenheid, List<Instelling> dashboardOrganisaties, Account account, Client client,
 		String melding, LocalDateTime datumTijd)
 	{
@@ -302,7 +340,7 @@ public class LogServiceImpl implements LogService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void logGebeurtenis(LogGebeurtenis gebeurtenis, MammaScreeningsEenheid screeningsEenheid, Account account, Client client, String melding, LocalDateTime datumTijd,
 		Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
@@ -311,7 +349,7 @@ public class LogServiceImpl implements LogService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void logGebeurtenis(LogGebeurtenis logGebeurtenis, MammaScreeningsEenheid mammaScreeningsEenheid, List<Instelling> dashboardOrganisaties, LogEvent logEvent,
 		Account account, Client client, LocalDateTime datumTijd, Bevolkingsonderzoek... bevolkingsonderzoeken)
 	{
@@ -349,8 +387,8 @@ public class LogServiceImpl implements LogService
 		{
 			logRegel.setBevolkingsonderzoeken(new ArrayList<>());
 		}
-		logDao.saveOrUpdateLogRegel(logRegel);
 
+		logRegelRepository.save(logRegel);
 		dashboardService.updateDashboard(logRegel, dashboardOrganisaties);
 	}
 
@@ -377,7 +415,7 @@ public class LogServiceImpl implements LogService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public boolean verwijderLogRegelsVanDashboards(List<LogRegel> logRegels, InstellingGebruiker ingelogdeGebruiker, LogGebeurtenis logGebeurtenisVoorVerwijderActie)
 	{
 		if (!logRegels.isEmpty())

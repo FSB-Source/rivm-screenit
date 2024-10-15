@@ -27,8 +27,8 @@ export default class BezwaarView extends Component<BezwaarStateProps & BezwaarDi
 
 	render(): JSX.Element {
 		return <Paneel>
-			<PaneelNaam titel={"Bezwaar"}/>
-			<CheckboxValue label={"Bezwaar aanvragen"}
+			<PaneelNaam titel={"Keuze gebruik gegevens"}/>
+			<CheckboxValue label={"Brief aanvraag gebruik gegevens"}
 						   checked={this.props.bezwaarAangevraagd}
 						   handleChange={this.bezwaarAanvragenDidChange}
 						   disabled={this.props.bezwaarDoorgevoerdOpCentraal}/>

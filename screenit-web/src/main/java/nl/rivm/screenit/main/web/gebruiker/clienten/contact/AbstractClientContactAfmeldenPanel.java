@@ -22,7 +22,6 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact;
  */
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -112,7 +111,8 @@ public abstract class AbstractClientContactAfmeldenPanel<A extends Afmelding, E 
 		});
 		container.add(type);
 
-		DropDownChoice<ClientContactManier> manier = new ScreenitDropdown<>("manier", new ListModel<>(Arrays.asList(ClientContactManier.values())), new EnumChoiceRenderer<>(this));
+		DropDownChoice<ClientContactManier> manier = new ScreenitDropdown<>("manier",
+			new ListModel<>(List.of(ClientContactManier.FORMULIER_VOOR_AANVRAGEN, ClientContactManier.DIRECT)), new EnumChoiceRenderer<>(this));
 		manier.setOutputMarkupPlaceholderTag(true);
 		manier.setRequired(true);
 		manier.add(new AjaxFormComponentUpdatingBehavior("change")

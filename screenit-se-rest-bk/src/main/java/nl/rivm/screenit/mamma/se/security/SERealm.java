@@ -179,7 +179,7 @@ public class SERealm extends AuthorizingRealm implements IScreenitRealm
 		if (authcToken instanceof UsernamePasswordToken)
 		{
 			UsernamePasswordToken token = (UsernamePasswordToken) authcToken;
-			Gebruiker gebruiker = gebruikersService.getGebruikerByGebruikersnaam(token.getUsername());
+			Gebruiker gebruiker = gebruikersService.getGebruikerByGebruikersnaam(token.getUsername()).orElse(null);
 			if (gebruiker == null)
 			{
 				return null;

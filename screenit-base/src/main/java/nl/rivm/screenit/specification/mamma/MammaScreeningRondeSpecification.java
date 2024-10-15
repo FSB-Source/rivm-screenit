@@ -31,10 +31,13 @@ import javax.persistence.criteria.Root;
 import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.ScreeningRondeStatus;
+import nl.rivm.screenit.model.ScreeningRonde_;
 import nl.rivm.screenit.model.SingleTableHibernateObject_;
 import nl.rivm.screenit.model.mamma.MammaAfspraak_;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling_;
+import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaDossier_;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
@@ -45,7 +48,7 @@ import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode_;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde_;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
-import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 
 import org.springframework.data.jpa.domain.Specification;
 
@@ -72,7 +75,7 @@ public class MammaScreeningRondeSpecification
 
 	public static Specification<MammaScreeningRonde> filterOpBeoordelingVoorDatum(LocalDate voorDatum)
 	{
-		return skipWhenNull(voorDatum, (r, q, cb) -> cb.lessThan(beoordelingenJoin(r).get(MammaBeoordeling_.statusDatum), DateUtil.toUtilDate(voorDatum)));
+		return skipWhenNull(voorDatum, MammaBeoordelingSpecification.heeftStatusDatumVoor(voorDatum).withRoot(MammaScreeningRondeSpecification::beoordelingenJoin));
 	}
 
 	public static Specification<MammaScreeningRonde> heeftStandplaatsPeriodeDieAflooptOpOfNa(Date datum)
@@ -83,6 +86,11 @@ public class MammaScreeningRondeSpecification
 			var standplaatsPeriodeJoin = join(standplaatsRondeJoin, MammaStandplaatsRonde_.standplaatsPerioden);
 			return cb.and(cb.greaterThanOrEqualTo(standplaatsPeriodeJoin.get(MammaStandplaatsPeriode_.totEnMet), datum));
 		};
+	}
+
+	public static ExtendedSpecification<MammaScreeningRonde> heeftRondeStatus(ScreeningRondeStatus status)
+	{
+		return (r, q, cb) -> cb.equal(r.get(ScreeningRonde_.status), status);
 	}
 
 	public static Specification<MammaScreeningRonde> heeftStandplaats(MammaStandplaats standplaats)
@@ -102,4 +110,20 @@ public class MammaScreeningRondeSpecification
 		return join(onderzoeken, MammaOnderzoek_.beoordelingen);
 	}
 
+	public static ExtendedSpecification<MammaScreeningRonde> heeftDossier(MammaDossier dossier)
+	{
+		return (r, q, cb) -> cb.equal(r.get(MammaScreeningRonde_.dossier), dossier);
+	}
+
+	public static ExtendedSpecification<MammaDossier> heeftPreciesEenRonde()
+	{
+		return (r, q, cb) ->
+		{
+			var subQuery = q.subquery(Long.class);
+			var subQueryRoot = subQuery.from(MammaScreeningRonde.class);
+			subQuery.select(cb.count(cb.literal(1))) 
+				.where(cb.equal(subQueryRoot.get(MammaScreeningRonde_.dossier), r));
+			return cb.equal(subQuery, 1);
+		};
+	}
 }

@@ -28,12 +28,12 @@ import nl.rivm.screenit.batch.jobs.colon.selectie.SelectieConstants;
 import nl.rivm.screenit.batch.service.ColonUitnodigingsgebiedCapaciteitService;
 import nl.rivm.screenit.batch.service.impl.ColonUitnodigingsgebiedSelectieContext;
 import nl.rivm.screenit.dao.colon.ColonUitnodigingsDao;
-import nl.rivm.screenit.model.UitnodigingsGebied;
 import nl.rivm.screenit.model.colon.ClientCategorieEntry;
+import nl.rivm.screenit.model.colon.UitnodigingsGebied;
 import nl.rivm.screenit.model.enums.JobStartParameter;
 import nl.rivm.screenit.model.verwerkingverslag.SelectieRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.SelectieRapportageGewijzigdGebiedEntry;
-import nl.rivm.screenit.service.ProjectService;
+import nl.rivm.screenit.service.BaseProjectService;
 import nl.rivm.screenit.service.colon.ColonUitnodigingService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -61,7 +61,7 @@ public class ClientSelectieMetCapaciteitItemReader extends AbstractClientSelecti
 	private HibernateService hibernateService;
 
 	@Autowired
-	private ProjectService projectService;
+	private BaseProjectService projectService;
 
 	@Autowired
 	private ColonUitnodigingService uitnodigingService;
@@ -130,7 +130,6 @@ public class ClientSelectieMetCapaciteitItemReader extends AbstractClientSelecti
 		}
 
 		var selectieContext = new ColonClientSelectieContext();
-		selectieContext.clientDao = clientDao;
 		selectieContext.fitService = fitService;
 		selectieContext.uitnodigingsDao = uitnodigingsDao;
 		selectieContext.uitnodigingService = uitnodigingService;

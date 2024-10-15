@@ -69,11 +69,11 @@ public class OngeldigeBerichtenDaoImpl extends AbstractAutowiredDao implements O
 		crit.add(Restrictions.eq("actief", Boolean.TRUE));
 
 		crit.alias("ontvangenCdaBericht");
-		if (Boolean.TRUE.equals(filter.getMldBerichten()) || Boolean.TRUE.equals(filter.getPaLabBerichten()) || Boolean.TRUE.equals(filter.getCytologieBerichten())
+		if (Boolean.TRUE.equals(filter.getMdlBerichten()) || Boolean.TRUE.equals(filter.getPaLabBerichten()) || Boolean.TRUE.equals(filter.getCytologieBerichten())
 			|| Boolean.TRUE.equals(filter.getFollowUpBerichten()))
 		{
 			Disjunction or = Restrictions.disjunction();
-			if (Boolean.TRUE.equals(filter.getMldBerichten()))
+			if (Boolean.TRUE.equals(filter.getMdlBerichten()))
 			{
 				or.add(Restrictions.eq("ontvangenCdaBericht.berichtType", BerichtType.MDL_VERSLAG));
 			}

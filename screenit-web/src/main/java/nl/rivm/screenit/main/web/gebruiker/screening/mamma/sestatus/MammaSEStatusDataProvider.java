@@ -22,7 +22,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.sestatus;
  */
 
 import java.util.Iterator;
-import java.util.List;
 
 import nl.rivm.screenit.main.service.mamma.MammaScreeningsEenheidService;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
@@ -35,7 +34,7 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import com.google.common.primitives.Ints;
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
 
 public class MammaSEStatusDataProvider extends SortableDataProvider<MammaScreeningsEenheid, String>
 {
@@ -59,9 +58,7 @@ public class MammaSEStatusDataProvider extends SortableDataProvider<MammaScreeni
 	@Override
 	public Iterator<? extends MammaScreeningsEenheid> iterator(long first, long count)
 	{
-		List<MammaScreeningsEenheid> screeningsEenheden = screeningsEenheidService.zoekScreeningsEenheden(zoekObject, screeningOrganisatieModel.getObject(),
-			Ints.checkedCast(first), Ints.checkedCast(count), getSort().getProperty(), getSort().isAscending());
-		return screeningsEenheden.iterator();
+		return screeningsEenheidService.zoekScreeningsEenheden(zoekObject, screeningOrganisatieModel.getObject(), first, count, toSpringSort(getSort())).iterator();
 	}
 
 	@Override

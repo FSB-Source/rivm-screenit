@@ -24,7 +24,7 @@ package nl.rivm.screenit.batch;
 
 import java.util.Comparator;
 
-import nl.rivm.screenit.model.colon.planning.VrijSlot;
+import nl.rivm.screenit.model.colon.dto.VrijSlot;
 
 public class VrijSlotComparator implements Comparator<VrijSlot>
 {

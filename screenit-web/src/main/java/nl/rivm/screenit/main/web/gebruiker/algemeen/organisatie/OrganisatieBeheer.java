@@ -32,12 +32,12 @@ import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.bmhklaboratorium
 import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.bmhklaboratorium.CervixLaboratoriumTarievenPage;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.bmhklaboratorium.facturatie.CervixBmhkLaboratoriumOverzichtVerrichtingenPage;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.centraleeenheid.AanvullendeCeGegevensPage;
-import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.coloscopiecentrum.ColoscopieCentrumGebiedenBeheer;
-import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.coloscopiecentrum.ColoscopieCentrumKamerBeheer;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.coloscopielocatie.AanvullendeClGegevensPage;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.huisarts.AanvullendeHaGegevensPage;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.huisarts.facturatie.CervixHuisartsOverzichtVerrichtingenPage;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.ifobtlab.AanvullendeLabGegevensPage;
+import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.intakelocatie.ColonIntakekamerBeheer;
+import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.intakelocatie.IntakelocatieGebiedenBeheer;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.mammaAfdeling.AanvullendeMammapoliGegevensPage;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.mammaAfdeling.AanvullendeRadiologieGegevensPage;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.palab.AanvullendePaLabGegevensPage;
@@ -81,9 +81,9 @@ public abstract class OrganisatieBeheer extends AlgemeenPage
 			case COLOSCOPIELOCATIE:
 				contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.organisaties.cl.aanvullend", AanvullendeClGegevensPage.class));
 				break;
-			case COLOSCOPIECENTRUM:
-				contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.organisaties.cc.aanvullend", ColoscopieCentrumKamerBeheer.class));
-				contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.organisaties.cc.gebieden", ColoscopieCentrumGebiedenBeheer.class));
+			case INTAKELOCATIE:
+				contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.organisaties.cc.aanvullend", ColonIntakekamerBeheer.class));
+				contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.organisaties.cc.gebieden", IntakelocatieGebiedenBeheer.class));
 				break;
 			case MAMMAPOLI:
 				contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.organisaties.mm.aanvullend", AanvullendeMammapoliGegevensPage.class));

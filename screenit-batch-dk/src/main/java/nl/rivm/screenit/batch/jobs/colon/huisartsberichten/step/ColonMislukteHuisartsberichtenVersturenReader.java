@@ -23,33 +23,29 @@ package nl.rivm.screenit.batch.jobs.colon.huisartsberichten.step;
 
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.colon.ColonHuisartsBericht;
 import nl.rivm.screenit.model.colon.ColonHuisartsBerichtStatus;
+import nl.rivm.screenit.repository.colon.ColonHuisartsBerichtRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.colon.ColonHuisartsberichtSpecification.heeftStatus;
+import static nl.rivm.screenit.specification.colon.ColonHuisartsberichtSpecification.isAangemaaktVanaf;
 
 @Component
 @AllArgsConstructor
-public class ColonMislukteHuisartsberichtenVersturenReader extends BaseScrollableResultReader
+public class ColonMislukteHuisartsberichtenVersturenReader extends BaseSpecificationScrollableResultReader<ColonHuisartsBericht, ColonHuisartsBerichtRepository>
 {
 	private final ICurrentDateSupplier currentDateSupplier;
 
 	private static final Integer MAXIMALE_PERIODE_RETRY = 1;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<ColonHuisartsBericht> createSpecification()
 	{
-		var criteria = session.createCriteria(ColonHuisartsBericht.class, "huisartsbericht");
-		criteria.add(Restrictions.eq("huisartsbericht.status", ColonHuisartsBerichtStatus.VERZENDEN_MISLUKT));
-		criteria.add(Restrictions.ge("huisartsbericht.aanmaakDatum", DateUtil.toUtilDate(currentDateSupplier.getLocalDateTime().minusMonths(MAXIMALE_PERIODE_RETRY))));
-
-		return criteria;
+		return heeftStatus(ColonHuisartsBerichtStatus.VERZENDEN_MISLUKT).and(isAangemaaktVanaf(currentDateSupplier.getLocalDateTime().minusMonths(MAXIMALE_PERIODE_RETRY)));
 	}
 }

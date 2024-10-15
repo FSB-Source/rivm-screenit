@@ -26,7 +26,7 @@ import java.util.List;
 
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ConclusieTypeFilter;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 
@@ -35,7 +35,7 @@ public class ColonGeplandeIntakesWerklijstPage extends WerklijstIntakePage
 
 	public ColonGeplandeIntakesWerklijstPage()
 	{
-		super(AfspraakStatus.GEPLAND);
+		super(ColonAfspraakStatus.GEPLAND);
 	}
 
 	@Override

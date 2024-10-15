@@ -30,7 +30,6 @@ import javax.annotation.Nonnull;
 
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.dao.CoordinatenDao;
 import nl.rivm.screenit.dao.InstellingDao;
 import nl.rivm.screenit.dto.mamma.planning.PlanningScreeningsOrganisatieDto;
 import nl.rivm.screenit.model.BeoordelingsEenheid;
@@ -39,34 +38,30 @@ import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.PostcodeCoordinaten;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.ZASRetouradres;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.IFobtLaboratorium;
-import nl.rivm.screenit.model.colon.Kamer;
-import nl.rivm.screenit.model.colon.enums.ColonTijdSlotType;
-import nl.rivm.screenit.model.colon.planning.AfspraakDefinitie;
-import nl.rivm.screenit.model.colon.planning.TypeAfspraak;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.repository.algemeen.ScreeningOrganisatieRepository;
+import nl.rivm.screenit.service.CoordinatenService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseConceptPlanningsApplicatie;
 import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.rivm.screenit.util.MedewerkerUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 import nl.topicuszorg.organisatie.model.Adres;
-import nl.topicuszorg.wicket.planning.model.Discipline;
-import nl.topicuszorg.wicket.planning.model.appointment.Location;
-import nl.topicuszorg.wicket.planning.model.appointment.definition.ActionType;
-import nl.topicuszorg.wicket.planning.model.schedule.ScheduleSet;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.hibernate.Criteria;
@@ -91,7 +86,7 @@ public class InstellingServiceImpl implements InstellingService
 	private HibernateService hibernateService;
 
 	@Autowired
-	private CoordinatenDao coordinatenDao;
+	private CoordinatenService coordinatenService;
 
 	@Autowired
 	private UploadDocumentService uploadDocumentService;
@@ -137,15 +132,15 @@ public class InstellingServiceImpl implements InstellingService
 	}
 
 	@Override
-	public List<ColoscopieCentrum> getActieveIntakelocaties()
+	public List<ColonIntakelocatie> getActieveIntakelocaties()
 	{
-		return instellingDao.getActieveInstellingen(ColoscopieCentrum.class);
+		return instellingDao.getActieveInstellingen(ColonIntakelocatie.class);
 	}
 
 	@Override
-	public List<ColoscopieCentrum> getActieveIntakelocatiesBinneRegio(ScreeningOrganisatie regio)
+	public List<ColonIntakelocatie> getActieveIntakelocatiesBinneRegio(ScreeningOrganisatie regio)
 	{
-		return instellingDao.getActieveInstellingenBinnenRegio(ColoscopieCentrum.class, regio);
+		return instellingDao.getActieveInstellingenBinnenRegio(ColonIntakelocatie.class, regio);
 	}
 
 	@Override
@@ -161,7 +156,7 @@ public class InstellingServiceImpl implements InstellingService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void saveOrUpdateScreeningOrganisatie(ScreeningOrganisatie screeningOrganisatie, List<Gemeente> choices, InstellingGebruiker loggedInInstellingGebruiker)
 	{
 		List<Gemeente> gekoppeldeGemeentes = screeningOrganisatie.getGemeentes();
@@ -190,7 +185,7 @@ public class InstellingServiceImpl implements InstellingService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void saveOrUpdateSoPlanningBk(ScreeningOrganisatie screeningOrganisatie, InstellingGebruiker loggedInInstellingGebruiker)
 	{
 		PlanningScreeningsOrganisatieDto screeningsOrganisatieDto = new PlanningScreeningsOrganisatieDto();
@@ -233,66 +228,40 @@ public class InstellingServiceImpl implements InstellingService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void saveOrUpdate(Instelling organisatie)
 	{
 		hibernateService.saveOrUpdate(organisatie);
-		if (organisatie instanceof ColoscopieCentrum)
+		if (organisatie instanceof ColonIntakelocatie)
 		{
-			ColoscopieCentrum coloscopieCentrum = (ColoscopieCentrum) organisatie;
-			if (coloscopieCentrum.getAfspraakDefinities().isEmpty())
+			ColonIntakelocatie intakelocatie = (ColonIntakelocatie) organisatie;
+
+			var organisatieParameterService = ApplicationContextProvider.getApplicationContext().getBean(OrganisatieParameterService.class);
+			var duurAfspraakInMinutenParameter = organisatieParameterService.getParameter(intakelocatie, OrganisatieParameterKey.COLON_DUUR_AFSPRAAK_IN_MINUTEN);
+
+			if (duurAfspraakInMinutenParameter == null)
 			{
-				List<Discipline> disciplines = hibernateService.loadAll(Discipline.class);
-
-				AfspraakDefinitie definitie = new AfspraakDefinitie();
-				definitie.setActief(true);
-				definitie.setDuurAfspraakInMinuten(15);
-				definitie.setLabel(ColonTijdSlotType.ROOSTER_ITEM.getTitle());
-				definitie.setType(ActionType.APPOINTMENT);
-				definitie.setTypeAfspraak(TypeAfspraak.AFSPRAAK);
-				definitie.setPossibleLocations(new ArrayList<>());
-				definitie.addDiscipline(disciplines.get(0));
-				definitie.setInstelling(organisatie);
-
-				hibernateService.saveOrUpdate(definitie);
-
-				ScheduleSet scheduleSet = new ScheduleSet();
-				scheduleSet.setTitle(ColonTijdSlotType.ROOSTER_ITEM.getTitle());
-				scheduleSet.setActionDefinitions(new ArrayList<>());
-				scheduleSet.getActionDefinitions().add(definitie);
-				hibernateService.saveOrUpdate(scheduleSet);
-				organisatie.getAfspraakDefinities().add(definitie);
+				organisatieParameterService.maakOfUpdateOrganisatieParameter(OrganisatieParameterKey.COLON_DUUR_AFSPRAAK_IN_MINUTEN, "15", intakelocatie);
 			}
 			PostcodeCoordinaten coordinaten = null;
 			for (Adres adres : organisatie.getAdressen())
 			{
-				coordinaten = coordinatenDao.getCoordinaten(adres);
+				coordinaten = coordinatenService.getCoordinaten(adres);
 				if (coordinaten != null)
 				{
 					break;
 				}
 			}
-			coloscopieCentrum.setPostcodeCoordinaten(coordinaten);
+			intakelocatie.setPostcodeCoordinaten(coordinaten);
 		}
 		hibernateService.saveOrUpdate(organisatie);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
-	public void saveOrUpdateColoscopieCentrum(ColoscopieCentrum coloscopieCentrum)
+	@Transactional
+	public void saveOrUpdateColoscopieCentrum(ColonIntakelocatie intakelocatie)
 	{
-		AfspraakDefinitie afspraakDefinitie = coloscopieCentrum.getAfspraakDefinities().get(0);
-		List<Location> possibleLocations = afspraakDefinitie.getPossibleLocations();
-		for (Kamer kamer : coloscopieCentrum.getKamers())
-		{
-			if (Boolean.TRUE.equals(kamer.getActief()) && kamer.getId() == null)
-			{
-				possibleLocations.add(kamer);
-			}
-		}
-
-		hibernateService.saveOrUpdate(coloscopieCentrum);
-		hibernateService.saveOrUpdate(afspraakDefinitie);
+		hibernateService.saveOrUpdate(intakelocatie);
 	}
 
 	@Override
@@ -354,7 +323,7 @@ public class InstellingServiceImpl implements InstellingService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void saveDocumentForInstelling(UploadDocument uploadDocument, Instelling instelling)
 	{
 		List<UploadDocument> documents = instelling.getDocuments();
@@ -373,7 +342,7 @@ public class InstellingServiceImpl implements InstellingService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void deleteDocumentForInstelling(UploadDocument document, Instelling instelling)
 	{
 		uploadDocumentService.deleteDocumentFromList(document, instelling.getDocuments());

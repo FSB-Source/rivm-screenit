@@ -37,6 +37,8 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
+import nl.rivm.screenit.model.mamma.MammaBeoordeling_;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
@@ -53,6 +55,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
+
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
 
 @SecurityConstraint(
 	actie = Actie.INZIEN,
@@ -105,23 +109,24 @@ public class MammaCeOpgeschorteBeoordelingenWerklijstPage extends AbstractMammaC
 		columns.add(getOpschortOpmerkingRadioloog());
 		columns.add(getAfspraakMakenMetClientKnopColumn());
 		columns.add(getOpschortenTerugNaarWerklijstKnopColumn());
-		ScreenitDataTable<MammaBeoordeling, String> resultatenTable = new ScreenitDataTable<MammaBeoordeling, String>("resultaten", columns, onderzoekDataProvider, 10, null);
+		ScreenitDataTable<MammaBeoordeling, String> resultatenTable = new ScreenitDataTable<>("resultaten", columns, onderzoekDataProvider, 10, null);
 		resultatenContainer.add(resultatenTable);
 	}
 
 	private IColumn<MammaBeoordeling, String> getOpschortredenColumn()
 	{
-		return new EnumPropertyColumn<>(Model.of("Opschortreden"), "beoordeling.opschortReden", "opschortReden", this);
+		return new EnumPropertyColumn<>(Model.of("Opschortreden"), propertyChain(MammaOnderzoek_.LAATSTE_BEOORDELING, MammaBeoordeling_.OPSCHORT_REDEN), "opschortReden", this);
 	}
 
 	private IColumn<MammaBeoordeling, String> getOpschortOpmerkingRadioloog()
 	{
-		return new PropertyColumn<>(Model.of("Opschortopmerking radioloog"), "beoordeling.opschortRedenTekst", "opschortRedenTekst");
+		return new PropertyColumn<>(Model.of("Opschortopmerking radioloog"), propertyChain(MammaOnderzoek_.LAATSTE_BEOORDELING, MammaBeoordeling_.OPSCHORT_REDEN_TEKST),
+			"opschortRedenTekst");
 	}
 
 	private IColumn<MammaBeoordeling, String> getAfspraakMakenMetClientKnopColumn()
 	{
-		return new AbstractColumn<MammaBeoordeling, String>(Model.of("Afspraak maken met cliënt"))
+		return new AbstractColumn<>(Model.of("Afspraak maken met cliënt"))
 		{
 			@Override
 			public void populateItem(Item<ICellPopulator<MammaBeoordeling>> cellItem, String componentId, IModel<MammaBeoordeling> rowModel)
@@ -138,7 +143,7 @@ public class MammaCeOpgeschorteBeoordelingenWerklijstPage extends AbstractMammaC
 							extraParameters.add(Constants.CONTACT_EXTRA_PARAMETER_ALLEEN_CLIENT_CONTACT);
 							Client client = model.getObject().getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().getDossier().getClient();
 							ClientContactActieTypeWrapper actie = ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN;
-							setResponsePage(new MammaClientContactNaOpgeschortOnderzoekPage(ModelUtil.cModel(client), extraParameters, actie));
+							setResponsePage(new MammaClientContactNaOpgeschortOnderzoekPage(ModelUtil.ccModel(client), extraParameters, actie));
 						}
 					});
 				}
@@ -152,12 +157,12 @@ public class MammaCeOpgeschorteBeoordelingenWerklijstPage extends AbstractMammaC
 
 	private IColumn<MammaBeoordeling, String> getOpschortenTerugNaarWerklijstKnopColumn()
 	{
-		return new AbstractColumn<MammaBeoordeling, String>(Model.of("Onderzoek terugzetten"))
+		return new AbstractColumn<>(Model.of("Onderzoek terugzetten"))
 		{
 			@Override
 			public void populateItem(Item<ICellPopulator<MammaBeoordeling>> cellItem, String componentId, IModel<MammaBeoordeling> rowModel)
 			{
-				cellItem.add(new AjaxLinkTableCellPanel<MammaBeoordeling>(componentId, rowModel, "button.onderzoek.terugzetten")
+				cellItem.add(new AjaxLinkTableCellPanel<>(componentId, rowModel, "button.onderzoek.terugzetten")
 				{
 					@Override
 					protected void onClick(AjaxRequestTarget target, IModel<MammaBeoordeling> beoordelingModel)

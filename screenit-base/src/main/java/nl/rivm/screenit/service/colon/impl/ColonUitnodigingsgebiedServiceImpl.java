@@ -43,10 +43,10 @@ import nl.rivm.screenit.dao.colon.ColonUitnodigingsgebiedDao;
 import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.PostcodeGebied;
-import nl.rivm.screenit.model.UitnodigingsGebied;
 import nl.rivm.screenit.model.colon.CapaciteitsPercWijziging;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ColoscopieCentrumColonCapaciteitVerdeling;
+import nl.rivm.screenit.model.colon.UitnodigingsGebied;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.repository.algemeen.PostcodeGebiedRepository;
@@ -116,7 +116,7 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 				|| !koppelingMetIntakelocatie.getPercentageAdherentie().equals(nieuweAdherentiePercentages.get(ColonRestrictions.getUniekIdOf(koppelingMetIntakelocatie))))
 			{
 				bepaalWijzigingen(nieuweAdherentiePercentages, verwijderdeKoppelingen, wijzigingen, benodigdeIntakecapaciteiten,
-					koppelingMetIntakelocatie.getColoscopieCentrum().getCapaciteitVerdeling());
+					koppelingMetIntakelocatie.getIntakelocatie().getCapaciteitVerdeling());
 			}
 		}
 
@@ -254,7 +254,7 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 
 		for (var verwijderdeKoppeling : verwijderdeKoppelingen)
 		{
-			var intakelocatie = verwijderdeKoppeling.getColoscopieCentrum();
+			var intakelocatie = verwijderdeKoppeling.getIntakelocatie();
 			melding += verwijderdeKoppeling.getUitnodigingsGebied().getNaam() + "/" + intakelocatie.getNaam() + " verwijderd";
 			uitnodigingsgebied.getVerdeling().remove(verwijderdeKoppeling);
 			hibernateService.saveOrUpdate(uitnodigingsgebied);
@@ -304,7 +304,7 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 			{
 				break;
 			}
-			for (var innerKoppeling : koppeling.getColoscopieCentrum().getCapaciteitVerdeling())
+			for (var innerKoppeling : koppeling.getIntakelocatie().getCapaciteitVerdeling())
 			{
 				koppelingToChange = getKoppelingToChange(wijziging, innerKoppeling);
 				if (koppelingToChange != null)
@@ -326,7 +326,7 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 				koppelingToChange = koppeling;
 			}
 		}
-		else if (koppeling.getUitnodigingsGebied().getId().equals(wijziging.getUgId()) && koppeling.getColoscopieCentrum().getId().equals(wijziging.getIlId()))
+		else if (koppeling.getUitnodigingsGebied().getId().equals(wijziging.getUgId()) && koppeling.getIntakelocatie().getId().equals(wijziging.getIlId()))
 		{
 			koppelingToChange = koppeling;
 		}
@@ -335,7 +335,7 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void wijzigingenDoorvoeren(ColoscopieCentrum intakelocatie, List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeKoppelingen,
+	public void wijzigingenDoorvoeren(ColonIntakelocatie intakelocatie, List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeKoppelingen,
 		List<CapaciteitsPercWijziging> wijzigingen, InstellingGebruiker ingelogdeGebruiker)
 	{
 		var melding = "";
@@ -374,7 +374,7 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 		for (var verwijderdeKoppeling : verwijderdeKoppelingen)
 		{
 			var uitnodigingsGebied = verwijderdeKoppeling.getUitnodigingsGebied();
-			melding += uitnodigingsGebied.getNaam() + "/" + verwijderdeKoppeling.getColoscopieCentrum().getNaam() + " verwijderd";
+			melding += uitnodigingsGebied.getNaam() + "/" + verwijderdeKoppeling.getIntakelocatie().getNaam() + " verwijderd";
 			intakelocatie.getCapaciteitVerdeling().remove(verwijderdeKoppeling);
 			hibernateService.saveOrUpdate(intakelocatie);
 			uitnodigingsGebied.getVerdeling().remove(verwijderdeKoppeling);
@@ -398,7 +398,7 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 	private String wijzigKoppeling(ColoscopieCentrumColonCapaciteitVerdeling koppelingToChange, CapaciteitsPercWijziging wijziging, String melding)
 	{
 		var uitnodigingsGebied = koppelingToChange.getUitnodigingsGebied();
-		var intakelocatieNaam = koppelingToChange.getColoscopieCentrum().getNaam();
+		var intakelocatieNaam = koppelingToChange.getIntakelocatie().getNaam();
 		var oudeCapaciteitPer = koppelingToChange.getPercentageCapaciteit();
 		if (wijziging.getNieuwCapPer().compareTo(oudeCapaciteitPer) != 0)
 		{
@@ -434,7 +434,7 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 	}
 
 	@Override
-	public List<CapaciteitsPercWijziging> bepaalCapaciteitsWijzigingen(ColoscopieCentrum intakelocatie, Map<String, Integer> nieuweAdherentiePercentages,
+	public List<CapaciteitsPercWijziging> bepaalCapaciteitsWijzigingen(ColonIntakelocatie intakelocatie, Map<String, Integer> nieuweAdherentiePercentages,
 		List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeKoppelingen)
 	{
 		var wijzigingen = new ArrayList<CapaciteitsPercWijziging>();
@@ -475,7 +475,7 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 		return wijzigingen;
 	}
 
-	private void herberekenAdherentieVoorAndereIntakelocaties(ColoscopieCentrum intakelocatieRoot, Map<String, Integer> nieuweAdherentiePercentages,
+	private void herberekenAdherentieVoorAndereIntakelocaties(ColonIntakelocatie intakelocatieRoot, Map<String, Integer> nieuweAdherentiePercentages,
 		List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeKoppelingen, List<CapaciteitsPercWijziging> wijzigingen,
 		Map<Long, BigDecimal> benodigdeIntakecapaciteiten, List<String> onzichtbareAdherentieWijzigingen, int adherentieVerschil, UitnodigingsGebied uitnodigingsGebied)
 	{
@@ -483,7 +483,7 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 		var nieuwTotaalAdherentieGewijzigdGebied = 0;
 		for (var koppelingNaarAndereIntakelocatie : uitnodigingsGebied.getVerdeling())
 		{
-			if (!intakelocatieRoot.equals(koppelingNaarAndereIntakelocatie.getColoscopieCentrum()))
+			if (!intakelocatieRoot.equals(koppelingNaarAndereIntakelocatie.getIntakelocatie()))
 			{
 				var huidigeAdherentiePercentage = getAdherentiePercentage(koppelingNaarAndereIntakelocatie, verwijderdeKoppelingen, nieuweAdherentiePercentages);
 				var nieuweAdherentiePercentage = BigDecimal.valueOf(huidigeAdherentiePercentage).add(BigDecimal.valueOf(huidigeAdherentiePercentage)
@@ -501,7 +501,7 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 		corrigeerAdherentie(nieuweAdherentiePercentages, verwijderdeKoppelingen, uitnodigingsGebied, nieuwTotaalAdherentieGewijzigdGebied);
 		uitnodigingsGebied.getVerdeling().forEach(koppelingNaarIntakelocatie ->
 			bepaalWijzigingen(nieuweAdherentiePercentages, verwijderdeKoppelingen, wijzigingen, benodigdeIntakecapaciteiten,
-				koppelingNaarIntakelocatie.getColoscopieCentrum().getCapaciteitVerdeling()));
+				koppelingNaarIntakelocatie.getIntakelocatie().getCapaciteitVerdeling()));
 	}
 
 	private void corrigeerAdherentie(Map<String, Integer> nieuweAdherentiePercentages, List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeKoppelingen,
@@ -518,12 +518,12 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 		}
 	}
 
-	private static int bepaalAdherentieVanAndereIntakelocaties(ColoscopieCentrum intakelocatieRoot, int adherentieVerschil, UitnodigingsGebied uitnodigingsGebied)
+	private static int bepaalAdherentieVanAndereIntakelocaties(ColonIntakelocatie intakelocatieRoot, int adherentieVerschil, UitnodigingsGebied uitnodigingsGebied)
 	{
 		var totaalAdherentie = 0;
 		for (var koppelingAndereIntakelocatie : uitnodigingsGebied.getVerdeling())
 		{
-			if (!intakelocatieRoot.equals(koppelingAndereIntakelocatie.getColoscopieCentrum()))
+			if (!intakelocatieRoot.equals(koppelingAndereIntakelocatie.getIntakelocatie()))
 			{
 				totaalAdherentie += koppelingAndereIntakelocatie.getPercentageAdherentie();
 			}
@@ -567,7 +567,7 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 
 		for (var koppeling : koppelingen)
 		{
-			var intakelocatie = koppeling.getColoscopieCentrum();
+			var intakelocatie = koppeling.getIntakelocatie();
 			var uitnodigingsGebied = koppeling.getUitnodigingsGebied();
 
 			var wijziging = new CapaciteitsPercWijziging();
@@ -594,10 +594,10 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 			wijziging.setNieuwBerekendeIntakes(berekendeBenodigdeIntakecapaciteitVoorGebied);
 			wijziging.setOudAdhPer(koppeling.getPercentageAdherentie());
 			wijziging.setNieuwAdhPer(getAdherentiePercentage(koppeling, verwijderdeKoppelingen, nieuweAdherentiePercentages));
-			Integer aantalGeprognostiseerdeRoosterblokken = intakelocatie.getAantalGeprognostiseerdeRoosterblokken();
-			if (aantalGeprognostiseerdeRoosterblokken != null)
+			Integer aantalGeprognostiseerdeAfspraakslots = intakelocatie.getAantalGeprognostiseerdeRoosterblokken();
+			if (aantalGeprognostiseerdeAfspraakslots != null)
 			{
-				var prognoseVanRestVanJaar = bepaalPrognoseVoorRestVanJaar(aantalGeprognostiseerdeRoosterblokken);
+				var prognoseVanRestVanJaar = bepaalPrognoseVoorRestVanJaar(aantalGeprognostiseerdeAfspraakslots);
 
 				wijziging
 					.setOudIntakesProg(
@@ -612,13 +612,13 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 	}
 
 	@NotNull
-	private BigDecimal bepaalPrognoseVoorRestVanJaar(Integer aantalGeprognostiseerdeRoosterblokken)
+	private BigDecimal bepaalPrognoseVoorRestVanJaar(Integer aantalGeprognostiseerdeAfspraakslots)
 	{
 		var vandaag = currentDateSupplier.getLocalDate();
 		var eersteDagVanHuidigJaar = vandaag.with(TemporalAdjusters.firstDayOfYear());
 		var aantalDagenInHuidigJaar = DateUtil.getPeriodeTussenTweeDatums(eersteDagVanHuidigJaar, eersteDagVanHuidigJaar.plusYears(1), ChronoUnit.DAYS);
 		var aantalResterendeDagenInHuidigJaar = DateUtil.getPeriodeTussenTweeDatums(vandaag, eersteDagVanHuidigJaar.plusYears(1), ChronoUnit.DAYS);
-		return new BigDecimal(aantalGeprognostiseerdeRoosterblokken).multiply(new BigDecimal(aantalResterendeDagenInHuidigJaar))
+		return new BigDecimal(aantalGeprognostiseerdeAfspraakslots).multiply(new BigDecimal(aantalResterendeDagenInHuidigJaar))
 			.divide(new BigDecimal(aantalDagenInHuidigJaar), 2, RoundingMode.HALF_UP);
 	}
 

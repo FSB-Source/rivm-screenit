@@ -22,24 +22,20 @@ package nl.rivm.screenit.util;
  */
 
 import java.math.BigDecimal;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
+import lombok.NoArgsConstructor;
+
 import org.apache.commons.lang.StringUtils;
 
+@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class StringUtil
 {
 	private static final Pattern CONTROLS_PATTERN = Pattern.compile("[\\p{C}&&[^\r\n\t]]", Pattern.MULTILINE);
-
-	private StringUtil()
-	{
-	}
 
 	public static String literal2string(Object literal)
 	{
@@ -50,7 +46,7 @@ public class StringUtil
 		return StringUtils.capitalize(literal.toString().toLowerCase().replace('_', ' '));
 	}
 
-	public static String literals2string(List literals)
+	public static String literals2string(List<?> literals)
 	{
 		if (literals == null)
 		{
@@ -120,15 +116,7 @@ public class StringUtil
 
 	public static String enumName2readableString(String name)
 	{
-		return name.substring(0, 1) + name.substring(1).replaceAll("_", " ").toLowerCase();
-	}
-
-	public static String utf8ToIso85591(String input)
-	{
-		ByteBuffer inputBuffer = ByteBuffer.wrap(input.getBytes());
-		CharBuffer data = StandardCharsets.UTF_8.decode(inputBuffer);
-		ByteBuffer outputBuffer = StandardCharsets.ISO_8859_1.encode(data);
-		return new String(outputBuffer.array(), StandardCharsets.ISO_8859_1);
+		return name.charAt(0) + name.substring(1).replaceAll("_", " ").toLowerCase();
 	}
 
 	public static boolean containsControlCharacter(String str)
@@ -138,5 +126,10 @@ public class StringUtil
 			return false;
 		}
 		return CONTROLS_PATTERN.matcher(str).find();
+	}
+
+	public static String propertyChain(String... properties)
+	{
+		return String.join(".", properties);
 	}
 }

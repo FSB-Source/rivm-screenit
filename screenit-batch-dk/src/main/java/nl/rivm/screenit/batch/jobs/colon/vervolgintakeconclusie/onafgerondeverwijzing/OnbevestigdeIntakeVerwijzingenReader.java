@@ -27,7 +27,6 @@ import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
 
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
@@ -51,7 +50,7 @@ public class OnbevestigdeIntakeVerwijzingenReader extends BaseScrollableResultRe
 
 		criteria.add(Restrictions.eq("conclusie.type", ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM));
 		criteria.add(Restrictions.eq("conclusie.doorverwijzingBevestigd", Boolean.FALSE));
-		criteria.add(Restrictions.lt("nieuweAfspraak.startTime", DateUtil.toUtilDate(currentDateSupplier.getLocalDateTime().plusDays(1))));
+		criteria.add(Restrictions.lt("nieuweAfspraak.vanaf", currentDateSupplier.getLocalDateTime().plusDays(1)));
 		return criteria;
 	}
 }

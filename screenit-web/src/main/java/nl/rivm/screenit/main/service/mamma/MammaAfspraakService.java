@@ -36,7 +36,7 @@ import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 
 public interface MammaAfspraakService
 {
-	Map<MammaScreeningsEenheid, List<Date>> getAfspraakDatums(MammaBlokkade blokkade);
+	Map<MammaScreeningsEenheid, List<LocalDate>> getAfspraakDatums(MammaBlokkade blokkade);
 
 	Date getDatumEersteGeplandeAfspraak(Long standplaatsPeriodeId);
 

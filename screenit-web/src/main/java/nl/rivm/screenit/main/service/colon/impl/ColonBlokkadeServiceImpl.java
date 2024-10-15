@@ -23,7 +23,6 @@ package nl.rivm.screenit.main.service.colon.impl;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -44,14 +43,15 @@ import nl.rivm.screenit.main.service.colon.ColonBlokkadeService;
 import nl.rivm.screenit.main.service.colon.RoosterService;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.colon.ColonHerhalingsfrequentie;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
-import nl.rivm.screenit.model.colon.Kamer;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.RoosterListViewFilter;
 import nl.rivm.screenit.model.colon.dto.ColonBlokkadeDto;
 import nl.rivm.screenit.model.colon.dto.ColonHerhalingDto;
 import nl.rivm.screenit.model.colon.dto.ColonTijdslotDto;
-import nl.rivm.screenit.model.colon.enums.ColonTijdSlotType;
+import nl.rivm.screenit.model.colon.enums.ColonTijdslotType;
 import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
+import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
+import nl.rivm.screenit.model.colon.planning.ColonTijdslot_;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.repository.colon.ColonBlokkadeRepository;
@@ -59,7 +59,6 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 import nl.rivm.screenit.util.DateUtil;
-import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment_;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.data.domain.Sort;
@@ -105,7 +104,7 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 		}
 	}
 
-	private void createEnkeleBlokkade(ColonBlokkade blokkade, ColonBlokkadeDto blokkadeDto, InstellingGebruiker instellingGebruiker, ColoscopieCentrum intakelocatie,
+	private void createEnkeleBlokkade(ColonBlokkade blokkade, ColonBlokkadeDto blokkadeDto, InstellingGebruiker instellingGebruiker, ColonIntakelocatie intakelocatie,
 		boolean alleenValidatie) throws ValidatieException, OpslaanVerwijderenTijdBlokException
 	{
 		valideerBlokkade(blokkade, roosterService.getCurrentViewRange(blokkadeDto), getBlokkadeKamers(blokkade, blokkadeDto.getAlleKamers(), intakelocatie), false, false);
@@ -117,12 +116,12 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 		}
 	}
 
-	private static List<Kamer> getBlokkadeKamers(ColonBlokkade blokkade, boolean alleKamers, ColoscopieCentrum intakelocatie)
+	private static List<ColonIntakekamer> getBlokkadeKamers(ColonBlokkade blokkade, boolean alleKamers, ColonIntakelocatie intakelocatie)
 	{
-		return alleKamers ? getActieveKamers(intakelocatie) : List.of(blokkade.getLocation());
+		return alleKamers ? getActieveKamers(intakelocatie) : List.of(blokkade.getKamer());
 	}
 
-	private void createBulkBlokkades(ColonBlokkade blokkade, ColonBlokkadeDto blokkadeDto, InstellingGebruiker instellingGebruiker, ColoscopieCentrum intakelocatie,
+	private void createBulkBlokkades(ColonBlokkade blokkade, ColonBlokkadeDto blokkadeDto, InstellingGebruiker instellingGebruiker, ColonIntakelocatie intakelocatie,
 		boolean alleenValidatie)
 		throws BulkAanmakenException
 	{
@@ -170,8 +169,8 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 		{
 			try
 			{
-				var currentViewRange = Range.closed(DateUtil.toLocalDateTime(blokkade.getStartTime()), DateUtil.toLocalDateTime(blokkade.getEndTime()));
-				valideerBlokkade(blokkade, currentViewRange, List.of(blokkade.getLocation()), true, true);
+				var currentViewRange = roosterService.getCurrentViewRange(blokkade);
+				valideerBlokkade(blokkade, currentViewRange, List.of(blokkade.getKamer()), true, true);
 			}
 			catch (ValidatieException | OpslaanVerwijderenTijdBlokException ex)
 			{
@@ -188,10 +187,10 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 		}
 	}
 
-	private List<ColonBlokkade> splitBlokkade(ColonBlokkade unsavedBlokkade, boolean alleKamers, ColoscopieCentrum intakelocatie)
+	private List<ColonBlokkade> splitBlokkade(ColonBlokkade unsavedBlokkade, boolean alleKamers, ColonIntakelocatie intakelocatie)
 	{
 		var list = new ArrayList<ColonBlokkade>();
-		if (unsavedBlokkade.getLocation() != null)
+		if (unsavedBlokkade.getKamer() != null)
 		{
 			list.add(unsavedBlokkade);
 		}
@@ -199,10 +198,10 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 		{
 			for (var kamer : getActieveKamers(intakelocatie))
 			{
-				if (!Objects.equals(kamer, unsavedBlokkade.getLocation()))
+				if (!Objects.equals(kamer, unsavedBlokkade.getKamer()))
 				{
 					var blokkade = unsavedBlokkade.transientClone();
-					blokkade.setLocation(kamer);
+					blokkade.setKamer(kamer);
 					list.add(blokkade);
 				}
 			}
@@ -210,7 +209,7 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 		return list;
 	}
 
-	private void valideerBlokkade(ColonBlokkade blokkade, Range<LocalDateTime> currentViewRange, List<Kamer> kamers, boolean wijzigen, boolean bulk)
+	private void valideerBlokkade(ColonBlokkade blokkade, Range<LocalDateTime> currentViewRange, List<ColonIntakekamer> kamers, boolean wijzigen, boolean bulk)
 		throws ValidatieException, OpslaanVerwijderenTijdBlokException
 	{
 		roosterService.valideerTijdslot(blokkade);
@@ -218,7 +217,8 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 		heeftAfspraken(blokkade, currentViewRange, kamers, wijzigen, bulk);
 	}
 
-	public void heeftAfspraken(ColonBlokkade blokkade, Range<LocalDateTime> currentViewRange, List<Kamer> kamers, boolean wijzigen, boolean bulk) throws HeeftAfsprakenException
+	public void heeftAfspraken(ColonBlokkade blokkade, Range<LocalDateTime> currentViewRange, List<ColonIntakekamer> kamers, boolean wijzigen, boolean bulk)
+		throws HeeftAfsprakenException
 	{
 		var afspraken = new ArrayList<>();
 		kamers.forEach(kamer -> afspraken.addAll(afspraakService.getAfsprakenKamersInRange(kamer, currentViewRange)));
@@ -242,11 +242,10 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 		}
 	}
 
-	private void heeftOverlappendeBlokkades(ColonBlokkade blokkade, List<Kamer> kamers, boolean wijzigen) throws OpslaanVerwijderenTijdBlokException
+	private void heeftOverlappendeBlokkades(ColonBlokkade blokkade, List<ColonIntakekamer> kamers, boolean wijzigen) throws OpslaanVerwijderenTijdBlokException
 	{
 
-		var nieuweBlokkade = Range.open(DateUtil.toLocalDateTime(DateUtil.startMinuut(blokkade.getStartTime())),
-			DateUtil.toLocalDateTime(DateUtil.startMinuut(blokkade.getEndTime())));
+		var nieuweBlokkade = Range.open(DateUtil.startMinuut(blokkade.getVanaf()), DateUtil.startMinuut(blokkade.getTot()));
 
 		List<ColonBlokkade> overlapteBlokkades = null;
 		if (wijzigen || blokkade.getId() == null) 
@@ -264,12 +263,12 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 		}
 		else if (wijzigen)
 		{
-			var echteOverlapteBlokkades = new ArrayList<Range<Date>>();
+			var echteOverlapteBlokkades = new ArrayList<Range<LocalDateTime>>();
 
 			for (var overlapteBlokkade : overlapteBlokkades)
 			{
-				var startDateTimeBestaand = DateUtil.startMinuut(overlapteBlokkade.getStartTime());
-				var endDateTimeBestaand = DateUtil.startMinuut(overlapteBlokkade.getEndTime());
+				var startDateTimeBestaand = DateUtil.startMinuut(overlapteBlokkade.getVanaf());
+				var endDateTimeBestaand = DateUtil.startMinuut(overlapteBlokkade.getTot());
 				var overlapteBlokkadeRange = Range.closed(startDateTimeBestaand, endDateTimeBestaand);
 
 				if (!blokkade.getId().equals(overlapteBlokkade.getId()))
@@ -293,7 +292,7 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 			throw new ValidatieException("error.blokkade.niet.gevonden");
 		}
 
-		if (DateUtil.compareBefore(blokkade.getEndTime(), currentDateSupplier.getDate()))
+		if (blokkade.getTot().isBefore(currentDateSupplier.getLocalDateTime()))
 		{
 			throw new ValidatieException("error.blokkade.in.verleden.verwijderen");
 		}
@@ -313,7 +312,7 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 		var validateBlokkade = blokkade.transientClone();
 		validateBlokkade.setId(blokkadeId);
 		converteerBlokkade(blokkadeDto, intakelocatie, validateBlokkade);
-		valideerBlokkade(validateBlokkade, roosterService.getCurrentViewRange(blokkadeDto), List.of(blokkade.getLocation()), true, false);
+		valideerBlokkade(validateBlokkade, roosterService.getCurrentViewRange(blokkadeDto), List.of(blokkade.getKamer()), true, false);
 
 		if (!alleenValidatie)
 		{
@@ -342,12 +341,12 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 		return blokkadeRepository.findById(blokkadeId);
 	}
 
-	private static List<Kamer> getActieveKamers(ColoscopieCentrum intakelocatie)
+	private static List<ColonIntakekamer> getActieveKamers(ColonIntakelocatie intakelocatie)
 	{
-		return intakelocatie.getKamers().stream().filter(Kamer::getActief).collect(Collectors.toList());
+		return intakelocatie.getKamers().stream().filter(ColonIntakekamer::getActief).collect(Collectors.toList());
 	}
 
-	private List<ColonBlokkade> getBlokkadeTijden(Range<LocalDateTime> range, List<Kamer> kamers)
+	private List<ColonBlokkade> getBlokkadeTijden(Range<LocalDateTime> range, List<ColonIntakekamer> kamers)
 	{
 		var specification = valtBinnenDatumRange(range);
 		if (!kamers.isEmpty())
@@ -355,19 +354,19 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 
 			specification = specification.and(heeftKamerUitLijst(kamers));
 		}
-		return blokkadeRepository.findAll(specification, Sort.by(Sort.Direction.ASC, AbstractAppointment_.START_TIME));
+		return blokkadeRepository.findAll(specification, Sort.by(Sort.Direction.ASC, ColonTijdslot_.VANAF));
 	}
 
-	private ColonBlokkade converteerBlokkade(ColonBlokkadeDto blokkadeDto, ColoscopieCentrum intakelocatie, ColonBlokkade dbBlokkade)
+	private ColonBlokkade converteerBlokkade(ColonBlokkadeDto blokkadeDto, ColonIntakelocatie intakelocatie, ColonBlokkade dbBlokkade)
 	{
-		dbBlokkade.setStartTime(DateUtil.toUtilDate(blokkadeDto.getStartTime()));
-		dbBlokkade.setEndTime(DateUtil.toUtilDate(blokkadeDto.getEndTime()));
-		dbBlokkade.setDescription(blokkadeDto.getDescription());
+		dbBlokkade.setVanaf(blokkadeDto.getVanaf());
+		dbBlokkade.setTot(blokkadeDto.getTot());
+		dbBlokkade.setOmschrijving(blokkadeDto.getOmschrijving());
 		if (!Boolean.TRUE.equals(blokkadeDto.getAlleKamers()))
 		{
 			var kamer = intakelocatie.getKamers().stream().filter(k -> k.getId().equals(blokkadeDto.getKamerId())).findFirst()
 				.orElse(null);
-			dbBlokkade.setLocation(kamer);
+			dbBlokkade.setKamer(kamer);
 		}
 
 		return dbBlokkade;
@@ -375,24 +374,24 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 
 	@Override
 	@Transactional
-	public void logAction(ColonBlokkade unsavedObject, InstellingGebruiker instellingGebruiker, ColoscopieCentrum intakelocatie, @Nullable ColonBlokkade origineleBlokkade,
+	public void logAction(ColonBlokkade unsavedObject, InstellingGebruiker instellingGebruiker, ColonIntakelocatie intakelocatie, @Nullable ColonBlokkade origineleBlokkade,
 		LogGebeurtenis logGebeurtenis, ColonHerhalingDto herhalingDto, Exception ex)
 	{
-		var selectedKamer = unsavedObject.getLocation();
+		var selectedKamer = unsavedObject.getKamer();
 		if (selectedKamer != null)
 		{
 			logActionKamer(unsavedObject, instellingGebruiker, selectedKamer, origineleBlokkade, logGebeurtenis, herhalingDto, ex);
 		}
 		else
 		{
-			for (Kamer kamer : getActieveKamers(intakelocatie))
+			for (var kamer : getActieveKamers(intakelocatie))
 			{
 				logActionKamer(unsavedObject, instellingGebruiker, kamer, origineleBlokkade, logGebeurtenis, herhalingDto, ex);
 			}
 		}
 	}
 
-	private void logActionKamer(ColonBlokkade unsavedObject, InstellingGebruiker instellingGebruiker, Kamer kamer, @Nullable ColonBlokkade origineleBlokkade,
+	private void logActionKamer(ColonBlokkade unsavedObject, InstellingGebruiker instellingGebruiker, ColonIntakekamer kamer, @Nullable ColonBlokkade origineleBlokkade,
 		LogGebeurtenis logGebeurtenis, ColonHerhalingDto herhalingDto, Exception ex)
 	{
 		var melding = genereerLogMessage(unsavedObject, kamer, origineleBlokkade, logGebeurtenis, herhalingDto);
@@ -407,10 +406,10 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 		logService.logGebeurtenis(logGebeurtenis, instellingGebruiker, melding, Bevolkingsonderzoek.COLON);
 	}
 
-	private String genereerLogMessage(ColonBlokkade unsavedObject, Kamer kamer, @Nullable ColonBlokkade origineleBlokkade,
+	private String genereerLogMessage(ColonBlokkade unsavedObject, ColonIntakekamer kamer, @Nullable ColonBlokkade origineleBlokkade,
 		LogGebeurtenis logGebeurtenis, ColonHerhalingDto herhalingDto)
 	{
-		var melding = getPeriodeTekst(unsavedObject) + ", " + kamer.getName() + ", " + kamer.getColoscopieCentrum().getNaam();
+		var melding = getPeriodeTekst(unsavedObject) + ", " + kamer.getNaam() + ", " + kamer.getIntakelocatie().getNaam();
 		if (herhalingDto != null && herhalingDto.getFrequentie() != ColonHerhalingsfrequentie.GEEN_HERHALING)
 		{
 			melding += ", " + herhalingDto.getFrequentie().getNaam() + " t/m " + herhalingDto.getEindDatum().format(DateUtil.LOCAL_DATE_FORMAT);
@@ -418,7 +417,7 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 
 		if (logGebeurtenis == LogGebeurtenis.COLON_BLOKKADES_WIJZIG && origineleBlokkade != null)
 		{
-			melding = DateUtil.formatShortDateTime(origineleBlokkade.getStartTime()) + " -> " + melding;
+			melding = DateUtil.formatShortDateTime(origineleBlokkade.getVanaf()) + " -> " + melding;
 		}
 		return melding;
 	}
@@ -427,16 +426,16 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 	public String getPeriodeTekst(ColonBlokkade unsavedBlokkade)
 	{
 		var periodeTekst = "";
-		if (unsavedBlokkade != null && unsavedBlokkade.getStartTime() != null && unsavedBlokkade.getEndTime() != null)
+		if (unsavedBlokkade != null && unsavedBlokkade.getVanaf() != null && unsavedBlokkade.getTot() != null)
 		{
-			periodeTekst = DateUtil.formatShortDate(unsavedBlokkade.getStartTime()) + " ";
-			if (!DateUtil.isZelfdeDag(unsavedBlokkade.getEndTime(), unsavedBlokkade.getStartTime()))
+			periodeTekst = DateUtil.formatShortDate(unsavedBlokkade.getVanaf()) + " ";
+			if (!DateUtil.isZelfdeDag(unsavedBlokkade.getTot().toLocalDate(), unsavedBlokkade.getVanaf().toLocalDate()))
 			{
 				periodeTekst += "hele dag";
 			}
 			else
 			{
-				periodeTekst += DateUtil.formatTime(unsavedBlokkade.getStartTime()) + " - " + DateUtil.formatTime(unsavedBlokkade.getEndTime());
+				periodeTekst += DateUtil.formatLocalTime(unsavedBlokkade.getVanaf()) + " - " + DateUtil.formatLocalTime(unsavedBlokkade.getTot());
 			}
 		}
 		return periodeTekst;
@@ -445,14 +444,14 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 	@Override
 	public List<ColonTijdslotDto> zoekBlokkades(RoosterListViewFilter filter, long intakelocatieId)
 	{
-		return roosterService.searchTijdslots(filter, intakelocatieId, ColonTijdSlotType.BLOKKADE);
+		return roosterService.searchTijdslots(filter, intakelocatieId, ColonTijdslotType.BLOKKADE);
 	}
 
 	@Override
 	@Transactional
 	public void bulkDeleteBlokkades(List<Long> blokkadeIds, InstellingGebruiker loggedInInstellingGebruiker, boolean alleenValidatie) throws BulkVerwijderenException
 	{
-		var exception = new BulkVerwijderenException(ColonTijdSlotType.BLOKKADE);
+		var exception = new BulkVerwijderenException(ColonTijdslotType.BLOKKADE);
 		var teVerwijderenBlokkades = new ArrayList<ColonBlokkade>();
 		blokkadeIds.forEach(id ->
 		{

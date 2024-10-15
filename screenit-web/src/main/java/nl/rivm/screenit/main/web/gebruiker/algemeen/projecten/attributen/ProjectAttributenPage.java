@@ -51,6 +51,11 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import static nl.rivm.screenit.model.project.ProjectAttribuut_.ACTIEF;
+import static nl.rivm.screenit.model.project.ProjectAttribuut_.BARCODE;
+import static nl.rivm.screenit.model.project.ProjectAttribuut_.MERGE_FIELD;
+import static nl.rivm.screenit.model.project.ProjectAttribuut_.NAAM;
+
 public class ProjectAttributenPage extends ProjectBasePage
 {
 	@SpringBean
@@ -63,7 +68,7 @@ public class ProjectAttributenPage extends ProjectBasePage
 
 	private final BootstrapDialog dialog;
 
-	private IModel<ProjectAttribuut> filterModel;
+	private final IModel<ProjectAttribuut> filterModel;
 
 	public ProjectAttributenPage(IModel<Project> model)
 	{
@@ -120,17 +125,17 @@ public class ProjectAttributenPage extends ProjectBasePage
 		container.setOutputMarkupId(true);
 
 		List<IColumn<ProjectAttribuut, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<>(Model.of("Naam"), "naam", "naam"));
-		columns.add(new PropertyColumn<>(Model.of("Mergefield"), "mergeField", "mergeField"));
+		columns.add(new PropertyColumn<>(Model.of("Naam"), NAAM, NAAM));
+		columns.add(new PropertyColumn<>(Model.of("Mergefield"), MERGE_FIELD, MERGE_FIELD));
 
 		Map<Boolean, String> isBarcode = Constants.getBooleanWeergave();
-		columns.add(new BooleanStringPropertyColumn<>(Model.of("Barcode"), isBarcode, "barcode"));
+		columns.add(new BooleanStringPropertyColumn<>(Model.of("Barcode"), isBarcode, BARCODE));
 
 		Map<Boolean, String> booleanStringMap = new HashMap<>();
 		booleanStringMap.put(true, "Niet zichtbaar");
 		booleanStringMap.put(false, "Zichtbaar");
 		columns.add(new BooleanStringPropertyColumn<>(Model.of("Zichtbaarheid in cliëntdossier"), booleanStringMap, "nietZichtbaarInClientDossier"));
-		columns.add(new ActiefPropertyColumn<>(Model.of("Verwijderen"), "actief", container, filterModel, true, dialog,
+		columns.add(new ActiefPropertyColumn<>(Model.of("Verwijderen"), ACTIEF, container, filterModel, true, dialog,
 			"ProjectAttributenPage.verwijderen")
 		{
 

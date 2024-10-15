@@ -25,7 +25,7 @@ package nl.rivm.screenit.batch.service;
 import java.util.List;
 
 import nl.rivm.screenit.batch.model.ClientAfspraak;
-import nl.rivm.screenit.model.colon.planning.VrijSlot;
+import nl.rivm.screenit.model.colon.dto.VrijSlot;
 
 public interface PlanIntakeAfsprakenService
 {

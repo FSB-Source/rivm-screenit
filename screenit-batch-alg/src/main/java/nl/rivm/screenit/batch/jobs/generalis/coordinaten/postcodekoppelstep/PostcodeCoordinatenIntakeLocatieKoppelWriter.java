@@ -25,9 +25,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
-import nl.rivm.screenit.dao.CoordinatenDao;
 import nl.rivm.screenit.model.PostcodeCoordinaten;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
+import nl.rivm.screenit.service.CoordinatenService;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.topicuszorg.organisatie.model.Adres;
 
@@ -36,20 +36,20 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 @AllArgsConstructor
-public class PostcodeCoordinatenIntakeLocatieKoppelWriter extends BaseWriter<ColoscopieCentrum>
+public class PostcodeCoordinatenIntakeLocatieKoppelWriter extends BaseWriter<ColonIntakelocatie>
 {
 
-	private final CoordinatenDao coordinatenDao;
+	private final CoordinatenService coordinatenService;
 
 	@Override
-	public void write(ColoscopieCentrum item)
+	public void write(ColonIntakelocatie item)
 	{
 		PostcodeCoordinaten coordinaten = null;
 		for (Adres adres : item.getAdressen())
 		{
 			if (coordinaten == null)
 			{
-				coordinaten = coordinatenDao.getCoordinaten(adres);
+				coordinaten = coordinatenService.getCoordinaten(adres);
 				if (coordinaten != null)
 				{
 					break;

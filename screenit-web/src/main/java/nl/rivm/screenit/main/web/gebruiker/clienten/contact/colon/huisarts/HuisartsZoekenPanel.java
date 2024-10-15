@@ -23,21 +23,19 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon.huisarts;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
+import nl.rivm.screenit.main.service.impl.EnovationHuisartsDataProviderServiceImpl;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
 import nl.rivm.screenit.main.web.component.form.PostcodeField;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.model.EnovationHuisarts;
 import nl.rivm.screenit.model.enums.HuisartsGeslacht;
-import nl.rivm.screenit.service.EnovationHuisartsService;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -50,14 +48,20 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import static nl.rivm.screenit.model.Huisarts_.ACHTERNAAM;
+import static nl.rivm.screenit.model.Huisarts_.ADRES;
+import static nl.rivm.screenit.model.Huisarts_.GESLACHT;
+import static nl.rivm.screenit.model.Huisarts_.PRAKTIJKNAAM;
+import static nl.topicuszorg.organisatie.model.Adres_.PLAATS;
+
 public abstract class HuisartsZoekenPanel extends GenericPanel<EnovationHuisarts>
 {
 	@SpringBean
-	private EnovationHuisartsService enovationHuisartsService;
+	private EnovationHuisartsDataProviderServiceImpl enovationHuisartsDataProviderService;
 
 	private WebMarkupContainer zoekResultatenContainer;
 
-	private boolean terugNaarZoeken;
+	private final boolean terugNaarZoeken;
 
 	public HuisartsZoekenPanel(String id, boolean terugNaarZoeken)
 	{
@@ -69,7 +73,7 @@ public abstract class HuisartsZoekenPanel extends GenericPanel<EnovationHuisarts
 	protected void onInitialize()
 	{
 		super.onInitialize();
-		ScreenitForm<EnovationHuisarts> screenitForm = new ScreenitForm<>("zoekForm", getModel())
+		var screenitForm = new ScreenitForm<>("zoekForm", getModel())
 		{
 			@Override
 			public boolean isRootForm()
@@ -83,7 +87,7 @@ public abstract class HuisartsZoekenPanel extends GenericPanel<EnovationHuisarts
 		screenitForm.add(new TextField<String>("adres.plaats"));
 		screenitForm.add(new TextField<String>("adres.straat"));
 
-		AjaxSubmitLink zoekenBtn = new IndicatingAjaxSubmitLink("zoeken")
+		var zoekenBtn = new IndicatingAjaxSubmitLink("zoeken")
 		{
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
@@ -116,32 +120,32 @@ public abstract class HuisartsZoekenPanel extends GenericPanel<EnovationHuisarts
 
 	private Label aantalResultaten()
 	{
-		long aantal = enovationHuisartsService.telHuisartsen(getModelObject());
-		return new Label("aantalResultaten", String.format(getString("label.aantal.gevonden.huisartsen"), Long.toString(aantal)));
+		var aantal = enovationHuisartsDataProviderService.size(getModelObject());
+		return new Label("aantalResultaten", String.format(getString("label.aantal.gevonden.huisartsen"), aantal));
 	}
 
 	private ScreenitDataTable<EnovationHuisarts, String> vervangResultaten()
 	{
-		List<IColumn<EnovationHuisarts, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<>(Model.of("Naam"), "achternaam", "achternaam")
+		var columns = new ArrayList<IColumn<EnovationHuisarts, String>>();
+		columns.add(new PropertyColumn<>(Model.of("Naam"), ACHTERNAAM, ACHTERNAAM)
 		{
 			@SuppressWarnings({ "unchecked", "rawtypes" })
 			@Override
 			public IModel<Object> getDataModel(IModel<EnovationHuisarts> rowModel)
 			{
-				EnovationHuisarts huisarts = rowModel.getObject();
-				String naam = NaamUtil.getNaamHuisarts(huisarts);
+				var huisarts = rowModel.getObject();
+				var naam = NaamUtil.getNaamHuisarts(huisarts);
 				return new Model(naam);
 			}
 		});
-		columns.add(new PropertyColumn<>(Model.of("Type"), "geslacht", "geslacht")
+		columns.add(new PropertyColumn<>(Model.of("Type"), GESLACHT, GESLACHT)
 		{
 			@SuppressWarnings({ "unchecked", "rawtypes" })
 			@Override
 			public IModel<Object> getDataModel(IModel<EnovationHuisarts> rowModel)
 			{
-				EnovationHuisarts huisarts = rowModel.getObject();
-				String type = "";
+				var huisarts = rowModel.getObject();
+				var type = "";
 				if (huisarts.getGeslacht() != null)
 				{
 					type = HuisartsGeslacht.ORGANISATIE.equals(huisarts.getGeslacht()) ? "Huisartsenpraktijk" : "Huisarts";
@@ -149,14 +153,14 @@ public abstract class HuisartsZoekenPanel extends GenericPanel<EnovationHuisarts
 				return new Model(type);
 			}
 		});
-		columns.add(new PropertyColumn<>(Model.of("Adres"), "adres.plaats", "adres.plaats")
+		columns.add(new PropertyColumn<>(Model.of("Adres"), ADRES + "." + PLAATS, ADRES + "." + PLAATS)
 		{
 			@SuppressWarnings({ "unchecked", "rawtypes" })
 			@Override
 			public IModel<Object> getDataModel(IModel<EnovationHuisarts> rowModel)
 			{
-				EnovationHuisarts huisarts = rowModel.getObject();
-				String adres = "";
+				var huisarts = rowModel.getObject();
+				var adres = "";
 				if (huisarts.getAdres() != null)
 				{
 					adres = AdresUtil.getVolledigeAdresString(huisarts.getAdres());
@@ -164,25 +168,25 @@ public abstract class HuisartsZoekenPanel extends GenericPanel<EnovationHuisarts
 				return new Model(adres);
 			}
 		});
-		columns.add(new PropertyColumn<>(Model.of("Praktijknaam"), "praktijknaam", "praktijknaam"));
+		columns.add(new PropertyColumn<>(Model.of("Praktijknaam"), PRAKTIJKNAAM, PRAKTIJKNAAM));
 
-		ScreenitDataTable<EnovationHuisarts, String> tabel = new ScreenitDataTable<>("zoekResultaten", columns, new SortableDataProvider<EnovationHuisarts, String>()
+		var tabel = new ScreenitDataTable<>("zoekResultaten", columns, new SortableDataProvider<EnovationHuisarts, String>()
 		{
 			@Override
 			public Iterator<? extends EnovationHuisarts> iterator(long first, long count)
 			{
 				if (getSort() == null)
 				{
-					setSort("achternaam", SortOrder.ASCENDING);
+					setSort(ACHTERNAAM, SortOrder.ASCENDING);
 				}
 
-				return enovationHuisartsService.zoekHuisartsen(getModelObject(), getSort().getProperty(), getSort().isAscending(), (int) first, (int) count).iterator();
+				return enovationHuisartsDataProviderService.findPage(first, count, getModelObject(), getSort()).iterator();
 			}
 
 			@Override
 			public long size()
 			{
-				return enovationHuisartsService.telHuisartsen(getModelObject());
+				return enovationHuisartsDataProviderService.size(getModelObject());
 			}
 
 			@Override
@@ -195,7 +199,7 @@ public abstract class HuisartsZoekenPanel extends GenericPanel<EnovationHuisarts
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<EnovationHuisarts> huisartsModel)
 			{
-				EnovationHuisarts ha = huisartsModel.getObject();
+				var ha = huisartsModel.getObject();
 				onHuisartsGekozen(target, ha);
 			}
 		};

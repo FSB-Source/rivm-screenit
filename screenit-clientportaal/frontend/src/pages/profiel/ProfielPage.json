@@ -19,7 +19,8 @@
         "wijzigen": "mijn tijdelijke adres wijzigen"
       },
       "aanspreekvorm": "mijn aanspreekvorm wijzigen",
-      "email": "mijn e-mailadres doorgeven"
+      "email": "mijn e-mailadres doorgeven",
+      "bezwaar": "het gebruik van mijn gegevens beheren"
     },
     "subtitle": {
       "telefoonnummer": "Mijn telefoonnummer(s)",

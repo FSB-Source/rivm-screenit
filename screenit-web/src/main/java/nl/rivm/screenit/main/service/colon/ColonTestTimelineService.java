@@ -30,10 +30,10 @@ import nl.rivm.screenit.main.model.testen.TestTimelineRonde;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.TestVervolgKeuzeOptie;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.colon.ColonDossier;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ColonOnderzoeksVariant;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.ColoscopieLocatie;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
@@ -66,7 +66,7 @@ public interface ColonTestTimelineService
 
 	void verzetDossierAchteruitInTijd(Client client, int aantaldagen);
 
-	void maaktIntakeAfspraakVoorClient(Client client, ColoscopieCentrum centrum);
+	void maaktIntakeAfspraakVoorClient(Client client, ColonIntakelocatie intakelocatie);
 
 	void maakIntakeAfspraakConclusieVoorClient(Client client, ColonConclusieType type);
 

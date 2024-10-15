@@ -24,7 +24,6 @@ package nl.rivm.screenit.batch.jobs.mamma.aftergba.ontkoppelentehuis;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -34,12 +33,10 @@ import lombok.AllArgsConstructor;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.dao.mamma.MammaBaseTehuisClientenDao;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
-import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaTehuis;
-import nl.rivm.screenit.model.mamma.MammaTehuisAdres;
+import nl.rivm.screenit.repository.algemeen.ClientRepository;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
 import nl.rivm.screenit.service.mamma.enums.MammaTehuisSelectie;
@@ -47,7 +44,6 @@ import nl.rivm.screenit.util.AdresUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.organisatie.model.Adres;
 
-import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -62,18 +58,16 @@ public class MammaOntkoppelenTehuisWriter extends BaseWriter<MammaTehuis>
 
 	private final MammaBaseKansberekeningService baseKansberekeningService;
 
+	private final ClientRepository clientRepository;
+
 	@Override
 	protected void write(MammaTehuis tehuis)
 	{
-		var crit = hibernateService.getHibernateSession().createCriteria(Client.class, "client");
-		crit.createAlias("client.mammaDossier", "dossier");
-		crit.add(Restrictions.eq("dossier.tehuis", tehuis));
+		var gekoppeldeClienten = clientRepository.findClientByMammaDossierTehuis(tehuis);
+		var terechtGekoppeldeClienten = baseTehuisClientenDao.getClienten(tehuis, MammaTehuisSelectie.GEKOPPELD, null);
 
-		List<Client> gekoppeldeClienten = crit.list();
-		List<Client> terechtGekoppeldeClienten = baseTehuisClientenDao.getClienten(tehuis, MammaTehuisSelectie.GEKOPPELD, null);
-
-		List<Client> teOntkoppelenClienten = new ArrayList<>();
-		for (Client client : gekoppeldeClienten)
+		var teOntkoppelenClienten = new ArrayList<Client>();
+		for (var client : gekoppeldeClienten)
 		{
 			if (!terechtGekoppeldeClienten.contains(client))
 			{
@@ -81,9 +75,9 @@ public class MammaOntkoppelenTehuisWriter extends BaseWriter<MammaTehuis>
 			}
 		}
 
-		for (Client client : teOntkoppelenClienten)
+		for (var client : teOntkoppelenClienten)
 		{
-			MammaDossier dossier = client.getMammaDossier();
+			var dossier = client.getMammaDossier();
 			dossier.setTehuis(null);
 			hibernateService.saveOrUpdate(dossier);
 
@@ -92,9 +86,9 @@ public class MammaOntkoppelenTehuisWriter extends BaseWriter<MammaTehuis>
 		}
 
 		Set<AdresWrapper> terechtGekoppeldeAdressen = new HashSet<>();
-		for (Client client : terechtGekoppeldeClienten)
+		for (var client : terechtGekoppeldeClienten)
 		{
-			GbaPersoon persoon = client.getPersoon();
+			var persoon = client.getPersoon();
 			terechtGekoppeldeAdressen.add(new AdresWrapper(persoon.getGbaAdres()));
 			if (persoon.getTijdelijkGbaAdres() != null)
 			{
@@ -102,10 +96,10 @@ public class MammaOntkoppelenTehuisWriter extends BaseWriter<MammaTehuis>
 			}
 		}
 
-		List<MammaTehuisAdres> teVerwijderenTehuisAdressen = tehuis.getAdressen().stream()
+		var teVerwijderenTehuisAdressen = tehuis.getAdressen().stream()
 			.filter(adres -> !adres.getLocatieVanTehuis() && !terechtGekoppeldeAdressen.contains(new AdresWrapper(adres))).collect(Collectors.toList());
 
-		for (MammaTehuisAdres adres : teVerwijderenTehuisAdressen)
+		for (var adres : teVerwijderenTehuisAdressen)
 		{
 			tehuis.getAdressen().remove(adres);
 			hibernateService.saveOrUpdate(tehuis);
@@ -124,14 +118,20 @@ public class MammaOntkoppelenTehuisWriter extends BaseWriter<MammaTehuis>
 		@Override
 		public boolean equals(Object o)
 		{
-			AdresWrapper that = (AdresWrapper) o;
+			var that = (AdresWrapper) o;
 
 			if (adres.getPostcode() != null ? !adres.getPostcode().equals(that.adres.getPostcode()) : that.adres.getPostcode() != null)
+			{
 				return false;
+			}
 			if (adres.getHuisnummer() != null ? !adres.getHuisnummer().equals(that.adres.getHuisnummer()) : that.adres.getHuisnummer() != null)
+			{
 				return false;
+			}
 			if (adres.getHuisletter() != null ? !adres.getHuisletter().equals(that.adres.getHuisletter()) : that.adres.getHuisletter() != null)
+			{
 				return false;
+			}
 			return adres.getHuisnummerToevoeging() != null ?
 				adres.getHuisnummerToevoeging().equals(that.adres.getHuisnummerToevoeging()) :
 				that.adres.getHuisnummerToevoeging() == null;
@@ -140,7 +140,7 @@ public class MammaOntkoppelenTehuisWriter extends BaseWriter<MammaTehuis>
 		@Override
 		public int hashCode()
 		{
-			int result = adres.getPostcode() != null ? adres.getPostcode().hashCode() : 0;
+			var result = adres.getPostcode() != null ? adres.getPostcode().hashCode() : 0;
 			result = 31 * result + (adres.getHuisnummer() != null ? adres.getHuisnummer().hashCode() : 0);
 			result = 31 * result + (adres.getHuisletter() != null ? adres.getHuisletter().hashCode() : 0);
 			result = 31 * result + (adres.getHuisnummerToevoeging() != null ? adres.getHuisnummerToevoeging().hashCode() : 0);

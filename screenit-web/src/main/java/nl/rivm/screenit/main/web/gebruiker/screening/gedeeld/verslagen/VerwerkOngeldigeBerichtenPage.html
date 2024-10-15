@@ -20,62 +20,62 @@
   -->
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:extend>
-    <h1 class="pageTitle">Verwerken ongeldige berichten</h1>
+	<h1 class="pageTitle">Verwerken ongeldige berichten</h1>
 
-    <div class="form-horizontal">
-        <fieldset>
-            <form wicket:id="form">
-                <div class="row-fluid">
-                    <div class="span5">
-                        <div class="control-group">
-                            <label class="control-label">Screeningsorganisatie</label>
-                            <div class="controls">
-                                <select wicket:id="screeningOrganisatie">
-                                    <option></option>
-                                    <option>Screeningsorganisatie 1</option>
-                                    <option>Screeningsorganisatie 2</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="control-group">
-                            <label class="control-label">Tekst in "Reden ongeldigheid"</label>
-                            <div class="controls">
-                                <input type="text" wicket:id="text">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="span3">
-                        <div class="filter-view">
-                            <div class="form-inline">
-                                <wicket:enclosure child="mldBerichten">
-                                    <label class="checkbox"><input type="checkbox" wicket:id="mldBerichten"> MDL-berichten</label>
-                                </wicket:enclosure>
-                                <wicket:enclosure child="paLabBerichten">
-                                    <label class="checkbox"><input type="checkbox" wicket:id="paLabBerichten"> Pathologie-berichten</label>
-                                </wicket:enclosure>
-                                <wicket:enclosure child="cytologieBerichten">
-                                    <label class="checkbox"><input type="checkbox" wicket:id="cytologieBerichten"> Cytologie-berichten</label>
-                                </wicket:enclosure>
-                                <wicket:enclosure child="followUpBerichten">
-                                    <label class="checkbox"><input type="checkbox" wicket:id="followUpBerichten"> Follow Up-berichten</label>
-                                </wicket:enclosure>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="span2">
-                        <button class="btn btn-primary pull-right" wicket:id="filter">Filteren</button>
-                    </div>
-                    <div class="span2">
-                        <a class="btn pull-right" wicket:id="herzenden" title='"Alle" berichten die voldoen aan de filter, actief en opnieuw aan te bieden zijn'><i
-                                class="icon-refresh"></i> Alle berichten opnieuw aanbieden
-                        </a>
-                    </div>
-                </div>
-            </form>
-        </fieldset>
+	<div class="form-horizontal">
+		<fieldset>
+			<form wicket:id="form">
+				<div class="row-fluid">
+					<div class="span5">
+						<div class="control-group">
+							<label class="control-label">Screeningsorganisatie</label>
+							<div class="controls">
+								<select wicket:id="screeningOrganisatie">
+									<option></option>
+									<option>Screeningsorganisatie 1</option>
+									<option>Screeningsorganisatie 2</option>
+								</select>
+							</div>
+						</div>
+						<div class="control-group">
+							<label class="control-label">Tekst in "Reden ongeldigheid"</label>
+							<div class="controls">
+								<input type="text" wicket:id="text">
+							</div>
+						</div>
+					</div>
+					<div class="span3">
+						<div class="filter-view">
+							<div class="form-inline">
+								<wicket:enclosure child="mdlBerichten">
+									<label class="checkbox"><input type="checkbox" wicket:id="mdlBerichten"> MDL-berichten</label>
+								</wicket:enclosure>
+								<wicket:enclosure child="paLabBerichten">
+									<label class="checkbox"><input type="checkbox" wicket:id="paLabBerichten"> Pathologie-berichten</label>
+								</wicket:enclosure>
+								<wicket:enclosure child="cytologieBerichten">
+									<label class="checkbox"><input type="checkbox" wicket:id="cytologieBerichten"> Cytologie-berichten</label>
+								</wicket:enclosure>
+								<wicket:enclosure child="followUpBerichten">
+									<label class="checkbox"><input type="checkbox" wicket:id="followUpBerichten"> Follow Up-berichten</label>
+								</wicket:enclosure>
+							</div>
+						</div>
+					</div>
+					<div class="span2">
+						<button class="btn btn-primary pull-right" wicket:id="filter">Filteren</button>
+					</div>
+					<div class="span2">
+						<a class="btn pull-right" wicket:id="herzenden" title='"Alle" berichten die voldoen aan de filter, actief en opnieuw aan te bieden zijn'><i
+								class="icon-refresh"></i> Alle berichten opnieuw aanbieden
+						</a>
+					</div>
+				</div>
+			</form>
+		</fieldset>
 
-        <div wicket:id="tabel"></div>
-    </div>
-    <div wicket:id="dialog"></div>
+		<div wicket:id="tabel"></div>
+	</div>
+	<div wicket:id="dialog"></div>
 </wicket:extend>
 </html>

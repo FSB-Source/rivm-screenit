@@ -74,24 +74,25 @@ public class BezwaarBrievenGenererenWriter extends AbstractBrievenGenererenWrite
 		Client client = context.getClient();
 		BezwaarBrief brief = (BezwaarBrief) BriefUtil.getOrigineleBrief(context.getBrief());
 		BezwaarMoment moment = getBezwaarMomentVoorBrief(client, brief);
-		List<BezwaarGroupViewWrapper> wrappers = bezwaarService.getEditBezwaarGroupViewWrappers(client, moment, brief.getBriefType() != BriefType.CLIENT_BEZWAAR_BEVESTIGING);
-		return new BezwaarDocumentCreatorOneDatasetCoupleTables(wrappers);
+		List<BezwaarGroupViewWrapper> wrappers = bezwaarService.getEditBezwaarGroupViewWrappers(client, moment,
+			brief.getBriefType() != BriefType.CLIENT_BEZWAAR_BEVESTIGING_VERWIJDERING_DOSSIER);
+		return new BezwaarDocumentCreatorOneDatasetCoupleTables(wrappers, brief.getBriefType());
 	}
 
 	private BezwaarMoment getBezwaarMomentVoorBrief(Client client, BezwaarBrief brief)
 	{
-		switch (brief.getBriefType())
+		if (BriefType.CLIENT_BEZWAAR_BEVESTIGING_BRIEVEN.contains(brief.getBriefType()))
 		{
-		case CLIENT_BEZWAAR_AANVRAAG:
-		case CLIENT_BEZWAAR_HANDTEKENING:
-
-			return client.getLaatstVoltooideBezwaarMoment();
-		case CLIENT_BEZWAAR_BEVESTIGING:
 
 			return brief.getBezwaarMoment();
-		default:
-			throw new IllegalStateException("Ongeldig bezwaarbrieftype " + brief.getBriefType());
 		}
+		else if (BriefType.CLIENT_BEZWAAR_AANVRAAG_BRIEVEN.contains(brief.getBriefType()))
+		{
+
+			return client.getLaatstVoltooideBezwaarMoment();
+		}
+
+		throw new IllegalStateException("Ongeldig bezwaarbrieftype " + brief.getBriefType());
 	}
 
 	@Override

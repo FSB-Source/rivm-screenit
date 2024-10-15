@@ -43,7 +43,6 @@ import nl.rivm.screenit.model.ClientContactManier;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.algemeen.BezwaarGroupViewWrapper;
-import nl.rivm.screenit.model.algemeen.BezwaarViewWrapper;
 import nl.rivm.screenit.model.enums.BezwaarType;
 import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
@@ -53,6 +52,7 @@ import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.BezwaarService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.UploadDocumentService;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -60,8 +60,10 @@ import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
+import org.apache.wicket.markup.html.form.RadioChoice;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.model.IModel;
@@ -96,9 +98,9 @@ public class ClientContactBezwaarPanel extends AbstractClientContactActiePanel<C
 
 	private List<BezwaarGroupViewWrapper> wrappers;
 
-	private WebMarkupContainer directBezwaarMakenContainer;
-
 	private IModel<UploadDocument> document;
+
+	private final IModel<Boolean> bezwaarAanvragenMetHandtekeningHerinnering = Model.of(false);
 
 	public ClientContactBezwaarPanel(String id, IModel<ClientContactActie> model, IModel<Client> client, List<Object> extraPanelParams)
 	{
@@ -106,7 +108,7 @@ public class ClientContactBezwaarPanel extends AbstractClientContactActiePanel<C
 		clientModel = client;
 		bezwaarMomentModel = ModelUtil.cModel(new BezwaarMoment());
 		BezwaarMoment modelObject = bezwaarMomentModel.getObject();
-		modelObject.setManier(ClientContactManier.AANVRAAG_FORMULIER);
+		modelObject.setManier(ClientContactManier.FORMULIER_VOOR_AANVRAGEN);
 		modelObject.setClient(clientModel.getObject());
 
 		List<ClientContactManier> clientContactManieren = new ArrayList<ClientContactManier>(Arrays.asList(ClientContactManier.values()));
@@ -117,28 +119,32 @@ public class ClientContactBezwaarPanel extends AbstractClientContactActiePanel<C
 		manier.setLabel(Model.of("Manier van afmelden"));
 		add(manier);
 
+		var bezwaarMakenContainer = new WebMarkupContainer("bezwaarMakenContainer");
+		var directBezwaarMakenContainer = getDirectBezwaarMakenContainer();
+		bezwaarMakenContainer.add(directBezwaarMakenContainer);
+		var aanvraagFormulierBezwaarMakenContainer = getAanvraagFormulierBezwaarMakenContainer();
+		bezwaarMakenContainer.add(aanvraagFormulierBezwaarMakenContainer);
+		add(bezwaarMakenContainer);
+
 		manier.add(new AjaxFormComponentUpdatingBehavior("change")
 		{
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
-				boolean visible = ClientContactManier.DIRECT.equals(bezwaarMomentModel.getObject().getManier());
-				WebMarkupContainer container = getDirectBezwaarMakenContainer(visible);
-				directBezwaarMakenContainer.replaceWith(container);
-				directBezwaarMakenContainer = container;
+				boolean direct = ClientContactManier.DIRECT.equals(bezwaarMomentModel.getObject().getManier());
+				directBezwaarMakenContainer.setVisible(direct);
+				aanvraagFormulierBezwaarMakenContainer.setVisible(!direct);
 				target.add(directBezwaarMakenContainer);
-
+				target.add(aanvraagFormulierBezwaarMakenContainer);
 			}
 		});
-		directBezwaarMakenContainer = getDirectBezwaarMakenContainer(false);
-		add(directBezwaarMakenContainer);
 	}
 
-	private WebMarkupContainer getDirectBezwaarMakenContainer(boolean visible)
+	private WebMarkupContainer getDirectBezwaarMakenContainer()
 	{
 		WebMarkupContainer container = new WebMarkupContainer("directBezwaarMakenContainer");
 		container.setOutputMarkupPlaceholderTag(true);
-		container.setVisible(visible);
+		container.setVisible(false);
 
 		FileUploadField uploadField = new FileUploadField("bestandSelecteren", files);
 		uploadField.add(new FileValidator(FileType.PDF));
@@ -153,18 +159,46 @@ public class ClientContactBezwaarPanel extends AbstractClientContactActiePanel<C
 		return container;
 	}
 
+	private WebMarkupContainer getAanvraagFormulierBezwaarMakenContainer()
+	{
+		var container = new WebMarkupContainer("bezwaarAanvragenContainer");
+		container.setOutputMarkupPlaceholderTag(true);
+		container.setVisible(true);
+
+		var bezwaarAanvragenRadioChoice = new RadioChoice<>("bezwaarAanvragen", bezwaarAanvragenMetHandtekeningHerinnering,
+			new ListModel<>(Arrays.asList(Boolean.FALSE, Boolean.TRUE)),
+			new ChoiceRenderer<>()
+			{
+				@Override
+				public Object getDisplayValue(Boolean object)
+				{
+					var label = getString(EnumStringUtil.getPropertyString(bezwaarMomentModel.getObject().getManier()));
+
+					if (Boolean.TRUE.equals(object))
+					{
+						label += " – handtekening vergeten";
+					}
+					return label;
+				}
+			});
+		bezwaarAanvragenRadioChoice.setPrefix("<label class=\"radio\">");
+		bezwaarAanvragenRadioChoice.setSuffix("</label>");
+		container.add(bezwaarAanvragenRadioChoice);
+		return container;
+	}
+
 	@Override
 	public void validate()
 	{
 		BezwaarMoment bezwaar = bezwaarMomentModel.getObject();
 		if (ClientContactManier.DIRECT.equals(bezwaar.getManier()))
 		{
-			if (isErEenBezwaarMet(BezwaarType.VERZOEK_TOT_VERWIJDERING_DOSSIER) && !heeftRechtVoor(Recht.CLIENT_DOSSIER_VERWIJDEREN))
+			if (bezwaarService.isErEenBezwaarMetType(wrappers, BezwaarType.VERZOEK_TOT_VERWIJDERING_DOSSIER) && !heeftRechtVoor(Recht.CLIENT_DOSSIER_VERWIJDEREN))
 			{
 				LOG.info("Client Dossier kan niet worden verwijderd vanwege rechten. client(id: " + bezwaar.getClient().getId() + ")");
 				error(getString("error.recht.dossierverwijderen"));
 			}
-			if (isErEenBezwaarMet(BezwaarType.GEEN_OPNAME_UIT_BPR) && !heeftRechtVoor(Recht.GEBRUIKER_BEZWAAR_BRP))
+			if (bezwaarService.isErEenBezwaarMetType(wrappers, BezwaarType.GEEN_OPNAME_UIT_BPR) && !heeftRechtVoor(Recht.GEBRUIKER_BEZWAAR_BRP))
 			{
 				LOG.info("Bezwaar BRP kan niet worden ingediend vanwege rechten. client(id: " + bezwaar.getClient().getId() + ")");
 				error(getString("error.recht.bezwaarbrp"));
@@ -190,18 +224,15 @@ public class ClientContactBezwaarPanel extends AbstractClientContactActiePanel<C
 	@Override
 	public List<String> getOpslaanMeldingen()
 	{
-		List<String> meldingen = super.getOpslaanMeldingen();
-		BezwaarMoment bezwaar = bezwaarMomentModel.getObject();
+		var meldingen = super.getOpslaanMeldingen();
+		var bezwaar = bezwaarMomentModel.getObject();
 		if (ClientContactManier.DIRECT.equals(bezwaar.getManier()))
 		{
 			stelFileVeilig();
-			if (isErEenBezwaarMet(BezwaarType.VERZOEK_TOT_VERWIJDERING_DOSSIER) && heeftRechtVoor(Recht.CLIENT_DOSSIER_VERWIJDEREN))
+			if ((bezwaarService.isErEenBezwaarMetType(wrappers, BezwaarType.VERZOEK_TOT_VERWIJDERING_DOSSIER) && heeftRechtVoor(Recht.CLIENT_DOSSIER_VERWIJDEREN))
+				|| bezwaarService.isErEenBezwaarMetType(wrappers, BezwaarType.GEEN_OPNAME_UIT_BPR) && heeftRechtVoor(Recht.GEBRUIKER_BEZWAAR_BRP))
 			{
-				meldingen.add(getString("bezwaar.waarschuwing.verwijderendossier"));
-			}
-			if (isErEenBezwaarMet(BezwaarType.GEEN_OPNAME_UIT_BPR) && heeftRechtVoor(Recht.GEBRUIKER_BEZWAAR_BRP))
-			{
-				meldingen.add(getString("bezwaar.waarschuwing.bezwaarbrp"));
+				meldingen.add(getString("gebruik.gegevens.waarschuwing"));
 			}
 
 		}
@@ -229,34 +260,13 @@ public class ClientContactBezwaarPanel extends AbstractClientContactActiePanel<C
 		{
 			LOG.error("Fout bij uploaden van een bezwaaruploaden naar tmp directory: ", e);
 			error(getString("error.onbekend"));
-			return;
 		}
-	}
-
-	private boolean isErEenBezwaarMet(BezwaarType type)
-	{
-		List<BezwaarGroupViewWrapper> bezwaarWrappers = wrappers;
-		for (BezwaarGroupViewWrapper groupWrapper : bezwaarWrappers)
-		{
-			for (BezwaarViewWrapper wrapper : groupWrapper.getBezwaren())
-			{
-				if (type.equals(wrapper.getType()) && Boolean.TRUE.equals(wrapper.getActief()))
-				{
-					return true;
-				}
-			}
-		}
-		return false;
 	}
 
 	private boolean heeftRechtVoor(Recht recht)
 	{
 		InstellingGebruiker ingelogdeGebruiker = ScreenitSession.get().getLoggedInInstellingGebruiker();
-		if (autorisatieService.getActieVoorMedewerker(ingelogdeGebruiker, null, recht) == null)
-		{
-			return false;
-		}
-		return true;
+		return autorisatieService.getActieVoorMedewerker(ingelogdeGebruiker, null, recht) != null;
 	}
 
 	@Override
@@ -286,6 +296,7 @@ public class ClientContactBezwaarPanel extends AbstractClientContactActiePanel<C
 
 		objecten.put(ExtraOpslaanKey.BEZWAAR, ModelProxyHelper.deproxy(bezwaarMomentModel.getObject()));
 		objecten.put(ExtraOpslaanKey.BEZWAAR_WRAPPERS, wrappers);
+		objecten.put(ExtraOpslaanKey.BEZWAAR_VRAGEN_OM_HANDTEKENING, bezwaarAanvragenMetHandtekeningHerinnering.getObject());
 		return objecten;
 	}
 }

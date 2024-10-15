@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.project;
 
 /*-
@@ -34,8 +33,8 @@ import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.enums.ToegangLevel;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectType;
+import nl.rivm.screenit.service.BaseProjectService;
 import nl.rivm.screenit.service.OrganisatieZoekService;
-import nl.rivm.screenit.service.ProjectService;
 import nl.topicuszorg.util.collections.CollectionUtils;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -47,18 +46,15 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class ProjectDataProvider extends SortableDataProvider<Project, String>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
-	private ProjectService projectService;
+	private BaseProjectService projectService;
 
 	@SpringBean
 	private OrganisatieZoekService organisatieZoekService;
 
-	private Map<ProjectType, ToegangLevel> toeganglevels;
+	private final Map<ProjectType, ToegangLevel> toeganglevels;
 
-	private IModel<Project> zoekObject;
+	private final IModel<Project> zoekObject;
 
 	public ProjectDataProvider(IModel<Project> zoekObject, Map<ProjectType, ToegangLevel> toeganglevels)
 	{

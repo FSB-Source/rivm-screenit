@@ -23,6 +23,7 @@ package nl.rivm.screenit.specification.mamma;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -34,9 +35,12 @@ import javax.persistence.criteria.Root;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaAfspraak_;
+import nl.rivm.screenit.model.mamma.MammaBlokkade;
 import nl.rivm.screenit.model.mamma.MammaDossier;
+import nl.rivm.screenit.model.mamma.MammaMammografie_;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
@@ -50,7 +54,7 @@ import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde_;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
-import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 
 import org.springframework.data.jpa.domain.Specification;
@@ -58,6 +62,7 @@ import org.springframework.data.jpa.domain.Specification;
 import com.google.common.collect.Range;
 
 import static nl.rivm.screenit.specification.DateSpecification.bevatLocalDateTime;
+import static nl.rivm.screenit.specification.DateSpecification.bevatLocalDateToDate;
 import static nl.rivm.screenit.specification.RangeSpecification.bevat;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmpty;
@@ -66,20 +71,61 @@ import static nl.rivm.screenit.util.RangeUtil.closedOpen;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class MammaAfspraakSpecification
 {
+	public static Specification<MammaAfspraak> isLaatsteAfspraakVanUitnodiging()
+	{
+		return (r, q, cb) ->
+		{
+			var uitnodigingJoin = join(r, MammaAfspraak_.uitnodiging);
+			return cb.equal(uitnodigingJoin.get(MammaUitnodiging_.laatsteAfspraak), r);
+		};
+	}
+
+	public static Specification<MammaAfspraak> valtOnderBlokkadeType(MammaBlokkade blokkade)
+	{
+		return (r, q, cb) ->
+		{
+			var standplaatsPeriodeJoin = standplaatsPeriodeJoin(r);
+			Join<MammaStandplaatsPeriode, MammaScreeningsEenheid> screeningsEenheidJoin;
+			switch (blokkade.getType())
+			{
+			case STANDPLAATS:
+				var standplaatsRondeJoin = join(standplaatsPeriodeJoin, MammaStandplaatsPeriode_.standplaatsRonde);
+				var standplaatsJoin = join(standplaatsRondeJoin, MammaStandplaatsRonde_.standplaats);
+				return cb.equal(standplaatsJoin, blokkade.getStandplaats());
+			case SCREENINGS_ORGANISATIE:
+				screeningsEenheidJoin = join(standplaatsPeriodeJoin, MammaStandplaatsPeriode_.screeningsEenheid);
+				var beoordelingsEenheidJoin = join(screeningsEenheidJoin, MammaScreeningsEenheid_.beoordelingsEenheid);
+				var centraleEenheidJoin = join(beoordelingsEenheidJoin, Instelling_.parent);
+				var regioJoin = join(centraleEenheidJoin, Instelling_.regio);
+				return cb.equal(regioJoin, blokkade.getRegio());
+			case SCREENINGS_EENHEID:
+				screeningsEenheidJoin = join(standplaatsPeriodeJoin, MammaStandplaatsPeriode_.screeningsEenheid);
+				return cb.equal(screeningsEenheidJoin, blokkade.getScreeningsEenheid());
+			default:
+				return null;
+			}
+		};
+	}
+
 	public static Specification<MammaAfspraak> filterStatuses(List<MammaAfspraakStatus> statuses)
 	{
 		return skipWhenEmpty(statuses, heeftStatuses(statuses));
 	}
 
-	public static Specification<MammaAfspraak> heeftStatuses(List<MammaAfspraakStatus> statuses)
+	public static Specification<MammaAfspraak> heeftStatuses(Collection<MammaAfspraakStatus> statuses)
 	{
 		return (r, q, cb) -> r.get(MammaAfspraak_.status).in(statuses);
 	}
 
-	public static Specification<MammaAfspraak> begintTussen(LocalDateTime vanaf, LocalDateTime tot)
+	public static Specification<MammaAfspraak> valtInPeriode(LocalDateTime vanaf, LocalDateTime tot)
 	{
 		var range = closedOpen(vanaf, tot);
 		return bevatLocalDateTime(range, r -> r.get(MammaAfspraak_.vanaf));
+	}
+
+	public static Specification<MammaAfspraak> valtInPeriode(Range<LocalDate> periode)
+	{
+		return bevatLocalDateToDate(periode, r -> r.get(MammaAfspraak_.vanaf));
 	}
 
 	public static Specification<MammaAfspraak> heeftGeenCapaciteitBlok()
@@ -134,13 +180,13 @@ public class MammaAfspraakSpecification
 			var standplaatsPeriodeJoin = join(r, MammaAfspraak_.standplaatsPeriode);
 			var screeningsEenheidJoin = join(standplaatsPeriodeJoin, MammaStandplaatsPeriode_.screeningsEenheid);
 			var onderzoekJoin = join(r, MammaAfspraak_.onderzoek, JoinType.LEFT);
-			var afgelopen2Maanden = Range.open(DateUtil.toUtilDate(vandaag.minusMonths(2)), DateUtil.toUtilDate(vandaag));
+			var afgelopen2Maanden = Range.open(vandaag.minusMonths(2), vandaag);
 			return cb.and(
 				cb.or(
 					r.get(MammaAfspraak_.status).in(MammaAfspraakStatus.INGESCHREVEN, MammaAfspraakStatus.ONDERZOEK, MammaAfspraakStatus.SIGNALEREN),
 					cb.equal(onderzoekJoin.get(MammaOnderzoek_.isDoorgevoerd), false)),
 				cb.equal(screeningsEenheidJoin.get(MammaScreeningsEenheid_.code), seCode),
-				bevat(afgelopen2Maanden, r.get(MammaAfspraak_.vanaf)).withPath(cb, r));
+				valtInPeriode(afgelopen2Maanden).toPredicate(r, q, cb));
 		};
 	}
 
@@ -160,6 +206,35 @@ public class MammaAfspraakSpecification
 			var standplaatsPeriodeJoin = join(r, MammaAfspraak_.standplaatsPeriode);
 			var standplaatsRondeJoin = join(standplaatsPeriodeJoin, MammaStandplaatsPeriode_.standplaatsRonde);
 			return cb.equal(standplaatsRondeJoin.get(MammaStandplaatsRonde_.standplaats), standplaats);
+		};
+	}
+
+	public static Specification<MammaAfspraak> heeftAfgerondeMammografie()
+	{
+		return (r, q, cb) ->
+		{
+			var onderzoekJoin = join(r, MammaAfspraak_.onderzoek);
+			var mammografieJoin = join(onderzoekJoin, MammaOnderzoek_.mammografie);
+			return cb.isNotNull(mammografieJoin.get(MammaMammografie_.afgerondDoor));
+		};
+	}
+
+	public static Specification<MammaAfspraak> heeftIlmStatus(MammaMammografieIlmStatus ilmStatus)
+	{
+		return (r, q, cb) ->
+		{
+			var onderzoekJoin = join(r, MammaAfspraak_.onderzoek);
+			var mammografieJoin = join(onderzoekJoin, MammaOnderzoek_.mammografie);
+			return cb.equal(mammografieJoin.get(MammaMammografie_.ilmStatus), ilmStatus);
+		};
+	}
+
+	public static Specification<MammaAfspraak> heeftOnderzoekDoorgevoerd()
+	{
+		return (r, q, cb) ->
+		{
+			var onderzoekJoin = join(r, MammaAfspraak_.onderzoek);
+			return cb.isTrue(onderzoekJoin.get(MammaOnderzoek_.isDoorgevoerd));
 		};
 	}
 

@@ -23,6 +23,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.uitslag;
 
 import java.util.List;
 
+import nl.rivm.screenit.main.service.algemeen.ProjectService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.validator.FileValidator;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.ProjectBasePage;
@@ -36,7 +37,6 @@ import nl.rivm.screenit.model.enums.FileType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectBestand;
-import nl.rivm.screenit.service.ProjectService;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -64,9 +64,9 @@ public class ProjectUitslagUploadenPage extends ProjectBasePage
 	@SpringBean
 	private ProjectService projectService;
 
-	private IModel<ProjectBestand> uitslagModel;
+	private final IModel<ProjectBestand> uitslagModel;
 
-	private IModel<List<FileUpload>> uitslagen = new ListModel<>();
+	private final IModel<List<FileUpload>> uitslagen = new ListModel<>();
 
 	public ProjectUitslagUploadenPage(IModel<Project> model)
 	{

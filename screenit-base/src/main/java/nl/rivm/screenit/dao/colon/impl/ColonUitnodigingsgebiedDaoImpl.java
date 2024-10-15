@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.Set;
 
 import nl.rivm.screenit.dao.colon.ColonUitnodigingsgebiedDao;
-import nl.rivm.screenit.model.UitnodigingsGebied;
+import nl.rivm.screenit.model.colon.UitnodigingsGebied;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.query.DateRestrictions;

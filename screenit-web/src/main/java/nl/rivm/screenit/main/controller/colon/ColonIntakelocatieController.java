@@ -36,7 +36,6 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.colon.ColonIntakelocatieService;
-import nl.rivm.screenit.util.DateUtil;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -62,13 +61,13 @@ public class ColonIntakelocatieController
 		Bevolkingsonderzoek.COLON })
 	public ResponseEntity<ColonIntakelocatieDto> getIntakelocatie()
 	{
-		var intakelocatie = ScreenitSession.get().getColoscopieCentrum();
+		var intakelocatie = ScreenitSession.get().getIntakelocatie();
 		var now = LocalDate.now();
 		var startOfYear = now.with(TemporalAdjusters.firstDayOfYear());
 		var endOfYear = startOfYear.plusYears(1);
 
-		var periode = Range.closed(DateUtil.toUtilDate(startOfYear), DateUtil.toUtilDate(endOfYear));
-		var huidigAantalAfspraakslots = roosterService.getCurrentAantalRoosterBlokken(intakelocatie, periode);
+		var periode = Range.closed(startOfYear.atStartOfDay(), endOfYear.atStartOfDay());
+		var huidigAantalAfspraakslots = roosterService.getCurrentAantalAfspraakslots(intakelocatie, periode);
 		var response = intakelocatieMapper.intakelocatieToDto(intakelocatie);
 		response.setHuidigAantalAfspraakslots(huidigAantalAfspraakslots);
 		return ResponseEntity.ok(response);
@@ -86,7 +85,7 @@ public class ColonIntakelocatieController
 		signaleringstermijnDto.setTekst(signaleringstermijnTekst);
 		signaleringstermijnDto.setSignaleringsTermijnDeadline(intakelocatieService.getSignaleringstermijnDeadline());
 		signaleringstermijnDto.setHeeftGeenCapaciteitBinnenSignaleringsTermijn(
-			intakelocatieService.intakelocatieHeeftGeenCapaciteit(ScreenitSession.get().getColoscopieCentrum()));
+			intakelocatieService.intakelocatieHeeftGeenCapaciteit(ScreenitSession.get().getIntakelocatie()));
 
 		return ResponseEntity.ok(signaleringstermijnDto);
 	}

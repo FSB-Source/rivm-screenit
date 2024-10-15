@@ -34,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.UitnodigingsDao;
-import nl.rivm.screenit.dao.VerslagDao;
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenissen;
 import nl.rivm.screenit.main.model.testen.TestTimeLineDossierTijdstip;
 import nl.rivm.screenit.main.model.testen.TestTimelineModel;
@@ -51,29 +50,30 @@ import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.berichten.enums.VerslagType;
 import nl.rivm.screenit.model.colon.ColonConclusie;
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ColonOnderzoeksVariant;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
 import nl.rivm.screenit.model.colon.ColonVooraankondiging;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.ColoscopieLocatie;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.IFOBTType;
 import nl.rivm.screenit.model.colon.IFOBTVervaldatum;
-import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.MdlVerslag;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
 import nl.rivm.screenit.model.colon.enums.MdlVervolgbeleid;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
+import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
 import nl.rivm.screenit.model.colon.verslag.mdl.MdlColoscopieMedischeObservatie;
 import nl.rivm.screenit.model.colon.verslag.mdl.MdlDefinitiefVervolgbeleidVoorBevolkingsonderzoekg;
 import nl.rivm.screenit.model.colon.verslag.mdl.MdlVerslagContent;
@@ -81,9 +81,10 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BaseHoudbaarheidService;
+import nl.rivm.screenit.service.BaseVerslagService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.TestService;
-import nl.rivm.screenit.service.colon.ColonAfspraakDefinitieService;
 import nl.rivm.screenit.service.colon.ColonBaseFITService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonStudietestService;
@@ -93,7 +94,6 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.FITTestUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
-import nl.topicuszorg.wicket.planning.model.Discipline;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -146,7 +146,7 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 	private ColonVerwerkVerslagService verwerkVerslagService;
 
 	@Autowired
-	private VerslagDao verslagDao;
+	private BaseVerslagService verslagService;
 
 	@Autowired
 	private ColonDossierBaseService colonDossierBaseService;
@@ -155,7 +155,7 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 	private ColonDossierService colonDossierService;
 
 	@Autowired
-	private ColonAfspraakDefinitieService afspraakDefinitieService;
+	private OrganisatieParameterService organisatieParameterService;
 
 	@Override
 	public List<TestVervolgKeuzeOptie> getSnelKeuzeOpties(Client client)
@@ -761,7 +761,7 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 
 	@Override
 	@Transactional
-	public void maaktIntakeAfspraakVoorClient(Client client, ColoscopieCentrum centrum)
+	public void maaktIntakeAfspraakVoorClient(Client client, ColonIntakelocatie intakelocatie)
 	{
 		var dossier = client.getColonDossier();
 		testTimelineTimeService.calculateBackwards(client.getColonDossier(), 1);
@@ -771,50 +771,38 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 		var brief = briefService.maakBvoBrief(ronde, BriefType.COLON_UITNODIGING_INTAKE);
 		brief.setCreatieDatum(DateUtil.minusTijdseenheid(brief.getCreatieDatum(), 5, ChronoUnit.SECONDS));
 
+		ColonIntakekamer actieveKamer = null;
+
+		Integer duurAfspraakInMinuten = null;
+		for (var kamer : intakelocatie.getKamers())
+		{
+			if (kamer.getActief())
+			{
+				actieveKamer = kamer;
+				duurAfspraakInMinuten = organisatieParameterService.getOrganisatieParameter(actieveKamer.getIntakelocatie(),
+					OrganisatieParameterKey.COLON_DUUR_AFSPRAAK_IN_MINUTEN, 15);
+				break;
+			}
+		}
+
 		var intakeAfspraak = ronde.getLaatsteAfspraak();
 		if (intakeAfspraak == null)
 		{
 			intakeAfspraak = new ColonIntakeAfspraak();
-			intakeAfspraak.setStatus(AfspraakStatus.GEPLAND);
 			intakeAfspraak.setAfstand(BigDecimal.valueOf(2.3));
-			intakeAfspraak.setAfspraaknummer(System.currentTimeMillis());
 			intakeAfspraak.setClient(client);
-			intakeAfspraak.setBezwaar(Boolean.FALSE);
-			intakeAfspraak.setDatumLaatsteWijziging(currentDateSupplier.getDate());
+			intakeAfspraak.setGewijzigdOp(currentDateSupplier.getLocalDateTime());
+			intakeAfspraak.setAangemaaktOp(currentDateSupplier.getLocalDateTime());
 			client.getAfspraken().add(intakeAfspraak);
 			ronde.setLaatsteAfspraak(intakeAfspraak);
 			ronde.getAfspraken().add(intakeAfspraak);
 			intakeAfspraak.setColonScreeningRonde(ronde);
-			intakeAfspraak.getDisciplines().add(hibernateService.loadAll(Discipline.class).get(0));
+			intakeAfspraak.setVanaf(currentDateSupplier.getLocalDateTime().plusDays(1));
+			intakeAfspraak.setKamer(actieveKamer);
+			intakeAfspraak.setTot(intakeAfspraak.getVanaf().plusMinutes(duurAfspraakInMinuten));
 		}
-		intakeAfspraak.setBezwaar(Boolean.FALSE);
-		intakeAfspraak.setStatus(AfspraakStatus.GEPLAND);
-		if (intakeAfspraak.getStartTime() == null)
-		{
-			intakeAfspraak.setStartTime(DateUtil.plusDagen(currentDateSupplier.getDate(), 1));
-		}
-		if (intakeAfspraak.getLocation() == null)
-		{
-			Kamer actieveKamer = null;
-			for (var kamer : centrum.getKamers())
-			{
-				if (kamer.getActief())
-				{
-					actieveKamer = kamer;
-					break;
-				}
-			}
-			intakeAfspraak.setLocation(actieveKamer);
-		}
-		if (intakeAfspraak.getDefinition() == null)
-		{
-			var afspraakDefinitie = afspraakDefinitieService.getActiefAfspraakDefinitie(intakeAfspraak.getLocation().getColoscopieCentrum());
-			intakeAfspraak.setDefinition(afspraakDefinitie);
-		}
-		if (intakeAfspraak.getEndTime() == null)
-		{
-			intakeAfspraak.setEndTime(DateUtil.plusTijdseenheid(intakeAfspraak.getStartTime(), intakeAfspraak.getDefinition().getDuurAfspraakInMinuten(), ChronoUnit.MINUTES));
-		}
+		intakeAfspraak.setBezwaar(false);
+		intakeAfspraak.setStatus(ColonAfspraakStatus.GEPLAND);
 		brief.setIntakeAfspraak(intakeAfspraak);
 		hibernateService.saveOrUpdate(brief);
 		hibernateService.saveOrUpdate(intakeAfspraak);
@@ -905,7 +893,7 @@ public class ColonTestTimelineServiceImpl implements ColonTestTimelineService
 			coloscopieMedischeObservatie.setDefinitiefVervolgbeleidVoorBevolkingsonderzoekg(definitiefVervolgbeleidVoorBevolkingsonderzoekg);
 
 			definitiefVervolgbeleidVoorBevolkingsonderzoekg
-				.setDefinitiefVervolgbeleidVoorBevolkingsonderzoek(verslagDao.getDsValue(vervolgbeleid.getCode(), vervolgbeleid.getCodeSystem(), "vs_vervolgbeleid"));
+				.setDefinitiefVervolgbeleidVoorBevolkingsonderzoek(verslagService.getDsValue(vervolgbeleid.getCode(), vervolgbeleid.getCodeSystem(), "vs_vervolgbeleid"));
 			definitiefVervolgbeleidVoorBevolkingsonderzoekg.setColoscopieMedischeObservatie(coloscopieMedischeObservatie);
 		}
 		content.setVerslag(verslag);

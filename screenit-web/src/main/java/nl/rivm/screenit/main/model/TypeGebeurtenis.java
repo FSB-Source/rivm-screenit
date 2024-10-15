@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.model;
 
 /*-
@@ -21,6 +20,8 @@ package nl.rivm.screenit.main.model;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
+
+import lombok.Getter;
 
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.AbstractGebeurtenisDetailPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.AntwoordformulierOntvangenPanel;
@@ -45,6 +46,7 @@ import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.mamma
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.mamma.MammaVerslagInzienPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.project.VragenlijstInzienPanel;
 
+@Getter
 public enum TypeGebeurtenis
 {
 
@@ -55,6 +57,7 @@ public enum TypeGebeurtenis
 	UITNODIGING_AANGEMAAKT(),
 
 	BRIEF_AANGEMAAKT(BriefKlaargezetPanel.class),
+	BEZWAAR_BRIEF_AANGEMAAKT(BriefKlaargezetPanel.class),
 
 	BRIEF_KLAARGEZET(BriefKlaargezetPanel.class),
 
@@ -293,8 +296,4 @@ public enum TypeGebeurtenis
 		this.detailPanelClass = detailPanelClass;
 	}
 
-	public Class<? extends AbstractGebeurtenisDetailPanel> getDetailPanelClass()
-	{
-		return detailPanelClass;
-	}
 }

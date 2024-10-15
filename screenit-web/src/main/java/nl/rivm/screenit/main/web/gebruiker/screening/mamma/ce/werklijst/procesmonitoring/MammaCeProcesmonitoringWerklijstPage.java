@@ -37,6 +37,7 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -54,14 +55,14 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.MAMMA })
 public class MammaCeProcesmonitoringWerklijstPage extends AbstractMammaCeWerklijst
 {
-	private MammaCeProcesmonitoringDataProvider dataProvider;
+	private final MammaCeProcesmonitoringDataProvider dataProvider;
 
 	private final BootstrapDialog dialog;
 
 	public MammaCeProcesmonitoringWerklijstPage()
 	{
 		super();
-		dataProvider = new MammaCeProcesmonitoringDataProvider("onderzoek.creatieDatum", zoekObjectModel);
+		dataProvider = new MammaCeProcesmonitoringDataProvider(MammaOnderzoek_.CREATIE_DATUM, zoekObjectModel);
 		dialog = new BootstrapDialog("dialog");
 		add(dialog);
 		createResultTable();
@@ -77,10 +78,9 @@ public class MammaCeProcesmonitoringWerklijstPage extends AbstractMammaCeWerklij
 			@Override
 			protected List<MammaBeoordelingStatus> getMammaMogelijkeBeoordelingFilterStatussen()
 			{
-				List<MammaBeoordelingStatus> beoordelingStatussen = new ArrayList<>(
+				return new ArrayList<>(
 					Arrays.asList(MammaBeoordelingStatus.EERSTE_LEZING, MammaBeoordelingStatus.TWEEDE_LEZING, MammaBeoordelingStatus.DISCREPANTIE, MammaBeoordelingStatus.ARBITRAGE,
 						MammaBeoordelingStatus.VERSLAG_MAKEN, MammaBeoordelingStatus.VERSLAG_AFGEKEURD, MammaBeoordelingStatus.VERSLAG_GOEDKEURING_OPGESCHORT));
-				return beoordelingStatussen;
 			}
 		};
 		add(zoekPanel);
@@ -98,7 +98,7 @@ public class MammaCeProcesmonitoringWerklijstPage extends AbstractMammaCeWerklij
 		columns.add(getStatusColumn());
 		columns.add(getTypeOnderzoekColumn());
 
-		resultatenContainer.add(new ScreenitDataTable<MammaBeoordeling, String>("resultaten", columns, dataProvider, 10, Model.of("beoordeling(en)"))
+		resultatenContainer.add(new ScreenitDataTable<>("resultaten", columns, dataProvider, 10, Model.of("beoordeling(en)"))
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<MammaBeoordeling> model)
@@ -123,7 +123,7 @@ public class MammaCeProcesmonitoringWerklijstPage extends AbstractMammaCeWerklij
 
 	private void gaNaarCeVerwijsPagina(IModel<MammaBeoordeling> model)
 	{
-		setResponsePage(new MammaCeVerwijsVerslagPage(ModelUtil.cModel(model.getObject())));
+		setResponsePage(new MammaCeVerwijsVerslagPage(ModelUtil.ccModel(model.getObject())));
 	}
 
 	private void toewijzenRadioloogPopup(AjaxRequestTarget target, IModel<MammaBeoordeling> beoordeling)

@@ -28,7 +28,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.main.service.MedewerkerService;
+import nl.rivm.screenit.main.service.algemeen.ProjectService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
@@ -51,7 +54,6 @@ import nl.rivm.screenit.model.project.ProjectType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.OrganisatieZoekService;
-import nl.rivm.screenit.service.ProjectService;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
@@ -78,11 +80,10 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.validator.DateValidator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wicketstuff.shiro.ShiroConstraint;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
+@Slf4j
 @SecurityConstraint(
 	actie = Actie.TOEVOEGEN,
 	checkScope = true,
@@ -91,10 +92,6 @@ import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA })
 public class ProjectEditPage extends AlgemeenPage
 {
-
-	private static final long serialVersionUID = 1L;
-
-	private static final Logger LOG = LoggerFactory.getLogger(ProjectEditPage.class);
 
 	@SpringBean
 	private HibernateService hibernateService;
@@ -114,11 +111,11 @@ public class ProjectEditPage extends AlgemeenPage
 	@SpringBean
 	private LogService logService;
 
-	private ScreenitDropdown<Instelling> organisatieDropdown;
+	private final ScreenitDropdown<Instelling> organisatieDropdown;
 
 	private WebMarkupContainer medewerkersContainer;
 
-	private List<Bevolkingsonderzoek> gekozenBevolkingsonderzoeken = new ArrayList<>();
+	private final List<Bevolkingsonderzoek> gekozenBevolkingsonderzoeken = new ArrayList<>();
 
 	private EditProjectParametersPanel parametersPanel;
 
@@ -287,7 +284,7 @@ public class ProjectEditPage extends AlgemeenPage
 			protected void onSubmit(AjaxRequestTarget target)
 			{
 				SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
-				Project project = (Project) form.getModelObject();
+				Project project = form.getModelObject();
 				Date startDatum = project.getStartDatum();
 				Date eindDatum = project.getEindDatum();
 				Date eindeInstroom = project.getEindeInstroom();

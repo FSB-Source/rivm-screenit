@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nl.rivm.screenit.main.service.VragenlijstService;
+import nl.rivm.screenit.main.service.algemeen.ProjectService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.table.ActiefPropertyColumn;
@@ -34,7 +35,6 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.project.ProjectVragenlijst;
-import nl.rivm.screenit.service.ProjectService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -55,9 +55,6 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX })
 public class ProjectVragenlijstenPage extends ProjectVragenlijstenBasePage
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private VragenlijstService vragenlijstService;
 
@@ -66,7 +63,6 @@ public class ProjectVragenlijstenPage extends ProjectVragenlijstenBasePage
 
 	public ProjectVragenlijstenPage()
 	{
-
 		final WebMarkupContainer refreshContainer = new WebMarkupContainer("refreshContainer");
 		refreshContainer.setOutputMarkupId(Boolean.TRUE);
 		add(refreshContainer);
@@ -75,17 +71,15 @@ public class ProjectVragenlijstenPage extends ProjectVragenlijstenBasePage
 		zoekObject.setActief(true);
 		IModel<ProjectVragenlijst> modelZoekObject = Model.of(zoekObject);
 		List<IColumn<ProjectVragenlijst, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<ProjectVragenlijst, String>(Model.of("Naam vragenlijst"), "naam", "naam"));
-		columns.add(new PropertyColumn<ProjectVragenlijst, String>(Model.of("Laatst gewijzigd"), "laatstGewijzigd", "laatstGewijzigd"));
+		columns.add(new PropertyColumn<>(Model.of("Naam vragenlijst"), "naam", "naam"));
+		columns.add(new PropertyColumn<>(Model.of("Laatst gewijzigd"), "laatstGewijzigd", "laatstGewijzigd"));
 
 		BootstrapDialog confirmDialog = new BootstrapDialog("confirmDialog");
 		add(confirmDialog);
 
-		columns.add(new ActiefPropertyColumn<ProjectVragenlijst, ProjectVragenlijst>(Model.of(""), "actief", refreshContainer, modelZoekObject,
+		columns.add(new ActiefPropertyColumn<>(Model.of(""), "actief", refreshContainer, modelZoekObject,
 			ScreenitSession.get().checkPermission(Recht.GEBRUIKER_DEFINITIE_VRAGENLIJSTEN, Actie.VERWIJDEREN), confirmDialog, "label.vragenlijstdeactiveren")
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onAfterToggleActief(AjaxRequestTarget target, ProjectVragenlijst actiefObject)
@@ -118,11 +112,8 @@ public class ProjectVragenlijstenPage extends ProjectVragenlijstenBasePage
 		});
 
 		ScreenitDataTable<ProjectVragenlijst, String> organisaties = new ScreenitDataTable<ProjectVragenlijst, String>("vragenlijsten", columns,
-			new VragenlijstenProvider<ProjectVragenlijst>(modelZoekObject, "naam"), 10, Model.of("vragenlijst(en)"))
+			new VragenlijstenProvider<>(modelZoekObject, "naam"), 10, Model.of("vragenlijst(en)"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<ProjectVragenlijst> model)
 			{
@@ -134,9 +125,6 @@ public class ProjectVragenlijstenPage extends ProjectVragenlijstenBasePage
 
 		add(new IndicatingAjaxLink<ProjectVragenlijst>("newVragenlijst")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{

@@ -48,6 +48,7 @@ import nl.rivm.screenit.model.algemeen.AlgemeneBrief;
 import nl.rivm.screenit.model.algemeen.OverdrachtPersoonsgegevens;
 import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.colon.ColonDossier;
+import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.Complicatie;
 import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.model.enums.RedenIntrekkenGbaIndicatie;
@@ -56,8 +57,6 @@ import nl.rivm.screenit.model.gba.GbaVraag;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.BsnBron;
-import nl.topicuszorg.planning.model.IAppointment;
-import nl.topicuszorg.planning.model.IParticipant;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -74,7 +73,7 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 @Table(schema = "gedeeld", indexes = { @Index(name = "IDX_GBASTATUS", columnList = "gbaStatus") })
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "patient.registratie.cache")
 @Check(constraints = "reden_intrekken_gba_indicatie_door_bvo = 'NIET_INGETROKKEN' OR gba_status IN ('INDICATIE_AANWEZIG', 'PUNT_ADRES', 'BEZWAAR')")
-public class Client extends SingleTableHibernateObject implements Account, IParticipant
+public class Client extends SingleTableHibernateObject implements Account
 {
 	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@Audited(targetAuditMode = NOT_AUDITED)
@@ -90,7 +89,7 @@ public class Client extends SingleTableHibernateObject implements Account, IPart
 
 	@OneToMany(mappedBy = "client", fetch = FetchType.LAZY)
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
-	private List<Afspraak> afspraken = new ArrayList<>();
+	private List<ColonIntakeAfspraak> afspraken = new ArrayList<>();
 
 	@OneToMany(mappedBy = "client", fetch = FetchType.LAZY)
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
@@ -177,39 +176,4 @@ public class Client extends SingleTableHibernateObject implements Account, IPart
 	@Enumerated(EnumType.STRING)
 	@Deprecated(forRemoval = true)
 	private BsnBron bsnBron;
-
-	@Override
-	@Deprecated(forRemoval = true)
-	public String getName()
-	{
-		return null;
-	}
-
-	@Override
-	@Deprecated(forRemoval = true)
-	public void setName(String name)
-	{
-
-	}
-
-	@Override
-	@Deprecated(forRemoval = true)
-	public String getDescription()
-	{
-		return null;
-	}
-
-	@Override
-	@Deprecated(forRemoval = true)
-	public void setDescription(String description)
-	{
-
-	}
-
-	@Override
-	@Deprecated(forRemoval = true)
-	public List<? extends IAppointment> getAppointments(Date startTime, Date endTime)
-	{
-		return null;
-	}
 }

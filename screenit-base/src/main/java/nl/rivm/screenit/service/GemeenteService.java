@@ -21,14 +21,12 @@ package nl.rivm.screenit.service;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Iterator;
 import java.util.List;
 
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.model.UitnodigingsGebied;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.UitnodigingsGebied;
 
 public interface GemeenteService
 {
@@ -45,18 +43,11 @@ public interface GemeenteService
 
 	void verwijderAlleGebieden(Gemeente gemeente);
 
-	Iterator<? extends UitnodigingsGebied> getGebieden(UitnodigingsGebied zoekObject, ColoscopieCentrum coloscopieCentrum, long first, long count, String property,
-		boolean ascending);
+	List<Gemeente> getNietOfAanScreeningsOrganisatieGekoppeldGemeentes(ScreeningOrganisatie screeningOrganisatie);
 
-	long getCountGebieden(UitnodigingsGebied zoekObject, ColoscopieCentrum coloscopieCentrum);
-
-	List<Gemeente> getGemeentesZonderScreeningOrganisatie(ScreeningOrganisatie screeningOrganisatie);
-
-	List<Gemeente> getGemeentesZonderBMHKLaboratorium(BMHKLaboratorium bmhkLaboratorium);
+	List<Gemeente> getNietOfAanBMHKLaboratoriumGekoppeldGemeentes(BMHKLaboratorium bmhkLaboratorium);
 
 	boolean magAlleGebiedenVerwijderen(Gemeente gemeente);
-
-	List<Gemeente> getAllGekoppeldeGemeentes();
 
 	Gemeente getGemeenteByCode(String code);
 }

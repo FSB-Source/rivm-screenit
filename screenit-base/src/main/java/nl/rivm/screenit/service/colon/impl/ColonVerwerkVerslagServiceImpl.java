@@ -34,7 +34,6 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.dao.VerslagDao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.Instelling;
@@ -43,12 +42,14 @@ import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.berichten.Verslag;
 import nl.rivm.screenit.model.berichten.enums.VerslagGeneratie;
+import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColonVerslag;
 import nl.rivm.screenit.model.colon.Complicatie;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.MdlVerslag;
+import nl.rivm.screenit.model.colon.MdlVerslag_;
 import nl.rivm.screenit.model.colon.PaLaboratorium;
 import nl.rivm.screenit.model.colon.PaVerslag;
 import nl.rivm.screenit.model.colon.enums.MdlVervolgbeleid;
@@ -67,6 +68,8 @@ import nl.rivm.screenit.model.enums.ComplicatieSoort;
 import nl.rivm.screenit.model.formulieren.IdentifierElement;
 import nl.rivm.screenit.model.verslag.DSValue;
 import nl.rivm.screenit.model.verslag.Quantity;
+import nl.rivm.screenit.repository.colon.ColonMdlVerslagRepository;
+import nl.rivm.screenit.service.BaseVerslagService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonVerwerkVerslagService;
@@ -85,12 +88,14 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.support.PropertyComparator;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftScreeningRondeInMdlVerslag;
+import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftVerslagStatus;
+
 @Service
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 @Slf4j
 public class ColonVerwerkVerslagServiceImpl implements ColonVerwerkVerslagService
 {
@@ -104,7 +109,7 @@ public class ColonVerwerkVerslagServiceImpl implements ColonVerwerkVerslagServic
 	private ColonDossierBaseService dossierBaseService;
 
 	@Autowired
-	private VerslagDao verslagDao;
+	private BaseVerslagService verslagService;
 
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
@@ -112,8 +117,11 @@ public class ColonVerwerkVerslagServiceImpl implements ColonVerwerkVerslagServic
 	@Autowired
 	private ComplicatieService complicatieService;
 
+	@Autowired
+	private ColonMdlVerslagRepository mdlVerslagRepository;
+
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void verwerkInDossier(MdlVerslag verslag)
 	{
 		verslag.setVervolgbeleid(dossierBaseService.getVervolgbeleid(verslag));
@@ -152,7 +160,7 @@ public class ColonVerwerkVerslagServiceImpl implements ColonVerwerkVerslagServic
 		return MdlVervolgbeleid.isDefinitief(actueelsteVervolgbeleid);
 	}
 
-	private void bepaalEnSetUitnodigingeinterval(MdlVerslag verslag, ColonDossier dossier)
+	private void bepaalEnSetUitnodigingsinterval(MdlVerslag verslag, ColonDossier dossier)
 	{
 		dossierBaseService.setVolgendeUitnodigingVoorVerslag(verslag);
 		hibernateService.saveOrUpdate(dossier);
@@ -160,8 +168,9 @@ public class ColonVerwerkVerslagServiceImpl implements ColonVerwerkVerslagServic
 
 	private MdlVervolgbeleid getActueelsteVervolgbeleid(ColonScreeningRonde screeningRonde)
 	{
-		MdlVerslag actueelsteVerslag = verslagDao.getActueelsteMdlVerslag(screeningRonde);
-		return actueelsteVerslag != null ? dossierBaseService.getVervolgbeleid(actueelsteVerslag) : null;
+		var actueelsteVerslag = mdlVerslagRepository.findFirst(heeftScreeningRondeInMdlVerslag(screeningRonde).and(heeftVerslagStatus(VerslagStatus.AFGEROND)),
+			Sort.by(Sort.Order.desc(MdlVerslag_.DATUM_ONDERZOEK)));
+		return actueelsteVerslag.map(mdlVerslag -> dossierBaseService.getVervolgbeleid(mdlVerslag)).orElse(null);
 	}
 
 	private boolean complicatieUnkown(Client client, MdlVerslag mdlVerslag, Date complicatieDatum, ComplicatieErnst complicatieErnst, ComplicatieMoment complicatieMoment,
@@ -200,7 +209,7 @@ public class ColonVerwerkVerslagServiceImpl implements ColonVerwerkVerslagServic
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void onAfterVerwerkVerslagContent(MdlVerslag verslag)
 	{
 
@@ -216,7 +225,7 @@ public class ColonVerwerkVerslagServiceImpl implements ColonVerwerkVerslagServic
 				fixDefinitiefVervolgbeleid(content.getColoscopieMedischeObservatie());
 			}
 			fixAfbrekenColoscopie(content.getColoscopieMedischeObservatie());
-			bepaalEnSetUitnodigingeinterval(verslag, verslag.getScreeningRonde().getDossier());
+			bepaalEnSetUitnodigingsinterval(verslag, verslag.getScreeningRonde().getDossier());
 		}
 		verslag.setDatumOnderzoek(aanvangVerrichting);
 
@@ -239,7 +248,7 @@ public class ColonVerwerkVerslagServiceImpl implements ColonVerwerkVerslagServic
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void onAfterVerwerkVerslagContent(PaVerslag verslag)
 	{
 
@@ -268,14 +277,14 @@ public class ColonVerwerkVerslagServiceImpl implements ColonVerwerkVerslagServic
 	{
 		if (mdlVerslag.getVerslagContent().getVersie().ordinal() < VerslagGeneratie.V4.ordinal())
 		{
-			DSValue inTotoCompleet = verslagDao.getDsValue("255619001", "2.16.840.1.113883.6.96", "vs_verwijdering_compleet");
-			DSValue piecemealCompleet = verslagDao.getDsValue("2", "2.16.840.1.113883.2.4.3.36.77.5.35", "vs_verwijdering_compleet");
-			DSValue incompleet = verslagDao.getDsValue("255599008", "2.16.840.1.113883.6.96", "vs_verwijdering_compleet");
+			DSValue inTotoCompleet = verslagService.getDsValue("255619001", "2.16.840.1.113883.6.96", "vs_verwijdering_compleet");
+			DSValue piecemealCompleet = verslagService.getDsValue("2", "2.16.840.1.113883.2.4.3.36.77.5.35", "vs_verwijdering_compleet");
+			DSValue incompleet = verslagService.getDsValue("255599008", "2.16.840.1.113883.6.96", "vs_verwijdering_compleet");
 
-			DSValue inToto = verslagDao.getDsValue("255619001", "2.16.840.1.113883.6.96", "vs_method_of_excision");
-			DSValue piecemeal = verslagDao.getDsValue("2", "2.16.840.1.113883.2.4.3.36.77.5.35", "vs_method_of_excision");
-			DSValue radicaal = verslagDao.getDsValue("255612005", "2.16.840.1.113883.6.96", "vs_extent");
-			DSValue irradicaal = verslagDao.getDsValue("255599008", "2.16.840.1.113883.6.96", "vs_extent");
+			DSValue inToto = verslagService.getDsValue("255619001", "2.16.840.1.113883.6.96", "vs_method_of_excision");
+			DSValue piecemeal = verslagService.getDsValue("2", "2.16.840.1.113883.2.4.3.36.77.5.35", "vs_method_of_excision");
+			DSValue radicaal = verslagService.getDsValue("255612005", "2.16.840.1.113883.6.96", "vs_extent");
+			DSValue irradicaal = verslagService.getDsValue("255599008", "2.16.840.1.113883.6.96", "vs_extent");
 			for (MdlLaesiecoloscopiecentrum mdlLaesiecoloscopiecentrum : mdlVerslag.getVerslagContent().getLaesiecoloscopiecentrum())
 			{
 				MdlPoliep poliep = mdlLaesiecoloscopiecentrum.getPoliep();
@@ -317,14 +326,14 @@ public class ColonVerwerkVerslagServiceImpl implements ColonVerwerkVerslagServic
 			if (!oudeWaarden.isEmpty())
 			{
 				coloscopieMedischeObservatie.getRedenAfbrekingColoscopie().removeAll(oudeWaarden);
-				coloscopieMedischeObservatie.getRedenAfbrekingColoscopie().add(verslagDao.getDsValue("12", "2.16.840.1.113883.2.4.3.36.77.5.37", "vs_afbreken_coloscopie"));
+				coloscopieMedischeObservatie.getRedenAfbrekingColoscopie().add(verslagService.getDsValue("12", "2.16.840.1.113883.2.4.3.36.77.5.37", "vs_afbreken_coloscopie"));
 			}
 
 		}
 		DSValue redenCoecumNietBereikt = coloscopieMedischeObservatie.getRedenCoecumNietBereikt();
 		if (redenCoecumNietBereikt != null && (redenCoecumNietBereikt.getCode().equals("6") || redenCoecumNietBereikt.getCode().equals("7")))
 		{
-			coloscopieMedischeObservatie.setRedenCoecumNietBereikt(verslagDao.getDsValue("12", "2.16.840.1.113883.2.4.3.36.77.5.37", "vs_afbreken_coloscopie"));
+			coloscopieMedischeObservatie.setRedenCoecumNietBereikt(verslagService.getDsValue("12", "2.16.840.1.113883.2.4.3.36.77.5.37", "vs_afbreken_coloscopie"));
 		}
 	}
 
@@ -337,7 +346,8 @@ public class ColonVerwerkVerslagServiceImpl implements ColonVerwerkVerslagServic
 			if (vervolgbeleidNavAfbrekingColoscopie.getCode().equals("2"))
 			{
 
-				definitiefVervolgbeleidgroep.setDefinitiefVervolgbeleidVoorBevolkingsonderzoek(verslagDao.getDsValue("418714002", "2.16.840.1.113883.6.96", "vs_vervolgbeleid"));
+				definitiefVervolgbeleidgroep.setDefinitiefVervolgbeleidVoorBevolkingsonderzoek(
+					verslagService.getDsValue("418714002", "2.16.840.1.113883.6.96", "vs_vervolgbeleid"));
 			}
 			else if (definitiefVervolgbeleidgroep.getDefinitiefVervolgbeleidVoorBevolkingsonderzoek() != null && (vervolgbeleidNavAfbrekingColoscopie.getCode().equals("1")
 				&& definitiefVervolgbeleidgroep.getDefinitiefVervolgbeleidVoorBevolkingsonderzoek().getCode().equals("183851006")
@@ -345,7 +355,7 @@ public class ColonVerwerkVerslagServiceImpl implements ColonVerwerkVerslagServic
 			{
 
 				definitiefVervolgbeleidgroep
-					.setDefinitiefVervolgbeleidVoorBevolkingsonderzoek(verslagDao.getDsValue("73761001:260870009=64695001", "2.16.840.1.113883.6.96", "vs_vervolgbeleid"));
+					.setDefinitiefVervolgbeleidVoorBevolkingsonderzoek(verslagService.getDsValue("73761001:260870009=64695001", "2.16.840.1.113883.6.96", "vs_vervolgbeleid"));
 			}
 		}
 	}
@@ -411,34 +421,34 @@ public class ColonVerwerkVerslagServiceImpl implements ColonVerwerkVerslagServic
 					{
 						if (codeValue > 0 && codeValue <= 12)
 						{
-							dsValue = verslagDao.getDsValue(codeValue + "", codeSystem, valueSetName);
+							dsValue = verslagService.getDsValue(codeValue + "", codeSystem, valueSetName);
 						}
 						else if (codeValue == 24)
 						{
-							dsValue = verslagDao.getDsValue(code2Jaar, codeSystem, valueSetName);
+							dsValue = verslagService.getDsValue(code2Jaar, codeSystem, valueSetName);
 						}
 						else if (codeValue == 36)
 						{
-							dsValue = verslagDao.getDsValue(code3Jaar, codeSystem, valueSetName);
+							dsValue = verslagService.getDsValue(code3Jaar, codeSystem, valueSetName);
 						}
 						else if (codeValue == 60)
 						{
-							dsValue = verslagDao.getDsValue(code5Jaar, codeSystem, valueSetName);
+							dsValue = verslagService.getDsValue(code5Jaar, codeSystem, valueSetName);
 						}
 					}
 					else if (unit.equals("jaar"))
 					{
 						if (codeValue == 2)
 						{
-							dsValue = verslagDao.getDsValue(code2Jaar, codeSystem, valueSetName);
+							dsValue = verslagService.getDsValue(code2Jaar, codeSystem, valueSetName);
 						}
 						else if (codeValue == 3)
 						{
-							dsValue = verslagDao.getDsValue(code3Jaar, codeSystem, valueSetName);
+							dsValue = verslagService.getDsValue(code3Jaar, codeSystem, valueSetName);
 						}
 						else if (codeValue == 5)
 						{
-							dsValue = verslagDao.getDsValue(code5Jaar, codeSystem, valueSetName);
+							dsValue = verslagService.getDsValue(code5Jaar, codeSystem, valueSetName);
 						}
 					}
 
@@ -524,7 +534,7 @@ public class ColonVerwerkVerslagServiceImpl implements ColonVerwerkVerslagServic
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void ontkoppelOfVerwijderComplicaties(MdlVerslag mdlVerslag)
 	{
 		Client client = mdlVerslag.getScreeningRonde().getDossier().getClient();
@@ -652,7 +662,7 @@ public class ColonVerwerkVerslagServiceImpl implements ColonVerwerkVerslagServic
 		MdlVerslag mdlVerslag = null;
 		if (paVerslagContent.getPathologieMedischeObservatie() != null)
 		{
-			mdlVerslag = verslagDao.getMdlVerslagMetTNummer(paVerslagContent);
+			mdlVerslag = verslagService.getMdlVerslagMetTNummer(paVerslagContent);
 		}
 		if (mdlVerslag != null)
 		{
@@ -862,7 +872,7 @@ public class ColonVerwerkVerslagServiceImpl implements ColonVerwerkVerslagServic
 	private void valideerPALabGekoppeldAanCLBijOvereenkomstigTNummer(MdlVerslagContent mdlVerslagContent, InstellingGebruiker instellingGebruiker)
 	{
 
-		List<PaVerslag> paVerslagen = verslagDao.getPaVerslagMetTNummer(mdlVerslagContent);
+		List<PaVerslag> paVerslagen = verslagService.getPaVerslagMetTNummer(mdlVerslagContent);
 		for (PaVerslag paVerslag : paVerslagen)
 		{
 			Instelling mdlOrganisatie = instellingGebruiker.getOrganisatie();
@@ -907,7 +917,7 @@ public class ColonVerwerkVerslagServiceImpl implements ColonVerwerkVerslagServic
 	{
 
 		var aanvangVerrichting = mdlVerslagContent.getVerrichting().getAanvangVerrichting();
-		boolean hasMdlVerslagWithOnderzoekDatum = verslagDao.getMdlVerslagenWithOnderzoekDatum(mdlVerslagContent.getVerslag(), aanvangVerrichting) != 0;
+		var hasMdlVerslagWithOnderzoekDatum = verslagService.heeftMdlVerslagenMetOnderzoekDatum(mdlVerslagContent.getVerslag(), aanvangVerrichting);
 		if (hasMdlVerslagWithOnderzoekDatum)
 		{
 			throw new IllegalStateException("error.mdl.onderzoekdatum.al.gebruikt");

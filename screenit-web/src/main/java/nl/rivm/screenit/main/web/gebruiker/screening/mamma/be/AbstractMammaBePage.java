@@ -29,7 +29,6 @@ import java.util.List;
 
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaBeWerklijstZoekObject;
 import nl.rivm.screenit.main.service.mamma.MammaBeWerklijstService;
-import nl.rivm.screenit.main.service.mamma.MammaBeoordelingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.PollingAbstractAjaxTimerBehavior;
 import nl.rivm.screenit.main.web.component.modal.IDialog;
@@ -63,9 +62,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public abstract class AbstractMammaBePage extends MammaScreeningBasePage
 {
-	@SpringBean
-	private MammaBeoordelingService beoordelingService;
-
 	@SpringBean
 	private MammaBeWerklijstService beWerklijstService;
 
@@ -164,7 +160,7 @@ public abstract class AbstractMammaBePage extends MammaScreeningBasePage
 
 				zoekObject.setInstellingGebruiker(ScreenitSession.get().getLoggedInInstellingGebruiker());
 
-				var aantalOnderzoeken = beoordelingService.countOnderzoeken(zoekObject);
+				var aantalOnderzoeken = beWerklijstService.countBeoordelingen(zoekObject);
 
 				if (aantalOnderzoeken > 0L)
 				{
@@ -214,7 +210,7 @@ public abstract class AbstractMammaBePage extends MammaScreeningBasePage
 		ScreenitSession screenitSession = ScreenitSession.get();
 		InstellingGebruiker instellingGebruiker = screenitSession.getLoggedInInstellingGebruiker();
 
-		return beoordelingService.is1eOf2eLezingenTeBevestigen(instellingGebruiker);
+		return beWerklijstService.is1eOf2eLezingenTeBevestigen(instellingGebruiker);
 	}
 
 	private MammaLogoutConfirmationDialog maakMammaLogoutConfimationDialoog(boolean heeftOnderzoekenInWerklijst, boolean heeftVerslagenTeBevestigen)

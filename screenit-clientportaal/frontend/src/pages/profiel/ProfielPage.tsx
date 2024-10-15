@@ -42,6 +42,7 @@ import {ClientContactActieType} from "../../datatypes/ClientContactActieType"
 import {TijdelijkAdres} from "../../datatypes/adres/TijdelijkAdres"
 import {AanhefType} from "../../datatypes/aanhef/AanhefType"
 import AanspreekVormIcon from "../../scss/media/icons_toptaken/AanspreekVormIcon/AanspreekVormIcon"
+import BezwaarMakenIcon from "../../scss/media/icons_toptaken/BezwaarMakenIcon/BezwaarMakenIcon"
 
 const ProfielPage = () => {
 	const persoon = useSelector((state: State) => state.client.persoon)
@@ -99,6 +100,11 @@ const ProfielPage = () => {
 										  titel={getString(properties.toptaak.title.aanspreekvorm)}
 										  subTitel={heeftAanspreekVorm(persoon) ? getString(properties.toptaak.subtitle.aanspreekvorm) : ""}
 										  subTekst={heeftAanspreekVorm(persoon) ? getAanhef(persoon) : ""}/>
+					</Col>
+					<Col lg={4}>
+						<TopTaakComponent icon={<BezwaarMakenIcon/>}
+										  link="/profiel/gebruikgegevens/"
+										  titel={getString(properties.toptaak.title.bezwaar)}/>
 					</Col>
 				</Row>
 			}

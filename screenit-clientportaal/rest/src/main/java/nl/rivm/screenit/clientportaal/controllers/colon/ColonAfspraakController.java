@@ -36,8 +36,8 @@ import nl.rivm.screenit.clientportaal.services.colon.ColonAfspraakService;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActieType;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamer;
-import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamerFilter;
+import nl.rivm.screenit.model.colon.dto.VrijSlotZonderKamer;
+import nl.rivm.screenit.model.colon.dto.VrijSlotZonderKamerFilter;
 import nl.rivm.screenit.service.ClientContactService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
@@ -135,7 +135,7 @@ public class ColonAfspraakController extends AbstractController
 				var maxPerPageTotal = filter.getPagecount() * resultsSearchIteration;
 				var maxCount = planningService.getVrijeSlotenZonderKamerCount(zoekOpFilter, client);
 
-				List<VrijSlotZonderKamer> filterResults = planningService.getVrijeSlotenZonderKamer("startTime", true, 0,
+				List<VrijSlotZonderKamer> filterResults = planningService.getVrijeSlotenZonderKamer("vanaf", true, 0,
 					Math.min(maxCount, maxPerPageTotal), zoekOpFilter, client);
 				List<ColonVrijSlotZonderKamerDto> resultVrijeSloten = new ArrayList<>();
 

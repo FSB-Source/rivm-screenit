@@ -62,7 +62,6 @@ public class MammaCeVerwijsVerslagenWerklijstPage extends AbstractMammaCeWerklij
 		createResultTable();
 		MammaCeZoekPanel zoekPanel = new MammaCeZoekPanel("zoekContainer", zoekObjectModel, this, resultatenContainer)
 		{
-
 			@Override
 			protected List<MammaBeoordelingStatus> getRemoveFromDefaultFilter()
 			{
@@ -97,7 +96,7 @@ public class MammaCeVerwijsVerslagenWerklijstPage extends AbstractMammaCeWerklij
 		columns.add(getBeColumn());
 		columns.add(getStatusColumn());
 
-		resultatenContainer.add(new ScreenitDataTable<MammaBeoordeling, String>("resultaten", columns, onderzoekDataProvider, 10, null)
+		resultatenContainer.add(new ScreenitDataTable<>("resultaten", columns, onderzoekDataProvider, 10, null)
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<MammaBeoordeling> beoordelingModel)
@@ -118,7 +117,7 @@ public class MammaCeVerwijsVerslagenWerklijstPage extends AbstractMammaCeWerklij
 				}
 				else
 				{
-					setResponsePage(new MammaCeVerwijsVerslagPage(ModelUtil.cModel(beoordeling)));
+					setResponsePage(new MammaCeVerwijsVerslagPage(ModelUtil.ccModel(beoordeling)));
 				}
 			}
 		});

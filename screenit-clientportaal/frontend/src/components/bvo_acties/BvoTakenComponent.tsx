@@ -27,15 +27,11 @@ import {getString} from "../../utils/TekstPropertyUtil"
 import {useSelector} from "react-redux"
 import {State} from "../../datatypes/State"
 import {Bevolkingsonderzoek} from "../../datatypes/Bevolkingsonderzoek"
-import {getLaatsteBezwaarMoment} from "../../api/BezwaarThunkAction"
-import {setLaatsteBezwaarMomentAction} from "../../actions/BezwaarReduxAction"
-import {useThunkDispatch} from "../../index"
 import {AfmeldType} from "../../datatypes/afmelden/AfmeldType"
 import {ClientContactActieType} from "../../datatypes/ClientContactActieType"
-import {getAfmeldenUrl, getBezwaarUrl} from "../../utils/UrlUtil"
+import {getAfmeldenUrl} from "../../utils/UrlUtil"
 import HuisIcon from "../../scss/media/icons_toptaken/AdresWijzigenIcon/HuisIcon"
 import AfmeldenIcon from "../../scss/media/icons_toptaken/AfmeldenOnderzoekIcon/AfmeldenOnderzoekIcon"
-import BezwaarIcon from "../../scss/media/icons_toptaken/BezwaarMakenIcon/BezwaarMakenIcon"
 import TelefoonnummerIcon from "../../scss/media/icons_toptaken/TelefoonnummerWijzigenIcon/TelefoonnummerWijzigenIcon"
 import ScreenitBackend from "../../utils/Backend"
 import {AfmeldOptiesDto, geenAfmeldOpties} from "../../datatypes/afmelden/AfmeldOptiesDto"
@@ -48,10 +44,8 @@ export type BvoTakenComponentProps = {
 
 const BvoTakenComponent = (props: BvoTakenComponentProps) => {
 	const bvo = useSelectedBvo()!
-	const dispatch = useThunkDispatch()
 	const persoon = useSelector((state: State) => state.client.persoon)
 	const beschikbareActies = props.beschikbareActies
-	const bezwaren = useSelector((state: State) => state.client.laatsteBezwaarMoment)
 	const [afmeldOpties, setAfmeldOpties] = useState<AfmeldOptiesDto>(geenAfmeldOpties)
 	const {vertrokkenUitNederland} = persoon
 	const afmeldContactActieTypeVanBvo: ClientContactActieType = bvo === Bevolkingsonderzoek.MAMMA ? ClientContactActieType.MAMMA_AFMELDEN : bvo === Bevolkingsonderzoek.CERVIX ? ClientContactActieType.CERVIX_AFMELDEN : ClientContactActieType.COLON_AFMELDEN
@@ -62,11 +56,7 @@ const BvoTakenComponent = (props: BvoTakenComponentProps) => {
 				setAfmeldOpties(response.data)
 			})
 
-		bvo && vertrokkenUitNederland === false && dispatch(getLaatsteBezwaarMoment(bvo))
-		return () => {
-			dispatch(setLaatsteBezwaarMomentAction([]))
-		}
-	}, [bvo, dispatch, vertrokkenUitNederland])
+	}, [bvo])
 
 	return (
 		<Row className={styles.bvoSelectie}>
@@ -82,13 +72,6 @@ const BvoTakenComponent = (props: BvoTakenComponentProps) => {
 					<TaakComponent icon={<AfmeldenIcon/>}
 								   link={getAfmeldenUrl(bvo)}
 								   tekst={bepaalAfmeldenTekst(afmeldOpties.afmeldOpties)}/>
-				</Col>
-			}
-			{!props.toonVervangendeTekst && beschikbareActies.includes(ClientContactActieType.BEZWAAR) &&
-				<Col lg={4}>
-					<TaakComponent icon={<BezwaarIcon/>}
-								   link={getBezwaarUrl(bvo)}
-								   tekst={bezwaren.find(b => b.active) ? getString(properties.taak.bezwaar.intrekken) : getString(properties.taak.bezwaar.maken)}/>
 				</Col>
 			}
 			{beschikbareActies.includes(ClientContactActieType.TIJDELIJK_ADRES) && vertrokkenUitNederland === false &&

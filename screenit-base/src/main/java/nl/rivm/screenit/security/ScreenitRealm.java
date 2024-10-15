@@ -38,7 +38,6 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
-import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.GebruikersService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
@@ -75,9 +74,6 @@ public class ScreenitRealm extends AuthorizingRealm implements IScreenitRealm
 {
 	@Autowired
 	private GebruikersService gebruikersService;
-
-	@Autowired
-	private ClientService clientService;
 
 	@Autowired
 	private LogService logService;
@@ -185,7 +181,7 @@ public class ScreenitRealm extends AuthorizingRealm implements IScreenitRealm
 		if (authcToken instanceof UsernamePasswordToken)
 		{
 			UsernamePasswordToken token = (UsernamePasswordToken) authcToken;
-			Gebruiker gebruiker = gebruikersService.getGebruikerByGebruikersnaam(token.getUsername());
+			Gebruiker gebruiker = gebruikersService.getGebruikerByGebruikersnaam(token.getUsername()).orElse(null);
 			if (gebruiker == null)
 			{
 				return null;
@@ -216,7 +212,7 @@ public class ScreenitRealm extends AuthorizingRealm implements IScreenitRealm
 		else if (authcToken instanceof UziToken)
 		{
 			UziToken uziToken = (UziToken) authcToken;
-			Gebruiker gebruiker = gebruikersService.getGebruikerByUzinummer((String) uziToken.getPrincipal());
+			Gebruiker gebruiker = gebruikersService.getGebruikerByUzinummer((String) uziToken.getPrincipal()).orElse(null);
 			if (gebruiker == null || !Boolean.TRUE.equals(gebruiker.getActief()))
 			{
 				return null;

@@ -21,19 +21,18 @@ package nl.rivm.screenit.exceptions;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
-import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
-import nl.rivm.screenit.model.colon.planning.RoosterItem;
+import nl.rivm.screenit.model.colon.planning.ColonTijdslot;
 import nl.rivm.screenit.util.DateUtil;
 
 import com.google.common.collect.Range;
 
 public abstract class OpslaanVerwijderenTijdBlokException extends Exception
 {
-	public OpslaanVerwijderenTijdBlokException(String message)
+	protected OpslaanVerwijderenTijdBlokException(String message)
 	{
 		super(message);
 	}
@@ -45,39 +44,44 @@ public abstract class OpslaanVerwijderenTijdBlokException extends Exception
 		List<?> items = getItems();
 		for (var item : items)
 		{
-			Range<Date> range = null;
+			String startTijd;
+			String eindTijd;
 			if (item instanceof Range)
 			{
-				range = (Range<Date>) item;
+				var range = (Range<?>) item;
+				var lowerEndpoint = range.lowerEndpoint();
+				if (lowerEndpoint instanceof Date)
+				{
+					startTijd = DateUtil.formatShortDateTime((Date) lowerEndpoint);
+					eindTijd = DateUtil.formatTime((Date) range.upperEndpoint());
+				}
+				else
+				{
+					var localDateTime = (LocalDateTime) lowerEndpoint;
+					startTijd = DateUtil.formatShortDateTime(localDateTime);
+					eindTijd = DateUtil.formatTime(DateUtil.toUtilDate((LocalDateTime) range.upperEndpoint()));
+				}
 			}
-			else if (item instanceof ColonBlokkade)
+			else if (item instanceof ColonTijdslot)
 			{
-				var blokkade = (ColonBlokkade) item;
-				range = Range.closed(blokkade.getStartTime(), blokkade.getEndTime());
-			}
-			else if (item instanceof RoosterItem)
-			{
-				var roosterItem = (RoosterItem) item;
-				range = Range.closed(roosterItem.getStartTime(), roosterItem.getEndTime());
-			}
-			else if (item instanceof ColonIntakeAfspraak)
-			{
-				var afspraak = (ColonIntakeAfspraak) item;
-				range = Range.closed(afspraak.getStartTime(), afspraak.getEndTime());
+				var tijdslot = (ColonTijdslot) item;
+				startTijd = DateUtil.formatShortDateTime(tijdslot.getVanaf());
+				eindTijd = DateUtil.formatLocalTime(tijdslot.getTot());
 			}
 			else
 			{
-				Object[] roosterItemTijden = (Object[]) item;
+				Object[] afspraakslotTijden = (Object[]) item;
 
-				var startDateTimeBestaand = DateUtil.startMinuut((Date) roosterItemTijden[0]);
-				var endDateTimeBestaand = DateUtil.startMinuut((Date) roosterItemTijden[1]);
-				range = Range.closed(startDateTimeBestaand, endDateTimeBestaand);
+				var startDateTimeBestaand = DateUtil.startMinuut((Date) afspraakslotTijden[0]);
+				startTijd = DateUtil.formatShortDateTime(startDateTimeBestaand);
+				var endDateTimeBestaand = DateUtil.startMinuut((Date) afspraakslotTijden[1]);
+				eindTijd = DateUtil.formatTime(endDateTimeBestaand);
 			}
 			if (i > 0)
 			{
 				message.append(", ");
 			}
-			message.append(DateUtil.formatShortDateTime(range.lowerEndpoint())).append("-").append(DateUtil.formatTime(range.upperEndpoint()));
+			message.append(startTijd).append("-").append(eindTijd);
 
 			i++;
 			if (i == 5)

@@ -25,8 +25,8 @@ import {Bevolkingsonderzoek} from "../../datatypes/Bevolkingsonderzoek"
 import React from "react"
 import classNames from "classnames"
 import {useSelector} from "react-redux"
-import {State} from "../../datatypes/State"
 import {useNavigate} from "react-router-dom"
+import {selectBehoortTotCervixDoelgroep, selectBehoortTotColonDoelgroep, selectBehoortTotMammaDoelgroep} from "../../selectors/BvoSelectors"
 
 type BvoSelectieComponentProps = {
 	className?: string
@@ -35,9 +35,9 @@ type BvoSelectieComponentProps = {
 const BvoSelectieComponent = (props: BvoSelectieComponentProps) => {
 	const navigate = useNavigate()
 
-	const behoortTotMammaDoelgroep = useSelector((state: State) => state.landingOverzicht.behoortTotMammaDoelgroep)
-	const behoortTotColonDoelgroep = useSelector((state: State) => state.landingOverzicht.behoortTotColonDoelgroep)
-	const behoortTotCervixDoelgroep = useSelector((state: State) => state.landingOverzicht.behoortTotCervixDoelgroep)
+	const behoortTotMammaDoelgroep = useSelector(selectBehoortTotMammaDoelgroep)
+	const behoortTotColonDoelgroep = useSelector(selectBehoortTotColonDoelgroep)
+	const behoortTotCervixDoelgroep = useSelector(selectBehoortTotCervixDoelgroep)
 
 	return (
 		<Row className={classNames(styles.bvoSelectie, props.className)}>

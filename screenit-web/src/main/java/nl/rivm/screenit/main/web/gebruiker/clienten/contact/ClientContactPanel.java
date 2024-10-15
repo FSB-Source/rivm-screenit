@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.exceptions.MammaStandplaatsVanPostcodeOnbekendException;
 import nl.rivm.screenit.exceptions.MammaTijdNietBeschikbaarException;
@@ -98,15 +100,17 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.validator.StringValidator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import static nl.rivm.screenit.model.ClientContact_.DATUM;
+import static nl.rivm.screenit.model.ClientContact_.INSTELLING_GEBRUIKER;
+import static nl.rivm.screenit.model.ClientContact_.OPMERKING;
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
+import static nl.topicuszorg.organisatie.model.Medewerker_.ACHTERNAAM;
+import static nl.topicuszorg.organisatie.model.OrganisatieMedewerker_.MEDEWERKER;
+
+@Slf4j
 public class ClientContactPanel extends GenericPanel<Client>
 {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(ClientContactPanel.class);
-
-	private static final long serialVersionUID = 1L;
 
 	private final BootstrapDialog dialog;
 
@@ -128,9 +132,9 @@ public class ClientContactPanel extends GenericPanel<Client>
 	@SpringBean
 	private MammaAfspraakReserveringService mammaAfspraakReserveringService;
 
-	private IModel<ClientDossierFilter> zoekObjectModel;
+	private final IModel<ClientDossierFilter> zoekObjectModel;
 
-	private ContactForm contactForm;
+	private final ContactForm contactForm;
 
 	private ScreenitDataTable<ClientContact, String> historie;
 
@@ -220,12 +224,13 @@ public class ClientContactPanel extends GenericPanel<Client>
 
 	private ScreenitDataTable<ClientContact, String> historie()
 	{
-		ClientContactDataProvider provider = new ClientContactDataProvider(this.getModel(), zoekObjectModel.getObject().getBevolkingsonderzoeken());
+		var provider = new ClientContactDataProvider(this.getModel(), zoekObjectModel.getObject().getBevolkingsonderzoeken());
 
 		List<IColumn<ClientContact, String>> columns = new ArrayList<>();
-		columns.add(new DateTimePropertyColumn<>(Model.of("Datum / tijd"), "datum", "datum"));
-		columns.add(new PropertyColumn<>(Model.of("Medewerker"), "medewerker.achternaam", "instellingGebruiker.medewerker.naamVolledig"));
-		columns.add(new PropertyColumn<>(Model.of("Opmerking"), "opmerking"));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Datum / tijd"), DATUM, DATUM));
+		columns.add(new PropertyColumn<>(Model.of("Medewerker"), propertyChain(INSTELLING_GEBRUIKER, MEDEWERKER,
+			ACHTERNAAM), "instellingGebruiker.medewerker.naamVolledig"));
+		columns.add(new PropertyColumn<>(Model.of("Opmerking"), OPMERKING));
 		columns.add(new AbstractColumn<>(Model.of("Vervolgstap(pen)"))
 		{
 
@@ -234,11 +239,11 @@ public class ClientContactPanel extends GenericPanel<Client>
 			@Override
 			public void populateItem(Item<ICellPopulator<ClientContact>> cellItem, String componentId, IModel<ClientContact> rowModel)
 			{
-				List<ClientContactActie> acties = ModelUtil.nullSafeGet(rowModel).getActies();
+				var acties = ModelUtil.nullSafeGet(rowModel).getActies();
 				StringBuilder actiesList = new StringBuilder();
-				for (ClientContactActie actie : acties)
+				for (var actie : acties)
 				{
-					ClientContactActieType actieType = actie.getType();
+					var actieType = actie.getType();
 					if (actieType != null)
 					{
 						actiesList.append(getString(EnumStringUtil.getPropertyString(actieType)));
@@ -320,21 +325,19 @@ public class ClientContactPanel extends GenericPanel<Client>
 	private class ContactForm extends ScreenitNoBordersForm<ClientContact>
 	{
 
-		private static final long serialVersionUID = 1L;
-
-		private Map<ClientContactActieTypeWrapper, Panel> actiePanelsCache = new HashMap<>();
+		private final Map<ClientContactActieTypeWrapper, Panel> actiePanelsCache = new HashMap<>();
 
 		private List<ClientContactActieTypeWrapper> selectedActies = new ArrayList<>();
 
-		private List<ClientContactActieTypeWrapper> genActies = new ArrayList<>();
+		private final List<ClientContactActieTypeWrapper> genActies = new ArrayList<>();
 
-		private List<ClientContactActieTypeWrapper> colonActies = new ArrayList<>();
+		private final List<ClientContactActieTypeWrapper> colonActies = new ArrayList<>();
 
-		private List<ClientContactActieTypeWrapper> cervixActies = new ArrayList<>();
+		private final List<ClientContactActieTypeWrapper> cervixActies = new ArrayList<>();
 
-		private List<ClientContactActieTypeWrapper> mammaActies = new ArrayList<>();
+		private final List<ClientContactActieTypeWrapper> mammaActies = new ArrayList<>();
 
-		private CheckGroup<ClientContactActieType> vervolgactiesGroup;
+		private final CheckGroup<ClientContactActieType> vervolgactiesGroup;
 
 		public ContactForm(String id, IModel<ClientContact> model, List<Object> extraPanelParams, ClientContactActieTypeWrapper... defaultSelectedActies)
 		{
@@ -418,8 +421,6 @@ public class ClientContactPanel extends GenericPanel<Client>
 			add(new ScreenitIndicatingAjaxSubmitLink("afronden", this)
 			{
 
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected void onSubmit(AjaxRequestTarget target)
 				{
@@ -468,13 +469,10 @@ public class ClientContactPanel extends GenericPanel<Client>
 								meldingen.add(getString("mv.onderzoek.in.ziekenhuis.uitstel.annuleren"));
 							}
 						}
-						if (meldingen.size() > 0)
+						if (!meldingen.isEmpty())
 						{
 							dialog.openWith(target, new ClientContactAfrondenPopupPanel(IDialog.CONTENT_ID, meldingen)
 							{
-
-								private static final long serialVersionUID = 1L;
-
 								@Override
 								protected void opslaan(AjaxRequestTarget target)
 								{
@@ -517,7 +515,7 @@ public class ClientContactPanel extends GenericPanel<Client>
 					}
 					catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e)
 					{
-						LOGGER.error("Fout bij aanmaken panel voor actie " + actie.getType().toString(), e);
+						LOG.error("Fout bij aanmaken panel voor actie {}", actie.getType().toString(), e);
 					}
 				}
 				else
@@ -559,7 +557,7 @@ public class ClientContactPanel extends GenericPanel<Client>
 					}
 					catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e)
 					{
-						LOGGER.error("Fout bij aanmaken panel voor actie " + typeWrapper.getType().toString(), e);
+						LOG.error("Fout bij aanmaken panel voor actie {}", typeWrapper.getType().toString(), e);
 					}
 				}
 				else if (!(actiePanel instanceof EmptyPanel) && !selectedActies.contains(typeWrapper))

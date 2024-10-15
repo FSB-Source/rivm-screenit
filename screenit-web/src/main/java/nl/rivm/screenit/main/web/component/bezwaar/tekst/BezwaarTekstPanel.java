@@ -40,8 +40,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 public class BezwaarTekstPanel extends GenericPanel<BezwaarMoment>
 {
 
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private BezwaarService bezwaarService;
 
@@ -59,9 +57,6 @@ public class BezwaarTekstPanel extends GenericPanel<BezwaarMoment>
 
 		ListView<BezwaarGroupViewWrapper> listView = new ListView<BezwaarGroupViewWrapper>("listView", wrappers)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void populateItem(ListItem<BezwaarGroupViewWrapper> item)
 			{
@@ -69,8 +64,6 @@ public class BezwaarTekstPanel extends GenericPanel<BezwaarMoment>
 				item.add(new Label("bvo", getString("Bevolkingsonderzoek." + entry.getKey())));
 				ListView<BezwaarViewWrapper> bezwaren = new ListView<BezwaarViewWrapper>("bezwaren", entry.getBezwaren())
 				{
-
-					private static final long serialVersionUID = 1L;
 
 					@Override
 					protected void populateItem(ListItem<BezwaarViewWrapper> item)

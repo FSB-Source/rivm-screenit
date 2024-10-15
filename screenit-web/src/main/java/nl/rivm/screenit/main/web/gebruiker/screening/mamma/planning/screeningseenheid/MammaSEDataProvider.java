@@ -22,7 +22,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.screeningse
  */
 
 import java.util.Iterator;
-import java.util.List;
 
 import nl.rivm.screenit.main.service.mamma.MammaScreeningsEenheidService;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.MammaScreeningsEenheidFilter;
@@ -36,16 +35,13 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import com.google.common.primitives.Ints;
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
 
 public class MammaSEDataProvider extends SortableDataProvider<MammaScreeningsEenheid, String>
 {
+	private final IModel<MammaScreeningsEenheidFilter> filter;
 
-	private static final long serialVersionUID = 1L;
-
-	private IModel<MammaScreeningsEenheidFilter> filter;
-
-	private boolean gesteldheidOphalen;
+	private final boolean gesteldheidOphalen;
 
 	@SpringBean
 	private MammaScreeningsEenheidService screeningsEenheidService;
@@ -69,12 +65,13 @@ public class MammaSEDataProvider extends SortableDataProvider<MammaScreeningsEen
 	@Override
 	public Iterator<? extends MammaScreeningsEenheid> iterator(long first, long count)
 	{
-		MammaScreeningsEenheidFilter filterObject = filter.getObject();
-		List<MammaScreeningsEenheid> screeningsEenheden = screeningsEenheidService.zoekScreeningsEenheden(filterObject.getScreeningsEenheid(), filterObject.getRegio(),
-			Ints.checkedCast(first), Ints.checkedCast(count), getSort().getProperty(), getSort().isAscending());
+		var filterObject = filter.getObject();
+		var screeningsEenheden = screeningsEenheidService.zoekScreeningsEenheden(filterObject.getScreeningsEenheid(), filterObject.getRegio(),
+			first, count, toSpringSort(getSort()));
+
 		if (gesteldheidOphalen)
 		{
-			for (MammaScreeningsEenheid screeningsEenheid : screeningsEenheden)
+			for (var screeningsEenheid : screeningsEenheden)
 			{
 				screeningsEenheid.setMetaDataDto(baseConceptPlanningsApplicatie.getScreeningsEenheidMetaData(screeningsEenheid));
 			}

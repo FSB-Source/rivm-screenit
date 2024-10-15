@@ -23,15 +23,15 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning;
  */
 
 import java.util.ArrayList;
-import java.util.List;
 
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.standplaats.MammaStandplaatsEditPage;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.mamma.MammaPostcodeReeks;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
+import nl.rivm.screenit.model.mamma.MammaStandplaats_;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
+import nl.topicuszorg.organisatie.model.Organisatie_;
 import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -42,6 +42,11 @@ import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import static nl.rivm.screenit.model.mamma.MammaPostcodeReeks_.STANDPLAATS;
+import static nl.rivm.screenit.model.mamma.MammaPostcodeReeks_.TOT_POSTCODE;
+import static nl.rivm.screenit.model.mamma.MammaPostcodeReeks_.VAN_POSTCODE;
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
+
 public class MammaPostcodeReeksenPanel extends GenericPanel<MammaPostcodeReeks>
 {
 
@@ -51,34 +56,34 @@ public class MammaPostcodeReeksenPanel extends GenericPanel<MammaPostcodeReeks>
 	{
 		super(id, zoekModel);
 
-		MammaPostcodeReeksDataProvider postcodeReeksDataProvider = new MammaPostcodeReeksDataProvider("vanPostcode", zoekModel);
+		var postcodeReeksDataProvider = new MammaPostcodeReeksDataProvider("vanPostcode", zoekModel);
 
 		setOutputMarkupId(Boolean.TRUE);
 
-		ScreeningOrganisatie ingelogdNamensRegio = ScreenitSession.get().getScreeningOrganisatie();
-		List<IColumn<MammaPostcodeReeks, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<MammaPostcodeReeks, String>(Model.of("Van postcode"), "vanPostcode", "vanPostcode"));
-		columns.add(new PropertyColumn<MammaPostcodeReeks, String>(Model.of("T/m postcode"), "totPostcode", "totPostcode"));
+		var ingelogdNamensRegio = ScreenitSession.get().getScreeningOrganisatie();
+		var columns = new ArrayList<IColumn<MammaPostcodeReeks, String>>();
+		columns.add(new PropertyColumn<>(Model.of("Van postcode"), propertyChain(VAN_POSTCODE), "vanPostcode"));
+		columns.add(new PropertyColumn<>(Model.of("T/m postcode"), propertyChain(TOT_POSTCODE), "totPostcode"));
 		if (geopendVanuitReeksenOverzicht)
 		{
-			columns.add(new PropertyColumn<MammaPostcodeReeks, String>(Model.of("Standplaats"), "standplaats.naam", "standplaats.naam"));
+			columns.add(new PropertyColumn<>(Model.of("Standplaats"), propertyChain(STANDPLAATS, MammaStandplaats_.NAAM), "standplaats.naam"));
 			if (ingelogdNamensRegio == null)
 			{
-				columns.add(new PropertyColumn<MammaPostcodeReeks, String>(Model.of("Screeningsorganisatie"), "regio.naam", "standplaats.regio.naam"));
+				columns.add(new PropertyColumn<>(Model.of("Screeningsorganisatie"), propertyChain(STANDPLAATS, MammaStandplaats_.REGIO, Organisatie_.NAAM),
+					"standplaats.regio.naam"));
 			}
 		}
 
-		add(new ScreenitDataTable<MammaPostcodeReeks, String>("resultaten", columns, postcodeReeksDataProvider, 10, Model.of("postcodereeks(en)"))
+		add(new ScreenitDataTable<>("resultaten", columns, postcodeReeksDataProvider, 10, Model.of("postcodereeks(en)"))
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<MammaPostcodeReeks> model)
 			{
-				MammaPostcodeReeks postcodeReeks = model.getObject();
+				var postcodeReeks = model.getObject();
 
-				setResponsePage(new MammaPostcodeReeksEditPage(ModelUtil.cModel(postcodeReeks))
+				setResponsePage(new MammaPostcodeReeksEditPage(ModelUtil.ccModel(postcodeReeks))
 				{
 
 					private static final long serialVersionUID = 1L;
@@ -93,7 +98,7 @@ public class MammaPostcodeReeksenPanel extends GenericPanel<MammaPostcodeReeks>
 						else
 						{
 							setResponsePage(new MammaStandplaatsEditPage(
-								ModelUtil.cModel((MammaStandplaats) HibernateHelper.deproxy(ModelProxyHelper.deproxy(model.getObject().getStandplaats())))));
+								ModelUtil.ccModel((MammaStandplaats) HibernateHelper.deproxy(ModelProxyHelper.deproxy(model.getObject().getStandplaats())))));
 						}
 					}
 				});

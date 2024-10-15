@@ -63,9 +63,9 @@ import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.IFOBTTest;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
@@ -447,7 +447,7 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 		for (ColonIntakeAfspraak afspraak : ronde.getAfspraken())
 		{
 			ColonConclusie conclusie = afspraak.getConclusie();
-			if (afspraak.getStatus() == AfspraakStatus.UITGEVOERD && conclusie != null)
+			if (afspraak.getStatus() == ColonAfspraakStatus.UITGEVOERD && conclusie != null)
 			{
 				addRow(sheet, "Conclusie intake afspraak", conclusie.getType(), conclusie.getDatum(), cellStyleDateTime);
 				if (conclusie.getType() == ColonConclusieType.COLOSCOPIE)

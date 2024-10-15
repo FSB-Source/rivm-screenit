@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.colon.planning;
 
 /*-
@@ -22,103 +21,44 @@ package nl.rivm.screenit.model.colon.planning;
  * =========================LICENSE_END==================================
  */
 
-import java.util.List;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import nl.rivm.screenit.model.colon.Kamer;
-import nl.rivm.screenit.model.colon.enums.ColonTijdSlotType;
-import nl.rivm.screenit.model.helper.HibernateMagicNumber;
-import nl.rivm.screenit.util.DateUtil;
-import nl.topicuszorg.hibernate.object.model.HibernateObject;
-import nl.topicuszorg.planning.model.IEventType;
-import nl.topicuszorg.planning.model.IParticipant;
-import nl.topicuszorg.planning.model.IRecurrence;
-import nl.topicuszorg.planning.model.enums.AppointmentType;
-import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
-import nl.topicuszorg.wicket.planning.model.appointment.recurrence.AbstractRecurrence;
+import lombok.Getter;
+import lombok.Setter;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.hibernate.Hibernate;
+import nl.rivm.screenit.model.colon.enums.ColonTijdslotType;
+import nl.rivm.screenit.model.helper.HibernateMagicNumber;
+
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.envers.Audited;
 
-@Entity(name = "blokkade")
-@Table(schema = "colon")
+@Getter
+@Setter
+@Entity
+@Table(schema = "colon", name = "blokkade")
 @Audited
-public class ColonBlokkade extends AbstractAppointment implements Comparable<ColonBlokkade>
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "colon.cache")
+public class ColonBlokkade extends ColonTijdslot implements Comparable<ColonBlokkade>
 {
-
-	private static final long serialVersionUID = 1L;
-
-	@Column(length = HibernateMagicNumber.L256)
-	private String description;
-
 	public ColonBlokkade()
 	{
-		super();
-		setTitle(ColonTijdSlotType.BLOKKADE.getTitle());
+		setType(ColonTijdslotType.BLOKKADE);
 	}
 
-	@Override
-	public AppointmentType getAppointmentType()
-	{
-		return AppointmentType.ONBESCHIKBAARHEID;
-	}
-
-	@Override
-	public IEventType getEventType()
-	{
-		return EventType.PURPLE;
-	}
+	@Column(length = HibernateMagicNumber.L256)
+	private String omschrijving;
 
 	@Override
 	@Transient
 	public ColonBlokkade transientClone()
 	{
 		ColonBlokkade item = (ColonBlokkade) super.transientClone();
-		item.setDescription(description);
+		item.setOmschrijving(omschrijving);
 		return item;
-	}
-
-	@Override
-	public Kamer getLocation()
-	{
-		return (Kamer) super.getLocation();
-	}
-
-	@Override
-	public String getDescription()
-	{
-		return description;
-	}
-
-	@Override
-	public void setDescription(String description)
-	{
-		this.description = description;
-	}
-
-	@Override
-	public void setRecurrence(IRecurrence recurrence)
-	{
-		super.setRecurrence((AbstractRecurrence) recurrence);
-	}
-
-	@Override
-	protected String getTooltip()
-	{
-		StringBuilder sb = new StringBuilder();
-
-		sb.append(getTitle());
-		sb.append("<br />").append(getDescription());
-
-		sb.append("<br />").append(DateUtil.formatTime(getStartTime()));
-		sb.append(" - ").append(DateUtil.formatTime(getEndTime()));
-
-		return sb.toString();
 	}
 
 	@Override
@@ -127,11 +67,11 @@ public class ColonBlokkade extends AbstractAppointment implements Comparable<Col
 		int cmp = 0;
 		if (o != null)
 		{
-			if (getStartTime() != null && o.getStartTime() != null)
+			if (getVanaf() != null && o.getVanaf() != null)
 			{
-				cmp = getStartTime().compareTo(o.getStartTime());
+				cmp = getVanaf().compareTo(o.getVanaf());
 			}
-			else if (getStartTime() != null)
+			else if (getVanaf() != null)
 			{
 				cmp = 1;
 			}
@@ -146,67 +86,5 @@ public class ColonBlokkade extends AbstractAppointment implements Comparable<Col
 		}
 
 		return cmp;
-	}
-
-	@Override
-	public int hashCode()
-	{
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + (getId() == null ? 0 : getId().hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj)
-	{
-		if (this == obj)
-		{
-			return true;
-		}
-		if (obj == null)
-		{
-			return false;
-		}
-		if (Hibernate.getClass(this) != Hibernate.getClass(obj))
-		{
-			return false;
-		}
-		HibernateObject other = (HibernateObject) obj;
-		if (getId() == null)
-		{
-			if (other.getId() != null)
-			{
-				return false;
-			}
-			var otherBlokkade = (ColonBlokkade) obj;
-			return new EqualsBuilder()
-				.append(getStartTime(), otherBlokkade.getStartTime())
-				.append(getLocation(), otherBlokkade.getLocation())
-				.isEquals();
-		}
-		else if (!getId().equals(other.getId()))
-		{
-			return false;
-		}
-		return true;
-	}
-
-	@Override
-	public List<IParticipant> getParticipants()
-	{
-		return null;
-	}
-
-	@Override
-	public void removeParticipant(IParticipant participant)
-	{
-
-	}
-
-	@Override
-	public void addParticipant(IParticipant participant)
-	{
-
 	}
 }

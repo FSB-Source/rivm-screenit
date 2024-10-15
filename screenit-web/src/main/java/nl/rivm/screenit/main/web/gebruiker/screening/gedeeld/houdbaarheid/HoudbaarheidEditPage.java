@@ -23,13 +23,13 @@ package nl.rivm.screenit.main.web.gebruiker.screening.gedeeld.houdbaarheid;
 
 import nl.rivm.screenit.main.service.HoudbaarheidService;
 import nl.rivm.screenit.main.web.ScreenitSession;
+import nl.rivm.screenit.main.web.component.DatePickerHelper;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerBasePage;
 import nl.rivm.screenit.model.AbstractHoudbaarheid;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
-import nl.topicuszorg.wicket.planning.web.component.DatePickerHelper;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;

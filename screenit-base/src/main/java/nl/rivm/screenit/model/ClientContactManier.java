@@ -21,9 +21,31 @@ package nl.rivm.screenit.model;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import nl.rivm.screenit.model.enums.BriefType;
+
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public enum ClientContactManier
 {
-	AANVRAAG_FORMULIER,
+	FORMULIER_VOOR_AANVRAGEN(BriefType.CLIENT_BEZWAAR_AANVRAAG),
+
+	FORMULIER_VOOR_INTREKKEN(BriefType.CLIENT_BEZWAAR_INTREKKEN),
+
+	FORMULIER_VOOR_ONDERZOEKSRESULTATEN_VERWIJDEREN(BriefType.CLIENT_BEZWAAR_VERWIJDEREN_ONDERZOEKRESULTATEN),
+
+	FORMULIER_VOOR_ALLES_VERWIJDEREN(BriefType.CLIENT_BEZWAAR_ALLES_VERWIJDEREN),
 
 	DIRECT;
+
+	private BriefType briefType;
+
+	public static final List<ClientContactManier> AANVRAGEN_FORMULIEREN = List.of(FORMULIER_VOOR_AANVRAGEN, FORMULIER_VOOR_INTREKKEN,
+		FORMULIER_VOOR_ONDERZOEKSRESULTATEN_VERWIJDEREN, FORMULIER_VOOR_ALLES_VERWIJDEREN);
 }

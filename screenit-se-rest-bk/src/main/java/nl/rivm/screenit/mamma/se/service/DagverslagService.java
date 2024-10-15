@@ -21,24 +21,24 @@ package nl.rivm.screenit.mamma.se.service;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.mamma.se.dto.DagAfsluitingDto;
-import nl.rivm.screenit.mamma.se.dto.DagProductieDto;
-import nl.rivm.screenit.mamma.se.dto.DagPlanningSamenvattingDto;
-import nl.rivm.screenit.mamma.se.dto.DagSynchronisatieDto;
-
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.Map;
 
+import nl.rivm.screenit.mamma.se.dto.DagAfsluitingDto;
+import nl.rivm.screenit.mamma.se.dto.DagPlanningSamenvattingDto;
+import nl.rivm.screenit.mamma.se.dto.DagProductieDto;
+import nl.rivm.screenit.mamma.se.dto.DagSynchronisatieDto;
+
 public interface DagverslagService
 {
-    Map<String, DagProductieDto> getDagproductieVanSeMedewerkers(String seCode, Date datum);
+	Map<String, DagProductieDto> getDagproductieVanSeMedewerkers(String seCode, Date datum);
 
-    DagAfsluitingDto getDoorgevoerdCountVanDag(String seCode, Date datum);
+	DagAfsluitingDto getDoorgevoerdCountVanDag(String seCode, LocalDate datum);
 
-    DagSynchronisatieDto getSynchronisatieCountVanDag(String seCode, Date datum);
+	DagSynchronisatieDto getSynchronisatieCountVanDag(String seCode, LocalDate datum);
 
-    LocalDate getDatumVanOudsteNietAfgeslotenOnderzoek(String seCode);
+	LocalDate getDatumVanOudsteNietAfgeslotenOnderzoek(String seCode);
 
-    DagPlanningSamenvattingDto getPlanningSamenvattingVanDeDag(String seCode, Date datum);
+	DagPlanningSamenvattingDto getPlanningSamenvattingVanDeDag(String seCode, Date datum);
 }

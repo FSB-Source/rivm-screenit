@@ -25,8 +25,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import nl.rivm.screenit.model.INaam;
 
+@AllArgsConstructor
+@Getter
 public enum HuisartsBerichtType implements INaam
 {
 	ONGUNSTIGE_UITSLAG("Ongunstige uitslag en intakeafspraak", Bevolkingsonderzoek.COLON),
@@ -69,33 +74,11 @@ public enum HuisartsBerichtType implements INaam
 
 	MAMMA_UITSLAG_GUNSTIG_MET_NEVENBEVINDINGEN("Borstkanker onderzoek negatief met nevenbevindingen", Bevolkingsonderzoek.MAMMA);
 
-	private String naam;
+	private final String naam;
 
-	private Bevolkingsonderzoek onderzoek;
+	private final Bevolkingsonderzoek onderzoek;
 
-	private HuisartsBerichtType(String naam, Bevolkingsonderzoek onderzoek)
-	{
-		this.naam = naam;
-		this.onderzoek = onderzoek;
-	}
-
-	@Override
-	public String getNaam()
-	{
-		return this.naam;
-	}
-
-	public Bevolkingsonderzoek getOnderzoek()
-	{
-		return onderzoek;
-	}
-
-	public void setOnderzoek(Bevolkingsonderzoek onderzoek)
-	{
-		this.onderzoek = onderzoek;
-	}
-
-	public static List<HuisartsBerichtType> getTemplateFromBevolkingsonderzoek(List<Bevolkingsonderzoek> onderzoeken)
+	public static List<HuisartsBerichtType> getBerichtTypeVoorBevolkingsonderzoeken(List<Bevolkingsonderzoek> onderzoeken)
 	{
 		return Arrays.stream(HuisartsBerichtType.values())
 			.filter(t -> onderzoeken.contains(t.getOnderzoek()))

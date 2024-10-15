@@ -24,7 +24,7 @@ package nl.rivm.screenit.main.exception;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
+import nl.rivm.screenit.model.colon.planning.ColonTijdslot;
 
 @Getter
 @AllArgsConstructor
@@ -32,7 +32,7 @@ public class BulkAanmakenInnerException extends Exception
 {
 	private final Exception exception;
 
-	private final AbstractAppointment tijdslot;
+	private final ColonTijdslot tijdslot;
 
 	@Override
 	public boolean equals(Object obj)

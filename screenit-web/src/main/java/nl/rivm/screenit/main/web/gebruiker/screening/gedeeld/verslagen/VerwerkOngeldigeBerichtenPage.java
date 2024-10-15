@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.screening.gedeeld.verslagen;
 
 /*-
@@ -76,9 +75,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public abstract class VerwerkOngeldigeBerichtenPage extends GebruikerBasePage
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private final BootstrapDialog dialog;
 
 	@SpringBean
@@ -122,32 +118,10 @@ public abstract class VerwerkOngeldigeBerichtenPage extends GebruikerBasePage
 		filterIModel = new Model<>(new BerichtenZoekFilter());
 		BerichtenZoekFilter berichtenZoekFilter = filterIModel.getObject();
 		List<Bevolkingsonderzoek> onderzoeken = ScreenitSession.get().getOnderzoeken();
-		if (onderzoeken.contains(Bevolkingsonderzoek.COLON))
-		{
-			berichtenZoekFilter.setMldBerichten(true);
-			berichtenZoekFilter.setPaLabBerichten(true);
-		}
-		else
-		{
-			berichtenZoekFilter.setMldBerichten(false);
-			berichtenZoekFilter.setPaLabBerichten(false);
-		}
-		if (onderzoeken.contains(Bevolkingsonderzoek.CERVIX))
-		{
-			berichtenZoekFilter.setCytologieBerichten(true);
-		}
-		else
-		{
-			berichtenZoekFilter.setCytologieBerichten(false);
-		}
-		if (onderzoeken.contains(Bevolkingsonderzoek.MAMMA))
-		{
-			berichtenZoekFilter.setFollowUpBerichten(true);
-		}
-		else
-		{
-			berichtenZoekFilter.setFollowUpBerichten(false);
-		}
+		berichtenZoekFilter.setCytologieBerichten(onderzoeken.contains(Bevolkingsonderzoek.CERVIX));
+		berichtenZoekFilter.setFollowUpBerichten(onderzoeken.contains(Bevolkingsonderzoek.MAMMA));
+		berichtenZoekFilter.setMdlBerichten(onderzoeken.contains(Bevolkingsonderzoek.COLON));
+		berichtenZoekFilter.setPaLabBerichten(onderzoeken.contains(Bevolkingsonderzoek.COLON));
 		return filterIModel;
 	}
 
@@ -397,15 +371,15 @@ public abstract class VerwerkOngeldigeBerichtenPage extends GebruikerBasePage
 			boolean cervix = onderzoeken.contains(Bevolkingsonderzoek.CERVIX);
 			boolean mamma = onderzoeken.contains(Bevolkingsonderzoek.MAMMA);
 
-			CheckBox mldBerichten = new CheckBox("mldBerichten");
+			CheckBox mdlBerichten = new CheckBox("mdlBerichten");
 			CheckBox paLabBerichten = new CheckBox("paLabBerichten");
 			CheckBox cytologieBerichten = new CheckBox("cytologieBerichten");
 			CheckBox followUpBerichten = new CheckBox("followUpBerichten");
-			mldBerichten.setVisible(colon);
+			mdlBerichten.setVisible(colon);
 			paLabBerichten.setVisible(colon);
 			cytologieBerichten.setVisible(cervix);
 			followUpBerichten.setVisible(mamma);
-			add(mldBerichten);
+			add(mdlBerichten);
 			add(paLabBerichten);
 			add(cytologieBerichten);
 			add(followUpBerichten);
@@ -475,7 +449,7 @@ public abstract class VerwerkOngeldigeBerichtenPage extends GebruikerBasePage
 		}
 		if (berichtInformatie != null)
 		{
-			melding.append(berichtInformatie.toString());
+			melding.append(berichtInformatie);
 		}
 		if (ontvangenMelding != null && ontvangenMelding.getUitvoerendeOrganisatie() != null)
 		{

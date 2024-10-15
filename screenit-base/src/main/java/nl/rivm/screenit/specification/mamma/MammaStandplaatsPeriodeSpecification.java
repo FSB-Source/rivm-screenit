@@ -25,9 +25,9 @@ import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Root;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -43,6 +43,7 @@ import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde_;
 import nl.rivm.screenit.model.mamma.MammaStandplaats_;
 import nl.rivm.screenit.specification.DateSpecification;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.organisatie.model.Adres_;
 
 import org.springframework.data.jpa.domain.Specification;
@@ -102,7 +103,7 @@ public class MammaStandplaatsPeriodeSpecification
 
 	public static Specification<MammaStandplaatsPeriode> overlaptMetPeriode(Range<LocalDate> periode)
 	{
-		return DateSpecification.overlaptLocalDate(periode, r -> r.get(MammaStandplaatsPeriode_.vanaf), r -> r.get(MammaStandplaatsPeriode_.totEnMet));
+		return DateSpecification.overlaptLocalDateToDate(periode, r -> r.get(MammaStandplaatsPeriode_.vanaf), r -> r.get(MammaStandplaatsPeriode_.totEnMet));
 	}
 
 	public static Specification<MammaStandplaatsPeriode> heeftPlaats(String plaats)
@@ -138,6 +139,26 @@ public class MammaStandplaatsPeriodeSpecification
 		};
 	}
 
+	public static Specification<MammaStandplaatsPeriode> heeftBeoordelingsEenheidEnStandplaatsGekoppeldAanRegio(ScreeningOrganisatie regio)
+	{
+		return MammaScreeningsEenheidSpecification.heeftScreeningsOrganisatie(regio).with(MammaStandplaatsPeriode_.screeningsEenheid)
+			.and(MammaStandplaatsSpecification.heeftRegio(regio).with(root -> standplaatsJoin(root)));
+	}
+
+	public static Specification<MammaStandplaatsPeriode> begintOpOfNaVrijgegevenTotEnMetDatum()
+	{
+		return (r, q, cb) ->
+		{
+			var screeningsEenheidJoin = join(r, MammaStandplaatsPeriode_.screeningsEenheid);
+			return cb.greaterThanOrEqualTo(screeningsEenheidJoin.get(MammaScreeningsEenheid_.vrijgegevenTotEnMet), r.get(MammaStandplaatsPeriode_.vanaf));
+		};
+	}
+
+	public static Specification<MammaStandplaatsPeriode> eindigtOpOfNaDatum(LocalDate datum)
+	{
+		return (r, q, cb) -> cb.greaterThanOrEqualTo(r.get(MammaStandplaatsPeriode_.totEnMet), DateUtil.toUtilDate(datum));
+	}
+
 	public static Specification<MammaStandplaatsPeriode> heeftScreeningsEenheid(MammaScreeningsEenheid screeningsEenheid)
 	{
 		return (r, q, cb) -> cb.equal(r.get(MammaStandplaatsPeriode_.screeningsEenheid), screeningsEenheid);
@@ -148,7 +169,7 @@ public class MammaStandplaatsPeriodeSpecification
 		return bevat(r -> r.get(MammaStandplaatsPeriode_.vanaf), r -> r.get(MammaStandplaatsPeriode_.totEnMet), Pair.of(BoundType.CLOSED, BoundType.CLOSED), datum);
 	}
 
-	private static Join<MammaStandplaatsRonde, MammaStandplaats> standplaatsJoin(Root<MammaStandplaatsPeriode> standplaatsPeriodeRoot)
+	private static Join<MammaStandplaatsRonde, MammaStandplaats> standplaatsJoin(From<?, ? extends MammaStandplaatsPeriode> standplaatsPeriodeRoot)
 	{
 		var standplaatsRondeJoin = join(standplaatsPeriodeRoot, MammaStandplaatsPeriode_.standplaatsRonde);
 		return join(standplaatsRondeJoin, MammaStandplaatsRonde_.standplaats);

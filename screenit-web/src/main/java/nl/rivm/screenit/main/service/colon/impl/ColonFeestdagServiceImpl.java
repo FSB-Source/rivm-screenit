@@ -33,9 +33,9 @@ import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.mappers.colon.ColonFeestdagMapper;
 import nl.rivm.screenit.model.colon.ColonFeestdag;
 import nl.rivm.screenit.model.colon.ColonFeestdag_;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.dto.ColonFeestdagDto;
-import nl.rivm.screenit.model.colon.planning.RoosterItem;
+import nl.rivm.screenit.model.colon.planning.ColonAfspraakslot;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.repository.colon.ColonFeestdagRepository;
@@ -160,22 +160,22 @@ public class ColonFeestdagServiceImpl implements ColonFeestdagService
 		var afspraakslots = getAfspraakslotsOpFeestdag(feestdagDto);
 		if (!afspraakslots.isEmpty())
 		{
-			var afspraakslotsPerIntakelocatie = afspraakslots.stream().collect(groupingBy(afspraakslot -> afspraakslot.getLocation().getColoscopieCentrum()));
+			var afspraakslotsPerIntakelocatie = afspraakslots.stream().collect(groupingBy(afspraakslot -> afspraakslot.getKamer().getIntakelocatie()));
 			var validatieMessage = afspraakslotsPerIntakelocatie.entrySet().stream().map(a -> formatHeeftAfspraakBericht(a.getKey(), a.getValue())).collect(joining("<br />"));
 			throw new ValidatieException("error.feestdag.heeft.afspraken", validatieMessage);
 		}
 	}
 
-	private String formatHeeftAfspraakBericht(ColoscopieCentrum intakelocatie, List<RoosterItem> afspraakslots)
+	private String formatHeeftAfspraakBericht(ColonIntakelocatie intakelocatie, List<ColonAfspraakslot> afspraakslots)
 	{
 		var message = "<strong>" + intakelocatie.getNaam() + "</strong>";
 		var afsprakenString = afspraakslots.stream()
-			.map(afspraakslot -> DateUtil.formatShortDateTime(afspraakslot.getStartTime()) + "-" + DateUtil.formatTime(afspraakslot.getEndTime())
+			.map(afspraakslot -> DateUtil.formatShortDateTime(afspraakslot.getVanaf()) + "-" + DateUtil.formatLocalTime(afspraakslot.getTot())
 			).collect(joining(", "));
 		return message + ": " + afsprakenString;
 	}
 
-	private List<RoosterItem> getAfspraakslotsOpFeestdag(ColonFeestdagDto feestdag)
+	private List<ColonAfspraakslot> getAfspraakslotsOpFeestdag(ColonFeestdagDto feestdag)
 	{
 		var startDag = feestdag.getDatum();
 		var eindDag = feestdag.getDatum();

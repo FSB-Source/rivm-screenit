@@ -94,35 +94,6 @@
         <table schema="gedeeld"/>
     </entity>
 
-    <entity class="nl.topicuszorg.wicket.planning.model.appointment.Action" metadata-complete="false">
-        <table schema="colon"/>
-        <attributes>
-            <many-to-many name="disciplines">
-                <join-table schema="colon" name="plan_action_disciplines"/>
-            </many-to-many>
-        </attributes>
-    </entity>
-    <entity class="nl.topicuszorg.wicket.planning.model.appointment.Location" metadata-complete="false">
-        <table schema="colon"/>
-    </entity>
-    <entity class="nl.topicuszorg.wicket.planning.model.appointment.Activity" metadata-complete="false">
-        <table schema="colon"/>
-    </entity>
-    <entity class="nl.topicuszorg.wicket.planning.model.appointment.Task" metadata-complete="false">
-        <table schema="colon"/>
-    </entity>
-    <entity class="nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment" metadata-complete="false">
-        <table schema="colon"/>
-        <attributes>
-            <id name="id">
-                <generated-value strategy="AUTO"/>
-            </id>
-            <basic name="startTime"></basic>
-            <many-to-one name="location" target-entity="nl.rivm.screenit.model.colon.Kamer">
-            </many-to-one>
-        </attributes>
-    </entity>
-
     <entity class="nl.topicuszorg.formulieren2.persistence.instantie.VraagInstantieImpl"
             metadata-complete="false">
         <attributes>
@@ -214,62 +185,6 @@
             metadata-complete="false"/>
     <entity class="nl.topicuszorg.formulieren2.persistence.definitie.DefaultAntwoordKeuzeVraagDefinitieImpl"
             metadata-complete="false"/>
-
-    <entity class="nl.topicuszorg.wicket.planning.model.appointment.definition.ActionDefinition"
-            metadata-complete="false">
-        <table schema="colon"/>
-        <attributes>
-            <many-to-many name="disciplines">
-                <join-table schema="colon" name="plan_action_deff_disciplines"/>
-            </many-to-many>
-            <many-to-many name="possibleLocations">
-                <join-table schema="colon" name="plan_action_deff_possible_locations"/>
-            </many-to-many>
-        </attributes>
-    </entity>
-    <entity class="nl.topicuszorg.wicket.planning.model.appointment.definition.ActivityDefinition"
-            metadata-complete="false">
-        <table schema="colon"/>
-        <attributes>
-            <many-to-many name="actionDefinitions">
-                <join-table schema="colon" name="plan_activity_def_action_definitions"/>
-            </many-to-many>
-        </attributes>
-    </entity>
-    <entity class="nl.topicuszorg.wicket.planning.model.appointment.definition.ActivityCategory"
-            metadata-complete="false">
-        <table schema="colon"/>
-    </entity>
-    <entity class="nl.topicuszorg.wicket.planning.model.appointment.recurrence.AbstractRecurrence"
-            metadata-complete="false">
-        <table schema="colon"/>
-    </entity>
-    <entity class="nl.topicuszorg.wicket.planning.model.appointment.recurrence.WeeklyRecurrence"
-            metadata-complete="false">
-        <table schema="colon"/>
-        <attributes>
-            <element-collection name="dagen">
-                <collection-table name="plan_recurrence_weekly_dagen" schema="colon">
-                    <join-column name="weekly_recurrence"/>
-                </collection-table>
-            </element-collection>
-        </attributes>
-    </entity>
-    <entity class="nl.topicuszorg.wicket.planning.model.schedule.ScheduleItem" metadata-complete="false">
-        <table schema="colon"/>
-    </entity>
-    <entity class="nl.topicuszorg.wicket.planning.model.schedule.ScheduleSet" metadata-complete="false">
-        <table schema="colon"/>
-        <attributes>
-            <many-to-many name="actionDefinitions">
-                <join-table schema="colon" name="plan_scheduleset_action_definitions"/>
-            </many-to-many>
-        </attributes>
-    </entity>
-    <entity class="nl.topicuszorg.wicket.planning.model.Discipline" metadata-complete="false">
-        <table schema="colon"/>
-    </entity>
-
     <entity class="nl.topicuszorg.yubikey.model.YubiKey" metadata-complete="false">
         <table schema="algemeen"/>
     </entity>

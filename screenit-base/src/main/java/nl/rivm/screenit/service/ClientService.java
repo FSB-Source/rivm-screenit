@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import nl.rivm.screenit.model.Account;
+import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.CentraleEenheid;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Dossier;
@@ -59,6 +60,8 @@ public interface ClientService
 
 	List<Client> zoekClienten(Client zoekObject);
 
+	List<Client> getClientenOpAdresMetLimiet(BagAdres adres, Integer minimaleLeeftijd, Integer maximaleLeeftijd, int uitnodigingsInterval);
+
 	void saveOrUpdateClient(Client client);
 
 	Dossier getDossier(Client client, Bevolkingsonderzoek bevolkingsonderzoek);
@@ -66,8 +69,6 @@ public interface ClientService
 	boolean isHandtekeningBriefGebruiktBijMeedereColonAfmeldingen(UploadDocument handtekeningBrief, String handtekeningProperty);
 
 	Client getClientByAnummer(String stringUitBericht);
-
-	boolean heeftClientIntakeConclusieMetBezwaar(String bsn);
 
 	void deleteDocumentForClient(UploadDocument modelObject, Client object);
 

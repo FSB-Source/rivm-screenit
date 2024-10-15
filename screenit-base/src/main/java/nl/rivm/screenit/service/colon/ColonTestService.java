@@ -80,7 +80,7 @@ public interface ColonTestService
 
 	int markeerNogNietNaarInpakcentrumVerstuurdeUitnodigingenAlsVerstuurd();
 
-	int verwijderRoosterBlokken();
+	int verwijderAfspraakslots();
 
 	ColonUitnodigingCategorie getUitnodigingCategorie(Client client);
 }

@@ -24,28 +24,30 @@ package nl.rivm.screenit.main.service.mamma.impl;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.main.dao.mamma.MammaScreeningsEenheidDao;
 import nl.rivm.screenit.main.service.mamma.MammaScreeningsEenheidService;
 import nl.rivm.screenit.main.service.mamma.MammaStandplaatsPeriodeService;
 import nl.rivm.screenit.main.util.ExportToXslUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.screeningseenheid.MammaSECodeValidator;
 import nl.rivm.screenit.model.BeoordelingsEenheid;
-import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaMammograaf;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid_;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
+import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
+import nl.rivm.screenit.repository.mamma.MammaOnderzoekRepository;
+import nl.rivm.screenit.repository.mamma.MammaScreeningsEenheidRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.mamma.MammaBaseConceptPlanningsApplicatie;
@@ -55,9 +57,22 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.heeftGeenBeoordelingStatusIn;
+import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.heeftScreeningsEenheid;
+import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.isDoorgevoerd;
+import static nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecification.filterActief;
+import static nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecification.filterBeoordelingsEenheid;
+import static nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecification.filterCodeContaining;
+import static nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecification.filterNaamContaining;
+import static nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecification.filterScreeningsOrganisatie;
+import static nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecification.heeftBeoordelingsEenheidIn;
+import static nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecification.isActief;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -71,7 +86,7 @@ public class MammaScreeningsEenheidServiceImpl implements MammaScreeningsEenheid
 	private LogService logService;
 
 	@Autowired
-	private MammaScreeningsEenheidDao screeningsEenheidDao;
+	private MammaScreeningsEenheidRepository screeningsEenheidRepository;
 
 	@Autowired
 	private MammaStandplaatsPeriodeService standplaatsPeriodeService;
@@ -82,44 +97,54 @@ public class MammaScreeningsEenheidServiceImpl implements MammaScreeningsEenheid
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
 
+	@Autowired
+	private MammaOnderzoekRepository onderzoekRepository;
+
 	@Override
 	public List<MammaScreeningsEenheid> getActieveScreeningsEenhedenVoorBeoordelingsEenheden(List<BeoordelingsEenheid> beoordelingsEenheden)
 	{
-		return screeningsEenheidDao.getActieveScreeningsEenhedenVoorBeoordelingsEenheden(beoordelingsEenheden);
+		if (beoordelingsEenheden == null || beoordelingsEenheden.isEmpty())
+		{
+			return Collections.emptyList();
+		}
+		return screeningsEenheidRepository.findAll(isActief().and(heeftBeoordelingsEenheidIn(beoordelingsEenheden)), Sort.by(MammaScreeningsEenheid_.NAAM));
 	}
 
 	@Override
-	public List<MammaScreeningsEenheid> zoekScreeningsEenheden(MammaScreeningsEenheid zoekObject, ScreeningOrganisatie regio, int first, int count, String sortProperty,
-		boolean isAscending)
+	public List<MammaScreeningsEenheid> zoekScreeningsEenheden(MammaScreeningsEenheid zoekObject, ScreeningOrganisatie regio, long first, long count, Sort sort)
 	{
-		return screeningsEenheidDao.zoekScreeningsEenheden(zoekObject, regio, first, count, sortProperty, isAscending);
+		return screeningsEenheidRepository.findWith(zoekScreeningsEenhedenSpecification(zoekObject, regio), q -> q.sortBy(sort).all(first, count));
 	}
 
 	@Override
 	public long countScreeningsEenheden(MammaScreeningsEenheid zoekObject, ScreeningOrganisatie regio)
 	{
-		return screeningsEenheidDao.countScreeningsEenheden(zoekObject, regio);
+		return screeningsEenheidRepository.count(zoekScreeningsEenhedenSpecification(zoekObject, regio));
+	}
+
+	private Specification<MammaScreeningsEenheid> zoekScreeningsEenhedenSpecification(MammaScreeningsEenheid zoekObject, ScreeningOrganisatie regio)
+	{
+		return filterCodeContaining(zoekObject.getCode())
+			.and(filterNaamContaining(zoekObject.getNaam()))
+			.and(filterScreeningsOrganisatie(regio))
+			.and(filterActief(zoekObject.getActief()))
+			.and(filterBeoordelingsEenheid(zoekObject.getBeoordelingsEenheid()));
 	}
 
 	@Override
 	public List<MammaScreeningsEenheid> getActieveScreeningsEenheden()
 	{
-		return screeningsEenheidDao.getActieveScreeningsEenheden();
+		return screeningsEenheidRepository.findAll(isActief(), Sort.by(MammaScreeningsEenheid_.CODE));
 	}
 
 	@Override
-	public List<MammaScreeningsEenheid> getActieveScreeningsEenhedenVoorBeoordelingsEenheid(Instelling instelling)
+	public List<MammaScreeningsEenheid> getActieveScreeningsEenhedenVoorBeoordelingsEenheid(BeoordelingsEenheid beoordelingEenheid)
 	{
-		if (OrganisatieType.BEOORDELINGSEENHEID.equals(instelling.getOrganisatieType()))
-		{
-			MammaScreeningsEenheid seZoekObject = new MammaScreeningsEenheid();
-			BeoordelingsEenheid be = (BeoordelingsEenheid) hibernateService.deproxy(instelling);
-			seZoekObject.setBeoordelingsEenheid(be);
-			seZoekObject.setActief(true);
-
-			return zoekScreeningsEenheden(seZoekObject, null, -1, -1, "naam", true);
-		}
-		return null;
+		var zoekObject = new MammaScreeningsEenheid();
+		var be = hibernateService.deproxy(beoordelingEenheid);
+		zoekObject.setBeoordelingsEenheid(be);
+		zoekObject.setActief(true);
+		return zoekScreeningsEenheden(zoekObject, null, -1, -1, Sort.by(MammaScreeningsEenheid_.NAAM));
 	}
 
 	@Override
@@ -129,7 +154,7 @@ public class MammaScreeningsEenheidServiceImpl implements MammaScreeningsEenheid
 		zoekObject.setActief(true);
 		zoekObject.setBeoordelingsEenheid(beoordelingsEenheid);
 
-		List<String> namen = zoekScreeningsEenheden(zoekObject, null, -1, -1, "naam", true)
+		List<String> namen = zoekScreeningsEenheden(zoekObject, null, -1, -1, Sort.by(MammaScreeningsEenheid_.NAAM))
 			.stream().map(MammaScreeningsEenheid::getNaam).collect(Collectors.toList());
 
 		return !namen.isEmpty() ? String.join(", ", namen) : "Geen screeningseenheden gekoppeld";
@@ -191,19 +216,20 @@ public class MammaScreeningsEenheidServiceImpl implements MammaScreeningsEenheid
 	@Override
 	public List<MammaScreeningsEenheid> getActieveScreeningsEenhedenVoorScreeningOrganisatie(ScreeningOrganisatie screeningOrganisatie)
 	{
-		return screeningsEenheidDao.getActieveScreeningsEenhedenVoorScreeningOrganisatie(screeningOrganisatie);
+		return screeningsEenheidRepository.findAll(isActief().and(filterScreeningsOrganisatie(screeningOrganisatie)), Sort.by(MammaScreeningsEenheid_.CODE));
 	}
 
 	@Override
-	public long getAantalActieveGekoppeldeOnderzoeken(MammaScreeningsEenheid screeningsEenheid)
+	public long getAantalNietDoorgevoerdeOnderzoeken(MammaScreeningsEenheid screeningsEenheid)
 	{
-		return screeningsEenheidDao.getAantalActieveGekoppeldeOnderzoeken(screeningsEenheid);
+		return onderzoekRepository.count(heeftScreeningsEenheid(screeningsEenheid).and(isDoorgevoerd(false)));
 	}
 
 	@Override
-	public long getAantalNietAfgerondeGekoppeldeBeoordelingen(MammaScreeningsEenheid screeningsEenheid)
+	public long getAantalNietAfgerondeBeoordelingen(MammaScreeningsEenheid screeningsEenheid)
 	{
-		return screeningsEenheidDao.getAantalNietAfgerondeGekoppeldeBeoordelingen(screeningsEenheid);
+		return onderzoekRepository.count(heeftScreeningsEenheid(screeningsEenheid)
+			.and(heeftGeenBeoordelingStatusIn(MammaBeoordelingStatus.eindStatussen())));
 	}
 
 	@Override
@@ -223,15 +249,15 @@ public class MammaScreeningsEenheidServiceImpl implements MammaScreeningsEenheid
 	@Override
 	public String magWordenGeinactiveerd(MammaScreeningsEenheid screeningsEenheid)
 	{
-		if (standplaatsPeriodeService.getStandplaatsPeriodesSorted(screeningsEenheid).size() > 0)
+		if (!standplaatsPeriodeService.getStandplaatsPeriodesSorted(screeningsEenheid).isEmpty())
 		{
 			return "screeningsEenheid.inactiveren.actieveStandplaatsPeriodes";
 		}
-		if (getAantalActieveGekoppeldeOnderzoeken(screeningsEenheid) > 0)
+		if (getAantalNietDoorgevoerdeOnderzoeken(screeningsEenheid) > 0)
 		{
 			return "screeningsEenheid.inactiveren.actieveOnderzoeken";
 		}
-		if (getAantalNietAfgerondeGekoppeldeBeoordelingen(screeningsEenheid) > 0)
+		if (getAantalNietAfgerondeBeoordelingen(screeningsEenheid) > 0)
 		{
 			return "screeningsEenheid.inactiveren.actieveBeoordelingen";
 		}

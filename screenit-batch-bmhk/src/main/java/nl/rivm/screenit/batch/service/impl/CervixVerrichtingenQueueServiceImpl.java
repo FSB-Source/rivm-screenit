@@ -34,7 +34,6 @@ import nl.rivm.screenit.batch.service.CervixHerindexeerVerrichtingenService;
 import nl.rivm.screenit.batch.service.CervixVerwijderSepaDataService;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
-import nl.rivm.screenit.model.messagequeue.Message;
 import nl.rivm.screenit.model.messagequeue.MessageType;
 import nl.rivm.screenit.model.messagequeue.dto.CervixHerindexatieDto;
 import nl.rivm.screenit.model.messagequeue.dto.VerwijderBetaalOpdrachtDto;
@@ -100,13 +99,13 @@ public class CervixVerrichtingenQueueServiceImpl
 		CervixHerindexatieDto herindexatieDto = null;
 		try
 		{
-			Message message = messageService.getOldestMessage(MessageType.HERINDEXATIE);
-			if (message != null)
+			var message = messageService.getOldestMessage(MessageType.HERINDEXATIE);
+			if (message.isPresent())
 			{
-				herindexatieDto = messageService.getContent(message);
+				herindexatieDto = messageService.getContent(message.get());
 				totaalAantalVerrichtingen.set(0);
 				verwerkHerindexeringMessage(herindexatieDto, totaalAantalVerrichtingen);
-				messageService.dequeueMessage(message);
+				messageService.dequeueMessage(message.get());
 			}
 		}
 		catch (InterruptedException | JsonProcessingException e)
@@ -126,12 +125,12 @@ public class CervixVerrichtingenQueueServiceImpl
 		VerwijderBetaalOpdrachtDto verwijderBetaalOpdrachtDto = null;
 		try
 		{
-			Message message = messageService.getOldestMessage(MessageType.VERWIJDER_BETAAL_OPDRACHT);
-			if (message != null)
+			var message = messageService.getOldestMessage(MessageType.VERWIJDER_BETAAL_OPDRACHT);
+			if (message.isPresent())
 			{
-				verwijderBetaalOpdrachtDto = messageService.getContent(message);
+				verwijderBetaalOpdrachtDto = messageService.getContent(message.get());
 				verwerkVerwijderingMessage(verwijderBetaalOpdrachtDto);
-				messageService.dequeueMessage(message);
+				messageService.dequeueMessage(message.get());
 			}
 
 			unbindSessionFactory();

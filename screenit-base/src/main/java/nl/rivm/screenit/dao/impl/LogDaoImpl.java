@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.dao.impl;
 
 /*-
@@ -22,16 +21,12 @@ package nl.rivm.screenit.dao.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import nl.rivm.screenit.dao.LogDao;
 import nl.rivm.screenit.model.SortState;
-import nl.rivm.screenit.model.dashboard.DashboardLogRegel;
-import nl.rivm.screenit.model.dashboard.DashboardStatus;
 import nl.rivm.screenit.model.logging.LogRegel;
 import nl.rivm.screenit.model.logging.LoggingZoekCriteria;
 import nl.rivm.screenit.util.query.SQLQueryUtil;
@@ -39,96 +34,23 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.Criteria;
 import org.hibernate.SQLQuery;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
 import org.hibernate.type.LongType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.primitives.Ints;
 
 @Repository
-@Transactional(propagation = Propagation.SUPPORTS)
 public class LogDaoImpl extends AbstractAutowiredDao implements LogDao
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(LogDaoImpl.class);
-
 	@Autowired
 	private HibernateService hibernateService;
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
-	public void saveOrUpdateLogRegel(LogRegel logRegel)
-	{
-		if (logRegel.getLogEvent() != null)
-		{
-			getSession().saveOrUpdate(logRegel.getLogEvent());
-		}
-
-		getSession().saveOrUpdate(logRegel);
-	}
-
-	private Criteria createCriteriaLogRegelsVanDashboard(DashboardStatus dashboardStatus)
-	{
-		Criteria criteria = getSession().createCriteria(DashboardLogRegel.class);
-		criteria.createAlias("dashboardStatus", "dashboardStatus");
-		criteria.createAlias("logRegel", "logRegel");
-		criteria.createAlias("logRegel.screeningsEenheid", "screeningsEenheid", JoinType.LEFT_OUTER_JOIN);
-		criteria.add(Restrictions.eq("dashboardStatus.type", dashboardStatus.getType()));
-		criteria.add(Restrictions.eq("dashboardStatus.organisatie", dashboardStatus.getOrganisatie()));
-		criteria.setProjection(Projections.property("logRegel"));
-		return criteria;
-	}
-
-	@Override
-	public List<LogRegel> getLogRegelsVanDashboard(DashboardStatus status, int first, int count, SortState<String> sortState)
-	{
-
-		Criteria crit = createCriteriaLogRegelsVanDashboard(status);
-
-		if (sortState.isAsc())
-		{
-			crit.addOrder(Order.asc(sortState.getSortParam()));
-		}
-		else
-		{
-			crit.addOrder(Order.desc(sortState.getSortParam()));
-		}
-
-		crit.setMaxResults(count);
-		crit.setFirstResult(first);
-		return crit.list();
-	}
-
-	@Override
-	public List<LogRegel> getLogRegelsVanDashboard(DashboardStatus status)
-	{
-		Criteria crit = createCriteriaLogRegelsVanDashboard(status);
-		return crit.list();
-	}
-
-	@Override
-	public long countLogRegelsVanDashboard(DashboardStatus status)
-	{
-		Criteria crit = createCriteriaLogRegelsVanDashboard(status);
-
-		crit.setProjection(Projections.rowCount());
-		return (Long) crit.uniqueResult();
-	}
-
-	@Override
 	public List<LogRegel> getLogRegels(LoggingZoekCriteria loggingZoekCriteria, int first, int count, SortState<String> sortState)
 	{
-		SQLQuery logSql = getLogSql(loggingZoekCriteria, sortState);
+		var logSql = getLogSql(loggingZoekCriteria, sortState);
 		if (first >= 0)
 		{
 			logSql.setFirstResult(Ints.checkedCast(first));
@@ -138,20 +60,14 @@ public class LogDaoImpl extends AbstractAutowiredDao implements LogDao
 			logSql.setMaxResults(Ints.checkedCast(count));
 		}
 
-		List<Long> logregelids = logSql.addScalar("id", LongType.INSTANCE).list();
-
-		List<LogRegel> logregels = new ArrayList<LogRegel>();
-		for (Long l : logregelids)
-		{
-			logregels.add(hibernateService.load(LogRegel.class, l));
-		}
-		return logregels;
+		List<Long> logRegelIds = logSql.addScalar("id", LongType.INSTANCE).list();
+		return logRegelIds.stream().map(id -> hibernateService.load(LogRegel.class, id)).collect(Collectors.toList());
 	}
 
 	public SQLQuery getLogSql(LoggingZoekCriteria loggingZoekCriteria, SortState<String> order)
 	{
-		Map<String, Object> parameters = new HashMap<String, Object>();
-		String select = "SELECT ";
+		var parameters = new HashMap<String, Object>();
+		var select = "SELECT ";
 		if (order == null)
 		{
 			select += "count(distinct lr.id) ";
@@ -160,19 +76,19 @@ public class LogDaoImpl extends AbstractAutowiredDao implements LogDao
 		{
 			select += "distinct lr.id ";
 		}
-		String from = "from gedeeld.log_regel lr ";
-		String where = "";
-		String groupby = "";
-		String orderby = "";
+		var from = "from gedeeld.log_regel lr ";
+		var where = "";
+		var groupby = "";
+		var orderby = "";
 
-		boolean joinPpe = false;
-		boolean joinM = false;
-		boolean joinLe = false;
+		var joinPpe = false;
+		var joinM = false;
+		var joinLe = false;
 
 		if (loggingZoekCriteria.getGebeurtenis() != null && !loggingZoekCriteria.getGebeurtenis().isEmpty())
 		{
 			where = SQLQueryUtil.whereOrAnd(where);
-			Map<String, Object> params = SQLQueryUtil.inExpressionParametersEnum("gebeurtenisParam", loggingZoekCriteria.getGebeurtenis());
+			var params = SQLQueryUtil.inExpressionParametersEnum("gebeurtenisParam", loggingZoekCriteria.getGebeurtenis());
 			where += "lr.log_gebeurtenis in (:" + StringUtils.join(params.keySet(), ", :") + ") ";
 			parameters.putAll(params);
 		}
@@ -228,7 +144,7 @@ public class LogDaoImpl extends AbstractAutowiredDao implements LogDao
 			{
 
 				where = SQLQueryUtil.whereOrAnd(where);
-				Map<String, Object> params = SQLQueryUtil.inExpressionParametersEnum("levelParam", loggingZoekCriteria.getLevel());
+				var params = SQLQueryUtil.inExpressionParametersEnum("levelParam", loggingZoekCriteria.getLevel());
 				where += "le.level in (:" + StringUtils.join(params.keySet(), ", :") + ") ";
 				parameters.putAll(params);
 			}
@@ -238,7 +154,7 @@ public class LogDaoImpl extends AbstractAutowiredDao implements LogDao
 		{
 			from += "left outer join gedeeld.log_regel_bevolkingsonderzoeken lrb on lrb.log_regel = lr.id ";
 			where = SQLQueryUtil.whereOrAnd(where);
-			Map<String, Object> params = SQLQueryUtil.inExpressionParametersEnum("bvoParam", loggingZoekCriteria.getBevolkingsonderzoeken());
+			var params = SQLQueryUtil.inExpressionParametersEnum("bvoParam", loggingZoekCriteria.getBevolkingsonderzoeken());
 			where += "lrb.bevolkingsonderzoeken in (:" + StringUtils.join(params.keySet(), ", :") + ") ";
 			parameters.putAll(params);
 		}
@@ -262,7 +178,7 @@ public class LogDaoImpl extends AbstractAutowiredDao implements LogDao
 
 		if (order != null)
 		{
-			String orderByQueryString = "";
+			var orderByQueryString = "";
 			switch (order.getSortParam())
 			{
 			case "logGebeurtenis":
@@ -313,9 +229,9 @@ public class LogDaoImpl extends AbstractAutowiredDao implements LogDao
 			orderby = orderByQueryString;
 		}
 
-		String loggingSql = select + from + where + groupby + orderby;
-		SQLQuery criteria = getSession().createSQLQuery(loggingSql);
-		for (Entry<String, Object> param : parameters.entrySet())
+		var loggingSql = select + from + where + groupby + orderby;
+		var criteria = getSession().createNativeQuery(loggingSql);
+		for (var param : parameters.entrySet())
 		{
 			criteria.setParameter(param.getKey(), param.getValue());
 		}
@@ -325,8 +241,7 @@ public class LogDaoImpl extends AbstractAutowiredDao implements LogDao
 	@Override
 	public long countLogRegels(LoggingZoekCriteria loggingZoekCriteria)
 	{
-		SQLQuery logSql = getLogSql(loggingZoekCriteria, null);
-
+		var logSql = getLogSql(loggingZoekCriteria, null);
 		return ((Number) logSql.uniqueResult()).longValue();
 	}
 

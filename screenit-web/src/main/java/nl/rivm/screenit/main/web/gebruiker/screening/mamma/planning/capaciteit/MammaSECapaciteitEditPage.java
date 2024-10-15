@@ -29,7 +29,7 @@ import java.util.List;
 
 import nl.rivm.screenit.dto.mamma.planning.PlanningMeldingenDto.PlanningMeldingDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningScreeningsEenheidMetaDataDto;
-import nl.rivm.screenit.main.dao.mamma.MammaScreeningsEenheidDao;
+import nl.rivm.screenit.main.service.mamma.MammaScreeningsEenheidService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
@@ -76,7 +76,7 @@ import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 public class MammaSECapaciteitEditPage extends MammaPlanningBasePage
 {
 	@SpringBean
-	private MammaScreeningsEenheidDao screeningsEenheidDao;
+	private MammaScreeningsEenheidService screeningsEenheidService;
 
 	@SpringBean
 	private MammaBaseConceptPlanningsApplicatie baseConceptPlanningsApplicatie;
@@ -118,7 +118,7 @@ public class MammaSECapaciteitEditPage extends MammaPlanningBasePage
 		ScreeningOrganisatie sessionSO = ScreenitSession.get().getScreeningOrganisatie();
 
 		this.screeningsEenheidModel = ModelUtil.cModel(screeningsEenheidInit);
-		this.screeningsEenhedenModel = ModelUtil.listRModel(screeningsEenheidDao.getActieveScreeningsEenhedenVoorScreeningOrganisatie(sessionSO));
+		this.screeningsEenhedenModel = ModelUtil.listRModel(screeningsEenheidService.getActieveScreeningsEenhedenVoorScreeningOrganisatie(sessionSO));
 
 		addNavigation();
 

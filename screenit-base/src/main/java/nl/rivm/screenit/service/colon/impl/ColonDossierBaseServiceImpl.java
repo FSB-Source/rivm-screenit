@@ -42,10 +42,10 @@ import nl.rivm.screenit.model.colon.ColonVooraankondiging;
 import nl.rivm.screenit.model.colon.Complicatie;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.MdlVerslag;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
 import nl.rivm.screenit.model.colon.enums.MdlVervolgbeleid;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.colon.verslag.mdl.MdlDefinitiefVervolgbeleidVoorBevolkingsonderzoekg;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.IntervalEenheidAanduiding;
@@ -246,11 +246,11 @@ public class ColonDossierBaseServiceImpl implements ColonDossierBaseService
 				interval = conclusie.getGeenOnderzoekReden().getUitnodigingsintervalType();
 			}
 		}
-		else if (AfspraakStatus.isGeannuleerd(afspraak.getStatus()))
+		else if (ColonAfspraakStatus.isGeannuleerd(afspraak.getStatus()))
 		{
 			interval = ColonUitnodigingsintervalType.GEANNULEERDE_INTAKE_AFSPRAAK;
 		}
-		else if (afspraak.getStatus() == AfspraakStatus.GEPLAND)
+		else if (afspraak.getStatus() == ColonAfspraakStatus.GEPLAND)
 		{
 			interval = ColonUitnodigingsintervalType.GEPLANDE_INTAKE_AFSPRAAK;
 		}

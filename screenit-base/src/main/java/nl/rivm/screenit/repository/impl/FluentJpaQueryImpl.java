@@ -21,7 +21,9 @@ package nl.rivm.screenit.repository.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -32,18 +34,23 @@ import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
 
 import nl.rivm.screenit.repository.FluentJpaQuery;
+import nl.rivm.screenit.util.functionalinterfaces.TriFunction;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.util.Assert;
 
-class FluentJpaQueryImpl<T, P> implements FluentJpaQuery<T, P>
+import com.google.common.primitives.Ints;
+
+public class FluentJpaQueryImpl<T, P> implements FluentJpaQuery<T, P>
 {
 	private final Specification<T> specification;
 
@@ -59,6 +66,8 @@ class FluentJpaQueryImpl<T, P> implements FluentJpaQuery<T, P>
 
 	private Sort sort = Sort.unsorted();
 
+	private TriFunction<Sort.Order, Root<T>, CriteriaBuilder, Order> sortFunction;
+
 	private EntityGraph<T> entityGraph;
 
 	public FluentJpaQueryImpl(Specification<T> specification, EntityManager entityManager, Class<T> entityType, Class<P> projectionType)
@@ -73,6 +82,14 @@ class FluentJpaQueryImpl<T, P> implements FluentJpaQuery<T, P>
 	public FluentJpaQuery<T, P> sortBy(Sort sort)
 	{
 		this.sort = this.sort.and(sort);
+		return this;
+	}
+
+	@Override
+	public FluentJpaQuery<T, P> sortBy(Sort sort, TriFunction<Sort.Order, Root<T>, CriteriaBuilder, Order> sortFunction)
+	{
+		this.sort = this.sort.and(sort);
+		this.sortFunction = sortFunction;
 		return this;
 	}
 
@@ -93,9 +110,9 @@ class FluentJpaQueryImpl<T, P> implements FluentJpaQuery<T, P>
 	}
 
 	@Override
-	public FluentJpaQuery<T, P> distinct(boolean distinctOn)
+	public FluentJpaQuery<T, P> distinct()
 	{
-		this.distinctOn = distinctOn;
+		distinctOn = true;
 		return this;
 	}
 
@@ -116,6 +133,22 @@ class FluentJpaQueryImpl<T, P> implements FluentJpaQuery<T, P>
 	public List<P> all()
 	{
 		return createTypedQuery().getResultList();
+	}
+
+	@Override
+	public List<P> all(long first, long count)
+	{
+		var query = createTypedQuery();
+		if (first > -1)
+		{
+			query.setFirstResult(Ints.checkedCast(first));
+		}
+
+		if (count > -1)
+		{
+			query.setMaxResults(Ints.checkedCast(count));
+		}
+		return query.getResultList();
 	}
 
 	@Override
@@ -140,8 +173,7 @@ class FluentJpaQueryImpl<T, P> implements FluentJpaQuery<T, P>
 		{
 			throw new IncorrectResultSizeDataAccessException(1);
 		}
-		return results.stream().findFirst();
-
+		return results.stream().filter(Objects::nonNull).findFirst();
 	}
 
 	private TypedQuery<P> createTypedQuery()
@@ -185,7 +217,11 @@ class FluentJpaQueryImpl<T, P> implements FluentJpaQuery<T, P>
 	{
 		if (specification != null)
 		{
-			q.where(specification.toPredicate(r, q, cb));
+			var predicate = specification.toPredicate(r, q, cb);
+			if (predicate != null)
+			{
+				q.where(predicate);
+			}
 		}
 	}
 
@@ -193,8 +229,30 @@ class FluentJpaQueryImpl<T, P> implements FluentJpaQuery<T, P>
 	{
 		if (sort.isSorted())
 		{
-			q.orderBy(QueryUtils.toOrders(sort, r, cb));
+			q.orderBy(getOrders(sort, r, cb));
 		}
+	}
+
+	private @NotNull List<Order> getOrders(Sort sort, Root<T> r, CriteriaBuilder cb)
+	{
+		var orders = new ArrayList<Order>();
+		var splittedSortOrders = new ArrayList<Sort.Order>();
+		for (var order : sort)
+		{
+			var correctedOrder = sortFunction != null ? sortFunction.apply(order, r, cb) : null;
+			if (correctedOrder == null)
+			{
+				splittedSortOrders.add(order);
+			}
+			else
+			{
+				orders.addAll(QueryUtils.toOrders(Sort.by(splittedSortOrders), r, cb));
+				orders.add(correctedOrder);
+				splittedSortOrders.clear();
+			}
+		}
+		orders.addAll(QueryUtils.toOrders(Sort.by(splittedSortOrders), r, cb));
+		return orders;
 	}
 
 	private void addFetchGraph(TypedQuery<P> typedQuery)

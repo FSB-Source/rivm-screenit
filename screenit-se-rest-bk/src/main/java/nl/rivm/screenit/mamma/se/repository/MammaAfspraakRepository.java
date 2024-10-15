@@ -22,6 +22,11 @@ package nl.rivm.screenit.mamma.se.repository;
  */
 
 import java.util.Date;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.persistence.Tuple;
 
 import nl.rivm.screenit.mamma.se.dto.DagStatistiekAfspraakStatussen;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
@@ -53,4 +58,26 @@ public interface MammaAfspraakRepository extends BaseJpaRepository<MammaAfspraak
 	)
 	DagStatistiekAfspraakStatussen getAantalAfsprakenPerStatus(@Param("seCode") String seCode, @Param("beginMoment") Date beginMoment, @Param("eindMoment") Date eindMoment,
 		@Param("afspraakStatussen") MammaAfspraakStatus[] afspraakStatussen);
+
+	@Query("select afspraak.ingeschrevenDoor.id as id, count(afspraak) as count " +
+		"from MammaAfspraak afspraak " +
+		"join afspraak.standplaatsPeriode standplaatsPeriode " +
+		"join standplaatsPeriode.screeningsEenheid screeningsEenheid " +
+		"where screeningsEenheid.code = :seCode " +
+		"and afspraak.vanaf >= :beginDatum " +
+		"and afspraak.vanaf <= :eindDatum " +
+		"and afspraak.ingeschrevenDoor is not null " +
+		"group by afspraak.ingeschrevenDoor.id")
+	Stream<Tuple> findInschrijvingenVanSeInRange(Date beginDatum,
+		Date eindDatum,
+		String seCode);
+
+	default Map<Long, Integer> findInschrijvingenVanSeInRangeToMap(Date beginDatum, Date eindDatum, String seCode)
+	{
+		return findInschrijvingenVanSeInRange(beginDatum, eindDatum, seCode)
+			.collect(Collectors.toMap(
+				tuple -> tuple.get("id", Long.class),
+				tuple -> tuple.get("count", Long.class).intValue())
+			);
+	}
 }

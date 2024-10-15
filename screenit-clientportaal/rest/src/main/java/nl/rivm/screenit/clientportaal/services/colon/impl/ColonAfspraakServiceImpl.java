@@ -22,7 +22,6 @@ package nl.rivm.screenit.clientportaal.services.colon.impl;
  */
 
 import java.math.BigDecimal;
-import java.util.Date;
 
 import lombok.AllArgsConstructor;
 
@@ -31,16 +30,16 @@ import nl.rivm.screenit.clientportaal.model.colon.ColonVrijSlotZonderKamerDto;
 import nl.rivm.screenit.clientportaal.services.colon.ColonAfspraakService;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
-import nl.rivm.screenit.model.colon.Kamer;
+import nl.rivm.screenit.model.colon.dto.VrijSlotZonderKamer;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
-import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamer;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 import nl.rivm.screenit.service.colon.PlanningService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.wicket.planning.model.Discipline;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -48,7 +47,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class ColonAfspraakServiceImpl implements ColonAfspraakService
 {
 
@@ -59,6 +57,8 @@ public class ColonAfspraakServiceImpl implements ColonAfspraakService
 	private final PlanningService planningService;
 
 	private final HibernateService hibernateService;
+
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	public ColonIntakeAfspraak getHuidigeIntakeAfspraak(Client client)
@@ -86,7 +86,7 @@ public class ColonAfspraakServiceImpl implements ColonAfspraakService
 	{
 		ColonVrijSlotZonderKamerDto vrijColonSlot = colonVrijSlotZonderKamerMapper.vrijSlotToColonVrijSlotZonderKamerDto(vrijSlot);
 
-		ColoscopieCentrum intakelocatie = hibernateService.load(ColoscopieCentrum.class, vrijColonSlot.getIntakeLocatieId());
+		ColonIntakelocatie intakelocatie = hibernateService.load(ColonIntakelocatie.class, vrijColonSlot.getIntakelocatieId());
 		vrijColonSlot.setAdres(intakelocatie.getEersteAdres().getAdres());
 		vrijColonSlot.setPostcode(intakelocatie.getEersteAdres().getPostcode());
 		vrijColonSlot.setZiekenhuis(intakelocatie.getNaam());
@@ -104,7 +104,7 @@ public class ColonAfspraakServiceImpl implements ColonAfspraakService
 		}
 		else
 		{
-			afspraakService.annuleerAfspraak(intakeAfspraak, client, AfspraakStatus.GEANNULEERD_CLIENT, false);
+			afspraakService.annuleerAfspraak(intakeAfspraak, client, ColonAfspraakStatus.GEANNULEERD_CLIENT, false);
 		}
 	}
 
@@ -112,10 +112,10 @@ public class ColonAfspraakServiceImpl implements ColonAfspraakService
 	public ColonIntakeAfspraak initNieuweAfspraak(ColonIntakeAfspraak oudeAfspraak, VrijSlotZonderKamer gekozenVrijSlotZonderKamer)
 	{
 
-		if (gekozenVrijSlotZonderKamer.getIntakeLocatieId() != null && (gekozenVrijSlotZonderKamer.getStartTijd() != null))
+		if (gekozenVrijSlotZonderKamer.getIntakelocatieId() != null && (gekozenVrijSlotZonderKamer.getStartTijd() != null))
 		{
-			Kamer beschikbareKamer = planningService.getBeschikbareKamer(gekozenVrijSlotZonderKamer.getStartTijd(),
-				gekozenVrijSlotZonderKamer.getIntakeLocatieId());
+			var beschikbareKamer = planningService.getBeschikbareKamer(DateUtil.toLocalDateTime(gekozenVrijSlotZonderKamer.getStartTijd()),
+				gekozenVrijSlotZonderKamer.getIntakelocatieId());
 
 			if (beschikbareKamer == null)
 			{
@@ -123,12 +123,11 @@ public class ColonAfspraakServiceImpl implements ColonAfspraakService
 			}
 
 			ColonIntakeAfspraak nieuweAfspraak = new ColonIntakeAfspraak();
-			nieuweAfspraak.setLocation(beschikbareKamer);
-			nieuweAfspraak.setActief(true);
+			nieuweAfspraak.setKamer(beschikbareKamer);
 			nieuweAfspraak.setBezwaar(false);
-			nieuweAfspraak.setDatumLaatsteWijziging(new Date());
-			nieuweAfspraak.setAfspraaknummer(System.currentTimeMillis());
-			nieuweAfspraak.setStatus(AfspraakStatus.GEPLAND);
+			nieuweAfspraak.setGewijzigdOp(currentDateSupplier.getLocalDateTime());
+			nieuweAfspraak.setStatus(ColonAfspraakStatus.GEPLAND);
+			nieuweAfspraak.setAangemaaktOp(currentDateSupplier.getLocalDateTime());
 
 			if (gekozenVrijSlotZonderKamer.getAfstand() != null)
 			{
@@ -138,13 +137,11 @@ public class ColonAfspraakServiceImpl implements ColonAfspraakService
 			{
 				nieuweAfspraak.setAfstand(BigDecimal.valueOf(45));
 			}
-			nieuweAfspraak.addDiscipline(hibernateService.loadAll(Discipline.class).get(0));
 
 			nieuweAfspraak.setColonScreeningRonde(oudeAfspraak.getColonScreeningRonde());
 			nieuweAfspraak.setClient(oudeAfspraak.getClient());
-			nieuweAfspraak.setDefinition(oudeAfspraak.getDefinition());
-			nieuweAfspraak.setStartTime(gekozenVrijSlotZonderKamer.getStartTijd());
-			nieuweAfspraak.setEndTime(gekozenVrijSlotZonderKamer.getEindTijd());
+			nieuweAfspraak.setVanaf(DateUtil.toLocalDateTime(gekozenVrijSlotZonderKamer.getStartTijd()));
+			nieuweAfspraak.setTot(DateUtil.toLocalDateTime(gekozenVrijSlotZonderKamer.getEindTijd()));
 
 			return nieuweAfspraak;
 		}

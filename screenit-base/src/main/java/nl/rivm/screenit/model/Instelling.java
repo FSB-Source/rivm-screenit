@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model;
 
 /*-
@@ -40,7 +39,9 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
-import nl.rivm.screenit.model.colon.planning.AfspraakDefinitie;
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.helper.HibernateMagicNumber;
 import nl.rivm.screenit.model.overeenkomsten.AfgeslotenInstellingOvereenkomst;
 import nl.topicuszorg.organisatie.model.Organisatie;
@@ -51,12 +52,13 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
+@Setter
+@Getter
 @Entity
 @Table(indexes = { @Index(name = "idx_instelling_agbcode", columnList = "agbcode"), @Index(name = "idx_instelling_actief", columnList = "actief") })
 @Audited
 public class Instelling extends Organisatie<InstellingGebruiker> implements IActief
 {
-
 	private Boolean actief = Boolean.TRUE;
 
 	@Column(length = HibernateMagicNumber.L20)
@@ -68,11 +70,6 @@ public class Instelling extends Organisatie<InstellingGebruiker> implements IAct
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private OrganisatieType organisatieType;
-
-	@NotAudited
-	@OneToMany(mappedBy = "instelling")
-	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "organisatie.cache")
-	private List<AfspraakDefinitie> afspraakDefinities = new ArrayList<>();
 
 	@NotAudited
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -115,58 +112,6 @@ public class Instelling extends Organisatie<InstellingGebruiker> implements IAct
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "organisatie")
 	@NotAudited
 	private List<OrganisatieParameter> parameters = new ArrayList<>();
-
-	public String getRootOid()
-	{
-		return rootOid;
-	}
-
-	public void setRootOid(String rootOid)
-	{
-		this.rootOid = rootOid;
-	}
-
-	@Override
-	public Boolean getActief()
-	{
-		return actief;
-	}
-
-	@Override
-	public void setActief(Boolean actief)
-	{
-		this.actief = actief;
-	}
-
-	public OrganisatieType getOrganisatieType()
-	{
-		return organisatieType;
-	}
-
-	public void setOrganisatieType(OrganisatieType organisatieType)
-	{
-		this.organisatieType = organisatieType;
-	}
-
-	public String getTelefoon2()
-	{
-		return telefoon2;
-	}
-
-	public void setTelefoon2(String telefoon2)
-	{
-		this.telefoon2 = telefoon2;
-	}
-
-	public String getWebsite()
-	{
-		return website;
-	}
-
-	public void setWebsite(String website)
-	{
-		this.website = website;
-	}
 
 	@Override
 	public int hashCode()
@@ -254,103 +199,4 @@ public class Instelling extends Organisatie<InstellingGebruiker> implements IAct
 		return returnValue;
 	}
 
-	public List<AfspraakDefinitie> getAfspraakDefinities()
-	{
-		return afspraakDefinities;
-	}
-
-	public void setAfspraakDefinities(List<AfspraakDefinitie> afspraakDefinities)
-	{
-		this.afspraakDefinities = afspraakDefinities;
-	}
-
-	public List<Instelling> getChildren()
-	{
-		return children;
-	}
-
-	public void setChildren(List<Instelling> children)
-	{
-		this.children = children;
-	}
-
-	public Instelling getParent()
-	{
-		return parent;
-	}
-
-	public void setParent(Instelling parent)
-	{
-		this.parent = parent;
-	}
-
-	public Gebruiker getGemachtigde()
-	{
-		return gemachtigde;
-	}
-
-	public void setGemachtigde(Gebruiker gemachtigde)
-	{
-		this.gemachtigde = gemachtigde;
-	}
-
-	public List<UploadDocument> getDocuments()
-	{
-		return documents;
-	}
-
-	public void setDocuments(List<UploadDocument> documents)
-	{
-		this.documents = documents;
-	}
-
-	public Instelling getRegio()
-	{
-		return regio;
-	}
-
-	public void setRegio(Instelling regio)
-	{
-		this.regio = regio;
-	}
-
-	public Gebruiker getContactPersoon()
-	{
-		return contactPersoon;
-	}
-
-	public void setContactPersoon(Gebruiker contactPersoon)
-	{
-		this.contactPersoon = contactPersoon;
-	}
-
-	public List<AfgeslotenInstellingOvereenkomst> getAfgeslotenOvereenkomsten()
-	{
-		return afgeslotenOvereenkomsten;
-	}
-
-	public void setAfgeslotenOvereenkomsten(List<AfgeslotenInstellingOvereenkomst> afgeslotenOvereenkomsten)
-	{
-		this.afgeslotenOvereenkomsten = afgeslotenOvereenkomsten;
-	}
-
-	public Date getMammaRadiologieGebeld()
-	{
-		return mammaRadiologieGebeld;
-	}
-
-	public void setMammaRadiologieGebeld(Date mammaRadiologieGebeld)
-	{
-		this.mammaRadiologieGebeld = mammaRadiologieGebeld;
-	}
-
-	public List<OrganisatieParameter> getParameters()
-	{
-		return parameters;
-	}
-
-	public void setParameters(List<OrganisatieParameter> parameters)
-	{
-		this.parameters = parameters;
-	}
 }

@@ -24,8 +24,8 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.listview;
 import java.util.Iterator;
 
 import nl.rivm.screenit.main.service.colon.RoosterService;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
-import nl.rivm.screenit.model.colon.RoosterItemListViewWrapper;
+import nl.rivm.screenit.model.colon.ColonAfspraakslotListViewWrapper;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.RoosterListViewFilter;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -36,41 +36,41 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-public class RoosterListViewDataProvider extends SortableDataProvider<RoosterItemListViewWrapper, String>
+public class RoosterListViewDataProvider extends SortableDataProvider<ColonAfspraakslotListViewWrapper, String>
 {
 
 	private static final long serialVersionUID = 1L;
 
 	private final IModel<RoosterListViewFilter> zoekModel;
 
-	private final IModel<ColoscopieCentrum> intakelocatie;
+	private final IModel<ColonIntakelocatie> intakelocatie;
 
 	@SpringBean
 	private RoosterService roosterService;
 
-	public RoosterListViewDataProvider(IModel<RoosterListViewFilter> zoekModel, ColoscopieCentrum intakelocatie)
+	public RoosterListViewDataProvider(IModel<RoosterListViewFilter> zoekModel, ColonIntakelocatie intakelocatie)
 	{
 		this.zoekModel = zoekModel;
 		this.intakelocatie = ModelUtil.sModel(intakelocatie);
-		setSort("startTime", SortOrder.ASCENDING);
+		setSort("vanaf", SortOrder.ASCENDING);
 		Injector.get().inject(this);
 
 	}
 
 	@Override
-	public Iterator<RoosterItemListViewWrapper> iterator(long first, long count)
+	public Iterator<ColonAfspraakslotListViewWrapper> iterator(long first, long count)
 	{
-		return roosterService.getRoosterBlokken(getSort().getProperty(), getSort().isAscending(), first, count, zoekModel.getObject(), intakelocatie.getObject()).iterator();
+		return roosterService.getAfspraakslots(getSort().getProperty(), getSort().isAscending(), first, count, zoekModel.getObject(), intakelocatie.getObject()).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return roosterService.getRoosterBlokkenCount(zoekModel.getObject(), intakelocatie.getObject());
+		return roosterService.getAfspraakslotsCount(zoekModel.getObject(), intakelocatie.getObject());
 	}
 
 	@Override
-	public IModel<RoosterItemListViewWrapper> model(RoosterItemListViewWrapper object)
+	public IModel<ColonAfspraakslotListViewWrapper> model(ColonAfspraakslotListViewWrapper object)
 	{
 		return Model.of(object);
 	}

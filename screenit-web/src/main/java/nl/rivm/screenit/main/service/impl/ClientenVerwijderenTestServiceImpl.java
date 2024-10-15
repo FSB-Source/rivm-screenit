@@ -29,8 +29,6 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.ApplicationEnvironment;
-import nl.rivm.screenit.dao.ClientDao;
-import nl.rivm.screenit.dao.DashboardDao;
 import nl.rivm.screenit.main.service.ClientenVerwijderenTestService;
 import nl.rivm.screenit.model.BezwaarMoment;
 import nl.rivm.screenit.model.Client;
@@ -46,6 +44,8 @@ import nl.rivm.screenit.model.logging.LogRegel;
 import nl.rivm.screenit.model.logging.LoggingZoekCriteria;
 import nl.rivm.screenit.model.logging.NieuweIFobtAanvraagLogEvent;
 import nl.rivm.screenit.model.mamma.MammaDeelnamekans;
+import nl.rivm.screenit.service.ClientService;
+import nl.rivm.screenit.service.DashboardService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.TestService;
 import nl.rivm.screenit.service.UploadDocumentService;
@@ -87,13 +87,13 @@ public class ClientenVerwijderenTestServiceImpl implements ClientenVerwijderenTe
 	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
-	private ClientDao clientDao;
+	private ClientService clientService;
 
 	@Autowired
 	private LogService logService;
 
 	@Autowired
-	private DashboardDao dashboardDao;
+	private DashboardService dashboardService;
 
 	@Autowired
 	private MammaBaseScreeningrondeService screeningrondeService;
@@ -116,7 +116,7 @@ public class ClientenVerwijderenTestServiceImpl implements ClientenVerwijderenTe
 					continue;
 				}
 				bsn = bsn.trim();
-				Client client = clientDao.getClientByBsn(bsn);
+				Client client = clientService.getClientByBsn(bsn);
 				if (client == null)
 				{
 					continue;
@@ -140,7 +140,7 @@ public class ClientenVerwijderenTestServiceImpl implements ClientenVerwijderenTe
 				List<LogRegel> logRegels = logService.getLogRegels(loggingZoekCriteria, -1, -1, new SortState<String>("logGebeurtenis", Boolean.TRUE));
 				for (LogRegel logRegel : logRegels)
 				{
-					List<DashboardLogRegel> dashboardLogRegels = dashboardDao.getDashboardLogRegelMetLogRegel(logRegel);
+					List<DashboardLogRegel> dashboardLogRegels = dashboardService.getDashboardLogRegelMetLogRegel(logRegel);
 					hibernateService.deleteAll(dashboardLogRegels);
 
 					hibernateService.delete(logRegel);

@@ -22,64 +22,58 @@ package nl.rivm.screenit.service.colon;
  */
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.model.Account;
-import nl.rivm.screenit.model.Afspraak;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
-import nl.rivm.screenit.model.colon.Kamer;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
-import nl.rivm.screenit.model.colon.planning.RoosterItem;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
+import nl.rivm.screenit.model.colon.planning.ColonAfspraakslot;
+import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
 import nl.rivm.screenit.model.enums.BriefType;
-import nl.topicuszorg.planning.model.IAppointment;
-import nl.topicuszorg.wicket.planning.model.appointment.Location;
-import nl.topicuszorg.wicket.planning.services.AppointmentService;
 
 import com.google.common.collect.Range;
 
-public interface ColonBaseAfspraakService extends AppointmentService
+public interface ColonBaseAfspraakService
 {
-
-	List<? extends IAppointment> getAppointments(Location locatie, Date start, Date end, boolean showSchedule);
-
 	void verplaatsAfspraak(ColonIntakeAfspraak nieuweAfspraak, Account account, BriefType briefType, boolean briefTegenhouden, boolean uitRooster,
 		boolean verwezenMedischeRedenenDoorInfolijn);
 
-	void annuleerAfspraak(Afspraak afspraak, Account account, AfspraakStatus status, boolean communicatieTegenhouden);
+	void annuleerAfspraak(ColonIntakeAfspraak afspraak, Account account, ColonAfspraakStatus status, boolean communicatieTegenhouden);
 
 	void maakNieuweAfspraak(Client client, ColonIntakeAfspraak nieuweAfspraak, boolean briefTegenhouden, boolean uitRooster,
 		BriefType briefType, Account account);
 
-	List<ColonIntakeAfspraak> getAfsprakenVoorColoscopiecentrum(WerklijstIntakeFilter zoekObject, ColoscopieCentrum coloscopieCentrum, long first, long count,
+	List<ColonIntakeAfspraak> getAfsprakenVoorColoscopiecentrum(WerklijstIntakeFilter zoekObject, ColonIntakelocatie intakelocatie, long first, long count,
 		String property, boolean ascending);
 
-	long countAfsprakenVoorColoscopiecentrum(WerklijstIntakeFilter zoekObject, ColoscopieCentrum coloscopieCentrum);
+	long countAfsprakenVoorColoscopiecentrum(WerklijstIntakeFilter zoekObject, ColonIntakelocatie intakelocatie);
 
 	void verzendHuisartsBerichtOpnieuw(Client client, Account account);
 
-	boolean magWijzigenAfzeggen(Afspraak afspraak);
+	boolean magWijzigenAfzeggen(ColonIntakeAfspraak afspraak);
 
 	boolean magNieuweAfspraakMaken(Client client);
 
-	boolean heeftOnafgerondeVerwijzingOmMedischeRedenen(Afspraak afspraak);
+	boolean heeftOnafgerondeVerwijzingOmMedischeRedenen(ColonIntakeAfspraak afspraak);
 
-	List<Afspraak> getAfsprakenKamersInRange(Kamer kamer, Range<LocalDateTime> verwijderdeIntervals);
+	List<ColonIntakeAfspraak> getAfsprakenKamersInRange(ColonIntakekamer kamer, Range<LocalDateTime> range);
 
-	RoosterItem getRoosterBlokVoorAfspraak(ColonIntakeAfspraak newAfspraak);
+	ColonAfspraakslot getAfspraakslotVoorAfspraak(ColonIntakeAfspraak newAfspraak);
 
-	RoosterItem getVrijRoosterBlokVoorAfspraak(ColonIntakeAfspraak newAfspraak);
+	ColonAfspraakslot getVrijAfspraakslotVoorAfspraak(ColonIntakeAfspraak newAfspraak);
 
-	void setAfspraakStatus(Afspraak afspraak, AfspraakStatus status);
+	void setAfspraakStatus(ColonIntakeAfspraak afspraak, ColonAfspraakStatus status);
 
-	void afspraakAfzeggen(ColonIntakeAfspraak afspraak, AfspraakStatus status, LocalDateTime nu, boolean communicatieTegenhouden);
+	void afspraakAfzeggen(ColonIntakeAfspraak afspraak, ColonAfspraakStatus status, LocalDateTime nu, boolean communicatieTegenhouden);
 
 	boolean isDoorverwezenOmMedischeRedenenZonderNieuweAfspraak(Client client);
 
 	boolean isAfspraakVerwezenOmMedischeRedenen(ColonIntakeAfspraak afspraak);
 
 	ColonIntakeAfspraak zoekBevestigdeDoorverwijzendeAfspraak(ColonIntakeAfspraak afspraak);
+
+	boolean heeftClientIntakeAfspraakMetConclusieBezwaar(String bsn);
 }

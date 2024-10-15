@@ -60,6 +60,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wicketstuff.shiro.ShiroConstraint;
 
+import static nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht_.BERICHT_ID;
+import static nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht_.BERICHT_TYPE;
+import static nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht_.ONTVANGEN;
+import static nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht_.PROJECT_VERSION;
+import static nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht_.SET_ID;
+import static nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht_.VERSIE;
+
 @SecurityConstraint(actie = Actie.INZIEN, checkScope = false, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_VERSLAGEN, bevolkingsonderzoekScopes = {
 	Bevolkingsonderzoek.COLON })
 public class VerwerkteBerichtenOverzichtPage extends ColonScreeningBasePage
@@ -81,12 +88,12 @@ public class VerwerkteBerichtenOverzichtPage extends ColonScreeningBasePage
 		BerichtenZoekFilter berichtenZoekFilter = new BerichtenZoekFilter();
 		if (onderzoeken.contains(Bevolkingsonderzoek.COLON))
 		{
-			berichtenZoekFilter.setMldBerichten(true);
+			berichtenZoekFilter.setMdlBerichten(true);
 			berichtenZoekFilter.setPaLabBerichten(true);
 		}
 		else
 		{
-			berichtenZoekFilter.setMldBerichten(false);
+			berichtenZoekFilter.setMdlBerichten(false);
 			berichtenZoekFilter.setPaLabBerichten(false);
 		}
 
@@ -107,12 +114,12 @@ public class VerwerkteBerichtenOverzichtPage extends ColonScreeningBasePage
 	{
 
 		List<IColumn<OntvangenCdaBericht, String>> columns = new ArrayList<>();
-		columns.add(new DateTimePropertyColumn<OntvangenCdaBericht, String>(Model.of("Datum/tijd ontvangst"), "ontvangen", "ontvangen"));
-		columns.add(new PropertyColumn<OntvangenCdaBericht, String>(Model.of("DocumentID"), "berichtId", "berichtId"));
-		columns.add(new PropertyColumn<OntvangenCdaBericht, String>(Model.of("SetID"), "setId", "setId"));
-		columns.add(new PropertyColumn<OntvangenCdaBericht, String>(Model.of("Versie"), "versie", "versie"));
-		columns.add(new PropertyColumn<OntvangenCdaBericht, String>(Model.of("Projectversie"), "projectVersion", "projectVersion"));
-		columns.add(new PropertyColumn<OntvangenCdaBericht, String>(Model.of("Type"), "berichtType", "berichtType"));
+		columns.add(new DateTimePropertyColumn<OntvangenCdaBericht, String>(Model.of("Datum/tijd ontvangst"), ONTVANGEN, ONTVANGEN));
+		columns.add(new PropertyColumn<OntvangenCdaBericht, String>(Model.of("DocumentID"), BERICHT_ID, BERICHT_ID));
+		columns.add(new PropertyColumn<OntvangenCdaBericht, String>(Model.of("SetID"), SET_ID, SET_ID));
+		columns.add(new PropertyColumn<OntvangenCdaBericht, String>(Model.of("Versie"), VERSIE, VERSIE));
+		columns.add(new PropertyColumn<OntvangenCdaBericht, String>(Model.of("Projectversie"), PROJECT_VERSION, PROJECT_VERSION));
+		columns.add(new PropertyColumn<OntvangenCdaBericht, String>(Model.of("Type"), BERICHT_TYPE, BERICHT_TYPE));
 		columns.add(new AbstractColumn<OntvangenCdaBericht, String>(Model.of("Bekijk bericht"))
 		{
 
@@ -204,14 +211,14 @@ public class VerwerkteBerichtenOverzichtPage extends ColonScreeningBasePage
 			boolean colon = onderzoeken.contains(Bevolkingsonderzoek.COLON);
 			boolean cervix = onderzoeken.contains(Bevolkingsonderzoek.CERVIX);
 
-			CheckBox mldBerichten = new CheckBox("mldBerichten");
+			CheckBox mdlBerichten = new CheckBox("mdlBerichten");
 			CheckBox paLabBerichten = new CheckBox("paLabBerichten");
 			CheckBox cytologieBerichten = new CheckBox("cytologieBerichten");
-			mldBerichten.setVisible(colon);
+			mdlBerichten.setVisible(colon);
 			paLabBerichten.setVisible(colon);
 
 			cytologieBerichten.setVisible(false);
-			add(mldBerichten);
+			add(mdlBerichten);
 			add(paLabBerichten);
 			add(cytologieBerichten);
 

@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.model.colon.ClientCategorieEntry;
 import nl.rivm.screenit.service.colon.ColonBaseFITService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
@@ -63,9 +62,6 @@ public abstract class AbstractClientSelectieReader implements ItemReader<ClientC
 
 	@Autowired
 	protected ColonBaseFITService fitService;
-
-	@Autowired
-	protected ClientDao clientDao;
 
 	public void setFetchSize(int fetchSize)
 	{

@@ -26,6 +26,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BezwaarType;
 
 @Getter
@@ -37,4 +38,6 @@ public class BezwaarDto
 	private BezwaarType type;
 
 	private Boolean active;
+
+	private Bevolkingsonderzoek bevolkingsonderzoek;
 }

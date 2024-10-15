@@ -39,7 +39,7 @@ import org.springframework.data.jpa.domain.Specification;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class MammaMammografieSpecification
 {
-	public static Specification<Client> heeftBeeldenBeschikbaar()
+	public static Specification<Client> heeftBeeldenMogelijkAanwezig()
 	{
 		return (r, q, cb) ->
 		{

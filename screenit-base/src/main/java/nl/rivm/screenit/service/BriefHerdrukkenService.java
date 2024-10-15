@@ -21,12 +21,16 @@ package nl.rivm.screenit.service;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
+
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.ClientBrief;
 
 public interface BriefHerdrukkenService
 {
 	void opnieuwAanmaken(ClientBrief<?, ?, ?> brief, Account account);
+
+	void opnieuwAanmaken(List<? extends ClientBrief<?, ?, ?>> brieven, Account gebruiker);
 
 	boolean magHerdrukken(ClientBrief<?, ?, ?> brief);
 }

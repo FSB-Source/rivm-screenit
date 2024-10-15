@@ -21,23 +21,15 @@ package nl.rivm.screenit.mamma.se.dao.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import nl.rivm.screenit.mamma.se.dao.ClientIdentificatie;
 import nl.rivm.screenit.mamma.se.dao.MammaAfsprakenDao;
-import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.enums.MammaIdentificatiesoort;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
-import org.hibernate.Query;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
@@ -48,14 +40,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Profile("!test")
 public class MammaAfsprakenDaoImpl extends AbstractAutowiredDao implements MammaAfsprakenDao
 {
-
-	@Autowired
-	private HibernateService hibernateService;
-
 	@Override
 	public Map<Long, ClientIdentificatie> readLaatsteIdentificatieVanClienten(List<Long> clientIds)
 	{
-		Query query = getSession().createSQLQuery(
+		var query = getSession().createNativeQuery(
 			"select patient_id\n" +
 				"  , identificatiesoort\n" +
 				"  , identificatienummer\n" +
@@ -78,30 +66,6 @@ public class MammaAfsprakenDaoImpl extends AbstractAutowiredDao implements Mamma
 		{
 			result.put(((java.math.BigInteger) entry[0]).longValue(),
 				new ClientIdentificatie(MammaIdentificatiesoort.valueOf((String) entry[1]), (String) entry[2]));
-		}
-		return result;
-	}
-
-	@Override
-	public Map<Long, Integer> readInschrijvingenVanSeInRange(Date beginDatum, Date eindDatum, String seCode)
-	{
-		List list = hibernateService.getHibernateSession().createCriteria(MammaAfspraak.class, "afspraak")
-			.createAlias("afspraak.standplaatsPeriode", "standplaatsPeriode")
-			.createAlias("standplaatsPeriode.screeningsEenheid", "screeningsEenheid")
-			.add(Restrictions.eq("screeningsEenheid.code", seCode))
-			.add(Restrictions.ge("vanaf", beginDatum))
-			.add(Restrictions.le("vanaf", eindDatum))
-			.add(Restrictions.isNotNull("ingeschrevenDoor"))
-			.setProjection(Projections.projectionList()
-				.add(Projections.groupProperty("ingeschrevenDoor.id"))
-				.add(Projections.rowCount()))
-			.list();
-		Map<Long, Integer> result = new HashMap<>();
-		Iterator it = list.iterator();
-		while (it.hasNext())
-		{
-			Object instellingGebruikerIdEnCount[] = (Object[]) it.next();
-			result.put((Long) instellingGebruikerIdEnCount[0], ((Long) instellingGebruikerIdEnCount[1]).intValue());
 		}
 		return result;
 	}

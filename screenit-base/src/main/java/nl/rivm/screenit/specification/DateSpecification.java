@@ -28,29 +28,27 @@ import java.util.function.Function;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.From;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
 
 import org.hibernate.query.criteria.internal.CriteriaBuilderImpl;
 import org.hibernate.query.criteria.internal.compile.RenderingContext;
 import org.hibernate.query.criteria.internal.expression.LiteralExpression;
-import org.springframework.data.jpa.domain.Specification;
 
 import com.google.common.collect.Range;
 
 import static nl.rivm.screenit.specification.RangeSpecification.bevat;
 import static nl.rivm.screenit.specification.RangeSpecification.maakRangePredicates;
+import static nl.rivm.screenit.specification.RangeSpecification.overlapt;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class DateSpecification
 {
-	public static Expression<Date> truncate(String part, Path<Date> datePath, CriteriaBuilder cb)
+	public static Expression<Date> truncate(String part, Expression<Date> datePath, CriteriaBuilder cb)
 	{
 		return cb.function("date_trunc", Date.class, new LiteralExpression<>((CriteriaBuilderImpl) cb, part)
 		{
@@ -62,43 +60,43 @@ public class DateSpecification
 		}, datePath);
 	}
 
-	public static Expression<Integer> extractYear(Path<Date> datePath, CriteriaBuilder cb)
+	public static Expression<Integer> extractYear(Expression<LocalDateTime> datePath, CriteriaBuilder cb)
 	{
 		return cb.function("YEAR", Integer.class, datePath);
 	}
 
-	public static <T> Specification<T> overlaptLocalDateTime(Range<LocalDateTime> range, Function<Root<T>, Path<Date>> databaseColumnStartRange,
-		Function<Root<T>, Path<Date>> databaseColumnEndRange)
+	public static <T> ExtendedSpecification<T> overlaptLocalDateTime(Range<LocalDateTime> range, Function<From<?, ? extends T>, Expression<Date>> databaseColumnStartRange,
+		Function<From<?, ? extends T>, Expression<Date>> databaseColumnEndRange)
 	{
 		var newRange = DateUtil.toUtilDateRange(range);
-		return (r, q, cb) -> maakRangePredicates(cb, r, newRange, databaseColumnEndRange, databaseColumnStartRange);
+		return (r, q, cb) -> maakRangePredicates(cb, newRange, databaseColumnEndRange.apply(r), databaseColumnStartRange.apply(r));
 	}
 
-	public static <T> Specification<T> overlaptLocalDate(Range<LocalDate> range, Function<Root<T>, Path<Date>> databaseColumnStartRange,
-		Function<Root<T>, Path<Date>> databaseColumnEndRange)
+	public static <T> ExtendedSpecification<T> overlaptLocalDateToDate(Range<LocalDate> range, Function<From<?, ? extends T>, Expression<Date>> databaseColumnStartRange,
+		Function<From<?, ? extends T>, Expression<Date>> databaseColumnEndRange)
 	{
 		return overlaptLocalDateTime(DateUtil.toLocalDateTimeRange(range), databaseColumnStartRange, databaseColumnEndRange);
 	}
 
-	public static <T> Specification<T> bevatLocalDateTime(Range<LocalDateTime> range, Function<Root<T>, Path<Date>> databaseColumn)
+	public static <T> ExtendedSpecification<T> overlaptLocalDate(Range<LocalDate> range, Function<From<?, ? extends T>, Expression<LocalDateTime>> databaseColumnStartRange,
+		Function<From<?, ? extends T>, Expression<LocalDateTime>> databaseColumnEndRange)
 	{
-		return (r, q, cb) -> bevatLocalDateTime(range, databaseColumn.apply(r)).withPath(cb, r);
+		return overlapt(DateUtil.toLocalDateTimeRange(range), databaseColumnEndRange, databaseColumnStartRange);
 	}
 
-	public static <T> PathAwarePredicate<T> bevatLocalDateTime(Range<LocalDateTime> range, Path<Date> databaseColumn)
+	public static <T> ExtendedSpecification<T> bevatLocalDateTime(Range<LocalDateTime> range, Function<From<?, ? extends T>, Expression<Date>> databaseColumn)
 	{
-		var newRange = DateUtil.toUtilDateRange(range);
-		return bevat(newRange, databaseColumn);
+		return bevat(DateUtil.toUtilDateRange(range), databaseColumn);
 	}
 
-	public static <T> Specification<T> bevatLocalDate(Range<LocalDate> range, Function<Root<T>, Path<Date>> databaseColumn)
-	{
-		return (r, q, cb) -> bevatLocalDate(range, databaseColumn.apply(r)).withPath(cb, r);
-	}
-
-	public static <T> PathAwarePredicate<T> bevatLocalDate(Range<LocalDate> range, Path<Date> databaseColumn)
+	public static <T> ExtendedSpecification<T> bevatLocalDateToDate(Range<LocalDate> range, Function<From<?, ? extends T>, Expression<Date>> databaseColumn)
 	{
 		return bevatLocalDateTime(DateUtil.toLocalDateTimeRange(range), databaseColumn);
+	}
+
+	public static <T> ExtendedSpecification<T> bevatLocalDate(Range<LocalDate> range, Function<From<?, ? extends T>, Expression<LocalDateTime>> databaseColumn)
+	{
+		return overlapt(DateUtil.toLocalDateTimeRange(range), databaseColumn, databaseColumn);
 	}
 
 }

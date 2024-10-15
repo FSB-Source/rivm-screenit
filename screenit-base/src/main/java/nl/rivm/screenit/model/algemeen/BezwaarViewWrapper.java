@@ -23,52 +23,31 @@ package nl.rivm.screenit.model.algemeen;
 
 import java.io.Serializable;
 
+import lombok.Getter;
+import lombok.Setter;
+
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BezwaarType;
 
+@Getter
+@Setter
 public class BezwaarViewWrapper implements Serializable
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private BezwaarType type;
 
 	private Boolean actief;
 
 	private String resourceKey;
 
-	public BezwaarType getType()
-	{
-		return type;
-	}
-
-	public void setType(BezwaarType type)
-	{
-		this.type = type;
-	}
-
-	public Boolean getActief()
-	{
-		return actief;
-	}
-
-	public void setActief(Boolean actief)
-	{
-		this.actief = actief;
-	}
+	private Bevolkingsonderzoek bevolkingsonderzoek;
 
 	public String getNaam()
 	{
 		return getType().getNaam();
 	}
 
-	public String getResourceKey()
+	public String getSubtitel()
 	{
-		return resourceKey;
+		return getType().getSubtitel();
 	}
-
-	public void setResourceKey(String resourceKey)
-	{
-		this.resourceKey = resourceKey;
-	}
-
 }

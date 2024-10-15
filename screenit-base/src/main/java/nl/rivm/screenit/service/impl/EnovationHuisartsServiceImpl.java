@@ -25,59 +25,96 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.dao.EnovationHuisartsDao;
 import nl.rivm.screenit.model.EnovationHuisarts;
+import nl.rivm.screenit.model.EnovationHuisarts_;
+import nl.rivm.screenit.repository.algemeen.EnovationHuisartsRepository;
+import nl.rivm.screenit.repository.colon.ColonScreeningRondeRepository;
 import nl.rivm.screenit.service.EnovationHuisartsService;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import static nl.rivm.screenit.specification.algemeen.EnovationHuisartsSpecification.filterAdres;
+import static nl.rivm.screenit.specification.algemeen.EnovationHuisartsSpecification.filterNaam;
+import static nl.rivm.screenit.specification.algemeen.EnovationHuisartsSpecification.isNietVerwijderd;
 
 @Service
 @Slf4j
 public class EnovationHuisartsServiceImpl implements EnovationHuisartsService
 {
+	@Autowired
+	private EnovationHuisartsRepository huisartsRepository;
 
 	@Autowired
-	private EnovationHuisartsDao huisartsDao;
+	private ColonScreeningRondeRepository colonScreeningRondeRepository;
+
+	@Autowired
+	private ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void saveOrUpdate(EnovationHuisarts huisarts)
 	{
-		huisartsDao.saveOrUpdate(huisarts);
+		huisartsRepository.save(huisarts);
 	}
 
 	@Override
 	public EnovationHuisarts getHuisartsByKlantnummer(String klantnummer)
 	{
-		return huisartsDao.getHuisartsByKlantnummer(klantnummer);
+		return huisartsRepository.findOneByKlantnummer(klantnummer).orElse(null);
 	}
 
 	@Override
-	public List<EnovationHuisarts> zoekHuisartsen(EnovationHuisarts zoekObject, String sortProperty, boolean ascending, int first, int count)
+	public List<EnovationHuisarts> zoekHuisartsen(EnovationHuisarts zoekObject, PageRequest pageRequest)
 	{
-		return huisartsDao.zoekHuisartsen(zoekObject, sortProperty, ascending, first, count);
-	}
-
-	@Override
-	public long telHuisartsen(EnovationHuisarts zoekObject)
-	{
-		return huisartsDao.telHuisartsen(zoekObject);
+		return huisartsRepository.findAll(getHuisartsenSpecification(zoekObject), pageRequest).toList();
 	}
 
 	@Override
 	public int valideerKlantnummers(List<String> klantnummers)
 	{
-		var activeKlantnummers = huisartsDao.getKlantnummersVanAlleActiveHuisartens();
+		var activeKlantnummers = getKlantnummersVanAlleActiveHuisartsen();
 		activeKlantnummers.removeAll(klantnummers);
 		if (!activeKlantnummers.isEmpty())
 		{
 			LOG.info("{} inactieve huisartsen worden 'verwijderd'", activeKlantnummers.size());
-			huisartsDao.verwijderHuisartsen(activeKlantnummers);
+			verwijderHuisartsen(activeKlantnummers);
 		}
 		return activeKlantnummers.size();
+	}
+
+	private void verwijderHuisartsen(List<String> klantnummersVanTeVerwijderenHuisartsen)
+	{
+		huisartsRepository.markeerHuisartsenAlsVerwijderd(currentDateSupplier.getDate(), klantnummersVanTeVerwijderenHuisartsen);
+	}
+
+	private List<String> getKlantnummersVanAlleActiveHuisartsen()
+	{
+		return huisartsRepository.findWith(isNietVerwijderd(), String.class, q -> q.projection((cb, r) -> r.get(EnovationHuisarts_.klantnummer))).all();
+	}
+
+	@Override
+	public EnovationHuisarts getHuisartsByAgb(String agbCode)
+	{
+		return huisartsRepository.findOneByHuisartsAgbAndVerwijderdFalse(agbCode).orElse(null);
+	}
+
+	@Override
+	public Specification<EnovationHuisarts> getHuisartsenSpecification(EnovationHuisarts filter)
+	{
+		return filterNaam(filter.getAchternaam())
+			.and(filterAdres(filter.getAdres()))
+			.and(isNietVerwijderd());
+	}
+
+	@Override
+	public void verwijderdeHuisartsenOntkoppelen()
+	{
+		colonScreeningRondeRepository.maakVerwijderdeHuisartsenLosVanScreeningRondes();
 	}
 
 }

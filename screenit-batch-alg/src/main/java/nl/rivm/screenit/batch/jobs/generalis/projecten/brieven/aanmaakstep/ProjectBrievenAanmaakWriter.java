@@ -21,13 +21,11 @@ package nl.rivm.screenit.batch.jobs.generalis.projecten.brieven.aanmaakstep;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.project.ProjectBrief;
@@ -35,8 +33,8 @@ import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectBriefActieType;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.service.BaseBriefService;
+import nl.rivm.screenit.service.BaseProjectService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.ProjectService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.ProjectUtil;
 
@@ -50,7 +48,7 @@ public class ProjectBrievenAanmaakWriter extends BaseWriter<ProjectBriefActie>
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Autowired
-	private ProjectService projectService;
+	private BaseProjectService projectService;
 
 	@Autowired
 	private BaseBriefService briefService;
@@ -100,7 +98,7 @@ public class ProjectBrievenAanmaakWriter extends BaseWriter<ProjectBriefActie>
 
 	private void createXYBrief(ProjectBriefActie actie, List<ProjectClient> clienten)
 	{
-		LocalDateTime verstuurdOp = currentDateSupplier.getLocalDateTime();
+		var verstuurdOp = currentDateSupplier.getLocalDateTime();
 		if (actie.getType() == ProjectBriefActieType.XDAGENNAY)
 		{
 			verstuurdOp = verstuurdOp.minusDays(actie.getAantalDagen());
@@ -126,9 +124,9 @@ public class ProjectBrievenAanmaakWriter extends BaseWriter<ProjectBriefActie>
 				laatsteMammaScreeningsRonde = client.getMammaDossier().getLaatsteScreeningRonde();
 			}
 
-			for (ClientBrief brief : briefService.getClientBrieven(client))
+			for (var brief : briefService.getClientBrieven(client))
 			{
-				ScreeningRonde screeningRonde = brief.getScreeningRonde();
+				var screeningRonde = brief.getScreeningRonde();
 				boolean briefZonderRondeOfBijRondeClientDossiers = screeningRonde == null
 					|| screeningRonde.equals(laatsteCervixScreeningsRonde)
 					|| screeningRonde.equals(laatsteColonScreeningsRonde)

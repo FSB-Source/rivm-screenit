@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import nl.rivm.screenit.model.Instelling;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ColoscopieLocatie;
 import nl.rivm.screenit.service.InstellingService;
 
@@ -51,7 +51,7 @@ public class GekoppeldeColoscopiePanel<T extends Instelling> extends GenericPane
 	{
 		super.onInitialize();
 
-		List<ColoscopieCentrum> coloscopiesCentrums = instellingService.getChildrenInstellingen(getModelObject(), ColoscopieCentrum.class);
+		List<ColonIntakelocatie> coloscopiesCentrums = instellingService.getChildrenInstellingen(getModelObject(), ColonIntakelocatie.class);
 		List<ColoscopieLocatie> coloscopiesLocaties = instellingService.getChildrenInstellingen(getModelObject(), ColoscopieLocatie.class);
 		add(new Label("coloscopieLocaties", stringLocaties(coloscopiesLocaties)));
 		add(new Label("intakeLocaties", stringLocaties(coloscopiesCentrums)));

@@ -31,7 +31,7 @@ import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.Permissie;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.model.UitnodigingsGebied;
+import nl.rivm.screenit.model.colon.UitnodigingsGebied;
 import nl.rivm.screenit.model.enums.ToegangLevel;
 import nl.rivm.screenit.security.Constraint;
 import nl.rivm.screenit.security.ScreenitRealm;

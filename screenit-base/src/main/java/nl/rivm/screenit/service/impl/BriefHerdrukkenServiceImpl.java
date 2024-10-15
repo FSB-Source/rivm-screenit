@@ -24,6 +24,8 @@ package nl.rivm.screenit.service.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Afmelding;
 import nl.rivm.screenit.model.ClientBrief;
@@ -52,19 +54,16 @@ import nl.rivm.screenit.util.EnumStringUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class BriefHerdrukkenServiceImpl implements BriefHerdrukkenService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(BriefHerdrukkenServiceImpl.class);
-
 	@Autowired
 	private LogService logService;
 
@@ -75,18 +74,25 @@ public class BriefHerdrukkenServiceImpl implements BriefHerdrukkenService
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Autowired
-	private BaseBriefService baseBriefService;
+	private BaseBriefService briefService;
 
 	@Autowired(required = false)
 	private CervixFactory cervixFactory;
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
+	public void opnieuwAanmaken(List<? extends ClientBrief<?, ?, ?>> brieven, Account gebruiker)
+	{
+		brieven.forEach(brief -> opnieuwAanmaken(brief, gebruiker));
+	}
+
+	@Override
+	@Transactional
 	public void opnieuwAanmaken(ClientBrief<?, ?, ?> brief, Account gebruiker)
 	{
 		brief = (ClientBrief<?, ?, ?>) HibernateHelper.deproxy(brief);
 		Class<? extends ClientBrief> briefClass = brief.getClass();
-		LOG.info("Kopieer brief " + brief.getBriefType() + " (clientId: " + brief.getClient().getId() + ")");
+		LOG.info("Kopieer brief {} (clientId: {})", brief.getBriefType(), brief.getClient().getId());
 		if (ProjectBrief.class.equals(briefClass))
 		{
 			opnieuwAanmakenProjectBrief((ProjectBrief) brief);
@@ -115,7 +121,7 @@ public class BriefHerdrukkenServiceImpl implements BriefHerdrukkenService
 		BriefType type = brief.getBriefType();
 		if (type == null)
 		{
-			LOG.warn("Geen brieftype bekend, betreft een projectbrief? briefID: " + brief.getId());
+			LOG.warn("Geen brieftype bekend, betreft een projectbrief? briefID: {}", brief.getId());
 			logService.logGebeurtenis(LogGebeurtenis.BRIEF_HERDRUK, gebruiker, brief.getClient(), "Projectbrief");
 		}
 		else
@@ -127,7 +133,7 @@ public class BriefHerdrukkenServiceImpl implements BriefHerdrukkenService
 	private void opnieuwAanmakenAlgemenebrief(AlgemeneBrief oudeBrief)
 	{
 		BriefType briefType = oudeBrief.getBriefType();
-		baseBriefService.checkVoorDubbeleBrieven(briefType, oudeBrief.getClient(), AlgemeneBrief.class);
+		briefService.vervangDubbeleAangemaakteBrieven(briefType, oudeBrief.getClient(), AlgemeneBrief.class);
 		AlgemeneBrief nieuweBrief = new AlgemeneBrief();
 		nieuweBrief.setBriefDefinitie(oudeBrief.getBriefDefinitie());
 		nieuweBrief.setTemplateNaam(oudeBrief.getTemplateNaam());
@@ -243,8 +249,8 @@ public class BriefHerdrukkenServiceImpl implements BriefHerdrukkenService
 		A afmelding = bestaandeBrief.getAfmelding();
 		S screeningRonde = bestaandeBrief.getScreeningRonde();
 		BriefType briefType = bestaandeBrief.getBriefType();
-		B nieuweBrief = afmelding != null ? baseBriefService.maakBvoBrief(afmelding, briefType, null, bestaandeBrief.isVervangendeProjectBrief()) :
-			baseBriefService.maakBvoBrief(screeningRonde, briefType, null, false, bestaandeBrief.isVervangendeProjectBrief());
+		B nieuweBrief = afmelding != null ? briefService.maakBvoBrief(afmelding, briefType, null, bestaandeBrief.isVervangendeProjectBrief()) :
+			briefService.maakBvoBrief(screeningRonde, briefType, null, false, bestaandeBrief.isVervangendeProjectBrief());
 
 		nieuweBrief.setTemplateNaam(bestaandeBrief.getTemplateNaam());
 		nieuweBrief.setHerdruk(bestaandeBrief);
@@ -278,7 +284,7 @@ public class BriefHerdrukkenServiceImpl implements BriefHerdrukkenService
 			}
 			if (magHerdrukken)
 			{
-				magHerdrukken = !baseBriefService.briefTypeWachtOpKlaarzettenInDezeRonde(cervixBrief);
+				magHerdrukken = !briefService.briefTypeWachtOpKlaarzettenInDezeRonde(cervixBrief);
 			}
 		}
 		else if (origineleBrief instanceof MammaBrief)
@@ -291,7 +297,7 @@ public class BriefHerdrukkenServiceImpl implements BriefHerdrukkenService
 			}
 			if (magHerdrukken)
 			{
-				magHerdrukken = !baseBriefService.briefTypeWachtOpKlaarzettenInDezeRonde(mammaBrief);
+				magHerdrukken = !briefService.briefTypeWachtOpKlaarzettenInDezeRonde(mammaBrief);
 			}
 		}
 		else if (origineleBrief instanceof ColonBrief)

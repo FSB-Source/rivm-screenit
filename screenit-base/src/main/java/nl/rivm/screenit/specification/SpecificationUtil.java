@@ -21,7 +21,10 @@ package nl.rivm.screenit.specification;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.From;
@@ -37,6 +40,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.shiro.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -47,6 +51,22 @@ public class SpecificationUtil
 		return cb.like(
 			cb.lower(path),
 			cb.lower(cb.literal("%" + escapeLikeString(keyword) + "%"))
+		);
+	}
+
+	public static Predicate startsWithCaseInsensitive(CriteriaBuilder cb, Path<String> path, String keyword)
+	{
+		return cb.like(
+			cb.lower(path),
+			cb.lower(cb.literal(escapeLikeString(keyword) + "%"))
+		);
+	}
+
+	public static Predicate endsWithCaseInsensitive(CriteriaBuilder cb, Path<String> path, String keyword)
+	{
+		return cb.like(
+			cb.lower(path),
+			cb.lower(cb.literal("%" + escapeLikeString(keyword)))
 		);
 	}
 
@@ -63,12 +83,27 @@ public class SpecificationUtil
 		return (r, q, cb) -> StringUtils.isBlank(keyword) ? null : specification.toPredicate(r, q, cb);
 	}
 
-	public static <S> Specification<S> skipWhenEmpty(List<?> list, Specification<S> specification)
+	public static <S> ExtendedSpecification<S> skipWhenEmptyExtended(String keyword, ExtendedSpecification<S> specification)
 	{
-		return (r, q, cb) -> list.isEmpty() ? null : specification.toPredicate(r, q, cb);
+		return (r, q, cb) -> StringUtils.isBlank(keyword) ? null : specification.toPredicate(r, q, cb);
+	}
+
+	public static <S> Specification<S> skipWhenEmpty(Collection<?> list, Specification<S> specification)
+	{
+		return (r, q, cb) -> CollectionUtils.isEmpty(list) ? null : specification.toPredicate(r, q, cb);
+	}
+
+	public static <S> ExtendedSpecification<S> skipWhenEmptyExtended(Collection<?> list, ExtendedSpecification<S> specification)
+	{
+		return (r, q, cb) -> CollectionUtils.isEmpty(list) ? null : specification.toPredicate(r, q, cb);
 	}
 
 	public static <S> Specification<S> skipWhenNull(Object object, Specification<S> specification)
+	{
+		return (r, q, cb) -> object == null ? null : specification.toPredicate(r, q, cb);
+	}
+
+	public static <S> ExtendedSpecification<S> skipWhenNullExtended(Object object, ExtendedSpecification<S> specification)
 	{
 		return (r, q, cb) -> object == null ? null : specification.toPredicate(r, q, cb);
 	}
@@ -78,7 +113,7 @@ public class SpecificationUtil
 		return (r, q, cb) -> Boolean.TRUE.equals(value) ? specification.toPredicate(r, q, cb) : null;
 	}
 
-	public static <S> Specification<S> skipWhenFalsy(boolean value, Specification<S> specification)
+	public static <S> Specification<S> skipWhenFalse(boolean value, Specification<S> specification)
 	{
 		return (r, q, cb) -> !value ? null : specification.toPredicate(r, q, cb);
 	}
@@ -157,18 +192,53 @@ public class SpecificationUtil
 			.orElseGet(() -> from.join(attribute, joinType));
 	}
 
+	public static <X, T extends X> From<?, T> treat(From<?, ? extends X> from, Class<T> type, CriteriaBuilder cb)
+	{
+		if (from instanceof Root<?>)
+		{
+			var root = (Root<X>) from;
+			return cb.treat(root, type);
+		}
+		else if (from instanceof Join<?, ?>)
+		{
+			var join = (Join<?, X>) from;
+			return cb.treat(join, type);
+		}
+		throw new IllegalStateException("Unsupported from type: " + from.getClass());
+	}
+
 	public static Predicate composePredicates(CriteriaBuilder cb, List<Predicate> predicates)
 	{
-		return cb.and(predicates.toArray(Predicate[]::new));
+		return predicates.stream().filter(Objects::nonNull).reduce(cb::and).orElse(null);
+	}
+
+	public static Predicate composePredicates(CriteriaBuilder cb, Predicate... predicates)
+	{
+		return composePredicates(cb, Arrays.asList(predicates));
 	}
 
 	public static Predicate composePredicatesOr(CriteriaBuilder cb, List<Predicate> predicates)
 	{
-		return cb.or(predicates.toArray(Predicate[]::new));
+		return predicates.stream().filter(Objects::nonNull).reduce(cb::or).orElse(null);
 	}
 
 	private static String escapeLikeString(String s)
 	{
 		return s != null ? s.replaceAll("([_%])", "\\\\$1") : "";
+	}
+
+	public static <X, Y> ExtendedSpecification<X> isAttribuutGelijkOfNull(SingularAttribute<X, Y> attribuut, Object value)
+	{
+		return (r, q, cb) ->
+		{
+			if (value != null && StringUtils.isNotBlank(value.toString()))
+			{
+				return cb.equal(r.get(attribuut), value);
+			}
+			else
+			{
+				return cb.isNull(r.get(attribuut));
+			}
+		};
 	}
 }

@@ -28,6 +28,7 @@ import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectBriefActieType;
 import nl.rivm.screenit.model.project.ProjectBriefActie_;
@@ -38,6 +39,8 @@ import nl.rivm.screenit.specification.SpecificationUtil;
 import nl.rivm.screenit.util.DateUtil;
 
 import org.springframework.data.jpa.domain.Specification;
+
+import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNull;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ProjectBriefActieSpecification
@@ -78,5 +81,20 @@ public class ProjectBriefActieSpecification
 			);
 			return cb.and(clientIsActief, projectgroepIsActief, projectIsActief);
 		};
+	}
+
+	public static Specification<ProjectBriefActie> filterProject(Project project)
+	{
+		return skipWhenNull(project, (r, q, cb) -> cb.equal(r.get(ProjectBriefActie_.project), project));
+	}
+
+	public static Specification<ProjectBriefActie> filterActief(Boolean actief)
+	{
+		return skipWhenNull(actief, (r, q, cb) -> cb.equal(r.get(ProjectBriefActie_.actief), actief));
+	}
+
+	public static Specification<ProjectBriefActie> isNietType(ProjectBriefActieType projectBriefActieType)
+	{
+		return (r, q, cb) -> cb.notEqual(r.get(ProjectBriefActie_.type), projectBriefActieType);
 	}
 }

@@ -45,8 +45,7 @@ import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.ZASRetouradres;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
-import nl.rivm.screenit.model.colon.Kamer;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -107,6 +106,8 @@ public abstract class BaseDocumentTemplateTestenPage extends AlgemeenPage
 
 	protected final IModel<MergeField> mergeFieldModel = Model.of();
 
+	protected final IModel<Boolean> zonderHandtekeningModel = Model.of(false);
+
 	@SpringBean
 	private InstellingService instellingService;
 
@@ -141,7 +142,7 @@ public abstract class BaseDocumentTemplateTestenPage extends AlgemeenPage
 		DocumentTemplateTestWrapper wrapper = wrapperModel.getObject();
 		CervixUitnodiging uitnodiging = wrapper.getCervixUitnodiging();
 		uitnodiging.setUitnodigingsId(uitnodigingsDao.getNextUitnodigingsId());
-		List<ColoscopieCentrum> actieveIntakelocaties = instellingService.getActieveIntakelocaties();
+		List<ColonIntakelocatie> actieveIntakelocaties = instellingService.getActieveIntakelocaties();
 		if (CollectionUtils.isNotEmpty(actieveIntakelocaties))
 		{
 			wrapper.cloneIntakeLocatie(actieveIntakelocaties.get(0));
@@ -321,7 +322,7 @@ public abstract class BaseDocumentTemplateTestenPage extends AlgemeenPage
 				ScreeningOrganisatie screeningOrganisatie = selectedRegio.getObject();
 
 				MailMergeContext context = DocumentTemplateTestenFieldsPanel
-					.createMailMergeContext(wrapper, screeningOrganisatie, printType);
+					.createMailMergeContext(wrapper, screeningOrganisatie, printType, zonderHandtekeningModel.getObject());
 
 				BMHKLaboratorium bmhkLaboratorium = wrapper.getBmhkLaboratorium();
 				Client client = wrapper.getClient();
@@ -372,12 +373,12 @@ public abstract class BaseDocumentTemplateTestenPage extends AlgemeenPage
 
 					if (wrapper.isFromDBINTAKELOCATIE())
 					{
-						List<ColoscopieCentrum> intakeLocaties = instellingService.getActieveIntakelocatiesBinneRegio(screeningOrganisatie);
-						Kamer location = wrapper.getIntakeAfspraak().getLocation();
-						ColoscopieCentrum handmatigeIntakeLocatie = location.getColoscopieCentrum();
-						for (ColoscopieCentrum intakeLocatie : intakeLocaties)
+						List<ColonIntakelocatie> intakeLocaties = instellingService.getActieveIntakelocatiesBinneRegio(screeningOrganisatie);
+						var kamer = wrapper.getIntakeAfspraak().getKamer();
+						ColonIntakelocatie handmatigeIntakeLocatie = kamer.getIntakelocatie();
+						for (var intakeLocatie : intakeLocaties)
 						{
-							location.setColoscopieCentrum(intakeLocatie);
+							kamer.setIntakelocatie(intakeLocatie);
 							Document document = proccesDocument(context, briefTemplate);
 
 							mergedDocument = DocumentTemplateTestenFieldsPanel.addDocument(mergedDocument, document);
@@ -387,7 +388,7 @@ public abstract class BaseDocumentTemplateTestenPage extends AlgemeenPage
 						{
 							error("Geen intakelocaties die vallen in de regio " + screeningOrganisatie.getNaam());
 						}
-						location.setColoscopieCentrum(handmatigeIntakeLocatie);
+						kamer.setIntakelocatie(handmatigeIntakeLocatie);
 					}
 					else if (wrapper.isFromDBBMHKLAB())
 					{

@@ -24,42 +24,59 @@ package nl.rivm.screenit.specification.colon;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import javax.persistence.criteria.JoinType;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.model.colon.Kamer;
-import nl.rivm.screenit.model.colon.planning.RoosterItem;
+import nl.rivm.screenit.model.colon.planning.ColonAfspraakslot;
+import nl.rivm.screenit.model.colon.planning.ColonAfspraakslot_;
+import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
+import nl.rivm.screenit.model.colon.planning.ColonTijdslot_;
 import nl.rivm.screenit.specification.SpecificationUtil;
-import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment_;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 
 import org.springframework.data.jpa.domain.Specification;
 
 import com.google.common.collect.Range;
 
 import static nl.rivm.screenit.specification.DateSpecification.overlaptLocalDate;
-import static nl.rivm.screenit.specification.DateSpecification.overlaptLocalDateTime;
+import static nl.rivm.screenit.specification.RangeSpecification.overlapt;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ColonAfspraakslotSpecification
 {
-	public static Specification<RoosterItem> heeftKamer(Kamer kamer)
+	public static Specification<ColonAfspraakslot> heeftId(Long id)
+	{
+		return SpecificationUtil.skipWhenNull(id, (r, q, cb) -> cb.equal(r.get(ColonTijdslot_.id), id));
+	}
+
+	public static Specification<ColonAfspraakslot> valtBinnenDatumTijdRange(Range<LocalDateTime> range)
+	{
+		return overlapt(range, r -> r.get(ColonTijdslot_.vanaf), r -> r.get(ColonTijdslot_.tot));
+	}
+
+	public static Specification<ColonAfspraakslot> valtBinnenDatumRange(Range<LocalDate> range)
+	{
+		return overlaptLocalDate(range, r -> r.get(ColonTijdslot_.vanaf), r -> r.get(ColonTijdslot_.tot));
+	}
+
+	public static Specification<ColonAfspraakslot> heeftKamer(ColonIntakekamer kamer)
+	{
+		return (r, q, cb) -> cb.equal(r.get(ColonTijdslot_.kamer), kamer);
+	}
+
+	public static Specification<ColonAfspraakslot> heeftVanaf(LocalDateTime vanaf)
+	{
+		return (r, q, cb) -> cb.equal(r.get(ColonTijdslot_.vanaf), vanaf);
+	}
+
+	public static Specification<ColonAfspraakslot> heeftGeenAfspraak()
 	{
 		return (r, q, cb) ->
-			cb.equal(cb.treat(r.get(AbstractAppointment_.location), Kamer.class), kamer);
-	}
-
-	public static Specification<RoosterItem> heeftId(Long id)
-	{
-		return SpecificationUtil.skipWhenNull(id, (r, q, cb) -> cb.equal(r.get(AbstractAppointment_.id), id));
-	}
-
-	public static Specification<RoosterItem> valtBinnenDatumTijdRange(Range<LocalDateTime> range)
-	{
-		return overlaptLocalDateTime(range, r -> r.get(AbstractAppointment_.startTime), r -> r.get(AbstractAppointment_.endTime));
-	}
-
-	public static Specification<RoosterItem> valtBinnenDatumRange(Range<LocalDate> range)
-	{
-		return overlaptLocalDate(range, r -> r.get(AbstractAppointment_.startTime), r -> r.get(AbstractAppointment_.endTime));
+		{
+			var afspraakJoin = r.join(ColonAfspraakslot_.afspraak, JoinType.LEFT);
+			return cb.isNull(afspraakJoin.get(AbstractHibernateObject_.id));
+		};
 	}
 }

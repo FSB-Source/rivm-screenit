@@ -27,7 +27,6 @@ import java.util.List;
 
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaCeWerklijstZoekObject;
 import nl.rivm.screenit.main.service.mamma.MammaFollowUpService;
-import nl.rivm.screenit.main.service.mamma.MammaUitwisselportaalService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.table.NotClickableAbstractColumn;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
@@ -77,9 +76,6 @@ public class MammaFollowUpNietGedownloadWerklijst extends AbstractMammaCeWerklij
 	private InstellingService instellingService;
 
 	private MammaCeFollowUpDataProvider dataProvider;
-
-	@SpringBean
-	private MammaUitwisselportaalService uitwisselportaalService;
 
 	@SpringBean
 	private ICurrentDateSupplier dateSupplier;
@@ -133,15 +129,15 @@ public class MammaFollowUpNietGedownloadWerklijst extends AbstractMammaCeWerklij
 	private void createResultTable()
 	{
 		List<IColumn<MammaBeoordeling, String>> columns = new ArrayList<>();
-		columns.add(getOnderzoeksdatumColumn());
-		columns.add(getClientColumn());
-		columns.add(getGeboortedatumColumn());
-		columns.add(getBsnColumn());
-		columns.add(getBeColumn());
+		columns.add(getOnderzoeksdatumColumnZonderJpa());
+		columns.add(getClientColumnZonderJpa());
+		columns.add(getGeboortedatumColumnZonderJpa());
+		columns.add(getBsnColumnZonderJpa());
+		columns.add(getBeColumnZonderJpa());
 		columns.add(new PropertyColumn<>(Model.of("Gebeld op"), "ronde.laatstGebeldFollowUpNietGedownload",
 			"onderzoek.afspraak.uitnodiging.screeningRonde.laatstGebeldFollowUpNietGedownload"));
 
-		columns.add(new NotClickableAbstractColumn<MammaBeoordeling, String>(Model.of(""))
+		columns.add(new NotClickableAbstractColumn<>(Model.of(""))
 		{
 			@Override
 			public void populateItem(Item<ICellPopulator<MammaBeoordeling>> item, String s, IModel<MammaBeoordeling> beoordelingModel)
@@ -161,7 +157,7 @@ public class MammaFollowUpNietGedownloadWerklijst extends AbstractMammaCeWerklij
 			}
 		});
 
-		columns.add(new NotClickableAbstractColumn<MammaBeoordeling, String>(Model.of(""))
+		columns.add(new NotClickableAbstractColumn<>(Model.of(""))
 		{
 			@Override
 			public void populateItem(Item<ICellPopulator<MammaBeoordeling>> item, String s, IModel<MammaBeoordeling> beoordelingModel)
@@ -182,7 +178,7 @@ public class MammaFollowUpNietGedownloadWerklijst extends AbstractMammaCeWerklij
 			}
 		});
 
-		resultatenContainer.add(new ScreenitDataTable<MammaBeoordeling, String>("resultaten", columns, dataProvider, 10, Model.of("onderzoek(en)"))
+		resultatenContainer.add(new ScreenitDataTable<>("resultaten", columns, dataProvider, 10, Model.of("onderzoek(en)"))
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<MammaBeoordeling> model)

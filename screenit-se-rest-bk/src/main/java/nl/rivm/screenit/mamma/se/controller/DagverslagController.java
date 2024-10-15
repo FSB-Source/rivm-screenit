@@ -22,7 +22,6 @@ package nl.rivm.screenit.mamma.se.controller;
  */
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -76,7 +75,7 @@ public class DagverslagController extends AuthorizedController
 
 	private class DagverslagOphaler extends OpenHibernate5SessionInThread
 	{
-		private final Date datum;
+		private final LocalDate datum;
 
 		private final String seCode;
 
@@ -85,19 +84,20 @@ public class DagverslagController extends AuthorizedController
 		DagverslagOphaler(LocalDate datum, String seCode)
 		{
 			super(true);
-			this.datum = DateUtil.toUtilDate(datum);
+			this.datum = datum;
 			this.seCode = seCode;
 		}
 
 		@Override
 		protected void runInternal()
 		{
+			var utilDate = DateUtil.toUtilDate(datum);
 			dagverslagDto = new DagverslagDto();
-			dagverslagDto.setDagproductie(dagverslagService.getDagproductieVanSeMedewerkers(seCode, datum));
+			dagverslagDto.setDagproductie(dagverslagService.getDagproductieVanSeMedewerkers(seCode, utilDate));
 			dagverslagDto.setDagafsluiting(dagverslagService.getDoorgevoerdCountVanDag(seCode, datum));
 			dagverslagDto.setDagSynchronisatie(dagverslagService.getSynchronisatieCountVanDag(seCode, datum));
 			dagverslagDto.setNietAfgeslotenVanaf(dagverslagService.getDatumVanOudsteNietAfgeslotenOnderzoek(seCode));
-			dagverslagDto.setDagPlanningSamenvatting(dagverslagService.getPlanningSamenvattingVanDeDag(seCode, datum));
+			dagverslagDto.setDagPlanningSamenvatting(dagverslagService.getPlanningSamenvattingVanDeDag(seCode, utilDate));
 		}
 
 		DagverslagDto getDagverslagDto()

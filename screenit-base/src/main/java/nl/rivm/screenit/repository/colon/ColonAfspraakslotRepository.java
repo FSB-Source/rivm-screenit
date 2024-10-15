@@ -21,9 +21,9 @@ package nl.rivm.screenit.repository.colon;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.model.colon.planning.RoosterItem;
+import nl.rivm.screenit.model.colon.planning.ColonAfspraakslot;
 import nl.rivm.screenit.repository.BaseJpaRepository;
 
-public interface ColonAfspraakslotRepository extends BaseJpaRepository<RoosterItem>
+public interface ColonAfspraakslotRepository extends BaseJpaRepository<ColonAfspraakslot>
 {
 }

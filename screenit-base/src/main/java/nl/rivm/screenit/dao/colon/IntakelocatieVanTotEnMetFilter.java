@@ -24,14 +24,14 @@ package nl.rivm.screenit.dao.colon;
 import java.io.Serializable;
 import java.util.Date;
 
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 
 public interface IntakelocatieVanTotEnMetFilter extends Serializable
 {
 
-	ColoscopieCentrum getIntakelocatie();
+	ColonIntakelocatie getIntakelocatie();
 
-	void setIntakelocatie(ColoscopieCentrum intakelocatie);
+	void setIntakelocatie(ColonIntakelocatie intakelocatie);
 
 	Date getVanaf();
 

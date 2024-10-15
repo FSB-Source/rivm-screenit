@@ -23,7 +23,6 @@ package nl.rivm.screenit.batch.jobs.cervix.oudenietverstuurdezas;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,8 +40,8 @@ import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.rivm.screenit.model.project.ProjectStatus;
 import nl.rivm.screenit.model.project.ProjectType;
+import nl.rivm.screenit.service.BaseProjectService;
 import nl.rivm.screenit.service.OrganisatieParameterService;
-import nl.rivm.screenit.service.ProjectService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.io.IOUtils;
@@ -59,7 +58,7 @@ public class CervixOudeNietIngestuurdeZasJobListener extends BaseLogListener
 	private OrganisatieParameterService organisatieParameterService;
 
 	@Autowired
-	private ProjectService projectService;
+	private BaseProjectService projectService;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -81,8 +80,8 @@ public class CervixOudeNietIngestuurdeZasJobListener extends BaseLogListener
 		{
 			var zoekObject = new Project();
 			zoekObject.setNaam(projectNaam);
-			zoekObject.setProjectStatussen(Arrays.asList(ProjectStatus.ACTIEF));
-			zoekObject.setProjectTypes(Arrays.asList(ProjectType.BRIEFPROJECT));
+			zoekObject.setProjectStatussen(List.of(ProjectStatus.ACTIEF));
+			zoekObject.setProjectTypes(List.of(ProjectType.BRIEFPROJECT));
 			zoekObject.setGroepSelectieType(GroepSelectieType.DYNAMISCH);
 			zoekObject.setBevolkingsonderzoeken(List.of(Bevolkingsonderzoek.CERVIX));
 			var projecten = projectService.getProjecten(zoekObject, Collections.emptyList(), Collections.emptyList(), -1, -1, new SortState<>("naam", true));

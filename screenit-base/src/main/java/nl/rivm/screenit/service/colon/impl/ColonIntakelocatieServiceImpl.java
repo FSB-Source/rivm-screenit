@@ -24,13 +24,17 @@ package nl.rivm.screenit.service.colon.impl;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.OrganisatieParameterKey;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.repository.colon.ColonIntakelocatieRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.colon.ColonIntakelocatieService;
 import nl.rivm.screenit.specification.colon.ColonIntakelocatieSpecification;
 import nl.rivm.screenit.util.DateUtil;
@@ -38,6 +42,7 @@ import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Range;
 
@@ -50,6 +55,8 @@ public class ColonIntakelocatieServiceImpl implements ColonIntakelocatieService
 	private final SimplePreferenceService preferenceService;
 
 	private final ICurrentDateSupplier dateSupplier;
+
+	private final OrganisatieParameterService organisatieParameterService;
 
 	@Override
 	public Range<LocalDate> getSignaleringstermijnBereik()
@@ -85,7 +92,7 @@ public class ColonIntakelocatieServiceImpl implements ColonIntakelocatieService
 	}
 
 	@Override
-	public boolean intakelocatieHeeftGeenCapaciteit(ColoscopieCentrum intakelocatie)
+	public boolean intakelocatieHeeftGeenCapaciteit(ColonIntakelocatie intakelocatie)
 	{
 		var results = intakelocatieRepository.findFirst(
 			ColonIntakelocatieSpecification.heeftGeenCapaciteitBinnenDatum(getSignaleringstermijnBereik())
@@ -94,4 +101,22 @@ public class ColonIntakelocatieServiceImpl implements ColonIntakelocatieService
 		return results.isPresent();
 	}
 
+	@Override
+	@Transactional
+	public void saveIntakelocatieBeschrijving(ColonIntakelocatie intakelocatie, String locatieBeschrijving, InstellingGebruiker instellingGebruiker)
+	{
+		intakelocatieRepository.save(intakelocatie);
+		var locatieBeschrijvingParameter = organisatieParameterService.maakOfUpdateOrganisatieParameter(OrganisatieParameterKey.COLON_INTAKELOCATIE_BESCHRIJVING,
+			locatieBeschrijving, intakelocatie);
+		organisatieParameterService.saveOrUpdateOrganisatieParameters(List.of(locatieBeschrijvingParameter),
+			instellingGebruiker);
+	}
+
+	@Override
+	public void saveIntakelocatieDigitaleIntake(ColonIntakelocatie intakelocatie, String digitaleIntakeTekst, InstellingGebruiker instellingGebruiker)
+	{
+		var digitaleIntakeParameter = organisatieParameterService.maakOfUpdateOrganisatieParameter(OrganisatieParameterKey.COLON_DIGITALE_INTAKE,
+			digitaleIntakeTekst, intakelocatie);
+		organisatieParameterService.saveOrUpdateOrganisatieParameters(List.of(digitaleIntakeParameter), instellingGebruiker);
+	}
 }

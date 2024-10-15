@@ -46,7 +46,6 @@ import nl.rivm.screenit.model.colon.IFOBTTest_;
 import nl.rivm.screenit.model.colon.IFOBTType;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
 import nl.rivm.screenit.model.enums.BriefType;
-import nl.rivm.screenit.specification.SpecificationUtil;
 import nl.rivm.screenit.specification.algemeen.ClientSpecification;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
@@ -62,7 +61,7 @@ public class ColonFITSpecification
 
 	public static Specification<IFOBTTest> heeftDossier(ColonDossier dossier)
 	{
-		return (r, q, cb) -> cb.equal(SpecificationUtil.join(r, IFOBTTest_.colonScreeningRonde).get(ColonScreeningRonde_.dossier), dossier);
+		return (r, q, cb) -> cb.equal(join(r, IFOBTTest_.colonScreeningRonde).get(ColonScreeningRonde_.dossier), dossier);
 	}
 
 	public static Specification<IFOBTTest> isStatusDatumVoorOfOp(LocalDate minimaleSignaleringsDatum)
@@ -81,8 +80,8 @@ public class ColonFITSpecification
 	{
 		return (r, q, cb) ->
 		{
-			var screeningRondeJoin = SpecificationUtil.join(r, IFOBTTest_.colonScreeningRonde);
-			var dossierJoin = SpecificationUtil.join(screeningRondeJoin, ColonScreeningRonde_.dossier);
+			var screeningRondeJoin = join(r, IFOBTTest_.colonScreeningRonde);
+			var dossierJoin = join(screeningRondeJoin, ColonScreeningRonde_.dossier);
 			return cb.and(
 				cb.greaterThan(dossierJoin.get(Dossier_.datumLaatstGecontroleerdeSignalering), DateUtil.toUtilDate(signalerenVanaf)),
 				cb.greaterThan(truncate("day", r.get(IFOBTTest_.analyseDatum), cb),
@@ -100,8 +99,8 @@ public class ColonFITSpecification
 	{
 		return (r, q, cb) ->
 		{
-			var screeningRondeJoin = SpecificationUtil.join(r, IFOBTTest_.colonScreeningRonde);
-			var dossierJoin = SpecificationUtil.join(screeningRondeJoin, ColonScreeningRonde_.dossier);
+			var screeningRondeJoin = join(r, IFOBTTest_.colonScreeningRonde);
+			var dossierJoin = join(screeningRondeJoin, ColonScreeningRonde_.dossier);
 			return cb.or(
 				cb.lessThanOrEqualTo(truncate("day", dossierJoin.get(Dossier_.datumLaatstGecontroleerdeSignalering), cb),
 					DateUtil.toUtilDate(signalerenVanaf)),
@@ -116,7 +115,7 @@ public class ColonFITSpecification
 		{
 			var subquery = q.subquery(ColonBrief.class);
 			var briefRoot = subquery.from(ColonBrief.class);
-			var projectBriefJoin = SpecificationUtil.join(briefRoot, ClientBrief_.projectBrief, JoinType.LEFT);
+			var projectBriefJoin = join(briefRoot, ClientBrief_.projectBrief, JoinType.LEFT);
 
 			subquery.select(briefRoot);
 			subquery.where(
@@ -145,11 +144,11 @@ public class ColonFITSpecification
 		{
 			var subquery = q.subquery(ColonUitnodiging.class);
 			var uitnodigingRoot = subquery.from(ColonUitnodiging.class);
-			var screeningRondeJoin = SpecificationUtil.join(r, IFOBTTest_.colonScreeningRonde);
-			var dossierJoin = SpecificationUtil.join(screeningRondeJoin, ColonScreeningRonde_.dossier);
+			var screeningRondeJoin = join(r, IFOBTTest_.colonScreeningRonde);
+			var dossierJoin = join(screeningRondeJoin, ColonScreeningRonde_.dossier);
 			subquery
 				.select(uitnodigingRoot)
-				.where(cb.equal(SpecificationUtil.join(uitnodigingRoot, ColonUitnodiging_.screeningRonde).get(ColonScreeningRonde_.dossier),
+				.where(cb.equal(join(uitnodigingRoot, ColonUitnodiging_.screeningRonde).get(ColonScreeningRonde_.dossier),
 						dossierJoin.get(TablePerClassHibernateObject_.id)),
 					cb.equal(truncate("day", uitnodigingRoot.get(Uitnodiging_.creatieDatum), cb),
 						truncate("day", r.get(IFOBTTest_.statusDatum), cb)));
@@ -163,8 +162,8 @@ public class ColonFITSpecification
 		{
 			var subquery = q.subquery(ColonUitnodiging.class);
 			var uitnodigingZonderFitRoot = subquery.from(ColonUitnodiging.class);
-			var screeningRondeJoin = SpecificationUtil.join(r, IFOBTTest_.colonScreeningRonde);
-			var dossierJoin = SpecificationUtil.join(screeningRondeJoin, ColonScreeningRonde_.dossier);
+			var screeningRondeJoin = join(r, IFOBTTest_.colonScreeningRonde);
+			var dossierJoin = join(screeningRondeJoin, ColonScreeningRonde_.dossier);
 			subquery
 				.select(uitnodigingZonderFitRoot)
 				.where(
@@ -210,13 +209,12 @@ public class ColonFITSpecification
 
 	public static Specification<IFOBTTest> heeftActieveClient()
 	{
-		return ClientSpecification.heeftActieveClientPredicate()
-			.toSpecification(r ->
-			{
-				var ronde = join(r, IFOBTTest_.colonScreeningRonde);
-				var dossier = join(ronde, ColonScreeningRonde_.dossier);
-				return join(dossier, ColonDossier_.client);
-			});
+		return ClientSpecification.heeftActieveClient().with(r ->
+		{
+			var ronde = join(r, IFOBTTest_.colonScreeningRonde);
+			var dossier = join(ronde, ColonScreeningRonde_.dossier);
+			return join(dossier, ColonDossier_.client);
+		});
 	}
 
 	public static Specification<IFOBTTest> heeftStatussen(List<IFOBTTestStatus> statussen)

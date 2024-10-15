@@ -25,7 +25,7 @@ import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.LogService;
@@ -48,7 +48,7 @@ public class OnbevestigdeIntakeVerwijzingenWriter extends BaseWriter<ColonIntake
 	@Override
 	protected void write(ColonIntakeAfspraak afspraak) throws Exception
 	{
-		afspraakService.setAfspraakStatus(afspraak, AfspraakStatus.VERPLAATST);
+		afspraakService.setAfspraakStatus(afspraak, ColonAfspraakStatus.VERPLAATST);
 		var conclusie = afspraak.getConclusie();
 		afspraak.setConclusie(null);
 		hibernateService.saveOrUpdate(afspraak);

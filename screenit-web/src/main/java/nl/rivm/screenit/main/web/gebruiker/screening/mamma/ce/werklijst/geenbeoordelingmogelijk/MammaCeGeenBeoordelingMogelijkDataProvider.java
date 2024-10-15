@@ -34,7 +34,7 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import com.google.common.primitives.Ints;
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
 
 public class MammaCeGeenBeoordelingMogelijkDataProvider extends SortableDataProvider<MammaBeoordeling, String>
 {
@@ -42,7 +42,7 @@ public class MammaCeGeenBeoordelingMogelijkDataProvider extends SortableDataProv
 	@SpringBean
 	private MammaCeWerklijstService ceWerklijstService;
 
-	private IModel<MammaCeWerklijstZoekObject> criteria;
+	private final IModel<MammaCeWerklijstZoekObject> criteria;
 
 	MammaCeGeenBeoordelingMogelijkDataProvider(String sortProperty, IModel<MammaCeWerklijstZoekObject> criteria)
 	{
@@ -54,17 +54,13 @@ public class MammaCeGeenBeoordelingMogelijkDataProvider extends SortableDataProv
 	@Override
 	public Iterator<? extends MammaBeoordeling> iterator(long first, long count)
 	{
-		MammaCeWerklijstZoekObject zoekObject = getZoekObject();
-
-		return ceWerklijstService.zoekGeenBeoordelingMogelijk(zoekObject, Ints.checkedCast(first), Ints.checkedCast(count), getSort().getProperty(), getSort().isAscending())
-			.iterator();
+		return ceWerklijstService.zoekBeoordelingen(getZoekObject(), first, count, toSpringSort(getSort())).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		MammaCeWerklijstZoekObject zoekObject = getZoekObject();
-		return ceWerklijstService.countGeenBeoordelingMogelijk(zoekObject);
+		return ceWerklijstService.countBeoordelingen(getZoekObject());
 	}
 
 	private MammaCeWerklijstZoekObject getZoekObject()

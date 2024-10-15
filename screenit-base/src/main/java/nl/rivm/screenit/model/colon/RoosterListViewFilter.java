@@ -30,11 +30,13 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakslotStatus;
+
 @Getter
 @Setter
 public class RoosterListViewFilter implements Serializable, Cloneable
 {
-	private RoosterItemStatus status;
+	private ColonAfspraakslotStatus status;
 
 	private Date startDatum;
 

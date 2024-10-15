@@ -473,7 +473,8 @@ public enum PreferenceKey
 	COLON_ROOSTER_NACHT_BEPERKING_BEGIN("Start tijd voor de nacht beperking voor het DK rooster", String.class),
 	COLON_ROOSTER_NACHT_BEPERKING_EIND("Eind tijd voor de nacht beperking voor het DK rooster", String.class),
 	COLON_ROOSTER_ZATERDAG_BEPERKING_TYPE("Harde of zachte beperking op zaterdag voor het DK rooster", String.class),
-	COLON_ROOSTER_ZONDAG_BEPERKING_TYPE("Harde of zachte beperking op zondag voor het DK rooster", String.class);
+	COLON_ROOSTER_ZONDAG_BEPERKING_TYPE("Harde of zachte beperking op zondag voor het DK rooster", String.class),
+	GEEN_HANDTEKENING_BRIEF_TEKST("Geen handtekening onder bezwaar brief tekst", String.class);
 
 	private final String layoutName;
 

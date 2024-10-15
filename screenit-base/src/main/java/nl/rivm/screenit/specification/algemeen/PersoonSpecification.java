@@ -21,60 +21,87 @@ package nl.rivm.screenit.specification.algemeen;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Date;
+
+import javax.persistence.criteria.Predicate;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.GbaPersoon_;
-import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
-import nl.rivm.screenit.specification.SpecificationUtil;
-import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
+import nl.rivm.screenit.specification.ExtendedSpecification;
+import nl.rivm.screenit.util.DateUtil;
 
-import org.springframework.data.jpa.domain.Specification;
-
-import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNull;
-import static nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification.persoonJoin;
+import static nl.rivm.screenit.specification.SpecificationUtil.composePredicates;
+import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmptyExtended;
+import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNullExtended;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PersoonSpecification
 {
-	public static PathAwarePredicate<GbaPersoon> isNietVertrokkenUitNederlandVoorDatumPredicate(Date datum)
+	public static ExtendedSpecification<GbaPersoon> isNietOverleden()
 	{
-		return (cb, r) ->
-			cb.or(
-				cb.isNull(r.get(GbaPersoon_.datumVertrokkenUitNederland)),
-				cb.greaterThan(r.get(GbaPersoon_.datumVertrokkenUitNederland), datum)
-			);
+		return (r, q, cb) -> cb.isNull(r.get(GbaPersoon_.overlijdensdatum));
 	}
 
-	public static PathAwarePredicate<GbaPersoon> isNietOverledenVoorPredicate(Date datum)
+	public static ExtendedSpecification<GbaPersoon> isNietOverledenEnWoontInNederland()
 	{
-		return (cb, r) ->
-			cb.or(
-				cb.isNull(r.get(GbaPersoon_.overlijdensdatum)),
-				cb.greaterThan(r.get(GbaPersoon_.overlijdensdatum), datum)
-			);
+		return woontInNederland().and(isNietOverleden());
 	}
 
-	public static PathAwarePredicate<GbaPersoon> heeftGeenOverledenDatumPredicate()
+	public static ExtendedSpecification<GbaPersoon> woontInNederland()
 	{
-		return (cb, r) -> cb.isNull(r.get(GbaPersoon_.overlijdensdatum));
+		return (r, q, cb) -> cb.isNull(r.get(GbaPersoon_.datumVertrokkenUitNederland));
 	}
 
-	public static PathAwarePredicate<GbaPersoon> heeftGeenVertrokkenUitNederlandDatumPredicate()
+	public static ExtendedSpecification<GbaPersoon> filterGeboortedatum(Date geboortedatum)
 	{
-		return (cb, r) -> cb.isNull(r.get(GbaPersoon_.datumVertrokkenUitNederland));
+		return skipWhenNullExtended(geboortedatum, (r, q, cb) -> cb.equal(r.get(GbaPersoon_.geboortedatum), geboortedatum));
 	}
 
-	public static Specification<CervixBoekRegel> filterGeboortedatum(Date geboortedatum)
+	public static ExtendedSpecification<GbaPersoon> filterBsn(String bsn)
 	{
-		return skipWhenNull(geboortedatum, (r, q, cb) -> cb.equal(persoonJoin(r).get(GbaPersoon_.geboortedatum), geboortedatum));
+		return skipWhenEmptyExtended(bsn, (r, q, cb) -> cb.equal(r.get(GbaPersoon_.bsn), bsn));
 	}
 
-	public static Specification<CervixBoekRegel> filterBsn(String bsn)
+	public static ExtendedSpecification<GbaPersoon> filterPostcode(String postcode)
 	{
-		return SpecificationUtil.skipWhenEmpty(bsn, (r, q, cb) -> cb.equal(persoonJoin(r).get(GbaPersoon_.bsn), bsn));
+		return AdresSpecification.filterPostcode(postcode).with(GbaPersoon_.gbaAdres);
+	}
+
+	public static ExtendedSpecification<GbaPersoon> filterHuisnummer(Integer huisnummer)
+	{
+		return AdresSpecification.filterHuisnummer(huisnummer).with(GbaPersoon_.gbaAdres);
+	}
+
+	public static ExtendedSpecification<GbaPersoon> heeftBsn(String bsn)
+	{
+		return (r, q, cb) -> cb.equal(r.get(GbaPersoon_.bsn), bsn);
+	}
+
+	public static ExtendedSpecification<GbaPersoon> valtBinnenLeeftijdGrensRestricties(Integer minLeeftijd, Integer maxLeeftijd, Integer interval, LocalDate peildatum)
+	{
+		return (r, q, cb) ->
+		{
+			var predicates = new ArrayList<Predicate>();
+			if (minLeeftijd != null)
+			{
+				var geboortedatumMaximaal = peildatum.minusYears(minLeeftijd);
+				predicates.add(cb.lessThanOrEqualTo(r.get(GbaPersoon_.geboortedatum), DateUtil.toUtilDate(geboortedatumMaximaal)));
+			}
+			if (maxLeeftijd != null)
+			{
+				var geboortedatumMinimaal = peildatum.minusYears(maxLeeftijd + 1L);
+				if (interval != null)
+				{
+					geboortedatumMinimaal = geboortedatumMinimaal.minusDays(interval);
+				}
+				predicates.add(cb.greaterThan(r.get(GbaPersoon_.geboortedatum), DateUtil.toUtilDate(geboortedatumMinimaal)));
+			}
+			return composePredicates(cb, predicates);
+		};
 	}
 }

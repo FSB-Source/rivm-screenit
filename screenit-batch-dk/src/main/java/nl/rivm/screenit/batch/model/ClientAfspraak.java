@@ -27,7 +27,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 import nl.rivm.screenit.batch.VrijSlotComparator;
-import nl.rivm.screenit.model.colon.planning.VrijSlot;
+import nl.rivm.screenit.model.colon.dto.VrijSlot;
 import nl.rivm.screenit.util.BigDecimalUtil;
 
 import org.apache.commons.lang.builder.EqualsBuilder;

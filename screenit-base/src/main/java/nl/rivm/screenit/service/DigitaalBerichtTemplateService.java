@@ -27,7 +27,7 @@ import nl.rivm.screenit.dto.alg.client.contact.DigitaalBerichtDTO;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.DigitaalBerichtTemplate;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.enums.DigitaalBerichtTemplateType;
 
 public interface DigitaalBerichtTemplateService
@@ -38,5 +38,5 @@ public interface DigitaalBerichtTemplateService
 
 	DigitaalBerichtDTO maakDigitaalBericht(DigitaalBerichtTemplateType type, Client client);
 
-	DigitaalBerichtDTO maakDigitaalBericht(DigitaalBerichtTemplateType type, ColoscopieCentrum intakelocatie);
+	DigitaalBerichtDTO maakDigitaalBericht(DigitaalBerichtTemplateType type, ColonIntakelocatie intakelocatie);
 }

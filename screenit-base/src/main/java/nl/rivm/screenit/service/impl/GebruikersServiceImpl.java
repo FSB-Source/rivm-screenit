@@ -23,42 +23,35 @@ package nl.rivm.screenit.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-import nl.rivm.screenit.dao.GebruikerDao;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
+import nl.rivm.screenit.repository.algemeen.GebruikerRepository;
 import nl.rivm.screenit.service.GebruikersService;
+import nl.rivm.screenit.util.DatabaseSequence;
+import nl.rivm.screenit.util.SequenceGenerator;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
 public class GebruikersServiceImpl implements GebruikersService
 {
-
-	@Autowired
-	private GebruikerDao gebruikerDao;
-
 	@Autowired
 	private HibernateService hibernateService;
 
-	@Override
-	public Gebruiker getGebruikerByGebruikersnaam(String gebruikersnaam)
-	{
-		return getGebruikerBy("gebruikersnaam", gebruikersnaam);
-	}
+	@Autowired
+	private GebruikerRepository gebruikerRepository;
 
 	@Override
-	public Gebruiker getGebruikerBy(String key, String value)
+	public Optional<Gebruiker> getGebruikerByGebruikersnaam(String gebruikersnaam)
 	{
-		return gebruikerDao.getGebruikerBy(key, value);
+		return gebruikerRepository.findByGebruikersnaam(gebruikersnaam);
 	}
 
 	@Override
@@ -82,20 +75,60 @@ public class GebruikersServiceImpl implements GebruikersService
 	}
 
 	@Override
-	public Gebruiker getGebruikerByUzinummer(String uzinummer)
+	public Optional<Gebruiker> getGebruikerByUzinummer(String uzinummer)
 	{
-		return getGebruikerBy("uzinummer", uzinummer);
+		return gebruikerRepository.findByUzinummer(uzinummer);
 	}
 
 	@Override
 	public Gebruiker getPatholoog(String patholoogId, Instelling instelling)
 	{
-		return gebruikerDao.getPatholoog(patholoogId, instelling);
+		var pathologen = gebruikerRepository.findByPatholoogIdAndActiefTrue(patholoogId);
+		Gebruiker gebruiker = null;
+		if (pathologen != null)
+		{
+			if (pathologen.size() == 1)
+			{
+				gebruiker = pathologen.get(0);
+			}
+			else if (pathologen.size() > 1 && instelling != null)
+			{
+
+				boolean gebruikerNietUniek = false;
+				for (Gebruiker subGebruiker : pathologen)
+				{
+					if (subGebruiker.getOrganisatieMedewerkers() != null)
+					{
+						for (InstellingGebruiker instellingGebruiker : subGebruiker.getOrganisatieMedewerkers())
+						{
+							if (Boolean.TRUE.equals(instellingGebruiker.getActief()) && Boolean.TRUE.equals(instellingGebruiker.getOrganisatie().getActief())
+								&& instellingGebruiker.getOrganisatie().equals(instelling))
+							{
+								if (gebruiker == null)
+								{
+									gebruiker = subGebruiker;
+								}
+								else
+								{
+									gebruikerNietUniek = true;
+								}
+							}
+						}
+					}
+				}
+				if (gebruikerNietUniek)
+				{
+					gebruiker = null;
+				}
+			}
+		}
+		return gebruiker;
 	}
 
 	@Override
 	public int getNextMedewerkercode()
 	{
-		return gebruikerDao.getNextMedewerkercode();
+		return hibernateService.getHibernateSession()
+			.doReturningWork(new SequenceGenerator(DatabaseSequence.MEDEWERKERCODE, hibernateService.getHibernateSession().getSessionFactory())).intValue();
 	}
 }

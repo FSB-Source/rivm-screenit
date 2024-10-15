@@ -35,7 +35,6 @@ import javax.persistence.TemporalType;
 import lombok.Getter;
 import lombok.Setter;
 
-import nl.rivm.screenit.model.helper.HibernateMagicNumber;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;
@@ -65,6 +64,6 @@ public class Message extends AbstractHibernateObject
 	@Column(nullable = false)
 	private String content;
 
-	@Column(nullable = true, length = HibernateMagicNumber.L255)
+	@Column
 	private String context;
 }

@@ -24,7 +24,14 @@ package nl.rivm.screenit.repository.colon;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.repository.BaseJpaRepository;
 
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+
 public interface ColonScreeningRondeRepository extends BaseJpaRepository<ColonScreeningRonde>
 {
 	ColonScreeningRonde findFirstByOrderByCreatieDatumDesc();
+
+	@Modifying
+	@Query("update ColonScreeningRonde set colonHuisarts = null where colonHuisarts in (select h from EnovationHuisarts h where h.verwijderd = true)")
+	void maakVerwijderdeHuisartsenLosVanScreeningRondes();
 }

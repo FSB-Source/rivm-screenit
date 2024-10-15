@@ -27,7 +27,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.main.dao.mamma.MammaScreeningsEenheidDao;
+import nl.rivm.screenit.main.service.mamma.MammaScreeningsEenheidService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ConfirmingIndicatingAjaxSubmitLink;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
@@ -57,7 +57,7 @@ public abstract class MammaWeekHerhalenPopup extends GenericPanel<MammaScreening
 	private MammaBaseConceptPlanningsApplicatie baseConceptPlanningsApplicatie;
 
 	@SpringBean
-	private MammaScreeningsEenheidDao screeningsEenheidDao;
+	private MammaScreeningsEenheidService screeningsEenheidService;
 
 	private IModel<MammaScreeningsEenheid> selectedScreeningEenheid;
 
@@ -107,7 +107,7 @@ public abstract class MammaWeekHerhalenPopup extends GenericPanel<MammaScreening
 		add(herhalenForm);
 
 		ScreenitDropdown<MammaScreeningsEenheid> screeningsEenheidDropDown = new ScreenitDropdown<>("screeningsEenheid", new PropertyModel<>(this, "selectedScreeningEenheid"),
-			ModelUtil.listRModel(screeningsEenheidDao.getActieveScreeningsEenhedenVoorScreeningOrganisatie(ScreenitSession.get().getScreeningOrganisatie())),
+			ModelUtil.listRModel(screeningsEenheidService.getActieveScreeningsEenhedenVoorScreeningOrganisatie(ScreenitSession.get().getScreeningOrganisatie())),
 			new ChoiceRenderer<>("naam"));
 		screeningsEenheidDropDown.setRequired(true);
 		screeningsEenheidDropDown.add(new AjaxFormComponentUpdatingBehavior("change")

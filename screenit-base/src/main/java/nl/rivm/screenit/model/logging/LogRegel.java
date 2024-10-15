@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.logging;
 
 /*-
@@ -39,6 +38,9 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.InstellingGebruiker;
@@ -52,6 +54,8 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+@Setter
+@Getter
 @Entity
 @Table(schema = "gedeeld", indexes = { @Index(name = "logGebeurtenis", columnList = "logGebeurtenis"), @Index(name = "gebeurtenisDatum", columnList = "gebeurtenisDatum") })
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
@@ -87,76 +91,6 @@ public class LogRegel extends AbstractHibernateObject
 	@CollectionTable(schema = "gedeeld", name = "log_regel_bevolkingsonderzoeken")
 	private List<Bevolkingsonderzoek> bevolkingsonderzoeken;
 
-	public LogGebeurtenis getLogGebeurtenis()
-	{
-		return logGebeurtenis;
-	}
-
-	public void setLogGebeurtenis(LogGebeurtenis logGebeurtenis)
-	{
-		this.logGebeurtenis = logGebeurtenis;
-	}
-
-	public Date getGebeurtenisDatum()
-	{
-		return gebeurtenisDatum;
-	}
-
-	public void setGebeurtenisDatum(Date gebeurtenisDatum)
-	{
-		this.gebeurtenisDatum = gebeurtenisDatum;
-	}
-
-	public Gebruiker getGebruiker()
-	{
-		return gebruiker;
-	}
-
-	public void setGebruiker(Gebruiker gebruiker)
-	{
-		this.gebruiker = gebruiker;
-	}
-
-	public InstellingGebruiker getIngelogdeGebruiker()
-	{
-		return ingelogdeGebruiker;
-	}
-
-	public void setIngelogdeGebruiker(InstellingGebruiker ingelogdeGebruiker)
-	{
-		this.ingelogdeGebruiker = ingelogdeGebruiker;
-	}
-
-	public Client getClient()
-	{
-		return client;
-	}
-
-	public void setClient(Client client)
-	{
-		this.client = client;
-	}
-
-	public LogEvent getLogEvent()
-	{
-		return logEvent;
-	}
-
-	public void setLogEvent(LogEvent logEvent)
-	{
-		this.logEvent = logEvent;
-	}
-
-	public List<Bevolkingsonderzoek> getBevolkingsonderzoeken()
-	{
-		return bevolkingsonderzoeken;
-	}
-
-	public void setBevolkingsonderzoeken(List<Bevolkingsonderzoek> bevolkingsonderzoeken)
-	{
-		this.bevolkingsonderzoeken = bevolkingsonderzoeken;
-	}
-
 	public String getAfkortingen()
 	{
 		List<Bevolkingsonderzoek> bvoList = bevolkingsonderzoeken;
@@ -175,13 +109,4 @@ public class LogRegel extends AbstractHibernateObject
 		return bvoString;
 	}
 
-	public MammaScreeningsEenheid getScreeningsEenheid()
-	{
-		return screeningsEenheid;
-	}
-
-	public void setScreeningsEenheid(MammaScreeningsEenheid screeningsEenheid)
-	{
-		this.screeningsEenheid = screeningsEenheid;
-	}
 }

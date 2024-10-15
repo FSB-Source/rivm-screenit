@@ -29,7 +29,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.service.ColonUitnodigingsgebiedCapaciteitService;
-import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.dao.colon.ColonUitnodigingsDao;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.rivm.screenit.model.project.ProjectGroep;
@@ -123,6 +122,7 @@ public class ColonClientSelectieContext
 		}
 
 	}
+
 	class ProjectGroupUitnodiging extends UitnodigingsTaak
 	{
 
@@ -164,6 +164,7 @@ public class ColonClientSelectieContext
 		}
 
 	}
+
 	public final List<Long> exclusieGroepIds = Collections.synchronizedList(new ArrayList<>());
 
 	public final List<Long> uitgenodigdeClientIds = Collections.synchronizedList(new ArrayList<>());
@@ -183,8 +184,6 @@ public class ColonClientSelectieContext
 	public ColonUitnodigingsDao uitnodigingsDao;
 
 	public ColonUitnodigingService uitnodigingService;
-
-	public ClientDao clientDao;
 
 	public ColonBaseFITService fitService;
 

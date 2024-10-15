@@ -22,26 +22,22 @@ package nl.rivm.screenit.dao.colon;
  */
 
 import java.time.LocalDate;
-import java.util.Date;
-import java.util.EnumSet;
 import java.util.List;
 
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
-import nl.topicuszorg.wicket.planning.dao.AppointmentDao;
-import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
-import nl.topicuszorg.wicket.planning.model.appointment.Location;
+import nl.rivm.screenit.model.colon.planning.ColonTijdslot;
 
-public interface AfspraakDao extends AppointmentDao
+public interface AfspraakDao
 {
 
-	<T extends AbstractAppointment> List<T> getAfspraken(Date start, Date end, T filter, List<Location> locaties, EnumSet<AfspraakStatus> voorAgenda);
-
-	List<ColonIntakeAfspraak> getAfsprakenVoorColoscopiecentrum(WerklijstIntakeFilter zoekObject, ColoscopieCentrum coloscopieCentrum, LocalDate vandaag, long first, long count,
+	List<ColonIntakeAfspraak> getAfsprakenVoorIntakelocatie(WerklijstIntakeFilter zoekObject, ColonIntakelocatie intakelocatie, LocalDate vandaag, long first, long count,
 		String property, boolean ascending);
 
-	long countAfsprakenVoorColoscopiecentrum(WerklijstIntakeFilter zoekObject, ColoscopieCentrum coloscopieCentrum, LocalDate vandaag);
+	long countAfsprakenVoorIntakelocatie(WerklijstIntakeFilter zoekObject, ColonIntakelocatie intakelocatie, LocalDate vandaag);
 
+	void saveOrUpdate(ColonTijdslot tijdslot);
+
+	void delete(ColonTijdslot tijdslot);
 }

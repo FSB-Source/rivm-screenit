@@ -88,13 +88,13 @@ import ca.uhn.hl7v2.HL7Exception;
 import static nl.rivm.screenit.Constants.MAMMA_MAX_AANTAL_MAANDEN_GEEN_UITSLAG_ONDERBROKEN_ONDERZOEK;
 import static nl.rivm.screenit.Constants.MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN;
 import static nl.rivm.screenit.model.OrganisatieParameterKey.MAMMA_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN;
-import static nl.rivm.screenit.specification.mamma.MammaBaseOnderzoekSpecification.heeftActieveClient;
-import static nl.rivm.screenit.specification.mamma.MammaBaseOnderzoekSpecification.heeftDossierWatOvereenKomtMetRonde;
-import static nl.rivm.screenit.specification.mamma.MammaBaseOnderzoekSpecification.heeftIlmStatusBeschikbaarOfGeweest;
-import static nl.rivm.screenit.specification.mamma.MammaBaseOnderzoekSpecification.heeftMissendeUitslag;
-import static nl.rivm.screenit.specification.mamma.MammaBaseOnderzoekSpecification.heeftOnderzoekStatusNietOnderbroken;
-import static nl.rivm.screenit.specification.mamma.MammaBaseOnderzoekSpecification.heeftOnderzoekStatusOnderbroken;
-import static nl.rivm.screenit.specification.mamma.MammaBaseOnderzoekSpecification.heeftOnderzoekZonderUitslagBrieven;
+import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.heeftActieveClient;
+import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.heeftDossierWatOvereenKomtMetRonde;
+import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.heeftIlmStatusBeschikbaarOfGeweest;
+import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.heeftMissendeUitslag;
+import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.heeftOnderzoekStatusNietOnderbroken;
+import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.heeftOnderzoekStatusOnderbroken;
+import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.heeftOnderzoekZonderUitslagBrieven;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)

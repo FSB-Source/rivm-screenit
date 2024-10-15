@@ -27,6 +27,7 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
+import nl.rivm.screenit.main.service.algemeen.ProjectService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
@@ -45,7 +46,6 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectBestand;
 import nl.rivm.screenit.model.project.ProjectBestandType;
-import nl.rivm.screenit.service.ProjectService;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -139,7 +139,7 @@ public class ProjectClientenWijzigenPage extends ProjectBasePage
 				{
 					stelFileVeilig(); 
 
-					ProjectBestand projectBestand = (ProjectBestand) form.getModelObject();
+					ProjectBestand projectBestand = form.getModelObject();
 					String dialogTekst = "Weet u zeker dat u deze clienten wilt " + getString("ProjectBestandType." + projectBestand.getType() + ".melding") + "?";
 					dialog.openWith(target, new ConfirmPanel(dialog.CONTENT_ID, Model.of(dialogTekst), null, new DefaultConfirmCallback()
 					{
@@ -202,7 +202,6 @@ public class ProjectClientenWijzigenPage extends ProjectBasePage
 		{
 			LOG.error("Fout bij uploaden van een inactiveren-/heractiverenbestand naar tmp directory: ", e);
 			error(getString("error.onbekend"));
-			return;
 		}
 	}
 

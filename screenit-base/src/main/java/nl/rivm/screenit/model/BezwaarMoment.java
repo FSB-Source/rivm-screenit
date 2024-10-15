@@ -39,6 +39,9 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.algemeen.BezwaarBrief;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
@@ -48,19 +51,15 @@ import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
 @Entity
+@Getter
+@Setter
 @Table(schema = "algemeen")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 @Audited
 public class BezwaarMoment extends AbstractHibernateObject
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	private Client client;
-
-	@ManyToOne(fetch = FetchType.LAZY, optional = true, cascade = CascadeType.ALL)
-	private BezwaarBrief bezwaarAanvraag;
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
@@ -70,14 +69,11 @@ public class BezwaarMoment extends AbstractHibernateObject
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date statusDatum;
 
-	@OneToOne(fetch = FetchType.LAZY, optional = true, cascade = CascadeType.ALL)
+	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@NotAudited
 	private UploadDocument bezwaarBrief;
 
 	private Date bezwaarDatum;
-
-	@OneToOne(fetch = FetchType.LAZY, optional = true, cascade = CascadeType.ALL)
-	private BezwaarBrief bevestigingsbrief;
 
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "bezwaarMoment")
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
@@ -89,104 +85,4 @@ public class BezwaarMoment extends AbstractHibernateObject
 
 	@Transient
 	private ClientContactManier manier;
-
-	public Date getBezwaarDatum()
-	{
-		return bezwaarDatum;
-	}
-
-	public void setBezwaarDatum(Date bezwaarDatum)
-	{
-		this.bezwaarDatum = bezwaarDatum;
-	}
-
-	public Client getClient()
-	{
-		return client;
-	}
-
-	public void setClient(Client client)
-	{
-		this.client = client;
-	}
-
-	public UploadDocument getBezwaarBrief()
-	{
-		return bezwaarBrief;
-	}
-
-	public void setBezwaarBrief(UploadDocument bezwaarBrief)
-	{
-		this.bezwaarBrief = bezwaarBrief;
-	}
-
-	public AanvraagBriefStatus getStatus()
-	{
-		return status;
-	}
-
-	public void setStatus(AanvraagBriefStatus status)
-	{
-		this.status = status;
-	}
-
-	public Date getStatusDatum()
-	{
-		return statusDatum;
-	}
-
-	public void setStatusDatum(Date statusDatum)
-	{
-		this.statusDatum = statusDatum;
-	}
-
-	public BezwaarBrief getBezwaarAanvraag()
-	{
-		return bezwaarAanvraag;
-	}
-
-	public void setBezwaarAanvraag(BezwaarBrief bezwaarAanvraag)
-	{
-		this.bezwaarAanvraag = bezwaarAanvraag;
-	}
-
-	public List<BezwaarBrief> getBrieven()
-	{
-		return brieven;
-	}
-
-	public void setBrieven(List<BezwaarBrief> brieven)
-	{
-		this.brieven = brieven;
-	}
-
-	public BezwaarBrief getBevestigingsbrief()
-	{
-		return bevestigingsbrief;
-	}
-
-	public void setBevestigingsbrief(BezwaarBrief bevestigingsbrief)
-	{
-		this.bevestigingsbrief = bevestigingsbrief;
-	}
-
-	public List<Bezwaar> getBezwaren()
-	{
-		return bezwaren;
-	}
-
-	public void setBezwaren(List<Bezwaar> bezwaren)
-	{
-		this.bezwaren = bezwaren;
-	}
-
-	public ClientContactManier getManier()
-	{
-		return manier;
-	}
-
-	public void setManier(ClientContactManier manier)
-	{
-		this.manier = manier;
-	}
 }

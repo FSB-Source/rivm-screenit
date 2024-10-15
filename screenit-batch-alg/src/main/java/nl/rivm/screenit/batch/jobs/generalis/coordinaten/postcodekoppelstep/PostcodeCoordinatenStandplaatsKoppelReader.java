@@ -23,24 +23,21 @@ package nl.rivm.screenit.batch.jobs.generalis.coordinaten.postcodekoppelstep;
 
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.dao.CoordinatenDao;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.mamma.MammaStandplaatsLocatieSpecification.heeftGeenPostcodeCoordinaten;
 
 @Component
 @AllArgsConstructor
-public class PostcodeCoordinatenStandplaatsKoppelReader extends BaseScrollableResultReader
+public class PostcodeCoordinatenStandplaatsKoppelReader extends BaseSpecificationScrollableResultReader<MammaStandplaatsLocatie, Object>
 {
-	private final CoordinatenDao coordinatenDao;
-
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<MammaStandplaatsLocatie> createSpecification()
 	{
-		return coordinatenDao.getCriteriaAdressenZonderPostcodeCoordinaten(MammaStandplaatsLocatie.class);
+		return heeftGeenPostcodeCoordinaten();
 	}
 }

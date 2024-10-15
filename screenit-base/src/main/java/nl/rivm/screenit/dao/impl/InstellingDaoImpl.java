@@ -34,7 +34,7 @@ import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ColoscopieLocatie;
 import nl.rivm.screenit.model.colon.IFobtLaboratorium;
 import nl.rivm.screenit.model.colon.PaLaboratorium;
@@ -201,7 +201,7 @@ public class InstellingDaoImpl extends AbstractAutowiredDao implements Instellin
 	@Override
 	public Criteria getAllILAdressenZonderCoordinanten()
 	{
-		Criteria crit = getSession().createCriteria(ColoscopieCentrum.class);
+		Criteria crit = getSession().createCriteria(ColonIntakelocatie.class);
 		crit.add(Restrictions.isNull("postcodeCoordinaten"));
 		return crit;
 	}

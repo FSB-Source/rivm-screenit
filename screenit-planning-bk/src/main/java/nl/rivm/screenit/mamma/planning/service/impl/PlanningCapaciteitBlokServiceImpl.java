@@ -31,12 +31,12 @@ import nl.rivm.screenit.dto.mamma.planning.PlanningCapaciteitBlokDto;
 import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
 import nl.rivm.screenit.mamma.planning.controller.PlanningCapaciteitChangeChecker;
 import nl.rivm.screenit.mamma.planning.controller.PlanningMapper;
-import nl.rivm.screenit.mamma.planning.dao.PlanningCapaciteitBlokDao;
 import nl.rivm.screenit.mamma.planning.index.PlanningBlokIndex;
 import nl.rivm.screenit.mamma.planning.index.PlanningScreeningsEenheidIndex;
 import nl.rivm.screenit.mamma.planning.model.PlanningBlok;
 import nl.rivm.screenit.mamma.planning.model.PlanningConstanten;
 import nl.rivm.screenit.mamma.planning.model.PlanningScreeningsEenheid;
+import nl.rivm.screenit.mamma.planning.repository.PlanningCapaciteitBlokRepository;
 import nl.rivm.screenit.mamma.planning.service.PlanningCapaciteitBlokService;
 import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningWijzigingen;
 import nl.rivm.screenit.util.DateUtil;
@@ -50,15 +50,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class PlanningCapaciteitBlokServiceImpl implements PlanningCapaciteitBlokService
 {
-
-	private final PlanningCapaciteitBlokDao capaciteitBlokDao;
+	private final PlanningCapaciteitBlokRepository capaciteitBlokRepository;
 
 	@Override
 	public Set<PlanningBlok> getCapaciteitsBlokkenVanDag(PlanningScreeningsEenheid screeningsEenheid, LocalDate bronDate)
 	{
 		if (bronDate.isBefore(PlanningConstanten.prognoseVanafDatum))
 		{
-			return capaciteitBlokDao.leesCapaciteitBlokken(screeningsEenheid, bronDate, bronDate);
+			return capaciteitBlokRepository.leesCapaciteitBlokken(screeningsEenheid, bronDate, bronDate);
 		}
 		else
 		{

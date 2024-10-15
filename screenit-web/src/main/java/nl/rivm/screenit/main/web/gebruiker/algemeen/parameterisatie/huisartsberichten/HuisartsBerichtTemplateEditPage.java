@@ -32,7 +32,7 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.HuisartsBerichtType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
-import nl.rivm.screenit.service.HuisartsBerichtTemplateService;
+import nl.rivm.screenit.repository.algemeen.HuisartsBerichtTemplateRepository;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -57,46 +57,38 @@ import org.wicketstuff.shiro.ShiroConstraint;
 public class HuisartsBerichtTemplateEditPage extends ParameterisatieBasePage
 {
 
-	private static final long serialVersionUID = 1L;
-
-	private IModel<HuisartsBerichtTemplateFilter> filter;
+	private final IModel<HuisartsBerichtTemplateFilter> filter;
 
 	@SpringBean
-	private HuisartsBerichtTemplateService templateService;
+	private HuisartsBerichtTemplateRepository templateRepository;
 
 	private WebMarkupContainer templateContainer;
 
-	private Label selecteerEenTemplate;
+	private final Label selecteerEenTemplate;
 
 	public HuisartsBerichtTemplateEditPage()
 	{
-		setFilter(new Model<HuisartsBerichtTemplateFilter>(new HuisartsBerichtTemplateFilter()));
+		filter = new Model<>(new HuisartsBerichtTemplateFilter());
 
-		add(new FilterForm("typeForm", getFilter()));
-		setTemplateContainer(new WebMarkupContainer("templateContainer"));
-		getTemplateContainer().setOutputMarkupPlaceholderTag(true);
-		add(getTemplateContainer());
-		setSelecteerEenTemplate(new Label("selecteerEenTemplate", getString("label.selecteer.huisartsberichttype")));
-		getSelecteerEenTemplate().setOutputMarkupPlaceholderTag(true);
-		add(getSelecteerEenTemplate());
+		add(new FilterForm("typeForm", filter));
+		templateContainer = new WebMarkupContainer("templateContainer");
+		templateContainer.setOutputMarkupPlaceholderTag(true);
+		add(templateContainer);
+		selecteerEenTemplate = new Label("selecteerEenTemplate", getString("label.selecteer.huisartsberichttype"));
+		selecteerEenTemplate.setOutputMarkupPlaceholderTag(true);
+		add(selecteerEenTemplate);
 	}
 
 	private class FilterForm extends Form<HuisartsBerichtTemplateFilter>
 	{
-
-		private static final long serialVersionUID = 1L;
-
 		public FilterForm(String id, IModel<HuisartsBerichtTemplateFilter> model)
 		{
 			super(id, new CompoundPropertyModel<>(model));
 
 			ScreenitDropdown<HuisartsBerichtType> typeSelectie = new ScreenitDropdown<HuisartsBerichtType>("berichtType",
-				templateService.getTemplateFromBevolkingsonderzoek(ScreenitSession.get().getOnderzoeken()),
-				new ChoiceRenderer<HuisartsBerichtType>()
+				HuisartsBerichtType.getBerichtTypeVoorBevolkingsonderzoeken(ScreenitSession.get().getOnderzoeken()),
+				new ChoiceRenderer<>()
 				{
-
-					private static final long serialVersionUID = 1L;
-
 					@Override
 					public Object getDisplayValue(HuisartsBerichtType object)
 					{
@@ -105,40 +97,37 @@ public class HuisartsBerichtTemplateEditPage extends ParameterisatieBasePage
 				});
 			typeSelectie.add(new AjaxFormComponentUpdatingBehavior("change")
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected void onUpdate(AjaxRequestTarget target)
 				{
-					if (getFilter().getObject() != null && getFilter().getObject().getBerichtType() != null)
+					if (filter.getObject() != null && filter.getObject().getBerichtType() != null)
 					{
 						HuisartsBerichtTemplate template = null;
 
-						template = getTemplateService().getTemplateByType(getFilter().getObject().getBerichtType());
+						template = templateRepository.findByBerichtType(filter.getObject().getBerichtType());
 						if (template == null)
 						{
 							template = new HuisartsBerichtTemplate();
-							template.setBerichtType(getFilter().getObject().getBerichtType());
+							template.setBerichtType(filter.getObject().getBerichtType());
 						}
 
 						HuisartsBerichtTemplateEditPanel editPanel = new HuisartsBerichtTemplateEditPanel("templateContainer", ModelUtil.cModel(template));
 						editPanel.setOutputMarkupPlaceholderTag(true);
-						getTemplateContainer().replaceWith(editPanel);
-						setTemplateContainer(editPanel);
-						target.add(getTemplateContainer());
-						getSelecteerEenTemplate().setVisible(false);
-						target.add(getSelecteerEenTemplate());
+						templateContainer.replaceWith(editPanel);
+						templateContainer = editPanel;
+						target.add(templateContainer);
+						selecteerEenTemplate.setVisible(false);
+						target.add(selecteerEenTemplate);
 					}
 					else
 					{
 						WebMarkupContainer editPanel = new WebMarkupContainer("templateContainer");
 						editPanel.setOutputMarkupPlaceholderTag(true);
-						getTemplateContainer().replaceWith(editPanel);
-						setTemplateContainer(editPanel);
-						getSelecteerEenTemplate().setVisible(true);
-						target.add(getSelecteerEenTemplate());
-						target.add(getTemplateContainer());
+						templateContainer.replaceWith(editPanel);
+						templateContainer = editPanel;
+						templateContainer.setVisible(true);
+						target.add(selecteerEenTemplate);
+						target.add(templateContainer);
 					}
 					markeerFormulierenOpgeslagen(target);
 				}
@@ -148,45 +137,4 @@ public class HuisartsBerichtTemplateEditPage extends ParameterisatieBasePage
 			add(typeSelectie);
 		}
 	}
-
-	public IModel<HuisartsBerichtTemplateFilter> getFilter()
-	{
-		return filter;
-	}
-
-	public void setFilter(IModel<HuisartsBerichtTemplateFilter> filter)
-	{
-		this.filter = filter;
-	}
-
-	public HuisartsBerichtTemplateService getTemplateService()
-	{
-		return templateService;
-	}
-
-	public void setTemplateService(HuisartsBerichtTemplateService templateService)
-	{
-		this.templateService = templateService;
-	}
-
-	public WebMarkupContainer getTemplateContainer()
-	{
-		return templateContainer;
-	}
-
-	public void setTemplateContainer(WebMarkupContainer templateContainer)
-	{
-		this.templateContainer = templateContainer;
-	}
-
-	public Label getSelecteerEenTemplate()
-	{
-		return selecteerEenTemplate;
-	}
-
-	public void setSelecteerEenTemplate(Label selecteerEenTemplate)
-	{
-		this.selecteerEenTemplate = selecteerEenTemplate;
-	}
-
 }

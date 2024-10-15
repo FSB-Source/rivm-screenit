@@ -39,9 +39,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.mamma.planning.dao.PlanningAfspraakDao;
-import nl.rivm.screenit.mamma.planning.dao.PlanningBlokkadeDao;
-import nl.rivm.screenit.mamma.planning.dao.PlanningCapaciteitBlokDao;
 import nl.rivm.screenit.mamma.planning.dao.PlanningClientDao;
 import nl.rivm.screenit.mamma.planning.dao.PlanningScreeningRondeDao;
 import nl.rivm.screenit.mamma.planning.dao.PlanningScreeningsEenheidDao;
@@ -49,7 +46,7 @@ import nl.rivm.screenit.mamma.planning.dao.PlanningStandplaatsDao;
 import nl.rivm.screenit.mamma.planning.dao.PlanningStandplaatsPeriodeDao;
 import nl.rivm.screenit.mamma.planning.dao.PlanningStandplaatsRondeDao;
 import nl.rivm.screenit.mamma.planning.dao.PlanningTehuisDao;
-import nl.rivm.screenit.mamma.planning.dao.dto.BlokkadeDaoDto;
+import nl.rivm.screenit.mamma.planning.dao.dto.BlokkadeProjectie;
 import nl.rivm.screenit.mamma.planning.dao.dto.ClientDaoDto;
 import nl.rivm.screenit.mamma.planning.dao.dto.StandplaatsPeriodeDaoDto;
 import nl.rivm.screenit.mamma.planning.index.PlanningBlokIndex;
@@ -75,6 +72,9 @@ import nl.rivm.screenit.mamma.planning.model.PlanningStandplaats;
 import nl.rivm.screenit.mamma.planning.model.PlanningStandplaatsPeriode;
 import nl.rivm.screenit.mamma.planning.model.PlanningStandplaatsRonde;
 import nl.rivm.screenit.mamma.planning.model.PlanningTehuis;
+import nl.rivm.screenit.mamma.planning.repository.PlanningAfspraakRepository;
+import nl.rivm.screenit.mamma.planning.repository.PlanningBlokkadeRepository;
+import nl.rivm.screenit.mamma.planning.repository.PlanningCapaciteitBlokRepository;
 import nl.rivm.screenit.mamma.planning.repository.PlanningPostcodeReeksRepository;
 import nl.rivm.screenit.mamma.planning.repository.PlanningStandplaatsPeriodeRepository;
 import nl.rivm.screenit.mamma.planning.service.PlanningCapaciteitAgendaService;
@@ -118,8 +118,6 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 
 	private final PlanningConceptOpslaanService conceptOpslaanService;
 
-	private final PlanningCapaciteitBlokDao capaciteitBlokDao;
-
 	private final Environment env;
 
 	private final ScreeningOrganisatieRepository screeningOrganisatieRepository;
@@ -128,7 +126,7 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 
 	private final PlanningStandplaatsPeriodeDao planningStandplaatsPeriodeDao;
 
-	private final PlanningCapaciteitBlokDao planningCapaciteitBlokDao;
+	private final PlanningCapaciteitBlokRepository planningCapaciteitBlokRepository;
 
 	private final PlanningStandplaatsDao planningStandplaatsDao;
 
@@ -144,9 +142,9 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 
 	private final PlanningScreeningRondeDao planningScreeningRondeDao;
 
-	private final PlanningBlokkadeDao planningBlokkadeDao;
+	private final PlanningBlokkadeRepository planningBlokkadeRepository;
 
-	private final PlanningAfspraakDao planningAfspraakDao;
+	private final PlanningAfspraakRepository planningAfspraakRepository;
 
 	private boolean doInit = true; 
 
@@ -297,7 +295,7 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 
 		var plannenVanaf = beginDatumEersteStandplaatsPeriodeMinusWekenVanTeVorenUitnodigen(actieveStandplaatsPeriodeDtos);
 		var eindDatumLaatsteStandplaatsPeriode = eindDatumLaatsteStandplaatsPeriode(actieveStandplaatsPeriodeDtos);
-		var datumLaatsteCapaciteitsBlok = planningCapaciteitBlokDao.findMaxDatumVanAlleCapaciteitsBlokken().orElse(dateSupplier.getLocalDate());
+		var datumLaatsteCapaciteitsBlok = planningCapaciteitBlokRepository.findMaxDatumVanAlleCapaciteitsBlokken().orElse(dateSupplier.getLocalDate());
 
 		herhalenVanaf = datumLaatsteCapaciteitsBlok.plusWeeks(1).with(DayOfWeek.MONDAY);
 
@@ -371,7 +369,7 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 	{
 		LOG.info("leesBeschikbareCapaciteit se: {}", planningScreeningsEenheid.getId());
 
-		var planningBlokken = capaciteitBlokDao.leesCapaciteitBlokken(planningScreeningsEenheid, PlanningConstanten.prognoseVanafDatum, null);
+		var planningBlokken = planningCapaciteitBlokRepository.leesCapaciteitBlokken(planningScreeningsEenheid, PlanningConstanten.prognoseVanafDatum, null);
 		planningBlokken.forEach(blok ->
 		{
 			planningScreeningsEenheid.getBlokSet().add(blok);
@@ -762,40 +760,41 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 	{
 		LOG.info("leesBlokkades");
 
-		var blokkadeDtos = planningBlokkadeDao.actieveBlokkadesVoorConceptmodel();
+		var blokkadeViews = planningBlokkadeRepository.findActieveBlokkadesVoorConceptmodel(DateUtil.toUtilDate(PlanningConstanten.plannenVanafDatum),
+			DateUtil.toUtilDate(PlanningConstanten.plannenTotEnMetDatum));
 
-		for (var blokkadeDto : blokkadeDtos)
+		for (var blokkadeView : blokkadeViews)
 		{
-			var blokkade = maakPlanningBlokkade(blokkadeDto);
+			var blokkade = maakPlanningBlokkade(blokkadeView);
 			PlanningBlokkadeIndex.put(blokkade);
 
 		}
 
-		LOG.info(blokkadeDtos.size() + " blokkades gelezen");
+		LOG.info(blokkadeViews.size() + " blokkades gelezen");
 	}
 
 	@NotNull
-	private static PlanningBlokkade maakPlanningBlokkade(BlokkadeDaoDto blokkadeDto)
+	private static PlanningBlokkade maakPlanningBlokkade(BlokkadeProjectie blokkadeProjectie)
 	{
 		PlanningStandplaats planningStandplaats = null;
 		PlanningScreeningsEenheid planningScreeningsEenheid = null;
 		PlanningScreeningsOrganisatie planningScreeningsOrganisatie = null;
 
-		switch (blokkadeDto.getType())
+		switch (blokkadeProjectie.getType())
 		{
 		case SCREENINGS_ORGANISATIE:
-			planningScreeningsOrganisatie = PlanningScreeningsOrganisatieIndex.get(blokkadeDto.getScreeningOrganisatieId());
+			planningScreeningsOrganisatie = PlanningScreeningsOrganisatieIndex.get(blokkadeProjectie.getScreeningOrganisatieId());
 			break;
 		case SCREENINGS_EENHEID:
-			planningScreeningsEenheid = PlanningScreeningsEenheidIndex.get(blokkadeDto.getScreeningsEenheidId());
+			planningScreeningsEenheid = PlanningScreeningsEenheidIndex.get(blokkadeProjectie.getScreeningsEenheidId());
 			break;
 		case STANDPLAATS:
-			planningStandplaats = PlanningStandplaatsIndex.get(blokkadeDto.getStandplaatsId());
+			planningStandplaats = PlanningStandplaatsIndex.get(blokkadeProjectie.getStandplaatsId());
 			break;
 		}
 
-		return new PlanningBlokkade(blokkadeDto.getId(), blokkadeDto.getType(), planningStandplaats, planningScreeningsEenheid, planningScreeningsOrganisatie,
-			DateUtil.toLocalDate(blokkadeDto.getVanaf()), DateUtil.toLocalDate(blokkadeDto.getTotEnMet()));
+		return new PlanningBlokkade(blokkadeProjectie.getId(), blokkadeProjectie.getType(), planningStandplaats, planningScreeningsEenheid, planningScreeningsOrganisatie,
+			DateUtil.toLocalDate(blokkadeProjectie.getVanaf()), DateUtil.toLocalDate(blokkadeProjectie.getTotEnMet()));
 	}
 
 	private void leesGebruikteCapaciteit()
@@ -807,14 +806,14 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 
 		if (!teLezenStandplaatsPeriodeIdsVanAlleScreeningOrganisaties.isEmpty())
 		{
-			var afspraakDtos = planningAfspraakDao.afsprakenMetGebruikteCapaciteit(teLezenStandplaatsPeriodeIdsVanAlleScreeningOrganisaties);
-			for (var afspraakDto : afspraakDtos)
+			var afspraakProjecties = planningAfspraakRepository.afsprakenMetGebruikteCapaciteit(teLezenStandplaatsPeriodeIdsVanAlleScreeningOrganisaties);
+			for (var afspraakProjectie : afspraakProjecties)
 			{
-				var planningClient = PlanningClientIndex.get(afspraakDto.getClientId());
+				var planningClient = PlanningClientIndex.get(afspraakProjectie.getClientId());
 				if (planningClient != null)
 				{
-					var screeningsEenheid = PlanningScreeningsEenheidIndex.get(afspraakDto.getScreeningsEenheidId());
-					var dag = screeningsEenheid.getDagNavigableMap().get(DateUtil.toLocalDate(afspraakDto.getAfspraakMoment()));
+					var screeningsEenheid = PlanningScreeningsEenheidIndex.get(afspraakProjectie.getScreeningsEenheidId());
+					var dag = screeningsEenheid.getDagNavigableMap().get(DateUtil.toLocalDate(afspraakProjectie.getAfspraakMoment()));
 					dag.getBeschikbaar().add(planningClient.getGebruikteCapaciteit(screeningsEenheid.getScreeningsOrganisatie()), planningClient.getBlokType());
 				}
 			}

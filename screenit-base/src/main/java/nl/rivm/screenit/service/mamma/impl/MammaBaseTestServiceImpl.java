@@ -28,7 +28,6 @@ import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.model.AfmeldingType;
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;
@@ -74,9 +73,6 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 
 	@Autowired
 	private ICurrentDateSupplier dateSupplier;
-
-	@Autowired
-	private ClientDao clientDao;
 
 	@Autowired
 	private HibernateService hibernateService;

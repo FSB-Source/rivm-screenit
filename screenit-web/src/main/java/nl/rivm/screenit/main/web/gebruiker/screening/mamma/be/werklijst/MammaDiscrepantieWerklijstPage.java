@@ -26,7 +26,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaBeWerklijstZoekObject;
-import nl.rivm.screenit.main.service.mamma.MammaBeoordelingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.discrepantie_arbitrage.MammaDiscrepantiePage;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
@@ -40,8 +39,9 @@ import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
+
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
 
 @SecurityConstraint(
 	actie = Actie.INZIEN,
@@ -52,15 +52,12 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.MAMMA })
 public class MammaDiscrepantieWerklijstPage extends AbstractMammaBeWerklijstPage
 {
-	@SpringBean
-	private MammaBeoordelingService beoordelingService;
-
 	@Override
 	public void openBeoordelingScherm(AjaxRequestTarget target, IModel<MammaBeoordeling> model, IModel<MammaBeWerklijstZoekObject> zoekObject, SortParam<String> sortParam)
 	{
 		ScreenitSession.get().setZoekObject(MammaDiscrepantieWerklijstPage.class, zoekObject); 
 		MammaBeoordeling beoordeling = model.getObject();
-		List<Long> beoordelingenIds = beoordelingService.zoekBeoordelingenNummers(zoekObject.getObject(), sortParam.getProperty(), sortParam.isAscending());
+		List<Long> beoordelingenIds = beWerklijstService.zoekBeoordelingenNummers(zoekObject.getObject(), toSpringSort(sortParam));
 		setResponsePage(new MammaDiscrepantiePage(beoordeling.getId(), beoordelingenIds, this.getClass()));
 	}
 

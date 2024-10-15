@@ -32,14 +32,17 @@ import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.MammaPlanningBasePage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.MammaScreeningsEenheidFilter;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid_;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.util.DateUtil;
+import nl.topicuszorg.organisatie.model.Organisatie_;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -58,6 +61,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
 
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
+
 @SecurityConstraint(
 	actie = Actie.INZIEN,
 	checkScope = true,
@@ -66,10 +71,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.MAMMA })
 public class MammaSEZoekenPage extends MammaPlanningBasePage
 {
-
-	private static final long serialVersionUID = 1L;
-
-	private Form<MammaScreeningsEenheidFilter> zoekForm;
+	private final Form<MammaScreeningsEenheidFilter> zoekForm;
 
 	@SpringBean
 	private InstellingService instellingService;
@@ -100,41 +102,37 @@ public class MammaSEZoekenPage extends MammaPlanningBasePage
 		add(refreshContainer);
 
 		List<IColumn<MammaScreeningsEenheid, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<>(Model.of("Code"), "code", "code"));
-		columns.add(new PropertyColumn<>(Model.of("Naam"), "naam", "naam"));
-		columns.add(new PropertyColumn<>(Model.of("Beoordelingseenheid"), "beoordelingsEenheid.naam", "beoordelingsEenheid.naam"));
-		columns.add(new PropertyColumn<>(Model.of("Centrale eenheid"), "parent.naam", "beoordelingsEenheid.parent.naam"));
+		columns.add(new PropertyColumn<>(Model.of("Code"), MammaScreeningsEenheid_.CODE, "code"));
+		columns.add(new PropertyColumn<>(Model.of("Naam"), MammaScreeningsEenheid_.NAAM, "naam"));
+		columns.add(
+			new PropertyColumn<>(Model.of("Beoordelingseenheid"), propertyChain(MammaScreeningsEenheid_.BEOORDELINGS_EENHEID, Organisatie_.NAAM), "beoordelingsEenheid.naam"));
+		columns.add(new PropertyColumn<>(Model.of("Centrale eenheid"), propertyChain(MammaScreeningsEenheid_.BEOORDELINGS_EENHEID, Instelling_.PARENT, Organisatie_.NAAM),
+			"beoordelingsEenheid.parent.naam"));
 		if (ingelogdNamensRegio == null)
 		{
 			columns.add(new PropertyColumn<>(Model.of("Screeningsorganisatie"),
-				"regio.naam", "beoordelingsEenheid.parent.regio.naam"));
+				propertyChain(MammaScreeningsEenheid_.BEOORDELINGS_EENHEID, Instelling_.PARENT, Instelling_.REGIO, Organisatie_.NAAM), "beoordelingsEenheid.parent.regio.naam"));
 		}
 
 		columns.add(new ActiefPropertyColumn<>(Model.of(""), "actief", refreshContainer, criteriaModel));
 
-		refreshContainer.add(new ScreenitDataTable<MammaScreeningsEenheid, String>("resultaten", columns, seDataProvider, 20, Model.of("screeningseenheden"))
+		refreshContainer.add(new ScreenitDataTable<>("resultaten", columns, seDataProvider, 20, Model.of("screeningseenheden"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<MammaScreeningsEenheid> model)
 			{
 				MammaScreeningsEenheid screeningsEenheid = model.getObject();
-				setResponsePage(new MammaSEEditPage(ModelUtil.cModel(screeningsEenheid)));
+				setResponsePage(new MammaSEEditPage(ModelUtil.ccModel(screeningsEenheid)));
 			}
-
 		});
 
-		AjaxLink<Void> toevoegen = new IndicatingAjaxLink<Void>("seToevoegen")
+		AjaxLink<Void> toevoegen = new IndicatingAjaxLink<>("seToevoegen")
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
 				MammaScreeningsEenheid screeningsEenheid = new MammaScreeningsEenheid();
-				IModel<MammaScreeningsEenheid> model = ModelUtil.cModel(screeningsEenheid);
+				IModel<MammaScreeningsEenheid> model = ModelUtil.ccModel(screeningsEenheid);
 				screeningsEenheid = model.getObject();
 				screeningsEenheid.setIsMobiel(true);
 				screeningsEenheid.setHeeftLift(true);
@@ -155,15 +153,12 @@ public class MammaSEZoekenPage extends MammaPlanningBasePage
 		zoekForm.add(new TextField<>("screeningsEenheid.naam"));
 		ScreenitDropdown<ScreeningOrganisatie> regioComponent = new ScreenitDropdown<>("regio",
 			ModelUtil.listRModel(instellingService.getActieveInstellingen(ScreeningOrganisatie.class), false),
-			new ChoiceRenderer<ScreeningOrganisatie>("naam"));
+			new ChoiceRenderer<>("naam"));
 		regioComponent.setVisible(ingelogdNamensRegio == null);
 		regioComponent.setNullValid(true);
 		zoekForm.add(regioComponent);
 		IndicatingAjaxSubmitLink zoekenButton = new IndicatingAjaxSubmitLink("zoeken", zoekForm)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -174,7 +169,6 @@ public class MammaSEZoekenPage extends MammaPlanningBasePage
 		};
 		zoekForm.setDefaultButton(zoekenButton);
 		zoekForm.add(zoekenButton);
-
 	}
 
 	@Override

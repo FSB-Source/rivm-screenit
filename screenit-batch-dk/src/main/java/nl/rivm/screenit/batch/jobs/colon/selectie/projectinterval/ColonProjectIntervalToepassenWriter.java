@@ -30,8 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.ProjectParameterKey;
 import nl.rivm.screenit.model.project.ProjectClient;
+import nl.rivm.screenit.service.BaseProjectService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.ProjectService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -47,7 +47,7 @@ public class ColonProjectIntervalToepassenWriter extends BaseWriter<ProjectClien
 
 	private final HibernateService hibernateService;
 
-	private final ProjectService projectService;
+	private final BaseProjectService projectService;
 
 	private final ICurrentDateSupplier currentDateSupplier;
 

@@ -26,8 +26,10 @@ import java.util.List;
 
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
+import nl.rivm.screenit.main.web.component.validator.EmailAddressValidator;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten.DocumentTemplateTestWrapper;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten.DocumentTemplateTestenFieldsPanel;
+import nl.rivm.screenit.model.enums.MergeField;
 
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -35,18 +37,20 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import nl.rivm.screenit.main.web.component.validator.EmailAddressValidator;
 
 public class IntakeLocatieFieldsFragment extends Fragment
 {
 
 	private static final String MARKUP_ID = "fragmentIntakeLocatieFields";
 
+	private final IModel<DocumentTemplateTestWrapper> wrapper;
+
 	public IntakeLocatieFieldsFragment(final String id,
 		final MarkupContainer markupProvider,
 		final IModel<DocumentTemplateTestWrapper> wrapper)
 	{
-		super(id, MARKUP_ID, markupProvider, new CompoundPropertyModel<>(new PropertyModel<>(wrapper, "intakeAfspraak.location.coloscopieCentrum")));
+		super(id, MARKUP_ID, markupProvider, new CompoundPropertyModel<>(new PropertyModel<>(wrapper, "intakeAfspraak.kamer.intakelocatie")));
+		this.wrapper = wrapper;
 	}
 
 	@Override
@@ -74,23 +78,28 @@ public class IntakeLocatieFieldsFragment extends Fragment
 		ComponentHelper.addTextField(this, "fax", false, 200, false);
 
 		add(getLocatieBeschrijvingTextArea());
-
+		add(getDigitaleIntakeTextArea());
 		add(getDuurAfspraakInMinutenDropDown());
-	}
-
-	private ScreenitDropdown<Integer> getDuurAfspraakInMinutenDropDown()
-	{
-		return DocumentTemplateTestenFieldsPanel.getScreenitDropdown("duurAfspraakInMinuten",
-			new PropertyModel<>(getDefaultModel(),
-				"afspraakDefinities[0].duurAfspraakInMinuten"),
-			getDurationIntervalList(5, 60, 5),
-			false);
 	}
 
 	private FormComponent<String> getLocatieBeschrijvingTextArea()
 	{
 		return DocumentTemplateTestenFieldsPanel.getTextAreaWithStringValidator("locatieBeschrijving",
-			2048);
+			2048, new CompoundPropertyModel<>(new PropertyModel<>(MergeField.IL_LOKATIE, "currentValue")));
+	}
+
+	private FormComponent<String> getDigitaleIntakeTextArea()
+	{
+		return DocumentTemplateTestenFieldsPanel.getTextAreaWithStringValidator("digitaleIntake",
+			2048, new CompoundPropertyModel<>(new PropertyModel<>(MergeField.IL_DIGITALE_INTAKE, "currentValue")));
+	}
+
+	private ScreenitDropdown<Integer> getDuurAfspraakInMinutenDropDown()
+	{
+		return DocumentTemplateTestenFieldsPanel.getScreenitDropdown("duurAfspraakInMinuten",
+			new CompoundPropertyModel<>(new PropertyModel<>(MergeField.IL_INTAKEDUUR, "currentValue")),
+			getDurationIntervalList(5, 60, 5),
+			false);
 	}
 
 	private static List<Integer> getDurationIntervalList(final int startInclusive,

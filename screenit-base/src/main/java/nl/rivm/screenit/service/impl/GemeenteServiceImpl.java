@@ -22,28 +22,35 @@ package nl.rivm.screenit.service.impl;
  */
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
-import nl.rivm.screenit.dao.GbaBaseDao;
-import nl.rivm.screenit.dao.GemeenteDao;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.Gemeente;
+import nl.rivm.screenit.model.Gemeente_;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.model.UitnodigingsGebied;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.ColoscopieCentrumColonCapaciteitVerdeling;
+import nl.rivm.screenit.model.colon.UitnodigingsGebied;
+import nl.rivm.screenit.repository.algemeen.BagAdresRepository;
+import nl.rivm.screenit.repository.algemeen.GemeenteRepository;
 import nl.rivm.screenit.service.GemeenteService;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.organisatie.model.Adres_;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static nl.rivm.screenit.specification.algemeen.BagAdresSpecification.heeftGbaGemeente;
+import static nl.rivm.screenit.specification.algemeen.GemeenteSpecification.heeftGeenBMHKLaboratoriumOfGekoppeldAan;
+import static nl.rivm.screenit.specification.algemeen.GemeenteSpecification.heeftGeenScreeningOrganisatieOfGekoppeldAan;
+import static nl.rivm.screenit.specification.algemeen.GemeenteSpecification.heeftNaamEnScreeningOrganisatie;
+import static nl.rivm.screenit.specification.algemeen.GemeenteSpecification.isGemeenteActiefOpMoment;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.springframework.data.jpa.domain.Specification.where;
+
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
 public class GemeenteServiceImpl implements GemeenteService
 {
 
@@ -51,57 +58,63 @@ public class GemeenteServiceImpl implements GemeenteService
 	private HibernateService hibernateService;
 
 	@Autowired
-	private GemeenteDao gemeenteDao;
+	private GemeenteRepository gemeenteRepository;
 
 	@Autowired
-	private GbaBaseDao gbaBaseDao;
+	private BagAdresRepository bagAdresRepository;
+
+	@Autowired
+	private ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void voegGemeenteToe(Gemeente gemeente)
 	{
-		UitnodigingsGebied uitnodigingsGebied = new UitnodigingsGebied();
+		var uitnodigingsGebied = new UitnodigingsGebied();
 		uitnodigingsGebied.setGemeente(gemeente);
 		uitnodigingsGebied.setNaam(gemeente.getNaam());
 
-		hibernateService.saveOrUpdate(gemeente);
+		gemeenteRepository.save(gemeente);
 		hibernateService.saveOrUpdate(uitnodigingsGebied);
 	}
 
 	@Override
-	public List<Gemeente> getAllGekoppeldeGemeentes()
+	public List<Gemeente> getNietOfAanScreeningsOrganisatieGekoppeldGemeentes(ScreeningOrganisatie screeningOrganisatie)
 	{
-		return gemeenteDao.getAllGekoppeldeGemeentes();
+		var nu = currentDateSupplier.getDate();
+		var spec = heeftGeenScreeningOrganisatieOfGekoppeldAan(screeningOrganisatie)
+			.and(isGemeenteActiefOpMoment(nu));
+
+		return gemeenteRepository.findAll(spec, Sort.by(Gemeente_.NAAM));
 	}
 
 	@Override
-	public List<Gemeente> getGemeentesZonderScreeningOrganisatie(ScreeningOrganisatie screeningOrganisatie)
+	public List<Gemeente> getNietOfAanBMHKLaboratoriumGekoppeldGemeentes(BMHKLaboratorium bmhkLaboratorium)
 	{
-		return gemeenteDao.getGemeentesZonderScreeningOrganisatie(screeningOrganisatie);
+		var nu = currentDateSupplier.getDate();
+		var spec = heeftGeenBMHKLaboratoriumOfGekoppeldAan(bmhkLaboratorium)
+			.and(isGemeenteActiefOpMoment(nu));
+
+		return gemeenteRepository.findAll(spec, Sort.by(Gemeente_.NAAM));
 	}
 
 	@Override
-	public List<Gemeente> getGemeentesZonderBMHKLaboratorium(BMHKLaboratorium bmhkLaboratorium)
+	public List<Gemeente> zoekGemeentes(Gemeente gemeente, long first, long count, String property, boolean ascending)
 	{
-		return gemeenteDao.getGemeentesZonderBMHKLaboratorium(bmhkLaboratorium);
+		var sort = Sort.by(ascending ? Sort.Direction.ASC : Sort.Direction.DESC, property);
+		var spec = heeftNaamEnScreeningOrganisatie(gemeente);
+
+		return gemeenteRepository.findWith(spec, q -> q.sortBy(sort)).all(first, count);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS)
-	public List<Gemeente> zoekGemeentes(Gemeente zoekObject, long first, long count, String property, boolean ascending)
+	public long countGemeentes(Gemeente gemeente)
 	{
-		return gemeenteDao.zoekGemeentes(zoekObject, first, count, property, ascending);
+		var spec = heeftNaamEnScreeningOrganisatie(gemeente);
+		return gemeenteRepository.count(spec);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS)
-	public long countGemeentes(Gemeente zoekObject)
-	{
-		return gemeenteDao.countGemeentes(zoekObject);
-	}
-
-	@Override
-	@Transactional(propagation = Propagation.SUPPORTS)
 	public Boolean getGesplitsOpPostcode(Gemeente gemeente)
 	{
 		int aantal = 0;
@@ -119,7 +132,7 @@ public class GemeenteServiceImpl implements GemeenteService
 				{
 					gesplitsOpPostcode = Boolean.TRUE;
 				}
-				else if (StringUtils.isNotBlank(gebied.getWoonplaats()))
+				else if (isNotBlank(gebied.getWoonplaats()))
 				{
 					gesplitsOpPostcode = Boolean.FALSE;
 				}
@@ -135,10 +148,13 @@ public class GemeenteServiceImpl implements GemeenteService
 	@Override
 	public List<String> getWoonplaatsen(UitnodigingsGebied gebied)
 	{
-		List<String> woonplaatsen = gemeenteDao.getWoonplaatsen(gebied);
-		for (UitnodigingsGebied andereGebied : gebied.getGemeente().getUitnodigingsGebieden())
+		var spec = where(heeftGbaGemeente(gebied.getGemeente()));
+
+		var woonplaatsen = bagAdresRepository.findWith(spec, String.class, q -> q.projection((cb, r) -> r.get(Adres_.plaats))).all();
+
+		for (var andereGebied : gebied.getGemeente().getUitnodigingsGebieden())
 		{
-			if (StringUtils.isNotBlank(andereGebied.getWoonplaats()))
+			if (isNotBlank(andereGebied.getWoonplaats()))
 			{
 				woonplaatsen.remove(andereGebied.getWoonplaats());
 			}
@@ -147,13 +163,13 @@ public class GemeenteServiceImpl implements GemeenteService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void verwijderAlleGebieden(Gemeente gemeente)
 	{
 		List<UitnodigingsGebied> toDeleteGebieden = new ArrayList<>();
-		for (UitnodigingsGebied gebied : gemeente.getUitnodigingsGebieden())
+		for (var gebied : gemeente.getUitnodigingsGebieden())
 		{
-			if (gebied.getPostcodeGebied() != null || StringUtils.isNotBlank(gebied.getWoonplaats()))
+			if (gebied.getPostcodeGebied() != null || isNotBlank(gebied.getWoonplaats()))
 			{
 				if (gebied.getVerdeling() != null)
 				{
@@ -162,7 +178,7 @@ public class GemeenteServiceImpl implements GemeenteService
 				toDeleteGebieden.add(gebied);
 			}
 		}
-		for (UitnodigingsGebied toDeleteGebied : toDeleteGebieden)
+		for (var toDeleteGebied : toDeleteGebieden)
 		{
 			gemeente.getUitnodigingsGebieden().remove(toDeleteGebied);
 			hibernateService.delete(toDeleteGebied);
@@ -171,24 +187,11 @@ public class GemeenteServiceImpl implements GemeenteService
 	}
 
 	@Override
-	public Iterator<? extends UitnodigingsGebied> getGebieden(UitnodigingsGebied zoekObject, ColoscopieCentrum coloscopieCentrum, long first, long count, String property,
-		boolean ascending)
-	{
-		return gemeenteDao.getGebieden(zoekObject, coloscopieCentrum, first, count, property, ascending);
-	}
-
-	@Override
-	public long getCountGebieden(UitnodigingsGebied zoekObject, ColoscopieCentrum coloscopieCentrum)
-	{
-		return gemeenteDao.getCountGebieden(zoekObject, coloscopieCentrum);
-	}
-
-	@Override
 	public boolean magAlleGebiedenVerwijderen(Gemeente gemeente)
 	{
-		for (UitnodigingsGebied gebied : gemeente.getUitnodigingsGebieden())
+		for (var gebied : gemeente.getUitnodigingsGebieden())
 		{
-			if (gebied.getPostcodeGebied() != null || StringUtils.isNotBlank(gebied.getWoonplaats()))
+			if (gebied.getPostcodeGebied() != null || isNotBlank(gebied.getWoonplaats()))
 			{
 				for (ColoscopieCentrumColonCapaciteitVerdeling verdeling : gebied.getVerdeling())
 				{
@@ -205,6 +208,6 @@ public class GemeenteServiceImpl implements GemeenteService
 	@Override
 	public Gemeente getGemeenteByCode(String code)
 	{
-		return gbaBaseDao.getStamtabelByCode(Gemeente.class, code);
+		return gemeenteRepository.findOneByCode(code).orElse(null);
 	}
 }

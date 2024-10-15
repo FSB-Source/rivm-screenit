@@ -22,10 +22,9 @@ package nl.rivm.screenit.service.colon.impl;
  */
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -33,14 +32,14 @@ import nl.rivm.screenit.dao.colon.RoosterDao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.IGeografischeCoordinaten;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
-import nl.rivm.screenit.model.colon.Kamer;
-import nl.rivm.screenit.model.colon.RoosterItemListViewWrapper;
-import nl.rivm.screenit.model.colon.RoosterItemStatus;
+import nl.rivm.screenit.model.colon.ColonAfspraakslotListViewWrapper;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.RoosterListViewFilter;
-import nl.rivm.screenit.model.colon.planning.VrijSlot;
-import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamer;
-import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamerFilter;
+import nl.rivm.screenit.model.colon.dto.VrijSlot;
+import nl.rivm.screenit.model.colon.dto.VrijSlotZonderKamer;
+import nl.rivm.screenit.model.colon.dto.VrijSlotZonderKamerFilter;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakslotStatus;
+import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
 import nl.rivm.screenit.service.CoordinatenService;
 import nl.rivm.screenit.service.colon.PlanningService;
 import nl.rivm.screenit.service.colon.VrijSlotFactory;
@@ -77,30 +76,27 @@ public class PlanningServiceImpl<T extends VrijSlot> implements PlanningService<
 	private VrijSlotFactory<T> factory;
 
 	@Override
-	public List<T> getBeschikbaarheid(LocalDate startDatum, LocalDate eindDatum, ColoscopieCentrum intakelocatie)
+	public List<T> getBeschikbaarheid(LocalDate startDatum, LocalDate eindDatum, ColonIntakelocatie intakelocatie)
 	{
 		List<T> returnValues = new ArrayList<T>();
 
 		RoosterListViewFilter filter = new RoosterListViewFilter();
 		filter.setStartDatum(DateUtil.toUtilDate(startDatum));
 		filter.setEindDatum(DateUtil.toUtilDate(eindDatum));
-		filter.setStatus(RoosterItemStatus.VRIJ_TE_VERPLAATSEN);
+		filter.setStatus(ColonAfspraakslotStatus.VRIJ_TE_VERPLAATSEN);
 		filter.setRekeningHoudenMetCapaciteitMeeBepaald(false);
-		Iterator<RoosterItemListViewWrapper> roosterBlokken = roosterDao.getRoosterBlokken("startTime", true, -1, -1, filter, intakelocatie).iterator();
-		while (roosterBlokken.hasNext())
+		for (ColonAfspraakslotListViewWrapper afspraakslot : roosterDao.getAfspraakslots("vanaf", true, -1, -1, filter, intakelocatie))
 		{
-			RoosterItemListViewWrapper roosterItem = roosterBlokken.next();
-
 			T slot = factory.createVrijSlot();
 
-			slot.setStartTijd(roosterItem.getStartDatum());
-			slot.setEindTijd(roosterItem.getEindDatum());
-			slot.setKamerId(roosterItem.getKamerId());
-			slot.setRoosterItemId(roosterItem.getRoosterItemId());
+			slot.setStartTijd(afspraakslot.getStartDatum());
+			slot.setEindTijd(afspraakslot.getEindDatum());
+			slot.setKamerId(afspraakslot.getKamerId());
+			slot.setAfspraakslotId(afspraakslot.getAfspraakslotId());
 			slot.setMaxAantalDeelnemers(1);
 			slot.setAantalDeelnemers(1);
 
-			LOG.debug(String.format("%s (%d), %s %s - %s", roosterItem.getKamer(), roosterItem.getKamerId(), slot.getDatumAsString(), slot.getStartTijdAsString(),
+			LOG.debug(String.format("%s (%d), %s %s - %s", afspraakslot.getKamer(), afspraakslot.getKamerId(), slot.getDatumAsString(), slot.getStartTijdAsString(),
 				slot.getEindTijdAsString()));
 			returnValues.add(slot);
 		}
@@ -187,38 +183,38 @@ public class PlanningServiceImpl<T extends VrijSlot> implements PlanningService<
 		{
 			if (AdresUtil.isTijdelijkAdres(persoon, DateUtil.toLocalDate(vrijSlotZonderKamer.getStartTijd())) && persoonCoordinaten.vanTijdelijkAdres != null)
 			{
-				if (!tijdelijkAdresAfstandenMap.containsKey(vrijSlotZonderKamer.getIntakeLocatieId()))
+				if (!tijdelijkAdresAfstandenMap.containsKey(vrijSlotZonderKamer.getIntakelocatieId()))
 				{
-					ColoscopieCentrum intakeLocatie = hibernateService.load(ColoscopieCentrum.class, vrijSlotZonderKamer.getIntakeLocatieId());
+					ColonIntakelocatie intakeLocatie = hibernateService.load(ColonIntakelocatie.class, vrijSlotZonderKamer.getIntakelocatieId());
 					IGeografischeCoordinaten intakeLocatieCoordinaten = intakeLocatie.getPostcodeCoordinaten();
 					if (intakeLocatieCoordinaten != null)
 					{
 						Double afstand = BigDecimalUtil.berekenDistance(persoonCoordinaten.vanTijdelijkAdres, intakeLocatieCoordinaten);
-						tijdelijkAdresAfstandenMap.put(vrijSlotZonderKamer.getIntakeLocatieId(), afstand);
+						tijdelijkAdresAfstandenMap.put(vrijSlotZonderKamer.getIntakelocatieId(), afstand);
 						vrijSlotZonderKamer.setAfstand(afstand);
 					}
 				}
 				else
 				{
-					vrijSlotZonderKamer.setAfstand(tijdelijkAdresAfstandenMap.get(vrijSlotZonderKamer.getIntakeLocatieId()));
+					vrijSlotZonderKamer.setAfstand(tijdelijkAdresAfstandenMap.get(vrijSlotZonderKamer.getIntakelocatieId()));
 				}
 			}
 			else
 			{
-				if (!adresAfstandenMap.containsKey(vrijSlotZonderKamer.getIntakeLocatieId()))
+				if (!adresAfstandenMap.containsKey(vrijSlotZonderKamer.getIntakelocatieId()))
 				{
-					ColoscopieCentrum intakeLocatie = hibernateService.load(ColoscopieCentrum.class, vrijSlotZonderKamer.getIntakeLocatieId());
+					ColonIntakelocatie intakeLocatie = hibernateService.load(ColonIntakelocatie.class, vrijSlotZonderKamer.getIntakelocatieId());
 					IGeografischeCoordinaten intakeLocatieCoordinaten = intakeLocatie.getPostcodeCoordinaten();
 					if (intakeLocatieCoordinaten != null && persoonCoordinaten.vanAdres != null)
 					{
 						Double afstand = BigDecimalUtil.berekenDistance(persoonCoordinaten.vanAdres, intakeLocatieCoordinaten);
-						adresAfstandenMap.put(vrijSlotZonderKamer.getIntakeLocatieId(), afstand);
+						adresAfstandenMap.put(vrijSlotZonderKamer.getIntakelocatieId(), afstand);
 						vrijSlotZonderKamer.setAfstand(afstand);
 					}
 				}
 				else
 				{
-					vrijSlotZonderKamer.setAfstand(adresAfstandenMap.get(vrijSlotZonderKamer.getIntakeLocatieId()));
+					vrijSlotZonderKamer.setAfstand(adresAfstandenMap.get(vrijSlotZonderKamer.getIntakelocatieId()));
 				}
 			}
 		}
@@ -238,10 +234,10 @@ public class PlanningServiceImpl<T extends VrijSlot> implements PlanningService<
 	}
 
 	@Override
-	public Kamer getBeschikbareKamer(Date startTijd, Long intakeLocatieId)
+	public ColonIntakekamer getBeschikbareKamer(LocalDateTime startTijd, Long intakelocatieId)
 	{
-		List<Kamer> kamers = roosterDao.getKamers(startTijd, intakeLocatieId);
-		if (kamers.size() > 0)
+		var kamers = roosterDao.getKamers(startTijd, intakelocatieId);
+		if (!kamers.isEmpty())
 		{
 			return kamers.get(0);
 		}

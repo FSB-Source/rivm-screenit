@@ -27,29 +27,29 @@ import java.util.List;
 
 import javax.persistence.Tuple;
 
+import nl.rivm.screenit.model.colon.planning.ColonTijdslot;
 import nl.rivm.screenit.repository.BaseJpaRepository;
-import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface ColonTijdslotRepository extends BaseJpaRepository<AbstractAppointment>
+public interface ColonTijdslotRepository extends BaseJpaRepository<ColonTijdslot>
 {
-	@Query(nativeQuery = true, value = "with afspraakslots as (select pa.id, pa.start_time as startDatum, pa.end_time as eindDatum, "
-		+ "k.name as kamer, k.id as kamerId, "
-		+ "cast (pa.start_time as time) as startTijd, "
-		+ "cast (pa.end_time as time) as eindTijd, "
-		+ "extract(DOW from pa.start_time) as dag "
-		+ "from colon.plan_appointment pa "
-		+ "inner join colon.plan_location k on pa.location = k.id "
-		+ "inner join algemeen.org_organisatie il on il.id = k.coloscopie_centrum "
+	@Query(nativeQuery = true, value = "with afspraakslots as (select t.id, t.vanaf as startDatum, t.tot as eindDatum, "
+		+ "k.naam as kamer, k.id as kamerId, "
+		+ "cast (t.vanaf as time) as startTijd, "
+		+ "cast (t.tot as time) as eindTijd, "
+		+ "extract(DOW from t.vanaf) as dag "
+		+ "from colon.tijdslot t "
+		+ "inner join colon.intakekamer k on t.kamer = k.id "
+		+ "inner join algemeen.org_organisatie il on il.id = k.intakelocatie "
 		+ "where il.id = :intakelocatieId "
 		+ "and il.actief = true "
 		+ "and k.actief = true "
 		+ "and (k.id = :kamerId or :kamerId is null)"
-		+ "and end_time > :startDatum "
-		+ "and start_time < :eindDatum "
-		+ "and pa.title = :typeTijdslot)"
+		+ "and vanaf >= :startDatum "
+		+ "and vanaf < :eindDatum "
+		+ "and t.type = :typeTijdslot)"
 		+ "select id as tijdslotId, startDatum, eindDatum, kamerId, kamer "
 		+ "from afspraakslots "
 		+ "where eindTijd>:startTijd "

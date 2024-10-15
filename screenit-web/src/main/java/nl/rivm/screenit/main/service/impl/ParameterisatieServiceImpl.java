@@ -56,15 +56,11 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaUitnodigingsinterval;
 import nl.rivm.screenit.model.mamma.enums.MammaUitnodigingsintervalType;
-import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
-import nl.topicuszorg.hibernate.object.model.HibernateObject;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.preferencemodule.context.EntityWithoutIdContext;
-import nl.topicuszorg.preferencemodule.service.Converters;
 import nl.topicuszorg.preferencemodule.service.PreferenceService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
@@ -418,14 +414,6 @@ public class ParameterisatieServiceImpl implements ParameterisatieService
 			var timeFormatter = DateUtil.LOCAL_DATE_TIME_FORMAT;
 			String stringValue = timeFormatter.format((LocalDateTime) value);
 			simplePreferenceService.putString(preferenceKey.name(), stringValue);
-		}
-
-		else if (value instanceof HibernateObject)
-		{
-			HibernateObject hibernateObject = (HibernateObject) value;
-			hibernateService.saveOrUpdate(hibernateObject);
-
-			preferenceService.saveOrUpdate(preferenceKey.name(), new EntityWithoutIdContext(Project.class), Converters.forString(), hibernateObject.getId().toString());
 		}
 		else
 		{

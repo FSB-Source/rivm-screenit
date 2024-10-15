@@ -30,11 +30,13 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.SingularAttribute;
 
+import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.specification.SpecificationUtil;
 
 import org.springframework.data.jpa.domain.Specification;
 
 @FunctionalInterface
+@Deprecated(forRemoval = false)
 public interface PathAwarePredicate<T>
 {
 	Predicate withPath(CriteriaBuilder cb, Path<? extends T> r);

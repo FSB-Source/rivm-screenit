@@ -37,7 +37,6 @@ import nl.rivm.screenit.main.web.component.form.PostcodeField;
 import nl.rivm.screenit.model.INaam;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.wicket.input.radiochoice.BooleanRadioChoice;
-import nl.topicuszorg.wicket.planning.web.component.DatePickerHelper;
 
 import org.apache.wicket.Application;
 import org.apache.wicket.AttributeModifier;

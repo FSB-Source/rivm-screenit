@@ -25,9 +25,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ConclusieTypeFilter;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -38,7 +38,7 @@ public class ColonAfgerondeIntakesWerklijstPage extends WerklijstIntakePage
 
 	public ColonAfgerondeIntakesWerklijstPage()
 	{
-		super(AfspraakStatus.UITGEVOERD);
+		super(ColonAfspraakStatus.UITGEVOERD);
 		exportToCsvLink.setVisible(false);
 	}
 
@@ -49,10 +49,10 @@ public class ColonAfgerondeIntakesWerklijstPage extends WerklijstIntakePage
 	}
 
 	@Override
-	protected SortableDataProvider<ColonIntakeAfspraak, String> getWerklijstIntakeDataProvider(ColoscopieCentrum intakelocatie, int aantalPerPagina)
+	protected SortableDataProvider<ColonIntakeAfspraak, String> getWerklijstIntakeDataProvider(ColonIntakelocatie intakelocatie, int aantalPerPagina)
 	{
 		var werklijstIntakeDataProvider = super.getWerklijstIntakeDataProvider(intakelocatie, aantalPerPagina);
-		werklijstIntakeDataProvider.setSort("startTime", SortOrder.DESCENDING);
+		werklijstIntakeDataProvider.setSort("vanaf", SortOrder.DESCENDING);
 		return werklijstIntakeDataProvider;
 	}
 

@@ -32,6 +32,7 @@ import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.ConfirmingIndicatingAjaxLink;
 import nl.rivm.screenit.main.web.component.ConfirmingIndicatingAjaxSubmitLink;
+import nl.rivm.screenit.main.web.component.DateTimeField;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.component.form.ScreenITDateTimeField;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
@@ -46,7 +47,6 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.input.timefield.TimeField;
-import nl.topicuszorg.wicket.planning.web.component.DateTimeField;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;

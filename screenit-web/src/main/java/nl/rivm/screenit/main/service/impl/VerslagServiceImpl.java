@@ -25,13 +25,11 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.dao.VerslagDao;
 import nl.rivm.screenit.main.service.FormulierService;
 import nl.rivm.screenit.main.service.VerslagService;
 import nl.rivm.screenit.model.BerichtZoekFilter;
@@ -41,10 +39,15 @@ import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.berichten.Verslag;
 import nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht;
+import nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht_;
 import nl.rivm.screenit.model.berichten.enums.BerichtType;
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.berichten.enums.VerslagType;
+import nl.rivm.screenit.model.cervix.CervixCytologieVerslag;
+import nl.rivm.screenit.model.colon.ColonVerslag;
+import nl.rivm.screenit.model.colon.ColonVerslag_;
 import nl.rivm.screenit.model.colon.MdlVerslag;
+import nl.rivm.screenit.model.colon.PaVerslag;
 import nl.rivm.screenit.model.colon.verslag.mdl.MdlIncidentcomplicatie;
 import nl.rivm.screenit.model.colon.verslag.mdl.MdlLaesiecoloscopiecentrum;
 import nl.rivm.screenit.model.colon.verslag.mdl.MdlMedicatie;
@@ -59,13 +62,23 @@ import nl.rivm.screenit.model.formulieren.IdentifierElement;
 import nl.rivm.screenit.model.formulieren.PalgaNumber;
 import nl.rivm.screenit.model.formulieren.PalgaNumberAntwoord;
 import nl.rivm.screenit.model.mamma.MammaDossier;
+import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
 import nl.rivm.screenit.model.verslag.DSValue;
 import nl.rivm.screenit.model.verslag.VerslagContent;
+import nl.rivm.screenit.repository.algemeen.OntvangenCdaBerichtRepository;
+import nl.rivm.screenit.repository.cervix.CervixCytologieVerslagRepository;
+import nl.rivm.screenit.repository.colon.ColonMdlVerslagRepository;
+import nl.rivm.screenit.repository.colon.ColonPaVerslagRepository;
+import nl.rivm.screenit.repository.colon.ColonVerslagRepository;
+import nl.rivm.screenit.repository.mamma.MammaFollowUpVerslagRepository;
 import nl.rivm.screenit.service.BaseVerslagService;
 import nl.rivm.screenit.service.BerichtToBatchService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.VerwerkVerslagService;
 import nl.rivm.screenit.service.mamma.MammaBaseFollowUpService;
+import nl.rivm.screenit.specification.cervix.CervixVerslagSpecification;
+import nl.rivm.screenit.specification.colon.ColonVerslagSpecification;
+import nl.rivm.screenit.specification.mamma.MammaFollowUpVerslagSpecification;
 import nl.rivm.screenit.util.RomanNumeral;
 import nl.topicuszorg.formulieren2.api.definitie.VraagDefinitie;
 import nl.topicuszorg.formulieren2.api.resultaat.Antwoord;
@@ -77,21 +90,31 @@ import nl.topicuszorg.formulieren2.persistence.resultaat.DateAntwoord;
 import nl.topicuszorg.formulieren2.persistence.resultaat.FormulierResultaatImpl;
 import nl.topicuszorg.formulieren2.persistence.resultaat.StringAntwoord;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 import nl.topicuszorg.hibernate.object.model.HibernateObject;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static java.util.Arrays.stream;
+import static nl.rivm.screenit.specification.algemeen.OntvangenCdaBerichtSpecification.maakZoekSpecification;
+import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftClientIdInMdlVerslag;
+import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftClientIdInPaVerslag;
+import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftColonDossier;
+import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftTypeInMdlVerslag;
+import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftTypeInPaVerslag;
+import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftVerslagStatus;
+import static org.springframework.data.domain.Sort.Direction.DESC;
+
 @Service
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class VerslagServiceImpl implements VerslagService
 {
 
@@ -114,9 +137,6 @@ public class VerslagServiceImpl implements VerslagService
 	private VerwerkVerslagService verwerkVerslagService;
 
 	@Autowired
-	private VerslagDao verslagDao;
-
-	@Autowired
 	private FormulierService formulierService;
 
 	@Autowired
@@ -131,8 +151,26 @@ public class VerslagServiceImpl implements VerslagService
 	@Autowired
 	private BaseVerslagService baseVerslagService;
 
+	@Autowired
+	private ColonMdlVerslagRepository mdlVerslagRepository;
+
+	@Autowired
+	private OntvangenCdaBerichtRepository ontvangenCdaBerichtRepository;
+
+	@Autowired
+	private ColonPaVerslagRepository paVerslagRepository;
+
+	@Autowired
+	private CervixCytologieVerslagRepository cervixCytologieVerslagRepository;
+
+	@Autowired
+	private MammaFollowUpVerslagRepository mammaVerslagRepository;
+
+	@Autowired
+	private ColonVerslagRepository colonVerslagRepository;
+
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void saveOrAfronden(VerslagContent<?> verslagContent, FormulierResultaat resultaat, boolean afronden, InstellingGebruiker instellingGebruiker)
 	{
 		try
@@ -407,7 +445,7 @@ public class VerslagServiceImpl implements VerslagService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public <V extends Verslag<?, ?>> V heropenVerslag(V verslag, InstellingGebruiker instellingGebruiker)
 	{
 		VerslagType verslagType = verslag.getType();
@@ -423,6 +461,14 @@ public class VerslagServiceImpl implements VerslagService
 		String melding = baseVerslagService.createLogMelding(verslag);
 		logService.logGebeurtenis(verslagType.getHeropendVerslagLogGebeurtenis(), instellingGebruiker, client, melding, verslagType.getBevolkingsonderzoek());
 		return verslag;
+	}
+
+	private void refreshUpdateFollowUpConclusie(Verslag<?, ?> verslag)
+	{
+		if (verslag.getType() == VerslagType.MAMMA_PA_FOLLOW_UP)
+		{
+			followUpService.refreshUpdateFollowUpConclusie((MammaDossier) verslag.getScreeningRonde().getDossier());
+		}
 	}
 
 	@Override
@@ -587,28 +633,30 @@ public class VerslagServiceImpl implements VerslagService
 	@Override
 	public List<MdlVerslag> getAlleMdlVerslagenVanClient(Client client)
 	{
-		return verslagDao.getAlleMdlVerslagenVanClient(client);
+		var spec = heeftColonDossier(client.getColonDossier()).and(heeftVerslagStatus(VerslagStatus.AFGEROND));
+		return mdlVerslagRepository.findAll(spec, Sort.by(DESC, ColonVerslag_.DATUM_ONDERZOEK));
 	}
 
 	@Override
-	public List<OntvangenCdaBericht> searchBerichten(BerichtZoekFilter filter, long first, long count, String property, boolean ascending)
+	public List<OntvangenCdaBericht> zoekBerichten(BerichtZoekFilter filter, long first, long count, String property, boolean ascending)
 	{
-		return verslagDao.searchBerichten(filter, first, count, property, ascending);
+		var sort = Sort.by(ascending ? Sort.Direction.ASC : Sort.Direction.DESC, property);
+		return ontvangenCdaBerichtRepository.findWith(maakZoekSpecification(filter), q -> q.sortBy(sort)).all(first, count);
 	}
 
 	@Override
 	public long countBerichten(BerichtZoekFilter filter)
 	{
-		return verslagDao.countBerichten(filter);
+		return ontvangenCdaBerichtRepository.count(maakZoekSpecification(filter));
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void herverwerkAlleBerichten(BerichtZoekFilter filter)
 	{
-		final List<Object> idsEnBerichtTypen = verslagDao.getIdsEnBerichtTypen(filter);
-
-		Arrays.stream(BerichtType.values()).forEach(berichtType -> berichtenOpnieuwVerwerken(
+		var idsEnBerichtTypen = ontvangenCdaBerichtRepository.findWith(maakZoekSpecification(filter), Object[].class,
+			q -> q.projections((cb, r) -> List.of(r.get(AbstractHibernateObject_.id), r.get(OntvangenCdaBericht_.berichtType)))).all();
+		stream(BerichtType.values()).forEach(berichtType -> berichtenOpnieuwVerwerken(
 			idsEnBerichtTypen.stream()
 				.filter(o -> (((Object[]) o)[1]) == berichtType)
 				.map(o -> ((Long) ((Object[]) o)[0]))
@@ -617,15 +665,128 @@ public class VerslagServiceImpl implements VerslagService
 	}
 
 	@Override
-	public <V extends Verslag<?, ?>> List<V> zoekVerslagen(V zoekObject, int first, int count, String property, boolean ascending)
+	public <V extends Verslag<?, ?>> List<V> zoekVerslagen(V zoekCriteria, int first, int aantal, String property, boolean ascending)
 	{
-		return verslagDao.zoekVerslagen(ModelProxyHelper.deproxy(zoekObject), first, count, property, ascending);
+		var sort = Sort.by(ascending ? Sort.Direction.ASC : Sort.Direction.DESC, property);
+
+		if (zoekCriteria instanceof MdlVerslag)
+		{
+			var specification = getZoekMdlVerslagenSpecification((MdlVerslag) zoekCriteria);
+			return (List<V>) mdlVerslagRepository.findWith(specification, q -> q.sortBy(sort)).all(first, aantal);
+		}
+
+		if (zoekCriteria instanceof PaVerslag)
+		{
+			var specification = getZoekPaVerslagenSpecification((PaVerslag) zoekCriteria);
+			return (List<V>) paVerslagRepository.findWith(specification, q -> q.sortBy(sort)).all(first, aantal);
+		}
+
+		if (zoekCriteria instanceof CervixCytologieVerslag)
+		{
+			var specification = getZoekCervixVerslagenSpecification((CervixCytologieVerslag) zoekCriteria);
+			return (List<V>) cervixCytologieVerslagRepository.findWith(specification, q -> q.sortBy(sort)).all(first, aantal);
+		}
+
+		if (zoekCriteria instanceof MammaFollowUpVerslag)
+		{
+			var specification = getZoekFollowUpVerslagenSpecification((MammaFollowUpVerslag) zoekCriteria);
+			return (List<V>) mammaVerslagRepository.findWith(specification, q -> q.sortBy(sort)).all(first, aantal);
+		}
+
+		if (zoekCriteria instanceof ColonVerslag)
+		{
+			var specification = getZoekColonVerslagenSpecification((ColonVerslag) zoekCriteria);
+			var colonVerslagen = colonVerslagRepository.findWith(specification, q -> q.sortBy(sort)).all(first, aantal);
+			return colonVerslagen.stream().map(v -> (V) v).collect(Collectors.toList());
+		}
+
+		throw new IllegalArgumentException("Onbekend verslag type: " + zoekCriteria.getClass().getName());
+	}
+
+	private Specification<MdlVerslag> getZoekMdlVerslagenSpecification(MdlVerslag zoekObject)
+	{
+		var specification = heeftClientIdInMdlVerslag(zoekObject.getScreeningRonde().getDossier().getClient().getId());
+		if (zoekObject.getType() != null)
+		{
+			specification = specification.and(heeftTypeInMdlVerslag(zoekObject.getType()));
+		}
+		return specification;
+	}
+
+	private Specification<PaVerslag> getZoekPaVerslagenSpecification(PaVerslag zoekObject)
+	{
+		var specification = heeftClientIdInPaVerslag(zoekObject.getScreeningRonde().getDossier().getClient().getId());
+		if (zoekObject.getType() != null)
+		{
+			specification = specification.and(heeftTypeInPaVerslag(zoekObject.getType()));
+		}
+		return specification;
+	}
+
+	private Specification<CervixCytologieVerslag> getZoekCervixVerslagenSpecification(CervixCytologieVerslag zoekObject)
+	{
+		var specification = CervixVerslagSpecification.heeftClientId(zoekObject.getScreeningRonde().getDossier().getClient().getId());
+		if (zoekObject.getType() != null)
+		{
+			specification = specification.and(CervixVerslagSpecification.heeftType(zoekObject.getType()));
+		}
+		return specification;
+	}
+
+	private Specification<MammaFollowUpVerslag> getZoekFollowUpVerslagenSpecification(MammaFollowUpVerslag zoekObject)
+	{
+		var specification = MammaFollowUpVerslagSpecification.heeftClientId(zoekObject.getScreeningRonde().getDossier().getClient().getId());
+		if (zoekObject.getType() != null)
+		{
+			specification = specification.and(MammaFollowUpVerslagSpecification.heeftType(zoekObject.getType()));
+		}
+		return specification;
+	}
+
+	private Specification<ColonVerslag> getZoekColonVerslagenSpecification(ColonVerslag zoekObject)
+	{
+		var specification = ColonVerslagSpecification.heeftClientId(zoekObject.getScreeningRonde().getDossier().getClient().getId());
+		if (zoekObject.getType() != null)
+		{
+			specification = specification.and(ColonVerslagSpecification.heeftType(zoekObject.getType()));
+		}
+		return specification;
 	}
 
 	@Override
 	public <V extends Verslag<?, ?>> long countVerslagen(V zoekObject)
 	{
-		return verslagDao.countVerslagen(ModelProxyHelper.deproxy(zoekObject));
+		if (zoekObject instanceof MdlVerslag)
+		{
+			var specification = getZoekMdlVerslagenSpecification((MdlVerslag) zoekObject);
+			return mdlVerslagRepository.count(specification);
+		}
+
+		if (zoekObject instanceof PaVerslag)
+		{
+			var specification = getZoekPaVerslagenSpecification((PaVerslag) zoekObject);
+			return paVerslagRepository.count(specification);
+		}
+
+		if (zoekObject instanceof CervixCytologieVerslag)
+		{
+			var specification = getZoekCervixVerslagenSpecification((CervixCytologieVerslag) zoekObject);
+			return cervixCytologieVerslagRepository.count(specification);
+		}
+
+		if (zoekObject instanceof MammaFollowUpVerslag)
+		{
+			var specification = getZoekFollowUpVerslagenSpecification((MammaFollowUpVerslag) zoekObject);
+			return mammaVerslagRepository.count(specification);
+		}
+
+		if (zoekObject instanceof ColonVerslag)
+		{
+			var specification = getZoekColonVerslagenSpecification((ColonVerslag) zoekObject);
+			return colonVerslagRepository.count(specification);
+		}
+
+		throw new IllegalArgumentException("Onbekend verslag type: " + zoekObject.getClass().getName());
 	}
 
 	@Override
@@ -633,7 +794,7 @@ public class VerslagServiceImpl implements VerslagService
 	{
 		if (!ids.isEmpty())
 		{
-			verslagDao.setBerichtenOpnieuwVerwerken(ids);
+			baseVerslagService.setBerichtenOpnieuwVerwerken(ids);
 			cdaBerichtToBatchService.queueCDABericht(bvo);
 		}
 	}
@@ -641,14 +802,6 @@ public class VerslagServiceImpl implements VerslagService
 	@Override
 	public void berichtOpnieuwVerwerken(OntvangenCdaBericht ontvangenCdaBericht)
 	{
-		berichtenOpnieuwVerwerken(Arrays.asList(ontvangenCdaBericht.getId()), ontvangenCdaBericht.getBerichtType().getBevolkingsonderzoek());
-	}
-
-	private void refreshUpdateFollowUpConclusie(Verslag<?, ?> verslag)
-	{
-		if (verslag.getType().equals(VerslagType.MAMMA_PA_FOLLOW_UP))
-		{
-			followUpService.refreshUpdateFollowUpConclusie((MammaDossier) verslag.getScreeningRonde().getDossier());
-		}
+		berichtenOpnieuwVerwerken(List.of(ontvangenCdaBericht.getId()), ontvangenCdaBericht.getBerichtType().getBevolkingsonderzoek());
 	}
 }

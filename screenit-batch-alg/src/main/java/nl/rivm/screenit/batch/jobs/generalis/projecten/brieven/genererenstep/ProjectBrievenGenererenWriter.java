@@ -43,8 +43,8 @@ import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectClientAttribuut;
 import nl.rivm.screenit.model.project.ProjectMergedBrieven;
+import nl.rivm.screenit.service.BaseProjectService;
 import nl.rivm.screenit.service.ClientService;
-import nl.rivm.screenit.service.ProjectService;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.batch.item.ExecutionContext;
@@ -58,7 +58,7 @@ public class ProjectBrievenGenererenWriter extends AbstractBrievenGenererenWrite
 {
 
 	@Autowired
-	private ProjectService projectService;
+	private BaseProjectService projectService;
 
 	@Autowired
 	private ClientService clientService;

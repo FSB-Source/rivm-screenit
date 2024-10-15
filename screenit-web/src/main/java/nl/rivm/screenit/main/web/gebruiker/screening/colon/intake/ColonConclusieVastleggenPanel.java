@@ -22,6 +22,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.intake;
  */
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -43,11 +44,11 @@ import nl.rivm.screenit.model.colon.ColonConclusie;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.IFOBTTest;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieOnHoldReden;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.ColonGeenOnderzoekReden;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.Recht;
@@ -113,9 +114,9 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 
 	private Component conclusieContainer;
 
-	private boolean mdlVerslagVerwerkt;
+	private final boolean mdlVerslagVerwerkt;
 
-	private ColonVervolgonderzoekKeuzesDto vervolgonderzoekDto;
+	private final ColonVervolgonderzoekKeuzesDto vervolgonderzoekDto;
 
 	private ConfirmingIndicatingAjaxSubmitLink<ColonIntakeAfspraak> opslaan;
 
@@ -173,10 +174,6 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 				vervolgonderzoekDto.isDoorverwezenDoorInfolijn = true;
 			}
 		}
-		if (afspraak.getBezwaar() == null)
-		{
-			afspraak.setBezwaar(false);
-		}
 		if (conclusie.getDatum() == null)
 		{
 			conclusie.setDatum(dateSupplier.getDate());
@@ -197,7 +194,7 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 
 		private static final long serialVersionUID = 1L;
 
-		private BootstrapDialog dialog;
+		private final BootstrapDialog dialog;
 
 		public ConclusieForm(String id, IModel<ColonIntakeAfspraak> model)
 		{
@@ -246,7 +243,7 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 			add(asaScoreChoice);
 
 			add(new AjaxButtonGroup<>("bezwaar", BOOLEAN_OPTIONS_MODEL, new BooleanChoiceRenderer()).setEnabled(!mdlVerslagVerwerkt)
-				.setVisible(intakeAfspraak.getBezwaar()));
+				.setVisible(intakeAfspraak.isBezwaar()));
 
 			opslaan = new ConfirmingIndicatingAjaxSubmitLink<>("conclusieOpslaan", dialog, null)
 			{
@@ -271,11 +268,11 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 
 				private void laatMeldingenZien(ColonIntakeAfspraak afspraak)
 				{
-					if ((origConclusie == null || !ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM.equals(origConclusie))
+					if ((!ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM.equals(origConclusie))
 						&& afspraak.getConclusie() != null
 						&& ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM.equals(afspraak.getConclusie().getType()))
 					{
-						var regio = afspraak.getLocation().getColoscopieCentrum().getRegio();
+						var regio = afspraak.getKamer().getIntakelocatie().getRegio();
 						if (regio != null)
 						{
 							warn(String.format(getString("bel.infolijn.voor.afspraak"), regio.getTelefoon()));
@@ -327,7 +324,7 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 				}
 			};
 			add(opslaan);
-			opslaan.setVisible(!AfspraakStatus.isGeannuleerd(intakeAfspraak.getStatus()) && !mdlVerslagVerwerkt);
+			opslaan.setVisible(!ColonAfspraakStatus.isGeannuleerd(intakeAfspraak.getStatus()) && !mdlVerslagVerwerkt);
 			opslaan.setEnabled(intakeAfspraak.getConclusie().getId() != null);
 			opslaan.setOutputMarkupId(true);
 
@@ -380,7 +377,7 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 		{
 			var oudeAfspraak = afspraakService.zoekBevestigdeDoorverwijzendeAfspraak(getModelObject());
 
-			add(new Label("verwezenDoor", new PropertyModel<>(ModelUtil.sModel(oudeAfspraak), "location.coloscopieCentrum.naam")).setVisible(
+			add(new Label("verwezenDoor", new PropertyModel<>(ModelUtil.sModel(oudeAfspraak), "kamer.intakelocatie.naam")).setVisible(
 				oudeAfspraak != null));
 		}
 
@@ -606,9 +603,9 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 
 		private final IModel<List<Boolean>> opties;
 
-		private String vraag;
+		private final String vraag;
 
-		private IChoiceRenderer<Boolean> renderer;
+		private final IChoiceRenderer<Boolean> renderer;
 
 		public VraagFragment(String id, String vraag, IModel<List<Boolean>> opties)
 		{
@@ -726,7 +723,7 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 		{
 			super(id, "belInfolijnVoorAfspraak", ColonConclusieVastleggenPanel.this);
 
-			add(new Label("location.coloscopieCentrum.regio.telefoon"));
+			add(new Label("kamer.intakelocatie.regio.telefoon"));
 		}
 	}
 
@@ -764,9 +761,9 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 			{
 				add(new Label("begeleidendTekst", getString("bevestigingNodigVoorVerwijzing")).setEscapeModelStrings(false));
 			}
-			add(new Label("nieuweAfspraak.location.coloscopieCentrum.naam"));
-			add(new Label("nieuweAfspraak.location.name"));
-			add(DateLabel.forDatePattern("nieuweAfspraak.startTime", "EEEE dd-MM-yyyy HH:mm"));
+			add(new Label("nieuweAfspraak.kamer.intakelocatie.naam"));
+			add(new Label("nieuweAfspraak.kamer.naam"));
+			add(new Label("nieuweAfspraak.vanaf", DateTimeFormatter.ofPattern("EEEE dd-MM-yyyy HH:mm").format(afspraak.getVanaf())));
 		}
 	}
 

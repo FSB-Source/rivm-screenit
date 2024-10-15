@@ -21,9 +21,9 @@ package nl.rivm.screenit.factory.impl;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.model.ScreenitPreferenceItem;
+import nl.rivm.screenit.model.PreferenceItem;
 import nl.topicuszorg.preferencemodule.factory.PreferenceFactory;
-import nl.topicuszorg.preferencemodule.model.PreferenceItem;
+import nl.topicuszorg.preferencemodule.model.IPreferenceItem;
 
 import org.springframework.stereotype.Component;
 
@@ -31,8 +31,8 @@ import org.springframework.stereotype.Component;
 public class PreferenceFactoryImpl implements PreferenceFactory
 {
 	@Override
-	public PreferenceItem createPreferenceItem()
+	public IPreferenceItem createPreferenceItem()
 	{
-		return new ScreenitPreferenceItem();
+		return new PreferenceItem();
 	}
 }

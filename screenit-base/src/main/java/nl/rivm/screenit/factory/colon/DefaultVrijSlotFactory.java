@@ -22,7 +22,7 @@ package nl.rivm.screenit.factory.colon;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.model.colon.planning.VrijSlot;
+import nl.rivm.screenit.model.colon.dto.VrijSlot;
 import nl.rivm.screenit.service.colon.VrijSlotFactory;
 
 import org.springframework.stereotype.Service;

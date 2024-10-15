@@ -41,12 +41,12 @@ import nl.rivm.screenit.batch.service.ColonUitnodigingsgebiedCapaciteitService;
 import nl.rivm.screenit.dao.colon.ColonUitnodigingsgebiedDao;
 import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.Gemeente;
-import nl.rivm.screenit.model.UitnodigingsGebied;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ColoscopieCentrumColonCapaciteitVerdeling;
+import nl.rivm.screenit.model.colon.UitnodigingsGebied;
+import nl.rivm.screenit.model.colon.dto.VrijSlot;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
-import nl.rivm.screenit.model.colon.planning.RoosterItem;
-import nl.rivm.screenit.model.colon.planning.VrijSlot;
+import nl.rivm.screenit.model.colon.planning.ColonAfspraakslot;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.project.ProjectGroep;
@@ -121,7 +121,7 @@ public class ColonUitnodigingsgebiedCapaciteitServiceImpl implements ColonUitnod
 		LOG.info("Bepaal uitnodigingscapaciteit op basis van de capaciteit van de intakelocaties voor alle uitnodigingsgebieden in de week van {} tot/met {}",
 			weekStart.format(DateUtil.LOCAL_DATE_FORMAT), weekEnd.format(DateUtil.LOCAL_DATE_FORMAT));
 
-		for (ColoscopieCentrum intakelocatie : instellingService.getActieveIntakelocaties())
+		for (ColonIntakelocatie intakelocatie : instellingService.getActieveIntakelocaties())
 		{
 			BigDecimal intakecapaciteitPerDag = bepaalIntakeCapaciteitPerDag(weekStart, weekEnd, intakelocatie);
 
@@ -156,13 +156,13 @@ public class ColonUitnodigingsgebiedCapaciteitServiceImpl implements ColonUitnod
 		return result;
 	}
 
-	private BigDecimal bepaalIntakeCapaciteitPerDag(LocalDate weekStart, LocalDate weekEnd, ColoscopieCentrum intakelocatie)
+	private BigDecimal bepaalIntakeCapaciteitPerDag(LocalDate weekStart, LocalDate weekEnd, ColonIntakelocatie intakelocatie)
 	{
 		var vrijeSloten = planningService.getBeschikbaarheid(weekStart, weekEnd.plusDays(1), intakelocatie);
 
 		var intakecapaciteitInWeek = BigDecimal.valueOf(vrijeSloten.size());
 
-		setRoosterItemsOpCapaciteitMeebepaald(vrijeSloten);
+		setAfspraakslotOpCapaciteitMeeBepaald(vrijeSloten);
 
 		return intakecapaciteitInWeek.divide(BigDecimal.valueOf(5), 2, RoundingMode.HALF_UP);
 	}
@@ -174,7 +174,7 @@ public class ColonUitnodigingsgebiedCapaciteitServiceImpl implements ColonUitnod
 	}
 
 	private BigDecimal bepaalEnLogUitnodigingsCapVanILVoorGebied(BigDecimal intakecapaciteitPerDag, BigDecimal gebiedsFactor,
-		ColoscopieCentrumColonCapaciteitVerdeling capaciteitVerdeling, ColoscopieCentrum intakelocatie, UitnodigingsGebied uitnodigingsGebied)
+		ColoscopieCentrumColonCapaciteitVerdeling capaciteitVerdeling, ColonIntakelocatie intakelocatie, UitnodigingsGebied uitnodigingsGebied)
 	{
 		BigDecimal uitnodigingsCapaciteit = intakecapaciteitPerDag.multiply(gebiedsFactor);
 
@@ -194,7 +194,7 @@ public class ColonUitnodigingsgebiedCapaciteitServiceImpl implements ColonUitnod
 		UitnodigingsGebied uitnodigingsGebied,
 		BigDecimal uitnodigingsCapVanILVoorGebied, ColoscopieCentrumColonCapaciteitVerdeling capaciteitVerdeling)
 	{
-		Long ilId = capaciteitVerdeling.getColoscopieCentrum().getId();
+		Long ilId = capaciteitVerdeling.getIntakelocatie().getId();
 		Long uitnodigingsGebiedId = uitnodigingsGebied.getId();
 
 		if (!uitnodigingsGebiedenMetCapaciteit.containsKey(uitnodigingsGebiedId))
@@ -210,14 +210,14 @@ public class ColonUitnodigingsgebiedCapaciteitServiceImpl implements ColonUitnod
 		}
 	}
 
-	private void setRoosterItemsOpCapaciteitMeebepaald(List<VrijSlot> vrijeSloten)
+	private void setAfspraakslotOpCapaciteitMeeBepaald(List<VrijSlot> vrijeSloten)
 	{
 
-		for (VrijSlot vrijSlot : vrijeSloten)
+		for (var vrijSlot : vrijeSloten)
 		{
-			RoosterItem roosterItem = hibernateService.load(RoosterItem.class, vrijSlot.getRoosterItemId());
-			roosterItem.setCapaciteitMeeBepaald(true);
-			hibernateService.saveOrUpdate(roosterItem);
+			var afspraakslot = hibernateService.load(ColonAfspraakslot.class, vrijSlot.getAfspraakslotId());
+			afspraakslot.setCapaciteitMeeBepaald(true);
+			hibernateService.saveOrUpdate(afspraakslot);
 		}
 	}
 
@@ -336,7 +336,7 @@ public class ColonUitnodigingsgebiedCapaciteitServiceImpl implements ColonUitnod
 
 			for (ColoscopieCentrumColonCapaciteitVerdeling capVerdeling : leeglopendUitnodigingsgebied.getVerdeling())
 			{
-				ColoscopieCentrum intakelocatie = capVerdeling.getColoscopieCentrum();
+				ColonIntakelocatie intakelocatie = capVerdeling.getIntakelocatie();
 				if (Boolean.TRUE.equals(intakelocatie.getActief()))
 				{
 					List<ColoscopieCentrumColonCapaciteitVerdeling> capaciteitVerdelingIL = intakelocatie.getCapaciteitVerdeling();
@@ -383,8 +383,8 @@ public class ColonUitnodigingsgebiedCapaciteitServiceImpl implements ColonUitnod
 									.divide(new BigDecimal(totaalPercentages), 10, RoundingMode.HALF_UP);
 								LOG.info("Er gaat " + BigDecimalUtil.decimalToString(capaciteitOmToeTeVoegen) + " aan uitnodigingscapaciteit van "
 									+ leeglopendUitnodigingsgebied.getNaam() + " naar gebied " + targetVerdeling.getUitnodigingsGebied().getNaam() + " voor IL "
-									+ targetVerdeling.getColoscopieCentrum().getNaam());
-								targetGebied.addUitnodigingscapaciteit(capaciteitOmToeTeVoegen, targetVerdeling.getColoscopieCentrum().getId(), false);
+									+ targetVerdeling.getIntakelocatie().getNaam());
+								targetGebied.addUitnodigingscapaciteit(capaciteitOmToeTeVoegen, targetVerdeling.getIntakelocatie().getId(), false);
 								aangepasteGebieden.add(targetGebied);
 							}
 						}

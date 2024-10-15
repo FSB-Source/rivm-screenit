@@ -26,7 +26,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.dao.CoordinatenDao;
+import nl.rivm.screenit.service.CoordinatenService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.batch.item.ItemWriter;
@@ -40,7 +40,7 @@ public class PostcodeCoordinatenWriter implements ItemWriter<String>
 
 	private final HibernateService hibernateService;
 
-	private final CoordinatenDao coordinatenDao;
+	private final CoordinatenService coordinatenService;
 
 	@Override
 	public void write(List<? extends String> items)
@@ -55,7 +55,7 @@ public class PostcodeCoordinatenWriter implements ItemWriter<String>
 				String huisnummerToevoeging = lineParts[5];
 				String lat = lineParts[9];
 				String lon = lineParts[10];
-				coordinatenDao.addOrUpdateCoordinaten(postcode, huisnr, huisnummerToevoeging, lat, lon);
+				coordinatenService.addOrUpdateCoordinaten(postcode, huisnr, huisnummerToevoeging, lat, lon);
 			}
 		}
 		hibernateService.getHibernateSession().flush();

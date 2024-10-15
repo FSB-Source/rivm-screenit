@@ -23,27 +23,32 @@ package nl.rivm.screenit.service.mamma.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import net.lingala.zip4j.exception.ZipException;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.dao.VerslagDao;
-import nl.rivm.screenit.dao.mamma.MammaPalgaDao;
 import nl.rivm.screenit.dto.mamma.MammaPalgaCsvImportDto;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
+import nl.rivm.screenit.model.SingleTableHibernateObject_;
 import nl.rivm.screenit.model.UploadDocument;
+import nl.rivm.screenit.model.UploadDocument_;
 import nl.rivm.screenit.model.batch.popupconfig.MammaPalgaExportConfig;
 import nl.rivm.screenit.model.batch.popupconfig.MammaPalgaGrondslag;
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.BezwaarType;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaDossier;
+import nl.rivm.screenit.model.mamma.MammaDossier_;
 import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
 import nl.rivm.screenit.model.mamma.verslag.followup.MammaFollowUpFollowupPa;
 import nl.rivm.screenit.model.mamma.verslag.followup.MammaFollowUpMonstermateriaal;
@@ -53,54 +58,72 @@ import nl.rivm.screenit.model.mamma.verslag.followup.MammaFollowUpVerrichting;
 import nl.rivm.screenit.model.mamma.verslag.followup.MammaFollowUpVerslagContent;
 import nl.rivm.screenit.model.verslag.DSValue;
 import nl.rivm.screenit.model.verslag.DSValueSet;
+import nl.rivm.screenit.repository.algemeen.ClientRepository;
+import nl.rivm.screenit.repository.algemeen.UploadDocumentRepository;
+import nl.rivm.screenit.repository.mamma.MammaDossierRepository;
+import nl.rivm.screenit.service.BaseVerslagService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaPalgaCsvImportMapping;
 import nl.rivm.screenit.service.mamma.MammaPalgaService;
 import nl.rivm.screenit.service.mamma.MammaVerwerkVerslagService;
+import nl.rivm.screenit.specification.algemeen.UploadDocumentSpecification;
+import nl.rivm.screenit.specification.mamma.MammaPalgaSpecification;
+import nl.rivm.screenit.util.BezwaarUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.ZipUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static nl.rivm.screenit.specification.algemeen.UploadDocumentSpecification.heeftContentType;
+import static nl.rivm.screenit.specification.algemeen.UploadDocumentSpecification.heeftContentTypeIn;
+import static nl.rivm.screenit.specification.algemeen.UploadDocumentSpecification.heeftNaamDieEindigtOp;
+import static nl.rivm.screenit.specification.algemeen.UploadDocumentSpecification.heeftPathDieStartMet;
+import static nl.rivm.screenit.specification.mamma.MammaPalgaSpecification.heeftGeenActieveBezwaarVoorPalga;
+import static nl.rivm.screenit.specification.mamma.MammaPalgaSpecification.heeftGeenClientGbaStatusAfgevoerdOfBezwaar;
+import static nl.rivm.screenit.specification.mamma.MammaPalgaSpecification.voldoetAanPalgaExportConfig;
+
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class MammaPalgaServiceImpl implements MammaPalgaService
 {
-	@Autowired
-	private String locatieFilestore;
+	private final String locatieFilestore;
 
-	@Autowired
-	private MammaPalgaDao palgaDao;
+	private final LogService logService;
 
-	@Autowired
-	private LogService logService;
+	private final UploadDocumentService uploadDocumentService;
 
-	@Autowired
-	private UploadDocumentService uploadDocumentService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final BaseVerslagService verslagService;
 
-	@Autowired
-	private VerslagDao verslagDao;
+	private final MammaVerwerkVerslagService verwerkVerslagService;
 
-	@Autowired
-	private MammaVerwerkVerslagService verwerkVerslagService;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final MammaDossierRepository dossierRepository;
+
+	private final UploadDocumentRepository uploadDocumentRepository;
+
+	private final ClientRepository clientRepository;
 
 	@Override
 	public List<Long> getClientenVoorPalga(MammaPalgaExportConfig exportConfig)
 	{
-		return palgaDao.getClientenVoorPalga(exportConfig);
+		var vandaag = currentDateSupplier.getLocalDate();
+		return dossierRepository.findWith(
+			heeftGeenClientGbaStatusAfgevoerdOfBezwaar().and(heeftGeenActieveBezwaarVoorPalga()).and(voldoetAanPalgaExportConfig(exportConfig, vandaag)),
+			Long.class,
+			q -> q.projection((cb, r) -> r.get(MammaDossier_.client).get(SingleTableHibernateObject_.id))
+				.distinct().all());
 	}
 
 	@Override
@@ -112,7 +135,7 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 			var logRegel = String.format("Verwijderd: %s", naam);
 			logService.logGebeurtenis(LogGebeurtenis.MAMMA_PALGA_CSV_EXPORT, loggedInAccount, logRegel);
 		}
-		var exports = palgaDao.getExports();
+		var exports = getExports();
 		for (var export : exports)
 		{
 			uploadDocumentService.delete(export);
@@ -122,13 +145,40 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 	@Override
 	public UploadDocument getExport()
 	{
-		return palgaDao.getExport();
+		return uploadDocumentRepository.findFirst(maakExportUploadDocumentSpecification(), Sort.by(Sort.Order.desc(UploadDocument_.NAAM))).orElse(null);
+	}
+
+	@Override
+	public List<UploadDocument> getExports()
+	{
+		return uploadDocumentRepository.findAll(maakExportUploadDocumentSpecification());
+	}
+
+	private Specification<UploadDocument> maakExportUploadDocumentSpecification()
+	{
+		return heeftContentType("application/zip")
+			.and(UploadDocumentSpecification.heeftNaamDieStartMet("CHTRDS"))
+			.and(heeftNaamDieEindigtOp(".zip"))
+			.and(heeftPathDieStartMet(FileStoreLocation.MAMMA_PALGA_CSV_EXPORT.getPath().replaceAll("\\\\", "\\\\\\\\")));
 	}
 
 	@Override
 	public UploadDocument getImport()
 	{
-		return palgaDao.getImport();
+		return uploadDocumentRepository.findFirst(maakImportSpecification(), Sort.by(Sort.Order.desc(UploadDocument_.NAAM))).orElse(null);
+	}
+
+	private Specification<UploadDocument> maakImportSpecification()
+	{
+		return heeftContentTypeIn(List.of("application/octet-stream", "application/vnd.ms-excel", "text/csv"))
+			.and(heeftNaamDieEindigtOp(".csv"))
+			.and(heeftPathDieStartMet(FileStoreLocation.MAMMA_PALGA_CSV_IMPORT.getPath().replaceAll("\\\\", "\\\\\\\\")));
+	}
+
+	@Override
+	public List<UploadDocument> getImports()
+	{
+		return uploadDocumentRepository.findAll(maakImportSpecification());
 	}
 
 	@Override
@@ -181,7 +231,7 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void deleteImports()
 	{
-		var imports = palgaDao.getImports();
+		var imports = getImports();
 		for (var importDoc : imports)
 		{
 			uploadDocumentService.delete(importDoc);
@@ -317,7 +367,7 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 		}
 		else if ("UNK".equals(code) && ("zijdigheid".equals(varName) || "bclassificatieOpMammabiopt".equals(varName)))
 		{
-			return verslagDao.getDsValue(code, "2.16.840.1.113883.5.1008", Constants.CDA_NULL_FLAVOR_VALUESET_NAME);
+			return verslagService.getDsValue(code, "2.16.840.1.113883.5.1008", Constants.CDA_NULL_FLAVOR_VALUESET_NAME);
 		}
 		var dsValueSet = clazz.getDeclaredField(varName).getAnnotation(DSValueSet.class);
 		for (var dsValue : dsValueSet.values())
@@ -325,15 +375,10 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 			if (dsValue.code().equals(code))
 			{
 				var codeSystem = dsValue.codeSystem();
-				return verslagDao.getDsValue(code, codeSystem, dsValueSet.name(), false);
+				return verslagService.getDsValue(code, codeSystem, dsValueSet.name(), false);
 			}
 		}
 		throw new IllegalArgumentException(clazz.getSimpleName() + ":" + varName + ", " + code + " not found");
-	}
-
-	private long getPatid3MatchCount(GbaPersoon persoon)
-	{
-		return palgaDao.getPatid3MatchCount(persoon);
 	}
 
 	@Override
@@ -427,6 +472,12 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 		return null;
 	}
 
+	@Override
+	public long getPatid3MatchCount(GbaPersoon persoon)
+	{
+		return clientRepository.count(MammaPalgaSpecification.heeftPalgaPatid3Voorwaarden(persoon));
+	}
+
 	private void vulMeerkeuzeVeldPa(List<DSValue> targetList, String dtoTeksten, String varName) throws NoSuchFieldException
 	{
 		if (dtoTeksten == null)
@@ -447,7 +498,8 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 
 	private boolean heeftBezwaar(Client client)
 	{
-		return palgaDao.heeftBezwaar(client);
+		return BezwaarUtil.isEenVanDeBezwaarTypesActiefVoor(client, Arrays.asList(BezwaarType.GEEN_WETENSCHAPPELIJK_ONDERZOEK, BezwaarType.GEEN_KWALITEITSWAARBORGING),
+			Bevolkingsonderzoek.MAMMA);
 	}
 
 	private String valideerVerslag(MammaFollowUpVerslag verslag, boolean isProtocol)

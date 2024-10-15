@@ -25,7 +25,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import nl.rivm.screenit.model.colon.RoosterItemStatus;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakslotStatus;
 
 @Getter
 @Setter
@@ -34,7 +34,7 @@ public class ColonAfspraakslotDto extends ColonTijdslotDto
 {
 	private Boolean capaciteitMeeBepaald;
 
-	private RoosterItemStatus status;
+	private ColonAfspraakslotStatus status;
 
 	private int aantalBlokken = 1;
 

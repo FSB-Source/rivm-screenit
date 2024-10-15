@@ -27,7 +27,6 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.dao.EnovationHuisartsDao;
 import nl.rivm.screenit.huisartsenportaal.dto.ResetDto;
 import nl.rivm.screenit.huisartsenportaal.enums.CervixLocatieStatus;
 import nl.rivm.screenit.main.dao.cervix.CervixHuisartsDao;
@@ -57,6 +56,7 @@ import nl.rivm.screenit.model.overeenkomsten.AfgeslotenInstellingOvereenkomst;
 import nl.rivm.screenit.model.overeenkomsten.Overeenkomst;
 import nl.rivm.screenit.model.overeenkomsten.OvereenkomstType;
 import nl.rivm.screenit.service.BaseBriefService;
+import nl.rivm.screenit.service.EnovationHuisartsService;
 import nl.rivm.screenit.service.GebruikersService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
@@ -84,7 +84,7 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 	private BaseBriefService briefService;
 
 	@Autowired
-	private EnovationHuisartsDao enovationHuisartsDao;
+	private EnovationHuisartsService enovationHuisartsService;
 
 	@Autowired
 	private CervixHuisartsDao huisartsDao;
@@ -134,7 +134,7 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 
 			var postadresCervixHuisarts = new CervixHuisartsAdres();
 
-			var enovationHuisarts = enovationHuisartsDao.getHuisartsByAgb(agbCode);
+			var enovationHuisarts = enovationHuisartsService.getHuisartsByAgb(agbCode);
 			if (enovationHuisarts != null)
 			{
 				var praktijknaam = enovationHuisarts.getPraktijknaam();

@@ -23,8 +23,8 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.bestanden;
 
 import java.util.Iterator;
 
-import nl.rivm.screenit.dao.ProjectDao;
-import nl.rivm.screenit.model.SortState;
+import nl.rivm.screenit.main.service.algemeen.ProjectService;
+import nl.rivm.screenit.main.util.WicketSpringDataUtil;
 import nl.rivm.screenit.model.project.ProjectBestandVerwerking;
 import nl.rivm.screenit.model.project.ProjectBestandVerwerkingEntry;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -35,31 +35,33 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import static nl.rivm.screenit.model.project.ProjectBestandVerwerkingEntry_.REGEL_NUMMER;
+
 public class ProjectBestandVerwerkingDataProvider extends SortableDataProvider<ProjectBestandVerwerkingEntry, String>
 {
 	@SpringBean
-	private ProjectDao projectDao;
+	private ProjectService projectService;
 
-	private IModel<ProjectBestandVerwerking> verwerkingModel;
+	private final IModel<ProjectBestandVerwerking> verwerkingModel;
 
 	public ProjectBestandVerwerkingDataProvider(IModel<ProjectBestandVerwerking> verwerkingModel)
 	{
 		Injector.get().inject(this);
-		setSort("regelNummer", SortOrder.ASCENDING);
+		setSort(REGEL_NUMMER, SortOrder.ASCENDING);
 		this.verwerkingModel = verwerkingModel;
 	}
 
 	@Override
 	public Iterator<? extends ProjectBestandVerwerkingEntry> iterator(long first, long count)
 	{
-		return projectDao.getProjectBestandVerwerkingEntries(maakFilter(), first, count, new SortState<>(getSort().getProperty(), getSort().isAscending()));
+		return projectService.getProjectBestandVerwerkingEntries(maakFilter(), first, count, WicketSpringDataUtil.toSpringSort(getSort())).iterator();
 
 	}
 
 	@Override
 	public long size()
 	{
-		return projectDao.getAantalProjectbestandVerwerkingEntries(maakFilter());
+		return projectService.getAantalProjectbestandVerwerkingEntries(maakFilter());
 	}
 
 	private ProjectBestandVerwerkingEntry maakFilter()

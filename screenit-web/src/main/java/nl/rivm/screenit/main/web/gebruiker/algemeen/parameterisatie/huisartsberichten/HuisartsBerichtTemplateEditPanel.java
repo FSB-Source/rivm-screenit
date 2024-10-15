@@ -34,8 +34,8 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.MergeField;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
+import nl.rivm.screenit.repository.algemeen.HuisartsBerichtTemplateRepository;
 import nl.rivm.screenit.service.AutorisatieService;
-import nl.rivm.screenit.service.HuisartsBerichtTemplateService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -55,7 +55,7 @@ import org.apache.wicket.validation.validator.StringValidator;
 public class HuisartsBerichtTemplateEditPanel extends GenericPanel<HuisartsBerichtTemplate>
 {
 	@SpringBean
-	private HuisartsBerichtTemplateService templateService;
+	private HuisartsBerichtTemplateRepository templateRepository;
 
 	@SpringBean
 	private AutorisatieService autorisatieService;
@@ -66,32 +66,26 @@ public class HuisartsBerichtTemplateEditPanel extends GenericPanel<HuisartsBeric
 	@SpringBean
 	private ICurrentDateSupplier currentDateSupplier;
 
-	private IModel<MergeField> mergeFieldModel;
-
-	private ToegangLevel level;
-
-	private boolean inzien;
+	private final IModel<MergeField> mergeFieldModel;
 
 	public HuisartsBerichtTemplateEditPanel(String id, IModel<HuisartsBerichtTemplate> model)
 	{
 		super(id, model);
 
-		Actie actie = autorisatieService.getActieVoorMedewerker(ScreenitSession.get().getLoggedInInstellingGebruiker(), ScreenitSession.get().getCurrentSelectedMedewerker(),
+		var actie = autorisatieService.getActieVoorMedewerker(ScreenitSession.get().getLoggedInInstellingGebruiker(), ScreenitSession.get().getCurrentSelectedMedewerker(),
 			Recht.GEBRUIKER_BEHEER_PARAMETERISATIE);
-		level = ScreenitSession.get().getToegangsLevel(Actie.INZIEN, Recht.GEBRUIKER_BEHEER_PARAMETERISATIE);
-		inzien = !isMinimumActie(actie, Actie.AANPASSEN);
+		var level = ScreenitSession.get().getToegangsLevel(Actie.INZIEN, Recht.GEBRUIKER_BEHEER_PARAMETERISATIE);
+		var inzien = !isMinimumActie(actie, Actie.AANPASSEN);
 
-		ScreenitForm<HuisartsBerichtTemplate> form = new ScreenitForm<HuisartsBerichtTemplate>("templateForm", getModel());
-		setMergeFieldModel(new CompoundPropertyModel<>(new Model<>()));
+		var form = new ScreenitForm<HuisartsBerichtTemplate>("templateForm", getModel());
+		mergeFieldModel = new CompoundPropertyModel<>(new Model<>());
 
-		WebMarkupContainer mergeFieldContainer = new WebMarkupContainer("mergeFieldContainer");
+		var mergeFieldContainer = new WebMarkupContainer("mergeFieldContainer");
 		mergeFieldContainer.setVisible(!inzien);
 		form.add(mergeFieldContainer);
 
-		mergeFieldContainer.add(new ScreenitDropdown<>("mergefield", getMergeFieldModel(), Arrays.asList(MergeField.values()), new ChoiceRenderer<MergeField>()
+		mergeFieldContainer.add(new ScreenitDropdown<>("mergefield", mergeFieldModel, Arrays.asList(MergeField.values()), new ChoiceRenderer<MergeField>()
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public Object getDisplayValue(MergeField object)
@@ -104,16 +98,16 @@ public class HuisartsBerichtTemplateEditPanel extends GenericPanel<HuisartsBeric
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
-				if (getMergeFieldModel() != null && getMergeFieldModel().getObject() != null)
+				if (mergeFieldModel.getObject() != null)
 				{
-					HuisartsBerichtTemplate template = form.getModelObject();
-					String inhoud = template.getBerichtInhoud();
-					inhoud += " {" + getMergeFieldModel().getObject().getFieldName() + "}";
+					var template = form.getModelObject();
+					var inhoud = template.getBerichtInhoud();
+					inhoud += " {" + mergeFieldModel.getObject().getFieldName() + "}";
 					template.setBerichtInhoud(inhoud);
 				}
 			}
 		});
-		TextArea<String> berichtInhoud = new TextArea<>("berichtInhoud");
+		var berichtInhoud = new TextArea<String>("berichtInhoud");
 		berichtInhoud.setOutputMarkupId(true);
 		berichtInhoud.add(new StringValidator(1, 5000));
 		berichtInhoud.setRequired(true);
@@ -124,9 +118,9 @@ public class HuisartsBerichtTemplateEditPanel extends GenericPanel<HuisartsBeric
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				HuisartsBerichtTemplate template = form.getModelObject();
+				var template = form.getModelObject();
 				template.setAangepast(currentDateSupplier.getDate());
-				getTemplateService().saveOrUpdate(template);
+				templateRepository.save(template);
 				logService.logGebeurtenis(LogGebeurtenis.PARAMETERISATIE_WIJZIG, ScreenitSession.get().getLoggedInAccount(),
 					"Huisartsbericht template: '" + template.getBerichtType().getNaam() + "' aangepast.", Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX);
 				info("Template is opgeslagen");
@@ -140,27 +134,7 @@ public class HuisartsBerichtTemplateEditPanel extends GenericPanel<HuisartsBeric
 	protected void onDetach()
 	{
 		super.onDetach();
-		ModelUtil.nullSafeDetach(getMergeFieldModel());
-	}
-
-	public HuisartsBerichtTemplateService getTemplateService()
-	{
-		return templateService;
-	}
-
-	public void setTemplateService(HuisartsBerichtTemplateService templateService)
-	{
-		this.templateService = templateService;
-	}
-
-	public IModel<MergeField> getMergeFieldModel()
-	{
-		return mergeFieldModel;
-	}
-
-	public void setMergeFieldModel(IModel<MergeField> mergeFieldModel)
-	{
-		this.mergeFieldModel = mergeFieldModel;
+		ModelUtil.nullSafeDetach(mergeFieldModel);
 	}
 
 	protected boolean isMinimumActie(Actie actie, Actie minimaal)

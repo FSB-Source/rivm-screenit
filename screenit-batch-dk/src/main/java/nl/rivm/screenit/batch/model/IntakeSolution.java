@@ -24,7 +24,7 @@ package nl.rivm.screenit.batch.model;
 import java.util.Iterator;
 import java.util.List;
 
-import nl.rivm.screenit.model.colon.planning.VrijSlot;
+import nl.rivm.screenit.model.colon.dto.VrijSlot;
 
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.optaplanner.core.api.domain.solution.PlanningEntityCollectionProperty;
@@ -95,7 +95,7 @@ public class IntakeSolution
 			{
 				return false;
 			}
-			for (Iterator<ClientAfspraak> it = clientAfspraken.iterator(), otherIt = other.clientAfspraken.iterator(); it.hasNext();)
+			for (Iterator<ClientAfspraak> it = clientAfspraken.iterator(), otherIt = other.clientAfspraken.iterator(); it.hasNext(); )
 			{
 				ClientAfspraak clientAfspraak = it.next();
 				ClientAfspraak otherClientAfspraak = otherIt.next();

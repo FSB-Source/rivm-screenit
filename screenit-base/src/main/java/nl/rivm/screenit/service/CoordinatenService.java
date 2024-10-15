@@ -22,11 +22,21 @@ package nl.rivm.screenit.service;
  */
 
 import nl.rivm.screenit.model.GbaPersoon;
+import nl.rivm.screenit.model.PostcodeCoordinaten;
 import nl.rivm.screenit.service.impl.PersoonCoordinaten;
+import nl.topicuszorg.organisatie.model.Adres;
 
 public interface CoordinatenService
 {
 	PersoonCoordinaten getCoordinatenVanPersoon(GbaPersoon persoon);
 
+	PostcodeCoordinaten getCoordinaten(Adres adres);
+
+	PostcodeCoordinaten getCoordinaten(String postcode, Integer huisnummer, String huisnummerToevoeging, String huisletter);
+
 	PersoonCoordinaten getAdresEnTijdelijkAdresCoordinatenVanPersoon(GbaPersoon persoon);
+
+	void updateGemeenteCoordinaten(String gemcode, String latitude, String longitude);
+
+	void addOrUpdateCoordinaten(String postcode, String huisnr, String huisnummerToevoeging, String lat, String lon);
 }

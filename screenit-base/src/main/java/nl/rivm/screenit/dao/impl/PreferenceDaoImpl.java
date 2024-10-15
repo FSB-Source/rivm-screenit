@@ -22,33 +22,35 @@ package nl.rivm.screenit.dao.impl;
  */
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.model.ScreenitPreferenceItem;
+import nl.rivm.screenit.factory.impl.PreferenceItemSpecificationBuilder;
+import nl.rivm.screenit.model.PreferenceItem;
+import nl.rivm.screenit.repository.algemeen.PreferenceItemRepository;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 import nl.topicuszorg.preferencemodule.context.GlobalContext;
 import nl.topicuszorg.preferencemodule.dao.IContext;
 import nl.topicuszorg.preferencemodule.dao.PreferenceItemDao;
-import nl.topicuszorg.preferencemodule.model.PreferenceItem;
-import nl.topicuszorg.preferencemodule.until.PreferenceItemCriteria;
+import nl.topicuszorg.preferencemodule.model.IPreferenceItem;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.google.common.base.Optional;
 
 @Slf4j
 @Repository
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class PreferenceDaoImpl extends AbstractAutowiredDao implements PreferenceItemDao
 {
 	private final Map<String, Long> keyIds = new ConcurrentHashMap<>();
 
+	@Autowired
+	private PreferenceItemRepository preferenceItemRepository;
+
 	@Override
-	public PreferenceItem getPreferenceItem(String key, IContext context)
+	public IPreferenceItem getPreferenceItem(String key, IContext context)
 	{
 		if (!(context instanceof GlobalContext))
 		{
@@ -66,7 +68,7 @@ public class PreferenceDaoImpl extends AbstractAutowiredDao implements Preferenc
 		return getItemViaCache(key, context, keyId);
 	}
 
-	private PreferenceItem getItemAndCacheId(String key, IContext context)
+	private IPreferenceItem getItemAndCacheId(String key, IContext context)
 	{
 		var preferenceItem = getPreferenceItemLocal(key, context);
 		if (preferenceItem != null && preferenceItem.getId() != null)
@@ -76,10 +78,10 @@ public class PreferenceDaoImpl extends AbstractAutowiredDao implements Preferenc
 		return preferenceItem;
 	}
 
-	private PreferenceItem getItemViaCache(String key, IContext context, Long keyId)
+	private IPreferenceItem getItemViaCache(String key, IContext context, Long keyId)
 	{
 		LOG.debug("Use id {} voor Key {} uit cache", keyId, key);
-		var preferenceItem = getSession().get(ScreenitPreferenceItem.class, keyId); 
+		var preferenceItem = getSession().get(PreferenceItem.class, keyId); 
 		if (preferenceItem == null)
 		{
 			LOG.debug("Cached Id {} for key {} not in database anymore", keyId, key);
@@ -94,22 +96,22 @@ public class PreferenceDaoImpl extends AbstractAutowiredDao implements Preferenc
 		return getPreferenceOptional(getPreferenceItem(key, context));
 	}
 
-	private Optional<String> getPreferenceOptional(PreferenceItem preferenceItem)
-	{
-		return preferenceItem == null ? Optional.<String> absent() : Optional.fromNullable(preferenceItem.getValue());
-	}
-
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
-	public void saveOrUpdate(PreferenceItem preferenceItem)
+	@Transactional
+	public void saveOrUpdate(IPreferenceItem preferenceItem)
 	{
-		getSession().saveOrUpdate(preferenceItem);
+		preferenceItemRepository.save((PreferenceItem) preferenceItem);
 	}
 
-	private PreferenceItem getPreferenceItemLocal(String key, IContext context)
+	private Optional<String> getPreferenceOptional(IPreferenceItem preferenceItem)
 	{
-		PreferenceItemCriteria criteria = new PreferenceItemCriteria(key);
-		context.addContextToPreferenceItemCriteria(criteria);
-		return criteria.uniqueResult(getSession());
+		return preferenceItem == null ? Optional.empty() : Optional.ofNullable(preferenceItem.getValue());
+	}
+
+	private IPreferenceItem getPreferenceItemLocal(String key, IContext context)
+	{
+		var criteria = new PreferenceItemSpecificationBuilder(key);
+		context.addContextToPreferenceItemCriteriaBuilder(criteria);
+		return preferenceItemRepository.findOne(criteria.getSpecification()).orElse(null);
 	}
 }

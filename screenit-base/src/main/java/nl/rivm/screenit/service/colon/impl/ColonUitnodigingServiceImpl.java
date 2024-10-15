@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.dao.BaseBriefDao;
 import nl.rivm.screenit.model.BriefDefinitie;
 import nl.rivm.screenit.model.ProjectParameterKey;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
@@ -40,6 +39,7 @@ import nl.rivm.screenit.model.colon.UitnodigingCohortGeboortejaren;
 import nl.rivm.screenit.model.colon.UitnodigingCohort_;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.repository.colon.UitnodigingCohortRepository;
+import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BaseUitnodigingService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.colon.ColonScreeningsrondeService;
@@ -66,7 +66,7 @@ public class ColonUitnodigingServiceImpl implements ColonUitnodigingService
 	private static final int EERSTE_COHORT_JAAR_DK = 2013;
 
 	@Autowired
-	private BaseBriefDao briefDao;
+	private BaseBriefService briefService;
 
 	@Autowired
 	private SimplePreferenceService simplePreferenceService;
@@ -108,7 +108,7 @@ public class ColonUitnodigingServiceImpl implements ColonUitnodigingService
 			throw new IllegalStateException("Onbekende of lege uitnodigingscategorie: " + colonUitnodiging.getColonUitnodigingCategorie());
 		}
 
-		return briefDao.getNieuwsteBriefDefinitie(briefType);
+		return briefService.getNieuwsteBriefDefinitie(briefType);
 	}
 
 	@Override

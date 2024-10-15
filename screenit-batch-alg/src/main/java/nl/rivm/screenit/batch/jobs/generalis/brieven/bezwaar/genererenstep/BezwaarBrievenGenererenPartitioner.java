@@ -21,7 +21,6 @@ package nl.rivm.screenit.batch.jobs.generalis.brieven.bezwaar.genererenstep;
  * =========================LICENSE_END==================================
  */
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -57,10 +56,6 @@ public class BezwaarBrievenGenererenPartitioner extends AbstractBrievenGenereren
 
 	private List<BriefType> getBriefTypes()
 	{
-		List<BriefType> briefTypes = new ArrayList<>();
-		briefTypes.add(BriefType.CLIENT_BEZWAAR_AANVRAAG);
-		briefTypes.add(BriefType.CLIENT_BEZWAAR_BEVESTIGING);
-		briefTypes.add(BriefType.CLIENT_BEZWAAR_HANDTEKENING);
-		return briefTypes;
+		return BriefType.CLIENT_BEZWAAR_BRIEVEN;
 	}
 }

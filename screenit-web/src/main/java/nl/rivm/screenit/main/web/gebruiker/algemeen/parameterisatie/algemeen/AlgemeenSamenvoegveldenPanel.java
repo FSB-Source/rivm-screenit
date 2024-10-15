@@ -44,6 +44,7 @@ public class AlgemeenSamenvoegveldenPanel extends BasePrimaireParametersPanel
 		Form<Parameterisatie> form = new Form<>("form");
 		addTextAreaField(form, "clientNieuwGenderdiversTekst");
 		addTextAreaField(form, "clientGenderidentiteitswijzigingTekst");
+		addTextAreaField(form, "geenHandtekeningBriefTekst");
 		return form;
 	}
 

@@ -27,13 +27,14 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.Instelling_;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
-import nl.rivm.screenit.model.colon.Kamer;
-import nl.rivm.screenit.model.colon.Kamer_;
-import nl.rivm.screenit.model.colon.enums.ColonTijdSlotType;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
+import nl.rivm.screenit.model.colon.enums.ColonTijdslotType;
+import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
+import nl.rivm.screenit.model.colon.planning.ColonIntakekamer_;
+import nl.rivm.screenit.model.colon.planning.ColonTijdslot;
+import nl.rivm.screenit.model.colon.planning.ColonTijdslot_;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.specification.SpecificationUtil;
-import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment_;
-import nl.topicuszorg.wicket.planning.model.appointment.Location_;
 
 import org.springframework.data.jpa.domain.Specification;
 
@@ -44,31 +45,36 @@ import static nl.rivm.screenit.specification.DateSpecification.bevatLocalDate;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ColonIntakelocatieSpecification
 {
-	public static Specification<ColoscopieCentrum> isActief()
+	public static Specification<ColonIntakelocatie> isActief()
 	{
 		return (r, q, cb) -> cb.isTrue(r.get(Instelling_.actief));
 	}
 
-	public static Specification<ColoscopieCentrum> heeftGeenCapaciteitBinnenDatum(Range<LocalDate> bereik)
+	public static Specification<ColonIntakelocatie> heeftGeenCapaciteitBinnenDatum(Range<LocalDate> bereik)
 	{
 		return (r, q, cb) ->
 		{
-			var subquery = q.subquery(Kamer.class);
-			var subqueryRoot = subquery.from(Kamer.class);
-			var appointmentJoin = SpecificationUtil.join(subqueryRoot, Location_.appointments);
+			var subquery = q.subquery(ColonIntakekamer.class);
+			var subqueryRoot = subquery.from(ColonIntakekamer.class);
+			var tijdslotsJoin = SpecificationUtil.join(subqueryRoot, ColonIntakekamer_.tijdslots);
 
 			subquery.select(subqueryRoot).where(
 				cb.and(
-					cb.equal(subqueryRoot.get(Kamer_.coloscopieCentrum), r),
-					bevatLocalDate(bereik, appointmentJoin.get(AbstractAppointment_.startTime)).withPath(cb, appointmentJoin),
-					cb.equal(appointmentJoin.get(AbstractAppointment_.title), ColonTijdSlotType.ROOSTER_ITEM.getTitle()))
+					cb.equal(subqueryRoot.get(ColonIntakekamer_.intakelocatie), r),
+					heeftVanafIn(bereik).toPredicate(tijdslotsJoin, q, cb),
+					cb.equal(tijdslotsJoin.get(ColonTijdslot_.type), ColonTijdslotType.AFSPRAAKSLOT))
 			);
 
 			return cb.not(cb.exists(subquery));
 		};
 	}
 
-	public static Specification<ColoscopieCentrum> isIntakelocatie(ColoscopieCentrum intakelocatie)
+	private static ExtendedSpecification<ColonTijdslot> heeftVanafIn(Range<LocalDate> bereik)
+	{
+		return bevatLocalDate(bereik, c -> c.get(ColonTijdslot_.vanaf));
+	}
+
+	public static Specification<ColonIntakelocatie> isIntakelocatie(ColonIntakelocatie intakelocatie)
 	{
 		return (r, q, cb) -> cb.equal(r, intakelocatie);
 	}

@@ -29,6 +29,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+
+import javax.persistence.criteria.From;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,8 +41,10 @@ import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.CentraleEenheid;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientBrief;
+import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.Dossier;
 import nl.rivm.screenit.model.GbaPersoon;
+import nl.rivm.screenit.model.GbaPersoon_;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.TijdelijkAdres;
@@ -60,6 +65,8 @@ import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectInactiefReden;
 import nl.rivm.screenit.repository.algemeen.ClientRepository;
+import nl.rivm.screenit.repository.colon.ColonAfmeldingRepository;
+import nl.rivm.screenit.repository.colon.ColonUitnodigingRepository;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
@@ -72,22 +79,53 @@ import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.organisatie.model.Adres;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.AdresSpecification.heeftAdresOfNull;
+import static nl.rivm.screenit.specification.algemeen.AdresSpecification.heeftHuisnummer;
+import static nl.rivm.screenit.specification.algemeen.AdresSpecification.heeftPostcode;
+import static nl.rivm.screenit.specification.algemeen.ClientSpecification.heeftANummer;
+import static nl.rivm.screenit.specification.algemeen.ClientSpecification.heeftBsnDieEindigtMet;
+import static nl.rivm.screenit.specification.algemeen.ClientSpecification.heeftGbaMutaties;
+import static nl.rivm.screenit.specification.algemeen.ClientSpecification.heeftGbaStatus;
+import static nl.rivm.screenit.specification.algemeen.ClientSpecification.heeftNietGbaStatus;
+import static nl.rivm.screenit.specification.algemeen.ClientSpecification.heeftNietGbaStatussen;
+import static nl.rivm.screenit.specification.algemeen.ClientSpecification.heeftTitelCode;
+import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.heeftBsn;
+import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.isNietOverleden;
+import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.valtBinnenLeeftijdGrensRestricties;
+import static nl.rivm.screenit.specification.colon.ColonAfmeldingSpecification.heeftHandtekeningDocument;
+import static nl.rivm.screenit.specification.colon.ColonUitnodigingSpecification.heeftClient;
+import static nl.rivm.screenit.specification.colon.ColonUitnodigingSpecification.heeftUitnodigingInRange;
+import static nl.rivm.screenit.util.DateUtil.isGeboortedatumGelijk;
+import static org.springframework.data.domain.Sort.Direction.ASC;
+import static org.springframework.data.domain.Sort.Direction.DESC;
+import static org.springframework.data.jpa.domain.Specification.where;
+
 @Slf4j
 @Component
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class ClientServiceImpl implements ClientService
 {
 	@Autowired
 	private ClientRepository clientRepository;
+
+	@Autowired
+	private ColonAfmeldingRepository colonAfmeldingRepository;
+
+	@Autowired
+	private ColonUitnodigingRepository colonUitnodigingRepository;
 
 	@Autowired
 	private ClientDao clientDao;
@@ -107,16 +145,20 @@ public class ClientServiceImpl implements ClientService
 	@Autowired(required = false)
 	private MammaBaseStandplaatsService baseStandplaatsService;
 
+	public static final String BSN_PROPERTY = Client_.PERSOON + "." + GbaPersoon_.BSN;
+
+	public static final String ACHTERNAAM_PROPERTY = Client_.PERSOON + "." + GbaPersoon_.ACHTERNAAM;
+
 	@Override
 	public Client getClientByBsn(String bsn)
 	{
-		return clientRepository.findOne(ClientRepository.bsnEquals(bsn)).orElse(null);
+		return clientRepository.findOne(heeftBsn(bsn).with(Client_.persoon)).orElse(null);
 	}
 
 	@Override
 	public Client getClientZonderBezwaar(String bsn)
 	{
-		return clientRepository.findOne(ClientRepository.bsnEquals(bsn).and(ClientRepository.gbaStatusNotEquals(GbaStatus.BEZWAAR))).orElse(null);
+		return clientRepository.findOne(heeftBsn(bsn).with(Client_.persoon).and(heeftNietGbaStatus(GbaStatus.BEZWAAR))).orElse(null);
 	}
 
 	@Override
@@ -154,13 +196,22 @@ public class ClientServiceImpl implements ClientService
 	@Override
 	public Client getClientByBsnFromNg01Bericht(String bsn, String anummer)
 	{
-		return clientDao.getClientByBsnFromNg01Bericht(bsn, anummer);
+		var spec = where(heeftGbaMutaties())
+			.and(heeftBsnDieEindigtMet(bsn))
+			.and(heeftGbaStatus(GbaStatus.AFGEVOERD))
+			.and(heeftANummer(anummer));
+
+		return clientRepository.findFirst(
+			spec, Sort.by(DESC, BSN_PROPERTY)
+		).orElse(null);
 	}
 
 	@Override
 	public Client getLaatstAfgevoerdeClient(String bsn)
 	{
-		return clientDao.getLaatstAfgevoerdeClient(bsn);
+		var spec = where(heeftBsnDieEindigtMet(bsn).and(heeftGbaStatus(GbaStatus.AFGEVOERD)));
+
+		return clientRepository.findFirst(spec, Sort.by(DESC, BSN_PROPERTY)).orElse(null);
 	}
 
 	@Override
@@ -191,7 +242,61 @@ public class ClientServiceImpl implements ClientService
 	@Override
 	public List<Client> zoekClienten(Client zoekObject)
 	{
-		return clientDao.zoekClienten(zoekObject);
+		var persoon = zoekObject.getPersoon();
+		var gbaAdres = persoon.getGbaAdres();
+		var bsn = persoon.getBsn();
+		var postcode = gbaAdres.getPostcode();
+
+		boolean specificationToegevoegd = false;
+		var spec = heeftNietGbaStatussen(List.of(GbaStatus.AFGEVOERD, GbaStatus.BEZWAAR));
+
+		if (StringUtils.isNotBlank(bsn))
+		{
+			spec = spec.and(heeftBsn(bsn).with(Client_.persoon));
+			specificationToegevoegd = true;
+		}
+
+		if (StringUtils.isNotBlank(postcode))
+		{
+			spec = spec.and(heeftPostcode(postcode).with(adresJoin()))
+				.and(heeftHuisnummer(gbaAdres.getHuisnummer()).with(adresJoin()));
+			specificationToegevoegd = true;
+
+		}
+
+		if (!specificationToegevoegd)
+		{
+			throw new IllegalAccessError(
+				"Er zijn geen bsn en/of postcode opgegeven. Zonder de info kan niet gezocht worden naar clienten.");
+		}
+
+		var clienten = clientRepository.findAll(spec, Sort.by(ASC, ACHTERNAAM_PROPERTY));
+
+		clienten.removeIf(client -> !isGeboortedatumGelijk(DateUtil.toLocalDate(persoon.getGeboortedatum()), client));
+
+		return clienten;
+	}
+
+	@Override
+	public List<Client> getClientenOpAdresMetLimiet(BagAdres adres, Integer minimaleLeeftijd, Integer maximaleLeeftijd, int uitnodigingsInterval)
+	{
+		var spec = valtBinnenLeeftijdGrensRestricties(minimaleLeeftijd, maximaleLeeftijd, uitnodigingsInterval, currentDateSupplier.getLocalDate()).with(Client_.persoon)
+			.and(isNietOverleden().with(Client_.persoon))
+			.and(heeftAdresOfNull(adres.getHuisnummer(), adres.getHuisletter(), adres.getHuisnummerToevoeging(), adres.getHuisnummerAanduiding(), adres.getPostcode(),
+				adres.getLocatieBeschrijving()).with(adresJoin()));
+
+		var limit = PageRequest.of(0, 3);
+		return clientRepository.findAll(spec, limit).getContent();
+	}
+
+	@NotNull
+	private static Function<From<?, ? extends Client>, From<?, ? extends Adres>> adresJoin()
+	{
+		return q ->
+		{
+			var persoon = join(q, Client_.persoon);
+			return join(persoon, GbaPersoon_.gbaAdres);
+		};
 	}
 
 	@Override
@@ -199,24 +304,24 @@ public class ClientServiceImpl implements ClientService
 	public void saveOrUpdateClient(Client client)
 	{
 		TijdelijkAdres tijdelijkAdres = client.getPersoon().getTijdelijkAdres();
-		if (tijdelijkAdres != null)
+		if (tijdelijkAdres != null && (tijdelijkAdres.getStartDatum() == null && tijdelijkAdres.getEindDatum() == null || StringUtils.isBlank(tijdelijkAdres.getStraat())))
 		{
-			if (tijdelijkAdres.getStartDatum() == null && tijdelijkAdres.getEindDatum() == null || StringUtils.isBlank(tijdelijkAdres.getStraat()))
+			if (tijdelijkAdres.getId() != null)
 			{
-				if (tijdelijkAdres.getId() != null)
-				{
-					hibernateService.delete(tijdelijkAdres);
-				}
-				client.getPersoon().setTijdelijkAdres(null);
+				hibernateService.delete(tijdelijkAdres);
 			}
+			client.getPersoon().setTijdelijkAdres(null);
 		}
+
 		clientDao.saveOrUpdateClient(client);
 	}
 
 	@Override
 	public List<Client> getClientenMetTitel(String titelCode)
 	{
-		return clientDao.getClientenMetTitel(titelCode);
+		var spec = where(heeftTitelCode(titelCode));
+
+		return clientRepository.findAll(spec);
 	}
 
 	@Override
@@ -261,13 +366,9 @@ public class ClientServiceImpl implements ClientService
 	@Override
 	public Client getClientByAnummer(String anummer)
 	{
-		return clientDao.getClientByANummer(anummer);
-	}
+		var spec = where(heeftANummer(anummer));
 
-	@Override
-	public boolean heeftClientIntakeConclusieMetBezwaar(String bsn)
-	{
-		return clientDao.heeftClientIntakeConclusieMetBezwaar(bsn);
+		return clientRepository.findOne(spec).orElse(null);
 	}
 
 	@Override
@@ -318,25 +419,24 @@ public class ClientServiceImpl implements ClientService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void projectClientInactiveren(ProjectClient pClient, ProjectInactiefReden reden, Bevolkingsonderzoek bevolkingsonderzoek)
 	{
-		if (pClient != null)
+		if (pClient != null && (
+			!reden.equals(ProjectInactiefReden.AFMELDING) && (bevolkingsonderzoek == null || pClient.getProject().getBevolkingsonderzoeken().contains(bevolkingsonderzoek))
+				|| reden.equals(ProjectInactiefReden.AFMELDING) && pClient.getProject().getExcludeerAfmelding().contains(bevolkingsonderzoek)))
 		{
-			if (!reden.equals(ProjectInactiefReden.AFMELDING) && (bevolkingsonderzoek == null || pClient.getProject().getBevolkingsonderzoeken().contains(bevolkingsonderzoek))
-				|| reden.equals(ProjectInactiefReden.AFMELDING) && pClient.getProject().getExcludeerAfmelding().contains(bevolkingsonderzoek))
-			{
-				pClient.setActief(false);
-				pClient.setProjectInactiefReden(reden);
-				pClient.setProjectInactiefDatum(currentDateSupplier.getDate());
+			pClient.setActief(false);
+			pClient.setProjectInactiefReden(reden);
+			pClient.setProjectInactiefDatum(currentDateSupplier.getDate());
 
-				hibernateService.saveOrUpdate(pClient);
+			hibernateService.saveOrUpdate(pClient);
 
-				String melding = String.format("Project: %s, groep: %s, reden: %s",
-					pClient.getProject().getNaam(),
-					pClient.getGroep().getNaam(),
-					reden.naam);
+			String melding = String.format("Project: %s, groep: %s, reden: %s",
+				pClient.getProject().getNaam(),
+				pClient.getGroep().getNaam(),
+				reden.naam);
 
-				logService.logGebeurtenis(LogGebeurtenis.PROJECTCLIENT_GEINACTIVEERD, pClient.getClient(), melding);
-			}
+			logService.logGebeurtenis(LogGebeurtenis.PROJECTCLIENT_GEINACTIVEERD, pClient.getClient(), melding);
 		}
+
 	}
 
 	@Override
@@ -384,8 +484,8 @@ public class ClientServiceImpl implements ClientService
 
 	private boolean isErEenUitnodigingAangemaaktInProjectPeriode(ProjectClient projectClient)
 	{
-		Date beginDatum = projectClient.getToegevoegd();
-		List<ColonUitnodiging> uitnodigingen = clientDao.getAllColonUitnodigingenVanClientInPeriode(projectClient.getClient(), beginDatum,
+		var beginDatum = projectClient.getToegevoegd();
+		var uitnodigingen = getAllColonUitnodigingenVanClientInPeriode(projectClient.getClient(), beginDatum,
 			currentDateSupplier.getDate());
 		return CollectionUtils.isNotEmpty(uitnodigingen);
 	}
@@ -569,6 +669,18 @@ public class ClientServiceImpl implements ClientService
 		return null;
 	}
 
+	private long countUsedColonHandtekeningBrief(UploadDocument handtekeningDocument, String handtekeningProperty)
+	{
+		var spec = heeftHandtekeningDocument(handtekeningDocument, handtekeningProperty);
+		return colonAfmeldingRepository.count(spec);
+	}
+
+	private List<ColonUitnodiging> getAllColonUitnodigingenVanClientInPeriode(Client client, Date begin, Date eind)
+	{
+		var spec = heeftClient(client).and(heeftUitnodigingInRange(begin, eind));
+		return colonUitnodigingRepository.findAll(spec);
+	}
+
 	@Override
 	public String getGbaPostcode(Client client)
 	{
@@ -591,6 +703,6 @@ public class ClientServiceImpl implements ClientService
 	@Override
 	public boolean isHandtekeningBriefGebruiktBijMeedereColonAfmeldingen(UploadDocument handtekeningBrief, String handtekeningProperty)
 	{
-		return clientDao.countUsedColonHandtekeningBrief(handtekeningBrief, handtekeningProperty) > 1;
+		return countUsedColonHandtekeningBrief(handtekeningBrief, handtekeningProperty) > 1;
 	}
 }

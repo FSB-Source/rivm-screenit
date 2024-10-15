@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.main.service.mamma.MammaBeoordelingService;
+import nl.rivm.screenit.main.service.mamma.MammaBeWerklijstService;
 import nl.rivm.screenit.main.web.component.table.ClientColumn;
 import nl.rivm.screenit.main.web.component.table.EnumPropertyColumn;
 import nl.rivm.screenit.main.web.component.table.GeboortedatumColumn;
@@ -47,9 +47,8 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class MiniWerklijstPanel extends Panel
 {
-
 	@SpringBean
-	protected MammaBeoordelingService beoordelingService;
+	private MammaBeWerklijstService beWerklijstService;
 
 	private IModel<MammaBeoordeling> clickedBeoordeling;
 
@@ -98,7 +97,7 @@ public class MiniWerklijstPanel extends Panel
 					@Override
 					public Integer getObject()
 					{
-						return beoordelingService.getAantalBeoordeeldInList(beoordelingenIds);
+						return beWerklijstService.getAantalBeoordeeldInList(beoordelingenIds);
 					}
 				};
 

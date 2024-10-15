@@ -27,19 +27,16 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.model.mamma.MammaPostcodeReeks_;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode_;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde_;
 import nl.rivm.screenit.model.mamma.MammaStandplaats_;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.topicuszorg.organisatie.model.Adres_;
 
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.util.Pair;
 
-import static com.google.common.collect.BoundType.CLOSED;
-import static nl.rivm.screenit.specification.RangeSpecification.bevat;
 import static nl.rivm.screenit.specification.SpecificationUtil.containsCaseInsensitive;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmpty;
@@ -90,16 +87,18 @@ public class MammaStandplaatsSpecification
 		return skipWhenNull(actief, (r, q, cb) -> cb.equal(r.get(MammaStandplaats_.ACTIEF), actief));
 	}
 
+	public static Specification<MammaStandplaats> isActief()
+	{
+		return (r, q, cb) -> cb.equal(r.get(MammaStandplaats_.ACTIEF), true);
+	}
+
 	public static Specification<MammaStandplaats> heeftPostcode(String postcode)
 	{
-		return (r, q, cb) ->
-		{
-			var postcodeReeksJoin = join(r, MammaStandplaats_.postcodeReeksen);
-			return cb.and(
-				bevat(postcodeReeksJoin.get(MammaPostcodeReeks_.vanPostcode), postcodeReeksJoin.get(MammaPostcodeReeks_.totPostcode), Pair.of(CLOSED, CLOSED), postcode)
-					.withPath(cb, r),
-				cb.equal(r.get(MammaStandplaats_.ACTIEF), true)
-			);
-		};
+		return isActief().and(MammaPostcodeReeksSpecification.bevatPostcode(postcode).with(r -> join(r, MammaStandplaats_.postcodeReeksen)));
+	}
+
+	public static ExtendedSpecification<MammaStandplaats> heeftRegio(ScreeningOrganisatie regio)
+	{
+		return (r, q, cb) -> cb.equal(r.get(MammaStandplaats_.regio), regio);
 	}
 }

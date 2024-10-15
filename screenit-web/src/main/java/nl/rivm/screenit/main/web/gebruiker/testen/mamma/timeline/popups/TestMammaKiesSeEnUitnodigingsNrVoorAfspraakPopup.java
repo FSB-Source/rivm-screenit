@@ -25,7 +25,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import nl.rivm.screenit.main.service.mamma.MammaTestTimelineService;
+import nl.rivm.screenit.main.service.mamma.MammaScreeningsEenheidService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
@@ -48,7 +48,7 @@ abstract public class TestMammaKiesSeEnUitnodigingsNrVoorAfspraakPopup extends A
 	protected MammaBaseTestTimelineService mammaBaseTestTimelineService;
 
 	@SpringBean
-	private MammaTestTimelineService screeningsEenheidDao;
+	private MammaScreeningsEenheidService screeningsEenheidService;
 
 	@SpringBean
 	private HibernateService hibernateService;
@@ -69,7 +69,7 @@ abstract public class TestMammaKiesSeEnUitnodigingsNrVoorAfspraakPopup extends A
 		ScreenitDropdown<MammaScreeningsEenheid> screeningsEenheidDropDown;
 
 		final List<MammaScreeningsEenheid> screeningsEenhedenMetRoute = getScreeningsEenhedenMetRoute(
-			screeningsEenheidDao.getActieveScreeningsEenheden(ScreenitSession.get().getScreeningOrganisatie()));
+			screeningsEenheidService.getActieveScreeningsEenhedenVoorScreeningOrganisatie(ScreenitSession.get().getScreeningOrganisatie()));
 		screeningsEenhedenMetRoute.sort(Comparator.comparing(MammaScreeningsEenheid::getCode));
 		IModel<List<MammaScreeningsEenheid>> seList = ModelUtil
 			.listRModel(screeningsEenhedenMetRoute);

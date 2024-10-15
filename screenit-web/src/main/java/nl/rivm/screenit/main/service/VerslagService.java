@@ -35,6 +35,7 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.verslag.VerslagContent;
 import nl.topicuszorg.formulieren2.api.resultaat.FormulierResultaat;
 import nl.topicuszorg.formulieren2.persistence.resultaat.FormulierResultaatImpl;
+
 public interface VerslagService
 {
 
@@ -46,11 +47,11 @@ public interface VerslagService
 
 	List<MdlVerslag> getAlleMdlVerslagenVanClient(Client client);
 
-	List<OntvangenCdaBericht> searchBerichten(BerichtZoekFilter filter, long first, long count, String property, boolean ascending);
+	List<OntvangenCdaBericht> zoekBerichten(BerichtZoekFilter filter, long first, long count, String property, boolean ascending);
 
 	long countBerichten(BerichtZoekFilter filter);
 
-	public <V extends Verslag<?, ?>> V heropenVerslag(V verslag, InstellingGebruiker instellingGebruiker);
+	<V extends Verslag<?, ?>> V heropenVerslag(V verslag, InstellingGebruiker instellingGebruiker);
 
 	void herverwerkAlleBerichten(BerichtZoekFilter nullSafeGet);
 

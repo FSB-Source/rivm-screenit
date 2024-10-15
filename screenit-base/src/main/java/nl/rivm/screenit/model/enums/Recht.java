@@ -190,7 +190,7 @@ public enum Recht implements INaam
 			@Override
 			public List<OrganisatieType> getOrganisatieTypes()
 			{
-				return Collections.singletonList(OrganisatieType.COLOSCOPIECENTRUM);
+				return Collections.singletonList(OrganisatieType.INTAKELOCATIE);
 			}
 		},
 

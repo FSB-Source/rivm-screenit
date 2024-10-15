@@ -21,13 +21,12 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.attributen;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.dao.ProjectDao;
+import nl.rivm.screenit.main.service.algemeen.ProjectService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.project.ProjectAttribuut;
 import nl.rivm.screenit.service.LogService;
-import nl.rivm.screenit.service.ProjectService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -43,8 +42,6 @@ import ca.uhn.hl7v2.util.StringUtil;
 public abstract class ProjectAttribuutEditPanel extends GenericPanel<ProjectAttribuut>
 {
 
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private HibernateService hibernateService;
 
@@ -54,12 +51,9 @@ public abstract class ProjectAttribuutEditPanel extends GenericPanel<ProjectAttr
 	@SpringBean
 	private ProjectService projectService;
 
-	@SpringBean
-	private ProjectDao projectDao;
+	private final String oudeNaamAttribuut;
 
-	private String oudeNaamAttribuut;
-
-	private IModel<ProjectAttribuut> attributeModel;
+	private final IModel<ProjectAttribuut> attributeModel;
 
 	public ProjectAttribuutEditPanel(String id, IModel<ProjectAttribuut> model)
 	{
@@ -95,7 +89,7 @@ public abstract class ProjectAttribuutEditPanel extends GenericPanel<ProjectAttr
 				String mergeField = "_" + projectNaam + "_" + naamAttribuut;
 
 				attribuut.setMergeField(mergeField);
-				if (projectDao.getProjectAttribuut(attribuut) == null)
+				if (projectService.getProjectAttribuut(attribuut) == null)
 				{
 					hibernateService.saveOrUpdate(attribuut);
 

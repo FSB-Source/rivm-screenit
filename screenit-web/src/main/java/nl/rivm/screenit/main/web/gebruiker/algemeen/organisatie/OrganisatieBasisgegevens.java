@@ -34,6 +34,7 @@ import nl.rivm.screenit.main.web.component.ConfirmingIndicatingAjaxLink;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
 import nl.rivm.screenit.main.web.component.ScreenitIndicatingAjaxSubmitLink;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
+import nl.rivm.screenit.main.web.component.validator.EmailAddressValidator;
 import nl.rivm.screenit.main.web.component.validator.EmailAddressenValidator;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.medewerker.MedewerkerZoeken;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
@@ -42,7 +43,7 @@ import nl.rivm.screenit.model.CentraleEenheid;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.OrganisatieType;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
@@ -68,7 +69,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import nl.rivm.screenit.main.web.component.validator.EmailAddressValidator;
 import org.apache.wicket.validation.validator.PatternValidator;
 import org.wicketstuff.shiro.ShiroConstraint;
 
@@ -186,7 +186,7 @@ public class OrganisatieBasisgegevens extends OrganisatieBeheer
 			boolean isSo = organisatieType.equals(OrganisatieType.SCREENINGSORGANISATIE);
 			boolean isCe = organisatieType.equals(OrganisatieType.CENTRALE_EENHEID);
 			boolean isSoOfCe = isSo || isCe;
-			boolean isIntakeLocatie = organisatieType.equals(OrganisatieType.COLOSCOPIECENTRUM);
+			boolean isIntakeLocatie = organisatieType.equals(OrganisatieType.INTAKELOCATIE);
 			var organisatieNaam = ComponentHelper.addTextField(this, "naam", true, 50, inzien).setLabel(Model.of("Naam"));
 
 			organisatieNaam.add(new UniqueFieldValidator<>(Instelling.class, organisatie.getId(), "naam", hibernateService, Map.of("actief", Boolean.TRUE)));
@@ -355,9 +355,9 @@ public class OrganisatieBasisgegevens extends OrganisatieBeheer
 					}
 
 					String keyOpslaanGelukt = "action.save.organisatie";
-					if (organisatie instanceof ColoscopieCentrum)
+					if (organisatie instanceof ColonIntakelocatie)
 					{
-						var intakelocatie = (ColoscopieCentrum) organisatie;
+						var intakelocatie = (ColonIntakelocatie) organisatie;
 						if (intakelocatie.getPostcodeCoordinaten() == null)
 						{
 							getSession().warn(getString(keyOpslaanGelukt));

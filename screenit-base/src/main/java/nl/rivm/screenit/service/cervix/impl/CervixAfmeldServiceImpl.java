@@ -157,7 +157,7 @@ public class CervixAfmeldServiceImpl implements CervixAfmeldService
 				{
 					return;
 				}
-				CervixUitnodiging laatsteUitnodiging = clientService.getLaatstVerstuurdeUitnodiging(ronde, true);
+				var laatsteUitnodiging = clientService.getLaatstVerstuurdeUitnodiging(ronde, true);
 				LocalDate geboorteDatum = DateUtil.toLocalDate(ronde.getDossier().getClient().getPersoon().getGeboortedatum());
 				if (DateUtil.getLeeftijd(geboorteDatum, creatieDatum.toLocalDate()) < CervixLeeftijdcategorie.minimumLeeftijd())
 				{

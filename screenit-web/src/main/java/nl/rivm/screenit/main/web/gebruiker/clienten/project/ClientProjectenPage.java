@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.clienten.project;
 
 /*-
@@ -27,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.clienten.ClientPage;
@@ -58,19 +58,22 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
 
+import static nl.rivm.screenit.model.project.ProjectClient_.PROJECT;
+import static nl.rivm.screenit.model.project.Project_.EINDE_INSTROOM;
+import static nl.rivm.screenit.model.project.Project_.EIND_DATUM;
+import static nl.rivm.screenit.model.project.Project_.NAAM;
+import static nl.rivm.screenit.model.project.Project_.START_DATUM;
+
 @SecurityConstraint(actie = Actie.INZIEN, checkScope = true, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_CLIENT_GEGEVENS, bevolkingsonderzoekScopes = {
 	Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA })
 public class ClientProjectenPage extends ClientPage
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private ICurrentDateSupplier currentDateSupplier;
 
 	private IModel<ProjectClient> projectClientModel;
 
-	private SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+	private final SimpleDateFormat formatter = Constants.getDateFormat();
 
 	public ClientProjectenPage(IModel<Client> client)
 	{
@@ -95,12 +98,9 @@ public class ClientProjectenPage extends ClientPage
 		container.setOutputMarkupId(true);
 
 		List<IColumn<ProjectClient, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<ProjectClient, String>(Model.of("Naam"), "project.naam", "project.naam"));
-		columns.add(new AbstractColumn<ProjectClient, String>(Model.of("Projectstatus"))
+		columns.add(new PropertyColumn<>(Model.of("Naam"), PROJECT + "." + NAAM, PROJECT + "." + NAAM));
+		columns.add(new AbstractColumn<>(Model.of("Projectstatus"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<ProjectClient>> cellItem, String componentId, IModel<ProjectClient> rowModel)
 			{
@@ -110,11 +110,8 @@ public class ClientProjectenPage extends ClientPage
 			}
 
 		});
-		columns.add(new AbstractColumn<ProjectClient, String>(Model.of("Clientstatus"))
+		columns.add(new AbstractColumn<>(Model.of("Clientstatus"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<ProjectClient>> cellItem, String componentId, IModel<ProjectClient> rowModel)
 			{
@@ -129,17 +126,15 @@ public class ClientProjectenPage extends ClientPage
 
 			}
 		});
-		columns.add(new DateTimePropertyColumn<ProjectClient, String>(Model.of("Startdatum"), "project.startDatum", "project.startDatum", formatter));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Startdatum"), PROJECT + "." + START_DATUM, PROJECT + "." + START_DATUM, formatter));
 
-		columns.add(new DateTimePropertyColumn<ProjectClient, String>(Model.of("Einddatum instroom"), "project.eindeInstroom", "project.eindeInstroom", formatter));
-		columns.add(new DateTimePropertyColumn<ProjectClient, String>(Model.of("Einddatum"), "project.eindDatum", "project.eindDatum", formatter));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Einddatum instroom"), PROJECT + "." + EINDE_INSTROOM, PROJECT + "." + EINDE_INSTROOM, formatter));
+		columns.add(
+			new DateTimePropertyColumn<>(Model.of("Einddatum"), PROJECT + "." + EIND_DATUM, PROJECT + "." + EIND_DATUM, formatter));
 
-		ScreenitDataTable<ProjectClient, String> dataTable = new ScreenitDataTable<ProjectClient, String>("projecten", columns, new ClientProjectenDataProvider(projectClientModel),
-			10, new Model<String>("Projecten"))
+		ScreenitDataTable<ProjectClient, String> dataTable = new ScreenitDataTable<>("projecten", columns, new ClientProjectenDataProvider(projectClientModel), 10,
+			new Model<>("Projecten"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<ProjectClient> model)
 			{

@@ -26,15 +26,15 @@ import java.time.LocalTime;
 import java.util.List;
 
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
 
 public interface ColonIntakeAfspraakService
 {
-	List<ColonIntakeAfspraak> getAfsprakenZonderVerslag(WerklijstIntakeFilter zoekObject, ColoscopieCentrum intakeLocatie, long first, long count, String sortProperty,
+	List<ColonIntakeAfspraak> getAfsprakenZonderVerslag(WerklijstIntakeFilter zoekObject, ColonIntakelocatie intakeLocatie, long first, long count, String sortProperty,
 		boolean isAscending);
 
-	long getAantalAfsprakenZonderVerslag(WerklijstIntakeFilter zoekObject, ColoscopieCentrum intakeLocatie);
+	long getAantalAfsprakenZonderVerslag(WerklijstIntakeFilter zoekObject, ColonIntakelocatie intakeLocatie);
 
 	long countAfsprakenOpDagVanDeWeek(DayOfWeek dagVanDeWeek);
 

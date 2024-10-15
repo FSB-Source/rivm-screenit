@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.colon;
 
 /*-
@@ -27,7 +26,9 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import nl.rivm.screenit.model.UitnodigingsGebied;
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;
@@ -35,63 +36,22 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 @Entity
 @Table(schema = "colon")
+@Setter
+@Getter
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "organisatie.cache")
 public class ColoscopieCentrumColonCapaciteitVerdeling extends AbstractHibernateObject
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@ManyToOne
 	private UitnodigingsGebied uitnodigingsGebied;
 
 	@ManyToOne
-	private ColoscopieCentrum coloscopieCentrum;
+	private ColonIntakelocatie intakelocatie;
 
 	@Column(nullable = false)
 	private Integer percentageCapaciteit;
 
 	@Column(nullable = false)
 	private Integer percentageAdherentie;
-
-	public UitnodigingsGebied getUitnodigingsGebied()
-	{
-		return uitnodigingsGebied;
-	}
-
-	public void setUitnodigingsGebied(UitnodigingsGebied uitnodigingsGebied)
-	{
-		this.uitnodigingsGebied = uitnodigingsGebied;
-	}
-
-	public Integer getPercentageCapaciteit()
-	{
-		return percentageCapaciteit;
-	}
-
-	public void setPercentageCapaciteit(Integer percentageCapaciteit)
-	{
-		this.percentageCapaciteit = percentageCapaciteit;
-	}
-
-	public ColoscopieCentrum getColoscopieCentrum()
-	{
-		return coloscopieCentrum;
-	}
-
-	public void setColoscopieCentrum(ColoscopieCentrum coloscopieCentrum)
-	{
-		this.coloscopieCentrum = coloscopieCentrum;
-	}
-
-	public Integer getPercentageAdherentie()
-	{
-		return percentageAdherentie;
-	}
-
-	public void setPercentageAdherentie(Integer percentageAdherentie)
-	{
-		this.percentageAdherentie = percentageAdherentie;
-	}
 
 	@Override
 	protected boolean concreateEquals(AbstractHibernateObject obj)
@@ -108,14 +68,14 @@ public class ColoscopieCentrumColonCapaciteitVerdeling extends AbstractHibernate
 		{
 			return false;
 		}
-		if (getColoscopieCentrum() == null)
+		if (getIntakelocatie() == null)
 		{
-			if (other.getColoscopieCentrum() != null)
+			if (other.getIntakelocatie() != null)
 			{
 				return false;
 			}
 		}
-		else if (!getColoscopieCentrum().equals(other.getColoscopieCentrum()))
+		else if (!getIntakelocatie().equals(other.getIntakelocatie()))
 		{
 			return false;
 		}

@@ -21,9 +21,13 @@ package nl.rivm.screenit.specification.mamma;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
+import nl.rivm.screenit.model.Instelling;
+import nl.rivm.screenit.model.enums.BestandStatus;
 import nl.rivm.screenit.model.mamma.MammaAfspraak_;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoek_;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoekenVerzoek;
@@ -31,9 +35,14 @@ import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoekenVerzoek_;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.specification.SpecificationUtil;
+import nl.rivm.screenit.specification.algemeen.MedewerkerSpecification;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 
 import org.springframework.data.jpa.domain.Specification;
+
+import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNullExtended;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class MammaDownloadOnderzoekenVerzoekSpecification
@@ -48,5 +57,30 @@ public class MammaDownloadOnderzoekenVerzoekSpecification
 			var uitnodigingJoin = SpecificationUtil.join(afspraakJoin, MammaAfspraak_.uitnodiging);
 			return cb.equal(uitnodigingJoin.get(MammaUitnodiging_.screeningRonde), screeningRonde);
 		};
+	}
+
+	public static ExtendedSpecification<MammaDownloadOnderzoekenVerzoek> isAangemaaktDoorGebruikerVanInstelling(Instelling instelling)
+	{
+		return MedewerkerSpecification.heeftInstelling(instelling).with(MammaDownloadOnderzoekenVerzoek_.aangemaaktDoor);
+	}
+
+	public static ExtendedSpecification<MammaDownloadOnderzoekenVerzoek> filterOpAangemaaktDoorGebruikerVanInstelling(Instelling instelling)
+	{
+		return skipWhenNullExtended(instelling, isAangemaaktDoorGebruikerVanInstelling(instelling));
+	}
+
+	public static ExtendedSpecification<MammaDownloadOnderzoekenVerzoek> heeftGeenStatusIn(List<BestandStatus> bestandStatussen)
+	{
+		return (r, q, cb) -> cb.not(r.get(MammaDownloadOnderzoekenVerzoek_.status).in(bestandStatussen));
+	}
+
+	public static ExtendedSpecification<MammaDownloadOnderzoekenVerzoek> heeftId(Long id)
+	{
+		return (r, q, cb) -> cb.equal(r.get(AbstractHibernateObject_.id), id);
+	}
+
+	public static ExtendedSpecification<MammaDownloadOnderzoekenVerzoek> filterOpId(Long id)
+	{
+		return skipWhenNullExtended(id, heeftId(id));
 	}
 }

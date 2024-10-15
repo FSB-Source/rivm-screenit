@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
+import nl.rivm.screenit.main.service.algemeen.ProjectService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.form.FilterBvoFormPanel;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
@@ -47,7 +48,6 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.service.BaseBriefService;
-import nl.rivm.screenit.service.ProjectService;
 import nl.topicuszorg.documentupload.wicket.UploadDocumentLink;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;

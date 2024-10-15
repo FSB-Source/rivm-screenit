@@ -83,7 +83,7 @@
 			replicateRemovals=true"/>
 	</cache>
 
-	<cache name="wicket.planning.cache" maxElementsInMemory="10000"
+	<cache name="colon.cache" maxElementsInMemory="10000"
 		   eternal="false" timeToIdleSeconds="900" timeToLiveSeconds="900"
 		   overflowToDisk="true" statistics="true">
 		<cacheEventListenerFactory
@@ -114,16 +114,6 @@
 	</cache>
 
 	<cache name="prefenceitem.cache" maxElementsInMemory="100"
-		   eternal="false" timeToIdleSeconds="900" timeToLiveSeconds="900"
-		   overflowToDisk="true" statistics="true">
-		<cacheEventListenerFactory
-				class="net.sf.ehcache.distribution.jgroups.JGroupsCacheReplicatorFactory"
-				properties="replicateAsynchronously=true, replicatePuts=false,
-			replicateUpdates=true, replicateUpdatesViaCopy=false,
-			replicateRemovals=true"/>
-	</cache>
-
-	<cache name="teleplan.cache" maxElementsInMemory="100"
 		   eternal="false" timeToIdleSeconds="900" timeToLiveSeconds="900"
 		   overflowToDisk="true" statistics="true">
 		<cacheEventListenerFactory

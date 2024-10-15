@@ -36,7 +36,7 @@ public class CervixHerindexeringWaarschuwingPanel extends Panel
 	public CervixHerindexeringWaarschuwingPanel(String id)
 	{
 		super(id);
-		add(new WebMarkupContainer("waarschuwing").setVisible(messageService.getOldestMessage(MessageType.HERINDEXATIE) != null));
+		add(new WebMarkupContainer("waarschuwing").setVisible(messageService.getOldestMessage(MessageType.HERINDEXATIE).isPresent()));
 	}
 
 }

@@ -23,8 +23,8 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.bestanden;
 
 import java.util.Iterator;
 
-import nl.rivm.screenit.dao.ProjectDao;
-import nl.rivm.screenit.model.SortState;
+import nl.rivm.screenit.main.service.algemeen.ProjectService;
+import nl.rivm.screenit.main.util.WicketSpringDataUtil;
 import nl.rivm.screenit.model.project.ProjectBestand;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -34,33 +34,32 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import static nl.rivm.screenit.model.project.ProjectBestand_.UPLOAD_DATUM;
+
 public class ProjectBestandenDataProvider extends SortableDataProvider<ProjectBestand, String>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
-	private ProjectDao projectDao;
+	private ProjectService projectService;
 
-	private IModel<ProjectBestand> filterModel;
+	private final IModel<ProjectBestand> filterModel;
 
 	public ProjectBestandenDataProvider(IModel<ProjectBestand> filterModel)
 	{
 		Injector.get().inject(this);
-		setSort("uploadDatum", SortOrder.DESCENDING);
+		setSort(UPLOAD_DATUM, SortOrder.DESCENDING);
 		this.filterModel = filterModel;
 	}
 
 	@Override
 	public Iterator<? extends ProjectBestand> iterator(long first, long count)
 	{
-		return projectDao.getProjectBestanden(ModelUtil.nullSafeGet(filterModel), first, count, new SortState<>(getSort().getProperty(), getSort().isAscending()));
+		return projectService.getProjectBestanden(ModelUtil.nullSafeGet(filterModel), first, count, WicketSpringDataUtil.toSpringSort(getSort())).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return projectDao.getAantalProjectBestanden(ModelUtil.nullSafeGet(filterModel));
+		return projectService.getAantalProjectBestanden(ModelUtil.nullSafeGet(filterModel));
 	}
 
 	@Override

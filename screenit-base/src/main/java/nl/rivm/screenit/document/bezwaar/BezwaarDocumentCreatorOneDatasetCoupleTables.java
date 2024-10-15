@@ -23,18 +23,19 @@ package nl.rivm.screenit.document.bezwaar;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import nl.rivm.screenit.document.BaseDocumentCreator;
 import nl.rivm.screenit.model.algemeen.BezwaarGroupViewWrapper;
 import nl.rivm.screenit.model.algemeen.BezwaarViewWrapper;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BezwaarType;
+import nl.rivm.screenit.model.enums.BriefType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.aspose.words.Document;
-import com.aspose.words.MailMerge;
 import com.aspose.words.MailMergeCleanupOptions;
 import com.aspose.words.net.System.Data.DataRow;
 import com.aspose.words.net.System.Data.DataSet;
@@ -48,6 +49,8 @@ public class BezwaarDocumentCreatorOneDatasetCoupleTables extends BaseDocumentCr
 
 	private static final String TOELICHTING = "toelichting_";
 
+	private static final String ID = "_id";
+
 	private static final String INACTIEF = "inactief";
 
 	private static final String VOORVOEGSEL = "in_";
@@ -58,11 +61,15 @@ public class BezwaarDocumentCreatorOneDatasetCoupleTables extends BaseDocumentCr
 
 	private static final String BEZWAAR_NAAM = "bezwaar_naam";
 
+	private static final String BEZWAAR_SUBTITEL = "bezwaar_subtitel";
+
 	private static final String ONDERZOEK_NAAM = "onderzoek_naam";
 
 	private static final String SPECIFIEK = "specifiek";
 
 	private static final String ONDERZOEK = "onderzoek";
+
+	private static final String BVO = "bvo";
 
 	private static final String SPEC_BEZWAAR = "spec_bezwaar";
 
@@ -72,11 +79,11 @@ public class BezwaarDocumentCreatorOneDatasetCoupleTables extends BaseDocumentCr
 
 	private boolean zijnErActieveBezwaren = false;
 
-	public BezwaarDocumentCreatorOneDatasetCoupleTables(List<BezwaarGroupViewWrapper> groupWrappers)
+	public BezwaarDocumentCreatorOneDatasetCoupleTables(List<BezwaarGroupViewWrapper> groupWrappers, BriefType briefType)
 	{
 		try
 		{
-			initDataSet(groupWrappers);
+			initDataSet(groupWrappers, briefType);
 		}
 		catch (IllegalStateException | SQLException e)
 		{
@@ -84,18 +91,22 @@ public class BezwaarDocumentCreatorOneDatasetCoupleTables extends BaseDocumentCr
 		}
 	}
 
-	private void initDataSet(List<BezwaarGroupViewWrapper> groupWrappers) throws SQLException
+	private void initDataSet(List<BezwaarGroupViewWrapper> groupWrappers, BriefType briefType) throws SQLException
 	{
 		if (groupWrappers == null)
 		{
 			throw new IllegalStateException("BezwaarGroupViewWrappers mag niet null zijn!");
 		}
 
-		for (BezwaarGroupViewWrapper groupWrapper : groupWrappers)
+		for (var groupWrapper : groupWrappers)
 		{
-			for (BezwaarViewWrapper wrapper : groupWrapper.getBezwaren())
+			for (var wrapper : groupWrapper.getBezwaren().stream().filter(wrapper -> BezwaarType.GEEN_REGISTRATIE_GEBOORTELAND != wrapper.getType()).collect(Collectors.toList()))
 			{
-				if (wrapper.getType() != BezwaarType.GEEN_REGISTRATIE_GEBOORTELAND) 
+				if (BezwaarType.ALGEMENE_BEZWAAR_TYPES.contains(wrapper.getType()) && BriefType.CLIENT_BEZWAAR_BEVESTIGING_ALGEMEEN == briefType)
+				{
+					insertWrapper(null, wrapper);
+				}
+				else if (wrapper.getType() != BezwaarType.GEEN_OPNAME_UIT_BPR)
 				{
 					insertWrapper(groupWrapper.getBevolkingsonderzoek(), wrapper);
 				}
@@ -110,23 +121,30 @@ public class BezwaarDocumentCreatorOneDatasetCoupleTables extends BaseDocumentCr
 
 	private void insertWrapper(Bevolkingsonderzoek onderzoek, BezwaarViewWrapper wrapper) throws SQLException
 	{
-		LOG.debug(wrapper.getNaam());
+		LOG.debug(wrapper.getNaam(), wrapper.getSubtitel());
 		createToelichtingTable(onderzoek);
+
 		if (wrapper.getActief())
 		{
 			zijnErActieveBezwaren = true;
-			insertActieveWrapper(onderzoek, wrapper);
+			if (wrapper.getType() == BezwaarType.VERZOEK_TOT_VERWIJDERING_DOSSIER)
+			{
+				insertOnderzoekWrapper(onderzoek);
+			}
+			else
+			{
+				insertActieveWrapper(onderzoek, wrapper);
+			}
 		}
-
-		else if (!BezwaarType.GEEN_UITWISSELING_MET_DE_HUISARTS.equals(wrapper.getType()))
+		else if (!List.of(BezwaarType.GEEN_UITWISSELING_MET_DE_HUISARTS, BezwaarType.VERZOEK_TOT_VERWIJDERING_DOSSIER).contains(wrapper.getType()))
 		{
 			insertInactieveWrapper(onderzoek, wrapper);
 		}
 	}
 
-	private void createToelichtingTable(Bevolkingsonderzoek onderzoek) throws SQLException
+	private void createToelichtingTable(Bevolkingsonderzoek onderzoek)
 	{
-		String tableNaam = TOELICHTING;
+		var tableNaam = TOELICHTING;
 		if (onderzoek == null)
 		{
 			tableNaam += "alg";
@@ -135,7 +153,7 @@ public class BezwaarDocumentCreatorOneDatasetCoupleTables extends BaseDocumentCr
 		{
 			tableNaam += onderzoek.getAfkorting().toLowerCase();
 		}
-		DataTable toelichtingTable = getOrCreateDataTable(bezwaar, tableNaam, tableNaam + "_id");
+		var toelichtingTable = getOrCreateDataTable(bezwaar, tableNaam, tableNaam + ID);
 		if (toelichtingTable.getRows().getCount() < 1)
 		{
 			toelichtingTable.getRows().add(getNextSequence());
@@ -144,74 +162,76 @@ public class BezwaarDocumentCreatorOneDatasetCoupleTables extends BaseDocumentCr
 
 	private void insertInactieveWrapper(Bevolkingsonderzoek onderzoek, BezwaarViewWrapper wrapper) throws SQLException
 	{
-		DataTable inactiefTable = getDataTable(bezwaar, INACTIEF);
+		var inactiefTable = getDataTable(bezwaar, INACTIEF);
 		if (inactiefTable == null)
 		{
-			inactiefTable = getOrCreateDataTable(bezwaar, INACTIEF, INACTIEF + "_id");
+			inactiefTable = getOrCreateDataTable(bezwaar, INACTIEF, INACTIEF + ID);
 			insertRow(inactiefTable, getNextSequence());
 		}
 
 		if (onderzoek == null)
 		{
-			DataTable algemeenTable = getDataTable(bezwaar, VOORVOEGSEL + ALGEMEEN);
+			var algemeenTable = getDataTable(bezwaar, VOORVOEGSEL + ALGEMEEN);
 			if (algemeenTable == null)
 			{
-				DataRow inactiefRow = getFirstRow(inactiefTable);
-				algemeenTable = getOrCreateDataTable(bezwaar, VOORVOEGSEL + ALGEMEEN, VOORVOEGSEL + ALGEMEEN + "_id", INACTIEF);
-				insertRow(algemeenTable, getNextSequence(), inactiefRow.get(INACTIEF + "_id"));
-				bezwaar.getRelations().add(inactiefTable, algemeenTable, INACTIEF + "_id", INACTIEF);
+				var inactiefRow = getFirstRow(inactiefTable);
+				algemeenTable = getOrCreateDataTable(bezwaar, VOORVOEGSEL + ALGEMEEN, VOORVOEGSEL + ALGEMEEN + ID, INACTIEF);
+				insertRow(algemeenTable, getNextSequence(), inactiefRow.get(INACTIEF + ID));
+				bezwaar.getRelations().add(inactiefTable, algemeenTable, INACTIEF + ID, INACTIEF);
 			}
 
-			DataTable algBezwaarTable = getDataTable(bezwaar, VOORVOEGSEL + ALG_BEZWAAR);
+			var algBezwaarTable = getDataTable(bezwaar, VOORVOEGSEL + ALG_BEZWAAR);
 			if (algBezwaarTable == null)
 			{
-				algBezwaarTable = getOrCreateDataTable(bezwaar, VOORVOEGSEL + ALG_BEZWAAR, VOORVOEGSEL + ALG_BEZWAAR + "_id", VOORVOEGSEL + ALGEMEEN, BEZWAAR_NAAM);
-				bezwaar.getRelations().add(algemeenTable, algBezwaarTable, VOORVOEGSEL + ALGEMEEN + "_id", VOORVOEGSEL + ALGEMEEN);
+				algBezwaarTable = getOrCreateDataTable(bezwaar, VOORVOEGSEL + ALG_BEZWAAR, VOORVOEGSEL + ALG_BEZWAAR + ID, VOORVOEGSEL + ALGEMEEN, BEZWAAR_NAAM,
+					BEZWAAR_SUBTITEL);
+				bezwaar.getRelations().add(algemeenTable, algBezwaarTable, VOORVOEGSEL + ALGEMEEN + ID, VOORVOEGSEL + ALGEMEEN);
 			}
 
-			DataRow row = getFirstRow(algemeenTable);
-			insertRow(algBezwaarTable, getNextSequence(), row.get(VOORVOEGSEL + ALGEMEEN + "_id"), wrapper.getNaam());
+			var row = getFirstRow(algemeenTable);
+			insertRow(algBezwaarTable, getNextSequence(), row.get(VOORVOEGSEL + ALGEMEEN + ID), wrapper.getNaam(), wrapper.getSubtitel());
 		}
 		else
 		{
-			DataTable specifiekTable = getDataTable(bezwaar, VOORVOEGSEL + SPECIFIEK);
+			var specifiekTable = getDataTable(bezwaar, VOORVOEGSEL + SPECIFIEK);
 			if (specifiekTable == null)
 			{
-				DataRow inactiefRow = getFirstRow(inactiefTable);
-				specifiekTable = getOrCreateDataTable(bezwaar, VOORVOEGSEL + SPECIFIEK, VOORVOEGSEL + SPECIFIEK + "_id", INACTIEF);
-				insertRow(specifiekTable, getNextSequence(), inactiefRow.get(INACTIEF + "_id"));
-				bezwaar.getRelations().add(inactiefTable, specifiekTable, INACTIEF + "_id", INACTIEF);
+				var inactiefRow = getFirstRow(inactiefTable);
+				specifiekTable = getOrCreateDataTable(bezwaar, VOORVOEGSEL + SPECIFIEK, VOORVOEGSEL + SPECIFIEK + ID, INACTIEF);
+				insertRow(specifiekTable, getNextSequence(), inactiefRow.get(INACTIEF + ID));
+				bezwaar.getRelations().add(inactiefTable, specifiekTable, INACTIEF + ID, INACTIEF);
 			}
-			DataRow specifiekRow = getFirstRow(specifiekTable);
+			var specifiekRow = getFirstRow(specifiekTable);
 
-			DataTable onderzoekTable = getDataTable(bezwaar, VOORVOEGSEL + ONDERZOEK);
+			var onderzoekTable = getDataTable(bezwaar, VOORVOEGSEL + ONDERZOEK);
 			if (onderzoekTable == null)
 			{
-				onderzoekTable = getOrCreateDataTable(bezwaar, VOORVOEGSEL + ONDERZOEK, VOORVOEGSEL + ONDERZOEK + "_id", VOORVOEGSEL + SPECIFIEK, ONDERZOEK_NAAM);
-				bezwaar.getRelations().add(specifiekTable, onderzoekTable, VOORVOEGSEL + SPECIFIEK + "_id", VOORVOEGSEL + SPECIFIEK);
+				onderzoekTable = getOrCreateDataTable(bezwaar, VOORVOEGSEL + ONDERZOEK, VOORVOEGSEL + ONDERZOEK + ID, VOORVOEGSEL + SPECIFIEK, ONDERZOEK_NAAM);
+				bezwaar.getRelations().add(specifiekTable, onderzoekTable, VOORVOEGSEL + SPECIFIEK + ID, VOORVOEGSEL + SPECIFIEK);
 			}
 
-			DataRow onderzoekRow = getOrCreateOnderzoekRow(onderzoekTable, onderzoek, specifiekRow, VOORVOEGSEL + SPECIFIEK + "_id");
-			DataTable specBezwaarTable = getDataTable(bezwaar, VOORVOEGSEL + SPEC_BEZWAAR);
+			var onderzoekRow = getOrCreateOnderzoekRow(onderzoekTable, onderzoek, specifiekRow, VOORVOEGSEL + SPECIFIEK + ID);
+			var specBezwaarTable = getDataTable(bezwaar, VOORVOEGSEL + SPEC_BEZWAAR);
 			if (specBezwaarTable == null)
 			{
-				specBezwaarTable = getOrCreateDataTable(bezwaar, VOORVOEGSEL + SPEC_BEZWAAR, VOORVOEGSEL + SPEC_BEZWAAR + "_id", VOORVOEGSEL + ONDERZOEK, BEZWAAR_NAAM);
-				bezwaar.getRelations().add(onderzoekTable, specBezwaarTable, VOORVOEGSEL + ONDERZOEK + "_id", VOORVOEGSEL + ONDERZOEK);
+				specBezwaarTable = getOrCreateDataTable(bezwaar, VOORVOEGSEL + SPEC_BEZWAAR, VOORVOEGSEL + SPEC_BEZWAAR + ID, VOORVOEGSEL + ONDERZOEK, BEZWAAR_NAAM,
+					BEZWAAR_SUBTITEL);
+				bezwaar.getRelations().add(onderzoekTable, specBezwaarTable, VOORVOEGSEL + ONDERZOEK + ID, VOORVOEGSEL + ONDERZOEK);
 			}
-			insertRow(specBezwaarTable, getNextSequence(), onderzoekRow.get(VOORVOEGSEL + ONDERZOEK + "_id"), wrapper.getNaam());
+			insertRow(specBezwaarTable, getNextSequence(), onderzoekRow.get(VOORVOEGSEL + ONDERZOEK + ID), wrapper.getNaam(), wrapper.getSubtitel());
 		}
 	}
 
-	private DataRow getOrCreateOnderzoekRow(DataTable onderzoekenTable, Bevolkingsonderzoek onderzoek, DataRow specifiekeTableRow, String relationColumnName) throws SQLException
+	private DataRow getOrCreateOnderzoekRow(DataTable onderzoekenTable, Bevolkingsonderzoek onderzoek, DataRow specifiekeTableRow, String relationColumnName)
 	{
-		for (DataRow onderzoekRow : onderzoekenTable.getRows())
+		for (var onderzoekRow : onderzoekenTable.getRows())
 		{
 			if (onderzoekRow.get(ONDERZOEK_NAAM).equals(onderzoek.getNaam()))
 			{
 				return onderzoekRow;
 			}
 		}
-		DataRow row = onderzoekenTable.newRow();
+		var row = onderzoekenTable.newRow();
 		row.set(0, getNextSequence());
 		row.set(1, specifiekeTableRow.get(relationColumnName));
 		row.set(2, onderzoek.getNaam());
@@ -219,73 +239,83 @@ public class BezwaarDocumentCreatorOneDatasetCoupleTables extends BaseDocumentCr
 		return row;
 	}
 
-	private void insertActieveWrapper(Bevolkingsonderzoek onderzoek, BezwaarViewWrapper wrapper) throws SQLException
+	private void insertOnderzoekWrapper(Bevolkingsonderzoek onderzoek)
 	{
-		DataTable actiefTable = getDataTable(bezwaar, ACTIEF);
+		var onderzoekTable = getDataTable(bezwaar, BVO);
+		if (onderzoekTable == null)
+		{
+			onderzoekTable = getOrCreateDataTable(bezwaar, BVO, BVO + ID, ONDERZOEK_NAAM);
+		}
+		insertRow(onderzoekTable, getNextSequence(), onderzoek.getNaam());
+	}
+
+	private void insertActieveWrapper(Bevolkingsonderzoek onderzoek, BezwaarViewWrapper wrapper)
+	{
+		var actiefTable = getDataTable(bezwaar, ACTIEF);
 		if (actiefTable == null)
 		{
-			actiefTable = getOrCreateDataTable(bezwaar, ACTIEF, ACTIEF + "_id");
+			actiefTable = getOrCreateDataTable(bezwaar, ACTIEF, ACTIEF + ID);
 			insertRow(actiefTable, getNextSequence());
 		}
 
 		if (onderzoek == null)
 		{
-			DataTable algemeenTable = getDataTable(bezwaar, ALGEMEEN);
+			var algemeenTable = getDataTable(bezwaar, ALGEMEEN);
 			if (algemeenTable == null)
 			{
-				DataRow inactiefRow = getFirstRow(actiefTable);
-				algemeenTable = getOrCreateDataTable(bezwaar, ALGEMEEN, ALGEMEEN + "_id", ACTIEF);
-				insertRow(algemeenTable, getNextSequence(), inactiefRow.get(ACTIEF + "_id"));
-				bezwaar.getRelations().add(actiefTable, algemeenTable, ACTIEF + "_id", ACTIEF);
+				var actiefRow = getFirstRow(actiefTable);
+				algemeenTable = getOrCreateDataTable(bezwaar, ALGEMEEN, ALGEMEEN + ID, ACTIEF);
+				insertRow(algemeenTable, getNextSequence(), actiefRow.get(ACTIEF + ID));
+				bezwaar.getRelations().add(actiefTable, algemeenTable, ACTIEF + ID, ACTIEF);
 			}
 
-			DataTable algBezwaarTable = getDataTable(bezwaar, ALG_BEZWAAR);
+			var algBezwaarTable = getDataTable(bezwaar, ALG_BEZWAAR);
 			if (algBezwaarTable == null)
 			{
-				algBezwaarTable = getOrCreateDataTable(bezwaar, ALG_BEZWAAR, ALG_BEZWAAR + "_id", ALGEMEEN, BEZWAAR_NAAM);
-				bezwaar.getRelations().add(algemeenTable, algBezwaarTable, ALGEMEEN + "_id", ALGEMEEN);
+				algBezwaarTable = getOrCreateDataTable(bezwaar, ALG_BEZWAAR, ALG_BEZWAAR + ID, ALGEMEEN, BEZWAAR_NAAM, BEZWAAR_SUBTITEL);
+				bezwaar.getRelations().add(algemeenTable, algBezwaarTable, ALGEMEEN + ID, ALGEMEEN);
 			}
 
-			DataRow row = getFirstRow(algemeenTable);
-			insertRow(algBezwaarTable, getNextSequence(), row.get(ALGEMEEN + "_id"), wrapper.getNaam());
+			var row = getFirstRow(algemeenTable);
+			insertRow(algBezwaarTable, getNextSequence(), row.get(ALGEMEEN + ID), wrapper.getNaam(), wrapper.getSubtitel());
 		}
 		else
 		{
-			DataTable specifiekTable = getDataTable(bezwaar, SPECIFIEK);
+			var specifiekTable = getDataTable(bezwaar, SPECIFIEK);
 			if (specifiekTable == null)
 			{
-				DataRow inactiefRow = getFirstRow(actiefTable);
-				specifiekTable = getOrCreateDataTable(bezwaar, SPECIFIEK, SPECIFIEK + "_id", ACTIEF);
-				insertRow(specifiekTable, getNextSequence(), inactiefRow.get(ACTIEF + "_id"));
-				bezwaar.getRelations().add(actiefTable, specifiekTable, ACTIEF + "_id", ACTIEF);
+				var actiefRow = getFirstRow(actiefTable);
+				specifiekTable = getOrCreateDataTable(bezwaar, SPECIFIEK, SPECIFIEK + ID, ACTIEF);
+				insertRow(specifiekTable, getNextSequence(), actiefRow.get(ACTIEF + ID));
+				bezwaar.getRelations().add(actiefTable, specifiekTable, ACTIEF + ID, ACTIEF);
 			}
-			DataRow specifiekRow = getFirstRow(specifiekTable);
+			var specifiekRow = getFirstRow(specifiekTable);
 
-			DataTable onderzoekTable = getDataTable(bezwaar, ONDERZOEK);
+			var onderzoekTable = getDataTable(bezwaar, ONDERZOEK);
 			if (onderzoekTable == null)
 			{
-				onderzoekTable = getOrCreateDataTable(bezwaar, ONDERZOEK, ONDERZOEK + "_id", SPECIFIEK, ONDERZOEK_NAAM);
-				bezwaar.getRelations().add(specifiekTable, onderzoekTable, SPECIFIEK + "_id", SPECIFIEK);
+				onderzoekTable = getOrCreateDataTable(bezwaar, ONDERZOEK, ONDERZOEK + ID, SPECIFIEK, ONDERZOEK_NAAM);
+				bezwaar.getRelations().add(specifiekTable, onderzoekTable, SPECIFIEK + ID, SPECIFIEK);
 			}
 
-			DataRow onderzoekRow = getOrCreateOnderzoekRow(onderzoekTable, onderzoek, specifiekRow, SPECIFIEK + "_id");
-			DataTable specBezwaarTable = getDataTable(bezwaar, SPEC_BEZWAAR);
+			var onderzoekRow = getOrCreateOnderzoekRow(onderzoekTable, onderzoek, specifiekRow, SPECIFIEK + ID);
+			var specBezwaarTable = getDataTable(bezwaar, SPEC_BEZWAAR);
 			if (specBezwaarTable == null)
 			{
-				specBezwaarTable = getOrCreateDataTable(bezwaar, SPEC_BEZWAAR, SPEC_BEZWAAR + "_id", ONDERZOEK, BEZWAAR_NAAM);
-				bezwaar.getRelations().add(onderzoekTable, specBezwaarTable, ONDERZOEK + "_id", ONDERZOEK);
+				specBezwaarTable = getOrCreateDataTable(bezwaar, SPEC_BEZWAAR, SPEC_BEZWAAR + ID, ONDERZOEK, BEZWAAR_NAAM, BEZWAAR_SUBTITEL);
+				bezwaar.getRelations().add(onderzoekTable, specBezwaarTable, ONDERZOEK + ID, ONDERZOEK);
 			}
-			insertRow(specBezwaarTable, getNextSequence(), onderzoekRow.get(ONDERZOEK + "_id"), wrapper.getNaam());
+			insertRow(specBezwaarTable, getNextSequence(), onderzoekRow.get(ONDERZOEK + ID), wrapper.getNaam(), wrapper.getSubtitel());
 		}
 	}
 
-	private void insertGeenActieveBezwaren() throws SQLException
+	private void insertGeenActieveBezwaren()
 	{
-		DataTable inactiefTable = getDataTable(bezwaar, GEEN_ACTIEVE_BEZWAREN);
-		if (inactiefTable == null)
+		var actiefTable = getDataTable(bezwaar, GEEN_ACTIEVE_BEZWAREN);
+		if (actiefTable == null)
 		{
-			inactiefTable = getOrCreateDataTable(bezwaar, GEEN_ACTIEVE_BEZWAREN, GEEN_ACTIEVE_BEZWAREN + "_id");
-			insertRow(inactiefTable, getNextSequence());
+			actiefTable = getOrCreateDataTable(bezwaar, GEEN_ACTIEVE_BEZWAREN, GEEN_ACTIEVE_BEZWAREN + ID);
+			insertRow(actiefTable, getNextSequence());
 		}
 	}
 
@@ -293,7 +323,7 @@ public class BezwaarDocumentCreatorOneDatasetCoupleTables extends BaseDocumentCr
 	public Document fillExecuteWithRegions(Document document) throws Exception
 	{
 		log(LOG, bezwaar);
-		MailMerge mailMerge = document.getMailMerge();
+		var mailMerge = document.getMailMerge();
 		mailMerge.setCleanupOptions(MailMergeCleanupOptions.REMOVE_UNUSED_REGIONS);
 		mailMerge.executeWithRegions(bezwaar);
 		return document;

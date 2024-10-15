@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import nl.rivm.screenit.main.service.algemeen.ProjectService;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.mappers.ProjectMapper;
 import nl.rivm.screenit.model.OrganisatieType;
@@ -36,7 +37,6 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectType;
-import nl.rivm.screenit.service.ProjectService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

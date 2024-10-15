@@ -21,7 +21,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.blokkadesvi
  * =========================LICENSE_END==================================
  */
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -30,13 +29,13 @@ import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.table.ExportToXslLink;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
+import nl.rivm.screenit.main.web.component.table.ScreenitDateTimePropertyColumn;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.PlanningBasePage;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.RoosterListViewFilter;
 import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
-import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -62,8 +61,8 @@ public class BlokkadeListViewPage extends PlanningBasePage
 	{
 		super();
 
-		ColoscopieCentrum intakelocatie = ScreenitSession.get().getColoscopieCentrum();
-		add(new Label("coloscopiecentrum", intakelocatie.getNaam()));
+		ColonIntakelocatie intakelocatie = ScreenitSession.get().getIntakelocatie();
+		add(new Label("intakelocatie", intakelocatie.getNaam()));
 
 		RoosterListViewFilter filter = new RoosterListViewFilter();
 		filter.setStartDatum(currentDateSupplier.getDate());
@@ -118,10 +117,10 @@ public class BlokkadeListViewPage extends PlanningBasePage
 
 	}
 
-	private void maakTabel(ColoscopieCentrum intakelocatie, final IModel<RoosterListViewFilter> zoekModel)
+	private void maakTabel(ColonIntakelocatie intakelocatie, final IModel<RoosterListViewFilter> zoekModel)
 	{
 		List<IColumn<ColonBlokkade, String>> columns = new ArrayList<>();
-		columns.add(new DateTimePropertyColumn<>(Model.of("Datum/tijd"), "startTime", "startTime", new SimpleDateFormat("dd-MM-yyyy HH:mm"))
+		columns.add(new ScreenitDateTimePropertyColumn<>(Model.of("Datum/tijd"), "vanaf", "vanaf")
 		{
 			@Override
 			public IModel<Object> getDataModel(IModel<ColonBlokkade> embeddedModel)
@@ -129,13 +128,13 @@ public class BlokkadeListViewPage extends PlanningBasePage
 				IModel<?> labelModel = super.getDataModel(embeddedModel);
 
 				String label = labelModel.getObject().toString();
-				label += " - " + DateUtil.formatTime(embeddedModel.getObject().getEndTime());
+				label += " - " + DateUtil.formatLocalTime(embeddedModel.getObject().getTot());
 				return new Model(label);
 			}
 
 		});
-		columns.add(new PropertyColumn<>(Model.of("Kamer"), "kamer.name", "location.name"));
-		columns.add(new PropertyColumn<>(Model.of("Omschrijving"), "description", "description"));
+		columns.add(new PropertyColumn<>(Model.of("Kamer"), "kamer.naam", "kamer.naam"));
+		columns.add(new PropertyColumn<>(Model.of("Omschrijving"), "omschrijving", "omschrijving"));
 
 		table = new ScreenitDataTable<>("tabel", columns, new BlokkadeListViewDataProvider(zoekModel, intakelocatie), 10,
 			Model.of("blokkade(s)"))

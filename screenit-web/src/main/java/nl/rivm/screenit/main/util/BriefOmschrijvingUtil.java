@@ -23,7 +23,9 @@ package nl.rivm.screenit.main.util;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.UnaryOperator;
 
 import lombok.AccessLevel;
@@ -34,6 +36,7 @@ import nl.rivm.screenit.main.model.TypeGebeurtenis;
 import nl.rivm.screenit.model.Brief;
 import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.MergedBrieven;
+import nl.rivm.screenit.model.algemeen.BezwaarBrief;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.functionalinterfaces.TriFunction;
 
@@ -86,6 +89,11 @@ public class BriefOmschrijvingUtil
 			omschrijving.append(", ");
 			omschrijving.append(brief.getTemplateNaam());
 		}
+		if (brief instanceof BezwaarBrief && ((BezwaarBrief) brief).isVragenOmHandtekening())
+		{
+			omschrijving.append(" - ");
+			omschrijving.append(getString.apply("label.formulier.handtekeningvergeten"));
+		}
 		omschrijving.append(")");
 	}
 
@@ -118,33 +126,37 @@ public class BriefOmschrijvingUtil
 	public static String verwerkExtraOmschrijvingen(String[] extraOmschrijvingen, TriFunction<String, IModel<?>, String, String> getString)
 	{
 		String extraOmschrijving = "";
-		if (extraOmschrijvingen != null)
+		if (extraOmschrijvingen == null)
 		{
-			for (String omschrijving : extraOmschrijvingen)
+			return extraOmschrijving;
+		}
+
+		extraOmschrijvingen = Arrays.stream(extraOmschrijvingen).filter(Objects::nonNull).toArray(String[]::new);
+		var index = 0;
+		var aantal = extraOmschrijvingen.length;
+		for (String omschrijving : extraOmschrijvingen)
+		{
+			if (StringUtils.isNotBlank(extraOmschrijving))
 			{
-				if (omschrijving != null)
+				if (extraOmschrijving.trim().endsWith(":"))
 				{
-					if (StringUtils.isNotBlank(extraOmschrijving))
+					if (!extraOmschrijving.endsWith(":"))
 					{
-						if (extraOmschrijving.trim().endsWith(":"))
-						{
-							if (!extraOmschrijving.endsWith(":"))
-							{
-								extraOmschrijving += " ";
-							}
-						}
-						else
-						{
-							extraOmschrijving += ", ";
-						}
+						extraOmschrijving += " ";
 					}
-					else
-					{
-						extraOmschrijving = "(";
-					}
-					extraOmschrijving += getString.apply(omschrijving, null, omschrijving);
+					extraOmschrijving += " ";
+				}
+				else if (index < aantal)
+				{
+					extraOmschrijving += ", ";
 				}
 			}
+			else
+			{
+				extraOmschrijving = "(";
+			}
+			extraOmschrijving += getString.apply(omschrijving, null, omschrijving).trim();
+			index++;
 		}
 		if (StringUtils.isNotBlank(extraOmschrijving))
 		{

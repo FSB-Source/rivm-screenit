@@ -23,7 +23,7 @@ package nl.rivm.screenit.clientportaal.mappers.colon;
 
 import nl.rivm.screenit.clientportaal.model.colon.ColonAfspraakZoekFilterDto;
 import nl.rivm.screenit.mappers.config.ScreenitMapperConfig;
-import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamerFilter;
+import nl.rivm.screenit.model.colon.dto.VrijSlotZonderKamerFilter;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -35,9 +35,9 @@ public interface ColonAfspraakZoekFilterMapper
 
 	@Mappings({
 		@Mapping(source = "ziekenhuisnaam", target = "naam"),
-		@Mapping(target = "intakeLocatieId", ignore = true),
-		@Mapping(target = "nietIntakeLocatieId", ignore = true),
-		@Mapping(target = "alleenIntakeLokaties", ignore = true),
+		@Mapping(target = "intakelocatieId", ignore = true),
+		@Mapping(target = "nietIntakelocatieId", ignore = true),
+		@Mapping(target = "alleenIntakelocaties", ignore = true),
 	})
 	VrijSlotZonderKamerFilter vrijSlotToColonVrijSlotZonderKamerDto(ColonAfspraakZoekFilterDto colonAfspraakZoekFilterDto);
 

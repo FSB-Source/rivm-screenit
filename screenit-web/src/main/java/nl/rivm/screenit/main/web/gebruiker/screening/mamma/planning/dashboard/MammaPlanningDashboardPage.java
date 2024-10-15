@@ -41,13 +41,16 @@ import nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.route.MammaR
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.route.MammaRouteConceptWijzigingMeldingenDialogPanel;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.screeningseenheid.MammaSEDataProvider;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid_;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseConceptPlanningsApplicatie;
 import nl.rivm.screenit.util.DateUtil;
+import nl.topicuszorg.organisatie.model.Organisatie_;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -63,6 +66,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
 
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
+
 @SecurityConstraint(
 	actie = Actie.INZIEN,
 	checkScope = true,
@@ -71,9 +76,6 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.MAMMA })
 public class MammaPlanningDashboardPage extends MammaPlanningBasePage
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private final List<IColumn<MammaScreeningsEenheid, String>> columns = new ArrayList<>();
 
 	private final BootstrapDialog dialog;
@@ -97,9 +99,6 @@ public class MammaPlanningDashboardPage extends MammaPlanningBasePage
 	{
 		filter = new MammaScreeningsEenheidFilterPanel("filter")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected WebMarkupContainer zoeken(IModel<MammaScreeningsEenheidFilter> filter)
 			{
@@ -113,26 +112,20 @@ public class MammaPlanningDashboardPage extends MammaPlanningBasePage
 		if (ScreenitSession.get().getScreeningOrganisatie() == null)
 		{
 			columns.add(new NotClickablePropertyColumn<>(Model.of("Screeningsorganisatie"),
-				"regio.naam", "beoordelingsEenheid.parent.regio.naam"));
+				propertyChain(MammaScreeningsEenheid_.BEOORDELINGS_EENHEID, Instelling_.PARENT, Instelling_.REGIO, Organisatie_.NAAM), "beoordelingsEenheid.parent.regio.naam"));
 		}
-		columns.add(new NotClickablePropertyColumn<>(Model.of("Screeningseenheid"), "naam", "naam"));
-		columns.add(new NotClickablePropertyColumn<MammaScreeningsEenheid, String>(Model.of(""), "")
+		columns.add(new NotClickablePropertyColumn<>(Model.of("Screeningseenheid"), MammaScreeningsEenheid_.NAAM, "naam"));
+		columns.add(new NotClickablePropertyColumn<>(Model.of(""), "")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<MammaScreeningsEenheid>> cell, String id, IModel<MammaScreeningsEenheid> model)
 			{
 				cell.add(new MammaPlanningDashboardNavigatiePanel(id, model));
 			}
 		});
-		columns.add(new PropertyColumn<>(Model.of("Uitgenodigd tot en met"), "uitgenodigdTotEnMet", "uitgenodigdTotEnMet"));
-		columns.add(new PropertyColumn<MammaScreeningsEenheid, String>(Model.of("Uitnodigen tot en met"), "uitnodigenTotEnMet", "uitnodigenTotEnMet")
+		columns.add(new PropertyColumn<>(Model.of("Uitgenodigd tot en met"), MammaScreeningsEenheid_.UITGENODIGD_TOT_EN_MET, "uitgenodigdTotEnMet"));
+		columns.add(new PropertyColumn<>(Model.of("Uitnodigen tot en met"), MammaScreeningsEenheid_.UITNODIGEN_TOT_EN_MET, "uitnodigenTotEnMet")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<MammaScreeningsEenheid>> cell, String id, IModel<MammaScreeningsEenheid> model)
 			{
@@ -144,23 +137,17 @@ public class MammaPlanningDashboardPage extends MammaPlanningBasePage
 				}
 			}
 		});
-		columns.add(new PropertyColumn<>(Model.of("Vrijgegeven tot en met"), "vrijgegevenTotEnMet", "vrijgegevenTotEnMet"));
-		columns.add(new NotClickablePropertyColumn<MammaScreeningsEenheid, String>(Model.of("Interval"), "")
+		columns.add(new PropertyColumn<>(Model.of("Vrijgegeven tot en met"), MammaScreeningsEenheid_.VRIJGEGEVEN_TOT_EN_MET, "vrijgegevenTotEnMet"));
+		columns.add(new NotClickablePropertyColumn<>(Model.of("Interval"), "")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<MammaScreeningsEenheid>> cell, String id, IModel<MammaScreeningsEenheid> model)
 			{
 				cell.add(new MammaPlanningDashboardIntervalPanel(id, model));
 			}
 		});
-		columns.add(new NotClickablePropertyColumn<MammaScreeningsEenheid, String>(Model.of("Indicatie"), "")
+		columns.add(new NotClickablePropertyColumn<>(Model.of("Indicatie"), "")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<MammaScreeningsEenheid>> cell, String id, IModel<MammaScreeningsEenheid> model)
 			{
@@ -190,25 +177,18 @@ public class MammaPlanningDashboardPage extends MammaPlanningBasePage
 	{
 		add(new IndicatingAjaxLink<Void>("conceptOpslaan")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
 				PlanningConceptMeldingenDto meldingenDto = baseConceptPlanningsApplicatie.saveConcept(ScreenitSession.get().getLoggedInInstellingGebruiker(), true);
 				dialog.openWith(target, new MammaRouteConceptWijzigingMeldingenDialogPanel(IDialog.CONTENT_ID, Model.of(meldingenDto))
 				{
-
-					private static final long serialVersionUID = 1L;
-
 					@Override
 					protected void close(AjaxRequestTarget target)
 					{
 						target.add(refreshTable(filter.getModel()));
 						dialog.close(target);
 					}
-
 				});
 			}
 
@@ -216,18 +196,12 @@ public class MammaPlanningDashboardPage extends MammaPlanningBasePage
 
 		add(new IndicatingAjaxLink<Void>("conceptAnnuleren")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
 				PlanningConceptMeldingenDto meldingenDto = baseConceptPlanningsApplicatie.saveConcept(ScreenitSession.get().getLoggedInInstellingGebruiker(), true);
 				dialog.openWith(target, new MammaRouteConceptAnnulerenMeldingenDialogPanel(IDialog.CONTENT_ID, Model.of(meldingenDto))
 				{
-
-					private static final long serialVersionUID = 1L;
-
 					@Override
 					protected void close(AjaxRequestTarget target)
 					{
@@ -243,7 +217,7 @@ public class MammaPlanningDashboardPage extends MammaPlanningBasePage
 
 	private WebMarkupContainer refreshTable(IModel<MammaScreeningsEenheidFilter> filterForProvide)
 	{
-		screeningsEenheden = new ScreenitDataTable<MammaScreeningsEenheid, String>("screeningsEenheden", columns,
+		screeningsEenheden = new ScreenitDataTable<>("screeningsEenheden", columns,
 			new MammaSEDataProvider(filterForProvide, true), SCREENINGS_EENHEDEN_COUNT, Model.of("screeningseenheden"))
 		{
 			@Override

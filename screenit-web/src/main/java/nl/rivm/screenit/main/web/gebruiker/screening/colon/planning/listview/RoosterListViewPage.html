@@ -21,19 +21,19 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <div class="content-inner">
-        <div class="row-fluid">
-            <div class="span12">
-                <h1 class="pageTitle">Overzicht roosterblokken -
-                    <wicket:container wicket:id="coloscopiecentrum"></wicket:container>
-                </h1>
-            </div>
-        </div>
+	<div class="content-inner">
+		<div class="row-fluid">
+			<div class="span12">
+				<h1 class="pageTitle">Overzicht roosterblokken -
+					<wicket:container wicket:id="intakelocatie"></wicket:container>
+				</h1>
+			</div>
+		</div>
 
-        <fieldset>
-            <div class="view-werklijst">
-                <fieldset class="form-inline">
-                    <form wicket:id="form">
+		<fieldset>
+			<div class="view-werklijst">
+				<fieldset class="form-inline">
+					<form wicket:id="form">
 						<div class="btn-group">
 							<button class="btn" wicket:id="status">
 								<wicket:container wicket:id="label">Alle blokken</wicket:container>
@@ -50,19 +50,19 @@
 								<a class="btn js-datepicker-show" title="Datum"><i class="icon-calendar"></i></a>
 							</div>
 						</div>
-						<a  class="btn js-datepicker-filter-datum-vandaag">Vandaag</a>
-						<a  class="btn js-datepicker-filter-datum-jaar">Kalenderjaar</a>
+						<a class="btn js-datepicker-filter-datum-vandaag">Vandaag</a>
+						<a class="btn js-datepicker-filter-datum-jaar">Kalenderjaar</a>
 					</form>
-                </fieldset>
+				</fieldset>
 
-                <fieldset>
-                    Aantal tijdsloten in periode: <b><span wicket:id="totaalBlokken"></span></b>
-                    <div wicket:id="csv"></div>
-                    <div wicket:id="tabel"></div>
-                </fieldset>
-            </div>
-        </fieldset>
-    </div>
+				<fieldset>
+					Aantal tijdsloten in periode: <b><span wicket:id="totaalBlokken"></span></b>
+					<div wicket:id="csv"></div>
+					<div wicket:id="tabel"></div>
+				</fieldset>
+			</div>
+		</fieldset>
+	</div>
 </wicket:extend>
 </body>
 </html>

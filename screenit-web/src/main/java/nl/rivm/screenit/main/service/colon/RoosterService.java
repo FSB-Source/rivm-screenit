@@ -23,58 +23,59 @@ package nl.rivm.screenit.main.service.colon;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 import nl.rivm.screenit.main.exception.ValidatieException;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
-import nl.rivm.screenit.model.colon.Kamer;
-import nl.rivm.screenit.model.colon.RoosterItemListViewWrapper;
-import nl.rivm.screenit.model.colon.RoosterItemStatus;
+import nl.rivm.screenit.model.colon.ColonAfspraakslotListViewWrapper;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.RoosterListViewFilter;
 import nl.rivm.screenit.model.colon.dto.ColonHerhalingDto;
 import nl.rivm.screenit.model.colon.dto.ColonTijdslotDto;
-import nl.rivm.screenit.model.colon.enums.ColonTijdSlotType;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakslotStatus;
+import nl.rivm.screenit.model.colon.enums.ColonTijdslotType;
+import nl.rivm.screenit.model.colon.planning.ColonAfspraakslot;
 import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
-import nl.rivm.screenit.model.colon.planning.RoosterItem;
-import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
-import nl.topicuszorg.wicket.planning.util.Periode;
+import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
+import nl.rivm.screenit.model.colon.planning.ColonTijdslot;
 
 import com.google.common.collect.Range;
 
 public interface RoosterService
 {
-	List<RoosterItemListViewWrapper> getAlleRoosterBlokkenInPeriode(String sortProperty, boolean asc, RoosterListViewFilter filter, ColoscopieCentrum intakeLocatie);
+	List<ColonAfspraakslotListViewWrapper> getAlleAfspraakslotsInPeriode(String sortProperty, boolean asc, RoosterListViewFilter filter, ColonIntakelocatie intakeLocatie);
 
-	List<ColonTijdslotDto> searchTijdslots(RoosterListViewFilter filter, long intakelocatieId, ColonTijdSlotType typeTijdslot);
+	List<ColonTijdslotDto> searchTijdslots(RoosterListViewFilter filter, long intakelocatieId, ColonTijdslotType typeTijdslot);
 
-	List<RoosterItemListViewWrapper> getRoosterBlokken(String sortProperty, boolean asc, long first, long count, RoosterListViewFilter filter, ColoscopieCentrum intakeLocatie);
+	List<ColonAfspraakslotListViewWrapper> getAfspraakslots(String sortProperty, boolean asc, long first, long count, RoosterListViewFilter filter,
+		ColonIntakelocatie intakeLocatie);
 
-	long getRoosterBlokkenCount(RoosterListViewFilter filter, ColoscopieCentrum intakeLocatie);
+	long getAfspraakslotsCount(RoosterListViewFilter filter, ColonIntakelocatie intakeLocatie);
 
-	RoosterItemStatus getRoosterItemStatus(RoosterItem roosterItem);
+	ColonAfspraakslotStatus getAfspraakslotStatus(ColonAfspraakslot afspraakslot);
 
-	Optional<RoosterItem> getRoosterItem(Long id);
+	Optional<ColonAfspraakslot> getAfspraakslot(Long id);
 
-	Integer getCurrentAantalRoosterBlokken(ColoscopieCentrum intakeLocatie, Range<Date> periode);
+	Integer getCurrentAantalAfspraakslots(ColonIntakelocatie intakeLocatie, Range<LocalDateTime> periode);
 
-	List<ColonBlokkade> getBlokkades(Periode periode, List<Kamer> kamers);
+	List<ColonBlokkade> getBlokkades(Range<LocalDateTime> range, List<ColonIntakekamer> kamers);
 
-	List<ColonBlokkade> getBlokkades(String sortProperty, boolean ascending, long first, long count, RoosterListViewFilter filter, ColoscopieCentrum intakelocatie);
+	List<ColonBlokkade> getBlokkades(String sortProperty, boolean ascending, long first, long count, RoosterListViewFilter filter, ColonIntakelocatie intakelocatie);
 
-	long getBlokkadesCount(RoosterListViewFilter filter, ColoscopieCentrum intakelocatie);
+	long getBlokkadesCount(RoosterListViewFilter filter, ColonIntakelocatie intakelocatie);
 
-	void valideerTijdslot(AbstractAppointment tijdslot) throws ValidatieException;
+	void valideerTijdslot(ColonTijdslot tijdslot) throws ValidatieException;
 
-	ColoscopieCentrum getIntakelocatieVanInstellingGebruiker(InstellingGebruiker instellingGebruiker);
+	ColonIntakelocatie getIntakelocatieVanInstellingGebruiker(InstellingGebruiker instellingGebruiker);
 
-	List<RoosterItem> getAfspraakslotsInRangesEnKamer(Range<LocalDateTime> range, RoosterItem afspraakslot);
+	List<ColonAfspraakslot> getAfspraakslotsInRangeEnKamer(Range<LocalDateTime> range, ColonAfspraakslot afspraakslot);
 
-	List<RoosterItem> getAfspraakslotsInRange(Range<LocalDate> range);
+	List<ColonAfspraakslot> getAfspraakslotsInRange(Range<LocalDate> range);
 
-	<S extends AbstractAppointment> List<S> maakHerhalingTijdslotsAan(S tijdslot, ColonHerhalingDto herhalingDto);
+	<S extends ColonTijdslot> List<S> maakHerhalingTijdslotsAan(S tijdslot, ColonHerhalingDto herhalingDto);
 
 	Range<LocalDateTime> getCurrentViewRange(ColonTijdslotDto tijdslot);
+
+	Range<LocalDateTime> getCurrentViewRange(ColonTijdslot tijdslot);
 }

@@ -28,10 +28,10 @@ import java.util.Set;
 
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.PostcodeGebied;
-import nl.rivm.screenit.model.UitnodigingsGebied;
 import nl.rivm.screenit.model.colon.CapaciteitsPercWijziging;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ColoscopieCentrumColonCapaciteitVerdeling;
+import nl.rivm.screenit.model.colon.UitnodigingsGebied;
 
 public interface ColonUitnodigingsgebiedService
 {
@@ -49,9 +49,9 @@ public interface ColonUitnodigingsgebiedService
 
 	String valideerAdherentieVanGewijzigdeGebieden(Set<UitnodigingsGebied> gewijzigdeGebieden);
 
-	void wijzigingenDoorvoeren(ColoscopieCentrum intakelocatie, List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeItems,
+	void wijzigingenDoorvoeren(ColonIntakelocatie intakelocatie, List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeItems,
 		List<CapaciteitsPercWijziging> capaciteitsPercWijzigingen, InstellingGebruiker loggedInInstellingGebruiker);
 
-	List<CapaciteitsPercWijziging> bepaalCapaciteitsWijzigingen(ColoscopieCentrum intakelocatie, Map<String, Integer> newAdherentiePercentages,
+	List<CapaciteitsPercWijziging> bepaalCapaciteitsWijzigingen(ColonIntakelocatie intakelocatie, Map<String, Integer> newAdherentiePercentages,
 		List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeItems);
 }

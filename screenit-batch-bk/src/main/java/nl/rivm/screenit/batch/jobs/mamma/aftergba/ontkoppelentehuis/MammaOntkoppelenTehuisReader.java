@@ -21,30 +21,26 @@ package nl.rivm.screenit.batch.jobs.mamma.aftergba.ontkoppelentehuis;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.mamma.MammaTehuis;
 
-import org.hibernate.Criteria;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import static nl.rivm.screenit.batch.jobs.mamma.aftergba.AfterGbaJobConfiguration.AFTER_GBA_JOB_READER_FETCH_SIZE;
+import static nl.rivm.screenit.specification.mamma.MammaTehuisSpecification.filterActief;
 
 @Component
-public class MammaOntkoppelenTehuisReader extends BaseScrollableResultReader
+public class MammaOntkoppelenTehuisReader extends BaseSpecificationScrollableResultReader<MammaTehuis, MammaTehuis>
 {
-
 	public MammaOntkoppelenTehuisReader()
 	{
 		super.setFetchSize(AFTER_GBA_JOB_READER_FETCH_SIZE);
 	}
 
 	@Override
-	public Criteria createCriteria(StatelessSession session)
+	protected Specification<MammaTehuis> createSpecification()
 	{
-		var crit = session.createCriteria(MammaTehuis.class, "tehuis");
-		crit.add(Restrictions.eq("tehuis.actief", true));
-		return crit;
+		return filterActief(true);
 	}
 }

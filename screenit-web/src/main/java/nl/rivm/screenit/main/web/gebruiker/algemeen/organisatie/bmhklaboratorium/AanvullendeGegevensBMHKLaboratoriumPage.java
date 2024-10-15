@@ -30,6 +30,7 @@ import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.base.BasePage;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.pingpong.PingPongInput;
+import nl.rivm.screenit.main.web.component.validator.EmailAddressValidator;
 import nl.rivm.screenit.main.web.component.validator.ScreenITIBANValidator;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.OrganisatieBeheer;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.OrganisatiePaspoortPanel;
@@ -69,7 +70,6 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.ConversionException;
 import org.apache.wicket.util.convert.IConverter;
-import nl.rivm.screenit.main.web.component.validator.EmailAddressValidator;
 import org.apache.wicket.validation.validator.StringValidator;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.wicketstuff.shiro.ShiroConstraint;
@@ -226,7 +226,7 @@ public class AanvullendeGegevensBMHKLaboratoriumPage extends OrganisatieBeheer
 
 		ComponentHelper.addTextField(form, "bmhkLabWarnMail", true, 100, inzien).add(EmailAddressValidator.getInstance());
 
-		List<Gemeente> allNietGekoppeldeGemeentes = gemeenteService.getGemeentesZonderBMHKLaboratorium((BMHKLaboratorium) model.getObject());
+		List<Gemeente> allNietGekoppeldeGemeentes = gemeenteService.getNietOfAanBMHKLaboratoriumGekoppeldGemeentes((BMHKLaboratorium) model.getObject());
 
 		SimpleListHibernateModel<Gemeente> choices = new SimpleListHibernateModel<>(allNietGekoppeldeGemeentes);
 		ChoiceRenderer<Gemeente> choiceRenderer = new ChoiceRenderer<Gemeente>("naam", "code")

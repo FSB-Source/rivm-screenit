@@ -25,9 +25,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
-import nl.rivm.screenit.dao.CoordinatenDao;
-import nl.rivm.screenit.model.PostcodeCoordinaten;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie;
+import nl.rivm.screenit.service.CoordinatenService;
 import nl.rivm.screenit.util.AdresUtil;
 
 import org.springframework.stereotype.Component;
@@ -38,12 +37,12 @@ import org.springframework.stereotype.Component;
 public class PostcodeCoordinatenStandplaatsKoppelWriter extends BaseWriter<MammaStandplaatsLocatie>
 {
 
-	private final CoordinatenDao coordinatenDao;
+	private final CoordinatenService coordinatenService;
 
 	@Override
 	public void write(MammaStandplaatsLocatie standplaatsLocatie)
 	{
-		PostcodeCoordinaten coordinaten = coordinatenDao.getCoordinaten(standplaatsLocatie);
+		var coordinaten = coordinatenService.getCoordinaten(standplaatsLocatie);
 		standplaatsLocatie.setPostcodeCoordinaten(coordinaten);
 		if (coordinaten != null)
 		{

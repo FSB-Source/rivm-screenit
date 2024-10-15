@@ -32,9 +32,12 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Root;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.dao.CoordinatenDao;
 import nl.rivm.screenit.dto.alg.client.contact.DeelnamewensDto;
 import nl.rivm.screenit.dto.mamma.afspraken.IMammaAfspraakWijzigenFilter;
 import nl.rivm.screenit.dto.mamma.planning.PlanningVerzetClientenDto;
@@ -52,6 +55,7 @@ import nl.rivm.screenit.model.ClientContact;
 import nl.rivm.screenit.model.ClientContactActie;
 import nl.rivm.screenit.model.ClientContactActieType;
 import nl.rivm.screenit.model.ClientContactManier;
+import nl.rivm.screenit.model.ClientContact_;
 import nl.rivm.screenit.model.Dossier;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.InstellingGebruiker;
@@ -70,10 +74,10 @@ import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.enums.ColonAfmeldingReden;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.enums.BevestigingsType;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -99,6 +103,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
 import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaUitstelGeannuleerdReden;
 import nl.rivm.screenit.model.mamma.enums.MammaVerzettenReden;
+import nl.rivm.screenit.repository.algemeen.ClientContactRepository;
 import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BaseGbaVraagService;
@@ -108,6 +113,7 @@ import nl.rivm.screenit.service.BriefHerdrukkenService;
 import nl.rivm.screenit.service.ClientContactService;
 import nl.rivm.screenit.service.ClientDoelgroepService;
 import nl.rivm.screenit.service.ClientService;
+import nl.rivm.screenit.service.CoordinatenService;
 import nl.rivm.screenit.service.DeelnamemodusDossierService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
@@ -138,6 +144,7 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.FITTestUtil;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.organisatie.model.OrganisatieMedewerker_;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.hibernate.Hibernate;
@@ -145,13 +152,22 @@ import org.hibernate.exception.GenericJDBCException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.orm.hibernate5.HibernateJdbcException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.ClientContactSpecification.heeftClient;
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
+import static org.springframework.data.domain.Sort.Direction.ASC;
+import static org.springframework.data.domain.Sort.Direction.DESC;
+
+import static nl.rivm.screenit.model.ClientContactManier.AANVRAGEN_FORMULIEREN;
+
 @Component
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+@Transactional
 public class ClientContactServiceImpl implements ClientContactService
 {
 	private static final Logger LOG = LoggerFactory.getLogger(ClientContactServiceImpl.class);
@@ -160,7 +176,7 @@ public class ClientContactServiceImpl implements ClientContactService
 	private HibernateService hibernateService;
 
 	@Autowired
-	private CoordinatenDao coordinatenDao;
+	private CoordinatenService coordinatenService;
 
 	@Autowired
 	private ColonBaseAfspraakService afspraakService;
@@ -260,6 +276,9 @@ public class ClientContactServiceImpl implements ClientContactService
 
 	@Autowired
 	private MammaAfspraakReserveringService afspraakReserveringService;
+
+	@Autowired
+	private ClientContactRepository clientContactRepository;
 
 	@Override
 	@Transactional(
@@ -866,7 +885,7 @@ public class ClientContactServiceImpl implements ClientContactService
 	public void saveTijdelijkAdres(Account account, Client client, TijdelijkAdres tijdelijkAdres)
 	{
 		client.getPersoon().setTijdelijkAdres(tijdelijkAdres);
-		tijdelijkAdres.setPostcodeCoordinaten(coordinatenDao.getCoordinaten(tijdelijkAdres));
+		tijdelijkAdres.setPostcodeCoordinaten(coordinatenService.getCoordinaten(tijdelijkAdres));
 		hibernateService.saveOrUpdateAll(tijdelijkAdres, client);
 		logService.logGebeurtenis(LogGebeurtenis.WIJZIG_TIJDELIJK_ADRES, account, client);
 	}
@@ -953,17 +972,19 @@ public class ClientContactServiceImpl implements ClientContactService
 	private ClientContactActie bezwaarViaClientContact(List<ClientContactActie> actiesToDelete, ClientContactActie actie, Client client,
 		Map<ExtraOpslaanKey, Object> extraOpslaanParams, Account account)
 	{
-		if (extraOpslaanParams != null && extraOpslaanParams.size() >= 1 && extraOpslaanParams.get(ExtraOpslaanKey.BEZWAAR) != null)
+		if (extraOpslaanParams != null && !extraOpslaanParams.isEmpty() && extraOpslaanParams.get(ExtraOpslaanKey.BEZWAAR) != null)
 		{
 			var toegevoegdeBezwaar = (BezwaarMoment) extraOpslaanParams.get(ExtraOpslaanKey.BEZWAAR);
-			if (ClientContactManier.AANVRAAG_FORMULIER.equals(toegevoegdeBezwaar.getManier()))
+			var vragenOmHandtekening = (boolean) extraOpslaanParams.get(ExtraOpslaanKey.BEZWAAR_VRAGEN_OM_HANDTEKENING);
+			if (AANVRAGEN_FORMULIEREN.contains(toegevoegdeBezwaar.getManier()))
 			{
-				bezwaarService.bezwaarAanvragen(client, toegevoegdeBezwaar);
+				bezwaarService.maakBezwaarAanvraag(client, vragenOmHandtekening, toegevoegdeBezwaar.getManier().getBriefType());
 			}
 			else
 			{
 
 				hibernateService.saveOrUpdate(toegevoegdeBezwaar);
+				@SuppressWarnings("unchecked")
 				var groupWrappers = (List<BezwaarGroupViewWrapper>) extraOpslaanParams.get(ExtraOpslaanKey.BEZWAAR_WRAPPERS);
 				bezwaarService.bezwaarAfronden(toegevoegdeBezwaar, account, groupWrappers);
 			}
@@ -1001,17 +1022,17 @@ public class ClientContactServiceImpl implements ClientContactService
 		if (extraOpslaanParams != null && extraOpslaanParams.size() >= 2)
 		{
 			var afspraak = (ColonIntakeAfspraak) extraOpslaanParams.get(ExtraOpslaanKey.AFSPRAAK);
-			var nieuweAfspraakStatus = (AfspraakStatus) extraOpslaanParams.get(ExtraOpslaanKey.AFSPRAAK_STATUS);
+			var nieuweAfspraakStatus = (ColonAfspraakStatus) extraOpslaanParams.get(ExtraOpslaanKey.AFSPRAAK_STATUS);
 			var briefType = (BriefType) extraOpslaanParams.get(ExtraOpslaanKey.AFSPRAAK_BRIEF);
 			var briefTegenhouden = (Boolean) extraOpslaanParams.get(ExtraOpslaanKey.AFSPRAAK_BRIEF_TEGENHOUDEN);
 			var afspraakUitRooster = (Boolean) extraOpslaanParams.get(ExtraOpslaanKey.AFSPRAAK_UIT_ROOSTER);
 			var doorverwezenMedischeRedenen = (Boolean) extraOpslaanParams.get(ExtraOpslaanKey.COLON_VERWIJZING_MEDISCHE_REDENEN_INFOLIJN);
-			if (AfspraakStatus.VERPLAATST.equals(nieuweAfspraakStatus))
+			if (ColonAfspraakStatus.VERPLAATST.equals(nieuweAfspraakStatus))
 			{
 				afspraakService.verplaatsAfspraak(afspraak, account, briefType, !Boolean.FALSE.equals(briefTegenhouden), Boolean.TRUE.equals(afspraakUitRooster),
 					Boolean.TRUE.equals(doorverwezenMedischeRedenen));
 			}
-			else if (AfspraakStatus.GEANNULEERD_VIA_INFOLIJN.equals(nieuweAfspraakStatus))
+			else if (ColonAfspraakStatus.GEANNULEERD_VIA_INFOLIJN.equals(nieuweAfspraakStatus))
 			{
 				afspraakService.annuleerAfspraak(afspraak, account, nieuweAfspraakStatus, !Boolean.FALSE.equals(briefTegenhouden));
 			}
@@ -1122,9 +1143,8 @@ public class ClientContactServiceImpl implements ClientContactService
 		case DEELNAMEWENSEN:
 		case INZAGE_PERSOONSGEGEVENS:
 		case CERVIX_DEELNAME_BUITEN_BVO_BMHK:
-			return true;
 		case BEZWAAR:
-			return viaClientportaal || bezwaarService.getNogNietVerwerkteBezwaarBrief(client.getBezwaarMomenten()) == null;
+			return true;
 		case OPNIEUW_AANVRAGEN_CLIENTGEGEVENS:
 			return GbaStatus.INDICATIE_AANWEZIG.equals(client.getGbaStatus());
 
@@ -1180,7 +1200,7 @@ public class ClientContactServiceImpl implements ClientContactService
 				var isDeOpenUitnodigingGemerged = isErEenOpenUitnodiging && laatsteScreeningRonde.getOpenUitnodiging().getUitnodigingsBrief() != null
 					&& laatsteScreeningRonde.getOpenUitnodiging().getUitnodigingsBrief().getMergedBrieven() != null;
 				var isErEenLaatsteAfspraak = laatsteScreeningRonde.getLaatsteAfspraak() != null;
-				var isDeLaatsteAfspraakGeannuleerd = isErEenLaatsteAfspraak && AfspraakStatus.isGeannuleerd(laatsteScreeningRonde.getLaatsteAfspraak().getStatus());
+				var isDeLaatsteAfspraakGeannuleerd = isErEenLaatsteAfspraak && ColonAfspraakStatus.isGeannuleerd(laatsteScreeningRonde.getLaatsteAfspraak().getStatus());
 				var isColonDossierIsAfgemeldViaAfmelding = !colonDossier.getAangemeld();
 				return isDeOpenUitnodigingGemerged && isLaatsteRondeGeldigEnAangemeld && !isColonDossierIsAfgemeldViaAfmelding
 					&& (!isErEenLaatsteAfspraak || isDeLaatsteAfspraakGeannuleerd);
@@ -1561,11 +1581,7 @@ public class ClientContactServiceImpl implements ClientContactService
 	{
 		var dossier = client.getCervixDossier();
 		var ronde = dossier.getLaatsteScreeningRonde();
-		if (ronde != null && ronde.getAangemeld() && ronde.getStatus() == ScreeningRondeStatus.LOPEND)
-		{
-			return true;
-		}
-		return false;
+		return ronde != null && ronde.getAangemeld() && ronde.getStatus() == ScreeningRondeStatus.LOPEND;
 	}
 
 	@Override
@@ -1661,7 +1677,7 @@ public class ClientContactServiceImpl implements ClientContactService
 			}
 
 			var status = laatsteAfspraak.getStatus();
-			return AfspraakStatus.GEPLAND.equals(status) || AfspraakStatus.UITGEVOERD.equals(status) && ColonConclusieType.NO_SHOW.equals(colonConclusieType);
+			return ColonAfspraakStatus.GEPLAND.equals(status) || ColonAfspraakStatus.UITGEVOERD.equals(status) && ColonConclusieType.NO_SHOW.equals(colonConclusieType);
 		}
 		else
 		{
@@ -1730,9 +1746,32 @@ public class ClientContactServiceImpl implements ClientContactService
 		var vandaag = currentDateSupplier.getLocalDate();
 		var laatsteAfspraak = laatsteScreeningRonde.getLaatsteAfspraak();
 
-		return laatsteAfspraak != null && AfspraakStatus.GEANNULEERD_AFMELDEN.equals(laatsteAfspraak.getStatus())
+		return laatsteAfspraak != null && ColonAfspraakStatus.GEANNULEERD_AFMELDEN.equals(laatsteAfspraak.getStatus())
 			&& eersteOngunstigUitslag != null && eersteOngunstigUitslag.getStatusDatum() != null
 			&& !eersteOngunstigUitslag.getStatusDatum().before(DateUtil.toUtilDate(vandaag.minusDays(uitnodigingsinterval)));
+	}
+
+	@Override
+	public List<ClientContact> getClientContacten(Client client, long first, long count, String sortProperty, boolean ascending)
+	{
+		var spec = heeftClient(client);
+
+		if (sortProperty != null)
+		{
+			return clientContactRepository.findWith(spec, q ->
+				q.sortBy(Sort.by(ascending ? ASC : DESC, sortProperty), ClientContactServiceImpl::sorteerClientContacten)).all(first, count);
+		}
+		return clientContactRepository.findAll(spec);
+	}
+
+	private static Order sorteerClientContacten(Sort.Order order, Root<ClientContact> r, CriteriaBuilder cb)
+	{
+		if (order.getProperty().startsWith(propertyChain(ClientContact_.INSTELLING_GEBRUIKER, OrganisatieMedewerker_.MEDEWERKER)))
+		{
+			var instellingGebruikerJoin = join(r, ClientContact_.instellingGebruiker);
+			join(instellingGebruikerJoin, OrganisatieMedewerker_.medewerker);
+		}
+		return null;
 	}
 
 }

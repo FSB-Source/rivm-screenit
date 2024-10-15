@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.main.dao.mamma.MammaScreeningsEenheidDao;
+import nl.rivm.screenit.main.service.mamma.MammaScreeningsEenheidService;
 import nl.rivm.screenit.main.service.mamma.MammaStandplaatsPeriodeService;
 import nl.rivm.screenit.main.util.StandplaatsPeriodeUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
@@ -96,7 +96,7 @@ import static nl.rivm.screenit.main.web.gebruiker.screening.mamma.afspraken.Mamm
 public class MammaAfsprakenDagOverzichtPage extends MammaAfsprakenBasePage
 {
 	@SpringBean
-	private MammaScreeningsEenheidDao screeningsEenheidDao;
+	private MammaScreeningsEenheidService screeningsEenheidService;
 
 	@SpringBean
 	private MammaBaseAfspraakService baseAfspraakService;
@@ -159,7 +159,7 @@ public class MammaAfsprakenDagOverzichtPage extends MammaAfsprakenBasePage
 
 		setDefaultModel(this.screeningsEenheidModel);
 
-		this.screeningsEenhedenModel = ModelUtil.listRModel(screeningsEenheidDao.getActieveScreeningsEenhedenVoorScreeningOrganisatie(sessionSO));
+		this.screeningsEenhedenModel = ModelUtil.listRModel(screeningsEenheidService.getActieveScreeningsEenhedenVoorScreeningOrganisatie(sessionSO));
 
 		addNavigation();
 

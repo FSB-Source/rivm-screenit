@@ -30,7 +30,7 @@ public class ColonIntakelocatieDto
 {
 	private Long id;
 
-	private String name;
+	private String naam;
 
 	private Integer aantalGeprognosticeerdeAfspraakslots;
 

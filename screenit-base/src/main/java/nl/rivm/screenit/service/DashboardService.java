@@ -24,6 +24,7 @@ package nl.rivm.screenit.service;
 import java.util.List;
 
 import nl.rivm.screenit.model.Instelling;
+import nl.rivm.screenit.model.dashboard.DashboardLogRegel;
 import nl.rivm.screenit.model.dashboard.DashboardStatus;
 import nl.rivm.screenit.model.dashboard.DashboardType;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -33,7 +34,6 @@ import nl.rivm.screenit.model.logging.LogRegel;
 
 public interface DashboardService
 {
-
 	void updateDashboard(LogRegel logRegel, List<Instelling> dashboardOrganisaties);
 
 	boolean updateLogRegelMetDashboardStatus(LogRegel logregel, String gebruikersnaam, DashboardStatus dashboardStatus);
@@ -47,4 +47,6 @@ public interface DashboardService
 	Level getHoogsteLevelDashboardItems(Instelling ingelogdVoorOrganisatie, List<Bevolkingsonderzoek> bevolkingsOnderzoeken);
 
 	List<DashboardStatus> getListOfDashboardStatussen(Instelling ingelogdVoorOrganisatie, List<Bevolkingsonderzoek> bevolkingsOnderzoeken, List<Level> loggingLevels);
+
+	List<DashboardLogRegel> getDashboardLogRegelMetLogRegel(LogRegel logRegel);
 }

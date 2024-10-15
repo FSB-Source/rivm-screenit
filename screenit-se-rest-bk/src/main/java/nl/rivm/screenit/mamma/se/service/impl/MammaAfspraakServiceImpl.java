@@ -29,7 +29,6 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.mamma.se.dao.MammaAfsprakenDao;
 import nl.rivm.screenit.mamma.se.dto.actions.AfspraakMakenPassantDto;
 import nl.rivm.screenit.mamma.se.dto.actions.AfspraakSignalerenDto;
 import nl.rivm.screenit.mamma.se.repository.MammaAfspraakRepository;
@@ -74,10 +73,6 @@ import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.af
 @Transactional(propagation = Propagation.REQUIRED)
 public class MammaAfspraakServiceImpl implements MammaAfspraakService
 {
-
-	@Autowired
-	private MammaAfsprakenDao afsprakenDao;
-
 	@Autowired
 	private HibernateService hibernateService;
 
@@ -103,6 +98,9 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 	private MammaBaseKansberekeningService baseKansberekeningService;
 
 	@Autowired
+	private MammaAfspraakRepository afspraakRepository;
+
+	@Autowired
 	private PassantInschrijvenValidatorService passantInschrijvenValidatorService;
 
 	@Autowired
@@ -117,9 +115,6 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 	@Autowired
 	private MailService mailService;
 
-	@Autowired
-	private MammaAfspraakRepository afspraakRepository;
-
 	@Override
 	public void setAfspraakStatus(AfspraakSignalerenDto actionDto, MammaAfspraakStatus nieuweStatus, InstellingGebruiker gebruiker)
 	{
@@ -132,7 +127,9 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 	public Map<Long, Integer> getIngeschrevenByGebruikerOpDatumVoorSe(Date beginDatum, String seCode)
 	{
 		var eindDatum = DateUtil.eindDag(beginDatum);
-		return afsprakenDao.readInschrijvingenVanSeInRange(beginDatum, eindDatum, seCode);
+
+		return afspraakRepository.findInschrijvingenVanSeInRangeToMap(beginDatum, eindDatum, seCode);
+
 	}
 
 	@Override

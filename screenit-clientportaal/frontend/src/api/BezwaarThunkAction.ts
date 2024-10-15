@@ -19,24 +19,23 @@
  * =========================LICENSE_END==================================
  */
 import {BezwaarMoment} from "../datatypes/Bezwaar"
-import {Bevolkingsonderzoek} from "../datatypes/Bevolkingsonderzoek"
 import {Dispatch} from "redux"
 import ScreenitBackend from "../utils/Backend"
 import {ResetBezwaarMoment, setLaatsteBezwaarMomentAction} from "../actions/BezwaarReduxAction"
 import {ToastMessageType} from "../datatypes/toast/ToastMessage"
 import HttpStatus from "../datatypes/HttpStatus"
 import {getString} from "../utils/TekstPropertyUtil"
-import properties from "./../pages/bvo/BezwaarType.json"
+import properties from "./../pages/profiel/BezwaarWijzigenPage.json"
 import {showToast} from "../utils/ToastUtil"
 
-export const getLaatsteBezwaarMoment = (bvo: Bevolkingsonderzoek) => (dispatch: Dispatch<ResetBezwaarMoment>) => {
-	return ScreenitBackend.get(`/bezwaar/${bvo}`).then(
+export const getLaatsteBezwaarMoment = () => (dispatch: Dispatch<ResetBezwaarMoment>) => {
+	return ScreenitBackend.get(`/bezwaar`).then(
 		(response) => dispatch(setLaatsteBezwaarMomentAction(response.data)),
 	)
 }
 
-export const saveNieuwBezwaarMoment = (bvo: Bevolkingsonderzoek, bezwaarMoment: BezwaarMoment) => (dispatch: Dispatch<ResetBezwaarMoment>) => {
-	return ScreenitBackend.post(`/bezwaar/${bvo}`, bezwaarMoment)
+export const saveNieuwBezwaarMoment = (bezwaarMoment: BezwaarMoment) => (dispatch: Dispatch<ResetBezwaarMoment>) => {
+	return ScreenitBackend.post(`/bezwaar`, bezwaarMoment)
 		.then(response => {
 			dispatch(setLaatsteBezwaarMomentAction(response.data))
 			showToast(getString(properties.toast.wijzigingen.titel), getString(properties.toast.wijzigingen.text))

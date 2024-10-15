@@ -23,7 +23,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.ce.werklijst.onderbr
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import nl.rivm.screenit.Constants;
@@ -44,16 +43,26 @@ import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.CentraleEenheid;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.model.mamma.MammaAfspraak_;
+import nl.rivm.screenit.model.mamma.MammaDossier_;
 import nl.rivm.screenit.model.mamma.MammaMammografie;
+import nl.rivm.screenit.model.mamma.MammaMammografie_;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid_;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.service.InstellingService;
+import nl.topicuszorg.organisatie.model.Organisatie_;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
@@ -74,6 +83,8 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.springframework.beans.support.PropertyComparator;
 import org.wicketstuff.shiro.ShiroConstraint;
 
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
+
 @SecurityConstraint(
 	actie = Actie.INZIEN,
 	checkScope = true,
@@ -88,9 +99,9 @@ public class MammaCeOnderbrokenOnderzoekenWerklijstPage extends AbstractMammaCeW
 	@SpringBean
 	private MammaScreeningsEenheidService screeningsEenheidService;
 
-	private MammaCeOnderbrokenOnderzoekenDataProvider onderbrokenOnderzoekDataProvider;
+	private final MammaCeOnderbrokenOnderzoekenDataProvider onderbrokenOnderzoekDataProvider;
 
-	private boolean showCentraleEenheidSelector;
+	private final boolean showCentraleEenheidSelector;
 
 	public MammaCeOnderbrokenOnderzoekenWerklijstPage()
 	{
@@ -123,7 +134,7 @@ public class MammaCeOnderbrokenOnderzoekenWerklijstPage extends AbstractMammaCeW
 				mogelijkeScreeningsEenheden.addAll(screeningsEenheidService.getActieveScreeningsEenhedenVoorBeoordelingsEenheid(be));
 			}
 		}
-		Collections.sort(mogelijkeScreeningsEenheden, new PropertyComparator<>("code", true, true));
+		mogelijkeScreeningsEenheden.sort(new PropertyComparator<>("code", true, true));
 		return mogelijkeScreeningsEenheden;
 	}
 
@@ -141,7 +152,7 @@ public class MammaCeOnderbrokenOnderzoekenWerklijstPage extends AbstractMammaCeW
 
 		private void addBriefFilter()
 		{
-			add(new ScreenitDropdown<>("metBriefOproepOnderbrokenOnderzoek", Arrays.asList(Boolean.TRUE, Boolean.FALSE), new ChoiceRenderer<Boolean>()
+			add(new ScreenitDropdown<>("metBriefOproepOnderbrokenOnderzoek", Arrays.asList(Boolean.TRUE, Boolean.FALSE), new ChoiceRenderer<>()
 			{
 				@Override
 				public Object getDisplayValue(Boolean object)
@@ -211,14 +222,15 @@ public class MammaCeOnderbrokenOnderzoekenWerklijstPage extends AbstractMammaCeW
 
 	private void createResultTable()
 	{
+		var persoonProperty = propertyChain(MammaOnderzoek_.AFSPRAAK, MammaAfspraak_.UITNODIGING, MammaUitnodiging_.SCREENING_RONDE, MammaScreeningRonde_.DOSSIER,
+			MammaDossier_.CLIENT, Client_.PERSOON);
 		List<IColumn<MammaOnderzoek, String>> columns = new ArrayList<>();
-		columns.add(new DateTimePropertyColumn<>(Model.of("Onderzoeksdatum"), "creatieDatum", "creatieDatum",
-			Constants.getDateTimeFormat()));
-		columns.add(new ClientColumn<>("persoon.achternaam", "afspraak.uitnodiging.screeningRonde.dossier.client"));
-		columns.add(new GeboortedatumColumn<>("persoon.geboortedatum", "afspraak.uitnodiging.screeningRonde.dossier.client.persoon"));
-		columns.add(new PropertyColumn<>(Model.of("BSN"), "persoon.bsn", "afspraak.uitnodiging.screeningRonde.dossier.client.persoon.bsn"));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Onderzoeksdatum"), "creatieDatum", MammaOnderzoek_.CREATIE_DATUM, Constants.getDateTimeFormat()));
+		columns.add(new ClientColumn<>(propertyChain(persoonProperty, "achternaam"), "afspraak.uitnodiging.screeningRonde.dossier.client"));
+		columns.add(new GeboortedatumColumn<>(propertyChain(persoonProperty, "geboortedatum"), "afspraak.uitnodiging.screeningRonde.dossier.client.persoon"));
+		columns.add(new PropertyColumn<>(Model.of("BSN"), propertyChain(persoonProperty, "bsn"), "afspraak.uitnodiging.screeningRonde.dossier.client.persoon.bsn"));
 		columns.add(new TelefoonnrColumn<>("afspraak.uitnodiging.screeningRonde.dossier.client.persoon"));
-		columns.add(new PropertyColumn<MammaOnderzoek, String>(Model.of("Beelden in IMS"), "mammografie.ilmStatus", "mammografie.ilmStatus")
+		columns.add(new PropertyColumn<>(Model.of("Beelden in IMS"), propertyChain(MammaOnderzoek_.MAMMOGRAFIE, MammaMammografie_.ILM_STATUS), "mammografie.ilmStatus")
 		{
 			@Override
 			public void populateItem(Item<ICellPopulator<MammaOnderzoek>> item, String componentId, IModel<MammaOnderzoek> rowModel)
@@ -229,9 +241,12 @@ public class MammaCeOnderbrokenOnderzoekenWerklijstPage extends AbstractMammaCeW
 			}
 		});
 		columns.add(new EnumPropertyColumn<>(Model.of("Reden"), "onderbrokenOnderzoek"));
-		columns.add(new PropertyColumn<>(Model.of("SE"), "se.naam", "screeningsEenheid.code"));
-		columns.add(new PropertyColumn<>(Model.of("CE"), "ce.naam", "screeningsEenheid.beoordelingsEenheid.parent.naam"));
-		columns.add(new PropertyColumn<MammaOnderzoek, String>(Model.of("Datum brief oproep"), "afspraak.uitnodiging.screeningRonde")
+		columns.add(new PropertyColumn<>(Model.of("SE"), propertyChain(MammaOnderzoek_.SCREENINGS_EENHEID, MammaScreeningsEenheid_.NAAM), "screeningsEenheid.code"));
+		columns.add(
+			new PropertyColumn<>(Model.of("CE"),
+				propertyChain(MammaOnderzoek_.SCREENINGS_EENHEID, MammaScreeningsEenheid_.BEOORDELINGS_EENHEID, Instelling_.PARENT, Organisatie_.NAAM),
+				"screeningsEenheid.beoordelingsEenheid.parent.naam"));
+		columns.add(new PropertyColumn<>(Model.of("Datum brief oproep"), "afspraak.uitnodiging.screeningRonde")
 		{
 
 			@Override
@@ -240,14 +255,14 @@ public class MammaCeOnderbrokenOnderzoekenWerklijstPage extends AbstractMammaCeW
 				MammaScreeningRonde ronde = (MammaScreeningRonde) super.getDataModel(rowModel).getObject();
 				if (ronde.getLaatsteBrief().getBriefType() == BriefType.MAMMA_OPROEP_OPNEMEN_CONTACT)
 				{
-					return new Model(Constants.getDateFormat().format(ronde.getLaatsteBrief().getCreatieDatum()));
+					return new Model<>(Constants.getDateFormat().format(ronde.getLaatsteBrief().getCreatieDatum()));
 				}
-				return new Model();
+				return new Model<>();
 			}
 		});
 		columns.add(new EnumPropertyColumn<>(Model.of("Type onderzoek"), "onderzoekType", "onderzoekType"));
 
-		resultatenContainer.add(new ScreenitDataTable<MammaOnderzoek, String>("resultaten", columns, onderbrokenOnderzoekDataProvider, 10, Model.of("onderbroken onderzoek(en)"))
+		resultatenContainer.add(new ScreenitDataTable<>("resultaten", columns, onderbrokenOnderzoekDataProvider, 10, Model.of("onderbroken onderzoek(en)"))
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<MammaOnderzoek> model)

@@ -37,12 +37,12 @@ import nl.rivm.screenit.model.colon.ColonUitnodiging;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.OpenUitnodiging;
 import nl.rivm.screenit.model.colon.enums.ColonAfmeldingReden;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
-import nl.rivm.screenit.model.colon.planning.RoosterItem;
+import nl.rivm.screenit.model.colon.planning.ColonAfspraakslot;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.OpenUitnodigingUitslag;
 import nl.rivm.screenit.service.BaseBriefService;
@@ -132,11 +132,11 @@ public class ColonAfmeldServiceImpl implements ColonAfmeldService
 			{
 				conclusieType = conclusie.getType();
 			}
-			AfspraakStatus status = laatsteAfspraak.getStatus();
-			if (AfspraakStatus.GEPLAND.equals(status)
-				|| AfspraakStatus.UITGEVOERD.equals(status) && ColonConclusieType.NO_SHOW.equals(conclusieType))
+			ColonAfspraakStatus status = laatsteAfspraak.getStatus();
+			if (ColonAfspraakStatus.GEPLAND.equals(status)
+				|| ColonAfspraakStatus.UITGEVOERD.equals(status) && ColonConclusieType.NO_SHOW.equals(conclusieType))
 			{
-				afspraakService.afspraakAfzeggen(laatsteAfspraak, AfspraakStatus.GEANNULEERD_AFMELDEN, currentDateSupplier.getLocalDateTime(), false);
+				afspraakService.afspraakAfzeggen(laatsteAfspraak, ColonAfspraakStatus.GEANNULEERD_AFMELDEN, currentDateSupplier.getLocalDateTime(), false);
 
 				LOG.info("Afmelding: laatste intake afspraak is afgezegd");
 			}
@@ -218,19 +218,19 @@ public class ColonAfmeldServiceImpl implements ColonAfmeldService
 			Client client = ronde.getDossier().getClient();
 			afspraak.setClient(client);
 			afspraak.setColonScreeningRonde(ronde);
-			afspraak.setDatumLaatsteWijziging(DateUtil.toUtilDate(nu.plus(100, ChronoUnit.MILLIS)));
+			afspraak.setGewijzigdOp(nu.plus(100, ChronoUnit.MILLIS));
 
-			RoosterItem roosterItem = null;
+			ColonAfspraakslot afspraakslot = null;
 			if (Boolean.TRUE.equals(herAanTeMeldenAfmelding.getHeraanmeldingAfspraakUitRooster()))
 			{
-				roosterItem = afspraakService.getRoosterBlokVoorAfspraak(afspraak);
-				afspraak.setRoosterItem(roosterItem);
+				afspraakslot = afspraakService.getAfspraakslotVoorAfspraak(afspraak);
+				afspraak.setAfspraakslot(afspraakslot);
 			}
 			hibernateService.saveOrUpdate(afspraak);
-			if (roosterItem != null)
+			if (afspraakslot != null)
 			{
-				roosterItem.getAfspraken().add(afspraak);
-				hibernateService.saveOrUpdate(roosterItem);
+				afspraakslot.setAfspraak(afspraak);
+				hibernateService.saveOrUpdate(afspraakslot);
 			}
 
 			ronde.getAfspraken().add(afspraak);

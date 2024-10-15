@@ -69,6 +69,11 @@ public class MammaCapaciteitBlokSpecification
 		return (r, q, cb) -> cb.equal(r.get(MammaCapaciteitBlok_.screeningsEenheid), screeningsEenheid);
 	}
 
+	public static Specification<MammaCapaciteitBlok> heeftScreeningsEenheidId(long screeningsEenheidId)
+	{
+		return (r, q, cb) -> cb.equal(r.get(MammaCapaciteitBlok_.screeningsEenheid).get(AbstractHibernateObject_.id), screeningsEenheidId);
+	}
+
 	public static Specification<MammaCapaciteitBlok> heeftOverlapMetPeriode(Range<Date> periode)
 	{
 		return overlapt(periode, r -> r.get(MammaCapaciteitBlok_.vanaf), r -> r.get(MammaCapaciteitBlok_.tot));

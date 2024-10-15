@@ -45,7 +45,7 @@ import nl.rivm.screenit.model.RadiologieAfdeling;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.ZorgInstelling;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ColoscopieLocatie;
 import nl.rivm.screenit.model.colon.IFobtLaboratorium;
 import nl.rivm.screenit.model.colon.PaLaboratorium;
@@ -300,8 +300,8 @@ public class OrganisatieZoeken extends OrganisatieBeheer
 		case RADIOLOGIEAFDELING:
 			nieuweOrganisatie = new RadiologieAfdeling();
 			break;
-		case COLOSCOPIECENTRUM:
-			nieuweOrganisatie = new ColoscopieCentrum();
+		case INTAKELOCATIE:
+			nieuweOrganisatie = new ColonIntakelocatie();
 			if (ingelogdVoorOrganisatie.getOrganisatieType().equals(OrganisatieType.ZORGINSTELLING))
 			{
 				nieuweOrganisatie.setParent(ingelogdVoorOrganisatie);

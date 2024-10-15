@@ -28,11 +28,13 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.mamma.se.dao.MammaScreeningsEenheidDao;
 import nl.rivm.screenit.mamma.se.service.MammaAfspraakService;
 import nl.rivm.screenit.mamma.se.service.MammaScreeningsEenheidService;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid_;
+import nl.rivm.screenit.repository.mamma.MammaScreeningsEenheidRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecification;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.springframework.stereotype.Service;
@@ -40,30 +42,36 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import static nl.rivm.screenit.mamma.se.service.impl.ConfiguratieServiceImpl.SE_DAGLIJST_OPHALEN_VOOR_DAGEN_DEFAULT;
+import static nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecification.heeftCode;
+import static nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecification.isActief;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
 @RequiredArgsConstructor
 public class MammaScreeningsEenheidServiceImpl implements MammaScreeningsEenheidService
 {
-	private final MammaScreeningsEenheidDao screeningsEenheidDao;
-
 	private final MammaAfspraakService mammaAfspraakService;
 
 	private final SimplePreferenceService preferenceService;
 
 	private final ICurrentDateSupplier currentDateSupplier;
 
+	private final MammaScreeningsEenheidRepository screeningsEenheidRepository;
+
 	@Override
 	public MammaScreeningsEenheid getActieveScreeningsEenheidByCode(String seCode)
 	{
-		return screeningsEenheidDao.getActieveScreeningsEenheidByCode(seCode);
+		return screeningsEenheidRepository.findOne(heeftCode(seCode).and(isActief())).orElse(null);
 	}
 
 	@Override
 	public String getSeCodeMetIpAdres(String ipAdres)
 	{
-		return screeningsEenheidDao.getSeCodeMetIpAdres(ipAdres);
+		return screeningsEenheidRepository.findWith(
+			MammaScreeningsEenheidSpecification.heeftIpAdres(ipAdres).and(isActief()),
+			String.class,
+			q -> q.projection((cb, r) -> r.get(MammaScreeningsEenheid_.code))
+				.one().orElse(null));
 	}
 
 	@Override

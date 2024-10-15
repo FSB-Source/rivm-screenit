@@ -339,11 +339,30 @@ public enum BriefType
 			}
 		},
 
-	CLIENT_BEZWAAR_AANVRAAG(OrganisatieType.SCREENINGSORGANISATIE, true, "0_80_101 - Brief aanvraag bezwaar", Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX),
+	CLIENT_BEZWAAR_AANVRAAG(OrganisatieType.SCREENINGSORGANISATIE, true, "0_80_101 Brief aanvraag gebruik gegevens", Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX,
+		Bevolkingsonderzoek.MAMMA),
+	CLIENT_BEZWAAR_INTREKKEN(OrganisatieType.SCREENINGSORGANISATIE, true, "0_80_104 Brief intrekken gebruik gegevens", Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX,
+		Bevolkingsonderzoek.MAMMA),
+	CLIENT_BEZWAAR_VERWIJDEREN_ONDERZOEKRESULTATEN(OrganisatieType.SCREENINGSORGANISATIE, true, "0_80_111 Brief aanvraag verwijderen onderzoeksresultaten",
+		Bevolkingsonderzoek.COLON,
+		Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
+	CLIENT_BEZWAAR_ALLES_VERWIJDEREN(OrganisatieType.SCREENINGSORGANISATIE, true, "0_80_121 Brief aanvraag verwijderen alle gegevens", Bevolkingsonderzoek.COLON,
+		Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
 
-	CLIENT_BEZWAAR_BEVESTIGING(OrganisatieType.SCREENINGSORGANISATIE, true, "0_80_103 - Brief bevestiging bezwaar", Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX),
+	@Deprecated
+	CLIENT_BEZWAAR_BEVESTIGING(OrganisatieType.SCREENINGSORGANISATIE, true, "0_80_103 Brief bevestiging gebruik gegevens", Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX,
+		Bevolkingsonderzoek.MAMMA),
+	CLIENT_BEZWAAR_BEVESTIGING_ALGEMEEN(OrganisatieType.SCREENINGSORGANISATIE, true, "0_80_103 Brief bevestiging gebruik gegevens", Bevolkingsonderzoek.COLON,
+		Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
+	CLIENT_BEZWAAR_BEVESTIGING_VERWIJDERING_DOSSIER(OrganisatieType.SCREENINGSORGANISATIE, true, "0_80_112 Brief bevestiging verwijderen onderzoeksresultaten",
+		Bevolkingsonderzoek.COLON,
+		Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
+	CLIENT_BEZWAAR_BEVESTIGING_VERWIJDERING_ALLES(OrganisatieType.SCREENINGSORGANISATIE, true, "0_80_122 Brief bevestiging verwijderen alle gegevens", Bevolkingsonderzoek.COLON,
+		Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
 
-	CLIENT_BEZWAAR_HANDTEKENING(OrganisatieType.SCREENINGSORGANISATIE, true, "0_80_102 - Brief bezwaar zonder handtekening", Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX),
+	@Deprecated
+	CLIENT_BEZWAAR_HANDTEKENING(OrganisatieType.SCREENINGSORGANISATIE, true, "0_80_102 - Brief aanvraag gebruik gegevens - handtekening vergeten", Bevolkingsonderzoek.COLON,
+		Bevolkingsonderzoek.CERVIX),
 
 	CLIENT_INZAGE_PERSOONSGEGEVENS_AANVRAAG(OrganisatieType.SCREENINGSORGANISATIE, true, "0_80_201 - Brief aanvraag inzage of overdracht persoonsgegevens",
 		Bevolkingsonderzoek.COLON,
@@ -950,6 +969,15 @@ public enum BriefType
 		BriefType.CERVIX_ZAS_NA_CYTOLOGIE_POSITIEF,
 		BriefType.CERVIX_ZAS_NA_CYTOLOGIE_POSITIEF_HPVOTHER);
 
+	public static final List<BriefType> CLIENT_BEZWAAR_AANVRAAG_BRIEVEN = List.of(CLIENT_BEZWAAR_AANVRAAG, CLIENT_BEZWAAR_INTREKKEN, CLIENT_BEZWAAR_VERWIJDEREN_ONDERZOEKRESULTATEN,
+		CLIENT_BEZWAAR_ALLES_VERWIJDEREN);
+
+	public static final List<BriefType> CLIENT_BEZWAAR_BEVESTIGING_BRIEVEN = List.of(CLIENT_BEZWAAR_BEVESTIGING_ALGEMEEN, CLIENT_BEZWAAR_BEVESTIGING_VERWIJDERING_DOSSIER,
+		CLIENT_BEZWAAR_BEVESTIGING_VERWIJDERING_ALLES);
+
+	public static final List<BriefType> CLIENT_BEZWAAR_BRIEVEN = Stream.concat(CLIENT_BEZWAAR_AANVRAAG_BRIEVEN.stream(), CLIENT_BEZWAAR_BEVESTIGING_BRIEVEN.stream())
+		.collect(Collectors.toList());
+
 	@Getter
 	private final Bevolkingsonderzoek[] onderzoeken;
 
@@ -972,7 +1000,7 @@ public enum BriefType
 		this.onderzoeken = onderzoeken;
 		if (actieTypes != null)
 		{
-			this.briefActieTypes.addAll(Arrays.asList(actieTypes));
+			briefActieTypes.addAll(Arrays.asList(actieTypes));
 		}
 	}
 
@@ -1153,5 +1181,4 @@ public enum BriefType
 		}
 		return isActief;
 	}
-
 }

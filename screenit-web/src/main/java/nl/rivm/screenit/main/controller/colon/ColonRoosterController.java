@@ -29,16 +29,18 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.main.exception.ValidatieException;
+import nl.rivm.screenit.main.service.colon.ColonIntakekamerService;
 import nl.rivm.screenit.main.service.colon.ColonRoosterBeperkingService;
-import nl.rivm.screenit.main.service.colon.LocatieService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
+import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.colon.dto.ColonRoosterBeperkingenDto;
 import nl.rivm.screenit.model.colon.dto.ColonRoosterInstellingenDto;
 import nl.rivm.screenit.model.colon.dto.KamerDto;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.colon.ColonUitnodigingService;
 
 import org.springframework.http.ResponseEntity;
@@ -56,18 +58,20 @@ import org.wicketstuff.shiro.ShiroConstraint;
 public class ColonRoosterController
 {
 
-	private final LocatieService locatieService;
+	private final ColonIntakekamerService locatieService;
 
 	private final ColonUitnodigingService uitnodigingService;
 
 	private final ColonRoosterBeperkingService beperkingService;
+
+	private final OrganisatieParameterService organisatieParameterService;
 
 	@GetMapping("/kamers")
 	@SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_ROOSTER, bevolkingsonderzoekScopes = {
 		Bevolkingsonderzoek.COLON })
 	public List<KamerDto> getKamers()
 	{
-		var intakeLocatie = ScreenitSession.get().getColoscopieCentrum();
+		var intakeLocatie = ScreenitSession.get().getIntakelocatie();
 
 		if (intakeLocatie == null)
 		{
@@ -103,8 +107,8 @@ public class ColonRoosterController
 	{
 		var instellingen = new ColonRoosterInstellingenDto();
 		instellingen.setGeprognosticeerdeVanafDatum(uitnodigingService.getGeprognotiseerdeIntakeDatum(true).with(DayOfWeek.MONDAY));
-		instellingen.setDuurAfspraakInMinuten(ScreenitSession.get().getColoscopieCentrum().getAfspraakDefinities().get(0).getDuurAfspraakInMinuten());
-
+		instellingen.setDuurAfspraakInMinuten(organisatieParameterService.getOrganisatieParameter(ScreenitSession.get().getIntakelocatie(),
+			OrganisatieParameterKey.COLON_DUUR_AFSPRAAK_IN_MINUTEN));
 		return instellingen;
 	}
 }

@@ -231,7 +231,7 @@ public class MammaBaseDense2ServiceImpl implements MammaBaseDense2Service
 		var maximaleLeeftijd = preferenceService.getInteger(PreferenceKey.MAMMA_MAXIMALE_LEEFTIJD.name()) - 4;
 		var configuratie = getConfiguratie();
 		var clienten = clientRepository.findAll(
-			ClientSpecification.heeftActieveClientPredicate().toSpecification()
+			ClientSpecification.heeftActieveClient()
 				.and(MammaMammografieSpecification.heeftClientLaatsteOnderzoekMetDensiteit(MammaDenseWaarde.D))
 				.and(ClientSpecification.heeftGeboorteJaarVoorLeeftijdBereik(minimaleLeeftijd, maximaleLeeftijd, currentDateSupplier.getLocalDate()))
 				.and(MammaOnderzoekSpecification.heeftClientLaatsteOnderzoekAangemaaktVanaf(getMinimaleOnderzoekDatum()))

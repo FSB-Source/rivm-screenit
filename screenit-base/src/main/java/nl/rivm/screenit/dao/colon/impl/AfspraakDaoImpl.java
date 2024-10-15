@@ -24,31 +24,25 @@ package nl.rivm.screenit.dao.colon.impl;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.EnumSet;
 import java.util.List;
 
 import nl.rivm.screenit.dao.colon.AfspraakDao;
-import nl.rivm.screenit.model.Afspraak;
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ConclusieTypeFilter;
 import nl.rivm.screenit.model.colon.MdlVerslag;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
+import nl.rivm.screenit.model.colon.planning.ColonTijdslot;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.query.ScreenitRestrictions;
 import nl.topicuszorg.hibernate.criteria.BaseCriteria;
 import nl.topicuszorg.hibernate.criteria.ListCriteria;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
-import nl.topicuszorg.wicket.planning.dao.CriteriaHelper;
-import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
-import nl.topicuszorg.wicket.planning.model.appointment.Location;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.Criteria;
 import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Order;
@@ -68,96 +62,22 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 {
 
 	@Override
-	public void saveOrUpdate(AbstractAppointment appointment)
+	public void saveOrUpdate(ColonTijdslot tijdslot)
 	{
-		getSession().saveOrUpdate(appointment);
+		getSession().saveOrUpdate(tijdslot);
 	}
 
 	@Override
-	public void delete(AbstractAppointment appointment)
+	public void delete(ColonTijdslot tijdslot)
 	{
-		getSession().delete(appointment);
+		getSession().delete(tijdslot);
 	}
 
 	@Override
-	public <T extends AbstractAppointment> List<T> getAfspraken(Date start, Date end, T filter, List<Location> locaties, EnumSet<AfspraakStatus> statusSet)
-	{
-		Criteria criteria = getSession().createCriteria(filter.getClass());
-
-		if (filter instanceof Afspraak)
-		{
-			fillCriteria(criteria, (Afspraak) filter, start, end, statusSet, locaties);
-		}
-		else if (filter instanceof AbstractAppointment)
-		{
-			criteria.add(CriteriaHelper.datumFilterIn(start, end));
-			fillCriteria(criteria, filter, locaties);
-		}
-		criteria.addOrder(Order.asc("startTime"));
-
-		return criteria.list();
-
-	}
-
-	private void fillCriteria(Criteria criteria, Afspraak filter, Date start, Date end, EnumSet<AfspraakStatus> statusSet, List<Location> locaties)
-	{
-		if (statusSet != null && statusSet.equals(AfspraakStatus.VOOR_AGENDA))
-		{
-			criteria.add(Restrictions.or(Restrictions.eq("status", AfspraakStatus.GEPLAND), Restrictions.eq("status", AfspraakStatus.UITGEVOERD)));
-		}
-		else if (filter.getStatus() != null)
-		{
-			criteria.add(Restrictions.eq("status", filter.getStatus()));
-		}
-		if (filter.getLocation() != null)
-		{
-			criteria.add(Restrictions.eq("location", filter.getLocation()));
-		}
-		else if (CollectionUtils.isNotEmpty(locaties) && !locaties.contains(null))
-		{
-			criteria.add(Restrictions.in("location.id", CriteriaHelper.toIdList(locaties)));
-		}
-		else if (filter.getClient() != null)
-		{
-			criteria.add(Restrictions.eq("client", filter.getClient()));
-		}
-
-		datumFilterToevoegen(criteria, filter, start, end);
-	}
-
-	private void datumFilterToevoegen(Criteria criteria, Afspraak filter, Date start, Date end)
-	{
-		if (start != null && end != null)
-		{
-			criteria.add(CriteriaHelper.datumFilterIn(start, end));
-		}
-		else if (start != null)
-		{
-			criteria.add(Restrictions.ge("endTime", start));
-		}
-		else if (end != null)
-		{
-			criteria.add(Restrictions.le("startTime", end));
-		}
-	}
-
-	private void fillCriteria(Criteria criteria, AbstractAppointment filter, List<Location> locaties)
-	{
-		if (filter.getLocation() != null)
-		{
-			criteria.add(Restrictions.eq("location", filter.getLocation()));
-		}
-		else if (CollectionUtils.isNotEmpty(locaties))
-		{
-			criteria.add(Restrictions.in("location", locaties));
-		}
-	}
-
-	@Override
-	public List<ColonIntakeAfspraak> getAfsprakenVoorColoscopiecentrum(WerklijstIntakeFilter zoekFilter, ColoscopieCentrum coloscopieCentrum, LocalDate vandaag, long first,
+	public List<ColonIntakeAfspraak> getAfsprakenVoorIntakelocatie(WerklijstIntakeFilter zoekFilter, ColonIntakelocatie intakelocatie, LocalDate vandaag, long first,
 		long count, String property, boolean ascending)
 	{
-		BaseCriteria<? extends ColonIntakeAfspraak> criteria = createCriteria(zoekFilter, coloscopieCentrum, vandaag);
+		BaseCriteria<? extends ColonIntakeAfspraak> criteria = createCriteria(zoekFilter, intakelocatie, vandaag);
 		if (property.startsWith("conclusie"))
 		{
 			criteria.alias("conclusie", JoinType.LEFT_OUTER_JOIN);
@@ -198,27 +118,27 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 
 	private boolean moetNogOpGeboortedatumFilteren(WerklijstIntakeFilter zoekFilter)
 	{
-		return AfspraakStatus.UITGEVOERD.equals(zoekFilter.getStatus()) && zoekFilter.getGeboortedatum() != null;
+		return ColonAfspraakStatus.UITGEVOERD.equals(zoekFilter.getStatus()) && zoekFilter.getGeboortedatum() != null;
 	}
 
-	private BaseCriteria<? extends ColonIntakeAfspraak> createCriteria(WerklijstIntakeFilter zoekFilter, ColoscopieCentrum coloscopieCentrum, LocalDate vandaag)
+	private BaseCriteria<ColonIntakeAfspraak> createCriteria(WerklijstIntakeFilter zoekFilter, ColonIntakelocatie intakelocatie, LocalDate vandaag)
 	{
 		BaseCriteria<ColonIntakeAfspraak> criteria = new BaseCriteria<ColonIntakeAfspraak>(ColonIntakeAfspraak.class);
-		criteria.alias("location");
-		criteria.add(Restrictions.eq("location.coloscopieCentrum", coloscopieCentrum));
+		criteria.alias("kamer");
+		criteria.add(Restrictions.eq("kamer.intakelocatie", intakelocatie));
 		criteria.alias("client");
 		criteria.alias("client.persoon", "persoon");
 		criteria.alias("colonScreeningRonde");
 		criteria.alias("client.colonDossier", "dossier");
 		criteria.alias("conclusie", "conclusie", JoinType.LEFT_OUTER_JOIN);
-		criteria.add(Restrictions.in("status", AfspraakStatus.VOOR_AGENDA));
+		criteria.add(Restrictions.in("status", ColonAfspraakStatus.VOOR_AGENDA));
 		criteria.add(Restrictions.eqProperty("dossier.laatsteScreeningRonde", "colonScreeningRonde"));
 
-		if (StringUtils.isNotBlank(zoekFilter.getBsn()) && (!AfspraakStatus.UITGEVOERD.equals(zoekFilter.getStatus()) || zoekFilter.getGeboortedatum() != null))
+		if (StringUtils.isNotBlank(zoekFilter.getBsn()) && (!ColonAfspraakStatus.UITGEVOERD.equals(zoekFilter.getStatus()) || zoekFilter.getGeboortedatum() != null))
 		{
 			criteria.add(Restrictions.eq("persoon.bsn", zoekFilter.getBsn()));
 		}
-		else if (AfspraakStatus.UITGEVOERD.equals(zoekFilter.getStatus()))
+		else if (ColonAfspraakStatus.UITGEVOERD.equals(zoekFilter.getStatus()))
 		{
 
 			criteria.add(Restrictions.eq("persoon.bsn", "nobsn"));
@@ -233,9 +153,9 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 		{
 			totEnMet = DateUtil.toLocalDate(zoekFilter.getTotEnMet()).plusDays(1);
 		}
-		if (AfspraakStatus.GEPLAND.equals(zoekFilter.getStatus()))
+		if (ColonAfspraakStatus.GEPLAND.equals(zoekFilter.getStatus()))
 		{
-			criteria.add(Restrictions.eq("status", AfspraakStatus.GEPLAND));
+			criteria.add(Restrictions.eq("status", ColonAfspraakStatus.GEPLAND));
 			if (vanaf == null || !vanaf.isAfter(vandaag))
 			{
 				vanaf = vandaag;
@@ -245,7 +165,7 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 				totEnMet = vandaag.plusDays(1);
 			}
 		}
-		else if (AfspraakStatus.UITGEVOERD.equals(zoekFilter.getStatus()))
+		else if (ColonAfspraakStatus.UITGEVOERD.equals(zoekFilter.getStatus()))
 		{
 			criteria.alias("colonScreeningRonde.ifobtTesten", "testen", JoinType.LEFT_OUTER_JOIN);
 			criteria.alias("colonScreeningRonde.openUitnodiging", "openUitnodiging", JoinType.LEFT_OUTER_JOIN);
@@ -253,7 +173,7 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 				Restrictions.or(
 					Subqueries.propertyIn("colonScreeningRonde.id", verslagenCrit),
 					Restrictions.and(
-						Restrictions.eq("status", AfspraakStatus.UITGEVOERD),
+						Restrictions.eq("status", ColonAfspraakStatus.UITGEVOERD),
 						Restrictions.isNotNull("conclusie.type"),
 						Restrictions.ne("conclusie.type", ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM),
 						Restrictions.ne("conclusie.type", ColonConclusieType.ON_HOLD))));
@@ -275,11 +195,11 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 			critZonderConclusie.add(Restrictions.isNull("conclusie.type"));
 			if (totEnMet != null && totEnMet.isBefore(vandaag))
 			{
-				critZonderConclusie.add(Restrictions.lt("startTime", DateUtil.toUtilDate(totEnMet)));
+				critZonderConclusie.add(Restrictions.lt("vanaf", totEnMet.atStartOfDay()));
 			}
 			else
 			{
-				critZonderConclusie.add(Restrictions.lt("startTime", DateUtil.toUtilDate(vandaag)));
+				critZonderConclusie.add(Restrictions.lt("vanaf", vandaag.atStartOfDay()));
 			}
 
 			Conjunction critOnHold = Restrictions.conjunction();
@@ -299,8 +219,8 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 
 			if (totEnMet != null)
 			{
-				critOnHold.add(Restrictions.lt("startTime", DateUtil.toUtilDate(totEnMet)));
-				critDoorverwijzenMedischeRedenen.add(Restrictions.lt("startTime", DateUtil.toUtilDate(totEnMet)));
+				critOnHold.add(Restrictions.lt("vanaf", totEnMet.atStartOfDay()));
+				critDoorverwijzenMedischeRedenen.add(Restrictions.lt("vanaf", totEnMet.atStartOfDay()));
 			}
 			criteria.alias("dossier.volgendeUitnodiging", "volgendeUitnodiging");
 			criteria.createAlias("volgendeUitnodiging.interval", "interval");
@@ -308,18 +228,18 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 			criteria.add(Restrictions.or(critZonderConclusie, critOnHold, critDoorverwijzenMedischeRedenen));
 		}
 
-		if (!AfspraakStatus.UITGEVOERD.equals(zoekFilter.getStatus()))
+		if (!ColonAfspraakStatus.UITGEVOERD.equals(zoekFilter.getStatus()))
 		{
 			criteria.add(Subqueries.propertyNotIn("colonScreeningRonde.id", verslagenCrit));
 		}
 
 		if (vanaf != null)
 		{
-			criteria.add(Restrictions.gt("startTime", DateUtil.toUtilDate(vanaf)));
+			criteria.add(Restrictions.gt("vanaf", vanaf.atStartOfDay()));
 		}
 		if (zoekFilter.getStatus() != null && totEnMet != null)
 		{
-			criteria.add(Restrictions.lt("startTime", DateUtil.toUtilDate(totEnMet)));
+			criteria.add(Restrictions.lt("vanaf", totEnMet.atStartOfDay()));
 		}
 		if (zoekFilter.getConclusieTypeFilter() != null)
 		{
@@ -340,12 +260,12 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 	}
 
 	@Override
-	public long countAfsprakenVoorColoscopiecentrum(WerklijstIntakeFilter zoekFilter, ColoscopieCentrum coloscopieCentrum, LocalDate vandaag)
+	public long countAfsprakenVoorIntakelocatie(WerklijstIntakeFilter zoekFilter, ColonIntakelocatie intakelocatie, LocalDate vandaag)
 	{
-		final BaseCriteria<? extends ColonIntakeAfspraak> criteria = createCriteria(zoekFilter, coloscopieCentrum, vandaag);
+		final var criteria = createCriteria(zoekFilter, intakelocatie, vandaag);
 		if (moetNogOpGeboortedatumFilteren(zoekFilter))
 		{
-			List<ColonIntakeAfspraak> afspraken = (List<ColonIntakeAfspraak>) criteria.list(getSession());
+			List<ColonIntakeAfspraak> afspraken = criteria.list(getSession());
 			filterGeboortedatum(zoekFilter.getGeboortedatum(), afspraken);
 			return afspraken.size();
 		}
@@ -358,13 +278,5 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 	private boolean filterGeboortedatum(Date geboortedatum, List<ColonIntakeAfspraak> afspraken)
 	{
 		return afspraken.removeIf(a -> !DateUtil.isGeboortedatumGelijk(DateUtil.toLocalDate(geboortedatum), a.getClient()));
-	}
-
-	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
-	public void saveOrUpdateWithFlush(AbstractAppointment appointment)
-	{
-		this.getSession().saveOrUpdate(appointment);
-		this.getSession().flush();
 	}
 }

@@ -22,6 +22,7 @@ package nl.rivm.screenit.util;
  */
 
 import java.util.Arrays;
+import java.util.List;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -50,6 +51,12 @@ public class BezwaarUtil
 	public static boolean isBezwaarActiefVoor(Client client, BezwaarType type)
 	{
 		return isBezwaarActiefVoor(client, type, null);
+	}
+
+	public static boolean isEenVanDeBezwaarTypesActiefVoor(Client client, List<BezwaarType> bezwaarTypes, Bevolkingsonderzoek bevolkingsonderzoek)
+	{
+		var bezwaarMoment = client.getLaatstVoltooideBezwaarMoment();
+		return bezwaarTypes.stream().anyMatch(type -> isBezwaarActiefVoor(bezwaarMoment, type, bevolkingsonderzoek, true));
 	}
 
 	public static boolean isBezwaarActiefVoor(Client client, BezwaarType type, Bevolkingsonderzoek onderzoek)

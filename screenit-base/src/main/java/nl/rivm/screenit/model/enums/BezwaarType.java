@@ -21,31 +21,50 @@ package nl.rivm.screenit.model.enums;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
+
 public enum BezwaarType
 {
+	GEEN_WETENSCHAPPELIJK_ONDERZOEK("Ik wil dat jullie mijn gegevens niet gebruiken voor wetenschappelijk onderzoek",
+		"Als u deze keuze maakt, dan gebruiken we uw gegevens niet voor wetenschappelijk onderzoek. Dit geldt voor alle drie bevolkingsonderzoeken naar kanker, ook als u daar (nog) niet aan mee doet.",
+		false),
+
+	GEEN_GEBRUIK_LICHAAMSMATERIAAL_WETENSCHAPPELIJK_ONDERZOEK(
+		"Ik wil dat jullie mijn lichaamsmateriaal van het bevolkingsonderzoek baarmoederhalskanker niet gebruiken voor wetenschappelijk onderzoek",
+		"Als u deze keuze maakt, wordt uw uitstrijkje of zelfafnameset niet gebruikt voor wetenschappelijk onderzoek en wordt het materiaal vernietigd.", false,
+		Bevolkingsonderzoek.CERVIX),
+
+	GEEN_KWALITEITSWAARBORGING("Ik wil dat jullie mijn gegevens niet gebruiken om de bevolkingsonderzoeken te verbeteren",
+		"Als u deze keuze maakt, dan gebruiken we uw gegevens niet voor de verbetering van onze onderzoeken. Dit geldt voor alle drie bevolkingsonderzoeken naar kanker, ook als u daar (nog) niet aan mee doet.",
+		false),
+
+	GEEN_DIGITALE_UITWISSELING_MET_HET_ZIEKENHUIS(
+		"Ik wil dat jullie mijn uitslagen en foto’s van het bevolkingsonderzoek borstkanker niet delen met het ziekenhuis",
+		"Als u deze keuze maakt, dan krijgt het ziekenhuis uw foto’s van het bevolkingsonderzoek niet. Als er verder onderzoek nodig is, maakt het ziekenhuis nieuwe foto’s. De artsen in het ziekenhuis kunnen die foto’s dan niet vergelijken met onze foto’s. En ze horen niet wat de artsen tijdens het bevolkingsonderzoek hebben gezien.",
+		false,
+		Bevolkingsonderzoek.MAMMA),
+
+	GEEN_SIGNALERING_VERWIJSADVIES(
+		"Ik wil dat het laboratorium niet controleert of ik na een doorverwijzing van het bevolkingsonderzoek baarmoederhalskanker naar de gynaecoloog ben gegaan",
+		"Als u deze keuze maakt dan controleert het laboratorium niet of u een afspraak heeft gemaakt met een gynaecoloog (als het nodig was om u verder te onderzoeken).",
+		false, Bevolkingsonderzoek.CERVIX),
+
 	@Deprecated
 	GEEN_REGISTRATIE_GEBOORTELAND("Geen registratie geboorteland", false),
 
-	GEEN_OPNAME_UIT_BPR("Geen opname vanuit het BRP"),
+	GEEN_OPNAME_UIT_BPR("Ik wil dat jullie al mijn contactgegevens en onderzoeksresultaten verwijderen"),
 
 	@Deprecated
 	GEEN_UITWISSELING_MET_DE_HUISARTS("Geen uitwisseling met de huisarts", false, Bevolkingsonderzoek.COLON),
 
-	GEEN_DIGITALE_UITWISSELING_MET_HET_ZIEKENHUIS("Geen digitale uitwisseling van uitslag en beelden met ziekenhuis", false, Bevolkingsonderzoek.MAMMA),
-
-	GEEN_KWALITEITSWAARBORGING("Geen kwaliteitswaarborging", false, Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
-
-	GEEN_WETENSCHAPPELIJK_ONDERZOEK("Geen evaluatie- en wetenschappelijk onderzoek", false, Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
-
-	GEEN_GEBRUIK_LICHAAMSMATERIAAL_WETENSCHAPPELIJK_ONDERZOEK("Geen gebruik van mijn lichaamsmateriaal voor wetenschappelijk onderzoek", false, Bevolkingsonderzoek.CERVIX),
-
-	GEEN_SIGNALERING_VERWIJSADVIES("Geen controle vervolg verwijsadvies door laboratorium", false, Bevolkingsonderzoek.CERVIX),
-
-	VERZOEK_TOT_VERWIJDERING_DOSSIER("Verzoek tot verwijdering van dossier", Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
+	VERZOEK_TOT_VERWIJDERING_DOSSIER("Ik wil dat jullie de onderzoeksresultaten van mijn deelname verwijderen", Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX,
+		Bevolkingsonderzoek.MAMMA),
 
 	;
 
 	private final String naam;
+
+	private String subtitel = "";
 
 	private Bevolkingsonderzoek[] bevolkingsonderzoeken = new Bevolkingsonderzoek[] {};
 
@@ -60,6 +79,14 @@ public enum BezwaarType
 	BezwaarType(String naam, boolean onzichtbaarOpClientPortaal, Bevolkingsonderzoek... bevolkingsOnderzoeken)
 	{
 		this.naam = naam;
+		this.onzichtbaarOpClientPortaal = onzichtbaarOpClientPortaal;
+		this.bevolkingsonderzoeken = bevolkingsOnderzoeken;
+	}
+
+	BezwaarType(String naam, String subtitel, boolean onzichtbaarOpClientPortaal, Bevolkingsonderzoek... bevolkingsOnderzoeken)
+	{
+		this.naam = naam;
+		this.subtitel = subtitel;
 		this.onzichtbaarOpClientPortaal = onzichtbaarOpClientPortaal;
 		this.bevolkingsonderzoeken = bevolkingsOnderzoeken;
 	}
@@ -83,4 +110,12 @@ public enum BezwaarType
 	{
 		return naam;
 	}
+
+	public String getSubtitel()
+	{
+		return subtitel;
+	}
+
+	public static final List<BezwaarType> ALGEMENE_BEZWAAR_TYPES = List.of(GEEN_WETENSCHAPPELIJK_ONDERZOEK, GEEN_KWALITEITSWAARBORGING,
+		GEEN_GEBRUIK_LICHAAMSMATERIAAL_WETENSCHAPPELIJK_ONDERZOEK, GEEN_SIGNALERING_VERWIJSADVIES, GEEN_DIGITALE_UITWISSELING_MET_HET_ZIEKENHUIS);
 }

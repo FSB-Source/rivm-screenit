@@ -21,43 +21,33 @@ package nl.rivm.screenit.dao.colon;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
-import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
-import nl.rivm.screenit.model.colon.Kamer;
-import nl.rivm.screenit.model.colon.RoosterItemListViewWrapper;
+import nl.rivm.screenit.model.colon.ColonAfspraakslotListViewWrapper;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.RoosterListViewFilter;
+import nl.rivm.screenit.model.colon.dto.VrijSlotZonderKamer;
+import nl.rivm.screenit.model.colon.dto.VrijSlotZonderKamerFilter;
 import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
-import nl.rivm.screenit.model.colon.planning.RoosterItem;
-import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamer;
-import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamerFilter;
-import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
-import nl.topicuszorg.wicket.planning.util.Periode;
+import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
+import nl.rivm.screenit.model.colon.planning.ColonTijdslot;
 
 import com.google.common.collect.Range;
 
 public interface RoosterDao
 {
 
-	<T extends AbstractAppointment> List<T> getAppointments(Periode periode, List<Kamer> kamers, Class<T> type);
+	<T extends ColonTijdslot> List<T> zoekTijdslotsVoorKamersInRange(Range<LocalDateTime> range, List<ColonIntakekamer> kamers, Class<T> type);
 
-	List<RoosterItem> getOneindigeItems();
+	List<ColonAfspraakslotListViewWrapper> getAlleAfspraakslotsInPeriode(String sortProperty, boolean asc, RoosterListViewFilter filter, ColonIntakelocatie intakeLocatie);
 
-	List<Object> getRoosterTijden(List<Range<Date>> intervals, RoosterItem roosteritem, Range<Date> totaalInterval);
+	List<ColonAfspraakslotListViewWrapper> getAfspraakslots(String sortProperty, boolean asc, long first, long count, RoosterListViewFilter filter,
+		ColonIntakelocatie intakeLocatie);
 
-	List<RoosterItemListViewWrapper> getAlleRoosterBlokkenInPeriode(String sortProperty, boolean asc, RoosterListViewFilter filter, ColoscopieCentrum intakeLocatie);
+	long getAfspraakslotsCount(RoosterListViewFilter filter, ColonIntakelocatie intakeLocatie);
 
-	List<RoosterItemListViewWrapper> getRoosterBlokken(String sortProperty, boolean asc, long first, long count, RoosterListViewFilter filter, ColoscopieCentrum intakeLocatie);
-
-	long getRoosterBlokkenCount(RoosterListViewFilter filter, ColoscopieCentrum intakeLocatie);
-
-	List<Object> getCurrentRoosterBlokken(Kamer kamer, Range<Date> periode);
-
-	List<ColonBlokkade> getBlokkades(Kamer kamer, Date startTime, Date endTime);
-
-	List<Date> getMdlDatums(Client client, IntakelocatieVanTotEnMetFilter intakeVanTotEnMetFilter);
+	List<Object> getCurrentAfspraakslots(ColonIntakekamer kamer, Range<LocalDateTime> periode);
 
 	List<VrijSlotZonderKamer> getVrijeSlotenZonderKamer(String sortProperty, boolean asc, long first, long count, VrijSlotZonderKamerFilter filter);
 
@@ -67,9 +57,11 @@ public interface RoosterDao
 
 	long getVrijeSlotenZonderKamerCount(VrijSlotZonderKamerFilter filter);
 
-	List<Kamer> getKamers(Date startTijd, Long intakeLocatieId);
+	List<ColonIntakekamer> getKamers(LocalDateTime startTijd, Long intakelocatieId);
 
-	List<ColonBlokkade> getBlokkades(String sortProperty, boolean ascending, long first, long count, RoosterListViewFilter filter, ColoscopieCentrum intakelocatie);
+	List<ColonBlokkade> getBlokkades(String sortProperty, boolean ascending, long first, long count, RoosterListViewFilter filter, ColonIntakelocatie intakelocatie);
 
-	long getBlokkadesCount(RoosterListViewFilter filter, ColoscopieCentrum intakelocatie);
+	List<ColonBlokkade> getBlokkades(ColonIntakekamer kamer, LocalDateTime vanaf, LocalDateTime tot);
+
+	long getBlokkadesCount(RoosterListViewFilter filter, ColonIntakelocatie intakelocatie);
 }

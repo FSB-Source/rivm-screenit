@@ -82,7 +82,6 @@ public class BaseHibernateConfig
 			new ClassPathResource("hibernate-dataset-mapping.cfg.xml"),
 			new ClassPathResource("hibernate-mapping.cfg.xml"),
 			new ClassPathResource("hibernate-organisatie.cfg.xml"),
-			new ClassPathResource("hibernate-wicket-planning.cfg.xml"),
 			new ClassPathResource("hibernate-persoonsgegevens.cfg.xml"),
 			new ClassPathResource("hibernate-formulieren2.cfg.xml")));
 		additionalHibernateConfigLocations.ifPresent(configLocations::addAll);

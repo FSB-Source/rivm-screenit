@@ -22,26 +22,31 @@ package nl.rivm.screenit.model.colon;
  */
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Index;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-import javax.persistence.Transient;
+import javax.persistence.UniqueConstraint;
 
 import lombok.Getter;
 import lombok.Setter;
 
-import nl.rivm.screenit.model.Afspraak;
-import nl.rivm.screenit.model.colon.enums.ColonTijdSlotType;
+import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
+import nl.rivm.screenit.model.colon.enums.ColonTijdslotType;
+import nl.rivm.screenit.model.colon.planning.ColonAfspraakslot;
+import nl.rivm.screenit.model.colon.planning.ColonTijdslot;
 import nl.rivm.screenit.model.helper.HibernateMagicNumber;
 
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.envers.Audited;
@@ -49,32 +54,57 @@ import org.hibernate.envers.Audited;
 @Getter
 @Setter
 @Entity
-@Table(schema = "colon", indexes = { @Index(name = "idx_colon_afspraak_bezwaar", columnList = "bezwaar") })
+@Table(schema = "colon", name = "intakeafspraak",
+	indexes = { @Index(name = "idx_colon_afspraak_bezwaar", columnList = "bezwaar") },
+	uniqueConstraints = {
+		@UniqueConstraint(columnNames = { "afspraakslot" }),
+		@UniqueConstraint(columnNames = { "nieuwe_Afspraak" })
+
+	})
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "colon.cache")
 @Audited
-public class ColonIntakeAfspraak extends Afspraak
+public class ColonIntakeAfspraak extends ColonTijdslot
 {
-	@ManyToOne(fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
+	public ColonIntakeAfspraak()
+	{
+		setType(ColonTijdslotType.INTAKEAFSPRAAK);
+	}
+
+	@ManyToOne(fetch = FetchType.LAZY, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE }, optional = false)
 	@Cascade({ CascadeType.SAVE_UPDATE })
 	private ColonScreeningRonde colonScreeningRonde;
 
 	@OneToOne(fetch = FetchType.LAZY)
 	private ColonConclusie conclusie;
 
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date afzegDatum;
+	private LocalDateTime afgezegdOp;
+
+	@Column(nullable = false)
+	private LocalDateTime aangemaaktOp;
+
+	@Column(nullable = false)
+	private LocalDateTime gewijzigdOp;
 
 	@Column(precision = HibernateMagicNumber.P6, scale = HibernateMagicNumber.S3, nullable = false)
 	private BigDecimal afstand;
 
 	@Column(nullable = false)
-	private Boolean bezwaar;
+	private boolean bezwaar;
 
-	@Transient
-	private Boolean briefTegenhouden;
+	@Column(nullable = false)
+	@Enumerated(EnumType.STRING)
+	private ColonAfspraakStatus status;
 
-	public ColonIntakeAfspraak()
-	{
-		super();
-		setTitle(ColonTijdSlotType.AFSPRAAK.getTitle());
-	}
+	@OneToOne(fetch = FetchType.LAZY)
+	private ColonIntakeAfspraak nieuweAfspraak;
+
+	@OneToOne(fetch = FetchType.LAZY)
+	private ColonIntakeAfspraak oudeAfspraak;
+
+	@ManyToOne(cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE }, optional = false)
+	@Cascade(CascadeType.SAVE_UPDATE)
+	private Client client;
+
+	@OneToOne(fetch = FetchType.LAZY)
+	private ColonAfspraakslot afspraakslot;
 }

@@ -24,11 +24,11 @@ package nl.rivm.screenit.service.impl;
 import java.text.SimpleDateFormat;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import nl.rivm.screenit.model.AanvraagBriefStatus;
 import nl.rivm.screenit.model.Afmelding;
@@ -55,9 +55,9 @@ import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.ScannedAntwoordFormulier;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BezwaarType;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -113,15 +113,14 @@ public class BaseClientGebeurtenisServiceImpl implements BaseClientGebeurtenisSe
 			for (ColonIntakeAfspraak afspraak : colonScreeningRonde.getAfspraken())
 			{
 				ClientGebeurtenis gebeurtenis = new ClientGebeurtenis();
-				gebeurtenis.setDatum(afspraak.getDatumLaatsteWijziging());
+				gebeurtenis.setDatum(DateUtil.toUtilDate(afspraak.getGewijzigdOp()));
 				gebeurtenis.setType(ClientGebeurtenisType.INTAKE_AFSPRAAK_GEMAAKT);
 
-				SimpleDateFormat tijdFormat = new SimpleDateFormat("HH:mm");
-				gebeurtenis.setExtraParam(DateUtil.toLocalDate(afspraak.getStartTime()).format(DateUtil.LOCAL_DATE_WEERGAVE_CLIENTPORTAAL_FORMAT),
-					tijdFormat.format(afspraak.getStartTime()));
+				gebeurtenis.setExtraParam(afspraak.getVanaf().format(DateUtil.LOCAL_DATE_WEERGAVE_CLIENTPORTAAL_FORMAT),
+					DateUtil.formatLocalTime(afspraak.getVanaf()));
 				gebeurtenissen.add(gebeurtenis);
 
-				if (AfspraakStatus.VERPLAATST.equals(afspraak.getStatus()))
+				if (ColonAfspraakStatus.VERPLAATST.equals(afspraak.getStatus()))
 				{
 					gebeurtenis = new ClientGebeurtenis();
 					gebeurtenis.setDatum(getVerplaatstDatum(afspraak, colonScreeningRonde.getAfspraken()));
@@ -129,10 +128,10 @@ public class BaseClientGebeurtenisServiceImpl implements BaseClientGebeurtenisSe
 					gebeurtenissen.add(gebeurtenis);
 				}
 
-				if (AfspraakStatus.isGeannuleerd(afspraak.getStatus()))
+				if (ColonAfspraakStatus.isGeannuleerd(afspraak.getStatus()))
 				{
 					gebeurtenis = new ClientGebeurtenis();
-					gebeurtenis.setDatum(afspraak.getAfzegDatum());
+					gebeurtenis.setDatum(DateUtil.toUtilDate(afspraak.getAfgezegdOp()));
 					gebeurtenis.setType(ClientGebeurtenisType.INTAKE_AFSPRAAK_AFGEZEGD);
 					gebeurtenissen.add(gebeurtenis);
 				}
@@ -506,33 +505,30 @@ public class BaseClientGebeurtenisServiceImpl implements BaseClientGebeurtenisSe
 
 	private void clientBezwaarGebeurtenissen(Client client, List<ClientGebeurtenis> gebeurtenissen, Bevolkingsonderzoek bvo)
 	{
-		List<BezwaarMoment> bezwaarMomenten = new ArrayList<>(client.getBezwaarMomenten());
-		Collections.sort(bezwaarMomenten, new PropertyComparator<>("statusDatum", false, true));
+		List<BezwaarMoment> bezwaarMomenten = new ArrayList<>(client.getBezwaarMomenten()).stream().filter(bm -> AanvraagBriefStatus.VERWERKT == bm.getStatus())
+			.sorted(new PropertyComparator<>("statusDatum", false, true)).collect(Collectors.toList());
 		Map<String, Boolean> bezwaarChanges = new HashMap<>();
 		for (BezwaarMoment bezwaarMoment : bezwaarMomenten)
 		{
-			if (AanvraagBriefStatus.VERWERKT.equals(bezwaarMoment.getStatus()))
-			{
-				addBezwaarGebeurtenis(gebeurtenissen, bezwaarMoment, bezwaarChanges, BezwaarType.GEEN_KWALITEITSWAARBORGING,
-					ClientGebeurtenisType.BEZWAAR_GEMAAKT_KWALITEITSBORGING, ClientGebeurtenisType.BEZWAAR_INGETROKKEN_KWALITEITSBORGING, bvo);
-				addBezwaarGebeurtenis(gebeurtenissen, bezwaarMoment, bezwaarChanges, BezwaarType.GEEN_REGISTRATIE_GEBOORTELAND, ClientGebeurtenisType.BEZWAAR_GEMAAKT_GEBOORTELAND,
-					ClientGebeurtenisType.BEZWAAR_INGETROKKEN_GEBOORTELAND, null);
-				addBezwaarGebeurtenis(gebeurtenissen, bezwaarMoment, bezwaarChanges, BezwaarType.GEEN_UITWISSELING_MET_DE_HUISARTS,
-					ClientGebeurtenisType.BEZWAAR_GEMAAKT_COMMUNICATIEHUISARTS, ClientGebeurtenisType.BEZWAAR_INGETROKKEN_COMMUNICATIEHUISARTS, bvo);
-				addBezwaarGebeurtenis(gebeurtenissen, bezwaarMoment, bezwaarChanges, BezwaarType.GEEN_WETENSCHAPPELIJK_ONDERZOEK,
-					ClientGebeurtenisType.BEZWAAR_GEMAAKT_WETENSCHAPPELIJKONDERZOEK, ClientGebeurtenisType.BEZWAAR_INGETROKKEN_WETENSCHAPPELIJKONDERZOEK, bvo);
-				addBezwaarGebeurtenis(gebeurtenissen, bezwaarMoment, bezwaarChanges, BezwaarType.GEEN_GEBRUIK_LICHAAMSMATERIAAL_WETENSCHAPPELIJK_ONDERZOEK,
-					ClientGebeurtenisType.BEZWAAR_GEMAAKT_WETENSCHAPPELIJKONDERZOEK_LICHAAMSMATERIAAL,
-					ClientGebeurtenisType.BEZWAAR_INGETROKKEN_WETENSCHAPPELIJKONDERZOEK_LICHAAMSMATERIAAL, bvo);
-				addBezwaarGebeurtenis(gebeurtenissen, bezwaarMoment, bezwaarChanges, BezwaarType.VERZOEK_TOT_VERWIJDERING_DOSSIER,
-					ClientGebeurtenisType.BEZWAAR_GEMAAKT_DOSSIERVOERING, ClientGebeurtenisType.BEZWAAR_INGETROKKEN_DOSSIERVOERING, bvo);
-				addBezwaarGebeurtenis(gebeurtenissen, bezwaarMoment, bezwaarChanges, BezwaarType.GEEN_DIGITALE_UITWISSELING_MET_HET_ZIEKENHUIS,
-					ClientGebeurtenisType.BEZWAAR_GEMAAKT_DIGITALE_UITWISSELING_MET_HET_ZIEKENHUIS,
-					ClientGebeurtenisType.BEZWAAR_INGETROKKEN_DIGITALE_UITWISSELING_MET_HET_ZIEKENHUIS, bvo);
-				addBezwaarGebeurtenis(gebeurtenissen, bezwaarMoment, bezwaarChanges, BezwaarType.GEEN_SIGNALERING_VERWIJSADVIES,
-					ClientGebeurtenisType.BEZWAAR_GEMAAKT_GEEN_SIGNALERING_VERWIJSADVIES, ClientGebeurtenisType.BEZWAAR_INGETROKKEN_GEEN_SIGNALERING_VERWIJSADVIES, bvo);
+			addBezwaarGebeurtenis(gebeurtenissen, bezwaarMoment, bezwaarChanges, BezwaarType.GEEN_KWALITEITSWAARBORGING,
+				ClientGebeurtenisType.BEZWAAR_GEMAAKT_KWALITEITSBORGING, ClientGebeurtenisType.BEZWAAR_INGETROKKEN_KWALITEITSBORGING, null);
+			addBezwaarGebeurtenis(gebeurtenissen, bezwaarMoment, bezwaarChanges, BezwaarType.GEEN_REGISTRATIE_GEBOORTELAND, ClientGebeurtenisType.BEZWAAR_GEMAAKT_GEBOORTELAND,
+				ClientGebeurtenisType.BEZWAAR_INGETROKKEN_GEBOORTELAND, null);
+			addBezwaarGebeurtenis(gebeurtenissen, bezwaarMoment, bezwaarChanges, BezwaarType.GEEN_UITWISSELING_MET_DE_HUISARTS,
+				ClientGebeurtenisType.BEZWAAR_GEMAAKT_COMMUNICATIEHUISARTS, ClientGebeurtenisType.BEZWAAR_INGETROKKEN_COMMUNICATIEHUISARTS, bvo);
+			addBezwaarGebeurtenis(gebeurtenissen, bezwaarMoment, bezwaarChanges, BezwaarType.GEEN_WETENSCHAPPELIJK_ONDERZOEK,
+				ClientGebeurtenisType.BEZWAAR_GEMAAKT_WETENSCHAPPELIJKONDERZOEK, ClientGebeurtenisType.BEZWAAR_INGETROKKEN_WETENSCHAPPELIJKONDERZOEK, null);
+			addBezwaarGebeurtenis(gebeurtenissen, bezwaarMoment, bezwaarChanges, BezwaarType.GEEN_GEBRUIK_LICHAAMSMATERIAAL_WETENSCHAPPELIJK_ONDERZOEK,
+				ClientGebeurtenisType.BEZWAAR_GEMAAKT_WETENSCHAPPELIJKONDERZOEK_LICHAAMSMATERIAAL,
+				ClientGebeurtenisType.BEZWAAR_INGETROKKEN_WETENSCHAPPELIJKONDERZOEK_LICHAAMSMATERIAAL, bvo);
+			addBezwaarGebeurtenis(gebeurtenissen, bezwaarMoment, bezwaarChanges, BezwaarType.VERZOEK_TOT_VERWIJDERING_DOSSIER,
+				ClientGebeurtenisType.BEZWAAR_GEMAAKT_DOSSIERVOERING, ClientGebeurtenisType.BEZWAAR_INGETROKKEN_DOSSIERVOERING, bvo);
+			addBezwaarGebeurtenis(gebeurtenissen, bezwaarMoment, bezwaarChanges, BezwaarType.GEEN_DIGITALE_UITWISSELING_MET_HET_ZIEKENHUIS,
+				ClientGebeurtenisType.BEZWAAR_GEMAAKT_DIGITALE_UITWISSELING_MET_HET_ZIEKENHUIS,
+				ClientGebeurtenisType.BEZWAAR_INGETROKKEN_DIGITALE_UITWISSELING_MET_HET_ZIEKENHUIS, bvo);
+			addBezwaarGebeurtenis(gebeurtenissen, bezwaarMoment, bezwaarChanges, BezwaarType.GEEN_SIGNALERING_VERWIJSADVIES,
+				ClientGebeurtenisType.BEZWAAR_GEMAAKT_GEEN_SIGNALERING_VERWIJSADVIES, ClientGebeurtenisType.BEZWAAR_INGETROKKEN_GEEN_SIGNALERING_VERWIJSADVIES, bvo);
 
-			}
 		}
 	}
 
@@ -548,7 +544,7 @@ public class BaseClientGebeurtenisServiceImpl implements BaseClientGebeurtenisSe
 		{
 			gebeurtenis.setType(gebeurtenisGemaakt);
 
-			if (oldValue == null || !value.equals(oldValue))
+			if (!value.equals(oldValue))
 			{
 				bezwaarChanges.put(type.toString(), value);
 				gebeurtenissen.add(gebeurtenis);
@@ -575,7 +571,7 @@ public class BaseClientGebeurtenisServiceImpl implements BaseClientGebeurtenisSe
 			long afstandTussenIds = afspraak.getId() - verplaatstAfspraak.getId();
 			if (afstandTussenIds > 0L && (maxIdAfstand == null || maxIdAfstand > afstandTussenIds))
 			{
-				verplaatsDatum = DateUtil.minusTijdseenheid(afspraak.getDatumLaatsteWijziging(), 150, ChronoUnit.MILLIS);
+				verplaatsDatum = DateUtil.minusTijdseenheid(DateUtil.toUtilDate(afspraak.getGewijzigdOp()), 150, ChronoUnit.MILLIS);
 				maxIdAfstand = afstandTussenIds;
 			}
 		}

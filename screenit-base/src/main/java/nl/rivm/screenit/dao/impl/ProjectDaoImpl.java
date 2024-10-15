@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.dao.impl;
 
 /*-
@@ -25,27 +24,14 @@ package nl.rivm.screenit.dao.impl;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.dao.ProjectDao;
-import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.ProjectParameterKey;
 import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.project.Project;
-import nl.rivm.screenit.model.project.ProjectAttribuut;
-import nl.rivm.screenit.model.project.ProjectBestand;
-import nl.rivm.screenit.model.project.ProjectBestandVerwerkingEntry;
-import nl.rivm.screenit.model.project.ProjectBriefActie;
-import nl.rivm.screenit.model.project.ProjectBriefActieType;
-import nl.rivm.screenit.model.project.ProjectClient;
-import nl.rivm.screenit.model.project.ProjectClientAttribuut;
-import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.rivm.screenit.model.project.ProjectStatus;
 import nl.rivm.screenit.model.project.ProjectType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -55,23 +41,13 @@ import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.util.CollectionUtils;
-import org.hibernate.Criteria;
-import org.hibernate.Query;
 import org.hibernate.SQLQuery;
-import org.hibernate.criterion.CriteriaQuery;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.sql.JoinType;
+import org.hibernate.type.DateType;
 import org.hibernate.type.LongType;
-import org.hibernate.type.Type;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.google.common.primitives.Ints;
 
 @Slf4j
 @Repository
@@ -86,16 +62,16 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 
 	private SQLQuery getDefaultSqlProjectQuery(Project zoekObject, List<Long> instellingIdsProject, List<Long> instellingIdsBriefproject, SortState<String> order)
 	{
-		Date vandaag = currentDateSupplier.getDate();
-		Map<String, Object> parameters = new HashMap<String, Object>();
-		String select = "SELECT p.id ";
-		String from = "from algemeen.project p ";
-		String where = "";
-		String orderby = "";
+		var vandaag = currentDateSupplier.getDate();
+		var parameters = new HashMap<String, Object>();
+		var select = order == null ? "SELECT count(p.id) " : "SELECT p.id ";
+		var from = "from algemeen.project p ";
+		var where = "";
+		var orderby = "";
 
 		if (zoekObject.getProjectStatussen() != null && !zoekObject.getProjectStatussen().isEmpty())
 		{
-			String projectstatuswhere = getProjectStatusWhere(zoekObject.getProjectStatussen(), vandaag);
+			var projectstatuswhere = getProjectStatusWhere(zoekObject.getProjectStatussen(), vandaag);
 			if (projectstatuswhere != null)
 			{
 				where = SQLQueryUtil.whereOrAnd(where);
@@ -107,7 +83,7 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 		if (zoekObject.getProjectTypes() != null && !zoekObject.getProjectTypes().isEmpty())
 		{
 			where = SQLQueryUtil.whereOrAnd(where);
-			Map<String, Object> params = SQLQueryUtil.inExpressionParametersEnum("projecttype", zoekObject.getProjectTypes());
+			var params = SQLQueryUtil.inExpressionParametersEnum("projecttype", zoekObject.getProjectTypes());
 			where += " p.type in (:" + StringUtils.join(params.keySet(), ", :") + ") ";
 			parameters.putAll(params);
 		}
@@ -116,24 +92,24 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 		{
 			from += "left outer join algemeen.project_bevolkingsonderzoeken pb on p.id = pb.project ";
 			where = SQLQueryUtil.whereOrAnd(where);
-			Map<String, Object> params = SQLQueryUtil.inExpressionParametersEnum("onderzoek", zoekObject.getBevolkingsonderzoeken());
+			var params = SQLQueryUtil.inExpressionParametersEnum("onderzoek", zoekObject.getBevolkingsonderzoeken());
 			where += "pb.bevolkingsonderzoeken in (:" + StringUtils.join(params.keySet(), ", :") + ") ";
 			parameters.putAll(params);
 		}
 
-		String whereProject = "";
-		String whereBriefproject = "";
+		var whereProject = "";
+		var whereBriefproject = "";
 
 		if (!CollectionUtils.isEmpty(instellingIdsProject) && zoekObject.getProjectTypes().contains(ProjectType.PROJECT))
 		{
-			Map<String, Object> paramsProject = SQLQueryUtil.inExpressionParametersLong("organisatie", instellingIdsProject);
+			var paramsProject = SQLQueryUtil.inExpressionParametersLong("organisatie", instellingIdsProject);
 			whereProject = "p.type = 'PROJECT' and p.organisatie in (:" + StringUtils.join(paramsProject.keySet(), ", :") + ")";
 			parameters.putAll(paramsProject);
 		}
 
 		if (!CollectionUtils.isEmpty(instellingIdsBriefproject) && zoekObject.getProjectTypes().contains(ProjectType.BRIEFPROJECT))
 		{
-			Map<String, Object> paramsBriefproject = SQLQueryUtil.inExpressionParametersLong("organisatie", instellingIdsBriefproject);
+			var paramsBriefproject = SQLQueryUtil.inExpressionParametersLong("organisatie", instellingIdsBriefproject);
 			whereBriefproject = "p.type = 'BRIEFPROJECT' and p.organisatie in (:" + StringUtils.join(paramsBriefproject.keySet(), ", :") + ")";
 			parameters.putAll(paramsBriefproject);
 		}
@@ -154,7 +130,7 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 
 		if (StringUtils.isNotEmpty(whereProject) || StringUtils.isNotEmpty(whereBriefproject))
 		{
-			from += "inner join algemeen.org_organisatie oop on p.organisatie = oop.id ";
+			from += "join algemeen.org_organisatie oop on p.organisatie = oop.id ";
 			where = SQLQueryUtil.whereOrAnd(where);
 			if (StringUtils.isNotEmpty(whereProject) && StringUtils.isNotEmpty(whereBriefproject))
 			{
@@ -190,8 +166,8 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 				orderby += "p.eind_datum ";
 				break;
 			case "contactpersoon.medewerker":
-				from += "inner join algemeen.org_organisatie_medewerker oom on p.contactpersoon = oom.id ";
-				from += "inner join algemeen.org_medewerker m on oom.medewerker = m.id ";
+				from += "join algemeen.org_organisatie_medewerker oom on p.contactpersoon = oom.id ";
+				from += "join algemeen.org_medewerker m on oom.medewerker = m.id ";
 				orderby += "m.achternaam ";
 				break;
 			default:
@@ -207,10 +183,10 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 			}
 		}
 
-		String loggingSql = select + from + where + orderby;
-		LOG.debug(loggingSql);
-		SQLQuery criteria = getSession().createSQLQuery(loggingSql);
-		for (Entry<String, Object> param : parameters.entrySet())
+		var projectenSql = select + from + where + orderby;
+		LOG.debug(projectenSql);
+		var criteria = getSession().createNativeQuery(projectenSql);
+		for (var param : parameters.entrySet())
 		{
 			criteria.setParameter(param.getKey(), param.getValue());
 		}
@@ -257,7 +233,7 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 	public List<Project> getProjecten(Project zoekObject, List<Long> instellingIdsProject, List<Long> instellingIdsBriefproject, long first, long count,
 		SortState<String> sortState)
 	{
-		SQLQuery query = getDefaultSqlProjectQuery(zoekObject, instellingIdsProject, instellingIdsBriefproject, sortState);
+		var query = getDefaultSqlProjectQuery(zoekObject, instellingIdsProject, instellingIdsBriefproject, sortState);
 		query.addScalar("id", LongType.INSTANCE);
 		if (count > 0)
 		{
@@ -270,7 +246,7 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 		List<Long> projectLongs = query.list();
 
 		List<Project> projecten = new ArrayList<Project>();
-		for (Long l : projectLongs)
+		for (var l : projectLongs)
 		{
 			projecten.add(hibernateService.load(Project.class, l));
 		}
@@ -280,464 +256,26 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 	@Override
 	public long getCountProjecten(Project zoekObject, List<Long> instellingIdsProject, List<Long> instellingIdsBriefproject)
 	{
-		SQLQuery query = getDefaultSqlProjectQuery(zoekObject, instellingIdsProject, instellingIdsBriefproject, null);
-		return query.list().size();
-	}
-
-	private Criteria getDefaultGroepenCriteria(ProjectGroep zoekObject)
-	{
-		Criteria crit = getSession().createCriteria(ProjectGroep.class);
-		if (zoekObject.getProject() != null)
-		{
-			crit.add(Restrictions.eq("project", zoekObject.getProject()));
-		}
-		if (zoekObject.getActief() != null)
-		{
-			crit.add(Restrictions.eq("actief", zoekObject.getActief()));
-		}
-
-		return crit;
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public Iterator<ProjectGroep> getGroepen(ProjectGroep zoekObject, long first, long count, SortState<String> sortState)
-	{
-		Criteria crit = getDefaultGroepenCriteria(zoekObject);
-
-		crit.addOrder(Order.asc(sortState.getSortParam()));
-		if (!sortState.isAsc())
-		{
-			crit.addOrder(Order.desc(sortState.getSortParam()));
-		}
-
-		crit.setMaxResults((int) count);
-		crit.setFirstResult((int) first);
-
-		return crit.list().iterator();
-	}
-
-	@Override
-	public long getCountGroepen(ProjectGroep zoekObject)
-	{
-		Criteria crit = getDefaultGroepenCriteria(zoekObject);
-		crit.setProjection(Projections.rowCount());
-		return ((Number) crit.uniqueResult()).longValue();
-	}
-
-	private Criteria getDefaultClientProjectenCriteria(ProjectClient pClient)
-	{
-		Criteria crit = getSession().createCriteria(ProjectClient.class);
-
-		crit.createAlias("project", "project");
-
-		if (pClient != null && pClient.getClient() != null)
-		{
-			crit.add(Restrictions.eq("client", pClient.getClient()));
-		}
-
-		return crit;
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public Iterator<ProjectClient> getClientProjecten(ProjectClient pClient, long first, long count, SortState<String> sortState)
-	{
-		Criteria crit = getDefaultClientProjectenCriteria(pClient);
-
-		crit.addOrder(Order.asc(sortState.getSortParam()));
-		if (!sortState.isAsc())
-		{
-			crit.addOrder(Order.desc(sortState.getSortParam()));
-		}
-
-		crit.setMaxResults((int) count);
-		crit.setFirstResult((int) first);
-
-		return crit.list().iterator();
-	}
-
-	@Override
-	public long getCountClientProjecten(ProjectClient client)
-	{
-		Criteria crit = getDefaultClientProjectenCriteria(client);
-		crit.setProjection(Projections.rowCount());
-		return ((Number) crit.uniqueResult()).longValue();
-	}
-
-	private Criteria getCriteriaProjectenBriefActies(ProjectBriefActie actie)
-	{
-		Criteria crit = getSession().createCriteria(ProjectBriefActie.class);
-		crit.createAlias("project", "project");
-		crit.add(Restrictions.ne("type", ProjectBriefActieType.HERINNERING));
-		if (actie.getProject() != null)
-		{
-			crit.add(Restrictions.eq("project", actie.getProject()));
-		}
-		if (actie.getActief() != null)
-		{
-			crit.add(Restrictions.eq("actief", actie.getActief()));
-		}
-
-		return crit;
-
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public Iterator<ProjectBriefActie> getProjectBriefActies(ProjectBriefActie actie, long first, long count, SortState<String> sortState)
-	{
-		Criteria crit = getCriteriaProjectenBriefActies(actie);
-		crit.createAlias("document", "document");
-		crit.createAlias("vragenlijst", "vragenlijst", JoinType.LEFT_OUTER_JOIN);
-		crit.setMaxResults((int) count);
-		crit.setFirstResult((int) first);
-		if (sortState.isAsc())
-		{
-			crit.addOrder(Order.asc(sortState.getSortParam()));
-		}
-		else
-		{
-			crit.addOrder(Order.desc(sortState.getSortParam()));
-		}
-		return crit.list().iterator();
-	}
-
-	@Override
-	public long getCountProjectBriefActies(ProjectBriefActie actie)
-	{
-		Criteria crit = getCriteriaProjectenBriefActies(actie);
-		crit.setProjection(Projections.rowCount());
-		return ((Number) crit.uniqueResult()).longValue();
-	}
-
-	@Override
-	public boolean isVragenlijstGekoppeldAanNietBeeindigdProject(Long vragenlijstId)
-	{
-		Criteria crit = getSession().createCriteria(Project.class);
-		crit.createAlias("projectBriefActies", "acties");
-
-		crit.add(Restrictions.ge("eindDatum", currentDateSupplier.getDate()));
-		crit.add(Restrictions.eq("acties.vragenlijst.id", vragenlijstId));
-
-		crit.setProjection(Projections.rowCount());
-
-		return ((Number) crit.uniqueResult()).longValue() > 0;
-	}
-
-	@Override
-	public boolean isVragenlijstGekoppeldAanProject(Long vragenlijstId)
-	{
-		Criteria crit = getSession().createCriteria(ProjectBriefActie.class);
-
-		crit.add(Restrictions.eq("vragenlijst.id", vragenlijstId));
-
-		crit.setProjection(Projections.rowCount());
-
-		return ((Number) crit.uniqueResult()).longValue() > 0;
-	}
-
-	@Override
-	public Long getAantalInactieveProjectClientenVanProject(Project project)
-	{
-		Criteria crit = getSession().createCriteria(ProjectClient.class);
-		crit.createAlias("project", "project");
-
-		crit.add(Restrictions.eq("project", project));
-
-		crit.add(Restrictions.eq("actief", false));
-
-		crit.setProjection(Projections.rowCount());
-
-		return ((Number) crit.uniqueResult()).longValue();
-	}
-
-	@Override
-	public Long getAantalInactieveProjectClientenVanProjectGroep(ProjectGroep groep)
-	{
-		Criteria crit = getSession().createCriteria(ProjectClient.class);
-		crit.createAlias("groep", "groep");
-
-		crit.add(Restrictions.eq("groep", groep));
-
-		crit.add(Restrictions.eq("actief", false));
-
-		crit.setProjection(Projections.rowCount());
-
-		return ((Number) crit.uniqueResult()).longValue();
-	}
-
-	@Override
-	public Long getAantalProjectClientenVanProject(Project project)
-	{
-		Criteria crit = getSession().createCriteria(ProjectClient.class);
-		crit.createAlias("project", "project");
-
-		crit.add(Restrictions.eq("project", project));
-
-		crit.setProjection(Projections.rowCount());
-
-		return ((Number) crit.uniqueResult()).longValue();
-	}
-
-	@Override
-	public Long getAantalProjectClientenVanProjectGroep(ProjectGroep groep)
-	{
-		Criteria crit = getSession().createCriteria(ProjectClient.class);
-		crit.createAlias("groep", "groep");
-
-		crit.add(Restrictions.eq("groep", groep));
-
-		crit.setProjection(Projections.rowCount());
-
-		return ((Number) crit.uniqueResult()).longValue();
-	}
-
-	@Override
-	public List<ProjectGroep> getActieveProjectGroepenVoorUitnodigingDK()
-	{
-		Criteria criteria = getSession().createCriteria(ProjectGroep.class);
-		criteria.createAlias("project", "project");
-		criteria.createAlias("project.parameters", "parameters");
-
-		Date nu = currentDateSupplier.getDate();
-		criteria.add(Restrictions.le("actiefDatum", nu));
-		criteria.add(Restrictions.gt("uitnodigenVoorDKvoor", nu));
-		criteria.add(Restrictions.eq("actief", Boolean.TRUE));
-		criteria.add(Restrictions.gt("populatie", Integer.valueOf(0)));
-		criteria.add(Restrictions.eq("parameters.key", ProjectParameterKey.COLON_UITNODIGEN_PRIORITEIT));
-		criteria.add(Restrictions.isNotNull("parameters.value"));
-		criteria.addOrder(new Order("parameters.value", false)
-		{
-			@Override
-			public String toSqlString(Criteria criteria, CriteriaQuery criteriaQuery)
-			{
-				final String[] columns = criteriaQuery.getColumnsUsingProjection(criteria, getPropertyName());
-				final Type type = criteriaQuery.getTypeUsingProjection(criteria, getPropertyName());
-				final SessionFactoryImplementor factory = criteriaQuery.getFactory();
-				final int[] sqlTypes = type.sqlTypes(factory);
-
-				final StringBuilder fragment = new StringBuilder();
-				for (int i = 0; i < columns.length; i++)
-				{
-					final StringBuilder expression = new StringBuilder();
-
-					expression.append("CAST(" + columns[i] + " AS int)");
-
-					fragment.append(
-						factory.getDialect().renderOrderByElement(
-							expression.toString(),
-							null,
-							isAscending() ? "asc" : "desc",
-							factory.getSettings().getDefaultNullPrecedence()));
-					if (i < columns.length - 1)
-					{
-						fragment.append(", ");
-					}
-				}
-
-				return fragment.toString();
-			}
-		});
-		criteria.addOrder(Order.asc("project.startDatum"));
-		criteria.addOrder(Order.asc("project.id"));
-		criteria.addOrder(Order.asc("actiefDatum"));
-		criteria.addOrder(Order.asc("uitnodigenVoorDKvoor"));
-		criteria.addOrder(Order.asc("id"));
-		List list = criteria.list();
-
-		return list;
-	}
-
-	private Criteria getCriteriaProjectAttributen(ProjectAttribuut filterObject)
-	{
-		Criteria crit = getSession().createCriteria(ProjectAttribuut.class);
-		crit.add(Restrictions.eq("project", filterObject.getProject()));
-		if (filterObject.getActief() != null)
-		{
-			crit.add(Restrictions.eq("actief", filterObject.getActief()));
-		}
-		return crit;
-	}
-
-	@Override
-	public Iterator<ProjectAttribuut> getProjectAttributen(ProjectAttribuut filterObject, long first, long count, SortState<String> sortState)
-	{
-		Criteria crit = getCriteriaProjectAttributen(filterObject);
-		crit.setMaxResults(Ints.checkedCast(count));
-		crit.setFirstResult(Ints.checkedCast(first));
-		if (sortState.isAsc())
-		{
-			crit.addOrder(Order.asc(sortState.getSortParam()));
-		}
-		else
-		{
-			crit.addOrder(Order.desc(sortState.getSortParam()));
-		}
-		return crit.list().iterator();
-	}
-
-	@Override
-	public Long getAantalProjectAttributen(ProjectAttribuut filterObject)
-	{
-		Criteria crit = getCriteriaProjectAttributen(filterObject);
-		crit.setProjection(Projections.rowCount());
-
-		return ((Number) crit.uniqueResult()).longValue();
-	}
-
-	private Criteria getCriteriaProjectBestanden(ProjectBestand zoekObject)
-	{
-		Criteria crit = getSession().createCriteria(ProjectBestand.class);
-		crit.add(Restrictions.eq("project", zoekObject.getProject()));
-		return crit;
-	}
-
-	@Override
-	public Long getAantalProjectBestanden(ProjectBestand zoekObject)
-	{
-		Criteria crit = getCriteriaProjectBestanden(zoekObject);
-		crit.setProjection(Projections.rowCount());
-
-		return ((Number) crit.uniqueResult()).longValue();
-	}
-
-	@Override
-	public Iterator<ProjectBestand> getProjectBestanden(ProjectBestand filterObject, long first, long count, SortState<String> sortState)
-	{
-		Criteria crit = getCriteriaProjectBestanden(filterObject);
-		crit.createAlias("uploadDocument", "uploadDocument");
-		crit.setMaxResults(Ints.checkedCast(count));
-		crit.setFirstResult(Ints.checkedCast(first));
-		if (sortState.isAsc())
-		{
-			crit.addOrder(Order.asc(sortState.getSortParam()));
-		}
-		else
-		{
-			crit.addOrder(Order.desc(sortState.getSortParam()));
-		}
-		return crit.list().iterator();
-	}
-
-	private Criteria getCriteriaProjectBestandVerwerkingEntries(ProjectBestandVerwerkingEntry entry)
-	{
-		Criteria crit = getSession().createCriteria(ProjectBestandVerwerkingEntry.class);
-		crit.add(Restrictions.eq("verwerking", entry.getVerwerking()));
-		return crit;
-	}
-
-	@Override
-	public Long getAantalProjectbestandVerwerkingEntries(ProjectBestandVerwerkingEntry entry)
-	{
-		Criteria crit = getCriteriaProjectBestandVerwerkingEntries(entry);
-		crit.setProjection(Projections.rowCount());
-
-		return ((Number) crit.uniqueResult()).longValue();
-	}
-
-	@Override
-	public Iterator<ProjectBestandVerwerkingEntry> getProjectBestandVerwerkingEntries(ProjectBestandVerwerkingEntry entry, long first, long count, SortState<String> sortState)
-	{
-		Criteria crit = getCriteriaProjectBestandVerwerkingEntries(entry);
-		crit.setMaxResults(Ints.checkedCast(count));
-		crit.setFirstResult(Ints.checkedCast(first));
-		if (sortState.isAsc())
-		{
-			crit.addOrder(Order.asc(sortState.getSortParam()));
-		}
-		else
-		{
-			crit.addOrder(Order.desc(sortState.getSortParam()));
-		}
-		return crit.list().iterator();
-	}
-
-	@Override
-	public ProjectClientAttribuut getProjectClientAttribuut(ProjectClient client, ProjectAttribuut attribuut)
-	{
-		Criteria crit = getSession().createCriteria(ProjectClientAttribuut.class);
-		crit.add(Restrictions.eq("attribuut", attribuut));
-		crit.add(Restrictions.eq("projectClient", client));
-		return (ProjectClientAttribuut) crit.uniqueResult();
-	}
-
-	private Criteria getCriteriaAttributenVoorProjectClient(ProjectClient filter)
-	{
-		Criteria crit = getSession().createCriteria(ProjectClientAttribuut.class);
-		crit.createAlias("attribuut", "attribuut");
-		crit.add(Restrictions.eq("projectClient", filter));
-		return crit;
-	}
-
-	@Override
-	public Long getAantalAttributenVoorProjectClient(ProjectClient filter)
-	{
-		Criteria crit = getCriteriaAttributenVoorProjectClient(filter);
-		crit.setProjection(Projections.rowCount());
-		return ((Number) crit.uniqueResult()).longValue();
-	}
-
-	@Override
-	public Iterator<ProjectClientAttribuut> getAttributenVoorProjectClient(ProjectClient filter, long first, long count, SortState<String> sortState)
-	{
-		Criteria crit = getCriteriaAttributenVoorProjectClient(filter);
-		crit.setMaxResults(Ints.checkedCast(count));
-		crit.setFirstResult(Ints.checkedCast(first));
-		if (sortState.isAsc())
-		{
-			crit.addOrder(Order.asc(sortState.getSortParam()));
-		}
-		else
-		{
-			crit.addOrder(Order.desc(sortState.getSortParam()));
-		}
-		return crit.list().iterator();
-	}
-
-	@Override
-	public ProjectClient getProjectClient(Client client, Project project)
-	{
-		Criteria crit = getSession().createCriteria(ProjectClient.class);
-		crit.add(Restrictions.eq("project", project));
-		crit.add(Restrictions.eq("client", client));
-		return (ProjectClient) crit.uniqueResult();
-	}
-
-	@Override
-	public ProjectAttribuut getProjectAttribuut(ProjectAttribuut attribuut)
-	{
-		Criteria crit = getSession().createCriteria(ProjectAttribuut.class);
-		crit.add(Restrictions.eq("project", attribuut.getProject()));
-
-		crit.add(
-			Restrictions.or(
-				Restrictions.eq("mergeField", attribuut.getMergeField()), 
-				Restrictions.eq("naam", attribuut.getNaam()) 
-			));
-		if (attribuut.getId() != null)
-		{
-			crit.add(Restrictions.ne("id", attribuut.getId()));
-		}
-		return (ProjectAttribuut) crit.uniqueResult();
+		var query = getDefaultSqlProjectQuery(zoekObject, instellingIdsProject, instellingIdsBriefproject, null);
+		return ((Number) query.uniqueResult()).longValue();
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void resetWachtOpStartProject(Bevolkingsonderzoek bvo)
 	{
-		String sql = String.format("update %s.%s set wacht_op_start_project = false where wacht_op_start_project = true or wacht_op_start_project is null",
+		var sql = String.format("update %s.%s set wacht_op_start_project = false where wacht_op_start_project = true or wacht_op_start_project is null",
 			getSchema(bvo), getDossierTable(bvo));
-		Query query = getSession().createSQLQuery(sql);
-		int aantal = query.executeUpdate();
-		LOG.debug("Aantal gereset " + aantal);
+		var query = getSession().createNativeQuery(sql);
+		var aantal = query.executeUpdate();
+		LOG.debug("Aantal gereset {}", aantal);
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void setNieuwWachtOpStartProject(Bevolkingsonderzoek bvo, Date nu)
 	{
-		String sql = String.format("update %s.%s set wacht_op_start_project = true WHERE id in "
+		var sql = String.format("update %s.%s set wacht_op_start_project = true WHERE id in "
 				+ "(select dossier_.id as y0_ " +
 				"from gedeeld.project_client projectClient_ " +
 				"inner join gedeeld.pat_patient patient_ on projectClient_.client=patient_.id " +
@@ -750,11 +288,11 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 				"and projectClient_.actief=true " +
 				"and projectBevolkingsonderzoeken3_.bevolkingsonderzoeken='%s')",
 			getSchema(bvo), getDossierTable(bvo), getSchema(bvo), getDossierTable(bvo), getJoinColumn(bvo), bvo.name());
-		Query query = getSession().createSQLQuery(sql);
-		query.setDate("startDatum", nu);
-		query.setDate("eindDatum", nu);
-		int aantal = query.executeUpdate();
-		LOG.debug("Aantal geset " + aantal);
+		var query = getSession().createNativeQuery(sql);
+		query.setParameter("startDatum", nu, DateType.INSTANCE);
+		query.setParameter("eindDatum", nu, DateType.INSTANCE);
+		var aantal = query.executeUpdate();
+		LOG.debug("Aantal geset {}", aantal);
 	}
 
 	private String getSchema(Bevolkingsonderzoek bvo)

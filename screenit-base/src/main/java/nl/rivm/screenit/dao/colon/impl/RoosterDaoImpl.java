@@ -21,66 +21,44 @@ package nl.rivm.screenit.dao.colon.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.util.ArrayList;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.dao.colon.IntakelocatieVanTotEnMetFilter;
 import nl.rivm.screenit.dao.colon.RoosterDao;
-import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.RangeCriteriaBuilder;
-import nl.rivm.screenit.model.berichten.cda.MeldingOngeldigCdaBericht;
-import nl.rivm.screenit.model.berichten.enums.BerichtType;
-import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
-import nl.rivm.screenit.model.colon.Kamer;
-import nl.rivm.screenit.model.colon.RoosterItemListViewWrapper;
+import nl.rivm.screenit.model.colon.ColonAfspraakslotListViewWrapper;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.RoosterListViewFilter;
-import nl.rivm.screenit.model.colon.enums.ColonTijdSlotType;
-import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
+import nl.rivm.screenit.model.colon.dto.VrijSlotZonderKamer;
+import nl.rivm.screenit.model.colon.dto.VrijSlotZonderKamerFilter;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
+import nl.rivm.screenit.model.colon.planning.ColonAfspraakslot;
 import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
-import nl.rivm.screenit.model.colon.planning.RoosterItem;
-import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamer;
-import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamerFilter;
+import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
+import nl.rivm.screenit.model.colon.planning.ColonTijdslot;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.criteria.BaseCriteria;
 import nl.topicuszorg.hibernate.criteria.ListCriteria;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
-import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
-import nl.topicuszorg.wicket.planning.model.appointment.recurrence.AbstractRecurrence;
-import nl.topicuszorg.wicket.planning.model.appointment.recurrence.NoRecurrence;
-import nl.topicuszorg.wicket.planning.util.Periode;
 
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
 import org.hibernate.SQLQuery;
-import org.hibernate.criterion.Conjunction;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Disjunction;
-import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Order;
-import org.hibernate.criterion.ProjectionList;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
 import org.hibernate.transform.Transformers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 
 @Repository
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 @Slf4j
 public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 {
@@ -90,102 +68,38 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	public <T extends AbstractAppointment> List<T> getAppointments(Periode periode, List<Kamer> kamers, Class<T> type)
+	public <T extends ColonTijdslot> List<T> zoekTijdslotsVoorKamersInRange(Range<LocalDateTime> range, List<ColonIntakekamer> kamers, Class<T> type)
 	{
-		BaseCriteria<T> criteria = createCriteria(periode, type);
+		BaseCriteria<T> criteria = createCriteria(range, type);
 
-		if (kamers != null && kamers.size() > 0)
+		if (kamers != null && !kamers.isEmpty())
 		{
-			criteria.add(Restrictions.in("location", kamers));
+			criteria.add(Restrictions.in("kamer", kamers));
 		}
-		criteria.addOrder(Order.asc("startTime"));
+		criteria.addOrder(Order.asc("vanaf"));
 		return criteria.list(getSession());
 	}
 
-	private <T extends AbstractAppointment> BaseCriteria<T> createCriteria(Periode periode, Class<T> type)
+	private <T extends ColonTijdslot> BaseCriteria<T> createCriteria(Range<LocalDateTime> range, Class<T> type)
 	{
 		BaseCriteria<T> criteria = new BaseCriteria<>(type);
-		criteria.add(RangeCriteriaBuilder.closedOpen("startTime", "endTime").overlaps(Range.closed(periode.getT(), periode.getU())));
+		criteria.add(RangeCriteriaBuilder.closedOpen("vanaf", "tot").overlapsDateTime(range));
 		return criteria;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public List<RoosterItem> getOneindigeItems()
+	public List<ColonAfspraakslotListViewWrapper> getAlleAfspraakslotsInPeriode(String sortProperty, boolean asc, RoosterListViewFilter filter,
+		ColonIntakelocatie intakeLocatie)
 	{
-		Criteria criteria = getSession().createCriteria(RoosterItem.class);
-
-		criteria.add(Restrictions.isNotNull("recurrence"));
-
-		criteria.createAlias("recurrence", "r");
-		criteria.add(Restrictions.isNull("r.endDate"));
-
-		DetachedCriteria sub = DetachedCriteria.forClass(RoosterItem.class);
-
-		sub.createAlias("recurrence", "subRecurrence");
-		sub.add(Restrictions.eqProperty("r.id", "subRecurrence.id"));
-
-		sub.setProjection(Projections.max("startTime"));
-		criteria.add(Subqueries.propertyEq("startTime", sub));
-
+		var criteria = createAfspraakslotsCriteria(filter, intakeLocatie, sortProperty, asc);
 		return criteria.list();
 	}
 
 	@Override
-	public List<Object> getRoosterTijden(List<Range<Date>> ranges, RoosterItem roosteritem, Range<Date> totaalInterval)
+	public List<ColonAfspraakslotListViewWrapper> getAfspraakslots(String sortProperty, boolean asc, long first, long count, RoosterListViewFilter filter,
+		ColonIntakelocatie intakeLocatie)
 	{
-		Criteria criteria = getSession().createCriteria(RoosterItem.class);
-
-		Disjunction disjunction = Restrictions.disjunction();
-		for (var range : ranges)
-		{
-			disjunction.add(RangeCriteriaBuilder.closedOpen("startTime", "endTime").overlaps(range));
-		}
-		criteria.add(disjunction);
-		criteria.addOrder(Order.asc("startTime"));
-
-		criteria.add(Restrictions.eq("location", roosteritem.getLocation()));
-
-		AbstractRecurrence recurrence = roosteritem.getRecurrence();
-		if (recurrence != null && recurrence.getId() != null && !NoRecurrence.class.isAssignableFrom(recurrence.getClass()))
-		{
-			Conjunction conjunction = Restrictions.conjunction();
-			conjunction.add(Restrictions.eq("recurrence", recurrence));
-			if (totaalInterval != null)
-			{
-				conjunction.add(Restrictions.ge("startTime", totaalInterval.lowerEndpoint()));
-				conjunction.add(Restrictions.lt("endTime", totaalInterval.upperEndpoint()));
-			}
-			disjunction.add(conjunction);
-		}
-		else if (roosteritem.getId() != null)
-		{
-			disjunction.add(Restrictions.eq("id", roosteritem.getId()));
-		}
-
-		ProjectionList projectionList = Projections.projectionList()
-			.add(Projections.property("startTime"))
-			.add(Projections.property("endTime"))
-			.add(Projections.property("id"));
-
-		criteria.setProjection(projectionList);
-
-		return criteria.list();
-	}
-
-	@Override
-	public List<RoosterItemListViewWrapper> getAlleRoosterBlokkenInPeriode(String sortProperty, boolean asc, RoosterListViewFilter filter,
-		ColoscopieCentrum intakeLocatie)
-	{
-		var criteria = createRoosterBlokkenCriteria(filter, intakeLocatie, sortProperty, asc);
-		return criteria.list();
-	}
-
-	@Override
-	public List<RoosterItemListViewWrapper> getRoosterBlokken(String sortProperty, boolean asc, long first, long count, RoosterListViewFilter filter,
-		ColoscopieCentrum intakeLocatie)
-	{
-		SQLQuery criteria = createRoosterBlokkenCriteria(filter, intakeLocatie, sortProperty, asc);
+		var criteria = createAfspraakslotsCriteria(filter, intakeLocatie, sortProperty, asc);
 		if (first >= 0)
 		{
 			criteria.setFirstResult(Ints.checkedCast(first));
@@ -198,62 +112,62 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 		return criteria.list();
 	}
 
-	private SQLQuery createRoosterBlokkenCriteria(RoosterListViewFilter filter, ColoscopieCentrum intakeLocatie, String sortProperty, boolean asc)
+	private SQLQuery createAfspraakslotsCriteria(RoosterListViewFilter filter, ColonIntakelocatie intakeLocatie, String sortProperty, boolean asc)
 	{
 		getSession().flush();
-		String selectFromQueryString = "select ";
+		var selectFromQueryString = "select ";
 		if (sortProperty == null)
 		{
-			selectFromQueryString += "count(ri.id) ";
+			selectFromQueryString += "count(afs.id) ";
 		}
 		else
 		{
-			selectFromQueryString += "pa.start_time as \"startDatum\", pa.end_time as \"eindDatum\", k.name as \"kamer\", k.id as \"kamerId\", ri.id as \"roosterItemId\", ri.capaciteit_mee_bepaald as \"capaciteitMeeBepaald\"";
+			selectFromQueryString += "ts.vanaf as \"startDatum\", ts.tot as \"eindDatum\", k.naam as \"kamer\", k.id as \"kamerId\", afs.id as \"afspraakslotId\", afs.capaciteit_mee_bepaald as \"capaciteitMeeBepaald\"";
 		}
-		selectFromQueryString += " from colon.rooster_item ri "
-			+ "inner join colon.plan_appointment pa on ri.id=pa.id " 
-			+ "inner join colon.plan_location k on pa.location=k.id " 
-			+ "inner join algemeen.org_organisatie il on il.id=k.coloscopie_centrum "; 
-		String whereQueryString = "where il.id=:intakelocatie and il.actief = true and k.actief = true ";
+		selectFromQueryString += " from colon.afspraakslot afs "
+			+ "join colon.tijdslot ts on afs.id=ts.id " 
+			+ "join colon.intakekamer k on ts.kamer=k.id " 
+			+ "join algemeen.org_organisatie il on il.id=k.intakelocatie "; 
+		var whereQueryString = "where il.id=:intakelocatie and il.actief = true and k.actief = true ";
 
-		Map<String, Object> params = new HashMap<String, Object>();
+		var params = new HashMap<String, Object>();
 
 		if (filter.getStatus() != null)
 		{
 			switch (filter.getStatus())
 			{
 			case INTAKE_GEPLAND:
-				selectFromQueryString += "inner join colon.afspraak a on ri.id=a.rooster_item ";
-				whereQueryString += "and (a.status=:status1 or a.status=:status2) ";
-				params.put("status1", AfspraakStatus.GEPLAND.name());
-				params.put("status2", AfspraakStatus.UITGEVOERD.name());
+				selectFromQueryString += "inner join colon.intakeafspraak ia on afs.id=ia.afspraakslot  ";
+				whereQueryString += "and (ia.status=:status1 or ia.status=:status2) ";
+				params.put("status1", ColonAfspraakStatus.GEPLAND.name());
+				params.put("status2", ColonAfspraakStatus.UITGEVOERD.name());
 				break;
 			case GEBRUIKT_VOOR_CAPACITEIT:
-				whereQueryString += "and ri.capaciteit_mee_bepaald = true ";
-				selectFromQueryString += "left outer join colon.afspraak a on ri.id=a.rooster_item ";
-				whereQueryString += "and (a.status is null or (a.status!=:status1 and a.status!=:status2)) ";
-				params.put("status1", AfspraakStatus.GEPLAND.name());
-				params.put("status2", AfspraakStatus.UITGEVOERD.name());
-				whereQueryString += "and not EXISTS(select b.id from colon.plan_appointment b where b.title='Blokkade' and b.location=k.id and b.start_time<pa.end_time and b.end_time>pa.start_time) ";
+				whereQueryString += "and afs.capaciteit_mee_bepaald = true ";
+				selectFromQueryString += "left outer join colon.intakeafspraak ia on afs.id=ia.afspraakslot  ";
+				whereQueryString += "and (ia.status is null or (ia.status!=:status1 and ia.status!=:status2)) ";
+				params.put("status1", ColonAfspraakStatus.GEPLAND.name());
+				params.put("status2", ColonAfspraakStatus.UITGEVOERD.name());
+				whereQueryString += "and not EXISTS(select b.id from colon.tijdslot b where b.type='BLOKKADE' and b.kamer=k.id and b.vanaf<ts.tot and b.tot>ts.vanaf) ";
 				break;
 			case VRIJ_TE_VERPLAATSEN:
-				whereQueryString += "and not exists(select id from colon.afspraak ia where ia.rooster_item = ri.id and (ia.status=:status1 or ia.status=:status2)) " 
-					+ "and not EXISTS(select b.id from colon.plan_appointment b where b.title='Blokkade' and b.location=k.id and b.start_time<pa.end_time and b.end_time>pa.start_time) ";
+				whereQueryString += "and not exists(select id from colon.intakeafspraak ia where ia.afspraakslot=afs.id and (ia.status=:status1 or ia.status=:status2)) " 
+					+ "and not EXISTS(select b.id from colon.tijdslot b where b.type='BLOKKADE' and b.kamer=k.id and b.vanaf<ts.tot and b.tot>ts.vanaf) ";
 				if (filter.isRekeningHoudenMetCapaciteitMeeBepaald())
 				{
-					whereQueryString += "and ri.capaciteit_mee_bepaald = false";
+					whereQueryString += "and afs.capaciteit_mee_bepaald = false";
 				}
-				params.put("status1", AfspraakStatus.GEPLAND.name());
-				params.put("status2", AfspraakStatus.UITGEVOERD.name());
+				params.put("status1", ColonAfspraakStatus.GEPLAND.name());
+				params.put("status2", ColonAfspraakStatus.UITGEVOERD.name());
 				break;
 			case BLOKKADE:
-				whereQueryString += "and EXISTS(select b.id from colon.plan_appointment b where b.title='Blokkade' and b.location=k.id and b.start_time<pa.end_time and b.end_time>pa.start_time) ";
+				whereQueryString += "and EXISTS(select b.id from colon.tijdslot b where b.type='BLOKKADE' and b.kamer=k.id and b.vanaf<ts.tot and b.tot>ts.vanaf) ";
 				break;
 			default:
 				break;
 			}
 		}
-		whereQueryString += " and pa.end_time>:startTime and pa.start_time<:endTime ";
+		whereQueryString += " and ts.tot>:vanaf and ts.vanaf<:tot ";
 		String orderByQueryString = "";
 		if (sortProperty != null)
 		{
@@ -261,14 +175,14 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 			boolean supportedSortProperty = true;
 			switch (sortProperty)
 			{
-			case "startTime":
-				orderByQueryString += "pa.start_time ";
+			case "vanaf":
+				orderByQueryString += "ts.vanaf ";
 				break;
-			case "endTime":
-				orderByQueryString += "pa.end_time ";
+			case "tot":
+				orderByQueryString += "ts.tot ";
 				break;
 			case "kamer":
-				orderByQueryString += "k.name ";
+				orderByQueryString += "k.naam ";
 				break;
 			default:
 				LOG.error("unknown sortProperty " + sortProperty + " filter " + filter.getStatus());
@@ -288,19 +202,19 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 			}
 		}
 
-		SQLQuery criteria = getSession().createSQLQuery(selectFromQueryString + whereQueryString + orderByQueryString);
+		var criteria = getSession().createNativeQuery(selectFromQueryString + whereQueryString + orderByQueryString);
 		criteria
-			.setParameter("endTime", filter.getEindDatum())
-			.setParameter("startTime", filter.getStartDatum())
+			.setParameter("tot", filter.getEindDatum())
+			.setParameter("vanaf", filter.getStartDatum())
 			.setParameter("intakelocatie", intakeLocatie.getId());
 
-		for (Entry<String, Object> param : params.entrySet())
+		for (var param : params.entrySet())
 		{
 			criteria.setParameter(param.getKey(), param.getValue());
 		}
 		if (sortProperty != null)
 		{
-			criteria.setResultTransformer(Transformers.aliasToBean(RoosterItemListViewWrapper.class));
+			criteria.setResultTransformer(Transformers.aliasToBean(ColonAfspraakslotListViewWrapper.class));
 		}
 
 		return criteria;
@@ -309,7 +223,7 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 	@Override
 	public List<VrijSlotZonderKamer> getVrijeSlotenZonderKamer(String sortProperty, boolean asc, long first, long count, VrijSlotZonderKamerFilter filter)
 	{
-		SQLQuery query = createVrijSlotZonderKamerQuery(filter, sortProperty, asc);
+		var query = createVrijSlotZonderKamerQuery(filter, sortProperty, asc);
 		if (first >= 0)
 		{
 			query.setFirstResult(Ints.checkedCast(first));
@@ -324,21 +238,21 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 	@Override
 	public List<VrijSlotZonderKamer> getVrijeSlotenZonderKamer(String sortProperty, boolean asc, VrijSlotZonderKamerFilter filter)
 	{
-		SQLQuery query = createVrijSlotZonderKamerQuery(filter, sortProperty, asc);
+		var query = createVrijSlotZonderKamerQuery(filter, sortProperty, asc);
 		return query.list();
 	}
 
 	@Override
 	public List<VrijSlotZonderKamer> getVrijeSlotenZonderKamer(VrijSlotZonderKamerFilter filter)
 	{
-		SQLQuery query = createVrijSlotZonderKamerQuery(filter, "niet", true);
+		var query = createVrijSlotZonderKamerQuery(filter, "niet", true);
 		return query.list();
 	}
 
 	@Override
 	public long getVrijeSlotenZonderKamerCount(VrijSlotZonderKamerFilter filter)
 	{
-		SQLQuery query = createVrijSlotZonderKamerQuery(filter, null, true);
+		var query = createVrijSlotZonderKamerQuery(filter, null, true);
 		return ((Number) query.uniqueResult()).longValue();
 	}
 
@@ -346,7 +260,7 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 	{
 		getSession().flush();
 
-		StringBuilder querySB = new StringBuilder();
+		var querySB = new StringBuilder();
 
 		querySB.append("WITH bezoek_adres AS");
 		querySB.append("(");
@@ -362,79 +276,79 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 		querySB.append("	WHERE rank = 1");
 		querySB.append(")");
 
-		if (!Boolean.TRUE.equals(filter.getAlleenIntakeLokaties()))
+		if (!Boolean.TRUE.equals(filter.getAlleenIntakelocaties()))
 		{
 			if (sortProperty == null)
 			{
-				querySB.append(" select count(distinct(pa.start_time, cc.id))");
+				querySB.append(" select count(distinct(ts.vanaf, il.id))");
 			}
 			else
 			{
 				querySB.append(
-					" select distinct pa.start_time as \"startTijd\", pa.end_time as \"eindTijd\",  cc.id as \"intakeLocatieId\", a.plaats as \"plaats\", cc.naam as \"naam\"");
+					" select distinct ts.vanaf as \"startTijd\", ts.tot as \"eindTijd\", il.id as \"intakelocatieId\", a.plaats as \"plaats\", il.naam as \"naam\"");
 			}
 		}
 		else
 		{
 			if (sortProperty == null)
 			{
-				querySB.append(" select count(distinct(cc.id))");
+				querySB.append(" select count(distinct(il.id))");
 			}
 			else
 			{
-				querySB.append(" select distinct cc.id as \"intakeLocatieId\", a.plaats as \"plaats\", cc.naam as \"naam\"");
+				querySB.append(" select distinct il.id as \"intakelocatieId\", a.plaats as \"plaats\", il.naam as \"naam\"");
 			}
 		}
 
-		if (!Boolean.TRUE.equals(filter.getAlleenIntakeLokaties()))
+		if (!Boolean.TRUE.equals(filter.getAlleenIntakelocaties()))
 		{
-			querySB.append(" from colon.rooster_item ri");
-			querySB.append(" inner join colon.plan_appointment pa on ri.id=pa.id");
-			querySB.append(" inner join colon.plan_location k on pa.location=k.id");
+			querySB.append(" from colon.afspraakslot afs");
+			querySB.append(" join colon.tijdslot ts on afs.id=ts.id");
+			querySB.append(" join colon.intakekamer k on ts.kamer=k.id");
 		}
 		else
 		{
-			querySB.append(" from colon.plan_location k");
+			querySB.append(" from colon.intakekamer k");
 		}
-		querySB.append(" inner join algemeen.org_organisatie cc on k.coloscopie_centrum=cc.id");
-		querySB.append(" inner join bezoek_adres ba on cc.id=ba.org_organisatie");
-		querySB.append(" inner join gedeeld.org_adres a on ba.adressen=a.id");
+		querySB.append(" join algemeen.org_organisatie il on k.intakelocatie=il.id");
+		querySB.append(" join bezoek_adres ba on il.id=ba.org_organisatie");
+		querySB.append(" join gedeeld.org_adres a on ba.adressen=a.id");
 
-		Map<String, Object> params = new HashMap<String, Object>();
-		querySB.append(" where cc.actief = true");
+		var params = new HashMap<String, Object>();
+		querySB.append(" where il.actief = true");
 		querySB.append(" and k.actief = true");
-		if (!Boolean.TRUE.equals(filter.getAlleenIntakeLokaties()))
+		if (!Boolean.TRUE.equals(filter.getAlleenIntakelocaties()))
 		{
-			querySB.append(" and not exists(select id from colon.afspraak ia where ia.rooster_item = ri.id and (ia.status=:status1 or ia.status=:status2))");
-			params.put("status1", AfspraakStatus.GEPLAND.name());
-			params.put("status2", AfspraakStatus.UITGEVOERD.name());
-			querySB.append(" and pa.id not in (select pa2.id from colon.plan_appointment b, colon.plan_appointment pa2 "
-				+ "where b.title='" + ColonTijdSlotType.BLOKKADE.getTitle() + "' and pa2.title='" + ColonTijdSlotType.ROOSTER_ITEM.getTitle()
-				+ "' and b.location=pa2.location and b.start_time<pa2.end_time and b.end_time>pa2.start_time and pa2.start_time>:vanaf1 and pa2.start_time<:totEnMet1 )");
+			querySB.append(" and not exists(select id from colon.intakeafspraak ia where ia.afspraakslot = afs.id and (ia.status=:status1 or ia.status=:status2))");
+			params.put("status1", ColonAfspraakStatus.GEPLAND.name());
+			params.put("status2", ColonAfspraakStatus.UITGEVOERD.name());
+			querySB.append(" and ts.id not in (select iafs.id from colon.tijdslot b, colon.tijdslot iafs "
+				+ "where b.type='BLOKKADE' and iafs.type='AFSPRAAKSLOT' "
+				+ "and b.kamer=iafs.kamer and b.vanaf<iafs.tot and b.tot>iafs.vanaf and iafs.vanaf>:vanaf1 and iafs.vanaf<:totEnMet1 )");
 
-			querySB.append(" and pa.start_time>:vanaf and pa.start_time<:totEnMet");
+			querySB.append(" and ts.vanaf>:vanaf and ts.vanaf<:totEnMet");
 			params.put("vanaf", filter.getVanaf());
 			params.put("totEnMet", DateUtil.plusDagen(filter.getTotEnMet(), 1));
 			params.put("vanaf1", filter.getVanaf());
 			params.put("totEnMet1", DateUtil.plusDagen(filter.getTotEnMet(), 1));
-			if (filter.getIntakeLocatieId() != null)
+			if (filter.getIntakelocatieId() != null)
 			{
-				querySB.append(" and cc.id = :intakeLocatieId");
-				params.put("intakeLocatieId", filter.getIntakeLocatieId());
+				querySB.append(" and il.id = :intakelocatieId");
+				params.put("intakelocatieId", filter.getIntakelocatieId());
 			}
-			if (filter.getNietIntakeLocatieId() != null)
+			if (filter.getNietIntakelocatieId() != null)
 			{
-				querySB.append(" and cc.id != :nietIntakeLocatieId");
-				params.put("nietIntakeLocatieId", filter.getNietIntakeLocatieId());
+				querySB.append(" and il.id != :nietIntakelocatieId");
+				params.put("nietIntakelocatieId", filter.getNietIntakelocatieId());
 			}
 		}
 
-		if (filter.getNaam() != null && !filter.getNaam().isEmpty())
+		if (StringUtils.isNotBlank(filter.getNaam()))
 		{
-			querySB.append(" and cc.naam ILIKE '%' || :naam || '%'");
+			querySB.append(" and il.naam ILIKE '%' || :naam || '%'");
 			params.put("naam", filter.getNaam());
 		}
-		if (filter.getPlaats() != null && !filter.getPlaats().isEmpty())
+		if (StringUtils.isNotBlank(filter.getPlaats()))
 		{
 			querySB.append(" and plaats ILIKE '%' || :plaats || '%'");
 			params.put("plaats", filter.getPlaats());
@@ -445,7 +359,7 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 			querySB.append(" order by");
 			switch (sortProperty)
 			{
-			case "startTime":
+			case "vanaf":
 				querySB.append(" \"startTijd\"");
 				break;
 			case "naam":
@@ -468,8 +382,8 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 			}
 		}
 
-		SQLQuery query = getSession().createSQLQuery(querySB.toString());
-		for (Entry<String, Object> param : params.entrySet())
+		var query = getSession().createNativeQuery(querySB.toString());
+		for (var param : params.entrySet())
 		{
 			query.setParameter(param.getKey(), param.getValue());
 		}
@@ -481,31 +395,31 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 	}
 
 	@Override
-	public List<Kamer> getKamers(Date startTijd, Long intakeLocatieId)
+	public List<ColonIntakekamer> getKamers(LocalDateTime startTijd, Long intakelocatieId)
 	{
-		StringBuilder querySB = new StringBuilder();
+		var querySB = new StringBuilder();
 
 		querySB.append("select {k.*}");
 
-		querySB.append(" from colon.rooster_item ri");
-		querySB.append(" inner join colon.plan_appointment pa on ri.id=pa.id");
-		querySB.append(" inner join colon.plan_location k on pa.location=k.id");
+		querySB.append(" from colon.afspraakslot afs");
+		querySB.append(" join colon.tijdslot ts on afs.id=ts.id");
+		querySB.append(" join colon.intakekamer k on ts.kamer=k.id");
 
-		Map<String, Object> params = new HashMap<String, Object>();
+		var params = new HashMap<String, Object>();
 		querySB.append(" and k.actief = true");
-		querySB.append(" and not exists(select id from colon.afspraak ia where ia.rooster_item = ri.id and (ia.status=:status1 or ia.status=:status2))");
-		params.put("status1", AfspraakStatus.GEPLAND.name());
-		params.put("status2", AfspraakStatus.UITGEVOERD.name());
+		querySB.append(" and not exists(select id from colon.intakeafspraak ia where ia.afspraakslot = afs.id and (ia.status=:status1 or ia.status=:status2))");
+		params.put("status1", ColonAfspraakStatus.GEPLAND.name());
+		params.put("status2", ColonAfspraakStatus.UITGEVOERD.name());
 		querySB.append(
-			" and not EXISTS(select b.id from colon.plan_appointment b where b.title='" + ColonTijdSlotType.BLOKKADE.getTitle()
-				+ "' and b.location=pa.location and b.start_time<pa.end_time and b.end_time>pa.start_time)");
-		querySB.append(" and pa.start_time=:startTijd");
+			" and not EXISTS(select b.id from colon.tijdslot b where b.type='BLOKKADE' "
+				+ "and b.kamer=ts.kamer and b.vanaf<ts.tot and b.tot>ts.vanaf)");
+		querySB.append(" and ts.vanaf=:startTijd");
 		params.put("startTijd", startTijd);
-		querySB.append(" and k.coloscopie_centrum = :intakeLocatieId");
-		params.put("intakeLocatieId", intakeLocatieId);
+		querySB.append(" and k.intakelocatie = :intakelocatieId");
+		params.put("intakelocatieId", intakelocatieId);
 
-		SQLQuery query = getSession().createSQLQuery(querySB.toString()).addEntity("k", Kamer.class);
-		for (Entry<String, Object> param : params.entrySet())
+		var query = getSession().createNativeQuery(querySB.toString()).addEntity("k", ColonIntakekamer.class);
+		for (var param : params.entrySet())
 		{
 			query.setParameter(param.getKey(), param.getValue());
 		}
@@ -513,100 +427,55 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 	}
 
 	@Override
-	public long getRoosterBlokkenCount(RoosterListViewFilter filter, ColoscopieCentrum intakeLocatie)
+	public long getAfspraakslotsCount(RoosterListViewFilter filter, ColonIntakelocatie intakeLocatie)
 	{
-		SQLQuery criteria = createRoosterBlokkenCriteria(filter, intakeLocatie, null, true);
+		var criteria = createAfspraakslotsCriteria(filter, intakeLocatie, null, true);
 
 		return ((Number) criteria.uniqueResult()).longValue();
 	}
 
 	@Override
-	public List<Object> getCurrentRoosterBlokken(Kamer kamer, Range<Date> periode)
+	public List<Object> getCurrentAfspraakslots(ColonIntakekamer kamer, Range<LocalDateTime> periode)
 	{
-		Criteria criteria = getSession().createCriteria(RoosterItem.class);
-		criteria.createAlias("location", "location");
-		criteria.add(Restrictions.eq("location", kamer));
-		criteria.add(RangeCriteriaBuilder.closedOpen("startTime", "endTime").overlaps(periode));
-		criteria.setProjection(Projections.projectionList().add(Projections.property("startTime")).add(Projections.property("endTime")));
+		Criteria criteria = getSession().createCriteria(ColonAfspraakslot.class);
+		criteria.createAlias("kamer", "kamer");
+		criteria.add(Restrictions.eq("kamer", kamer));
+		criteria.add(RangeCriteriaBuilder.closedOpen("vanaf", "tot").overlapsDateTime(periode));
+		criteria.setProjection(Projections.projectionList().add(Projections.property("vanaf")).add(Projections.property("tot")));
 		return criteria.list();
 	}
 
 	@Override
-	public List<Date> getMdlDatums(Client client, IntakelocatieVanTotEnMetFilter intakeVanTotEnMetFilter)
+	public List<ColonBlokkade> getBlokkades(ColonIntakekamer kamer, LocalDateTime vanaf, LocalDateTime tot)
 	{
-		Set<Date> datums = new HashSet<>();
-		Date van = DateUtil.toUtilDate(currentDateSupplier.getLocalDate().minusYears(20));
-		if (intakeVanTotEnMetFilter.getVanaf() != null)
-		{
-			van = intakeVanTotEnMetFilter.getVanaf();
-		}
-		Date tot = currentDateSupplier.getDate();
-		if (intakeVanTotEnMetFilter.getTotEnMet() != null)
-		{
-			tot = DateUtil.plusDagen(intakeVanTotEnMetFilter.getTotEnMet(), 1);
-		}
-
-		BaseCriteria<Date> subQuery1 = new BaseCriteria<>(MeldingOngeldigCdaBericht.class);
-		subQuery1.add(Restrictions.eq("actief", true));
-		Disjunction markers = Restrictions.disjunction();
-		for (String marker : HERVERWERKING_MARKERS)
-		{
-			markers.add(Restrictions.ilike("melding", marker, MatchMode.ANYWHERE));
-		}
-		subQuery1.add(markers);
-		subQuery1.add(Restrictions.eq("bsn", client.getPersoon().getBsn()));
-		subQuery1.createAlias("ontvangenCdaBericht", "ontvangenCdaBericht");
-		subQuery1.add(Restrictions.eq("ontvangenCdaBericht.berichtType", BerichtType.MDL_VERSLAG));
-		subQuery1.add(Restrictions.between("ontvangenCdaBericht.ontvangen", van, tot));
-		subQuery1.setProjection(Projections.distinct(Projections.property("ontvangenCdaBericht.ontvangen")));
-
-		datums.addAll(subQuery1.list(getSession()));
-
-		BaseCriteria<Date> subQuery2 = new BaseCriteria<>(Client.class);
-		subQuery2.add(Restrictions.eq("id", client.getId()));
-		subQuery2.createAlias("colonDossier", "dossier");
-		subQuery2.createAlias("dossier.laatsteScreeningRonde", "laatsteScreeningRonde");
-		subQuery2.createAlias("laatsteScreeningRonde.verslagen", "verslag");
-		subQuery2.add(Restrictions.eq("verslag.status", VerslagStatus.IN_BEWERKING));
-		subQuery2.add(Restrictions.between("verslag.datumVerwerkt", van, tot));
-		subQuery2.setProjection(Projections.distinct(Projections.property("verslag.datumVerwerkt")));
-
-		datums.addAll(subQuery2.list(getSession()));
-
-		return new ArrayList<Date>(datums);
-	}
-
-	@Override
-	public List<ColonBlokkade> getBlokkades(Kamer kamer, Date startTime, Date endTime)
-	{
-		BaseCriteria<ColonBlokkade> criteria = createCriteria(new Periode(startTime, endTime), ColonBlokkade.class);
-		criteria.createAlias("location", "location");
-		criteria.add(Restrictions.eq("location", kamer));
+		var criteria = createCriteria(Range.closed(vanaf, tot), ColonBlokkade.class);
+		criteria.add(Restrictions.eq("kamer", kamer));
 		return criteria.list(getSession());
 	}
 
 	@Override
-	public List<ColonBlokkade> getBlokkades(String sortProperty, boolean ascending, long first, long count, RoosterListViewFilter filter, ColoscopieCentrum intakelocatie)
+	public List<ColonBlokkade> getBlokkades(String sortProperty, boolean ascending, long first, long count, RoosterListViewFilter filter, ColonIntakelocatie intakelocatie)
 	{
-		BaseCriteria<ColonBlokkade> criteria = createCriteria(filter, intakelocatie);
+		var criteria = createCriteria(filter, intakelocatie);
 
 		return criteria.list(getSession(), new ListCriteria(Ints.checkedCast(first), Ints.checkedCast(count), sortProperty, ascending));
 	}
 
-	private BaseCriteria<ColonBlokkade> createCriteria(RoosterListViewFilter filter, ColoscopieCentrum intakelocatie)
+	private BaseCriteria<ColonBlokkade> createCriteria(RoosterListViewFilter filter, ColonIntakelocatie intakelocatie)
 	{
-		BaseCriteria<ColonBlokkade> criteria = createCriteria(
-			new Periode(filter.getStartDatum(), DateUtil.plusDagen(DateUtil.startDag(filter.getEindDatum()), 1)), ColonBlokkade.class);
-		criteria.createAlias("location", "kamer");
+		var startDatum = DateUtil.toLocalDateTime(filter.getStartDatum());
+		var einDatum = DateUtil.toLocalDate(filter.getEindDatum()).plusDays(1).atStartOfDay();
+		var criteria = createCriteria(Range.closed(startDatum, einDatum), ColonBlokkade.class);
+		criteria.alias("kamer", "kamer");
 		criteria.add(Restrictions.eq("kamer.actief", true));
-		criteria.add(Restrictions.eq("kamer.coloscopieCentrum", intakelocatie));
+		criteria.add(Restrictions.eq("kamer.intakelocatie", intakelocatie));
 		return criteria;
 	}
 
 	@Override
-	public long getBlokkadesCount(RoosterListViewFilter filter, ColoscopieCentrum intakelocatie)
+	public long getBlokkadesCount(RoosterListViewFilter filter, ColonIntakelocatie intakelocatie)
 	{
-		BaseCriteria<ColonBlokkade> criteria = createCriteria(filter, intakelocatie);
+		var criteria = createCriteria(filter, intakelocatie);
 		return criteria.countLong(getSession());
 	}
 

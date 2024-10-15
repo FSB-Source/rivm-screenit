@@ -38,6 +38,8 @@ import nl.rivm.screenit.model.logging.LogRegel;
 import nl.rivm.screenit.model.logging.LoggingZoekCriteria;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 
+import org.springframework.data.domain.Sort;
+
 public interface LogService
 {
 	void createAndSaveLogInformatie(InstellingGebruiker ingelogd, LogGebeurtenis gebeurtenis, String omschrijving);
@@ -85,7 +87,7 @@ public interface LogService
 
 	List<LogRegel> getLogRegels(LoggingZoekCriteria loggingZoekCriteria, int first, int count, SortState<String> sortState);
 
-	List<LogRegel> getLogRegelsVanDashboard(DashboardStatus item, int first, int count, SortState<String> sortState);
+	List<LogRegel> getLogRegelsVanDashboard(DashboardStatus item, long first, long count, Sort sort);
 
 	List<LogRegel> getLogRegelsVanDashboard(DashboardStatus item);
 

@@ -22,7 +22,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning;
  */
 
 import nl.rivm.screenit.main.service.mamma.MammaPostcodeReeksService;
-import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.base.BasePage;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -161,11 +160,6 @@ public class MammaPostcodeReeksEditPage extends MammaPlanningBasePage
 					if (StringUtils.isNotBlank(overlap))
 					{
 						error(getString("overlap") + overlap);
-					}
-					String meerDanEenRegio = "";
-					if (StringUtils.isNotBlank(meerDanEenRegio))
-					{
-						error(getString("meerDanEenRegio") + meerDanEenRegio);
 					}
 					if (!hasErrorMessage())
 					{

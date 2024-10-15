@@ -24,9 +24,8 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning;
 
 import java.util.Iterator;
 
-import nl.rivm.screenit.main.service.mamma.MammaPostcodeReeksService;
+import nl.rivm.screenit.main.service.mamma.impl.MammaPostcodeReeksDataProviderServiceImpl;
 import nl.rivm.screenit.main.web.ScreenitSession;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.mamma.MammaPostcodeReeks;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -37,15 +36,12 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import com.google.common.primitives.Ints;
-
 public class MammaPostcodeReeksDataProvider extends SortableDataProvider<MammaPostcodeReeks, String>
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@SpringBean
-	private MammaPostcodeReeksService postcodeReeksService;
+	private MammaPostcodeReeksDataProviderServiceImpl postcodeReeksDataProvideService;
 
 	private IModel<MammaPostcodeReeks> criteria;
 
@@ -59,14 +55,14 @@ public class MammaPostcodeReeksDataProvider extends SortableDataProvider<MammaPo
 	@Override
 	public Iterator<? extends MammaPostcodeReeks> iterator(long first, long count)
 	{
-		MammaPostcodeReeks zoekObject = getZoekObject();
-		return postcodeReeksService.zoekPostcodeReeksen(zoekObject, Ints.checkedCast(first), Ints.checkedCast(count), getSort().getProperty(), getSort().isAscending()).iterator();
+		var zoekObject = getZoekObject();
+		return postcodeReeksDataProvideService.findPage(first, count, zoekObject, getSort()).iterator();
 	}
 
 	private MammaPostcodeReeks getZoekObject()
 	{
-		MammaPostcodeReeks zoekObject = ModelUtil.nullSafeGet(criteria);
-		ScreeningOrganisatie ingelogdNamensRegio = ScreenitSession.get().getScreeningOrganisatie();
+		var zoekObject = ModelUtil.nullSafeGet(criteria);
+		var ingelogdNamensRegio = ScreenitSession.get().getScreeningOrganisatie();
 		if (ingelogdNamensRegio != null && zoekObject.getStandplaats() == null)
 		{
 			zoekObject.setStandplaats(new MammaStandplaats());
@@ -79,8 +75,8 @@ public class MammaPostcodeReeksDataProvider extends SortableDataProvider<MammaPo
 	@Override
 	public long size()
 	{
-		MammaPostcodeReeks zoekObject = getZoekObject();
-		return postcodeReeksService.countPostcodeReeksen(zoekObject);
+		var zoekObject = getZoekObject();
+		return postcodeReeksDataProvideService.size(zoekObject);
 	}
 
 	@Override

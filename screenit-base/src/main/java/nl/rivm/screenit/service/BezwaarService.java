@@ -23,6 +23,7 @@ package nl.rivm.screenit.service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.BezwaarMoment;
@@ -32,6 +33,7 @@ import nl.rivm.screenit.model.algemeen.BezwaarBrief;
 import nl.rivm.screenit.model.algemeen.BezwaarGroupViewWrapper;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BezwaarType;
+import nl.rivm.screenit.model.enums.BriefType;
 
 public interface BezwaarService
 {
@@ -42,17 +44,15 @@ public interface BezwaarService
 
 	List<BezwaarGroupViewWrapper> getBezwaarGroupViewWrappers(BezwaarMoment moment, boolean verzoekTotBezwaarTeZien);
 
-	void bezwaarAanvragen(Client client, BezwaarMoment bezwaarMoment);
+	BezwaarBrief maakBezwaarAanvraag(Client client, boolean zonderHandtekening, BriefType briefType);
 
-	void nogmaalsVersturenBezwaar(BezwaarMoment bezwaar);
+	BezwaarBrief maakBezwaarAanvraag(Client client);
 
 	void bezwaarAfronden(BezwaarMoment moment, Account account, List<BezwaarGroupViewWrapper> groupWrappers) throws IllegalStateException;
 
 	boolean isBezwaarNieuwVergelekenMetVorigeBezwaarMoment(BezwaarMoment bezwaarMoment, BezwaarType bezwaarType);
 
-	List<BezwaarGroupViewWrapper> getGroupWrapperForClientPortaal(BezwaarMoment laatstVoltooideMoment, Bevolkingsonderzoek bevolkingsonderzoek);
-
-	void nogmaalsVersturen(BezwaarMoment bezwaarMoment, Account account);
+	BezwaarGroupViewWrapper getGroupWrapperForClientPortaal(BezwaarMoment laatstVoltooideMoment, Bevolkingsonderzoek bevolkingsonderzoek);
 
 	void bezwarenDoorvoeren(BezwaarMoment moment);
 
@@ -62,11 +62,17 @@ public interface BezwaarService
 
 	boolean bezwarenGewijzigd(BezwaarMoment laatsteVoltooideBezwaarMoment, List<BezwaarGroupViewWrapper> wrappers, Bevolkingsonderzoek bvo);
 
+	boolean bezwarenGewijzigd(BezwaarMoment laatsteVoltooideBezwaarMoment, List<BezwaarGroupViewWrapper> wrappers);
+
 	boolean checkBezwaarInLaatsteBezwaarMomentAanwezigIs(Client client, BezwaarType bezwaarType);
 
 	boolean heeftBezwaarIngediendInAfgelopenAantalDagen(Client client, BezwaarType bezwaarType, Bevolkingsonderzoek bevolkingsonderzoek, int aantalDagen);
 
-	BezwaarBrief getNogNietVerwerkteBezwaarBrief(List<BezwaarMoment> bezwaren);
-
 	void bezwaarAfrondenVanuitClientPortaal(Client client, List<BezwaarGroupViewWrapper> bezwaarGroupViewWrappers);
+
+	boolean isErEenBezwaarMetType(List<BezwaarGroupViewWrapper> bezwaarGroupViewWrappers, BezwaarType type);
+
+	Optional<BezwaarBrief> getLaatsteBezwaarBriefVanTypeVoorClient(Client client, BriefType briefType);
+
+	List<BezwaarBrief> getBezwaarBrievenVanClient(Client client);
 }

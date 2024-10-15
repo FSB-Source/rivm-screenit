@@ -21,13 +21,10 @@ package nl.rivm.screenit.mamma.se.dao;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 public interface MammaAfsprakenDao
 {
 	Map<Long, ClientIdentificatie> readLaatsteIdentificatieVanClienten(List<Long> clientIds);
-
-	Map<Long, Integer> readInschrijvingenVanSeInRange(Date beginDatum, Date eindDatum, String seCode);
 }

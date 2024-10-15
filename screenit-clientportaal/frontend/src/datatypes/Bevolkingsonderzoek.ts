@@ -24,8 +24,9 @@ export enum Bevolkingsonderzoek {
     MAMMA = "MAMMA",
     CERVIX = "CERVIX",
     COLON = "COLON"
-
 }
+
+export const Bevolkingsonderzoeken = [Bevolkingsonderzoek.MAMMA, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.COLON]
 
 export const BevolkingsonderzoekNaam: { [key in Bevolkingsonderzoek]: string } = {
 	[Bevolkingsonderzoek.MAMMA]: "borstkanker",

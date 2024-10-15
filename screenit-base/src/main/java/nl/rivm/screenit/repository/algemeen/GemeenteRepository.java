@@ -29,4 +29,5 @@ import nl.rivm.screenit.repository.BaseJpaRepository;
 public interface GemeenteRepository extends BaseJpaRepository<Gemeente>
 {
 	Optional<Gemeente> findOneByCode(String code);
+
 }

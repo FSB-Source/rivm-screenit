@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.clienten.project;
 
 /*-
@@ -24,9 +23,11 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.project;
 
 import java.util.Iterator;
 
-import nl.rivm.screenit.model.SortState;
+import nl.rivm.screenit.main.service.algemeen.ProjectService;
+import nl.rivm.screenit.main.util.WicketSpringDataUtil;
 import nl.rivm.screenit.model.project.ProjectClient;
-import nl.rivm.screenit.service.ProjectService;
+import nl.rivm.screenit.model.project.ProjectGroep_;
+import nl.rivm.screenit.model.project.Project_;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -38,24 +39,23 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 public class ClientProjectenDataProvider extends SortableDataProvider<ProjectClient, String>
 {
 
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private ProjectService projectService;
 
-	private IModel<ProjectClient> zoekObject;
+	private final IModel<ProjectClient> zoekObject;
 
 	public ClientProjectenDataProvider(IModel<ProjectClient> zoekObject)
 	{
 		Injector.get().inject(this);
-		setSort("project", SortOrder.ASCENDING);
+		setSort(ProjectGroep_.PROJECT + "." + Project_.NAAM, SortOrder.ASCENDING);
 		this.zoekObject = zoekObject;
 	}
 
 	@Override
 	public Iterator<? extends ProjectClient> iterator(long first, long count)
 	{
-		return projectService.getClientProjecten(ModelUtil.nullSafeGet(zoekObject), first, count, new SortState<String>(getSort().getProperty(), getSort().isAscending()));
+		return projectService.getClientProjecten(ModelUtil.nullSafeGet(zoekObject), first, count, WicketSpringDataUtil.toSpringSort(getSort()))
+			.iterator();
 	}
 
 	@Override

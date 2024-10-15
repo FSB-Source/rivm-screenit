@@ -42,4 +42,6 @@ public interface BriefService
 	List<? extends ClientBrief> getBrievenVanAfmelding(Afmelding afmelding, boolean heraanmelding);
 
 	List<BezwaarBrief> getBrievenVanBezwaar(BezwaarMoment moment);
+
+	List<BezwaarBrief> getOorspronkelijkeBevestigingsbrieven(BezwaarMoment bezwaarMoment);
 }

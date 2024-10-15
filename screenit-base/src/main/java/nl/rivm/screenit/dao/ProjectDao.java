@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.dao;
 
 /*-
@@ -23,20 +22,14 @@ package nl.rivm.screenit.dao;
  */
 
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
-import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectAttribuut;
-import nl.rivm.screenit.model.project.ProjectBestand;
-import nl.rivm.screenit.model.project.ProjectBestandVerwerkingEntry;
-import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectClientAttribuut;
-import nl.rivm.screenit.model.project.ProjectGroep;
 
 public interface ProjectDao
 {
@@ -44,54 +37,6 @@ public interface ProjectDao
 	List<Project> getProjecten(Project zoekObject, List<Long> instellingIdsProject, List<Long> instellingIdsBriefproject, long first, long count, SortState<String> sortState);
 
 	long getCountProjecten(Project zoekObject, List<Long> instellingIdsProject, List<Long> instellingIdsBriefproject);
-
-	Iterator<ProjectGroep> getGroepen(ProjectGroep zoekObject, long first, long count, SortState<String> sortState);
-
-	long getCountGroepen(ProjectGroep zoekObject);
-
-	Iterator<ProjectAttribuut> getProjectAttributen(ProjectAttribuut filterObject, long first, long count, SortState<String> sortState);
-
-	Long getAantalProjectAttributen(ProjectAttribuut zoekObject);
-
-	Iterator<ProjectBestand> getProjectBestanden(ProjectBestand filterObject, long first, long count, SortState<String> sortState);
-
-	Long getAantalProjectBestanden(ProjectBestand zoekObject);
-
-	Iterator<ProjectClient> getClientProjecten(ProjectClient client, long first, long count, SortState<String> sortState);
-
-	long getCountClientProjecten(ProjectClient client);
-
-	Iterator<ProjectBriefActie> getProjectBriefActies(ProjectBriefActie actie, long first, long count, SortState<String> sortState);
-
-	long getCountProjectBriefActies(ProjectBriefActie actie);
-
-	boolean isVragenlijstGekoppeldAanNietBeeindigdProject(Long vragenlijstId);
-
-	Long getAantalProjectClientenVanProjectGroep(ProjectGroep groep);
-
-	boolean isVragenlijstGekoppeldAanProject(Long vragenlijstId);
-
-	Long getAantalProjectClientenVanProject(Project project);
-
-	Long getAantalInactieveProjectClientenVanProject(Project project);
-
-	Long getAantalInactieveProjectClientenVanProjectGroep(ProjectGroep groep);
-
-	List<ProjectGroep> getActieveProjectGroepenVoorUitnodigingDK();
-
-	Long getAantalProjectbestandVerwerkingEntries(ProjectBestandVerwerkingEntry entry);
-
-	Iterator<ProjectBestandVerwerkingEntry> getProjectBestandVerwerkingEntries(ProjectBestandVerwerkingEntry entry, long first, long count, SortState<String> sortState);
-
-	ProjectClientAttribuut getProjectClientAttribuut(ProjectClient client, ProjectAttribuut attribuut);
-
-	Iterator<ProjectClientAttribuut> getAttributenVoorProjectClient(ProjectClient filter, long first, long count, SortState<String> sortState);
-
-	Long getAantalAttributenVoorProjectClient(ProjectClient filter);
-
-	ProjectClient getProjectClient(Client client, Project project);
-
-	ProjectAttribuut getProjectAttribuut(ProjectAttribuut attribuut);
 
 	void resetWachtOpStartProject(Bevolkingsonderzoek bvo);
 

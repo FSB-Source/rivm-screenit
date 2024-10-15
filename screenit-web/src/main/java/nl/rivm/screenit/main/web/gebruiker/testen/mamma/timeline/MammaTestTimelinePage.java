@@ -29,11 +29,11 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import nl.rivm.screenit.main.dao.mamma.MammaScreeningsEenheidDao;
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenis;
 import nl.rivm.screenit.main.model.TypeGebeurtenis;
 import nl.rivm.screenit.main.model.testen.TestTimelineModel;
 import nl.rivm.screenit.main.model.testen.TestTimelineRonde;
+import nl.rivm.screenit.main.service.mamma.MammaScreeningsEenheidService;
 import nl.rivm.screenit.main.service.mamma.MammaTestTimelineService;
 import nl.rivm.screenit.main.util.BriefOmschrijvingUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
@@ -62,7 +62,6 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.mamma.MammaBaseTestService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.TestBsnGenerator;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -124,10 +123,7 @@ public class MammaTestTimelinePage extends TestenBasePage
 	private ICurrentDateSupplier dateSupplier;
 
 	@SpringBean
-	private MammaBaseTestService baseTestService;
-
-	@SpringBean
-	private MammaScreeningsEenheidDao screeningsEenheidDao;
+	private MammaScreeningsEenheidService screeningsEenheidService;
 
 	private final IModel<TestTimelineModel> model;
 
@@ -212,7 +208,7 @@ public class MammaTestTimelinePage extends TestenBasePage
 		Form<Void> pocClienten = new ScreenitForm<>("pocClienten");
 		pocClienten.add(new FileUploadField("csv", pocfilesUploaded));
 		IModel<List<MammaScreeningsEenheid>> listRModel = ModelUtil
-			.listRModel(screeningsEenheidDao.getActieveScreeningsEenhedenVoorScreeningOrganisatie(ScreenitSession.get().getScreeningOrganisatie()));
+			.listRModel(screeningsEenheidService.getActieveScreeningsEenhedenVoorScreeningOrganisatie(ScreenitSession.get().getScreeningOrganisatie()));
 		ScreenitDropdown<MammaScreeningsEenheid> screeningsEenheidDropDown = ComponentHelper.newDropDownChoice("screeningsEenheid", listRModel, new ChoiceRenderer<>("naam"), true);
 
 		screeningsEenheidDropDown.setModel(new PropertyModel<>(this, "screeningsEenheid"));

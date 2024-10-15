@@ -21,8 +21,8 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.rooster;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.model.colon.Kamer;
-import nl.rivm.screenit.model.colon.planning.VrijSlot;
+import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
+import nl.rivm.screenit.model.colon.dto.VrijSlot;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.model.IDetachable;
@@ -30,26 +30,23 @@ import org.apache.wicket.model.IModel;
 
 public class WebVrijSlot extends VrijSlot implements IDetachable
 {
-
-	private static final long serialVersionUID = 1L;
-
-	private IModel<Kamer> locatie;
+	private IModel<ColonIntakekamer> kamerModel;
 
 	@Override
-	public Kamer getLocatie()
+	public ColonIntakekamer getKamer()
 	{
-		return ModelUtil.nullSafeGet(locatie);
+		return ModelUtil.nullSafeGet(kamerModel);
 	}
 
 	@Override
-	public void setLocatie(Kamer locatie)
+	public void setKamer(ColonIntakekamer kamer)
 	{
-		this.locatie = ModelUtil.nullSafeSet(locatie);
+		this.kamerModel = ModelUtil.nullSafeSet(kamer);
 	}
 
 	@Override
 	public void detach()
 	{
-		ModelUtil.nullSafeDetach(locatie);
+		ModelUtil.nullSafeDetach(kamerModel);
 	}
 }

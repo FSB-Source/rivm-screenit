@@ -24,7 +24,7 @@ package nl.rivm.screenit.clientportaal.services.colon;
 import nl.rivm.screenit.clientportaal.model.colon.ColonVrijSlotZonderKamerDto;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.planning.VrijSlotZonderKamer;
+import nl.rivm.screenit.model.colon.dto.VrijSlotZonderKamer;
 
 public interface ColonAfspraakService
 {

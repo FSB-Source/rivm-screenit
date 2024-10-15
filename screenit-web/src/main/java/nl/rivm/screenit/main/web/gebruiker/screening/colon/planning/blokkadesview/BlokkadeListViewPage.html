@@ -21,20 +21,20 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <div class="content-inner">
-        <div class="row-fluid">
-            <div class="span12">
-                <h1 class="pageTitle">Overzicht blokkades -
-                    <wicket:container wicket:id="coloscopiecentrum"></wicket:container>
-                </h1>
-            </div>
-        </div>
+	<div class="content-inner">
+		<div class="row-fluid">
+			<div class="span12">
+				<h1 class="pageTitle">Overzicht blokkades -
+					<wicket:container wicket:id="intakelocatie"></wicket:container>
+				</h1>
+			</div>
+		</div>
 
-        <fieldset>
-            <div class="view-werklijst">
-                <fieldset class="form-inline">
-                    <form wicket:id="form">
-                        <div class="btn-group periode-filter">
+		<fieldset>
+			<div class="view-werklijst">
+				<fieldset class="form-inline">
+					<form wicket:id="form">
+						<div class="btn-group periode-filter">
 							<div class="input-append blokkade-list-start-datum">
 								<input wicket:id="startDatum" type="text" placeholder="dd-mm-jjjj" size="16" class="input-small three-months filterDatum startDatum">
 								<a class="btn js-datepicker-show" title="Datum"><i class="icon-calendar"></i></a>
@@ -48,15 +48,15 @@
 						<a class=" btn js-datepicker-filter-datum-vandaag">Vandaag</a>
 						<a class=" btn js-datepicker-filter-datum-jaar">Kalenderjaar</a>
 					</form>
-                </fieldset>
+				</fieldset>
 
-                <fieldset>
-                    <div wicket:id="csv"></div>
-                    <div wicket:id="tabel"></div>
-                </fieldset>
-            </div>
-        </fieldset>
-    </div>
+				<fieldset>
+					<div wicket:id="csv"></div>
+					<div wicket:id="tabel"></div>
+				</fieldset>
+			</div>
+		</fieldset>
+	</div>
 </wicket:extend>
 </body>
 </html>

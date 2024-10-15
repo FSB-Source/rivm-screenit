@@ -42,7 +42,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	checkScope = true,
 	constraint = ShiroConstraint.HasPermission,
 	recht = Recht.GEBRUIKER_LOCATIE_ROOSTER,
-	organisatieTypeScopes = OrganisatieType.COLOSCOPIECENTRUM,
+	organisatieTypeScopes = OrganisatieType.INTAKELOCATIE,
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON }
 )
 public class RoosterAngularPage extends AngularBasePage
