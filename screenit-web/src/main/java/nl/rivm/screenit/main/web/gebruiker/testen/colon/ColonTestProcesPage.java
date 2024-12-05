@@ -40,20 +40,17 @@ import nl.rivm.screenit.main.web.gebruiker.clienten.inzien.ClientInzienPage;
 import nl.rivm.screenit.main.web.gebruiker.testen.TestenBasePage;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.BagAdres;
-import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
-import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.colon.ColonOnderzoeksVariant;
-import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.HuisartsBerichtType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.ClientService;
+import nl.rivm.screenit.service.GemeenteService;
 import nl.rivm.screenit.service.TestService;
 import nl.rivm.screenit.service.colon.ColonTestService;
 import nl.rivm.screenit.util.TestBsnGenerator;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.wicket.hibernate.SimpleHibernateModel;
@@ -77,8 +74,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.resource.FileResourceStream;
 import org.apache.wicket.util.resource.IResourceStream;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wicketstuff.shiro.ShiroConstraint;
@@ -91,9 +86,6 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON })
 public class ColonTestProcesPage extends TestenBasePage
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private static final Logger LOG = LoggerFactory.getLogger(ColonTestProcesPage.class);
 
 	@SpringBean
@@ -109,7 +101,7 @@ public class ColonTestProcesPage extends TestenBasePage
 	private ClientService clientService;
 
 	@SpringBean
-	private HibernateService hibernateService;
+	private GemeenteService gemeenteService;
 
 	@SpringBean
 	private SimplePreferenceService preferenceService;
@@ -125,33 +117,29 @@ public class ColonTestProcesPage extends TestenBasePage
 
 	private void addColoscopieTestForm()
 	{
-		GbaPersoon persoon = new GbaPersoon();
+		var persoon = new GbaPersoon();
 		persoon.setGeslacht(Geslacht.MAN);
-		IModel<GbaPersoon> filterModel = ModelUtil.cModel(persoon);
+		var filterModel = ModelUtil.cModel(persoon);
 		persoon = filterModel.getObject();
 		persoon.setGbaAdres(new BagAdres());
-		final Form<GbaPersoon> form = new Form<>("form", filterModel);
-		final TextField<String> bsnField = new TextField<>("bsn");
+		final var form = new Form<GbaPersoon>("form", filterModel);
+		final var bsnField = new TextField<String>("bsn");
 		bsnField.add(new BSNValidator(true, true));
 		bsnField.setRequired(true);
 		bsnField.setOutputMarkupId(true);
 		form.add(bsnField);
 		form.add(new IndicatingAjaxLink<>("bsnGenereren", filterModel)
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				GbaPersoon object = getModelObject();
+				var object = getModelObject();
 				object.setBsn(TestBsnGenerator.getValideBsn());
 				target.add(bsnField);
 			}
 		});
 		form.add(new ScreenitDateTextField("geboortedatum").setOutputMarkupId(true).add(new AjaxFormComponentUpdatingBehavior("change")
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
@@ -174,8 +162,7 @@ public class ColonTestProcesPage extends TestenBasePage
 			}
 		}));
 
-		form.add(new DropDownChoice<Gemeente>("gbaAdres.gbaGemeente", ModelUtil.listRModel(
-			hibernateService.getHibernateSession().createCriteria(Gemeente.class).add(Restrictions.isNotNull("screeningOrganisatie")).addOrder(Order.asc("naam")).list(), false),
+		form.add(new DropDownChoice<>("gbaAdres.gbaGemeente", ModelUtil.listRModel(gemeenteService.getGemeentesMetScreeningOrganisatie(), false),
 			new ChoiceRenderer<>("naam")));
 
 		form.add(new AjaxButton("maakClient", form)
@@ -192,8 +179,6 @@ public class ColonTestProcesPage extends TestenBasePage
 		});
 		form.add(new AjaxButton("metConclusieColoscopie", form)
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -203,8 +188,6 @@ public class ColonTestProcesPage extends TestenBasePage
 		});
 		form.add(new AjaxButton("afspraakAlleen", form)
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
@@ -216,14 +199,11 @@ public class ColonTestProcesPage extends TestenBasePage
 
 		form.add(new AjaxButton("directNaarClientDossier", form)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				String bsn = (form.getModelObject()).getBsn();
-				Client client = clientService.getClientByBsn(bsn);
+				var bsn = (form.getModelObject()).getBsn();
+				var client = clientService.getClientByBsn(bsn);
 				if (client != null)
 				{
 					setResponsePage(new ClientInzienPage(new SimpleHibernateModel<>(client)));
@@ -237,13 +217,10 @@ public class ColonTestProcesPage extends TestenBasePage
 
 		form.add(new AjaxButton("metIfobtOngunstig", form)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
-				IFOBTTest test = colonTestService.maakHuidigeIFobtOntvangenEnOngunstig(form.getModelObject());
+				var test = colonTestService.maakHuidigeIFobtOntvangenEnOngunstig(form.getModelObject());
 				info("Deze Client heeft nu een FIT teruggestuurd! Status Ifobttest is " + test.getStatus() + " met normwaarde: " + test.getNormWaarde() + " met uitslag: "
 					+ test.getUitslag());
 			}
@@ -251,13 +228,10 @@ public class ColonTestProcesPage extends TestenBasePage
 		});
 		form.add(new AjaxButton("metIfobtGunstig", form)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
-				IFOBTTest test = colonTestService.maakHuidigeIFobtOntvangenEnGunstig(form.getModelObject());
+				var test = colonTestService.maakHuidigeIFobtOntvangenEnGunstig(form.getModelObject());
 				info("Deze Client heeft nu een FIT teruggestuurd! Status Ifobttest is " + test.getStatus() + " met normwaarde: " + test.getNormWaarde() + " met uitslag: "
 					+ test.getUitslag());
 			}
@@ -266,9 +240,6 @@ public class ColonTestProcesPage extends TestenBasePage
 
 		form.add(new AjaxButton("voorAfronden", form)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
@@ -279,9 +250,6 @@ public class ColonTestProcesPage extends TestenBasePage
 
 		form.add(new AjaxButton("HuidigeIFOBTvoorRapelDatum", form)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
@@ -293,13 +261,10 @@ public class ColonTestProcesPage extends TestenBasePage
 
 		form.add(new AjaxButton("VerlorenIfobtKrijgtUitslagGunstig", form)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
-				IFOBTTest ifobt = colonTestService.zetVelorenIfobt(form.getModelObject(), Boolean.TRUE, Boolean.TRUE);
+				var ifobt = colonTestService.zetVelorenIfobt(form.getModelObject(), Boolean.TRUE, Boolean.TRUE);
 				info("FIT heeft een uitslag gekregen! Status: " + ifobt.getStatus().name());
 			}
 
@@ -307,13 +272,10 @@ public class ColonTestProcesPage extends TestenBasePage
 
 		form.add(new AjaxButton("VerlorenIfobtKrijgtUitslagOngunstig", form)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
-				IFOBTTest ifobt = colonTestService.zetVelorenIfobt(form.getModelObject(), Boolean.TRUE, Boolean.FALSE);
+				var ifobt = colonTestService.zetVelorenIfobt(form.getModelObject(), Boolean.TRUE, Boolean.FALSE);
 				info("FIT heeft een uitslag gekregen! Status: " + ifobt.getStatus().name());
 			}
 
@@ -321,19 +283,16 @@ public class ColonTestProcesPage extends TestenBasePage
 
 		form.add(new AjaxButton("voorRappeleren", form)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
-				GbaPersoon gbaPersoon = form.getModelObject();
-				TestTimelineModel model = new TestTimelineModel();
+				var gbaPersoon = form.getModelObject();
+				var model = new TestTimelineModel();
 				model.setBsn(gbaPersoon.getBsn());
 				model.setGeslacht(gbaPersoon.getGeslacht());
 				model.setGeboortedatum(gbaPersoon.getGeboortedatum());
-				List<Client> clienten = testTimelineService.maakOfVindClienten(model);
-				Client client = clienten.get(0);
+				var clienten = testTimelineService.maakOfVindClienten(model);
+				var client = clienten.get(0);
 				testTimelineService.maakNieuweScreeningRonde(client, TestTimeLineDossierTijdstip.DAG_NA_UITNODIGING_KOPPELEN, ColonOnderzoeksVariant.STANDAARD);
 				int rapelDagen = preferenceService.getInteger(PreferenceKey.IFOBTRAPELPERIODE.name());
 				testTimelineService.verzetDossierAchteruitInTijd(client, rapelDagen);
@@ -344,9 +303,6 @@ public class ColonTestProcesPage extends TestenBasePage
 
 		form.add(new AjaxButton("haBerichtOngunstig", form)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
@@ -357,9 +313,6 @@ public class ColonTestProcesPage extends TestenBasePage
 		});
 		form.add(new AjaxButton("haBerichtWijzig", form)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
@@ -370,9 +323,6 @@ public class ColonTestProcesPage extends TestenBasePage
 		});
 		form.add(new AjaxButton("haBerichtAnnuleer", form)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
@@ -382,9 +332,6 @@ public class ColonTestProcesPage extends TestenBasePage
 		});
 		form.add(new AjaxButton("haBerichtNoShow", form)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
@@ -395,10 +342,8 @@ public class ColonTestProcesPage extends TestenBasePage
 
 		final Form<GbaPersoon> form2 = new ScreenitForm<>("form2", filterModel);
 		form2.add(new TextField<String>("bsn").setRequired(true));
-		final AjaxDownload download = new AjaxDownload()
+		final var download = new AjaxDownload()
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected IResourceStream getResourceStream()
 			{
@@ -415,9 +360,6 @@ public class ColonTestProcesPage extends TestenBasePage
 
 		form2.add(new AjaxButton("downloadVo107", form2)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
@@ -430,13 +372,10 @@ public class ColonTestProcesPage extends TestenBasePage
 		form3.add(new TextField<>("aantalBrieven", aantalBrieven).setRequired(true));
 		form3.add(new AjaxButton("brievenKlaarzetten", form3)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
-				int aantal = Integer.parseInt(aantalBrieven.getObject());
+				var aantal = Integer.parseInt(aantalBrieven.getObject());
 				colonTestService.brievenKlaarzetten(aantal);
 				info("brieven zijn klaargezet;");
 			}
@@ -446,13 +385,10 @@ public class ColonTestProcesPage extends TestenBasePage
 		form4.add(new TextArea<>("bsns", bsns).setRequired(true));
 		form4.add(new AjaxButton("resetten", form4)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
-				String message = colonTestService.clientenResetten(bsns.getObject());
+				var message = colonTestService.clientenResetten(bsns.getObject());
 				if (message.contains("Succesvol"))
 				{
 					info(message);
@@ -464,18 +400,15 @@ public class ColonTestProcesPage extends TestenBasePage
 			}
 		});
 
-		WebMarkupContainer verwijderAfspraakslotsContainer = new WebMarkupContainer("verwijderAfspraakslotsContainer");
+		var verwijderAfspraakslotsContainer = new WebMarkupContainer("verwijderAfspraakslotsContainer");
 
 		verwijderAfspraakslotsContainer.add(new AjaxLink<Void>("verwijderAfspraakslots")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				int aantalAfspraakslotsVerwijderd = colonTestService.verwijderAfspraakslots();
-				String infoBericht = "Er zijn " + aantalAfspraakslotsVerwijderd + " afspraakslots verwijderd";
+				var aantalAfspraakslotsVerwijderd = colonTestService.verwijderAfspraakslots();
+				var infoBericht = "Er zijn " + aantalAfspraakslotsVerwijderd + " afspraakslots verwijderd";
 				info(infoBericht);
 			}
 		});
@@ -493,8 +426,8 @@ public class ColonTestProcesPage extends TestenBasePage
 		FileResourceStream fileResourceStream = null;
 		try
 		{
-			File outputFile = new File("vo107.txt");
-			FileOutputStream outputStream = new FileOutputStream(outputFile);
+			var outputFile = new File("vo107.txt");
+			var outputStream = new FileOutputStream(outputFile);
 			testService.createGbaFile(modelObject, getClass().getResourceAsStream("/vo107_template.txt"), outputStream);
 			fileResourceStream = new FileResourceStream(outputFile);
 		}

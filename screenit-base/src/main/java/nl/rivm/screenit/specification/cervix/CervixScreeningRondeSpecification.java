@@ -29,6 +29,7 @@ import lombok.AllArgsConstructor;
 import nl.rivm.screenit.model.Brief_;
 import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.GbaPersoon_;
+import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.ScreeningRonde_;
 import nl.rivm.screenit.model.cervix.CervixBrief_;
 import nl.rivm.screenit.model.cervix.CervixDossier_;
@@ -36,8 +37,10 @@ import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde_;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging_;
+import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.specification.SpecificationUtil;
 
 import org.springframework.data.jpa.domain.Specification;
@@ -69,9 +72,9 @@ public class CervixScreeningRondeSpecification
 		};
 	}
 
-	public static Specification<CervixScreeningRonde> heeftCreatieDatumNa(Date peilDatum)
+	public static Specification<CervixScreeningRonde> heeftStatusDatumVoorOfOp(Date peilDatum)
 	{
-		return (r, q, cb) -> cb.lessThan(r.get(ScreeningRonde_.creatieDatum), peilDatum);
+		return (r, q, cb) -> cb.lessThanOrEqualTo(r.get(ScreeningRonde_.statusDatum), peilDatum);
 	}
 
 	public static Specification<CervixScreeningRonde> getZASsenHandmatigAangevraagdSpecification(CervixScreeningRonde ronde, boolean aangevraagdDoorClient)
@@ -94,4 +97,24 @@ public class CervixScreeningRondeSpecification
 		});
 	}
 
+	public static Specification<CervixScreeningRonde> heeftNietLeeftijdCategorie(CervixLeeftijdcategorie leeftijdcategorie)
+	{
+		return (r, q, cb) -> cb.notEqual(r.get(CervixScreeningRonde_.leeftijdcategorie), leeftijdcategorie);
+	}
+
+	public static ExtendedSpecification<CervixScreeningRonde> heeftStatus(ScreeningRondeStatus status)
+	{
+		return (r, q, cb) -> cb.equal(r.get(ScreeningRonde_.status), status);
+	}
+
+	public static ExtendedSpecification<CervixScreeningRonde> heeftGeenLaatsteUitnodiging()
+	{
+		return (r, q, cb) ->
+			cb.isNull(r.get(CervixScreeningRonde_.laatsteUitnodiging));
+	}
+
+	public static ExtendedSpecification<CervixScreeningRonde> isAangemeld(boolean aangemeld)
+	{
+		return (r, q, cb) -> cb.equal(r.get(CervixScreeningRonde_.aangemeld), aangemeld);
+	}
 }

@@ -23,6 +23,13 @@ package nl.rivm.screenit.dto.mamma;
 
 import java.io.Serializable;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
+@AllArgsConstructor
 public class MammaUploadBeeldenVerzoekDto implements Serializable
 {
 	private Long ziekenhuisId;
@@ -35,53 +42,4 @@ public class MammaUploadBeeldenVerzoekDto implements Serializable
 
 	private String telefoon2;
 
-	public String getInstellingNaam()
-	{
-		return instellingNaam;
-	}
-
-	public void setInstellingNaam(String instellingNaam)
-	{
-		this.instellingNaam = instellingNaam;
-	}
-
-	public Long getAantalOpenstaand()
-	{
-		return aantalOpenstaand;
-	}
-
-	public void setAantalOpenstaand(Long aantalOpenstaand)
-	{
-		this.aantalOpenstaand = aantalOpenstaand;
-	}
-
-	public Long getZiekenhuisId()
-	{
-		return ziekenhuisId;
-	}
-
-	public void setZiekenhuisId(Long ziekenhuisId)
-	{
-		this.ziekenhuisId = ziekenhuisId;
-	}
-
-	public String getTelefoon()
-	{
-		return telefoon;
-	}
-
-	public void setTelefoon(String telefoon)
-	{
-		this.telefoon = telefoon;
-	}
-
-	public String getTelefoon2()
-	{
-		return telefoon2;
-	}
-
-	public void setTelefoon2(String telefoon2)
-	{
-		this.telefoon2 = telefoon2;
-	}
 }

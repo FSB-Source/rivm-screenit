@@ -75,6 +75,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static nl.rivm.screenit.specification.algemeen.ScreeningRondeSpecification.isAangemaaktVoor;
+import static nl.rivm.screenit.specification.cervix.CervixScreeningRondeSpecification.heeftMonsterInDossier;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 @Service
@@ -433,23 +435,23 @@ public class CervixBaseScreeningrondeServiceImpl implements CervixBaseScreeningr
 	@Override
 	public CervixScreeningRonde getOntvangstRondeVoorMonster(CervixMonster monster)
 	{
-		var peildatum = monster.getOntvangstdatum();
+		var peilmoment = monster.getOntvangstdatum();
 		if (monster instanceof CervixUitstrijkje)
 		{
 			var labformulier = ((CervixUitstrijkje) monster).getLabformulier();
 			if (labformulier != null
-				&& (peildatum == null || DateUtil.compareBefore(labformulier.getScanDatum(), peildatum))
+				&& (peilmoment == null || DateUtil.compareBefore(labformulier.getScanDatum(), peilmoment))
 				&& (labformulier.getStatus() == CervixLabformulierStatus.GECONTROLEERD
 				|| labformulier.getStatus() == CervixLabformulierStatus.GECONTROLEERD_CYTOLOGIE
 				|| labformulier.getStatus() == CervixLabformulierStatus.HUISARTS_ONBEKEND))
 			{
-				peildatum = labformulier.getScanDatum();
+				peilmoment = labformulier.getScanDatum();
 			}
 		}
-		if (peildatum != null)
+		if (peilmoment != null)
 		{
 			return screeningRondeRepository.findFirst(
-					CervixScreeningRondeSpecification.heeftMonsterInDossier(monster).and(CervixScreeningRondeSpecification.heeftCreatieDatumNa(peildatum)),
+					heeftMonsterInDossier(monster).and(isAangemaaktVoor(DateUtil.toLocalDateTime(peilmoment))),
 					Sort.by(AbstractHibernateObject_.ID).descending())
 				.orElseThrow(() -> new IllegalStateException("nog.geen.ronde.op.peildatum"));
 		}

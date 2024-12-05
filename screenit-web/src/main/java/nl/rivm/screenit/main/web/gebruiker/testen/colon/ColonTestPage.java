@@ -36,10 +36,10 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.ColonTest;
 import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.service.GemeenteService;
 import nl.rivm.screenit.service.colon.ColonTestService;
 import nl.rivm.screenit.service.colon.ColonTestStateService;
 import nl.rivm.screenit.util.TestBsnGenerator;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -64,8 +64,6 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.wicketstuff.shiro.ShiroConstraint;
 
 @SecurityConstraint(
@@ -78,17 +76,15 @@ import org.wicketstuff.shiro.ShiroConstraint;
 public class ColonTestPage extends TestenBasePage
 {
 	@SpringBean
-	private HibernateService hibernateService;
-
-	@SpringBean
 	private ColonTestStateService testStateService;
 
 	@SpringBean
-	private ColonTestService colonTestervice;
+	private ColonTestService testService;
+
+	@SpringBean
+	private GemeenteService gemeenteService;
 
 	private IModel<TestModel> testModel;
-
-	private static final long serialVersionUID = 1L;
 
 	public ColonTestPage()
 	{
@@ -140,9 +136,7 @@ public class ColonTestPage extends TestenBasePage
 		}));
 
 		form.add(new DropDownChoice<Gemeente>("gemeente",
-			ModelUtil.listRModel(
-				hibernateService.getHibernateSession().createCriteria(Gemeente.class).add(Restrictions.isNotNull("screeningOrganisatie")).addOrder(Order.asc("naam")).list(),
-				false),
+			ModelUtil.listRModel(gemeenteService.getGemeentesMetScreeningOrganisatie(), false),
 			new ChoiceRenderer<>("naam")));
 
 		form.add(new EnumDropDownChoice<>("gbaStatus", GbaStatus.class, false).setOutputMarkupId(true));
@@ -202,7 +196,7 @@ public class ColonTestPage extends TestenBasePage
 			@Override
 			public void onClick(AjaxRequestTarget ajaxRequestTarget)
 			{
-				final int aantal = colonTestervice.markeerNogNietNaarInpakcentrumVerstuurdeUitnodigingenAlsVerstuurd();
+				final int aantal = testService.markeerNogNietNaarInpakcentrumVerstuurdeUitnodigingenAlsVerstuurd();
 				aantalModel.setObject("Aantal als verstuurd gemarkeerde uitnodigingen: " + aantal);
 				ajaxRequestTarget.add(aantalLabel);
 			}

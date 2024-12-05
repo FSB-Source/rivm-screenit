@@ -21,24 +21,29 @@ package nl.rivm.screenit.batch.jobs.mamma.kansberekening;
  * =========================LICENSE_END==================================
  */
 
+import java.lang.reflect.ParameterizedType;
 import java.util.List;
+import java.util.function.Consumer;
+
+import javax.persistence.EntityGraph;
+import javax.persistence.FlushModeType;
 
 import lombok.extern.slf4j.Slf4j;
 
+import nl.rivm.screenit.repository.impl.FluentJpaQueryImpl;
+import nl.topicuszorg.hibernate.object.model.HibernateObject;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.hibernate.Criteria;
-import org.hibernate.FlushMode;
-import org.hibernate.Session;
-import org.hibernate.criterion.Restrictions;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import static nl.rivm.screenit.specification.HibernateObjectSpecification.heeftIdIn;
+
 @Slf4j
-public abstract class MammaAbstractEventWriter<T> implements ItemWriter<Long>
+public abstract class MammaAbstractEventWriter<T extends HibernateObject> implements ItemWriter<Long>
 {
 	private ExecutionContext executionContext;
 
@@ -64,29 +69,41 @@ public abstract class MammaAbstractEventWriter<T> implements ItemWriter<Long>
 
 			if (aantal % 10000 == 0)
 			{
-				LOG.info("Aantal geschreven " + aantal);
+				LOG.info("Aantal geschreven {}", aantal);
 			}
 		}
 	}
 
 	@Override
-	public void write(List<? extends Long> ids)
+	public void write(List<? extends Long> items)
 	{
 		var session = hibernateService.getHibernateSession();
-		session.setFlushMode(FlushMode.COMMIT);
-		session.enableFetchProfile("kansberekening");
+		session.setFlushMode(FlushModeType.COMMIT);
+		@SuppressWarnings("unchecked")
+		var ids = (List<Long>) items;
+		var entityClass = getEntityClass(getClass());
 
-		var criteria = getCriteria(session);
-		criteria.add(Restrictions.in("id", ids));
+		var jpaQuery = new FluentJpaQueryImpl<>(heeftIdIn(ids), session, entityClass, entityClass);
 
-		for (T item : (List<T>) criteria.list())
-		{
-			write(item);
-		}
+		jpaQuery.fetch(getEntityGraphFunction())
+			.all()
+			.forEach(this::write);
 	}
 
 	protected abstract void write(T item);
 
-	protected abstract Criteria getCriteria(Session session);
+	protected abstract Consumer<EntityGraph<T>> getEntityGraphFunction();
 
+	@SuppressWarnings("unchecked")
+	private Class<T> getEntityClass(Class<?> clazz)
+	{
+		if (clazz.getGenericSuperclass() instanceof ParameterizedType)
+		{
+			return (Class<T>) ((ParameterizedType) clazz.getGenericSuperclass()).getActualTypeArguments()[0];
+		}
+		else
+		{
+			return getEntityClass(clazz.getSuperclass());
+		}
+	}
 }

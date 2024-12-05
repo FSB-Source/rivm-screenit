@@ -21,6 +21,9 @@ package nl.rivm.screenit.specification.cervix;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+import java.util.List;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
@@ -28,6 +31,7 @@ import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht_;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.model.enums.BestandStatus;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 
 import org.springframework.data.jpa.domain.Specification;
@@ -54,4 +58,23 @@ public class CervixBetaalopdrachtSpecification
 		return (r, q, cb) -> cb.notEqual(r.get(CervixBetaalopdracht_.status), bestandStatus);
 	}
 
+	public static Specification<CervixBetaalopdracht> heeftNietStatusIn(List<BestandStatus> bestandStatuses)
+	{
+		return (r, q, cb) -> r.get(CervixBetaalopdracht_.status).in(bestandStatuses);
+	}
+
+	public static Specification<CervixBetaalopdracht> heeftStatusDatumOpOfVoor(LocalDate peilMoment)
+	{
+		return (r, q, cb) -> cb.lessThanOrEqualTo(r.get(CervixBetaalopdracht_.statusDatum), DateUtil.toUtilDate(peilMoment));
+	}
+
+	public static Specification<CervixBetaalopdracht> heeftSepaSpecificatiePdf()
+	{
+		return (r, q, cb) -> cb.isNotNull(r.get(CervixBetaalopdracht_.sepaSpecificatiePdf));
+	}
+
+	public static Specification<CervixBetaalopdracht> heeftSepaDocument()
+	{
+		return (r, q, cb) -> cb.isNotNull(r.get(CervixBetaalopdracht_.sepaDocument));
+	}
 }

@@ -60,6 +60,7 @@ import nl.rivm.screenit.model.cervix.enums.CervixHuisartsBerichtStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.util.DateUtil;
 
 import org.apache.commons.lang.StringUtils;
@@ -116,8 +117,12 @@ public class CervixLabformulierSpecification
 
 	public static Specification<CervixLabformulier> filterHeeftScanDatumTotEnMet(Date scanDatumTotEnMet)
 	{
-		return skipWhenNull(scanDatumTotEnMet,
-			(r, q, cb) -> cb.lessThanOrEqualTo(r.get(ScannedFormulier_.scanDatum), DateUtil.eindDag(scanDatumTotEnMet)));
+		return skipWhenNull(scanDatumTotEnMet, heeftScanDatumTotEnMet(scanDatumTotEnMet));
+	}
+
+	public static Specification<CervixLabformulier> heeftScanDatumTotEnMet(Date scanDatumTotEnMet)
+	{
+		return (r, q, cb) -> cb.lessThanOrEqualTo(r.get(ScannedFormulier_.scanDatum), DateUtil.eindDag(scanDatumTotEnMet));
 	}
 
 	public static Specification<CervixLabformulier> filterHeeftGeboortedatum(Date geboorteDatum)
@@ -204,9 +209,14 @@ public class CervixLabformulierSpecification
 			(r, q, cb) -> cb.and(cb.equal(screeningOrganisatieJoin(r).get(SingleTableHibernateObject_.id), instellingId)));
 	}
 
-	public static Specification<CervixLabformulier> filterHeeftDigitaal(Boolean heeftDigitaal)
+	public static Specification<CervixLabformulier> filterIsDigitaal(Boolean heeftDigitaal)
 	{
-		return skipWhenNull(heeftDigitaal, (r, q, cb) -> cb.equal(r.get(CervixLabformulier_.digitaal), heeftDigitaal));
+		return skipWhenNull(heeftDigitaal, isDigitaal(heeftDigitaal));
+	}
+
+	public static Specification<CervixLabformulier> isDigitaal(Boolean heeftDigitaal)
+	{
+		return (r, q, cb) -> cb.equal(r.get(CervixLabformulier_.digitaal), heeftDigitaal);
 	}
 
 	public static Specification<CervixLabformulier> heeftStatussen(List<CervixUitstrijkjeStatus> statussen)
@@ -216,6 +226,11 @@ public class CervixLabformulierSpecification
 			var uitstrijkjeJoin = r.get(CervixLabformulier_.uitstrijkje);
 			return uitstrijkjeJoin.get(CervixUitstrijkje_.uitstrijkjeStatus).in(statussen);
 		};
+	}
+
+	public static ExtendedSpecification<CervixLabformulier> heeftStatus(CervixLabformulierStatus status)
+	{
+		return (r, q, cb) -> cb.equal(r.get(CervixLabformulier_.status), status);
 	}
 
 	private static JoinType getJoinTypeVanLabprocesStap(LabprocesStap labprocesStap, String bsn)
@@ -253,5 +268,10 @@ public class CervixLabformulierSpecification
 	public static Specification<CervixBoekRegel> filterDatumUitstrijkje(Date datumUitstrijkje)
 	{
 		return skipWhenNull(datumUitstrijkje, (r, q, cb) -> cb.equal(labformulierJoin(r, cb, JoinType.INNER).get(CervixLabformulier_.datumUitstrijkje), datumUitstrijkje));
+	}
+
+	public static ExtendedSpecification<CervixLabformulier> isNietGewist()
+	{
+		return (r, q, cb) -> cb.isNull(r.get(CervixLabformulier_.datumGewist));
 	}
 }

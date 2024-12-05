@@ -21,29 +21,20 @@ package nl.rivm.screenit.dao.mamma.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 
-import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.mamma.MammaBaseFollowUpDao;
 import nl.rivm.screenit.dto.mamma.MammaFollowUpInstellingDto;
-import nl.rivm.screenit.dto.mamma.MammaFollowUpInstellingRadiologieDto;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.berichten.enums.VerslagType;
-import nl.rivm.screenit.model.enums.MammaFollowUpDoorverwezenFilterOptie;
-import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaFollowUpRadiologieVerslag;
 import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
-import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
-import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.hibernate.Criteria;
 import org.hibernate.criterion.DetachedCriteria;
@@ -62,55 +53,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MammaBaseFollowUpDaoImpl extends AbstractAutowiredDao implements MammaBaseFollowUpDao
 {
-
-	@Autowired
-	private SimplePreferenceService preferenceService;
-
 	@Autowired
 	private ICurrentDateSupplier dateSupplier;
-
-	private Criteria getRadiologieVerslagLaatsteBeoordelingMetUitslag(MammaFollowUpDoorverwezenFilterOptie doorverwezenFilterOptie)
-	{
-		Criteria radiologieVerslagLaatsteBeoordelingMetUitslag = getSession().createCriteria(MammaFollowUpRadiologieVerslag.class, "radiologieVerslag");
-		radiologieVerslagLaatsteBeoordelingMetUitslag.createAlias("radiologieVerslag.screeningRonde", "screeningRonde");
-		radiologieVerslagLaatsteBeoordelingMetUitslag.createAlias("screeningRonde.laatsteOnderzoek", "onderzoek");
-		radiologieVerslagLaatsteBeoordelingMetUitslag.createAlias("onderzoek.laatsteBeoordeling", "beoordeling");
-		radiologieVerslagLaatsteBeoordelingMetUitslag.createAlias("screeningRonde.dossier", "dossier");
-
-		radiologieVerslagLaatsteBeoordelingMetUitslag.add(Restrictions.eqProperty("beoordeling.id", "dossier.laatsteBeoordelingMetUitslag"));
-
-		addRadiologieVerslagOnvolledigCriteria(radiologieVerslagLaatsteBeoordelingMetUitslag);
-
-		switch (doorverwezenFilterOptie)
-		{
-		case DOORVERWEZEN:
-			radiologieVerslagLaatsteBeoordelingMetUitslag.add(Restrictions.eq("beoordeling.status", MammaBeoordelingStatus.UITSLAG_ONGUNSTIG));
-			break;
-		case NIET_DOORVERWEZEN:
-			radiologieVerslagLaatsteBeoordelingMetUitslag.add(Restrictions.eq("beoordeling.status", MammaBeoordelingStatus.UITSLAG_GUNSTIG));
-			break;
-		case ALLES:
-			break;
-		default:
-			throw new IllegalStateException("Unexpected value: " + doorverwezenFilterOptie);
-		}
-
-		return radiologieVerslagLaatsteBeoordelingMetUitslag;
-	}
-
-	private void addRadiologieVerslagOnvolledigCriteria(Criteria crit)
-	{
-		crit.add(Restrictions.isNull("ingevoerdDoor"));
-	}
-
-	@Override
-	public List<MammaFollowUpInstellingRadiologieDto> zoekOpenstaandeRadiologieVerslagenPerOrganisatie(ScreeningOrganisatie regio,
-		MammaFollowUpDoorverwezenFilterOptie doorverwezenFilterOptie, Integer jaar)
-	{
-		Criteria crit = createOpenstaandeRadiologieVerslagenPerOrganisatieCriteria(regio, doorverwezenFilterOptie, jaar);
-		crit.setResultTransformer(Transformers.aliasToBean(MammaFollowUpInstellingRadiologieDto.class));
-		return crit.list();
-	}
 
 	@Override
 	public List<MammaFollowUpInstellingDto> zoekInstellingenMetOpenstaandePaVerslagen(ScreeningOrganisatie regio)
@@ -158,22 +102,6 @@ public class MammaBaseFollowUpDaoImpl extends AbstractAutowiredDao implements Ma
 	}
 
 	@Override
-	public List<MammaBeoordeling> zoekOpenstaandeFollowUpConclusies(ScreeningOrganisatie regio, int first, int count, SortState<String> sortState)
-	{
-		var criteria = createOpenstaandeFollowUpConclusiesCriteria(regio);
-		addSortAndPaging(criteria, sortState, first, count);
-		return criteria.list();
-	}
-
-	@Override
-	public long countOpenstaandeFollowUpConclusies(ScreeningOrganisatie regio)
-	{
-		Criteria crit = createOpenstaandeFollowUpConclusiesCriteria(regio);
-		crit.setProjection(Projections.rowCount());
-		return (Long) crit.uniqueResult();
-	}
-
-	@Override
 	public boolean heeftOpenstaandeFollowUpConclusie(MammaDossier dossier)
 	{
 		Criteria openstaandeFollowUpConclusieDossier = getSession().createCriteria(MammaDossier.class, "dossier");
@@ -206,39 +134,6 @@ public class MammaBaseFollowUpDaoImpl extends AbstractAutowiredDao implements Ma
 		openstaandeFollowUpConclusieDossier.setProjection(Projections.rowCount());
 
 		return ((Long) openstaandeFollowUpConclusieDossier.uniqueResult()) > 0;
-	}
-
-	private Criteria createOpenstaandeRadiologieVerslagenPerOrganisatieCriteria(ScreeningOrganisatie regio, MammaFollowUpDoorverwezenFilterOptie doorverwezenFilterOptie,
-		Integer jaar)
-	{
-		Criteria radiologieVerslagLaatsteBeoordelingMetUitslag = getRadiologieVerslagLaatsteBeoordelingMetUitslag(doorverwezenFilterOptie);
-		radiologieVerslagLaatsteBeoordelingMetUitslag.createAlias("radiologieVerslag.aangemaaktIn", "instelling");
-
-		if (regio != null)
-		{
-			radiologieVerslagLaatsteBeoordelingMetUitslag.createAlias("instelling.parent", "pInstelling", JoinType.LEFT_OUTER_JOIN);
-			radiologieVerslagLaatsteBeoordelingMetUitslag.add(Restrictions.or(Restrictions.eq("instelling.parent", regio), Restrictions.eq("pInstelling.parent", regio)));
-		}
-
-		radiologieVerslagLaatsteBeoordelingMetUitslag.add(Restrictions.le("radiologieVerslag.aangemaaktOp",
-			DateUtil.toUtilDate(dateSupplier.getLocalDate().minusDays(preferenceService.getInteger(PreferenceKey.MAMMA_FOLLOW_UP_RADIOLOGIE_WERKLIJST_NA_DOWNLOADEN.name())))));
-
-		if (jaar != null)
-		{
-			Date vanaf = DateUtil.toUtilDate(LocalDate.of(jaar, 1, 1));
-			Date tot = DateUtil.toUtilDate(LocalDate.of(jaar + 1, 1, 1));
-			radiologieVerslagLaatsteBeoordelingMetUitslag.add(Restrictions.ge("onderzoek.creatieDatum", vanaf));
-			radiologieVerslagLaatsteBeoordelingMetUitslag.add(Restrictions.lt("onderzoek.creatieDatum", tot));
-		}
-
-		radiologieVerslagLaatsteBeoordelingMetUitslag.setProjection(Projections.projectionList().add(Projections.groupProperty("instelling.id").as("instellingId"))
-			.add(Projections.groupProperty("instelling.naam").as("instellingNaam"))
-			.add(Projections.groupProperty("instelling.mammaRadiologieGebeld").as("laatstGebeld"))
-			.add(Projections.count("id").as("aantalOpenstaande"))
-			.add(Projections.groupProperty("instelling.telefoon").as("telefoon"))
-			.add(Projections.groupProperty("instelling.telefoon2").as("telefoon2")));
-
-		return radiologieVerslagLaatsteBeoordelingMetUitslag;
 	}
 
 	private Criteria createInstellingenMetOpenstaandePaVerslagenCriteria(ScreeningOrganisatie regio)
@@ -299,25 +194,6 @@ public class MammaBaseFollowUpDaoImpl extends AbstractAutowiredDao implements Ma
 		screeningRondesMetAfgerondPaVerslag.setProjection(Projections.property("paVerslag.id"));
 
 		return screeningRondesMetAfgerondPaVerslag;
-	}
-
-	private Criteria createOpenstaandeFollowUpConclusiesCriteria(ScreeningOrganisatie regio)
-	{
-		Criteria criteria = getSession().createCriteria(MammaDossier.class, "dossier");
-		criteria.createAlias("dossier.laatsteBeoordelingMetUitslag", "beoordeling");
-		criteria.createAlias("beoordeling.onderzoek", "onderzoek");
-		if (regio != null)
-		{
-			criteria.createAlias("beoordeling.beoordelingsEenheid", "beoordelingsEenheid");
-			criteria.createAlias("beoordelingsEenheid.parent", "ce");
-			criteria.createAlias("ce.regio", "regio");
-			criteria.add(Restrictions.eq("regio.id", regio.getId()));
-		}
-
-		criteria.add(Restrictions.eq("dossier.updateFollowUpConclusie", true));
-		criteria.setProjection(Projections.property("dossier.laatsteBeoordelingMetUitslag"));
-
-		return criteria;
 	}
 
 	private DetachedCriteria createScreeningRondesMetTeVerwachtenPaVerslagCriteria(Long dossierId)

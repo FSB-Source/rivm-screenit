@@ -1,4 +1,4 @@
-package nl.rivm.screenit.batch.jobs.mamma.aftergba.afsprakenAnnuleren;
+package nl.rivm.screenit.batch.jobs.mamma.aftergba.afsprakenannuleren;
 
 /*-
  * ========================LICENSE_START=================================

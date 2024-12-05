@@ -48,34 +48,27 @@ public class SpecificationUtil
 {
 	public static Predicate containsCaseInsensitive(CriteriaBuilder cb, Path<String> path, String keyword)
 	{
-		return cb.like(
-			cb.lower(path),
-			cb.lower(cb.literal("%" + escapeLikeString(keyword) + "%"))
-		);
+		return cb.like(cb.lower(path), "%" + escapeLikeString(keyword).toLowerCase() + "%");
 	}
 
 	public static Predicate startsWithCaseInsensitive(CriteriaBuilder cb, Path<String> path, String keyword)
 	{
-		return cb.like(
-			cb.lower(path),
-			cb.lower(cb.literal(escapeLikeString(keyword) + "%"))
-		);
+		return cb.like(cb.lower(path), escapeLikeString(keyword).toLowerCase() + "%");
 	}
 
 	public static Predicate endsWithCaseInsensitive(CriteriaBuilder cb, Path<String> path, String keyword)
 	{
-		return cb.like(
-			cb.lower(path),
-			cb.lower(cb.literal("%" + escapeLikeString(keyword)))
-		);
+		return cb.like(cb.lower(path), "%" + escapeLikeString(keyword).toLowerCase());
+	}
+
+	public static Predicate exactCaseInsensitive(CriteriaBuilder cb, Path<String> path, String keyword)
+	{
+		return cb.like(cb.lower(path), escapeLikeString(keyword).toLowerCase());
 	}
 
 	public static Predicate containsCaseSensitive(CriteriaBuilder cb, Path<String> path, String keyword)
 	{
-		return cb.like(
-			path,
-			cb.literal("%" + escapeLikeString(keyword) + "%")
-		);
+		return cb.like(path, "%" + escapeLikeString(keyword) + "%");
 	}
 
 	public static <S> Specification<S> skipWhenEmpty(String keyword, Specification<S> specification)
@@ -88,7 +81,7 @@ public class SpecificationUtil
 		return (r, q, cb) -> StringUtils.isBlank(keyword) ? null : specification.toPredicate(r, q, cb);
 	}
 
-	public static <S> Specification<S> skipWhenEmpty(Collection<?> list, Specification<S> specification)
+	public static <S> ExtendedSpecification<S> skipWhenEmpty(Collection<?> list, ExtendedSpecification<S> specification)
 	{
 		return (r, q, cb) -> CollectionUtils.isEmpty(list) ? null : specification.toPredicate(r, q, cb);
 	}

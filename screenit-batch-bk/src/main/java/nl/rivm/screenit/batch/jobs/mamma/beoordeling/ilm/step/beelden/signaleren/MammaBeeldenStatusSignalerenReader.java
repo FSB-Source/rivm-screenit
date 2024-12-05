@@ -21,41 +21,36 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.beelden.signalere
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.mamma.MammaMammografie;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.mamma.MammaMammografieBaseSpecification.heeftIlmStatusDatumVoor;
+import static nl.rivm.screenit.specification.mamma.MammaMammografieBaseSpecification.heeftIlmStatusIn;
 
 @Component
 @AllArgsConstructor
-public class MammaBeeldenStatusSignalerenReader extends BaseScrollableResultReader
+public class MammaBeeldenStatusSignalerenReader extends BaseSpecificationScrollableResultReader<MammaMammografie>
 {
 	private final SimplePreferenceService preferenceService;
 
 	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<MammaMammografie> createSpecification()
 	{
-		var signaleerTermijn = DateUtil.toUtilDate(
-			currentDateSupplier.getLocalDate().minusDays(preferenceService.getInteger(PreferenceKey.ILM_SIGNALEERTERMIJN_BEELDEN_STATUS.name())));
-
-		var criteria = session.createCriteria(MammaMammografie.class);
-
-		criteria.add(Restrictions.in("ilmStatus", MammaMammografieIlmStatus.TE_VERWIJDEREN, MammaMammografieIlmStatus.VERWIJDEREN_MISLUKT));
-		criteria.add(Restrictions.lt("ilmStatusDatum", signaleerTermijn));
-
-		return criteria;
+		var signaleerTermijn = currentDateSupplier.getLocalDate().minusDays(preferenceService.getInteger(PreferenceKey.ILM_SIGNALEERTERMIJN_BEELDEN_STATUS.name()));
+		return heeftIlmStatusIn(List.of(MammaMammografieIlmStatus.TE_VERWIJDEREN, MammaMammografieIlmStatus.VERWIJDEREN_MISLUKT))
+			.and(heeftIlmStatusDatumVoor(signaleerTermijn.atStartOfDay()));
 	}
 }

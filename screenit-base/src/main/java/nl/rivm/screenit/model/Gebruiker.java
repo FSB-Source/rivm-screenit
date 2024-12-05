@@ -21,16 +21,17 @@ package nl.rivm.screenit.model;
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Index;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
@@ -38,6 +39,7 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
+import javax.xml.bind.annotation.XmlTransient;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -47,24 +49,145 @@ import nl.rivm.screenit.model.helper.HibernateMagicNumber;
 import nl.rivm.screenit.model.nieuws.GebruikerNieuwsItem;
 import nl.rivm.screenit.model.overeenkomsten.AfgeslotenMedewerkerOvereenkomst;
 import nl.topicuszorg.hibernate.object.annot.ExactValue;
-import nl.topicuszorg.organisatie.model.Medewerker;
+import nl.topicuszorg.organisatie.model.Adres;
+import nl.topicuszorg.patientregistratie.persoonsgegevens.model.NaamGebruik;
 import nl.topicuszorg.yubikey.model.YubiKey;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
+import org.hibernate.annotations.Proxy;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
 @Entity
-@Table(
+@Table(schema = "algemeen", name = "org_medewerker",
 	indexes = {
 		@Index(name = "IDX_GEBRUIKER_ACTIEF", columnList = "actief"),
 		@Index(name = "IDX_GEBRUIKER_ACHTERNAAM", columnList = "achternaam") })
+@Proxy
+@Cache(
+	usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE,
+	region = "organisatie.cache"
+)
 @Audited
 @Getter
 @Setter
-public class Gebruiker extends Medewerker<InstellingGebruiker> implements Account, IActief
+public class Gebruiker extends SingleTableHibernateObject implements Account, IActief
 {
+	@Column(
+		unique = true,
+		nullable = true,
+		length = 8
+	)
+	private String agbcode;
+
+	@Column(
+		unique = true,
+		nullable = true,
+		length = 11
+	)
+	private String bignummer;
+
+	@Column(
+		unique = true,
+		nullable = true,
+		length = 9
+	)
+	private String uzinummer;
+
+	@Deprecated(forRemoval = true)
+	@Column(
+		unique = true,
+		nullable = true,
+		length = 10
+	)
+	private String pasnummer;
+
+	@Deprecated(forRemoval = true)
+	@Column(
+		nullable = true,
+		length = 8
+	)
+	private String rolCode;
+
+	@Deprecated(forRemoval = true)
+	@Column(
+		unique = true,
+		nullable = true,
+		length = 100
+	)
+	private String uziPasSerial;
+
+	@Column(
+		length = 20
+	)
+	private String voorletters;
+
+	@Column(
+		length = 20
+	)
+	private String tussenvoegsel;
+
+	@Column(
+		length = 50
+	)
+	private String voornaam;
+
+	@Column(
+		nullable = false,
+		length = 50
+	)
+	private String achternaam;
+
+	@OneToMany(
+		mappedBy = "medewerker"
+	)
+	@Cache(
+		usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE,
+		region = "organisatie.cache"
+	)
+	@XmlTransient
+	private List<InstellingGebruiker> organisatieMedewerkers = new ArrayList<>();
+
+	@ManyToMany(
+		fetch = FetchType.LAZY,
+		cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE }
+	)
+	@Cascade({ CascadeType.PERSIST, CascadeType.SAVE_UPDATE })
+	@Cache(
+		usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE,
+		region = "organisatie.cache"
+	)
+	private List<Adres> adressen = new ArrayList<>();
+
+	@Deprecated(forRemoval = true)
+	@Column(
+		length = 200,
+		nullable = true
+	)
+	private String partnerAchternaam;
+
+	@Deprecated(forRemoval = true)
+	@Column(
+		length = 10,
+		nullable = true
+	)
+	private String partnerTussenvoegsel;
+
+	@Deprecated(forRemoval = true)
+	@Enumerated(EnumType.STRING)
+	private NaamGebruik naamGebruik;
+
+	@Deprecated(forRemoval = true)
+	@Column(
+		nullable = true
+	)
+	private String volledigenaamweergave;
+
 	@Enumerated(EnumType.STRING)
 	private Aanhef aanhef;
 
@@ -129,7 +252,7 @@ public class Gebruiker extends Medewerker<InstellingGebruiker> implements Accoun
 	@Column(length = HibernateMagicNumber.L25)
 	private String patholoogId;
 
-	@ManyToOne(cascade = CascadeType.ALL)
+	@ManyToOne(cascade = javax.persistence.CascadeType.ALL)
 	@NotAudited
 	private YubiKey yubiKey;
 
@@ -141,7 +264,7 @@ public class Gebruiker extends Medewerker<InstellingGebruiker> implements Accoun
 	@NotAudited
 	private List<AfgeslotenMedewerkerOvereenkomst> afgeslotenKwaliteitsOvereenkomsten;
 
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "gebruiker", cascade = CascadeType.REMOVE)
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "gebruiker", cascade = javax.persistence.CascadeType.REMOVE)
 	private List<GebruikerNieuwsItem> gebruikerNieuwsItems;
 
 	@OneToOne(fetch = FetchType.LAZY, optional = true)
@@ -150,7 +273,106 @@ public class Gebruiker extends Medewerker<InstellingGebruiker> implements Accoun
 	@Column(nullable = true, length = HibernateMagicNumber.L255)
 	private String ondertekenaar;
 
+	public Gebruiker()
+	{
+		this.naamGebruik = NaamGebruik.EIGEN;
+	}
+
 	@Override
+	public String toString()
+	{
+		return this.getNaamVolledig();
+	}
+
+	@Deprecated(forRemoval = true)
+	public Adres getHuidigAdres()
+	{
+		Adres adres = null;
+		if (this.adressen != null && !this.adressen.isEmpty())
+		{
+			adres = this.adressen.get(this.adressen.size() - 1);
+		}
+
+		return adres;
+	}
+
+	@Deprecated(forRemoval = true)
+	public Adres add(Adres adres)
+	{
+		if (this.adressen == null)
+		{
+			this.adressen = new ArrayList();
+		}
+
+		this.adressen.add(adres);
+		return adres;
+	}
+
+	@Deprecated(forRemoval = true)
+	public String getStraat()
+	{
+		Adres adres = this.getHuidigAdres();
+		String straat = null;
+		if (adres != null)
+		{
+			straat = adres.getStraat();
+		}
+
+		return straat;
+	}
+
+	@Deprecated(forRemoval = true)
+	public Integer getHuisnummer()
+	{
+		Adres adres = this.getHuidigAdres();
+		Integer huisnummer = null;
+		if (adres != null)
+		{
+			huisnummer = adres.getHuisnummer();
+		}
+
+		return huisnummer;
+	}
+
+	@Deprecated(forRemoval = true)
+	public String getHuisnummerToevoeging()
+	{
+		Adres adres = this.getHuidigAdres();
+		String huisnummertoevoeging = null;
+		if (adres != null)
+		{
+			huisnummertoevoeging = adres.getHuisnummerToevoeging();
+		}
+
+		return huisnummertoevoeging;
+	}
+
+	@Deprecated(forRemoval = true)
+	public String getPostcode()
+	{
+		Adres adres = this.getHuidigAdres();
+		String postcode = null;
+		if (adres != null)
+		{
+			postcode = adres.getPostcode();
+		}
+
+		return postcode;
+	}
+
+	@Deprecated(forRemoval = true)
+	public String getPlaats()
+	{
+		Adres adres = this.getHuidigAdres();
+		String plaats = null;
+		if (adres != null)
+		{
+			plaats = adres.getPlaats();
+		}
+
+		return plaats;
+	}
+
 	@Transient
 	public String getNaamVolledig()
 	{

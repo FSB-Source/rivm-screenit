@@ -1,0 +1,34 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.bezwaarBlok {
+	width: 100%;
+	border-radius: 0.625rem;
+	background-color: $wit-base;
+	box-shadow: 0 0.625rem 1.25rem -0.625rem rgba(0, 0, 0, 0.25);
+	padding: 1.875rem;
+	margin-bottom: 0.938rem;
+	font-size: 0.875rem;
+
+	@include respond-below(xs) {
+		padding: 0.6rem;
+	}
+
+	.checkBox {
+		position: relative;
+		display: flex;
+		margin-left: -10px;
+	}
+
+	.checkBox, .overigTitle {
+		font-weight: bold;
+	}
+
+	.label {
+		margin: 0;
+		line-height: 1rem;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+}

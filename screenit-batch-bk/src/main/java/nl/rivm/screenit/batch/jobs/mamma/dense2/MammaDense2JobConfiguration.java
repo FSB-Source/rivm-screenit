@@ -24,6 +24,8 @@ package nl.rivm.screenit.batch.jobs.mamma.dense2;
 import nl.rivm.screenit.batch.jobs.AbstractJobConfiguration;
 import nl.rivm.screenit.batch.jobs.mamma.dense2.exporteerstestudieronde.MammaDense2ExportEersteStudierondeTasklet;
 import nl.rivm.screenit.batch.jobs.mamma.dense2.exporttweedestudieronde.MammaDense2ExportTweedeStudierondeTasklet;
+import nl.rivm.screenit.batch.jobs.mamma.dense2.verwijderdensiteit.MammaVerwijderDensiteitReader;
+import nl.rivm.screenit.batch.jobs.mamma.dense2.verwijderdensiteit.MammaVerwijderDensiteitWriter;
 import nl.rivm.screenit.model.enums.JobType;
 
 import org.springframework.batch.core.Job;
@@ -35,12 +37,14 @@ import org.springframework.context.annotation.Configuration;
 public class MammaDense2JobConfiguration extends AbstractJobConfiguration
 {
 	@Bean
-	public Job dense2CsvExportJob(MammaDense2Listener listener, Step dense2EersteStudierondeExporterenStep, Step dense2TweedeStudierondeExporterenStep)
+	public Job dense2CsvExportJob(MammaDense2Listener listener, Step dense2EersteStudierondeExporterenStep, Step dense2TweedeStudierondeExporterenStep,
+		Step densiteitVerwijderenStep)
 	{
 		return jobBuilderFactory.get(JobType.MAMMA_DENSE2_CSV_EXPORT.name())
 			.listener(listener)
 			.start(dense2EersteStudierondeExporterenStep)
 			.next(dense2TweedeStudierondeExporterenStep)
+			.next(densiteitVerwijderenStep)
 			.build();
 	}
 
@@ -59,6 +63,17 @@ public class MammaDense2JobConfiguration extends AbstractJobConfiguration
 		return stepBuilderFactory.get("dense2TweedeStudierondeExporterenStep")
 			.transactionManager(transactionManager)
 			.tasklet(tasklet)
+			.build();
+	}
+
+	@Bean
+	public Step densiteitVerwijderenStep(MammaVerwijderDensiteitReader reader, MammaVerwijderDensiteitWriter writer)
+	{
+		return stepBuilderFactory.get("densiteitVerwijderenStep")
+			.transactionManager(transactionManager)
+			.<Long, Long> chunk(50)
+			.reader(reader)
+			.writer(writer)
 			.build();
 	}
 }

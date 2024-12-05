@@ -42,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.document.BaseDocumentCreator;
+import nl.rivm.screenit.factory.algemeen.BriefFactory;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Afmelding;
 import nl.rivm.screenit.model.Brief;
@@ -60,40 +61,26 @@ import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.algemeen.AlgemeneBrief;
 import nl.rivm.screenit.model.algemeen.BezwaarBrief;
 import nl.rivm.screenit.model.batch.BvoZoekCriteria;
-import nl.rivm.screenit.model.cervix.CervixBrief;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixRegioBrief;
-import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
-import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.project.ProjectBrief;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectClient;
-import nl.rivm.screenit.repository.BaseJpaRepository;
-import nl.rivm.screenit.repository.algemeen.AlgemeneBriefRepository;
-import nl.rivm.screenit.repository.algemeen.BezwaarBriefRepository;
 import nl.rivm.screenit.repository.algemeen.BriefDefinitieRepository;
 import nl.rivm.screenit.repository.algemeen.ClientBriefRepository;
-import nl.rivm.screenit.repository.algemeen.ProjectBriefRepository;
-import nl.rivm.screenit.repository.cervix.CervixBriefRepository;
-import nl.rivm.screenit.repository.cervix.CervixRegioBriefRepository;
-import nl.rivm.screenit.repository.colon.ColonBriefRepository;
-import nl.rivm.screenit.repository.mamma.MammaBriefRepository;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.UploadDocumentService;
-import nl.rivm.screenit.specification.cervix.CervixRegioBriefSpecification;
 import nl.rivm.screenit.util.AdresUtil;
-import nl.rivm.screenit.util.AfmeldingUtil;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.JavaScriptPdfHelper;
-import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.organisatie.model.Adres;
@@ -114,7 +101,7 @@ import com.aspose.words.Document;
 import com.aspose.words.ImportFormatMode;
 import com.aspose.words.PdfSaveOptions;
 
-import static nl.rivm.screenit.specification.algemeen.ClientBriefSpecification.heeftBriefType;
+import static nl.rivm.screenit.specification.algemeen.BriefSpecification.heeftBriefType;
 import static nl.rivm.screenit.specification.algemeen.ClientBriefSpecification.heeftClient;
 import static nl.rivm.screenit.specification.algemeen.ClientBriefSpecification.heeftOngegeneerdeBrieven;
 
@@ -153,25 +140,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	private ClientBriefRepository clientBriefRepository;
 
 	@Autowired
-	private CervixRegioBriefRepository cervixRegioBriefRepository;
-
-	@Autowired
-	private AlgemeneBriefRepository algemeneBriefRepository;
-
-	@Autowired
-	private ProjectBriefRepository projectBriefRepository;
-
-	@Autowired
-	private BezwaarBriefRepository bezwaarBriefRepository;
-
-	@Autowired
-	private MammaBriefRepository mammaBriefRepository;
-
-	@Autowired
-	private CervixBriefRepository cervixBriefRepository;
-
-	@Autowired
-	private ColonBriefRepository colonBriefRepository;
+	private BriefFactory briefFactory;
 
 	@Override
 	public BriefDefinitie getNieuwsteBriefDefinitie(BriefType briefType)
@@ -246,244 +215,101 @@ public class BaseBriefServiceImpl implements BaseBriefService
 			nieuweBriefDefinitie.getBriefType().getOnderzoeken());
 	}
 
-	private void checkVoorProjectClient(ClientBrief<?, ?, ?> brief, Client client)
-	{
-		Date nu = currentDateSupplier.getDate();
-		ProjectClient pClient = ProjectUtil.getHuidigeProjectClient(client, nu);
-		ProjectBriefActie actie = ProjectUtil.getProjectBriefActieDefinitie(pClient, brief.getBriefType());
-		if (pClient != null && actie != null && ProjectUtil.isEinde1eCorrespondentieCheck(nu, pClient))
-		{
-			ProjectBrief pBrief = new ProjectBrief();
-			pBrief.setGegenereerd(false);
-			pBrief.setCreatieDatum(currentDateSupplier.getDate());
-			pBrief.setProjectClient(pClient);
-			pBrief.setClient(client);
-			pBrief.setBrief(brief);
-			pBrief.setDefinitie(actie);
-			pBrief.setBriefType(brief.getBriefType());
-			hibernateService.saveOrUpdate(pBrief);
-			brief.setProjectBrief(pBrief);
-			brief.setVervangendeProjectBrief(true);
-			hibernateService.saveOrUpdate(brief);
-			LOG.info("Brief met type " + brief.getBriefType() + " vervangen door briefdefinitie " + actie.getId() + " (clientId: " + client.getId() + ", projectId: "
-				+ pClient.getProject().getId() + ")");
-		}
-	}
-
-	@Override
-	public ProjectBrief maakProjectBrief(ProjectClient pClient, ProjectBriefActie actie)
-	{
-		return BriefUtil.maakProjectBrief(pClient, actie, currentDateSupplier.getDate());
-	}
-
 	@Override
 	@Transactional
-	public <B extends ClientBrief<?, ?, ?>> void vervangDubbeleAangemaakteBrieven(BriefType type, Client client, Class<B> briefClass)
+	@Deprecated(forRemoval = true)
+	public ProjectBrief maakProjectBrief(ProjectClient pClient, ProjectBriefActie actie, ProjectBrief origineleBrief)
 	{
-
-		if (type.getMagNietOpZelfdeDagAfgedruktTypes().isEmpty())
-		{
-			return;
-		}
-
-		BaseJpaRepository<B> repository = getBriefTypeRepository(briefClass);
-		var brieven = repository.findAll(heeftOngegeneerdeBrieven(type, client, briefClass));
-
-		for (var brief : brieven)
-		{
-			if (brief.getProjectBrief() != null)
-			{
-				brief.getProjectBrief().setVervangen(true);
-				hibernateService.saveOrUpdate(brief.getProjectBrief());
-			}
-			brief.setVervangen(true);
-			hibernateService.saveOrUpdate(brief);
-		}
-	}
-
-	private <B extends ClientBrief<?, ?, ?>> BaseJpaRepository<B> getBriefTypeRepository(Class<B> briefClass)
-	{
-		if (briefClass.isAssignableFrom(AlgemeneBrief.class))
-		{
-			return (BaseJpaRepository<B>) algemeneBriefRepository;
-		}
-		else if (briefClass.isAssignableFrom(CervixBrief.class))
-		{
-			return (BaseJpaRepository<B>) cervixBriefRepository;
-		}
-		else if (briefClass.isAssignableFrom(ProjectBrief.class))
-		{
-			return (BaseJpaRepository<B>) projectBriefRepository;
-		}
-		else if (briefClass.isAssignableFrom(BezwaarBrief.class))
-		{
-			return (BaseJpaRepository<B>) bezwaarBriefRepository;
-		}
-		else if (briefClass.isAssignableFrom(MammaBrief.class))
-		{
-			return (BaseJpaRepository<B>) mammaBriefRepository;
-		}
-		else if (briefClass.isAssignableFrom(ColonBrief.class))
-		{
-			return (BaseJpaRepository<B>) colonBriefRepository;
-		}
-
-		throw new IllegalArgumentException("Onbekend briefClass: " + briefClass.getName());
+		return briefFactory.maakProjectBrief(pClient, actie, origineleBrief);
 	}
 
 	@Override
 	public <B extends ClientBrief<?, ?, ?>> boolean clientHeeftOngegenereerdeBriefVanType(BriefType type, Client client, Class<B> briefClass)
 	{
 		var specification = heeftOngegeneerdeBrieven(client, briefClass).and(heeftBriefType(type));
-		var repository = getBriefTypeRepository(briefClass);
+		var repository = briefFactory.getBriefTypeRepository(briefClass);
 		return repository.exists(specification);
 	}
 
 	@Override
 	@Transactional
+	@Deprecated(forRemoval = true)
 	public BezwaarBrief maakBezwaarBrief(Client client, BriefType type, Date date)
 	{
-		return maakBezwaarBrief(client, type, date, false);
+		return briefFactory.maakBezwaarBrief(client, type, date);
 	}
 
 	@Override
 	@Transactional
+	@Deprecated(forRemoval = true)
 	public BezwaarBrief maakBezwaarBrief(Client client, BriefType type, Date date, boolean vragenOmHandtekening)
 	{
-		vervangDubbeleAangemaakteBrieven(type, client, BezwaarBrief.class);
-		var brief = BriefUtil.maakBezwaarBrief(client, type, date);
-		if (date == null)
-		{
-			brief.setCreatieDatum(currentDateSupplier.getDate());
-		}
-		brief.setCreatieDatum(date);
-		brief.setGegenereerd(false);
-		brief.setClient(client);
-		brief.setBriefType(type);
-		brief.setVragenOmHandtekening(vragenOmHandtekening);
-		hibernateService.saveOrUpdate(brief);
-		return brief;
+		return briefFactory.maakBezwaarBrief(client, type, date, vragenOmHandtekening);
 	}
 
 	@Override
 	@Transactional
+	@Deprecated(forRemoval = true)
 	public AlgemeneBrief maakAlgemeneBrief(Client client, BriefType type)
 	{
-		vervangDubbeleAangemaakteBrieven(type, client, AlgemeneBrief.class);
-		var brief = BriefUtil.maakAlgemeneBrief(client, type, currentDateSupplier.getDate());
-		hibernateService.saveOrUpdate(brief);
-		return brief;
+		return briefFactory.maakAlgemeneBrief(client, type);
 	}
 
 	@Override
 	@Transactional
+	@Deprecated(forRemoval = true)
 	public <B extends ClientBrief<?, A, ?>, A extends Afmelding<?, ?, B>> B maakBvoBrief(A afmelding, BriefType type, Date creatieMoment, boolean vervangendeProjectBrief)
 	{
-		Client client = AfmeldingUtil.getClientFromAfmelding(afmelding);
-
-		B brief = maakBvoBrief(client, type, creatieMoment, false, vervangendeProjectBrief);
-		brief.setAfmelding(afmelding);
-		afmelding.getBrieven().add(brief);
-
-		hibernateService.saveOrUpdate(brief);
-		hibernateService.saveOrUpdate(afmelding);
-		return brief;
+		return briefFactory.maakBvoBrief(afmelding, type, creatieMoment, vervangendeProjectBrief);
 	}
 
 	@Override
 	@Transactional
+	@Deprecated(forRemoval = true)
 	public <B extends ClientBrief<?, A, ?>, A extends Afmelding<?, ?, B>> B maakBvoBrief(A afmelding, BriefType type, Date creatieMoment)
 	{
-		return maakBvoBrief(afmelding, type, creatieMoment, false);
+		return briefFactory.maakBvoBrief(afmelding, type, creatieMoment, false);
 	}
 
 	@Override
 	@Transactional
+	@Deprecated(forRemoval = true)
 	public <B extends ClientBrief<SR, ?, ?>, SR extends ScreeningRonde<?, B, ?, ?>> B maakBvoBrief(SR ronde, BriefType type)
 	{
-		return maakBvoBrief(ronde, type, null, false, false);
+		return briefFactory.maakBvoBrief(ronde, type, null, false, false);
 	}
 
 	@Override
 	@Transactional
+	@Deprecated(forRemoval = true)
 	public <B extends ClientBrief<SR, ?, ?>, SR extends ScreeningRonde<?, B, ?, ?>> B maakBvoBrief(SR ronde, BriefType type, boolean gegenereerd)
 	{
-		return maakBvoBrief(ronde, type, null, gegenereerd, false);
+		return briefFactory.maakBvoBrief(ronde, type, null, gegenereerd, false);
 	}
 
 	@Override
 	@Transactional
+	@Deprecated(forRemoval = true)
 	public <B extends ClientBrief<SR, ?, ?>, SR extends ScreeningRonde<?, B, ?, ?>> B maakBvoBrief(SR ronde, BriefType type, Date creatieMoment)
 	{
-		return maakBvoBrief(ronde, type, creatieMoment, false, false);
+		return briefFactory.maakBvoBrief(ronde, type, creatieMoment, false, false);
 	}
 
 	@Override
 	@Transactional
+	@Deprecated(forRemoval = true)
 	public <B extends ClientBrief<SR, ?, ?>, SR extends ScreeningRonde<?, B, ?, ?>> B maakBvoBrief(SR ronde, BriefType type, Date creatieMoment, boolean gegenereerd,
 		boolean vervangendeProjectBrief)
 	{
-		B brief = maakBvoBrief(ronde.getDossier().getClient(), type, creatieMoment, gegenereerd, vervangendeProjectBrief);
-		brief.setScreeningRonde(ronde);
-		ronde.getBrieven().add(brief);
-		ronde.setLaatsteBrief(brief);
-		hibernateService.saveOrUpdate(brief);
-		hibernateService.saveOrUpdate(ronde);
-		return brief;
-	}
-
-	private <B extends ClientBrief<?, ?, ?>> B maakBvoBrief(Client client, BriefType type, Date creatieMoment, boolean gegenereerd, boolean vervangendeProjectBrief)
-	{
-		B brief = BriefUtil.maakBvoBrief(client, type, creatieMoment, gegenereerd);
-		vervangDubbeleAangemaakteBrieven(type, client, brief.getClass());
-		if (creatieMoment == null)
-		{
-			brief.setCreatieDatum(currentDateSupplier.getDate());
-		}
-		hibernateService.saveOrUpdate(brief);
-		LOG.info("Brief klaargezet met type {} voor client (id: '{}')", type, client.getId());
-		if (!vervangendeProjectBrief)
-		{
-			checkVoorProjectClient(brief, client);
-		}
-		return brief;
+		return briefFactory.maakBvoBrief(ronde, type, creatieMoment, gegenereerd, vervangendeProjectBrief);
 	}
 
 	@Override
 	@Transactional
+	@Deprecated(forRemoval = true)
 	public CervixRegioBrief maakRegioBrief(ScreeningOrganisatie so, BriefType type, Date date, CervixHuisarts arts)
 	{
-		checkVoorDubbeleBrieven(type, arts);
-		var brief = BriefUtil.maakRegioBrief(so, type, date, arts);
-		if (date == null)
-		{
-			brief.setCreatieDatum(currentDateSupplier.getDate());
-		}
-		cervixRegioBriefRepository.save(brief);
-		LOG.info("Brief klaargezet met type {} voor regio: {}", type, so.getNaam());
-		return brief;
-	}
-
-	private void checkVoorDubbeleBrieven(BriefType type, CervixHuisarts arts)
-	{
-
-		if (!type.getMagNietOpZelfdeDagAfgedruktTypes().isEmpty())
-		{
-			var brieven = getDubbeleAangemaaktBrieven(type, arts);
-			for (var brief : brieven)
-			{
-				brief.setVervangen(true);
-				hibernateService.saveOrUpdate(brief);
-			}
-		}
-	}
-
-	private List<CervixRegioBrief> getDubbeleAangemaaktBrieven(BriefType type, CervixHuisarts arts)
-	{
-		return cervixRegioBriefRepository.findAll(CervixRegioBriefSpecification.heeftGeenMergedBrieven()
-			.and(CervixRegioBriefSpecification.isNietVervangen())
-			.and(CervixRegioBriefSpecification.heeftBriefTypeIn(type.getMagNietOpZelfdeDagAfgedruktTypes()))
-			.and(CervixRegioBriefSpecification.heeftHuisarts(arts)));
+		return briefFactory.maakRegioBrief(so, type, date, arts);
 	}
 
 	@Override

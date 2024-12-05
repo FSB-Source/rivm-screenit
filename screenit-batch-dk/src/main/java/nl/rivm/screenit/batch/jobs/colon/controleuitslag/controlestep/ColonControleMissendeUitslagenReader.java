@@ -22,13 +22,14 @@ package nl.rivm.screenit.batch.jobs.colon.controleuitslag.controlestep;
  */
 
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
 
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationSortableScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.TablePerClassHibernateObject_;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde_;
@@ -42,14 +43,15 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import static nl.rivm.screenit.Constants.MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.colon.ColonFITSpecification.heeftActieveClient;
 import static nl.rivm.screenit.specification.colon.ColonFITSpecification.heeftFitType;
-import static nl.rivm.screenit.specification.colon.ColonFITSpecification.isStatusDatumVoorOfOp;
+import static nl.rivm.screenit.specification.colon.ColonFITSpecification.heeftStatusDatumVoorOfOp;
 import static nl.rivm.screenit.specification.colon.ColonFITSpecification.valideerFitUitslagStatus;
 
 @Component
 @AllArgsConstructor
-public class ColonControleMissendeUitslagenReader extends BaseSpecificationSortableScrollableResultReader<IFOBTTest, Object>
+public class ColonControleMissendeUitslagenReader extends BaseSpecificationScrollableResultReader<IFOBTTest>
 {
 	private final ICurrentDateSupplier currentDateSupplier;
 
@@ -63,26 +65,26 @@ public class ColonControleMissendeUitslagenReader extends BaseSpecificationSorta
 		var signalerenVanaf = vandaag.minusDays(MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN);
 		var minimaleSignaleringsdatum = vandaag.minusDays(signaleringstermijn);
 		return valideerFitUitslagStatus(signalerenVanaf)
-			.and(isStatusDatumVoorOfOp(minimaleSignaleringsdatum))
+			.and(heeftStatusDatumVoorOfOp(minimaleSignaleringsdatum.atStartOfDay()))
 			.and(heeftFitType(IFOBTType.GOLD))
 			.and(heeftActieveClient());
 	}
 
 	@Override
-	protected CriteriaQuery<Object> createProjection(Root<IFOBTTest> r, CriteriaQuery<Object> q, CriteriaBuilder cb)
+	protected Expression<Long> createProjection(Root<IFOBTTest> r, CriteriaBuilder cb)
 	{
-		return q.select(r.get(IFOBTTest_.colonScreeningRonde).get(ColonScreeningRonde_.dossier).get(TablePerClassHibernateObject_.id)).distinct(true);
+		return dossierAttribuut(r);
 	}
 
 	@Override
 	protected Order getOrder(Root<IFOBTTest> r, CriteriaBuilder cb)
 	{
-		return cb.asc(r.get(IFOBTTest_.colonScreeningRonde).get(ColonScreeningRonde_.dossier).get(TablePerClassHibernateObject_.id));
+		return cb.asc(createProjection(r, cb));
 	}
 
-	@Override
-	protected Class<Object> getResultClass()
+	private static Path<Long> dossierAttribuut(Root<IFOBTTest> r)
 	{
-		return Object.class;
+		return join(join(r, IFOBTTest_.colonScreeningRonde), ColonScreeningRonde_.dossier).get(TablePerClassHibernateObject_.id);
 	}
+
 }

@@ -46,6 +46,7 @@ import static nl.rivm.screenit.specification.algemeen.BagAdresSpecification.heef
 import static nl.rivm.screenit.specification.algemeen.GemeenteSpecification.heeftGeenBMHKLaboratoriumOfGekoppeldAan;
 import static nl.rivm.screenit.specification.algemeen.GemeenteSpecification.heeftGeenScreeningOrganisatieOfGekoppeldAan;
 import static nl.rivm.screenit.specification.algemeen.GemeenteSpecification.heeftNaamEnScreeningOrganisatie;
+import static nl.rivm.screenit.specification.algemeen.GemeenteSpecification.heeftScreeningOrganisatie;
 import static nl.rivm.screenit.specification.algemeen.GemeenteSpecification.isGemeenteActiefOpMoment;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.springframework.data.jpa.domain.Specification.where;
@@ -209,5 +210,17 @@ public class GemeenteServiceImpl implements GemeenteService
 	public Gemeente getGemeenteByCode(String code)
 	{
 		return gemeenteRepository.findOneByCode(code).orElse(null);
+	}
+
+	@Override
+	public Gemeente getEersteGemeenteMetScreeningOrganisatie()
+	{
+		return gemeenteRepository.findFirst(heeftScreeningOrganisatie(), Sort.by(Sort.Order.asc(Gemeente_.NAAM))).orElse(null);
+	}
+
+	@Override
+	public List<Gemeente> getGemeentesMetScreeningOrganisatie()
+	{
+		return gemeenteRepository.findAll(heeftScreeningOrganisatie(), Sort.by(Sort.Order.asc(Gemeente_.NAAM)));
 	}
 }

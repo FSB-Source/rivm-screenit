@@ -21,25 +21,31 @@ package nl.rivm.screenit.batch.jobs.mamma.kansberekening.afspraken;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.mamma.kansberekening.MammaAbstractEventWriter;
-import nl.rivm.screenit.model.mamma.MammaAfspraak;
-import nl.rivm.screenit.model.mamma.MammaKansberekeningAfspraakEvent;
-import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import java.util.function.Consumer;
 
-import org.hibernate.Criteria;
-import org.hibernate.FetchMode;
-import org.hibernate.Session;
-import org.hibernate.sql.JoinType;
+import javax.persistence.EntityGraph;
+
+import nl.rivm.screenit.batch.jobs.mamma.kansberekening.MammaAbstractEventWriter;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.mamma.MammaAfspraak;
+import nl.rivm.screenit.model.mamma.MammaAfspraak_;
+import nl.rivm.screenit.model.mamma.MammaBrief_;
+import nl.rivm.screenit.model.mamma.MammaDossier_;
+import nl.rivm.screenit.model.mamma.MammaKansberekeningAfspraakEvent;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
+import nl.rivm.screenit.repository.mamma.MammaKansberekeningAfspraakEventRepository;
+import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class MammaAbstractAfspraakEventWriter extends MammaAbstractEventWriter<MammaAfspraak>
 {
 	@Autowired
-	private HibernateService hibernateService;
+	private MammaBaseKansberekeningService baseKansberekeningService;
 
 	@Autowired
-	private MammaBaseKansberekeningService baseKansberekeningService;
+	private MammaKansberekeningAfspraakEventRepository afspraakEventRepository;
 
 	@Override
 	protected void write(MammaAfspraak afspraak)
@@ -50,13 +56,11 @@ public abstract class MammaAbstractAfspraakEventWriter extends MammaAbstractEven
 			afspraakEvent = new MammaKansberekeningAfspraakEvent();
 			afspraakEvent.setAfspraak(afspraak);
 			afspraak.setAfspraakEvent(afspraakEvent);
-
-			hibernateService.saveOrUpdate(afspraak);
+			afspraakEventRepository.save(afspraakEvent);
 		}
 
 		baseKansberekeningService.updateAfspraakEvent(afspraak, zetOpkomst());
-
-		hibernateService.saveOrUpdate(afspraakEvent);
+		afspraakEventRepository.save(afspraakEvent);
 
 		aantalContextOphogen(getContextKey());
 
@@ -71,46 +75,22 @@ public abstract class MammaAbstractAfspraakEventWriter extends MammaAbstractEven
 	protected abstract String getContextKey();
 
 	@Override
-	protected Criteria getCriteria(Session session)
+	protected Consumer<EntityGraph<MammaAfspraak>> getEntityGraphFunction()
 	{
-		var criteria = session.createCriteria(MammaAfspraak.class, "afspraak");
-		criteria.createAlias("afspraak.uitnodiging", "uitnodiging");
-		criteria.createAlias("uitnodiging.brief", "brief");
-		criteria.createAlias("uitnodiging.screeningRonde", "screeningRonde");
-		criteria.createAlias("screeningRonde.dossier", "dossier");
-		criteria.createAlias("dossier.client", "client");
-		criteria.createAlias("client.persoon", "persoon");
-		criteria.createAlias("afspraak.afspraakEvent", "afspraakEvent", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("screeningRonde.laatsteAfmelding", "laatsteAfmelding", JoinType.LEFT_OUTER_JOIN);
+		return entityGraph ->
+		{
+			entityGraph.addSubgraph(MammaAfspraak_.afspraakEvent);
+			entityGraph.addSubgraph(MammaAfspraak_.opkomstkans);
 
-		criteria.setFetchMode("uitnodiging", FetchMode.JOIN);
-		criteria.setFetchMode("brief", FetchMode.JOIN);
-		criteria.setFetchMode("screeningRonde", FetchMode.JOIN);
-		criteria.setFetchMode("dossier", FetchMode.JOIN);
-		criteria.setFetchMode("client", FetchMode.JOIN);
-		criteria.setFetchMode("persoon", FetchMode.JOIN);
-		criteria.setFetchMode("afspraakEvent", FetchMode.JOIN);
-		criteria.setFetchMode("laatsteAfmelding", FetchMode.JOIN);
+			var uitnodigingSubgraph = entityGraph.addSubgraph(MammaAfspraak_.uitnodiging);
+			uitnodigingSubgraph.addSubgraph(MammaUitnodiging_.brief).addSubgraph(MammaBrief_.PROJECT_BRIEF);
 
-		criteria.createAlias("brief.projectBrief", "projectBrief", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("persoon.gbaAdres", "gbaAdres", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("persoon.tijdelijkAdres", "tijdelijkAdres", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("persoon.tijdelijkGbaAdres", "tijdelijkGbaAdres", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("persoon.gbaGeboorteLand", "gbaGeboorteLand", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("afspraakEvent.afspraak", "aeAfspraak", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("brief.mergedBrieven", "mergedBrieven", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("mergedBrieven.mergedBrieven", "uploadDocument", JoinType.LEFT_OUTER_JOIN);
+			var screeningsRondeSubgraph = uitnodigingSubgraph.addSubgraph(MammaUitnodiging_.screeningRonde);
+			screeningsRondeSubgraph.addSubgraph(MammaScreeningRonde_.laatsteAfmelding);
 
-		criteria.setFetchMode("projectBrief", FetchMode.SELECT);
-		criteria.setFetchMode("gbaAdres", FetchMode.SELECT);
-		criteria.setFetchMode("tijdelijkAdres", FetchMode.SELECT);
-		criteria.setFetchMode("tijdelijkGbaAdres", FetchMode.SELECT);
-		criteria.setFetchMode("gbaGeboorteLand", FetchMode.SELECT);
-		criteria.setFetchMode("aeAfspraak", FetchMode.SELECT);
-		criteria.setFetchMode("mergedBrieven", FetchMode.SELECT);
-		criteria.setFetchMode("uploadDocument", FetchMode.SELECT);
-
-		return criteria;
+			var dossierSubgraph = screeningsRondeSubgraph.addSubgraph(MammaScreeningRonde_.dossier);
+			dossierSubgraph.addSubgraph(MammaDossier_.deelnamekans);
+			dossierSubgraph.addSubgraph(MammaDossier_.client).addSubgraph(Client_.persoon);
+		};
 	}
-
 }

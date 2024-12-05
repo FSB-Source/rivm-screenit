@@ -22,6 +22,7 @@ package nl.rivm.screenit.service.colon;
  */
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -54,4 +55,11 @@ public interface ColonUitnodigingsgebiedService
 
 	List<CapaciteitsPercWijziging> bepaalCapaciteitsWijzigingen(ColonIntakelocatie intakelocatie, Map<String, Integer> newAdherentiePercentages,
 		List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeItems);
+
+	long countPersonenInUitnodigingsGebied(UitnodigingsGebied uitnodigingsGebied, Integer minimaleLeeftijd, Integer maximaleLeeftijd,
+		LocalDate laatsteDagVanHuidigJaar, Set<Integer> geboortejaren);
+
+	long countPersonenInUitnodigingsGebied(UitnodigingsGebied uitnodigingsGebied);
+
+	long countClientenInUitnodigingsgebiedMetUitnodigingOpDatum(UitnodigingsGebied uitnodigingsGebied, LocalDate uitnodigingsDatum);
 }

@@ -50,7 +50,6 @@ import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid_;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseConceptPlanningsApplicatie;
 import nl.rivm.screenit.util.DateUtil;
-import nl.topicuszorg.organisatie.model.Organisatie_;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -91,7 +90,7 @@ public class MammaPlanningDashboardPage extends MammaPlanningBasePage
 	@SpringBean
 	private MammaScreeningsEenheidService screeningsEenheidService;
 
-	private MammaScreeningsEenheidFilterPanel filter;
+	private final MammaScreeningsEenheidFilterPanel filter;
 
 	private final int SCREENINGS_EENHEDEN_COUNT = 9999;
 
@@ -112,7 +111,7 @@ public class MammaPlanningDashboardPage extends MammaPlanningBasePage
 		if (ScreenitSession.get().getScreeningOrganisatie() == null)
 		{
 			columns.add(new NotClickablePropertyColumn<>(Model.of("Screeningsorganisatie"),
-				propertyChain(MammaScreeningsEenheid_.BEOORDELINGS_EENHEID, Instelling_.PARENT, Instelling_.REGIO, Organisatie_.NAAM), "beoordelingsEenheid.parent.regio.naam"));
+				propertyChain(MammaScreeningsEenheid_.BEOORDELINGS_EENHEID, Instelling_.PARENT, Instelling_.REGIO, Instelling_.NAAM), "beoordelingsEenheid.parent.regio.naam"));
 		}
 		columns.add(new NotClickablePropertyColumn<>(Model.of("Screeningseenheid"), MammaScreeningsEenheid_.NAAM, "naam"));
 		columns.add(new NotClickablePropertyColumn<>(Model.of(""), "")

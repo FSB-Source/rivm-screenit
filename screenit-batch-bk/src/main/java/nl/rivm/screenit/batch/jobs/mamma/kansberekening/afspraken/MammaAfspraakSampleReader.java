@@ -21,40 +21,42 @@ package nl.rivm.screenit.batch.jobs.mamma.kansberekening.afspraken;
  * =========================LICENSE_END==================================
  */
 
-import java.util.EnumSet;
+import java.util.List;
+
+import javax.persistence.criteria.JoinType;
 
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
-import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
+import nl.rivm.screenit.model.mamma.MammaAfspraak_;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.Range;
+
+import static nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus.BEEINDIGD;
+import static nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus.GEPLAND;
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftStatusIn;
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.valtInDatumTijdPeriode;
+import static nl.rivm.screenit.specification.mamma.MammaKansberekeningAfspraakEventSpecification.heeftGeenOpkomst;
 
 @Component
 @AllArgsConstructor
-public class MammaAfspraakSampleReader extends BaseScrollableResultReader
+public class MammaAfspraakSampleReader extends BaseSpecificationScrollableResultReader<MammaAfspraak>
 {
-	private final ICurrentDateSupplier dateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<MammaAfspraak> createSpecification()
 	{
-		var criteria = session.createCriteria(MammaAfspraak.class, "afspraak");
-		criteria.createAlias("afspraak.afspraakEvent", "afspraakEvent", JoinType.LEFT_OUTER_JOIN);
+		var peilMomentVanaf = currentDateSupplier.getLocalDate().minusYears(5).atStartOfDay();
+		var peilMomentTot = currentDateSupplier.getLocalDateTime();
 
-		criteria.add(Restrictions.in("afspraak.status", EnumSet.of(MammaAfspraakStatus.GEPLAND, MammaAfspraakStatus.BEEINDIGD)));
-		criteria.add(Restrictions.lt("afspraak.vanaf", dateSupplier.getDate()));
-		criteria.add(Restrictions.ge("afspraak.vanaf", DateUtil.toUtilDate(dateSupplier.getLocalDate().minusYears(5))));
-		criteria.add(Restrictions.isNull("afspraakEvent.opkomst"));
-
-		return criteria;
+		return heeftStatusIn(List.of(GEPLAND, BEEINDIGD))
+			.and(valtInDatumTijdPeriode(Range.closedOpen(peilMomentVanaf, peilMomentTot)))
+			.and(heeftGeenOpkomst().with(MammaAfspraak_.afspraakEvent, JoinType.LEFT));
 	}
 }

@@ -39,6 +39,7 @@ import nl.rivm.screenit.main.service.mamma.MammaUitwisselportaalService;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.InstellingGebruiker_;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.BestandStatus;
@@ -66,7 +67,6 @@ import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
 import nl.rivm.screenit.specification.mamma.MammaDownloadOnderzoekSpecification;
 import nl.rivm.screenit.util.BezwaarUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.organisatie.model.OrganisatieMedewerker_;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.springframework.data.domain.Sort;
@@ -269,7 +269,7 @@ public class MammaUitwisselportaalServiceImpl implements MammaUitwisselportaalSe
 				{
 					var verzoekJoin = join(r, MammaDownloadOnderzoek_.verzoek);
 					var aangemaaktDoorJoin = join(verzoekJoin, MammaDownloadOnderzoekenVerzoek_.aangemaaktDoor);
-					return aangemaaktDoorJoin.get(OrganisatieMedewerker_.organisatie);
+					return aangemaaktDoorJoin.get(InstellingGebruiker_.organisatie);
 				})
 				.sortBy(Sort.by(Sort.Order.desc(propertyChain(MammaDownloadOnderzoek_.VERZOEK, MammaDownloadOnderzoekenVerzoek_.GEDOWNLOAD_OP))))
 				.first().orElse(null));

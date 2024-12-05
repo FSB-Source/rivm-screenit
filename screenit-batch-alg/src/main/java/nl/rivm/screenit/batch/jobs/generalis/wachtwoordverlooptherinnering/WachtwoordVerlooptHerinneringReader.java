@@ -27,15 +27,20 @@ import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.specification.algemeen.GebruikerSpecification;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.specification.algemeen.MedewerkerSpecification.heeftEmailAdres;
+import static nl.rivm.screenit.specification.algemeen.MedewerkerSpecification.heeftWachtwoordInlogMethode;
+import static nl.rivm.screenit.specification.algemeen.MedewerkerSpecification.isActieveGebruiker;
+import static nl.rivm.screenit.specification.algemeen.MedewerkerSpecification.isNietGeblokkeerd;
+import static nl.rivm.screenit.specification.algemeen.MedewerkerSpecification.moetHerinneringKrijgen;
+
 @Component
 @RequiredArgsConstructor
-public class WachtwoordVerlooptHerinneringReader extends BaseSpecificationScrollableResultReader<Gebruiker, Long>
+public class WachtwoordVerlooptHerinneringReader extends BaseSpecificationScrollableResultReader<Gebruiker>
 {
 	private final SimplePreferenceService preferenceService;
 
@@ -49,11 +54,11 @@ public class WachtwoordVerlooptHerinneringReader extends BaseSpecificationScroll
 
 		var vandaag = currentDateSupplier.getLocalDate();
 		var peildatumHerinneringsTermijn = vandaag.minusDays(dagenWachtwoordGeldig).plusDays(wachtwoordVerlooptTermijn);
-		return GebruikerSpecification.isActieveGebruiker(vandaag, dagenWachtwoordGeldig)
-			.and(GebruikerSpecification.heeftEmailAdres())
-			.and(GebruikerSpecification.heeftWachtwoordInlogMethode())
-			.and(GebruikerSpecification.isNietGeblokkeerd())
-			.and(GebruikerSpecification.moetHerinneringKrijgen(peildatumHerinneringsTermijn));
+		return isActieveGebruiker(vandaag, dagenWachtwoordGeldig)
+			.and(heeftEmailAdres())
+			.and(heeftWachtwoordInlogMethode())
+			.and(isNietGeblokkeerd())
+			.and(moetHerinneringKrijgen(peildatumHerinneringsTermijn));
 	}
 
 }

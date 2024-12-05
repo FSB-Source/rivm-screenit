@@ -21,43 +21,31 @@ package nl.rivm.screenit.batch.jobs.mamma.huisartsberichten.step;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDateTime;
-import java.util.Date;
-
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.mamma.berichten.MammaHuisartsBericht;
 import nl.rivm.screenit.model.mamma.enums.MammaHuisartsBerichtStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.mamma.MammaHuisartsBerichtSpecification.heeftStatus;
+import static nl.rivm.screenit.specification.mamma.MammaHuisartsBerichtSpecification.heeftStatusDatumOpOfVoor;
 
 @Component
 @AllArgsConstructor
-public class MammaMislukteHuisartsberichtenVersturenReader extends BaseScrollableResultReader
+public class MammaMislukteHuisartsberichtenVersturenReader extends BaseSpecificationScrollableResultReader<MammaHuisartsBericht>
 {
 	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<MammaHuisartsBericht> createSpecification()
 	{
-		final LocalDateTime huisartsBerichtWachtTijd = currentDateSupplier.getLocalDateTime().minusMinutes(Constants.BK_HA_BATCH_BERICHTEN_AANMAAK_OUDER_DAN);
-		final Date huisartsberichtWachttijdDate = DateUtil.toUtilDate(huisartsBerichtWachtTijd);
-		var criteria = session.createCriteria(MammaHuisartsBericht.class, "huisartsbericht");
-		criteria.add(Restrictions.or(
-			Restrictions.eq("huisartsbericht.status", MammaHuisartsBerichtStatus.VERSTUREN_MISLUKT),
-			Restrictions.and(
-
-				Restrictions.eq("huisartsbericht.status", MammaHuisartsBerichtStatus.AANGEMAAKT),
-				Restrictions.le("huisartsbericht.statusDatum", huisartsberichtWachttijdDate))));
-
-		return criteria;
+		var huisartsBerichtWachtTijd = currentDateSupplier.getLocalDateTime().minusMinutes(Constants.BK_HA_BATCH_BERICHTEN_AANMAAK_OUDER_DAN);
+		return heeftStatus(MammaHuisartsBerichtStatus.VERSTUREN_MISLUKT).or(
+			heeftStatus(MammaHuisartsBerichtStatus.AANGEMAAKT).and(heeftStatusDatumOpOfVoor(huisartsBerichtWachtTijd)));
 	}
 }

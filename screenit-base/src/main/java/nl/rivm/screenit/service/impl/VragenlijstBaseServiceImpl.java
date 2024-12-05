@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.service.impl;
 
 /*-
@@ -22,9 +21,9 @@ package nl.rivm.screenit.service.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
 import java.util.List;
 
-import nl.rivm.screenit.dao.VragenlijstBaseDao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.project.ProjectVragenlijstAntwoordenHolder;
@@ -35,23 +34,12 @@ import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.VragenlijstBaseService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
 public class VragenlijstBaseServiceImpl implements VragenlijstBaseService
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(VragenlijstBaseServiceImpl.class);
-
-	@Autowired
-	private VragenlijstBaseDao vragenlijstBaseDao;
-
 	@Autowired
 	private HibernateService hibernateService;
 
@@ -64,14 +52,13 @@ public class VragenlijstBaseServiceImpl implements VragenlijstBaseService
 	@Override
 	public <T extends Vragenlijst> List<T> searchVragenlijsten(T searchObject, long first, long count, String sortProperty, boolean asc)
 	{
-		return vragenlijstBaseDao.searchVragenlijsten(searchObject, first, count, sortProperty, asc);
+		return new ArrayList<>();
 	}
 
 	@Override
 	public <T extends Vragenlijst> long countVragenlijsten(T searchObject)
 	{
-		return vragenlijstBaseDao.countVragenlijsten(searchObject);
-
+		return 0L;
 	}
 
 	@Override

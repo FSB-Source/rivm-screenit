@@ -28,6 +28,9 @@ import java.util.List;
 import nl.rivm.screenit.dto.mamma.MammaDense2ConfiguratieDto;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek;
+import nl.rivm.screenit.model.mamma.enums.MammaDenseWaarde;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 
 public interface MammaBaseDense2Service
 {
@@ -48,4 +51,10 @@ public interface MammaBaseDense2Service
 	String getExportDirectory();
 
 	boolean clientZitInDense2Project(Client client, MammaDense2ConfiguratieDto configuratie);
+
+	boolean magDensiteitOpslaan(MammaDenseWaarde densiteit, Client client);
+
+	void verwijderDensiteit(MammaOnderzoek onderzoek);
+
+	ExtendedSpecification<Client> getClientenSpecificationVoorVerwijderenDensiteit();
 }

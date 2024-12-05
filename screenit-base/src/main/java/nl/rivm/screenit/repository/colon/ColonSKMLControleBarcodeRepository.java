@@ -21,9 +21,12 @@ package nl.rivm.screenit.repository.colon;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Optional;
+
 import nl.rivm.screenit.model.colon.SKMLControleBarcode;
 import nl.rivm.screenit.repository.BaseJpaRepository;
 
 public interface ColonSKMLControleBarcodeRepository extends BaseJpaRepository<SKMLControleBarcode>
 {
+	Optional<SKMLControleBarcode> findByBarcode(String barcode);
 }

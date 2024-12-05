@@ -22,21 +22,21 @@ package nl.rivm.screenit.batch.jobs.cervix.ilm.rondesverwijderenstep;
  */
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.specification.cervix.CervixScreeningRondeSpecification.heeftStatus;
+import static nl.rivm.screenit.specification.cervix.CervixScreeningRondeSpecification.heeftStatusDatumVoorOfOp;
+
 @Component
-public class CervixILMRondesVerwijderenReader extends BaseScrollableResultReader
+public class CervixILMRondesVerwijderenReader extends BaseSpecificationScrollableResultReader<CervixScreeningRonde>
 {
 
 	private final SimplePreferenceService preferenceService;
@@ -51,17 +51,11 @@ public class CervixILMRondesVerwijderenReader extends BaseScrollableResultReader
 	}
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<CervixScreeningRonde> createSpecification()
 	{
 		var minVerwijderenDatum = DateUtil.toUtilDate(dateSupplier.getLocalDate().minusDays(preferenceService.getInteger(PreferenceKey.ILM_BEWAARTERMIJN.name())));
 
-		var crit = session.createCriteria(CervixScreeningRonde.class, "ronde");
-
-		crit.add(Restrictions.and(
-			Restrictions.eq("ronde.status", ScreeningRondeStatus.AFGEROND),
-			Restrictions.le("ronde.statusDatum", minVerwijderenDatum)));
-
-		return crit;
+		return heeftStatus(ScreeningRondeStatus.AFGEROND)
+			.and(heeftStatusDatumVoorOfOp(minVerwijderenDatum));
 	}
-
 }

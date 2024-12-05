@@ -119,7 +119,7 @@ public class MammaBrievenGenererenPartitioner extends AbstractBrievenGenererenPa
 		return standplaatsenIds;
 	}
 
-	private List<Long> getAfspraakStandplaatsenIdsMetBrief(Long screeningOrganisatieId, BriefType briefType)
+	List<Long> getAfspraakStandplaatsenIdsMetBrief(Long screeningOrganisatieId, BriefType briefType)
 	{
 		var crit = getBaseCriteria(screeningOrganisatieId, briefType);
 
@@ -134,7 +134,7 @@ public class MammaBrievenGenererenPartitioner extends AbstractBrievenGenererenPa
 		return crit.list();
 	}
 
-	private List<Long> getUitnodigingStandplaatsenIdsMetBrief(Long screeningOrganisatieId, BriefType briefType)
+	List<Long> getUitnodigingStandplaatsenIdsMetBrief(Long screeningOrganisatieId, BriefType briefType)
 	{
 		var crit = getBaseCriteria(screeningOrganisatieId, briefType);
 

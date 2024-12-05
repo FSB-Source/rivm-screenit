@@ -350,20 +350,27 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 
 	private void addBkOnderzoekSe(CellStyle cellStyleDateTime, Sheet sheet, MammaAfspraak afspraak)
 	{
-		String label = "Afspraak";
-		String status = StringUtil.enumName2readableString(afspraak.getStatus().name());
-		String se = afspraak.getStandplaatsPeriode().getScreeningsEenheid().getNaam();
-		Date datum = afspraak.getVanaf();
+		var label = "Afspraak";
+		var status = StringUtil.enumName2readableString(afspraak.getStatus().name());
+		var se = afspraak.getStandplaatsPeriode().getScreeningsEenheid().getNaam();
+		var datum = afspraak.getVanaf();
+		var densiteit = "";
 
-		MammaOnderzoek onderzoek = afspraak.getOnderzoek();
+		var onderzoek = afspraak.getOnderzoek();
 		if (onderzoek != null)
 		{
 			status = StringUtil.enumName2readableString(onderzoek.getStatus().name());
 			se = onderzoek.getScreeningsEenheid().getNaam();
 			datum = onderzoek.getAfgerondOp() != null ? onderzoek.getAfgerondOp() : onderzoek.getCreatieDatum();
 			label = "Onderzoek";
+
+			var mammografie = onderzoek.getMammografie();
+			if (mammografie != null && mammografie.getDensiteit() != null)
+			{
+				densiteit = ", densiteit: " + mammografie.getDensiteit();
+			}
 		}
-		addRow(sheet, label, status + " : " + se, datum, cellStyleDateTime);
+		addRow(sheet, label, status + " : " + se + densiteit, datum, cellStyleDateTime);
 	}
 
 	private void addBkAfspraakIdentificatie(CellStyle cellStyleDateTime, Sheet sheet, MammaAfspraak afspraak)

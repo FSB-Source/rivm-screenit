@@ -33,7 +33,7 @@ import static nl.rivm.screenit.specification.mamma.MammaStandplaatsLocatieSpecif
 
 @Component
 @AllArgsConstructor
-public class PostcodeCoordinatenStandplaatsKoppelReader extends BaseSpecificationScrollableResultReader<MammaStandplaatsLocatie, Object>
+public class PostcodeCoordinatenStandplaatsKoppelReader extends BaseSpecificationScrollableResultReader<MammaStandplaatsLocatie>
 {
 	@Override
 	protected Specification<MammaStandplaatsLocatie> createSpecification()

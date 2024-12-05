@@ -24,6 +24,11 @@ package nl.rivm.screenit.dto.mamma;
 import java.io.Serializable;
 import java.util.Date;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
+@AllArgsConstructor
+@NoArgsConstructor
 public class MammaFollowUpInstellingDto implements Serializable
 {
 	private Long instellingId;

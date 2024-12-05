@@ -30,7 +30,6 @@ import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.enums.MammaFollowUpDoorverwezenFilterOptie;
-import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaFollowUpRadiologieVerslag;
 import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
@@ -46,10 +45,6 @@ public interface MammaBaseFollowUpService
 	List<MammaFollowUpRadiologieVerslag> zoekDossiersMetOpenstaandePaVerslagen(Instelling instelling, int first, int count, SortState<String> sortState);
 
 	long countDossiersMetOpenstaandePaVerslagen(Instelling instelling);
-
-	List<MammaBeoordeling> zoekOpenstaandeFollowUpConclusies(ScreeningOrganisatie regio, int first, int count, SortState<String> sortState);
-
-	long countOpenstaandeFollowUpConclusies(ScreeningOrganisatie regio);
 
 	void refreshUpdateFollowUpConclusie(MammaDossier dossier);
 

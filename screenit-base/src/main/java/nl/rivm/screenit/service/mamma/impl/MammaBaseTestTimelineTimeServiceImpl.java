@@ -27,12 +27,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.model.mamma.MammaAfmelding;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
-import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaBrief;
+import nl.rivm.screenit.model.mamma.MammaCapaciteitBlok;
 import nl.rivm.screenit.model.mamma.MammaDossier;
-import nl.rivm.screenit.model.mamma.MammaIlmBezwaarPoging;
 import nl.rivm.screenit.model.mamma.MammaMergedBrieven;
-import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.mamma.MammaUitstel;
@@ -67,7 +65,7 @@ public class MammaBaseTestTimelineTimeServiceImpl implements MammaBaseTestTimeli
 	@Override
 	public boolean rekenDossierTerug(MammaDossier dossier, MammaTestTimeLineDossierTijdstip tijdstip)
 	{
-		int dagen = aantalDagenCalculator(dossier, tijdstip);
+		var dagen = aantalDagenCalculator(dossier, tijdstip);
 		rekenDossierTerug(dossier, dagen);
 		return true;
 	}
@@ -85,15 +83,15 @@ public class MammaBaseTestTimelineTimeServiceImpl implements MammaBaseTestTimeli
 			hibernateService.saveOrUpdate(dossier.getVolgendeUitnodiging());
 		}
 
-		for (MammaIlmBezwaarPoging bezwaarPoging : dossier.getIlmBezwaarPogingen())
+		for (var bezwaarPoging : dossier.getIlmBezwaarPogingen())
 		{
 			baseTestTimelineService.rekenObjectTerug(bezwaarPoging, aantalDagen);
 		}
-		for (MammaScreeningRonde ronde : dossier.getScreeningRondes())
+		for (var ronde : dossier.getScreeningRondes())
 		{
 			rekenRondeTerug(ronde, aantalDagen);
 		}
-		for (MammaAfmelding afmelding : dossier.getAfmeldingen())
+		for (var afmelding : dossier.getAfmeldingen())
 		{
 			rekenAfmeldingTerug(afmelding, aantalDagen);
 		}
@@ -109,23 +107,23 @@ public class MammaBaseTestTimelineTimeServiceImpl implements MammaBaseTestTimeli
 
 		ronde.getFollowUpRadiologieVerslagen().forEach(mammaFollowUpRadiologieVerslag -> baseTestTimelineService.rekenObjectTerug(mammaFollowUpRadiologieVerslag, aantalDagen));
 
-		for (MammaUitstel uitstel : ronde.getUitstellen())
+		for (var uitstel : ronde.getUitstellen())
 		{
 			rekenUitstelTerug(uitstel, aantalDagen);
 		}
 
-		for (MammaUitnodiging uitnodiging : ronde.getUitnodigingen())
+		for (var uitnodiging : ronde.getUitnodigingen())
 		{
 			rekenUitnodigingTerug(uitnodiging, aantalDagen);
 		}
-		for (MammaBrief brief : ronde.getBrieven())
+		for (var brief : ronde.getBrieven())
 		{
 			rekenBriefTerug(brief, aantalDagen);
 		}
 
 		ronde.getFollowUpVerslagen().forEach(verslag -> baseTestTimelineService.rekenObjectTerug(verslag, aantalDagen));
 
-		for (MammaAfmelding afmelding : ronde.getAfmeldingen())
+		for (var afmelding : ronde.getAfmeldingen())
 		{
 			rekenAfmeldingTerug(afmelding, aantalDagen);
 		}
@@ -142,16 +140,17 @@ public class MammaBaseTestTimelineTimeServiceImpl implements MammaBaseTestTimeli
 		baseTestTimelineService.rekenObjectTerug(uitnodiging, aantalDagen);
 		hibernateService.saveOrUpdate(uitnodiging);
 
-		for (MammaAfspraak afspraak : uitnodiging.getAfspraken())
+		for (var afspraak : uitnodiging.getAfspraken())
 		{
 			baseTestTimelineService.rekenObjectTerug(afspraak, aantalDagen);
+			ontkoppelAfspraakBuitenCapaciteitblok(afspraak);
 
-			MammaOnderzoek onderzoek = afspraak.getOnderzoek();
+			var onderzoek = afspraak.getOnderzoek();
 			if (onderzoek != null)
 			{
 				baseTestTimelineService.rekenObjectTerug(onderzoek, aantalDagen);
 				baseTestTimelineService.rekenObjectTerug(onderzoek.getMammografie(), aantalDagen);
-				for (MammaBeoordeling beoordeling : onderzoek.getBeoordelingen())
+				for (var beoordeling : onderzoek.getBeoordelingen())
 				{
 					baseTestTimelineService.rekenObjectTerug(beoordeling, aantalDagen);
 					baseTestTimelineService.rekenObjectTerug(beoordeling.getDiscrepantieLezing(), aantalDagen);
@@ -161,9 +160,24 @@ public class MammaBaseTestTimelineTimeServiceImpl implements MammaBaseTestTimeli
 					hibernateService.saveOrUpdate(onderzoek);
 				}
 			}
-
 		}
+	}
 
+	private void ontkoppelAfspraakBuitenCapaciteitblok(MammaAfspraak afspraak)
+	{
+		var capaciteitBlok = afspraak.getCapaciteitBlok();
+		if (capaciteitBlok != null && afspraakValtBuitenCapaciteitBlok(afspraak, capaciteitBlok))
+		{
+			afspraak.setCapaciteitBlok(null);
+			capaciteitBlok.getAfspraken().remove(afspraak);
+			hibernateService.saveOrUpdateAll(afspraak, capaciteitBlok);
+		}
+	}
+
+	private boolean afspraakValtBuitenCapaciteitBlok(MammaAfspraak afspraak, MammaCapaciteitBlok capaciteitBlok)
+	{
+		var afspraakMoment = afspraak.getVanaf();
+		return capaciteitBlok.getVanaf().compareTo(afspraakMoment) > 0 || capaciteitBlok.getTot().compareTo(afspraakMoment) <= 0;
 	}
 
 	private void rekenBriefTerug(MammaBrief brief, int aantalDagen)
@@ -171,12 +185,11 @@ public class MammaBaseTestTimelineTimeServiceImpl implements MammaBaseTestTimeli
 		baseTestTimelineService.rekenObjectTerug(brief, aantalDagen);
 		hibernateService.saveOrUpdate(brief);
 
-		MammaMergedBrieven mergedBrieven = brief.getMergedBrieven();
+		var mergedBrieven = brief.getMergedBrieven();
 		if (mergedBrieven != null)
 		{
 			rekenMergedBrievenTerug(mergedBrieven, aantalDagen);
 		}
-
 	}
 
 	private void rekenMergedBrievenTerug(MammaMergedBrieven mergedBrieven, int aantalDagen)

@@ -200,11 +200,12 @@ public class BriefUtil
 		}
 	}
 
-	public static BezwaarBrief maakBezwaarBrief(Client client, BriefType type, Date creatieMoment)
+	public static BezwaarBrief maakBezwaarBrief(Client client, BriefType type, Date creatieMoment, boolean vragenOmHandtekening)
 	{
 		var brief = new BezwaarBrief();
 		vulBrief(brief, type, false, creatieMoment);
 		brief.setClient(client);
+		brief.setVragenOmHandtekening(vragenOmHandtekening);
 		return brief;
 	}
 
@@ -213,6 +214,7 @@ public class BriefUtil
 		var brief = new AlgemeneBrief();
 		vulBrief(brief, type, false, creatieMoment);
 		brief.setClient(client);
+		client.getAlgemeneBrieven().add(brief);
 		return brief;
 	}
 

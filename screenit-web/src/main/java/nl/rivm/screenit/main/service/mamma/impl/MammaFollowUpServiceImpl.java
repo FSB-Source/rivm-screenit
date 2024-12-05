@@ -31,27 +31,42 @@ import nl.rivm.screenit.main.service.mamma.MammaConclusieReviewService;
 import nl.rivm.screenit.main.service.mamma.MammaFollowUpService;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.model.mamma.MammaBeoordeling;
+import nl.rivm.screenit.model.mamma.MammaBeoordeling_;
+import nl.rivm.screenit.model.mamma.MammaDossier;
+import nl.rivm.screenit.model.mamma.MammaDossier_;
 import nl.rivm.screenit.model.mamma.MammaFollowUpRadiologieVerslag;
 import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaFollowUpConclusieStatus;
 import nl.rivm.screenit.model.mamma.verslag.MammaVerslag;
+import nl.rivm.screenit.repository.mamma.MammaDossierRepository;
 import nl.rivm.screenit.service.BaseVerslagService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.mamma.MammaBaseFollowUpService;
 import nl.rivm.screenit.service.mamma.MammaVolgendeUitnodigingService;
+import nl.rivm.screenit.specification.HibernateObjectSpecification;
+import nl.rivm.screenit.specification.algemeen.BeoordelingsEenheidSpecification;
+import nl.rivm.screenit.specification.mamma.MammaBaseDossierSpecification;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNullExtended;
+import static org.springframework.data.jpa.domain.Specification.not;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -75,6 +90,9 @@ public class MammaFollowUpServiceImpl implements MammaFollowUpService
 
 	@Autowired
 	private MammaVolgendeUitnodigingService volgendeUitnodigingService;
+
+	@Autowired
+	private MammaDossierRepository dossierRepository;
 
 	@Autowired
 	private BaseVerslagService verslagService;
@@ -187,6 +205,37 @@ public class MammaFollowUpServiceImpl implements MammaFollowUpService
 			.filter(v -> v.getStatus().equals(VerslagStatus.AFGEROND))
 			.sorted(Comparator.comparing(MammaVerslag::getDatumVerwerkt, Comparator.reverseOrder()))
 			.collect(Collectors.toList());
+	}
+
+	@Override
+	public List<MammaBeoordeling> zoekOpenstaandeFollowUpConclusies(ScreeningOrganisatie screeningorganisatie, long first, long count, Sort sort)
+	{
+		return dossierRepository.findWith(
+			openstaandeFollowupConclusiesSpecification(screeningorganisatie),
+			MammaBeoordeling.class,
+			q -> q.projection((cb, r) -> r.get(MammaDossier_.laatsteBeoordelingMetUitslag)).sortBy(sort).all(first, count));
+	}
+
+	@Override
+	public long countOpenstaandeFollowUpConclusies(ScreeningOrganisatie screeningorganisatie)
+	{
+		return dossierRepository.count(openstaandeFollowupConclusiesSpecification(screeningorganisatie));
+	}
+
+	private Specification<MammaDossier> openstaandeFollowupConclusiesSpecification(ScreeningOrganisatie screeningorganisatie)
+	{
+		return MammaBaseDossierSpecification.isUpdateFollowUpConclusie(true)
+			.and(filterOpLaatsteBeoordelingVoorScreeningorganisatie(screeningorganisatie))
+			.and(not(HibernateObjectSpecification.heeftGeenId().with(MammaDossier_.laatsteBeoordelingMetUitslag)));
+	}
+
+	private Specification<MammaDossier> filterOpLaatsteBeoordelingVoorScreeningorganisatie(ScreeningOrganisatie screeningorganisatie)
+	{
+		return skipWhenNullExtended(screeningorganisatie, BeoordelingsEenheidSpecification.filterOpScreeningOrganisatie(screeningorganisatie).with(r ->
+		{
+			var beoordelingJoin = join(r, MammaDossier_.laatsteBeoordelingMetUitslag);
+			return join(beoordelingJoin, MammaBeoordeling_.beoordelingsEenheid);
+		}));
 	}
 
 	private void verwijderElectronischePalgaVerslagen(MammaScreeningRonde screeningRonde)

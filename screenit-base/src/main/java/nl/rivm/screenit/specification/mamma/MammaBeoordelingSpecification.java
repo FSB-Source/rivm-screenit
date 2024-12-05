@@ -22,7 +22,10 @@ package nl.rivm.screenit.specification.mamma;
  */
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+
+import javax.persistence.criteria.JoinType;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -41,19 +44,19 @@ import nl.rivm.screenit.model.mamma.MammaLezing;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
+import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingOpschortenReden;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
+import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.specification.ExtendedSpecification;
-import nl.rivm.screenit.specification.SpecificationUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
-import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 
 import org.springframework.data.jpa.domain.Specification;
 
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmptyExtended;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNullExtended;
-import static nl.rivm.screenit.specification.mamma.MammaLezingSpecification.isGedaanDoor;
-import static nl.rivm.screenit.specification.mamma.MammaLezingSpecification.isGedaanInPeriode;
+import static nl.rivm.screenit.specification.mamma.MammaLezingSpecification.heeftNietBeoordeeldSindsSubquery;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class MammaBeoordelingSpecification
@@ -62,10 +65,10 @@ public class MammaBeoordelingSpecification
 	{
 		return (r, q, cb) ->
 		{
-			var dossierJoin = SpecificationUtil.join(r, Client_.mammaDossier);
-			var rondeJoin = SpecificationUtil.join(dossierJoin, MammaDossier_.laatsteScreeningRonde);
-			var onderzoekJoin = SpecificationUtil.join(rondeJoin, MammaScreeningRonde_.laatsteOnderzoek);
-			var beoordelingJoin = SpecificationUtil.join(onderzoekJoin, MammaOnderzoek_.laatsteBeoordeling);
+			var dossierJoin = join(r, Client_.mammaDossier);
+			var rondeJoin = join(dossierJoin, MammaDossier_.laatsteScreeningRonde);
+			var onderzoekJoin = join(rondeJoin, MammaScreeningRonde_.laatsteOnderzoek);
+			var beoordelingJoin = join(onderzoekJoin, MammaOnderzoek_.laatsteBeoordeling);
 			return cb.equal(beoordelingJoin.get(MammaBeoordeling_.status), status);
 		};
 	}
@@ -83,6 +86,11 @@ public class MammaBeoordelingSpecification
 	public static ExtendedSpecification<MammaBeoordeling> heeftStatus(MammaBeoordelingStatus status)
 	{
 		return (r, q, cb) -> cb.equal(r.get(MammaBeoordeling_.status), status);
+	}
+
+	public static ExtendedSpecification<MammaBeoordeling> heeftOpschortReden(MammaBeoordelingOpschortenReden opschortenReden)
+	{
+		return (r, q, cb) -> cb.equal(r.get(MammaBeoordeling_.opschortReden), opschortenReden);
 	}
 
 	public static ExtendedSpecification<MammaBeoordeling> heeftTotDiscrepantieGeleid()
@@ -109,7 +117,7 @@ public class MammaBeoordelingSpecification
 		);
 	}
 
-	public static Specification<MammaBeoordeling> heeftUitslagStatus()
+	public static ExtendedSpecification<MammaBeoordeling> heeftUitslagStatus()
 	{
 		return (r, q, cb) -> r.get(MammaBeoordeling_.status).in(MammaBeoordelingStatus.uitslagStatussen());
 	}
@@ -118,12 +126,21 @@ public class MammaBeoordelingSpecification
 	{
 		return (r, q, cb) ->
 		{
-			var onderzoekJoin = SpecificationUtil.join(r, MammaBeoordeling_.onderzoek);
-			var afspraakJoin = SpecificationUtil.join(onderzoekJoin, MammaOnderzoek_.afspraak);
-			var uitnodigingJoin = SpecificationUtil.join(afspraakJoin, MammaAfspraak_.uitnodiging);
-			var screeningRondeJoin = SpecificationUtil.join(uitnodigingJoin, MammaUitnodiging_.screeningRonde);
+			var onderzoekJoin = join(r, MammaBeoordeling_.onderzoek);
+			var afspraakJoin = join(onderzoekJoin, MammaOnderzoek_.afspraak);
+			var uitnodigingJoin = join(afspraakJoin, MammaAfspraak_.uitnodiging);
+			var screeningRondeJoin = join(uitnodigingJoin, MammaUitnodiging_.screeningRonde);
 			return cb.equal(screeningRondeJoin.get(MammaScreeningRonde_.dossier), dossier);
 		};
+	}
+
+	public static Specification<MammaBeoordeling> heeftMammografieIlmStatus(MammaMammografieIlmStatus ilmStatus)
+	{
+		return MammaMammografieBaseSpecification.heeftIlmStatus(ilmStatus).with(r ->
+		{
+			var onderzoekJoin = join(r, MammaBeoordeling_.onderzoek);
+			return join(onderzoekJoin, MammaOnderzoek_.mammografie);
+		});
 	}
 
 	public static ExtendedSpecification<MammaBeoordeling> filterBeoordelingsEenheid(BeoordelingsEenheid beoordelingsEenheid)
@@ -134,11 +151,6 @@ public class MammaBeoordelingSpecification
 	public static ExtendedSpecification<MammaBeoordeling> filterBeoordelingsEenheid(List<BeoordelingsEenheid> beoordelingsEenheden)
 	{
 		return skipWhenNullExtended(beoordelingsEenheden, (r, q, cb) -> r.get(MammaBeoordeling_.beoordelingsEenheid).in(beoordelingsEenheden));
-	}
-
-	public static ExtendedSpecification<MammaBeoordeling> heeftIdIn(List<Long> beoordelingIds)
-	{
-		return (r, q, cb) -> r.get(AbstractHibernateObject_.id).in(beoordelingIds);
 	}
 
 	public static ExtendedSpecification<MammaBeoordeling> isNietToegewezenAanSpecifiekeRadioloog()
@@ -171,14 +183,19 @@ public class MammaBeoordelingSpecification
 		return (r, q, cb) -> cb.lessThan(r.get(MammaBeoordeling_.statusDatum), DateUtil.toUtilDate(voorDatum));
 	}
 
+	public static ExtendedSpecification<MammaBeoordeling> heeftStatusDatumOpOfVoor(LocalDate voorDatum)
+	{
+		return (r, q, cb) -> cb.lessThanOrEqualTo(r.get(MammaBeoordeling_.statusDatum), DateUtil.toUtilDate(voorDatum));
+	}
+
+	public static ExtendedSpecification<MammaBeoordeling> heeftStatusDatumOpOfVoor(LocalDateTime peilMoment)
+	{
+		return (r, q, cb) -> cb.lessThanOrEqualTo(r.get(MammaBeoordeling_.statusDatum), DateUtil.toUtilDate(peilMoment));
+	}
+
 	public static ExtendedSpecification<MammaBeoordeling> heeftStatusDatumVanaf(LocalDate vanafDatum)
 	{
 		return (r, q, cb) -> cb.greaterThanOrEqualTo(r.get(MammaBeoordeling_.statusDatum), DateUtil.toUtilDate(vanafDatum));
-	}
-
-	public static ExtendedSpecification<MammaLezing> isGedaanBinnenTermijnDoor(InstellingGebruiker radioloog, LocalDate peildatum, Termijn termijn)
-	{
-		return isGedaanDoor(radioloog).and(isGedaanInPeriode(termijn.getPeriode(peildatum)));
 	}
 
 	public static Specification<MammaBeoordeling> heeftEersteOfTweedeLezingGedaanBinnenTermijn(InstellingGebruiker radioloog, LocalDate peilDatum, Termijn termijn)
@@ -187,11 +204,16 @@ public class MammaBeoordelingSpecification
 		{
 			var subquery = q.subquery(MammaLezing.class);
 			var subqueryRoot = subquery.from(MammaLezing.class);
-			subquery.select(subqueryRoot).where(isGedaanBinnenTermijnDoor(radioloog, peilDatum, termijn).toPredicate(subqueryRoot, q, cb));
+			subquery.select(subqueryRoot).where(MammaLezingSpecification.isGedaanBinnenTermijnDoor(radioloog, peilDatum, termijn).toPredicate(subqueryRoot, q, cb));
 			return cb.or(
 				r.get(MammaBeoordeling_.eersteLezing).in(subquery),
 				r.get(MammaBeoordeling_.tweedeLezing).in(subquery));
 		};
 	}
 
+	public static Specification<MammaBeoordeling> beoordelaarsZijnInactiefSinds(LocalDateTime peilMoment)
+	{
+		return heeftNietBeoordeeldSindsSubquery(peilMoment).with(MammaBeoordeling_.eersteLezing, JoinType.LEFT)
+			.and(heeftNietBeoordeeldSindsSubquery(peilMoment).with(MammaBeoordeling_.tweedeLezing, JoinType.LEFT));
+	}
 }

@@ -88,7 +88,7 @@ public abstract class RepositoryDataProviderService<T extends HibernateObject, R
 		return getRepository().count(getSpecification(filter, Sort.unsorted()));
 	}
 
-	private R getRepository()
+	protected R getRepository()
 	{
 		var clazz = (Class<R>) getActualTypeArguments()[1];
 		return ApplicationContextProvider.getApplicationContext().getBean(clazz);

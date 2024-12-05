@@ -49,6 +49,7 @@ import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.OrganisatiePaspo
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.GbaPersoon_;
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.cervix.CervixLabformulier_;
 import nl.rivm.screenit.model.cervix.CervixMonster;
@@ -69,7 +70,6 @@ import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
-import nl.topicuszorg.organisatie.model.Organisatie_;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.SimpleHibernateModel;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -125,9 +125,9 @@ public class CervixBmhkLaboratoriumOverzichtVerrichtingenPage extends Organisati
 {
 	private final static int MAXIMALE_AANTAL_MAANDEN_TUSSEN_VANAF_TOTENMET = 3;
 
-	private IModel<CervixVerrichtingenZoekObject> formCriteria = new CompoundPropertyModel<>(new CervixVerrichtingenZoekObject());
+	private final IModel<CervixVerrichtingenZoekObject> formCriteria = new CompoundPropertyModel<>(new CervixVerrichtingenZoekObject());
 
-	private CervixLabVerrichtingenDataProvider verrichtingenDataProvider;
+	private final CervixLabVerrichtingenDataProvider verrichtingenDataProvider;
 
 	@SpringBean
 	private CervixVerrichtingService verrichtingService;
@@ -141,7 +141,7 @@ public class CervixBmhkLaboratoriumOverzichtVerrichtingenPage extends Organisati
 	@SpringBean
 	private CervixBetalingService betalingService;
 
-	private IModel<ScreeningOrganisatie> screeningOrganisatieModel = new SimpleHibernateModel<>();
+	private final IModel<ScreeningOrganisatie> screeningOrganisatieModel = new SimpleHibernateModel<>();
 
 	private WebMarkupContainer verrichtingenTableContainer;
 
@@ -363,7 +363,7 @@ public class CervixBmhkLaboratoriumOverzichtVerrichtingenPage extends Organisati
 		SimpleDateFormat dateFormatter = new SimpleDateFormat("dd-MM-yyyy");
 
 		List<IColumn<CervixBoekRegel, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<>(Model.of("Screeningsorganisatie"), REGIO_PROPERTY + "." + Organisatie_.NAAM, REGIO_PROPERTY + "." + Organisatie_.NAAM));
+		columns.add(new PropertyColumn<>(Model.of("Screeningsorganisatie"), REGIO_PROPERTY + "." + Instelling_.NAAM, REGIO_PROPERTY + "." + Instelling_.NAAM));
 		columns.add(new ClientColumn<>(PERSOON_PROPERTY + "." + GbaPersoon_.ACHTERNAAM, CervixBoekRegel_.VERRICHTING + "." + CervixVerrichting_.CLIENT));
 		columns.add(new GeboortedatumColumn<>(PERSOON_PROPERTY + "." + GbaPersoon_.GEBOORTEDATUM, PERSOON_PROPERTY));
 		columns.add(new PropertyColumn<>(Model.of("BSN"), PERSOON_PROPERTY + "." + GbaPersoon_.BSN, PERSOON_PROPERTY + "." + GbaPersoon_.BSN));

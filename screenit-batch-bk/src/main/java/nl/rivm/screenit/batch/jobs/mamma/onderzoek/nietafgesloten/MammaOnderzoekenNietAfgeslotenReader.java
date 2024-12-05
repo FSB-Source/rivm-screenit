@@ -21,42 +21,57 @@ package nl.rivm.screenit.batch.jobs.mamma.onderzoek.nietafgesloten;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.model.mamma.MammaDossier;
-import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Root;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Projection;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.mamma.MammaAfspraak;
+import nl.rivm.screenit.model.mamma.MammaAfspraak_;
+import nl.rivm.screenit.model.mamma.MammaDossier;
+import nl.rivm.screenit.model.mamma.MammaDossier_;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
+import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
+import nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification;
+import nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
+
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
-@Component
-public class MammaOnderzoekenNietAfgeslotenReader extends BaseScrollableResultReader
-{
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
+@Component
+public class MammaOnderzoekenNietAfgeslotenReader extends BaseSpecificationScrollableResultReader<MammaDossier>
+{
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<MammaDossier> createSpecification()
 	{
-		var criteria = session.createCriteria(MammaDossier.class, "dossier");
-		criteria.createAlias("dossier.client", "client");
-		criteria.createAlias("client.persoon", "persoon");
-		criteria.createAlias("dossier.laatsteScreeningRonde", "ronde");
-		criteria.createAlias("ronde.laatsteUitnodiging", "uitnodiging");
-		criteria.createAlias("uitnodiging.laatsteAfspraak", "afspraak");
-		criteria.createAlias("afspraak.onderzoek", "onderzoek", JoinType.LEFT_OUTER_JOIN);
-		criteria.add(Restrictions.or(
-			Restrictions.eq("onderzoek.isDoorgevoerd", Boolean.FALSE),
-			Restrictions.eq("afspraak.status", MammaAfspraakStatus.INGESCHREVEN)));
-		return criteria;
+		return MammaAfspraakSpecification.heeftStatus(MammaAfspraakStatus.INGESCHREVEN).withRoot(this::laatsteAfspraakJoin)
+			.or(MammaOnderzoekSpecification.isDoorgevoerd(false).withRoot(this::onderzoekJoin));
 	}
 
 	@Override
-	protected Projection getProjection()
+	protected Expression<Long> createProjection(Root<MammaDossier> r, CriteriaBuilder cb)
 	{
-		return Projections.property("afspraak.id");
+		return laatsteAfspraakJoin(r).get(AbstractHibernateObject_.id);
+	}
+
+	private Join<MammaUitnodiging, MammaAfspraak> laatsteAfspraakJoin(Root<MammaDossier> dossierRoot)
+	{
+		var laatsteScreeningRondeJoin = join(dossierRoot, MammaDossier_.laatsteScreeningRonde);
+		var laatsteUitnodigingJoin = join(laatsteScreeningRondeJoin, MammaScreeningRonde_.laatsteUitnodiging);
+		return join(laatsteUitnodigingJoin, MammaUitnodiging_.laatsteAfspraak);
+	}
+
+	private Join<MammaAfspraak, MammaOnderzoek> onderzoekJoin(Root<MammaDossier> dossierRoot)
+	{
+		var laatsteAfspraakJoin = laatsteAfspraakJoin(dossierRoot);
+		return join(laatsteAfspraakJoin, MammaAfspraak_.onderzoek, JoinType.LEFT);
 	}
 }

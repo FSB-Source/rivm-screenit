@@ -65,7 +65,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Range;
 
-import static nl.rivm.screenit.specification.colon.ColonAfspraakslotSpecification.heeftId;
+import static nl.rivm.screenit.specification.HibernateObjectSpecification.filterId;
 import static nl.rivm.screenit.specification.colon.ColonAfspraakslotSpecification.heeftKamer;
 import static nl.rivm.screenit.specification.colon.ColonAfspraakslotSpecification.valtBinnenDatumRange;
 import static nl.rivm.screenit.specification.colon.ColonAfspraakslotSpecification.valtBinnenDatumTijdRange;
@@ -221,7 +221,7 @@ public class RoosterServiceImpl implements RoosterService
 	public List<ColonAfspraakslot> getAfspraakslotsInRangeEnKamer(Range<LocalDateTime> range, ColonAfspraakslot afspraakslot)
 	{
 		return afspraakslotRepository.findAll(heeftKamer(afspraakslot.getKamer())
-				.and(valtBinnenDatumTijdRange(range).or(heeftId(afspraakslot.getId()))),
+				.and(valtBinnenDatumTijdRange(range).or(filterId(afspraakslot.getId()))),
 			Sort.by(Sort.Direction.ASC, ColonTijdslot_.VANAF));
 	}
 

@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -181,7 +182,7 @@ public class TestServiceImpl implements TestService
 	{
 		OutputStreamWriter vo107Bestand = null;
 
-		try (Scanner scanner = new Scanner(vo107template, "UTF-8"))
+		try (Scanner scanner = new Scanner(vo107template, StandardCharsets.UTF_8))
 		{
 			vo107Bestand = new OutputStreamWriter(vo107);
 			String vo107TemplateString = scanner.useDelimiter("\\A").next().substring(1);
@@ -280,7 +281,7 @@ public class TestServiceImpl implements TestService
 			GbaPersoon persoon = new GbaPersoon();
 			client.setPersoon(persoon);
 			persoon.setGbaGeboorteLand(getGbaLand());
-			persoon.setGbaNationaliteiten(List.of(getGbaNationaliteit()));
+			persoon.getGbaNationaliteiten().add(getGbaNationaliteit());
 			persoon.setGeboorteplaats("Deventer");
 			persoon.setNaamGebruik(NaamGebruik.EIGEN);
 			switch (geslacht)
@@ -447,7 +448,7 @@ public class TestServiceImpl implements TestService
 	public void importClientenViaCsv(File file, ImportBvoViaCsv importBvoViaCsv) throws IOException, ParseException
 	{
 		List<Client> clienten = new ArrayList<>();
-		Scanner scanner = new Scanner(new FileInputStream(file), com.google.common.base.Charsets.ISO_8859_1.name());
+		Scanner scanner = new Scanner(new FileInputStream(file), Charsets.ISO_8859_1);
 
 		Map<String, Integer> headersIndex = new HashMap<>();
 		try

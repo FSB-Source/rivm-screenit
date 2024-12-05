@@ -23,34 +23,43 @@ package nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie.briefandereinta
 
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.List;
+
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Root;
 
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.DossierStatus;
-import nl.rivm.screenit.model.ScreeningRondeStatus;
+import nl.rivm.screenit.model.colon.ColonConclusie;
+import nl.rivm.screenit.model.colon.ColonDossier;
+import nl.rivm.screenit.model.colon.ColonDossier_;
+import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
+import nl.rivm.screenit.model.colon.ColonIntakeAfspraak_;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
+import nl.rivm.screenit.model.colon.ColonScreeningRonde_;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.specification.algemeen.ClientSpecification;
+import nl.rivm.screenit.specification.algemeen.DossierSpecification;
+import nl.rivm.screenit.specification.algemeen.ScreeningRondeSpecification;
+import nl.rivm.screenit.specification.colon.ColonConclusieSpecification;
+import nl.rivm.screenit.specification.colon.ColonScreeningRondeSpecification;
 import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.query.ScreenitRestrictions;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
 @Component
 @AllArgsConstructor
-public class HerinneringClientWilAnderIntakeLocatieBriefReader extends BaseScrollableResultReader
+public class HerinneringClientWilAnderIntakeLocatieBriefReader extends BaseSpecificationScrollableResultReader<ColonScreeningRonde>
 {
 
 	private final ICurrentDateSupplier currentDateSupplier;
@@ -58,43 +67,26 @@ public class HerinneringClientWilAnderIntakeLocatieBriefReader extends BaseScrol
 	private final SimplePreferenceService preferenceService;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<ColonScreeningRonde> createSpecification()
 	{
 		var nu = currentDateSupplier.getLocalDateTime();
-		Integer uitnodigingsInterval = preferenceService.getInteger(PreferenceKey.UITNODIGINGSINTERVAL.name());
+		var uitnodigingsInterval = preferenceService.getInteger(PreferenceKey.UITNODIGINGSINTERVAL.name());
 		if (uitnodigingsInterval == null)
 		{
 			throw new IllegalStateException("Spreidingsperiode op de parameterisatie pagina is niet gezet");
 		}
 		var conclusieMoetGegevenZijnOp = getHerinneringClientWilAnderIntakeAfspraakDate();
-		var uitnodigingsIntervalVerlopen = DateUtil.toUtilDate(nu.minusDays(uitnodigingsInterval).plusWeeks(2));
+		var uitnodigingsIntervalVerlopen = nu.minusDays(uitnodigingsInterval).plusWeeks(2);
 
-		var criteria = session.createCriteria(ColonScreeningRonde.class);
-		criteria.createAlias("dossier", "dossier");
-		criteria.createAlias("dossier.client", "client");
-		criteria.createAlias("client.persoon", "persoon");
-
-		ScreenitRestrictions.addClientBaseRestrictions(criteria, "client", "persoon");
-
-		criteria.createAlias("laatsteAfspraak", "afspraak");
-		criteria.createAlias("afspraak.conclusie", "conclusie");
-		criteria.add(Restrictions.eq("status", ScreeningRondeStatus.LOPEND));
-		criteria.add(Restrictions.eq("dossier.status", DossierStatus.ACTIEF));
-
-		criteria.add(Restrictions.eq("conclusie.type", ColonConclusieType.CLIENT_WIL_ANDERE_INTAKELOKATIE));
-		criteria.add(Restrictions.le("conclusie.datum", conclusieMoetGegevenZijnOp));
-
-		var rondesMetHerinneringBrief = DetachedCriteria.forClass(ColonScreeningRonde.class);
-		rondesMetHerinneringBrief.createAlias("brieven", "brief");
-		rondesMetHerinneringBrief.add(Restrictions.eq("brief.briefType", BriefType.COLON_HERINNERING_ANDERE_INTAKELOCATIE));
-		rondesMetHerinneringBrief.setProjection(Projections.id());
-
-		criteria.add(Subqueries.propertyNotIn("id", rondesMetHerinneringBrief));
-		criteria.add(Subqueries.propertyNotIn("id", ColonRestrictions.critAfsprakenZonderVervolg(uitnodigingsIntervalVerlopen)));
-		criteria.add(Subqueries.propertyNotIn("id", ColonRestrictions.critOpenUitnodigingNa2jaar(uitnodigingsIntervalVerlopen)));
-		ColonRestrictions.addHeeftGeenAfgerondeVerlagenRestrictions(criteria, "");
-
-		return criteria;
+		return ClientSpecification.heeftActieveClient().withRoot(this::clientJoin)
+			.and(ScreeningRondeSpecification.isLopend())
+			.and(DossierSpecification.heeftStatus(DossierStatus.ACTIEF).withRoot(this::dossierJoin))
+			.and(ColonConclusieSpecification.heeftType(ColonConclusieType.CLIENT_WIL_ANDERE_INTAKELOKATIE)
+				.and(ColonConclusieSpecification.heeftDatumVoorOfOp(conclusieMoetGegevenZijnOp)).withRoot(this::conclusieJoin))
+			.and(ColonScreeningRondeSpecification.heeftGeenBriefVanTypeIn(List.of(BriefType.COLON_HERINNERING_ANDERE_INTAKELOCATIE)))
+			.and(ColonScreeningRondeSpecification.heeftGeenAfsprakenZonderVervolg(uitnodigingsIntervalVerlopen.toLocalDate()))
+			.and(ColonScreeningRondeSpecification.heefGeenOpenUitnodigingNa(uitnodigingsIntervalVerlopen))
+			.and(ColonScreeningRondeSpecification.heeftGeenAfgerondeVerslagen());
 	}
 
 	private Date getHerinneringClientWilAnderIntakeAfspraakDate()
@@ -103,4 +95,18 @@ public class HerinneringClientWilAnderIntakeLocatieBriefReader extends BaseScrol
 		return DateUtil.toUtilDate(vandaag.minusWeeks(6));
 	}
 
+	private Join<ColonIntakeAfspraak, ColonConclusie> conclusieJoin(Root<ColonScreeningRonde> r)
+	{
+		return join(join(r, ColonScreeningRonde_.laatsteAfspraak), ColonIntakeAfspraak_.conclusie);
+	}
+
+	private Join<ColonDossier, Client> clientJoin(Root<ColonScreeningRonde> r)
+	{
+		return join(dossierJoin(r), ColonDossier_.client);
+	}
+
+	private Join<ColonScreeningRonde, ColonDossier> dossierJoin(Root<ColonScreeningRonde> r)
+	{
+		return join(r, ColonScreeningRonde_.dossier);
+	}
 }

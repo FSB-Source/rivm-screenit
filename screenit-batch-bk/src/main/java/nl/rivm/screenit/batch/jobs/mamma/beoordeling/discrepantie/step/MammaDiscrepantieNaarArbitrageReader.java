@@ -21,45 +21,37 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.discrepantie.step;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.mamma.beoordeling.MammaBaseBeoordelingReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
-import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
-import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
-import org.hibernate.sql.JoinType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus.DISCREPANTIE;
+import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.beoordelaarsZijnInactiefSinds;
+import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.heeftStatus;
+import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.heeftStatusDatumOpOfVoor;
+
 @Component
-public class MammaDiscrepantieNaarArbitrageReader extends MammaBaseBeoordelingReader
+public class MammaDiscrepantieNaarArbitrageReader extends BaseSpecificationScrollableResultReader<MammaBeoordeling>
 {
+	@Autowired
+	protected ICurrentDateSupplier currentDateSupplier;
 
-	private final static int DAGEN = 1;
+	private static final int MAX_UREN_IN_DISCREPANTIE = 24;
 
-	private final static int UREN = 2;
+	private static final int BEOORDELAAR_INACTIEF_UREN = 2;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	public Specification<MammaBeoordeling> createSpecification()
 	{
-		var criteria = session.createCriteria(MammaBeoordeling.class, "beoordeling");
-		criteria.add(Restrictions.eq("beoordeling.status", MammaBeoordelingStatus.DISCREPANTIE));
+		var beoordelaarsInactiefSindsPeilMoment = currentDateSupplier.getLocalDateTime().minusHours(BEOORDELAAR_INACTIEF_UREN);
+		var startDatumOpOfVoor = currentDateSupplier.getLocalDateTime().minusHours(MAX_UREN_IN_DISCREPANTIE);
 
-		var radiologenAanHetWerkSubquery = getRadiologenDieAanHetWerkZijn(UREN);
-
-		criteria.createAlias("beoordeling.eersteLezing", "BIRADS1", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("beoordeling.tweedeLezing", "BIRADS2", JoinType.LEFT_OUTER_JOIN);
-
-		criteria.add(
-			Restrictions.or(
-				Restrictions.and(
-					Subqueries.propertyNotIn("BIRADS1.beoordelaar.id", radiologenAanHetWerkSubquery),
-					Subqueries.propertyNotIn("BIRADS2.beoordelaar.id", radiologenAanHetWerkSubquery)),
-				Restrictions.le("beoordeling.statusDatum", DateUtil.minDagen(currentDateSupplier.getDate(), DAGEN))));
-
-		return criteria;
+		return heeftStatus(DISCREPANTIE)
+			.and(beoordelaarsZijnInactiefSinds(beoordelaarsInactiefSindsPeilMoment)
+				.or(heeftStatusDatumOpOfVoor(startDatumOpOfVoor)));
 	}
 }

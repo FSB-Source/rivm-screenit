@@ -29,7 +29,6 @@ import java.text.SimpleDateFormat;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 import nl.rivm.screenit.PreferenceKey;
@@ -59,18 +58,20 @@ import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
-import nl.rivm.screenit.model.colon.planning.ColonAfspraakslot;
+import nl.rivm.screenit.model.colon.planning.ColonAfspraakslot_;
 import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.model.enums.HuisartsBerichtType;
 import nl.rivm.screenit.model.enums.RedenNietTeBeoordelen;
+import nl.rivm.screenit.repository.colon.ColonAfspraakslotRepository;
 import nl.rivm.screenit.repository.colon.ColonUitnodigingRepository;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BaseDossierService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.DossierFactory;
+import nl.rivm.screenit.service.GemeenteService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.TestService;
@@ -86,15 +87,14 @@ import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import static nl.rivm.screenit.specification.colon.ColonAfspraakslotSpecification.heeftAfspraak;
 
 @Service
 @Transactional
@@ -140,6 +140,12 @@ public class ColonTestServiceImpl implements ColonTestService
 
 	@Autowired
 	private OrganisatieParameterService organisatieParameterService;
+
+	@Autowired
+	private GemeenteService gemeenteService;
+
+	@Autowired
+	private ColonAfspraakslotRepository afspraakslotRepository;
 
 	@Override
 	public ColonConclusie maakAfspraakEnConclusie(GbaPersoon filter, Date fitVerwerkingsDatum)
@@ -675,8 +681,7 @@ public class ColonTestServiceImpl implements ColonTestService
 			hibernateService.saveOrUpdate(gbaAdres);
 			if (gemeente == null)
 			{
-				gemeente = (Gemeente) hibernateService.getHibernateSession().createCriteria(Gemeente.class).add(Restrictions.isNotNull("screeningOrganisatie"))
-					.addOrder(Order.asc("naam")).list().get(0);
+				gemeente = gemeenteService.getEersteGemeenteMetScreeningOrganisatie();
 			}
 			gbaAdres.setGbaGemeente(gemeente);
 			gbaAdres.setPlaats(gemeente.getNaam());
@@ -937,37 +942,24 @@ public class ColonTestServiceImpl implements ColonTestService
 	@Override
 	public int verwijderAfspraakslots()
 	{
-		var aantalAfspraakslotsVerwijderd = 0;
-
-		List<Long> alleAfspraakslots = hibernateService.getHibernateSession().createCriteria(ColonAfspraakslot.class).add(Restrictions.isNotEmpty("afspraken"))
-			.setProjection(Projections.id()).list();
-
-		for (var afspraakslotId : alleAfspraakslots)
+		var alleAfspraakslotIds = afspraakslotRepository.findWith(heeftAfspraak(), Long.class, q -> q.projection((cb, r) -> r.get(ColonAfspraakslot_.id))).all();
+		for (var afspraakslotId : alleAfspraakslotIds)
 		{
-			var afspraakslot = hibernateService.get(ColonAfspraakslot.class, afspraakslotId);
+			var afspraakslot = afspraakslotRepository.findById(afspraakslotId).orElseThrow();
 			var afspraak = afspraakslot.getAfspraak();
 			if (afspraak != null)
 			{
 				afspraak.setAfspraakslot(null);
 				hibernateService.saveOrUpdate(afspraak);
 				afspraakslot.setAfspraak(null);
-				hibernateService.saveOrUpdate(afspraakslot);
+				afspraakslotRepository.save(afspraakslot);
 			}
 		}
 
-		alleAfspraakslots = hibernateService.getHibernateSession().createCriteria(ColonAfspraakslot.class).setProjection(Projections.id())
-			.list();
-		for (var afspraakslotId : alleAfspraakslots)
-		{
-			var afspraakslot = hibernateService.get(ColonAfspraakslot.class, afspraakslotId);
-			if (afspraakslot != null)
-			{
-				aantalAfspraakslotsVerwijderd++;
-				hibernateService.delete(afspraakslot);
-			}
-		}
+		var alleAfspraakslots = afspraakslotRepository.findAll();
+		afspraakslotRepository.deleteAll(alleAfspraakslots);
 
-		return aantalAfspraakslotsVerwijderd;
+		return alleAfspraakslots.size();
 	}
 
 	@Override

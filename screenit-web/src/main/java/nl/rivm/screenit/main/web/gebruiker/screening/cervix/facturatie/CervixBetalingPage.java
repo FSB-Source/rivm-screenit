@@ -36,12 +36,12 @@ import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
 import nl.rivm.screenit.main.web.gebruiker.gedeeld.cervix.CervixHerindexeringWaarschuwingPanel;
 import nl.rivm.screenit.main.web.gebruiker.screening.cervix.CervixScreeningBasePage;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
+import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.DistributedLockService;
 import nl.rivm.screenit.service.InstellingService;
-import nl.topicuszorg.organisatie.model.Organisatie;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -75,7 +75,7 @@ public class CervixBetalingPage extends CervixScreeningBasePage
 	@SpringBean
 	private InstellingService instellingService;
 
-	private IModel<CervixBetalingsZoekObject> zoekObjectModel;
+	private final IModel<CervixBetalingsZoekObject> zoekObjectModel;
 
 	public CervixBetalingPage()
 	{
@@ -118,7 +118,7 @@ public class CervixBetalingPage extends CervixScreeningBasePage
 
 		var screeningOrganisatieDropdown = new ScreenitDropdown<>("screeningOrganisatieId",
 			teKiezenScreeningOrganisaties.stream()
-				.map(Organisatie::getId)
+				.map(Instelling::getId)
 				.collect(Collectors.toList()),
 			new HibernateIdChoiceRenderer(teKiezenScreeningOrganisaties, "naam"));
 

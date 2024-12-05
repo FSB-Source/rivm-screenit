@@ -48,7 +48,6 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.MedewerkerUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
-import nl.topicuszorg.organisatie.model.Organisatie;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.yubikey.shiro.YubikeyToken;
 
@@ -69,23 +68,23 @@ public class SELogin
 
 	private static final String GEEN_OTP = "GEEN_OTP";
 
-	private SimplePreferenceService preferenceService;
+	private final SimplePreferenceService preferenceService;
 
-	private AuthenticatieService authenticatieService;
+	private final AuthenticatieService authenticatieService;
 
-	private SeAutorisatieService seAutorisatieService;
+	private final SeAutorisatieService seAutorisatieService;
 
-	private MammaScreeningsEenheidService screeningseenhedenService;
+	private final MammaScreeningsEenheidService screeningseenhedenService;
 
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	private GebruikersService gebruikerService;
+	private final GebruikersService gebruikerService;
 
-	private SELogService logService;
+	private final SELogService logService;
 
-	private String applicationEnvironment;
+	private final String applicationEnvironment;
 
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	private Long screeningsEenheidId;
 
@@ -260,7 +259,7 @@ public class SELogin
 		for (InstellingGebruiker instellingGebruiker : instellingGebruikers)
 		{
 
-			Organisatie organisatie = instellingGebruiker.getOrganisatie(); 
+			Instelling organisatie = instellingGebruiker.getOrganisatie(); 
 			if (organisatie instanceof ScreeningOrganisatie)
 			{
 				BeoordelingsEenheid be = inlogScreeningsEenheid.getBeoordelingsEenheid();

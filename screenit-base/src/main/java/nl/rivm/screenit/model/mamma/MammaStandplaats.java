@@ -57,28 +57,36 @@ public class MammaStandplaats extends AbstractHibernateObject implements IActief
 {
 	@Column(nullable = false, length = HibernateMagicNumber.L255)
 	private String naam;
+
 	@OneToMany(mappedBy = "standplaats", fetch = FetchType.LAZY)
 	@SkipFieldForDiff
 	private List<MammaStandplaatsOpmerking> standplaatsOpmerkingen = new ArrayList<>();
+
 	@Column(nullable = false)
 	private Boolean actief;
+
 	@OneToOne(optional = false, fetch = FetchType.LAZY)
 	@SkipFieldForDiff
 	private MammaStandplaatsLocatie locatie;
+
 	@OneToOne(optional = false, fetch = FetchType.LAZY)
 	@SkipFieldForDiff
 	private MammaStandplaatsLocatie tijdelijkeLocatie;
+
 	@OneToMany(mappedBy = "standplaats", fetch = FetchType.LAZY)
 	@SkipFieldForDiff
 	private List<MammaPostcodeReeks> postcodeReeksen = new ArrayList<>();
+
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)
 	@DiffSpecs(displayProperty = "naam")
 	private ScreeningOrganisatie regio;
+
 	@OneToMany(mappedBy = "standplaats", fetch = FetchType.LAZY)
 	private List<MammaBlokkade> blokkades;
 
 	@OneToMany(mappedBy = "standplaats", fetch = FetchType.LAZY)
 	private List<MammaStandplaatsRonde> standplaatsRonden = new ArrayList<>();
+
 	@OneToMany(mappedBy = "standplaats", fetch = FetchType.LAZY)
 	private List<MammaTehuis> tehuizen = new ArrayList<>();
 }

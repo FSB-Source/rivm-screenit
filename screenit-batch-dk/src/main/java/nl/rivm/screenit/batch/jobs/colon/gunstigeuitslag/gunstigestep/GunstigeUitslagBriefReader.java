@@ -21,82 +21,78 @@ package nl.rivm.screenit.batch.jobs.colon.gunstigeuitslag.gunstigestep;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
+
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
+
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.DossierStatus;
-import nl.rivm.screenit.model.colon.ColonBrief;
+import nl.rivm.screenit.model.colon.ColonDossier;
+import nl.rivm.screenit.model.colon.ColonDossier_;
+import nl.rivm.screenit.model.colon.ColonScreeningRonde;
+import nl.rivm.screenit.model.colon.ColonScreeningRonde_;
+import nl.rivm.screenit.model.colon.ColonUitnodiging;
+import nl.rivm.screenit.model.colon.IFOBTTest;
+import nl.rivm.screenit.model.colon.IFOBTTest_;
 import nl.rivm.screenit.model.colon.IFOBTType;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.query.ScreenitRestrictions;
+import nl.rivm.screenit.specification.algemeen.ClientSpecification;
+import nl.rivm.screenit.specification.algemeen.DossierSpecification;
+import nl.rivm.screenit.specification.colon.ColonFITSpecification;
+import nl.rivm.screenit.specification.colon.ColonScreeningRondeSpecification;
+import nl.rivm.screenit.specification.colon.ColonUitnodigingSpecification;
 
-import org.hibernate.Criteria;
-import org.hibernate.FetchMode;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
-import org.hibernate.sql.JoinType;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
 @Component
 @AllArgsConstructor
-public class GunstigeUitslagBriefReader extends BaseScrollableResultReader
+public class GunstigeUitslagBriefReader extends BaseSpecificationScrollableResultReader<Client>
 {
 	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<Client> createSpecification()
 	{
 		try
 		{
-			var criteria = session.createCriteria(Client.class);
-
-			criteria.createAlias("colonDossier", "colonDossier");
-			criteria.createAlias("colonDossier.laatsteScreeningRonde", "laatsteScreeningRonde");
-			criteria.createAlias("laatsteScreeningRonde.ifobtTesten", "ifobten");
-			criteria.createAlias("ifobten.colonUitnodiging", "uitnodiging");
-			criteria.createAlias("persoon", "persoon", JoinType.INNER_JOIN);
-			criteria.createAlias("persoon.gbaAdres", "adres", JoinType.INNER_JOIN);
-			criteria.setFetchMode("persoon", FetchMode.JOIN);
-
-			ScreenitRestrictions.addClientBaseRestrictions(criteria, "", "persoon");
-
-			criteria.add(Restrictions.eq("colonDossier.status", DossierStatus.ACTIEF));
-
-			criteria.add(Restrictions.eq("ifobten.status", IFOBTTestStatus.UITGEVOERD));
-			criteria.add(Restrictions.eq("ifobten.type", IFOBTType.GOLD));
-			criteria.add(
-				Restrictions.or(
-					Restrictions.isNull("uitnodiging.uitgesteldeUitslagDatum"),
-					Restrictions.le("uitnodiging.uitgesteldeUitslagDatum", currentDateSupplier.getDate())));
-			criteria.add(ColonRestrictions.critGunstig("ifobten."));
-
-			var subquery = DetachedCriteria.forClass(ColonBrief.class, "brief");
-			subquery.setProjection(Projections.id());
-			subquery.add(Restrictions.eqProperty("brief.screeningRonde", "laatsteScreeningRonde.id"));
-			subquery.add( 
-				Restrictions.or( 
-					Restrictions.eq("brief.briefType", BriefType.COLON_UITNODIGING_INTAKE), 
-					Restrictions.eq("brief.briefType", BriefType.COLON_GUNSTIGE_UITSLAG) 
-				) 
-			);
-			criteria.add(Subqueries.notExists(subquery));
-
-			return criteria;
+			return ClientSpecification.heeftActieveClient()
+				.and(DossierSpecification.heeftStatus(DossierStatus.ACTIEF).with(Client_.colonDossier))
+				.and(ColonUitnodigingSpecification.heeftUitgesteldeUitslagDatumVoorOfOp(currentDateSupplier.getDate()).with(r -> uitnodigingJoin(r)))
+				.and(ColonFITSpecification.heeftFitType(IFOBTType.GOLD).with(r -> fitJoin(r)))
+				.and(ColonFITSpecification.heeftStatus(IFOBTTestStatus.UITGEVOERD).with(r -> fitJoin(r)))
+				.and(ColonFITSpecification.heeftGunstigeUitslag().with(r -> fitJoin(r)))
+				.and(ColonScreeningRondeSpecification.heeftGeenBriefVanTypeIn(List.of(BriefType.COLON_UITNODIGING_INTAKE, BriefType.COLON_GUNSTIGE_UITSLAG))
+					.with(r -> laatsteScreeningRondeJoin(r)));
 		}
 		catch (Exception e)
 		{
 			crashMelding("Cliënten konden niet worden geselecteerd", e);
 			throw e;
 		}
-
 	}
 
+	private From<?, ? extends ColonUitnodiging> uitnodigingJoin(From<?, ? extends Client> r)
+	{
+		return join(fitJoin(r), IFOBTTest_.colonUitnodiging);
+	}
+
+	private From<?, ? extends IFOBTTest> fitJoin(From<?, ? extends Client> r)
+	{
+		return join(laatsteScreeningRondeJoin(r), ColonScreeningRonde_.ifobtTesten);
+	}
+
+	private static Join<ColonDossier, ColonScreeningRonde> laatsteScreeningRondeJoin(From<?, ? extends Client> r)
+	{
+		return join(join(r, Client_.colonDossier), ColonDossier_.laatsteScreeningRonde);
+	}
 }

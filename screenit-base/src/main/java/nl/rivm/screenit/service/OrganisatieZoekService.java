@@ -21,7 +21,6 @@ package nl.rivm.screenit.service;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -36,11 +35,10 @@ import nl.rivm.screenit.model.enums.ToegangLevel;
 
 public interface OrganisatieZoekService
 {
-
-	Iterator<Instelling> searchOrganisatie(Instelling searchObject, List<OrganisatieType> selectedOrganisatieTypes, List<OrganisatieType> excludeOrganisatieTypes,
+	List<Instelling> zoekOrganisaties(Instelling searchObject, List<OrganisatieType> selectedOrganisatieTypes, List<OrganisatieType> excludeOrganisatieTypes,
 		InstellingGebruiker instellingGebruiker, long first, long count, String sortProperty, boolean asc);
 
-	long countOrganisatie(Instelling searchObject, List<OrganisatieType> selectedOrganisatieTypes, List<OrganisatieType> excludeOrganisatieTypes,
+	long countOrganisaties(Instelling searchObject, List<OrganisatieType> selectedOrganisatieTypes, List<OrganisatieType> excludeOrganisatieTypes,
 		InstellingGebruiker instellingGebruiker);
 
 	List<Instelling> getOrganisatiesForNiveau(InstellingGebruiker instellingGebruiker, OrganisatieType organisatieTypeGekozen, ToegangLevel toegangLevel);
@@ -51,9 +49,11 @@ public interface OrganisatieZoekService
 
 	List<Instelling> getMogelijkeParents(@Nonnull Instelling instelling, @Nonnull InstellingGebruiker loggedInInstellingGebruiker);
 
-	List<Long> getZichtbateInstellingenOpToegangLevel(Instelling instelling, ToegangLevel level, List<OrganisatieType> types);
+	List<Long> getZichtbareInstellingenOpToegangLevel(Instelling instelling, ToegangLevel level, List<OrganisatieType> types);
 
-	List<Instelling> findSOs(Instelling instelling);
+	List<Instelling> screeningsorganisatiesWaarOrganisatieOndervalt(Instelling organisatie);
 
 	ColoscopieCentrumWrapper getNearestIntakeLocatie(Client client);
+
+	List<Instelling> zoekOrganisatieMetFqdn(String fqdn);
 }

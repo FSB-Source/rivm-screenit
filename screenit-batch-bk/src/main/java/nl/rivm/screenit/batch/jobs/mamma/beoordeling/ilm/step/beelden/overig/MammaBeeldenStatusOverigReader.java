@@ -24,22 +24,20 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.beelden.overig;
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
-import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.heeftBeeldenBeschikbaar;
+import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.isAangemaaktVoor;
 
 @Component
 @AllArgsConstructor
-public class MammaBeeldenStatusOverigReader extends BaseScrollableResultReader
+public class MammaBeeldenStatusOverigReader extends BaseSpecificationScrollableResultReader<MammaOnderzoek>
 {
 
 	private final SimplePreferenceService preferenceService;
@@ -47,15 +45,9 @@ public class MammaBeeldenStatusOverigReader extends BaseScrollableResultReader
 	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<MammaOnderzoek> createSpecification()
 	{
-		var wachttijd = DateUtil.toUtilDate(currentDateSupplier.getLocalDate().minusDays(preferenceService.getInteger(PreferenceKey.ILM_BEWAARTERMIJN.name())));
-		var criteria = session.createCriteria(MammaOnderzoek.class);
-		criteria.createAlias("mammografie", "mammografie");
-
-		criteria.add(Restrictions.lt("creatieDatum", wachttijd));
-		criteria.add(Restrictions.eq("mammografie.ilmStatus", MammaMammografieIlmStatus.BESCHIKBAAR));
-
-		return criteria;
+		var peilMoment = currentDateSupplier.getLocalDate().minusDays(preferenceService.getInteger(PreferenceKey.ILM_BEWAARTERMIJN.name())).atStartOfDay();
+		return isAangemaaktVoor(peilMoment).and(heeftBeeldenBeschikbaar());
 	}
 }

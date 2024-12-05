@@ -58,7 +58,7 @@ import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.heeftEersteOfTweedeLezingGedaanBinnenTermijn;
 import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.heeftStatus;
 import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.heeftTotDiscrepantieGeleid;
-import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.isGedaanBinnenTermijnDoor;
+import static nl.rivm.screenit.specification.mamma.MammaLezingSpecification.isGedaanBinnenTermijnDoor;
 import static nl.rivm.screenit.specification.mamma.MammaScreeningRondeSpecification.heeftPreciesEenRonde;
 import static org.springframework.data.jpa.domain.Specification.not;
 

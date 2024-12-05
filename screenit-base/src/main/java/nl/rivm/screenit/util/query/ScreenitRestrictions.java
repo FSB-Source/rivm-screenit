@@ -52,6 +52,7 @@ public class ScreenitRestrictions
 		return getLeeftijdsgrensRestrictions(minLeeftijd, maxLeeftijd, null, peildatum);
 	}
 
+	@Deprecated(forRemoval = true)
 	public static Conjunction getLeeftijdsgrensRestrictions(Integer minLeeftijd, Integer maxLeeftijd, Integer interval, LocalDate peildatum)
 	{
 		Conjunction conjunction = Restrictions.conjunction();
@@ -84,7 +85,7 @@ public class ScreenitRestrictions
 
 	public static String getClientBaseRestrictions(String clientAlias, String persoonAlias)
 	{
-		return clientAlias + ".gba_status = \'" + GbaStatus.INDICATIE_AANWEZIG + "\' and "
+		return clientAlias + ".gba_status = '" + GbaStatus.INDICATIE_AANWEZIG + "' and "
 			+ getPersoonBaseRestrictions(persoonAlias);
 	}
 
@@ -101,14 +102,6 @@ public class ScreenitRestrictions
 	{
 		return persoonAlias + ".overlijdensdatum is null"
 			+ " and " + persoonAlias + ".datum_vertrokken_uit_nederland is null";
-	}
-
-	public static Conjunction addClientActiefInProjectCriteria(String projectClientAlias, String projectGroepAlias, String projectAlias, LocalDate peildatum)
-	{
-		return Restrictions.and(Restrictions.eq(fixAlias(projectClientAlias) + "actief", true),
-			Restrictions.eq(fixAlias(projectGroepAlias) + "actief", true),
-			Restrictions.gt(fixAlias(projectAlias) + "eindDatum", DateUtil.toUtilDate(peildatum)),
-			Restrictions.le(fixAlias(projectAlias) + "startDatum", DateUtil.toUtilDate(peildatum)));
 	}
 
 }

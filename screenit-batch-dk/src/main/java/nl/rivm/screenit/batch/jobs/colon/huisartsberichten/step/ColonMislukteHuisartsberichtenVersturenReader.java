@@ -26,7 +26,6 @@ import lombok.AllArgsConstructor;
 import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.colon.ColonHuisartsBericht;
 import nl.rivm.screenit.model.colon.ColonHuisartsBerichtStatus;
-import nl.rivm.screenit.repository.colon.ColonHuisartsBerichtRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 
 import org.springframework.data.jpa.domain.Specification;
@@ -37,7 +36,7 @@ import static nl.rivm.screenit.specification.colon.ColonHuisartsberichtSpecifica
 
 @Component
 @AllArgsConstructor
-public class ColonMislukteHuisartsberichtenVersturenReader extends BaseSpecificationScrollableResultReader<ColonHuisartsBericht, ColonHuisartsBerichtRepository>
+public class ColonMislukteHuisartsberichtenVersturenReader extends BaseSpecificationScrollableResultReader<ColonHuisartsBericht>
 {
 	private final ICurrentDateSupplier currentDateSupplier;
 

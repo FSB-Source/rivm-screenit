@@ -24,7 +24,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.b
 import java.util.Iterator;
 
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaPortfolioZoekObject;
-import nl.rivm.screenit.main.service.mamma.MammaPortfolioService;
+import nl.rivm.screenit.main.service.mamma.impl.MammaPortfolioDataProviderServiceImpl;
 import nl.rivm.screenit.model.Client;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -34,13 +34,10 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import com.google.common.primitives.Ints;
-
 public class MammaPortfolioDataProvider extends SortableDataProvider<Client, String>
 {
-
 	@SpringBean
-	private MammaPortfolioService portfolioService;
+	private MammaPortfolioDataProviderServiceImpl portfolioDataProviderService;
 
 	private IModel<MammaPortfolioZoekObject> zoekObjectModel;
 
@@ -54,13 +51,7 @@ public class MammaPortfolioDataProvider extends SortableDataProvider<Client, Str
 	@Override
 	public Iterator<? extends Client> iterator(long first, long count)
 	{
-		return portfolioService.zoekPortfolioClienten(
-			getZoekObject(),
-			Ints.checkedCast(first),
-			Ints.checkedCast(count),
-			getSort().getProperty(),
-			getSort().isAscending())
-			.iterator();
+		return portfolioDataProviderService.findPage(first, count, getZoekObject(), getSort()).iterator();
 	}
 
 	private MammaPortfolioZoekObject getZoekObject()
@@ -71,7 +62,7 @@ public class MammaPortfolioDataProvider extends SortableDataProvider<Client, Str
 	@Override
 	public long size()
 	{
-		return portfolioService.countPortfolioClienten(getZoekObject());
+		return portfolioDataProviderService.size(getZoekObject());
 	}
 
 	@Override

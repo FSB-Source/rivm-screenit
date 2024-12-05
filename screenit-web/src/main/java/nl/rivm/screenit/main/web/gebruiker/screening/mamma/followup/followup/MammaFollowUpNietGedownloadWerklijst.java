@@ -45,7 +45,9 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaFollowUpConclusieStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -62,6 +64,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
+
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
 
 @SecurityConstraint(
 	actie = Actie.INZIEN,
@@ -89,7 +93,7 @@ public class MammaFollowUpNietGedownloadWerklijst extends AbstractMammaCeWerklij
 	public MammaFollowUpNietGedownloadWerklijst()
 	{
 		super();
-		dataProvider = new MammaCeFollowUpDataProvider("onderzoek.creatieDatum", zoekObjectModel);
+		dataProvider = new MammaCeFollowUpDataProvider(MammaOnderzoek_.CREATIE_DATUM, zoekObjectModel);
 		List<CentraleEenheid> alleMogelijkeCentraleEenheden = getAlleMogelijkeCentraleEenheden();
 		MammaCeWerklijstZoekObject zoekObject = zoekObjectModel.getObject();
 		if (zoekObject.getCentraleEenheden() == null)
@@ -129,12 +133,12 @@ public class MammaFollowUpNietGedownloadWerklijst extends AbstractMammaCeWerklij
 	private void createResultTable()
 	{
 		List<IColumn<MammaBeoordeling, String>> columns = new ArrayList<>();
-		columns.add(getOnderzoeksdatumColumnZonderJpa());
-		columns.add(getClientColumnZonderJpa());
-		columns.add(getGeboortedatumColumnZonderJpa());
-		columns.add(getBsnColumnZonderJpa());
-		columns.add(getBeColumnZonderJpa());
-		columns.add(new PropertyColumn<>(Model.of("Gebeld op"), "ronde.laatstGebeldFollowUpNietGedownload",
+		columns.add(getOnderzoeksdatumColumn());
+		columns.add(getClientColumn());
+		columns.add(getGeboortedatumColumn());
+		columns.add(getBsnColumn());
+		columns.add(getBeColumn());
+		columns.add(new PropertyColumn<>(Model.of("Gebeld op"), propertyChain(rondeSortProperty(), MammaScreeningRonde_.LAATST_GEBELD_FOLLOW_UP_NIET_GEDOWNLOAD),
 			"onderzoek.afspraak.uitnodiging.screeningRonde.laatstGebeldFollowUpNietGedownload"));
 
 		columns.add(new NotClickableAbstractColumn<>(Model.of(""))

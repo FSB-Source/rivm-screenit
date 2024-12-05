@@ -35,6 +35,9 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierAanvraagStatus;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
@@ -47,11 +50,10 @@ import org.hibernate.envers.Audited;
 @Table(schema = "cervix", name = "labformulier_aanvraag", uniqueConstraints = { @UniqueConstraint(columnNames = "brief"), @UniqueConstraint(columnNames = "voorblad_brief") })
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 @Audited
+@Getter
+@Setter
 public class CervixLabformulierAanvraag extends AbstractHibernateObject implements ICervixHuisartsportaalObject
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private Long huisartsportaalId;
 
 	@Column(nullable = false)
@@ -84,98 +86,6 @@ public class CervixLabformulierAanvraag extends AbstractHibernateObject implemen
 	@Column(nullable = false)
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date mutatiedatum;
-
-	public CervixLabformulierAanvraagStatus getStatus()
-	{
-		return status;
-	}
-
-	public void setStatus(CervixLabformulierAanvraagStatus status)
-	{
-		this.status = status;
-	}
-
-	public Date getAanvraagDatum()
-	{
-		return aanvraagDatum;
-	}
-
-	public void setAanvraagDatum(Date aanvraagDatum)
-	{
-		this.aanvraagDatum = aanvraagDatum;
-	}
-
-	public InstellingGebruiker getInstellingGebruiker()
-	{
-		return instellingGebruiker;
-	}
-
-	public void setInstellingGebruiker(InstellingGebruiker instellingGebruiker)
-	{
-		this.instellingGebruiker = instellingGebruiker;
-	}
-
-	public Date getStatusDatum()
-	{
-		return statusDatum;
-	}
-
-	public void setStatusDatum(Date statusDatum)
-	{
-		this.statusDatum = statusDatum;
-	}
-
-	public CervixRegioBrief getBrief()
-	{
-		return brief;
-	}
-
-	public void setBrief(CervixRegioBrief brief)
-	{
-		this.brief = brief;
-	}
-
-	public CervixRegioBrief getVoorbladBrief()
-	{
-		return voorbladBrief;
-	}
-
-	public void setVoorbladBrief(CervixRegioBrief voorbladBrief)
-	{
-		this.voorbladBrief = voorbladBrief;
-	}
-
-	public void setAantal(Integer aantal)
-	{
-		this.aantal = aantal;
-	}
-
-	public CervixHuisartsLocatie getHuisartsLocatie()
-	{
-		return huisartsLocatie;
-	}
-
-	public void setHuisartsLocatie(CervixHuisartsLocatie locatie)
-	{
-		this.huisartsLocatie = locatie;
-	}
-
-	public Integer getAantal()
-	{
-		return aantal;
-	}
-
-	@Override
-	public Long getHuisartsportaalId()
-	{
-		return huisartsportaalId;
-	}
-
-	@Override
-	public void setHuisartsportaalId(Long huisartsportaalId)
-	{
-		this.huisartsportaalId = huisartsportaalId;
-	}
 
 	@Override
 	public void setScreenitId(Long id)

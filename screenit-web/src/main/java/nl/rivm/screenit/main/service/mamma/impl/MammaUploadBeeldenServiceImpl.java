@@ -25,16 +25,17 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.dto.mamma.MammaUploadBeeldenVerzoekDto;
-import nl.rivm.screenit.main.dao.mamma.MammaUploadBeeldenDao;
 import nl.rivm.screenit.main.service.mamma.MammaUploadBeeldenService;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.model.SortState;
+import nl.rivm.screenit.model.SingleTableHibernateObject_;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
@@ -43,64 +44,94 @@ import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenPoging;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenVerzoek;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenVerzoekStatus;
+import nl.rivm.screenit.model.mamma.MammaUploadBeeldenVerzoek_;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaUploadBeeldenVerzoekType;
+import nl.rivm.screenit.repository.mamma.MammaUploadBeeldenVerzoekRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.UploadDocumentService;
-import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static nl.rivm.screenit.model.mamma.MammaUploadBeeldenVerzoekStatus.ERROR;
+import static nl.rivm.screenit.model.mamma.MammaUploadBeeldenVerzoekStatus.WACHTEN_OP_UPLOAD;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.mamma.MammaUploadBeeldenVerzoekSpecification.filterOpGemaaktDoorOrganisatie;
+import static nl.rivm.screenit.specification.mamma.MammaUploadBeeldenVerzoekSpecification.filterOpZiekenhuis;
+import static nl.rivm.screenit.specification.mamma.MammaUploadBeeldenVerzoekSpecification.heeftSatusIn;
+
 @Slf4j
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
+@RequiredArgsConstructor
 public class MammaUploadBeeldenServiceImpl implements MammaUploadBeeldenService
 {
-	@Autowired
-	private MammaUploadBeeldenDao uploadBeeldenVerzoekDao;
+	private final UploadDocumentService uploadDocumentService;
 
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final MammaUploadBeeldenVerzoekRepository uploadBeeldenVerzoekRepository;
 
-	@Autowired
-	private UploadDocumentService uploadDocumentService;
+	private final ICurrentDateSupplier dateSupplier;
 
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private MammaBaseScreeningrondeService screeningrondeService;
-
-	@Autowired
-	private HibernateService hibernateService;
-
-	@Autowired
-	private LogService logService;
+	private final LogService logService;
 
 	@Override
-	public List<MammaUploadBeeldenVerzoek> zoekOpenstaandeUploadBeeldenVerzoeken(Instelling instelling, ScreeningOrganisatie regio, int first, int count,
-		SortState<String> sortState)
+	public List<MammaUploadBeeldenVerzoek> zoekOpenstaandeUploadBeeldenVerzoeken(Instelling ziekenhuis, ScreeningOrganisatie regio, long first, long count, Sort sort)
 	{
-		return uploadBeeldenVerzoekDao.zoekOpenstaandeUploadBeeldenVerzoeken(instelling, regio, first, count, sortState);
+		return uploadBeeldenVerzoekRepository.findWith(zoekOpenstaandeUploadBeeldenVerzoekenSpecification(ziekenhuis, regio),
+			q -> q.sortBy(sort).all(first, count));
+	}
+
+	private Specification<MammaUploadBeeldenVerzoek> zoekOpenstaandeUploadBeeldenVerzoekenSpecification(Instelling ziekenhuis, ScreeningOrganisatie regio)
+	{
+		return heeftSatusIn(List.of(WACHTEN_OP_UPLOAD, ERROR))
+			.and(filterOpZiekenhuis(ziekenhuis))
+			.and(filterOpGemaaktDoorOrganisatie(regio));
 	}
 
 	@Override
 	public long countOpenstaandeUploadBeeldenVerzoeken(Instelling instelling, ScreeningOrganisatie regio)
 	{
-		return uploadBeeldenVerzoekDao.countOpenstaandeUploadBeeldenVerzoeken(instelling, regio);
+		return uploadBeeldenVerzoekRepository.count(zoekOpenstaandeUploadBeeldenVerzoekenSpecification(instelling, regio));
 	}
 
 	@Override
 	public List<MammaUploadBeeldenVerzoekDto> zoekInstellingenMetOpenstaandeUploadVerzoeken(ScreeningOrganisatie regio)
 	{
-		return uploadBeeldenVerzoekDao.zoekInstellingenMetOpenstaandeUploadVerzoeken(regio);
+		return uploadBeeldenVerzoekRepository.findWith(
+			heeftSatusIn(List.of(WACHTEN_OP_UPLOAD, ERROR))
+				.and(filterOpGemaaktDoorOrganisatie(regio)),
+			MammaUploadBeeldenVerzoekDto.class,
+			q ->
+				q.projections((cb, r) ->
+					{
+						var ziekenhuisJoin = join(r, MammaUploadBeeldenVerzoek_.ziekenhuis);
+						return List.of(
+							ziekenhuisJoin.get(SingleTableHibernateObject_.id),
+							ziekenhuisJoin.get(Instelling_.naam),
+							cb.count(r.get(AbstractHibernateObject_.id)),
+							ziekenhuisJoin.get(Instelling_.telefoon),
+							ziekenhuisJoin.get(Instelling_.telefoon2)
+						);
+					})
+					.groupBy((cb, r) ->
+					{
+						var ziekenhuisJoin = join(r, MammaUploadBeeldenVerzoek_.ziekenhuis);
+						return List.of(
+							ziekenhuisJoin.get(SingleTableHibernateObject_.id),
+							ziekenhuisJoin.get(Instelling_.naam),
+							ziekenhuisJoin.get(Instelling_.telefoon),
+							ziekenhuisJoin.get(Instelling_.telefoon2)
+						);
+					}).all());
 	}
 
 	@Override

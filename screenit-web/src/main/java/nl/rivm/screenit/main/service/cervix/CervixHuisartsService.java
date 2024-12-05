@@ -32,8 +32,11 @@ import nl.rivm.screenit.model.cervix.CervixRegioBrief;
 import nl.rivm.screenit.model.cervix.CervixRegioMergedBrieven;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 
+import org.springframework.data.domain.Sort;
+
 public interface CervixHuisartsService
 {
+	CervixHuisarts getHuisartsMetAgbCode(String agbCode);
 
 	CervixHuisarts getUitstrijkendArtsMetAgb(String agbCode);
 
@@ -56,4 +59,14 @@ public interface CervixHuisartsService
 	void resetWachtwoord(CervixHuisarts huisarts, Account loggedInAccount);
 
 	void inactiveerHuisarts(CervixHuisarts huisarts, InstellingGebruiker loggedInAccount);
+
+	List<CervixLabformulierAanvraag> getCervixLabformulierOrdersVanHuisarts(CervixHuisarts instelling, long first, long count, Sort sort);
+
+	long getAantalCervixLabformulierOrdersVanHuisarts(CervixHuisarts instelling);
+
+	List<CervixHuisartsLocatie> getActieveHuisartsLocatiesVanHuisarts(CervixHuisarts huisarts);
+
+	List<CervixHuisartsLocatie> getLocatiesVanHuisarts(CervixHuisartsLocatie locatie, long first, long count, Sort sort);
+
+	long getAantalLocatiesVanHuisarts(CervixHuisartsLocatie locatie);
 }

@@ -39,7 +39,6 @@ import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid_;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.InstellingService;
-import nl.topicuszorg.organisatie.model.Organisatie_;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -102,14 +101,14 @@ public class MammaAfsprakenSEZoekenPage extends MammaAfsprakenBasePage
 
 		List<IColumn<MammaScreeningsEenheid, String>> columns = new ArrayList<>();
 		columns.add(new PropertyColumn<>(Model.of("Naam"), MammaScreeningsEenheid_.NAAM, "naam"));
-		columns.add(new PropertyColumn<>(Model.of("Beoordelingseenheid"), propertyChain(MammaScreeningsEenheid_.BEOORDELINGS_EENHEID, Organisatie_.NAAM),
+		columns.add(new PropertyColumn<>(Model.of("Beoordelingseenheid"), propertyChain(MammaScreeningsEenheid_.BEOORDELINGS_EENHEID, Instelling_.NAAM),
 			"beoordelingsEenheid.naam"));
-		columns.add(new PropertyColumn<>(Model.of("Centrale eenheid"), propertyChain(MammaScreeningsEenheid_.BEOORDELINGS_EENHEID, Instelling_.PARENT, Organisatie_.NAAM),
+		columns.add(new PropertyColumn<>(Model.of("Centrale eenheid"), propertyChain(MammaScreeningsEenheid_.BEOORDELINGS_EENHEID, Instelling_.PARENT, Instelling_.NAAM),
 			"beoordelingsEenheid.parent.naam"));
 		if (ingelogdNamensRegio == null)
 		{
 			columns.add(new PropertyColumn<>(Model.of("Screeningsorganisatie"),
-				propertyChain(MammaScreeningsEenheid_.BEOORDELINGS_EENHEID, Instelling_.PARENT, Instelling_.REGIO, Organisatie_.NAAM), "beoordelingsEenheid.parent.regio.naam"));
+				propertyChain(MammaScreeningsEenheid_.BEOORDELINGS_EENHEID, Instelling_.PARENT, Instelling_.REGIO, Instelling_.NAAM), "beoordelingsEenheid.parent.regio.naam"));
 		}
 
 		columns.add(new ActiefPropertyColumn<>(Model.of(""), "actief", refreshContainer, criteriaModel));

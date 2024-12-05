@@ -23,31 +23,29 @@ package nl.rivm.screenit.batch.jobs.mamma.kansberekening.afspraken;
 
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.Range;
+
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftStatusIn;
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.valtInDatumTijdPeriode;
 
 @Component
 @AllArgsConstructor
-public class MammaAfspraakEventReader extends BaseScrollableResultReader
+public class MammaAfspraakEventReader extends BaseSpecificationScrollableResultReader<MammaAfspraak>
 {
-	private final ICurrentDateSupplier dateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<MammaAfspraak> createSpecification()
 	{
-		var criteria = session.createCriteria(MammaAfspraak.class, "afspraak");
-
-		criteria.add(Restrictions.in("afspraak.status", MammaAfspraakStatus.NIET_GEANNULEERD));
-		criteria.add(Restrictions.gt("afspraak.vanaf", dateSupplier.getDate()));
-
-		return criteria;
+		return heeftStatusIn(MammaAfspraakStatus.NIET_GEANNULEERD)
+			.and(valtInDatumTijdPeriode(Range.greaterThan(currentDateSupplier.getLocalDateTime())));
 	}
 }

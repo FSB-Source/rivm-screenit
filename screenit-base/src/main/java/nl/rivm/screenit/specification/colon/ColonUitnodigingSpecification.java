@@ -21,8 +21,11 @@ package nl.rivm.screenit.specification.colon;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
+
+import javax.persistence.criteria.JoinType;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -39,8 +42,12 @@ import nl.rivm.screenit.model.colon.ColonDossier_;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde_;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
 import nl.rivm.screenit.model.colon.ColonUitnodiging_;
+import nl.rivm.screenit.model.colon.IFOBTTest_;
+import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.specification.algemeen.ClientSpecification;
+import nl.rivm.screenit.util.DateUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.domain.Specification;
@@ -103,6 +110,33 @@ public class ColonUitnodigingSpecification
 			var dossier = join(ronde, ColonScreeningRonde_.dossier);
 			var clientJoin = join(dossier, ColonDossier_.client);
 			return cb.equal(clientJoin.get(SingleTableHibernateObject_.id), client.getId());
+		};
+	}
+
+	public static ExtendedSpecification<ColonUitnodiging> heeftUitgesteldeUitslagDatumVoorOfOp(Date peildatum)
+	{
+		return (r, q, cb) ->
+			cb.or(cb.isNull(r.get(ColonUitnodiging_.uitgesteldeUitslagDatum)), cb.lessThanOrEqualTo(r.get(ColonUitnodiging_.uitgesteldeUitslagDatum), peildatum));
+	}
+
+	public static ExtendedSpecification<ColonUitnodiging> heeftVerlopenFit(LocalDate peilDatum)
+	{
+		return (r, q, cb) ->
+		{
+			var fitJoin = join(r, ColonUitnodiging_.gekoppeldeTest, JoinType.LEFT);
+			return cb.and(
+				cb.equal(fitJoin.get(IFOBTTest_.status), IFOBTTestStatus.ACTIEF),
+				cb.lessThan(r.get(Uitnodiging_.creatieDatum), DateUtil.toUtilDate(peilDatum))
+			);
+		};
+	}
+
+	public static ExtendedSpecification<ColonUitnodiging> heeftGeenFit()
+	{
+		return (r, q, cb) ->
+		{
+			var fitJoin = join(r, ColonUitnodiging_.gekoppeldeTest, JoinType.LEFT);
+			return cb.isNull(fitJoin.get(IFOBTTest_.id));
 		};
 	}
 }

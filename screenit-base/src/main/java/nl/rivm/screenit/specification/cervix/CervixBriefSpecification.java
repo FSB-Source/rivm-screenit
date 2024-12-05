@@ -21,32 +21,26 @@ package nl.rivm.screenit.specification.cervix;
  * =========================LICENSE_END==================================
  */
 
-import java.util.List;
+import javax.persistence.criteria.JoinType;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.model.Brief_;
-import nl.rivm.screenit.model.ClientBrief_;
 import nl.rivm.screenit.model.cervix.CervixBrief;
-import nl.rivm.screenit.model.enums.BriefType;
-import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
+import nl.rivm.screenit.model.cervix.CervixBrief_;
+import nl.rivm.screenit.model.cervix.CervixUitnodiging_;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixBriefSpecification
 {
-	public static PathAwarePredicate<CervixBrief> heeftBriefInBrieftypes(List<BriefType> briefTypes)
-	{
-		return (cb, r) -> r.get(Brief_.briefType).in(briefTypes);
-	}
 
-	public static PathAwarePredicate<CervixBrief> isGegenereerd(boolean isGegenereerd)
+	public static ExtendedSpecification<CervixBrief> heeftGeenUitnodiging()
 	{
-		return (cb, r) -> cb.equal(r.get(Brief_.gegenereerd), isGegenereerd);
-	}
-
-	public static PathAwarePredicate<CervixBrief> heeftVervangendeProjectBrief(boolean heeftVervangendeProjectBrief)
-	{
-		return (cb, r) -> cb.equal(r.get(ClientBrief_.vervangendeProjectBrief), heeftVervangendeProjectBrief);
+		return (r, q, cb) ->
+		{
+			var uitnodigingJoin = r.join(CervixBrief_.uitnodiging, JoinType.LEFT);
+			return cb.isNull(uitnodigingJoin.get(CervixUitnodiging_.id));
+		};
 	}
 }

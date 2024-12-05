@@ -21,23 +21,27 @@ package nl.rivm.screenit.batch.jobs.cervix.selectie.laatsterondesluitenstep;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.DossierStatus;
-import nl.rivm.screenit.model.ScreeningRondeStatus;
+import nl.rivm.screenit.model.cervix.CervixDossier_;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
+import nl.rivm.screenit.model.cervix.CervixScreeningRonde_;
 import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
-import nl.rivm.screenit.model.enums.Deelnamemodus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.specification.algemeen.DossierSpecification;
+import nl.rivm.screenit.specification.algemeen.PersoonSpecification;
+import nl.rivm.screenit.specification.algemeen.ScreeningRondeSpecification;
+import nl.rivm.screenit.specification.cervix.CervixDossierSpecification;
+import nl.rivm.screenit.specification.cervix.CervixScreeningRondeSpecification;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+
 @Component
-public class CervixLaatsteRondeSluitenReader extends BaseScrollableResultReader
+public class CervixLaatsteRondeSluitenReader extends BaseSpecificationScrollableResultReader<CervixScreeningRonde>
 {
 
 	private final ICurrentDateSupplier dateSupplier;
@@ -49,29 +53,30 @@ public class CervixLaatsteRondeSluitenReader extends BaseScrollableResultReader
 	}
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<CervixScreeningRonde> createSpecification()
 	{
 		var vandaag = dateSupplier.getLocalDate();
 		var geboortedatumMaximaal = vandaag.minusYears(CervixLeeftijdcategorie._65.getLeeftijd());
 		var geboortedatumMaximaalVervolgonderzoekNegatief = vandaag.minusYears(CervixLeeftijdcategorie._70.getLeeftijd());
 
-		var crit = session.createCriteria(CervixScreeningRonde.class, "ronde");
-		crit.createAlias("ronde.dossier", "dossier");
-		crit.createAlias("dossier.client", "client");
-		crit.createAlias("client.persoon", "persoon");
+		return (r, q, cb) ->
+		{
+			var dossierJoin = join(r, CervixScreeningRonde_.dossier);
+			var clientJoin = join(dossierJoin, CervixDossier_.client);
+			var persoonJoin = join(clientJoin, Client_.persoon);
 
-		crit.add(Restrictions.or(
-			Restrictions.and(
-				Restrictions.eq("dossier.deelnamemodus", Deelnamemodus.SELECTIEBLOKKADE),
-				Restrictions.le("dossier.volgendeRondeVanaf", DateUtil.toUtilDate(vandaag))
-			),
-			Restrictions.le("persoon.geboortedatum", DateUtil.toUtilDate(geboortedatumMaximaalVervolgonderzoekNegatief)),
-			Restrictions.and(
-				Restrictions.le("persoon.geboortedatum", DateUtil.toUtilDate(geboortedatumMaximaal)),
-				Restrictions.ne("ronde.leeftijdcategorie", CervixLeeftijdcategorie._65))));
-
-		crit.add(Restrictions.eq("ronde.status", ScreeningRondeStatus.LOPEND));
-		crit.add(Restrictions.eq("dossier.status", DossierStatus.ACTIEF));
-		return crit;
+			return cb.and(
+				cb.or(
+					CervixDossierSpecification.magNietDeelnemen(vandaag).with(root -> dossierJoin).toPredicate(r, q, cb),
+					PersoonSpecification.isGeborenVoorOfOp(geboortedatumMaximaalVervolgonderzoekNegatief).with(root -> persoonJoin).toPredicate(r, q, cb),
+					cb.and(
+						CervixScreeningRondeSpecification.heeftNietLeeftijdCategorie(CervixLeeftijdcategorie._65).toPredicate(r, q, cb),
+						PersoonSpecification.isGeborenVoorOfOp(geboortedatumMaximaal).with(root -> persoonJoin).toPredicate(r, q, cb)
+					)
+				),
+				DossierSpecification.heeftStatus(DossierStatus.ACTIEF).with(root -> dossierJoin).toPredicate(r, q, cb),
+				ScreeningRondeSpecification.isLopend().toPredicate(r, q, cb)
+			);
+		};
 	}
 }

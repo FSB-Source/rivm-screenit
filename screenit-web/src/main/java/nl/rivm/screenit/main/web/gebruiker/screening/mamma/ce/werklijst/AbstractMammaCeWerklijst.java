@@ -30,6 +30,7 @@ import nl.rivm.screenit.main.web.component.table.GeboortedatumColumn;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.ce.AbstractMammaCePage;
 import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.GbaPersoon_;
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.mamma.MammaAfspraak_;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling_;
@@ -39,7 +40,6 @@ import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid_;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
-import nl.topicuszorg.organisatie.model.Organisatie_;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
 
@@ -85,12 +85,6 @@ public abstract class AbstractMammaCeWerklijst extends AbstractMammaCePage
 		super.onDetach();
 	}
 
-	protected IColumn<MammaBeoordeling, String> getOnderzoeksdatumColumnZonderJpa()
-	{
-		return new DateTimePropertyColumn<>(Model.of("Onderzoeksdatum SE"), "onderzoek.creatieDatum", "onderzoek.creatieDatum",
-			Constants.getDateTimeFormat());
-	}
-
 	protected IColumn<MammaBeoordeling, String> getOnderzoeksdatumColumn()
 	{
 		return new DateTimePropertyColumn<>(Model.of("Onderzoeksdatum SE"), "onderzoek.creatieDatum", MammaOnderzoek_.CREATIE_DATUM, Constants.getDateTimeFormat());
@@ -101,14 +95,9 @@ public abstract class AbstractMammaCeWerklijst extends AbstractMammaCePage
 		return new EnumPropertyColumn<>(Model.of("Status"), propertyChain(MammaOnderzoek_.LAATSTE_BEOORDELING, MammaBeoordeling_.STATUS), "status", this);
 	}
 
-	protected IColumn<MammaBeoordeling, String> getBeColumnZonderJpa()
-	{
-		return new PropertyColumn<>(Model.of("BE"), "beoordelingsEenheid.naam", "beoordelingsEenheid.naam");
-	}
-
 	protected IColumn<MammaBeoordeling, String> getBeColumn()
 	{
-		return new PropertyColumn<>(Model.of("BE"), propertyChain(MammaOnderzoek_.LAATSTE_BEOORDELING, MammaBeoordeling_.BEOORDELINGS_EENHEID, Organisatie_.NAAM),
+		return new PropertyColumn<>(Model.of("BE"), propertyChain(MammaOnderzoek_.LAATSTE_BEOORDELING, MammaBeoordeling_.BEOORDELINGS_EENHEID, Instelling_.NAAM),
 			"beoordelingsEenheid.naam");
 	}
 
@@ -117,30 +106,15 @@ public abstract class AbstractMammaCeWerklijst extends AbstractMammaCePage
 		return new PropertyColumn<>(Model.of("SE"), propertyChain(MammaOnderzoek_.SCREENINGS_EENHEID, MammaScreeningsEenheid_.CODE), "onderzoek.screeningsEenheid.code");
 	}
 
-	protected IColumn<MammaBeoordeling, String> getBsnColumnZonderJpa()
-	{
-		return new PropertyColumn<>(Model.of("BSN"), "persoon.bsn", "onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon.bsn");
-	}
-
 	protected IColumn<MammaBeoordeling, String> getBsnColumn()
 	{
 		return new PropertyColumn<>(Model.of("BSN"), propertyChain(persoonSortProperty(), GbaPersoon_.BSN),
 			"onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon.bsn");
 	}
 
-	protected IColumn<MammaBeoordeling, String> getGeboortedatumColumnZonderJpa()
-	{
-		return new GeboortedatumColumn<>("persoon.geboortedatum", "onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon");
-	}
-
 	protected IColumn<MammaBeoordeling, String> getGeboortedatumColumn()
 	{
 		return new GeboortedatumColumn<>(propertyChain(persoonSortProperty(), GbaPersoon_.GEBOORTEDATUM), "onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon");
-	}
-
-	protected IColumn<MammaBeoordeling, String> getClientColumnZonderJpa()
-	{
-		return new ClientColumn<>("persoon.achternaam", "onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client");
 	}
 
 	protected IColumn<MammaBeoordeling, String> getClientColumn()
@@ -159,9 +133,13 @@ public abstract class AbstractMammaCeWerklijst extends AbstractMammaCePage
 		return new EnumPropertyColumn<>(Model.of("Type onderzoek"), MammaOnderzoek_.ONDERZOEK_TYPE, "onderzoek.onderzoekType");
 	}
 
-	private static String persoonSortProperty()
+	private String persoonSortProperty()
 	{
-		return propertyChain(MammaOnderzoek_.AFSPRAAK, MammaAfspraak_.UITNODIGING, MammaUitnodiging_.SCREENING_RONDE,
-			MammaScreeningRonde_.DOSSIER, MammaDossier_.CLIENT, Client_.PERSOON);
+		return propertyChain(rondeSortProperty(), MammaScreeningRonde_.DOSSIER, MammaDossier_.CLIENT, Client_.PERSOON);
+	}
+
+	protected String rondeSortProperty()
+	{
+		return propertyChain(propertyChain(MammaOnderzoek_.AFSPRAAK, MammaAfspraak_.UITNODIGING, MammaUitnodiging_.SCREENING_RONDE));
 	}
 }

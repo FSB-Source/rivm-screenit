@@ -72,9 +72,6 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON })
 public class OvereenkomstZoekenBeheerPage extends ColonScreeningBasePage
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private OvereenkomstService overeenkomstService;
 
@@ -84,9 +81,9 @@ public class OvereenkomstZoekenBeheerPage extends ColonScreeningBasePage
 	@SpringBean
 	private OrganisatieZoekService organisatieZoekService;
 
-	private IModel<OvereenkomstZoekFilter> filter;
+	private final IModel<OvereenkomstZoekFilter> filter;
 
-	private WebMarkupContainer resultcontainer;
+	private final WebMarkupContainer resultcontainer;
 
 	public OvereenkomstZoekenBeheerPage()
 	{
@@ -101,13 +98,10 @@ public class OvereenkomstZoekenBeheerPage extends ColonScreeningBasePage
 		columns.add(new PropertyColumn<Instelling, String>(Model.of("Plaats"), null, "adressen[0].plaats"));
 		columns.add(new AbstractColumn<Instelling, String>(Model.of("Regio"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<Instelling>> cellItem, String componentId, IModel<Instelling> rowModel)
 			{
-				List<Instelling> lijst = organisatieZoekService.findSOs(rowModel.getObject());
+				List<Instelling> lijst = organisatieZoekService.screeningsorganisatiesWaarOrganisatieOndervalt(rowModel.getObject());
 				StringBuilder sb = new StringBuilder();
 				for (Instelling instelling : lijst)
 				{
@@ -119,9 +113,6 @@ public class OvereenkomstZoekenBeheerPage extends ColonScreeningBasePage
 		});
 		columns.add(new PropertyColumn<Instelling, String>(Model.of("Unieke code"), null, "uziAbonneenummer")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<Instelling>> item, String componentId, IModel<Instelling> rowModel)
 			{
@@ -138,9 +129,6 @@ public class OvereenkomstZoekenBeheerPage extends ColonScreeningBasePage
 		});
 		columns.add(new AbstractColumn<Instelling, String>(Model.of("Overeenkomsten"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<Instelling>> cellItem, String componentId, IModel<Instelling> rowModel)
 			{
@@ -169,9 +157,6 @@ public class OvereenkomstZoekenBeheerPage extends ColonScreeningBasePage
 		overeenkomstForm.add(new PostcodeField("organisatiePostcode").setAlleenCijfersToegestaan(true));
 		overeenkomstForm.add(new ScreenitDropdown<Instelling>("regio", ModelUtil.listRModel(instellingService.getAllActiefScreeningOrganisaties()), new ChoiceRenderer<Instelling>()
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public Object getDisplayValue(Instelling object)
 			{
@@ -182,9 +167,6 @@ public class OvereenkomstZoekenBeheerPage extends ColonScreeningBasePage
 		overeenkomstForm.add(new ScreenitDropdown<Overeenkomst>("overeenkomst", ModelUtil.listRModel(overeenkomstService.getAlleOvereenkomstenVanTypeOvereenkomst()),
 			new ChoiceRenderer<Overeenkomst>()
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				public Object getDisplayValue(Overeenkomst object)
 				{
@@ -200,9 +182,6 @@ public class OvereenkomstZoekenBeheerPage extends ColonScreeningBasePage
 			}).setNullValid(true));
 		IndicatingAjaxSubmitLink zoekKnop = new IndicatingAjaxSubmitLink("zoeken", overeenkomstForm)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{

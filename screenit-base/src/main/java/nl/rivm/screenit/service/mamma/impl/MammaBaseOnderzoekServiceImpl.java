@@ -67,7 +67,7 @@ import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.service.mamma.MammaBaseIlmService;
 import nl.rivm.screenit.service.mamma.MammaBaseOnderzoekService;
-import nl.rivm.screenit.specification.mamma.MammaMammografieSpecification;
+import nl.rivm.screenit.specification.mamma.MammaMammografieBaseSpecification;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.KeyValue;
 import nl.rivm.screenit.util.NaamUtil;
@@ -79,6 +79,7 @@ import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -322,7 +323,7 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 
 	private List<MammaMammografie> getMammografienMetUitnodigingsNummer(long accessionNumber)
 	{
-		return mammografieRepository.findAll(MammaMammografieSpecification.heeftUitnodigingsNummer(accessionNumber));
+		return mammografieRepository.findAll(MammaMammografieBaseSpecification.heeftUitnodigingsNummer(accessionNumber));
 	}
 
 	private void beeldenAlBeschikbaarControle(MammaOnderzoek onderzoek)
@@ -550,6 +551,21 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 	@Override
 	public Optional<MammaOnderzoek> getLaatsteOnderzoekMetMissendeUitslagVanDossier(MammaDossier dossier)
 	{
+		return onderzoekRepository.findFirst(
+			maakLaatsteOnderzoekMetMissendeUitslagSpecification()
+				.and(heeftDossierWatOvereenKomtMetRonde(dossier)),
+			Sort.by(Sort.Order.desc(MammaOnderzoek_.AFGEROND_OP)));
+	}
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	@Override
+	public Specification<MammaOnderzoek> getLaatsteOnderzoekMetMissendeUitslagSpecification()
+	{
+		return maakLaatsteOnderzoekMetMissendeUitslagSpecification();
+	}
+
+	private Specification<MammaOnderzoek> maakLaatsteOnderzoekMetMissendeUitslagSpecification()
+	{
 		var signaleringsTermijn = organisatieParameterService.getOrganisatieParameter(null, MAMMA_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN, 30);
 		var vandaag = currentDateSupplier.getLocalDate();
 
@@ -561,13 +577,11 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 			Math.min(signaleringsTermijn + ChronoUnit.DAYS.between(vandaagMinAantalMaandenGeenUitslag, vandaag),
 				MAMMA_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN.getMaxValue()));
 
-		return onderzoekRepository.findFirst(heeftMissendeUitslag(signalerenVanaf)
-				.and(heeftOnderzoekStatusNietOnderbroken(minimaleSignaleringsDatum)
-					.or(heeftOnderzoekStatusOnderbroken(minimaleSignaleringsDatumOnderbrokenOnderzoek)))
-				.and(heeftIlmStatusBeschikbaarOfGeweest())
-				.and(heeftOnderzoekZonderUitslagBrieven())
-				.and(heeftDossierWatOvereenKomtMetRonde(dossier))
-				.and(heeftActieveClient()),
-			Sort.by(Sort.Order.desc(MammaOnderzoek_.AFGEROND_OP)));
+		return heeftMissendeUitslag(signalerenVanaf)
+			.and(heeftOnderzoekStatusNietOnderbroken(minimaleSignaleringsDatum)
+				.or(heeftOnderzoekStatusOnderbroken(minimaleSignaleringsDatumOnderbrokenOnderzoek)))
+			.and(heeftIlmStatusBeschikbaarOfGeweest())
+			.and(heeftOnderzoekZonderUitslagBrieven())
+			.and(heeftActieveClient());
 	}
 }

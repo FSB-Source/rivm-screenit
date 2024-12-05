@@ -31,7 +31,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CervixUitstelReader extends BaseSpecificationScrollableResultReader<CervixUitstel, Long>
+public class CervixUitstelReader extends BaseSpecificationScrollableResultReader<CervixUitstel>
 {
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;

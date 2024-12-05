@@ -33,6 +33,7 @@ import nl.rivm.screenit.main.web.component.table.ActiefPropertyColumn;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.MammaPlanningBasePage;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -47,7 +48,6 @@ import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.service.mamma.MammaBaseTehuisService;
 import nl.rivm.screenit.service.mamma.enums.MammaTehuisSelectie;
-import nl.topicuszorg.organisatie.model.Organisatie_;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
@@ -75,7 +75,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.MAMMA })
 public class MammaTehuisZoekenPage extends MammaPlanningBasePage
 {
-	private Form<MammaTehuisFilter> zoekForm;
+	private final Form<MammaTehuisFilter> zoekForm;
 
 	@SpringBean
 	private InstellingService instellingService;
@@ -91,7 +91,7 @@ public class MammaTehuisZoekenPage extends MammaPlanningBasePage
 
 	private final boolean magSoAanpassen;
 
-	private static final String SCREENINGORGANISATIE_PROPERTY = "tehuis." + MammaTehuis_.STANDPLAATS + "." + MammaStandplaats_.REGIO + "." + Organisatie_.NAAM;
+	private static final String SCREENINGORGANISATIE_PROPERTY = "tehuis." + MammaTehuis_.STANDPLAATS + "." + MammaStandplaats_.REGIO + "." + Instelling_.NAAM;
 
 	private static final String TEHUIS_NAAM_PROPERTY = "tehuis." + MammaTehuis_.NAAM;
 

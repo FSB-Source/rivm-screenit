@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.service.impl;
 
 /*-
@@ -24,37 +23,92 @@ package nl.rivm.screenit.main.service.impl;
 
 import java.util.List;
 
-import nl.rivm.screenit.main.dao.HoudbaarheidDao;
 import nl.rivm.screenit.main.service.HoudbaarheidService;
 import nl.rivm.screenit.model.AbstractHoudbaarheid;
+import nl.rivm.screenit.model.cervix.CervixZasHoudbaarheid;
+import nl.rivm.screenit.model.colon.IFOBTVervaldatum;
+import nl.rivm.screenit.repository.cervix.CervixZasHoudbaarheidRepository;
+import nl.rivm.screenit.repository.colon.ColonFITVervaldatumRepository;
+import nl.rivm.screenit.specification.cervix.CervixZasHoudbaarheidSpecification;
+import nl.rivm.screenit.specification.colon.ColonFITHoudbaarheidSpecification;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
+import com.google.common.collect.Range;
+
+import static nl.rivm.screenit.specification.HibernateObjectSpecification.heeftNietId;
 
 @Service
 public class HoudbaarheidServiceImpl implements HoudbaarheidService
 {
+	@Autowired
+	private CervixZasHoudbaarheidRepository cervixZasHoudbaarheidRepository;
 
 	@Autowired
-	private HoudbaarheidDao houdbaarheidDao;
+	private ColonFITVervaldatumRepository colonFITVervaldatumRepository;
 
 	@Override
-	public <H extends AbstractHoudbaarheid> List<H> getHoudbaarheidItems(Class<H> clazz, long first, long count, String sortProperty, boolean asc)
+	public <H extends AbstractHoudbaarheid> List<H> getHoudbaarheidItems(Class<H> clazz, long first, long count, Sort sort)
 	{
-		return houdbaarheidDao.getHoudbaarheidItems(clazz, first, count, sortProperty, asc);
+		if (clazz.equals(IFOBTVervaldatum.class))
+		{
+			return (List<H>) colonFITVervaldatumRepository.findWith(null, q -> q.sortBy(sort)).all(first, count);
+		}
+		else
+		{
+			return (List<H>) cervixZasHoudbaarheidRepository.findWith(null, q -> q.sortBy(sort)).all(first, count);
+		}
 	}
 
 	@Override
 	public <H extends AbstractHoudbaarheid> Long countHoudbaarheidItems(Class<H> clazz)
 	{
-		return houdbaarheidDao.countHoudbaarheidItems(clazz);
+		if (clazz.equals(IFOBTVervaldatum.class))
+		{
+			return colonFITVervaldatumRepository.count();
+		}
+		else
+		{
+			return cervixZasHoudbaarheidRepository.count();
+		}
 	}
 
 	@Override
 	public <H extends AbstractHoudbaarheid> boolean overlaptBestaandeReeks(H vervalDatum)
 	{
-		return CollectionUtils.isNotEmpty(houdbaarheidDao.overlaptBestaandeReeks(vervalDatum));
+		if (vervalDatum instanceof IFOBTVervaldatum)
+		{
+			return overlaptBestaandeFitReeks((IFOBTVervaldatum) vervalDatum);
+		}
+		else
+		{
+			return overlaptBestaandeZasReeks((CervixZasHoudbaarheid) vervalDatum);
+		}
 	}
 
+	private boolean overlaptBestaandeFitReeks(IFOBTVervaldatum vervalDatum)
+	{
+		var barcodeRange = Range.closed(vervalDatum.getBarcodeStart(), vervalDatum.getBarcodeEnd());
+		var specification = ColonFITHoudbaarheidSpecification.overlaptBarcode(barcodeRange)
+			.and(ColonFITHoudbaarheidSpecification.heeftBarcodeLengte(vervalDatum.getBarcodeStart().length()));
+		if (vervalDatum.getId() != null)
+		{
+			specification = specification.and(heeftNietId(vervalDatum.getId()));
+		}
+		return colonFITVervaldatumRepository.exists(specification);
+	}
+
+	private boolean overlaptBestaandeZasReeks(CervixZasHoudbaarheid houdbaarheid)
+	{
+		var barcodeRange = Range.closed(houdbaarheid.getBarcodeStart(), houdbaarheid.getBarcodeEnd());
+		var specification = CervixZasHoudbaarheidSpecification.overlaptBarcode(barcodeRange)
+			.and(CervixZasHoudbaarheidSpecification.heeftBarcodeLengte(houdbaarheid.getBarcodeStart().length()));
+		if (houdbaarheid.getId() != null)
+		{
+			specification = specification.and(heeftNietId(houdbaarheid.getId()));
+		}
+		return cervixZasHoudbaarheidRepository.exists(specification);
+	}
 }

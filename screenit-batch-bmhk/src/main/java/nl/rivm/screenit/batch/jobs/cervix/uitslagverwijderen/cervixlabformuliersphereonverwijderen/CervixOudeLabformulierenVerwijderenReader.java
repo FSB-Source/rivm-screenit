@@ -23,7 +23,7 @@ package nl.rivm.screenit.batch.jobs.cervix.uitslagverwijderen.cervixlabformulier
 
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
@@ -32,15 +32,19 @@ import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.heeftScanDatumTotEnMet;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.isDigitaal;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.isNietGewist;
 
 @Component
 @AllArgsConstructor
-public class CervixOudeLabformulierenVerwijderenReader extends BaseScrollableResultReader
+public class CervixOudeLabformulierenVerwijderenReader extends BaseSpecificationScrollableResultReader<CervixLabformulier>
 {
 	private final ICurrentDateSupplier dateSupplier;
 
-	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
 		var minVerwijderenDatum = DateUtil.toUtilDate(dateSupplier.getLocalDate().minusYears(1));
@@ -53,5 +57,14 @@ public class CervixOudeLabformulierenVerwijderenReader extends BaseScrollableRes
 		criteria.setMaxResults(100000);
 
 		return criteria;
+	}
+
+	@Override
+	protected Specification<CervixLabformulier> createSpecification()
+	{
+		var minVerwijderenDatum = DateUtil.toUtilDate(dateSupplier.getLocalDate().minusYears(1));
+		return heeftScanDatumTotEnMet(minVerwijderenDatum)
+			.and(isDigitaal(false))
+			.and(isNietGewist());
 	}
 }

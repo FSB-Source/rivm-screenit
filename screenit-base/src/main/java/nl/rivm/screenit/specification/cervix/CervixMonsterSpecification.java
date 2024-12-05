@@ -24,15 +24,15 @@ package nl.rivm.screenit.specification.cervix;
 import java.time.LocalDate;
 import java.util.List;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.Brief_;
-import nl.rivm.screenit.model.ClientBrief_;
 import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.Dossier_;
 import nl.rivm.screenit.model.GbaPersoon_;
@@ -63,6 +63,7 @@ import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixZasStatus;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.specification.algemeen.ClientSpecification;
 import nl.rivm.screenit.util.DateUtil;
 
@@ -72,17 +73,21 @@ import org.springframework.data.jpa.domain.Specification;
 import static nl.rivm.screenit.specification.DateSpecification.truncate;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmpty;
+import static nl.rivm.screenit.specification.SpecificationUtil.treat;
+import static nl.rivm.screenit.specification.algemeen.ClientBriefSpecification.heeftGegenereerdeBriefOfProjectBriefVanType;
 import static nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification.monsterJoin;
-import static nl.rivm.screenit.specification.cervix.CervixBriefSpecification.heeftBriefInBrieftypes;
-import static nl.rivm.screenit.specification.cervix.CervixBriefSpecification.heeftVervangendeProjectBrief;
-import static nl.rivm.screenit.specification.cervix.CervixBriefSpecification.isGegenereerd;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixMonsterSpecification
 {
-	public static Specification<CervixMonster> heeftBrief()
+	public static ExtendedSpecification<CervixMonster> heeftBrief()
 	{
 		return (r, q, cb) -> cb.isNotNull(r.get(CervixMonster_.brief));
+	}
+
+	public static Specification<CervixMonster> heeftGeenBrief()
+	{
+		return (r, q, cb) -> cb.isNull(r.get(CervixMonster_.brief));
 	}
 
 	public static Specification<CervixMonster> heeftGeenVerrichtingen()
@@ -94,7 +99,7 @@ public class CervixMonsterSpecification
 	{
 		return (r, q, cb) ->
 		{
-			var status = cb.treat(r, CervixUitstrijkje.class)
+			var status = getUitstrijkjeRoot(r, cb)
 				.join(CervixUitstrijkje_.huisartsBericht, JoinType.LEFT)
 				.get(CervixHuisartsBericht_.status);
 
@@ -109,7 +114,7 @@ public class CervixMonsterSpecification
 	{
 		return (r, q, cb) ->
 		{
-			var status = cb.treat(r, CervixUitstrijkje.class).get(CervixUitstrijkje_.uitstrijkjeStatus);
+			var status = getUitstrijkjeRoot(r, cb).get(CervixUitstrijkje_.uitstrijkjeStatus);
 
 			return cb.or(
 				cb.isNull(status),
@@ -120,19 +125,19 @@ public class CervixMonsterSpecification
 
 	public static Specification<CervixMonster> isZas()
 	{
-		return (r, q, cb) -> cb.treat(r, CervixZas.class).get(CervixZas_.zasStatus).isNotNull();
+		return (r, q, cb) -> getZasRoot(r, cb).get(CervixZas_.zasStatus).isNotNull();
 	}
 
 	public static Specification<CervixMonster> geefNietIngestuurdeOudeZAS(CervixDossier dossier)
 	{
 		return (r, q, cb) ->
 			cb.and(
-				cb.equal(cb.treat(r, CervixZas.class).get(CervixZas_.zasStatus), CervixZasStatus.VERSTUURD),
+				cb.equal(getZasRoot(r, cb).get(CervixZas_.zasStatus), CervixZasStatus.VERSTUURD),
 				cb.like(r.get(CervixMonster_.monsterId), "Z%"),
 				cb.equal(r.join(CervixMonster_.uitnodiging).join(CervixUitnodiging_.screeningRonde).join(CervixScreeningRonde_.dossier), dossier));
 	}
 
-	public static Specification<CervixMonster> heeftMonsterId(String monsterId)
+	public static ExtendedSpecification<CervixMonster> heeftMonsterId(String monsterId)
 	{
 		return (r, q, cb) -> cb.equal(r.get(CervixMonster_.monsterId), StringUtils.trimToEmpty(monsterId));
 	}
@@ -169,6 +174,12 @@ public class CervixMonsterSpecification
 				.get(GbaPersoon_.bsn), bsn);
 	}
 
+	public static Specification<CervixMonster> heeftOntvangstRonde()
+	{
+		return (r, q, cb) -> cb.isNotNull(r.get(CervixMonster_.ontvangstScreeningRonde));
+
+	}
+
 	public static Specification<CervixMonster> heeftOntvangstRonde(CervixScreeningRonde ontvangstRonde)
 	{
 		return (r, q, cb) -> cb.equal(r.get(CervixMonster_.ontvangstScreeningRonde), ontvangstRonde);
@@ -188,7 +199,7 @@ public class CervixMonsterSpecification
 	{
 		return (r, q, cb) ->
 		{
-			var cytologieVerslagJoin = join(cb.treat(r, CervixUitstrijkje.class), CervixUitstrijkje_.cytologieVerslag, JoinType.LEFT);
+			var cytologieVerslagJoin = join(getUitstrijkjeRoot(r, cb), CervixUitstrijkje_.cytologieVerslag, JoinType.LEFT);
 			return cb.equal(cytologieVerslagJoin.get(CervixCytologieVerslag_.cytologieUitslag), CervixCytologieUitslag.PAP0);
 		};
 	}
@@ -301,17 +312,42 @@ public class CervixMonsterSpecification
 		return (r, q, cb) ->
 			cb.or(
 				cb.and(
-					cb.or(cb.notEqual(cb.treat(r, CervixUitstrijkje.class).get(CervixUitstrijkje_.uitstrijkjeStatus), CervixUitstrijkjeStatus.NIET_ONTVANGEN),
-						cb.notEqual(cb.treat(r, CervixZas.class).get(CervixZas_.zasStatus), CervixZasStatus.VERSTUURD)),
+					cb.or(cb.notEqual(getUitstrijkjeRoot(r, cb).get(CervixUitstrijkje_.uitstrijkjeStatus), CervixUitstrijkjeStatus.NIET_ONTVANGEN),
+						cb.notEqual(getZasRoot(r, cb).get(CervixZas_.zasStatus), CervixZasStatus.VERSTUURD)),
 					heeftGeenMonsterMetUitslagBriefSubquery().toPredicate(r, q, cb)
 				)
 				, cb.and(
-					cb.equal(cb.treat(r, CervixZas.class).get(CervixZas_.zasStatus), CervixZasStatus.NIET_ANALYSEERBAAR),
+					cb.equal(getZasRoot(r, cb).get(CervixZas_.zasStatus), CervixZasStatus.NIET_ANALYSEERBAAR),
 					cb.not(heeftZasInZelfdeRondeSubquery().toPredicate(r, q, cb)),
 					cb.not(isMonsterDatOntvangenIsNaResultaat().toPredicate(r, q, cb))
 				)
 			);
+	}
 
+	public static Specification<CervixUitstrijkje> heeftNietStatusIn(List<CervixUitstrijkjeStatus> statussen)
+	{
+
+		return (r, q, cb) -> cb.not(r.get(CervixUitstrijkje_.uitstrijkjeStatus).in(statussen));
+	}
+
+	public static Specification<CervixUitstrijkje> heeftGeenCytologieOrder()
+	{
+		return (r, q, cb) -> cb.isNull(r.get(CervixUitstrijkje_.cytologieOrder));
+	}
+
+	public static Specification<CervixUitstrijkje> heeftCytologieVerslag()
+	{
+		return (r, q, cb) -> cb.isNotNull(r.get(CervixUitstrijkje_.cytologieVerslag));
+	}
+
+	public static Specification<CervixUitstrijkje> heeftVerrichtingen()
+	{
+		return (r, q, cb) -> cb.isNotEmpty(r.get(CervixMonster_.VERRICHTINGEN));
+	}
+
+	public static ExtendedSpecification<CervixUitstrijkje> heeftLaboratoriumMetId(Long id)
+	{
+		return (r, q, cb) -> cb.equal(r.get(CervixMonster_.laboratorium), id);
 	}
 
 	private static Specification<CervixMonster> heeftGeenMonsterMetUitslagBriefSubquery()
@@ -320,20 +356,11 @@ public class CervixMonsterSpecification
 		{
 			var subquery = q.subquery(Long.class);
 			var subRoot = subquery.from(CervixBrief.class);
-			var projectBriefJoin = subRoot.join(ClientBrief_.projectBrief, JoinType.LEFT);
-			subquery.select(subRoot.get(TablePerClassHibernateObject_.id)).where(cb.and(
-				cb.equal(subRoot, r.get(CervixMonster_.brief)), 
-				cb.or(
-					cb.and(
-						heeftVervangendeProjectBrief(false).withPath(cb, subRoot),
-						heeftBriefInBrieftypes(BriefType.CERVIX_UITSLAG_BRIEVEN).withPath(cb, subRoot),
-						isGegenereerd(true).withPath(cb, subRoot)
-					),
-					cb.and(
-						heeftVervangendeProjectBrief(true).withPath(cb, subRoot),
-						ProjectBriefSpecification.heeftBriefInBrieftypes(BriefType.CERVIX_UITSLAG_BRIEVEN).withPath(cb, projectBriefJoin),
-						ProjectBriefSpecification.isGegenereerd(true).withPath(cb, projectBriefJoin)
-					))));
+			subquery.select(subRoot.get(TablePerClassHibernateObject_.id))
+				.where(cb.and(
+					cb.equal(subRoot, r.get(CervixMonster_.brief)), 
+					heeftGegenereerdeBriefOfProjectBriefVanType(BriefType.CERVIX_UITSLAG_BRIEVEN).toPredicate(subRoot, q, cb)
+				));
 			return cb.not(cb.exists(subquery));
 		};
 	}
@@ -387,4 +414,13 @@ public class CervixMonsterSpecification
 		return join(rondeJoin, CervixScreeningRonde_.dossier);
 	}
 
+	private static From<?, CervixUitstrijkje> getUitstrijkjeRoot(From<?, CervixMonster> r, CriteriaBuilder cb)
+	{
+		return treat(r, CervixUitstrijkje.class, cb);
+	}
+
+	private static From<?, CervixZas> getZasRoot(From<?, CervixMonster> r, CriteriaBuilder cb)
+	{
+		return treat(r, CervixZas.class, cb);
+	}
 }

@@ -25,9 +25,12 @@ import java.time.LocalDate;
 import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 import javax.persistence.metamodel.SingularAttribute;
 
 import lombok.AccessLevel;
@@ -37,7 +40,10 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.Dossier;
 import nl.rivm.screenit.model.Dossier_;
+import nl.rivm.screenit.model.ProjectParameterKey;
+import nl.rivm.screenit.model.SingleTableHibernateObject_;
 import nl.rivm.screenit.model.TablePerClassHibernateObject_;
+import nl.rivm.screenit.model.colon.ColonDossier_;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectBrief;
@@ -46,14 +52,19 @@ import nl.rivm.screenit.model.project.ProjectBrief_;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectClient_;
 import nl.rivm.screenit.model.project.ProjectGroep_;
-import nl.rivm.screenit.model.project.Project_;
-import nl.rivm.screenit.specification.SpecificationUtil;
+import nl.rivm.screenit.model.project.ProjectType;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 
 import org.springframework.data.jpa.domain.Specification;
 
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNull;
+import static nl.rivm.screenit.specification.algemeen.ProjectSpecification.heeftParameterKeyMetValue;
+import static nl.rivm.screenit.specification.algemeen.ProjectSpecification.heeftType;
+import static nl.rivm.screenit.specification.algemeen.ProjectSpecification.isActiefOpDatum;
+import static nl.rivm.screenit.specification.colon.ColonVolgendeUitnodigingSpecification.heeftProjectPeildatum;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ProjectClientSpecification
@@ -67,7 +78,7 @@ public class ProjectClientSpecification
 	{
 		return (r, q, cb) ->
 		{
-			var clientJoin = SpecificationUtil.join(r, ProjectClient_.client);
+			var clientJoin = join(r, ProjectClient_.client);
 			Predicate result = null;
 			if (onderzoeken.contains(Bevolkingsonderzoek.MAMMA))
 			{
@@ -88,7 +99,7 @@ public class ProjectClientSpecification
 	private static Predicate heeftGeenAfmeldingVoorBevolkingsonderzoek(CriteriaBuilder cb, Join<ProjectClient, Client> clientJoin,
 		SingularAttribute<Client, ? extends Dossier<?, ?>> dossier)
 	{
-		var dossierJoin = SpecificationUtil.join(clientJoin, dossier, JoinType.LEFT);
+		var dossierJoin = join(clientJoin, dossier, JoinType.LEFT);
 		return cb.or(dossierJoin.get(TablePerClassHibernateObject_.id).isNull(), cb.equal(dossierJoin.get(Dossier_.aangemeld), true));
 	}
 
@@ -110,25 +121,95 @@ public class ProjectClientSpecification
 		return ClientSpecification.heeftActieveClient().with(ProjectClient_.client);
 	}
 
-	public static Specification<ProjectClient> heeftActieveClientInProjectVoorProjectClient(LocalDate peildatum)
+	public static ExtendedSpecification<ProjectClient> isProjectClientActief(boolean isActief)
+	{
+		return (r, q, cb) -> cb.equal(r.get(ProjectClient_.actief), isActief);
+	}
+
+	public static ExtendedSpecification<ProjectClient> heeftActieveProjectGroep()
 	{
 		return (r, q, cb) ->
 		{
-			var projectGroepJoin = SpecificationUtil.join(r, ProjectClient_.groep);
-			var projectJoin = SpecificationUtil.join(projectGroepJoin, ProjectGroep_.project);
-
-			var clientIsActief = cb.isTrue(r.get(ProjectClient_.actief));
-			var projectgroepIsActief = cb.isTrue(projectGroepJoin.get(ProjectGroep_.actief));
-			var projectIsActief = cb.and(
-				cb.lessThanOrEqualTo(projectJoin.get(Project_.startDatum), DateUtil.toUtilDate(peildatum)),
-				cb.greaterThan(projectJoin.get(Project_.eindDatum), DateUtil.toUtilDate(peildatum))
-			);
-			return cb.and(clientIsActief, projectgroepIsActief, projectIsActief);
+			var projectGroepJoin = join(r, ProjectClient_.groep);
+			return cb.isTrue(projectGroepJoin.get(ProjectGroep_.actief));
 		};
 	}
 
 	public static Specification<ProjectClient> filterClient(Client client)
 	{
 		return skipWhenNull(client, (r, q, cb) -> cb.equal(r.get(ProjectClient_.client), client));
+	}
+
+	public static Specification<ProjectClient> heeftPeildatumInVolgendeUitnodiging()
+	{
+		return heeftProjectPeildatum().with(r ->
+		{
+			var client = join(r, ProjectClient_.client);
+			var dossier = join(client, Client_.colonDossier);
+			return join(dossier, ColonDossier_.volgendeUitnodiging);
+		});
+	}
+
+	public static Specification<ProjectClient> heeftMeerdereProjectenOfHeeftParameterKey(LocalDate peildatum)
+	{
+		return (r, q, cb) ->
+		{
+			var subquery = heeftActieveClientenProjectSubquery(peildatum, r, q, cb);
+
+			return cb.or(
+				cb.and(
+					heeftPeildatumInVolgendeUitnodiging().toPredicate(r, q, cb),
+					cb.or(
+						cb.not(cb.exists(subquery)),
+						r.get(AbstractHibernateObject_.id).in(subquery)
+					)
+				),
+				cb.and(
+					heeftParameterKeyMetValue(ProjectParameterKey.COLON_AFWIJKING_UITNODIGINGSINTERVAL).with(ProjectClient_.project).toPredicate(r, q, cb),
+					projectClientEnProjectGroepActiefEnProjectActiefOp(peildatum).toPredicate(r, q, cb)
+				)
+			);
+		};
+	}
+
+	public static ExtendedSpecification<ProjectClient> projectClientEnProjectGroepActiefEnProjectActiefOp(LocalDate peildatum)
+	{
+		return isProjectClientActief(true)
+			.and(heeftActieveProjectGroep())
+			.and(isActiefOpDatum(peildatum).with(ProjectClient_.project));
+	}
+
+	private static Subquery<Long> heeftActieveClientenProjectSubquery(LocalDate peildatum, Root<ProjectClient> r, CriteriaQuery<?> q, CriteriaBuilder cb)
+	{
+		var subquery = q.subquery(Long.class);
+		var subRoot = subquery.from(ProjectClient.class);
+		var clientJoin = join(subRoot, ProjectClient_.client);
+
+		subquery.select(subRoot.get(AbstractHibernateObject_.id))
+			.where(cb.and(
+				heeftType(ProjectType.PROJECT).with(ProjectClient_.project).toPredicate(subRoot, q, cb),
+				cb.equal(clientJoin.get(SingleTableHibernateObject_.id), r.get(ProjectClient_.client)),
+				isProjectClientActief(true).toPredicate(subRoot, q, cb),
+				heeftActieveProjectGroep().toPredicate(subRoot, q, cb),
+				isActiefOpDatum(peildatum).with(ProjectClient_.project).toPredicate(subRoot, q, cb)
+			));
+		return subquery;
+	}
+
+	public static ExtendedSpecification<ProjectClient> heeftActieveProjectClient(Long projectGroupId)
+	{
+		return (r, q, cb) -> cb.and(
+			cb.equal(r.get(ProjectClient_.groep), projectGroupId),
+			cb.isTrue(r.get(ProjectClient_.actief)));
+	}
+
+	public static ExtendedSpecification<ProjectClient> clientIsToegevoegdVoorDatum(LocalDate datum)
+	{
+		return (r, q, cb) -> cb.lessThan(r.get(ProjectClient_.toegevoegd), DateUtil.toUtilDate(datum));
+	}
+
+	public static ExtendedSpecification<ProjectClient> heeftIsUitgenodigdInProjectPeriode(boolean value)
+	{
+		return (r, q, cb) -> cb.equal(r.get(ProjectClient_.isUitgenodigdInProjectPeriode), value);
 	}
 }

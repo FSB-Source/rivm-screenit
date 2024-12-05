@@ -25,40 +25,34 @@ import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.mamma.MammaFollowUpVerslagSpecification.heeftDatumVerwerktVoor;
+import static nl.rivm.screenit.specification.mamma.MammaFollowUpVerslagSpecification.heeftGeenInvoerder;
+import static nl.rivm.screenit.specification.mamma.MammaFollowUpVerslagSpecification.heeftPathologieObservatieMetTNummer;
 
 @Component
 @AllArgsConstructor
-public class MammaPalgaImportVerslagenVerwijderenReader extends BaseScrollableResultReader
+public class MammaPalgaImportVerslagenVerwijderenReader extends BaseSpecificationScrollableResultReader<MammaFollowUpVerslag>
 {
-
 	private final SimplePreferenceService preferenceService;
 
 	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<MammaFollowUpVerslag> createSpecification()
 	{
 		var verwijderDatum = DateUtil.toUtilDate(currentDateSupplier.getLocalDate().minusDays(preferenceService.getInteger(PreferenceKey.ILM_BEWAARTERMIJN_PALGA.name())));
 
-		var criteria = session.createCriteria(MammaFollowUpVerslag.class);
-		criteria.createAlias("verslagContent", "verslagContent");
-		criteria.createAlias("verslagContent.pathologieMedischeObservatie", "pathologieMedischeObservatie");
-
-		criteria.add(Restrictions.lt("datumVerwerkt", verwijderDatum));
-		criteria.add(Restrictions.eq("pathologieMedischeObservatie.tnummerLaboratorium", Constants.BK_TNUMMER_ELEKTRONISCH));
-		criteria.add(Restrictions.isNull("invoerder"));
-
-		return criteria;
+		return heeftDatumVerwerktVoor(verwijderDatum)
+			.and(heeftPathologieObservatieMetTNummer(Constants.BK_TNUMMER_ELEKTRONISCH))
+			.and(heeftGeenInvoerder());
 	}
 }

@@ -36,18 +36,18 @@ public class MammaMislukteHuisartsberichtenVersturenJobConfiguration extends Abs
 {
 
 	@Bean
-	public Job huisartsenBerichtenOpnieuwSturenJob(MammaMislukteHuisartsberichtenVersturenListener listener, Step huisartsenBerichtenOpnieuwSturenStep)
+	public Job huisartsberichtenOpnieuwSturenJob(MammaMislukteHuisartsberichtenVersturenListener listener, Step huisartsberichtenOpnieuwSturenStep)
 	{
 		return jobBuilderFactory.get(JobType.MAMMA_HUISARTS_BERICHTEN_OPNIEUW_VERSTUREN.name())
 			.listener(listener)
-			.start(huisartsenBerichtenOpnieuwSturenStep)
+			.start(huisartsberichtenOpnieuwSturenStep)
 			.build();
 	}
 
 	@Bean
-	public Step huisartsenBerichtenOpnieuwSturenStep(MammaMislukteHuisartsberichtenVersturenReader reader, MammaMislukteHuisartsberichtenVersturenWriter writer)
+	public Step huisartsberichtenOpnieuwSturenStep(MammaMislukteHuisartsberichtenVersturenReader reader, MammaMislukteHuisartsberichtenVersturenWriter writer)
 	{
-		return stepBuilderFactory.get("huisartsenBerichtenOpnieuwSturenStep")
+		return stepBuilderFactory.get("huisartsberichtenOpnieuwSturenStep")
 			.transactionManager(transactionManager)
 			.<Long, Long> chunk(50)
 			.reader(reader)

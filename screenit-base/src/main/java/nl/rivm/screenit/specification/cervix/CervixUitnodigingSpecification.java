@@ -55,6 +55,8 @@ import nl.rivm.screenit.util.DateUtil;
 
 import org.springframework.data.jpa.domain.Specification;
 
+import static nl.rivm.screenit.specification.algemeen.BriefSpecification.heeftBriefTypeIn;
+
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixUitnodigingSpecification
 {
@@ -128,7 +130,7 @@ public class CervixUitnodigingSpecification
 
 	public static Specification<CervixUitnodiging> heeftBriefMetBrieftype(BriefType... briefTypes)
 	{
-		return CervixBriefSpecification.heeftBriefInBrieftypes(Arrays.asList(briefTypes)).toSpecification(r -> SpecificationUtil.join(r, CervixUitnodiging_.brief));
+		return heeftBriefTypeIn(Arrays.asList(briefTypes)).with(CervixUitnodiging_.brief);
 	}
 
 	public static Specification<CervixUitnodiging> heeftScreeningRonde(CervixScreeningRonde screeningRonde)
@@ -194,5 +196,10 @@ public class CervixUitnodigingSpecification
 			heeftZasAlsPrimaireUitnodigingIsVerstuurd().toPredicate(r, q, cb),
 			heeftBriefMetBrieftype(BriefType.CERVIX_ZAS_COMBI_UITNODIGING_30).toPredicate(r, q, cb)
 		);
+	}
+
+	public static Specification<CervixUitnodiging> heeftGeenMonster()
+	{
+		return (r, q, cb) -> cb.isNull(r.get(CervixUitnodiging_.monster));
 	}
 }

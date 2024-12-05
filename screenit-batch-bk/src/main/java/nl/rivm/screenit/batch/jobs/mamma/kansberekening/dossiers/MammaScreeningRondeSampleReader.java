@@ -21,48 +21,82 @@ package nl.rivm.screenit.batch.jobs.mamma.kansberekening.dossiers;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+
+import javax.persistence.criteria.From;
+
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.mamma.MammaBrief;
+import nl.rivm.screenit.model.mamma.MammaBrief_;
+import nl.rivm.screenit.model.mamma.MammaMergedBrieven;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.Range;
+
+import static javax.persistence.criteria.JoinType.LEFT;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.BriefSpecification.isAangemaaktVoor;
+import static nl.rivm.screenit.specification.algemeen.BriefSpecification.isGegenereerd;
+import static nl.rivm.screenit.specification.algemeen.MammaBriefSpecification.heeftGeenMergedBrieven;
+import static nl.rivm.screenit.specification.algemeen.MergedBrievenSpecification.heeftPrintDatumVoor;
+import static nl.rivm.screenit.specification.algemeen.MergedBrievenSpecification.heeftPrintDatum;
+import static nl.rivm.screenit.specification.algemeen.ScreeningRondeSpecification.isAangemaaktIn;
+import static nl.rivm.screenit.specification.mamma.MammaScreeningRondeSpecification.heeftGeenScreeningRondeEvent;
 
 @Component
 @AllArgsConstructor
-public class MammaScreeningRondeSampleReader extends BaseScrollableResultReader
+public class MammaScreeningRondeSampleReader extends BaseSpecificationScrollableResultReader<MammaScreeningRonde>
 {
 	private final ICurrentDateSupplier dateSupplier;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<MammaScreeningRonde> createSpecification()
 	{
-		var printDatumVoor = DateUtil.toUtilDate(dateSupplier.getLocalDate().minusWeeks(Constants.DEELNAMEKANSBEREKENING_NA_WEKEN));
+		var vandaag = dateSupplier.getLocalDate();
+		var aangemaaktBereik = Range.atLeast(vandaag.minusYears(5));
+		var printDatumVoor = vandaag.minusWeeks(Constants.DEELNAMEKANSBEREKENING_NA_WEKEN);
 
-		var criteria = session.createCriteria(MammaScreeningRonde.class, "screeningRonde");
-		criteria.createAlias("screeningRonde.uitnodigingen", "uitnodiging");
-		criteria.createAlias("uitnodiging.brief", "brief");
-		criteria.createAlias("brief.mergedBrieven", "mergedBrieven", JoinType.LEFT_OUTER_JOIN);
+		return heeftGeenScreeningRondeEvent()
+			.and(isAangemaaktIn(aangemaaktBereik))
+			.and(gegenereerdeBriefZonderMergedBrievenAangemaaktVoor(printDatumVoor)
+				.or(briefMetMergedBrievenGeprintVoor(printDatumVoor)));
+	}
 
-		criteria.add(Restrictions.isNull("screeningRonde.screeningRondeEvent"));
-		criteria.add(Restrictions.or(
-			Restrictions.and(
-				Restrictions.eq("brief.gegenereerd", true),
-				Restrictions.isNull("brief.mergedBrieven"),
-				Restrictions.lt("brief.creatieDatum", printDatumVoor)),
-			Restrictions.and(
-				Restrictions.isNotNull("mergedBrieven.printDatum"),
-				Restrictions.lt("mergedBrieven.printDatum", printDatumVoor))));
-		criteria.add(Restrictions.ge("screeningRonde.creatieDatum", DateUtil.toUtilDate(dateSupplier.getLocalDate().minusYears(5))));
+	private ExtendedSpecification<MammaScreeningRonde> gegenereerdeBriefZonderMergedBrievenAangemaaktVoor(LocalDate peilmoment)
+	{
+		return heeftGeenMergedBrieven()
+			.and(isGegenereerd(true))
+			.and(isAangemaaktVoor(peilmoment))
+			.with(r -> getBriefJoin(r));
+	}
 
-		return criteria;
+	private ExtendedSpecification<MammaScreeningRonde> briefMetMergedBrievenGeprintVoor(LocalDate peilmoment)
+	{
+		return heeftPrintDatum()
+			.and(heeftPrintDatumVoor(peilmoment))
+			.with(r -> getMergedBrievenJoin(r));
+	}
+
+	private static From<?, MammaBrief> getBriefJoin(From<?, ? extends MammaScreeningRonde> r)
+	{
+		var uitnodigingJoin = join(r, MammaScreeningRonde_.uitnodigingen);
+		return join(uitnodigingJoin, MammaUitnodiging_.brief);
+	}
+
+	private static From<?, MammaMergedBrieven> getMergedBrievenJoin(From<?, ? extends MammaScreeningRonde> r)
+	{
+		var uitnodigingJoin = join(r, MammaScreeningRonde_.uitnodigingen);
+		var briefJoin = join(uitnodigingJoin, MammaUitnodiging_.brief);
+		return join(briefJoin, MammaBrief_.mergedBrieven, LEFT);
 	}
 }

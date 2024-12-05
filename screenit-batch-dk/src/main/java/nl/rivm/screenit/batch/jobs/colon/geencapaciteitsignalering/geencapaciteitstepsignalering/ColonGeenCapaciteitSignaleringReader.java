@@ -25,7 +25,6 @@ import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.colon.ColonIntakelocatie;
-import nl.rivm.screenit.repository.colon.ColonIntakelocatieRepository;
 import nl.rivm.screenit.service.colon.ColonIntakelocatieService;
 import nl.rivm.screenit.specification.colon.ColonIntakelocatieSpecification;
 
@@ -34,7 +33,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class ColonGeenCapaciteitSignaleringReader extends BaseSpecificationScrollableResultReader<ColonIntakelocatie, ColonIntakelocatieRepository>
+public class ColonGeenCapaciteitSignaleringReader extends BaseSpecificationScrollableResultReader<ColonIntakelocatie>
 {
 	private final ColonIntakelocatieService intakelocatieService;
 

@@ -23,35 +23,31 @@ package nl.rivm.screenit.batch.jobs.colon.aftergba.overledenstep;
 
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
+import nl.rivm.screenit.model.colon.ColonIntakeAfspraak_;
 import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.specification.algemeen.PersoonSpecification;
+import nl.rivm.screenit.specification.colon.ColonIntakeAfspraakSpecification;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
 @Component
 @AllArgsConstructor
-public class OverledenReader extends BaseScrollableResultReader
+public class OverledenReader extends BaseSpecificationScrollableResultReader<ColonIntakeAfspraak>
 {
-
 	private final ICurrentDateSupplier currentDateDispatcher;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<ColonIntakeAfspraak> createSpecification()
 	{
-		var crit = session.createCriteria(ColonIntakeAfspraak.class);
-		crit.createAlias("client", "client");
-		crit.createAlias("client.persoon", "persoon");
-
-		crit.add(Restrictions.eq("status", ColonAfspraakStatus.GEPLAND));
-		crit.add(Restrictions.ge("vanaf", currentDateDispatcher.getLocalDateTime()));
-		crit.add(Restrictions.isNotNull("persoon.overlijdensdatum"));
-
-		return crit;
+		return ColonIntakeAfspraakSpecification.heeftStatus(ColonAfspraakStatus.GEPLAND)
+			.and(ColonIntakeAfspraakSpecification.heeftAfspraakVanaf(currentDateDispatcher.getLocalDateTime()))
+			.and(PersoonSpecification.isOverleden().with(r -> join(join(r, ColonIntakeAfspraak_.client), Client_.persoon)));
 	}
 }

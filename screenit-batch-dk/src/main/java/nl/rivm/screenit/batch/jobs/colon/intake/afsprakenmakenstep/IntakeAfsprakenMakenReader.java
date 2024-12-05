@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.colon.intake.IntakeAfsprakenMakenConstants;
 import nl.rivm.screenit.batch.model.ClientAfspraak;
-import nl.rivm.screenit.batch.service.IntakeAfpraakService;
+import nl.rivm.screenit.batch.service.ColonIntakeAfspraakService;
 import nl.rivm.screenit.batch.service.PlanIntakeAfsprakenService;
 import nl.rivm.screenit.model.colon.dto.VrijSlot;
 import nl.rivm.screenit.model.enums.Level;
@@ -58,7 +58,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 public class IntakeAfsprakenMakenReader implements ItemReader<ClientAfspraak>, ItemStream
 {
 	@Autowired
-	private IntakeAfpraakService intakeAfspraakService;
+	private ColonIntakeAfspraakService intakeAfspraakService;
 
 	@Autowired
 	private PlanIntakeAfsprakenService planIntakeAfsprakenService;

@@ -62,6 +62,7 @@ import nl.rivm.screenit.model.enums.RedenNietTeBeoordelen;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.DossierFactory;
+import nl.rivm.screenit.service.GemeenteService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
@@ -72,7 +73,6 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -110,6 +110,9 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 
 	@Autowired
 	private OrganisatieParameterService organisatieParameterService;
+
+	@Autowired
+	private GemeenteService gemeenteService;
 
 	@Override
 	public String setClientInState(TestModel model)
@@ -514,7 +517,7 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 			hibernateService.saveOrUpdate(gbaAdres);
 			if (gemeente == null)
 			{
-				gemeente = (Gemeente) hibernateService.getHibernateSession().createCriteria(Gemeente.class).add(Restrictions.isNotNull("screeningOrganisatie")).list().get(0);
+				gemeente = gemeenteService.getEersteGemeenteMetScreeningOrganisatie();
 			}
 			gbaAdres.setGbaGemeente(gemeente);
 			gbaAdres.setPlaats(gemeente.getNaam());

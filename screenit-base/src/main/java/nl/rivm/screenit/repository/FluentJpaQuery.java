@@ -28,12 +28,14 @@ import java.util.function.Consumer;
 
 import javax.persistence.EntityGraph;
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
 
 import nl.rivm.screenit.util.functionalinterfaces.TriFunction;
 
+import org.hibernate.ScrollableResults;
 import org.springframework.data.domain.Sort;
 
 public interface FluentJpaQuery<T, P>
@@ -42,13 +44,19 @@ public interface FluentJpaQuery<T, P>
 
 	FluentJpaQuery<T, P> sortBy(Sort sort, TriFunction<Sort.Order, Root<T>, CriteriaBuilder, Order> sortFunction);
 
+	FluentJpaQuery<T, P> sortBy(BiFunction<Root<T>, CriteriaBuilder, List<Order>> ordersFunction);
+
 	FluentJpaQuery<T, P> projection(BiFunction<CriteriaBuilder, Root<T>, Selection<?>> projectionFunction);
 
 	FluentJpaQuery<T, P> projections(BiFunction<CriteriaBuilder, Root<T>, List<Selection<?>>> projectionFunction);
 
+	FluentJpaQuery<T, P> groupBy(BiFunction<CriteriaBuilder, Root<T>, List<Expression<?>>> projectionFunction);
+
 	FluentJpaQuery<T, P> fetch(Consumer<EntityGraph<T>> entityGraphFunction);
 
 	FluentJpaQuery<T, P> distinct();
+
+	FluentJpaQuery<T, P> setScrollFetchSize(int fetchSize);
 
 	List<P> all();
 
@@ -57,4 +65,7 @@ public interface FluentJpaQuery<T, P>
 	Optional<P> first();
 
 	Optional<P> one();
+
+	ScrollableResults scroll(Integer maxResults);
+
 }

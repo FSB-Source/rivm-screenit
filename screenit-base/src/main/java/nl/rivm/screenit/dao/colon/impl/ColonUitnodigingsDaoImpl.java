@@ -25,12 +25,9 @@ import java.util.List;
 
 import nl.rivm.screenit.dao.colon.ColonUitnodigingsDao;
 import nl.rivm.screenit.model.colon.UitnodigingsGebied;
-import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
-import org.apache.commons.lang.NotImplementedException;
-import org.hibernate.Criteria;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,25 +43,12 @@ public class ColonUitnodigingsDaoImpl extends AbstractAutowiredDao implements Co
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	public ScrollableResults getUitnodigingsCursor(ColonUitnodigingCategorie uitnodigingscategorie, UitnodigingsGebied uitnodigingsgebied, List<Integer> geboorteJaren,
-		Integer minimaleLeeftijd, Integer maximaleLeeftijd, Long projectGroupId, List<Long> exclusieGroepIds, int fetchSize)
+	public ScrollableResults getUitnodigingsCursorU2(UitnodigingsGebied uitnodigingsgebied, Integer minimaleLeeftijd, Integer maximaleLeeftijd, Long projectGroupId,
+		List<Long> exclusieGroepIds, int fetchSize)
 	{
-		Criteria crit;
+		var crit = ColonRestrictions.getQueryU2(getSession(), uitnodigingsgebied, minimaleLeeftijd, maximaleLeeftijd, false, projectGroupId, exclusieGroepIds,
+			currentDateSupplier.getLocalDate());
 
-		switch (uitnodigingscategorie)
-		{
-		case U1:
-			crit = ColonRestrictions.getQueryVooraankondigen(getSession(), uitnodigingsgebied, geboorteJaren, false, minimaleLeeftijd, maximaleLeeftijd, projectGroupId,
-				exclusieGroepIds, currentDateSupplier.getLocalDate());
-			break;
-		case U2:
-			crit = ColonRestrictions.getQueryU2(getSession(), uitnodigingsgebied, minimaleLeeftijd, maximaleLeeftijd, false, projectGroupId, exclusieGroepIds,
-				currentDateSupplier.getLocalDate());
-			break;
-		default:
-			throw new NotImplementedException("Onbekende categorie");
-		}
 		return crit.setFetchSize(fetchSize).scroll(ScrollMode.FORWARD_ONLY);
 	}
-
 }

@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model;
 
 /*-
@@ -32,24 +31,57 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.topicuszorg.organisatie.model.OrganisatieMedewerker;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Proxy;
 import org.hibernate.envers.Audited;
+import org.hibernate.envers.RelationTargetAuditMode;
 
 @Entity
-@Table(schema = "algemeen", indexes = { @Index(name = "idx_instelling_gebruiker_actief", columnList = "actief") })
+@Table(schema = "algemeen", name = "org_organisatie_medewerker", indexes = { @Index(name = "idx_organisatie_medewerker_actief", columnList = "actief") })
+@Proxy
+@Cache(
+	usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE,
+	region = "organisatie.cache"
+)
 @Audited
-public class InstellingGebruiker extends OrganisatieMedewerker<Instelling, Gebruiker> implements Account, IActief
+@Getter
+@Setter
+public class InstellingGebruiker extends AbstractHibernateObject implements Account, IActief
 {
+	@ManyToOne
+	@JoinColumn(nullable = false)
+	@Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
+	private Instelling organisatie;
 
-	private static final long serialVersionUID = 1L;
+	@ManyToOne
+	@JoinColumn(nullable = false)
+	@Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
+	private Gebruiker medewerker;
+
+	@Column(length = 20)
+	private String telefoon;
+
+	@Column(length = 100)
+	private String email;
+
+	@Column(length = 50)
+	private String aliasnaam;
+
+	@Column(unique = true, nullable = true, length = 10)
+	private String uzipasnummer;
 
 	@OneToMany(mappedBy = "instellingGebruiker")
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "organisatie.cache")
@@ -62,34 +94,6 @@ public class InstellingGebruiker extends OrganisatieMedewerker<Instelling, Gebru
 	private List<Bevolkingsonderzoek> bevolkingsonderzoeken;
 
 	private Boolean actief;
-
-	public List<InstellingGebruikerRol> getRollen()
-	{
-		return rollen;
-	}
-
-	public void setRollen(List<InstellingGebruikerRol> rollen)
-	{
-		this.rollen = rollen;
-	}
-
-	@Override
-	public Boolean getActief()
-	{
-		return actief;
-	}
-
-	@Override
-	public void setActief(Boolean actief)
-	{
-		this.actief = actief;
-	}
-
-	@Override
-	public String toString()
-	{
-		return "InstellingGebruiker [naam = " + getMedewerker().getNaamVolledig() + "]";
-	}
 
 	@Override
 	public int hashCode()
@@ -177,13 +181,10 @@ public class InstellingGebruiker extends OrganisatieMedewerker<Instelling, Gebru
 		return returnValue;
 	}
 
-	public List<Bevolkingsonderzoek> getBevolkingsonderzoeken()
+	@Override
+	public String toString()
 	{
-		return bevolkingsonderzoeken;
+		return "InstellingGebruiker [naam = " + getMedewerker().getNaamVolledig() + "]";
 	}
 
-	public void setBevolkingsonderzoeken(List<Bevolkingsonderzoek> bevolkingsonderzoeken)
-	{
-		this.bevolkingsonderzoeken = bevolkingsonderzoeken;
-	}
 }

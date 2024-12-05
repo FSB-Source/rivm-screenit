@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.service.impl;
 
 /*-
@@ -27,7 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.dao.KwaliteitsovereenkomstDao;
 import nl.rivm.screenit.main.model.formulieren.DSBeanAntwoordKeuzeVraagDefinitieImpl;
 import nl.rivm.screenit.main.model.formulieren.DSValueEnkelvoudigBeanAntwoord;
 import nl.rivm.screenit.main.model.formulieren.DsValueAntwoordDefintie;
@@ -42,6 +40,7 @@ import nl.rivm.screenit.model.verslag.DSValue;
 import nl.rivm.screenit.model.verslag.DSValueSet;
 import nl.rivm.screenit.model.verslag.DSValueSetValue;
 import nl.rivm.screenit.service.BaseVerslagService;
+import nl.rivm.screenit.service.KwaliteitsovereenkomstService;
 import nl.topicuszorg.formulieren2.api.definitie.AntwoordDefinitie;
 import nl.topicuszorg.formulieren2.api.definitie.AntwoordKeuzeVraagDefinitie;
 import nl.topicuszorg.formulieren2.api.resultaat.Antwoord;
@@ -67,7 +66,7 @@ public class FormulierAntwoordServiceImpl implements AntwoordService
 	private BaseVerslagService verslagService;
 
 	@Autowired
-	private KwaliteitsovereenkomstDao kwaliteitsovereenkomstDao;
+	private KwaliteitsovereenkomstService kwaliteitsovereenkomstService;
 
 	@Override
 	public <T> List<AntwoordDefinitie<T>> getMogelijkeAntwoorden(AntwoordKeuzeVraagDefinitie<T> vraagDefinitie, Antwoord<T> antwoord)
@@ -182,7 +181,7 @@ public class FormulierAntwoordServiceImpl implements AntwoordService
 			{
 				Gebruiker medewerker = instellingGebruiker.getMedewerker();
 				if (Boolean.TRUE.equals(instellingGebruiker.getActief()) && Boolean.TRUE.equals(medewerker.getActief())
-					&& kwaliteitsovereenkomstDao.hasActiveKwaliteitsovereenkomst(medewerker, null))
+					&& kwaliteitsovereenkomstService.hasActiveKwaliteitsovereenkomst(medewerker, null))
 				{
 					if (medewerker.equals(gebruiker))
 					{

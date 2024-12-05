@@ -29,20 +29,19 @@ import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.huisartsenportaal.dto.LocatieDto;
 import nl.rivm.screenit.huisartsenportaal.enums.CervixLocatieStatus;
+import nl.rivm.screenit.model.Gebruiker_;
 import nl.rivm.screenit.model.Gemeente;
+import nl.rivm.screenit.model.InstellingGebruiker_;
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.Woonplaats_;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixHuisartsAdres_;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie_;
 import nl.rivm.screenit.model.cervix.enums.CervixHuisartsLocatieMutatieSoort;
-import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.specification.SpecificationUtil;
 import nl.rivm.screenit.util.RangeUtil;
-import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
-import nl.topicuszorg.organisatie.model.Medewerker_;
-import nl.topicuszorg.organisatie.model.OrganisatieMedewerker_;
-import nl.topicuszorg.organisatie.model.Organisatie_;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
@@ -51,14 +50,14 @@ import com.google.common.collect.BoundType;
 
 import static nl.rivm.screenit.specification.DateSpecification.bevatLocalDateToDate;
 import static nl.rivm.screenit.specification.SpecificationUtil.containsCaseInsensitive;
-import static nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification.huisartsLocatieJoin;
+import static nl.rivm.screenit.specification.SpecificationUtil.exactCaseInsensitive;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixHuisartsLocatieSpecification
 {
-	public static PathAwarePredicate<CervixHuisartsLocatie> isVolledigPredicate()
+	public static ExtendedSpecification<CervixHuisartsLocatie> isVolledig()
 	{
-		return (cb, r) -> cb.and(
+		return (r, q, cb) -> cb.and(
 			cb.notEqual(r.get(CervixHuisartsLocatie_.naam), ""),
 			cb.notEqual(r.get(CervixHuisartsLocatie_.iban), ""),
 			cb.notEqual(r.get(CervixHuisartsLocatie_.ibanTenaamstelling), ""),
@@ -67,11 +66,6 @@ public class CervixHuisartsLocatieSpecification
 			cb.notEqual(r.get(CervixHuisartsLocatie_.iban), LocatieDto.EMPTY_VALUE),
 			cb.notEqual(r.get(CervixHuisartsLocatie_.ibanTenaamstelling), LocatieDto.EMPTY_VALUE)
 		);
-	}
-
-	public static Specification<CervixHuisartsLocatie> isVolledig()
-	{
-		return isVolledigPredicate().toSpecification();
 	}
 
 	public static Specification<CervixHuisartsLocatie> filterHuisartsMetAgbCodeContaining(String agbCode)
@@ -124,10 +118,10 @@ public class CervixHuisartsLocatieSpecification
 		{
 			var organisatieMedewerkerListJoin = r
 				.join(CervixHuisartsLocatie_.huisarts)
-				.join(Organisatie_.organisatieMedewerkers)
-				.join(OrganisatieMedewerker_.medewerker);
+				.join(Instelling_.organisatieMedewerkers)
+				.join(InstellingGebruiker_.medewerker);
 
-			return containsCaseInsensitive(cb, organisatieMedewerkerListJoin.get(Medewerker_.achternaam), achternaam);
+			return containsCaseInsensitive(cb, organisatieMedewerkerListJoin.get(Gebruiker_.achternaam), achternaam);
 		});
 	}
 
@@ -157,9 +151,23 @@ public class CervixHuisartsLocatieSpecification
 			(r, q, cb) -> containsCaseInsensitive(cb, SpecificationUtil.join(r, CervixHuisartsLocatie_.locatieAdres).get(CervixHuisartsAdres_.straat), straat));
 	}
 
-	public static Specification<CervixBoekRegel> heeftHuisarts(CervixHuisarts huisarts)
+	public static ExtendedSpecification<CervixHuisartsLocatie> heeftHuisarts(CervixHuisarts huisarts)
 	{
-		return (r, q, cb) -> cb.equal(huisartsLocatieJoin(r).get(CervixHuisartsLocatie_.huisarts), huisarts);
+		return (r, q, cb) -> cb.equal(r.get(CervixHuisartsLocatie_.huisarts), huisarts);
 	}
 
+	public static ExtendedSpecification<CervixHuisartsLocatie> heeftStatus(CervixLocatieStatus status)
+	{
+		return (r, q, cb) -> cb.equal(r.get(CervixHuisartsLocatie_.status), status);
+	}
+
+	public static ExtendedSpecification<CervixHuisartsLocatie> heeftNietStatus(CervixLocatieStatus status)
+	{
+		return (r, q, cb) -> cb.notEqual(r.get(CervixHuisartsLocatie_.status), status);
+	}
+
+	public static ExtendedSpecification<CervixHuisartsLocatie> heeftNaam(String naam)
+	{
+		return (r, q, cb) -> exactCaseInsensitive(cb, r.get(CervixHuisartsLocatie_.naam), naam);
+	}
 }

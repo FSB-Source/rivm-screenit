@@ -48,13 +48,13 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterBsnCheck;
-import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterHeeftDigitaal;
 import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterHeeftGeboortedatum;
 import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterHeeftLabformulierStatussen;
 import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterHeeftMonsterId;
 import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterHeeftOrganisatieType;
 import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterHeeftScanDatumTotEnMet;
 import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterHeeftScanDatumVanaf;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterIsDigitaal;
 import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterLabProcesStapIsControlerenVoorCytologie;
 import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterLabProcesStapIsCytopathologie;
 import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterLabProcesStapIsHuisartsOnbekend;
@@ -120,7 +120,7 @@ public class CervixLabformulierDataProviderServiceImpl extends RepositoryDataPro
 			.and(filterLabProcesStapIsControlerenVoorCytologie(filter.getLabprocesStap()))
 			.and(filterLabProcesStapIsCytopathologie(filter.getLabprocesStap()))
 			.and(filterOrganisatieTypeIsScreeningorganisatie(filter.getOrganisatieType(), filter.getInstellingId()))
-			.and(filterHeeftDigitaal(filter.getDigitaal()))
+			.and(filterIsDigitaal(filter.getDigitaal()))
 			.and(filterBsnCheck(filter.getLabprocesStap(), filter.getBsn()));
 	}
 

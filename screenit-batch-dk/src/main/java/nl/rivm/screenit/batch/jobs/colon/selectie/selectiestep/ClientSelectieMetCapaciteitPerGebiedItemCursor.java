@@ -44,7 +44,6 @@ import org.hibernate.ScrollableResults;
 @Slf4j
 public class ClientSelectieMetCapaciteitPerGebiedItemCursor implements Iterator<ClientCategorieEntry>
 {
-
 	private final ColonUitnodigingsgebiedSelectieContext uitnodigingsgebiedContext;
 
 	private ScrollableResults cursor;
@@ -55,7 +54,7 @@ public class ClientSelectieMetCapaciteitPerGebiedItemCursor implements Iterator<
 
 	private int huidigeTaak = -1;
 
-	private final List<ColonClientSelectieContext.UitnodigingsTaak> taken = new ArrayList<>();
+	private final List<UitnodigingsTaak> taken = new ArrayList<>();
 
 	private final Set<Integer> verwerkteGeboortjaren = new HashSet<>();
 
@@ -258,7 +257,6 @@ public class ClientSelectieMetCapaciteitPerGebiedItemCursor implements Iterator<
 		{
 			projectGroupId = ((ProjectGroupUitnodiging) uitnodigingsTaak).projectGroupId;
 		}
-		var uitnodigingsDao = selectieContext.uitnodigingsDao;
 		var uitnodigingService = selectieContext.uitnodigingService;
 		if (uitnodigingsTaak instanceof EersteRondeUitnodiging)
 		{
@@ -274,11 +272,10 @@ public class ClientSelectieMetCapaciteitPerGebiedItemCursor implements Iterator<
 			}
 		}
 
-		cursor = uitnodigingsDao.getUitnodigingsCursor(uitnodigingsTaak.getCategorie(), uitnodigingsgebied, geboorteJaren, selectieContext.minimaleLeeftijd,
-			selectieContext.maximaleLeeftijd, projectGroupId, exclusieGroepIds, selectieContext.fetchSize);
-
+		var uitnodigingSelectieService = selectieContext.uitnodigingSelectieService;
+		cursor = uitnodigingSelectieService.getUitnodigingsCursor(selectieContext, uitnodigingsTaak.getCategorie(), uitnodigingsgebied, geboorteJaren, projectGroupId,
+			exclusieGroepIds);
 		cursorClosed = false;
-
 	}
 
 	private void logHasNext(boolean hasNext)

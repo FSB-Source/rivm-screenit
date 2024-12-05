@@ -21,47 +21,59 @@ package nl.rivm.screenit.batch.jobs.mamma.controleuitslag.controlestep;
  * =========================LICENSE_END==================================
  */
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Root;
+
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.dao.mamma.MammaMissendeUitslagenRestrictions;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.TablePerClassHibernateObject_;
+import nl.rivm.screenit.model.mamma.MammaAfspraak_;
+import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
+import nl.rivm.screenit.service.mamma.MammaBaseOnderzoekService;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projection;
-import org.hibernate.criterion.Projections;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
 @Component
 @AllArgsConstructor
-public class MammaControleMissendeUitslagenReader extends BaseScrollableResultReader
+public class MammaControleMissendeUitslagenReader extends BaseSpecificationScrollableResultReader<MammaOnderzoek>
 {
-
-	private final MammaMissendeUitslagenRestrictions mammaRestrictions;
+	private final MammaBaseOnderzoekService baseOnderzoekService;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<MammaOnderzoek> createSpecification()
 	{
-		try
-		{
-			var criteria = session.createCriteria(MammaOnderzoek.class, "onderzoek");
-			mammaRestrictions.addBeeldenZonderUitslagRestrictions(criteria);
-			criteria.addOrder(Order.asc("dossier.id"));
-			return criteria;
-		}
-		catch (Exception e)
-		{
-			crashMelding("Fout bij het bepalen van missende uitslagen BK", e);
-			throw e;
-		}
+		return baseOnderzoekService.getLaatsteOnderzoekMetMissendeUitslagSpecification();
 	}
 
 	@Override
-	protected Projection getProjection()
+	protected Expression<Long> createProjection(Root<MammaOnderzoek> r, CriteriaBuilder cb)
 	{
-		return Projections.distinct(Projections.property("dossier.id"));
+		return dossierJoin(r).get(TablePerClassHibernateObject_.id);
+	}
+
+	@Override
+	protected Order getOrder(Root<MammaOnderzoek> r, CriteriaBuilder cb)
+	{
+		return cb.asc(createProjection(r, cb));
+	}
+
+	private static Join<MammaScreeningRonde, MammaDossier> dossierJoin(Root<MammaOnderzoek> r)
+	{
+		var afspraakJoin = join(r, MammaOnderzoek_.afspraak);
+		var uitnodigingJoin = join(afspraakJoin, MammaAfspraak_.uitnodiging);
+		var screeningRondeJoin = join(uitnodigingJoin, MammaUitnodiging_.screeningRonde);
+		return join(screeningRondeJoin, MammaScreeningRonde_.dossier);
 	}
 }

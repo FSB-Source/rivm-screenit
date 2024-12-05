@@ -1,0 +1,76 @@
+{
+  "page": {
+    "header": {
+      "title": "Het gebruik van mijn gegevens beheren",
+      "description": "Uw gegevens staan in ons systeem. Wij zorgen ervoor dat uw gegevens goed beschermd worden.<br />Op de pagina <a href='https://www.bevolkingsonderzoeknederland.nl/privacy/' target='_blank'>'Privacy'</a> op onze website leest u meer over hoe wij omgaan met gegevens, waar we ze voor gebruiken, met wie we ze uitwisselen en hoe we ze beschermen.  <br />Wilt u niet dat we uw gegevens gebruiken, delen of bewaren? Dan kunt u dit bij ons aangeven. Hieronder leest u welke keuzes u kunt maken. <br />Vink uw keuze aan. U krijgt van ons een brief waarin staat welke keuze u heeft gemaakt.</br>"
+    }
+  },
+  "opslaan": {
+    "button": {
+      "label": "Opslaan"
+    }
+  },
+  "toast": {
+    "wijzigingen": {
+      "titel": "Uw wijzigingen zijn succesvol opgeslagen.",
+      "text": "U krijgt binnen een paar dagen een brief ter bevestiging."
+    },
+    "ongewijzigd": {
+      "titel": "Geen wijzigingen opgeslagen",
+      "text": "U heeft niets veranderd in uw bezwaaroverzicht."
+    }
+  },
+  "overige_zorgverleners": {
+    "title": "Wilt u dat we uw gegevens niet gebruiken voor contact met andere zorgverleners?",
+    "text": "Wij delen gegevens met huisartsen en andere zorgverleners. Zoals het ziekenhuis of laboratorium. Het gaat dan bijvoorbeeld over uw uitslag of uw doorverwijzing. Zo kunnen we u samen de zorg geven die bij u past. <br />Hieronder ziet u welke keuzes u kunt maken als u wilt dat wij uw gegevens niet delen met andere zorgverleners."
+  },
+  "overige": {
+    "gba": "Wilt u dat we de resultaten van uw onderzoek niet bewaren, of wilt u dat we uw contactgegevens en onderzoeksresultaten allemaal verwijderen?",
+    "infolijn": "Bel dan met onze <a href='https://www.bevolkingsonderzoeknederland.nl/contact/'>informatielijn</a>."
+  },
+  "GEEN_UITWISSELING_MET_DE_HUISARTS": {
+    "title": "Geen uitwisseling van mijn gegevens met de huisarts",
+    "abstract": "Met ingang van 13 december 2017 informeren wij de huisarts uitsluitend op verzoek van de cliënt als de uitslag van het bevolkingsonderzoek aanleiding geeft tot vervolgonderzoek. Het bezwaar 'Geen uitwisseling van mijn gegevens met de huisarts' is hierdoor vervallen. Heeft u eerder dit bezwaar gemaakt, dan blijft dit geregistreerd in ons systeem (tenzij u het bezwaar intrekt).",
+    "meer": ""
+  },
+  "GEEN_DIGITALE_UITWISSELING_MET_HET_ZIEKENHUIS": {
+    "title": "Ik wil dat jullie mijn uitslagen en foto’s van het bevolkingsonderzoek borstkanker niet delen met het ziekenhuis.",
+    "abstract": "",
+    "meer": "Heeft u meegedaan aan het bevolkingsonderzoek borstkanker en denken we dat het nodig is om u verder te onderzoeken? Dan sturen we uw uitslag en foto’s naar het ziekenhuis. Het ziekenhuis gebruikt die foto’s voor hun onderzoek. Wilt u dit niet? Het ziekenhuis maakt dan nieuwe foto’s. De artsen in het ziekenhuis kunnen die foto’s dan niet vergelijken met onze foto’s. En ze horen niet wat de artsen tijdens het bevolkingsonderzoek hebben gezien."
+  },
+  "GEEN_KWALITEITSWAARBORGING": {
+    "title": "Ik wil dat jullie mijn gegevens niet gebruiken om de bevolkingsonderzoeken te verbeteren",
+    "abstract": "",
+    "meer": "We gebruiken uw gegevens voor het bevolkingsonderzoek waaraan u meedoet. Maar we gebruiken uw gegevens ook om onze bevolkingsonderzoeken beter te maken. Wij nodigen veel mensen uit voor de bevolkingsonderzoeken. We willen dat de onderzoeken zo goed mogelijk zijn. Daarom controleren we steeds of onze onderzoeken beter kunnen. Daarvoor gebruiken we uw gegevens. We zorgen ervoor dat niet bekend is welke gegevens van u zijn."
+  },
+  "GEEN_WETENSCHAPPELIJK_ONDERZOEK": {
+    "title": "Ik wil dat jullie mijn gegevens niet gebruiken voor wetenschappelijk onderzoek",
+    "abstract": "",
+    "meer": "We gebruiken uw gegevens voor het bevolkingsonderzoek waaraan u meedoet. Maar we gebruiken uw gegevens soms ook om mee te helpen aan wetenschappelijk onderzoek naar kanker. Hiervoor houden we ons aan strenge regels. Zo worden uw gegevens zo opgeslagen dat niet bekend is welke informatie bij u hoort. We zorgen ervoor dat de onderzoekers ook niet kunnen zien welke gegevens bij u horen."
+  },
+  "GEEN_GEBRUIK_LICHAAMSMATERIAAL_WETENSCHAPPELIJK_ONDERZOEK": {
+    "title": "Ik wil dat jullie mijn lichaamsmateriaal van het bevolkingsonderzoek baarmoederhalskanker niet gebruiken voor wetenschappelijk onderzoek",
+    "abstract": "",
+    "meer": "Het laboratorium beoordeelt de uitstrijkjes en de zelfafnamesets van het bevolkingsonderzoek baarmoederhalskanker. Soms wordt het materiaal bewaard en gebruikt voor wetenschappelijk onderzoek. Hiervoor houden we ons aan strenge regels. Zo wordt uw lichaamsmateriaal zo opgeslagen dat niet te zien is welk materiaal van u is. We zorgen er voor dat de onderzoekers ook niet kunnen zien welk lichaamsmateriaal bij u hoort."
+  },
+  "GEEN_SIGNALERING_VERWIJSADVIES": {
+    "title": "Ik wil dat het laboratorium niet controleert of ik na een doorverwijzing van het bevolkingsonderzoek baarmoederhalskanker naar de gynaecoloog ben gegaan",
+    "abstract": "",
+    "meer": "Is het na het uitstrijkje nodig om u verder te onderzoeken? Dan adviseren we de huisarts om u door te verwijzen naar een gynaecoloog. Het laboratorium controleert of u een afspraak gemaakt heeft. Is dat niet zo? Dan laat het laboratorium dat weten aan uw huisarts. De huisarts kan dan hierover contact met u opnemen. Wilt u dit niet? Dan controleert het laboratorium niet of u een afspraak heeft gemaakt."
+  },
+  "GEEN_REGISTRATIE_GEBOORTELAND": {
+    "title": "",
+    "abstract": "",
+    "meer": ""
+  },
+  "uitwisseling_pathologie_databank": {
+    "title": "Het laboratorium wisselt gegevens uit met het de pathologie-databank. Wilt u dat niet?",
+    "abstract": "",
+    "meer": "Het laboratorium dat de uitstrijkjes en zelfafnamesets van het bevolkingsonderzoek baarmoederhalskanker beoordeelt, geeft de uitslagen ook door aan PALGA, de landelijke pathologie-databank. Wilt u dit niet? Dan moet u dit doorgeven aan het laboratorium. Wij hebben hiervoor een <a href='https://www.bevolkingsonderzoeknederland.nl/media/gb5lh2dr/bezwaar-uitwisseling-gegevens-met-palga.pdf'>formulier</a>, dat u naar het laboratorium op moet sturen. Dit kunt u pas doen nadat u een uitstrijkje heeft laten maken of de zelfafnameset heeft ingestuurd. <br />Neem <a href='https://www.bevolkingsonderzoeknederland.nl/contact/'>contact</a> met ons op voor het adres van het laboratorium dat uw uitstrijkje of zelfafnameset beoordeelt."
+  },
+  "uitwisseling_coloscopiecentrum": {
+    "title": "Wij wisselen gegevens uit met het coloscopiecentrum. Wilt u dat niet?",
+    "abstract": "",
+    "meer": "Als er vervolgonderzoek nodig is na uw deelname aan het bevolkingsonderzoek darmkanker, maken wij automatisch een afspraak voor een gesprek in een coloscopiecentrum. Wij geven uw gegevens dan door aan het centrum. Wilt u dit niet? Dan moet u vóórdat u uw ontlastingstest instuurt hierover <a href='https://www.bevolkingsonderzoeknederland.nl/contact/'>contact</a> met ons opnemen. "
+  }
+}

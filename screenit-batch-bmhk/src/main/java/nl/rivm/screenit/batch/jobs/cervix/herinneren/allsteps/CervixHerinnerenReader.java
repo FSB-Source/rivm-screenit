@@ -24,7 +24,7 @@ package nl.rivm.screenit.batch.jobs.cervix.herinneren.allsteps;
 import java.time.LocalDate;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationSortableScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
@@ -36,7 +36,7 @@ import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 
-public abstract class CervixHerinnerenReader extends BaseSpecificationSortableScrollableResultReader<CervixUitnodiging, Object>
+public abstract class CervixHerinnerenReader extends BaseSpecificationScrollableResultReader<CervixUitnodiging>
 {
 	@Autowired
 	private ICurrentDateSupplier dateSupplier;
@@ -94,8 +94,8 @@ public abstract class CervixHerinnerenReader extends BaseSpecificationSortableSc
 	}
 
 	@Override
-	protected Class<Object> getResultClass()
+	protected Class<?> getResultClass()
 	{
-		return Object.class;
+		return Object[].class;
 	}
 }

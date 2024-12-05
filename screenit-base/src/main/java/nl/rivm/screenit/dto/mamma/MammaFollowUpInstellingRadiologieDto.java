@@ -22,11 +22,18 @@ package nl.rivm.screenit.dto.mamma;
  */
 
 import java.io.Serializable;
+import java.util.Date;
 
 public class MammaFollowUpInstellingRadiologieDto extends MammaFollowUpInstellingDto implements Serializable
 {
 
 	private Long aantalOpenstaande;
+
+	public MammaFollowUpInstellingRadiologieDto(Long instellingId, String instellingNaam, Date laatstGebeld, Long aantalOpenstaande, String telefoon, String telefoon2)
+	{
+		super(instellingId, instellingNaam, laatstGebeld, telefoon, telefoon2);
+		this.aantalOpenstaande = aantalOpenstaande;
+	}
 
 	public Long getAantalOpenstaande()
 	{

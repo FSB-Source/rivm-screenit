@@ -132,17 +132,10 @@ public class BriefHerdrukkenServiceImpl implements BriefHerdrukkenService
 
 	private void opnieuwAanmakenAlgemenebrief(AlgemeneBrief oudeBrief)
 	{
-		BriefType briefType = oudeBrief.getBriefType();
-		briefService.vervangDubbeleAangemaakteBrieven(briefType, oudeBrief.getClient(), AlgemeneBrief.class);
-		AlgemeneBrief nieuweBrief = new AlgemeneBrief();
+		var nieuweBrief = briefService.maakAlgemeneBrief(oudeBrief.getClient(), oudeBrief.getBriefType());
 		nieuweBrief.setBriefDefinitie(oudeBrief.getBriefDefinitie());
 		nieuweBrief.setTemplateNaam(oudeBrief.getTemplateNaam());
-		nieuweBrief.setClient(oudeBrief.getClient());
-		nieuweBrief.setGegenereerd(false);
 		nieuweBrief.setHerdruk(oudeBrief);
-		nieuweBrief.setCreatieDatum(currentDateSupplier.getDate());
-		nieuweBrief.setBriefType(oudeBrief.getBriefType());
-		oudeBrief.getClient().getAlgemeneBrieven().add(nieuweBrief);
 		hibernateService.saveOrUpdate(nieuweBrief);
 	}
 

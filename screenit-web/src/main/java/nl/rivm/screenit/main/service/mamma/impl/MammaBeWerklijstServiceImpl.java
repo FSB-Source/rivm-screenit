@@ -45,7 +45,6 @@ import nl.rivm.screenit.repository.mamma.MammaOnderzoekRepository;
 import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
-import nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +57,7 @@ import static nl.rivm.screenit.main.specification.mamma.MammaBeoordelingWerklijs
 import static nl.rivm.screenit.main.specification.mamma.MammaBeoordelingWerklijstSpecification.heeftOnbevestigdeLezing;
 import static nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus.EERSTE_LEZING_OPGESLAGEN;
 import static nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus.TWEEDE_LEZING_OPGESLAGEN;
+import static nl.rivm.screenit.specification.HibernateObjectSpecification.heeftIdIn;
 
 @Service
 public class MammaBeWerklijstServiceImpl implements MammaBeWerklijstService
@@ -181,7 +181,7 @@ public class MammaBeWerklijstServiceImpl implements MammaBeWerklijstService
 		}
 
 		return (int) onderzoekRepository.count(MammaBeoordelingWerklijstSpecification.heeftOnbevestigdeLezing()
-			.and(MammaBeoordelingSpecification.heeftIdIn(beoordelingenIds).with(MammaOnderzoek_.laatsteBeoordeling)));
+			.and(heeftIdIn(beoordelingenIds).with(MammaOnderzoek_.laatsteBeoordeling)));
 	}
 
 	@Override

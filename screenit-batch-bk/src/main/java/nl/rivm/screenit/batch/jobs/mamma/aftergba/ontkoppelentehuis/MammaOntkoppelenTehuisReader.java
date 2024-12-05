@@ -31,7 +31,7 @@ import static nl.rivm.screenit.batch.jobs.mamma.aftergba.AfterGbaJobConfiguratio
 import static nl.rivm.screenit.specification.mamma.MammaTehuisSpecification.filterActief;
 
 @Component
-public class MammaOntkoppelenTehuisReader extends BaseSpecificationScrollableResultReader<MammaTehuis, MammaTehuis>
+public class MammaOntkoppelenTehuisReader extends BaseSpecificationScrollableResultReader<MammaTehuis>
 {
 	public MammaOntkoppelenTehuisReader()
 	{

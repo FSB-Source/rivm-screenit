@@ -27,7 +27,8 @@ import java.util.List;
 
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaPortfolioZoekObject;
 import nl.rivm.screenit.main.service.MedewerkerService;
-import nl.rivm.screenit.main.service.mamma.MammaPortfolioService;
+import nl.rivm.screenit.main.service.mamma.impl.MammaPortfolioDataProviderServiceImpl;
+import nl.rivm.screenit.main.util.WicketSpringDataUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitListMultipleChoice;
@@ -35,9 +36,12 @@ import nl.rivm.screenit.main.web.component.table.GeboortedatumColumn;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.MammaScreeningBasePage;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.GbaPersoon_;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.model.mamma.MammaDossier_;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.enums.MammobridgeRole;
 import nl.rivm.screenit.service.LogService;
@@ -46,6 +50,7 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
+import nl.topicuszorg.wicket.input.validator.DependantDateValidator;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -61,6 +66,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
+
 public class MammaPortfolioZoekenPanel extends Panel
 {
 	@SpringBean
@@ -73,7 +80,7 @@ public class MammaPortfolioZoekenPanel extends Panel
 	private MammaBaseOnderzoekService onderzoekService;
 
 	@SpringBean
-	private MammaPortfolioService portfolioService;
+	private MammaPortfolioDataProviderServiceImpl dataProviderService;
 
 	private final WebMarkupContainer tabelContainer;
 
@@ -120,8 +127,11 @@ public class MammaPortfolioZoekenPanel extends Panel
 				}).setRequired(true));
 			add(new DropDownChoice<>("mammobridgeRol", Arrays.asList(MammobridgeRole.values()),
 				new EnumChoiceRenderer<>()).setRequired(true));
-			add(ComponentHelper.monthYearDatePicker("vanaf").setRequired(true));
-			add(ComponentHelper.monthYearDatePicker("totEnMet").setRequired(true));
+			var vanaf = ComponentHelper.monthYearDatePicker("vanaf").setRequired(true);
+			add(vanaf);
+			var totEnMet = ComponentHelper.monthYearDatePicker("totEnMet").setRequired(true);
+			add(totEnMet);
+			add(new DependantDateValidator(vanaf, totEnMet, DependantDateValidator.Operator.AFTER));
 
 			IndicatingAjaxSubmitLink submit = new IndicatingAjaxSubmitLink("submit")
 			{
@@ -166,9 +176,10 @@ public class MammaPortfolioZoekenPanel extends Panel
 				}
 
 			});
-			columns.add(new PropertyColumn<>(Model.of("Bsn"), "persoon.bsn", "persoon.bsn"));
-			columns.add(new GeboortedatumColumn<>("persoon.geboortedatum", "persoon"));
-			columns.add(new PropertyColumn(Model.of("Laatste mammografie"), "mammaDossier.laatsteMammografieAfgerond", "mammaDossier.laatsteMammografieAfgerond"));
+			columns.add(new PropertyColumn<>(Model.of("Bsn"), propertyChain(Client_.PERSOON, GbaPersoon_.BSN), "persoon.bsn"));
+			columns.add(new GeboortedatumColumn<>(propertyChain(Client_.PERSOON, GbaPersoon_.GEBOORTEDATUM), "persoon"));
+			columns.add(new PropertyColumn(Model.of("Laatste mammografie"), propertyChain(Client_.MAMMA_DOSSIER, MammaDossier_.LAATSTE_MAMMOGRAFIE_AFGEROND),
+				"mammaDossier.laatsteMammografieAfgerond"));
 
 			MammaPortfolioDataProvider mammaPortfolioDataProvider = new MammaPortfolioDataProvider("mammaDossier.laatsteMammografieAfgerond", getModel());
 			final ScreenitDataTable<Client, String> tabel = new ScreenitDataTable<Client, String>("tabel", columns,
@@ -178,10 +189,9 @@ public class MammaPortfolioZoekenPanel extends Panel
 				public void onClick(AjaxRequestTarget target, IModel<Client> model)
 				{
 					List<MammaOnderzoek> onderzoekenMetBeelden = onderzoekService.getOnderzoekenMetBeelden(model.getObject());
-					List<Long> clientenIds = portfolioService.zoekPortfolioClientenIds(
-						zoekObjectModel.getObject(),
-						mammaPortfolioDataProvider.getSort().getProperty(),
-						mammaPortfolioDataProvider.getSort().isAscending());
+
+					List<Long> clientenIds = dataProviderService.zoekPortfolioClientenIds(zoekObjectModel.getObject(),
+						WicketSpringDataUtil.toSpringSort(mammaPortfolioDataProvider.getSort()));
 					clientenIds.subList(0, clientenIds.indexOf(model.getObject().getId())).clear();
 					setResponsePage(new MammaBeeldenInzienPage(clientenIds, onderzoekenMetBeelden, MammaPortfolioZoekenPage.class));
 					logService.logGebeurtenis(LogGebeurtenis.INZIEN_BEELDEN_PORTFOLIO, ScreenitSession.get().getLoggedInAccount(), model.getObject());

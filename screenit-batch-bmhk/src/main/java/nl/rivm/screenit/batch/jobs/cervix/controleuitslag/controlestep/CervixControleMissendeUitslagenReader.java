@@ -22,12 +22,13 @@ package nl.rivm.screenit.batch.jobs.cervix.controleuitslag.controlestep;
  */
 
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Root;
 
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationSortableScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.TablePerClassHibernateObject_;
 import nl.rivm.screenit.model.cervix.CervixMonster;
@@ -41,10 +42,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import static nl.rivm.screenit.Constants.MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
 @Component
 @AllArgsConstructor
-public class CervixControleMissendeUitslagenReader extends BaseSpecificationSortableScrollableResultReader<CervixMonster, Object>
+public class CervixControleMissendeUitslagenReader extends BaseSpecificationScrollableResultReader<CervixMonster>
 {
 	private final CervixBaseMonsterService monsterService;
 
@@ -53,9 +55,9 @@ public class CervixControleMissendeUitslagenReader extends BaseSpecificationSort
 	private final OrganisatieParameterService organisatieParameterService;
 
 	@Override
-	protected javax.persistence.criteria.Order getOrder(Root<CervixMonster> r, CriteriaBuilder cb)
+	protected Order getOrder(Root<CervixMonster> r, CriteriaBuilder cb)
 	{
-		return cb.asc(r.get(CervixMonster_.ontvangstScreeningRonde).get(CervixScreeningRonde_.dossier).get(TablePerClassHibernateObject_.id));
+		return cb.asc(createProjection(r, cb));
 	}
 
 	@Override
@@ -69,14 +71,14 @@ public class CervixControleMissendeUitslagenReader extends BaseSpecificationSort
 	}
 
 	@Override
-	protected CriteriaQuery<Object> createProjection(Root<CervixMonster> r, CriteriaQuery<Object> q, CriteriaBuilder cb)
+	protected Expression<Long> createProjection(Root<CervixMonster> r, CriteriaBuilder cb)
 	{
-		return q.select(r.get(CervixMonster_.ontvangstScreeningRonde).get(CervixScreeningRonde_.dossier).get(TablePerClassHibernateObject_.id)).distinct(true);
+		return join(join(r, CervixMonster_.ontvangstScreeningRonde), CervixScreeningRonde_.dossier).get(TablePerClassHibernateObject_.id);
 	}
 
 	@Override
-	protected Class<Object> getResultClass()
+	protected Class<?> getResultClass()
 	{
-		return Object.class;
+		return Object[].class;
 	}
 }

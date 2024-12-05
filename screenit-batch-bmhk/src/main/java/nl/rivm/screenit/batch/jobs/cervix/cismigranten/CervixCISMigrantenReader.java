@@ -21,55 +21,99 @@ package nl.rivm.screenit.batch.jobs.cervix.cismigranten;
  * =========================LICENSE_END==================================
  */
 
+import java.util.function.Function;
+
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.JoinType;
+
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.cervix.CervixDossier;
+import nl.rivm.screenit.model.cervix.CervixDossier_;
+import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
+import nl.rivm.screenit.model.cervix.cis.CervixCISHistorie;
+import nl.rivm.screenit.model.project.Project;
+import nl.rivm.screenit.model.project.ProjectClient;
+import nl.rivm.screenit.model.project.ProjectClient_;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.query.ScreenitRestrictions;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.ClientSpecification.heeftActieveClient;
+import static nl.rivm.screenit.specification.algemeen.ProjectClientSpecification.heeftActieveProjectGroep;
+import static nl.rivm.screenit.specification.algemeen.ProjectClientSpecification.isProjectClientActief;
+import static nl.rivm.screenit.specification.algemeen.ProjectSpecification.heeftNaam;
+import static nl.rivm.screenit.specification.algemeen.ProjectSpecification.heeftStartdatumVanaf;
+import static nl.rivm.screenit.specification.cervix.CervixCISHistorieSpecification.heeftGeenScreeningRonde;
+import static nl.rivm.screenit.specification.cervix.CervixCISHistorieSpecification.heeftGeenUitstel;
+import static nl.rivm.screenit.specification.cervix.CervixDossierSpecification.heeftGeenScreeningRondeInCISHistorie;
+import static nl.rivm.screenit.specification.cervix.CervixScreeningRondeSpecification.heeftGeenLaatsteUitnodiging;
 
 @Component
 @AllArgsConstructor
-public class CervixCISMigrantenReader extends BaseScrollableResultReader
+public class CervixCISMigrantenReader extends BaseSpecificationScrollableResultReader<Client>
 {
 	private final ICurrentDateSupplier dateSupplier;
 
 	@Override
-	public Criteria createCriteria(StatelessSession statelessSession) throws HibernateException
+	protected Specification<Client> createSpecification()
 	{
-		var criteria = statelessSession.createCriteria(Client.class, "client");
-		criteria.createAlias("client.projecten", "projectclient");
-		criteria.add(Restrictions.eq("projectclient.actief", true));
-		criteria.createAlias("projectclient.groep", "projectgroep");
-		criteria.add(Restrictions.eq("projectgroep.actief", true));
+		return isProjectClientActief(true).with(projectClientJoin())
+			.and(heeftActieveProjectGroep().with(projectClientJoin()))
+			.and(heeftStartdatumVanaf(dateSupplier.getDate()).with(projectJoin()))
+			.and(heeftNaam("CIS-Migranten").with(projectJoin()))
+			.and(heeftActieveClient())
+			.and(heeftGeenUitstel().with(cisHistorieJoin()))
+			.and(heeftGeenScreeningRonde().with(
+				cisHistorieJoin()).or(heeftGeenScreeningRondeInCISHistorie().with(cervixDossierJoin())))
+			.and(heeftGeenLaatsteUitnodiging().with(screeningRondeJoin()));
+	}
 
-		criteria.createAlias("projectclient.project", "project");
-		criteria.add(Restrictions.le("project.startDatum", dateSupplier.getDate()));
-		criteria.add(Restrictions.eq("project.naam", "CIS-Migranten"));
+	@NotNull
+	private static Function<From<?, ? extends Client>, From<?, ? extends CervixDossier>> cervixDossierJoin()
+	{
+		return q -> join(q, Client_.cervixDossier, JoinType.LEFT);
+	}
 
-		criteria.createAlias("client.persoon", "persoon");
+	@NotNull
+	private static Function<From<?, ? extends Client>, From<?, ? extends ProjectClient>> projectClientJoin()
+	{
+		return q -> join(q, Client_.projecten);
+	}
 
-		ScreenitRestrictions.addClientBaseRestrictions(criteria, "client", "persoon");
+	@NotNull
+	private static Function<From<?, ? extends Client>, From<?, ? extends Project>> projectJoin()
+	{
+		return q ->
+		{
+			var projectClientJoin = projectClientJoin().apply(q);
+			return join(projectClientJoin, ProjectClient_.project);
+		};
+	}
 
-		criteria.createAlias("client.cervixDossier", "dossier", JoinType.LEFT_OUTER_JOIN);
+	@NotNull
+	private static Function<From<?, ? extends Client>, From<?, ? extends CervixCISHistorie>> cisHistorieJoin()
+	{
+		return q ->
+		{
+			var dossierJoin = cervixDossierJoin().apply(q);
+			return join(dossierJoin, CervixDossier_.cisHistorie, JoinType.LEFT);
+		};
+	}
 
-		criteria.createAlias("dossier.cisHistorie", "cisHistorie", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("dossier.laatsteScreeningRonde", "laatsteScreeningRonde", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("cisHistorie.screeningRonde", "screeningRonde", JoinType.LEFT_OUTER_JOIN);
-
-		criteria.add(Restrictions.isNull("screeningRonde.uitstel"));
-
-		criteria.add(Restrictions.or(Restrictions.isNull("cisHistorie.screeningRonde"), Restrictions.eqProperty("cisHistorie.screeningRonde", "dossier.laatsteScreeningRonde")));
-
-		criteria.add(Restrictions.isNull("laatsteScreeningRonde.laatsteUitnodiging"));
-
-		return criteria;
+	@NotNull
+	private static Function<From<?, ? extends Client>, From<?, ? extends CervixScreeningRonde>> screeningRondeJoin()
+	{
+		return q ->
+		{
+			var screeningRondeJoin = cervixDossierJoin().apply(q);
+			return join(screeningRondeJoin, CervixDossier_.laatsteScreeningRonde, JoinType.LEFT);
+		};
 	}
 }

@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.service.impl;
 
 /*-
@@ -26,33 +25,37 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.huisartsenportaal.dto.WoonplaatsDto;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.Woonplaats;
+import nl.rivm.screenit.model.Woonplaats_;
+import nl.rivm.screenit.repository.algemeen.WoonplaatsRepository;
 import nl.rivm.screenit.service.HuisartsenportaalSyncService;
 import nl.rivm.screenit.service.WoonplaatsService;
+import nl.rivm.screenit.specification.algemeen.GemeenteSpecification;
+import nl.rivm.screenit.specification.algemeen.WoonplaatsSpecification;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
+@Slf4j
 public class WoonplaatsServiceImpl implements WoonplaatsService
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(WoonplaatsServiceImpl.class);
-
 	@Autowired
 	private HibernateService hibernateService;
 
 	@Autowired
 	private HuisartsenportaalSyncService huisartsenportaalSyncService;
+
+	@Autowired
+	private WoonplaatsRepository woonplaatsRepository;
 
 	@Override
 	public void saveOrUpdateWoonplaats(String plaatscode, String plaatsnaam, String gemcode)
@@ -95,24 +98,25 @@ public class WoonplaatsServiceImpl implements WoonplaatsService
 		}
 		else
 		{
-			LOG.error("Geen gemeente gevonden voor code " + gemcode);
-			woonplaats = null;
+			LOG.error("Geen gemeente gevonden voor code {}", gemcode);
 		}
 	}
 
 	@Override
-	public Woonplaats getWoonplaatsByName(String woonplaats)
+	public Woonplaats getWoonplaats(String woonplaatsnaam)
 	{
-		Map<String, String> parameters = new HashMap<>();
-		parameters.put("naam", woonplaats);
-		List<Woonplaats> results = hibernateService.getByParameters(Woonplaats.class, parameters);
-
-		if (results.size() == 1)
-		{
-			return results.get(0);
-		}
-
-		return null;
+		return getWoonplaats(woonplaatsnaam, null);
 	}
 
+	@Override
+	public Woonplaats getWoonplaats(String woonplaatsnaam, String gemeenteNaam)
+	{
+		var specification = WoonplaatsSpecification.heeftNaam(woonplaatsnaam).or(WoonplaatsSpecification.heeftNaam("\"" + woonplaatsnaam + "\""));
+		if (gemeenteNaam != null)
+		{
+			specification = specification.and(GemeenteSpecification.heeftNaam(gemeenteNaam).with(Woonplaats_.gemeente)
+				.or(GemeenteSpecification.heeftNaam("\"" + gemeenteNaam + "\"").with(Woonplaats_.gemeente)));
+		}
+		return woonplaatsRepository.findFirst(specification, Sort.by(Sort.Order.asc(AbstractHibernateObject_.ID))).orElse(null);
+	}
 }
