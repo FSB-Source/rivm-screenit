@@ -157,6 +157,11 @@ public class CervixVerlateDeelnameCovidJobListener extends BaseLogListener
 			}
 			event.setMelding(melding);
 		}
+		else if (event.getLevel() == Level.ERROR)
+		{
+			var unsupportedException = jobExecution.getAllFailureExceptions().stream().filter(UnsupportedOperationException.class::isInstance).findFirst();
+			unsupportedException.ifPresent(throwable -> event.setMelding(throwable.getMessage()));
+		}
 		return event;
 	}
 }

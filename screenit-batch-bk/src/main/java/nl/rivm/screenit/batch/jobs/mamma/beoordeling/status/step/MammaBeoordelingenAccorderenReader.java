@@ -21,53 +21,54 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.status.step;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.mamma.beoordeling.MammaBaseBeoordelingReader;
-import nl.rivm.screenit.model.mamma.MammaBeoordeling;
-import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
-import nl.rivm.screenit.util.DateUtil;
+import javax.persistence.criteria.JoinType;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
-import org.hibernate.sql.JoinType;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.mamma.MammaBeoordeling;
+import nl.rivm.screenit.model.mamma.MammaBeoordeling_;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.specification.mamma.MammaLezingSpecification;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus.EERSTE_LEZING_OPGESLAGEN;
+import static nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus.TWEEDE_LEZING_OPGESLAGEN;
+import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.heeftStatus;
+
 @Component
-public class MammaBeoordelingenAccorderenReader extends MammaBaseBeoordelingReader
+public class MammaBeoordelingenAccorderenReader extends BaseSpecificationScrollableResultReader<MammaBeoordeling>
 {
+	@Autowired
+	protected ICurrentDateSupplier currentDateSupplier;
 
-	private final static int DAGEN = 1;
+	private static final int MAX_UREN_NIET_GEACCORDEERD = 24;
 
-	private final static int UREN = 2;
+	private static final int BEOORDELAAR_INACTIEF_UREN = 2;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	public Specification<MammaBeoordeling> createSpecification()
 	{
-		var criteria = session.createCriteria(MammaBeoordeling.class, "beoordeling");
+		var beoordelaarsInactiefSindsPeilMoment = currentDateSupplier.getLocalDateTime().minusHours(BEOORDELAAR_INACTIEF_UREN);
+		var maxUrenNietGeaccordeerdPeilMoment = currentDateSupplier.getLocalDateTime().minusHours(MAX_UREN_NIET_GEACCORDEERD);
 
-		var radiologenAanHetWerkSubquery = getRadiologenDieAanHetWerkZijn(UREN);
+		var isEersteLezingOpgeslagenEnEersteBeoordelaarInactief = heeftStatus(EERSTE_LEZING_OPGESLAGEN)
+			.and(MammaLezingSpecification.heeftNietBeoordeeldSindsSubquery(beoordelaarsInactiefSindsPeilMoment).with(MammaBeoordeling_.eersteLezing, JoinType.LEFT));
 
-		criteria.createAlias("beoordeling.eersteLezing", "eersteLezing", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("beoordeling.tweedeLezing", "tweedeLezing", JoinType.LEFT_OUTER_JOIN);
+		var isTweedeLezingOpgeslagenEnTweedeBeoordelaarInactief = heeftStatus(TWEEDE_LEZING_OPGESLAGEN)
+			.and(MammaLezingSpecification.heeftNietBeoordeeldSindsSubquery(beoordelaarsInactiefSindsPeilMoment).with(MammaBeoordeling_.tweedeLezing, JoinType.LEFT));
 
-		criteria.add(
-			Restrictions.or(
-				Restrictions.and(
-					Restrictions.eq("beoordeling.status", MammaBeoordelingStatus.EERSTE_LEZING_OPGESLAGEN),
-					Subqueries.propertyNotIn("eersteLezing.beoordelaar.id", radiologenAanHetWerkSubquery)),
-				Restrictions.and(
-					Restrictions.eq("beoordeling.status", MammaBeoordelingStatus.TWEEDE_LEZING_OPGESLAGEN),
-					Subqueries.propertyNotIn("tweedeLezing.beoordelaar.id", radiologenAanHetWerkSubquery)),
-				Restrictions.and(
-					Restrictions.eq("beoordeling.status", MammaBeoordelingStatus.EERSTE_LEZING_OPGESLAGEN),
-					Restrictions.le("eersteLezing.beoordelingDatum", DateUtil.minDagen(currentDateSupplier.getDate(), DAGEN)),
-					Restrictions.and(
-						Restrictions.eq("beoordeling.status", MammaBeoordelingStatus.TWEEDE_LEZING_OPGESLAGEN),
-						Restrictions.le("tweedeLezing.beoordelingDatum", DateUtil.minDagen(currentDateSupplier.getDate(), DAGEN))))));
+		var isEersteLezingOpgeslagenEnDatumBuitenTermijn = heeftStatus(EERSTE_LEZING_OPGESLAGEN)
+			.and(MammaLezingSpecification.heeftBeoordelingDatumOpOfVoor(maxUrenNietGeaccordeerdPeilMoment).with(MammaBeoordeling_.eersteLezing, JoinType.LEFT));
 
-		return criteria;
+		var isTweedeLezingOpgeslagenEnDatumBuitenTermijn = heeftStatus(TWEEDE_LEZING_OPGESLAGEN)
+			.and(MammaLezingSpecification.heeftBeoordelingDatumOpOfVoor(maxUrenNietGeaccordeerdPeilMoment).with(MammaBeoordeling_.tweedeLezing, JoinType.LEFT));
+
+		return isEersteLezingOpgeslagenEnEersteBeoordelaarInactief
+			.or(isTweedeLezingOpgeslagenEnTweedeBeoordelaarInactief)
+			.or(isEersteLezingOpgeslagenEnDatumBuitenTermijn)
+			.or(isTweedeLezingOpgeslagenEnDatumBuitenTermijn);
 	}
 
 }

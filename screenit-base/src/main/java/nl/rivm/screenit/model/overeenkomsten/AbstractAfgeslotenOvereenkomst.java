@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.overeenkomsten;
 
 /*-
@@ -38,24 +37,26 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.model.helper.HibernateMagicNumber;
 import nl.rivm.screenit.model.UploadDocument;
+import nl.rivm.screenit.model.helper.HibernateMagicNumber;
 import nl.topicuszorg.hibernate.object.model.HibernateObject;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 @Entity
+@Getter
+@Setter
 @Table(schema = "gedeeld", indexes = { @Index(name = "IDX_AFG_OVEREENKOMST_AKKOORD", columnList = "akkoordDatum, eindDatum, startDatum") })
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(length = HibernateMagicNumber.L100)
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "organisatie.cache")
 public abstract class AbstractAfgeslotenOvereenkomst implements HibernateObject
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
@@ -86,116 +87,5 @@ public abstract class AbstractAfgeslotenOvereenkomst implements HibernateObject
 	private UploadDocument gescandDocument;
 
 	private boolean teAccoderen;
-
-	@Override
-	public Long getId()
-	{
-		return id;
-	}
-
-	public void setId(Long id)
-	{
-		this.id = id;
-	}
-
-	public String getCode()
-	{
-		return code;
-	}
-
-	public void setCode(String code)
-	{
-		this.code = code;
-	}
-
-	public Date getStartDatum()
-	{
-		return startDatum;
-	}
-
-	public void setStartDatum(Date startDatum)
-	{
-		this.startDatum = startDatum;
-	}
-
-	public Date getEindDatum()
-	{
-		return eindDatum;
-	}
-
-	public void setEindDatum(Date eindDatum)
-	{
-		this.eindDatum = eindDatum;
-	}
-
-	public Date getAkkoordDatum()
-	{
-		return akkoordDatum;
-	}
-
-	public void setAkkoordDatum(Date akkoordDatum)
-	{
-		this.akkoordDatum = akkoordDatum;
-	}
-
-	public boolean isNieuwereOvereenkomst()
-	{
-		return nieuwereOvereenkomst;
-	}
-
-	public void setNieuwereOvereenkomst(boolean nieuwereOvereenkomst)
-	{
-		this.nieuwereOvereenkomst = nieuwereOvereenkomst;
-	}
-
-	public ScreeningOrganisatie getScreeningOrganisatie()
-	{
-		return screeningOrganisatie;
-	}
-
-	public void setScreeningOrganisatie(ScreeningOrganisatie screeningOrganisatie)
-	{
-		this.screeningOrganisatie = screeningOrganisatie;
-	}
-
-	public Overeenkomst getOvereenkomst()
-	{
-		return overeenkomst;
-	}
-
-	public void setOvereenkomst(Overeenkomst overeenkomst)
-	{
-		this.overeenkomst = overeenkomst;
-	}
-
-	public int getVolgnummer()
-	{
-		return volgnummer;
-	}
-
-	public void setVolgnummer(int volgnummer)
-	{
-		this.volgnummer = volgnummer;
-	}
-
-	public UploadDocument getGescandDocument()
-	{
-		return gescandDocument;
-	}
-
-	public void setGescandDocument(UploadDocument gescandDocument)
-	{
-		this.gescandDocument = gescandDocument;
-	}
-
-	public boolean isTeAccoderen()
-	{
-		return teAccoderen;
-	}
-
-	public void setTeAccoderen(boolean teAccoderen)
-	{
-		this.teAccoderen = teAccoderen;
-	}
 
 }

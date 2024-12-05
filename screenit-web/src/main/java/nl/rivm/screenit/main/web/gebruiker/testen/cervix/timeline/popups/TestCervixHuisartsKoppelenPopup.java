@@ -23,7 +23,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.popups;
 
 import java.util.List;
 
-import nl.rivm.screenit.main.dao.cervix.CervixHuisartsDao;
+import nl.rivm.screenit.main.service.cervix.CervixHuisartsService;
 import nl.rivm.screenit.main.service.cervix.CervixTestTimelineService;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.model.Client;
@@ -49,12 +49,12 @@ public class TestCervixHuisartsKoppelenPopup extends TestCervixUitnodigingenPopu
 
 	private IModel<String> agbCodeModel;
 
-	private IModel<Boolean> eersteHuisartsCheckModel;
+	private final IModel<Boolean> eersteHuisartsCheckModel;
 
-	private WebMarkupContainer agbCodeContainer;
+	private final WebMarkupContainer agbCodeContainer;
 
 	@SpringBean
-	private CervixHuisartsDao huisartsDao;
+	private CervixHuisartsService huisartsService;
 
 	@SpringBean
 	private HibernateService hiberateService;
@@ -129,13 +129,13 @@ public class TestCervixHuisartsKoppelenPopup extends TestCervixUitnodigingenPopu
 			}
 			else
 			{
-				CervixHuisarts huisarts = huisartsDao.getHuisarts(agbCodeModel.getObject());
+				CervixHuisarts huisarts = huisartsService.getHuisartsMetAgbCode(agbCodeModel.getObject());
 				if (huisarts == null)
 				{
 					error("Geen huisarts gevonden met deze agbcode.");
 					return;
 				}
-				if (huisartsDao.getActieveHuisartsLocatiesVanHuisarts(huisarts).isEmpty())
+				if (huisartsService.getActieveHuisartsLocatiesVanHuisarts(huisarts).isEmpty())
 				{
 					error("Er zijn (nog) geen (active) locaties aan deze huisarts gekoppeld, voeg deze toe.");
 					return;

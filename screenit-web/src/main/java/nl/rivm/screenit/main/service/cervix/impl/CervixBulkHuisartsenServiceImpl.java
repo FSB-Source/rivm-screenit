@@ -37,8 +37,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.huisartsenportaal.dto.HuisartsDto;
 import nl.rivm.screenit.huisartsenportaal.dto.LocatieDto;
-import nl.rivm.screenit.main.dao.cervix.CervixHuisartsDao;
 import nl.rivm.screenit.main.service.cervix.CervixBulkHuisartsenService;
+import nl.rivm.screenit.main.service.cervix.CervixHuisartsService;
 import nl.rivm.screenit.model.Aanhef;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.InstellingGebruiker;
@@ -61,6 +61,7 @@ import nl.rivm.screenit.service.HuisartsenportaalSyncService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.UploadDocumentService;
+import nl.rivm.screenit.service.WoonplaatsService;
 import nl.rivm.screenit.util.CodeGenerator;
 import nl.rivm.screenit.util.cervix.CervixHuisartsToDtoUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -101,7 +102,10 @@ public class CervixBulkHuisartsenServiceImpl implements CervixBulkHuisartsenServ
 	private HuisartsenportaalSyncService huisartsenportaalSyncService;
 
 	@Autowired
-	private CervixHuisartsDao cervixHuisartsDao;
+	private CervixHuisartsService huisartsService;
+
+	@Autowired
+	private WoonplaatsService woonplaatsService;
 
 	public CervixBulkHuisartsenServiceImpl()
 	{
@@ -207,14 +211,14 @@ public class CervixBulkHuisartsenServiceImpl implements CervixBulkHuisartsenServ
 		Woonplaats woonplaats = null;
 		try
 		{
-			woonplaats = cervixHuisartsDao.getWoonplaats(plaats);
+			woonplaats = woonplaatsService.getWoonplaats(plaats);
 		}
 		catch (NonUniqueResultException e)
 		{
 
 			if (gemeente != null)
 			{
-				woonplaats = cervixHuisartsDao.getWoonplaats(plaats, gemeente);
+				woonplaats = woonplaatsService.getWoonplaats(plaats, gemeente);
 			}
 			else
 			{
@@ -237,7 +241,7 @@ public class CervixBulkHuisartsenServiceImpl implements CervixBulkHuisartsenServ
 				+ ") en screeningsorganisatie.");
 			return false;
 		}
-		CervixHuisarts arts = cervixHuisartsDao.getHuisarts(agbCode);
+		CervixHuisarts arts = huisartsService.getHuisartsMetAgbCode(agbCode);
 		if (arts != null)
 		{
 			melding(informatie + "Huisarts overgeslagen vanwege dat deze huisarts al bestaat.");

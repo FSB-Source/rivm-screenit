@@ -21,12 +21,17 @@ package nl.rivm.screenit.repository.cervix;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
 import java.util.Optional;
 
+import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.CervixLabformulierAanvraag;
+import nl.rivm.screenit.model.cervix.enums.CervixLabformulierAanvraagStatus;
 import nl.rivm.screenit.repository.BaseJpaRepository;
 
 public interface CervixLabformulierAanvraagRepository extends BaseJpaRepository<CervixLabformulierAanvraag>
 {
 	Optional<CervixLabformulierAanvraag> findOneByHuisartsportaalId(Long id);
+
+	List<CervixLabformulierAanvraag> findByHuisartsLocatieAndStatus(CervixHuisartsLocatie huisartsLocatie, CervixLabformulierAanvraagStatus status);
 }

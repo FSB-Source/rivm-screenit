@@ -1,0 +1,27 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+@import "src/scss/mixins";
+
+.form {
+  background-color: transparent;
+  padding: 0;
+}
+
+.overigeBezwaren {
+	width: 100%;
+	border-radius: 0.625rem;
+	background-color: $wit-base;
+	box-shadow: 0 0.625rem 1.25rem -0.625rem rgba(0, 0, 0, 0.25);
+	padding: 1.875rem;
+	margin: 0.938rem 0;
+	font-size: 0.875rem;
+
+	@include respond-below(xs) {
+		padding: 0.6rem;
+	}
+
+	label {
+		font-weight: bold;
+		line-height: 1rem;
+	}
+}

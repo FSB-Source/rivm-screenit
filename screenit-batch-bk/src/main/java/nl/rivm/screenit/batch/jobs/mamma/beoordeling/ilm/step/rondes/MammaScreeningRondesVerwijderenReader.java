@@ -21,29 +21,29 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.rondes;
  * =========================LICENSE_END==================================
  */
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Root;
+
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.MammaIlmJobListener;
-import nl.rivm.screenit.model.ScreeningRondeStatus;
+import nl.rivm.screenit.model.TablePerClassHibernateObject_;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.specification.algemeen.ScreeningRondeSpecification;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projection;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.HibernateObjectSpecification.heeftIdGroterDan;
 
 @Component
 @AllArgsConstructor
-public class MammaScreeningRondesVerwijderenReader extends BaseScrollableResultReader
+public class MammaScreeningRondesVerwijderenReader extends BaseSpecificationScrollableResultReader<MammaScreeningRonde>
 {
 
 	private final SimplePreferenceService preferenceService;
@@ -51,23 +51,24 @@ public class MammaScreeningRondesVerwijderenReader extends BaseScrollableResultR
 	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<MammaScreeningRonde> createSpecification()
 	{
-		var verwijderGrensDatum = DateUtil.toUtilDate(currentDateSupplier.getLocalDate().minusDays(preferenceService.getInteger(PreferenceKey.ILM_BEWAARTERMIJN.name())));
+		var verwijderGrensDatum = currentDateSupplier.getLocalDate().minusDays(preferenceService.getInteger(PreferenceKey.ILM_BEWAARTERMIJN.name()));
 
-		var crit = session.createCriteria(MammaScreeningRonde.class, "ronde");
-
-		crit.add(Restrictions.eq("ronde.status", ScreeningRondeStatus.AFGEROND));
-		crit.add(Restrictions.le("ronde.statusDatum", verwijderGrensDatum));
-		crit.add(Restrictions.gt("ronde.id", getExecutionContext().get(MammaIlmJobListener.KEY_LAATSTE_RONDE_ID)));
-		crit.setMaxResults(MammaIlmJobListener.MAX_AANTAL_RONDES_VERWERKEN_IN_STEP);
-		crit.addOrder(Order.asc("ronde.id"));
-		return crit;
+		return ScreeningRondeSpecification.<MammaScreeningRonde> isAfgerond()
+			.and(ScreeningRondeSpecification.heeftStatusDatumOpOfVoor(verwijderGrensDatum.atStartOfDay()))
+			.and(heeftIdGroterDan((Long) getExecutionContext().get(MammaIlmJobListener.KEY_LAATSTE_RONDE_ID)));
 	}
 
 	@Override
-	protected Projection getProjection()
+	protected int getMaxResults()
 	{
-		return Projections.id();
+		return MammaIlmJobListener.MAX_AANTAL_RONDES_VERWERKEN_IN_STEP;
+	}
+
+	@Override
+	protected Order getOrder(Root<MammaScreeningRonde> r, CriteriaBuilder cb)
+	{
+		return cb.asc(r.get(TablePerClassHibernateObject_.id));
 	}
 }

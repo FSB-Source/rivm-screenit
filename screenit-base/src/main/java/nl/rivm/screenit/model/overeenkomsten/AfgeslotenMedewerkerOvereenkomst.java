@@ -24,25 +24,16 @@ package nl.rivm.screenit.model.overeenkomsten;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.Gebruiker;
 
 @Entity
+@Getter
+@Setter
 public class AfgeslotenMedewerkerOvereenkomst extends AbstractAfgeslotenOvereenkomst
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@ManyToOne
 	private Gebruiker gebruiker;
-
-	public Gebruiker getGebruiker()
-	{
-		return gebruiker;
-	}
-
-	public void setGebruiker(Gebruiker gebruiker)
-	{
-		this.gebruiker = gebruiker;
-	}
-
 }

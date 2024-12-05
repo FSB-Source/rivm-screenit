@@ -22,27 +22,40 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.maxleeftijdpushuitnodigingste
  */
 
 import java.time.LocalDate;
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Selection;
 
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.colon.selectie.AbstractUitnodigingPushReader;
 import nl.rivm.screenit.batch.jobs.colon.selectie.SelectieConstants;
+import nl.rivm.screenit.model.BagAdres;
+import nl.rivm.screenit.model.BagAdres_;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.GbaPersoon_;
+import nl.rivm.screenit.model.Gemeente;
+import nl.rivm.screenit.model.Gemeente_;
+import nl.rivm.screenit.model.SingleTableHibernateObject_;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
+import nl.rivm.screenit.specification.algemeen.PersoonSpecification;
 import nl.rivm.screenit.util.DateUtil;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Projection;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
+
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
 @Slf4j
-public abstract class AbstractUitnodigingPushMaxLeeftijdReader extends AbstractUitnodigingPushReader
+public abstract class AbstractUitnodigingPushMaxLeeftijdReader extends AbstractUitnodigingPushReader<Client>
 {
 
 	@Autowired
@@ -54,17 +67,24 @@ public abstract class AbstractUitnodigingPushMaxLeeftijdReader extends AbstractU
 	}
 
 	@Override
-	protected Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<Client> createSpecification()
 	{
-		var criteria = session.createCriteria(Client.class, "client");
-		createBaseCriteria(criteria);
-		var geboortedatum = currentDateSupplier.getLocalDate().minusYears(preferenceService.getInteger(PreferenceKey.MAXIMALE_LEEFTIJD_COLON.name()) + 1);
+		var geboortedatum = currentDateSupplier.getLocalDate().minusYears(preferenceService.getInteger(PreferenceKey.MAXIMALE_LEEFTIJD_COLON.name(), 75) + 1);
 
 		geboortedatum = geboortedatum.minusDays(getExecutionContext().getInt(SelectieConstants.PUSH_MAX_LEEFTIJD_COUNT) - 1);
 		LOG.info("Controle op geboortedatum {}", geboortedatum);
-		criteria.add(Restrictions.eq("persoon.geboortedatum", DateUtil.toUtilDate(geboortedatum)));
 
-		return criteria;
+		return baseSpecifications().and(PersoonSpecification.filterGeboortedatum(DateUtil.toUtilDate(geboortedatum)).with(Client_.persoon));
+	}
+
+	@Override
+	protected List<Selection<?>> createProjections(Root<Client> r, CriteriaBuilder cb)
+	{
+		return List.of(
+			r.get(SingleTableHibernateObject_.id),
+			cb.nullLiteral(Long.class),
+			gemeenteJoin(r).get(AbstractHibernateObject_.id),
+			join(gemeenteJoin(r), Gemeente_.screeningOrganisatie, JoinType.LEFT).get(SingleTableHibernateObject_.id));
 	}
 
 	@Override
@@ -73,23 +93,10 @@ public abstract class AbstractUitnodigingPushMaxLeeftijdReader extends AbstractU
 		return super.getPeildatum().minusDays(getExecutionContext().getInt(SelectieConstants.PUSH_MAX_LEEFTIJD_COUNT));
 	}
 
-	@Override
-	protected Projection getProjection()
+	private static Join<BagAdres, Gemeente> gemeenteJoin(Root<Client> r)
 	{
-		return Projections.projectionList()
-			.add(Projections.property("id"))
-			.add(Projections.property("gemeente.id"))
-			.add(Projections.property("screeningorganisatie.id"));
+		var persoonJoin = join(r, Client_.persoon);
+		var adresJoin = join(persoonJoin, GbaPersoon_.gbaAdres);
+		return join(adresJoin, BagAdres_.gbaGemeente);
 	}
-
-	@Override
-	protected ClientTePushenDto mapData(Object[] data)
-	{
-		var dto = new ClientTePushenDto();
-		dto.setClientId(getNullSafeLongFromNumber(data[0]));
-		dto.setGemeenteId(getNullSafeLongFromNumber(data[1]));
-		dto.setScreeningorganisatieId(getNullSafeLongFromNumber(data[2]));
-		return dto;
-	}
-
 }

@@ -47,7 +47,6 @@ import nl.rivm.screenit.main.service.algemeen.DeelnamemodusService;
 import nl.rivm.screenit.main.service.mamma.MammaBeoordelingService;
 import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
 import nl.rivm.screenit.main.service.mamma.MammaTestTimelineService;
-import nl.rivm.screenit.main.specification.mamma.MammaMammografieSpecification;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.TestVervolgKeuzeOptie;
 import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.ImportPocOpties;
 import nl.rivm.screenit.model.BagAdres;
@@ -63,17 +62,22 @@ import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
+import nl.rivm.screenit.model.mamma.MammaAfspraak_;
 import nl.rivm.screenit.model.mamma.MammaAnnotatieAfbeelding;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaDossier;
+import nl.rivm.screenit.model.mamma.MammaDossier_;
 import nl.rivm.screenit.model.mamma.MammaLezing;
 import nl.rivm.screenit.model.mamma.MammaMammografie;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.MammaSignaleren;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaBIRADSWaarde;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
@@ -120,6 +124,7 @@ import ca.uhn.hl7v2.HL7Exception;
 
 import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.filterBsn;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.afsprakenWaarvanOnderzoekNietIsDoorgevoerdAfgelopen2Maanden;
+import static nl.rivm.screenit.specification.mamma.MammaMammografieBaseSpecification.heeftIlmStatusIn;
 
 @Service
 @Slf4j
@@ -1088,7 +1093,9 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 	@Override
 	public String getBsnsMetBeeldenBeschikbaar()
 	{
-		return clientRepository.findAll(MammaMammografieSpecification.heeftBeeldenMogelijkAanwezig())
+		return clientRepository.findAll(heeftIlmStatusIn(MammaMammografieIlmStatus.BEELDEN_MOGELIJK_AANWEZIG).with(
+				r -> r.join(Client_.mammaDossier).join(MammaDossier_.screeningRondes).join(MammaScreeningRonde_.uitnodigingen).join(MammaUitnodiging_.afspraken)
+					.join(MammaAfspraak_.onderzoek).join(MammaOnderzoek_.mammografie)))
 			.stream().map(client -> client.getPersoon().getBsn()).collect(Collectors.joining(","));
 	}
 

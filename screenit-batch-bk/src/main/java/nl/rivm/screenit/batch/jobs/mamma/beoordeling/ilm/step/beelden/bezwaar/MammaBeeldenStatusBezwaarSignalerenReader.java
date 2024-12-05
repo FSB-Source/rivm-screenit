@@ -24,20 +24,19 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.beelden.bezwaar;
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.mamma.MammaIlmBezwaarPoging;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.batch.specification.MammaIlmBezwaarPogingSpecification.heeftStatusDatumVoor;
 
 @Component
 @AllArgsConstructor
-public class MammaBeeldenStatusBezwaarSignalerenReader extends BaseScrollableResultReader
+public class MammaBeeldenStatusBezwaarSignalerenReader extends BaseSpecificationScrollableResultReader<MammaIlmBezwaarPoging>
 {
 
 	private final SimplePreferenceService preferenceService;
@@ -45,14 +44,9 @@ public class MammaBeeldenStatusBezwaarSignalerenReader extends BaseScrollableRes
 	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<MammaIlmBezwaarPoging> createSpecification()
 	{
 		var signaleerTermijn = currentDateSupplier.getLocalDateTime().minusDays(preferenceService.getInteger(PreferenceKey.ILM_SIGNALEERTERMIJN_BEELDEN_STATUS.name()));
-
-		var criteria = session.createCriteria(MammaIlmBezwaarPoging.class);
-
-		criteria.add(Restrictions.lt("statusDatum", signaleerTermijn));
-
-		return criteria;
+		return heeftStatusDatumVoor(signaleerTermijn);
 	}
 }

@@ -25,11 +25,7 @@ import org.hibernate.Criteria;
 
 public interface CervixSelectieRestrictionsService
 {
-
 	void addClientSelectieRestrictions(Criteria criteria);
 
 	void addClientSelectieRestrictions(Criteria criteria, int daysToAddToToday);
-
-	void addVooraankondigingSelectieRestrictions(Criteria criteria);
-
 }

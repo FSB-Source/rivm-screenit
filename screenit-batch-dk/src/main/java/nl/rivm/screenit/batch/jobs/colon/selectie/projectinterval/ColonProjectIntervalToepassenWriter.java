@@ -54,7 +54,7 @@ public class ColonProjectIntervalToepassenWriter extends BaseWriter<ProjectClien
 	@Override
 	protected void write(ProjectClient projectClient)
 	{
-		LOG.info("gevonden (project) client: Interval wordt voor PCID:{} CID:{} gecorrigeerd", projectClient.getId(), projectClient.getClient().getId());
+		LOG.info("gevonden (project) client: Interval wordt voor PCID:'{}' CID:'{}' gecorrigeerd", projectClient.getId(), projectClient.getClient().getId());
 
 		String parameter = ProjectUtil.getParameter(projectClient.getProject(), ProjectParameterKey.COLON_AFWIJKING_UITNODIGINGSINTERVAL);
 		int afwijking = NumberUtils.toInt(parameter, Integer.MAX_VALUE);

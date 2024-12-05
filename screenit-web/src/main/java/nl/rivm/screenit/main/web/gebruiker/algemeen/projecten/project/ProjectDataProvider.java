@@ -86,7 +86,7 @@ public class ProjectDataProvider extends SortableDataProvider<Project, String>
 	{
 		if (toegangLevel != null)
 		{
-			return organisatieZoekService.getZichtbateInstellingenOpToegangLevel(ScreenitSession.get().getLoggedInInstellingGebruiker().getOrganisatie(), toegangLevel,
+			return organisatieZoekService.getZichtbareInstellingenOpToegangLevel(ScreenitSession.get().getLoggedInInstellingGebruiker().getOrganisatie(), toegangLevel,
 				Arrays.asList(OrganisatieType.values()));
 		}
 		return null;

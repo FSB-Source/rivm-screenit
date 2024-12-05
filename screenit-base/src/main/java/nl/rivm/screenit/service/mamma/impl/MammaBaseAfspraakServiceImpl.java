@@ -97,7 +97,6 @@ import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -107,7 +106,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.Range;
 
 import static nl.rivm.screenit.specification.RangeSpecification.bevat;
-import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.filterStatuses;
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.filterStatus;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftClientInTehuis;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftDoelgroep;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftGeenCapaciteitBlok;
@@ -115,8 +114,9 @@ import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.he
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftScreeningsEenheid;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftStandplaats;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftStandplaatsPeriode;
-import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftStatuses;
-import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.valtInPeriode;
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftStatus;
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.valtInDatumTijdPeriode;
+import static nl.rivm.screenit.util.RangeUtil.closedOpen;
 
 @Service
 @Slf4j
@@ -338,7 +338,7 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 		var afspraken = baseAfspraakRepository.findWith(
 			heeftScreeningsEenheid(screeningsEenheid)
 				.and(begintTussenTotEnMet(vanaf, totEnMet))
-				.and(filterStatuses(Arrays.asList(afspraakStatussen))), q ->
+				.and(filterStatus(Arrays.asList(afspraakStatussen))), q ->
 				q.fetch(g -> g.addSubgraph(MammaAfspraak_.uitnodiging).addSubgraph(MammaUitnodiging_.screeningRonde)
 						.addSubgraph(MammaScreeningRonde_.dossier).addSubgraph(MammaDossier_.client).addSubgraph(Client_.persoon))
 					.all());
@@ -352,7 +352,7 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 	{
 		return baseAfspraakRepository.findAll(heeftScreeningsEenheid(seCode)
 			.and(begintTussenTotEnMet(vanaf, totEnMet))
-			.and(filterStatuses(Arrays.asList(afspraakStatussen))));
+			.and(filterStatus(Arrays.asList(afspraakStatussen))));
 	}
 
 	@Override
@@ -456,14 +456,14 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 	@Override
 	public boolean heeftAfspraken(long standplaatsPeriodeId, MammaAfspraakStatus... afspraakStatussen)
 	{
-		return baseAfspraakRepository.exists(filterStatuses(Arrays.asList(afspraakStatussen))
+		return baseAfspraakRepository.exists(filterStatus(Arrays.asList(afspraakStatussen))
 			.and(heeftStandplaatsPeriode(standplaatsPeriodeId)));
 	}
 
 	@Override
 	public long countAfspraken(MammaScreeningsEenheid screeningsEenheid, LocalDate vanaf, LocalDate totEnMet, MammaAfspraakStatus... afspraakStatussen)
 	{
-		return baseAfspraakRepository.count(filterStatuses(Arrays.asList(afspraakStatussen))
+		return baseAfspraakRepository.count(filterStatus(Arrays.asList(afspraakStatussen))
 			.and(begintTussenTotEnMet(vanaf, totEnMet))
 			.and(heeftScreeningsEenheid(screeningsEenheid)));
 	}
@@ -471,7 +471,7 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 	@Override
 	public Pair<Date, Date> getEersteEnLaatsteAfspraakMomenten(long standplaatsPeriodeId, LocalDate vanaf, LocalDate totEnMet, MammaAfspraakStatus... afspraakStatussen)
 	{
-		var result = baseAfspraakRepository.findWith(filterStatuses(Arrays.asList(afspraakStatussen))
+		var result = baseAfspraakRepository.findWith(filterStatus(Arrays.asList(afspraakStatussen))
 					.and(begintTussenTotEnMet(vanaf, totEnMet))
 					.and(heeftStandplaatsPeriode(standplaatsPeriodeId)),
 				Object[].class,
@@ -486,7 +486,7 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 	@Override
 	public long countAfspraken(MammaStandplaats standplaats, LocalDate vanaf, LocalDate totEnMet, MammaAfspraakStatus... afspraakStatussen)
 	{
-		return baseAfspraakRepository.count(filterStatuses(Arrays.asList(afspraakStatussen))
+		return baseAfspraakRepository.count(filterStatus(Arrays.asList(afspraakStatussen))
 			.and(begintTussenTotEnMet(vanaf, totEnMet))
 			.and(heeftStandplaats(standplaats)));
 	}
@@ -494,7 +494,7 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 	@Override
 	public List<MammaAfspraak> getAfspraken(MammaStandplaats standplaats, Range<Date> periode, MammaAfspraakStatus... afspraakStatussen)
 	{
-		return baseAfspraakRepository.findAll(filterStatuses(Arrays.asList(afspraakStatussen))
+		return baseAfspraakRepository.findAll(filterStatus(Arrays.asList(afspraakStatussen))
 			.and(bevat(periode, r -> r.get(MammaAfspraak_.vanaf)))
 			.and(heeftStandplaats(standplaats)));
 	}
@@ -526,8 +526,8 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 
 	private List<MammaAfspraak> getNietGekoppeldeAfspraken(MammaCapaciteitBlok capaciteitBlok)
 	{
-		var specification = heeftStatuses(List.of(MammaAfspraakStatus.GEPLAND))
-			.and(valtInPeriode(DateUtil.toLocalDateTime(capaciteitBlok.getVanaf()), DateUtil.toLocalDateTime(capaciteitBlok.getTot())))
+		var specification = heeftStatus(MammaAfspraakStatus.GEPLAND)
+			.and(valtInDatumTijdPeriode(closedOpen(DateUtil.toLocalDateTime(capaciteitBlok.getVanaf()), DateUtil.toLocalDateTime(capaciteitBlok.getTot()))))
 			.and(heeftGeenCapaciteitBlok())
 			.and(heeftScreeningsEenheid(capaciteitBlok.getScreeningsEenheid()));
 
@@ -706,8 +706,8 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 		return heeftRondeGeenOnderzoek && isLaatsteAfspraakGeenGeforceerdeAfspraak && isGeenTehuisClient && !bijAfspraakForceren;
 	}
 
-	private static @Nullable Specification<MammaAfspraak> begintTussenTotEnMet(LocalDate vanaf, LocalDate totEnMet)
+	private static Specification<MammaAfspraak> begintTussenTotEnMet(LocalDate vanaf, LocalDate totEnMet)
 	{
-		return valtInPeriode(vanaf != null ? vanaf.atStartOfDay() : null, totEnMet != null ? totEnMet.plusDays(1).atStartOfDay() : null);
+		return valtInDatumTijdPeriode(closedOpen(vanaf != null ? vanaf.atStartOfDay() : null, totEnMet != null ? totEnMet.plusDays(1).atStartOfDay() : null));
 	}
 }

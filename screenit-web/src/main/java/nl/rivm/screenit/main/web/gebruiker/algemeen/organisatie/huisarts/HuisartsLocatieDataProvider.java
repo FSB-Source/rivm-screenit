@@ -24,8 +24,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.huisarts;
 import java.util.Iterator;
 
 import nl.rivm.screenit.huisartsenportaal.enums.CervixLocatieStatus;
-import nl.rivm.screenit.main.dao.cervix.CervixHuisartsDao;
-import nl.rivm.screenit.model.SortState;
+import nl.rivm.screenit.main.service.cervix.CervixHuisartsService;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.SearchHuisartsLocatieDto;
@@ -37,10 +36,12 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
+
 public class HuisartsLocatieDataProvider extends SortableDataProvider<CervixHuisartsLocatie, String>
 {
 	@SpringBean
-	private CervixHuisartsDao huisartsDao;
+	private CervixHuisartsService huisartsService;
 
 	private IModel<CervixHuisarts> huisartsIModel;
 
@@ -57,8 +58,7 @@ public class HuisartsLocatieDataProvider extends SortableDataProvider<CervixHuis
 	@Override
 	public Iterator<? extends CervixHuisartsLocatie> iterator(long first, long count)
 	{
-		return huisartsDao.getCervixHuisartsLocatieVanHuisarts(getZoekObject(), first, count,
-			new SortState<>(getSort().getProperty(), getSort().isAscending())).iterator();
+		return huisartsService.getLocatiesVanHuisarts(getZoekObject(), first, count, toSpringSort(getSort())).iterator();
 	}
 
 	private CervixHuisartsLocatie getZoekObject()
@@ -85,7 +85,7 @@ public class HuisartsLocatieDataProvider extends SortableDataProvider<CervixHuis
 	@Override
 	public long size()
 	{
-		return huisartsDao.getAantalCervixHuisartsLocatieVanHuisarts(getZoekObject());
+		return huisartsService.getAantalLocatiesVanHuisarts(getZoekObject());
 	}
 
 	@Override

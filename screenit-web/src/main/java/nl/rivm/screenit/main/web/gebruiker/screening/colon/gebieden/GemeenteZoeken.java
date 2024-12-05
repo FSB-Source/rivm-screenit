@@ -22,8 +22,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.gebieden;
  */
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 import nl.rivm.screenit.main.web.ScreenitSession;
@@ -35,6 +33,7 @@ import nl.rivm.screenit.main.web.gebruiker.base.ZoekenContextMenuItem;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.Instelling;
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.enums.Actie;
@@ -43,7 +42,6 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
 import nl.rivm.screenit.service.OrganisatieZoekService;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
-import nl.topicuszorg.organisatie.model.Organisatie_;
 import nl.topicuszorg.wicket.hibernate.SimpleHibernateModel;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -83,7 +81,7 @@ public class GemeenteZoeken extends GebiedenBeheerPage
 
 	private static final long serialVersionUID = 1L;
 
-	private ScreenitForm<Gemeente> zoekForm;
+	private final ScreenitForm<Gemeente> zoekForm;
 
 	@SpringBean
 	private OrganisatieZoekService organisatieZoekService;
@@ -171,18 +169,15 @@ public class GemeenteZoeken extends GebiedenBeheerPage
 	{
 		Form<ColonIntakelocatie> form = new ScreenitForm<>("intakelocatieForm");
 		add(form);
-		Iterator<Instelling> searchOrganisatie = organisatieZoekService.searchOrganisatie(new Instelling(), Arrays.asList(OrganisatieType.INTAKELOCATIE), null,
-			ScreenitSession.get().getLoggedInInstellingGebruiker(), -1, -1, Organisatie_.NAAM, true);
-		List<ColonIntakelocatie> intakelocaties = new ArrayList<>();
-		while (searchOrganisatie.hasNext())
-		{
-			intakelocaties.add((ColonIntakelocatie) HibernateHelper.deproxy(searchOrganisatie.next()));
-		}
+		var organisaties = organisatieZoekService.zoekOrganisaties(new Instelling(), List.of(OrganisatieType.INTAKELOCATIE), null,
+			ScreenitSession.get().getLoggedInInstellingGebruiker(), -1, -1, Instelling_.NAAM, true);
+		var intakelocaties = new ArrayList<ColonIntakelocatie>();
+		organisaties.forEach(org -> intakelocaties.add((ColonIntakelocatie) HibernateHelper.deproxy(org)));
 		IModel<List<ColonIntakelocatie>> values = ModelUtil.listRModel(intakelocaties, false);
 		ScreenitDropdown<ColonIntakelocatie> intakelocatieSelect = new ScreenitDropdown<>("intakelocatie", new PropertyModel<ColonIntakelocatie>(this, "selectedIntakelocatie"),
 			values);
 
-		intakelocatieSelect.setChoiceRenderer(new ChoiceRenderer<ColonIntakelocatie>("naam"));
+		intakelocatieSelect.setChoiceRenderer(new ChoiceRenderer<>("naam"));
 		intakelocatieSelect.setRequired(true);
 		form.add(intakelocatieSelect);
 

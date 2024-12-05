@@ -36,6 +36,8 @@ import nl.rivm.screenit.model.mamma.berichten.MammaIMSBericht;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.util.KeyValue;
 
+import org.springframework.data.jpa.domain.Specification;
+
 import ca.uhn.hl7v2.HL7Exception;
 
 public interface MammaBaseOnderzoekService
@@ -67,4 +69,6 @@ public interface MammaBaseOnderzoekService
 	boolean heeftBinnenMammografieIntervalGeenOnderzoekGehad(MammaDossier dossier);
 
 	Optional<MammaOnderzoek> getLaatsteOnderzoekMetMissendeUitslagVanDossier(MammaDossier dossier);
+
+	Specification<MammaOnderzoek> getLaatsteOnderzoekMetMissendeUitslagSpecification();
 }

@@ -54,11 +54,11 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContact;
 import nl.rivm.screenit.model.ClientContactActie;
 import nl.rivm.screenit.model.ClientContactActieType;
-import nl.rivm.screenit.model.ClientContactManier;
 import nl.rivm.screenit.model.ClientContact_;
 import nl.rivm.screenit.model.Dossier;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.InstellingGebruiker_;
 import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.TijdelijkAdres;
@@ -144,7 +144,6 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.FITTestUtil;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.organisatie.model.OrganisatieMedewerker_;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.hibernate.Hibernate;
@@ -158,13 +157,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static nl.rivm.screenit.model.ClientContactManier.AANVRAGEN_FORMULIEREN;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.algemeen.ClientContactSpecification.heeftClient;
 import static nl.rivm.screenit.util.StringUtil.propertyChain;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
-
-import static nl.rivm.screenit.model.ClientContactManier.AANVRAGEN_FORMULIEREN;
 
 @Component
 @Transactional
@@ -1766,10 +1764,10 @@ public class ClientContactServiceImpl implements ClientContactService
 
 	private static Order sorteerClientContacten(Sort.Order order, Root<ClientContact> r, CriteriaBuilder cb)
 	{
-		if (order.getProperty().startsWith(propertyChain(ClientContact_.INSTELLING_GEBRUIKER, OrganisatieMedewerker_.MEDEWERKER)))
+		if (order.getProperty().startsWith(propertyChain(ClientContact_.INSTELLING_GEBRUIKER, InstellingGebruiker_.MEDEWERKER)))
 		{
 			var instellingGebruikerJoin = join(r, ClientContact_.instellingGebruiker);
-			join(instellingGebruikerJoin, OrganisatieMedewerker_.medewerker);
+			join(instellingGebruikerJoin, InstellingGebruiker_.medewerker);
 		}
 		return null;
 	}

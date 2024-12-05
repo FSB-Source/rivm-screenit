@@ -28,6 +28,7 @@ import java.util.Collection;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Gemeente;
+import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.Permissie;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
@@ -38,7 +39,6 @@ import nl.rivm.screenit.security.ScreenitRealm;
 import nl.rivm.screenit.service.ScopeService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
-import nl.topicuszorg.organisatie.model.Organisatie;
 
 import org.apache.shiro.subject.PrincipalCollection;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,7 +87,7 @@ public class ScopeServiceImpl implements ScopeService
 			}
 
 		}
-		else if (Organisatie.class.isAssignableFrom(constraintToCheck.getScopeObjectClass()))
+		else if (Instelling.class.isAssignableFrom(constraintToCheck.getScopeObjectClass()))
 		{
 
 			if (account instanceof InstellingGebruiker)

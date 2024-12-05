@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.colon;
 
 /*-
@@ -28,26 +27,18 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.AbstractHoudbaarheid;
 
 @Entity
+@Getter
+@Setter
 @Table(schema = "colon")
 public class IFOBTVervaldatum extends AbstractHoudbaarheid
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
 	private IFOBTType type;
-
-	public IFOBTType getType()
-	{
-		return type;
-	}
-
-	public void setType(IFOBTType type)
-	{
-		this.type = type;
-	}
 }

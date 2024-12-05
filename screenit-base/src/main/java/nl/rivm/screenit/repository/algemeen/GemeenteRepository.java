@@ -30,4 +30,5 @@ public interface GemeenteRepository extends BaseJpaRepository<Gemeente>
 {
 	Optional<Gemeente> findOneByCode(String code);
 
+	Gemeente findTopByOrderByIdAsc();
 }

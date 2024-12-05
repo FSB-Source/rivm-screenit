@@ -21,36 +21,36 @@ package nl.rivm.screenit.batch.jobs.cervix.verrichtingen.cleanup;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
-import nl.rivm.screenit.model.enums.BestandStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.model.enums.BestandStatus.GEARCHIVEERD;
+import static nl.rivm.screenit.model.enums.BestandStatus.VERWERKT;
+import static nl.rivm.screenit.specification.cervix.CervixBetaalopdrachtSpecification.heeftNietStatusIn;
+import static nl.rivm.screenit.specification.cervix.CervixBetaalopdrachtSpecification.heeftSepaDocument;
+import static nl.rivm.screenit.specification.cervix.CervixBetaalopdrachtSpecification.heeftSepaSpecificatiePdf;
+import static nl.rivm.screenit.specification.cervix.CervixBetaalopdrachtSpecification.heeftStatusDatumOpOfVoor;
 
 @Component
 @AllArgsConstructor
-public class BetalingBestandenCleanUpReader extends BaseScrollableResultReader
+public class BetalingBestandenCleanUpReader extends BaseSpecificationScrollableResultReader<CervixBetaalopdracht>
 {
-
 	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<CervixBetaalopdracht> createSpecification()
 	{
-		var crit = session.createCriteria(CervixBetaalopdracht.class);
-		crit.add(Restrictions.isNotNull("sepaSpecificatiePdf"));
-		crit.add(Restrictions.isNotNull("sepaDocument"));
-		crit.add(Restrictions.le("statusDatum", DateUtil.toUtilDate(currentDateSupplier.getLocalDate().minusYears(2))));
-		crit.add(Restrictions.or(Restrictions.eq("status", BestandStatus.VERWERKT), Restrictions.eq("status", BestandStatus.GEARCHIVEERD)));
-		return crit;
+		return heeftNietStatusIn(List.of(VERWERKT, GEARCHIVEERD))
+			.and(heeftStatusDatumOpOfVoor(currentDateSupplier.getLocalDate().minusYears(2)))
+			.and(heeftSepaSpecificatiePdf())
+			.and(heeftSepaDocument());
 	}
-
 }

@@ -21,26 +21,22 @@ package nl.rivm.screenit.service.impl;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.dao.OrganisatieZoekDao;
 import nl.rivm.screenit.service.FqdnService;
+import nl.rivm.screenit.service.OrganisatieZoekService;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
 public class FqdnServiceImpl implements FqdnService
 {
-
 	@Autowired
-	private OrganisatieZoekDao zoekDao;
+	private OrganisatieZoekService organisatieZoekService;
 
 	@Override
 	public boolean isFqdnBekend(String fqdn)
 	{
-		return CollectionUtils.isNotEmpty(zoekDao.zoekOrganisatieMetFqdn(fqdn));
+		return CollectionUtils.isNotEmpty(organisatieZoekService.zoekOrganisatieMetFqdn(fqdn));
 	}
 }

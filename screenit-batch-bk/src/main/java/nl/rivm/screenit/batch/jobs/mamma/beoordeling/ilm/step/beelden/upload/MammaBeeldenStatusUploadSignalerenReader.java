@@ -21,25 +21,27 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.beelden.upload;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenPoging;
-import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus.TE_VERWIJDEREN;
+import static nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus.VERWIJDEREN_MISLUKT;
+import static nl.rivm.screenit.specification.mamma.MammaUploadBeeldenPogingSpecification.heeftIlmStatusIn;
+import static nl.rivm.screenit.specification.mamma.MammaUploadBeeldenPogingSpecification.heeftStatusDatumVoor;
 
 @Component
 @AllArgsConstructor
-public class MammaBeeldenStatusUploadSignalerenReader extends BaseScrollableResultReader
+public class MammaBeeldenStatusUploadSignalerenReader extends BaseSpecificationScrollableResultReader<MammaUploadBeeldenPoging>
 {
 
 	private final SimplePreferenceService preferenceService;
@@ -47,16 +49,10 @@ public class MammaBeeldenStatusUploadSignalerenReader extends BaseScrollableResu
 	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<MammaUploadBeeldenPoging> createSpecification()
 	{
-		var signaleerTermijn = DateUtil
-			.toUtilDate(currentDateSupplier.getLocalDate().minusDays(preferenceService.getInteger(PreferenceKey.ILM_SIGNALEERTERMIJN_BEELDEN_STATUS.name())));
-
-		var criteria = session.createCriteria(MammaUploadBeeldenPoging.class);
-
-		criteria.add(Restrictions.in("ilmStatus", MammaMammografieIlmStatus.TE_VERWIJDEREN, MammaMammografieIlmStatus.VERWIJDEREN_MISLUKT));
-		criteria.add(Restrictions.lt("ilmStatusDatum", signaleerTermijn));
-
-		return criteria;
+		var signaleerTermijn = currentDateSupplier.getLocalDate().minusDays(preferenceService.getInteger(PreferenceKey.ILM_SIGNALEERTERMIJN_BEELDEN_STATUS.name())).atStartOfDay();
+		return heeftStatusDatumVoor(signaleerTermijn).and(heeftIlmStatusIn(List.of(TE_VERWIJDEREN, VERWIJDEREN_MISLUKT)));
 	}
+
 }

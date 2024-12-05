@@ -25,13 +25,13 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.document.BaseDocumentCreator;
-import nl.rivm.screenit.main.dao.mamma.MammaBeoordelingDao;
 import nl.rivm.screenit.main.model.mamma.beoordeling.BeoordelingenReserveringResult;
 import nl.rivm.screenit.main.service.mamma.MammaBeoordelingService;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.dto.LaesieDto;
@@ -48,6 +48,7 @@ import nl.rivm.screenit.model.enums.MailPriority;
 import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
+import nl.rivm.screenit.model.mamma.MammaBeoordeling_;
 import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.mamma.MammaLezing;
 import nl.rivm.screenit.model.mamma.enums.MammaBIRADSWaarde;
@@ -56,8 +57,10 @@ import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingOpschortenReden;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaLezingType;
+import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaZijde;
+import nl.rivm.screenit.repository.mamma.MammaBeoordelingRepository;
 import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BaseScreeningRondeService;
@@ -80,18 +83,23 @@ import org.hibernate.envers.AuditReaderFactory;
 import org.hibernate.envers.RevisionType;
 import org.hibernate.envers.query.AuditEntity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import static nl.rivm.screenit.specification.HibernateObjectSpecification.heeftNietId;
+import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.heeftDossier;
+import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.heeftMammografieIlmStatus;
+import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.heeftOpschortReden;
+import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.heeftStatus;
 
 @Slf4j
 @Service
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 {
-
-	@Autowired
-	private MammaBeoordelingDao beoordelingDao;
 
 	@Autowired
 	private MammaBaseBeoordelingService baseBeoordelingService;
@@ -141,27 +149,61 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 	@Autowired
 	private BaseScreeningRondeService baseScreeningRondeService;
 
+	@Autowired
+	private MammaBeoordelingRepository beoordelingRepository;
+
 	@Override
 	public List<MammaBeoordeling> getAlleBeoordelingenMetBeelden(MammaBeoordeling beoordeling)
 	{
-		return beoordelingDao.getAlleVorigeBeoordelingenMetBeelden(beoordeling);
+		var dossier = beoordeling.getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().getDossier();
+		return beoordelingRepository.findAll(
+			heeftDossier(dossier)
+				.and(heeftNietId(beoordeling.getId()))
+				.and(heeftOpschortReden(MammaBeoordelingOpschortenReden.NIET_OPSCHORTEN))
+				.and(heeftMammografieIlmStatus(MammaMammografieIlmStatus.BESCHIKBAAR)),
+			Sort.by(Sort.Direction.DESC, MammaBeoordeling_.STATUS_DATUM));
 	}
 
 	@Override
 	public List<MammaBeoordeling> getVorigeTweeTeTonenBeoordelingen(MammaBeoordeling beoordeling)
 	{
-		final var laatsteTweeBeoordelingen = beoordelingDao.getVorigeBeoordelingen(beoordeling, 2, true);
-		if (laatsteTweeBeoordelingen.size() < 2 || isVerwijzing(laatsteTweeBeoordelingen.get(0)) || isVerwijzing(laatsteTweeBeoordelingen.get(1)))
+		var laatsteTweeBeoordelingen = getLaatsteTweeBeoordelingenMetUitslag(beoordeling);
+
+		if (laatsteTweeBeoordelingen.size() < 2 || laatsteTweeBeoordelingen.stream().anyMatch(this::isVerwijzing))
 		{
 			return laatsteTweeBeoordelingen;
 		}
 
-		final var verwijzendeBeoordeling = beoordelingDao.getVorigeBeoordelingen(beoordeling, 1, false);
-		if (verwijzendeBeoordeling.isEmpty())
+		var verwijzendeBeoordeling = getLaatsteOngunstigeBeoordeling(beoordeling);
+
+		if (verwijzendeBeoordeling.isPresent())
 		{
-			return laatsteTweeBeoordelingen;
+			return List.of(laatsteTweeBeoordelingen.get(0), verwijzendeBeoordeling.get());
 		}
-		return Arrays.asList(laatsteTweeBeoordelingen.get(0), verwijzendeBeoordeling.get(0));
+
+		return laatsteTweeBeoordelingen;
+	}
+
+	private List<MammaBeoordeling> getLaatsteTweeBeoordelingenMetUitslag(MammaBeoordeling beoordeling)
+	{
+		var dossier = beoordeling.getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().getDossier();
+		return beoordelingRepository.findAll(
+				heeftDossier(dossier)
+					.and(heeftNietId(beoordeling.getId()))
+					.and(heeftStatus(MammaBeoordelingStatus.UITSLAG_ONGUNSTIG)
+						.or(heeftStatus(MammaBeoordelingStatus.UITSLAG_GUNSTIG))),
+				PageRequest.of(0, 2, Sort.by(Sort.Direction.DESC, MammaBeoordeling_.STATUS_DATUM)))
+			.toList();
+	}
+
+	private Optional<MammaBeoordeling> getLaatsteOngunstigeBeoordeling(MammaBeoordeling beoordeling)
+	{
+		var dossier = beoordeling.getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().getDossier();
+		return beoordelingRepository.findFirst(
+			heeftDossier(dossier)
+				.and(heeftNietId(beoordeling.getId()))
+				.and(heeftStatus(MammaBeoordelingStatus.UITSLAG_ONGUNSTIG)),
+			Sort.by(Sort.Direction.DESC, MammaBeoordeling_.STATUS_DATUM));
 	}
 
 	private boolean isVerwijzing(MammaBeoordeling mammaBeoordeling)

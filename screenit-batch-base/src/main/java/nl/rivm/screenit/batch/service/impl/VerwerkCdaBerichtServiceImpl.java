@@ -32,7 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 import nl.rivm.screenit.batch.exceptions.OngeldigCdaException;
 import nl.rivm.screenit.batch.service.VerwerkCdaBerichtContentService;
 import nl.rivm.screenit.batch.service.VerwerkCdaBerichtService;
-import nl.rivm.screenit.dao.KwaliteitsovereenkomstDao;
 import nl.rivm.screenit.hl7v3.cda.ClinicalDocument;
 import nl.rivm.screenit.hl7v3.cda.EnFamily;
 import nl.rivm.screenit.hl7v3.cda.EnGiven;
@@ -58,6 +57,7 @@ import nl.rivm.screenit.model.berichten.enums.BerichtStatus;
 import nl.rivm.screenit.model.berichten.enums.BerichtType;
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.berichten.enums.VerslagType;
+import nl.rivm.screenit.model.cervix.CervixCytologieOrder_;
 import nl.rivm.screenit.model.cervix.CervixCytologieVerslag;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieOrderStatus;
 import nl.rivm.screenit.model.cervix.verslag.cytologie.CervixCytologieVerslagContent;
@@ -81,9 +81,9 @@ import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.GebruikersService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.InstellingService;
+import nl.rivm.screenit.service.KwaliteitsovereenkomstService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.VerwerkVerslagService;
-import nl.rivm.screenit.specification.cervix.CervixCytologieOrderSpecification;
 import nl.rivm.screenit.util.MedewerkerUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -95,6 +95,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import static nl.rivm.screenit.specification.cervix.CervixMonsterSpecification.heeftMonsterId;
 
 @Service
 @Slf4j
@@ -128,7 +130,7 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Autowired
-	private KwaliteitsovereenkomstDao kwaliteitsovereenkomstDao;
+	private KwaliteitsovereenkomstService kwaliteitsovereenkomstService;
 
 	@Autowired
 	private CervixCytologieOrderRepository cytologieOrderRepository;
@@ -429,7 +431,8 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 				{
 					monsterIdentificatie = monsterIdentificatie.replaceFirst("^0+(?!$)", ""); 
 				}
-				var cytologieOrder = cytologieOrderRepository.findOne(CervixCytologieOrderSpecification.heeftMonsterId(monsterIdentificatie)).orElse(null);
+				var cytologieOrder = cytologieOrderRepository.findOne(heeftMonsterId(monsterIdentificatie).with(CervixCytologieOrder_.uitstrijkje))
+					.orElse(null);
 				if (cytologieOrder == null)
 				{
 					createOngeldigBerichtMelding(cdaDocument, verslag,
@@ -660,7 +663,7 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 			var message = "verslag ";
 			if (organisationId.length() > 0)
 			{
-				message += "met onbekende PA lab identificatie(s) " + organisationId.toString();
+				message += "met onbekende PA lab identificatie(s) " + organisationId;
 			}
 			else
 			{
@@ -672,7 +675,7 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 
 		if (!isPabLabGekoppeldAanZorginstelling(instelling))
 		{
-			var message = "verslag waarbij een PA lab gevonden met een van de identificatie(s) " + organisationId.toString() + " niet gekoppeld is aan een zorginstelling";
+			var message = "verslag waarbij een PA lab gevonden met een van de identificatie(s) " + organisationId + " niet gekoppeld is aan een zorginstelling";
 			message += " (" + CDAHelper.getFirstValueNotNull(assignedAuthor, CommonCdaConstants.ORGANIZATION_NAME_SUBPATH) + ")";
 			createOngeldigBerichtMelding(cdaDocument, verslag, message, true);
 		}
@@ -723,7 +726,7 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 			}
 			if (StringUtils.isNotBlank(organisationId.toString()))
 			{
-				melding += " (binnen pathologielaboratorium met identificatie " + organisationId.toString() + ")";
+				melding += " (binnen pathologielaboratorium met identificatie " + organisationId + ")";
 			}
 			createOngeldigBerichtMelding(cdaDocument, verslag, melding, true);
 		}
@@ -732,7 +735,7 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 			var vervanging = getOlderVerslag(verslag, cdaDocument) != null;
 
 			var overeenkomstPeildatum = getReferentieDatum(cdaDocument, CdaConstants.AANVANG_VERRICHTING_DATUM_PA_PATH);
-			var hasActiveKwaliteitsovereenkomst = kwaliteitsovereenkomstDao.hasActiveKwaliteitsovereenkomst(instellingMedewerker.getMedewerker(), overeenkomstPeildatum);
+			var hasActiveKwaliteitsovereenkomst = kwaliteitsovereenkomstService.hasActiveKwaliteitsovereenkomst(instellingMedewerker.getMedewerker(), overeenkomstPeildatum);
 			if (vervanging || hasActiveKwaliteitsovereenkomst)
 			{
 				verslag.setUitvoerderOrganisatie(instellingMedewerker.getOrganisatie());
@@ -759,7 +762,7 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 			var message = "verslag ";
 			if (organisationId.length() > 0)
 			{
-				message += "met ongeldige coloscopielocatie/zorginstelling identificatie(s) " + organisationId.toString();
+				message += "met ongeldige coloscopielocatie/zorginstelling identificatie(s) " + organisationId;
 			}
 			else
 			{
@@ -818,7 +821,7 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 			}
 			if (StringUtils.isNotBlank(organisationId.toString()))
 			{
-				message += " (binnen coloscopielocatie/zorginstelling met identificatie " + organisationId.toString() + ")";
+				message += " (binnen coloscopielocatie/zorginstelling met identificatie " + organisationId + ")";
 			}
 
 			createOngeldigBerichtMelding(cdaDocument, verslag, message, true);
@@ -828,7 +831,7 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 			var vervanging = getOlderVerslag(verslag, cdaDocument) != null;
 
 			var overeenkomstPeildatum = getReferentieDatum(cdaDocument, CdaConstants.AANVANG_VERRICHTING_DATUM_MDL_PATH);
-			var hasActiveKwaliteitsovereenkomst = kwaliteitsovereenkomstDao.hasActiveKwaliteitsovereenkomst(instellingMedewerker, overeenkomstPeildatum);
+			var hasActiveKwaliteitsovereenkomst = kwaliteitsovereenkomstService.hasActiveKwaliteitsovereenkomst(instellingMedewerker, overeenkomstPeildatum);
 			if (vervanging || hasActiveKwaliteitsovereenkomst)
 			{
 				verslag.setUitvoerderOrganisatie(instelling);
@@ -855,7 +858,7 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 			boolean herstelbaar;
 			if (organisationId.length() > 0)
 			{
-				message += "met onbekende BMHK laboratorium identificatie(s) " + organisationId.toString();
+				message += "met onbekende BMHK laboratorium identificatie(s) " + organisationId;
 				herstelbaar = true;
 			}
 			else
@@ -890,7 +893,7 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 				if (Boolean.TRUE.equals(ig.getActief()))
 				{
 					var medewerker = ig.getMedewerker();
-					if (Boolean.TRUE.equals(medewerker.getActief()) && patholoogId != null && patholoogId.equals(medewerker.getPatholoogId()))
+					if (Boolean.TRUE.equals(medewerker.getActief()) && patholoogId.equals(medewerker.getPatholoogId()))
 					{
 						instellingGebruiker = ig;
 						break;
@@ -920,7 +923,7 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 
 			if (StringUtils.isNotBlank(organisationId.toString()))
 			{
-				melding += " (binnen BMHK laboratorium met identificatie " + organisationId.toString() + ")";
+				melding += " (binnen BMHK laboratorium met identificatie " + organisationId + ")";
 			}
 			createOngeldigBerichtMelding(cdaDocument, verslag, melding, true);
 		}
@@ -947,11 +950,11 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 		Date onderzoekDatum = null;
 		try
 		{
-			onderzoekDatum = CDAHelper.converCdaDateStringToDate((String) CDAHelper.getFirstValue(cdaDocument, onderzoekdatumPath));
+			onderzoekDatum = CDAHelper.converCdaDateStringToDate(CDAHelper.getFirstValue(cdaDocument, onderzoekdatumPath));
 		}
 		catch (ParseException e)
 		{
-			LOG.error("Fout bij ophalen referentiedatum " + e.getMessage());
+			LOG.error("Fout bij ophalen referentiedatum {}", e.getMessage());
 		}
 		return onderzoekDatum;
 	}
@@ -959,7 +962,7 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 	private boolean isPabLabGekoppeldAanZorginstelling(Instelling instelling)
 	{
 		PaLaboratorium pa = null;
-		Boolean gekoppeld = false;
+		var gekoppeld = false;
 		if (OrganisatieType.PA_LABORATORIUM.equals(instelling.getOrganisatieType()))
 		{
 			pa = (PaLaboratorium) instelling;

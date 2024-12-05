@@ -66,10 +66,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static nl.rivm.screenit.specification.HibernateObjectSpecification.heeftNietId;
 import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftCode;
 import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftCodeSystem;
 import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftDatumOnderzoek;
-import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftNietId;
 import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftScreeningRondeInMdlVerslag;
 import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftScreeningRondeInPaVerslag;
 import static nl.rivm.screenit.specification.colon.ColonVerslagSpecification.heeftTNummerIn;

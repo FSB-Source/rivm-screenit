@@ -50,6 +50,8 @@ public enum OrganisatieType
 
 	INTAKELOCATIE("Intakelocatie", Recht.GEBRUIKER_COLOSCOPIECENTRUM_ORG_BEHEER),
 
+	KWALITEITSPLATFORM("Kwaliteitsplatform", Recht.GEBRUIKER_KWALITEITSPLATFORM_BEHEER),
+
 	RIVM("Landelijk beheer", Recht.GEBRUIKER_RIVM_BEHEER),
 
 	MAMMAPOLI("Mammapoli", Recht.GEBRUIKER_MAMMA_MAMMAPOLI_ORG_BEHEER),
@@ -60,9 +62,6 @@ public enum OrganisatieType
 
 	ZORGINSTELLING("Zorginstelling", Recht.GEBRUIKER_ZORGINSTELLING_ORG_BEHEER),
 
-	ZORGVERZEKERAAR("Zorgverzekeraar", Recht.GEBRUIKER_ZORGVERZEKERAARS_BEHEER),
-
-	KWALITEITSPLATFORM("Kwaliteitsplatform", Recht.GEBRUIKER_KWALITEITSPLATFORM_BEHEER),
 	;
 
 	private final String naam;

@@ -34,6 +34,7 @@ import nl.rivm.screenit.main.web.component.modal.IDialog;
 import nl.rivm.screenit.main.web.component.table.ActiefPropertyColumn;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.component.validator.AchternaamValidator;
+import nl.rivm.screenit.main.web.component.validator.EmailAddressValidator;
 import nl.rivm.screenit.main.web.component.validator.EmailAddressenValidator;
 import nl.rivm.screenit.main.web.component.validator.TussenvoegselValidator;
 import nl.rivm.screenit.main.web.component.validator.VoorlettersValidator;
@@ -41,9 +42,13 @@ import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.CervixHuisartsPa
 import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.OrganisatieBeheer;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.Aanhef;
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.Woonplaats;
+import nl.rivm.screenit.model.Woonplaats_;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
+import nl.rivm.screenit.model.cervix.CervixHuisartsAdres_;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
+import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie_;
 import nl.rivm.screenit.model.cervix.SearchHuisartsLocatieDto;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -52,6 +57,7 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
 import nl.rivm.screenit.service.AutorisatieService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.organisatie.model.Adres_;
 import nl.topicuszorg.wicket.hibernate.SimpleListHibernateModel;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -70,17 +76,15 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import nl.rivm.screenit.main.web.component.validator.EmailAddressValidator;
 import org.apache.wicket.validation.validator.RangeValidator;
 import org.wicketstuff.shiro.ShiroConstraint;
+
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
 
 @SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = {
 	Recht.GEBRUIKER_HUISARTSENPRAKTIJKEN_BEHEER }, checkScope = true, level = ToegangLevel.INSTELLING, bevolkingsonderzoekScopes = { Bevolkingsonderzoek.CERVIX })
 public class AanvullendeHaGegevensPage extends OrganisatieBeheer
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private AutorisatieService autorisatieService;
 
@@ -144,9 +148,6 @@ public class AanvullendeHaGegevensPage extends OrganisatieBeheer
 		List<Woonplaats> alleWoonplaatsen = hibernateService.loadAll(Woonplaats.class, "naam", true);
 		form.add(new ScreenitDropdown<Woonplaats>("postadres.woonplaats", new SimpleListHibernateModel<Woonplaats>(alleWoonplaatsen), new IChoiceRenderer<Woonplaats>()
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public Object getDisplayValue(Woonplaats object)
 			{
@@ -174,9 +175,6 @@ public class AanvullendeHaGegevensPage extends OrganisatieBeheer
 
 		form.add(new AjaxLink<Void>("wachtwoordreset")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -198,9 +196,6 @@ public class AanvullendeHaGegevensPage extends OrganisatieBeheer
 
 		container.add(new AjaxSubmitLink("opslaan", form)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -213,9 +208,6 @@ public class AanvullendeHaGegevensPage extends OrganisatieBeheer
 		});
 		container.add(new AjaxLink<Void>("inactiveren")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -276,16 +268,14 @@ public class AanvullendeHaGegevensPage extends OrganisatieBeheer
 		container.setOutputMarkupId(true);
 
 		List<IColumn<CervixHuisartsLocatie, String>> columns = new ArrayList<IColumn<CervixHuisartsLocatie, String>>();
-		columns.add(new PropertyColumn<CervixHuisartsLocatie, String>(Model.of("Locatie"), "naam", "naam"));
-		columns.add(new PropertyColumn<CervixHuisartsLocatie, String>(Model.of("IBAN"), "iban", "iban"));
-		columns.add(new PropertyColumn<CervixHuisartsLocatie, String>(Model.of("Tenaamstelling"), "ibanTenaamstelling", "ibanTenaamstelling"));
-		columns.add(new PropertyColumn<CervixHuisartsLocatie, String>(Model.of("Zorgmailklantnummer"), "zorgmailklantnummer", "zorgmailklantnummer"));
-		columns.add(new PropertyColumn<CervixHuisartsLocatie, String>(Model.of("Straat"), "locatieAdres.straat", "locatieAdres.straat"));
-		columns.add(new AbstractColumn<CervixHuisartsLocatie, String>(Model.of("Huisnummer+toevoeging"), "locatieAdres.huisnummer")
+		columns.add(new PropertyColumn<>(Model.of("Locatie"), CervixHuisartsLocatie_.NAAM, CervixHuisartsLocatie_.NAAM));
+		columns.add(new PropertyColumn<>(Model.of("IBAN"), CervixHuisartsLocatie_.IBAN, CervixHuisartsLocatie_.IBAN));
+		columns.add(new PropertyColumn<>(Model.of("Tenaamstelling"), CervixHuisartsLocatie_.IBAN_TENAAMSTELLING, CervixHuisartsLocatie_.IBAN_TENAAMSTELLING));
+		columns.add(new PropertyColumn<>(Model.of("Zorgmailklantnummer"), CervixHuisartsLocatie_.ZORGMAILKLANTNUMMER, CervixHuisartsLocatie_.ZORGMAILKLANTNUMMER));
+		columns.add(new PropertyColumn<>(Model.of("Straat"), propertyChain(CervixHuisartsLocatie_.LOCATIE_ADRES, CervixHuisartsAdres_.STRAAT),
+			propertyChain(CervixHuisartsLocatie_.LOCATIE_ADRES, CervixHuisartsAdres_.STRAAT)));
+		columns.add(new AbstractColumn<>(Model.of("Huisnummer+toevoeging"), propertyChain(CervixHuisartsLocatie_.LOCATIE_ADRES, CervixHuisartsAdres_.HUISNUMMER))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<CervixHuisartsLocatie>> cellItem, String componentId, IModel<CervixHuisartsLocatie> rowModel)
 			{
@@ -305,16 +295,15 @@ public class AanvullendeHaGegevensPage extends OrganisatieBeheer
 				}
 			}
 		});
-		columns.add(new PropertyColumn<CervixHuisartsLocatie, String>(Model.of("Postcode"), "locatieAdres.postcode", "locatieAdres.postcode"));
-		columns.add(new PropertyColumn<CervixHuisartsLocatie, String>(Model.of("Plaats"), "woonplaats.naam", "locatieAdres.woonplaats.naam"));
-		columns.add(new ActiefPropertyColumn<CervixHuisartsLocatie, SearchHuisartsLocatieDto>(Model.of(""), "actief", container, searchLocatieModel));
+		columns.add(new PropertyColumn<>(Model.of("Postcode"), propertyChain(CervixHuisartsLocatie_.LOCATIE_ADRES, CervixHuisartsAdres_.POSTCODE),
+			propertyChain(CervixHuisartsLocatie_.LOCATIE_ADRES, Adres_.POSTCODE)));
+		columns.add(new PropertyColumn<>(Model.of("Plaats"), propertyChain(CervixHuisartsLocatie_.LOCATIE_ADRES, CervixHuisartsAdres_.WOONPLAATS, Woonplaats_.NAAM),
+			propertyChain(CervixHuisartsLocatie_.LOCATIE_ADRES, CervixHuisartsAdres_.WOONPLAATS, Woonplaats_.NAAM)));
+		columns.add(new ActiefPropertyColumn<>(Model.of(""), Instelling_.ACTIEF, container, searchLocatieModel));
 
 		ScreenitDataTable<CervixHuisartsLocatie, String> dataTable = new ScreenitDataTable<CervixHuisartsLocatie, String>("locaties", columns,
 			new HuisartsLocatieDataProvider(huisartsIModel, searchLocatieModel), 10, Model.of("Locaties"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected boolean isRowClickable(IModel<CervixHuisartsLocatie> rowModel)
 			{
@@ -326,9 +315,6 @@ public class AanvullendeHaGegevensPage extends OrganisatieBeheer
 			{
 				dialog.openWith(target, new AanvullendeHaLocatieEditPanel(IDialog.CONTENT_ID, model, alleenInzien)
 				{
-
-					private static final long serialVersionUID = 1L;
-
 					@Override
 					public void opslaan(AjaxRequestTarget target)
 					{

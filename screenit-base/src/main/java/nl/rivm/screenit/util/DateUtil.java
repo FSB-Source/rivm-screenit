@@ -61,9 +61,12 @@ public final class DateUtil
 
 	public static final DateTimeFormatter LOCAL_DATE_FORMAT = DateTimeFormatter.ofPattern(Constants.DEFAULT_DATE_FORMAT);
 
-	public static final DateTimeFormatter LOCAL_TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
+	public static final DateTimeFormatter LOCAL_TIME_FORMAT = DateTimeFormatter.ofPattern(Constants.DEFAULT_TIME_FORMAT);
 
-	public static final DateTimeFormatter LOCAL_DATE_TIME_FORMAT = DateTimeFormatter.ofPattern(Constants.DEFAULT_DATE_FORMAT + " HH:mm");
+	public static final DateTimeFormatter LOCAL_DATE_TIME_FORMAT = DateTimeFormatter.ofPattern(Constants.DEFAULT_DATE_FORMAT + " " + Constants.DEFAULT_TIME_FORMAT);
+
+	public static final DateTimeFormatter LOCAL_DATE_TIME_FORMAT_DAY = DateTimeFormatter.ofPattern(Constants.DEFAULT_DATE_FORMAT_DAY + " " + Constants.DEFAULT_TIME_FORMAT,
+		Constants.LOCALE_NL);
 
 	public static final DateTimeFormatter LOCAL_DATE_UITGEBREID_DAG_UITEGEBREID_MAAND_FORMAT = DateTimeFormatter.ofPattern("EEEE dd MMMM yyyy", Constants.LOCALE_NL);
 
@@ -72,6 +75,10 @@ public final class DateUtil
 	public static final DateTimeFormatter LOCAL_DATE_TIME_WEERGAVE_CLIENTPORTAAL_FORMAT_INCL_DAG = DateTimeFormatter.ofPattern("EEEE d MMMM HH:mm", Constants.LOCALE_NL);
 
 	public static final DateTimeFormatter LOCAL_DATE_WEERGAVE_CLIENTPORTAAL_FORMAT = DateTimeFormatter.ofPattern("d MMMM yyyy", Constants.LOCALE_NL);
+
+	public static final Date BEGIN_OF_TIME = parseDateForPattern("01-01-1900", Constants.DEFAULT_DATE_FORMAT);
+
+	public static final Date END_OF_TIME = parseDateForPattern("01-01-4000", Constants.DEFAULT_DATE_FORMAT);
 
 	public static Date plusWerkdagen(Date nu, Integer werkdagen)
 	{
@@ -421,6 +428,15 @@ public final class DateUtil
 		if (date != null)
 		{
 			return date.format(LOCAL_DATE_TIME_FORMAT);
+		}
+		return "";
+	}
+
+	public static String formatLongDateTime(LocalDateTime date)
+	{
+		if (date != null)
+		{
+			return date.format(LOCAL_DATE_TIME_FORMAT_DAY);
 		}
 		return "";
 	}

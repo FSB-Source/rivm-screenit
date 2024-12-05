@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
@@ -34,6 +35,7 @@ import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
@@ -41,6 +43,10 @@ import javax.persistence.criteria.Selection;
 import nl.rivm.screenit.repository.FluentJpaQuery;
 import nl.rivm.screenit.util.functionalinterfaces.TriFunction;
 
+import org.hibernate.ScrollMode;
+import org.hibernate.ScrollableResults;
+import org.hibernate.internal.EmptyScrollableResults;
+import org.hibernate.query.Query;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Sort;
@@ -64,11 +70,17 @@ public class FluentJpaQueryImpl<T, P> implements FluentJpaQuery<T, P>
 
 	private BiFunction<CriteriaBuilder, Root<T>, List<Selection<?>>> projectionFunction;
 
+	private BiFunction<CriteriaBuilder, Root<T>, List<Expression<?>>> groupByFunction;
+
 	private Sort sort = Sort.unsorted();
 
 	private TriFunction<Sort.Order, Root<T>, CriteriaBuilder, Order> sortFunction;
 
+	private BiFunction<Root<T>, CriteriaBuilder, List<Order>> ordersFunction;
+
 	private EntityGraph<T> entityGraph;
+
+	private int fetchSize;
 
 	public FluentJpaQueryImpl(Specification<T> specification, EntityManager entityManager, Class<T> entityType, Class<P> projectionType)
 	{
@@ -81,6 +93,7 @@ public class FluentJpaQueryImpl<T, P> implements FluentJpaQuery<T, P>
 	@Override
 	public FluentJpaQuery<T, P> sortBy(Sort sort)
 	{
+		Assert.isNull(this.ordersFunction, "Only one of sortBy() may be called.");
 		this.sort = this.sort.and(sort);
 		return this;
 	}
@@ -88,8 +101,17 @@ public class FluentJpaQueryImpl<T, P> implements FluentJpaQuery<T, P>
 	@Override
 	public FluentJpaQuery<T, P> sortBy(Sort sort, TriFunction<Sort.Order, Root<T>, CriteriaBuilder, Order> sortFunction)
 	{
-		this.sort = this.sort.and(sort);
+		sortBy(sort);
 		this.sortFunction = sortFunction;
+		return this;
+	}
+
+	@Override
+	public FluentJpaQuery<T, P> sortBy(BiFunction<Root<T>, CriteriaBuilder, List<Order>> ordersFunction)
+	{
+		Assert.isNull(this.ordersFunction, "Only one of sortBy() may be called.");
+		Assert.isTrue(this.sort.isUnsorted(), "Only one of sortBy() may be called.");
+		this.ordersFunction = ordersFunction;
 		return this;
 	}
 
@@ -110,6 +132,14 @@ public class FluentJpaQueryImpl<T, P> implements FluentJpaQuery<T, P>
 	}
 
 	@Override
+	public FluentJpaQuery<T, P> groupBy(BiFunction<CriteriaBuilder, Root<T>, List<Expression<?>>> groupByFunction)
+	{
+		Assert.isNull(this.groupByFunction, "groupBy() may only be called a single time.");
+		this.groupByFunction = groupByFunction;
+		return this;
+	}
+
+	@Override
 	public FluentJpaQuery<T, P> distinct()
 	{
 		distinctOn = true;
@@ -126,6 +156,13 @@ public class FluentJpaQueryImpl<T, P> implements FluentJpaQuery<T, P>
 
 		entityGraphFunction.accept(this.entityGraph);
 
+		return this;
+	}
+
+	@Override
+	public FluentJpaQuery<T, P> setScrollFetchSize(int fetchSize)
+	{
+		this.fetchSize = fetchSize;
 		return this;
 	}
 
@@ -176,6 +213,28 @@ public class FluentJpaQueryImpl<T, P> implements FluentJpaQuery<T, P>
 		return results.stream().filter(Objects::nonNull).findFirst();
 	}
 
+	@Override
+	public ScrollableResults scroll(Integer maxResults)
+	{
+		var typedQuery = createTypedQuery();
+		if (maxResults != null)
+		{
+			if (maxResults > 0)
+			{
+				typedQuery.setMaxResults(maxResults);
+			}
+			else if (maxResults == 0)
+			{
+				return new EmptyScrollableResults();
+			}
+		}
+		if (typedQuery instanceof Query)
+		{
+			return ((Query<P>) typedQuery).setFetchSize(fetchSize).scroll(ScrollMode.FORWARD_ONLY);
+		}
+		return new EmptyScrollableResults();
+	}
+
 	private TypedQuery<P> createTypedQuery()
 	{
 		var cb = entityManager.getCriteriaBuilder();
@@ -184,12 +243,25 @@ public class FluentJpaQueryImpl<T, P> implements FluentJpaQuery<T, P>
 
 		addWhereClause(r, q, cb);
 		addSelections(r, q, cb); 
+		addGroupBy(r, q, cb);
 		addOrderBy(r, q, cb);
 		q.distinct(distinctOn);
 
 		var typedQuery = entityManager.createQuery(q);
 		addFetchGraph(typedQuery);
 		return typedQuery;
+	}
+
+	private void addWhereClause(Root<T> r, CriteriaQuery<P> q, CriteriaBuilder cb)
+	{
+		if (specification != null)
+		{
+			var predicate = specification.toPredicate(r, q, cb);
+			if (predicate != null)
+			{
+				q.where(predicate);
+			}
+		}
 	}
 
 	private void addSelections(Root<T> r, CriteriaQuery<P> q, CriteriaBuilder cb)
@@ -213,15 +285,11 @@ public class FluentJpaQueryImpl<T, P> implements FluentJpaQuery<T, P>
 		}
 	}
 
-	private void addWhereClause(Root<T> r, CriteriaQuery<P> q, CriteriaBuilder cb)
+	private void addGroupBy(Root<T> r, CriteriaQuery<P> q, CriteriaBuilder cb)
 	{
-		if (specification != null)
+		if (groupByFunction != null)
 		{
-			var predicate = specification.toPredicate(r, q, cb);
-			if (predicate != null)
-			{
-				q.where(predicate);
-			}
+			q.groupBy(groupByFunction.apply(cb, r));
 		}
 	}
 
@@ -230,6 +298,10 @@ public class FluentJpaQueryImpl<T, P> implements FluentJpaQuery<T, P>
 		if (sort.isSorted())
 		{
 			q.orderBy(getOrders(sort, r, cb));
+		}
+		else if (ordersFunction != null)
+		{
+			q.orderBy(ordersFunction.apply(r, cb).stream().filter(Objects::nonNull).collect(Collectors.toList()));
 		}
 	}
 
@@ -262,4 +334,5 @@ public class FluentJpaQueryImpl<T, P> implements FluentJpaQuery<T, P>
 			typedQuery.setHint("javax.persistence.fetchgraph", entityGraph);
 		}
 	}
+
 }

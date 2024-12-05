@@ -24,29 +24,19 @@ package nl.rivm.screenit.dao.mamma;
 import java.util.List;
 
 import nl.rivm.screenit.dto.mamma.MammaFollowUpInstellingDto;
-import nl.rivm.screenit.dto.mamma.MammaFollowUpInstellingRadiologieDto;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.SortState;
-import nl.rivm.screenit.model.enums.MammaFollowUpDoorverwezenFilterOptie;
-import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaFollowUpRadiologieVerslag;
 
 public interface MammaBaseFollowUpDao
 {
-	List<MammaFollowUpInstellingRadiologieDto> zoekOpenstaandeRadiologieVerslagenPerOrganisatie(ScreeningOrganisatie regio,
-		MammaFollowUpDoorverwezenFilterOptie doorverwezenFilterOptie, Integer jaar);
-
 	List<MammaFollowUpInstellingDto> zoekInstellingenMetOpenstaandePaVerslagen(ScreeningOrganisatie regio);
 
 	List<MammaFollowUpRadiologieVerslag> zoekDossiersMetOpenstaandePaVerslagen(Instelling instelling, int first, int count, SortState<String> sortState);
 
 	long countDossiersMetOpenstaandePaVerslagen(Instelling instelling);
-
-	List<MammaBeoordeling> zoekOpenstaandeFollowUpConclusies(ScreeningOrganisatie regio, int first, int count, SortState<String> sortState);
-
-	long countOpenstaandeFollowUpConclusies(ScreeningOrganisatie regio);
 
 	boolean heeftOpenstaandeFollowUpConclusie(MammaDossier dossier);
 }

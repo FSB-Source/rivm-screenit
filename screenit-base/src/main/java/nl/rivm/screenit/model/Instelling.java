@@ -33,6 +33,7 @@ import javax.persistence.FetchType;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -44,21 +45,107 @@ import lombok.Setter;
 
 import nl.rivm.screenit.model.helper.HibernateMagicNumber;
 import nl.rivm.screenit.model.overeenkomsten.AfgeslotenInstellingOvereenkomst;
-import nl.topicuszorg.organisatie.model.Organisatie;
+import nl.topicuszorg.organisatie.model.Adres;
 
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
+import org.hibernate.annotations.Proxy;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
 @Setter
 @Getter
 @Entity
-@Table(indexes = { @Index(name = "idx_instelling_agbcode", columnList = "agbcode"), @Index(name = "idx_instelling_actief", columnList = "actief") })
+@Proxy
+@Cache(
+	usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE,
+	region = "organisatie.cache"
+)
+@Table(schema = "algemeen", name = "org_organisatie", indexes = { @Index(name = "idx_instelling_agbcode", columnList = "agbcode"),
+	@Index(name = "idx_instelling_actief", columnList = "actief") })
 @Audited
-public class Instelling extends Organisatie<InstellingGebruiker> implements IActief
+public class Instelling extends SingleTableHibernateObject implements IActief
 {
+	@Column(
+		nullable = false,
+		length = 255
+	)
+	private String naam;
+
+	@Column(
+		unique = true,
+		nullable = true,
+		length = 8
+	)
+	private String agbcode;
+
+	@Column(
+		unique = true,
+		nullable = true,
+		length = 8
+	)
+	private String uziAbonneenummer;
+
+	@Column(
+		nullable = true,
+		length = 20
+	)
+	private String applicatieId;
+
+	@Column(
+		length = 20
+	)
+	private String telefoon;
+
+	@Column(
+		length = 20
+	)
+	private String fax;
+
+	@Column(
+		length = 100
+	)
+	private String email;
+
+	@Column(
+		length = 100
+	)
+	private String communicatieAdres;
+
+	@OneToMany(
+		mappedBy = "organisatie",
+		orphanRemoval = true,
+		cascade = javax.persistence.CascadeType.ALL
+	)
+	@Cache(
+		usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE,
+		region = "organisatie.cache"
+	)
+	private List<InstellingGebruiker> organisatieMedewerkers = new ArrayList<>();
+
+	@ManyToMany(
+		fetch = FetchType.LAZY,
+		cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE }
+	)
+	@Cascade(CascadeType.SAVE_UPDATE)
+	@Cache(
+		usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE,
+		region = "organisatie.cache"
+	)
+	private List<Adres> adressen = new ArrayList<>();
+
+	private Date einddatum;
+
+	@Column(
+		unique = true,
+		nullable = true,
+		length = 9
+	)
+	private String uziNummerServerCertificaat;
+
 	private Boolean actief = Boolean.TRUE;
 
 	@Column(length = HibernateMagicNumber.L20)
@@ -199,4 +286,96 @@ public class Instelling extends Organisatie<InstellingGebruiker> implements IAct
 		return returnValue;
 	}
 
+	public Adres getHuidigAdres()
+	{
+		Adres adres = null;
+		if (this.adressen != null && !this.adressen.isEmpty())
+		{
+			adres = this.adressen.get(this.adressen.size() - 1);
+		}
+
+		return adres;
+	}
+
+	public Adres add(Adres adres)
+	{
+		if (this.adressen == null)
+		{
+			this.adressen = new ArrayList();
+		}
+
+		this.adressen.add(adres);
+		return adres;
+	}
+
+	public String getStraat()
+	{
+		Adres adres = this.getHuidigAdres();
+		String straat = null;
+		if (adres != null)
+		{
+			straat = adres.getStraat();
+		}
+
+		return straat;
+	}
+
+	public Integer getHuisnummer()
+	{
+		Adres adres = this.getHuidigAdres();
+		Integer huisnummer = null;
+		if (adres != null)
+		{
+			huisnummer = adres.getHuisnummer();
+		}
+
+		return huisnummer;
+	}
+
+	public String getHuisnummerToevoeging()
+	{
+		Adres adres = this.getHuidigAdres();
+		String huisnummertoevoeging = null;
+		if (adres != null)
+		{
+			huisnummertoevoeging = adres.getHuisnummerToevoeging();
+		}
+
+		return huisnummertoevoeging;
+	}
+
+	public String getPostcode()
+	{
+		Adres adres = this.getHuidigAdres();
+		String postcode = null;
+		if (adres != null)
+		{
+			postcode = adres.getPostcode();
+		}
+
+		return postcode;
+	}
+
+	public String getPlaats()
+	{
+		Adres adres = this.getHuidigAdres();
+		String plaats = null;
+		if (adres != null)
+		{
+			plaats = adres.getPlaats();
+		}
+
+		return plaats;
+	}
+
+	@Override
+	public String toString()
+	{
+		return this.naam;
+	}
+
+	public String getCommunicatieEmailAdres()
+	{
+		return this.getCommunicatieAdres();
+	}
 }

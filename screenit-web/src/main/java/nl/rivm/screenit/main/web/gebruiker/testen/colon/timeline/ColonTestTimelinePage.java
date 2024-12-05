@@ -46,7 +46,6 @@ import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.popups.Bijzon
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
-import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
@@ -56,9 +55,9 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.GebeurtenisBron;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.service.GemeenteService;
 import nl.rivm.screenit.service.colon.ColonTestService;
 import nl.rivm.screenit.util.TestBsnGenerator;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -87,7 +86,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.hibernate.criterion.Order;
 import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.wicketstuff.shiro.ShiroConstraint;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
@@ -105,10 +103,10 @@ public class ColonTestTimelinePage extends TestenBasePage
 	private ColonTestTimelineService testTimelineService;
 
 	@SpringBean
-	private HibernateService hibernateService;
+	private ColonTestService testService;
 
 	@SpringBean
-	private ColonTestService testService;
+	private GemeenteService gemeenteService;
 
 	private IModel<TestTimelineModel> model;
 
@@ -184,9 +182,6 @@ public class ColonTestTimelinePage extends TestenBasePage
 
 		bsnField.add(new AjaxEventBehavior("change")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onEvent(AjaxRequestTarget target)
 			{
@@ -212,10 +207,8 @@ public class ColonTestTimelinePage extends TestenBasePage
 		geslachtRadio.setOutputMarkupId(true);
 		container.add(geslachtRadio);
 
-		container.add(new DropDownChoice<Gemeente>("gemeente",
-			ModelUtil.listRModel(
-				hibernateService.getHibernateSession().createCriteria(Gemeente.class).addOrder(Order.asc("naam")).list(),
-				false),
+		container.add(new DropDownChoice<>("gemeente",
+			ModelUtil.listRModel(gemeenteService.getGemeentesMetScreeningOrganisatie(), false),
 			new ChoiceRenderer<>("naam")));
 
 		IndicatingAjaxSubmitLink clientVindOfMaak = new IndicatingAjaxSubmitLink("clientVindOfMaak")

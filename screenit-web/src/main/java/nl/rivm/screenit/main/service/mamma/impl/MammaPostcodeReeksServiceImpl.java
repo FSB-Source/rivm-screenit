@@ -44,7 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Range;
 
-import static nl.rivm.screenit.specification.mamma.MammaPostcodeReeksSpecification.filterOpHeeftNietId;
+import static nl.rivm.screenit.specification.HibernateObjectSpecification.filterNietId;
 import static nl.rivm.screenit.specification.mamma.MammaPostcodeReeksSpecification.heeftOverlapMetReeks;
 
 @Service
@@ -97,9 +97,9 @@ public class MammaPostcodeReeksServiceImpl implements MammaPostcodeReeksService
 
 		var postcodeRange = Range.closed(vanPostcode, totPostcode);
 
-		return postcodeReeksRepository.findAll(heeftOverlapMetReeks(postcodeRange).and(filterOpHeeftNietId(postcodeReeks.getId()))).stream()
+		return postcodeReeksRepository.findAll(heeftOverlapMetReeks(postcodeRange).and(filterNietId(postcodeReeks.getId()))).stream()
 			.map(pr -> pr.getVanPostcode() + "->" + pr.getTotPostcode() + " in '" + pr.getStandplaats().getNaam()
-				+ (!pr.getStandplaats().getActief() ? " (inactief)" : "") + "'")
+				+ (Boolean.FALSE.equals(pr.getStandplaats().getActief()) ? " (inactief)" : "") + "'")
 			.collect(Collectors.joining(","));
 	}
 

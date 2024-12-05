@@ -56,7 +56,6 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
-import nl.topicuszorg.organisatie.model.Organisatie;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.input.validator.BSNValidator;
 import nl.topicuszorg.wicket.input.validator.DependantDateValidator;
@@ -101,7 +100,7 @@ public class LoggingInzienPage extends AlgemeenPage
 	@SpringBean
 	private MammaScreeningsEenheidService screeningsEenheidService;
 
-	private WebMarkupContainer refreshContainer;
+	private final WebMarkupContainer refreshContainer;
 
 	public LoggingInzienPage()
 	{
@@ -380,7 +379,7 @@ public class LoggingInzienPage extends AlgemeenPage
 
 			List<Instelling> soLijst = organisatieZoekService.getAllActieveOrganisatiesWithType(ScreeningOrganisatie.class);
 
-			add(new ScreenitDropdown<>("regio", soLijst.stream().map(Organisatie::getId).collect(Collectors.toList()),
+			add(new ScreenitDropdown<>("regio", soLijst.stream().map(Instelling::getId).collect(Collectors.toList()),
 				new HibernateIdChoiceRenderer(soLijst, "naam")).setNullValid(true));
 		}
 	}

@@ -25,7 +25,6 @@ import java.time.LocalDate;
 
 import lombok.RequiredArgsConstructor;
 
-import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.service.CervixSelectieRestrictionsService;
 import nl.rivm.screenit.model.cervix.berichten.CervixHpvResultValue;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieUitslag;
@@ -33,24 +32,19 @@ import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
-import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
-	@RequiredArgsConstructor
+@Transactional
+@RequiredArgsConstructor
 public class CervixSelectieRestrictionsServiceImpl implements CervixSelectieRestrictionsService
 {
-
 	private final ICurrentDateSupplier dateSupplier;
-
-	private final SimplePreferenceService preferenceService;
 
 	@Override
 	public void addClientSelectieRestrictions(Criteria criteria)
@@ -117,21 +111,6 @@ public class CervixSelectieRestrictionsServiceImpl implements CervixSelectieRest
 							),
 							Restrictions.isNull("vervolgonderzoekVerslag.id")
 						)))));
-	}
-
-	@Override
-	public void addVooraankondigingSelectieRestrictions(Criteria criteria)
-	{
-		LocalDate vandaag = dateSupplier.getLocalDate();
-
-		Integer dagenVoorDeVooraankondiging = preferenceService.getInteger(PreferenceKey.CERVIX_VOORAANKONDIGINGS_PERIODE.name());
-		LocalDate exactDertigJaarGeleden = vandaag.minusYears(CervixLeeftijdcategorie._30.getLeeftijd());
-		LocalDate dertigJaarGeledenPlusVooraankondigingsDagen =
-			dagenVoorDeVooraankondiging != null ? exactDertigJaarGeleden.plusDays(dagenVoorDeVooraankondiging) : exactDertigJaarGeleden;
-
-		criteria.add(Restrictions.isNull("dossier.vooraankondigingsBrief"));
-		criteria.add(Restrictions.gt("persoon.geboortedatum", DateUtil.toUtilDate(exactDertigJaarGeleden)));
-		criteria.add(Restrictions.le("persoon.geboortedatum", DateUtil.toUtilDate(dertigJaarGeledenPlusVooraankondigingsDagen)));
 	}
 
 	private void addLeftOuterJoins(Criteria criteria)

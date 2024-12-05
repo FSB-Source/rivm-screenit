@@ -29,4 +29,6 @@ import nl.rivm.screenit.repository.BaseJpaRepository;
 public interface CervixHuisartsRepository extends BaseJpaRepository<CervixHuisarts>
 {
 	Optional<CervixHuisarts> findOneByHuisartsportaalId(Long id);
+
+	Optional<CervixHuisarts> findOneByAgbcode(String agbcode);
 }

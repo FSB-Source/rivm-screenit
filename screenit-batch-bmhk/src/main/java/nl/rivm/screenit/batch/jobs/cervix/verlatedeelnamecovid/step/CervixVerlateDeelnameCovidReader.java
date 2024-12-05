@@ -23,99 +23,16 @@ package nl.rivm.screenit.batch.jobs.cervix.verlatedeelnamecovid.step;
 
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.batch.jobs.cervix.CervixLabPartitioner;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.model.BMHKLaboratorium;
-import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.DossierStatus;
-import nl.rivm.screenit.model.OrganisatieParameterKey;
-import nl.rivm.screenit.model.ScreeningRondeStatus;
-import nl.rivm.screenit.model.cervix.CervixMonster;
-import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
-import nl.rivm.screenit.service.OrganisatieParameterService;
-import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.query.ScreenitRestrictions;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projection;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
-import org.hibernate.sql.JoinType;
+import org.springframework.batch.item.ItemReader;
 import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class CervixVerlateDeelnameCovidReader extends BaseScrollableResultReader
+public class CervixVerlateDeelnameCovidReader implements ItemReader<Long>
 {
-	private final OrganisatieParameterService organisatieParameterService;
-
-	private final HibernateService hibernateService;
-
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	public Long read()
 	{
-		var stepContext = getStepExecutionContext();
-		Long bmhkLabId = (Long) stepContext.get(CervixLabPartitioner.KEY_BMHK_LAB);
-
-		var crit = session.createCriteria(Client.class, "client");
-		crit.createAlias("client.cervixDossier", "dossier");
-		crit.createAlias("dossier.laatsteScreeningRonde", "ronde");
-		crit.createAlias("ronde.laatsteUitnodiging", "uitnodiging");
-		crit.createAlias("uitnodiging.monster", "monster");
-		crit.createAlias("uitnodiging.brief", "brief");
-		crit.createAlias("ronde.uitstel", "uitstel", JoinType.LEFT_OUTER_JOIN);
-		crit.createAlias("client.persoon", "persoon");
-		crit.createAlias("persoon.gbaAdres", "adres");
-		crit.createAlias("adres.gbaGemeente", "gemeente");
-
-		ScreenitRestrictions.addClientBaseRestrictions(crit, "client", "persoon");
-
-		crit.add(Restrictions.isNotNull("gemeente.screeningOrganisatie"));
-		crit.add(Restrictions.eq("gemeente.bmhkLaboratorium.id", bmhkLabId));
-
-		crit.add(Restrictions.eq("ronde.status", ScreeningRondeStatus.LOPEND));
-		crit.add(Restrictions.eq("ronde.aangemeld", true));
-
-		crit.add(Restrictions.eq("dossier.status", DossierStatus.ACTIEF));
-		crit.add(Restrictions.eq("dossier.aangemeld", true));
-
-		crit.add(Restrictions.isNull("uitstel.uitstellenTotDatum"));
-
-		crit.add(Restrictions.eq("uitnodiging.monsterType", CervixMonsterType.UITSTRIJKJE));
-
-		crit.add(Restrictions.eq("brief.gegenereerd", true));
-		crit.add(Restrictions.between("brief.creatieDatum",
-			DateUtil.parseDateForPattern("01-10-2019", Constants.DEFAULT_DATE_FORMAT),
-			DateUtil.parseDateForPattern("01-01-2022", Constants.DEFAULT_DATE_FORMAT)));
-
-		var subquery = DetachedCriteria.forClass(CervixMonster.class, "monsterSub");
-		subquery.add(Restrictions.eqProperty("monsterSub.ontvangstScreeningRonde", "brief.screeningRonde"));
-		subquery.add(Restrictions.gtProperty("monsterSub.ontvangstdatum", "brief.creatieDatum"));
-		subquery.setProjection(Projections.id());
-		crit.add(Subqueries.notExists(subquery));
-
-		crit.setMaxResults(getMaxAantalClienten(bmhkLabId));
-		crit.addOrder(Order.asc("brief.creatieDatum"));
-
-		return crit;
-	}
-
-	private Integer getMaxAantalClienten(Long bmhkLabId)
-	{
-		var bmhkLab = hibernateService.get(BMHKLaboratorium.class, bmhkLabId);
-		return organisatieParameterService.getOrganisatieParameter(bmhkLab, OrganisatieParameterKey.CERVIX_MAX_AANTAL_CLIENTEN_VERLATE_DEELNAME);
-	}
-
-	@Override
-	protected Projection getProjection()
-	{
-		return Projections.distinct(Projections.projectionList().add(Projections.property("brief.id")).add(Projections.property("brief.creatieDatum")));
+		throw new UnsupportedOperationException("Deze batch wordt niet meer ondersteund");
 	}
 }

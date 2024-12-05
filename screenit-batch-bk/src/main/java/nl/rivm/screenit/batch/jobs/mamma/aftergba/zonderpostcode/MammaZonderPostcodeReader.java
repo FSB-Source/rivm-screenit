@@ -21,21 +21,25 @@ package nl.rivm.screenit.batch.jobs.mamma.aftergba.zonderpostcode;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.util.query.ScreenitRestrictions;
+import javax.persistence.criteria.JoinType;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.BagAdres_;
+import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.GbaPersoon_;
+import nl.rivm.screenit.specification.algemeen.AdresSpecification;
+import nl.rivm.screenit.specification.algemeen.ClientSpecification;
+import nl.rivm.screenit.specification.algemeen.GemeenteSpecification;
+
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import static nl.rivm.screenit.batch.jobs.mamma.aftergba.AfterGbaJobConfiguration.AFTER_GBA_JOB_READER_FETCH_SIZE;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
 @Component
-public class MammaZonderPostcodeReader extends BaseScrollableResultReader
+public class MammaZonderPostcodeReader extends BaseSpecificationScrollableResultReader<Client>
 {
 
 	public MammaZonderPostcodeReader()
@@ -44,25 +48,40 @@ public class MammaZonderPostcodeReader extends BaseScrollableResultReader
 	}
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<Client> createSpecification()
 	{
-		var criteria = session.createCriteria(Client.class);
-		criteria.createAlias("mammaDossier", "mammaDossier");
-		criteria.createAlias("persoon", "persoon");
-		criteria.createAlias("persoon.gbaAdres", "adres");
-		criteria.createAlias("adres.gbaGemeente", "gemeente");
-		criteria.createAlias("gemeente.screeningOrganisatie", "regio");
-		criteria.createAlias("persoon.tijdelijkGbaAdres", "tijdelijkAdres", JoinType.LEFT_OUTER_JOIN);
+		return ClientSpecification.heeftActieveClient()
+			.and(ClientSpecification.heeftMammaDossier())
+			.and(heeftGemeenteMetScreeningsOrganisatie())
+			.and(heeftGeenGbaAdresMetPostcode())
+			.and(heeftGeenTijdelijkGbaAdresMetPostcode());
+	}
 
-		ScreenitRestrictions.addClientBaseRestrictions(criteria, "", "persoon.");
+	private Specification<Client> heeftGemeenteMetScreeningsOrganisatie()
+	{
+		return GemeenteSpecification.heeftScreeningOrganisatie().with(r ->
+		{
+			var persoonJoin = join(r, Client_.persoon);
+			var adresJoin = join(persoonJoin, GbaPersoon_.gbaAdres);
+			return join(adresJoin, BagAdres_.gbaGemeente);
+		});
+	}
 
-		criteria.add(Restrictions.isNull("adres.postcode"));
-		criteria.add(
-			Restrictions.or(
-				Restrictions.and(
-					Restrictions.isNotNull("tijdelijkAdres.id"),
-					Restrictions.isNull("tijdelijkAdres.postcode")),
-				Restrictions.isNull("tijdelijkAdres.id")));
-		return criteria;
+	private Specification<Client> heeftGeenGbaAdresMetPostcode()
+	{
+		return AdresSpecification.heeftGeenPostcode().with(r ->
+		{
+			var persoonJoin = join(r, Client_.persoon);
+			return join(persoonJoin, GbaPersoon_.gbaAdres);
+		});
+	}
+
+	private Specification<Client> heeftGeenTijdelijkGbaAdresMetPostcode()
+	{
+		return AdresSpecification.heeftGeenPostcode().with(r ->
+		{
+			var persoonJoin = join(r, Client_.persoon);
+			return join(persoonJoin, GbaPersoon_.tijdelijkGbaAdres, JoinType.LEFT);
+		});
 	}
 }

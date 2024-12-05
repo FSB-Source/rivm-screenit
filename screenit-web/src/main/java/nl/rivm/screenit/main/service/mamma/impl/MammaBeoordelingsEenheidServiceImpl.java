@@ -31,6 +31,7 @@ import nl.rivm.screenit.main.service.mamma.MammaBeoordelingsEenheidService;
 import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.CentraleEenheid;
 import nl.rivm.screenit.model.Instelling;
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.repository.algemeen.BeoordelingsEenheidRepository;
@@ -41,7 +42,6 @@ import nl.rivm.screenit.specification.algemeen.BeoordelingsEenheidSpecification;
 import nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification;
 import nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecification;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
-import nl.topicuszorg.organisatie.model.Organisatie_;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -171,13 +171,13 @@ public class MammaBeoordelingsEenheidServiceImpl implements MammaBeoordelingsEen
 	{
 		return beoordelingsEenheidRepository.findAll(
 			BeoordelingsEenheidSpecification.isActief(true).and(heeftScreeningOrganisatie(instelling)),
-			Sort.by(Organisatie_.NAAM));
+			Sort.by(Instelling_.NAAM));
 	}
 
 	private List<BeoordelingsEenheid> getActieveBeoordelingsEenhedenVoorCentraleEenheden(List<CentraleEenheid> centraleEenheden)
 	{
 		return beoordelingsEenheidRepository.findAll(
 			BeoordelingsEenheidSpecification.isActief(true).and(heeftCentraleEenheidIn(centraleEenheden)),
-			Sort.by(Organisatie_.NAAM));
+			Sort.by(Instelling_.NAAM));
 	}
 }

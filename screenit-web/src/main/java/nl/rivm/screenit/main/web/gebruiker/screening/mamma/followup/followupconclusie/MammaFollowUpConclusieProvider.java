@@ -21,39 +21,43 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.followup.followupcon
  * =========================LICENSE_END==================================
  */
 
-import com.google.common.primitives.Ints;
+import java.util.Iterator;
+
+import nl.rivm.screenit.main.service.mamma.MammaFollowUpService;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
-import nl.rivm.screenit.service.mamma.MammaBaseFollowUpService;
+import nl.rivm.screenit.model.mamma.MammaBeoordeling_;
+import nl.rivm.screenit.model.mamma.MammaDossier_;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
+
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import java.util.Iterator;
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
 
 public class MammaFollowUpConclusieProvider extends SortableDataProvider<MammaBeoordeling, String>
 {
 	@SpringBean
-	private MammaBaseFollowUpService followUpService;
+	private MammaFollowUpService followUpService;
 
-	private IModel<ScreeningOrganisatie> regioModel;
+	private final IModel<ScreeningOrganisatie> regioModel;
 
 	MammaFollowUpConclusieProvider(IModel<ScreeningOrganisatie> regioModel)
 	{
 		Injector.get().inject(this);
-		setSort("onderzoek.creatieDatum", SortOrder.ASCENDING);
+		setSort(propertyChain(MammaDossier_.LAATSTE_BEOORDELING_MET_UITSLAG, MammaBeoordeling_.ONDERZOEK, MammaOnderzoek_.CREATIE_DATUM), SortOrder.ASCENDING);
 		this.regioModel = regioModel;
 	}
 
 	@Override
 	public Iterator<? extends MammaBeoordeling> iterator(long first, long count)
 	{
-		return followUpService.zoekOpenstaandeFollowUpConclusies(ModelUtil.nullSafeGet(regioModel), Ints.checkedCast(first), Ints.checkedCast(count),
-			new SortState<>(getSort().getProperty(), getSort().isAscending())).iterator();
+		return followUpService.zoekOpenstaandeFollowUpConclusies(ModelUtil.nullSafeGet(regioModel), first, count, toSpringSort(getSort())).iterator();
 	}
 
 	@Override

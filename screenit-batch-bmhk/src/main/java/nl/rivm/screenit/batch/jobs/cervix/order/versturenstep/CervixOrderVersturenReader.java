@@ -21,38 +21,35 @@ package nl.rivm.screenit.batch.jobs.cervix.order.versturenstep;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import java.util.List;
+
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.cervix.CervixCytologieOrder;
+import nl.rivm.screenit.model.cervix.CervixCytologieOrder_;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieOrderStatus;
 import nl.rivm.screenit.model.enums.JobStartParameter;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.specification.cervix.CervixCytologieOrderSpecification.heeftStatusIn;
+import static nl.rivm.screenit.specification.cervix.CervixMonsterSpecification.heeftLaboratoriumMetId;
+
 @Component
-public class CervixOrderVersturenReader extends BaseScrollableResultReader
+public class CervixOrderVersturenReader extends BaseSpecificationScrollableResultReader<CervixCytologieOrder>
 {
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	public Specification<CervixCytologieOrder> createSpecification()
 	{
-		var crit = session.createCriteria(CervixCytologieOrder.class);
-		crit.createAlias("uitstrijkje", "uitstrijkje");
-		crit.createAlias("uitstrijkje.laboratorium", "laboratorium");
-		crit.add(
-			Restrictions.or(
-				Restrictions.eq("status", CervixCytologieOrderStatus.AANGEMAAKT),
-				Restrictions.eq("status", CervixCytologieOrderStatus.MISLUKT)));
-
+		var specification = heeftStatusIn(List.of(CervixCytologieOrderStatus.AANGEMAAKT, CervixCytologieOrderStatus.MISLUKT));
 		var jobParameters = getStepExecution().getJobExecution().getJobParameters();
 		if (jobParameters.toProperties().containsKey(JobStartParameter.CERVIX_ORDER_LABORATORIUM.name()))
 		{
-			crit.add(Restrictions.eq("laboratorium.id", jobParameters.getLong(JobStartParameter.CERVIX_ORDER_LABORATORIUM.name())));
+			specification = specification.and(
+				heeftLaboratoriumMetId(jobParameters.getLong(JobStartParameter.CERVIX_ORDER_LABORATORIUM.name())).with(CervixCytologieOrder_.uitstrijkje));
 		}
+		return specification;
 
-		return crit;
 	}
 }

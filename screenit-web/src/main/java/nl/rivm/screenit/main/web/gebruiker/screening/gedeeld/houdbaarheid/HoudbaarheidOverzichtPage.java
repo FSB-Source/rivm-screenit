@@ -31,6 +31,7 @@ import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerBasePage;
 import nl.rivm.screenit.model.AbstractHoudbaarheid;
+import nl.rivm.screenit.model.AbstractHoudbaarheid_;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
@@ -96,9 +97,10 @@ public abstract class HoudbaarheidOverzichtPage<H extends AbstractHoudbaarheid> 
 	protected List<IColumn<H, String>> createColumns()
 	{
 		List<IColumn<H, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<H, String>(new Model<String>("Begin id"), "barcodeStart", "barcodeStart"));
-		columns.add(new PropertyColumn<H, String>(new Model<String>("Eind id"), "barcodeEnd", "barcodeEnd"));
-		columns.add(new DateTimePropertyColumn<H, String>(new Model<String>("Einddatum houdbaarheid"), "vervalDatum", "vervalDatum", new SimpleDateFormat("dd-MM-yyyy")));
+		columns.add(new PropertyColumn<H, String>(new Model<String>("Begin id"), AbstractHoudbaarheid_.BARCODE_START, AbstractHoudbaarheid_.BARCODE_START));
+		columns.add(new PropertyColumn<H, String>(new Model<String>("Eind id"), AbstractHoudbaarheid_.BARCODE_END, AbstractHoudbaarheid_.BARCODE_END));
+		columns.add(new DateTimePropertyColumn<H, String>(new Model<String>("Einddatum houdbaarheid"), AbstractHoudbaarheid_.VERVAL_DATUM, AbstractHoudbaarheid_.VERVAL_DATUM,
+			new SimpleDateFormat("dd-MM-yyyy")));
 		return columns;
 	}
 

@@ -38,7 +38,6 @@ import java.util.Set;
 
 import nl.rivm.screenit.batch.jobs.colon.selectie.SelectieConstants;
 import nl.rivm.screenit.batch.service.ColonUitnodigingsgebiedCapaciteitService;
-import nl.rivm.screenit.dao.colon.ColonUitnodigingsgebiedDao;
 import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.colon.ColonIntakelocatie;
@@ -59,7 +58,6 @@ import nl.rivm.screenit.service.colon.PlanningService;
 import nl.rivm.screenit.util.BigDecimalUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
@@ -82,9 +80,6 @@ public class ColonUitnodigingsgebiedCapaciteitServiceImpl implements ColonUitnod
 	private HibernateService hibernateService;
 
 	@Autowired
-	private SimplePreferenceService preferenceService;
-
-	@Autowired
 	private PlanningService<VrijSlot> planningService;
 
 	@Autowired
@@ -101,9 +96,6 @@ public class ColonUitnodigingsgebiedCapaciteitServiceImpl implements ColonUitnod
 
 	@Autowired
 	private LogService logService;
-
-	@Autowired
-	private ColonUitnodigingsgebiedDao uitnodigingsgebiedDao;
 
 	@Override
 	public Collection<ColonUitnodigingsgebiedSelectieContext> bepaalCapaciteit(ExecutionContext executionContext, boolean vooraankondigen, boolean aanpassenCapaciteitBijHerstart)
@@ -267,7 +259,7 @@ public class ColonUitnodigingsgebiedCapaciteitServiceImpl implements ColonUitnod
 
 	private long capaciteitAanpassenBijHerstart(ColonUitnodigingsgebiedSelectieContext uitnodigingsgebiedSelectieContext, UitnodigingsGebied uitnodigingsGebied)
 	{
-		long reedsUitgenodigdeClienten = uitnodigingsgebiedDao.countClientenInUitnodigingsgebiedMetUitnodigingOpDatum(uitnodigingsGebied,
+		long reedsUitgenodigdeClienten = uitnodigingsGebiedService.countClientenInUitnodigingsgebiedMetUitnodigingOpDatum(uitnodigingsGebied,
 			currentDateSupplier.getLocalDate());
 		uitnodigingsgebiedSelectieContext.substractUitnodigingscapaciteit(BigDecimal.valueOf(reedsUitgenodigdeClienten));
 		return reedsUitgenodigdeClienten;

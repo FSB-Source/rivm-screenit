@@ -21,26 +21,22 @@ package nl.rivm.screenit.specification.cervix;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.model.cervix.CervixCytologieOrder;
 import nl.rivm.screenit.model.cervix.CervixCytologieOrder_;
-import nl.rivm.screenit.model.cervix.CervixMonster_;
-import nl.rivm.screenit.specification.SpecificationUtil;
+import nl.rivm.screenit.model.cervix.enums.CervixCytologieOrderStatus;
 
 import org.springframework.data.jpa.domain.Specification;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixCytologieOrderSpecification
 {
-	public static Specification<CervixCytologieOrder> heeftMonsterId(String monsterId)
+	public static Specification<CervixCytologieOrder> heeftStatusIn(List<CervixCytologieOrderStatus> statussen)
 	{
-		return (r, q, cb) ->
-		{
-			var uitstrijkje = SpecificationUtil.join(r, CervixCytologieOrder_.uitstrijkje);
-
-			return cb.equal(uitstrijkje.get(CervixMonster_.monsterId), monsterId);
-		};
+		return (r, q, cb) -> r.get(CervixCytologieOrder_.status).in(statussen);
 	}
 }

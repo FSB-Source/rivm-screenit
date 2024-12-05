@@ -21,31 +21,46 @@ package nl.rivm.screenit.batch.jobs.mamma.herinneren.step;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
+import java.time.LocalDateTime;
+
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Root;
 
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.DossierStatus;
-import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.specification.algemeen.BriefSpecification;
+import nl.rivm.screenit.specification.algemeen.DossierSpecification;
+import nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification;
+import nl.rivm.screenit.specification.mamma.MammaBaseDossierSpecification;
+import nl.rivm.screenit.specification.mamma.MammaUitnodigingSpecification;
+import nl.rivm.screenit.specification.mamma.MammaUitstelSpecification;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.Range;
+
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.ScreeningRondeSpecification.isLopend;
+import static nl.rivm.screenit.specification.mamma.MammaScreeningRondeSpecification.heeftGeenUitstel;
+import static nl.rivm.screenit.specification.mamma.MammaScreeningRondeSpecification.isMinderValideOnderzoekZiekenhuis;
 
 @Component
 @AllArgsConstructor
-public class MammaHerinnerenReader extends BaseScrollableResultReader
+public class MammaHerinnerenReader extends BaseSpecificationScrollableResultReader<MammaScreeningRonde>
 {
 
 	private final ICurrentDateSupplier currentDateSupplier;
@@ -53,50 +68,70 @@ public class MammaHerinnerenReader extends BaseScrollableResultReader
 	private final SimplePreferenceService preferenceService;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<MammaScreeningRonde> createSpecification()
 	{
-		var criteria = session.createCriteria(MammaScreeningRonde.class, "screeningRonde");
-		criteria.createAlias("screeningRonde.dossier", "dossier");
-		criteria.createAlias("screeningRonde.laatsteUitnodiging", "uitnodiging");
-		criteria.createAlias("uitnodiging.brief", "brief");
-		criteria.createAlias("uitnodiging.laatsteAfspraak", "afspraak", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("screeningRonde.laatsteUitstel", "uitstel", JoinType.LEFT_OUTER_JOIN);
+		var heeftGeplandeAfspraakVoorMaxNoShowPeriode = MammaAfspraakSpecification.valtInDatumTijdPeriode(Range.atMost(getMaxNoshowPeriode()))
+			.and(MammaAfspraakSpecification.heeftStatus(MammaAfspraakStatus.GEPLAND)).withRoot(this::getLaatsteAfspraakJoin);
 
-		criteria.add(Restrictions.eq("screeningRonde.status", ScreeningRondeStatus.LOPEND));
-		criteria.add(Restrictions.eq("screeningRonde.minderValideOnderzoekZiekenhuis", false));
-		criteria.add(Restrictions.eq("dossier.status", DossierStatus.ACTIEF));
-		criteria.add(Restrictions.isNull("dossier.tehuis"));
-		criteria.add(Restrictions.eq("uitnodiging.herinnered", false));
-		criteria.add(Restrictions.or(
-			Restrictions.isNull("uitstel.id"), 
-			Restrictions.isNotNull("uitstel.geannuleerdOp"), 
-			Restrictions.isNotNull("uitstel.uitnodiging") 
-		));
+		var heeftActiefDossierZonderTehuis = DossierSpecification.heeftStatus(DossierStatus.ACTIEF).with(MammaScreeningRonde_.dossier)
+			.and(MammaBaseDossierSpecification.woontNietInTehuis().with(MammaScreeningRonde_.dossier));
 
-		criteria.add(Restrictions.or(
-			Restrictions.and(
-				Restrictions.eq("afspraak.status", MammaAfspraakStatus.GEPLAND),
-				Restrictions.le("afspraak.vanaf", getMaxNoshowPeriode()) 
-			), 
-			Restrictions.and(
-				Restrictions.isNull("afspraak.id"),
-				Restrictions.ne("brief.briefType", BriefType.MAMMA_UITNODIGING_SUSPECT), 
-				Restrictions.le("uitnodiging.creatieDatum", getMaxGeenAfspraakPeriode()) 
-			) 
-		));
+		var laatsteUitnodigingIsNietHerinnerd = MammaUitnodigingSpecification.isHerinnerd(false).withRoot(this::getLaatsteUitnodigingJoin);
 
-		return criteria;
+		var uitnodigingCreatieDatumLigtVoorHerinneringsPeriodeAfspraak = MammaUitnodigingSpecification.isGemaaktOpOfVoor(getMaxGeenAfspraakPeriode())
+			.withRoot(this::getLaatsteUitnodigingJoin);
+
+		return isMinderValideOnderzoekZiekenhuis(false)
+			.and(isLopend())
+			.and(heeftActiefDossierZonderTehuis)
+			.and(laatsteUitnodigingIsNietHerinnerd)
+			.and(heeftGeenActiefUitstel())
+			.and(heeftGeplandeAfspraakVoorMaxNoShowPeriode.or(
+					heeftGeenLaatsteAfspraak()
+						.and(heeftGeenSuspectBriefGekoppeldAanUitnodiging())
+						.and(uitnodigingCreatieDatumLigtVoorHerinneringsPeriodeAfspraak)
+				)
+			);
 	}
 
-	private Date getMaxGeenAfspraakPeriode()
+	private Specification<MammaScreeningRonde> heeftGeenLaatsteAfspraak()
 	{
-		var herinneringsPeriodeGeenAfspraak = preferenceService.getInteger(PreferenceKey.MAMMA_HERINNERINGS_PERIODE_GEEN_AFSPRAAK.name(), Integer.valueOf(4));
-		return DateUtil.toUtilDate(currentDateSupplier.getLocalDateTime().minusWeeks(herinneringsPeriodeGeenAfspraak));
+		return MammaUitnodigingSpecification.heeftGeenLaatsteAfspraak().withRoot(this::getLaatsteUitnodigingJoin);
 	}
 
-	private Date getMaxNoshowPeriode()
+	private Specification<MammaScreeningRonde> heeftGeenSuspectBriefGekoppeldAanUitnodiging()
 	{
-		var herinneringsPeriodeNoShow = preferenceService.getInteger(PreferenceKey.MAMMA_HERINNERINGS_PERIODE_NO_SHOW.name(), Integer.valueOf(2));
-		return DateUtil.toUtilDate(currentDateSupplier.getLocalDateTime().minusWeeks(herinneringsPeriodeNoShow));
+		return BriefSpecification.heeftNietBriefType(BriefType.MAMMA_UITNODIGING_SUSPECT).withRoot(r -> join(getLaatsteUitnodigingJoin(r), MammaUitnodiging_.brief));
+	}
+
+	private Specification<MammaScreeningRonde> heeftGeenActiefUitstel()
+	{
+		return heeftGeenUitstel().or(
+			MammaUitstelSpecification.heeftUitnodiging()
+				.or(MammaUitstelSpecification.isGeannuleerd()).with(MammaScreeningRonde_.laatsteUitstel, JoinType.LEFT)
+		);
+	}
+
+	private Join<MammaScreeningRonde, MammaUitnodiging> getLaatsteUitnodigingJoin(Root<MammaScreeningRonde> r)
+	{
+		return join(r, MammaScreeningRonde_.laatsteUitnodiging);
+	}
+
+	private Join<MammaUitnodiging, MammaAfspraak> getLaatsteAfspraakJoin(Root<MammaScreeningRonde> r)
+	{
+		var uitnodigingJoin = getLaatsteUitnodigingJoin(r);
+		return join(uitnodigingJoin, MammaUitnodiging_.laatsteAfspraak, JoinType.LEFT);
+	}
+
+	private LocalDateTime getMaxGeenAfspraakPeriode()
+	{
+		var herinneringsPeriodeGeenAfspraak = preferenceService.getInteger(PreferenceKey.MAMMA_HERINNERINGS_PERIODE_GEEN_AFSPRAAK.name(), 4);
+		return currentDateSupplier.getLocalDateTime().minusWeeks(herinneringsPeriodeGeenAfspraak);
+	}
+
+	private LocalDateTime getMaxNoshowPeriode()
+	{
+		var herinneringsPeriodeNoShow = preferenceService.getInteger(PreferenceKey.MAMMA_HERINNERINGS_PERIODE_NO_SHOW.name(), 2);
+		return currentDateSupplier.getLocalDateTime().minusWeeks(herinneringsPeriodeNoShow);
 	}
 }

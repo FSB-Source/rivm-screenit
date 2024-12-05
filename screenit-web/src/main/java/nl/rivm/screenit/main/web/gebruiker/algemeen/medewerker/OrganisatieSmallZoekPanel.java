@@ -22,7 +22,6 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.medewerker;
  */
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import nl.rivm.screenit.main.web.ScreenitSession;
@@ -33,7 +32,6 @@ import nl.rivm.screenit.main.web.component.table.ActiefPropertyColumn;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.OrganisatieDataProvider;
 import nl.rivm.screenit.model.Instelling;
-import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Recht;
@@ -45,7 +43,6 @@ import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -58,10 +55,16 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import static nl.rivm.screenit.model.Instelling_.ACTIEF;
+import static nl.rivm.screenit.model.Instelling_.ADRESSEN;
+import static nl.rivm.screenit.model.Instelling_.NAAM;
+import static nl.rivm.screenit.model.Instelling_.ORGANISATIE_TYPE;
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
+import static nl.topicuszorg.organisatie.model.Adres_.PLAATS;
+import static nl.topicuszorg.organisatie.model.Adres_.STRAAT;
+
 public abstract class OrganisatieSmallZoekPanel extends GenericPanel<Instelling>
 {
-
-	private static final long serialVersionUID = 1L;
 
 	private WebMarkupContainer organisatiesContainer = null;
 
@@ -82,9 +85,9 @@ public abstract class OrganisatieSmallZoekPanel extends GenericPanel<Instelling>
 	{
 		super.onInitialize();
 
-		InstellingGebruiker loggedInInstellingGebruiker = ScreenitSession.get().getLoggedInInstellingGebruiker();
-		ToegangLevel toegangLevel = autorisatieService.getToegangLevel(loggedInInstellingGebruiker, Actie.TOEVOEGEN, true, Recht.GEBRUIKER_MEDEWERKER_ORGANISATIES_BEHEER);
-		Instelling searchObject = new Instelling();
+		var loggedInInstellingGebruiker = ScreenitSession.get().getLoggedInInstellingGebruiker();
+		var toegangLevel = autorisatieService.getToegangLevel(loggedInInstellingGebruiker, Actie.TOEVOEGEN, true, Recht.GEBRUIKER_MEDEWERKER_ORGANISATIES_BEHEER);
+		var searchObject = new Instelling();
 		searchObject.setActief(Boolean.TRUE);
 		searchObject.add(new Adres());
 		if (ToegangLevel.INSTELLING.equals(toegangLevel))
@@ -92,25 +95,22 @@ public abstract class OrganisatieSmallZoekPanel extends GenericPanel<Instelling>
 			searchObject.setId(loggedInInstellingGebruiker.getOrganisatie().getId());
 		}
 
-		IModel<Instelling> searchObjectModel = ModelUtil.cModel(searchObject);
+		var searchObjectModel = ModelUtil.ccModel(searchObject);
 		setModel(searchObjectModel);
-		ScreenitForm<Instelling> organisatieZoekForm = new ScreenitForm<Instelling>("form", searchObjectModel);
+		var organisatieZoekForm = new ScreenitForm<>("form", searchObjectModel);
 
 		organisatieZoekForm.add(new TextField<String>("naam"));
 		organisatieZoekForm.add(new TextField<String>("adressen[0].plaats"));
 
-		List<OrganisatieType> organisatieTypes = autorisatieService.getOrganisatieTypes(loggedInInstellingGebruiker, Actie.TOEVOEGEN, true);
+		var organisatieTypes = autorisatieService.getOrganisatieTypes(loggedInInstellingGebruiker, Actie.TOEVOEGEN, true);
 		organisatieTypes.remove(OrganisatieType.HUISARTS);
-		ScreenitDropdown<OrganisatieType> soortZorginstelling = new ScreenitDropdown<OrganisatieType>("organisatieType", organisatieTypes);
+		var soortZorginstelling = new ScreenitDropdown<>("organisatieType", organisatieTypes);
 		soortZorginstelling.setNullValid(true);
-		soortZorginstelling.setChoiceRenderer(new EnumChoiceRenderer<OrganisatieType>());
+		soortZorginstelling.setChoiceRenderer(new EnumChoiceRenderer<>());
 		organisatieZoekForm.add(soortZorginstelling);
 
-		AjaxSubmitLink zoeken = new ScreenitAjaxLink("zoeken")
+		var zoeken = new ScreenitAjaxLink("zoeken")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -135,10 +135,8 @@ public abstract class OrganisatieSmallZoekPanel extends GenericPanel<Instelling>
 		addOrReplaceSelectedOrganisatie();
 		add(selectedOrganisatieContainer);
 
-		AjaxLink<Object> opslaan = new AjaxLink<Object>("opslaan")
+		var opslaan = new AjaxLink<>("opslaan")
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick(AjaxRequestTarget target)
@@ -152,15 +150,15 @@ public abstract class OrganisatieSmallZoekPanel extends GenericPanel<Instelling>
 
 	private void addOrReplaceSelectedOrganisatie()
 	{
-		Label selectedOrganisatieNaam = new Label("selectedOrganisatieNaam", new PropertyModel<String>(selectedOrganisatie, "naam"));
-		boolean hasSelectedOrganisatie = ModelUtil.nullSafeGet(selectedOrganisatie) != null;
+		var selectedOrganisatieNaam = new Label("selectedOrganisatieNaam", new PropertyModel<String>(selectedOrganisatie, "naam"));
+		var hasSelectedOrganisatie = ModelUtil.nullSafeGet(selectedOrganisatie) != null;
 		selectedOrganisatieNaam.setVisible(hasSelectedOrganisatie);
 		selectedOrganisatieNaam.setOutputMarkupId(true);
 		selectedOrganisatieContainer.addOrReplace(selectedOrganisatieNaam);
-		WebMarkupContainer geenOrganisatieGeselecteerd = new WebMarkupContainer("geenOrganisatieGeselecteerd");
+		var geenOrganisatieGeselecteerd = new WebMarkupContainer("geenOrganisatieGeselecteerd");
 		geenOrganisatieGeselecteerd.setVisible(!hasSelectedOrganisatie);
 		selectedOrganisatieContainer.addOrReplace(geenOrganisatieGeselecteerd);
-		AjaxRequestTarget target = getRequestCycle().find(AjaxRequestTarget.class).orElse(null);
+		var target = getRequestCycle().find(AjaxRequestTarget.class).orElse(null);
 		if (target != null)
 		{
 			target.add(selectedOrganisatieContainer);
@@ -169,26 +167,21 @@ public abstract class OrganisatieSmallZoekPanel extends GenericPanel<Instelling>
 
 	private Component getZoekResultaten()
 	{
-		Instelling searchObject = getModelObject();
+		var searchObject = getModelObject();
 
-		List<IColumn<Instelling, String>> columns = getOrganisatieColumns(getModel());
+		var columns = getOrganisatieColumns(getModel());
 
 		setVorigZoekObject(searchObject);
 
-		ScreenitDataTable<Instelling, String> organisaties = new ScreenitDataTable<Instelling, String>("organisaties", columns,
-			new OrganisatieDataProvider(getModel(), null, Arrays.asList(OrganisatieType.HUISARTS), "naam"), new Model<>("organisaties"))
+		return new ScreenitDataTable<>("organisaties", columns, new OrganisatieDataProvider(getModel(), null, List.of(OrganisatieType.HUISARTS), NAAM),
+			new Model<>("organisaties"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<Instelling> model)
 			{
 				onSelected(target, model);
 			}
 		};
-
-		return organisaties;
 	}
 
 	protected void onSelected(AjaxRequestTarget target, IModel<Instelling> model)
@@ -205,11 +198,11 @@ public abstract class OrganisatieSmallZoekPanel extends GenericPanel<Instelling>
 	{
 		List<IColumn<Instelling, String>> columns = new ArrayList<>();
 
-		columns.add(new PropertyColumn<Instelling, String>(Model.of("Naam organisatie"), "naam", "naam"));
-		columns.add(new PropertyColumn<Instelling, String>(Model.of("Straat"), "adres.straat", "adressen[0].adres"));
-		columns.add(new PropertyColumn<Instelling, String>(Model.of("Plaats"), "adres.plaats", "adressen[0].plaats"));
-		columns.add(new PropertyColumn<Instelling, String>(Model.of("Soort organisatie"), "organisatieType", "organisatieType"));
-		columns.add(new ActiefPropertyColumn<Instelling, Instelling>(Model.of(""), "actief", organisatiesContainer, searchModel));
+		columns.add(new PropertyColumn<>(Model.of("Naam organisatie"), NAAM, NAAM));
+		columns.add(new PropertyColumn<>(Model.of("Straat"), propertyChain(ADRESSEN, STRAAT), "adressen[0].adres"));
+		columns.add(new PropertyColumn<>(Model.of("Plaats"), propertyChain(ADRESSEN, PLAATS), "adressen[0].plaats"));
+		columns.add(new PropertyColumn<>(Model.of("Soort organisatie"), ORGANISATIE_TYPE, ORGANISATIE_TYPE));
+		columns.add(new ActiefPropertyColumn<>(Model.of(""), ACTIEF, organisatiesContainer, searchModel));
 
 		return columns;
 	}

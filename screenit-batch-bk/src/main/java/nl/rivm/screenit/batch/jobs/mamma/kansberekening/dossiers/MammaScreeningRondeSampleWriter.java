@@ -21,19 +21,29 @@ package nl.rivm.screenit.batch.jobs.mamma.kansberekening.dossiers;
  * =========================LICENSE_END==================================
  */
 
+import java.util.function.Consumer;
+
+import javax.persistence.EntityGraph;
+
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.batch.jobs.mamma.kansberekening.MammaAbstractEventWriter;
 import nl.rivm.screenit.batch.jobs.mamma.kansberekening.MammaKansberekeningConstants;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.GbaPersoon_;
+import nl.rivm.screenit.model.MergedBrieven_;
+import nl.rivm.screenit.model.mamma.MammaBrief;
+import nl.rivm.screenit.model.mamma.MammaBrief_;
+import nl.rivm.screenit.model.mamma.MammaDossier_;
 import nl.rivm.screenit.model.mamma.MammaKansberekeningScreeningRondeEvent;
+import nl.rivm.screenit.model.mamma.MammaKansberekeningScreeningRondeEvent_;
+import nl.rivm.screenit.model.mamma.MammaMergedBrieven;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.hibernate.Criteria;
-import org.hibernate.FetchMode;
-import org.hibernate.Session;
-import org.hibernate.sql.JoinType;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -67,43 +77,26 @@ public class MammaScreeningRondeSampleWriter extends MammaAbstractEventWriter<Ma
 	}
 
 	@Override
-	protected Criteria getCriteria(Session session)
+	protected Consumer<EntityGraph<MammaScreeningRonde>> getEntityGraphFunction()
 	{
-		var criteria = session.createCriteria(MammaScreeningRonde.class, "screeningRonde");
-		criteria.createAlias("screeningRonde.uitnodigingen", "uitnodiging");
-		criteria.createAlias("uitnodiging.brief", "brief");
-		criteria.createAlias("screeningRonde.dossier", "dossier");
-		criteria.createAlias("dossier.client", "client");
-		criteria.createAlias("client.persoon", "persoon");
-		criteria.createAlias("screeningRonde.screeningRondeEvent", "screeningRondeEvent", JoinType.LEFT_OUTER_JOIN);
+		return entityGraph ->
+		{
+			var uitnodigingenSubgraph = entityGraph.addSubgraph(MammaScreeningRonde_.uitnodigingen);
+			var briefSubgraph = uitnodigingenSubgraph.addSubgraph(MammaUitnodiging_.BRIEF, MammaBrief.class);
+			briefSubgraph.addSubgraph(MammaBrief_.PROJECT_BRIEF);
+			briefSubgraph.addSubgraph(MammaBrief_.mergedBrieven, MammaMergedBrieven.class).addSubgraph(MergedBrieven_.MERGED_BRIEVEN);
 
-		criteria.setFetchMode("uitnodiging", FetchMode.JOIN);
-		criteria.setFetchMode("brief", FetchMode.JOIN);
-		criteria.setFetchMode("dossier", FetchMode.JOIN);
-		criteria.setFetchMode("client", FetchMode.JOIN);
-		criteria.setFetchMode("persoon", FetchMode.JOIN);
-		criteria.setFetchMode("screeningRondeEvent", FetchMode.JOIN);
+			var screeningRondeEventSubgraph = entityGraph.addSubgraph(MammaScreeningRonde_.screeningRondeEvent);
+			screeningRondeEventSubgraph.addSubgraph(MammaKansberekeningScreeningRondeEvent_.dossier);
+			screeningRondeEventSubgraph.addSubgraph(MammaKansberekeningScreeningRondeEvent_.screeningRonde);
 
-		criteria.createAlias("brief.projectBrief", "projectBrief", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("persoon.gbaAdres", "gbaAdres", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("persoon.tijdelijkAdres", "tijdelijkAdres", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("persoon.tijdelijkGbaAdres", "tijdelijkGbaAdres", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("persoon.gbaGeboorteLand", "gbaGeboorteLand", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("screeningRondeEvent.dossier", "sreDossier", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("screeningRondeEvent.screeningRonde", "sreScreeningRonde", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("brief.mergedBrieven", "mergedBrieven", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("mergedBrieven.mergedBrieven", "uploadDocument", JoinType.LEFT_OUTER_JOIN);
-
-		criteria.setFetchMode("projectBrief", FetchMode.SELECT);
-		criteria.setFetchMode("gbaAdres", FetchMode.SELECT);
-		criteria.setFetchMode("tijdelijkAdres", FetchMode.SELECT);
-		criteria.setFetchMode("tijdelijkGbaAdres", FetchMode.SELECT);
-		criteria.setFetchMode("gbaGeboorteLand", FetchMode.SELECT);
-		criteria.setFetchMode("sreDossier", FetchMode.SELECT);
-		criteria.setFetchMode("sreScreeningRonde", FetchMode.SELECT);
-		criteria.setFetchMode("mergedBrieven", FetchMode.SELECT);
-		criteria.setFetchMode("uploadDocument", FetchMode.SELECT);
-
-		return criteria;
+			var dossierSubgraph = entityGraph.addSubgraph(MammaScreeningRonde_.dossier);
+			var clientSubgraph = dossierSubgraph.addSubgraph(MammaDossier_.client);
+			var persoonSubgraph = clientSubgraph.addSubgraph(Client_.persoon);
+			persoonSubgraph.addSubgraph(GbaPersoon_.gbaAdres);
+			persoonSubgraph.addSubgraph(GbaPersoon_.tijdelijkAdres);
+			persoonSubgraph.addSubgraph(GbaPersoon_.tijdelijkGbaAdres);
+			persoonSubgraph.addSubgraph(GbaPersoon_.gbaGeboorteLand);
+		};
 	}
 }

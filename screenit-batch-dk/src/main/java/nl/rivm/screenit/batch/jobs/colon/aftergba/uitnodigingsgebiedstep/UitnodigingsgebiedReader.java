@@ -21,26 +21,22 @@ package nl.rivm.screenit.batch.jobs.colon.aftergba.uitnodigingsgebiedstep;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.Gemeente;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.algemeen.GemeenteSpecification.heeftGeenUitnodigingsGebieden;
 
 @Component
 
-public class UitnodigingsgebiedReader extends BaseScrollableResultReader
+public class UitnodigingsgebiedReader extends BaseSpecificationScrollableResultReader<Gemeente>
 {
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<Gemeente> createSpecification()
 	{
-		var crit = session.createCriteria(Gemeente.class);
-		crit.add(Restrictions.isEmpty("uitnodigingsGebieden"));
-
-		return crit;
+		return heeftGeenUitnodigingsGebieden();
 	}
 }

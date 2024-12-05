@@ -91,7 +91,7 @@ import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.heeftBsn;
 import static nl.rivm.screenit.specification.colon.ColonAfspraakslotSpecification.heeftGeenAfspraak;
 import static nl.rivm.screenit.specification.colon.ColonAfspraakslotSpecification.heeftVanaf;
-import static nl.rivm.screenit.specification.colon.ColonIntakeAfspraakSpecification.heeftLaatsteAfspraakMetBezwaar;
+import static nl.rivm.screenit.specification.colon.ColonIntakeAfspraakSpecification.heeftBezwaar;
 import static org.springframework.data.jpa.domain.Specification.where;
 
 @Slf4j
@@ -623,7 +623,7 @@ public class ColonBaseAfspraakServiceImpl implements ColonBaseAfspraakService
 	public List<ColonIntakeAfspraak> getAfsprakenKamersInRange(ColonIntakekamer kamer, Range<LocalDateTime> range)
 	{
 		return intakeAfspraakRepository.findAll(ColonIntakeAfspraakSpecification.heeftKamer(kamer)
-				.and(ColonIntakeAfspraakSpecification.heeftStatuses(List.of(ColonAfspraakStatus.GEPLAND, ColonAfspraakStatus.UITGEVOERD))
+				.and(ColonIntakeAfspraakSpecification.heeftStatusIn(List.of(ColonAfspraakStatus.GEPLAND, ColonAfspraakStatus.UITGEVOERD))
 					.and(overlapt(range, r -> r.get(ColonTijdslot_.vanaf), r -> r.get(ColonTijdslot_.tot)))),
 			Sort.by(Sort.Order.asc(ColonTijdslot_.VANAF)));
 	}
@@ -694,7 +694,7 @@ public class ColonBaseAfspraakServiceImpl implements ColonBaseAfspraakService
 	@Override
 	public boolean heeftClientIntakeAfspraakMetConclusieBezwaar(String bsn)
 	{
-		var spec = where(heeftBsn(bsn).with(Client_.persoon)).and(heeftLaatsteAfspraakMetBezwaar().with(r ->
+		var spec = where(heeftBsn(bsn).with(Client_.persoon)).and(heeftBezwaar().with(r ->
 		{
 			var dossier = join(r, Client_.colonDossier);
 			var laatsteScreeningRonde = join(dossier, ColonDossier_.laatsteScreeningRonde);

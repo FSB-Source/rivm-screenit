@@ -84,13 +84,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static nl.rivm.screenit.specification.colon.ColonFITBestandSpecification.heeftBestandsnaam;
+import static nl.rivm.screenit.specification.colon.ColonFITBestandSpecification.heeftStatussen;
 import static nl.rivm.screenit.specification.colon.ColonFITSpecification.heeftActieveClient;
 import static nl.rivm.screenit.specification.colon.ColonFITSpecification.heeftDossier;
 import static nl.rivm.screenit.specification.colon.ColonFITSpecification.heeftFitType;
-import static nl.rivm.screenit.specification.colon.ColonFITSpecification.isStatusDatumVoorOfOp;
+import static nl.rivm.screenit.specification.colon.ColonFITSpecification.heeftStatusDatumVoorOfOp;
 import static nl.rivm.screenit.specification.colon.ColonFITSpecification.valideerFitUitslagStatus;
-import static nl.rivm.screenit.specification.colon.ColonIFobtBestandSpecification.heeftBestandsnaam;
-import static nl.rivm.screenit.specification.colon.ColonIFobtBestandSpecification.heeftStatussen;
 
 @Slf4j
 @Service
@@ -715,7 +715,7 @@ public class ColonBaseFITServiceImpl implements ColonBaseFITService
 	{
 		var specification = valideerFitUitslagStatus(signalerenVanaf)
 			.and(heeftDossier(dossier))
-			.and(isStatusDatumVoorOfOp(minimaleSignaleringsDatum))
+			.and(heeftStatusDatumVoorOfOp(minimaleSignaleringsDatum.atStartOfDay()))
 			.and(heeftFitType(IFOBTType.GOLD))
 			.and(heeftActieveClient());
 		return fitTestRepository.findFirst(specification, Sort.by(Sort.Direction.DESC, IFOBTTest_.ANALYSE_DATUM));

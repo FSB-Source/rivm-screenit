@@ -33,6 +33,10 @@ import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
+import nl.rivm.screenit.model.mamma.MammaBeoordeling_;
+import nl.rivm.screenit.model.mamma.MammaDossier_;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
+import nl.rivm.screenit.util.StringUtil;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -74,7 +78,8 @@ public class MammaFollowUpConclusieWerklijst extends AbstractMammaFollowUpPage
 		add(refreshContainer);
 
 		List<IColumn<MammaBeoordeling, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<>(Model.of("Onderzoeksdatum SE"), "onderzoek.creatieDatum", "onderzoek.creatieDatum"));
+		columns.add(new PropertyColumn<>(Model.of("Onderzoeksdatum SE"), StringUtil.propertyChain(MammaDossier_.LAATSTE_BEOORDELING_MET_UITSLAG, MammaBeoordeling_.ONDERZOEK,
+			MammaOnderzoek_.CREATIE_DATUM), "onderzoek.creatieDatum"));
 		columns.add(new ClientColumn<>("onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client"));
 		columns.add(new PropertyColumn<>(Model.of("Geboortedatum"), "onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon.geboortedatum"));
 		columns.add(new PropertyColumn<>(Model.of("Bsn"), "onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon.bsn"));

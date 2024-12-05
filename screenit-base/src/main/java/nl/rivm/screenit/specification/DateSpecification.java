@@ -35,10 +35,6 @@ import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.util.DateUtil;
 
-import org.hibernate.query.criteria.internal.CriteriaBuilderImpl;
-import org.hibernate.query.criteria.internal.compile.RenderingContext;
-import org.hibernate.query.criteria.internal.expression.LiteralExpression;
-
 import com.google.common.collect.Range;
 
 import static nl.rivm.screenit.specification.RangeSpecification.bevat;
@@ -50,19 +46,17 @@ public class DateSpecification
 {
 	public static Expression<Date> truncate(String part, Expression<Date> datePath, CriteriaBuilder cb)
 	{
-		return cb.function("date_trunc", Date.class, new LiteralExpression<>((CriteriaBuilderImpl) cb, part)
-		{
-			@Override
-			public String render(RenderingContext renderingContext)
-			{
-				return "'" + part + "'";
-			}
-		}, datePath);
+		return cb.function("date_trunc", Date.class, new StringLiteral(cb, part), datePath);
 	}
 
-	public static Expression<Integer> extractYear(Expression<LocalDateTime> datePath, CriteriaBuilder cb)
+	public static Expression<Integer> extractYear(Expression<Date> datePath, CriteriaBuilder cb)
 	{
 		return cb.function("YEAR", Integer.class, datePath);
+	}
+
+	public static Expression<Date> intervalInDagen(CriteriaBuilder cb, Expression<Date> datePath, long dagen)
+	{
+		return cb.function("intervalInDagen", Date.class, cb.literal(dagen), datePath);
 	}
 
 	public static <T> ExtendedSpecification<T> overlaptLocalDateTime(Range<LocalDateTime> range, Function<From<?, ? extends T>, Expression<Date>> databaseColumnStartRange,

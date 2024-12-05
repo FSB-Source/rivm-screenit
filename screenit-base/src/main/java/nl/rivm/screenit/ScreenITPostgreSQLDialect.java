@@ -24,7 +24,8 @@ package nl.rivm.screenit;
 import java.sql.Types;
 
 import org.hibernate.dialect.PostgreSQL95Dialect;
-import org.hibernate.dialect.PostgreSQL9Dialect;
+import org.hibernate.dialect.function.SQLFunctionTemplate;
+import org.hibernate.type.StandardBasicTypes;
 
 public class ScreenITPostgreSQLDialect extends PostgreSQL95Dialect
 {
@@ -32,5 +33,8 @@ public class ScreenITPostgreSQLDialect extends PostgreSQL95Dialect
 	{
 		super();
 		registerColumnType(Types.TIMESTAMP, "timestamptz");
+
+		registerFunction("intervalInDagen", new SQLFunctionTemplate(StandardBasicTypes.DATE, "?2 + INTERVAL '?1 day'"));
+
 	}
 }

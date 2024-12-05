@@ -35,6 +35,7 @@ import nl.rivm.screenit.main.web.component.table.AjaxImageCellPanel;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
 import nl.rivm.screenit.main.web.gebruiker.screening.cervix.CervixScreeningBasePage;
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.BestandStatus;
@@ -43,7 +44,6 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.DistributedLockService;
 import nl.rivm.screenit.service.LogService;
-import nl.topicuszorg.organisatie.model.Organisatie_;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -94,7 +94,7 @@ public class CervixBetalingSepaBestandenPage extends CervixScreeningBasePage
 		betaalOpdrachtColumns.add(new PropertyColumn<>(Model.of("Betalingskenmerk"), BETALINGSKENMERK, BETALINGSKENMERK));
 		betaalOpdrachtColumns.add(new PropertyColumn<>(Model.of("Omschrijving"), OMSCHRIJVING, OMSCHRIJVING));
 		betaalOpdrachtColumns.add(
-			new PropertyColumn<>(Model.of("Screeningorganisatie"), SCREENING_ORGANISATIE + "." + Organisatie_.NAAM, SCREENING_ORGANISATIE + "." + Organisatie_.NAAM));
+			new PropertyColumn<>(Model.of("Screeningorganisatie"), SCREENING_ORGANISATIE + "." + Instelling_.NAAM, SCREENING_ORGANISATIE + "." + Instelling_.NAAM));
 		betaalOpdrachtColumns.add(new AbstractColumn<>(Model.of("Status"))
 		{
 

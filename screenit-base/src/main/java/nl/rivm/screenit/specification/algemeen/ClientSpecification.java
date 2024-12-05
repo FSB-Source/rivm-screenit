@@ -25,12 +25,16 @@ import java.time.LocalDate;
 import java.util.List;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.GbaPersoon_;
+import nl.rivm.screenit.model.SingleTableHibernateObject_;
+import nl.rivm.screenit.model.enums.Deelnamemodus;
 import nl.rivm.screenit.model.enums.GbaStatus;
+import nl.rivm.screenit.model.project.ProjectClient;
+import nl.rivm.screenit.model.project.ProjectClient_;
 import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.util.DateUtil;
 
@@ -38,10 +42,14 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.heeftGbaAdresMetPostcode;
 import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.isNietOverleden;
-import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.woontInNederland;
+import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.isNietOverledenEnWoontInNederland;
+import static nl.rivm.screenit.specification.mamma.MammaBaseDossierSpecification.heeftDeelnameModus;
+import static nl.rivm.screenit.specification.mamma.MammaBaseDossierSpecification.heeftStatusNullOfActief;
+import static org.springframework.data.jpa.domain.Specification.not;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ClientSpecification
 {
 	public static ExtendedSpecification<Client> heeftIndicatie()
@@ -49,11 +57,20 @@ public class ClientSpecification
 		return (r, q, cb) -> cb.equal(r.get(Client_.gbaStatus), GbaStatus.INDICATIE_AANWEZIG);
 	}
 
+	public static ExtendedSpecification<Client> isNietAfgevoerd()
+	{
+		return (r, q, cb) -> cb.notEqual(r.get(Client_.gbaStatus), GbaStatus.AFGEVOERD);
+	}
+
 	public static ExtendedSpecification<Client> heeftActieveClient()
 	{
-		return isNietOverleden().with(Client_.persoon)
-			.and(woontInNederland().with(Client_.persoon))
+		return isNietOverledenEnWoontInNederland().with(Client_.persoon)
 			.and(heeftIndicatie());
+	}
+
+	public static ExtendedSpecification<Client> isNietOverledenOfAfgevoerd()
+	{
+		return isNietOverleden().with(Client_.persoon).and(isNietAfgevoerd());
 	}
 
 	public static Specification<Client> heeftGeboorteJaarVoorLeeftijdBereik(int minimaleLeeftijd, int maximaleLeeftijd, LocalDate peildatum)
@@ -119,8 +136,35 @@ public class ClientSpecification
 		return (r, q, cb) -> cb.not(r.get(Client_.gbaStatus).in(statussen));
 	}
 
-	public static ExtendedSpecification<Client> heeftId(Long id)
+	public static Specification<Client> heeftMammaDossier()
 	{
-		return (r, q, cb) -> cb.equal(r.get(Client_.id), id);
+		return (r, q, cb) -> cb.isNotNull(r.get(Client_.mammaDossier));
+	}
+
+	public static Specification<Client> voldoetAanMammaClientSelectieRestricties()
+	{
+		return not(heeftDeelnameModus(Deelnamemodus.SELECTIEBLOKKADE).with(Client_.mammaDossier))
+			.and(heeftStatusNullOfActief().with(Client_.mammaDossier))
+			.and(heeftGbaAdresMetPostcode().with(Client_.persoon))
+			.and(heeftActieveClient());
+	}
+
+	public static ExtendedSpecification<Client> heeftGeenActieveProjectClienten(List<Long> exclusieGroepIds)
+	{
+		return (r, q, cb) ->
+		{
+			var subquery = q.subquery(Long.class);
+			var subRoot = subquery.from(ProjectClient.class);
+			var clientJoin = join(subRoot, ProjectClient_.client);
+
+			subquery.select(cb.literal(1L))
+				.where(cb.and(
+					cb.isTrue(subRoot.get(ProjectClient_.actief)),
+					subRoot.get(ProjectClient_.groep).in(exclusieGroepIds),
+					cb.equal(clientJoin.get(SingleTableHibernateObject_.id), r)
+				));
+
+			return cb.not(cb.exists(subquery));
+		};
 	}
 }

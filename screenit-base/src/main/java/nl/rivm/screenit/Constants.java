@@ -47,6 +47,8 @@ public class Constants
 
 	public static final String DEFAULT_DATE_FORMAT = "dd-MM-yyyy";
 
+	public static final String DEFAULT_DATE_FORMAT_DAY = "EEEE dd-MM-yyyy";
+
 	public static final String DEFAULT_DATE_TIME_FORMAT = "dd-MM-yyyy HH:mm";
 
 	public static final String DEFAULT_DATE_TIME_SECONDS_FORMAT = "dd-MM-yyyy HH:mm:ss";

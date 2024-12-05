@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
 import static nl.rivm.screenit.batch.jobs.cervix.verrichtingen.CervixBepalenVerrichtingenJobConfiguration.CERVIX_BEPALEN_VERRICHTINGEN_JOB_FETCH_SIZE;
 
 @Component
-public class CervixBepalenVerrichtingenReader extends BaseSpecificationScrollableResultReader<CervixMonster, Long>
+public class CervixBepalenVerrichtingenReader extends BaseSpecificationScrollableResultReader<CervixMonster>
 {
 	public CervixBepalenVerrichtingenReader()
 	{

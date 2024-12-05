@@ -23,8 +23,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.labformulier.aanvra
 
 import java.util.Iterator;
 
-import nl.rivm.screenit.main.dao.cervix.CervixHuisartsDao;
-import nl.rivm.screenit.model.SortState;
+import nl.rivm.screenit.main.service.cervix.CervixHuisartsService;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixLabformulierAanvraag;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -35,11 +34,13 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
+
 public class CervixLabformulierAanvraagDataProvider extends SortableDataProvider<CervixLabformulierAanvraag, String>
 {
 
 	@SpringBean
-	private CervixHuisartsDao huisartsDao;
+	private CervixHuisartsService huisartsService;
 
 	private IModel<CervixHuisarts> zoekObject;
 
@@ -53,14 +54,14 @@ public class CervixLabformulierAanvraagDataProvider extends SortableDataProvider
 	@Override
 	public Iterator<? extends CervixLabformulierAanvraag> iterator(long first, long count)
 	{
-		return huisartsDao.getCervixLabformulierOrdersVanInstelling(ModelUtil.nullSafeGet(zoekObject), first, count,
-			new SortState<>(getSort().getProperty(), getSort().isAscending())).iterator();
+		return huisartsService.getCervixLabformulierOrdersVanHuisarts(ModelUtil.nullSafeGet(zoekObject), first, count,
+			toSpringSort(getSort())).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return huisartsDao.getAantalCervixLabformulierOrdersVanInstelling(ModelUtil.nullSafeGet(zoekObject));
+		return huisartsService.getAantalCervixLabformulierOrdersVanHuisarts(ModelUtil.nullSafeGet(zoekObject));
 	}
 
 	@Override

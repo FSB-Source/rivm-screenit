@@ -23,34 +23,29 @@ package nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie.onafgerondeverw
 
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
+import nl.rivm.screenit.model.colon.ColonIntakeAfspraak_;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.specification.colon.ColonConclusieSpecification;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.colon.ColonIntakeAfspraakSpecification.heeftAfspraakVoor;
 
 @Component
 @AllArgsConstructor
-public class OnbevestigdeIntakeVerwijzingenReader extends BaseScrollableResultReader
+public class OnbevestigdeIntakeVerwijzingenReader extends BaseSpecificationScrollableResultReader<ColonIntakeAfspraak>
 {
-
 	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	public Specification<ColonIntakeAfspraak> createSpecification()
 	{
-		var criteria = session.createCriteria(ColonIntakeAfspraak.class);
-		criteria.createAlias("conclusie", "conclusie");
-		criteria.createAlias("nieuweAfspraak", "nieuweAfspraak");
-
-		criteria.add(Restrictions.eq("conclusie.type", ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM));
-		criteria.add(Restrictions.eq("conclusie.doorverwijzingBevestigd", Boolean.FALSE));
-		criteria.add(Restrictions.lt("nieuweAfspraak.vanaf", currentDateSupplier.getLocalDateTime().plusDays(1)));
-		return criteria;
+		return ColonConclusieSpecification.heeftType(ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM).with(ColonIntakeAfspraak_.conclusie)
+			.and(ColonConclusieSpecification.isDoorverwijzingBevestigd(false).with(ColonIntakeAfspraak_.conclusie))
+			.and(heeftAfspraakVoor(currentDateSupplier.getLocalDateTime().plusDays(1)).with(ColonIntakeAfspraak_.nieuweAfspraak));
 	}
 }

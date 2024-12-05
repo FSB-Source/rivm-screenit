@@ -21,39 +21,41 @@ package nl.rivm.screenit.batch.jobs.cervix.uitslagverwijderen.hpvminformulierver
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.model.ScreeningRondeStatus;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
-import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
+import nl.rivm.screenit.model.cervix.CervixLabformulier_;
+import nl.rivm.screenit.model.cervix.CervixMonster_;
+import nl.rivm.screenit.model.cervix.CervixScreeningRonde_;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde.NEGATIEF;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.ScreeningRondeSpecification.isAfgerond;
+import static nl.rivm.screenit.specification.cervix.CervixHpvBeoordelingSpecification.heeftHpvUitslag;
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.isNietGewist;
+import static nl.rivm.screenit.specification.cervix.CervixMonsterSpecification.heeftBrief;
+import static nl.rivm.screenit.specification.cervix.CervixScreeningRondeSpecification.isAangemeld;
+
 @Component
-public class CervixHpvMinFormulierVerwijderenReader extends BaseScrollableResultReader
+public class CervixHpvMinFormulierVerwijderenReader extends BaseSpecificationScrollableResultReader<CervixLabformulier>
 {
+
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<CervixLabformulier> createSpecification()
 	{
-		var criteria = session.createCriteria(CervixLabformulier.class);
-
-		criteria.createAlias("uitstrijkje", "uitstrijkje");
-		criteria.createAlias("uitstrijkje.ontvangstScreeningRonde", "ontvangstRonde");
-
-		criteria.createAlias("ontvangstRonde.monsterHpvUitslag", "monsterHpvUitslag");
-		criteria.createAlias("monsterHpvUitslag.laatsteHpvBeoordeling", "laatsteHpvBeoordeling");
-
-		criteria.add(Restrictions.eq("laatsteHpvBeoordeling.hpvUitslag", CervixHpvBeoordelingWaarde.NEGATIEF));
-
-		criteria.add(Restrictions.eq("ontvangstRonde.status", ScreeningRondeStatus.AFGEROND));
-		criteria.add(Restrictions.eq("ontvangstRonde.aangemeld", Boolean.TRUE));
-
-		criteria.add(Restrictions.isNull("datumGewist"));
-		criteria.add(Restrictions.isNotNull("uitstrijkje.brief"));
-
-		return criteria;
+		return (r, q, cb) ->
+		{
+			var uitstrijkjeJoin = join(r, CervixLabformulier_.uitstrijkje);
+			var ontvangstScreeningRondeJoin = join(uitstrijkjeJoin, CervixMonster_.ontvangstScreeningRonde);
+			var monsterHpvUitslagJoin = join(ontvangstScreeningRondeJoin, CervixScreeningRonde_.monsterHpvUitslag);
+			var laatsteHpvBeoordelingJoin = join(monsterHpvUitslagJoin, CervixMonster_.laatsteHpvBeoordeling);
+			return heeftHpvUitslag(NEGATIEF).with(root -> laatsteHpvBeoordelingJoin)
+				.and(isAfgerond().with(root -> ontvangstScreeningRondeJoin))
+				.and(isAangemeld(true).with(root -> ontvangstScreeningRondeJoin))
+				.and(isNietGewist().with(root -> r))
+				.and(heeftBrief().with(root -> uitstrijkjeJoin)).toPredicate(r, q, cb);
+		};
 	}
 }

@@ -27,11 +27,11 @@ import java.util.ArrayList;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.standplaats.MammaStandplaatsEditPage;
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.mamma.MammaPostcodeReeks;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaStandplaats_;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
-import nl.topicuszorg.organisatie.model.Organisatie_;
 import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -69,7 +69,7 @@ public class MammaPostcodeReeksenPanel extends GenericPanel<MammaPostcodeReeks>
 			columns.add(new PropertyColumn<>(Model.of("Standplaats"), propertyChain(STANDPLAATS, MammaStandplaats_.NAAM), "standplaats.naam"));
 			if (ingelogdNamensRegio == null)
 			{
-				columns.add(new PropertyColumn<>(Model.of("Screeningsorganisatie"), propertyChain(STANDPLAATS, MammaStandplaats_.REGIO, Organisatie_.NAAM),
+				columns.add(new PropertyColumn<>(Model.of("Screeningsorganisatie"), propertyChain(STANDPLAATS, MammaStandplaats_.REGIO, Instelling_.NAAM),
 					"standplaats.regio.naam"));
 			}
 		}

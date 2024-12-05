@@ -25,7 +25,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import nl.rivm.screenit.main.dao.cervix.CervixHuisartsDao;
 import nl.rivm.screenit.main.service.cervix.CervixHuisartsService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -38,12 +37,15 @@ import nl.rivm.screenit.main.web.gebruiker.screening.cervix.huisarts.CervixHuisa
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.InstellingGebruiker_;
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
+import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie_;
 import nl.rivm.screenit.model.cervix.CervixLabformulierAanvraag;
+import nl.rivm.screenit.model.cervix.CervixLabformulierAanvraag_;
 import nl.rivm.screenit.model.cervix.enums.CervixHuisartsAanmeldStatus;
-import nl.rivm.screenit.model.cervix.enums.CervixLabformulierAanvraagStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -66,6 +68,8 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.validator.RangeValidator;
 import org.wicketstuff.shiro.ShiroConstraint;
 
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
+
 @SecurityConstraint(constraint = ShiroConstraint.HasPermission, checkScope = true, bevolkingsonderzoekScopes = { Bevolkingsonderzoek.CERVIX }, recht = { Recht.UITSTRIJKEND_ARTS,
 	Recht.GERBRUIKER_CERVIX_LABFORMULIEREN_AANVRAGEN })
 public class CervixLabformulierAanvraagPage extends CervixScreeningBasePage
@@ -77,10 +81,7 @@ public class CervixLabformulierAanvraagPage extends CervixScreeningBasePage
 	private HibernateService hibernateService;
 
 	@SpringBean
-	private CervixHuisartsService uitstrijkendArtsService;
-
-	@SpringBean
-	private CervixHuisartsDao huisartsDao;
+	private CervixHuisartsService huisartsService;
 
 	private WebMarkupContainer uitstrijkendArtsContainer;
 
@@ -158,7 +159,7 @@ public class CervixLabformulierAanvraagPage extends CervixScreeningBasePage
 		List<CervixHuisartsLocatie> locaties = new ArrayList<CervixHuisartsLocatie>();
 		if (huisartsModel != null)
 		{
-			locaties = huisartsDao.getActieveHuisartsLocatiesVanHuisarts(huisartsModel.getObject());
+			locaties = huisartsService.getActieveHuisartsLocatiesVanHuisarts(huisartsModel.getObject());
 		}
 		ScreenitDropdown<CervixHuisartsLocatie> locatieDropDown = new ScreenitDropdown<CervixHuisartsLocatie>("huisartsLocatie", ModelUtil.listModel(locaties),
 			new IChoiceRenderer<CervixHuisartsLocatie>()
@@ -197,7 +198,7 @@ public class CervixLabformulierAanvraagPage extends CervixScreeningBasePage
 			{
 				InstellingGebruiker igebruiker = ScreenitSession.get().getLoggedInInstellingGebruiker();
 
-				uitstrijkendArtsService.aanvraagLabformulieren(aanvraagModel.getObject(), aanvraagModel.getObject().getHuisartsLocatie(), igebruiker);
+				huisartsService.aanvraagLabformulieren(aanvraagModel.getObject(), aanvraagModel.getObject().getHuisartsLocatie(), igebruiker);
 
 				WebMarkupContainer container = addLabformulierenAanvraagDataTableContainer();
 				orderContainer.replaceWith(container);
@@ -221,13 +222,19 @@ public class CervixLabformulierAanvraagPage extends CervixScreeningBasePage
 
 		List<IColumn<CervixLabformulierAanvraag, String>> columns = new ArrayList<IColumn<CervixLabformulierAanvraag, String>>();
 		columns.add(
-			new DateTimePropertyColumn<CervixLabformulierAanvraag, String>(Model.of("Aangevraagd op"), "aanvraagDatum", "aanvraagDatum", new SimpleDateFormat("dd-MM-yyyy HH:mm")));
-		columns.add(new PropertyColumn<CervixLabformulierAanvraag, String>(Model.of("Aantal"), "aantal", "aantal"));
-		columns.add(new EnumPropertyColumn<CervixLabformulierAanvraag, String, CervixLabformulierAanvraagStatus>(Model.of("Status"), "status"));
+			new DateTimePropertyColumn<>(Model.of("Aangevraagd op"), CervixLabformulierAanvraag_.AANVRAAG_DATUM, CervixLabformulierAanvraag_.AANVRAAG_DATUM,
+				new SimpleDateFormat("dd-MM-yyyy HH:mm")));
+		columns.add(new PropertyColumn<>(Model.of("Aantal"), CervixLabformulierAanvraag_.AANTAL, CervixLabformulierAanvraag_.AANTAL));
+		columns.add(new EnumPropertyColumn<>(Model.of("Status"), CervixLabformulierAanvraag_.STATUS));
 		columns
-			.add(new DateTimePropertyColumn<CervixLabformulierAanvraag, String>(Model.of("Status datum"), "statusDatum", "statusDatum", new SimpleDateFormat("dd-MM-yyyy HH:mm")));
-		columns.add(new PropertyColumn<CervixLabformulierAanvraag, String>(Model.of("Aangevraagd door"), "organisatie.naam", "instellingGebruiker.organisatie.naam"));
-		columns.add(new PropertyColumn<CervixLabformulierAanvraag, String>(Model.of("Locatie"), "locatie.naam", "huisartsLocatie.naam"));
+			.add(new DateTimePropertyColumn<>(Model.of("Status datum"), CervixLabformulierAanvraag_.STATUS_DATUM, CervixLabformulierAanvraag_.STATUS_DATUM,
+				new SimpleDateFormat("dd-MM-yyyy HH:mm")));
+		columns.add(
+			new PropertyColumn<>(Model.of("Aangevraagd door"),
+				propertyChain(CervixLabformulierAanvraag_.INSTELLING_GEBRUIKER, InstellingGebruiker_.ORGANISATIE, Instelling_.NAAM),
+				propertyChain(CervixLabformulierAanvraag_.INSTELLING_GEBRUIKER, InstellingGebruiker_.ORGANISATIE, Instelling_.NAAM)));
+		columns.add(new PropertyColumn<>(Model.of("Locatie"), propertyChain(CervixLabformulierAanvraag_.HUISARTS_LOCATIE, CervixHuisartsLocatie_.NAAM),
+			propertyChain(CervixLabformulierAanvraag_.HUISARTS_LOCATIE, CervixHuisartsLocatie_.NAAM)));
 
 		ScreenitDataTable<CervixLabformulierAanvraag, String> dataTable = new ScreenitDataTable<CervixLabformulierAanvraag, String>("aanvraagDataTable", columns,
 			new CervixLabformulierAanvraagDataProvider(huisartsModel), 10, Model.of("order"))

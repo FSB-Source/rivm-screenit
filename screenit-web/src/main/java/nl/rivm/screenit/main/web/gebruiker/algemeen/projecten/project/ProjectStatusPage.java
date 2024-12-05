@@ -26,7 +26,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
-import nl.rivm.screenit.main.util.OrganisatieUtil;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.ProjectBasePage;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.ProjectPaspoortPanel;
@@ -41,6 +40,7 @@ import nl.rivm.screenit.model.project.ProjectType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.util.MedewerkerUtil;
+import nl.rivm.screenit.util.OrganisatieUtil;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.input.BooleanLabel;
 

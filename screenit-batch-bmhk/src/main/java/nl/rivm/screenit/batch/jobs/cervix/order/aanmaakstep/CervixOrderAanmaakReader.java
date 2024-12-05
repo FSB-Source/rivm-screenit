@@ -21,39 +21,39 @@ package nl.rivm.screenit.batch.jobs.cervix.order.aanmaakstep;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import java.util.List;
+
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
+import nl.rivm.screenit.model.cervix.CervixUitstrijkje_;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
 import nl.rivm.screenit.model.enums.JobStartParameter;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.heeftStatus;
+import static nl.rivm.screenit.specification.cervix.CervixMonsterSpecification.heeftGeenCytologieOrder;
+import static nl.rivm.screenit.specification.cervix.CervixMonsterSpecification.heeftLaboratoriumMetId;
+import static nl.rivm.screenit.specification.cervix.CervixMonsterSpecification.heeftNietStatusIn;
+
 @Component
-public class CervixOrderAanmaakReader extends BaseScrollableResultReader
+public class CervixOrderAanmaakReader extends BaseSpecificationScrollableResultReader<CervixUitstrijkje>
 {
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	public Specification<CervixUitstrijkje> createSpecification()
 	{
-		var crit = session.createCriteria(CervixUitstrijkje.class, "uitstrijkje");
-		crit.createAlias("uitstrijkje.labformulier", "labformulier");
-		crit.createAlias("laboratorium", "laboratorium");
-		crit.add(Restrictions.ne("uitstrijkje.uitstrijkjeStatus", CervixUitstrijkjeStatus.NIET_ONTVANGEN));
-		crit.add(Restrictions.ne("uitstrijkje.uitstrijkjeStatus", CervixUitstrijkjeStatus.NIET_ANALYSEERBAAR));
-
-		crit.add(Restrictions.isNull("cytologieOrder"));
-		crit.add(Restrictions.eq("labformulier.status", CervixLabformulierStatus.GECONTROLEERD_CYTOLOGIE));
+		var specification = heeftNietStatusIn(List.of(CervixUitstrijkjeStatus.NIET_ONTVANGEN, CervixUitstrijkjeStatus.NIET_ANALYSEERBAAR))
+			.and(heeftStatus(CervixLabformulierStatus.GECONTROLEERD_CYTOLOGIE).with(CervixUitstrijkje_.labformulier))
+			.and(heeftGeenCytologieOrder());
 
 		var jobParameters = getStepExecution().getJobExecution().getJobParameters();
 		if (jobParameters.toProperties().containsKey(JobStartParameter.CERVIX_ORDER_LABORATORIUM.name()))
 		{
-			crit.add(Restrictions.eq("laboratorium.id", jobParameters.getLong(JobStartParameter.CERVIX_ORDER_LABORATORIUM.name())));
+			specification = specification.and(heeftLaboratoriumMetId(jobParameters.getLong(JobStartParameter.CERVIX_ORDER_LABORATORIUM.name())));
 		}
-		return crit;
+		return specification;
 	}
 }

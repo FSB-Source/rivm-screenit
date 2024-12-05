@@ -1,4 +1,4 @@
-package nl.rivm.screenit.batch.jobs.colon.ifobtrappel;
+package nl.rivm.screenit.batch.jobs.colon.fitherinnering;
 
 /*-
  * ========================LICENSE_START=================================

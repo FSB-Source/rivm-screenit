@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.model.colon.IFobtBatchFilter;
 import nl.rivm.screenit.main.service.QbaseService;
-import nl.rivm.screenit.main.service.colon.IfobtBestandService;
+import nl.rivm.screenit.main.service.colon.ColonFITBestandService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.AjaxButtonGroup;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -46,10 +46,13 @@ import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.Instelling;
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.colon.IFOBTBestand;
+import nl.rivm.screenit.model.colon.IFOBTBestand_;
 import nl.rivm.screenit.model.colon.IFOBTUitslag;
 import nl.rivm.screenit.model.colon.IFobtLaboratorium;
+import nl.rivm.screenit.model.colon.IFobtLaboratorium_;
 import nl.rivm.screenit.model.colon.enums.IFOBTBestandStatus;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -91,6 +94,8 @@ import org.apache.wicket.request.resource.ContentDisposition;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
 
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
+
 @Slf4j
 @SecurityConstraint(
 	actie = Actie.INZIEN,
@@ -108,7 +113,7 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 	private InstellingService instellingService;
 
 	@SpringBean
-	private IfobtBestandService ifobtBestandService;
+	private ColonFITBestandService fitBestandService;
 
 	@SpringBean
 	private QbaseService qbaseService;
@@ -120,7 +125,7 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 
 	private final TransparentWebMarkupContainer statusIconFragmentContainer;
 
-	private final IfobtBestandenDataProvider ifobtBestandenDataProvider;
+	private final FITBestandenDataProvider fitBestandenDataProvider;
 
 	public KwaliteitscontroleBatchOverzichtPage()
 	{
@@ -131,9 +136,9 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 		filter.setDatumVan(DateUtil.minDagen(currentDateSupplier.getDate(), 7));
 		filter.setAnalyseDatum(true);
 
-		ifobtBestandenDataProvider = new IfobtBestandenDataProvider(zoekModel);
+		fitBestandenDataProvider = new FITBestandenDataProvider(zoekModel);
 
-		table = new ScreenitDataTable<>("tabel", createColumns(), ifobtBestandenDataProvider, 30, Model.of(""))
+		table = new ScreenitDataTable<>("tabel", createColumns(), fitBestandenDataProvider, 30, Model.of(""))
 		{
 
 			@Override
@@ -278,7 +283,7 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 					{
 						try
 						{
-							Iterator<? extends IFOBTBestand> iterator = ifobtBestandenDataProvider.iterator(-1, -1);
+							Iterator<? extends IFOBTBestand> iterator = fitBestandenDataProvider.iterator(-1, -1);
 							List<IFOBTBestand> lijst = new ArrayList<>();
 							while (iterator.hasNext())
 							{
@@ -292,7 +297,7 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 						}
 						catch (Exception e)
 						{
-							LOG.error("Fout bij maken/laden qbase bestand: " + e.getMessage(), e);
+							LOG.error("Fout bij maken/laden qbase bestand: {}", e.getMessage(), e);
 						}
 					}
 				});
@@ -324,7 +329,7 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 			protected void onSubmit(AjaxRequestTarget target)
 			{
 				List<IFOBTBestand> list = checkBoxListContainer.getObject().getList();
-				ifobtBestandService.verwijderBestanden(list, ScreenitSession.get().getLoggedInAccount());
+				fitBestandService.verwijderBestanden(list, ScreenitSession.get().getLoggedInAccount());
 				success("Bestanden zijn verwijderd.");
 				target.add(table);
 			}
@@ -342,8 +347,8 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				List<IFOBTBestand> list = IteratorUtils.toList(ifobtBestandenDataProvider.iterator(-1L, -1L));
-				ifobtBestandService.autoriseerBestanden(list, ScreenitSession.get().getLoggedInAccount());
+				List<IFOBTBestand> list = IteratorUtils.toList(fitBestandenDataProvider.iterator(-1L, -1L));
+				fitBestandService.autoriseerBestanden(list, ScreenitSession.get().getLoggedInAccount());
 				success("Bestanden zijn geautoriseerd.");
 				target.add(table);
 			}
@@ -360,9 +365,8 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 		ScreenitSession screenitSession = ScreenitSession.get();
 		if (screenitSession.checkPermission(Recht.GEBRUIKER_SCREENING_VERWIJDEREN_BATCHES_IFOBT, Actie.INZIEN))
 		{
-			columns.add(new HibernateObjectCheckBoxUpdatingColumn<IFOBTBestand, String>(Model.of(""), "", checkBoxListContainer.getObject(), true, false)
+			columns.add(new HibernateObjectCheckBoxUpdatingColumn<>(Model.of(""), "", checkBoxListContainer.getObject(), true, false)
 			{
-
 				@Override
 
 				public boolean checkBoxVisible(IModel<IFOBTBestand> rowModel)
@@ -394,9 +398,10 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 				}
 			});
 		}
-		columns.add(new DateTimePropertyColumn<IFOBTBestand, String>(Model.of("Datum ingelezen"), "statusDatum", "statusDatum", new SimpleDateFormat("dd-MM-yyyy"))
+		columns.add(new DateTimePropertyColumn<IFOBTBestand, String>(Model.of("Datum ingelezen"), IFOBTBestand_.STATUS_DATUM, IFOBTBestand_.STATUS_DATUM,
+			new SimpleDateFormat("dd-MM-yyyy"))
 			.setCssClass("table-col-datum"));
-		columns.add(new ClickablePropertyColumn<>(Model.of("Datum/tijd van"), "statusDatum")
+		columns.add(new ClickablePropertyColumn<>(Model.of("Datum/tijd van"), IFOBTBestand_.STATUS_DATUM)
 		{
 			@Override
 			public IModel<Object> getDataModel(IModel<IFOBTBestand> rowModel)
@@ -416,6 +421,7 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 				}
 				return new Model(Constants.getDateTimeSecondsFormat().format(datumFrom));
 			}
+
 			@Override
 			public String getCssClass()
 			{
@@ -423,7 +429,7 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 			}
 
 		});
-		columns.add(new ClickablePropertyColumn<>(Model.of("Datum/tijd tot"), "statusDatum")
+		columns.add(new ClickablePropertyColumn<>(Model.of("Datum/tijd tot"), IFOBTBestand_.STATUS_DATUM)
 		{
 			@Override
 			public IModel<Object> getDataModel(IModel<IFOBTBestand> rowModel)
@@ -451,7 +457,7 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 			}
 
 		});
-		columns.add(new ClickablePropertyColumn<>(Model.of("Aantal client uitslagen"), "uitslagen.size")
+		columns.add(new ClickablePropertyColumn<>(Model.of("Aantal client uitslagen"), propertyChain(IFOBTBestand_.UITSLAGEN, "size"))
 		{
 			@Override
 			public IModel<Object> getDataModel(IModel<IFOBTBestand> rowModel)
@@ -469,10 +475,12 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 			}
 
 		});
-		columns.add(new ClickablePropertyColumn<IFOBTBestand, String>(Model.of("Aantal controle uitslagen"), "aantalControleUitslagen").setCssClass("table-col-aantal"));
-		columns.add(new ClickablePropertyColumn<>(Model.of("Lab"), "laboratorium.naam", "laboratorium.naam"));
-		columns.add(new ClickablePropertyColumn<>(Model.of("Bestand"), "naamBestand", "naamBestand"));
-		columns.add(new ClickablePropertyColumn<>(Model.of("Geautoriseerd"), "status", "status")
+		columns.add(
+			new ClickablePropertyColumn<IFOBTBestand, String>(Model.of("Aantal controle uitslagen"), IFOBTBestand_.AANTAL_CONTROLE_UITSLAGEN).setCssClass("table-col-aantal"));
+		columns.add(new ClickablePropertyColumn<>(Model.of("Lab"), propertyChain(IFOBTBestand_.LABORATORIUM, Instelling_.NAAM),
+			propertyChain(IFOBTBestand_.LABORATORIUM, IFobtLaboratorium_.NAAM)));
+		columns.add(new ClickablePropertyColumn<>(Model.of("Bestand"), IFOBTBestand_.NAAM_BESTAND, IFOBTBestand_.NAAM_BESTAND));
+		columns.add(new ClickablePropertyColumn<>(Model.of("Geautoriseerd"), IFOBTBestand_.STATUS, IFOBTBestand_.STATUS)
 		{
 			@Override
 			public void populateItem(Item<ICellPopulator<IFOBTBestand>> cellItem, String componentId, IModel<IFOBTBestand> rowModel)
@@ -493,7 +501,7 @@ public class KwaliteitscontroleBatchOverzichtPage extends KwaliteitscontroleLabB
 	protected void onDetach()
 	{
 		super.onDetach();
-		ModelUtil.nullSafeDetach(ifobtBestandenDataProvider);
+		ModelUtil.nullSafeDetach(fitBestandenDataProvider);
 	}
 
 	private class StatusIconFragment extends Fragment

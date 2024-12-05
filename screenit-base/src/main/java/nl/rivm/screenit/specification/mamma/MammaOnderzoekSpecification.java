@@ -22,13 +22,17 @@ package nl.rivm.screenit.specification.mamma;
  */
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import lombok.AccessLevel;
@@ -37,20 +41,21 @@ import lombok.AllArgsConstructor;
 import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.Brief_;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.ClientBrief_;
 import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.Dossier_;
 import nl.rivm.screenit.model.GbaPersoon;
-import nl.rivm.screenit.model.ScreeningRondeStatus;
+import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.TablePerClassHibernateObject_;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.MammaOnderzoekType;
+import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaAfspraak_;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling_;
 import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.mamma.MammaBrief_;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaDossier_;
+import nl.rivm.screenit.model.mamma.MammaMammografie;
 import nl.rivm.screenit.model.mamma.MammaMammografie_;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
@@ -66,30 +71,37 @@ import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
 import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.specification.algemeen.ClientSpecification;
 import nl.rivm.screenit.specification.algemeen.PersoonSpecification;
-import nl.rivm.screenit.specification.cervix.ProjectBriefSpecification;
 import nl.rivm.screenit.util.DateUtil;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 
 import org.springframework.data.jpa.domain.Specification;
 
+import com.google.common.collect.Range;
+
+import static nl.rivm.screenit.specification.DateSpecification.bevatLocalDateToDate;
 import static nl.rivm.screenit.specification.DateSpecification.truncate;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmpty;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNullExtended;
-import static nl.rivm.screenit.specification.mamma.MammaBriefSpecification.heeftBriefInBrieftypesPredicate;
-import static nl.rivm.screenit.specification.mamma.MammaBriefSpecification.heeftVervangendeProjectBriefPredicate;
-import static nl.rivm.screenit.specification.mamma.MammaBriefSpecification.isGegenereerdPredicate;
+import static nl.rivm.screenit.specification.algemeen.ClientBriefSpecification.heeftGegenereerdeBriefOfProjectBriefVanType;
+import static nl.rivm.screenit.specification.algemeen.ScreeningRondeSpecification.isLopend;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class MammaOnderzoekSpecification
 {
-	public static Specification<Client> heeftClientLaatsteOnderzoekAangemaaktVanaf(LocalDate datum)
+	public static ExtendedSpecification<MammaOnderzoek> isAangemaaktVanaf(LocalDate datum)
 	{
-		return (r, q, cb) -> cb.greaterThanOrEqualTo(onderzoekJoin(r).get(MammaOnderzoek_.creatieDatum), DateUtil.toUtilDate(datum));
+		return (r, q, cb) -> cb.greaterThanOrEqualTo(r.get(MammaOnderzoek_.creatieDatum), DateUtil.toUtilDate(datum));
 	}
 
-	public static Specification<Client> heeftClientLaatsteOnderzoekVolledig()
+	public static ExtendedSpecification<MammaOnderzoek> heeftStatus(MammaOnderzoekStatus status)
 	{
-		return (r, q, cb) -> cb.equal(onderzoekJoin(r).get(MammaOnderzoek_.status), MammaOnderzoekStatus.AFGEROND);
+		return (r, q, cb) -> cb.equal(r.get(MammaOnderzoek_.status), status);
+	}
+
+	public static ExtendedSpecification<MammaOnderzoek> isAangemaaktVoor(LocalDateTime peilMoment)
+	{
+		return (r, q, cb) -> cb.lessThan(r.get(MammaOnderzoek_.creatieDatum), DateUtil.toUtilDate(peilMoment));
 	}
 
 	public static Specification<MammaOnderzoek> heeftBeoordelingsEenheid(BeoordelingsEenheid beoordelingsEenheid)
@@ -97,7 +109,7 @@ public class MammaOnderzoekSpecification
 		return (r, q, cb) -> cb.equal(join(r, MammaOnderzoek_.screeningsEenheid).get(MammaScreeningsEenheid_.beoordelingsEenheid), beoordelingsEenheid);
 	}
 
-	public static Specification<MammaOnderzoek> isDoorgevoerd(boolean doorgevoerd)
+	public static ExtendedSpecification<MammaOnderzoek> isDoorgevoerd(boolean doorgevoerd)
 	{
 		return (r, q, cb) -> cb.equal(r.get(MammaOnderzoek_.isDoorgevoerd), doorgevoerd);
 	}
@@ -107,18 +119,11 @@ public class MammaOnderzoekSpecification
 		return (r, q, cb) -> cb.not(join(r, MammaOnderzoek_.beoordelingen).get(MammaBeoordeling_.status).in(statussen));
 	}
 
-	private static From<MammaScreeningRonde, MammaOnderzoek> onderzoekJoin(Root<Client> clientRoot)
-	{
-		var dossierJoin = join(clientRoot, Client_.mammaDossier);
-		var rondeJoin = join(dossierJoin, MammaDossier_.laatsteScreeningRonde);
-		return join(rondeJoin, MammaScreeningRonde_.laatsteOnderzoek);
-	}
-
 	public static Specification<MammaOnderzoek> heeftMissendeUitslag(LocalDate signalerenVanaf)
 	{
 		return (r, q, cb) ->
 		{
-			var rondeJoin = rondeJoin(r);
+			var rondeJoin = screeningRondeJoin(r);
 			var dossierJoin = join(rondeJoin, MammaScreeningRonde_.dossier);
 
 			return cb.or(
@@ -160,6 +165,11 @@ public class MammaOnderzoekSpecification
 		return (r, q, cb) -> cb.equal(r.get(MammaOnderzoek_.status), status);
 	}
 
+	public static ExtendedSpecification<MammaOnderzoek> heeftStatusIn(Collection<MammaOnderzoekStatus> statussen)
+	{
+		return (r, q, cb) -> r.get(MammaOnderzoek_.status).in(statussen);
+	}
+
 	public static Specification<MammaOnderzoek> heeftIlmStatusBeschikbaarOfGeweest()
 	{
 		return (r, q, cb) ->
@@ -173,7 +183,7 @@ public class MammaOnderzoekSpecification
 	{
 		return (r, q, cb) ->
 		{
-			var rondeJoin = rondeJoin(r);
+			var rondeJoin = screeningRondeJoin(r);
 			return cb.equal(rondeJoin.get(MammaScreeningRonde_.dossier), dossier);
 		};
 	}
@@ -190,7 +200,7 @@ public class MammaOnderzoekSpecification
 	{
 		return ClientSpecification.heeftActieveClient().withRoot(r ->
 		{
-			var rondeJoin = rondeJoin(r);
+			var rondeJoin = screeningRondeJoin(r);
 			var dossierJoin = join(rondeJoin, MammaScreeningRonde_.dossier);
 			return join(dossierJoin, MammaDossier_.client);
 		});
@@ -204,7 +214,7 @@ public class MammaOnderzoekSpecification
 			{
 				return null;
 			}
-			var rondeJoin = rondeJoin(r);
+			var rondeJoin = screeningRondeJoin(r);
 			var briefJoin = join(rondeJoin, MammaScreeningRonde_.laatsteBrief, JoinType.LEFT);
 			if (zoekenOpBriefMetOnderbrokenOnderzoek)
 			{
@@ -243,43 +253,24 @@ public class MammaOnderzoekSpecification
 
 	public static Specification<MammaOnderzoek> heeftPersoonIsNietOverledenEnWoontInNederland()
 	{
-		return PersoonSpecification.isNietOverledenEnWoontInNederland().withRoot(MammaOnderzoekSpecification::getPersoonJoin);
-	}
-
-	private static Join<MammaUitnodiging, MammaScreeningRonde> rondeJoin(From<?, MammaOnderzoek> r)
-	{
-		var afspraakJoin = join(r, MammaOnderzoek_.afspraak);
-		var uitnodigingJoin = join(afspraakJoin, MammaAfspraak_.uitnodiging);
-		return join(uitnodigingJoin, MammaUitnodiging_.screeningRonde);
+		return PersoonSpecification.isNietOverledenEnWoontInNederland().withRoot(MammaOnderzoekSpecification::persoonJoin);
 	}
 
 	public static Specification<MammaOnderzoek> heeftLopendeRonde()
 	{
-		return MammaScreeningRondeSpecification.heeftRondeStatus(ScreeningRondeStatus.LOPEND).withRoot(MammaOnderzoekSpecification::rondeJoin);
+		return isLopend().withRoot(MammaOnderzoekSpecification::screeningRondeJoin);
 	}
 
 	private static Specification<MammaOnderzoek> heeftGeenBrievenBijOnderzoek()
 	{
 		return (r, q, cb) ->
 		{
-			var rondeJoin = rondeJoin(r);
+			var rondeJoin = screeningRondeJoin(r);
 
 			var subquery = q.subquery(Long.class);
 			var subRoot = subquery.from(MammaBrief.class);
-			var projectBriefJoin = subRoot.join(ClientBrief_.projectBrief, JoinType.LEFT);
-			subquery.select(subRoot.get(TablePerClassHibernateObject_.id)).where(cb.and(
-				cb.equal(subRoot.get(MammaBrief_.screeningRonde), rondeJoin),
-				cb.or(
-					cb.and(
-						heeftVervangendeProjectBriefPredicate(false).withPath(cb, subRoot),
-						heeftBriefInBrieftypesPredicate(BriefType.getMammaUitslagBriefTypen()).withPath(cb, subRoot),
-						isGegenereerdPredicate(true).withPath(cb, subRoot)
-					),
-					cb.and(
-						heeftVervangendeProjectBriefPredicate(true).withPath(cb, subRoot),
-						ProjectBriefSpecification.heeftBriefInBrieftypes(BriefType.getMammaUitslagBriefTypen()).withPath(cb, projectBriefJoin),
-						ProjectBriefSpecification.isGegenereerd(true).withPath(cb, projectBriefJoin)
-					))));
+			subquery.select(subRoot.get(TablePerClassHibernateObject_.id))
+				.where(maakPredicateVoorBriefSubquery(q, cb, subRoot, rondeJoin));
 			return cb.not(cb.exists(subquery));
 		};
 	}
@@ -288,32 +279,28 @@ public class MammaOnderzoekSpecification
 	{
 		return (r, q, cb) ->
 		{
-			var rondeJoin = rondeJoin(r);
+			var rondeJoin = screeningRondeJoin(r);
 
 			var subquery = q.subquery(Date.class);
 			var subRoot = subquery.from(MammaBrief.class);
-			var projectBriefJoin = subRoot.join(ClientBrief_.projectBrief, JoinType.LEFT);
-			subquery.select(cb.greatest(subRoot.get(Brief_.creatieDatum))).where(cb.and(
-				cb.equal(subRoot.get(MammaBrief_.screeningRonde), rondeJoin),
-				cb.or(
-					cb.and(
-						heeftVervangendeProjectBriefPredicate(false).withPath(cb, subRoot),
-						heeftBriefInBrieftypesPredicate(BriefType.getMammaUitslagBriefTypen()).withPath(cb, subRoot),
-						isGegenereerdPredicate(true).withPath(cb, subRoot)
-					),
-					cb.and(
-						heeftVervangendeProjectBriefPredicate(true).withPath(cb, subRoot),
-						ProjectBriefSpecification.heeftBriefInBrieftypes(BriefType.getMammaUitslagBriefTypen()).withPath(cb, projectBriefJoin),
-						ProjectBriefSpecification.isGegenereerd(true).withPath(cb, projectBriefJoin)
-					))));
+			subquery.select(cb.greatest(subRoot.get(Brief_.creatieDatum)))
+				.where(maakPredicateVoorBriefSubquery(q, cb, subRoot, rondeJoin));
 
 			return cb.greaterThan(r.get(MammaOnderzoek_.creatieDatum), subquery);
 		};
 	}
 
-	private static Join<Client, GbaPersoon> getPersoonJoin(From<?, MammaOnderzoek> r)
+	private static Predicate maakPredicateVoorBriefSubquery(CriteriaQuery<?> q, CriteriaBuilder cb, Root<MammaBrief> subRoot, Join<MammaUitnodiging, MammaScreeningRonde> rondeJoin)
 	{
-		var rondeJoin = rondeJoin(r);
+		return cb.and(
+			cb.equal(subRoot.get(MammaBrief_.screeningRonde), rondeJoin),
+			heeftGegenereerdeBriefOfProjectBriefVanType(BriefType.getMammaUitslagBriefTypen()).toPredicate(subRoot, q, cb)
+		);
+	}
+
+	private static Join<Client, GbaPersoon> persoonJoin(From<?, MammaOnderzoek> r)
+	{
+		var rondeJoin = screeningRondeJoin(r);
 		var dossierJoin = join(rondeJoin, MammaScreeningRonde_.dossier);
 		var clientJoin = join(dossierJoin, MammaDossier_.client);
 		return join(clientJoin, Client_.persoon);
@@ -327,5 +314,54 @@ public class MammaOnderzoekSpecification
 	public static ExtendedSpecification<MammaOnderzoek> heeftBeeldenBeschikbaar()
 	{
 		return (r, q, cb) -> cb.equal(join(r, MammaOnderzoek_.mammografie).get(MammaMammografie_.ilmStatus), MammaMammografieIlmStatus.BESCHIKBAAR);
+	}
+
+	public static Specification<Client> heeftOnderzoekMetBeeldenGemaaktDoor(List<InstellingGebruiker> instellingGebruikers, Range<LocalDate> periode)
+	{
+		return (r, q, cb) ->
+		{
+			var subquery = q.subquery(MammaDossier.class);
+			var subqueryRoot = subquery.from(MammaMammografie.class);
+			var onderzoekJoin = join(subqueryRoot, MammaMammografie_.onderzoek);
+			var screeningRondeJoin = screeningRondeJoin(onderzoekJoin);
+			var dossierJoin = join(screeningRondeJoin, MammaScreeningRonde_.dossier);
+
+			subquery.select(dossierJoin).where(
+				cb.and(
+					subqueryRoot.get(MammaMammografie_.afgerondDoor).in(instellingGebruikers),
+					cb.equal(subqueryRoot.get(MammaMammografie_.ilmStatus), MammaMammografieIlmStatus.BESCHIKBAAR),
+					valtInPeriode(periode).toPredicate(onderzoekJoin, q, cb)
+				)
+			);
+			return cb.in(r.get(Client_.mammaDossier)).value(subquery);
+		};
+	}
+
+	private static ExtendedSpecification<MammaOnderzoek> valtInPeriode(Range<LocalDate> periode)
+	{
+		return bevatLocalDateToDate(periode, o -> o.get(MammaOnderzoek_.creatieDatum));
+	}
+
+	public static Specification<MammaOnderzoek> isVanLaatsteAfspraakVanRonde()
+	{
+		return (r, q, cb) ->
+		{
+			var uitnodigingJoin = uitnodigingJoin(r);
+			var screeningRondeJoin = join(uitnodigingJoin, MammaUitnodiging_.screeningRonde);
+			return cb.and(
+				cb.equal(screeningRondeJoin.get(MammaScreeningRonde_.laatsteUitnodiging), uitnodigingJoin),
+				cb.equal(uitnodigingJoin.get(MammaUitnodiging_.laatsteAfspraak), r.get(MammaOnderzoek_.afspraak).get(AbstractHibernateObject_.id)));
+		};
+	}
+
+	public static Join<MammaUitnodiging, MammaScreeningRonde> screeningRondeJoin(From<?, ? extends MammaOnderzoek> root)
+	{
+		return join(uitnodigingJoin(root), MammaUitnodiging_.screeningRonde);
+	}
+
+	private static Join<MammaAfspraak, MammaUitnodiging> uitnodigingJoin(From<?, ? extends MammaOnderzoek> root)
+	{
+		var afspraakJoin = join(root, MammaOnderzoek_.afspraak);
+		return join(afspraakJoin, MammaAfspraak_.uitnodiging);
 	}
 }

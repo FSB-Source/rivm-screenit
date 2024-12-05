@@ -23,69 +23,30 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.projectinterval;
 
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.model.ProjectParameterKey;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.project.ProjectClient;
+import nl.rivm.screenit.model.project.ProjectClient_;
 import nl.rivm.screenit.model.project.ProjectType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.query.ScreenitRestrictions;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.algemeen.ProjectClientSpecification.heeftMeerdereProjectenOfHeeftParameterKey;
+import static nl.rivm.screenit.specification.algemeen.ProjectSpecification.heeftType;
 
 @Component
 @AllArgsConstructor
-public class ColonProjectIntervalToepassenReader extends BaseScrollableResultReader
+public class ColonProjectIntervalToepassenReader extends BaseSpecificationScrollableResultReader<ProjectClient>
 {
 
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<ProjectClient> createSpecification()
 	{
 		var vandaag = currentDateSupplier.getLocalDate();
 
-		var criteria = session.createCriteria(ProjectClient.class, "projectClient");
-		criteria.createAlias("projectClient.client", "client");
-		criteria.createAlias("client.colonDossier", "dossier");
-		criteria.createAlias("dossier.volgendeUitnodiging", "volgendeUitnodiging");
-		criteria.createAlias("projectClient.groep", "groep");
-		criteria.createAlias("projectClient.project", "project");
-		criteria.createAlias("project.parameters", "parameter");
-
-		DetachedCriteria activeProjectClientQuery = DetachedCriteria.forClass(ProjectClient.class, "sProjectClient");
-		activeProjectClientQuery.createAlias("sProjectClient.client", "sClient");
-		activeProjectClientQuery.createAlias("sProjectClient.groep", "sGroep");
-		activeProjectClientQuery.createAlias("sProjectClient.project", "sProject");
-
-		activeProjectClientQuery.add(Restrictions.eq("sProject.type", ProjectType.PROJECT));
-		activeProjectClientQuery.add(ScreenitRestrictions.addClientActiefInProjectCriteria("sProjectClient", "sGroep", "sProject", vandaag));
-		activeProjectClientQuery.add(Restrictions.eqProperty("sClient.id", "projectClient.client"));
-		activeProjectClientQuery.setProjection(Projections.id());
-
-		criteria.add(Restrictions.eq("project.type", ProjectType.PROJECT));
-		criteria.add(
-			Restrictions.or(
-				Restrictions.and(Restrictions.isNotNull("volgendeUitnodiging.projectPeildatum"),
-					Restrictions.or(
-						Subqueries.notExists(activeProjectClientQuery),
-						Subqueries.propertyEq("projectClient.id", activeProjectClientQuery)
-					)
-				),
-				Restrictions.and(
-					Restrictions.eq("parameter.key", ProjectParameterKey.COLON_AFWIJKING_UITNODIGINGSINTERVAL),
-					Restrictions.isNotNull("parameter.value"),
-					ScreenitRestrictions.addClientActiefInProjectCriteria("projectClient", "groep", "project", vandaag)
-				)
-			)
-		);
-
-		return criteria;
+		return heeftType(ProjectType.PROJECT).with(ProjectClient_.project).and(heeftMeerdereProjectenOfHeeftParameterKey(vandaag));
 	}
 }

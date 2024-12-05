@@ -21,63 +21,78 @@ package nl.rivm.screenit.batch.jobs.cervix.selectie.vooraankondiging;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.cervix.CervixLabPartitioner;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.batch.service.CervixSelectieRestrictionsService;
-import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.DossierStatus;
-import nl.rivm.screenit.model.enums.Deelnamemodus;
-import nl.rivm.screenit.service.InstellingService;
-import nl.rivm.screenit.util.query.ScreenitRestrictions;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import nl.rivm.screenit.PreferenceKey;
+import nl.rivm.screenit.batch.jobs.cervix.CervixLabPartitioner;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.BagAdres_;
+import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.GbaPersoon;
+import nl.rivm.screenit.model.GbaPersoon_;
+import nl.rivm.screenit.model.Gemeente;
+import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
+import nl.rivm.screenit.model.enums.Deelnamemodus;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.specification.algemeen.DossierSpecification;
+import nl.rivm.screenit.specification.algemeen.GemeenteSpecification;
+import nl.rivm.screenit.specification.algemeen.PersoonSpecification;
+import nl.rivm.screenit.specification.cervix.CervixDossierSpecification;
+import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
+
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.model.DossierStatus.ACTIEF;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.ClientSpecification.heeftActieveClient;
+
 @Component
-public class CervixVooraankondigingSelectieReader extends BaseScrollableResultReader
+public class CervixVooraankondigingSelectieReader extends BaseSpecificationScrollableResultReader<Client>
 {
+	private final ICurrentDateSupplier dateSupplier;
 
-	private final CervixSelectieRestrictionsService selectieRestrictionsService;
+	private final SimplePreferenceService preferenceService;
 
-	private final InstellingService instellingService;
-
-	private final HibernateService hibernateService;
-
-	public CervixVooraankondigingSelectieReader(CervixSelectieRestrictionsService selectieRestrictionsService, InstellingService instellingService,
-		HibernateService hibernateService)
+	public CervixVooraankondigingSelectieReader(ICurrentDateSupplier dateSupplier, SimplePreferenceService preferenceService)
 	{
 		super.setFetchSize(50);
-		this.selectieRestrictionsService = selectieRestrictionsService;
-		this.instellingService = instellingService;
-		this.hibernateService = hibernateService;
+		this.dateSupplier = dateSupplier;
+		this.preferenceService = preferenceService;
 	}
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<Client> createSpecification()
 	{
 		var stepContext = getStepExecutionContext();
-		Long bmhkLabId = (Long) stepContext.get(CervixLabPartitioner.KEY_BMHK_LAB);
+		var bmhkLabId = (Long) stepContext.get(CervixLabPartitioner.KEY_BMHK_LAB);
+		var vandaag = dateSupplier.getLocalDate();
 
-		var crit = session.createCriteria(Client.class, "rootClient");
-		crit.createAlias("rootClient.persoon", "persoon");
-		crit.createAlias("persoon.gbaAdres", "adres");
-		crit.createAlias("adres.gbaGemeente", "gemeente");
-		crit.createAlias("rootClient.cervixDossier", "dossier");
+		var dagenVoorDeVooraankondiging = preferenceService.getInteger(PreferenceKey.CERVIX_VOORAANKONDIGINGS_PERIODE.name());
+		var exactDertigJaarGeleden = vandaag.minusYears(CervixLeeftijdcategorie._30.getLeeftijd());
+		var dertigJaarGeledenPlusVooraankondigingsDagen =
+			dagenVoorDeVooraankondiging != null ? exactDertigJaarGeleden.plusDays(dagenVoorDeVooraankondiging) : exactDertigJaarGeleden;
 
-		selectieRestrictionsService.addVooraankondigingSelectieRestrictions(crit);
-		ScreenitRestrictions.addClientBaseRestrictions(crit, "rootClient", "persoon");
+		return heeftActieveClient()
+			.and(CervixDossierSpecification.heeftGeenVooraankondigingsBrief().with(Client_.cervixDossier))
+			.and(DossierSpecification.heeftStatus(ACTIEF).with(Client_.cervixDossier))
+			.and(CervixDossierSpecification.wachtOpStartProject(false).with(Client_.cervixDossier))
+			.and(CervixDossierSpecification.heeftNietDeelnamemodus(Deelnamemodus.SELECTIEBLOKKADE).with(Client_.cervixDossier))
+			.and(PersoonSpecification.isGeborenNa(exactDertigJaarGeleden).with(Client_.persoon))
+			.and(PersoonSpecification.isGeborenVoorOfOp(dertigJaarGeledenPlusVooraankondigingsDagen).with(Client_.persoon))
+			.and(GemeenteSpecification.heeftScreeningOrganisatie().with(r -> gemeenteJoin(r)))
+			.and(GemeenteSpecification.heeftBmhkLaboratorium(bmhkLabId).with(r -> gemeenteJoin(r)));
+	}
 
-		crit.add(Restrictions.isNotNull("gemeente.screeningOrganisatie"));
-		crit.add(Restrictions.eq("gemeente.bmhkLaboratorium.id", bmhkLabId));
+	private static Join<?, Gemeente> gemeenteJoin(From<?, ? extends Client> r)
+	{
+		return join(join(persoonJoin(r), GbaPersoon_.gbaAdres), BagAdres_.gbaGemeente);
+	}
 
-		crit.add(Restrictions.eq("dossier.status", DossierStatus.ACTIEF));
-		crit.add(Restrictions.eq("dossier.wachtOpStartProject", false));
-		crit.add(Restrictions.ne("dossier.deelnamemodus", Deelnamemodus.SELECTIEBLOKKADE));
-
-		return crit;
+	private static Join<? extends Client, GbaPersoon> persoonJoin(From<?, ? extends Client> r)
+	{
+		return join(r, Client_.persoon);
 	}
 }

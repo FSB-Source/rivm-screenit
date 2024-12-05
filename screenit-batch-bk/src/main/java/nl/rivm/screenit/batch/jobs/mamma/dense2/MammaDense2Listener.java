@@ -55,7 +55,13 @@ public class MammaDense2Listener extends BaseLogListener
 	{
 		var aantalClientenT1 = getJobExecution().getExecutionContext().getLong(MammaDense2Constants.AANTAL_CLIENTEN_IN_EXPORT_EERSTE_STUDIERONDE, 0L);
 		var aantalClientenT7 = getJobExecution().getExecutionContext().getLong(MammaDense2Constants.AANTAL_CLIENTEN_IN_EXPORT_TWEEDE_STUDIERONDE, 0L);
-		return new LogEvent("DENSE2 export afgehandeld: Eerste studieronde " + aantalClientenT1 + " populatie," + " tweede studieronde " + aantalClientenT7 + " populatie");
+		var aantalOnderzoekenDensiteitVerwijderd = getJobExecution().getExecutionContext().getLong(MammaDense2Constants.AANTAL_ONDERZOEKEN_DENSITEIT_VERWIJDERD, 0L);
+		var melding = "DENSE2 export afgehandeld: Eerste studieronde " + aantalClientenT1 + " populatie," + " tweede studieronde " + aantalClientenT7 + " populatie";
+		if (aantalOnderzoekenDensiteitVerwijderd > 0)
+		{
+			melding += ", " + aantalOnderzoekenDensiteitVerwijderd + " onderzoek(en) waarvan densiteit is verwijderd";
+		}
+		return new LogEvent(melding);
 	}
 
 	@Override

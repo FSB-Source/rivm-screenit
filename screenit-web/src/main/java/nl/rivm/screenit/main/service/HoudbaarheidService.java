@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.service;
 
 /*-
@@ -26,10 +25,11 @@ import java.util.List;
 
 import nl.rivm.screenit.model.AbstractHoudbaarheid;
 
+import org.springframework.data.domain.Sort;
+
 public interface HoudbaarheidService
 {
-
-	<H extends AbstractHoudbaarheid> List<H> getHoudbaarheidItems(Class<H> clazz, long first, long count, String sortProperty, boolean asc);
+	<H extends AbstractHoudbaarheid> List<H> getHoudbaarheidItems(Class<H> clazz, long first, long count, Sort sort);
 
 	<H extends AbstractHoudbaarheid> Long countHoudbaarheidItems(Class<H> clazz);
 

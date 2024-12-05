@@ -21,20 +21,19 @@ package nl.rivm.screenit.batch.jobs.cervix.huisartsberichten.huisartsbepalenstep
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.cervix.CervixHuisartsBericht;
 import nl.rivm.screenit.model.cervix.enums.CervixHuisartsBerichtStatus;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import static nl.rivm.screenit.batch.jobs.cervix.huisartsberichten.CervixHuisartsberichtenJobConfiguration.CERVIX_HUISARTSENBERICHTEN_JOB_READERS_FETCH_SIZE;
+import static nl.rivm.screenit.specification.cervix.CervixHuisartsBerichtSpecification.heeftGeenHuisartsLocatie;
+import static nl.rivm.screenit.specification.cervix.CervixHuisartsBerichtSpecification.heeftStatus;
 
 @Component
-public class CervixHuisartsBepalenReader extends BaseScrollableResultReader
+public class CervixHuisartsBepalenReader extends BaseSpecificationScrollableResultReader<CervixHuisartsBericht>
 {
 
 	public CervixHuisartsBepalenReader()
@@ -43,11 +42,8 @@ public class CervixHuisartsBepalenReader extends BaseScrollableResultReader
 	}
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<CervixHuisartsBericht> createSpecification()
 	{
-		var crit = session.createCriteria(CervixHuisartsBericht.class);
-		crit.add(Restrictions.isNull("huisartsLocatie"));
-		crit.add(Restrictions.eq("status", CervixHuisartsBerichtStatus.AANGEMAAKT));
-		return crit;
+		return heeftGeenHuisartsLocatie().and(heeftStatus(CervixHuisartsBerichtStatus.AANGEMAAKT));
 	}
 }

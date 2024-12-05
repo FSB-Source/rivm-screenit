@@ -21,50 +21,34 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.beelden.gunstig;
  * =========================LICENSE_END==================================
  */
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.beelden.MammaBeeldenVerwijderenWriter;
-import nl.rivm.screenit.model.ScreeningRondeStatus;
+import nl.rivm.screenit.model.ScreeningRonde_;
 import nl.rivm.screenit.model.mamma.MammaDossier;
-import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
-import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.rivm.screenit.repository.mamma.MammaScreeningRondeRepository;
 
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.mamma.MammaScreeningRondeSpecification.heeftBeeldenMetGunstigeUitslag;
 
 @Component
 @AllArgsConstructor
 public class MammaBeeldenGunstigWriter extends MammaBeeldenVerwijderenWriter<MammaDossier>
 {
-	private final HibernateService hibernateService;
-
 	public static final Long MINIMUM_AANTAL_GUNSTIGE_AFGESLOTEN_RONDES_MET_BEELDEN = 3L;
+
+	private final MammaScreeningRondeRepository screeningRondeRepository;
 
 	@Override
 	protected void write(MammaDossier mammaDossier)
 	{
-		var criteria = hibernateService.getHibernateSession().createCriteria(MammaScreeningRonde.class, "rondes");
-		criteria.createAlias("laatsteOnderzoek", "onderzoek");
-		criteria.createAlias("onderzoek.laatsteBeoordeling", "beoordeling");
-		criteria.createAlias("onderzoek.mammografie", "mammografie");
-		criteria.add(
-			Restrictions.and(
-				Restrictions.in("status", ScreeningRondeStatus.AFGEROND),
-				Restrictions.eq("beoordeling.status", MammaBeoordelingStatus.UITSLAG_GUNSTIG),
-				Restrictions.eq("mammografie.ilmStatus", MammaMammografieIlmStatus.BESCHIKBAAR),
-				Restrictions.eq("dossier.id", mammaDossier.getId())));
-		criteria.addOrder(Order.desc("creatieDatum"));
-		criteria.setFirstResult(MINIMUM_AANTAL_GUNSTIGE_AFGESLOTEN_RONDES_MET_BEELDEN.intValue());
+		var specification = heeftBeeldenMetGunstigeUitslag(mammaDossier);
+		var sort = Sort.by(Sort.Order.desc(ScreeningRonde_.CREATIE_DATUM));
+		var rondes = screeningRondeRepository.findWith(specification, q -> q.sortBy(sort)).all(MINIMUM_AANTAL_GUNSTIGE_AFGESLOTEN_RONDES_MET_BEELDEN, -1);
 
-		List<MammaScreeningRonde> rondes = criteria.list();
-		for (var screeningRonde : rondes)
-		{
-			verwijderenBeeldenVanScreeningRonde(screeningRonde);
-		}
+		rondes.forEach(this::verwijderenBeeldenVanScreeningRonde);
+
 	}
 }

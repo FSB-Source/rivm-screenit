@@ -21,21 +21,39 @@ package nl.rivm.screenit.batch.jobs.cervix.huisartsberichten.versturenstep;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.model.cervix.CervixHuisartsBericht;
-import nl.rivm.screenit.model.cervix.enums.CervixHuisartsBerichtStatus;
+import java.util.List;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.BagAdres;
+import nl.rivm.screenit.model.BagAdres_;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.GbaPersoon_;
+import nl.rivm.screenit.model.Gemeente;
+import nl.rivm.screenit.model.HuisartsBericht_;
+import nl.rivm.screenit.model.cervix.CervixBrief;
+import nl.rivm.screenit.model.cervix.CervixHuisartsBericht;
+import nl.rivm.screenit.model.cervix.CervixHuisartsBericht_;
+import nl.rivm.screenit.model.cervix.CervixMonster_;
+import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
+import nl.rivm.screenit.model.cervix.enums.CervixHuisartsBerichtStatus;
+import nl.rivm.screenit.specification.algemeen.GemeenteSpecification;
+import nl.rivm.screenit.specification.cervix.CervixBriefSpecification;
+
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import static nl.rivm.screenit.batch.jobs.cervix.huisartsberichten.CervixHuisartsberichtenJobConfiguration.CERVIX_HUISARTSENBERICHTEN_JOB_READERS_FETCH_SIZE;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.cervix.CervixHuisartsBerichtSpecification.heeftGeenUitstrijkje;
+import static nl.rivm.screenit.specification.cervix.CervixHuisartsBerichtSpecification.heeftHuisartsLocatie;
+import static nl.rivm.screenit.specification.cervix.CervixHuisartsBerichtSpecification.heeftStatusIn;
 
 @Component
-public class CervixHuisartsberichtVersturenReader extends BaseScrollableResultReader
+public class CervixHuisartsberichtVersturenReader extends BaseSpecificationScrollableResultReader<CervixHuisartsBericht>
 {
 
 	public CervixHuisartsberichtVersturenReader()
@@ -44,31 +62,30 @@ public class CervixHuisartsberichtVersturenReader extends BaseScrollableResultRe
 	}
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<CervixHuisartsBericht> createSpecification()
 	{
-		var crit = session.createCriteria(CervixHuisartsBericht.class, "huisartsbericht");
+		return heeftStatusIn(
+			List.of(CervixHuisartsBerichtStatus.AANGEMAAKT, CervixHuisartsBerichtStatus.VERSTUREN_MISLUKT, CervixHuisartsBerichtStatus.KLANTNUMMER_NIET_GEVERIFIEERD,
+				CervixHuisartsBerichtStatus.OPNIEUW_VERSTUREN_MISLUKT))
+			.and(heeftHuisartsLocatie())
+			.and(heeftGeenUitstrijkje()
 
-		crit.add(Restrictions.or(
-			Restrictions.eq("huisartsbericht.status", CervixHuisartsBerichtStatus.AANGEMAAKT),
-			Restrictions.eq("huisartsbericht.status", CervixHuisartsBerichtStatus.VERSTUREN_MISLUKT),
-			Restrictions.eq("huisartsbericht.status", CervixHuisartsBerichtStatus.KLANTNUMMER_NIET_GEVERIFIEERD),
-			Restrictions.eq("huisartsbericht.status", CervixHuisartsBerichtStatus.OPNIEUW_VERSTUREN_MISLUKT)));
-		crit.add(Restrictions.isNotNull("huisartsbericht.huisartsLocatie"));
+				.or(CervixBriefSpecification.heeftGeenUitnodiging().with(r -> getBriefJoin(r)))
+				.or(GemeenteSpecification.heeftBmhkLaboratorium().with(r -> getGemeenteJoin(r)))
+			);
+	}
 
-		crit.createAlias("huisartsbericht.client", "client");
-		crit.createAlias("client.persoon", "persoon");
-		crit.createAlias("persoon.gbaAdres", "gbaAdres");
-		crit.createAlias("gbaAdres.gbaGemeente", "gemeente");
-		crit.createAlias("huisartsbericht.uitstrijkje", "uitstrijkje", JoinType.LEFT_OUTER_JOIN);
-		crit.createAlias("uitstrijkje.brief", "brief", JoinType.LEFT_OUTER_JOIN);
-		crit.createAlias("brief.uitnodiging", "uitnodiging", JoinType.LEFT_OUTER_JOIN);
-		crit.add(Restrictions.or(
+	private static Join<CervixUitstrijkje, CervixBrief> getBriefJoin(From<?, ? extends CervixHuisartsBericht> r)
+	{
+		var uitstrijkjeJoin = join(r, CervixHuisartsBericht_.uitstrijkje, JoinType.LEFT);
+		return join(uitstrijkjeJoin, CervixMonster_.brief, JoinType.LEFT);
+	}
 
-			Restrictions.isNull("uitstrijkje.id"),
-
-			Restrictions.isNull("uitnodiging.id"),
-			Restrictions.isNotNull("gemeente.bmhkLaboratorium")));
-
-		return crit;
+	private static Join<BagAdres, Gemeente> getGemeenteJoin(From<?, ? extends CervixHuisartsBericht> r)
+	{
+		var clientJoin = join(r, HuisartsBericht_.client);
+		var persoonJoin = join(clientJoin, Client_.persoon);
+		var adresJoin = join(persoonJoin, GbaPersoon_.gbaAdres);
+		return join(adresJoin, BagAdres_.gbaGemeente);
 	}
 }

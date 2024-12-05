@@ -21,28 +21,24 @@ package nl.rivm.screenit.batch.jobs.colon.brieven.cleanupstep;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.brieven.cleanup.AbstractBrievenCleanUpReader;
+import nl.rivm.screenit.batch.jobs.brieven.cleanup.AbstractSpecificationBrievenCleanUpReader;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.colon.ColonMergedBrieven;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.specification.algemeen.MergedBrievenSpecification;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ColonBriefCleanupReader extends AbstractBrievenCleanUpReader<ColonMergedBrieven>
+public class ColonBriefCleanupReader extends AbstractSpecificationBrievenCleanUpReader<ColonMergedBrieven>
 {
-
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<ColonMergedBrieven> createSpecification()
 	{
-		var criteria = super.createCriteria(session);
-		criteria.add(Restrictions.in("briefType", BriefType.getBriefTypesMetOrganisatieType(true, OrganisatieType.SCREENINGSORGANISATIE, Bevolkingsonderzoek.COLON)));
-		return criteria;
+		return super.createSpecification()
+			.and(MergedBrievenSpecification.heeftBriefTypeIn(
+				BriefType.getBriefTypesMetOrganisatieType(true, OrganisatieType.SCREENINGSORGANISATIE, Bevolkingsonderzoek.COLON)));
 	}
-
 }

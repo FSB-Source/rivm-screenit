@@ -21,6 +21,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,8 +29,8 @@ import java.util.List;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import nl.rivm.screenit.batch.service.ColonUitnodigingSelectieService;
 import nl.rivm.screenit.batch.service.ColonUitnodigingsgebiedCapaciteitService;
-import nl.rivm.screenit.dao.colon.ColonUitnodigingsDao;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.rivm.screenit.service.colon.ColonBaseFITService;
@@ -179,9 +180,11 @@ public class ColonClientSelectieContext
 
 	public Integer maximaleLeeftijd;
 
+	public LocalDate peildatum;
+
 	public ColonUitnodigingsgebiedCapaciteitService uitnodigingsGebiedCapaciteitService;
 
-	public ColonUitnodigingsDao uitnodigingsDao;
+	public ColonUitnodigingSelectieService uitnodigingSelectieService;
 
 	public ColonUitnodigingService uitnodigingService;
 

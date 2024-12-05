@@ -23,28 +23,35 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.vooraankondigingnavervolgonde
 
 import java.util.List;
 
+import javax.persistence.criteria.JoinType;
+
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.colon.ColonDossier_;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
+import nl.rivm.screenit.model.colon.ColonScreeningRonde_;
+import nl.rivm.screenit.model.colon.ColonVolgendeUitnodiging_;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.query.ScreenitRestrictions;
+import nl.rivm.screenit.specification.algemeen.ClientSpecification;
+import nl.rivm.screenit.specification.algemeen.PersoonSpecification;
+import nl.rivm.screenit.specification.colon.ColonScreeningRondeSpecification;
+import nl.rivm.screenit.specification.colon.ColonUitnodigingBaseSpecification;
+import nl.rivm.screenit.specification.colon.ColonUitnodigingsintervalSpecification;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
 @Component
 @AllArgsConstructor
-public class ColonVooraankondigingNaVervolgonderzoekReader extends BaseScrollableResultReader
+public class ColonVooraankondigingNaVervolgonderzoekReader extends BaseSpecificationScrollableResultReader<ColonScreeningRonde>
 {
 
 	private final ICurrentDateSupplier currentDateSupplier;
@@ -52,48 +59,28 @@ public class ColonVooraankondigingNaVervolgonderzoekReader extends BaseScrollabl
 	private final SimplePreferenceService preferenceService;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<ColonScreeningRonde> createSpecification()
 	{
 		var vandaag = currentDateSupplier.getLocalDate();
 		var peildatum = vandaag.plusWeeks(preferenceService.getInteger(PreferenceKey.COLON_VOORAANKONDIGING_NA_VERVOLGONDERZOEK.name()));
 		var minLeeftijd = preferenceService.getInteger(PreferenceKey.MINIMALE_LEEFTIJD_COLON.name());
 		var maxLeeftijd = preferenceService.getInteger(PreferenceKey.MAXIMALE_LEEFTIJD_COLON.name());
 
-		var crit = session.createCriteria(ColonScreeningRonde.class, "ronde");
-		crit.createCriteria("ronde.dossier", "dossier");
-		crit.createCriteria("dossier.client", "client");
-		crit.createCriteria("client.persoon", "persoon");
-		crit.createAlias("dossier.laatsteScreeningRonde", "laatsteScreeningRonde");
-		crit.createAlias("dossier.volgendeUitnodiging", "volgendeUitnodiging");
-		crit.createAlias("volgendeUitnodiging.interval", "interval");
-		crit.createAlias("laatsteScreeningRonde.laatsteAfspraak", "afspraak", JoinType.LEFT_OUTER_JOIN);
+		return (r, q, cb) ->
+		{
+			var dossierJoin = join(r, ColonScreeningRonde_.dossier);
+			var volgendeUitnodigingJoin = join(dossierJoin, ColonDossier_.volgendeUitnodiging);
+			var clientJoin = join(dossierJoin, ColonDossier_.client);
+			var persoonJoin = join(clientJoin, Client_.persoon);
+			var intervalJoin = join(volgendeUitnodigingJoin, ColonVolgendeUitnodiging_.interval);
 
-		crit.add(ColonRestrictions.getU2BaseCriteria(peildatum, vandaag));
-		crit.add(ScreenitRestrictions.getLeeftijdsgrensRestrictions(minLeeftijd, maxLeeftijd, peildatum));
-		ColonRestrictions.addNogGeenBriefOntvangenVanTypesCriteria(crit, "ronde", List.of(BriefType.COLON_VOORAANKONDIGING_NA_VERVOLGONDERZOEK));
-		ScreenitRestrictions.addClientBaseRestrictions(crit, "client", "persoon");
-		crit.add(Restrictions.in("interval.type",
-			List.of(ColonUitnodigingsintervalType.INTAKE_COLOSCOPIE_GEPLAND,
-				ColonUitnodigingsintervalType.INTAKE_CT_COLOGRAFIE,
-				ColonUitnodigingsintervalType.INTAKE_GEEN_VERVOLGBELEID_3_JAAR_TERUG_NAAR_SCREENING,
-				ColonUitnodigingsintervalType.INTAKE_GEEN_VERVOLGBELEID_4_JAAR_TERUG_NAAR_SCREENING,
-				ColonUitnodigingsintervalType.INTAKE_GEEN_VERVOLGBELEID_5_JAAR_TERUG_NAAR_SCREENING,
-				ColonUitnodigingsintervalType.INTAKE_GEEN_VERVOLGBELEID_6_JAAR_TERUG_NAAR_SCREENING,
-				ColonUitnodigingsintervalType.INTAKE_GEEN_VERVOLGBELEID_7_JAAR_TERUG_NAAR_SCREENING,
-				ColonUitnodigingsintervalType.INTAKE_GEEN_VERVOLGBELEID_8_JAAR_TERUG_NAAR_SCREENING,
-				ColonUitnodigingsintervalType.INTAKE_GEEN_VERVOLGBELEID_9_JAAR_TERUG_NAAR_SCREENING,
-				ColonUitnodigingsintervalType.INTAKE_GEEN_VERVOLGBELEID_10_JAAR_TERUG_NAAR_SCREENING,
-				ColonUitnodigingsintervalType.ENDOSCOPIEVERSLAG_VERWIJZING_POLIKLINIEK,
-				ColonUitnodigingsintervalType.ENDOSCOPIEVERSLAG_VERVOLGSCOPIE,
-				ColonUitnodigingsintervalType.ENDOSCOPIEVERSLAG_SCOPIE_BEOORDELING_RADICALITEIT,
-				ColonUitnodigingsintervalType.ENDOSCOPIEVERSLAG_NIEUWE_SCOPIE,
-				ColonUitnodigingsintervalType.ENDOSCOPIEVERSLAG_SURVEILLANCE_1_JAAR,
-				ColonUitnodigingsintervalType.ENDOSCOPIEVERSLAG_SURVEILLANCE_3_JAAR,
-				ColonUitnodigingsintervalType.ENDOSCOPIEVERSLAG_SURVEILLANCE_5_JAAR,
-				ColonUitnodigingsintervalType.ENDOSCOPIEVERSLAG_TERUG_BVO,
-				ColonUitnodigingsintervalType.ENDOSCOPIEVERSLAG_CT_COLOGRAFIE,
-				ColonUitnodigingsintervalType.ENDOSCOPIEVERSLAG_GEEN_SURVEILLANCE)));
-		crit.add(Restrictions.isNotNull("interval.aantal"));
-		return crit;
+			return
+				ColonScreeningRondeSpecification.heeftGeenBriefVanTypeIn(List.of(BriefType.COLON_VOORAANKONDIGING_NA_VERVOLGONDERZOEK))
+					.and(ColonUitnodigingBaseSpecification.u2Base(peildatum, vandaag, JoinType.INNER).with(ri -> join(ri, ColonScreeningRonde_.dossier)))
+					.and(PersoonSpecification.valtBinnenLeeftijdGrensRestricties(minLeeftijd, maxLeeftijd, null, peildatum).with(root -> persoonJoin))
+					.and(ClientSpecification.heeftActieveClient().with(root -> clientJoin))
+					.and(ColonUitnodigingsintervalSpecification.heeftTypeIn(ColonUitnodigingsintervalType.intervalTypesMetVooraankondiging).with(root -> intervalJoin))
+					.and(ColonUitnodigingsintervalSpecification.heeftAantal().with(root -> intervalJoin)).toPredicate(r, q, cb);
+		};
 	}
 }

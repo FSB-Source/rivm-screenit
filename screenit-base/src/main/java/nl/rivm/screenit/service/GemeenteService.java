@@ -50,4 +50,8 @@ public interface GemeenteService
 	boolean magAlleGebiedenVerwijderen(Gemeente gemeente);
 
 	Gemeente getGemeenteByCode(String code);
+
+	Gemeente getEersteGemeenteMetScreeningOrganisatie();
+
+	List<Gemeente> getGemeentesMetScreeningOrganisatie();
 }

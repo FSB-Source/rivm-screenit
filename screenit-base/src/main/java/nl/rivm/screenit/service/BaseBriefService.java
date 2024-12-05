@@ -67,7 +67,7 @@ public interface BaseBriefService
 
 	AlgemeneBrief maakAlgemeneBrief(Client client, BriefType type);
 
-	ProjectBrief maakProjectBrief(ProjectClient pClient, ProjectBriefActie actie);
+	ProjectBrief maakProjectBrief(ProjectClient pClient, ProjectBriefActie actie, ProjectBrief origineleBrief);
 
 	<B extends ClientBrief<?, A, ?>, A extends Afmelding<?, ?, B>> B maakBvoBrief(A afmelding, BriefType type, Date creatieMoment, boolean vervangendeProjectBrief);
 
@@ -83,8 +83,6 @@ public interface BaseBriefService
 		boolean vervangendeProjectBrief);
 
 	CervixRegioBrief maakRegioBrief(ScreeningOrganisatie so, BriefType type, Date date, CervixHuisarts arts);
-
-	<B extends ClientBrief<?, ?, ?>> void vervangDubbeleAangemaakteBrieven(BriefType type, Client client, Class<B> briefClass);
 
 	<B extends ClientBrief<?, ?, ?>> boolean clientHeeftOngegenereerdeBriefVanType(BriefType type, Client client, Class<B> briefClass);
 

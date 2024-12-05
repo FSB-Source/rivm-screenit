@@ -23,31 +23,55 @@ package nl.rivm.screenit.batch.jobs.mamma.uitnodigen.interval;
 
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.List;
+
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Root;
 
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.dao.mamma.MammaSelectieRestrictions;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.mamma.MammaAfspraak;
+import nl.rivm.screenit.model.mamma.MammaBeoordeling;
+import nl.rivm.screenit.model.mamma.MammaDossier;
+import nl.rivm.screenit.model.mamma.MammaDossier_;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
-import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaVolgendeUitnodigingService;
+import nl.rivm.screenit.specification.HibernateObjectSpecification;
+import nl.rivm.screenit.specification.algemeen.PersoonSpecification;
+import nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification;
+import nl.rivm.screenit.specification.mamma.MammaBaseDossierSpecification;
+import nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification;
+import nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.Range;
+
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.ClientSpecification.voldoetAanMammaClientSelectieRestricties;
+import static nl.rivm.screenit.specification.mamma.MammaBaseDossierSpecification.woontNietInTehuis;
+import static nl.rivm.screenit.specification.mamma.MammaVolgendeUitnodigingSpecification.heeftPeildatumOpOfVoorBerekendeReferentieDatum;
+import static org.springframework.data.jpa.domain.Specification.not;
 
 @Component
 @AllArgsConstructor
-public class MammaIntervalUitnodigenReader extends BaseScrollableResultReader
+public class MammaIntervalUitnodigenReader extends BaseSpecificationScrollableResultReader<Client>
 {
 	private final MammaVolgendeUitnodigingService volgendeUitnodigingService;
 
@@ -55,84 +79,56 @@ public class MammaIntervalUitnodigenReader extends BaseScrollableResultReader
 
 	private final ICurrentDateSupplier currentDateSupplier;
 
-	private final MammaSelectieRestrictions selectieRestricties;
-
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<Client> createSpecification()
 	{
 		volgendeUitnodigingService.updateIntervalReferentieDatums();
-
-		Criteria criteria = session.createCriteria(Client.class, "client");
-		criteria.createAlias("client.persoon", "persoon");
-		criteria.createAlias("persoon.gbaAdres", "adres");
-		criteria.createAlias("persoon.tijdelijkGbaAdres", "tijdelijkGbaAdres", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("client.mammaDossier", "dossier");
-		criteria.createAlias("dossier.volgendeUitnodiging", "volgendeUitnodiging");
-		criteria.createAlias("volgendeUitnodiging.interval", "uitnodigingsInterval");
-		criteria.createAlias("dossier.laatsteScreeningRonde", "laatsteScreeningRonde", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("laatsteScreeningRonde.laatsteUitnodiging", "laatsteUitnodiging", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("laatsteUitnodiging.laatsteAfspraak", "laatsteAfspraak", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("laatsteScreeningRonde.laatsteOnderzoek", "laatsteOnderzoek", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("laatsteOnderzoek.laatsteBeoordeling", "laatsteBeoordeling", JoinType.LEFT_OUTER_JOIN);
-
-		criteria.add(Restrictions.leProperty("volgendeUitnodiging.peildatum", "uitnodigingsInterval.berekendeReferentieDatum"));
-
-		criteria.add(Restrictions.isNull("dossier.tehuis"));
-		selectieRestricties.addStandaardSelectieRestricties(criteria);
-
 		var vandaag = currentDateSupplier.getLocalDate();
-		criteria.add(Restrictions.gt("persoon.geboortedatum", minimaleGeboorteDatum(vandaag)));
-		criteria.add(Restrictions.le("persoon.geboortedatum", maximaleGeboorteDatum(vandaag)));
 
-		criteria.add(Restrictions.or(
-			Restrictions.isNull("dossier.laatsteMammografieAfgerond"),
-			Restrictions.lt("dossier.laatsteMammografieAfgerond", maximaleMammografieDatum(vandaag))));
-
-		addGeenToekomstigeAfspraakRestrictie(criteria, vandaag);
-		addGeenLopendOnderzoekRestrictie(criteria);
-		addGeenOpenstaandeBeoordelingRestrictie(criteria);
-
-		return criteria;
+		return heeftPeildatumOpOfVoorBerekendeReferentieDatum().<Client> withRoot(r -> join(dossierJoin(r), MammaDossier_.volgendeUitnodiging))
+			.and(woontNietInTehuis().withRoot(this::dossierJoin))
+			.and(voldoetAanMammaClientSelectieRestricties())
+			.and(valtBinnenLeeftijdGrens(vandaag))
+			.and(mammografieDatumIsOuderDanMaximumOfIsNull(vandaag))
+			.and(heeftGeenToekomstigeAfspraak(vandaag))
+			.and(heeftGeenLopendOnderzoek())
+			.and(heeftGeenOpenstaandeBeoordeling());
 	}
 
-	private void addGeenToekomstigeAfspraakRestrictie(Criteria criteria, LocalDate vandaag)
+	private Specification<Client> mammografieDatumIsOuderDanMaximumOfIsNull(LocalDate vandaag)
 	{
-		criteria.add(Restrictions.or(
-			Restrictions.isNull("laatsteAfspraak.id"),
-			Restrictions.ne("laatsteAfspraak.status", MammaAfspraakStatus.GEPLAND),
-			Restrictions.lt("laatsteAfspraak.vanaf", DateUtil.toUtilDate(vandaag))
-		));
+		return MammaBaseDossierSpecification.heeftNooitMammografieGehad()
+			.or(MammaBaseDossierSpecification.heeftLaatsteMammografieAfgerondVoorMoment(DateUtil.toLocalDateTime(maximaleMammografieDatum(vandaag)))).withRoot(this::dossierJoin);
 	}
 
-	private void addGeenLopendOnderzoekRestrictie(Criteria criteria)
+	public Specification<Client> valtBinnenLeeftijdGrens(LocalDate vandaag)
 	{
-		criteria.add(Restrictions.or(
-			Restrictions.isNull("laatsteOnderzoek.id"),
-			Restrictions.and(
-				Restrictions.in("laatsteOnderzoek.status", MammaOnderzoekStatus.AFGEROND, MammaOnderzoekStatus.ONVOLLEDIG, MammaOnderzoekStatus.ONDERBROKEN_ZONDER_VERVOLG),
-				Restrictions.eq("laatsteOnderzoek.isDoorgevoerd", true)
-			)
-		));
+		var vanafLeeftijd = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_LEEFTIJD.name());
+		var totEnMetLeeftijd = preferenceService.getInteger(PreferenceKey.MAMMA_MAXIMALE_LEEFTIJD.name());
+		return PersoonSpecification.valtBinnenLeeftijd(vanafLeeftijd, totEnMetLeeftijd, vandaag).with(Client_.persoon);
 	}
 
-	private void addGeenOpenstaandeBeoordelingRestrictie(Criteria criteria)
+	private Specification<Client> heeftGeenToekomstigeAfspraak(LocalDate vandaag)
 	{
-		criteria.add(Restrictions.or(
-			Restrictions.isNull("laatsteBeoordeling.id"),
-			Restrictions.in("laatsteBeoordeling.status", MammaBeoordelingStatus.uitslagStatussen())
-		));
+		return not(MammaAfspraakSpecification.heeftStatus(MammaAfspraakStatus.GEPLAND).withRoot(this::afspraakJoin)).or(
+			MammaAfspraakSpecification.valtInDatumPeriode(Range.lessThan(vandaag)).or(HibernateObjectSpecification.heeftGeenId()).withRoot(this::afspraakJoin));
 	}
 
-	private Date minimaleGeboorteDatum(LocalDate vandaag)
+	private Specification<Client> heeftGeenLopendOnderzoek()
 	{
-		int totEnMetLeeftijd = preferenceService.getInteger(PreferenceKey.MAMMA_MAXIMALE_LEEFTIJD.name());
-		return DateUtil.toUtilDate(vandaag.minusYears(totEnMetLeeftijd + 1L));
+		var heeftGeenOnderzoek = HibernateObjectSpecification.heeftGeenId().withRoot(this::onderzoekJoin);
+		var heeftGeenLopendOnderzoek = MammaOnderzoekSpecification.heeftStatusIn(
+				List.of(MammaOnderzoekStatus.AFGEROND, MammaOnderzoekStatus.ONVOLLEDIG, MammaOnderzoekStatus.ONDERBROKEN_ZONDER_VERVOLG))
+			.and(MammaOnderzoekSpecification.isDoorgevoerd(true)).withRoot(this::onderzoekJoin);
+		return heeftGeenOnderzoek.or(heeftGeenLopendOnderzoek);
 	}
 
-	private Date maximaleGeboorteDatum(LocalDate vandaag)
+	private Specification<Client> heeftGeenOpenstaandeBeoordeling()
 	{
-		int vanafLeeftijd = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_LEEFTIJD.name());
-		return DateUtil.toUtilDate(vandaag.minusYears(vanafLeeftijd));
+		var heeftGeenBeoordeling = HibernateObjectSpecification.heeftGeenId().withRoot(this::beoordelingJoin);
+		var heeftBeoordelingInAfgerondeStatus = MammaBeoordelingSpecification.heeftUitslagStatus().withRoot(this::beoordelingJoin);
+		return heeftGeenBeoordeling.or(heeftBeoordelingInAfgerondeStatus);
+
 	}
 
 	private Date maximaleMammografieDatum(LocalDate vandaag)
@@ -140,4 +136,35 @@ public class MammaIntervalUitnodigenReader extends BaseScrollableResultReader
 		int minimaleIntervalMammografieOnderzoeken = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_INTERVAL_MAMMOGRAFIE_ONDERZOEKEN.name());
 		return DateUtil.toUtilDate(vandaag.minusDays(minimaleIntervalMammografieOnderzoeken));
 	}
+
+	private Join<Client, MammaDossier> dossierJoin(Root<Client> r)
+	{
+		return join(r, Client_.mammaDossier);
+	}
+
+	private Join<MammaDossier, MammaScreeningRonde> rondeJoin(Root<Client> r)
+	{
+		return join(dossierJoin(r), MammaDossier_.laatsteScreeningRonde, JoinType.LEFT);
+	}
+
+	private Join<MammaScreeningRonde, MammaOnderzoek> onderzoekJoin(Root<Client> r)
+	{
+		return join(rondeJoin(r), MammaScreeningRonde_.laatsteOnderzoek, JoinType.LEFT);
+	}
+
+	private Join<MammaOnderzoek, MammaBeoordeling> beoordelingJoin(Root<Client> r)
+	{
+		return join(onderzoekJoin(r), MammaOnderzoek_.laatsteBeoordeling, JoinType.LEFT);
+	}
+
+	private Join<MammaScreeningRonde, MammaUitnodiging> uitnodigingJoin(Root<Client> r)
+	{
+		return join(rondeJoin(r), MammaScreeningRonde_.laatsteUitnodiging, JoinType.LEFT);
+	}
+
+	private Join<MammaUitnodiging, MammaAfspraak> afspraakJoin(Root<Client> r)
+	{
+		return join(uitnodigingJoin(r), MammaUitnodiging_.laatsteAfspraak, JoinType.LEFT);
+	}
+
 }

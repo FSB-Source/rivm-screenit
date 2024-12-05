@@ -1,0 +1,57 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.informatie {
+	width: 100%;
+	font-size: 0.875rem;
+	letter-spacing: 0;
+	line-height: 1.375rem;
+	padding-left: 1.9rem;
+	padding-right: 0.625rem;
+	cursor: pointer;
+
+	&.standalone {
+		padding-left: 0;
+	}
+
+	@include respond-below(xs) {
+		margin-top: 5px;
+		padding-left: 1.85rem;
+	}
+
+	.abstract {
+		color: $zwart;
+		margin-bottom: 0.625rem;
+	}
+
+	.meer {
+		color: $zwart;
+		display: none;
+	}
+
+	.meerTekst {
+		font-size: 0.875rem;
+	}
+
+	.overigTitle {
+		vertical-align: middle;
+		line-height: 1rem;
+		padding-bottom: 0.125rem;
+		margin-left: 0;
+	}
+
+	.toonVerbergInformatie {
+		margin-top: 5px;
+		color: $blauw-base;
+	}
+
+	div:nth-child(2) {
+		margin-top: 10px;
+	}
+}
+
+.arrow {
+	padding-left: 0.625rem;
+	fill: #006DAB;
+}
+

@@ -22,60 +22,95 @@ package nl.rivm.screenit.batch.jobs.helpers;
  */
 
 import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Selection;
 
-import nl.rivm.screenit.util.functionalinterfaces.TriFunction;
+import nl.rivm.screenit.repository.impl.FluentJpaQueryImpl;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 import nl.topicuszorg.hibernate.object.model.HibernateObject;
 
-import org.hibernate.Query;
-import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.StatelessSession;
 import org.hibernate.internal.EmptyScrollableResults;
 import org.springframework.data.jpa.domain.Specification;
 
-public abstract class BaseSpecificationScrollableResultReader<T extends HibernateObject, R> extends BaseIdScrollableResultReader
+public abstract class BaseSpecificationScrollableResultReader<T extends HibernateObject> extends BaseIdScrollableResultReader
 {
-
-	protected abstract Specification<T> createSpecification();
-
-	protected CriteriaQuery<R> createProjection(Root<T> r, CriteriaQuery<R> q, CriteriaBuilder cb)
-	{
-		return q.select(r.get("id")).distinct(true);
-	}
-
-	protected ScrollableResults createScrollableResults(TriFunction<CriteriaQuery<R>, Root<T>, CriteriaBuilder, CriteriaQuery<R>> queryConsumer)
-	{
-		if (getMaxResults() == 0)
-		{
-			return new EmptyScrollableResults();
-		}
-
-		var cb = getHibernateSession().getCriteriaBuilder();
-		var query = cb.createQuery(getResultClass());
-		var r = query.from(getEntityClass());
-
-		createProjection(r, query, cb).where(createSpecification().toPredicate(r, query, cb));
-
-		query = queryConsumer.apply(query, r, cb);
-
-		var hquery = getHibernateSession().createQuery(query).unwrap(Query.class);
-
-		if (getMaxResults() > 0)
-		{
-			hquery.setMaxResults(getMaxResults());
-		}
-
-		return hquery.setFetchSize(fetchSize).scroll(ScrollMode.FORWARD_ONLY);
-	}
 
 	@Override
 	protected ScrollableResults createScrollableResults(StatelessSession session)
 	{
-		return createScrollableResults((query, r, cb) -> query);
+		var maxResults = getMaxResults();
+		if (maxResults == 0)
+		{
+			return new EmptyScrollableResults();
+		}
+
+		var jpaQuery = new FluentJpaQueryImpl<>(createSpecification(), getHibernateSession(), getEntityClass(), getResultClass());
+		jpaQuery.projections((cb, r) ->
+		{
+			var orders = getOrders(r, cb);
+			jpaQuery.sortBy((r1, cb1) -> orders);
+			return getProjections(orders, r, cb);
+		});
+		if (isDistinct())
+		{
+			jpaQuery.distinct();
+		}
+
+		return jpaQuery.setScrollFetchSize(fetchSize).scroll(maxResults);
+	}
+
+	@Override
+	protected Long getScrollableResult(ScrollableResults scrollableResults)
+	{
+		var scrollableResult = scrollableResults.get(0);
+		return scrollableResult instanceof Long ? (Long) scrollableResult : (Long) ((Object[]) scrollableResults.get()[0])[0];
+	}
+
+	protected abstract Specification<T> createSpecification();
+
+	private List<Selection<?>> getProjections(List<Order> orders, Root<T> r, CriteriaBuilder cb)
+	{
+		List<Selection<?>> selections = new ArrayList<>(List.of(createProjection(r, cb)));
+		if (isDistinct())
+		{
+			selections.addAll(orders.stream()
+				.filter(Objects::nonNull)
+				.map(Order::getExpression)
+				.collect(Collectors.toList()));
+			selections = selections.stream().distinct().collect(Collectors.toList());
+		}
+		return selections;
+	}
+
+	protected Expression<Long> createProjection(Root<T> r, CriteriaBuilder cb)
+	{
+		return r.get(AbstractHibernateObject_.ID);
+	}
+
+	protected List<Order> getOrders(Root<T> r, CriteriaBuilder cb)
+	{
+		var order = getOrder(r, cb);
+		return order == null ? List.of() : List.of(order);
+	}
+
+	protected Order getOrder(Root<T> r, CriteriaBuilder cb)
+	{
+		return null;
+	}
+
+	protected boolean isDistinct()
+	{
+		return true;
 	}
 
 	protected Class<T> getEntityClass()
@@ -83,14 +118,14 @@ public abstract class BaseSpecificationScrollableResultReader<T extends Hibernat
 		return (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
 	}
 
-	protected Class<R> getResultClass()
+	protected Class<?> getResultClass()
 	{
-
-		return (Class<R>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[1];
+		return Long.class;
 	}
 
 	protected int getMaxResults()
 	{
 		return -1;
 	}
+
 }

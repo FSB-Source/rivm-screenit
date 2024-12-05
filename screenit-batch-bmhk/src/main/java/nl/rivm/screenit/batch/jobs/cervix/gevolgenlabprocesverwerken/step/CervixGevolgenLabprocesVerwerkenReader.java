@@ -21,17 +21,15 @@ package nl.rivm.screenit.batch.jobs.cervix.gevolgenlabprocesverwerken.step;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.cervix.CervixMonster;
+import nl.rivm.screenit.specification.cervix.CervixMonsterSpecification;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CervixGevolgenLabprocesVerwerkenReader extends BaseScrollableResultReader
+public class CervixGevolgenLabprocesVerwerkenReader extends BaseSpecificationScrollableResultReader<CervixMonster>
 {
 
 	public CervixGevolgenLabprocesVerwerkenReader()
@@ -40,13 +38,9 @@ public class CervixGevolgenLabprocesVerwerkenReader extends BaseScrollableResult
 	}
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<CervixMonster> createSpecification()
 	{
-		var crit = session.createCriteria(CervixMonster.class, "monster");
-
-		crit.createAlias("monster.ontvangstScreeningRonde", "ronde");
-		crit.add(Restrictions.isNull("monster.brief"));
-
-		return crit;
+		return CervixMonsterSpecification.heeftOntvangstRonde()
+			.and(CervixMonsterSpecification.heeftGeenBrief());
 	}
 }

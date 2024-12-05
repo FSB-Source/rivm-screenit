@@ -71,8 +71,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import static com.google.common.collect.Range.closed;
-import static nl.rivm.screenit.mamma.se.specification.InstellingSpecification.heeftSubInstellingVanType;
-import static nl.rivm.screenit.mamma.se.specification.InstellingSpecification.isZorgInstelling;
+import static nl.rivm.screenit.mamma.se.specification.OrganisatieSpecification.heeftSubInstellingVanType;
+import static nl.rivm.screenit.mamma.se.specification.OrganisatieSpecification.isZorgInstelling;
 import static nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus.BESCHIKBAAR;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftAfgerondeMammografie;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftIlmStatus;
@@ -211,7 +211,7 @@ public class OnderzoekServiceImpl implements OnderzoekService
 	{
 		var range = closed(datum, datum);
 		return (int) afspraakRepository.count(
-			heeftScreeningsEenheid(seCode).and((heeftAfgerondeMammografie().and(MammaAfspraakSpecification.valtInPeriode(range)))));
+			heeftScreeningsEenheid(seCode).and((heeftAfgerondeMammografie().and(MammaAfspraakSpecification.valtInDatumPeriode(range)))));
 	}
 
 	@Override
@@ -219,7 +219,7 @@ public class OnderzoekServiceImpl implements OnderzoekService
 	{
 		var range = closed(datum, datum);
 		return (int) afspraakRepository.count(heeftAfgerondeMammografie().and(
-			heeftScreeningsEenheid(seCode)).and(MammaAfspraakSpecification.valtInPeriode(range)).and(heeftIlmStatus(BESCHIKBAAR)));
+			heeftScreeningsEenheid(seCode)).and(MammaAfspraakSpecification.valtInDatumPeriode(range)).and(heeftIlmStatus(BESCHIKBAAR)));
 	}
 
 	@Override
@@ -227,7 +227,7 @@ public class OnderzoekServiceImpl implements OnderzoekService
 	{
 		var range = closed(datum, datum);
 		return (int) afspraakRepository.count(
-			heeftAfgerondeMammografie().and(heeftScreeningsEenheid(seCode)).and(MammaAfspraakSpecification.valtInPeriode(range))
+			heeftAfgerondeMammografie().and(heeftScreeningsEenheid(seCode)).and(MammaAfspraakSpecification.valtInDatumPeriode(range))
 				.and(heeftOnderzoekDoorgevoerd()));
 	}
 

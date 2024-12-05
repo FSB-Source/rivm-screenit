@@ -85,9 +85,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static nl.rivm.screenit.model.enums.BezwaarType.GEEN_GEBRUIK_LICHAAMSMATERIAAL_WETENSCHAPPELIJK_ONDERZOEK;
 import static nl.rivm.screenit.model.enums.BezwaarType.GEEN_SIGNALERING_VERWIJSADVIES;
-import static nl.rivm.screenit.specification.algemeen.BezwaarBriefSpecification.heeftBriefType;
 import static nl.rivm.screenit.specification.algemeen.BezwaarBriefSpecification.heeftClient;
 import static nl.rivm.screenit.specification.algemeen.BezwaarBriefSpecification.isNietVerstuurd;
+import static nl.rivm.screenit.specification.algemeen.BriefSpecification.heeftBriefType;
 import static nl.topicuszorg.util.collections.CollectionUtils.isEqualCollection;
 import static nl.topicuszorg.util.collections.CollectionUtils.isNotEmpty;
 

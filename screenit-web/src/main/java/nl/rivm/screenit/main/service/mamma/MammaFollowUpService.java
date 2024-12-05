@@ -26,10 +26,14 @@ import java.util.List;
 import nl.rivm.screenit.main.model.mamma.MammaFollowUpConclusieChoice;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.ScreeningOrganisatie;
+import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaFollowUpRadiologieVerslag;
 import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaFollowUpConclusieStatus;
+
+import org.springframework.data.domain.Sort;
 
 public interface MammaFollowUpService
 {
@@ -40,9 +44,13 @@ public interface MammaFollowUpService
 
 	void savePaVerslagNietTeVerwachten(MammaFollowUpRadiologieVerslag followUpRadiologieVerslag, Account loggedInInstellingGebruiker);
 
-    MammaFollowUpConclusieStatus bepaalFollowUpConclusie(MammaScreeningRonde screeningRonde, MammaFollowUpConclusieChoice conclusieEnum);
+	MammaFollowUpConclusieStatus bepaalFollowUpConclusie(MammaScreeningRonde screeningRonde, MammaFollowUpConclusieChoice conclusieEnum);
 
 	List<MammaFollowUpRadiologieVerslag> getIngevoerdeFollowUpRadiologieVerslagen(MammaScreeningRonde screeningRonde);
 
 	List<MammaFollowUpVerslag> getAfgerondeFollowUpPathologieVerslagen(MammaScreeningRonde screeningRonde);
+
+	List<MammaBeoordeling> zoekOpenstaandeFollowUpConclusies(ScreeningOrganisatie regio, long first, long count, Sort sort);
+
+	long countOpenstaandeFollowUpConclusies(ScreeningOrganisatie regio);
 }

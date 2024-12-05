@@ -25,15 +25,16 @@ import java.util.Collection;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.colon.selectie.SelectieConstants;
+import nl.rivm.screenit.batch.service.ColonUitnodigingSelectieService;
 import nl.rivm.screenit.batch.service.ColonUitnodigingsgebiedCapaciteitService;
 import nl.rivm.screenit.batch.service.impl.ColonUitnodigingsgebiedSelectieContext;
-import nl.rivm.screenit.dao.colon.ColonUitnodigingsDao;
 import nl.rivm.screenit.model.colon.ClientCategorieEntry;
 import nl.rivm.screenit.model.colon.UitnodigingsGebied;
 import nl.rivm.screenit.model.enums.JobStartParameter;
 import nl.rivm.screenit.model.verwerkingverslag.SelectieRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.SelectieRapportageGewijzigdGebiedEntry;
 import nl.rivm.screenit.service.BaseProjectService;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.colon.ColonUitnodigingService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -50,9 +51,8 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @StepScope
 public class ClientSelectieMetCapaciteitItemReader extends AbstractClientSelectieReader
 {
-
 	@Autowired
-	private ColonUitnodigingsDao uitnodigingsDao;
+	private ColonUitnodigingSelectieService uitnodigingSelectieService;
 
 	@Autowired
 	private ColonUitnodigingsgebiedCapaciteitService uitnodigingsGebiedCapactieitService;
@@ -65,6 +65,9 @@ public class ClientSelectieMetCapaciteitItemReader extends AbstractClientSelecti
 
 	@Autowired
 	private ColonUitnodigingService uitnodigingService;
+
+	@Autowired
+	private ICurrentDateSupplier currentDateSupplier;
 
 	private Collection<ColonUitnodigingsgebiedSelectieContext> uitnodigingsgebieden;
 
@@ -102,7 +105,6 @@ public class ClientSelectieMetCapaciteitItemReader extends AbstractClientSelecti
 			uitnodigingsgebieden = uitnodigingsGebiedCapactieitService.bepaalCapaciteit(executionContext, true, herstartJob);
 			context = executionContext;
 			setCursor();
-
 		}
 		finally
 		{
@@ -131,13 +133,14 @@ public class ClientSelectieMetCapaciteitItemReader extends AbstractClientSelecti
 
 		var selectieContext = new ColonClientSelectieContext();
 		selectieContext.fitService = fitService;
-		selectieContext.uitnodigingsDao = uitnodigingsDao;
+		selectieContext.uitnodigingSelectieService = uitnodigingSelectieService;
 		selectieContext.uitnodigingService = uitnodigingService;
 		selectieContext.hibernateService = hibernateService;
 		selectieContext.uitnodigingsGebiedCapaciteitService = uitnodigingsGebiedCapactieitService;
 		selectieContext.fetchSize = fetchSize;
 		selectieContext.minimaleLeeftijd = minimaleLeeftijd;
 		selectieContext.maximaleLeeftijd = maximaleLeeftijd;
+		selectieContext.peildatum = currentDateSupplier.getLocalDate();
 		selectieContext.init(uitnodigingService.getUitnodigingCohorten(), projectGroepen);
 
 		cursor = new ClientSelectieMetCapaciteitItemCursor(selectieContext, uitnodigingsgebieden);

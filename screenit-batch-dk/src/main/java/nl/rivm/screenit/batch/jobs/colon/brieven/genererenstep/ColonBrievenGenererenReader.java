@@ -21,33 +21,33 @@ package nl.rivm.screenit.batch.jobs.colon.brieven.genererenstep;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenReader;
+import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenSpecificationReader;
 import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.enums.BriefType;
-import nl.rivm.screenit.model.enums.GbaStatus;
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
-import org.springframework.batch.item.ExecutionContext;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.specification.algemeen.BriefSpecification.heeftBriefType;
+import static nl.rivm.screenit.specification.algemeen.ClientSpecification.heeftIndicatie;
+
 @Component
-public class ColonBrievenGenererenReader extends AbstractBrievenGenererenReader<ColonBrief>
+public class ColonBrievenGenererenReader extends AbstractBrievenGenererenSpecificationReader<ColonBrief>
 {
 
 	@Override
-	protected Long getScreeningOrganisatieId(ExecutionContext context)
+	protected Long getScreeningOrganisatieId()
 	{
-		return context.getLong(ColonBrievenGenererenPartitioner.KEY_SCREENINGORGANISATIEID);
+		return getStepExecutionContext().getLong(ColonBrievenGenererenPartitioner.KEY_SCREENINGORGANISATIEID);
 	}
 
 	@Override
-	protected Criteria additionalRestrictions(Criteria crit, ExecutionContext context)
+	protected Specification<ColonBrief> createSpecification()
 	{
-		crit.add(Restrictions.eq("client.gbaStatus", GbaStatus.INDICATIE_AANWEZIG));
-		var briefType = BriefType.valueOf(context.getString(ColonBrievenGenererenPartitioner.KEY_BRIEFTYPE));
-		crit.add(Restrictions.eq("briefType", briefType));
-
-		return crit;
+		var specification = super.createSpecification();
+		var briefType = BriefType.valueOf(getStepExecutionContext().getString(ColonBrievenGenererenPartitioner.KEY_BRIEFTYPE));
+		return specification
+			.and(heeftIndicatie().with(r -> clientJoin(r)))
+			.and(heeftBriefType(briefType));
 	}
 }

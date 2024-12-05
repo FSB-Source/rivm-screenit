@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.service;
 
 /*-
@@ -26,8 +25,9 @@ import nl.rivm.screenit.model.Woonplaats;
 
 public interface WoonplaatsService
 {
-
 	void saveOrUpdateWoonplaats(String plaatscode, String woonplaats, String gemcode);
 
-	Woonplaats getWoonplaatsByName(String woonplaats);
+	Woonplaats getWoonplaats(String woonplaatsNaam, String gemeenteNaam);
+
+	Woonplaats getWoonplaats(String woonplaatsNaam);
 }

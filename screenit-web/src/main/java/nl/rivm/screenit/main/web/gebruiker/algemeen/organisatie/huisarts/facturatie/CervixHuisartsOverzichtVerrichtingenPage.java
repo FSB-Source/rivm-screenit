@@ -42,6 +42,7 @@ import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.CervixHuisartsPa
 import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.OrganisatieBeheer;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.GbaPersoon_;
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
@@ -63,7 +64,6 @@ import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
-import nl.topicuszorg.organisatie.model.Organisatie_;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.SimpleHibernateModel;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -106,9 +106,9 @@ public class CervixHuisartsOverzichtVerrichtingenPage extends OrganisatieBeheer
 {
 	private final SimpleDateFormat dateFormatter = new SimpleDateFormat("dd-MM-yyyy");
 
-	private IModel<CervixVerrichtingenZoekObject> formCriteria = new CompoundPropertyModel<>(new CervixVerrichtingenZoekObject());
+	private final IModel<CervixVerrichtingenZoekObject> formCriteria = new CompoundPropertyModel<>(new CervixVerrichtingenZoekObject());
 
-	private CervixHuisartsVerrichtingenDataProvider verrichtingenDataProvider;
+	private final CervixHuisartsVerrichtingenDataProvider verrichtingenDataProvider;
 
 	@SpringBean
 	private CervixVerrichtingService verrichtingService;
@@ -125,11 +125,11 @@ public class CervixHuisartsOverzichtVerrichtingenPage extends OrganisatieBeheer
 
 	private WebMarkupContainer totalenContainer;
 
-	private IModel<CervixHuisartsLocatie> huisartsLocatieModel;
+	private final IModel<CervixHuisartsLocatie> huisartsLocatieModel;
 
-	private IModel<ScreeningOrganisatie> screeningOrganisatieModel = new SimpleHibernateModel<>();
+	private final IModel<ScreeningOrganisatie> screeningOrganisatieModel = new SimpleHibernateModel<>();
 
-	private IModel<CervixHuisartsVerrichtingTotalenViewObject> verrichtingTotalenModel = new CompoundPropertyModel<>(new CervixHuisartsVerrichtingTotalenViewObject());
+	private final IModel<CervixHuisartsVerrichtingTotalenViewObject> verrichtingTotalenModel = new CompoundPropertyModel<>(new CervixHuisartsVerrichtingTotalenViewObject());
 
 	public CervixHuisartsOverzichtVerrichtingenPage()
 	{
@@ -320,7 +320,7 @@ public class CervixHuisartsOverzichtVerrichtingenPage extends OrganisatieBeheer
 	private List<IColumn<CervixBoekRegel, String>> getColumns()
 	{
 		List<IColumn<CervixBoekRegel, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<>(Model.of("Screeningsorganisatie"), REGIO_PROPERTY + "." + Organisatie_.NAAM, REGIO_PROPERTY + "." + Organisatie_.NAAM));
+		columns.add(new PropertyColumn<>(Model.of("Screeningsorganisatie"), REGIO_PROPERTY + "." + Instelling_.NAAM, REGIO_PROPERTY + "." + Instelling_.NAAM));
 		columns.add(new PropertyColumn<>(Model.of("Locatie"), HUISARTS_LOCATIE_PROPERTY + "." + CervixHuisartsLocatie_.naam,
 			HUISARTS_LOCATIE_PROPERTY + "." + CervixHuisartsLocatie_.NAAM));
 		columns.add(new ClientColumn<>(PERSOON_PROPERTY + "." + GbaPersoon_.ACHTERNAAM, CervixBoekRegel_.VERRICHTING + "." + CervixVerrichting_.CLIENT));

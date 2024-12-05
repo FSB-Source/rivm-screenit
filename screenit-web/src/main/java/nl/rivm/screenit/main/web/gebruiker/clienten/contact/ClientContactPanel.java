@@ -104,9 +104,9 @@ import org.apache.wicket.validation.validator.StringValidator;
 import static nl.rivm.screenit.model.ClientContact_.DATUM;
 import static nl.rivm.screenit.model.ClientContact_.INSTELLING_GEBRUIKER;
 import static nl.rivm.screenit.model.ClientContact_.OPMERKING;
+import static nl.rivm.screenit.model.Gebruiker_.ACHTERNAAM;
+import static nl.rivm.screenit.model.InstellingGebruiker_.MEDEWERKER;
 import static nl.rivm.screenit.util.StringUtil.propertyChain;
-import static nl.topicuszorg.organisatie.model.Medewerker_.ACHTERNAAM;
-import static nl.topicuszorg.organisatie.model.OrganisatieMedewerker_.MEDEWERKER;
 
 @Slf4j
 public class ClientContactPanel extends GenericPanel<Client>

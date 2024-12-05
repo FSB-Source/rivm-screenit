@@ -22,6 +22,7 @@ package nl.rivm.screenit.specification.colon;
  */
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import javax.persistence.criteria.JoinType;
@@ -38,14 +39,18 @@ import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.colon.ColonBrief_;
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.ColonDossier_;
+import nl.rivm.screenit.model.colon.ColonGeinterpreteerdeUitslag;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde_;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
 import nl.rivm.screenit.model.colon.ColonUitnodiging_;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.IFOBTTest_;
 import nl.rivm.screenit.model.colon.IFOBTType;
+import nl.rivm.screenit.model.colon.IFOBTVervaldatum;
+import nl.rivm.screenit.model.colon.IFOBTVervaldatum_;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.specification.algemeen.ClientSpecification;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
@@ -64,16 +69,15 @@ public class ColonFITSpecification
 		return (r, q, cb) -> cb.equal(join(r, IFOBTTest_.colonScreeningRonde).get(ColonScreeningRonde_.dossier), dossier);
 	}
 
-	public static Specification<IFOBTTest> isStatusDatumVoorOfOp(LocalDate minimaleSignaleringsDatum)
+	public static ExtendedSpecification<IFOBTTest> heeftStatusDatumVoorOfOp(LocalDateTime peilmoment)
 	{
 		return (r, q, cb) ->
-			cb.lessThanOrEqualTo(r.get(IFOBTTest_.statusDatum), DateUtil.toUtilDate(minimaleSignaleringsDatum));
+			cb.lessThanOrEqualTo(r.get(IFOBTTest_.statusDatum), DateUtil.toUtilDate(peilmoment));
 	}
 
-	public static Specification<IFOBTTest> heeftFitType(IFOBTType type)
+	public static ExtendedSpecification<IFOBTTest> heeftFitType(IFOBTType type)
 	{
-		return (r, q, cb) ->
-			cb.equal(r.get(IFOBTTest_.type), type);
+		return (r, q, cb) -> cb.equal(r.get(IFOBTTest_.type), type);
 	}
 
 	public static Specification<IFOBTTest> isDatumLaatstGecontroleerdNa(LocalDate signalerenVanaf)
@@ -217,9 +221,46 @@ public class ColonFITSpecification
 		});
 	}
 
-	public static Specification<IFOBTTest> heeftStatussen(List<IFOBTTestStatus> statussen)
+	public static ExtendedSpecification<IFOBTTest> heeftStatussen(List<IFOBTTestStatus> statussen)
 	{
 		return (r, q, cb) -> r.get(IFOBTTest_.status).in(statussen);
 	}
 
+	public static ExtendedSpecification<IFOBTTest> heeftStatus(IFOBTTestStatus fitStatus)
+	{
+		return (r, q, cb) -> cb.equal(r.get(IFOBTTest_.status), fitStatus);
+	}
+
+	public static ExtendedSpecification<IFOBTTest> heeftGunstigeUitslag()
+	{
+		return (r, q, cb) -> cb.lessThan(r.get(IFOBTTest_.uitslag), r.get(IFOBTTest_.normWaarde));
+	}
+
+	public static ExtendedSpecification<IFOBTTest> heeftOngunstigeReguliereOfStudieUitslag()
+	{
+		return (r, q, cb) -> cb.or(cb.greaterThanOrEqualTo(r.get(IFOBTTest_.uitslag), r.get(IFOBTTest_.normWaarde)),
+			cb.equal(r.get(IFOBTTest_.geinterpreteerdeUitslag), ColonGeinterpreteerdeUitslag.ONGUNSTIG));
+	}
+
+	public static ExtendedSpecification<IFOBTTest> heeftHerinnering(Boolean value)
+	{
+		return (r, q, cb) -> cb.equal(r.get(IFOBTTest_.herinnering), value);
+	}
+
+	public static ExtendedSpecification<IFOBTTest> fitIsHoudbaar(LocalDate peildatum)
+	{
+		return (r, q, cb) ->
+		{
+			var subquery = q.subquery(Long.class);
+			var subRoot = subquery.from(IFOBTVervaldatum.class);
+			subquery
+				.select(cb.literal(1L))
+				.where(cb.and(
+					cb.greaterThan(subRoot.get(IFOBTVervaldatum_.vervalDatum), DateUtil.toUtilDate(peildatum)),
+					cb.lessThanOrEqualTo(subRoot.get(IFOBTVervaldatum_.barcodeStart), r.get(IFOBTTest_.barcode)),
+					cb.greaterThanOrEqualTo(subRoot.get(IFOBTVervaldatum_.barcodeEnd), r.get(IFOBTTest_.barcode)),
+					cb.equal(subRoot.get(IFOBTVervaldatum_.lengthBarcode), cb.length(r.get(IFOBTTest_.barcode)))));
+			return cb.exists(subquery);
+		};
+	}
 }

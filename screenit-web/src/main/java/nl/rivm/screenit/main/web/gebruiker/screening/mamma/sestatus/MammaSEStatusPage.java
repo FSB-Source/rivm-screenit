@@ -48,7 +48,6 @@ import nl.rivm.screenit.model.mamma.MammaScreeningsEenheidStatus_;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid_;
 import nl.rivm.screenit.service.BerichtToSeRestBkService;
 import nl.rivm.screenit.util.DateUtil;
-import nl.topicuszorg.organisatie.model.Organisatie_;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -81,7 +80,7 @@ public class MammaSEStatusPage extends GebruikerBasePage
 	@SpringBean
 	private BerichtToSeRestBkService berichtToSeRestBkService;
 
-	private ScreenitDataTable<MammaScreeningsEenheid, String> statusTabel;
+	private final ScreenitDataTable<MammaScreeningsEenheid, String> statusTabel;
 
 	public MammaSEStatusPage()
 	{
@@ -113,7 +112,7 @@ public class MammaSEStatusPage extends GebruikerBasePage
 		List<IColumn<MammaScreeningsEenheid, String>> columns = new ArrayList<>();
 		columns.add(new PropertyColumn<>(Model.of("Code"), MammaScreeningsEenheid_.CODE, "code"));
 		columns.add(new PropertyColumn<>(Model.of("Screeningsorganisatie"),
-			propertyChain(MammaScreeningsEenheid_.BEOORDELINGS_EENHEID, Instelling_.PARENT, Instelling_.REGIO, Organisatie_.NAAM), "beoordelingsEenheid.parent.regio.naam"));
+			propertyChain(MammaScreeningsEenheid_.BEOORDELINGS_EENHEID, Instelling_.PARENT, Instelling_.REGIO, Instelling_.NAAM), "beoordelingsEenheid.parent.regio.naam"));
 		columns.add(new PropertyColumn<>(Model.of("Versie"), propertyChain(MammaScreeningsEenheid_.STATUS, MammaScreeningsEenheidStatus_.VERSIE), "status.versie"));
 		columns.add(new AbstractColumn<>(Model.of("Stamgegevens aanwezig"))
 		{
@@ -222,7 +221,7 @@ public class MammaSEStatusPage extends GebruikerBasePage
 	@Override
 	protected List<GebruikerMenuItem> getContextMenuItems()
 	{
-		return new ArrayList<>(Arrays.asList(
+		return new ArrayList<>(List.of(
 			new GebruikerMenuItem("label.tab.mammascreening.sestatus.overzicht", MammaSEStatusPage.class)));
 	}
 }

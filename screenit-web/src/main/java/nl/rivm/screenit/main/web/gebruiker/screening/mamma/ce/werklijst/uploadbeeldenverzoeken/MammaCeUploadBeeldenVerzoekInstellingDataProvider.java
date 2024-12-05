@@ -21,20 +21,21 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.ce.werklijst.uploadb
  * =========================LICENSE_END==================================
  */
 
-import com.google.common.primitives.Ints;
+import java.util.Iterator;
+
 import nl.rivm.screenit.main.service.mamma.MammaUploadBeeldenService;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenVerzoek;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
+
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import java.util.Iterator;
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
 
 public class MammaCeUploadBeeldenVerzoekInstellingDataProvider extends SortableDataProvider<MammaUploadBeeldenVerzoek, String>
 {
@@ -58,8 +59,7 @@ public class MammaCeUploadBeeldenVerzoekInstellingDataProvider extends SortableD
 	public Iterator<? extends MammaUploadBeeldenVerzoek> iterator(long first, long count)
 	{
 		return uploadBeeldenService
-			.zoekOpenstaandeUploadBeeldenVerzoeken(ModelUtil.nullSafeGet(instellingModel), ModelUtil.nullSafeGet(regioModel), Ints.checkedCast(first), Ints.checkedCast(count),
-				new SortState<>(getSort().getProperty(), getSort().isAscending()))
+			.zoekOpenstaandeUploadBeeldenVerzoeken(ModelUtil.nullSafeGet(instellingModel), ModelUtil.nullSafeGet(regioModel), first, count, toSpringSort(getSort()))
 			.iterator();
 	}
 

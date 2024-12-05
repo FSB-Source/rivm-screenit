@@ -21,32 +21,42 @@ package nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie.versturennoshow
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDateTime;
 import java.util.Date;
+
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Root;
 
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.DossierStatus;
-import nl.rivm.screenit.model.ScreeningRondeStatus;
+import nl.rivm.screenit.model.colon.ColonConclusie;
+import nl.rivm.screenit.model.colon.ColonDossier;
+import nl.rivm.screenit.model.colon.ColonDossier_;
+import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
+import nl.rivm.screenit.model.colon.ColonIntakeAfspraak_;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
+import nl.rivm.screenit.model.colon.ColonScreeningRonde_;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.specification.algemeen.ClientSpecification;
+import nl.rivm.screenit.specification.algemeen.DossierSpecification;
+import nl.rivm.screenit.specification.algemeen.ScreeningRondeSpecification;
+import nl.rivm.screenit.specification.colon.ColonConclusieSpecification;
+import nl.rivm.screenit.specification.colon.ColonScreeningRondeSpecification;
 import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.query.ScreenitRestrictions;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
 @Component
 @AllArgsConstructor
-public class HuisartsNoShowReader extends BaseScrollableResultReader
+public class HuisartsNoShowReader extends BaseSpecificationScrollableResultReader<ColonScreeningRonde>
 {
 
 	private final SimplePreferenceService preferenceService;
@@ -54,38 +64,25 @@ public class HuisartsNoShowReader extends BaseScrollableResultReader
 	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<ColonScreeningRonde> createSpecification()
 	{
-		Date conclusieMoetGegevenZijnOp = getNoShowDate();
+		var conclusieMoetGegevenZijnOp = getNoShowDate();
 
-		var criteria = session.createCriteria(ColonScreeningRonde.class);
-		criteria.createAlias("dossier", "colonDossier");
-		criteria.createAlias("colonDossier.client", "client");
-		criteria.createAlias("client.persoon", "persoon");
-		criteria.createAlias("persoon.gbaAdres", "adres");
-
-		ScreenitRestrictions.addClientBaseRestrictions(criteria, "client", "persoon");
-
-		criteria.createAlias("laatsteAfspraak", "afspraak");
-		criteria.createAlias("afspraak.conclusie", "conclusie");
-		criteria.add(Restrictions.eq("status", ScreeningRondeStatus.LOPEND));
-		criteria.add(Restrictions.eq("colonDossier.status", DossierStatus.ACTIEF));
-
-		criteria.add(Restrictions.eq("conclusie.type", ColonConclusieType.NO_SHOW));
-		criteria.add(Restrictions.le("conclusie.datum", conclusieMoetGegevenZijnOp));
-
-		ColonRestrictions.addHeeftGeenAfgerondeVerlagenRestrictions(criteria, "");
-		criteria.add(Restrictions.isNull("conclusie.noShowBericht"));
-
-		return criteria;
+		return ClientSpecification.heeftActieveClient().withRoot(this::clientJoin)
+			.and(ScreeningRondeSpecification.isLopend())
+			.and(DossierSpecification.heeftStatus(DossierStatus.ACTIEF).withRoot(this::dossierJoin))
+			.and(ColonScreeningRondeSpecification.heeftGeenAfgerondeVerslagen())
+			.and(ColonConclusieSpecification.heeftType(ColonConclusieType.NO_SHOW)
+				.and(ColonConclusieSpecification.heeftDatumVoorOfOp(conclusieMoetGegevenZijnOp))
+				.and(ColonConclusieSpecification.heeftGeenNoShowBericht()).withRoot(this::conclusieJoin));
 	}
 
 	private Date getNoShowDate()
 	{
 		try
 		{
-			Integer periode = preferenceService.getInteger(PreferenceKey.HUISARTS_NO_SHOW_PERIODE.name());
-			LocalDateTime nu = currentDateSupplier.getLocalDateTime();
+			var periode = preferenceService.getInteger(PreferenceKey.HUISARTS_NO_SHOW_PERIODE.name());
+			var nu = currentDateSupplier.getLocalDateTime();
 			return DateUtil.toUtilDate(nu.minusDays(periode));
 		}
 		catch (Exception e)
@@ -95,4 +92,18 @@ public class HuisartsNoShowReader extends BaseScrollableResultReader
 		}
 	}
 
+	private Join<ColonIntakeAfspraak, ColonConclusie> conclusieJoin(Root<ColonScreeningRonde> r)
+	{
+		return join(join(r, ColonScreeningRonde_.laatsteAfspraak), ColonIntakeAfspraak_.conclusie);
+	}
+
+	private Join<ColonDossier, Client> clientJoin(Root<ColonScreeningRonde> r)
+	{
+		return join(dossierJoin(r), ColonDossier_.client);
+	}
+
+	private Join<ColonScreeningRonde, ColonDossier> dossierJoin(Root<ColonScreeningRonde> r)
+	{
+		return join(r, ColonScreeningRonde_.dossier);
+	}
 }

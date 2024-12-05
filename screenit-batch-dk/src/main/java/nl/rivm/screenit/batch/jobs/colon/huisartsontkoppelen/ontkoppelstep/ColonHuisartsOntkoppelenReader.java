@@ -21,25 +21,20 @@ package nl.rivm.screenit.batch.jobs.colon.huisartsontkoppelen.ontkoppelstep;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
+import nl.rivm.screenit.model.colon.ColonScreeningRonde_;
+import nl.rivm.screenit.specification.algemeen.EnovationHuisartsSpecification;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ColonHuisartsOntkoppelenReader extends BaseScrollableResultReader
+public class ColonHuisartsOntkoppelenReader extends BaseSpecificationScrollableResultReader<ColonScreeningRonde>
 {
-
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<ColonScreeningRonde> createSpecification()
 	{
-		var criteria = session.createCriteria(ColonScreeningRonde.class);
-		criteria.createAlias("colonHuisarts", "colonHuisarts");
-		criteria.add(Restrictions.eq("colonHuisarts.verwijderd", true));
-		return criteria;
+		return EnovationHuisartsSpecification.isVerwijderd(true).with(ColonScreeningRonde_.colonHuisarts);
 	}
 }

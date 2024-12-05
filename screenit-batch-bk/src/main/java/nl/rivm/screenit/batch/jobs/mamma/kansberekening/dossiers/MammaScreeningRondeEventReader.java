@@ -21,56 +21,65 @@ package nl.rivm.screenit.batch.jobs.mamma.kansberekening.dossiers;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDate;
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
 
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.model.DossierStatus;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.mamma.MammaDossier;
+import nl.rivm.screenit.model.mamma.MammaDossier_;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.query.ScreenitRestrictions;
-import nl.topicuszorg.hibernate.restrictions.NvlRestrictions;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.Range;
+
+import static java.time.temporal.TemporalAdjusters.firstDayOfYear;
+import static java.time.temporal.TemporalAdjusters.lastDayOfYear;
+import static nl.rivm.screenit.model.DossierStatus.ACTIEF;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.ClientSpecification.heeftActieveClient;
+import static nl.rivm.screenit.specification.algemeen.DossierSpecification.heeftStatus;
+import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.heeftGeboortedatumIn;
+import static nl.rivm.screenit.specification.mamma.MammaBaseDossierSpecification.heeftGeenScreeningRondeEvent;
 
 @Component
 @AllArgsConstructor
-public class MammaScreeningRondeEventReader extends BaseScrollableResultReader
+public class MammaScreeningRondeEventReader extends BaseSpecificationScrollableResultReader<MammaDossier>
 {
+	public static final int MINIMALE_LEEFTIJD_OFFSET = -3;
+
+	public static final int MAXIMALE_LEEFTIJD_OFFSET = 1;
+
 	private final ICurrentDateSupplier dateSupplier;
 
 	private final SimplePreferenceService preferenceService;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<MammaDossier> createSpecification()
 	{
-		var criteria = session.createCriteria(MammaDossier.class, "dossier");
-		criteria.createAlias("dossier.client", "client");
-		criteria.createAlias("client.persoon", "persoon");
+		var vandaag = dateSupplier.getLocalDate();
+		var minimaleLeeftijd = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_LEEFTIJD.name()) + MINIMALE_LEEFTIJD_OFFSET;
+		var maximaleLeeftijd = preferenceService.getInteger(PreferenceKey.MAMMA_MAXIMALE_LEEFTIJD.name()) + MAXIMALE_LEEFTIJD_OFFSET;
+		var geboortedatumBereik = Range.closed(
+			vandaag.minusYears(maximaleLeeftijd).with(firstDayOfYear()),
+			vandaag.minusYears(minimaleLeeftijd).with(lastDayOfYear()));
 
-		var maximaleLeeftijd = preferenceService.getInteger(PreferenceKey.MAMMA_MAXIMALE_LEEFTIJD.name());
-		var minimaleLeeftijd = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_LEEFTIJD.name());
-
-		var huidigJaar = dateSupplier.getLocalDate().getYear();
-		var vanafGeboorteJaar = huidigJaar - maximaleLeeftijd - 1;
-		var totEnMetGeboorteJaar = huidigJaar - minimaleLeeftijd + 3;
-
-		criteria.add(Restrictions.ge("persoon.geboortedatum", DateUtil.toUtilDate(LocalDate.of(vanafGeboorteJaar, 1, 1))));
-		criteria.add(Restrictions.le("persoon.geboortedatum", DateUtil.toUtilDate(LocalDate.of(totEnMetGeboorteJaar, 12, 31))));
-
-		ScreenitRestrictions.addClientBaseRestrictions(criteria, "client", "persoon");
-		criteria.add(NvlRestrictions.eq("dossier.status", DossierStatus.ACTIEF, "'" + DossierStatus.ACTIEF.toString() + "'"));
-		criteria.add(Restrictions.isNull("dossier.screeningRondeEvent"));
-
-		return criteria;
+		return heeftGeenScreeningRondeEvent()
+			.and(heeftStatus(ACTIEF))
+			.and(heeftActieveClient().with(MammaDossier_.client))
+			.and(heeftGeboortedatumIn(geboortedatumBereik).with(r -> getPersoonJoin(r)));
 	}
 
+	private static Join<?, GbaPersoon> getPersoonJoin(From<?, ? extends MammaDossier> r)
+	{
+		var clientJoin = join(r, MammaDossier_.client);
+		return join(clientJoin, Client_.persoon);
+	}
 }

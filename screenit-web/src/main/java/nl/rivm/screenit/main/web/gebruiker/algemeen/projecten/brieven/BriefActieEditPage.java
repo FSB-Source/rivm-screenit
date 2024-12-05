@@ -36,6 +36,7 @@ import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.component.validator.FileValidator;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.ProjectBasePage;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.ProjectPaspoortPanel;
+import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.FileType;
@@ -52,7 +53,6 @@ import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.VragenlijstBaseService;
 import nl.rivm.screenit.util.EnumStringUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.organisatie.model.Organisatie;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.SimpleListHibernateModel;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -107,7 +107,7 @@ public class BriefActieEditPage extends ProjectBasePage
 
 	private final IModel<ProjectBriefActie> briefActieModel;
 
-	private IModel<ProjectBriefActie> briefHerinnerenVragenlijstModel;
+	private final IModel<ProjectBriefActie> briefHerinnerenVragenlijstModel;
 
 	private final IModel<List<FileUpload>> fileUploads = new ListModel<>();
 
@@ -455,7 +455,7 @@ public class BriefActieEditPage extends ProjectBasePage
 	private String getBestandsNaam(ProjectBriefActie actie)
 	{
 		String naam = "2017-01-01_12.00-";
-		Organisatie organisatie = ScreenitSession.get().getLoggedInInstellingGebruiker().getOrganisatie();
+		Instelling organisatie = ScreenitSession.get().getLoggedInInstellingGebruiker().getOrganisatie();
 		if (organisatie != null)
 		{
 			String soNaam = organisatie.getNaam();

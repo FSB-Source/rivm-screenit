@@ -21,7 +21,6 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie;
  * =========================LICENSE_END==================================
  */
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,29 +32,18 @@ import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
 import nl.rivm.screenit.main.web.gebruiker.base.ZoekenContextMenuItem;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
-import nl.rivm.screenit.model.BMHKLaboratorium;
-import nl.rivm.screenit.model.BeoordelingsEenheid;
-import nl.rivm.screenit.model.CentraleEenheid;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.Mammapoli;
 import nl.rivm.screenit.model.OrganisatieType;
-import nl.rivm.screenit.model.RadiologieAfdeling;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.model.ZorgInstelling;
-import nl.rivm.screenit.model.cervix.CervixHuisarts;
-import nl.rivm.screenit.model.colon.ColonIntakelocatie;
-import nl.rivm.screenit.model.colon.ColoscopieLocatie;
-import nl.rivm.screenit.model.colon.IFobtLaboratorium;
-import nl.rivm.screenit.model.colon.PaLaboratorium;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
 import nl.rivm.screenit.service.AutorisatieService;
+import nl.rivm.screenit.util.OrganisatieUtil;
 import nl.topicuszorg.organisatie.model.Adres;
-import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
+import nl.topicuszorg.organisatie.model.Adres_;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.Session;
@@ -81,40 +69,40 @@ import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
 
+import static nl.rivm.screenit.model.Instelling_.ACTIEF;
+import static nl.rivm.screenit.model.Instelling_.ADRESSEN;
+import static nl.rivm.screenit.model.Instelling_.NAAM;
+import static nl.rivm.screenit.model.Instelling_.ORGANISATIE_TYPE;
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
+import static nl.topicuszorg.organisatie.model.Adres_.PLAATS;
+
 @SecurityConstraint(
 	actie = Actie.INZIEN,
 	checkScope = true,
 	constraint = ShiroConstraint.HasPermission,
 	recht = { Recht.GEBRUIKER_COLOSCOPIECENTRUM_ORG_BEHEER, Recht.GEBRUIKER_MAMMA_MAMMAPOLI_ORG_BEHEER, Recht.GEBRUIKER_MAMMA_RADIOLOGIEAFDELING_ORG_BEHEER,
 		Recht.GEBRUIKER_BEHEER_CC_LOCATIES, Recht.GEBRUIKER_BEHEER_CC_GEBIEDEN, Recht.GEBRUIKER_INPAKCENTRUM_ORG_BEHEER, Recht.GEBRUIKER_LABORATORIA_BEHEER,
-		Recht.GEBRUIKER_PA_LABORATORIA_BEHEER, Recht.GEBRUIKER_RIVM_BEHEER, Recht.GEBRUIKER_ZORGVERZEKERAARS_BEHEER, Recht.GEBRUIKER_SCREENINGS_ORG_BEHEER,
+		Recht.GEBRUIKER_PA_LABORATORIA_BEHEER, Recht.GEBRUIKER_RIVM_BEHEER, Recht.GEBRUIKER_SCREENINGS_ORG_BEHEER,
 		Recht.GEBRUIKER_ZORGINSTELLING_ORG_BEHEER, Recht.GEBRUIKER_COLOSCOPIELOCATIE_ORG_BEHEER, Recht.GEBRUIKER_HUISARTSENPRAKTIJKEN_BEHEER,
-		Recht.GEBRUIKER_BMHK_LABORATORIA_BEHEER, Recht.GEBRUIKER_CENTRALE_EENHEID_ORG_BEHEER, Recht.GEBRUIKER_BEOORDELINGSEENHEID_ORG_BEHEER,
-		Recht.GEBRUIKER_HUISARTSENPRAKTIJKEN_BEHEER },
+		Recht.GEBRUIKER_BMHK_LABORATORIA_BEHEER, Recht.GEBRUIKER_CENTRALE_EENHEID_ORG_BEHEER, Recht.GEBRUIKER_BEOORDELINGSEENHEID_ORG_BEHEER },
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA },
 	level = ToegangLevel.INSTELLING)
 @ZoekenContextMenuItem
 public class OrganisatieZoeken extends OrganisatieBeheer
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private final IModel<List<OrganisatieType>> selectedOrganisatieTypes;
 
 	@SpringBean
 	private AutorisatieService autorisatieService;
 
-	@SpringBean
-	private SimplePreferenceService preferenceService;
-
-	private Form<Instelling> zoekForm;
+	private final Form<Instelling> zoekForm;
 
 	public OrganisatieZoeken()
 	{
 		setCurrentSelectedOrganisatie(null);
 		setCurrentSelectedMedewerker(null);
 
-		final WebMarkupContainer refreshContainer = new WebMarkupContainer("refreshContainer");
+		final var refreshContainer = new WebMarkupContainer("refreshContainer");
 		refreshContainer.setOutputMarkupId(Boolean.TRUE);
 		add(refreshContainer);
 
@@ -125,84 +113,77 @@ public class OrganisatieZoeken extends OrganisatieBeheer
 		}
 		else
 		{
-			Instelling zoekObject = new Instelling();
+			var zoekObject = new Instelling();
 			zoekObject.add(new Adres());
-			zoekObject.setOrganisatieMedewerkers(new ArrayList<InstellingGebruiker>());
+			zoekObject.setOrganisatieMedewerkers(new ArrayList<>());
 			zoekObject.getOrganisatieMedewerkers().add(new InstellingGebruiker());
 			zoekObject.getOrganisatieMedewerkers().get(0).setMedewerker(new Gebruiker());
 			zoekObject.setActief(true);
 			criteriaModel = Model.of(zoekObject);
 		}
-		List<OrganisatieType> choices = autorisatieService.getOrganisatieTypes(ScreenitSession.get().getLoggedInInstellingGebruiker(), true);
+		var choices = autorisatieService.getOrganisatieTypes(ScreenitSession.get().getLoggedInInstellingGebruiker(), true);
 		if (ScreenitSession.get().isZoekObjectGezetForComponent("OrganisatieZoeken.selectedOrganisatieTypes"))
 		{
 			selectedOrganisatieTypes = (IModel<List<OrganisatieType>>) ScreenitSession.get().getZoekObject("OrganisatieZoeken.selectedOrganisatieTypes");
 		}
 		else
 		{
-			selectedOrganisatieTypes = new ListModel<>(new ArrayList<OrganisatieType>());
+			selectedOrganisatieTypes = new ListModel<>(new ArrayList<>());
 		}
 
-		List<IColumn<Instelling, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<Instelling, String>(Model.of("Naam organisatie"), "naam", "naam"));
-		columns.add(new PropertyColumn<Instelling, String>(Model.of("Adres"), "adres.straat", "adressen[0].adres")
+		var columns = new ArrayList<IColumn<Instelling, String>>();
+		columns.add(new PropertyColumn<>(Model.of("Naam organisatie"), NAAM, NAAM));
+		columns.add(new PropertyColumn<>(Model.of("Adres"), propertyChain(ADRESSEN, Adres_.STRAAT), "adressen[0].adres")
 		{
 
-			private static final long serialVersionUID = 1L;
-
 			@Override
-			public IModel<Object> getDataModel(IModel<Instelling> rowModel)
+			public IModel<?> getDataModel(IModel<Instelling> rowModel)
 			{
 				if (rowModel.getObject().getOrganisatieType() == OrganisatieType.HUISARTS)
 				{
-					return new PropertyModel<Object>(rowModel, "postadres.adres");
+					return new PropertyModel<>(rowModel, "postadres.adres");
 				}
 				else
 				{
-					return (IModel) super.getDataModel(rowModel);
+					return super.getDataModel(rowModel);
 				}
 			}
 
 		});
-		columns.add(new PropertyColumn<Instelling, String>(Model.of("Plaats"), "adres.plaats", "adressen[0].plaats")
+		columns.add(new PropertyColumn<>(Model.of("Plaats"), propertyChain(ADRESSEN, PLAATS), "adressen[0].plaats")
 		{
 
-			private static final long serialVersionUID = 1L;
-
 			@Override
-			public IModel<Object> getDataModel(IModel<Instelling> rowModel)
+			public IModel<?> getDataModel(IModel<Instelling> rowModel)
 			{
 				if (rowModel.getObject().getOrganisatieType() == OrganisatieType.HUISARTS)
 				{
-					return new PropertyModel<Object>(rowModel, "postadres.woonplaats.naam");
+					return new PropertyModel<>(rowModel, "postadres.woonplaats.naam");
 				}
 				else
 				{
-					return (IModel) super.getDataModel(rowModel);
+					return super.getDataModel(rowModel);
 				}
 			}
 
 		});
-		columns.add(new PropertyColumn<Instelling, String>(Model.of("Soort organisatie"), "organisatieType", "organisatieType"));
+		columns.add(new PropertyColumn<>(Model.of("Soort organisatie"), ORGANISATIE_TYPE, ORGANISATIE_TYPE));
 
-		columns.add(new ActiefPropertyColumn<Instelling, Instelling>(Model.of(""), "actief", refreshContainer, criteriaModel.getObject()));
+		columns.add(new ActiefPropertyColumn<>(Model.of(""), ACTIEF, refreshContainer, criteriaModel.getObject()));
 
-		ScreenitDataTable<Instelling, String> organisaties = new ScreenitDataTable<Instelling, String>("organisaties", columns,
+		var organisaties = new ScreenitDataTable<>("organisaties", columns,
 			new OrganisatieDataProvider(criteriaModel, selectedOrganisatieTypes, null, "naam"), 10, new Model<>("organisaties"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<Instelling> model)
 			{
-				Instelling organisatie = model.getObject();
+				var organisatie = model.getObject();
 				organisatie.getOrganisatieMedewerkers().size();
 				setCurrentSelectedOrganisatie(organisatie);
 
 				BasePage.markeerFormulierenOpgeslagen(target);
 
-				for (GebruikerMenuItem menuItem : OrganisatieBeheer.createContextMenu())
+				for (var menuItem : OrganisatieBeheer.createContextMenu())
 				{
 					if (Session.get().getAuthorizationStrategy().isInstantiationAuthorized(menuItem.getTargetPageClass())
 						&& !menuItem.getTargetPageClass().equals(OrganisatieZoeken.class))
@@ -220,7 +201,7 @@ public class OrganisatieZoeken extends OrganisatieBeheer
 		addNieuwOrganisatieDropDown();
 
 		setDefaultModel(new CompoundPropertyModel<>(criteriaModel));
-		zoekForm = new Form<Instelling>("zoekForm", (IModel<Instelling>) getDefaultModel());
+		zoekForm = new Form<>("zoekForm", (IModel<Instelling>) getDefaultModel());
 		add(zoekForm);
 
 		zoekForm.add(new TextField<>("naam"));
@@ -231,13 +212,11 @@ public class OrganisatieZoeken extends OrganisatieBeheer
 		zoekForm.add(new TextField<>("uziAbonneenummer"));
 		zoekForm.add(new TextField<>("email"));
 
-		zoekForm.add(new ListMultipleChoice<OrganisatieType>("selectedOrganisatieTypes", new PropertyModel<List<OrganisatieType>>(this, "selectedOrganisatieTypes"), choices,
-			new EnumChoiceRenderer<OrganisatieType>()));
+		zoekForm.add(new ListMultipleChoice<>("selectedOrganisatieTypes", new PropertyModel<List<OrganisatieType>>(this, "selectedOrganisatieTypes"), choices,
+			new EnumChoiceRenderer<>()));
 
 		zoekForm.add(new AjaxSubmitLink("zoeken", zoekForm)
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
@@ -252,111 +231,35 @@ public class OrganisatieZoeken extends OrganisatieBeheer
 
 	private void addNieuwOrganisatieDropDown()
 	{
-		List<OrganisatieType> list = autorisatieService.getOrganisatieTypes(ScreenitSession.get().getLoggedInInstellingGebruiker(), Actie.TOEVOEGEN, true);
+		var list = autorisatieService.getOrganisatieTypes(ScreenitSession.get().getLoggedInInstellingGebruiker(), Actie.TOEVOEGEN, true);
 		list.remove(OrganisatieType.RIVM);
 		list.remove(OrganisatieType.HUISARTS);
-		ListView<OrganisatieType> nieuwOrganisatieTypes = new ListView<OrganisatieType>("nieuwOrganisatieTypes", list)
+		var nieuwOrganisatieTypes = new ListView<>("nieuwOrganisatieTypes", list)
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void populateItem(final ListItem<OrganisatieType> item)
 			{
-				AjaxLink<Void> nieuwOrganisatie = new AjaxLink<Void>("nieuwOrganisatie")
+				var nieuwOrganisatie = new AjaxLink<Void>("nieuwOrganisatie")
 				{
-
-					private static final long serialVersionUID = 1L;
-
 					@Override
 					public void onClick(AjaxRequestTarget target)
 					{
-						Instelling nieuweOrganisatie = createOrganisatie(item.getModelObject());
-						setResponsePage(new OrganisatieBasisgegevens(ModelUtil.cModel(nieuweOrganisatie)));
+						var nieuweOrganisatie = OrganisatieUtil.maakOrganisatie(item.getModelObject(), ScreenitSession.get().getLoggedInInstellingGebruiker().getOrganisatie());
+						setResponsePage(new OrganisatieBasisgegevens(ModelUtil.ccModel(nieuweOrganisatie)));
 					}
 
 				};
 				item.add(nieuwOrganisatie);
 
-				nieuwOrganisatie.add(new EnumLabel<OrganisatieType>("label", item.getModelObject()));
+				nieuwOrganisatie.add(new EnumLabel<>("label", item.getModelObject()));
 			}
 
 		};
 		add(nieuwOrganisatieTypes);
-		Button toevoegen = new Button("toevoegen");
+		var toevoegen = new Button("toevoegen");
 		toevoegen.setVisible(!list.isEmpty());
 		add(toevoegen);
-	}
-
-	private Instelling createOrganisatie(OrganisatieType organisatieType)
-	{
-		Instelling nieuweOrganisatie = null;
-		Instelling ingelogdVoorOrganisatie = ScreenitSession.get().getLoggedInInstellingGebruiker().getOrganisatie();
-		switch (organisatieType)
-		{
-		case MAMMAPOLI:
-			nieuweOrganisatie = new Mammapoli();
-			break;
-		case RADIOLOGIEAFDELING:
-			nieuweOrganisatie = new RadiologieAfdeling();
-			break;
-		case INTAKELOCATIE:
-			nieuweOrganisatie = new ColonIntakelocatie();
-			if (ingelogdVoorOrganisatie.getOrganisatieType().equals(OrganisatieType.ZORGINSTELLING))
-			{
-				nieuweOrganisatie.setParent(ingelogdVoorOrganisatie);
-			}
-			break;
-		case SCREENINGSORGANISATIE:
-			nieuweOrganisatie = new ScreeningOrganisatie();
-			((ScreeningOrganisatie) nieuweOrganisatie).setAfspraakDrempelBk(10);
-			((ScreeningOrganisatie) nieuweOrganisatie).setFactorMinderValideBk(new BigDecimal(3.0));
-			((ScreeningOrganisatie) nieuweOrganisatie).setFactorDubbeleTijdBk(new BigDecimal(2.0));
-			((ScreeningOrganisatie) nieuweOrganisatie).setFactorEersteOnderzoekBk(new BigDecimal(1.1));
-			break;
-		case LABORATORIUM:
-			nieuweOrganisatie = new IFobtLaboratorium();
-			break;
-		case PA_LABORATORIUM:
-			nieuweOrganisatie = new PaLaboratorium();
-			break;
-		case BMHK_LABORATORIUM:
-			nieuweOrganisatie = new BMHKLaboratorium();
-			break;
-		case HUISARTS:
-			nieuweOrganisatie = new CervixHuisarts();
-			break;
-		case ZORGINSTELLING:
-			nieuweOrganisatie = new ZorgInstelling();
-			if (ingelogdVoorOrganisatie.getOrganisatieType().equals(OrganisatieType.SCREENINGSORGANISATIE))
-			{
-				nieuweOrganisatie.setParent(ingelogdVoorOrganisatie);
-			}
-			break;
-		case COLOSCOPIELOCATIE:
-			nieuweOrganisatie = new ColoscopieLocatie();
-			if (ingelogdVoorOrganisatie.getOrganisatieType().equals(OrganisatieType.ZORGINSTELLING))
-			{
-				nieuweOrganisatie.setParent(ingelogdVoorOrganisatie);
-			}
-			break;
-		case CENTRALE_EENHEID:
-			nieuweOrganisatie = new CentraleEenheid();
-			if (ingelogdVoorOrganisatie.getOrganisatieType().equals(OrganisatieType.SCREENINGSORGANISATIE))
-			{
-				nieuweOrganisatie.setRegio(ingelogdVoorOrganisatie);
-			}
-			break;
-		case BEOORDELINGSEENHEID:
-			nieuweOrganisatie = new BeoordelingsEenheid();
-			break;
-		default:
-			nieuweOrganisatie = new Instelling();
-			break;
-		}
-		nieuweOrganisatie.setOrganisatieType(organisatieType);
-		nieuweOrganisatie.setActief(true);
-		return nieuweOrganisatie;
 	}
 
 	@Override

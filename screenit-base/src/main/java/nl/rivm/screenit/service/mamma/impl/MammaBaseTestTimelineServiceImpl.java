@@ -27,7 +27,6 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
-import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaMergedBrieven;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
@@ -147,10 +146,10 @@ public class MammaBaseTestTimelineServiceImpl implements MammaBaseTestTimelineSe
 	@Override
 	public MammaAfspraak maakAfspraak(MammaScreeningRonde ronde, MammaScreeningsEenheid screeningsEenheid, boolean stuurHl7Bericht)
 	{
-		rekenDossierTerug(ronde.getDossier(), MammaTestTimeLineDossierTijdstip.DATUM_TIJD_AFSPRAAK);
+		testTimelineTimeService.rekenDossierTerug(ronde.getDossier(), MammaTestTimeLineDossierTijdstip.DATUM_TIJD_AFSPRAAK);
 
 		var nu = currentDateSupplier.getLocalDateTime();
-		var afspraakDatum = nu.truncatedTo(ChronoUnit.HOURS).plusMinutes(30 * (nu.getMinute() / 30)).plusWeeks(5);
+		var afspraakDatum = nu.truncatedTo(ChronoUnit.HOURS).plusMinutes(30L * (nu.getMinute() / 30)).plusWeeks(5);
 		var standplaatsPeriode = screeningsEenheid.getStandplaatsPerioden().get(0);
 		if (standplaatsPeriode == null)
 		{
@@ -166,7 +165,7 @@ public class MammaBaseTestTimelineServiceImpl implements MammaBaseTestTimelineSe
 		var dossier = client.getMammaDossier();
 		if (rekenDossierTerug)
 		{
-			rekenDossierTerug(dossier, MammaTestTimeLineDossierTijdstip.NIEUWE_RONDE);
+			testTimelineTimeService.rekenDossierTerug(dossier, MammaTestTimeLineDossierTijdstip.NIEUWE_RONDE);
 		}
 
 		if (standplaatsRonde == null)
@@ -181,7 +180,7 @@ public class MammaBaseTestTimelineServiceImpl implements MammaBaseTestTimelineSe
 		return factory.maakRonde(dossier, standplaatsRonde, false);
 	}
 
-	private MammaBaseTestTimelineService verzendLaatsteBrief(MammaScreeningRonde ronde)
+	private void verzendLaatsteBrief(MammaScreeningRonde ronde)
 	{
 		var brief = ronde.getLaatsteBrief();
 
@@ -200,32 +199,5 @@ public class MammaBaseTestTimelineServiceImpl implements MammaBaseTestTimelineSe
 		mergedBrieven.setMergedBrieven(fakeMergeDocument);
 		hibernateService.saveOrUpdate(mergedBrieven);
 		hibernateService.saveOrUpdate(brief);
-		return this;
-	}
-
-	private boolean rekenDossierTerug(MammaDossier dossier, MammaTestTimeLineDossierTijdstip tijdstip)
-	{
-		koppelAfsprakenLos(dossier);
-		return testTimelineTimeService.rekenDossierTerug(dossier, tijdstip);
-	}
-
-	private void koppelAfsprakenLos(MammaDossier dossier)
-	{
-		for (var screeningRonde : dossier.getScreeningRondes())
-		{
-			for (var uitnodiging : screeningRonde.getUitnodigingen())
-			{
-				for (var afspraak : uitnodiging.getAfspraken())
-				{
-					var capaciteitBlok = afspraak.getCapaciteitBlok();
-					if (capaciteitBlok != null)
-					{
-						afspraak.setCapaciteitBlok(null);
-						capaciteitBlok.getAfspraken().remove(afspraak);
-						hibernateService.saveOrUpdateAll(afspraak, capaciteitBlok);
-					}
-				}
-			}
-		}
 	}
 }

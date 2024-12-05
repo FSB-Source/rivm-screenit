@@ -26,16 +26,16 @@ import java.util.Iterator;
 import java.util.List;
 
 import nl.rivm.screenit.main.web.ScreenitSession;
-import nl.rivm.screenit.model.colon.Complicatie;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.SortState;
+import nl.rivm.screenit.model.colon.Complicatie;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
-import nl.rivm.screenit.service.colon.ComplicatieService;
 import nl.rivm.screenit.service.OrganisatieZoekService;
+import nl.rivm.screenit.service.colon.ComplicatieService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -55,7 +55,7 @@ public class ComplicatieDataProvider extends SortableDataProvider<Complicatie, S
 	@SpringBean
 	private OrganisatieZoekService organisatieZoekService;
 
-	private IModel<Complicatie> criteria;
+	private final IModel<Complicatie> criteria;
 
 	public ComplicatieDataProvider(IModel<Complicatie> criteria)
 	{
@@ -105,7 +105,7 @@ public class ComplicatieDataProvider extends SortableDataProvider<Complicatie, S
 
 		if (toegangsLevel != null)
 		{
-			hierarchieCriteria = organisatieZoekService.getZichtbateInstellingenOpToegangLevel(loggedInInstellingGebruiker.getOrganisatie(), toegangsLevel, types);
+			hierarchieCriteria = organisatieZoekService.getZichtbareInstellingenOpToegangLevel(loggedInInstellingGebruiker.getOrganisatie(), toegangsLevel, types);
 
 			Instelling instelling = loggedInInstellingGebruiker.getOrganisatie();
 			hierarchieCriteria.add(instelling.getId());

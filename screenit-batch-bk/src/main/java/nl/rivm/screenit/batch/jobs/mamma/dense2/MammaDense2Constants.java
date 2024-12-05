@@ -31,4 +31,6 @@ public class MammaDense2Constants
 
 	public static final String AANTAL_CLIENTEN_IN_EXPORT_TWEEDE_STUDIERONDE = "mamma.aantal_clienten_in_export_tweede_studieronde";
 
+	public static final String AANTAL_ONDERZOEKEN_DENSITEIT_VERWIJDERD = "mamma.aantal_onderzoeken_densiteit_verwijderd";
+
 }

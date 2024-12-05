@@ -62,7 +62,6 @@ import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid_;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.service.InstellingService;
-import nl.topicuszorg.organisatie.model.Organisatie_;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
@@ -244,7 +243,7 @@ public class MammaCeOnderbrokenOnderzoekenWerklijstPage extends AbstractMammaCeW
 		columns.add(new PropertyColumn<>(Model.of("SE"), propertyChain(MammaOnderzoek_.SCREENINGS_EENHEID, MammaScreeningsEenheid_.NAAM), "screeningsEenheid.code"));
 		columns.add(
 			new PropertyColumn<>(Model.of("CE"),
-				propertyChain(MammaOnderzoek_.SCREENINGS_EENHEID, MammaScreeningsEenheid_.BEOORDELINGS_EENHEID, Instelling_.PARENT, Organisatie_.NAAM),
+				propertyChain(MammaOnderzoek_.SCREENINGS_EENHEID, MammaScreeningsEenheid_.BEOORDELINGS_EENHEID, Instelling_.PARENT, Instelling_.NAAM),
 				"screeningsEenheid.beoordelingsEenheid.parent.naam"));
 		columns.add(new PropertyColumn<>(Model.of("Datum brief oproep"), "afspraak.uitnodiging.screeningRonde")
 		{

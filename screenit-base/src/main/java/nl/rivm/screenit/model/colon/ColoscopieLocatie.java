@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.colon;
 
 /*-
@@ -25,33 +24,21 @@ package nl.rivm.screenit.model.colon;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.Instelling;
-import nl.rivm.screenit.model.helper.HibernateMagicNumber;
 
 import org.hibernate.envers.Audited;
 
+@Setter
+@Getter
 @Entity
 @Audited
 public class ColoscopieLocatie extends Instelling
 {
 
-	private static final long serialVersionUID = 1L;
-
-	@Column(nullable = true, length = HibernateMagicNumber.L255)
+	@Column
 	private String fqdn;
-
-	public ColoscopieLocatie()
-	{
-	}
-
-	public String getFqdn()
-	{
-		return fqdn;
-	}
-
-	public void setFqdn(String fqdn)
-	{
-		this.fqdn = fqdn;
-	}
 
 }

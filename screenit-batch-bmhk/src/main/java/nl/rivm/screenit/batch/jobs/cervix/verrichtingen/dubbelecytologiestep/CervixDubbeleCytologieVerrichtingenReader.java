@@ -21,24 +21,24 @@ package nl.rivm.screenit.batch.jobs.cervix.verrichtingen.dubbelecytologiestep;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.cervix.CervixMonster_;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
-import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
+import nl.rivm.screenit.model.cervix.CervixUitstrijkje_;
 import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting;
+import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting_;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import static nl.rivm.screenit.batch.jobs.cervix.verrichtingen.CervixBepalenVerrichtingenJobConfiguration.CERVIX_BEPALEN_VERRICHTINGEN_JOB_FETCH_SIZE;
+import static nl.rivm.screenit.model.cervix.enums.CervixTariefType.CYTOLOGIE_TARIEF_TYPES;
+import static nl.rivm.screenit.specification.cervix.CervixMonsterSpecification.heeftCytologieVerslag;
+import static nl.rivm.screenit.specification.cervix.CervixMonsterSpecification.heeftVerrichtingen;
+import static nl.rivm.screenit.specification.cervix.CervixVerrichtingSpecification.heeftTypeIn;
 
 @Component
-public class CervixDubbeleCytologieVerrichtingenReader extends BaseScrollableResultReader
+public class CervixDubbeleCytologieVerrichtingenReader extends BaseSpecificationScrollableResultReader<CervixUitstrijkje>
 {
 
 	public CervixDubbeleCytologieVerrichtingenReader()
@@ -47,25 +47,22 @@ public class CervixDubbeleCytologieVerrichtingenReader extends BaseScrollableRes
 	}
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<CervixUitstrijkje> createSpecification()
 	{
-		var criteria = session.createCriteria(CervixUitstrijkje.class);
-		criteria.createAlias("verrichtingen", "verrichtingen");
+		return (r, q, cb) ->
+		{
+			var subquery = q.subquery(Long.class);
+			var subRoot = subquery.from(CervixVerrichting.class);
+			subquery
+				.select(subRoot.get(CervixVerrichting_.monster).get(CervixMonster_.id))
+				.where(heeftTypeIn(CYTOLOGIE_TARIEF_TYPES).toPredicate(subRoot, q, cb)
+				);
 
-		criteria.add(Restrictions.isNotNull("cytologieVerslag"));
-
-		var verrichtingSubquery = DetachedCriteria.forClass(CervixVerrichting.class);
-		verrichtingSubquery.add(Restrictions.in("type", new CervixTariefType[] {
-			CervixTariefType.LAB_CYTOLOGIE_NA_HPV_ZAS,
-			CervixTariefType.LAB_CYTOLOGIE_NA_HPV_UITSTRIJKJE,
-			CervixTariefType.LAB_CYTOLOGIE_VERVOLGUITSTRIJKJE,
-			CervixTariefType.LAB_CERVIXCYTOLOGIE_MET_COS,
-			CervixTariefType.LAB_CERVIXCYTOLOGIE_MANUEEL_SCREENEN
-		}));
-		verrichtingSubquery.setProjection(Projections.property("monster"));
-
-		criteria.add(Subqueries.propertyNotIn("verrichtingen.monster", verrichtingSubquery));
-		criteria.add(Restrictions.isNotEmpty("verrichtingen"));
-		return criteria;
+			return cb.and(
+				cb.not(cb.in(r.get(CervixUitstrijkje_.id)).value(subquery)),
+				heeftVerrichtingen().toPredicate(r, q, cb),
+				heeftCytologieVerslag().toPredicate(r, q, cb)
+			);
+		};
 	}
 }

@@ -40,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static nl.rivm.screenit.specification.algemeen.EnovationHuisartsSpecification.filterAdres;
 import static nl.rivm.screenit.specification.algemeen.EnovationHuisartsSpecification.filterNaam;
-import static nl.rivm.screenit.specification.algemeen.EnovationHuisartsSpecification.isNietVerwijderd;
+import static nl.rivm.screenit.specification.algemeen.EnovationHuisartsSpecification.isVerwijderd;
 
 @Service
 @Slf4j
@@ -94,7 +94,7 @@ public class EnovationHuisartsServiceImpl implements EnovationHuisartsService
 
 	private List<String> getKlantnummersVanAlleActiveHuisartsen()
 	{
-		return huisartsRepository.findWith(isNietVerwijderd(), String.class, q -> q.projection((cb, r) -> r.get(EnovationHuisarts_.klantnummer))).all();
+		return huisartsRepository.findWith(isVerwijderd(false), String.class, q -> q.projection((cb, r) -> r.get(EnovationHuisarts_.klantnummer))).all();
 	}
 
 	@Override
@@ -108,7 +108,7 @@ public class EnovationHuisartsServiceImpl implements EnovationHuisartsService
 	{
 		return filterNaam(filter.getAchternaam())
 			.and(filterAdres(filter.getAdres()))
-			.and(isNietVerwijderd());
+			.and(isVerwijderd(false));
 	}
 
 	@Override

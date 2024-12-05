@@ -28,7 +28,7 @@ import java.util.List;
 import javax.persistence.criteria.Predicate;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.ScreeningOrganisatie_;
@@ -47,7 +47,7 @@ import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNull;
 import static nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification.verrichtingJoin;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixVerrichtingSpecification
 {
 
@@ -124,6 +124,11 @@ public class CervixVerrichtingSpecification
 		});
 	}
 
+	public static Specification<CervixVerrichting> heeftTypeIn(List<CervixTariefType> types)
+	{
+		return (r, q, cb) -> r.get(CervixVerrichting_.type).in(types);
+	}
+
 	private static PathAwarePredicate<CervixVerrichting> verichtingsDatumValtTussenPredicate(LocalDate vanafDatum, LocalDate totEnMetDatum)
 	{
 		return (cb, r) ->
@@ -145,5 +150,4 @@ public class CervixVerrichtingSpecification
 	{
 		return (cb, r) -> cb.lessThan(r.get(CervixVerrichting_.verrichtingsDatum), DateUtil.toUtilDate(totEnMetDatum.plusDays(1)));
 	}
-
 }

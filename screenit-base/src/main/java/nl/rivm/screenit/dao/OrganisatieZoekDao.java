@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.dao;
 
 /*-
@@ -22,7 +21,6 @@ package nl.rivm.screenit.dao;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -35,13 +33,6 @@ import org.hibernate.criterion.Criterion;
 public interface OrganisatieZoekDao
 {
 
-	Iterator<Instelling> searchOrganisatie(Instelling searchObject, Map<OrganisatieType, List<Instelling>> typeSelection, List<OrganisatieType> excludeOrganisatieTypes, long first,
-		long count, String sortProperty, boolean asc);
-
-	long countOrganisatie(Instelling searchObject, Map<OrganisatieType, List<Instelling>> typeSelection, List<OrganisatieType> excludeOrganisatieTypes);
-
 	Criterion addHierarchieCrit(Entry<OrganisatieType, List<Instelling>> type, Map<String, String> aliassen, String root);
-
-	List<Instelling> zoekOrganisatieMetFqdn(String fqdn);
 
 }

@@ -22,20 +22,21 @@ package nl.rivm.screenit.batch.jobs.mamma.aftergba.deelnamekansenherzien;
  */
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.mamma.MammaDossier;
+import nl.rivm.screenit.model.mamma.MammaDossier_;
+import nl.rivm.screenit.specification.mamma.MammaBaseDossierSpecification;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.MatchMode;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import static nl.rivm.screenit.batch.jobs.mamma.aftergba.AfterGbaJobConfiguration.AFTER_GBA_JOB_READER_FETCH_SIZE;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.GbaMutatieSpecification.filterOpAanvullendeInformatieContaining;
 
 @Component
-public class MammaDeelnamekansenHerzienReader extends BaseScrollableResultReader
+public class MammaDeelnamekansenHerzienReader extends BaseSpecificationScrollableResultReader<MammaDossier>
 {
 
 	public MammaDeelnamekansenHerzienReader()
@@ -44,14 +45,18 @@ public class MammaDeelnamekansenHerzienReader extends BaseScrollableResultReader
 	}
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<MammaDossier> createSpecification()
 	{
-		var criteria = session.createCriteria(MammaDossier.class, "dossier");
-		criteria.createAlias("dossier.client", "client");
-		criteria.createAlias("client.laatsteGbaMutatie", "gbaMutatie");
+		return heeftMutatieMetAdresGewijzigdMarker()
+			.and(MammaBaseDossierSpecification.heeftScreeningRondeEvent());
+	}
 
-		criteria.add(Restrictions.like("gbaMutatie.aanvullendeInformatie", Constants.MAMMA_ADRES_GEWIJZIGD_MARKER, MatchMode.ANYWHERE));
-		criteria.add(Restrictions.isNotNull("dossier.screeningRondeEvent"));
-		return criteria;
+	private Specification<MammaDossier> heeftMutatieMetAdresGewijzigdMarker()
+	{
+		return filterOpAanvullendeInformatieContaining(Constants.MAMMA_ADRES_GEWIJZIGD_MARKER).with(r ->
+		{
+			var client = join(r, MammaDossier_.client);
+			return join(client, Client_.laatsteGbaMutatie);
+		});
 	}
 }

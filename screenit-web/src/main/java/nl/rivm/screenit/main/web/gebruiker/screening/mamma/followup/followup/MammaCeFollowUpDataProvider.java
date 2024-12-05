@@ -21,18 +21,20 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.followup.followup;
  * =========================LICENSE_END==================================
  */
 
-import com.google.common.primitives.Ints;
+import java.util.Iterator;
+
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaCeWerklijstZoekObject;
 import nl.rivm.screenit.main.service.mamma.MammaCeWerklijstService;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
+
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import java.util.Iterator;
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
 
 public class MammaCeFollowUpDataProvider extends SortableDataProvider<MammaBeoordeling, String>
 {
@@ -52,14 +54,13 @@ public class MammaCeFollowUpDataProvider extends SortableDataProvider<MammaBeoor
 	@Override
 	public Iterator<? extends MammaBeoordeling> iterator(long first, long count)
 	{
-		return ceWerklijstService.zoekFollowUpBeoordelingen(getZoekObject(), Ints.checkedCast(first), Ints.checkedCast(count), getSort().getProperty(), getSort().isAscending())
-			.iterator();
+		return ceWerklijstService.zoekFollowUpNietGedownloadBeoordelingen(getZoekObject(), first, count, toSpringSort(getSort())).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return ceWerklijstService.countFollowUpBeoordelingen(getZoekObject());
+		return ceWerklijstService.countFollowUpNietGedownloadBeoordelingen(getZoekObject());
 	}
 
 	@Override

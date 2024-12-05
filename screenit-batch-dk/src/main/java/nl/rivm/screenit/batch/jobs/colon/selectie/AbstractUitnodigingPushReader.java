@@ -21,39 +21,46 @@ package nl.rivm.screenit.batch.jobs.colon.selectie;
  * =========================LICENSE_END==================================
  */
 
+import java.lang.reflect.ParameterizedType;
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Selection;
+
+import lombok.AllArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseTypedScrollableResultReader;
-import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
-import nl.rivm.screenit.model.Gemeente;
+import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.colon.ClientCategorieEntry;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
+import nl.rivm.screenit.repository.algemeen.GemeenteRepository;
+import nl.rivm.screenit.repository.impl.FluentJpaQueryImpl;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.query.ScreenitRestrictions;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.rivm.screenit.specification.ExtendedSpecification;
+import nl.rivm.screenit.specification.algemeen.ClientSpecification;
+import nl.rivm.screenit.specification.colon.ColonUitnodigingBaseSpecification;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Projection;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.internal.CriteriaImpl;
-import org.hibernate.sql.JoinType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
+
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
 @Slf4j
-public abstract class AbstractUitnodigingPushReader extends BaseTypedScrollableResultReader<ClientCategorieEntry>
+public abstract class AbstractUitnodigingPushReader<T> extends BaseTypedScrollableResultReader<ClientCategorieEntry>
 {
 
 	@Setter
+	@AllArgsConstructor
 	public static class ClientTePushenDto
 	{
 		private Long clientId;
@@ -66,7 +73,7 @@ public abstract class AbstractUitnodigingPushReader extends BaseTypedScrollableR
 	}
 
 	@Autowired
-	private HibernateService hibernateService;
+	private GemeenteRepository gemeenteRepository;
 
 	@Autowired
 	protected ICurrentDateSupplier currentDateSupplier;
@@ -79,17 +86,17 @@ public abstract class AbstractUitnodigingPushReader extends BaseTypedScrollableR
 	}
 
 	@Override
-	public ClientCategorieEntry read() throws Exception
+	public ClientCategorieEntry read()
 	{
 		var scrollableResults = resultSet.get();
 		while (scrollableResults.next())
 		{
-			var result = mapData(getObjectFromScrollableResult(scrollableResults));
+			var result = (ClientTePushenDto) scrollableResults.get()[0];
 			Long clientId = result.clientId;
 			if (!processedIds.contains(clientId))
 			{
 				processedIds.add(clientId);
-				Long screeningorganisatieId = controleerScreeningsorganisatie(result);
+				var screeningorganisatieId = controleerScreeningsorganisatie(result);
 				if (screeningorganisatieId != null)
 				{
 					return new ClientCategorieEntry(clientId, categorie, screeningorganisatieId, result.projectGroepId, Boolean.TRUE);
@@ -110,7 +117,7 @@ public abstract class AbstractUitnodigingPushReader extends BaseTypedScrollableR
 		{
 			return result.screeningorganisatieId;
 		}
-		var gemeente = hibernateService.get(Gemeente.class, result.gemeenteId);
+		var gemeente = gemeenteRepository.findById(result.gemeenteId).orElseThrow();
 		if (gemeente.getScreeningOrganisatie() == null)
 		{
 			var context = getExecutionContext();
@@ -130,30 +137,20 @@ public abstract class AbstractUitnodigingPushReader extends BaseTypedScrollableR
 		return null;
 	}
 
-	protected abstract Criteria createCriteria(StatelessSession session) throws HibernateException;
-
-	protected final void createBaseCriteria(Criteria criteria)
+	protected final ExtendedSpecification<Client> baseSpecifications()
 	{
+		ExtendedSpecification<Client> specification;
 		var vandaag = currentDateSupplier.getLocalDate();
-		criteria.createAlias("client.persoon", "persoon", JoinType.INNER_JOIN);
-		criteria.createAlias("persoon.gbaAdres", "adres", JoinType.INNER_JOIN);
-		criteria.createAlias("adres.gbaGemeente", "gemeente", JoinType.INNER_JOIN);
-		criteria.createAlias("gemeente.screeningOrganisatie", "screeningorganisatie", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("client.colonDossier", "dossier", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("dossier.volgendeUitnodiging", "volgendeUitnodiging", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("volgendeUitnodiging.interval", "interval", JoinType.LEFT_OUTER_JOIN);
-		LocalDate peildatum = getPeildatum();
+		var peildatum = getPeildatum();
 		if (categorie == ColonUitnodigingCategorie.U2)
 		{
-			criteria.createAlias("dossier.laatsteScreeningRonde", "laatsteScreeningRonde");
-			criteria.createAlias("laatsteScreeningRonde.laatsteAfspraak", "afspraak", JoinType.LEFT_OUTER_JOIN);
-			criteria.add(ColonRestrictions.getU2BaseCriteria(peildatum, vandaag));
+			specification = ColonUitnodigingBaseSpecification.u2Base(peildatum, vandaag, JoinType.INNER).with(r -> join(r, Client_.colonDossier));
 		}
 		else
 		{
-			criteria.add(ColonRestrictions.getU1BaseCriteria(peildatum, null, vandaag));
+			specification = ColonUitnodigingBaseSpecification.u1Base(peildatum, vandaag, null);
 		}
-		ScreenitRestrictions.addClientBaseRestrictions(criteria, "client", "persoon");
+		return specification.and(ClientSpecification.heeftActieveClient());
 	}
 
 	protected LocalDate getPeildatum()
@@ -164,43 +161,19 @@ public abstract class AbstractUitnodigingPushReader extends BaseTypedScrollableR
 	@Override
 	protected ScrollableResults createScrollableResults(StatelessSession session)
 	{
-		var crit = createCriteria(session);
+		var jpaQuery = new FluentJpaQueryImpl<>(createSpecification(), getHibernateSession(), getEntityClass(), ClientTePushenDto.class);
+		jpaQuery.projections((cb, r) -> createProjections(r, cb));
 
-		if (Integer.valueOf(0).equals(((CriteriaImpl) crit).getMaxResults()))
-		{
-			crit.add(Restrictions.sqlRestriction("1 = 0"));
-		}
-		return crit.setFetchSize(fetchSize).setProjection(getProjection()).scroll(ScrollMode.FORWARD_ONLY);
+		return jpaQuery.setScrollFetchSize(fetchSize).scroll(-1);
 	}
 
-	private Object[] getObjectFromScrollableResult(ScrollableResults scrollableResults)
+	protected abstract Specification<T> createSpecification();
+
+	protected abstract List<Selection<?>> createProjections(Root<T> r, CriteriaBuilder cb);
+
+	protected Class<T> getEntityClass()
 	{
-		return scrollableResults.get();
+		return (Class<T>) ((ParameterizedType) ((Class<?>) getClass().getGenericSuperclass()).getGenericSuperclass()).getActualTypeArguments()[0];
 	}
 
-	@Override
-	protected Projection getProjection()
-	{
-		return Projections.projectionList()
-			.add(Projections.property("client.id"))
-			.add(Projections.property("groep.id"))
-			.add(Projections.property("gemeente.id"))
-			.add(Projections.property("screeningorganisatie.id"));
-	}
-
-	protected ClientTePushenDto mapData(Object[] data)
-	{
-		var dto = new ClientTePushenDto();
-		dto.setClientId(getNullSafeLongFromNumber(data[0]));
-		dto.setGemeenteId(getNullSafeLongFromNumber(data[2]));
-		dto.setProjectGroepId(getNullSafeLongFromNumber(data[1]));
-		dto.setScreeningorganisatieId(getNullSafeLongFromNumber(data[3]));
-		return dto;
-	}
-
-	protected static Long getNullSafeLongFromNumber(Object value)
-	{
-		var numberValue = (Number) value;
-		return numberValue != null ? numberValue.longValue() : null;
-	}
 }

@@ -43,10 +43,8 @@
         <table schema="algemeen"/>
     </entity>
 
-    <entity class="nl.topicuszorg.organisatie.model.Organisatie"
+    <entity class="nl.rivm.screenit.model.Instelling"
             metadata-complete="false">
-        <table schema="algemeen"/>
-        <inheritance strategy="SINGLE_TABLE"/>
         <attributes>
             <basic name="agbcode"></basic>
             <basic name="naam">
@@ -59,14 +57,15 @@
             <basic name="uziNummerServerCertificaat"></basic>
             <many-to-many name="adressen" target-entity="nl.topicuszorg.organisatie.model.Adres" fetch="LAZY">
                 <order-by>id</order-by>
-                <join-table schema="algemeen" name="org_organisatie_adressen"/>
+                <join-table schema="algemeen" name="org_organisatie_adressen">
+                    <join-column name="org_organisatie"/>
+                    <inverse-join-column name="adressen"/>
+                </join-table>
             </many-to-many>
         </attributes>
     </entity>
-    <entity class="nl.topicuszorg.organisatie.model.Medewerker"
+    <entity class="nl.rivm.screenit.model.Gebruiker"
             metadata-complete="false">
-        <table schema="algemeen"/>
-        <inheritance strategy="SINGLE_TABLE"/>
         <attributes>
             <basic name="uzinummer"></basic>
             <basic name="agbcode"></basic>
@@ -77,14 +76,11 @@
             <basic name="uziPasSerial"></basic>
             <many-to-many name="adressen" target-entity="nl.topicuszorg.organisatie.model.Adres" fetch="LAZY">
                 <order-by>id</order-by>
-                <join-table schema="algemeen" name="org_medewerker_adressen"/>
+                <join-table schema="algemeen" name="org_medewerker_adressen">
+                    <join-column name="org_medewerker"/>
+                    <inverse-join-column name="adressen"/>
+                </join-table>
             </many-to-many>
-        </attributes>
-    </entity>
-    <entity class="nl.topicuszorg.organisatie.model.OrganisatieMedewerker" metadata-complete="false">
-        <table schema="algemeen"/>
-        <attributes>
-            <many-to-one name="medewerker" target-entity="nl.rivm.screenit.model.Gebruiker"/>
         </attributes>
     </entity>
     <entity class="nl.topicuszorg.organisatie.model.Auteur" metadata-complete="false">

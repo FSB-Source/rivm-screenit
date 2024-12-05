@@ -21,6 +21,9 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.exchange;
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
 import nl.rivm.screenit.main.service.mamma.MammaUploadBeeldenService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.table.EnumPropertyColumn;
@@ -33,7 +36,9 @@ import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenVerzoek;
+import nl.rivm.screenit.model.mamma.MammaUploadBeeldenVerzoek_;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -44,9 +49,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @SecurityConstraint(
 	constraint = ShiroConstraint.HasPermission,
@@ -101,8 +103,8 @@ public class MammaExchangeUploadPage extends MammaScreeningBasePage
 
 		columns.add(new PropertyColumn<>(Model.of("Bsn"), "screeningRonde.dossier.client.persoon.bsn"));
 		columns.add(new GeboortedatumColumn<>("screeningRonde.dossier.client.persoon"));
-		columns.add(new EnumPropertyColumn<>(Model.of("Datum verzoek"), "creatieDatum", "creatieDatum"));
-		columns.add(new EnumPropertyColumn<>(Model.of("Status"), "status", "status"));
+		columns.add(new EnumPropertyColumn<>(Model.of("Datum verzoek"), MammaUploadBeeldenVerzoek_.CREATIE_DATUM, "creatieDatum"));
+		columns.add(new EnumPropertyColumn<>(Model.of("Status"), MammaUploadBeeldenVerzoek_.STATUS, "status"));
 		columns.add(new PropertyColumn<>(Model.of("Melding"), "laatsteUploadPoging.statusMelding"));
 
 		MammaExchangeUploadVerzoekDataProvider dataProvider = new MammaExchangeUploadVerzoekDataProvider(ModelUtil.sModel(ScreenitSession.get().getInstelling()));

@@ -95,9 +95,9 @@ import com.google.common.collect.Range;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
-import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftStatuses;
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftStatusIn;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.isLaatsteAfspraakVanUitnodiging;
-import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.valtInPeriode;
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.valtInDatumPeriode;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.valtOnderBlokkadeType;
 import static nl.rivm.screenit.specification.mamma.MammaUitnodigingSpecification.heeftLaatsteAfspraakMetStandplaatsPeriode;
 import static nl.rivm.screenit.specification.mamma.MammaUitnodigingSpecification.heeftLaatsteAfspraakMetStatus;
@@ -143,8 +143,8 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 	public Map<MammaScreeningsEenheid, List<LocalDate>> getAfspraakDatums(MammaBlokkade blokkade)
 	{
 		var blokkadeRange = Range.closed(DateUtil.toLocalDate(blokkade.getVanaf()), DateUtil.toLocalDate(blokkade.getTotEnMet()));
-		var afsprakenBinnenBlokkadeSpecification = valtInPeriode(blokkadeRange)
-			.and(heeftStatuses(MammaAfspraakStatus.NIET_GEANNULEERD))
+		var afsprakenBinnenBlokkadeSpecification = valtInDatumPeriode(blokkadeRange)
+			.and(heeftStatusIn(MammaAfspraakStatus.NIET_GEANNULEERD))
 			.and(isLaatsteAfspraakVanUitnodiging())
 			.and(valtOnderBlokkadeType(blokkade));
 		var afspraakDatums = afspraakRepository.findWith(afsprakenBinnenBlokkadeSpecification, MammaScreeningsEenheidMetDatumDto.class,

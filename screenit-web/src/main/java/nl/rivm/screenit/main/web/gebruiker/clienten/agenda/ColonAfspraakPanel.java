@@ -70,7 +70,7 @@ public abstract class ColonAfspraakPanel extends GenericPanel<Client>
 			protected void populateItem(ListItem<ColonIntakeAfspraak> item)
 			{
 				item.setDefaultModel(new CompoundPropertyModel<>(item.getModel()));
-				item.add(new Label("vanaf", DateUtil.LOCAL_DATE_TIME_FORMAT.format(item.getModelObject().getVanaf())));
+				item.add(new Label("vanaf", DateUtil.formatLongDateTime(item.getModelObject().getVanaf())));
 				item.add(new Label("kamer.intakelocatie.naam"));
 				item.add(new Label("kamer.intakelocatie.adressen[0].straat"));
 				item.add(new Label("kamer.intakelocatie.adressen[0].huisnummer"));

@@ -28,7 +28,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import static nl.rivm.screenit.specification.cervix.CervixHuisartsLocatieSpecification.heeftHuisarts;
+import static nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification.heeftHuisarts;
 import static nl.rivm.screenit.specification.cervix.CervixLabformulierSpecification.filterDatumUitstrijkje;
 import static nl.rivm.screenit.specification.cervix.CervixVerrichtingSpecification.filterHuisartsLocatie;
 

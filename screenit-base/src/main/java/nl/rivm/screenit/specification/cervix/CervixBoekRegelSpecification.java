@@ -33,7 +33,9 @@ import lombok.AllArgsConstructor;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.GbaPersoon;
+import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
+import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie_;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
@@ -117,6 +119,11 @@ public class CervixBoekRegelSpecification
 	public static From<CervixVerrichting, CervixHuisartsLocatie> huisartsLocatieJoin(Root<CervixBoekRegel> r)
 	{
 		return join(verrichtingJoin(r), CervixVerrichting_.huisartsLocatie);
+	}
+
+	public static Specification<CervixBoekRegel> heeftHuisarts(CervixHuisarts huisarts)
+	{
+		return (r, q, cb) -> cb.equal(huisartsLocatieJoin(r).get(CervixHuisartsLocatie_.huisarts), huisarts);
 	}
 
 	static From<CervixBetaalopdrachtRegel, CervixBetaalopdracht> betaalopdrachtJoin(Root<CervixBoekRegel> r)

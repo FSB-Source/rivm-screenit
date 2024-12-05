@@ -36,6 +36,7 @@ import java.util.stream.Stream;
 import nl.rivm.screenit.huisartsenportaal.enums.CervixLocatieStatus;
 import nl.rivm.screenit.huisartsenportaal.util.CervixLocatieUtil;
 import nl.rivm.screenit.model.BMHKLaboratorium;
+import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
@@ -44,7 +45,6 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.cervix.CervixBaseMonsterService;
 import nl.rivm.screenit.service.cervix.CervixHuisartsLocatieService;
 import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
-import nl.topicuszorg.organisatie.model.Organisatie;
 
 import org.hl7.fhir.dstu3.model.Bundle;
 import org.hl7.fhir.dstu3.model.Coding;
@@ -66,7 +66,7 @@ import ca.uhn.fhir.model.api.annotation.ResourceDef;
 @ResourceDef()
 public class LabaanvraagBundle extends Bundle implements LabaanvraagResource
 {
-	private final String OBJ_ID = "D" + UUID.randomUUID().toString();
+	private final String OBJ_ID = "D" + UUID.randomUUID();
 
 	private final ICurrentDateSupplier currentDateSupplier;
 
@@ -137,7 +137,7 @@ public class LabaanvraagBundle extends Bundle implements LabaanvraagResource
 			.min(Comparator.comparing(CervixHuisartsLocatie::getId))
 			.orElseThrow(
 				() -> new NoSuchElementException(
-					String.format("Voor huisarts met AGB code %s is geen actieve locatie gevonden.", huisarts.map(Organisatie::getAgbcode).orElse(""))));
+					String.format("Voor huisarts met AGB code %s is geen actieve locatie gevonden.", huisarts.map(Instelling::getAgbcode).orElse(""))));
 	}
 
 	private Optional<CervixHuisarts> getActieveHuisartsMetEenActieveLocatie()

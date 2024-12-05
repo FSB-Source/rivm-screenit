@@ -239,7 +239,7 @@ public enum Recht implements INaam
 	GEBRUIKER_INPAKCENTRUM_ORG_BEHEER(
 		"Beheer inpakcentrum",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX },
-		new ToegangLevel[] { ToegangLevel.INSTELLING, ToegangLevel.REGIO, ToegangLevel.LANDELIJK }),
+		new ToegangLevel[] { ToegangLevel.LANDELIJK }),
 
 	GEBRUIKER_SCREENINGS_ORG_BEHEER(
 		"Beheer screeningsorganisatie",
@@ -249,7 +249,7 @@ public enum Recht implements INaam
 	GEBRUIKER_LABORATORIA_BEHEER(
 		"Beheer FIT laboratoria",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON },
-		new ToegangLevel[] { ToegangLevel.INSTELLING, ToegangLevel.REGIO, ToegangLevel.LANDELIJK }),
+		new ToegangLevel[] { ToegangLevel.INSTELLING, ToegangLevel.LANDELIJK }),
 
 	GEBRUIKER_PROJECT_OVERZICHT("Project overzicht", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA }),
 
@@ -275,20 +275,18 @@ public enum Recht implements INaam
 
 	GEBRUIKER_PA_LABORATORIA_BEHEER(
 		"Beheer PA laboratoria",
-		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX },
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON },
 		new ToegangLevel[] { ToegangLevel.INSTELLING, ToegangLevel.REGIO, ToegangLevel.LANDELIJK }),
-
-	GEBRUIKER_ZORGVERZEKERAARS_BEHEER("Beheer zorgverzekeraars", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX }),
 
 	GEBRUIKER_HUISARTSENPRAKTIJKEN_BEHEER(
 		"Beheer huisartsenpraktijken",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.CERVIX },
-		new ToegangLevel[] { ToegangLevel.INSTELLING, ToegangLevel.REGIO, ToegangLevel.LANDELIJK }),
+		new ToegangLevel[] { ToegangLevel.LANDELIJK }),
 
 	GEBRUIKER_BMHK_LABORATORIA_BEHEER(
 		"Beheer BMHK Laboratoria",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.CERVIX },
-		new ToegangLevel[] { ToegangLevel.INSTELLING, ToegangLevel.REGIO, ToegangLevel.LANDELIJK }),
+		new ToegangLevel[] { ToegangLevel.INSTELLING, ToegangLevel.LANDELIJK }),
 
 	GEBRUIKER_BMHK_LABORATORIA_OVERZICHT_VERRICHTINGEN(
 		"Overzicht verrichtingen BMHK Laboratoria",

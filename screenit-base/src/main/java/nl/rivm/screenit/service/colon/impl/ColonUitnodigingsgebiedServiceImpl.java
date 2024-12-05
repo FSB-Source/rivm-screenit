@@ -23,6 +23,7 @@ package nl.rivm.screenit.service.colon.impl;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
@@ -33,22 +34,30 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.From;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.dao.colon.ColonUitnodigingsgebiedDao;
 import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
+import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.PostcodeGebied;
 import nl.rivm.screenit.model.colon.CapaciteitsPercWijziging;
+import nl.rivm.screenit.model.colon.ColonDossier_;
 import nl.rivm.screenit.model.colon.ColonIntakelocatie;
+import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColoscopieCentrumColonCapaciteitVerdeling;
 import nl.rivm.screenit.model.colon.UitnodigingsGebied;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.repository.algemeen.ClientRepository;
 import nl.rivm.screenit.repository.algemeen.PostcodeGebiedRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
@@ -69,13 +78,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static javax.persistence.criteria.JoinType.LEFT;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.colon.ColonScreeningRondeSpecification.heeftCreatieDatum;
+import static nl.rivm.screenit.specification.colon.ColonUitnodigingBaseSpecification.clientUitnodigingBase;
+import static nl.rivm.screenit.specification.colon.ColonUitnodigingBaseSpecification.u1Base;
+import static nl.rivm.screenit.specification.colon.ColonUitnodigingBaseSpecification.u2Base;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebiedService
 {
-
-	private final ColonUitnodigingsgebiedDao uitnodigingsGebiedDao;
 
 	private final SimplePreferenceService simplePreferenceService;
 
@@ -88,6 +102,8 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 	private final ColonUitnodigingService uitnodigingService;
 
 	private final PostcodeGebiedRepository postcodeGebiedRepository;
+
+	private final ClientRepository clientRepository;
 
 	@Override
 	public List<PostcodeGebied> findOverlappendePostcodeGebieden(PostcodeGebied postcodeGebied)
@@ -125,7 +141,7 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 			throw new IllegalStateException("error.adherentie.geen.wijzigingen");
 		}
 
-		Collections.sort(wijzigingen, Comparator.comparing(CapaciteitsPercWijziging::getUitnodigingsgebied).thenComparing(CapaciteitsPercWijziging::getIntakelocatie));
+		wijzigingen.sort(Comparator.comparing(CapaciteitsPercWijziging::getUitnodigingsgebied).thenComparing(CapaciteitsPercWijziging::getIntakelocatie));
 		return wijzigingen;
 	}
 
@@ -157,7 +173,7 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 			var laatsteDagVanHuidigJaar = vandaag.with(TemporalAdjusters.lastDayOfYear());
 			var alleGeboortejarenTotMetHuidigJaar = uitnodigingService.getAlleGeboortejarenTotMetHuidigJaar();
 
-			var aantalClienten = uitnodigingsGebiedDao.countPersonenInUitnodigingsGebied(uitnodigingsGebied, minimaleLeeftijd, maximaleLeeftijd + 1, uitnodigingsInterval,
+			var aantalClienten = countPersonenInUitnodigingsGebied(uitnodigingsGebied, minimaleLeeftijd, maximaleLeeftijd + 1,
 				laatsteDagVanHuidigJaar, alleGeboortejarenTotMetHuidigJaar);
 			var fitFactor = getFitFactorVoorGebied(uitnodigingsGebied);
 			LOG.info("Uitnodigingsgebied {}: aantal clienten {}", uitnodigingsGebied.getNaam(), aantalClienten);
@@ -628,4 +644,45 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 		return hibernateService.loadAll(UitnodigingsGebied.class, "naam", true);
 	}
 
+	@Override
+	public long countPersonenInUitnodigingsGebied(UitnodigingsGebied uitnodigingsGebied, Integer minimaleLeeftijd, Integer maximaleLeeftijd,
+		LocalDate laatsteDagVanHuidigJaar, Set<Integer> geboortejaren)
+	{
+		var spec = clientUitnodigingBase(minimaleLeeftijd, maximaleLeeftijd, laatsteDagVanHuidigJaar, uitnodigingsGebied);
+
+		if (laatsteDagVanHuidigJaar != null)
+		{
+			var vandaag = currentDateSupplier.getLocalDate();
+			var u1Spec = u1Base(laatsteDagVanHuidigJaar, vandaag, new ArrayList<>(geboortejaren));
+			var u2Spec = u2Base(laatsteDagVanHuidigJaar, vandaag, LEFT).with(Client_.colonDossier, LEFT);
+
+			spec = spec.and(u1Spec.or(u2Spec));
+		}
+
+		return clientRepository.findWith(spec, Long.class, q -> q.projection(CriteriaBuilder::countDistinct)).one().orElse(0L);
+	}
+
+	private Function<From<?, ? extends Client>, From<?, ? extends ColonScreeningRonde>> screeningRondeJoin()
+	{
+		return r ->
+		{
+			var dossierJoin = join(r, Client_.colonDossier);
+			return join(dossierJoin, ColonDossier_.laatsteScreeningRonde);
+		};
+	}
+
+	@Override
+	public long countPersonenInUitnodigingsGebied(UitnodigingsGebied uitnodigingsGebied)
+	{
+		return countPersonenInUitnodigingsGebied(uitnodigingsGebied, null, null, null, null);
+	}
+
+	@Override
+	public long countClientenInUitnodigingsgebiedMetUitnodigingOpDatum(UitnodigingsGebied uitnodigingsGebied, LocalDate uitnodigingsDatum)
+	{
+		var spec = clientUitnodigingBase(null, null, null, uitnodigingsGebied)
+			.and(heeftCreatieDatum(DateUtil.toUtilDate(uitnodigingsDatum)).with(screeningRondeJoin()));
+
+		return clientRepository.count(spec);
+	}
 }

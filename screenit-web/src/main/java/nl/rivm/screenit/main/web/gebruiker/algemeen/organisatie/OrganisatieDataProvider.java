@@ -38,9 +38,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class OrganisatieDataProvider extends HibernateDataProvider<Instelling>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private OrganisatieZoekService organisatieZoekService;
 
@@ -49,7 +46,7 @@ public class OrganisatieDataProvider extends HibernateDataProvider<Instelling>
 
 	private final IModel<List<OrganisatieType>> selectedOrganisatieTypes;
 
-	private List<OrganisatieType> excludeOrganisatieTypes;
+	private final List<OrganisatieType> excludeOrganisatieTypes;
 
 	public OrganisatieDataProvider(IModel<Instelling> criteriaModel, IModel<List<OrganisatieType>> selectedOrganisatieTypes, List<OrganisatieType> excludeOrganisatieTypes,
 		String defaultSortProperty)
@@ -69,14 +66,14 @@ public class OrganisatieDataProvider extends HibernateDataProvider<Instelling>
 			sortProperty = getSort().getProperty();
 			asc = getSort().isAscending();
 		}
-		return organisatieZoekService.searchOrganisatie(getSearchObject(), getSelectedOrganisatieTypes(), excludeOrganisatieTypes,
-			ScreenitSession.get().getLoggedInInstellingGebruiker(), first, count, sortProperty, asc);
+		return organisatieZoekService.zoekOrganisaties(getSearchObject(), getSelectedOrganisatieTypes(), excludeOrganisatieTypes,
+			ScreenitSession.get().getLoggedInInstellingGebruiker(), first, count, sortProperty, asc).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return organisatieZoekService.countOrganisatie(getSearchObject(), getSelectedOrganisatieTypes(), excludeOrganisatieTypes,
+		return organisatieZoekService.countOrganisaties(getSearchObject(), getSelectedOrganisatieTypes(), excludeOrganisatieTypes,
 			ScreenitSession.get().getLoggedInInstellingGebruiker());
 	}
 

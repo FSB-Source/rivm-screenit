@@ -41,9 +41,9 @@ public interface MammaCeWerklijstService
 
 	long countProcessmonitoringBeoordelingen(MammaCeWerklijstZoekObject zoekObject);
 
-	List<MammaBeoordeling> zoekFollowUpBeoordelingen(MammaCeWerklijstZoekObject zoekObject, int first, int count, String sortProperty, boolean ascending);
+	List<MammaBeoordeling> zoekFollowUpNietGedownloadBeoordelingen(MammaCeWerklijstZoekObject zoekObject, long first, long count, Sort sort);
 
-	long countFollowUpBeoordelingen(MammaCeWerklijstZoekObject zoekObject);
+	long countFollowUpNietGedownloadBeoordelingen(MammaCeWerklijstZoekObject zoekObject);
 
 	List<MammaScreeningsEenheid> zoekScreeningsEenhedenMetCeWerklijstBeoordeling(List<MammaBeoordelingStatus> beschikbareBeoordelingStatussen,
 		List<BeoordelingsEenheid> beoordelingsEenheden);

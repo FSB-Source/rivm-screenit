@@ -21,35 +21,34 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.afrondenstep;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDateTime;
-import java.util.Date;
+import javax.persistence.criteria.JoinType;
 
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
-import nl.rivm.screenit.model.ScreeningRondeStatus;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.TablePerClassHibernateObject_;
+import nl.rivm.screenit.model.colon.ColonDossier_;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
-import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
-import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
-import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.model.colon.ColonScreeningRonde_;
+import nl.rivm.screenit.model.colon.IFOBTTest_;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.specification.algemeen.PersoonSpecification;
+import nl.rivm.screenit.specification.algemeen.ScreeningRondeSpecification;
+import nl.rivm.screenit.specification.colon.ColonIntakeAfspraakSpecification;
+import nl.rivm.screenit.specification.colon.ColonScreeningRondeSpecification;
+import nl.rivm.screenit.specification.colon.ColonUitnodigingSpecification;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Conjunction;
-import org.hibernate.criterion.LogicalExpression;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
 @Component
 @AllArgsConstructor
-public class ColonVerlopenRondesReader extends BaseScrollableResultReader
+public class ColonVerlopenRondesReader extends BaseSpecificationScrollableResultReader<ColonScreeningRonde>
 {
 
 	private static final int DAGEN_WACHTTIJD_CONCLUSIE = 5;
@@ -59,51 +58,36 @@ public class ColonVerlopenRondesReader extends BaseScrollableResultReader
 	private final SimplePreferenceService preferenceService;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<ColonScreeningRonde> createSpecification()
 	{
 		var currentDate = currentDateSupplier.getLocalDate();
 
-		Date maxLeeftijd = DateUtil.toUtilDate(currentDate.minusYears(preferenceService.getInteger(PreferenceKey.MAXIMALE_LEEFTIJD_COLON.name()) + 1));
-		Date maxLengteRonde = DateUtil.toUtilDate(currentDate.minusDays(preferenceService.getInteger(PreferenceKey.UITNODIGINGSINTERVAL.name())));
-		var wachttijdNaAfspraak = currentDate.minusDays(DAGEN_WACHTTIJD_CONCLUSIE).atStartOfDay();
+		var maxLeeftijdDatum = currentDate.minusYears(preferenceService.getInteger(PreferenceKey.MAXIMALE_LEEFTIJD_COLON.name()) + 1L);
+		var maxLengteRondeDatum = currentDate.minusDays(preferenceService.getInteger(PreferenceKey.UITNODIGINGSINTERVAL.name()));
+		var wachttijdNaAfspraakDatum = currentDate.minusDays(DAGEN_WACHTTIJD_CONCLUSIE).atStartOfDay();
 
-		var criteria = session.createCriteria(ColonScreeningRonde.class, "ronde");
-		criteria.createAlias("ronde.dossier", "dossier");
-		criteria.createAlias("dossier.client", "client");
-		criteria.createAlias("client.persoon", "persoon");
-		criteria.createAlias("ifobtTesten", "testen", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("ronde.laatsteUitnodiging", "uitnodiging", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("ronde.laatsteBrief", "brief", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("ronde.laatsteAfspraak", "afspraak", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("uitnodiging.gekoppeldeTest", "ifobttest", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("afspraak.conclusie", "conclusie", JoinType.LEFT_OUTER_JOIN);
+		return (r, q, cb) ->
+		{
+			var dossierJoin = join(r, ColonScreeningRonde_.dossier);
+			var clientJoin = join(dossierJoin, ColonDossier_.client);
+			var persoonJoin = join(clientJoin, Client_.persoon);
+			var uitnodigingJoin = join(r, ColonScreeningRonde_.laatsteUitnodiging, JoinType.LEFT);
+			var afspraakJoin = join(r, ColonScreeningRonde_.laatsteAfspraak, JoinType.LEFT);
+			var testenJoin = join(r, ColonScreeningRonde_.ifobtTesten, JoinType.LEFT);
 
-		criteria.add(Restrictions.eq("status", ScreeningRondeStatus.LOPEND));
-		criteria.add(Restrictions.lt("persoon.geboortedatum", maxLeeftijd));
-		criteria.add(Restrictions.lt("ronde.creatieDatum", maxLengteRonde));
-		criteria.add(Restrictions.or(
-			Restrictions.and(Restrictions.isEmpty("ifobtTesten"), Restrictions.eq("brief.briefType", BriefType.COLON_UITNODIGING_ZONDER_FIT)),
-			Restrictions.isNull("uitnodiging.id"),
-			ifobtTestIsVerlopen(maxLengteRonde),
-			Restrictions.isNull("afspraak.id"),
-			conclusieNietBinnenWachtperiodeVerwerkt(wachttijdNaAfspraak),
-			ColonRestrictions.critRondeZonderVerslagNaVerlopenOngunstigeUitslag(maxLengteRonde, null, null)));
-
-		return criteria;
+			return ScreeningRondeSpecification.<ColonScreeningRonde> isLopend()
+				.and(PersoonSpecification.isGeborenVoor(maxLeeftijdDatum).with(root -> persoonJoin))
+				.and(ScreeningRondeSpecification.isAangemaaktVoor(maxLengteRondeDatum))
+				.and(ColonScreeningRondeSpecification.heeftBriefZonderFit()
+					.or(ColonScreeningRondeSpecification.heeftGeenLaatsteUitnodiging())
+					.or(ColonUitnodigingSpecification.heeftVerlopenFit(maxLengteRondeDatum).with(root -> uitnodigingJoin))
+					.or(ColonScreeningRondeSpecification.heeftGeenLaatsteAfspraak())
+					.or(ColonIntakeAfspraakSpecification.conclusieNietBinnenWachtperiodeVerwerkt(wachttijdNaAfspraakDatum).with(root -> afspraakJoin))
+					.or(ColonScreeningRondeSpecification.isEersteOngunstigeUitslagUitLaatsteRonde(testenJoin.get(IFOBTTest_.statusDatum), r.get(TablePerClassHibernateObject_.id),
+						maxLengteRondeDatum))
+				)
+				.toPredicate(r, q, cb);
+		};
 	}
 
-	private Conjunction conclusieNietBinnenWachtperiodeVerwerkt(LocalDateTime wachttijdNaAfspraak)
-	{
-		return Restrictions.and(
-			Restrictions.isNull("afspraak.conclusie"),
-			Restrictions.eq("afspraak.status", ColonAfspraakStatus.GEPLAND),
-			Restrictions.lt("afspraak.vanaf", wachttijdNaAfspraak));
-	}
-
-	private LogicalExpression ifobtTestIsVerlopen(Date maxLengteRonde)
-	{
-		return Restrictions.and(
-			Restrictions.eq("ifobttest.status", IFOBTTestStatus.ACTIEF),
-			Restrictions.lt("uitnodiging.creatieDatum", maxLengteRonde));
-	}
 }

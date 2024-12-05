@@ -21,7 +21,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.huisarts;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.main.dao.cervix.CervixHuisartsDao;
 import nl.rivm.screenit.main.service.cervix.CervixHuisartsService;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
@@ -37,18 +36,12 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public abstract class CervixHuisartsOpvraagPanel extends Panel
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private CervixHuisartsService huisartsService;
 
-	@SpringBean
-	private CervixHuisartsDao huisartsDao;
-
 	private String agbCode;
 
-	private boolean onbekendeArtsNieuweAanmaken = true;
+	private final boolean onbekendeArtsNieuweAanmaken;
 
 	public CervixHuisartsOpvraagPanel(String id)
 	{
@@ -68,8 +61,6 @@ public abstract class CervixHuisartsOpvraagPanel extends Panel
 		IndicatingAjaxSubmitLink huisartsZoekButton = new IndicatingAjaxSubmitLink("submit", form)
 		{
 
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -79,14 +70,14 @@ public abstract class CervixHuisartsOpvraagPanel extends Panel
 					error(getString("agbCode.IConverter.Integer"));
 					return;
 				}
-				CervixHuisarts arts = null;
+				CervixHuisarts arts;
 				if (onbekendeArtsNieuweAanmaken)
 				{
 					arts = huisartsService.getUitstrijkendArtsMetAgb(agbCodeFormatted);
 				}
 				else
 				{
-					arts = huisartsDao.getHuisarts(agbCodeFormatted);
+					arts = huisartsService.getHuisartsMetAgbCode(agbCodeFormatted);
 				}
 				agbCode = null;
 				target.add(agbCodeField);

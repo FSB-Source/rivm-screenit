@@ -48,6 +48,7 @@ import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Gemeente;
+import nl.rivm.screenit.model.Gemeente_;
 import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.cervix.CervixDossier;
@@ -57,11 +58,12 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Deelnamemodus;
 import nl.rivm.screenit.model.enums.GebeurtenisBron;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.repository.algemeen.GemeenteRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.cervix.CervixTestService;
+import nl.rivm.screenit.specification.algemeen.GemeenteSpecification;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.TestBsnGenerator;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
@@ -92,8 +94,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.domain.Sort;
 import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.wicketstuff.shiro.ShiroConstraint;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
@@ -111,13 +112,13 @@ public class CervixTestTimelinePage extends TestenBasePage
 	private CervixTestTimelineService testTimelineService;
 
 	@SpringBean
-	private HibernateService hibernateService;
-
-	@SpringBean
 	private ICurrentDateSupplier dateSupplier;
 
 	@SpringBean
 	private CervixTestService testService;
+
+	@SpringBean
+	private GemeenteRepository gemeenteRepository;
 
 	private final IModel<TestTimelineModel> model;
 
@@ -149,9 +150,8 @@ public class CervixTestTimelinePage extends TestenBasePage
 		};
 		add(dialog);
 
-		List<Gemeente> gemeenten = hibernateService.getHibernateSession().createCriteria(Gemeente.class)
-			.add(Restrictions.isNotNull("screeningOrganisatie"))
-			.add(Restrictions.isNotNull("bmhkLaboratorium")).addOrder(Order.asc("naam")).list();
+		List<Gemeente> gemeenten = gemeenteRepository.findAll(GemeenteSpecification.heeftScreeningOrganisatie().and(GemeenteSpecification.heeftBmhkLaboratorium()),
+			Sort.by(Sort.Order.asc(Gemeente_.NAAM)));
 
 		gemeentenModel = ModelUtil.listRModel(gemeenten, false);
 

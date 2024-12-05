@@ -31,8 +31,6 @@ import javax.persistence.criteria.Root;
 import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.ScreeningRondeStatus;
-import nl.rivm.screenit.model.ScreeningRonde_;
 import nl.rivm.screenit.model.SingleTableHibernateObject_;
 import nl.rivm.screenit.model.mamma.MammaAfspraak_;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
@@ -48,12 +46,16 @@ import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode_;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde_;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
+import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.specification.ExtendedSpecification;
 
 import org.springframework.data.jpa.domain.Specification;
 
+import static nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus.UITSLAG_GUNSTIG;
+import static nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus.BESCHIKBAAR;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNull;
+import static nl.rivm.screenit.specification.algemeen.ScreeningRondeSpecification.isAfgerond;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class MammaScreeningRondeSpecification
@@ -73,6 +75,11 @@ public class MammaScreeningRondeSpecification
 		return (r, q, cb) -> beoordelingenJoin(r).get(MammaBeoordeling_.status).in(beoordelingStatuses);
 	}
 
+	public static Specification<MammaScreeningRonde> heeftLaatsteOnderzoekBeoordelingStatus(MammaBeoordelingStatus beoordelingStatus)
+	{
+		return (r, q, cb) -> cb.equal(laatsteBeoordelingenJoin(r).get(MammaBeoordeling_.status), beoordelingStatus);
+	}
+
 	public static Specification<MammaScreeningRonde> filterOpBeoordelingVoorDatum(LocalDate voorDatum)
 	{
 		return skipWhenNull(voorDatum, MammaBeoordelingSpecification.heeftStatusDatumVoor(voorDatum).withRoot(MammaScreeningRondeSpecification::beoordelingenJoin));
@@ -86,11 +93,6 @@ public class MammaScreeningRondeSpecification
 			var standplaatsPeriodeJoin = join(standplaatsRondeJoin, MammaStandplaatsRonde_.standplaatsPerioden);
 			return cb.and(cb.greaterThanOrEqualTo(standplaatsPeriodeJoin.get(MammaStandplaatsPeriode_.totEnMet), datum));
 		};
-	}
-
-	public static ExtendedSpecification<MammaScreeningRonde> heeftRondeStatus(ScreeningRondeStatus status)
-	{
-		return (r, q, cb) -> cb.equal(r.get(ScreeningRonde_.status), status);
 	}
 
 	public static Specification<MammaScreeningRonde> heeftStandplaats(MammaStandplaats standplaats)
@@ -110,9 +112,42 @@ public class MammaScreeningRondeSpecification
 		return join(onderzoeken, MammaOnderzoek_.beoordelingen);
 	}
 
+	private static Join<MammaOnderzoek, MammaBeoordeling> laatsteBeoordelingenJoin(Root<MammaScreeningRonde> r)
+	{
+		var laatsteOnderzoek = join(r, MammaScreeningRonde_.laatsteOnderzoek);
+		return join(laatsteOnderzoek, MammaOnderzoek_.laatsteBeoordeling);
+	}
+
+	public static Specification<MammaScreeningRonde> heeftBeeldenMetGunstigeUitslag(Root<MammaDossier> dossierRoot)
+	{
+		return heeftBeeldenMetGunstigeUitslag().and(heeftDossier(dossierRoot));
+	}
+
+	public static ExtendedSpecification<MammaScreeningRonde> heeftGeenUitstel()
+	{
+		return (r, q, cb) -> cb.isNull(r.get(MammaScreeningRonde_.laatsteUitstel));
+	}
+
+	public static Specification<MammaScreeningRonde> heeftBeeldenMetGunstigeUitslag(MammaDossier dossier)
+	{
+		return heeftBeeldenMetGunstigeUitslag().and(heeftDossier(dossier));
+	}
+
+	private static Specification<MammaScreeningRonde> heeftBeeldenMetGunstigeUitslag()
+	{
+		return heeftLaatsteOnderzoekBeoordelingStatus(UITSLAG_GUNSTIG)
+			.and(heeftMammografieIlmStatus(BESCHIKBAAR))
+			.and(isAfgerond());
+	}
+
 	public static ExtendedSpecification<MammaScreeningRonde> heeftDossier(MammaDossier dossier)
 	{
 		return (r, q, cb) -> cb.equal(r.get(MammaScreeningRonde_.dossier), dossier);
+	}
+
+	public static Specification<MammaScreeningRonde> heeftDossier(Root<MammaDossier> mammaDossierRoot)
+	{
+		return (r, q, cb) -> cb.equal(r.get(MammaScreeningRonde_.dossier), mammaDossierRoot);
 	}
 
 	public static ExtendedSpecification<MammaDossier> heeftPreciesEenRonde()
@@ -125,5 +160,29 @@ public class MammaScreeningRondeSpecification
 				.where(cb.equal(subQueryRoot.get(MammaScreeningRonde_.dossier), r));
 			return cb.equal(subQuery, 1);
 		};
+	}
+
+	public static ExtendedSpecification<MammaScreeningRonde> heeftGeenFollowUpConclusie()
+	{
+		return (r, q, cb) -> cb.isNull(r.get(MammaScreeningRonde_.followUpConclusieStatus));
+	}
+
+	public static Specification<MammaScreeningRonde> heeftMammografieIlmStatus(MammaMammografieIlmStatus ilmStatus)
+	{
+		return MammaMammografieBaseSpecification.heeftIlmStatus(ilmStatus).with(r ->
+		{
+			var onderzoekJoin = join(r, MammaScreeningRonde_.laatsteOnderzoek);
+			return join(onderzoekJoin, MammaOnderzoek_.mammografie);
+		});
+	}
+
+	public static ExtendedSpecification<MammaScreeningRonde> isMinderValideOnderzoekZiekenhuis(boolean minderValideOnderzoekZiekenhuis)
+	{
+		return (r, q, cb) -> cb.equal(r.get(MammaScreeningRonde_.minderValideOnderzoekZiekenhuis), minderValideOnderzoekZiekenhuis);
+	}
+
+	public static ExtendedSpecification<MammaScreeningRonde> heeftGeenScreeningRondeEvent()
+	{
+		return (r, q, cb) -> cb.isNull(r.get(MammaScreeningRonde_.screeningRondeEvent));
 	}
 }

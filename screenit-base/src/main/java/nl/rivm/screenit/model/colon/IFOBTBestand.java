@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.colon;
 
 /*-
@@ -35,6 +34,9 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.colon.enums.IFOBTBestandStatus;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
@@ -44,11 +46,10 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @Entity
 @Table(schema = "colon")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
+@Setter
+@Getter
 public class IFOBTBestand extends AbstractHibernateObject
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@Enumerated(EnumType.STRING)
 	private IFOBTBestandStatus status;
 
@@ -68,98 +69,7 @@ public class IFOBTBestand extends AbstractHibernateObject
 
 	private String pathBestand;
 
-	private Integer aantalVerwerkt = Integer.valueOf(0);
+	private Integer aantalVerwerkt = 0;
 
-	private Integer aantalControleUitslagen = Integer.valueOf(0);
-
-	public IFOBTBestandStatus getStatus()
-	{
-		return status;
-	}
-
-	public void setStatus(IFOBTBestandStatus status)
-	{
-		this.status = status;
-	}
-
-	public Date getStatusDatum()
-	{
-		return statusDatum;
-	}
-
-	public void setStatusDatum(Date statusDatum)
-	{
-		this.statusDatum = statusDatum;
-	}
-
-	public IFobtLaboratorium getLaboratorium()
-	{
-		return laboratorium;
-	}
-
-	public void setLaboratorium(IFobtLaboratorium laboratorium)
-	{
-		this.laboratorium = laboratorium;
-	}
-
-	public String getInstumentId()
-	{
-		return instumentId;
-	}
-
-	public void setInstumentId(String instumentId)
-	{
-		this.instumentId = instumentId;
-	}
-
-	public String getNaamBestand()
-	{
-		return naamBestand;
-	}
-
-	public void setNaamBestand(String naamBestand)
-	{
-		this.naamBestand = naamBestand;
-	}
-
-	public String getPathBestand()
-	{
-		return pathBestand;
-	}
-
-	public void setPathBestand(String pathBestand)
-	{
-		this.pathBestand = pathBestand;
-	}
-
-	public Integer getAantalVerwerkt()
-	{
-		return aantalVerwerkt;
-	}
-
-	public void setAantalVerwerkt(Integer aantalVerwerkt)
-	{
-		this.aantalVerwerkt = aantalVerwerkt;
-	}
-
-	public Integer getAantalControleUitslagen()
-	{
-		return aantalControleUitslagen;
-	}
-
-	public void setAantalControleUitslagen(Integer aantalControleUitslagen)
-	{
-		this.aantalControleUitslagen = aantalControleUitslagen;
-	}
-
-	public List<IFOBTUitslag> getUitslagen()
-	{
-		return uitslagen;
-	}
-
-	public void setUitslagen(List<IFOBTUitslag> uitslagen)
-	{
-		this.uitslagen = uitslagen;
-	}
-
+	private Integer aantalControleUitslagen = 0;
 }

@@ -81,7 +81,7 @@ public class ProjectBrievenAanmaakWriter extends BaseWriter<ProjectBriefActie>
 		List<ProjectBrief> projectBrieven = projectService.getAllProjectBriefForHerinnering(herinneringsActie, verstuurdOp);
 		for (ProjectBrief brief : projectBrieven)
 		{
-			maakProjectBrief(brief.getProjectClient(), herinneringsActie, brief);
+			briefService.maakProjectBrief(brief.getProjectClient(), herinneringsActie, brief);
 		}
 	}
 
@@ -91,7 +91,7 @@ public class ProjectBrievenAanmaakWriter extends BaseWriter<ProjectBriefActie>
 		{
 			if (!isDeBriefAlGegenereerdVoorDezeClient(client, actie) && ProjectUtil.isEinde1eCorrespondentieCheck(currentDateSupplier.getDate(), client))
 			{
-				maakProjectBrief(client, actie, null);
+				briefService.maakProjectBrief(client, actie, null);
 			}
 		}
 	}
@@ -146,26 +146,10 @@ public class ProjectBrievenAanmaakWriter extends BaseWriter<ProjectBriefActie>
 
 				if (magXProjectBriefMaken)
 				{
-					maakProjectBrief(pClient, actie, null);
+					briefService.maakProjectBrief(pClient, actie, null);
 				}
 			}
 		}
-	}
-
-	private ProjectBrief maakProjectBrief(ProjectClient pClient, ProjectBriefActie actie, ProjectBrief orgineleBrief)
-	{
-		ProjectBrief brief = briefService.maakProjectBrief(pClient, actie);
-		if (orgineleBrief != null)
-		{
-			brief.setTeHerinnerenBrief(orgineleBrief);
-		}
-		if (orgineleBrief != null && orgineleBrief.getBriefType() != null)
-		{
-			brief.setBriefType(orgineleBrief.getBriefType());
-		}
-		pClient.getBrieven().add(brief);
-		getHibernateService().saveOrUpdateAll(pClient, brief);
-		return brief;
 	}
 
 	private static boolean isDeBriefAlGegenereerdVoorDezeClient(ProjectClient pClient, ProjectBriefActie actie)

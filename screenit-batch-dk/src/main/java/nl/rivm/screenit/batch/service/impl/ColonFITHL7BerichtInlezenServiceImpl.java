@@ -29,7 +29,6 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.service.ColonFITHL7BerichtInlezenService;
-import nl.rivm.screenit.dao.KwaliteitscontroleDao;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.Rivm;
@@ -53,6 +52,7 @@ import nl.rivm.screenit.model.verwerkingverslag.IfobtVerwerkingRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.IfobtVerwerkingRapportageEntry;
 import nl.rivm.screenit.repository.colon.ColonFITLaboratoriumRepository;
 import nl.rivm.screenit.repository.colon.ColonFITUitslagBerichtRepository;
+import nl.rivm.screenit.repository.colon.ColonSKMLControleBarcodeRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.colon.ColonBaseFITService;
@@ -94,7 +94,7 @@ public class ColonFITHL7BerichtInlezenServiceImpl implements ColonFITHL7BerichtI
 	private ColonBaseFITService fitService;
 
 	@Autowired
-	private KwaliteitscontroleDao kwaliteitscontroleDao;
+	private ColonSKMLControleBarcodeRepository skmlControleBarcodeRepository;
 
 	@Override
 	public List<ColonIFobtUitslagBericht> getAlleNietVerwerkteFitBerichten()
@@ -170,9 +170,9 @@ public class ColonFITHL7BerichtInlezenServiceImpl implements ColonFITHL7BerichtI
 				uitslag.setBarcode(barcode);
 				if (fit == null || fit.getType().equals(IFOBTType.STUDIE))
 				{
-					var skmlBarcode = kwaliteitscontroleDao.getSkmlBarcode(barcode);
+					var skmlBarcode = skmlControleBarcodeRepository.findByBarcode(barcode);
 
-					if (skmlBarcode == null)
+					if (skmlBarcode.isEmpty())
 					{
 						var isVerwijderdeBarcode = fitService.isVerwijderdeBarcode(barcode);
 						var melding = String.format("FIT of controle buis met barcode %s in bestand %s bestaat niet%s.", barcode, result.getBestandsNaam(),
@@ -184,8 +184,8 @@ public class ColonFITHL7BerichtInlezenServiceImpl implements ColonFITHL7BerichtI
 					}
 					else
 					{
-						uitslag.setType(skmlBarcode.getType());
-						switch (skmlBarcode.getType())
+						uitslag.setType(skmlBarcode.get().getType());
+						switch (uitslag.getType())
 						{
 						case SENTINEEL:
 							sentinelTestOntvangen = true;

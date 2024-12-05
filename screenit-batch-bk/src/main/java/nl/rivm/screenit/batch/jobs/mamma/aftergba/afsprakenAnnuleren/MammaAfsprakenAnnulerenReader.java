@@ -1,4 +1,4 @@
-package nl.rivm.screenit.batch.jobs.mamma.aftergba.afsprakenAnnuleren;
+package nl.rivm.screenit.batch.jobs.mamma.aftergba.afsprakenannuleren;
 
 /*-
  * ========================LICENSE_START=================================
@@ -21,21 +21,34 @@ package nl.rivm.screenit.batch.jobs.mamma.aftergba.afsprakenAnnuleren;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
+
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.mamma.MammaAfspraak;
+import nl.rivm.screenit.model.mamma.MammaDossier_;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.specification.ExtendedSpecification;
+import nl.rivm.screenit.specification.SpecificationUtil;
+import nl.rivm.screenit.specification.algemeen.PersoonSpecification;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import com.google.common.collect.Range;
+
 import static nl.rivm.screenit.batch.jobs.mamma.aftergba.AfterGbaJobConfiguration.AFTER_GBA_JOB_READER_FETCH_SIZE;
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftStatus;
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.valtInDatumTijdPeriode;
+import static org.springframework.data.jpa.domain.Specification.not;
 
 @Component
-public class MammaAfsprakenAnnulerenReader extends BaseScrollableResultReader
+public class MammaAfsprakenAnnulerenReader extends BaseSpecificationScrollableResultReader<Client>
 {
 
 	private final ICurrentDateSupplier dateSupplier;
@@ -47,21 +60,28 @@ public class MammaAfsprakenAnnulerenReader extends BaseScrollableResultReader
 	}
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<Client> createSpecification()
 	{
-		var criteria = session.createCriteria(Client.class);
-		criteria.createAlias("laatsteGbaMutatie", "laatsteGbaMutatie");
-		criteria.createAlias("mammaDossier", "mammaDossier");
-		criteria.createAlias("mammaDossier.laatsteScreeningRonde", "ronde");
-		criteria.createAlias("ronde.laatsteUitnodiging", "uitnodiging");
-		criteria.createAlias("uitnodiging.laatsteAfspraak", "afspraak");
-		criteria.createAlias("persoon", "persoon");
-		criteria.add(Restrictions.or(
-			Restrictions.isNotNull("persoon.overlijdensdatum"),
-			Restrictions.isNotNull("persoon.datumVertrokkenUitNederland")));
-		criteria.add(Restrictions.eq("afspraak.status",
-			MammaAfspraakStatus.GEPLAND));
-		criteria.add(Restrictions.gt("afspraak.vanaf", dateSupplier.getDate()));
-		return criteria;
+		return overledenOfInBuitenland().and(geplandeToekomstigeAfspraak());
+	}
+
+	private Specification<Client> overledenOfInBuitenland()
+	{
+		return not(PersoonSpecification.isNietOverledenEnWoontInNederland().with(Client_.persoon));
+	}
+
+	private ExtendedSpecification<Client> geplandeToekomstigeAfspraak()
+	{
+		return heeftStatus(MammaAfspraakStatus.GEPLAND)
+			.and(valtInDatumTijdPeriode(Range.greaterThan(dateSupplier.getLocalDateTime())))
+			.with(r -> laatsteAfspraakJoin(r));
+	}
+
+	private static Join<?, MammaAfspraak> laatsteAfspraakJoin(From<?, ? extends Client> clientRoot)
+	{
+		var dossierJoin = SpecificationUtil.join(clientRoot, Client_.mammaDossier);
+		var rondeJoin = SpecificationUtil.join(dossierJoin, MammaDossier_.laatsteScreeningRonde);
+		var uitnodigingJoin = SpecificationUtil.join(rondeJoin, MammaScreeningRonde_.laatsteUitnodiging);
+		return SpecificationUtil.join(uitnodigingJoin, MammaUitnodiging_.laatsteAfspraak);
 	}
 }

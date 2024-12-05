@@ -25,7 +25,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
@@ -55,6 +54,7 @@ import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 
 import org.springframework.data.jpa.domain.Specification;
@@ -63,10 +63,8 @@ import com.google.common.collect.Range;
 
 import static nl.rivm.screenit.specification.DateSpecification.bevatLocalDateTime;
 import static nl.rivm.screenit.specification.DateSpecification.bevatLocalDateToDate;
-import static nl.rivm.screenit.specification.RangeSpecification.bevat;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmpty;
-import static nl.rivm.screenit.util.RangeUtil.closedOpen;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class MammaAfspraakSpecification
@@ -107,23 +105,27 @@ public class MammaAfspraakSpecification
 		};
 	}
 
-	public static Specification<MammaAfspraak> filterStatuses(List<MammaAfspraakStatus> statuses)
+	public static ExtendedSpecification<MammaAfspraak> heeftStatus(MammaAfspraakStatus status)
 	{
-		return skipWhenEmpty(statuses, heeftStatuses(statuses));
+		return (r, q, cb) -> cb.equal(r.get(MammaAfspraak_.status), status);
 	}
 
-	public static Specification<MammaAfspraak> heeftStatuses(Collection<MammaAfspraakStatus> statuses)
+	public static Specification<MammaAfspraak> filterStatus(Collection<MammaAfspraakStatus> statussen)
 	{
-		return (r, q, cb) -> r.get(MammaAfspraak_.status).in(statuses);
+		return skipWhenEmpty(statussen, heeftStatusIn(statussen));
 	}
 
-	public static Specification<MammaAfspraak> valtInPeriode(LocalDateTime vanaf, LocalDateTime tot)
+	public static ExtendedSpecification<MammaAfspraak> heeftStatusIn(Collection<MammaAfspraakStatus> statussen)
 	{
-		var range = closedOpen(vanaf, tot);
-		return bevatLocalDateTime(range, r -> r.get(MammaAfspraak_.vanaf));
+		return (r, q, cb) -> r.get(MammaAfspraak_.status).in(statussen);
 	}
 
-	public static Specification<MammaAfspraak> valtInPeriode(Range<LocalDate> periode)
+	public static ExtendedSpecification<MammaAfspraak> valtInDatumTijdPeriode(Range<LocalDateTime> periode)
+	{
+		return bevatLocalDateTime(periode, r -> r.get(MammaAfspraak_.vanaf));
+	}
+
+	public static ExtendedSpecification<MammaAfspraak> valtInDatumPeriode(Range<LocalDate> periode)
 	{
 		return bevatLocalDateToDate(periode, r -> r.get(MammaAfspraak_.vanaf));
 	}
@@ -135,17 +137,17 @@ public class MammaAfspraakSpecification
 
 	public static Specification<MammaAfspraak> heeftClientInTehuis()
 	{
-		return MammaDossierSpecification.woontInTehuisPredicate().toSpecification(MammaAfspraakSpecification::dossierJoin);
+		return MammaBaseDossierSpecification.woontInTehuis().withRoot(MammaAfspraakSpecification::dossierJoin);
 	}
 
 	public static Specification<MammaAfspraak> heeftGeenClientInTehuis()
 	{
-		return MammaDossierSpecification.woontNietInTehuisPredicate().toSpecification(MammaAfspraakSpecification::dossierJoin);
+		return MammaBaseDossierSpecification.woontNietInTehuis().withRoot(MammaAfspraakSpecification::dossierJoin);
 	}
 
-	public static Specification<MammaAfspraak> heeftDoelgroep(List<MammaDoelgroep> doelgroepen)
+	public static Specification<MammaAfspraak> heeftDoelgroep(Collection<MammaDoelgroep> doelgroepen)
 	{
-		return MammaDossierSpecification.heeftDoelgroep(doelgroepen).toSpecification(MammaAfspraakSpecification::dossierJoin);
+		return MammaBaseDossierSpecification.heeftDoelgroep(doelgroepen).toSpecification(MammaAfspraakSpecification::dossierJoin);
 	}
 
 	public static Specification<MammaAfspraak> heeftScreeningsEenheid(MammaScreeningsEenheid screeningsEenheid)
@@ -186,7 +188,7 @@ public class MammaAfspraakSpecification
 					r.get(MammaAfspraak_.status).in(MammaAfspraakStatus.INGESCHREVEN, MammaAfspraakStatus.ONDERZOEK, MammaAfspraakStatus.SIGNALEREN),
 					cb.equal(onderzoekJoin.get(MammaOnderzoek_.isDoorgevoerd), false)),
 				cb.equal(screeningsEenheidJoin.get(MammaScreeningsEenheid_.code), seCode),
-				valtInPeriode(afgelopen2Maanden).toPredicate(r, q, cb));
+				valtInDatumPeriode(afgelopen2Maanden).toPredicate(r, q, cb));
 		};
 	}
 

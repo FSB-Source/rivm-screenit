@@ -21,10 +21,13 @@ package nl.rivm.screenit.specification.colon;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 
 import lombok.AccessLevel;
@@ -41,6 +44,7 @@ import nl.rivm.screenit.model.colon.ColonDossier_;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak_;
 import nl.rivm.screenit.model.colon.ColonIntakelocatie;
+import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde_;
 import nl.rivm.screenit.model.colon.ColonVerslag;
 import nl.rivm.screenit.model.colon.ColonVerslag_;
@@ -50,13 +54,14 @@ import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
 import nl.rivm.screenit.model.colon.planning.ColonIntakekamer_;
 import nl.rivm.screenit.model.colon.planning.ColonTijdslot_;
+import nl.rivm.screenit.specification.DateSpecification;
 import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.specification.SpecificationUtil;
+import nl.rivm.screenit.util.DateUtil;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
-
-import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ColonIntakeAfspraakSpecification
@@ -169,22 +174,63 @@ public class ColonIntakeAfspraakSpecification
 		return (r, q, cb) -> cb.equal(r.get(ColonTijdslot_.kamer), kamer);
 	}
 
-	public static Specification<ColonIntakeAfspraak> heeftStatuses(List<ColonAfspraakStatus> statuses)
+	public static ExtendedSpecification<ColonIntakeAfspraak> heeftStatusIn(Collection<ColonAfspraakStatus> statussen)
 	{
-		return (r, q, cb) -> r.get(ColonIntakeAfspraak_.status).in(statuses);
+		return (r, q, cb) -> r.get(ColonIntakeAfspraak_.status).in(statussen);
 	}
 
-	public static Specification<ColonIntakeAfspraak> heeftAfspraakslot(Long afspraakslotId)
+	public static ExtendedSpecification<ColonIntakeAfspraak> heeftStatus(ColonAfspraakStatus status)
 	{
-		return (r, q, cb) ->
-		{
-			var afspraakslot = join(r, ColonIntakeAfspraak_.afspraakslot);
-			return cb.or(cb.equal(afspraakslot.get(ColonTijdslot_.id), afspraakslotId));
-		};
+		return (r, q, cb) -> cb.equal(r.get(ColonIntakeAfspraak_.status), status);
 	}
 
-	public static ExtendedSpecification<ColonIntakeAfspraak> heeftLaatsteAfspraakMetBezwaar()
+	public static ExtendedSpecification<ColonIntakeAfspraak> heeftBezwaar()
 	{
 		return (r, q, cb) -> cb.isTrue(r.get(ColonIntakeAfspraak_.bezwaar));
+	}
+
+	public static ExtendedSpecification<ColonIntakeAfspraak> heeftGeenAfspraakVanaf(LocalDate peildatum)
+	{
+		return (r, q, cb) -> cb.or(
+			cb.isNull(r.get(AbstractHibernateObject_.id)),
+			cb.notEqual(r.get(ColonIntakeAfspraak_.status), ColonAfspraakStatus.GEPLAND),
+			cb.lessThanOrEqualTo(r.get(ColonTijdslot_.vanaf), DateUtil.minusWerkdagen(peildatum, 5).atStartOfDay())
+		);
+	}
+
+	public static ExtendedSpecification<ColonIntakeAfspraak> heeftGeenGeplandeIntakeAfspraak()
+	{
+		return (r, q, cb) -> cb.or(
+			cb.isNull(r.get(ColonIntakeAfspraak_.status)),
+			cb.and(
+				cb.notEqual(r.get(ColonIntakeAfspraak_.status), ColonAfspraakStatus.GEPLAND),
+				cb.isNull(r.get(ColonIntakeAfspraak_.conclusie))
+			)
+		);
+	}
+
+	public static ExtendedSpecification<ColonIntakeAfspraak> conclusieNietBinnenWachtperiodeVerwerkt(LocalDateTime wachttijdNaAfspraakDatum)
+	{
+		return (r, q, cb) -> cb.and(
+			cb.isNull(r.get(ColonIntakeAfspraak_.conclusie)),
+			cb.equal(r.get(ColonIntakeAfspraak_.status), ColonAfspraakStatus.GEPLAND),
+			cb.lessThan(r.get(ColonTijdslot_.vanaf), wachttijdNaAfspraakDatum)
+		);
+	}
+
+	public static ExtendedSpecification<ColonIntakeAfspraak> heeftAfspraakVoor(LocalDateTime peilDatum)
+	{
+		return (r, q, cb) -> cb.lessThan(r.get(ColonTijdslot_.vanaf), peilDatum);
+	}
+
+	public static ExtendedSpecification<ColonIntakeAfspraak> heeftAfspraakVanaf(LocalDateTime peilDatum)
+	{
+		return (r, q, cb) -> cb.greaterThanOrEqualTo(r.get(ColonTijdslot_.vanaf), peilDatum);
+	}
+
+	public static ExtendedSpecification<ColonIntakeAfspraak> heeftAfspraakXDagenVoorStartRonde(Path<ColonScreeningRonde> rondePath, int dagen)
+	{
+		return (r, q, cb) -> cb.lessThan(r.get(ColonIntakeAfspraak_.vanaf),
+			DateSpecification.intervalInDagen(cb, rondePath.get(ColonScreeningRonde_.creatieDatum), dagen).as(LocalDateTime.class));
 	}
 }

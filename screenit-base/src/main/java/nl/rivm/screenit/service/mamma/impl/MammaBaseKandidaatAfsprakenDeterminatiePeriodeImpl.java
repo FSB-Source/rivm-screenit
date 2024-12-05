@@ -463,7 +463,8 @@ public class MammaBaseKandidaatAfsprakenDeterminatiePeriodeImpl implements Mamma
 			blokType = capaciteitBlokDto.blokType;
 			minderValideAfspraakMogelijk = capaciteitBlokDto.minderValideAfspraakMogelijk;
 
-			LOG.debug("{} afspraken in capaciteitBlok {}", capaciteitBlokDto.afspraakDtos.size(), capaciteitBlokDto.id);
+			LOG.debug("{} afspraken in capaciteitBlok {} vanaf {}, beschikbaar: {}, vrij: {}, MV: {}", capaciteitBlokDto.afspraakDtos.size(), capaciteitBlokDto.id,
+				capaciteitBlokDto.vanaf, capaciteitBlokDto.beschikbareCapaciteit, capaciteitBlokDto.vrijeCapaciteit, capaciteitBlokDto.minderValideAfspraakMogelijk);
 
 			if (isMindervalide)
 			{
@@ -651,6 +652,9 @@ public class MammaBaseKandidaatAfsprakenDeterminatiePeriodeImpl implements Mamma
 
 		MammaKandidaatAfspraak getKandidaatAfspraak(BigDecimal benodigdeCapaciteit)
 		{
+			LOG.debug("getKandidaatAfspraak op MV-periode blok-vanaf: {}, periode-vanaf: {}, beschikbaar: {}, benut: {}", capaciteitBlokDto.vanaf, periodeVanaf,
+				beschikbareCapaciteit, benutteCapaciteit);
+
 			benutteCapaciteit = benutteCapaciteit.add(benodigdeCapaciteit);
 			MammaKandidaatAfspraak kandidaatAfspraak;
 			if (kandidaatAfspraakList.isEmpty())

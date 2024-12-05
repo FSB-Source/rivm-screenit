@@ -30,8 +30,13 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,24 +44,38 @@ import lombok.extern.slf4j.Slf4j;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dto.mamma.MammaDense2ConfiguratieDto;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.OrganisatieParameter;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BezwaarType;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
+import nl.rivm.screenit.model.mamma.MammaBeoordeling;
+import nl.rivm.screenit.model.mamma.MammaDossier_;
+import nl.rivm.screenit.model.mamma.MammaMammografie;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaDenseWaarde;
+import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
+import nl.rivm.screenit.model.project.Project;
+import nl.rivm.screenit.model.project.ProjectClient_;
 import nl.rivm.screenit.repository.algemeen.ClientRepository;
+import nl.rivm.screenit.repository.mamma.MammaMammografieRepository;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.mamma.MammaBaseDense2Service;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.specification.algemeen.ClientSpecification;
+import nl.rivm.screenit.specification.algemeen.ProjectClientSpecification;
 import nl.rivm.screenit.specification.algemeen.ProjectSpecification;
 import nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification;
-import nl.rivm.screenit.specification.mamma.MammaMammografieSpecification;
+import nl.rivm.screenit.specification.mamma.MammaMammografieBaseSpecification;
 import nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification;
 import nl.rivm.screenit.util.BezwaarUtil;
 import nl.rivm.screenit.util.CsvUtil;
@@ -69,6 +88,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import au.com.bytecode.opencsv.CSVWriter;
+
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
 @Slf4j
 @Service
@@ -88,6 +109,8 @@ public class MammaBaseDense2ServiceImpl implements MammaBaseDense2Service
 	private final String locatieFilestore;
 
 	private final ClientService clientService;
+
+	private final MammaMammografieRepository mammografieRepository;
 
 	private LocalDate getMinimaleOnderzoekDatum()
 	{
@@ -232,11 +255,11 @@ public class MammaBaseDense2ServiceImpl implements MammaBaseDense2Service
 		var configuratie = getConfiguratie();
 		var clienten = clientRepository.findAll(
 			ClientSpecification.heeftActieveClient()
-				.and(MammaMammografieSpecification.heeftClientLaatsteOnderzoekMetDensiteit(MammaDenseWaarde.D))
+				.and(MammaMammografieBaseSpecification.heeftDensiteit(MammaDenseWaarde.D).with(mammografieJoin()))
 				.and(ClientSpecification.heeftGeboorteJaarVoorLeeftijdBereik(minimaleLeeftijd, maximaleLeeftijd, currentDateSupplier.getLocalDate()))
-				.and(MammaOnderzoekSpecification.heeftClientLaatsteOnderzoekAangemaaktVanaf(getMinimaleOnderzoekDatum()))
+				.and(MammaOnderzoekSpecification.isAangemaaktVanaf(getMinimaleOnderzoekDatum()).with(r -> onderzoekJoin(r)))
 				.and(MammaBeoordelingSpecification.heeftClientLaatsteOnderzoekBeoordelingStatus(MammaBeoordelingStatus.UITSLAG_GUNSTIG))
-				.and(MammaOnderzoekSpecification.heeftClientLaatsteOnderzoekVolledig()),
+				.and(MammaOnderzoekSpecification.heeftStatus(MammaOnderzoekStatus.AFGEROND).with(r -> onderzoekJoin(r))),
 			getSorteerVolgorde()
 		);
 		return clienten.stream()
@@ -263,13 +286,91 @@ public class MammaBaseDense2ServiceImpl implements MammaBaseDense2Service
 	public List<Client> getExportClientenTweedeStudieronde()
 	{
 		var configuratie = getConfiguratie();
-		var minimaleProjectDatum = currentDateSupplier.getLocalDate().minusDays(27);
-		return clientRepository.findAll(MammaOnderzoekSpecification.heeftClientLaatsteOnderzoekAangemaaktVanaf(getMinimaleOnderzoekDatum())
-				.and(MammaBeoordelingSpecification.heeftClientLaatsteOnderzoekBeoordelingStatus(MammaBeoordelingStatus.UITSLAG_GUNSTIG))
-				.and(ProjectSpecification.heeftClientInProjectMetNaam(configuratie.getDenseOnderzoekProjecten()))
-				.and(ProjectSpecification.heeftProjectClientVoorDatum(minimaleProjectDatum)),
+		return clientRepository.findAll(MammaOnderzoekSpecification.isAangemaaktVanaf(getMinimaleOnderzoekDatum()).with((From<?, ? extends Client> r) -> onderzoekJoin(r))
+				.and(MammaBeoordelingSpecification.heeftStatus(MammaBeoordelingStatus.UITSLAG_GUNSTIG)
+					.with((From<?, ? extends Client> r) -> join(onderzoekJoin(r), MammaOnderzoek_.laatsteBeoordeling))
+					.and(ProjectSpecification.heeftNaamIn(configuratie.getDenseOnderzoekProjecten()).with(projectJoin()))
+					.and(ProjectClientSpecification.clientIsToegevoegdVoorDatum(getMinimaleOnderzoekDatum()).with(r -> join(r, Client_.projecten)))),
 			getSorteerVolgorde()
 		);
+	}
+
+	@Override
+	public ExtendedSpecification<Client> getClientenSpecificationVoorVerwijderenDensiteit()
+	{
+		var configuratie = getConfiguratie();
+		var verwijderenVanaf = currentDateSupplier.getLocalDate().minusDays(30);
+
+		return MammaBeoordelingSpecification.heeftStatusDatumOpOfVoor(verwijderenVanaf).with(beoordelingJoin())
+			.and(MammaMammografieBaseSpecification.heeftDensiteit().with(mammografieJoin()))
+			.and(MammaBeoordelingSpecification.heeftStatus(MammaBeoordelingStatus.UITSLAG_ONGUNSTIG).with(beoordelingJoin())
+				.or(MammaBeoordelingSpecification.heeftStatus(MammaBeoordelingStatus.UITSLAG_GUNSTIG).with(beoordelingJoin())
+					.and(ProjectSpecification.heeftNietNaamIn(configuratie.getDenseOnderzoekProjecten()).with(projectJoin()))
+				)
+			);
+	}
+
+	private Join<MammaScreeningRonde, MammaOnderzoek> onderzoekJoin(From<?, ? extends Client> r)
+	{
+		var dossierJoin = join(r, Client_.mammaDossier);
+		var rondeJoin = join(dossierJoin, MammaDossier_.laatsteScreeningRonde);
+		return join(rondeJoin, MammaScreeningRonde_.laatsteOnderzoek);
+	}
+
+	private Function<From<?, ? extends Client>, From<?, ? extends MammaMammografie>> mammografieJoin()
+	{
+		return r ->
+		{
+			var onderzoekJoin = onderzoekJoin(r);
+			return join(onderzoekJoin, MammaOnderzoek_.mammografie);
+		};
+	}
+
+	private Function<From<?, ? extends Client>, From<?, ? extends MammaBeoordeling>> beoordelingJoin()
+	{
+		return r ->
+		{
+			var onderzoekJoin = onderzoekJoin(r);
+			return join(onderzoekJoin, MammaOnderzoek_.laatsteBeoordeling);
+		};
+	}
+
+	private Function<From<?, ? extends Client>, From<?, ? extends Project>> projectJoin()
+	{
+		return r ->
+		{
+			var projectClientJoin = join(r, Client_.projecten, JoinType.LEFT);
+			return join(projectClientJoin, ProjectClient_.project, JoinType.LEFT);
+		};
+	}
+
+	@Override
+	public boolean magDensiteitOpslaan(MammaDenseWaarde densiteit, Client client)
+	{
+		var metingOpslaan = organisatieParameterService.getOrganisatieParameter(null, OrganisatieParameterKey.MAMMA_DENSE_2_INITIELE_METING_OPSLAAN, false);
+		var clientInDense2Project = clientZitInDense2Project(client, getConfiguratie());
+		var hogeDensiteit = densiteit == MammaDenseWaarde.D;
+		if (clientInDense2Project)
+		{
+			return false;
+		}
+		else
+		{
+			return metingOpslaan && hogeDensiteit;
+		}
+	}
+
+	@Override
+	@Transactional
+	public void verwijderDensiteit(MammaOnderzoek onderzoek)
+	{
+		var mammografie = onderzoek.getMammografie();
+		if (mammografie == null)
+		{
+			return;
+		}
+		mammografie.setDensiteit(null);
+		mammografieRepository.save(mammografie);
 	}
 
 	private Sort getSorteerVolgorde()

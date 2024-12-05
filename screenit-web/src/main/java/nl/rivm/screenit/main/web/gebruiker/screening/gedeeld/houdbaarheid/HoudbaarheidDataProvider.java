@@ -34,10 +34,10 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
+
 public class HoudbaarheidDataProvider<H extends AbstractHoudbaarheid> extends SortableDataProvider<H, String>
 {
-
-	private static final long serialVersionUID = 1L;
 
 	@SpringBean
 	private HoudbaarheidService houdbaarheidService;
@@ -54,7 +54,7 @@ public class HoudbaarheidDataProvider<H extends AbstractHoudbaarheid> extends So
 	@Override
 	public Iterator<? extends H> iterator(long first, long count)
 	{
-		return (Iterator<H>) houdbaarheidService.getHoudbaarheidItems(clazz, first, count, getSort().getProperty(), getSort().isAscending()).iterator();
+		return houdbaarheidService.getHoudbaarheidItems(clazz, first, count, toSpringSort(getSort())).iterator();
 	}
 
 	@Override

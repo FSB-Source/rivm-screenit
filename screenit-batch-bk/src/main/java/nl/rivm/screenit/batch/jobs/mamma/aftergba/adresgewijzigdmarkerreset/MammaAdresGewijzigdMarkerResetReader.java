@@ -22,32 +22,26 @@ package nl.rivm.screenit.batch.jobs.mamma.aftergba.adresgewijzigdmarkerreset;
  */
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.gba.GbaMutatie;
+import nl.rivm.screenit.specification.algemeen.GbaMutatieSpecification;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.MatchMode;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import static nl.rivm.screenit.batch.jobs.mamma.aftergba.AfterGbaJobConfiguration.AFTER_GBA_JOB_READER_FETCH_SIZE;
 
 @Component
-public class MammaAdresGewijzigdMarkerResetReader extends BaseScrollableResultReader
+public class MammaAdresGewijzigdMarkerResetReader extends BaseSpecificationScrollableResultReader<GbaMutatie>
 {
-
 	public MammaAdresGewijzigdMarkerResetReader()
 	{
 		super.setFetchSize(AFTER_GBA_JOB_READER_FETCH_SIZE);
 	}
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<GbaMutatie> createSpecification()
 	{
-		var criteria = session.createCriteria(GbaMutatie.class, "gbaMutatie");
-		criteria.add(Restrictions.like("gbaMutatie.aanvullendeInformatie", Constants.MAMMA_ADRES_GEWIJZIGD_MARKER, MatchMode.ANYWHERE));
-		return criteria;
+		return GbaMutatieSpecification.filterOpAanvullendeInformatieContaining(Constants.MAMMA_ADRES_GEWIJZIGD_MARKER);
 	}
 }

@@ -157,7 +157,7 @@ public abstract class BaseTypedScrollableResultReader<T> implements ItemReader<T
 		return jobExecution.getExecutionContext();
 	}
 
-	protected ExecutionContext getStepExecutionContext()
+	public ExecutionContext getStepExecutionContext()
 	{
 		return stepExecution.getExecutionContext();
 	}

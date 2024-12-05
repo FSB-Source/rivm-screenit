@@ -21,48 +21,46 @@ package nl.rivm.screenit.batch.jobs.colon.ifobtverwerking.verwerkingstep;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.model.colon.IFOBTUitslag;
-import nl.rivm.screenit.model.colon.enums.IFOBTBestandStatus;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projection;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Root;
+
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.colon.IFOBTUitslag;
+import nl.rivm.screenit.model.colon.IFOBTUitslag_;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
+
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.model.colon.enums.IFOBTBestandStatus.GEAUTORISEERD;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.colon.ColonFITBestandSpecification.heeftStatus;
+
 @Component
-public class IFOBTVerwerkingReader extends BaseScrollableResultReader
+public class IFOBTVerwerkingReader extends BaseSpecificationScrollableResultReader<IFOBTUitslag>
 {
-
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<IFOBTUitslag> createSpecification()
 	{
-		try
-		{
-			var crit = session.createCriteria(IFOBTUitslag.class);
-
-			crit.createAlias("bestand", "bestand");
-			crit.add(Restrictions.eq("bestand.status", IFOBTBestandStatus.GEAUTORISEERD));
-
-			crit.addOrder(Order.asc("bestand.id"));
-			crit.addOrder(Order.asc("id"));
-
-			return crit;
-		}
-		catch (Exception e)
-		{
-			crashMelding("Er konden geen uitslagen worden geselecteerd voor de verwerking", e);
-			throw e;
-		}
+		return heeftStatus(GEAUTORISEERD).with(IFOBTUitslag_.bestand);
 	}
 
 	@Override
-	protected Projection getProjection()
+	protected List<Order> getOrders(Root<IFOBTUitslag> r, CriteriaBuilder cb)
 	{
-		return Projections.id();
+		var orders = new ArrayList<Order>();
+		orders.add(cb.asc(join(r, IFOBTUitslag_.bestand).get(AbstractHibernateObject_.id)));
+		orders.add(cb.asc(r.get(AbstractHibernateObject_.id)));
+		return orders;
+	}
+
+	@Override
+	protected Class<?> getResultClass()
+	{
+		return Object[].class;
 	}
 }

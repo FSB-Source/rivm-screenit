@@ -42,6 +42,7 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenVerzoek;
+import nl.rivm.screenit.model.mamma.MammaUploadBeeldenVerzoek_;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -85,8 +86,8 @@ public class MammaCeUploadBeeldenVerzoekInstellingWerklijstPage extends Abstract
 		columns.add(new GeboortedatumColumn<>("screeningRonde.dossier.client.persoon"));
 		columns.add(new PropertyColumn<>(Model.of("Bsn"), "screeningRonde.dossier.client.persoon.bsn"));
 		columns.add(new EnumPropertyColumn<>(Model.of("Verzoektype"), "verzoekType"));
-		columns.add(new EnumPropertyColumn<>(Model.of("Datum verzoek"), "creatieDatum", "creatieDatum"));
-		columns.add(new EnumPropertyColumn<>(Model.of("Status"), "status", "status", this));
+		columns.add(new EnumPropertyColumn<>(Model.of("Datum verzoek"), MammaUploadBeeldenVerzoek_.CREATIE_DATUM, "creatieDatum"));
+		columns.add(new EnumPropertyColumn<>(Model.of("Status"), MammaUploadBeeldenVerzoek_.STATUS, "status", this));
 		columns.add(new NotClickableAbstractColumn<MammaUploadBeeldenVerzoek, String>(Model.of(""))
 		{
 			@Override

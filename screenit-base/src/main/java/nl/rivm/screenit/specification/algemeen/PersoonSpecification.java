@@ -24,27 +24,40 @@ package nl.rivm.screenit.specification.algemeen;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.GbaPersoon_;
 import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.util.DateUtil;
 
+import com.google.common.collect.Range;
+
+import static nl.rivm.screenit.specification.DateSpecification.bevatLocalDateToDate;
+import static nl.rivm.screenit.specification.DateSpecification.extractYear;
 import static nl.rivm.screenit.specification.SpecificationUtil.composePredicates;
+import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmpty;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmptyExtended;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNullExtended;
+import static nl.rivm.screenit.specification.algemeen.AdresSpecification.heeftEenPostcode;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PersoonSpecification
 {
 	public static ExtendedSpecification<GbaPersoon> isNietOverleden()
 	{
 		return (r, q, cb) -> cb.isNull(r.get(GbaPersoon_.overlijdensdatum));
+	}
+
+	public static ExtendedSpecification<GbaPersoon> isOverleden()
+	{
+		return (r, q, cb) -> cb.isNotNull(r.get(GbaPersoon_.overlijdensdatum));
 	}
 
 	public static ExtendedSpecification<GbaPersoon> isNietOverledenEnWoontInNederland()
@@ -82,6 +95,11 @@ public class PersoonSpecification
 		return (r, q, cb) -> cb.equal(r.get(GbaPersoon_.bsn), bsn);
 	}
 
+	public static ExtendedSpecification<GbaPersoon> heeftBsnIn(List<String> bsns)
+	{
+		return (r, q, cb) -> r.get(GbaPersoon_.bsn).in(bsns);
+	}
+
 	public static ExtendedSpecification<GbaPersoon> valtBinnenLeeftijdGrensRestricties(Integer minLeeftijd, Integer maxLeeftijd, Integer interval, LocalDate peildatum)
 	{
 		return (r, q, cb) ->
@@ -90,7 +108,7 @@ public class PersoonSpecification
 			if (minLeeftijd != null)
 			{
 				var geboortedatumMaximaal = peildatum.minusYears(minLeeftijd);
-				predicates.add(cb.lessThanOrEqualTo(r.get(GbaPersoon_.geboortedatum), DateUtil.toUtilDate(geboortedatumMaximaal)));
+				predicates.add(isGeborenVoorOfOp(geboortedatumMaximaal).toPredicate(r, q, cb));
 			}
 			if (maxLeeftijd != null)
 			{
@@ -99,9 +117,49 @@ public class PersoonSpecification
 				{
 					geboortedatumMinimaal = geboortedatumMinimaal.minusDays(interval);
 				}
-				predicates.add(cb.greaterThan(r.get(GbaPersoon_.geboortedatum), DateUtil.toUtilDate(geboortedatumMinimaal)));
+				predicates.add(isGeborenNa(geboortedatumMinimaal).toPredicate(r, q, cb));
 			}
 			return composePredicates(cb, predicates);
 		};
+	}
+
+	public static ExtendedSpecification<GbaPersoon> valtBinnenLeeftijd(Integer minLeeftijd, Integer maxLeeftijd, LocalDate peilDatum)
+	{
+		return valtBinnenLeeftijdGrensRestricties(minLeeftijd, maxLeeftijd, null, peilDatum);
+	}
+
+	public static ExtendedSpecification<GbaPersoon> isGeborenVoor(LocalDate peilDatum)
+	{
+		return (r, q, cb) ->
+		{
+			var geboorteDatum = r.get(GbaPersoon_.geboortedatum);
+			return cb.lessThan(geboorteDatum, DateUtil.toUtilDate(peilDatum));
+		};
+	}
+
+	public static ExtendedSpecification<GbaPersoon> isGeborenVoorOfOp(LocalDate peilDatum)
+	{
+		return (r, q, cb) -> cb.lessThanOrEqualTo(r.get(GbaPersoon_.geboortedatum), DateUtil.toUtilDate(peilDatum));
+	}
+
+	public static ExtendedSpecification<GbaPersoon> isGeborenNa(LocalDate peilDatum)
+	{
+		return (r, q, cb) -> cb.greaterThan(r.get(GbaPersoon_.geboortedatum), DateUtil.toUtilDate(peilDatum));
+	}
+
+	public static ExtendedSpecification<GbaPersoon> heeftGeboorteJaarIn(List<Integer> geboorteJaren)
+	{
+		return skipWhenEmpty(geboorteJaren, (r, q, cb) -> extractYear(r.get(GbaPersoon_.geboortedatum), cb).in(geboorteJaren));
+	}
+
+	public static ExtendedSpecification<GbaPersoon> heeftGbaAdresMetPostcode()
+	{
+		return heeftEenPostcode().with(GbaPersoon_.gbaAdres)
+			.or(heeftEenPostcode().with(GbaPersoon_.tijdelijkGbaAdres, JoinType.LEFT));
+	}
+
+	public static ExtendedSpecification<GbaPersoon> heeftGeboortedatumIn(Range<LocalDate> bereik)
+	{
+		return bevatLocalDateToDate(bereik, r -> r.get(GbaPersoon_.geboortedatum));
 	}
 }

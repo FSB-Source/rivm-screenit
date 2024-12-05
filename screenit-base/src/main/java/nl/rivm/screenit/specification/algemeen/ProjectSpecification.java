@@ -22,56 +22,53 @@ package nl.rivm.screenit.specification.algemeen;
  */
 
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.ProjectParameterKey;
+import nl.rivm.screenit.model.ProjectParameter_;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectBriefActie_;
-import nl.rivm.screenit.model.project.ProjectClient_;
 import nl.rivm.screenit.model.project.ProjectType;
 import nl.rivm.screenit.model.project.Project_;
-import nl.rivm.screenit.specification.SpecificationUtil;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.util.DateUtil;
 
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.util.Pair;
+
+import com.google.common.collect.BoundType;
+
+import static nl.rivm.screenit.specification.RangeSpecification.bevat;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ProjectSpecification
 {
-	public static Specification<Project> heeftProjectType(ProjectType projectType)
+	public static ExtendedSpecification<Project> heeftType(ProjectType projectType)
 	{
 		return (r, q, cb) -> cb.equal(r.get(Project_.type), projectType);
 	}
 
-	public static Specification<Client> heeftProjectClientVoorDatum(LocalDate datum)
+	public static ExtendedSpecification<Project> heeftNaamIn(List<String> projectNamen)
 	{
-		return (r, q, cb) ->
-		{
-			var projectClientJoin = SpecificationUtil.join(r, Client_.projecten);
-			return cb.lessThan(projectClientJoin.get(ProjectClient_.toegevoegd), DateUtil.toUtilDate(datum));
-		};
+		return (r, q, cb) -> r.get(Project_.naam).in(projectNamen);
 	}
 
-	public static Specification<Client> heeftClientInProjectMetNaam(List<String> projectNamen)
+	public static ExtendedSpecification<Project> heeftNietNaamIn(List<String> projectNamen)
 	{
-		return (r, q, cb) ->
-		{
-			var projectClientJoin = SpecificationUtil.join(r, Client_.projecten);
-			var project = SpecificationUtil.join(projectClientJoin, ProjectClient_.project);
-			return project.get(Project_.naam).in(projectNamen);
-		};
+		return (r, q, cb) -> cb.or(cb.isNull(r.get(Project_.naam)), cb.not(r.get(Project_.naam).in(projectNamen)));
 	}
 
-	public static Specification<Project> heeftBriefTypeInProject(BriefType type)
+	public static Specification<Project> heeftBriefType(BriefType type)
 	{
 		return (r, q, cb) ->
 		{
-			var projectBriefActiesJoin = SpecificationUtil.join(r, Project_.projectBriefActies);
+			var projectBriefActiesJoin = join(r, Project_.projectBriefActies);
 			return cb.equal(projectBriefActiesJoin.get(ProjectBriefActie_.briefType), type);
 		};
 	}
@@ -80,6 +77,36 @@ public class ProjectSpecification
 	{
 		return (r, q, cb) ->
 			cb.greaterThanOrEqualTo(r.get(Project_.eindDatum), DateUtil.toUtilDate(vandaag));
+	}
+
+	public static ExtendedSpecification<Project> isActiefOpDatum(LocalDate peildatum)
+	{
+
+		return bevat(r -> r.get(Project_.startDatum), r -> r.get(Project_.eindDatum), Pair.of(BoundType.CLOSED, BoundType.OPEN),
+			DateUtil.toUtilDate(peildatum));
+	}
+
+	public static ExtendedSpecification<Project> heeftParameterKeyMetValue(ProjectParameterKey key)
+	{
+		return (r, q, cb) ->
+		{
+			var parameters = join(r, Project_.parameters);
+			return cb.and(
+				cb.equal(parameters.get(ProjectParameter_.key), key),
+				cb.isNotNull(parameters.get(ProjectParameter_.value))
+			);
+		};
+	}
+
+	public static ExtendedSpecification<Project> heeftNaam(String naam)
+	{
+		return (r, q, cb) -> cb.equal(r.get(Project_.naam), naam);
+	}
+
+	public static ExtendedSpecification<Project> heeftStartdatumVanaf(Date date)
+	{
+		return (r, q, cb) ->
+			cb.lessThanOrEqualTo(r.get(Project_.startDatum), date);
 	}
 
 }
