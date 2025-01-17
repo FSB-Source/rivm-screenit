@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.index;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,7 +28,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import nl.rivm.screenit.mamma.planning.model.PlanningBlok;
 import nl.rivm.screenit.mamma.planning.model.PlanningConceptEntiteit;
@@ -75,7 +74,7 @@ public enum PlanningBlokIndex
 			blokChangedSet.removeAll(blokSet);
 		}
 
-		blokSet.stream().map(PlanningConceptEntiteit::getConceptId).collect(Collectors.toList()).forEach(blokMap.keySet()::remove);
+		blokSet.stream().map(PlanningConceptEntiteit::getConceptId).toList().forEach(blokMap.keySet()::remove);
 	}
 
 	public static Set<PlanningBlok> getBlokDeletedSet(PlanningScreeningsEenheid screeningsEenheid)

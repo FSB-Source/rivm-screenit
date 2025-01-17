@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.algemeen;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,10 +23,11 @@ package nl.rivm.screenit.specification.algemeen;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Gebruiker_;
@@ -45,8 +46,9 @@ import com.google.common.collect.BoundType;
 import static nl.rivm.screenit.specification.RangeSpecification.bevat;
 import static nl.rivm.screenit.specification.SpecificationUtil.containsCaseInsensitive;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmptyExtended;
+import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNullExtended;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MedewerkerSpecification
 {
 	public static Specification<Gebruiker> isActieveGebruiker(LocalDate vandaag, int dagenWachtwoordGeldig)
@@ -95,13 +97,18 @@ public class MedewerkerSpecification
 		return (r, q, cb) ->
 			cb.and(
 				cb.lessThan(r.get(Gebruiker_.laatsteKeerWachtwoordGewijzigd), DateUtil.toUtilDate(laatsteKeerWachtwoordGewijzigdPeildatum)),
-				cb.equal(r.get(Gebruiker_.wachtwoordVerlooptWaarschuwingVerzonden), false)
+				cb.isFalse(r.get(Gebruiker_.wachtwoordVerlooptWaarschuwingVerzonden))
 			);
 	}
 
 	public static Specification<Gebruiker> isNietGeblokkeerd()
 	{
 		return (r, q, cb) -> cb.notEqual(r.get(Gebruiker_.inlogstatus), InlogStatus.GEBLOKKEERD);
+	}
+
+	public static ExtendedSpecification<Gebruiker> heeftHandtekening()
+	{
+		return (r, q, cb) -> cb.isNotNull(r.get(Gebruiker_.handtekening));
 	}
 
 	public static ExtendedSpecification<Gebruiker> filterAchternaamContaining(String achternaam)
@@ -119,9 +126,24 @@ public class MedewerkerSpecification
 		return isActief().and(isActiefOpMoment(peilmoment));
 	}
 
-	private static ExtendedSpecification<Gebruiker> isActief()
+	public static ExtendedSpecification<Gebruiker> isActief()
 	{
 		return (r, q, cb) -> cb.isTrue(r.get(Gebruiker_.actief));
+	}
+
+	public static ExtendedSpecification<Gebruiker> filterActief(Boolean waarde)
+	{
+		return skipWhenNullExtended(waarde, (r, q, cb) -> cb.equal(r.get(Gebruiker_.actief), waarde));
+	}
+
+	public static ExtendedSpecification<Gebruiker> filterActiefVanaf(Date waarde)
+	{
+		return skipWhenNullExtended(waarde, (r, q, cb) -> cb.equal(r.get(Gebruiker_.actiefVanaf), waarde));
+	}
+
+	public static ExtendedSpecification<Gebruiker> filterActiefTotEnMet(Date waarde)
+	{
+		return skipWhenNullExtended(waarde, (r, q, cb) -> cb.equal(r.get(Gebruiker_.actiefTotEnMet), waarde));
 	}
 
 	private static @NotNull ExtendedSpecification<Gebruiker> isActiefOpMoment(LocalDateTime peilmoment)

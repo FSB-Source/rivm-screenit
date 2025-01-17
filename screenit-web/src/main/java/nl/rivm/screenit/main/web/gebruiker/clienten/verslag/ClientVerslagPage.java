@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.verslag;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -143,7 +143,7 @@ public class ClientVerslagPage extends ClientPage
 		add(verwijderDialog);
 
 		ScreenitFormulierRenderPanel formulierRenderPanel = new ScreenitFormulierRenderPanel("formulier",
-			ModelUtil.sModel(formulierService.getFormulierInstatie(verslag.getType().getTypeFormulier())))
+			ModelUtil.sModel(formulierService.getFormulierInstantie(verslag.getType().getTypeFormulier())))
 		{
 			@Override
 			protected boolean checkRequired()
@@ -199,28 +199,25 @@ public class ClientVerslagPage extends ClientPage
 				client.getComplicaties().size();
 
 				Object rootObject = formulierRenderContext.getRootObject();
-				if (rootObject instanceof VerslagContent)
+				if (rootObject instanceof VerslagContent<?> verslagContent && checkRequired)
 				{
-					VerslagContent<?> verslagContent = (VerslagContent<?>) rootObject;
-					if (checkRequired)
-					{
-						FormulierResultaatImpl resultaat = formulierResultaatModel.getObject();
+					FormulierResultaatImpl resultaat = formulierResultaatModel.getObject();
 
-						try
+					try
+					{
+						verwerkVerslagService.valideerVerslagVoorAfronden(verslagContent.getVerslag(), resultaat.getAntwoorden(),
+							ScreenitSession.get().getLoggedInInstellingGebruiker());
+					}
+					catch (IllegalStateException e)
+					{
+						String message = e.getMessage();
+						if (message != null && message.startsWith("error."))
 						{
-							verwerkVerslagService.valideerVerslagVoorAfronden(verslagContent.getVerslag(), resultaat.getAntwoorden(),
-								ScreenitSession.get().getLoggedInInstellingGebruiker());
-						}
-						catch (IllegalStateException e)
-						{
-							String message = e.getMessage();
-							if (message != null && message.startsWith("error."))
-							{
-								form.error(getString(message));
-							}
+							form.error(getString(message));
 						}
 					}
 				}
+
 			}
 
 			@Override
@@ -426,9 +423,8 @@ public class ClientVerslagPage extends ClientPage
 	private void saveOrAfronden(AjaxRequestTarget target, boolean afronden)
 	{
 		Object rootObject = formulierRenderContext.getRootObject();
-		if (rootObject instanceof VerslagContent)
+		if (rootObject instanceof VerslagContent<?> verslagContent)
 		{
-			VerslagContent<?> verslagContent = (VerslagContent<?>) rootObject;
 			var verslag = verslagContent.getVerslag();
 			verslag.setInvoerder(ScreenitSession.get().getLoggedInInstellingGebruiker());
 			verslag.setDatumVerwerkt(dateSupplier.getDate());

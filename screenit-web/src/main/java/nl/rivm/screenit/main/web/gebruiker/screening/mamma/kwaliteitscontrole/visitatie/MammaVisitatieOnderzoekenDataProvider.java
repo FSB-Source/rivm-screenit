@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.v
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.v
 import java.util.Iterator;
 
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaVisitatieOnderzoekenWerklijstZoekObject;
-import nl.rivm.screenit.main.service.mamma.MammaKwaliteitscontroleService;
+import nl.rivm.screenit.main.service.mamma.MammaVisitatieService;
 import nl.rivm.screenit.model.mamma.MammaVisitatieOnderzoek;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -34,41 +34,32 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import com.google.common.primitives.Ints;
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
 
 public class MammaVisitatieOnderzoekenDataProvider extends SortableDataProvider<MammaVisitatieOnderzoek, String>
 {
 	@SpringBean
-	private MammaKwaliteitscontroleService kwaliteitscontroleService;
+	private MammaVisitatieService visitatieService;
 
-	private IModel<MammaVisitatieOnderzoekenWerklijstZoekObject> criteria;
+	private final IModel<MammaVisitatieOnderzoekenWerklijstZoekObject> zoekObject;
 
-	MammaVisitatieOnderzoekenDataProvider(String sortProperty, IModel<MammaVisitatieOnderzoekenWerklijstZoekObject> zoekObjectModel)
+	MammaVisitatieOnderzoekenDataProvider(String sortProperty, IModel<MammaVisitatieOnderzoekenWerklijstZoekObject> zoekObject)
 	{
 		Injector.get().inject(this);
 		setSort(sortProperty, SortOrder.ASCENDING);
-		this.criteria = zoekObjectModel;
+		this.zoekObject = zoekObject;
 	}
 
 	@Override
 	public Iterator<? extends MammaVisitatieOnderzoek> iterator(long first, long count)
 	{
-		MammaVisitatieOnderzoekenWerklijstZoekObject zoekObject = getZoekObject();
-
-		return kwaliteitscontroleService
-			.zoekVisitatieOnderzoeken(zoekObject, Ints.checkedCast(first), Ints.checkedCast(count), getSort().getProperty(), getSort().isAscending()).iterator();
-	}
-
-	private MammaVisitatieOnderzoekenWerklijstZoekObject getZoekObject()
-	{
-		return ModelUtil.nullSafeGet(criteria);
+		return visitatieService.zoekVisitatieOnderzoeken(getZoekObject().getOnderdeel(), getZoekObject().getVisitatie(), first, count, toSpringSort(getSort())).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		MammaVisitatieOnderzoekenWerklijstZoekObject zoekObject = getZoekObject();
-		return kwaliteitscontroleService.countVisitatieOnderzoeken(zoekObject);
+		return visitatieService.countVisitatieOnderzoeken(getZoekObject().getOnderdeel(), getZoekObject().getVisitatie());
 	}
 
 	@Override
@@ -81,6 +72,11 @@ public class MammaVisitatieOnderzoekenDataProvider extends SortableDataProvider<
 	public void detach()
 	{
 		super.detach();
-		ModelUtil.nullSafeDetach(criteria);
+		ModelUtil.nullSafeDetach(zoekObject);
+	}
+
+	private MammaVisitatieOnderzoekenWerklijstZoekObject getZoekObject()
+	{
+		return ModelUtil.nullSafeGet(zoekObject);
 	}
 }

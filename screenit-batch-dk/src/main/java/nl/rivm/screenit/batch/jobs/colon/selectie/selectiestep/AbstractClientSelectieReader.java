@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 
 import nl.rivm.screenit.model.colon.ClientCategorieEntry;
+import nl.rivm.screenit.repository.algemeen.ClientRepository;
 import nl.rivm.screenit.service.colon.ColonBaseFITService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
@@ -62,6 +63,9 @@ public abstract class AbstractClientSelectieReader implements ItemReader<ClientC
 
 	@Autowired
 	protected ColonBaseFITService fitService;
+
+	@Autowired
+	protected ClientRepository clientRepository;
 
 	public void setFetchSize(int fetchSize)
 	{

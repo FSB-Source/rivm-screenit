@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.f
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,8 +24,9 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.f
 import java.util.Iterator;
 
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaFotobesprekingWerklijstZoekObject;
-import nl.rivm.screenit.main.service.mamma.MammaKwaliteitscontroleService;
+import nl.rivm.screenit.main.service.mamma.MammaFotobesprekingService;
 import nl.rivm.screenit.model.mamma.MammaFotobespreking;
+import nl.rivm.screenit.model.mamma.MammaFotobespreking_;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -34,39 +35,32 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import com.google.common.primitives.Ints;
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
 
 public class MammaFotobesprekingProvider extends SortableDataProvider<MammaFotobespreking, String>
 {
 	@SpringBean
-	private MammaKwaliteitscontroleService kwaliteitscontroleService;
+	private MammaFotobesprekingService fotobesprekingService;
 
 	private IModel<MammaFotobesprekingWerklijstZoekObject> zoekModel;
 
 	public MammaFotobesprekingProvider(IModel<MammaFotobesprekingWerklijstZoekObject> zoekModel)
 	{
 		Injector.get().inject(this);
-		setSort("aangemaaktOp", SortOrder.ASCENDING);
+		setSort(MammaFotobespreking_.AANGEMAAKT_OP, SortOrder.ASCENDING);
 		this.zoekModel = zoekModel;
 	}
 
 	@Override
 	public Iterator<MammaFotobespreking> iterator(long first, long count)
 	{
-		String sortProperty = null;
-		boolean asc = true;
-		if (getSort() != null)
-		{
-			sortProperty = getSort().getProperty();
-			asc = getSort().isAscending();
-		}
-		return kwaliteitscontroleService.zoekFotobesprekingen(ModelUtil.nullSafeGet(zoekModel), Ints.checkedCast(first), Ints.checkedCast(count), sortProperty, asc).iterator();
+		return fotobesprekingService.zoekFotobesprekingen(ModelUtil.nullSafeGet(zoekModel), first, count, toSpringSort(getSort())).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return kwaliteitscontroleService.countFotobesprekingen(ModelUtil.nullSafeGet(zoekModel));
+		return fotobesprekingService.countFotobesprekingen(ModelUtil.nullSafeGet(zoekModel));
 	}
 
 	@Override

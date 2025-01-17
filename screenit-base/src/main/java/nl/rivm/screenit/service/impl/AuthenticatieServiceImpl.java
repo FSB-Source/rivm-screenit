@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,7 +29,6 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.dao.InstellingDao;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.InlogStatus;
 import nl.rivm.screenit.model.InstellingGebruiker;
@@ -37,6 +36,7 @@ import nl.rivm.screenit.model.enums.InlogMethode;
 import nl.rivm.screenit.repository.algemeen.GebruikerRepository;
 import nl.rivm.screenit.service.AuthenticatieService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.MailService;
 import nl.rivm.screenit.util.CodeGenerator;
 import nl.rivm.screenit.util.DateUtil;
@@ -47,12 +47,10 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
 public class AuthenticatieServiceImpl implements AuthenticatieService
 {
 
@@ -69,7 +67,7 @@ public class AuthenticatieServiceImpl implements AuthenticatieService
 	private HibernateService hibernateService;
 
 	@Autowired
-	private InstellingDao instellingDao;
+	private InstellingService instellingService;
 
 	@Autowired
 	@Qualifier(value = "applicationUrl")
@@ -157,7 +155,6 @@ public class AuthenticatieServiceImpl implements AuthenticatieService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS)
 	public Map<Gebruiker, Boolean> accountGeblokkeerd(Gebruiker gebruiker)
 	{
 		var gebruikerGelukt = new HashMap<Gebruiker, Boolean>();
@@ -227,7 +224,6 @@ public class AuthenticatieServiceImpl implements AuthenticatieService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS)
 	public void sendUziEmail(Gebruiker gebruiker)
 	{
 		if (gebruiker.getEmailextra() != null)
@@ -284,14 +280,12 @@ public class AuthenticatieServiceImpl implements AuthenticatieService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS)
 	public List<InstellingGebruiker> getActieveInstellingGebruikers(Gebruiker gebruiker)
 	{
-		return instellingDao.getInstellingGebruikersVoorInloggen(gebruiker);
+		return instellingService.getActieveInstellingGebruikersMetRollen(gebruiker);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS)
 	public Boolean isAccountLocked(Gebruiker gebruiker)
 	{
 		var foutieveAanmeldpogingenTimeout = simplePreferenceService.getInteger(PreferenceKey.FOUTIEVE_AANMELDPOGINGEN_TIMEOUT.name());
@@ -307,7 +301,7 @@ public class AuthenticatieServiceImpl implements AuthenticatieService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void unlockAccount(Gebruiker gebruiker)
 	{
 

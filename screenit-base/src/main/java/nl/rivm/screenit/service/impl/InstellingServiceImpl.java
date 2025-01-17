@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,8 +25,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 import javax.annotation.Nonnull;
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.JoinType;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,18 +41,28 @@ import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.InstellingGebruikerRol;
+import nl.rivm.screenit.model.InstellingGebruikerRol_;
+import nl.rivm.screenit.model.InstellingGebruiker_;
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.PostcodeCoordinaten;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
+import nl.rivm.screenit.model.SingleTableHibernateObject_;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.ZASRetouradres;
 import nl.rivm.screenit.model.colon.ColonIntakelocatie;
-import nl.rivm.screenit.model.colon.IFobtLaboratorium;
+import nl.rivm.screenit.model.colon.ColoscopieLocatie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.repository.algemeen.BeoordelingsEenheidRepository;
+import nl.rivm.screenit.repository.algemeen.CentraleEenheidRepository;
+import nl.rivm.screenit.repository.algemeen.InstellingGebruikerRepository;
+import nl.rivm.screenit.repository.algemeen.InstellingRepository;
 import nl.rivm.screenit.repository.algemeen.ScreeningOrganisatieRepository;
+import nl.rivm.screenit.repository.colon.ColonIntakelocatieRepository;
 import nl.rivm.screenit.service.CoordinatenService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.InstellingService;
@@ -57,6 +70,11 @@ import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseConceptPlanningsApplicatie;
+import nl.rivm.screenit.specification.algemeen.BeoordelingsEenheidSpecification;
+import nl.rivm.screenit.specification.algemeen.OrganisatieMedewerkerRolSpecification;
+import nl.rivm.screenit.specification.algemeen.OrganisatieMedewerkerSpecification;
+import nl.rivm.screenit.specification.algemeen.OrganisatieSpecification;
+import nl.rivm.screenit.specification.algemeen.RolSpecification;
 import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.rivm.screenit.util.MedewerkerUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -64,16 +82,23 @@ import nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider;
 import nl.topicuszorg.organisatie.model.Adres;
 
 import org.apache.commons.lang.BooleanUtils;
-import org.hibernate.Criteria;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.OrganisatieSpecification.heeftColoscopielocatieId;
+import static nl.rivm.screenit.specification.algemeen.OrganisatieSpecification.heeftColoscopielocatieParent;
+import static nl.rivm.screenit.specification.algemeen.OrganisatieSpecification.heeftOrganisatieType;
+import static nl.rivm.screenit.specification.algemeen.OrganisatieSpecification.heeftOrganisatieTypes;
+import static nl.rivm.screenit.specification.algemeen.OrganisatieSpecification.heeftRootOid;
+import static nl.rivm.screenit.specification.algemeen.OrganisatieSpecification.heeftUziAbonneenummer;
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
 
 @Slf4j
 @Service
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class InstellingServiceImpl implements InstellingService
 {
 
@@ -103,6 +128,21 @@ public class InstellingServiceImpl implements InstellingService
 	@Autowired
 	private ScreeningOrganisatieRepository screeningOrganisatieRepository;
 
+	@Autowired
+	private InstellingRepository organisatieRepository;
+
+	@Autowired
+	private ColonIntakelocatieRepository colonIntakelocatieRepository;
+
+	@Autowired
+	private InstellingGebruikerRepository organisatieMedewerkerRepository;
+
+	@Autowired
+	private CentraleEenheidRepository centraleEenheidRepository;
+
+	@Autowired
+	private BeoordelingsEenheidRepository beoordelingEenheidRepository;
+
 	@Override
 	public List<CentraleEenheid> getMogelijkeCentraleEenheden(Instelling instelling)
 	{
@@ -111,48 +151,68 @@ public class InstellingServiceImpl implements InstellingService
 			return Collections.emptyList();
 		}
 		OrganisatieType organisatieType = instelling.getOrganisatieType();
-		switch (organisatieType)
+		return switch (organisatieType)
 		{
-		case RIVM:
-		case KWALITEITSPLATFORM:
-			return getActieveInstellingen(CentraleEenheid.class);
-		case BEOORDELINGSEENHEID:
-			return Collections.singletonList((CentraleEenheid) hibernateService.deproxy(instelling.getParent()));
-		case SCREENINGSORGANISATIE:
-			return getActieveCentraleEenhedenBinnenRegio((ScreeningOrganisatie) hibernateService.deproxy(instelling));
-		default:
-			return Collections.emptyList();
-		}
+			case RIVM, KWALITEITSPLATFORM -> getActieveInstellingen(CentraleEenheid.class);
+			case BEOORDELINGSEENHEID -> Collections.singletonList((CentraleEenheid) hibernateService.deproxy(instelling.getParent()));
+			case SCREENINGSORGANISATIE -> getActieveCentraleEenhedenBinnenRegio((ScreeningOrganisatie) hibernateService.deproxy(instelling));
+			default -> Collections.emptyList();
+		};
 	}
 
 	@Override
 	public List<InstellingGebruiker> getActieveInstellingGebruikers(@NotNull Gebruiker medewerker)
 	{
-		return instellingDao.getActieveInstellingGebruikers(medewerker);
+		return organisatieMedewerkerRepository.findAll(OrganisatieMedewerkerSpecification.isActief()
+			.and(OrganisatieMedewerkerSpecification.heeftMedewerker(medewerker))
+			.and(OrganisatieSpecification.isActief(true).with(InstellingGebruiker_.organisatie)));
+	}
+
+	@Override
+	public List<InstellingGebruiker> getActieveInstellingGebruikersMetRollen(Gebruiker medewerker)
+	{
+		var instellingGebruikers = organisatieMedewerkerRepository.findAll(OrganisatieMedewerkerSpecification.isActief()
+				.and(OrganisatieMedewerkerSpecification.heeftMedewerker(medewerker))
+				.and(OrganisatieSpecification.isActief(true).with(InstellingGebruiker_.organisatie))
+				.and(OrganisatieSpecification.heeftOrganisatieType(OrganisatieType.HUISARTS).with(InstellingGebruiker_.organisatie)
+					.or(OrganisatieMedewerkerRolSpecification.isActiefOpDatum(currentDateSupplier.getLocalDateTime()).with(organisatieMedewerkerRolJoin()).and(
+						RolSpecification.isActief(true).with(r -> join(join(r, InstellingGebruiker_.rollen, JoinType.LEFT), InstellingGebruikerRol_.rol, JoinType.LEFT))))),
+			Sort.by(Sort.Order.asc(propertyChain(InstellingGebruiker_.ORGANISATIE, Instelling_.NAAM))));
+
+		return instellingGebruikers.stream().distinct().toList();
+	}
+
+	private static Function<From<?, ? extends InstellingGebruiker>, From<?, ? extends InstellingGebruikerRol>> organisatieMedewerkerRolJoin()
+	{
+		return r -> join(r, InstellingGebruiker_.rollen, JoinType.LEFT);
 	}
 
 	@Override
 	public List<ColonIntakelocatie> getActieveIntakelocaties()
 	{
-		return instellingDao.getActieveInstellingen(ColonIntakelocatie.class);
+		return getActieveInstellingen(ColonIntakelocatie.class);
 	}
 
 	@Override
-	public List<ColonIntakelocatie> getActieveIntakelocatiesBinneRegio(ScreeningOrganisatie regio)
+	public List<ColonIntakelocatie> getActieveIntakelocatiesBinnenRegio(ScreeningOrganisatie regio)
 	{
-		return instellingDao.getActieveInstellingenBinnenRegio(ColonIntakelocatie.class, regio);
+		var specification = OrganisatieSpecification.<ColonIntakelocatie> isActieveInstelling(ColonIntakelocatie.class).and(OrganisatieSpecification.heeftRegio(regio));
+		return colonIntakelocatieRepository.findAll(specification, Sort.by(Sort.Order.asc(Instelling_.NAAM)));
 	}
 
 	@Override
 	public List<BeoordelingsEenheid> getActieveBeoordelingseenhedenBinnenRegio(ScreeningOrganisatie regio)
 	{
-		return instellingDao.getActieveBeoordelingsEenhedenBinnenRegio(regio);
+		var specification = OrganisatieSpecification.<BeoordelingsEenheid> isActieveInstelling(BeoordelingsEenheid.class)
+			.and(BeoordelingsEenheidSpecification.heeftScreeningOrganisatie(regio));
+		return beoordelingEenheidRepository.findAll(specification, Sort.by(Sort.Order.asc(Instelling_.NAAM)));
 	}
 
 	@Override
 	public List<CentraleEenheid> getActieveCentraleEenhedenBinnenRegio(ScreeningOrganisatie regio)
 	{
-		return instellingDao.getActieveInstellingenBinnenRegio(CentraleEenheid.class, regio);
+		var specification = OrganisatieSpecification.<CentraleEenheid> isActieveInstelling(CentraleEenheid.class).and(OrganisatieSpecification.heeftRegio(regio));
+		return centraleEenheidRepository.findAll(specification, Sort.by(Sort.Order.asc(Instelling_.NAAM)));
 	}
 
 	@Override
@@ -232,9 +292,8 @@ public class InstellingServiceImpl implements InstellingService
 	public void saveOrUpdate(Instelling organisatie)
 	{
 		hibernateService.saveOrUpdate(organisatie);
-		if (organisatie instanceof ColonIntakelocatie)
+		if (organisatie instanceof ColonIntakelocatie intakelocatie)
 		{
-			ColonIntakelocatie intakelocatie = (ColonIntakelocatie) organisatie;
 
 			var organisatieParameterService = ApplicationContextProvider.getApplicationContext().getBean(OrganisatieParameterService.class);
 			var duurAfspraakInMinutenParameter = organisatieParameterService.getParameter(intakelocatie, OrganisatieParameterKey.COLON_DUUR_AFSPRAAK_IN_MINUTEN);
@@ -265,28 +324,36 @@ public class InstellingServiceImpl implements InstellingService
 	}
 
 	@Override
-	@Transactional
+	@SuppressWarnings("unchecked")
 	public <T extends Instelling> List<T> getActieveInstellingen(Class<T> typeInstelling)
 	{
-		return instellingDao.getActieveInstellingen(typeInstelling);
+		return (List<T>) organisatieRepository.findAll(OrganisatieSpecification.isActieveInstelling(typeInstelling),
+			Sort.by(Sort.Order.asc(Instelling_.NAAM)));
 	}
 
 	@Override
 	public List<ScreeningOrganisatie> getAllActiefScreeningOrganisaties()
 	{
-		return screeningOrganisatieRepository.findAllByActiefTrueOrderByNaam();
+		return getActieveInstellingen(ScreeningOrganisatie.class);
 	}
 
 	@Override
-	public Instelling getInstellingBy(String key, String value)
+	public Instelling getOrganisatieByUzinummer(String uzinummer)
 	{
-		return instellingDao.getInstellingBy(key, value);
+		return organisatieRepository.findOne(heeftUziAbonneenummer(uzinummer).and(OrganisatieSpecification.isActief(true))).orElse(null);
+	}
+
+	@Override
+	public Instelling getOrganisatieByRootOid(String rootOid)
+	{
+		return organisatieRepository.findOne(heeftRootOid(rootOid).and(OrganisatieSpecification.isActief(true))).orElse(null);
 	}
 
 	@Override
 	public List<Instelling> getInstellingByOrganisatieTypes(List<OrganisatieType> organisatieTypes)
 	{
-		return instellingDao.getInstellingByOrganisatieTypes(organisatieTypes);
+		return organisatieRepository.findAll(heeftOrganisatieTypes(organisatieTypes).and(OrganisatieSpecification.isActief(true)),
+			Sort.by(Sort.Order.asc(Instelling_.NAAM)));
 	}
 
 	@Override
@@ -311,15 +378,26 @@ public class InstellingServiceImpl implements InstellingService
 	}
 
 	@Override
-	public List<Instelling> getPathologieLabs(@NotNull Instelling instelling)
+	public List<Instelling> getPathologieLabs(@NotNull Instelling organisatie)
 	{
-		return instellingDao.getPathologieLabs(instelling);
+		var specification = OrganisatieSpecification.isActief(true);
+		if (organisatie instanceof ColoscopieLocatie)
+		{
+			specification = specification.and(heeftColoscopielocatieId(organisatie.getId()));
+		}
+		else
+		{
+			specification = specification.and(heeftColoscopielocatieParent(organisatie.getId()));
+		}
+		return organisatieRepository.findAll(specification, Sort.by(Sort.Order.asc(Instelling_.NAAM)));
 	}
 
 	@Override
-	public <T extends Instelling> List<T> getChildrenInstellingen(@Nonnull Instelling instelling, @Nonnull Class<T> typeInstelling)
+	@SuppressWarnings("unchecked")
+	public <T extends Instelling> List<T> getChildrenOrganisaties(@Nonnull Instelling organisatie, @Nonnull Class<T> organisatieClass)
 	{
-		return instellingDao.getChildrenInstellingen(instelling, typeInstelling);
+		return (List<T>) organisatieRepository.findAll(OrganisatieSpecification.isActief(true).and(OrganisatieSpecification.heeftParent(organisatie, organisatieClass)),
+			Sort.by(Sort.Order.asc(Instelling_.NAAM)));
 	}
 
 	@Override
@@ -336,9 +414,8 @@ public class InstellingServiceImpl implements InstellingService
 		}
 		catch (IOException e)
 		{
-			LOG.error("Er is een fout opgetreden! " + e.getMessage(), e);
+			LOG.error("Er is een fout opgetreden! {}", e.getMessage(), e);
 		}
-
 	}
 
 	@Override
@@ -346,32 +423,19 @@ public class InstellingServiceImpl implements InstellingService
 	public void deleteDocumentForInstelling(UploadDocument document, Instelling instelling)
 	{
 		uploadDocumentService.deleteDocumentFromList(document, instelling.getDocuments());
-
-	}
-
-	@Override
-	public IFobtLaboratorium getIfobtLabByLabID(String labID)
-	{
-		return instellingDao.getIfobtLabByLabID(labID);
-
-	}
-
-	@Override
-	public Criteria getAllILAdressenZonderCoordinanten()
-	{
-		return instellingDao.getAllILAdressenZonderCoordinanten();
-	}
-
-	@Override
-	public ScreeningOrganisatie getScreeningOrganisatie(String regioCode)
-	{
-		return instellingDao.getScreeningOrganisatie(regioCode);
 	}
 
 	@Override
 	public ScreeningOrganisatie getScreeningOrganisatie(long screeningOrganisatieId)
 	{
 		return screeningOrganisatieRepository.findById(screeningOrganisatieId).orElseThrow();
+	}
+
+	@Override
+	public List<Long> getOrganisatieIdsMetType(OrganisatieType type)
+	{
+		return organisatieRepository.findWith(heeftOrganisatieType(type).and(OrganisatieSpecification.isActief(true)), Long.class,
+			q -> q.projection((cb, r) -> r.get(SingleTableHibernateObject_.id))).all();
 	}
 
 }

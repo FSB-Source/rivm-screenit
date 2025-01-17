@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.algemeen;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,7 @@ package nl.rivm.screenit.specification.algemeen;
  */
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.gba.GbaMutatie;
 import nl.rivm.screenit.model.gba.GbaMutatie_;
@@ -30,10 +30,10 @@ import nl.rivm.screenit.specification.ExtendedSpecification;
 
 import static nl.rivm.screenit.specification.SpecificationUtil.containsCaseSensitive;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class GbaMutatieSpecification
 {
-	public static ExtendedSpecification<GbaMutatie> filterOpAanvullendeInformatieContaining(String aanvullendeInformatie)
+	public static ExtendedSpecification<GbaMutatie> heeftAanvullendeInformatieContaining(String aanvullendeInformatie)
 	{
 		return (r, q, cb) -> containsCaseSensitive(cb, r.get(GbaMutatie_.aanvullendeInformatie), aanvullendeInformatie);
 	}

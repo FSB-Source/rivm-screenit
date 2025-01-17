@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,10 +25,13 @@ package nl.rivm.screenit.main.service.impl;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Root;
+
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.main.dao.OvereenkomstDao;
 import nl.rivm.screenit.main.service.OvereenkomstService;
 import nl.rivm.screenit.main.service.cervix.CervixHuisartsSyncService;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.overeenkomstenzoeken.OvereenkomstZoekFilter;
@@ -41,14 +44,28 @@ import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.overeenkomsten.AbstractAfgeslotenOvereenkomst;
+import nl.rivm.screenit.model.overeenkomsten.AbstractAfgeslotenOvereenkomst_;
 import nl.rivm.screenit.model.overeenkomsten.AfgeslotenInstellingOvereenkomst;
 import nl.rivm.screenit.model.overeenkomsten.AfgeslotenMedewerkerOvereenkomst;
 import nl.rivm.screenit.model.overeenkomsten.Overeenkomst;
 import nl.rivm.screenit.model.overeenkomsten.OvereenkomstType;
+import nl.rivm.screenit.model.overeenkomsten.Overeenkomst_;
+import nl.rivm.screenit.repository.algemeen.AbstractAfgeslotenOvereenkomstRepository;
+import nl.rivm.screenit.repository.algemeen.AfgeslotenMedewerkerOvereenkomstRepository;
+import nl.rivm.screenit.repository.algemeen.AfgeslotenOrganisatieOvereenkomstRepository;
+import nl.rivm.screenit.repository.algemeen.InstellingRepository;
+import nl.rivm.screenit.repository.algemeen.OvereenkomstRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.MailService;
 import nl.rivm.screenit.service.UploadDocumentService;
+import nl.rivm.screenit.specification.ExtendedSpecification;
+import nl.rivm.screenit.specification.HibernateObjectSpecification;
+import nl.rivm.screenit.specification.algemeen.AbstractAfgeslotenOvereenkomstSpecification;
+import nl.rivm.screenit.specification.algemeen.AfgeslotenMedewerkerOvereenkomstSpecification;
+import nl.rivm.screenit.specification.algemeen.AfgeslotenOrganisatieOvereenkomstSpecification;
+import nl.rivm.screenit.specification.algemeen.OrganisatieSpecification;
+import nl.rivm.screenit.specification.algemeen.OvereenkomstSpecification;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
@@ -56,9 +73,16 @@ import org.apache.commons.lang.StringUtils;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.OvereenkomstSpecification.filterActief;
+import static nl.rivm.screenit.specification.algemeen.OvereenkomstSpecification.filterOrganisatieType;
+import static nl.rivm.screenit.specification.algemeen.OvereenkomstSpecification.heeftOvereenkomstIn;
+import static nl.rivm.screenit.specification.algemeen.OvereenkomstSpecification.isActief;
 
 @Slf4j
 @Service
@@ -70,9 +94,6 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 
 	@Autowired
 	private HibernateService hibernateService;
-
-	@Autowired
-	private OvereenkomstDao overeenkomstDao;
 
 	@Autowired
 	private LogService logService;
@@ -93,8 +114,23 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 	@Qualifier(value = "applicationUrl")
 	private String applicationUrl;
 
+	@Autowired
+	private OvereenkomstRepository overeenkomstRepository;
+
+	@Autowired
+	private AfgeslotenMedewerkerOvereenkomstRepository afgeslotenMedewerkerOvereenkomstRepository;
+
+	@Autowired
+	private AfgeslotenOrganisatieOvereenkomstRepository afgeslotenOrganisatieOvereenkomstRepository;
+
+	@Autowired
+	private AbstractAfgeslotenOvereenkomstRepository abstractAfgeslotenOvereenkomstRepository;
+
+	@Autowired
+	private InstellingRepository organisatieRepository;
+
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void saveOrUpdateOvereenkomst(Overeenkomst overeenkomst, UploadDocument uploadDocument, Account account)
 	{
 		if (OvereenkomstType.ZAKELIJKE_OVEREENKOMST == overeenkomst.getOvereenkomst())
@@ -160,22 +196,30 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 	}
 
 	@Override
-	public List<Overeenkomst> getOvereenkomsten(Boolean actief, long first, long size, String sortProperty, boolean asc)
+	public List<Overeenkomst> getOvereenkomsten(Boolean actief, long first, long size, Sort sort)
 	{
-		return overeenkomstDao.getOvereenkomsten(actief, first, size, sortProperty, asc);
+		return overeenkomstRepository.findWith(filterActief(actief), q -> q.sortBy(sort, (order, r, cb) ->
+		{
+			var sortProperty = order.getProperty();
+			if (sortProperty.startsWith(Overeenkomst_.DOCUMENT))
+			{
+				join(r, Overeenkomst_.document);
+			}
+			return null;
+		})).all(first, size);
 	}
 
 	@Override
 	public long countOvereenkomsten(Boolean actief)
 	{
-		return overeenkomstDao.countOvereenkomsten(actief);
+		return overeenkomstRepository.count(filterActief(actief));
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void updateOvereenkomst(Overeenkomst overeenkomst, Account account)
 	{
-		if (overeenkomst.isActief())
+		if (Boolean.TRUE.equals(overeenkomst.getActief()))
 		{
 			logService.logGebeurtenis(LogGebeurtenis.OVEREENKOMST_MODEL_GEACTIVEERD, account);
 
@@ -195,26 +239,63 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 	}
 
 	@Override
-	public <T> List<AbstractAfgeslotenOvereenkomst> getAfgeslotenOvereenkomsten(Class<? extends AbstractAfgeslotenOvereenkomst> returnType, T filter, Boolean actief, Long first,
-		Long size, String sortProperty, boolean asc)
+	public List<AfgeslotenMedewerkerOvereenkomst> getAfgeslotenMedewerkerOvereenkomsten(Gebruiker zoekObject, Boolean actief, Long first, Long size, Sort sort)
 	{
-		return overeenkomstDao.getAfgeslotenOvereenkomsten(returnType, filter, actief, first, size, sortProperty, asc);
+		return afgeslotenMedewerkerOvereenkomstRepository.findWith(
+				AbstractAfgeslotenOvereenkomstSpecification.<AfgeslotenMedewerkerOvereenkomst> filterActief(actief, currentDateSupplier.getDate())
+					.and(AfgeslotenMedewerkerOvereenkomstSpecification.heeftGebruiker(zoekObject)), q -> q.sortBy(sort, OvereenkomstServiceImpl::addJoinsForSortering))
+			.all(first, size);
 	}
 
 	@Override
-	public <T> long countAfgeslotenOvereenkomsten(Class<? extends AbstractAfgeslotenOvereenkomst> returnType, T filter, Boolean actief)
+	public long countAfgeslotenMedewerkerOvereenkomsten(Gebruiker zoekObject, Boolean actief)
 	{
-		return overeenkomstDao.countAfgeslotenOvereenkomsten(returnType, filter, actief);
+		return afgeslotenMedewerkerOvereenkomstRepository.count(
+			AbstractAfgeslotenOvereenkomstSpecification.<AfgeslotenMedewerkerOvereenkomst> filterActief(actief, currentDateSupplier.getDate())
+				.and(AfgeslotenMedewerkerOvereenkomstSpecification.heeftGebruiker(zoekObject)));
+	}
+
+	@Override
+	public List<AfgeslotenInstellingOvereenkomst> getAfgeslotenOrganisatieOvereenkomsten(Instelling zoekObject, Boolean actief, Long first, Long size, Sort sort)
+	{
+		return afgeslotenOrganisatieOvereenkomstRepository.findWith(
+				AbstractAfgeslotenOvereenkomstSpecification.<AfgeslotenInstellingOvereenkomst> filterActief(actief, currentDateSupplier.getDate())
+					.and(AfgeslotenOrganisatieOvereenkomstSpecification.heeftOrganisatie(zoekObject)), q -> q.sortBy(sort, OvereenkomstServiceImpl::addJoinsForSortering))
+			.all(first, size);
+	}
+
+	@Override
+	public long countAfgeslotenOrganisatieOvereenkomsten(Instelling zoekObject, Boolean actief)
+	{
+		return afgeslotenOrganisatieOvereenkomstRepository.count(
+			AbstractAfgeslotenOvereenkomstSpecification.<AfgeslotenInstellingOvereenkomst> filterActief(actief, currentDateSupplier.getDate())
+				.and(AfgeslotenOrganisatieOvereenkomstSpecification.heeftOrganisatie(zoekObject)));
+	}
+
+	private static Order addJoinsForSortering(Sort.Order order, Root<? extends AbstractAfgeslotenOvereenkomst> r, CriteriaBuilder cb)
+	{
+		var sortProperty = order.getProperty();
+		if (sortProperty.startsWith(AbstractAfgeslotenOvereenkomst_.SCREENING_ORGANISATIE))
+		{
+			join(r, AbstractAfgeslotenOvereenkomst_.screeningOrganisatie);
+		}
+		if (sortProperty.startsWith(AbstractAfgeslotenOvereenkomst_.OVEREENKOMST))
+		{
+			join(r, AbstractAfgeslotenOvereenkomst_.overeenkomst);
+		}
+		return null;
 	}
 
 	@Override
 	public List<Overeenkomst> getOvereenkomsten(OrganisatieType organisatieType, OvereenkomstType... overeenkomstTypes)
 	{
-		return overeenkomstDao.getOvereenkomsten(organisatieType, overeenkomstTypes);
+		return overeenkomstRepository.findAll(filterOrganisatieType(organisatieType)
+			.and(isActief())
+			.and(heeftOvereenkomstIn(List.of(overeenkomstTypes))));
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void saveOrUpdateOvereenkomst(AbstractAfgeslotenOvereenkomst overeenkomst, UploadDocument uploadDocument, Account account)
 	{
 		var genereerCode = false;
@@ -222,7 +303,7 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 		if (overeenkomst.getId() == null)
 		{
 			logService.logGebeurtenis(LogGebeurtenis.OVEREENKOMST_TOEGEVOEGD, account);
-			overeenkomst.setVolgnummer(overeenkomstDao.getVolgnummerOvereenkomst());
+			overeenkomst.setVolgnummer(getVolgnummerOvereenkomst());
 			genereerCode = true;
 			verstuurMail = overeenkomst.isTeAccoderen();
 		}
@@ -258,14 +339,12 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 				code.append(".");
 			}
 
-			if (overeenkomst instanceof AfgeslotenMedewerkerOvereenkomst)
+			if (overeenkomst instanceof AfgeslotenMedewerkerOvereenkomst afgeslotenKwaliteitsOvereenkomst)
 			{
-				var afgeslotenKwaliteitsOvereenkomst = (AfgeslotenMedewerkerOvereenkomst) overeenkomst;
 				code.append(afgeslotenKwaliteitsOvereenkomst.getGebruiker().getId());
 			}
-			else if (overeenkomst instanceof AfgeslotenInstellingOvereenkomst)
+			else if (overeenkomst instanceof AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst)
 			{
-				var afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) overeenkomst;
 				code.append(afgeslotenOvereenkomst.getInstelling().getId());
 			}
 
@@ -297,20 +376,24 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 		}
 	}
 
+	private int getVolgnummerOvereenkomst()
+	{
+		return (int) abstractAfgeslotenOvereenkomstRepository.count(
+			AbstractAfgeslotenOvereenkomstSpecification.heeftStartDatumInJaar(currentDateSupplier.getLocalDateTime().getYear())) + 1;
+	}
+
 	protected void verstuurOvereenkomstMail(AbstractAfgeslotenOvereenkomst overeenkomst)
 	{
 		Gebruiker gebruiker = null;
 		String emailUA = null;
-		if (overeenkomst instanceof AfgeslotenInstellingOvereenkomst)
+		if (overeenkomst instanceof AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst)
 		{
-			var afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) overeenkomst;
 			var instelling = afgeslotenOvereenkomst.getInstelling();
 			emailUA = instelling.getEmail();
 			gebruiker = instelling.getGemachtigde();
 		}
-		else if (overeenkomst instanceof AfgeslotenMedewerkerOvereenkomst)
+		else if (overeenkomst instanceof AfgeslotenMedewerkerOvereenkomst afgeslotenKwaliteitsOvereenkomst)
 		{
-			var afgeslotenKwaliteitsOvereenkomst = (AfgeslotenMedewerkerOvereenkomst) overeenkomst;
 			gebruiker = afgeslotenKwaliteitsOvereenkomst.getGebruiker();
 		}
 
@@ -392,19 +475,30 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 	}
 
 	@Override
-	public List<AbstractAfgeslotenOvereenkomst> getTeAccoderenOvereenkomsten(InstellingGebruiker inTeLoggenInstellingGebruiker)
+	public List<AbstractAfgeslotenOvereenkomst> getTeAccoderenOvereenkomsten(InstellingGebruiker instellingGebruiker)
 	{
-		return overeenkomstDao.getTeAccoderenOvereenkomsten(inTeLoggenInstellingGebruiker);
+		return abstractAfgeslotenOvereenkomstRepository.findAll(getTeAccoderenOvereenkomstenSpecification(instellingGebruiker));
 	}
 
 	@Override
-	public long countTeAccoderenOvereenkomsten(InstellingGebruiker inTeLoggenInstellingGebruiker)
+	public long countTeAccoderenOvereenkomsten(InstellingGebruiker instellingGebruiker)
 	{
-		return overeenkomstDao.countTeAccoderenOvereenkomsten(inTeLoggenInstellingGebruiker);
+		return abstractAfgeslotenOvereenkomstRepository.count(getTeAccoderenOvereenkomstenSpecification(instellingGebruiker));
+	}
+
+	private Specification<AbstractAfgeslotenOvereenkomst> getTeAccoderenOvereenkomstenSpecification(InstellingGebruiker instellingGebruiker)
+	{
+		return AbstractAfgeslotenOvereenkomstSpecification.isNietGeaccodeerd()
+			.and(AbstractAfgeslotenOvereenkomstSpecification.heeftEinddatumVanaf(currentDateSupplier.getDate()))
+			.and(AfgeslotenMedewerkerOvereenkomstSpecification.heeftGebruiker(instellingGebruiker.getMedewerker())
+				.or(AfgeslotenOrganisatieOvereenkomstSpecification.heeftOrganisatie(instellingGebruiker.getOrganisatie())
+					.and(AfgeslotenOrganisatieOvereenkomstSpecification.heeftGemachtigde(instellingGebruiker.getMedewerker()))
+				)
+			);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void accodeerOvereenkomsten(InstellingGebruiker instellingGebruiker, Account account)
 	{
 		for (var afgeslotenOvereenkomst : getTeAccoderenOvereenkomsten(instellingGebruiker))
@@ -416,26 +510,53 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 	}
 
 	@Override
-	public List<Instelling> getAfgeslotenOvereenkomsten(OvereenkomstZoekFilter filter, String sortProperty, boolean ascending, int first, int count)
+	public List<Instelling> getAfgeslotenOvereenkomsten(OvereenkomstZoekFilter filter, Sort sort, int first, int count)
 	{
-		return overeenkomstDao.getAfgeslotenOvereenkomsten(filter, sortProperty, ascending, first, count);
+		var specification = getSpecificationVoorZoekenAfgeslotenOvereenkomsten(filter);
+		return organisatieRepository.findWith(specification, q -> q.sortBy(sort)).all(first, count);
 	}
 
 	@Override
 	public long countAfgeslotenOvereenkomsten(OvereenkomstZoekFilter filter)
 	{
-		return overeenkomstDao.countAfgeslotenOvereenkomsten(filter);
+		return organisatieRepository.count(getSpecificationVoorZoekenAfgeslotenOvereenkomsten(filter));
+	}
+
+	private Specification<Instelling> getSpecificationVoorZoekenAfgeslotenOvereenkomsten(OvereenkomstZoekFilter filter)
+	{
+		return OrganisatieSpecification.filterNaamContaining(filter.getOrganisatieNaam())
+			.and(OrganisatieSpecification.filterOrganisatieType(filter.getOrganisatieType()))
+			.and(OrganisatieSpecification.filterUziAbonneeNummer(filter.getOrganisatieUra()))
+			.and(OrganisatieSpecification.filterOvereenkomst(filter.getOvereenkomst(), filter.getLopendeDatum()))
+			.and(OrganisatieSpecification.filterParent(filter.getRegio()))
+			.and(OrganisatieSpecification.filterAdres(filter.getOrganisatiePlaats(), filter.getOrganisatiePostcode()));
 	}
 
 	@Override
-	public List<AfgeslotenInstellingOvereenkomst> getAfgeslotenOvereenkomstenBijInstelling(OvereenkomstZoekFilter filter, Instelling instelling)
+	public List<AfgeslotenInstellingOvereenkomst> getAfgeslotenOvereenkomstenVanOrganisatie(OvereenkomstZoekFilter filter, Instelling instelling)
 	{
-		return overeenkomstDao.getAfgeslotenOvereenkomstenBijInstelling(filter, instelling);
+		ExtendedSpecification<AfgeslotenInstellingOvereenkomst> specification = AfgeslotenOrganisatieOvereenkomstSpecification.heeftOrganisatie(instelling);
+		if (filter.getLopendeDatum() != null)
+		{
+			specification = specification.and(AbstractAfgeslotenOvereenkomstSpecification.bevatPeildatum(filter.getLopendeDatum()));
+		}
+		return afgeslotenOrganisatieOvereenkomstRepository.findAll(specification);
 	}
 
 	@Override
 	public List<Overeenkomst> getAlleOvereenkomstenVanTypeOvereenkomst()
 	{
-		return overeenkomstDao.getAlleOvereenkomstenVanTypeOvereenkomst();
+		return overeenkomstRepository.findAll(OvereenkomstSpecification.heeftOvereenkomstType(OvereenkomstType.OVEREENKOMST));
+	}
+
+	@Override
+	public boolean isErAlEenZakelijkOvereenkomst(Overeenkomst overeenkomst)
+	{
+		var specification = OvereenkomstSpecification.heeftOvereenkomstType(OvereenkomstType.ZAKELIJKE_OVEREENKOMST);
+		if (overeenkomst != null && overeenkomst.getId() != null)
+		{
+			specification = specification.and(HibernateObjectSpecification.heeftNietId(overeenkomst.getId()));
+		}
+		return overeenkomstRepository.exists(specification);
 	}
 }

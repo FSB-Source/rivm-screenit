@@ -6,7 +6,7 @@ import {persistentErrorToast} from "../util/ToastUtil"
 
 export const readMammografen = (): Promise<Array<Mammograaf>> => {
 	return new Promise((resolve, reject) => {
-		fetchApiPromise("GET", "mammografen/").then(response => {
+		fetchApiPromise("GET", "mammografen").then(response => {
 			response.json().then((mammografen: Mammograaf[]) => {
 				if (!mammografen.length) {
 					persistentErrorToast("Voor deze SE is geen mammograaf geadministreerd, neem contact op met een beheerder.")

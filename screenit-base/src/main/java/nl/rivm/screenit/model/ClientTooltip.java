@@ -4,7 +4,7 @@ package nl.rivm.screenit.model;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,19 +29,21 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 @Entity
+@Getter
+@Setter
 @Table(schema = "gedeeld")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 public class ClientTooltip extends AbstractHibernateObject
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@Column(nullable = false)
 	private String titel;
 
@@ -54,45 +56,4 @@ public class ClientTooltip extends AbstractHibernateObject
 
 	@Column(nullable = false)
 	private Date aangepast;
-
-	public String getTitel()
-	{
-		return titel;
-	}
-
-	public void setTitel(String titel)
-	{
-		this.titel = titel;
-	}
-
-	public String getTekst()
-	{
-		return tekst;
-	}
-
-	public void setTekst(String tekst)
-	{
-		this.tekst = tekst;
-	}
-
-	public ClientTooltipType getType()
-	{
-		return type;
-	}
-
-	public void setType(ClientTooltipType type)
-	{
-		this.type = type;
-	}
-
-	public Date getAangepast()
-	{
-		return aangepast;
-	}
-
-	public void setAangepast(Date aangepast)
-	{
-		this.aangepast = aangepast;
-	}
-
 }

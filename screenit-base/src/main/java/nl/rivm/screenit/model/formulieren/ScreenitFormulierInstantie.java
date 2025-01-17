@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.model.formulieren;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,16 +32,18 @@ import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.topicuszorg.formulieren2.persistence.instantie.FormulierInstantieImpl;
 
 @Entity
+@Getter
+@Setter
 public class ScreenitFormulierInstantie extends FormulierInstantieImpl
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date creatieDatum;
 
@@ -57,54 +58,4 @@ public class ScreenitFormulierInstantie extends FormulierInstantieImpl
 
 	@OneToOne(fetch = FetchType.LAZY)
 	private UploadDocument templateVanGebruiker;
-
-	public Date getCreatieDatum()
-	{
-		return creatieDatum;
-	}
-
-	public void setCreatieDatum(Date creatieDatum)
-	{
-		this.creatieDatum = creatieDatum;
-	}
-
-	public TypeFormulier getTypeFormulier()
-	{
-		return typeFormulier;
-	}
-
-	public void setTypeFormulier(TypeFormulier typeFormulier)
-	{
-		this.typeFormulier = typeFormulier;
-	}
-
-	public InstellingGebruiker getUploader()
-	{
-		return uploader;
-	}
-
-	public void setUploader(InstellingGebruiker uploader)
-	{
-		this.uploader = uploader;
-	}
-
-	public UploadDocument getTemplateVanGebruiker()
-	{
-		return templateVanGebruiker;
-	}
-
-	public void setTemplateVanGebruiker(UploadDocument templateVanGebruiker)
-	{
-		this.templateVanGebruiker = templateVanGebruiker;
-	}
-
-	public InstellingGebruiker getTemplateUploader()
-	{
-		return templateUploader;
-	}
-
-	public void setTemplateUploader(InstellingGebruiker templateUploader)
-	{
-		this.templateUploader = templateUploader;
-	}
 }

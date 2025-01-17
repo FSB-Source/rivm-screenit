@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.overeenkomstenzoeken
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,6 +34,7 @@ import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.ColonScreeningBasePage;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.Instelling;
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -93,10 +94,10 @@ public class OvereenkomstZoekenBeheerPage extends ColonScreeningBasePage
 		resultcontainer.setOutputMarkupId(true);
 
 		List<IColumn<Instelling, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<Instelling, String>(Model.of("Naam organisatie"), "naam", "naam"));
-		columns.add(new PropertyColumn<Instelling, String>(Model.of("Adres"), null, "adressen[0].adres"));
-		columns.add(new PropertyColumn<Instelling, String>(Model.of("Plaats"), null, "adressen[0].plaats"));
-		columns.add(new AbstractColumn<Instelling, String>(Model.of("Regio"))
+		columns.add(new PropertyColumn<>(Model.of("Naam organisatie"), Instelling_.NAAM, Instelling_.NAAM));
+		columns.add(new PropertyColumn<>(Model.of("Adres"), "adressen[0].adres"));
+		columns.add(new PropertyColumn<>(Model.of("Plaats"), "adressen[0].plaats"));
+		columns.add(new AbstractColumn<>(Model.of("Regio"))
 		{
 			@Override
 			public void populateItem(Item<ICellPopulator<Instelling>> cellItem, String componentId, IModel<Instelling> rowModel)
@@ -111,7 +112,7 @@ public class OvereenkomstZoekenBeheerPage extends ColonScreeningBasePage
 				cellItem.add(new Label(componentId, StringUtils.removeEnd(sb.toString(), ", ")));
 			}
 		});
-		columns.add(new PropertyColumn<Instelling, String>(Model.of("Unieke code"), null, "uziAbonneenummer")
+		columns.add(new PropertyColumn<>(Model.of("Unieke code"), Instelling_.UZI_ABONNEENUMMER)
 		{
 			@Override
 			public void populateItem(Item<ICellPopulator<Instelling>> item, String componentId, IModel<Instelling> rowModel)
@@ -127,12 +128,12 @@ public class OvereenkomstZoekenBeheerPage extends ColonScreeningBasePage
 				}
 			}
 		});
-		columns.add(new AbstractColumn<Instelling, String>(Model.of("Overeenkomsten"))
+		columns.add(new AbstractColumn<>(Model.of("Overeenkomsten"))
 		{
 			@Override
 			public void populateItem(Item<ICellPopulator<Instelling>> cellItem, String componentId, IModel<Instelling> rowModel)
 			{
-				List<AfgeslotenInstellingOvereenkomst> overeenkomsten = overeenkomstService.getAfgeslotenOvereenkomstenBijInstelling(filter.getObject(), rowModel.getObject());
+				List<AfgeslotenInstellingOvereenkomst> overeenkomsten = overeenkomstService.getAfgeslotenOvereenkomstenVanOrganisatie(filter.getObject(), rowModel.getObject());
 				if (CollectionUtils.isNotEmpty(overeenkomsten))
 				{
 					cellItem.add(new AfgeslotenOvereenkomstenLijstPanel(componentId, ModelUtil.listRModel(overeenkomsten)));
@@ -144,8 +145,8 @@ public class OvereenkomstZoekenBeheerPage extends ColonScreeningBasePage
 			}
 		});
 
-		ScreenitDataTable<Instelling, String> instellingenDataTable = new ScreenitDataTable<Instelling, String>("instellingenDataTable", columns,
-			new OvereenkomstZoekenDataProvider(filter, "naam"), 10, new Model<>("organisaties"));
+		ScreenitDataTable<Instelling, String> instellingenDataTable = new ScreenitDataTable<>("instellingenDataTable", columns,
+			new OvereenkomstZoekenDataProvider(filter, Instelling_.NAAM), 10, new Model<>("organisaties"));
 		resultcontainer.add(instellingenDataTable);
 		add(resultcontainer);
 
@@ -164,8 +165,8 @@ public class OvereenkomstZoekenBeheerPage extends ColonScreeningBasePage
 			}
 		}).setNullValid(true));
 		ComponentHelper.addDropDownChoice(overeenkomstForm, "organisatieType", false, Arrays.asList(OrganisatieType.values()), false).setNullValid(true);
-		overeenkomstForm.add(new ScreenitDropdown<Overeenkomst>("overeenkomst", ModelUtil.listRModel(overeenkomstService.getAlleOvereenkomstenVanTypeOvereenkomst()),
-			new ChoiceRenderer<Overeenkomst>()
+		overeenkomstForm.add(new ScreenitDropdown<>("overeenkomst", ModelUtil.listRModel(overeenkomstService.getAlleOvereenkomstenVanTypeOvereenkomst()),
+			new ChoiceRenderer<>()
 			{
 				@Override
 				public Object getDisplayValue(Overeenkomst object)

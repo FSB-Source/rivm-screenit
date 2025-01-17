@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.From;
@@ -37,13 +38,13 @@ import javax.persistence.metamodel.ListAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SpecificationUtil
 {
 	public static Predicate containsCaseInsensitive(CriteriaBuilder cb, Path<String> path, String keyword)
@@ -116,57 +117,14 @@ public class SpecificationUtil
 		return StringUtils.isBlank(keyword) ? null : predicate;
 	}
 
-	public static Predicate skipWhenNullPredicate(Object object, Predicate predicate)
-	{
-		return object == null ? null : predicate;
-	}
-
-	public static <X, Y> Join<X, Y> join(Root<X> root, SingularAttribute<? super X, Y> attribute)
-	{
-		return join(root, attribute, JoinType.INNER);
-	}
-
-	@SuppressWarnings("unchecked")
-	public static <X, Y> Join<X, Y> join(Root<X> root, SingularAttribute<? super X, Y> attribute, JoinType joinType)
-	{
-		return (Join<X, Y>) root
-			.getJoins()
-			.stream()
-			.filter(join -> join.getAttribute().getName().equals(attribute.getName()) && join.getJoinType() == joinType)
-			.findFirst()
-			.orElseGet(() -> root.join(attribute, joinType));
-	}
-
-	public static <X, Y> Join<X, Y> join(Root<X> root, ListAttribute<? super X, Y> attribute)
-	{
-		return join(root, attribute, JoinType.INNER);
-	}
-
-	@SuppressWarnings("unchecked")
-	public static <X, Y> Join<X, Y> join(Root<X> root, ListAttribute<? super X, Y> attribute, JoinType joinType)
-	{
-		return (Join<X, Y>) root
-			.getJoins()
-			.stream()
-			.filter(join -> join.getAttribute().getName().equals(attribute.getName()) && join.getJoinType() == joinType)
-			.findFirst()
-			.orElseGet(() -> root.join(attribute, joinType));
-	}
-
 	public static <X, Y, Z> Join<X, Y> join(From<Z, X> from, ListAttribute<? super X, Y> attribute)
 	{
 		return join(from, attribute, JoinType.INNER);
 	}
 
-	@SuppressWarnings("unchecked")
-	public static <X, Y, Z> Join<X, Y> join(From<Z, X> from, ListAttribute<? super X, Y> attribute, JoinType joinType)
+	public static <X, Y> Join<X, Y> join(From<?, X> from, ListAttribute<? super X, Y> attribute, JoinType joinType)
 	{
-		return (Join<X, Y>) from
-			.getJoins()
-			.stream()
-			.filter(join -> join.getAttribute().getName().equals(attribute.getName()) && join.getJoinType() == joinType)
-			.findFirst()
-			.orElseGet(() -> from.join(attribute, joinType));
+		return addJoinIfNotExists(from, attribute.getName(), joinType, () -> from.join(attribute, joinType));
 	}
 
 	public static <X, Y, Z> Join<X, Y> join(From<Z, X> from, SingularAttribute<? super X, Y> attribute)
@@ -174,17 +132,33 @@ public class SpecificationUtil
 		return join(from, attribute, JoinType.INNER);
 	}
 
+	public static <X, Y> Join<X, Y> join(From<?, X> from, SingularAttribute<? super X, Y> attribute, JoinType joinType)
+	{
+		return addJoinIfNotExists(from, attribute.getName(), joinType, () -> from.join(attribute, joinType));
+	}
+
+	public static <X, Y> Join<X, Y> joinByString(From<?, X> from, String attributeName, JoinType joinType)
+	{
+		return addJoinIfNotExists(from, attributeName, joinType, () -> from.join(attributeName, joinType));
+	}
+
 	@SuppressWarnings("unchecked")
-	public static <X, Y, Z> Join<X, Y> join(From<Z, X> from, SingularAttribute<? super X, Y> attribute, JoinType joinType)
+	private static <X, Y> Join<X, Y> addJoinIfNotExists(From<?, X> from, String attributeName, JoinType joinType, Supplier<Join<X, ?>> createJoinFunction)
 	{
 		return (Join<X, Y>) from
 			.getJoins()
 			.stream()
-			.filter(join -> join.getAttribute().getName().equals(attribute.getName()) && join.getJoinType() == joinType)
+			.filter(join -> isZelfdeJoin(join, attributeName, joinType))
 			.findFirst()
-			.orElseGet(() -> from.join(attribute, joinType));
+			.orElseGet(createJoinFunction);
 	}
 
+	private static <X> boolean isZelfdeJoin(Join<X, ?> join, String attributeName, JoinType joinType)
+	{
+		return join.getAttribute().getName().equals(attributeName) && join.getJoinType() == joinType;
+	}
+
+	@SuppressWarnings("unchecked")
 	public static <X, T extends X> From<?, T> treat(From<?, ? extends X> from, Class<T> type, CriteriaBuilder cb)
 	{
 		if (from instanceof Root<?>)

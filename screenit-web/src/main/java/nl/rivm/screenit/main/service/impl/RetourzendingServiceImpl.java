@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,7 +32,6 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.dao.BaseUitnodigingDao;
 import nl.rivm.screenit.main.service.RetourzendingService;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.InpakbareUitnodiging;
@@ -61,7 +60,6 @@ import nl.rivm.screenit.model.logging.RetourzendingLogEvent;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BaseGbaVraagService;
 import nl.rivm.screenit.service.BaseUitnodigingService;
-import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.UploadDocumentService;
@@ -82,12 +80,10 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
 public class RetourzendingServiceImpl implements RetourzendingService
 {
 	@Autowired
@@ -100,16 +96,10 @@ public class RetourzendingServiceImpl implements RetourzendingService
 	private BaseUitnodigingService baseUitnodigingsService;
 
 	@Autowired
-	private BaseUitnodigingDao uitnodigingDao;
-
-	@Autowired
 	private ColonUitnodigingService colonUitnodigingsService;
 
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
-
-	@Autowired
-	private ClientService clientService;
 
 	@Autowired
 	private ColonScreeningsrondeService colonScreeningsrondeService;
@@ -136,7 +126,7 @@ public class RetourzendingServiceImpl implements RetourzendingService
 	private BaseGbaVraagService baseGbaVraagService;
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public RetourzendingLogEvent verwerkBestandMetRetourzendingen(InstellingGebruiker ingelogdeGebruiker, String contentType, File file, String fileName) throws IOException
 	{
 		RetourzendingLogEvent logEvent = new RetourzendingLogEvent();
@@ -195,7 +185,7 @@ public class RetourzendingServiceImpl implements RetourzendingService
 					if (isValidRegel)
 					{
 						RetourredenAfhandeling retourredenAfhandeling = bepaalAfhandelingVoorRetourzending(retourzendingReden);
-						ColonUitnodiging colonUitnodiging = baseUitnodigingsService.getUitnodiging(ColonUitnodiging.class, trackId, postcode, huisnummer);
+						var colonUitnodiging = baseUitnodigingsService.getColonUitnodiging(trackId, postcode, huisnummer);
 						if (colonUitnodiging != null && colonUitnodiging.getRetourzendingReden() == null)
 						{
 							if (isDossierInactiefOfRondeAfgerond(colonUitnodiging))
@@ -206,16 +196,14 @@ public class RetourzendingServiceImpl implements RetourzendingService
 							{
 								logEvent.incrGeenValideUitnodiging(index);
 							}
-							else if (!colonScreeningsrondeService.heeftUitslag(colonUitnodiging, false))
+							else if (!colonScreeningsrondeService.heeftUitslag(colonUitnodiging, false) && retourredenAfhandeling != null)
 							{
-								if (retourredenAfhandeling != null)
-								{
-									verwerkRetourzending(logEvent, colonUitnodiging, retourredenAfhandeling, RetourzendingWijze.BESTAND);
-									skipRegel = false;
-								}
+								verwerkRetourzending(logEvent, colonUitnodiging, retourredenAfhandeling, RetourzendingWijze.BESTAND);
+								skipRegel = false;
 							}
+
 						}
-						CervixUitnodiging cervixUitnodiging = baseUitnodigingsService.getUitnodiging(CervixUitnodiging.class, trackId, postcode, huisnummer);
+						var cervixUitnodiging = baseUitnodigingsService.getCervixUitnodiging(trackId, postcode, huisnummer);
 						if (cervixUitnodiging != null && cervixUitnodiging.getRetourzendingReden() == null)
 						{
 							if (isDossierInactiefOfRondeAfgerond(cervixUitnodiging))
@@ -270,8 +258,8 @@ public class RetourzendingServiceImpl implements RetourzendingService
 	private boolean isValidRegel(RetourzendingLogEvent logEvent, int index, String trackId, String retourzendingReden, String postcode, Integer huisnummer)
 	{
 		boolean isValid = true;
-		boolean trackIDgevondenColon = uitnodigingDao.uitnodigingExists(ColonUitnodiging.class, trackId);
-		boolean trackIDgevondenCervix = uitnodigingDao.uitnodigingExists(CervixUitnodiging.class, trackId);
+		boolean trackIDgevondenColon = baseUitnodigingsService.colonUitnodigingExists(trackId);
+		boolean trackIDgevondenCervix = baseUitnodigingsService.cervixUitnodigingExists(trackId);
 
 		if (huisnummer == null || StringUtils.isBlank(postcode))
 		{
@@ -303,7 +291,7 @@ public class RetourzendingServiceImpl implements RetourzendingService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public <U extends InpakbareUitnodiging<S>, S extends ScreeningRonde<?, ?, ?, ?>> void verwerkRetourzendingHandmatig(InstellingGebruiker ingelogdeGebruiker, U uitnodiging,
 		String retourzendingReden)
 	{
@@ -422,12 +410,8 @@ public class RetourzendingServiceImpl implements RetourzendingService
 	@Override
 	public <U extends Uitnodiging> boolean isDossierInactiefOfRondeAfgerond(U uitnodiging)
 	{
-		if (uitnodiging.getScreeningRonde().getStatus().equals(ScreeningRondeStatus.AFGEROND)
-			|| uitnodiging.getScreeningRonde().getDossier().getStatus().equals(DossierStatus.INACTIEF))
-		{
-			return true;
-		}
-		return false;
+		return uitnodiging.getScreeningRonde().getStatus().equals(ScreeningRondeStatus.AFGEROND)
+			|| uitnodiging.getScreeningRonde().getDossier().getStatus().equals(DossierStatus.INACTIEF);
 	}
 
 	@Override

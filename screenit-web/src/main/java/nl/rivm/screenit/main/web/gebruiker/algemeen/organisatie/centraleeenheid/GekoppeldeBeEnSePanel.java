@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.centraleeenheid
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,8 +38,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class GekoppeldeBeEnSePanel extends GenericPanel<CentraleEenheid>
 {
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private InstellingService instellingService;
 
@@ -52,13 +50,13 @@ public class GekoppeldeBeEnSePanel extends GenericPanel<CentraleEenheid>
 	{
 		super(id, model);
 
-		beoordelingseenheden = ModelUtil.listRModel(instellingService.getChildrenInstellingen(getModelObject(), BeoordelingsEenheid.class));
+		beoordelingseenheden = ModelUtil.listRModel(instellingService.getChildrenOrganisaties(getModelObject(), BeoordelingsEenheid.class));
 
-		add(new ListView<BeoordelingsEenheid>("beLijst", beoordelingseenheden)
+		add(new ListView<>("beLijst", beoordelingseenheden)
 		{
 			protected void populateItem(ListItem<BeoordelingsEenheid> item)
 			{
-				BeoordelingsEenheid beoordelingsEenheid = item.getModelObject();
+				var beoordelingsEenheid = item.getModelObject();
 				item.add(new Label("beoordelingseenheid", beoordelingsEenheid.getNaam()));
 				item.add(new Label("seLijst", screeningsEenheidService.getScreeningsEenhedenNamen(beoordelingsEenheid)));
 			}

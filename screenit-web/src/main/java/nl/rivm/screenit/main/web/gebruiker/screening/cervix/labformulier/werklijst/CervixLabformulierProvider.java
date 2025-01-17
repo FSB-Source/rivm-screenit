@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.labformulier.werkli
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,6 +34,8 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvid
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
 
 public class CervixLabformulierProvider extends SortableDataProvider<CervixLabformulier, String>
 {
@@ -70,6 +72,6 @@ public class CervixLabformulierProvider extends SortableDataProvider<CervixLabfo
 
 	public List<Long> getLabformulierenIds()
 	{
-		return labformulierService.getLabformulierenIds(filter, getSort().getProperty(), getSort().isAscending());
+		return labformulierService.getLabformulierenIds(filter, toSpringSort(getSort()));
 	}
 }

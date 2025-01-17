@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -89,11 +89,6 @@ public enum Recht implements INaam
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
 		Actie.TOEVOEGEN),
-
-	GEBRUIKER_DEFINITIE_VRAGENLIJSTEN(
-		"Beheer vragenlijsten",
-		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA },
-		new ToegangLevel[] { ToegangLevel.LANDELIJK }),
 
 	GEBRUIKER_VERSLAGEN(
 		"Beheer verslagen",
@@ -262,12 +257,6 @@ public enum Recht implements INaam
 	GEBRUIKER_BRIEFPROJECT_BRIEVEN("Briefproject brieven", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA }),
 
 	GEBRUIKER_BRIEFPROJECT_SELECTIE("Briefproject selectie", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA }),
-
-	GEBRUIKER_PROJECT_VRAGENLIJST_ANTWOORDEN_INZIEN(
-		"Vragenlijst antwoorden inzien",
-		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX },
-		null,
-		Actie.INZIEN),
 
 	GEBRUIKER_UITSLAG_PROJECT_UPLOADEN(
 		"Uitslagen studietest projecten uploaden",

@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,20 +22,34 @@ package nl.rivm.screenit.specification.colon;
  */
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.Dossier_;
 import nl.rivm.screenit.model.TablePerClassHibernateObject_;
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.ColonDossier_;
+import nl.rivm.screenit.model.colon.ColonUitnodigingsinterval_;
+import nl.rivm.screenit.model.colon.ColonVolgendeUitnodiging_;
 import nl.rivm.screenit.specification.ExtendedSpecification;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ColonDossierSpecification
 {
 	public static ExtendedSpecification<ColonDossier> heeftGeenGevuldDossier()
 	{
 		return (r, q, cb) ->
 			cb.or(cb.isNull(r.get(TablePerClassHibernateObject_.id)), cb.and(cb.isNull(r.get(ColonDossier_.laatsteScreeningRonde)), cb.isTrue(r.get(Dossier_.aangemeld))));
+	}
+
+	public static ExtendedSpecification<ColonDossier> heeftVolgendeUitnodigingNaInterval()
+	{
+		return (r, q, cb) ->
+		{
+			var volgendeUitnodiging = join(r, ColonDossier_.volgendeUitnodiging);
+			var intervalJoin = join(volgendeUitnodiging, ColonVolgendeUitnodiging_.interval);
+			return cb.greaterThan(volgendeUitnodiging.get(ColonVolgendeUitnodiging_.peildatum), intervalJoin.get(ColonUitnodigingsinterval_.berekendeReferentieDatum));
+		};
 	}
 }

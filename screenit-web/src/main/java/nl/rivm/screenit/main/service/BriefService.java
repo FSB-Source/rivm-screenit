@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,15 +31,17 @@ import nl.rivm.screenit.model.MergedBrievenFilter;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.algemeen.BezwaarBrief;
 
+import org.springframework.data.domain.Sort;
+
 public interface BriefService
 {
 
-	<MB extends MergedBrieven<?>> List<MB> getMergedBrieven(ScreeningOrganisatie screeningOrganisatie, MergedBrievenFilter<MB> mergedBrievenFilter, long first, long count,
-		String sortProperty, boolean ascending);
+	<M extends MergedBrieven<?>> List<M> getMergedBrieven(ScreeningOrganisatie screeningOrganisatie, MergedBrievenFilter<M> mergedBrievenFilter, long first, long count,
+		Sort sort);
 
-	<MB extends MergedBrieven<?>> Long countMergedBrieven(ScreeningOrganisatie screeningOrganisatie, MergedBrievenFilter<MB> mergedBrievenFilter);
+	<M extends MergedBrieven<?>> Long countMergedBrieven(ScreeningOrganisatie screeningOrganisatie, MergedBrievenFilter<M> mergedBrievenFilter);
 
-	List<? extends ClientBrief> getBrievenVanAfmelding(Afmelding afmelding, boolean heraanmelding);
+	<B extends ClientBrief<?, ?, ?>> List<B> getBrievenVanAfmelding(Afmelding afmelding, boolean heraanmelding);
 
 	List<BezwaarBrief> getBrievenVanBezwaar(BezwaarMoment moment);
 

@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.algemeen;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,18 +22,20 @@ package nl.rivm.screenit.specification.algemeen;
  */
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.topicuszorg.organisatie.model.Adres;
 import nl.topicuszorg.organisatie.model.Adres_;
+
+import org.apache.commons.lang.StringUtils;
 
 import static nl.rivm.screenit.specification.SpecificationUtil.containsCaseInsensitive;
 import static nl.rivm.screenit.specification.SpecificationUtil.isAttribuutGelijkOfNull;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmptyExtended;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNullExtended;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AdresSpecification
 {
 	public static <T extends Adres> ExtendedSpecification<T> filterPostcode(String postcode)
@@ -43,7 +45,7 @@ public class AdresSpecification
 
 	public static <T extends Adres> ExtendedSpecification<T> filterPostcodeContaining(String postcode)
 	{
-		return skipWhenEmptyExtended(postcode, (r, q, cb) -> containsCaseInsensitive(cb, r.get(Adres_.postcode), postcode));
+		return skipWhenEmptyExtended(postcode, (r, q, cb) -> containsCaseInsensitive(cb, r.get(Adres_.postcode), StringUtils.deleteWhitespace(postcode)));
 	}
 
 	public static ExtendedSpecification<Adres> filterHuisnummer(Integer huisnummer)

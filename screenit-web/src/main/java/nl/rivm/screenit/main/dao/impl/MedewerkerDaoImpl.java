@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.dao.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,6 @@ package nl.rivm.screenit.main.dao.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,12 +33,9 @@ import nl.rivm.screenit.model.Functie;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.InstellingGebruikerRol;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.Rol;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.rivm.screenit.model.enums.Recht;
-import nl.topicuszorg.hibernate.criteria.BaseCriteria;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -302,186 +298,11 @@ public class MedewerkerDaoImpl extends AbstractAutowiredDao implements Medewerke
 	}
 
 	@Override
-	public List<InstellingGebruiker> searchInstellingGebruiker(InstellingGebruiker zoekInstellingGebruiker, long first, long count, String orderByProperty, boolean ascending)
-	{
-		Criteria criteria = getCriteriaForInstellingGebruiker(zoekInstellingGebruiker);
-		criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
-
-		if (orderByProperty != null)
-		{
-			if (ascending)
-			{
-				criteria.addOrder(Order.asc(orderByProperty));
-			}
-			else
-			{
-				criteria.addOrder(Order.desc(orderByProperty));
-			}
-		}
-
-		@SuppressWarnings("unchecked")
-		List<InstellingGebruiker> organisatieMedewerkers = criteria.list();
-
-		if (first < 0 && count < 0)
-		{
-			return organisatieMedewerkers;
-		}
-		else
-		{
-			return organisatieMedewerkers.subList((int) first, (int) (first + count));
-		}
-	}
-
-	@Override
-	public List<InstellingGebruiker> getActieveRadiologen(InstellingGebruiker zoekInstellingGebruiker, List<Long> exclIds, String orderByProperty, boolean ascending)
-	{
-		Gebruiker medewerker = zoekInstellingGebruiker.getMedewerker();
-		if (medewerker == null)
-		{
-			medewerker = new Gebruiker();
-			zoekInstellingGebruiker.setMedewerker(medewerker);
-		}
-		medewerker.setActief(true);
-		zoekInstellingGebruiker.setActief(true);
-		Criteria criteria = getCriteriaForInstellingGebruiker(zoekInstellingGebruiker);
-		criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
-
-		if (exclIds.size() > 0)
-		{
-			criteria.add(Restrictions.not(Restrictions.in("id", exclIds)));
-		}
-
-		criteria.add(Restrictions.isNotNull("medewerker.handtekening"));
-		criteria.createAlias("rollen", "rollen");
-		criteria.createAlias("rollen.rol", "rol");
-		criteria.createAlias("rol.permissies", "permissie");
-		criteria.add(Restrictions.eq("permissie.recht", Recht.GEBRUIKER_SCREENING_MAMMA_BEOORDELING_WERKLIJST));
-
-		if (orderByProperty != null)
-		{
-			if (ascending)
-			{
-				criteria.addOrder(Order.asc(orderByProperty));
-			}
-			else
-			{
-				criteria.addOrder(Order.desc(orderByProperty));
-			}
-		}
-
-		return criteria.list();
-	}
-
-	private Criteria getCriteriaForInstellingGebruiker(InstellingGebruiker instellingGebruiker)
-	{
-		Criteria criteria = getSession().createCriteria(InstellingGebruiker.class);
-
-		if (instellingGebruiker.getActief() != null)
-		{
-			criteria.add(Restrictions.eq("actief", instellingGebruiker.getActief()));
-		}
-		criteria.createAlias("organisatie", "organisatie");
-		criteria.createAlias("medewerker", "medewerker");
-		Instelling instelling = instellingGebruiker.getOrganisatie();
-		if (instelling != null)
-		{
-			if (instelling.getId() != null)
-			{
-				criteria.add(Restrictions.eq("organisatie.id", instelling.getId()));
-			}
-			else
-			{
-				criteria.add(Restrictions.isNull("organisatie.id"));
-			}
-		}
-		Gebruiker medewerker = instellingGebruiker.getMedewerker();
-		if (medewerker != null)
-		{
-			if (medewerker.getActief() != null)
-			{
-				criteria.add(Restrictions.eq("medewerker.actief", medewerker.getActief()));
-			}
-			if (medewerker.getActiefVanaf() != null)
-			{
-				criteria.add(Restrictions.eq("medewerker.actiefVanaf", medewerker.getActiefVanaf()));
-			}
-			if (medewerker.getActiefTotEnMet() != null)
-			{
-				criteria.add(Restrictions.eq("medewerker.actiefTotEnMet", medewerker.getActiefTotEnMet()));
-			}
-			if (medewerker.getId() != null)
-			{
-				criteria.add(Restrictions.eq("medewerker.id", medewerker.getId()));
-			}
-		}
-		return criteria;
-	}
-
-	@Override
-	public long countInstellingGebruiker(InstellingGebruiker instellinGebruiker)
-	{
-		Criteria criteria = getCriteriaForInstellingGebruiker(instellinGebruiker);
-
-		criteria.setProjection(Projections.countDistinct("id"));
-
-		@SuppressWarnings("unchecked")
-		List<Long> countResult = criteria.list();
-		return countResult.get(0).longValue();
-	}
-
-	@Override
-	public InstellingGebruiker getInstellingGebruiker(Instelling organisatie, Gebruiker medewerker)
-	{
-		Criteria criteria = getSession().createCriteria(InstellingGebruiker.class);
-		criteria.add(Restrictions.eq("organisatie.id", organisatie.getId()));
-		criteria.add(Restrictions.eq("medewerker.id", medewerker.getId()));
-
-		@SuppressWarnings("unchecked")
-		List<InstellingGebruiker> organisatieMedewerkers = criteria.list();
-
-		InstellingGebruiker organisatieMedewerker = null;
-		if (organisatieMedewerkers.size() == 1)
-		{
-			organisatieMedewerker = organisatieMedewerkers.get(0);
-		}
-		else if (organisatieMedewerkers.size() > 1)
-		{
-			throw new IllegalStateException("Meerdere combinaties voor Organisatie en Medewerker gevonden, dit mag niet voorkomen.");
-		}
-		return organisatieMedewerker;
-	}
-
-	@Override
 	public void saveOrUpdateInstellingGebruiker(InstellingGebruiker organisatieMedewerker)
 	{
 		getSession().saveOrUpdate(organisatieMedewerker);
 		getSession().saveOrUpdate(organisatieMedewerker.getOrganisatie());
 		getSession().saveOrUpdate(organisatieMedewerker.getMedewerker());
-	}
-
-	@Override
-	public List<InstellingGebruikerRol> getInstellingGebruikersRollenMetRol(Rol rol, Date nu)
-	{
-		BaseCriteria<InstellingGebruikerRol> criteria = new BaseCriteria<InstellingGebruikerRol>(InstellingGebruikerRol.class);
-		criteria.add(Restrictions.eq("actief", Boolean.TRUE));
-		criteria.add(Restrictions.eq("rol", rol));
-		return criteria.list(getSession());
-	}
-
-	@Override
-	public List<Gebruiker> getActieveGebruikersMetRecht(Recht recht)
-	{
-		BaseCriteria<Gebruiker> crit = new BaseCriteria<>(Gebruiker.class);
-		crit.createAlias("organisatieMedewerkers", "instellingGebruiker");
-		crit.createAlias("instellingGebruiker.rollen", "rollen");
-		crit.createAlias("rollen.rol", "rol");
-		crit.createAlias("rol.permissies", "permissies");
-
-		crit.add(Restrictions.eq("permissies.recht", recht));
-		crit.add(Restrictions.eq("actief", true));
-		crit.add(Restrictions.eq("instellingGebruiker.actief", true));
-		crit.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
-		return crit.list(getSession());
 	}
 
 }

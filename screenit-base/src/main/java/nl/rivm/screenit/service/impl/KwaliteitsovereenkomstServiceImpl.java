@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,15 +24,14 @@ package nl.rivm.screenit.service.impl;
 import java.util.Date;
 
 import nl.rivm.screenit.model.Gebruiker;
+import nl.rivm.screenit.model.overeenkomsten.AfgeslotenMedewerkerOvereenkomst;
 import nl.rivm.screenit.repository.algemeen.AfgeslotenMedewerkerOvereenkomstRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.KwaliteitsovereenkomstService;
+import nl.rivm.screenit.specification.algemeen.AfgeslotenMedewerkerOvereenkomstSpecification;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import static nl.rivm.screenit.specification.algemeen.AfgeslotenMedewerkerOvereenkomstSpecification.bevatPeildatum;
-import static nl.rivm.screenit.specification.algemeen.AfgeslotenMedewerkerOvereenkomstSpecification.heeftGebruiker;
 
 @Service
 public class KwaliteitsovereenkomstServiceImpl implements KwaliteitsovereenkomstService
@@ -50,6 +49,7 @@ public class KwaliteitsovereenkomstServiceImpl implements Kwaliteitsovereenkomst
 			peilDatum = currentDateSupplier.getDate();
 		}
 
-		return afgeslotenMedewerkerOvereenkomstRepository.exists(heeftGebruiker(gebruiker).and(bevatPeildatum(peilDatum)));
+		return afgeslotenMedewerkerOvereenkomstRepository.exists(AfgeslotenMedewerkerOvereenkomstSpecification.<AfgeslotenMedewerkerOvereenkomst> heeftGebruiker(gebruiker)
+			.and(AfgeslotenMedewerkerOvereenkomstSpecification.bevatPeildatum(peilDatum)));
 	}
 }

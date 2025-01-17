@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -236,6 +236,11 @@ public class CervixMonsterSpecification
 		return (r, q, cb) -> cb.greaterThan(r.get(CervixMonster_.ontvangstdatum), DateUtil.toUtilDate(signalerenVanaf));
 	}
 
+	public static ExtendedSpecification<CervixUitstrijkje> heeftGeenOntvangstDatum()
+	{
+		return (r, q, cb) -> cb.isNull(r.get(CervixMonster_.ontvangstdatum));
+	}
+
 	public static Specification<CervixMonster> heeftDossierMetDatumLaatstGecontroleerdeSignaleringNa(LocalDate signalerenVanaf)
 	{
 		return (r, q, cb) ->
@@ -380,7 +385,7 @@ public class CervixMonsterSpecification
 					cb.equal(subRoot.get(CervixUitnodiging_.screeningRonde), mainQueryScreeningRondeJoin),
 					cb.greaterThanOrEqualTo(truncate("day", subRoot.get(Uitnodiging_.creatieDatum), cb),
 						truncate("day", r.get(CervixMonster_.statusDatum), cb)),
-					cb.equal(subqueryBriefJoin.get(Brief_.gegenereerd), true)
+					cb.isTrue(subqueryBriefJoin.get(Brief_.gegenereerd))
 				)
 			);
 			return cb.exists(subquery);
@@ -423,4 +428,5 @@ public class CervixMonsterSpecification
 	{
 		return treat(r, CervixZas.class, cb);
 	}
+
 }

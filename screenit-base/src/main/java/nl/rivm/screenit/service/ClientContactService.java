@@ -4,7 +4,7 @@ package nl.rivm.screenit.service;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -87,5 +87,7 @@ public interface ClientContactService
 	boolean isAfspraakTijdBezet(MammaAfspraak nieuweAfspraak, IMammaAfspraakWijzigenFilter afspraakWijzigenFilter);
 
 	List<ClientContact> getClientContacten(Client client, long first, long count, String sortProperty, boolean ascending);
+
+	Long countClientContactenMetOpmerking(Long clientId);
 
 }

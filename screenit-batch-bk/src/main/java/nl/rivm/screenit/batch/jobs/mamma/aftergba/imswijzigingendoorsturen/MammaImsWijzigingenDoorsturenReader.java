@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.aftergba.imswijzigingendoorsturen;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,22 +21,22 @@ package nl.rivm.screenit.batch.jobs.mamma.aftergba.imswijzigingendoorsturen;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Client_;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.MatchMode;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.Constants.MAMMA_IMS_CLIENT_BSN_GEWIJZIGD_MARKER;
+import static nl.rivm.screenit.Constants.MAMMA_IMS_CLIENT_GEGEVENS_GEWIJZIGD_MARKER;
 import static nl.rivm.screenit.batch.jobs.mamma.aftergba.AfterGbaJobConfiguration.AFTER_GBA_JOB_READER_FETCH_SIZE;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.ClientSpecification.heeftMammaDossier;
+import static nl.rivm.screenit.specification.algemeen.GbaMutatieSpecification.heeftAanvullendeInformatieContaining;
 
 @Component
-public class MammaImsWijzigingenDoorsturenReader extends BaseScrollableResultReader
+public class MammaImsWijzigingenDoorsturenReader extends BaseSpecificationScrollableResultReader<Client>
 {
 
 	public MammaImsWijzigingenDoorsturenReader()
@@ -45,15 +45,14 @@ public class MammaImsWijzigingenDoorsturenReader extends BaseScrollableResultRea
 	}
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<Client> createSpecification()
 	{
-		var criteria = session.createCriteria(Client.class);
-		criteria.createAlias("gbaMutaties", "gbaMutaties");
-		criteria.createAlias("mammaDossier", "mammaDossier", JoinType.INNER_JOIN);
-		var disjunction = Restrictions.disjunction();
-		disjunction.add(Restrictions.like("gbaMutaties.aanvullendeInformatie", Constants.MAMMA_IMS_CLIENT_BSN_GEWIJZIGD_MARKER, MatchMode.ANYWHERE));
-		disjunction.add(Restrictions.like("gbaMutaties.aanvullendeInformatie", Constants.MAMMA_IMS_CLIENT_GEGEVENS_GEWIJZIGD_MARKER, MatchMode.ANYWHERE));
-		criteria.add(disjunction);
-		return criteria;
+		return heeftMutatieMarker(MAMMA_IMS_CLIENT_BSN_GEWIJZIGD_MARKER).or(
+			heeftMutatieMarker(MAMMA_IMS_CLIENT_GEGEVENS_GEWIJZIGD_MARKER)).and(heeftMammaDossier());
+	}
+
+	private Specification<Client> heeftMutatieMarker(String marker)
+	{
+		return heeftAanvullendeInformatieContaining(marker).with(r -> join(r, Client_.gbaMutaties));
 	}
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.uitnodigen.uitstel;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,78 +21,133 @@ package nl.rivm.screenit.batch.jobs.mamma.uitnodigen.uitstel;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Date;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
+
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.dao.mamma.MammaSelectieRestrictions;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.ScreeningRondeStatus;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.mamma.MammaDossier;
+import nl.rivm.screenit.model.mamma.MammaDossier_;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid_;
+import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
+import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode_;
+import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde_;
+import nl.rivm.screenit.model.mamma.MammaStandplaats_;
+import nl.rivm.screenit.model.mamma.MammaUitstel;
+import nl.rivm.screenit.model.mamma.MammaUitstel_;
 import nl.rivm.screenit.model.mamma.enums.MammaUitstelReden;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.specification.algemeen.ScreeningRondeSpecification;
 import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.query.Limit;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
-import org.hibernate.sql.JoinType;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.ExtendedSpecification.not;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.ClientSpecification.voldoetAanMammaClientSelectieRestricties;
+import static nl.rivm.screenit.specification.mamma.MammaUitstelSpecification.heeftUitnodiging;
+import static nl.rivm.screenit.specification.mamma.MammaUitstelSpecification.heeftUitstelReden;
+import static nl.rivm.screenit.specification.mamma.MammaUitstelSpecification.isGeannuleerd;
 
 @Component
 @AllArgsConstructor
-public class MammaUitstelUitnodigenReader extends BaseScrollableResultReader
+public class MammaUitstelUitnodigenReader extends BaseSpecificationScrollableResultReader<Client>
 {
-	private final MammaSelectieRestrictions selectieRestricties;
-
 	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<Client> createSpecification()
 	{
-		var vrijgegevenTotEnMetSubquery = getVrijgegevenTotEnMetSubquery();
-		var maximaleStreefDatumIndienStandplaatsNietInEenRoute = DateUtil.toUtilDate(currentDateSupplier.getLocalDate().plusWeeks(8));
-
-		var criteria = session.createCriteria(Client.class, "client");
-		criteria.createAlias("client.persoon", "persoon");
-		criteria.createAlias("persoon.gbaAdres", "adres");
-		criteria.createAlias("persoon.tijdelijkGbaAdres", "tijdelijkGbaAdres", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("client.mammaDossier", "dossier");
-		criteria.createAlias("dossier.laatsteScreeningRonde", "laatsteScreeningRonde");
-		criteria.createAlias("laatsteScreeningRonde.laatsteUitstel", "laatsteUitstel");
-		criteria.add(Restrictions.eq("laatsteScreeningRonde.status", ScreeningRondeStatus.LOPEND));
-		criteria.add(Restrictions.isNull("laatsteUitstel.geannuleerdOp"));
-		criteria.add(Restrictions.isNull("laatsteUitstel.uitnodiging"));
-		criteria.add(Restrictions.eq("laatsteUitstel.uitstelReden", MammaUitstelReden.CLIENT_CONTACT));
-		criteria.add(Restrictions.or(
-			Subqueries.propertyLe("laatsteUitstel.streefDatum", vrijgegevenTotEnMetSubquery),
-			Restrictions.and(
-				Restrictions.le("laatsteUitstel.streefDatum", maximaleStreefDatumIndienStandplaatsNietInEenRoute),
-				Subqueries.notExists(vrijgegevenTotEnMetSubquery))));
-
-		selectieRestricties.addStandaardSelectieRestricties(criteria);
-
-		return criteria;
+		return heeftLopendeRonde().and(heeftGeldigeUitstel()).and(streefDatumVoorEerstVolgendeStandplaatsPeriodeHeeftVrijgegevenTotEnMetOfMaximaleDatum())
+			.and(voldoetAanMammaClientSelectieRestricties());
 	}
 
-	private DetachedCriteria getVrijgegevenTotEnMetSubquery()
+	private Specification<Client> heeftGeldigeUitstel()
 	{
-		var subquery = DetachedCriteria.forClass(MammaScreeningsEenheid.class, "screeningsEenheid");
-		subquery.createAlias("screeningsEenheid.standplaatsPerioden", "standplaatsperiode");
-		subquery.createAlias("standplaatsperiode.standplaatsRonde", "standplaatsRonde");
-		subquery.createAlias("standplaatsRonde.standplaats", "standplaats");
-		subquery.add(Restrictions.eq("screeningsEenheid.actief", true));
-		subquery.add(Restrictions.eq("standplaats.actief", true));
-		subquery.add(Restrictions.ge("standplaatsperiode.totEnMet", currentDateSupplier.getDateMidnight()));
-		subquery.add(Restrictions.eqProperty("standplaats.id", "laatsteUitstel.standplaats"));
-		subquery.setProjection(Projections.property("screeningsEenheid.vrijgegevenTotEnMet"));
-		subquery.addOrder(Order.asc("standplaatsperiode.vanaf"));
-		subquery.addOrder(Limit.by(1));
-		return subquery;
+		return not(isGeannuleerd()).and(not(heeftUitnodiging())).and(heeftUitstelReden(MammaUitstelReden.CLIENT_CONTACT)).with(r -> getLaatsteUitstelJoin(r));
+	}
+
+	private Specification<Client> heeftLopendeRonde()
+	{
+		return ScreeningRondeSpecification.isLopend().with(r -> screeningRondeJoin(r));
+	}
+
+	private Specification<Client> streefDatumVoorEerstVolgendeStandplaatsPeriodeHeeftVrijgegevenTotEnMetOfMaximaleDatum()
+	{
+		var maximaleStreefDatumIndienStandplaatsNietInEenRoute = DateUtil.toUtilDate(currentDateSupplier.getLocalDate().plusWeeks(8));
+		var vandaag = currentDateSupplier.getDateMidnight();
+		return (r, q, cb) ->
+		{
+			var subqueryVrijgevenTotEnMetVanStandplaatsInRoute = q.subquery(Date.class);
+			var subroot = subqueryVrijgevenTotEnMetVanStandplaatsInRoute.from(MammaScreeningsEenheid.class);
+			var subStandplaatsPeriodenJoin = join(subroot, MammaScreeningsEenheid_.standplaatsPerioden);
+			var subStandplaatsRondeJoin = join(subStandplaatsPeriodenJoin, MammaStandplaatsPeriode_.standplaatsRonde);
+			var subStandplaatsJoin = join(subStandplaatsRondeJoin, MammaStandplaatsRonde_.standplaats);
+
+			var minimalePeriodeVanafVanStandplaats = minimalePeriodeVanafVanStandplaats(subqueryVrijgevenTotEnMetVanStandplaatsInRoute, r, cb, vandaag);
+
+			subqueryVrijgevenTotEnMetVanStandplaatsInRoute.select(cb.least(subroot.get(MammaScreeningsEenheid_.vrijgegevenTotEnMet)))
+				.where(
+					cb.isTrue(subroot.get(MammaScreeningsEenheid_.actief)),
+					cb.isTrue(subStandplaatsJoin.get(MammaStandplaats_.actief)),
+					cb.greaterThanOrEqualTo(subStandplaatsPeriodenJoin.get(MammaStandplaatsPeriode_.totEnMet), vandaag),
+					cb.equal(subStandplaatsRondeJoin.get(MammaStandplaatsRonde_.standplaats), getLaatsteUitstelJoin(r).get(MammaUitstel_.standplaats)),
+					cb.equal(subStandplaatsPeriodenJoin.get(MammaStandplaatsPeriode_.vanaf), minimalePeriodeVanafVanStandplaats));
+
+			var streefDatumLigtVoorVrijgevenTotEnMetVanStandplaatsInRoute = cb.lessThanOrEqualTo(getLaatsteUitstelJoin(r).get(MammaUitstel_.streefDatum),
+				subqueryVrijgevenTotEnMetVanStandplaatsInRoute);
+
+			var standplaatsNietInActieveRoute = cb.isNull(subqueryVrijgevenTotEnMetVanStandplaatsInRoute);
+			var standplaatsNietInRouteEnStreefdatumLigtVoorMaximaleStreefDatum = cb.and(
+				standplaatsNietInActieveRoute,
+				cb.lessThanOrEqualTo(getLaatsteUitstelJoin(r).get(MammaUitstel_.streefDatum), maximaleStreefDatumIndienStandplaatsNietInEenRoute));
+
+			return cb.or(streefDatumLigtVoorVrijgevenTotEnMetVanStandplaatsInRoute, standplaatsNietInRouteEnStreefdatumLigtVoorMaximaleStreefDatum);
+		};
+	}
+
+	private Subquery<Date> minimalePeriodeVanafVanStandplaats(Subquery<Date> subqueryVrijgevenTotEnMetVanStandplaatsInRoute, Root<Client> clientRoot, CriteriaBuilder cb,
+		Date vandaag)
+	{
+		var minimaleVanafSubquery = subqueryVrijgevenTotEnMetVanStandplaatsInRoute.subquery(Date.class);
+		var minimaleVanafSubroot = minimaleVanafSubquery.from(MammaStandplaatsPeriode.class);
+
+		var subMinimaleVanafStandplaats = join(join(minimaleVanafSubroot, MammaStandplaatsPeriode_.standplaatsRonde), MammaStandplaatsRonde_.standplaats);
+		var subMinimaleVanafScreeningsEenheid = join(minimaleVanafSubroot, MammaStandplaatsPeriode_.screeningsEenheid);
+		minimaleVanafSubquery.select(cb.least(minimaleVanafSubroot.get(MammaStandplaatsPeriode_.vanaf)))
+			.where(
+				cb.isTrue(subMinimaleVanafScreeningsEenheid.get(MammaScreeningsEenheid_.actief)),
+				cb.isTrue(subMinimaleVanafStandplaats.get(MammaStandplaats_.actief)),
+				cb.greaterThanOrEqualTo(minimaleVanafSubroot.get(MammaStandplaatsPeriode_.totEnMet), vandaag),
+				cb.equal(subMinimaleVanafStandplaats, getLaatsteUitstelJoin(clientRoot).get(MammaUitstel_.standplaats))
+			);
+		return minimaleVanafSubquery;
+	}
+
+	private static Join<? extends Client, MammaDossier> dossierJoin(From<?, ? extends Client> r)
+	{
+		return join(r, Client_.mammaDossier);
+	}
+
+	private static Join<MammaDossier, MammaScreeningRonde> screeningRondeJoin(From<?, ? extends Client> r)
+	{
+		return join(dossierJoin(r), MammaDossier_.laatsteScreeningRonde);
+	}
+
+	private static Join<MammaScreeningRonde, MammaUitstel> getLaatsteUitstelJoin(From<?, ? extends Client> r)
+	{
+		return join(screeningRondeJoin(r), MammaScreeningRonde_.laatsteUitstel);
 	}
 }

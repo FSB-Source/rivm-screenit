@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.algemeen;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,7 +34,7 @@ import javax.persistence.criteria.Subquery;
 import javax.persistence.metamodel.SingularAttribute;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Client_;
@@ -66,7 +66,7 @@ import static nl.rivm.screenit.specification.algemeen.ProjectSpecification.heeft
 import static nl.rivm.screenit.specification.algemeen.ProjectSpecification.isActiefOpDatum;
 import static nl.rivm.screenit.specification.colon.ColonVolgendeUitnodigingSpecification.heeftProjectPeildatum;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ProjectClientSpecification
 {
 	public static Specification<ProjectClient> heeftProject(Project project)
@@ -100,7 +100,7 @@ public class ProjectClientSpecification
 		SingularAttribute<Client, ? extends Dossier<?, ?>> dossier)
 	{
 		var dossierJoin = join(clientJoin, dossier, JoinType.LEFT);
-		return cb.or(dossierJoin.get(TablePerClassHibernateObject_.id).isNull(), cb.equal(dossierJoin.get(Dossier_.aangemeld), true));
+		return cb.or(dossierJoin.get(TablePerClassHibernateObject_.id).isNull(), cb.isTrue(dossierJoin.get(Dossier_.aangemeld)));
 	}
 
 	public static Specification<ProjectClient> isNietInProjectBrief(ProjectBriefActie definitie)

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,6 +34,7 @@ import javax.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import nl.rivm.screenit.dao.colon.RoosterDao;
 import nl.rivm.screenit.exceptions.HeeftAfsprakenException;
 import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
 import nl.rivm.screenit.exceptions.TijdBlokOverlapException;
@@ -42,6 +43,7 @@ import nl.rivm.screenit.main.exception.BulkAanmakenException;
 import nl.rivm.screenit.main.exception.BulkVerwijderenException;
 import nl.rivm.screenit.main.exception.ValidatieException;
 import nl.rivm.screenit.main.service.colon.ColonAfspraakslotService;
+import nl.rivm.screenit.main.service.colon.ColonBlokkadeService;
 import nl.rivm.screenit.main.service.colon.ColonFeestdagService;
 import nl.rivm.screenit.main.service.colon.ColonRoosterBeperkingService;
 import nl.rivm.screenit.main.service.colon.RoosterService;
@@ -60,13 +62,16 @@ import nl.rivm.screenit.model.colon.enums.ColonAfspraakslotStatus;
 import nl.rivm.screenit.model.colon.enums.ColonRoosterBeperking;
 import nl.rivm.screenit.model.colon.enums.ColonTijdslotType;
 import nl.rivm.screenit.model.colon.planning.ColonAfspraakslot;
+import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
 import nl.rivm.screenit.model.colon.planning.ColonTijdslot;
+import nl.rivm.screenit.model.colon.planning.ColonTijdslot_;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.repository.colon.ColonAfspraakslotRepository;
+import nl.rivm.screenit.repository.colon.ColonTijdslotRepository;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.OrganisatieParameterService;
-import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -78,12 +83,22 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Range;
 
+import ca.uhn.hl7v2.util.Pair;
+
+import static nl.rivm.screenit.specification.colon.ColonTijdslotSpecification.heeftKamer;
+import static nl.rivm.screenit.specification.colon.ColonTijdslotSpecification.isAfspraakslot;
+import static nl.rivm.screenit.specification.colon.ColonTijdslotSpecification.valtBinnenDatumTijdRange;
+
 @Service
 @Slf4j
 @AllArgsConstructor
 public class ColonAfspraakslotServiceImpl implements ColonAfspraakslotService
 {
+	private final ColonBlokkadeService blokkadeService;
+
 	private final RoosterService roosterService;
+
+	private final RoosterDao roosterDao;
 
 	private final HibernateService hibernateService;
 
@@ -91,15 +106,17 @@ public class ColonAfspraakslotServiceImpl implements ColonAfspraakslotService
 
 	private final ColonAfspraakslotRepository afspraakslotRepository;
 
+	private final ColonTijdslotRepository tijdslotRepository;
+
 	private final ColonAfspraakslotMapper afspraakslotMapper;
 
 	private final ColonRoosterBeperkingService roosterBeperkingService;
 
 	private final ColonFeestdagService feestdagService;
 
-	private final ColonBaseAfspraakService afspraakService;
-
 	private final OrganisatieParameterService organisatieParameterService;
+
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	@Transactional
@@ -213,7 +230,7 @@ public class ColonAfspraakslotServiceImpl implements ColonAfspraakslotService
 	{
 		var intakelocatie = roosterService.getIntakelocatieVanInstellingGebruiker(instellingGebruiker);
 		var dbAfspraakslot = roosterService.getAfspraakslot(id).orElseThrow(() -> new ValidatieException("error.afspraakslot.niet.gevonden"));
-		var afspraakslotStatus = roosterService.getAfspraakslotStatus(dbAfspraakslot);
+		var afspraakslotStatus = getAfspraakslotStatus(dbAfspraakslot);
 		magAfsrpaakslotOpslaanVerwijderen(dbAfspraakslot, false);
 
 		if (afspraakslotStatus == ColonAfspraakslotStatus.GEBRUIKT_VOOR_CAPACITEIT)
@@ -242,7 +259,7 @@ public class ColonAfspraakslotServiceImpl implements ColonAfspraakslotService
 					exception.aantalNietGevondenOphogen();
 					return;
 				}
-				var afspraakslotStatus = roosterService.getAfspraakslotStatus(dbAfspraakslot);
+				var afspraakslotStatus = getAfspraakslotStatus(dbAfspraakslot);
 				magAfsrpaakslotOpslaanVerwijderen(dbAfspraakslot, true);
 
 				if (afspraakslotStatus == ColonAfspraakslotStatus.GEBRUIKT_VOOR_CAPACITEIT)
@@ -282,8 +299,8 @@ public class ColonAfspraakslotServiceImpl implements ColonAfspraakslotService
 		var afspraakslots = new ArrayList<ColonAfspraakslotDto>();
 		for (var gevondenAfspraakslot : gevondenAfspraakslots)
 		{
-			var afspraakslot = afspraakslotRepository.findById(gevondenAfspraakslot.getAfspraakslotId()).orElse(null);
-			var afspraakslotStatus = roosterService.getAfspraakslotStatus(afspraakslot);
+			var afspraakslot = afspraakslotRepository.findById(gevondenAfspraakslot.getAfspraakslotId()).orElseThrow();
+			var afspraakslotStatus = getAfspraakslotStatus(afspraakslot);
 			gevondenAfspraakslot.setStatus(afspraakslotStatus);
 			afspraakslots.add(afspraakslotMapper.roosterListItemViewWrapperToColonAfspraakslotDto(gevondenAfspraakslot));
 		}
@@ -314,7 +331,7 @@ public class ColonAfspraakslotServiceImpl implements ColonAfspraakslotService
 	@Override
 	public void checkCapaciteitBerekening(ColonAfspraakslot afspraakslot, ColonIntakelocatie intakelocatie) throws ValidatieException
 	{
-		var afspraakslotStatus = roosterService.getAfspraakslotStatus(afspraakslot);
+		var afspraakslotStatus = getAfspraakslotStatus(afspraakslot);
 		if (afspraakslotStatus != ColonAfspraakslotStatus.GEBRUIKT_VOOR_CAPACITEIT || afspraakslot.getId() == null)
 		{
 			return;
@@ -338,6 +355,70 @@ public class ColonAfspraakslotServiceImpl implements ColonAfspraakslotService
 		{
 			throw new ValidatieException("error.afspraakslot.gebruikt.voor.capaciteit");
 		}
+	}
+
+	@Override
+	public ColonAfspraakslotStatus getAfspraakslotStatus(ColonAfspraakslot afspraakslot)
+	{
+		var afspraakslotStatus = ColonAfspraakslotStatus.VRIJ_TE_VERPLAATSEN;
+		if (!blokkadeService.getBlokkades(afspraakslot.getKamer(), afspraakslot.getVanaf(), afspraakslot.getTot()).isEmpty())
+		{
+			afspraakslotStatus = ColonAfspraakslotStatus.BLOKKADE;
+		}
+		else
+		{
+			if (afspraakslot.isCapaciteitMeeBepaald())
+			{
+				afspraakslotStatus = ColonAfspraakslotStatus.GEBRUIKT_VOOR_CAPACITEIT;
+			}
+
+			var afspraak = afspraakslot.getAfspraak();
+			if (afspraak != null && ColonAfspraakStatus.VOOR_AGENDA.contains(afspraak.getStatus()))
+			{
+				afspraakslotStatus = ColonAfspraakslotStatus.INTAKE_GEPLAND;
+			}
+		}
+		return afspraakslotStatus;
+	}
+
+	@Override
+	public Integer getCurrentAantalAfspraakslots(ColonIntakelocatie intakeLocatie, Range<LocalDateTime> periode)
+	{
+		int currentAantalSlots = 0;
+		for (var kamer : intakeLocatie.getKamers())
+		{
+			if (!Boolean.FALSE.equals(kamer.getActief()))
+			{
+				var afspraakslots = getCurrentAfspraakslots(kamer, periode);
+				var firstDayOfThisYear = currentDateSupplier.getLocalDate().with(TemporalAdjusters.firstDayOfYear()).atStartOfDay();
+				var blokkades = blokkadeService.getBlokkades(kamer, firstDayOfThisYear, firstDayOfThisYear.plusYears(1));
+				for (var dates : afspraakslots)
+				{
+					var baseAfspraakslot = Range.closed((LocalDateTime) dates.getValue1(), (LocalDateTime) dates.getValue2());
+					List<Range<LocalDateTime>> correctedAfspraakslots = new ArrayList<>();
+					correctedAfspraakslots.add(baseAfspraakslot);
+					List<Range<LocalDateTime>> correctedAfspraakslotNew;
+
+					for (var blokkade : blokkades)
+					{
+						correctedAfspraakslotNew = new ArrayList<>();
+						for (var afspraakslotToCorrect : correctedAfspraakslots)
+						{
+							correctedAfspraakslotNew.addAll(DateUtil.disjunct(afspraakslotToCorrect, Range.closed(blokkade.getVanaf(), blokkade.getTot())));
+						}
+						correctedAfspraakslots = correctedAfspraakslotNew;
+					}
+					currentAantalSlots += correctedAfspraakslots.size();
+				}
+			}
+		}
+		return currentAantalSlots;
+	}
+
+	private List<Pair> getCurrentAfspraakslots(ColonIntakekamer kamer, Range<LocalDateTime> periode)
+	{
+		return tijdslotRepository.findWith(isAfspraakslot().and(heeftKamer(kamer)).and(valtBinnenDatumTijdRange(periode)), Pair.class,
+			q -> q.projections((cb, r) -> List.of(r.get(ColonTijdslot_.vanaf), r.get(ColonTijdslot_.tot)))).all();
 	}
 
 	private void valideerAfspraakslot(ColonAfspraakslot afspraakslot, ColonIntakelocatie intakelocatie, boolean negeerZachteBeperking, boolean wijzigen)

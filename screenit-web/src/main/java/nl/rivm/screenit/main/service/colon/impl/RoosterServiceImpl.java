@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,6 @@ import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -44,17 +43,14 @@ import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.RoosterListViewFilter;
 import nl.rivm.screenit.model.colon.dto.ColonHerhalingDto;
 import nl.rivm.screenit.model.colon.dto.ColonTijdslotDto;
-import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
-import nl.rivm.screenit.model.colon.enums.ColonAfspraakslotStatus;
 import nl.rivm.screenit.model.colon.enums.ColonTijdslotType;
 import nl.rivm.screenit.model.colon.planning.ColonAfspraakslot;
-import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
-import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
 import nl.rivm.screenit.model.colon.planning.ColonTijdslot;
 import nl.rivm.screenit.model.colon.planning.ColonTijdslot_;
 import nl.rivm.screenit.repository.colon.ColonAfspraakslotRepository;
 import nl.rivm.screenit.repository.colon.ColonTijdslotRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.specification.colon.ColonTijdslotSpecification;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 
@@ -66,9 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.Range;
 
 import static nl.rivm.screenit.specification.HibernateObjectSpecification.filterId;
-import static nl.rivm.screenit.specification.colon.ColonAfspraakslotSpecification.heeftKamer;
-import static nl.rivm.screenit.specification.colon.ColonAfspraakslotSpecification.valtBinnenDatumRange;
-import static nl.rivm.screenit.specification.colon.ColonAfspraakslotSpecification.valtBinnenDatumTijdRange;
+import static nl.rivm.screenit.specification.colon.ColonTijdslotSpecification.valtBinnenDatumRange;
 
 @Service
 public class RoosterServiceImpl implements RoosterService
@@ -84,12 +78,6 @@ public class RoosterServiceImpl implements RoosterService
 
 	@Autowired
 	private ColonTijdslotRepository tijdslotRepository;
-
-	@Override
-	public List<ColonBlokkade> getBlokkades(Range<LocalDateTime> range, List<ColonIntakekamer> kamers)
-	{
-		return roosterDao.zoekTijdslotsVoorKamersInRange(range, kamers, ColonBlokkade.class);
-	}
 
 	@Override
 	@Transactional
@@ -147,81 +135,11 @@ public class RoosterServiceImpl implements RoosterService
 	}
 
 	@Override
-	public ColonAfspraakslotStatus getAfspraakslotStatus(ColonAfspraakslot afspraakslot)
-	{
-		var afspraakslotStatus = ColonAfspraakslotStatus.VRIJ_TE_VERPLAATSEN;
-		if (!roosterDao.getBlokkades(afspraakslot.getKamer(), afspraakslot.getVanaf(), afspraakslot.getTot()).isEmpty())
-		{
-			afspraakslotStatus = ColonAfspraakslotStatus.BLOKKADE;
-		}
-		else
-		{
-			if (afspraakslot.isCapaciteitMeeBepaald())
-			{
-				afspraakslotStatus = ColonAfspraakslotStatus.GEBRUIKT_VOOR_CAPACITEIT;
-			}
-
-			var afspraak = afspraakslot.getAfspraak();
-			if (afspraak != null && ColonAfspraakStatus.VOOR_AGENDA.contains(afspraak.getStatus()))
-			{
-				afspraakslotStatus = ColonAfspraakslotStatus.INTAKE_GEPLAND;
-			}
-		}
-		return afspraakslotStatus;
-	}
-
-	@Override
-	public Integer getCurrentAantalAfspraakslots(ColonIntakelocatie intakeLocatie, Range<LocalDateTime> periode)
-	{
-		int currentAantalSlots = 0;
-		for (var kamer : intakeLocatie.getKamers())
-		{
-			if (!Boolean.FALSE.equals(kamer.getActief()))
-			{
-				var afspraakslots = roosterDao.getCurrentAfspraakslots(kamer, periode);
-				var firstDayOfThisYear = currentDateSupplier.getLocalDate().with(TemporalAdjusters.firstDayOfYear()).atStartOfDay();
-				var blokkades = roosterDao.getBlokkades(kamer, firstDayOfThisYear, firstDayOfThisYear.plusYears(1));
-				for (Object object : afspraakslots)
-				{
-					Object[] afspraakslot = (Object[]) object;
-					var baseAfspraakslot = Range.closed((LocalDateTime) afspraakslot[0], (LocalDateTime) afspraakslot[1]);
-					List<Range<LocalDateTime>> correctedAfspraakslots = new ArrayList<>();
-					correctedAfspraakslots.add(baseAfspraakslot);
-					List<Range<LocalDateTime>> correctedAfspraakslotNew;
-
-					for (ColonTijdslot blokkade : blokkades)
-					{
-						correctedAfspraakslotNew = new ArrayList<>();
-						for (var afspraakslotToCorrect : correctedAfspraakslots)
-						{
-							correctedAfspraakslotNew.addAll(DateUtil.disjunct(afspraakslotToCorrect, Range.closed(blokkade.getVanaf(), blokkade.getTot())));
-						}
-						correctedAfspraakslots = correctedAfspraakslotNew;
-					}
-					currentAantalSlots += correctedAfspraakslots.size();
-				}
-			}
-		}
-		return currentAantalSlots;
-	}
-
-	@Override
-	public List<ColonBlokkade> getBlokkades(String sortProperty, boolean ascending, long first, long count, RoosterListViewFilter filter, ColonIntakelocatie intakelocatie)
-	{
-		return roosterDao.getBlokkades(sortProperty, ascending, first, count, filter, intakelocatie);
-	}
-
-	@Override
-	public long getBlokkadesCount(RoosterListViewFilter filter, ColonIntakelocatie intakelocatie)
-	{
-		return roosterDao.getBlokkadesCount(filter, intakelocatie);
-	}
-
-	@Override
 	public List<ColonAfspraakslot> getAfspraakslotsInRangeEnKamer(Range<LocalDateTime> range, ColonAfspraakslot afspraakslot)
 	{
-		return afspraakslotRepository.findAll(heeftKamer(afspraakslot.getKamer())
-				.and(valtBinnenDatumTijdRange(range).or(filterId(afspraakslot.getId()))),
+		return afspraakslotRepository.findAll(ColonTijdslotSpecification.<ColonAfspraakslot> heeftKamer(afspraakslot.getKamer())
+				.and(ColonTijdslotSpecification.<ColonAfspraakslot> valtBinnenDatumTijdRange(range)
+					.or(filterId(afspraakslot.getId()))),
 			Sort.by(Sort.Direction.ASC, ColonTijdslot_.VANAF));
 	}
 

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.gedeeld.brievenafdrukken;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -40,9 +40,13 @@ import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.component.table.booleanfilter.BooleanFilterPropertyColumn;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerBasePage;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
+import nl.rivm.screenit.model.Gebruiker_;
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.MergedBrievenFilter;
+import nl.rivm.screenit.model.MergedBrieven_;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
+import nl.rivm.screenit.model.UploadDocument_;
 import nl.rivm.screenit.model.algemeen.AlgemeneMergedBrieven;
 import nl.rivm.screenit.model.algemeen.BezwaarMergedBrieven;
 import nl.rivm.screenit.model.cervix.CervixMergedBrieven;
@@ -79,20 +83,24 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
+
 public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> extends GebruikerBasePage
 {
 	private final class MergedBrievenDataProvider extends SortableDataProvider<MB, String>
 	{
 		public MergedBrievenDataProvider()
 		{
-			setSort("briefType", SortOrder.ASCENDING);
+			setSort(MergedBrieven_.BRIEF_TYPE, SortOrder.ASCENDING);
 		}
 
 		@Override
 		public Iterator<MB> iterator(long first, long count)
 		{
+
 			return briefService
-				.getMergedBrieven(ModelUtil.nullSafeGet(screeningOrganisatie), filterModel.getObject(), first, count, getSort().getProperty(), getSort().isAscending()).iterator();
+				.getMergedBrieven(ModelUtil.nullSafeGet(screeningOrganisatie), filterModel.getObject(), first, count, toSpringSort(getSort())).iterator();
 		}
 
 		@Override
@@ -180,13 +188,17 @@ public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> e
 		this.screeningOrganisatie = ModelUtil.sModel(screeningOrganisatieToSet);
 
 		List<IColumn<MB, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<>(Model.of("Naam document"), "mergedBrieven", "mergedBrieven.naam"));
-		columns.add(new PropertyColumn<>(Model.of("Type"), "briefType", "briefType.weergaveNaam"));
+		columns.add(
+			new PropertyColumn<>(Model.of("Naam document"), propertyChain(MergedBrieven_.MERGED_BRIEVEN, UploadDocument_.NAAM),
+				propertyChain(MergedBrieven_.MERGED_BRIEVEN, UploadDocument_.NAAM)));
+		columns.add(new PropertyColumn<>(Model.of("Type"), propertyChain(MergedBrieven_.BRIEF_TYPE), propertyChain(MergedBrieven_.BRIEF_TYPE, "weergaveNaam")));
 		if (!AlgemeneMergedBrieven.class.equals(mergedBrievenClass))
 		{
-			columns.add(new PropertyColumn<>(Model.of("Screeningsorganisatie"), "screeningOrganisatie", "screeningOrganisatie"));
+			columns.add(
+				new PropertyColumn<>(Model.of("Screeningsorganisatie"), propertyChain(MergedBrieven_.SCREENING_ORGANISATIE, Instelling_.NAAM),
+					propertyChain(MergedBrieven_.SCREENING_ORGANISATIE, Instelling_.NAAM)));
 		}
-		columns.add(new PropertyColumn<>(Model.of("Datum"), "creatieDatum", "creatieDatum"));
+		columns.add(new PropertyColumn<>(Model.of("Datum"), propertyChain(MergedBrieven_.CREATIE_DATUM), propertyChain(MergedBrieven_.CREATIE_DATUM)));
 		columns.add(new AbstractColumn<>(Model.of("Downloaden"))
 		{
 			@Override
@@ -218,7 +230,7 @@ public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> e
 			}
 		});
 
-		columns.add(new ActiefPropertyColumn<>(Model.of("Afgedrukt"), "printDatum", documentContainer, filterModel)
+		columns.add(new ActiefPropertyColumn<>(Model.of("Afgedrukt"), propertyChain(MergedBrieven_.PRINT_DATUM), documentContainer, filterModel)
 		{
 			@Override
 			public void populateItem(Item<ICellPopulator<MB>> item, String componentId, IModel<MB> rowModel)
@@ -228,7 +240,8 @@ public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> e
 		});
 
 		filterModel.getObject().setControle(null);
-		columns.add(new BooleanFilterPropertyColumn<>(Model.of("Gecontroleerd"), "controle", filterModel, documentContainer, "controleerDatum")
+		columns.add(new BooleanFilterPropertyColumn<>(Model.of("Gecontroleerd"), propertyChain(MergedBrieven_.CONTROLE), filterModel, documentContainer,
+			propertyChain(MergedBrieven_.CONTROLEER_DATUM))
 		{
 			@Override
 			public void populateItem(Item<ICellPopulator<MB>> item, String componentId, IModel<MB> rowModel)
@@ -266,7 +279,8 @@ public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> e
 				}
 			}
 		});
-		columns.add(new PropertyColumn<>(Model.of("Gebruiker"), "afgedruktDoor.achternaam", "afgedruktDoor"));
+		columns.add(new PropertyColumn<>(Model.of("Gebruiker"), propertyChain(MergedBrieven_.AFGEDRUKT_DOOR, Gebruiker_.ACHTERNAAM),
+			propertyChain(MergedBrieven_.AFGEDRUKT_DOOR, "naamVolledig")));
 
 		ScreenitDataTable<MB, String> brieven = new ScreenitDataTable<>("brieven", columns, new MergedBrievenDataProvider(), new Model<>(""));
 

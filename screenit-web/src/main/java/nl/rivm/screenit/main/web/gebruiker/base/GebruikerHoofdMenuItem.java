@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.base;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -41,7 +41,6 @@ import nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie.CervixParame
 import nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie.ColonParameterisatiePage;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie.MammaParameterisatiePage;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.project.ProjectOverzicht;
-import nl.rivm.screenit.main.web.gebruiker.algemeen.projectvragenlijsten.ProjectVragenlijstenPage;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.retourzending.RetourzendingenVerwerkenPage;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.rollenrechten.RollenBeheer;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.technischbeheer.TechnischeParametersPage;
@@ -247,7 +246,6 @@ public enum GebruikerHoofdMenuItem
 				contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.nieuwsbeheer", BeheerNieuwsPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.nieuws", NieuwsPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.projecten", ProjectOverzicht.class));
-				contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.vragenlijsten", ProjectVragenlijstenPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.handleidingen", HandleidingenDownloadPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.retourzendingen", RetourzendingenVerwerkenPage.class));
 				contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.bezwaar.brpintrekken", BezwaarBRPIntrekkenPage.class));

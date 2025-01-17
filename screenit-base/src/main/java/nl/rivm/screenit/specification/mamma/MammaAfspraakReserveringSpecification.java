@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,7 @@ package nl.rivm.screenit.specification.mamma;
 import java.time.LocalDateTime;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.mamma.MammaAfspraakReservering;
 import nl.rivm.screenit.model.mamma.MammaAfspraakReservering_;
@@ -32,7 +32,7 @@ import nl.rivm.screenit.model.mamma.MammaCapaciteitBlok;
 
 import org.springframework.data.jpa.domain.Specification;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MammaAfspraakReserveringSpecification
 {
 	public static Specification<MammaAfspraakReservering> heeftCapaciteitBlok(MammaCapaciteitBlok blok)

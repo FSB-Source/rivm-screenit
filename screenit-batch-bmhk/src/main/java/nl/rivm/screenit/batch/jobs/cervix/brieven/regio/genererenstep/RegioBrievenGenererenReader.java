@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.brieven.regio.genererenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,41 +21,33 @@ package nl.rivm.screenit.batch.jobs.cervix.brieven.regio.genererenstep;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.cervix.CervixRegioBrief;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.specification.algemeen.BriefSpecification;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
 import org.springframework.batch.item.ExecutionContext;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
-@Component
-public class RegioBrievenGenererenReader extends AbstractBrievenGenererenReader<CervixRegioBrief>
-{
+import static nl.rivm.screenit.specification.cervix.CervixRegioBriefSpecification.heeftScreeningOrganisatieId;
 
-	@Override
-	protected Long getScreeningOrganisatieId(ExecutionContext context)
+@Component
+public class RegioBrievenGenererenReader extends BaseSpecificationScrollableResultReader<CervixRegioBrief>
+{
+	private Long getScreeningOrganisatieId(ExecutionContext context)
 	{
 		return context.getLong(RegioBrievenGenererenPartitioner.KEY_SCREENINGORGANISATIEID);
 	}
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<CervixRegioBrief> createSpecification()
 	{
-		var stepContext = getStepExecutionContext();
-		var crit = session.createCriteria(CervixRegioBrief.class);
-		crit.createAlias("regio", "regio");
-		crit.add(Restrictions.eq("regio.id", getScreeningOrganisatieId(stepContext)));
-
-		crit.add(Restrictions.eq("gegenereerd", false));
-		crit.add(Restrictions.eq("vervangen", false));
-		crit.add(Restrictions.eq("tegenhouden", false));
-
-		crit.add(Restrictions.eq("briefType", BriefType.REGIO_REGISTRATIE_UITSTRIJKEND_HUISARTS));
-
-		return crit;
+		var screeningOrganisatieId = getScreeningOrganisatieId(getStepExecutionContext());
+		return heeftScreeningOrganisatieId(screeningOrganisatieId)
+			.and(BriefSpecification.isNietGegenereerd())
+			.and(BriefSpecification.isNietVervangen())
+			.and(BriefSpecification.isNietTegengehouden())
+			.and(BriefSpecification.heeftBriefType(BriefType.REGIO_REGISTRATIE_UITSTRIJKEND_HUISARTS));
 	}
 }

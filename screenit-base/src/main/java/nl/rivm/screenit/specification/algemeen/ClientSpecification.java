@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.algemeen;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -42,10 +42,10 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.DossierSpecification.heeftDeelnamemodus;
 import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.heeftGbaAdresMetPostcode;
 import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.isNietOverleden;
 import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.isNietOverledenEnWoontInNederland;
-import static nl.rivm.screenit.specification.mamma.MammaBaseDossierSpecification.heeftDeelnameModus;
 import static nl.rivm.screenit.specification.mamma.MammaBaseDossierSpecification.heeftStatusNullOfActief;
 import static org.springframework.data.jpa.domain.Specification.not;
 
@@ -117,11 +117,11 @@ public class ClientSpecification
 		return (r, q, cb) ->
 		{
 			var persoonJoin = join(r, Client_.persoon);
-			return cb.like(persoonJoin.get(GbaPersoon_.bsn), "%" + bsn);
+			return cb.equal(cb.function("right", String.class, persoonJoin.get(GbaPersoon_.bsn), cb.literal(9)), bsn);
 		};
 	}
 
-	public static Specification<Client> heeftGbaStatus(GbaStatus status)
+	public static ExtendedSpecification<Client> heeftGbaStatus(GbaStatus status)
 	{
 		return (r, q, cb) -> cb.equal(r.get(Client_.gbaStatus), status);
 	}
@@ -136,14 +136,29 @@ public class ClientSpecification
 		return (r, q, cb) -> cb.not(r.get(Client_.gbaStatus).in(statussen));
 	}
 
+	public static ExtendedSpecification<Client> heeftGbaStatusIn(List<GbaStatus> statussen)
+	{
+		return (r, q, cb) -> r.get(Client_.gbaStatus).in(statussen);
+	}
+
 	public static Specification<Client> heeftMammaDossier()
 	{
 		return (r, q, cb) -> cb.isNotNull(r.get(Client_.mammaDossier));
 	}
 
+	public static Specification<Client> heeftColonDossier()
+	{
+		return (r, q, cb) -> cb.isNotNull(r.get(Client_.colonDossier));
+	}
+
+	public static Specification<Client> heeftCervixDossier()
+	{
+		return (r, q, cb) -> cb.isNotNull(r.get(Client_.cervixDossier));
+	}
+
 	public static Specification<Client> voldoetAanMammaClientSelectieRestricties()
 	{
-		return not(heeftDeelnameModus(Deelnamemodus.SELECTIEBLOKKADE).with(Client_.mammaDossier))
+		return not(heeftDeelnamemodus(Deelnamemodus.SELECTIEBLOKKADE).with(Client_.mammaDossier))
 			.and(heeftStatusNullOfActief().with(Client_.mammaDossier))
 			.and(heeftGbaAdresMetPostcode().with(Client_.persoon))
 			.and(heeftActieveClient());

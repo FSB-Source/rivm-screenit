@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -56,8 +56,10 @@ import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.EnovationHuisarts;
 import nl.rivm.screenit.model.EnovationHuisarts_;
 import nl.rivm.screenit.model.GbaPersoon;
+import nl.rivm.screenit.model.Gebruiker_;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.InstellingGebruiker_;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.MammaOnderzoekType;
@@ -125,6 +127,7 @@ import ca.uhn.hl7v2.HL7Exception;
 import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.filterBsn;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.afsprakenWaarvanOnderzoekNietIsDoorgevoerdAfgelopen2Maanden;
 import static nl.rivm.screenit.specification.mamma.MammaMammografieBaseSpecification.heeftIlmStatusIn;
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
 
 @Service
 @Slf4j
@@ -954,7 +957,8 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 	{
 		var zoekInstellingGebruiker = new InstellingGebruiker();
 		zoekInstellingGebruiker.setOrganisatie(beoordelingsEenheid);
-		var instellingGebruikers = medewerkerService.getActieveRadiologen(zoekInstellingGebruiker, new ArrayList<>(), "medewerker.gebruikersnaam", true)
+		var sort = Sort.by(Sort.Order.asc(propertyChain(InstellingGebruiker_.MEDEWERKER, Gebruiker_.GEBRUIKERSNAAM)));
+		var instellingGebruikers = medewerkerService.getActieveRadiologen(zoekInstellingGebruiker, new ArrayList<>(), sort)
 			.stream()
 			.filter(m -> beoordelingService.isBevoegdVoorArbitrage(m))
 			.collect(Collectors.toList());

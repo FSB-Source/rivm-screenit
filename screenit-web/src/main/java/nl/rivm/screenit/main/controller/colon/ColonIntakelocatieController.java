@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.controller.colon;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,7 @@ import java.time.temporal.TemporalAdjusters;
 
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.main.service.colon.RoosterService;
+import nl.rivm.screenit.main.service.colon.ColonAfspraakslotService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.mappers.colon.ColonIntakelocatieMapper;
@@ -54,7 +54,7 @@ public class ColonIntakelocatieController
 
 	private final ColonIntakelocatieService intakelocatieService;
 
-	private final RoosterService roosterService;
+	private final ColonAfspraakslotService afspraakslotService;
 
 	@GetMapping()
 	@SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_LOCATIE_ROOSTER, bevolkingsonderzoekScopes = {
@@ -67,7 +67,7 @@ public class ColonIntakelocatieController
 		var endOfYear = startOfYear.plusYears(1);
 
 		var periode = Range.closed(startOfYear.atStartOfDay(), endOfYear.atStartOfDay());
-		var huidigAantalAfspraakslots = roosterService.getCurrentAantalAfspraakslots(intakelocatie, periode);
+		var huidigAantalAfspraakslots = afspraakslotService.getCurrentAantalAfspraakslots(intakelocatie, periode);
 		var response = intakelocatieMapper.intakelocatieToDto(intakelocatie);
 		response.setHuidigAantalAfspraakslots(huidigAantalAfspraakslots);
 		return ResponseEntity.ok(response);

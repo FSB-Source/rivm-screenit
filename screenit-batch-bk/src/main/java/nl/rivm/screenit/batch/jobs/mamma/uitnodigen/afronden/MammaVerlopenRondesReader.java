@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.uitnodigen.afronden;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,71 +22,89 @@ package nl.rivm.screenit.batch.jobs.mamma.uitnodigen.afronden;
  */
 
 import java.time.LocalDate;
-import java.util.Date;
+
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Root;
 
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.model.ScreeningRondeStatus;
-import nl.rivm.screenit.model.enums.Deelnamemodus;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.GbaPersoon;
+import nl.rivm.screenit.model.mamma.MammaAfspraak;
+import nl.rivm.screenit.model.mamma.MammaDossier_;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.specification.HibernateObjectSpecification;
+import nl.rivm.screenit.specification.algemeen.ScreeningRondeSpecification;
+import nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.Range;
+
+import static nl.rivm.screenit.model.enums.Deelnamemodus.SELECTIEBLOKKADE;
+import static nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus.GEPLAND;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.DossierSpecification.heeftDeelnamemodus;
+import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.isGeborenVoorOfOp;
+import static nl.rivm.screenit.specification.algemeen.ScreeningRondeSpecification.isAangemaaktVoor;
+import static nl.rivm.screenit.specification.mamma.MammaScreeningRondeSpecification.heeftGeenLaatsteOnderzoek;
 
 @Component
 @AllArgsConstructor
-public class MammaVerlopenRondesReader extends BaseScrollableResultReader
+public class MammaVerlopenRondesReader extends BaseSpecificationScrollableResultReader<MammaScreeningRonde>
 {
+	private static final int MAXIMALE_LEEFTIJD_OFFSET = 1;
+
 	private final ICurrentDateSupplier currentDateSupplier;
 
 	private final SimplePreferenceService preferenceService;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<MammaScreeningRonde> createSpecification()
 	{
 		var vandaag = currentDateSupplier.getLocalDate();
+		var leeftijdPeilmoment = vandaag.minusYears(preferenceService.getLong(PreferenceKey.MAMMA_MAXIMALE_LEEFTIJD.name()) + MAXIMALE_LEEFTIJD_OFFSET);
+		var maxDuurRonde = vandaag.minusMonths(Constants.BK_GELDIGHEID_RONDE_MAANDEN);
 
-		var maxLengteRonde = DateUtil.toUtilDate(vandaag.minusMonths(Constants.BK_GELDIGHEID_RONDE_MAANDEN));
-
-		var criteria = session.createCriteria(MammaScreeningRonde.class, "ronde");
-		criteria.createAlias("ronde.dossier", "dossier");
-		criteria.createAlias("dossier.client", "client");
-		criteria.createAlias("client.persoon", "persoon");
-		criteria.createAlias("ronde.laatsteUitnodiging", "uitnodiging", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("uitnodiging.laatsteAfspraak", "afspraak", JoinType.LEFT_OUTER_JOIN);
-
-		criteria.add(Restrictions.eq("status", ScreeningRondeStatus.LOPEND));
-		criteria.add(Restrictions.or(
-			Restrictions.le("persoon.geboortedatum", maximaleGeboortedatum(vandaag)),
-			Restrictions.eq("dossier.deelnamemodus", Deelnamemodus.SELECTIEBLOKKADE)
-		));
-		criteria.add(Restrictions.lt("ronde.creatieDatum", maxLengteRonde));
-		criteria.add(Restrictions.isNull("ronde.laatsteOnderzoek"));
-		criteria.add(Restrictions.or(
-			Restrictions.isNull("afspraak.id"),
-			Restrictions.and(
-				Restrictions.isNotNull("afspraak.id"),
-				Restrictions.or(
-					Restrictions.ne("afspraak.status", MammaAfspraakStatus.GEPLAND),
-					Restrictions.lt("afspraak.vanaf", DateUtil.toUtilDate(vandaag))))));
-
-		return criteria;
+		return ScreeningRondeSpecification.<MammaScreeningRonde> isLopend()
+			.and(isGeborenVoorOfOp(leeftijdPeilmoment).withRoot(this::getPersoonJoin)
+				.or(heeftDeelnamemodus(SELECTIEBLOKKADE).with(MammaScreeningRonde_.dossier)))
+			.and(isAangemaaktVoor(maxDuurRonde))
+			.and(heeftGeenLaatsteOnderzoek())
+			.and(heeftGeenToekomstigGeplandeAfspraak(vandaag));
 	}
 
-	private Date maximaleGeboortedatum(LocalDate currentDate)
+	private Specification<MammaScreeningRonde> heeftGeenToekomstigGeplandeAfspraak(LocalDate vandaag)
 	{
-		var totEnMetLeeftijd = preferenceService.getInteger(PreferenceKey.MAMMA_MAXIMALE_LEEFTIJD.name());
-		return DateUtil.toUtilDate(currentDate.minusYears(totEnMetLeeftijd + 1L));
+		var totVandaag = Range.lessThan(vandaag);
+
+		var specs = HibernateObjectSpecification.<MammaAfspraak> heeftGeenId()
+			.or(HibernateObjectSpecification.<MammaAfspraak> heeftId()
+				.and(MammaAfspraakSpecification.heeftNietStatus(GEPLAND)
+					.or(MammaAfspraakSpecification.valtInDatumPeriode(totVandaag))));
+
+		return specs.withRoot(this::getLaatsteAfspraakJoin);
+	}
+
+	private Join<?, GbaPersoon> getPersoonJoin(Root<MammaScreeningRonde> r)
+	{
+		var dossierJoin = join(r, MammaScreeningRonde_.dossier);
+		var clientJoin = join(dossierJoin, MammaDossier_.client);
+		return join(clientJoin, Client_.persoon);
+	}
+
+	private Join<?, MammaAfspraak> getLaatsteAfspraakJoin(Root<MammaScreeningRonde> r)
+	{
+		var laatsteUitnodiging = join(r, MammaScreeningRonde_.laatsteUitnodiging, JoinType.LEFT);
+		return join(laatsteUitnodiging, MammaUitnodiging_.laatsteAfspraak, JoinType.LEFT);
 	}
 }

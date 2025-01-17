@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.configuration;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,51 +26,60 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
 
-@Configuration
-public class SecurityConfig extends WebSecurityConfigurerAdapter
-{
+import static org.springframework.security.config.Customizer.withDefaults;
 
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig
+{
 	private static final String NFC_ENDPOINT = "http://localhost:5001";
 
 	private static final String IMS_ENDPOINT = "https://localhost:7001";
 
+	@Bean
+	@SuppressWarnings(
+
+		"java:S4502"
+	)
+	SecurityFilterChain filterChain(HttpSecurity http) throws Exception
+	{
+		http.csrf(AbstractHttpConfigurer::disable)
+			.cors(AbstractHttpConfigurer::disable)
+			.headers(headers -> headers.referrerPolicy(
+					policy -> policy.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.SAME_ORIGIN))
+				.contentTypeOptions(withDefaults())
+				.cacheControl(withDefaults())
+				.frameOptions(options -> options.sameOrigin()
+					.httpStrictTransportSecurity(withDefaults()))
+				.addHeaderWriter(new StaticHeadersWriter("Content-Security-Policy", getContentSecurityPolicy())));
+
+		return http.build();
+	}
+
 	@Autowired
 	public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception
 	{
-		auth
-			.inMemoryAuthentication();
+		auth.inMemoryAuthentication();
 	}
 
-	@Override
-	protected void configure(HttpSecurity http) throws Exception
+	private static String getContentSecurityPolicy()
 	{
-		String contentSecurityPolicy = String.join(" ; ", new String[] {
-			createSecurityRule("default-src", "'self'"),
-			createSecurityRule("style-src", "'self'", "'unsafe-inline'"),
-			createSecurityRule("script-src", "'self'", "'unsafe-inline'"),
-			createSecurityRule("img-src", "'self'", "data:"),
-			createSecurityRule("connect-src",
-				"'self'",
-				NFC_ENDPOINT,
-				IMS_ENDPOINT,
-				"ws:", "wss:")
-		});
-		http
-			.csrf().disable()
-			.cors().disable()
-			.headers().referrerPolicy(ReferrerPolicyHeaderWriter.ReferrerPolicy.SAME_ORIGIN).and()
-			.contentTypeOptions().and()
-			.cacheControl().and()
-			.frameOptions().sameOrigin()
-			.httpStrictTransportSecurity().and()
-			.addHeaderWriter(new StaticHeadersWriter("Content-Security-Policy", contentSecurityPolicy));
+		return String.join(" ; ",
+			createCspRule("default-src", "'self'"),
+			createCspRule("style-src", "'self'", "'unsafe-inline'"),
+			createCspRule("script-src", "'self'", "'unsafe-inline'"),
+			createCspRule("img-src", "'self'", "data:"),
+			createCspRule("connect-src", "'self'", NFC_ENDPOINT, IMS_ENDPOINT, "ws:", "wss:")
+		);
 	}
 
-	private String createSecurityRule(String srcType, String... allowedSources)
+	private static String createCspRule(String srcType, String... allowedSources)
 	{
 		return srcType + " " + String.join(" ", allowedSources);
 	}

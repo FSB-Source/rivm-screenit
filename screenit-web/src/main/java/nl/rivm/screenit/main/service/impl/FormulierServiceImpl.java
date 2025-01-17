@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,7 +38,6 @@ import java.util.Stack;
 
 import javax.persistence.Temporal;
 
-import nl.rivm.screenit.main.dao.ScreenitFormulierDao;
 import nl.rivm.screenit.main.model.formulieren.BeanAntwoordKeuzeVraagDefinitieImpl;
 import nl.rivm.screenit.main.model.formulieren.BeanAntwoordVraagDefinitieImpl;
 import nl.rivm.screenit.main.model.formulieren.DSBeanAntwoordKeuzeVraagDefinitieImpl;
@@ -56,7 +55,12 @@ import nl.rivm.screenit.model.verslag.DSValueSet;
 import nl.rivm.screenit.model.verslag.Quantity;
 import nl.rivm.screenit.model.verslag.VraagElement;
 import nl.rivm.screenit.model.verslag.VraagElementUnit;
+import nl.rivm.screenit.repository.algemeen.ScreenitFormulierInstantieRepository;
+import nl.rivm.screenit.repository.algemeen.SimpleAntwoordKeuzeVraagDefinitieImplRepository;
+import nl.rivm.screenit.repository.algemeen.SimpleVraagDefinitieImplRepository;
+import nl.rivm.screenit.repository.algemeen.VraagInstantieImplRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.specification.algemeen.VraagInstantieImplSpecification;
 import nl.topicuszorg.formulieren2.api.definitie.VraagDefinitie;
 import nl.topicuszorg.formulieren2.api.instantie.FormulierElement;
 import nl.topicuszorg.formulieren2.api.instantie.FormulierElementContainer;
@@ -74,6 +78,7 @@ import nl.topicuszorg.formulieren2.persistence.definitie.BooleanAntwoordDefiniti
 import nl.topicuszorg.formulieren2.persistence.definitie.IntegerAntwoordDefintie;
 import nl.topicuszorg.formulieren2.persistence.definitie.StringAntwoordDefinitie;
 import nl.topicuszorg.formulieren2.persistence.instantie.FormulierInstantieImpl;
+import nl.topicuszorg.formulieren2.persistence.instantie.FormulierInstantieImpl_;
 import nl.topicuszorg.formulieren2.persistence.instantie.VerplichtingImpl;
 import nl.topicuszorg.formulieren2.persistence.instantie.VraagInstantieImpl;
 import nl.topicuszorg.hibernate.object.model.HibernateObject;
@@ -89,9 +94,11 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import static nl.rivm.screenit.specification.algemeen.ScreenitFormulierInstantieSpecification.heeftTypeFormulier;
 
 @Service
 public class FormulierServiceImpl implements FormulierService
@@ -104,13 +111,22 @@ public class FormulierServiceImpl implements FormulierService
 	private HibernateService hibernateService;
 
 	@Autowired
-	private ScreenitFormulierDao screenitFormulierDao;
-
-	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
 
+	@Autowired
+	private ScreenitFormulierInstantieRepository formulierInstantieRepository;
+
+	@Autowired
+	private SimpleVraagDefinitieImplRepository simpleVraagDefinitieImplRepository;
+
+	@Autowired
+	private SimpleAntwoordKeuzeVraagDefinitieImplRepository simpleAntwoordKeuzeVraagDefinitieImplRepository;
+
+	@Autowired
+	private VraagInstantieImplRepository vraagInstantieImplRepository;
+
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public List<ScreenitFormulierInstantie> importFormulier(TypeFormulier typeFormulier, File file, String domein) throws InvalidFormatException, IOException,
 		ClassNotFoundException
 	{
@@ -118,14 +134,14 @@ public class FormulierServiceImpl implements FormulierService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public List<ScreenitFormulierInstantie> importFormulier(TypeFormulier typeFormulier, File file, final String domein, boolean replace) throws InvalidFormatException,
 		IOException, ClassNotFoundException
 	{
 		if (replace)
 		{
 			ScreenitFormulierInstantie screenitFormulierInstantie = null;
-			while ((screenitFormulierInstantie = screenitFormulierDao.getFormulierInstatie(typeFormulier)) != null)
+			while ((screenitFormulierInstantie = getFormulierInstantie(typeFormulier)) != null)
 			{
 				hibernateService.delete(screenitFormulierInstantie);
 			}
@@ -136,7 +152,7 @@ public class FormulierServiceImpl implements FormulierService
 		createVraagDefinties(typeFormulier.getRootEntityClass(), vraagDefinities, "");
 		try (InputStream inputStream = new FileInputStream(file))
 		{
-			importVraagDefinties(inputStream, domein);
+			importVraagDefinities(inputStream, domein);
 		}
 
 		try (InputStream inputStream = new FileInputStream(file))
@@ -149,18 +165,16 @@ public class FormulierServiceImpl implements FormulierService
 					Stack<ContainerStack> containers, Row row, FormulierElementContainer<?> container, Map<Row, VraagInstantie<?>> teImporterenActies)
 				{
 					FormulierElement formulierElement = super.addVraag(formulierEditFactory, vraagProvider, current, containers, row, container, teImporterenActies);
-					if (formulierElement instanceof SamengesteldeVraagBlok)
+					if (formulierElement instanceof SamengesteldeVraagBlok<?> samengesteldeVraagBlok)
 					{
-						SamengesteldeVraagBlok<?> samengesteldeVraagBlok = (SamengesteldeVraagBlok<?>) formulierElement;
 
 						Cell actieCell = row.getCell(FormulierMapping.ACTIE.getColumn());
 						if (actieCell != null && StringUtils.isNotBlank(actieCell.getStringCellValue()))
 						{
 							for (FormulierElement valueElement : samengesteldeVraagBlok.getElementen())
 							{
-								if (valueElement instanceof BeanAntwoordVraagInstantie)
+								if (valueElement instanceof BeanAntwoordVraagInstantie<?> valueVraagInstantie)
 								{
-									BeanAntwoordVraagInstantie<?> valueVraagInstantie = (BeanAntwoordVraagInstantie<?>) valueElement;
 									String propertyPath = valueVraagInstantie.getPropertyPath();
 									if (propertyPath != null && propertyPath.endsWith(".value"))
 									{
@@ -171,9 +185,8 @@ public class FormulierServiceImpl implements FormulierService
 							}
 						}
 					}
-					else if (formulierElement instanceof VraagInstantieImpl)
+					else if (formulierElement instanceof VraagInstantieImpl instantie)
 					{
-						VraagInstantieImpl instantie = (VraagInstantieImpl) formulierElement;
 						instantie.setMaxLength(4096);
 					}
 					return formulierElement;
@@ -193,15 +206,14 @@ public class FormulierServiceImpl implements FormulierService
 						}
 					}
 
-					return screenitFormulierDao.findSimpleVraagDefinitieImplByIdentifier(identifier, domein);
+					return findSimpleVraagDefinitieImplByIdentifier(identifier, domein);
 				}
 
 				@Override
 				public boolean isVraag(String doelElement, VraagInstantie vraagInstantie)
 				{
-					if (vraagInstantie.getVraagDefinitie() instanceof IdentifierElement)
+					if (vraagInstantie.getVraagDefinitie() instanceof IdentifierElement identifierElement)
 					{
-						IdentifierElement identifierElement = (IdentifierElement) vraagInstantie.getVraagDefinitie();
 						return identifierElement.getIdentifier() != null && identifierElement.getIdentifier().equals(doelElement);
 					}
 
@@ -226,7 +238,7 @@ public class FormulierServiceImpl implements FormulierService
 		}
 	}
 
-	private void importVraagDefinties(InputStream inputStream, String domein) throws InvalidFormatException, IOException, ClassNotFoundException
+	private void importVraagDefinities(InputStream inputStream, String domein) throws InvalidFormatException, IOException, ClassNotFoundException
 	{
 		try (Workbook workbook = WorkbookFactory.create(new PushbackInputStream(inputStream)))
 		{
@@ -248,7 +260,7 @@ public class FormulierServiceImpl implements FormulierService
 					if (isCellNotEmpty(cell3))
 					{
 						String identifier = cell3.getStringCellValue();
-						VraagDefinitie vraag = screenitFormulierDao.findSimpleVraagDefinitieImplByIdentifier(identifier, domein);
+						VraagDefinitie vraag = findSimpleVraagDefinitieImplByIdentifier(identifier, domein);
 						if (vraag == null)
 						{
 
@@ -307,9 +319,8 @@ public class FormulierServiceImpl implements FormulierService
 						}
 						else
 						{
-							if (vraag instanceof SimpleAntwoordKeuzeVraagDefinitieImpl)
+							if (vraag instanceof SimpleAntwoordKeuzeVraagDefinitieImpl simpleAntwoordKeuzeVraagDefinitie)
 							{
-								SimpleAntwoordKeuzeVraagDefinitieImpl simpleAntwoordKeuzeVraagDefinitie = (SimpleAntwoordKeuzeVraagDefinitieImpl) vraag;
 								if (isVerplichteVraag(row))
 								{
 									simpleAntwoordKeuzeVraagDefinitie.setVerplichting(new VerplichtingImpl());
@@ -326,9 +337,8 @@ public class FormulierServiceImpl implements FormulierService
 								simpleAntwoordKeuzeVraagDefinitie.getMogelijkeAntwoorden().clear();
 								maakMogelijkheden(row, simpleAntwoordKeuzeVraagDefinitie);
 							}
-							else if (vraag instanceof SimpleKeuzeVraagDefinitieImpl)
+							else if (vraag instanceof SimpleKeuzeVraagDefinitieImpl simpleKeuzeVraagDefinitie)
 							{
-								SimpleKeuzeVraagDefinitieImpl simpleKeuzeVraagDefinitie = (SimpleKeuzeVraagDefinitieImpl) vraag;
 								if (isVerplichteVraag(row))
 								{
 									simpleKeuzeVraagDefinitie.setVerplichting(new VerplichtingImpl());
@@ -338,9 +348,8 @@ public class FormulierServiceImpl implements FormulierService
 									simpleKeuzeVraagDefinitie.setVerplichting(null);
 								}
 							}
-							else if (vraag instanceof SimpleVraagDefinitieImpl)
+							else if (vraag instanceof SimpleVraagDefinitieImpl simpleVraagDefinitie)
 							{
-								SimpleVraagDefinitieImpl simpleVraagDefinitie = (SimpleVraagDefinitieImpl) vraag;
 								if (isVerplichteVraag(row))
 								{
 									simpleVraagDefinitie.setVerplichting(new VerplichtingImpl());
@@ -456,9 +465,8 @@ public class FormulierServiceImpl implements FormulierService
 					if (fieldType.isAssignableFrom(List.class))
 					{
 						Type type = field.getGenericType();
-						if (type instanceof ParameterizedType)
+						if (type instanceof ParameterizedType ptype)
 						{
-							ParameterizedType ptype = (ParameterizedType) type;
 							createVraagDefinties((Class) ptype.getActualTypeArguments()[0], vraagDefinities, propertyPath + field.getName() + "[$i].");
 						}
 					}
@@ -591,12 +599,44 @@ public class FormulierServiceImpl implements FormulierService
 	@Override
 	public <T> VraagInstantieImpl<T> findVraagInstantieByIdentifier(FormulierInstantieImpl formulierInstantie, String identifier)
 	{
-		return screenitFormulierDao.findVraagInstantieByIdentifier(formulierInstantie, identifier);
+		var instanties = vraagInstantieImplRepository.findAll(VraagInstantieImplSpecification.heeftVraagDefinitieMetIdentifier(identifier));
+		VraagInstantieImpl<T> vraagInstantie = null;
+		if (instanties.size() == 1)
+		{
+			vraagInstantie = (VraagInstantieImpl<T>) instanties.get(0);
+		}
+		else
+		{
+			for (var vi : instanties)
+			{
+				FormulierElementContainer<?> container = vi.getContainer();
+				while (container != null && container.getContainer() != null)
+				{
+					container = container.getContainer();
+				}
+
+				if (container != null && container.equals(formulierInstantie.getContainer()))
+				{
+					vraagInstantie = (VraagInstantieImpl<T>) vi;
+					break;
+				}
+
+			}
+		}
+		return vraagInstantie;
 	}
 
 	@Override
-	public ScreenitFormulierInstantie getFormulierInstatie(TypeFormulier typeFormulier)
+	public ScreenitFormulierInstantie getFormulierInstantie(TypeFormulier typeFormulier)
 	{
-		return screenitFormulierDao.getFormulierInstatie(typeFormulier);
+		return formulierInstantieRepository.findFirst(heeftTypeFormulier(typeFormulier), Sort.by(Sort.Order.desc(FormulierInstantieImpl_.ID))).orElse(null);
+	}
+
+	@Override
+	public VraagDefinitie findSimpleVraagDefinitieImplByIdentifier(String identifier, String domein)
+	{
+		return simpleVraagDefinitieImplRepository.findSimpleVraagDefinitieImplByIdentifier(identifier, domein)
+			.orElse(simpleAntwoordKeuzeVraagDefinitieImplRepository.findSimpleVraagDefinitieImplByIdentifier(identifier, domein).orElse(null)
+			);
 	}
 }

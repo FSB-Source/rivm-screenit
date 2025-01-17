@@ -4,7 +4,7 @@ package nl.rivm.screenit.model;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -45,8 +45,6 @@ public enum OrganisatieParameterKey
 
 	CERVIX_MAX_AANTAL_HERINNERINGEN_UITSTRIJKJE(OrganisatieType.RIVM, Integer.class, 15000, Bevolkingsonderzoek.CERVIX),
 
-	CERVIX_MAX_AANTAL_HEROVERWEGERS(OrganisatieType.BMHK_LABORATORIUM, Integer.class, 52, Bevolkingsonderzoek.CERVIX),
-
 	CERVIX_MAX_AANTAL_ZAS_NAAR_INPAKCENTRUM(OrganisatieType.INPAKCENTRUM, Integer.class, 20000, Bevolkingsonderzoek.CERVIX),
 
 	CERVIX_MAX_AANTAL_CLIENTEN_VERLATE_DEELNAME(OrganisatieType.BMHK_LABORATORIUM, Integer.class, 15000, Bevolkingsonderzoek.CERVIX),
@@ -68,10 +66,6 @@ public enum OrganisatieParameterKey
 	CERVIX_CYTOLOGIE_ORDER_HOST(OrganisatieType.BMHK_LABORATORIUM, String.class, null, Bevolkingsonderzoek.CERVIX),
 
 	CERVIX_CYTOLOGIE_ORDER_PORT(OrganisatieType.BMHK_LABORATORIUM, Integer.class, 65535, Bevolkingsonderzoek.CERVIX),
-
-	CERVIX_ORU_HOST(OrganisatieType.BMHK_LABORATORIUM, String.class, null, Bevolkingsonderzoek.CERVIX),
-
-	CERVIX_ORU_PORT(OrganisatieType.BMHK_LABORATORIUM, Integer.class, 65535, Bevolkingsonderzoek.CERVIX),
 
 	MAX_MERGED_BRIEVEN_PDF_SIZE_MB(OrganisatieType.SCREENINGSORGANISATIE, Integer.class, 999, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.MAMMA),
 

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.f
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nl.rivm.screenit.Constants;
+import nl.rivm.screenit.main.service.mamma.MammaFotobesprekingService;
 import nl.rivm.screenit.main.service.mamma.MammaKwaliteitscontroleService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.table.ClientColumn;
@@ -51,9 +52,8 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class MammaFotobesprekingMiniWerklijstPanel extends Panel
 {
-
 	@SpringBean
-	private MammaKwaliteitscontroleService kwaliteitscontroleService;
+	private MammaFotobesprekingService fotobesprekingService;
 
 	@SpringBean
 	private HibernateService hibernateService;
@@ -113,7 +113,7 @@ public class MammaFotobesprekingMiniWerklijstPanel extends Panel
 					public Integer getObject()
 					{
 						MammaFotobesprekingOnderzoek fotobesprekingOnderzoek = hibernateService.load(MammaFotobesprekingOnderzoek.class, huidigeBeoordelingId);
-						return kwaliteitscontroleService.getAantalBesproken(fotobesprekingOnderzoek.getFotobespreking());
+						return (int) fotobesprekingService.getAantalBesproken(fotobesprekingOnderzoek.getFotobespreking());
 					}
 				};
 

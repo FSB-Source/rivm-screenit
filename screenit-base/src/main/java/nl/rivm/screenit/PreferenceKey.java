@@ -4,7 +4,7 @@ package nl.rivm.screenit;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -374,18 +374,6 @@ public enum PreferenceKey
 	INTERNAL_MAMMA_UPLOADLIMIET_UPLOADPORTAAL("BK Uploadlimiet uitwisselportaal in megabytes", Integer.class),
 
 	INTERNAL_MAMMA_POC_CLIENTEN_SET("Set met accession numbers van de POC clienten set op keten", String.class),
-
-	MAMMA_XDS_HOME_COMMUNITY_ID("XDS home community id", String.class),
-
-	MAMMA_XDS_ASSIGNING_AUTHORITY("XDS assigning authority", String.class),
-
-	MAMMA_XDS_REPOSITORY_ID("XDS repository id", String.class),
-
-	MAMMA_XDS_REPOSITORY_URL("XDS repository url", String.class),
-
-	MAMMA_XDS_REGISTRY_URL("XDS registry url", String.class),
-
-	MAMMA_XDS_SOURCE_ID("XDS source id", String.class),
 
 	INTERNAL_ZORGID_CALLBACKURL("ZorgID callbackurl", String.class),
 

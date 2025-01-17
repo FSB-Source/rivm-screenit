@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,7 +25,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht_;
@@ -39,7 +39,7 @@ import org.springframework.data.jpa.domain.Specification;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmpty;
 import static nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification.betaalopdrachtJoin;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixBetaalopdrachtSpecification
 {
 	public static Specification<CervixBoekRegel> heeftOpdrachtID(Long id)

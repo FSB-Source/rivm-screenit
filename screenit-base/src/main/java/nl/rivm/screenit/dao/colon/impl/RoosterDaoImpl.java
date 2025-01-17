@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,34 +28,23 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.dao.colon.RoosterDao;
-import nl.rivm.screenit.model.RangeCriteriaBuilder;
 import nl.rivm.screenit.model.colon.ColonAfspraakslotListViewWrapper;
 import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.RoosterListViewFilter;
 import nl.rivm.screenit.model.colon.dto.VrijSlotZonderKamer;
 import nl.rivm.screenit.model.colon.dto.VrijSlotZonderKamerFilter;
 import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
-import nl.rivm.screenit.model.colon.planning.ColonAfspraakslot;
-import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
 import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
-import nl.rivm.screenit.model.colon.planning.ColonTijdslot;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
-import nl.topicuszorg.hibernate.criteria.BaseCriteria;
-import nl.topicuszorg.hibernate.criteria.ListCriteria;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.Criteria;
 import org.hibernate.SQLQuery;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
 import org.hibernate.transform.Transformers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 
 @Repository
@@ -66,26 +55,6 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
-
-	@Override
-	public <T extends ColonTijdslot> List<T> zoekTijdslotsVoorKamersInRange(Range<LocalDateTime> range, List<ColonIntakekamer> kamers, Class<T> type)
-	{
-		BaseCriteria<T> criteria = createCriteria(range, type);
-
-		if (kamers != null && !kamers.isEmpty())
-		{
-			criteria.add(Restrictions.in("kamer", kamers));
-		}
-		criteria.addOrder(Order.asc("vanaf"));
-		return criteria.list(getSession());
-	}
-
-	private <T extends ColonTijdslot> BaseCriteria<T> createCriteria(Range<LocalDateTime> range, Class<T> type)
-	{
-		BaseCriteria<T> criteria = new BaseCriteria<>(type);
-		criteria.add(RangeCriteriaBuilder.closedOpen("vanaf", "tot").overlapsDateTime(range));
-		return criteria;
-	}
 
 	@Override
 	public List<ColonAfspraakslotListViewWrapper> getAlleAfspraakslotsInPeriode(String sortProperty, boolean asc, RoosterListViewFilter filter,
@@ -433,50 +402,4 @@ public class RoosterDaoImpl extends AbstractAutowiredDao implements RoosterDao
 
 		return ((Number) criteria.uniqueResult()).longValue();
 	}
-
-	@Override
-	public List<Object> getCurrentAfspraakslots(ColonIntakekamer kamer, Range<LocalDateTime> periode)
-	{
-		Criteria criteria = getSession().createCriteria(ColonAfspraakslot.class);
-		criteria.createAlias("kamer", "kamer");
-		criteria.add(Restrictions.eq("kamer", kamer));
-		criteria.add(RangeCriteriaBuilder.closedOpen("vanaf", "tot").overlapsDateTime(periode));
-		criteria.setProjection(Projections.projectionList().add(Projections.property("vanaf")).add(Projections.property("tot")));
-		return criteria.list();
-	}
-
-	@Override
-	public List<ColonBlokkade> getBlokkades(ColonIntakekamer kamer, LocalDateTime vanaf, LocalDateTime tot)
-	{
-		var criteria = createCriteria(Range.closed(vanaf, tot), ColonBlokkade.class);
-		criteria.add(Restrictions.eq("kamer", kamer));
-		return criteria.list(getSession());
-	}
-
-	@Override
-	public List<ColonBlokkade> getBlokkades(String sortProperty, boolean ascending, long first, long count, RoosterListViewFilter filter, ColonIntakelocatie intakelocatie)
-	{
-		var criteria = createCriteria(filter, intakelocatie);
-
-		return criteria.list(getSession(), new ListCriteria(Ints.checkedCast(first), Ints.checkedCast(count), sortProperty, ascending));
-	}
-
-	private BaseCriteria<ColonBlokkade> createCriteria(RoosterListViewFilter filter, ColonIntakelocatie intakelocatie)
-	{
-		var startDatum = DateUtil.toLocalDateTime(filter.getStartDatum());
-		var einDatum = DateUtil.toLocalDate(filter.getEindDatum()).plusDays(1).atStartOfDay();
-		var criteria = createCriteria(Range.closed(startDatum, einDatum), ColonBlokkade.class);
-		criteria.alias("kamer", "kamer");
-		criteria.add(Restrictions.eq("kamer.actief", true));
-		criteria.add(Restrictions.eq("kamer.intakelocatie", intakelocatie));
-		return criteria;
-	}
-
-	@Override
-	public long getBlokkadesCount(RoosterListViewFilter filter, ColonIntakelocatie intakelocatie)
-	{
-		var criteria = createCriteria(filter, intakelocatie);
-		return criteria.countLong(getSession());
-	}
-
 }

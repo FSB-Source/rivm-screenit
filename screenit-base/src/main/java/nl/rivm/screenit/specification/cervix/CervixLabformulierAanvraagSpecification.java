@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,6 +36,11 @@ public class CervixLabformulierAanvraagSpecification
 	public static ExtendedSpecification<CervixLabformulierAanvraag> heeftNietStatus(CervixLabformulierAanvraagStatus status)
 	{
 		return (r, q, cb) -> cb.notEqual(r.get(CervixLabformulierAanvraag_.status), status);
+	}
+
+	public static ExtendedSpecification<CervixLabformulierAanvraag> heeftStatus(CervixLabformulierAanvraagStatus status)
+	{
+		return (r, q, cb) -> cb.equal(r.get(CervixLabformulierAanvraag_.status), status);
 	}
 
 	public static ExtendedSpecification<CervixLabformulierAanvraag> getAanvragenVanHuisarts(CervixHuisarts huisarts)

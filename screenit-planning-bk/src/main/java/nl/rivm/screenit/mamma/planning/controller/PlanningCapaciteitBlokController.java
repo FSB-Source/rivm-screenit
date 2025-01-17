@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.controller;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -46,13 +46,16 @@ import nl.rivm.screenit.model.mamma.enums.MammaCapaciteitBlokType;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController()
+@RestController
 @RequestMapping("/" + PlanningRestConstants.C_CAPACITEITBLOK)
 @AllArgsConstructor
 public class PlanningCapaciteitBlokController
@@ -65,7 +68,7 @@ public class PlanningCapaciteitBlokController
 
 	private final PlanningCapaciteitBlokService capaciteitBlokService;
 
-	@RequestMapping(method = RequestMethod.POST)
+	@PostMapping
 	public void post(@RequestBody PlanningCapaciteitBlokDto capaciteitBlokDto) throws OpslaanVerwijderenTijdBlokException
 	{
 		var dag = capaciteitBlokService.maakBlok(capaciteitBlokDto).getDag();
@@ -73,7 +76,7 @@ public class PlanningCapaciteitBlokController
 		PlanningDoorrekenenManager.run();
 	}
 
-	@RequestMapping(method = RequestMethod.PUT)
+	@PutMapping
 	public void put(@RequestBody PlanningCapaciteitBlokDto capaciteitBlokDto) throws OpslaanVerwijderenTijdBlokException
 	{
 		PlanningCapaciteitChangeChecker.magCapaciteitOpslaanVerwijderen(capaciteitBlokDto, true);
@@ -119,7 +122,7 @@ public class PlanningCapaciteitBlokController
 		PlanningDoorrekenenManager.run();
 	}
 
-	@RequestMapping(value = "/{conceptId}", method = RequestMethod.DELETE)
+	@DeleteMapping("/{conceptId}")
 	public void delete(@PathVariable UUID conceptId) throws OpslaanVerwijderenTijdBlokException
 	{
 		var blok = PlanningBlokIndex.get(conceptId);
@@ -130,7 +133,7 @@ public class PlanningCapaciteitBlokController
 		PlanningDoorrekenenManager.run();
 	}
 
-	@RequestMapping(value = "/aantalAfsprakenOpBlok/{conceptId}/{nieuwBlokType}/{vanafTime}/{totTime}/{delete}", method = RequestMethod.GET)
+	@GetMapping("/aantalAfsprakenOpBlok/{conceptId}/{nieuwBlokType}/{vanafTime}/{totTime}/{delete}")
 	public Integer getAantalAfspraken(@PathVariable UUID conceptId, @PathVariable MammaCapaciteitBlokType nieuwBlokType, @PathVariable Long vanafTime, @PathVariable Long totTime,
 		@PathVariable Boolean delete)
 	{

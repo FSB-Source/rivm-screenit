@@ -4,7 +4,7 @@ package nl.rivm.screenit.repository;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,10 +29,13 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.lang.Nullable;
 
 @NoRepositoryBean
 public interface BaseJpaRepository<T> extends JpaRepository<T, Long>, JpaSpecificationExecutor<T>
 {
+	long countDistinct(@Nullable Specification<T> spec);
+
 	Optional<T> findFirst(Specification<T> specification, Sort sort);
 
 	<R> R findWith(Specification<T> specification, Function<FluentJpaQuery<T, T>, R> queryFunction);

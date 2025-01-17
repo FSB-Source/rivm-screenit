@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,7 @@ package nl.rivm.screenit.batch;
  */
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.TablePerClassHibernateObject_;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling_;
@@ -39,7 +39,7 @@ import org.springframework.data.jpa.domain.Specification;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.mamma.MammaScreeningRondeSpecification.heeftBeeldenMetGunstigeUitslag;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MammaDossierSpecification
 {
 	public static Specification<MammaDossier> heeftAlleenGunstigeUitslagenMetBeelden()

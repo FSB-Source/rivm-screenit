@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -40,8 +40,8 @@ import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.f
 import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.filterScreeningsEenheid;
 import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.heeftLaatsteAfspraakVanLaatsteUitnodigingVanLaatsteRonde;
 import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.heeftLopendeRonde;
-import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.heeftOnderzoekStatus;
 import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.heeftPersoonIsNietOverledenEnWoontInNederland;
+import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.heeftStatus;
 import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.isDoorgevoerd;
 
 @Service("MammaCeOnderbrokenOnderzoekenDataProviderService")
@@ -51,7 +51,7 @@ public class MammaCeOnderbrokenOnderzoekenDataProviderServiceImpl extends Reposi
 	protected Specification<MammaOnderzoek> getSpecification(MammaCeWerklijstZoekObject filter, Sort sortParam)
 	{
 		return heeftLaatsteAfspraakVanLaatsteUitnodigingVanLaatsteRonde().and(
-				isDoorgevoerd(true)).and(heeftLopendeRonde()).and(filterScreeningsEenheid(filter.getScreeningsEenheden())).and(heeftOnderzoekStatus(MammaOnderzoekStatus.ONDERBROKEN))
+				isDoorgevoerd(true)).and(heeftLopendeRonde()).and(filterScreeningsEenheid(filter.getScreeningsEenheden())).and(heeftStatus(MammaOnderzoekStatus.ONDERBROKEN))
 			.and(filterBriefOnderbrokenOnderzoek(filter.getMetBriefOproepOnderbrokenOnderzoek())).and(heeftPersoonIsNietOverledenEnWoontInNederland());
 	}
 

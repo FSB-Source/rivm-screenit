@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,30 +22,23 @@ package nl.rivm.screenit.main.service;
  */
 
 import java.util.List;
-import java.util.Map;
 
 import nl.rivm.screenit.dto.InstellingGebruikerRolDto;
-import nl.rivm.screenit.model.Functie;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.InstellingGebruikerRol;
-import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.Rol;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 
+import org.springframework.data.domain.Sort;
+
 public interface MedewerkerService
 {
-	List<Gebruiker> searchMedewerkers(Gebruiker searchObject, List<Functie> selectedFuncties, List<Rol> selectedRollen,
-		Map<OrganisatieType, List<Instelling>> hierarchieCriteria, List<Bevolkingsonderzoek> bevolkingsonderzoeken, int first, int count, String sortProperty, boolean ascending);
+	List<InstellingGebruiker> zoekOrganisatieMedewerker(InstellingGebruiker zoekInstellingGebruiker, long first, long count, Sort sort);
 
-	long countMedewerkers(Gebruiker searchObject, List<Functie> selectedFuncties, List<Rol> selectedRollen, Map<OrganisatieType, List<Instelling>> hierarchieCriteria,
-		List<Bevolkingsonderzoek> bevolkingsonderzoeken);
-
-	List<InstellingGebruiker> searchInstellingGebruiker(InstellingGebruiker zoekInstellingGebruiker, long first, long count, String orderByProperty, boolean ascending);
-
-	List<InstellingGebruiker> getActieveRadiologen(InstellingGebruiker zoekInstellingGebruiker, List<Long> exclIds, String orderByProperty, boolean ascending);
+	List<InstellingGebruiker> getActieveRadiologen(InstellingGebruiker zoekOrganisatieMedewerker, List<Long> exclIds, Sort sort);
 
 	long countInstellingGebruiker(InstellingGebruiker instellingGebruiker);
 
@@ -58,6 +51,8 @@ public interface MedewerkerService
 	void inActiveerGebruiker(Gebruiker medewerker);
 
 	boolean resetWachtwoord(Gebruiker medewerker);
+
+	InstellingGebruiker getOrganisatieMedewerker(Instelling organisatie, Gebruiker medewerker);
 
 	boolean zijnErInstellingGebruikersMetRol(Rol rol);
 

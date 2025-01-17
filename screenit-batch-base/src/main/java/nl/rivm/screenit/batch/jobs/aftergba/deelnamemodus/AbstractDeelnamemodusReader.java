@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.aftergba.deelnamemodus;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,36 +21,49 @@ package nl.rivm.screenit.batch.jobs.aftergba.deelnamemodus;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import java.util.List;
+
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.DeelnamemodusDossier;
+import nl.rivm.screenit.model.Dossier;
+import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.enums.Deelnamemodus;
+import nl.rivm.screenit.model.mamma.MammaDossier_;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 
-public abstract class AbstractDeelnamemodusReader extends BaseScrollableResultReader
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.SpecificationUtil.joinByString;
+import static nl.rivm.screenit.specification.algemeen.DossierSpecification.heeftDeelnamemodus;
+import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.heeftGeslachtIn;
+
+public abstract class AbstractDeelnamemodusReader<D extends Dossier<?, ?> & DeelnamemodusDossier> extends BaseSpecificationScrollableResultReader<D>
 {
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<D> createSpecification()
 	{
-		var criteria = session.createCriteria(dossierClass(), "dossier");
-		criteria.createAlias("dossier.client", "client");
-		criteria.createAlias("client.persoon", "persoon");
-
-		var manOfOnbekendMetDeelnamemodusStandaard = Restrictions.and(
-			Restrictions.in("persoon.geslacht", Geslacht.MAN, Geslacht.ONBEKEND),
-			Restrictions.eq("dossier.deelnamemodus", Deelnamemodus.STANDAARD));
-
-		var vrouwMetSelectieblokkade = Restrictions.and(
-			Restrictions.eq("persoon.geslacht", Geslacht.VROUW),
-			Restrictions.eq("dossier.deelnamemodus", Deelnamemodus.SELECTIEBLOKKADE));
-
-		criteria.add(Restrictions.or(manOfOnbekendMetDeelnamemodusStandaard, vrouwMetSelectieblokkade));
-
-		return criteria;
+		var manOfOnbekendMetDeelnamemodusStandaard = heeftDeelnamemodusEnGeslacht(List.of(Geslacht.MAN, Geslacht.ONBEKEND), Deelnamemodus.STANDAARD);
+		var vrouwMetSelectieblokkade = heeftDeelnamemodusEnGeslacht(List.of(Geslacht.VROUW), Deelnamemodus.SELECTIEBLOKKADE);
+		return manOfOnbekendMetDeelnamemodusStandaard.or(vrouwMetSelectieblokkade);
 	}
 
-	protected abstract Class<?> dossierClass();
+	private ExtendedSpecification<D> heeftDeelnamemodusEnGeslacht(List<Geslacht> geslachten, Deelnamemodus deelnamemodus)
+	{
+		return heeftGeslachtIn(geslachten).<D> with(this::persoonJoin)
+			.and(heeftDeelnamemodus(deelnamemodus));
+	}
+
+	private Join<Client, GbaPersoon> persoonJoin(From<?, ? extends D> dossierRoot)
+	{
+		Join<?, Client> clientJoin = joinByString(dossierRoot, MammaDossier_.CLIENT, JoinType.INNER);
+		return join(clientJoin, Client_.persoon);
+	}
 }

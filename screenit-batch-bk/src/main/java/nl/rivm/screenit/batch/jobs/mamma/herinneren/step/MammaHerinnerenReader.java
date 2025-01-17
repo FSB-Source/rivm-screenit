@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.herinneren.step;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -53,6 +53,7 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Range;
 
+import static nl.rivm.screenit.specification.ExtendedSpecification.not;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.algemeen.ScreeningRondeSpecification.isLopend;
 import static nl.rivm.screenit.specification.mamma.MammaScreeningRondeSpecification.heeftGeenUitstel;
@@ -96,7 +97,7 @@ public class MammaHerinnerenReader extends BaseSpecificationScrollableResultRead
 
 	private Specification<MammaScreeningRonde> heeftGeenLaatsteAfspraak()
 	{
-		return MammaUitnodigingSpecification.heeftGeenLaatsteAfspraak().withRoot(this::getLaatsteUitnodigingJoin);
+		return not(MammaUitnodigingSpecification.heeftLaatsteAfspraak()).withRoot(this::getLaatsteUitnodigingJoin);
 	}
 
 	private Specification<MammaScreeningRonde> heeftGeenSuspectBriefGekoppeldAanUitnodiging()

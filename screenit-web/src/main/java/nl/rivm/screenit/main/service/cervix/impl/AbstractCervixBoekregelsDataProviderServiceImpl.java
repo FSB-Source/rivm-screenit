@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -60,9 +60,9 @@ import static nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification
 import static nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification.persoonJoin;
 import static nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification.verrichtingJoin;
 import static nl.rivm.screenit.specification.cervix.CervixMonsterSpecification.filterMonsterId;
-import static nl.rivm.screenit.specification.cervix.CervixVerrichtingSpecification.filterRegio;
+import static nl.rivm.screenit.specification.cervix.CervixVerrichtingSpecification.filterScreeningOrganisatie;
 import static nl.rivm.screenit.specification.cervix.CervixVerrichtingSpecification.filterVerrichtingType;
-import static nl.rivm.screenit.specification.cervix.CervixVerrichtingSpecification.verichtingsDatumValtTussenVoorBoekRegel;
+import static nl.rivm.screenit.specification.cervix.CervixVerrichtingSpecification.verrichtingsdatumValtTussenVoorBoekRegel;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 
 public abstract class AbstractCervixBoekregelsDataProviderServiceImpl
@@ -91,8 +91,8 @@ public abstract class AbstractCervixBoekregelsDataProviderServiceImpl
 			.and(filterOpBetalingskenmerkContaining(filter.getBetalingskenmerk()))
 			.and(filterGeboortedatum(filter.getGeboorteDatum()).withRoot(CervixBoekRegelSpecification::persoonJoin))
 			.and(filterMonsterId(filter.getMonsterId()))
-			.and(filterRegio(filter.getScreeningOrganisatie()))
-			.and(verichtingsDatumValtTussenVoorBoekRegel(DateUtil.toLocalDate(filter.getVerrichtingsDatumVanaf()), DateUtil.toLocalDate(filter.getVerrichtingsDatumTotenmet())))
+			.and(filterScreeningOrganisatie(filter.getScreeningOrganisatie()))
+			.and(verrichtingsdatumValtTussenVoorBoekRegel(DateUtil.toLocalDate(filter.getVerrichtingsDatumVanaf()), DateUtil.toLocalDate(filter.getVerrichtingsDatumTotenmet())))
 			.and(filterVerrichtingType(filter.getVerrichtingsType()));
 	}
 

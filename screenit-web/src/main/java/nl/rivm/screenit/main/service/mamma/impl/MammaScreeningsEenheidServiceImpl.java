@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -70,7 +70,7 @@ import static nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecifi
 import static nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecification.filterBeoordelingsEenheid;
 import static nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecification.filterCodeContaining;
 import static nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecification.filterNaamContaining;
-import static nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecification.filterScreeningsOrganisatie;
+import static nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecification.filterScreeningOrganisatie;
 import static nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecification.heeftBeoordelingsEenheidIn;
 import static nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecification.isActief;
 
@@ -126,7 +126,7 @@ public class MammaScreeningsEenheidServiceImpl implements MammaScreeningsEenheid
 	{
 		return filterCodeContaining(zoekObject.getCode())
 			.and(filterNaamContaining(zoekObject.getNaam()))
-			.and(filterScreeningsOrganisatie(regio))
+			.and(filterScreeningOrganisatie(regio))
 			.and(filterActief(zoekObject.getActief()))
 			.and(filterBeoordelingsEenheid(zoekObject.getBeoordelingsEenheid()));
 	}
@@ -216,7 +216,7 @@ public class MammaScreeningsEenheidServiceImpl implements MammaScreeningsEenheid
 	@Override
 	public List<MammaScreeningsEenheid> getActieveScreeningsEenhedenVoorScreeningOrganisatie(ScreeningOrganisatie screeningOrganisatie)
 	{
-		return screeningsEenheidRepository.findAll(isActief().and(filterScreeningsOrganisatie(screeningOrganisatie)), Sort.by(MammaScreeningsEenheid_.CODE));
+		return screeningsEenheidRepository.findAll(isActief().and(filterScreeningOrganisatie(screeningOrganisatie)), Sort.by(MammaScreeningsEenheid_.CODE));
 	}
 
 	@Override

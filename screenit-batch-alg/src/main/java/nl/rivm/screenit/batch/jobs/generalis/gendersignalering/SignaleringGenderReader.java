@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.generalis.gendersignalering;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,66 +21,67 @@ package nl.rivm.screenit.batch.jobs.generalis.gendersignalering;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
+import java.time.LocalDate;
 
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.Brief_;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.TablePerClassHibernateObject_;
 import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.Deelnamemodus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.query.ScreenitRestrictions;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static javax.persistence.criteria.JoinType.LEFT;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.ClientSpecification.heeftActieveClient;
+import static nl.rivm.screenit.specification.algemeen.DossierSpecification.heeftDeelnamemodus;
+import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.isGeborenNa;
 
 @Component
 @AllArgsConstructor
-public class SignaleringGenderReader extends BaseScrollableResultReader
+public class SignaleringGenderReader extends BaseSpecificationScrollableResultReader<Client>
 {
 	private final SimplePreferenceService preferenceService;
 
 	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<Client> createSpecification()
 	{
-		var criteria = session.createCriteria(Client.class, "client");
-		criteria.createAlias("client.persoon", "persoon");
-		criteria.createAlias("mammaDossier", "mammaDossier", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("cervixDossier", "cervixDossier", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("client.algemeneBrieven", "signaleringsbrief", JoinType.LEFT_OUTER_JOIN,
-			Restrictions.eq("signaleringsbrief.briefType", BriefType.CLIENT_SIGNALERING_GENDER));
+		var heeftMammaDeelnameModus = heeftDeelnamemodus(Deelnamemodus.SELECTIEBLOKKADE).with(Client_.mammaDossier, LEFT);
+		var heeftCervixDeelnameModus = heeftDeelnamemodus(Deelnamemodus.SELECTIEBLOKKADE).with(Client_.cervixDossier, LEFT);
 
-		criteria.add(Restrictions.isNull("signaleringsbrief.id"));
-
-		criteria.add(Restrictions.or(
-			Restrictions.eq("mammaDossier.deelnamemodus", Deelnamemodus.SELECTIEBLOKKADE),
-			Restrictions.eq("cervixDossier.deelnamemodus", Deelnamemodus.SELECTIEBLOKKADE)));
-
-		criteria.add(Restrictions.gt("persoon.geboortedatum", maxGeboorteDatumVoorDoelgroep()));
-
-		ScreenitRestrictions.addClientBaseRestrictions(criteria, "client", "persoon");
-
-		return criteria;
+		return heeftGeenBriefSignaleringGender()
+			.and(heeftMammaDeelnameModus
+				.or(heeftCervixDeelnameModus))
+			.and(isGeborenNa(maxGeboorteDatumVoorDoelgroep()).with(Client_.persoon))
+			.and(heeftActieveClient());
 	}
 
-	private Date maxGeboorteDatumVoorDoelgroep()
+	private LocalDate maxGeboorteDatumVoorDoelgroep()
 	{
 		var mammaTotEnMetLeeftijd = preferenceService.getInteger(PreferenceKey.MAMMA_MAXIMALE_LEEFTIJD.name());
 		var cervixTotEnMetLeeftijd = CervixLeeftijdcategorie._70.getLeeftijd();
 		var signalerenTotLeeftijd = Math.max(mammaTotEnMetLeeftijd, cervixTotEnMetLeeftijd) + 1;
-		var vanafGeboorteDatum = currentDateSupplier.getLocalDate().minusYears(signalerenTotLeeftijd);
-		return DateUtil.toUtilDate(vanafGeboorteDatum);
+		return currentDateSupplier.getLocalDate().minusYears(signalerenTotLeeftijd);
 	}
 
+	private Specification<Client> heeftGeenBriefSignaleringGender()
+	{
+		return (r, q, cb) ->
+		{
+			var algemeneBriefJoin = join(r, Client_.algemeneBrieven, LEFT);
+			algemeneBriefJoin.on(cb.equal(algemeneBriefJoin.get(Brief_.briefType), BriefType.CLIENT_SIGNALERING_GENDER));
+			return cb.isNull(algemeneBriefJoin.get(TablePerClassHibernateObject_.id));
+		};
+	}
 }

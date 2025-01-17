@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.brieven;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,11 +36,9 @@ import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
-import nl.rivm.screenit.model.formulieren.ScreenitFormulierInstantie;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectBriefActieType;
-import nl.rivm.screenit.model.project.ProjectVragenlijstUitzettenVia;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.util.DateUtil;
@@ -58,7 +56,6 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
 import com.aspose.words.Document;
-import com.aspose.words.ImportFormatMode;
 
 @Slf4j
 public class ProjectBriefActieTemplatePage extends ProjectTemplateTestenBasePage
@@ -206,9 +203,7 @@ public class ProjectBriefActieTemplatePage extends ProjectTemplateTestenBasePage
 		form.add(new Label("soort", Model.of(getSoortText())));
 		form.add(new Label("moment", Model.of(getMomentText())));
 		form.add(new Label("laatstGewijzigd", Model.of(getLaatstGewijzigdDatum())));
-		form.add(new Label("vragenlijst", new PropertyModel<>(briefactieModel, "vragenlijst.naam")));
 		form.add(new Label("herrinering", Model.of(getHerrineringTekst())));
-		form.add(new Label("uitzettenVia", new PropertyModel<>(briefactieModel, "projectVragenlijstUitzettenVia")));
 		form.add(new Label("orionWerkbak", new PropertyModel<>(briefactieModel, "misluktBak")));
 		form.add(new Label("formulierNummer", new PropertyModel<>(briefactieModel, "formulierNummer")));
 		form.add(new NavigeerNaarCellPanel<>("herrinneringPrinten", briefactieModel)
@@ -239,32 +234,7 @@ public class ProjectBriefActieTemplatePage extends ProjectTemplateTestenBasePage
 	@Override
 	protected Document proccesDocument(MailMergeContext context, File briefTemplate) throws Exception
 	{
-		ProjectBriefActie projectBriefActie = briefactieModel.getObject();
-		ScreenitFormulierInstantie vragenlijstInstantie = null;
-		if (projectBriefActie.getVragenlijst() != null && ProjectVragenlijstUitzettenVia.isPapier(projectBriefActie.getProjectVragenlijstUitzettenVia()))
-		{
-			vragenlijstInstantie = projectBriefActie.getVragenlijst().getFormulierInstantie();
-		}
-		Document mergedDocument = asposeService.processDocument(briefTemplate, context);
-		Document vragenlijst;
-		if (vragenlijstInstantie != null)
-		{
-			if (vragenlijstInstantie.getTemplateVanGebruiker() == null)
-			{
-				vragenlijst = asposeService.processVragenlijst(context, vragenlijstInstantie, true);
-			}
-			else
-			{
-				File vragenlijstTemplate = uploadDocumentService.load(vragenlijstInstantie.getTemplateVanGebruiker());
-				vragenlijst = asposeService.processDocument(vragenlijstTemplate, context);
-			}
-			if (vragenlijst != null)
-			{
-				mergedDocument.getLastSection().getHeadersFooters().linkToPrevious(false);
-				mergedDocument.appendDocument(vragenlijst, ImportFormatMode.KEEP_SOURCE_FORMATTING);
-			}
-		}
-		return mergedDocument;
+		return asposeService.processDocument(briefTemplate, context);
 	}
 
 	@Override

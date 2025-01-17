@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.a
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,8 +24,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.a
 import java.util.Iterator;
 
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaAdhocMeekijkverzoekWerklijstZoekObject;
-import nl.rivm.screenit.main.service.mamma.MammaKwaliteitscontroleService;
-import nl.rivm.screenit.model.SortState;
+import nl.rivm.screenit.main.service.mamma.MammaAdhocMeekijkverzoekService;
 import nl.rivm.screenit.model.mamma.MammaAdhocMeekijkverzoek;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -35,18 +34,18 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import com.google.common.primitives.Ints;
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
 
 public class MammaAdhocMeekijkverzoekOnderzoekenDataProvider extends SortableDataProvider<MammaAdhocMeekijkverzoek, String>
 {
 	@SpringBean
-	private MammaKwaliteitscontroleService kwaliteitscontroleService;
+	private MammaAdhocMeekijkverzoekService adhocMeekijkverzoekService;
 
-	private IModel<MammaAdhocMeekijkverzoekWerklijstZoekObject> zoekObjectModel;
+	private IModel<MammaAdhocMeekijkverzoekWerklijstZoekObject> zoekObject;
 
-	MammaAdhocMeekijkverzoekOnderzoekenDataProvider(IModel<MammaAdhocMeekijkverzoekWerklijstZoekObject> zoekObjectModel)
+	MammaAdhocMeekijkverzoekOnderzoekenDataProvider(IModel<MammaAdhocMeekijkverzoekWerklijstZoekObject> zoekObject)
 	{
-		this.zoekObjectModel = zoekObjectModel;
+		this.zoekObject = zoekObject;
 		Injector.get().inject(this);
 		setSort("onderzoek.creatieDatum", SortOrder.DESCENDING);
 	}
@@ -54,16 +53,14 @@ public class MammaAdhocMeekijkverzoekOnderzoekenDataProvider extends SortableDat
 	@Override
 	public Iterator<? extends MammaAdhocMeekijkverzoek> iterator(long first, long count)
 	{
-		return kwaliteitscontroleService
-			.zoekAdhocMeekijkverzoekOnderzoeken(ModelUtil.nullSafeGet(zoekObjectModel), Ints.checkedCast(first), Ints.checkedCast(count),
-				new SortState<String>(getSort().getProperty(), getSort().isAscending()))
+		return adhocMeekijkverzoekService.find(getZoekObject().getScreeningsEenheden(), getZoekObject().getStatus(), first, count, toSpringSort(getSort()))
 			.iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return kwaliteitscontroleService.countAdhocMeekijkverzoekOnderzoeken(ModelUtil.nullSafeGet(zoekObjectModel));
+		return adhocMeekijkverzoekService.count(getZoekObject().getScreeningsEenheden(), getZoekObject().getStatus());
 	}
 
 	@Override
@@ -76,6 +73,11 @@ public class MammaAdhocMeekijkverzoekOnderzoekenDataProvider extends SortableDat
 	public void detach()
 	{
 		super.detach();
-		ModelUtil.nullSafeDetach(zoekObjectModel);
+		ModelUtil.nullSafeDetach(zoekObject);
+	}
+
+	private MammaAdhocMeekijkverzoekWerklijstZoekObject getZoekObject()
+	{
+		return ModelUtil.nullSafeGet(zoekObject);
 	}
 }

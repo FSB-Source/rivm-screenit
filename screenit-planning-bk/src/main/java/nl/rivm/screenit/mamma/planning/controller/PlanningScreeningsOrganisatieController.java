@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.controller;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -40,13 +40,14 @@ import nl.rivm.screenit.model.mamma.enums.MammaFactorType;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController()
+@RestController
 @RequestMapping("/" + PlanningRestConstants.C_SCREENINGS_ORGANISATIE)
 public class PlanningScreeningsOrganisatieController
 {
@@ -57,7 +58,7 @@ public class PlanningScreeningsOrganisatieController
 		this.afspraakDrempelOverzichtService = afspraakDrempelOverzichtService;
 	}
 
-	@RequestMapping(method = RequestMethod.PUT)
+	@PutMapping
 	public void put(@RequestBody PlanningScreeningsOrganisatieDto screeningsOrganisatieDto)
 	{
 		PlanningScreeningsOrganisatie screeningsOrganisatie = PlanningScreeningsOrganisatieIndex.get(screeningsOrganisatieDto.id);
@@ -126,11 +127,11 @@ public class PlanningScreeningsOrganisatieController
 		});
 	}
 
-	@RequestMapping(value = "/getAfspraakDrempelOverzicht/{screeningsOrganisatieId}", method = RequestMethod.GET)
+	@GetMapping("/getAfspraakDrempelOverzicht/{screeningsOrganisatieId}")
 	public ResponseEntity<PlanningAfspraakDrempelOverzichtDto> getAfspraakDrempelOverzicht(@PathVariable long screeningsOrganisatieId)
 	{
 		PlanningScreeningsOrganisatie screeningsOrganisatie = PlanningScreeningsOrganisatieIndex.get(screeningsOrganisatieId);
 
-		return new ResponseEntity(afspraakDrempelOverzichtService.getAfspraakDrempelOverzicht(screeningsOrganisatie), HttpStatus.OK);
+		return new ResponseEntity<>(afspraakDrempelOverzichtService.getAfspraakDrempelOverzicht(screeningsOrganisatie), HttpStatus.OK);
 	}
 }

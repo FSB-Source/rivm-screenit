@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.listview;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,7 +27,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import nl.rivm.screenit.main.service.colon.RoosterService;
+import nl.rivm.screenit.main.service.colon.ColonAfspraakslotService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.AjaxButtonGroup;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -68,7 +68,7 @@ import com.google.common.collect.Range;
 public class RoosterListViewPage extends PlanningBasePage
 {
 	@SpringBean
-	private RoosterService roosterService;
+	private ColonAfspraakslotService afspraakslotService;
 
 	@SpringBean
 	private HibernateService hibernateService;
@@ -107,7 +107,7 @@ public class RoosterListViewPage extends PlanningBasePage
 					startDatum = eindDatum.plusDays(1);
 				}
 				var periode = Range.closed(startDatum.atStartOfDay(), eindDatum.plusDays(1).atStartOfDay());
-				setDefaultModelObject(roosterService.getCurrentAantalAfspraakslots(ScreenitSession.get().getIntakelocatie(), periode));
+				setDefaultModelObject(afspraakslotService.getCurrentAantalAfspraakslots(ScreenitSession.get().getIntakelocatie(), periode));
 			}
 
 		};
@@ -138,7 +138,7 @@ public class RoosterListViewPage extends PlanningBasePage
 				ColonAfspraakslotListViewWrapper wrapper = rowModel.getObject();
 
 				var afspraakslot = hibernateService.load(ColonAfspraakslot.class, wrapper.getAfspraakslotId());
-				cellItem.add(new EnumLabel<>(componentId, roosterService.getAfspraakslotStatus(afspraakslot)));
+				cellItem.add(new EnumLabel<>(componentId, afspraakslotService.getAfspraakslotStatus(afspraakslot)));
 			}
 
 		});

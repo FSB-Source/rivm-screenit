@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.brieven.cleanupstep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,7 @@ package nl.rivm.screenit.batch.jobs.colon.brieven.cleanupstep;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.brieven.cleanup.AbstractSpecificationBrievenCleanUpReader;
+import nl.rivm.screenit.batch.jobs.brieven.cleanup.AbstractBrievenCleanUpReader;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.colon.ColonMergedBrieven;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -32,7 +32,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ColonBriefCleanupReader extends AbstractSpecificationBrievenCleanUpReader<ColonMergedBrieven>
+public class ColonBriefCleanupReader extends AbstractBrievenCleanUpReader<ColonMergedBrieven>
 {
 	@Override
 	protected Specification<ColonMergedBrieven> createSpecification()

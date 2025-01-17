@@ -4,7 +4,7 @@ package nl.rivm.screenit.service;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,9 +35,6 @@ import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.colon.ColonIntakelocatie;
-import nl.rivm.screenit.model.colon.IFobtLaboratorium;
-
-import org.hibernate.Criteria;
 
 public interface InstellingService
 {
@@ -46,9 +43,11 @@ public interface InstellingService
 
 	List<InstellingGebruiker> getActieveInstellingGebruikers(@Nonnull Gebruiker medewerker);
 
+	List<InstellingGebruiker> getActieveInstellingGebruikersMetRollen(Gebruiker gebruiker);
+
 	List<ColonIntakelocatie> getActieveIntakelocaties();
 
-	List<ColonIntakelocatie> getActieveIntakelocatiesBinneRegio(ScreeningOrganisatie regio);
+	List<ColonIntakelocatie> getActieveIntakelocatiesBinnenRegio(ScreeningOrganisatie regio);
 
 	List<BeoordelingsEenheid> getActieveBeoordelingseenhedenBinnenRegio(ScreeningOrganisatie regio);
 
@@ -66,11 +65,13 @@ public interface InstellingService
 
 	<T extends Instelling> List<T> getActieveInstellingen(Class<T> typeInstelling);
 
-	Instelling getInstellingBy(String key, String value);
+	Instelling getOrganisatieByUzinummer(String uzinummer);
+
+	Instelling getOrganisatieByRootOid(String rootOid);
 
 	List<Instelling> getPathologieLabs(@Nonnull Instelling instelling);
 
-	<T extends Instelling> List<T> getChildrenInstellingen(@Nonnull Instelling instelling, @Nonnull Class<T> typeInstelling);
+	<T extends Instelling> List<T> getChildrenOrganisaties(@Nonnull Instelling instelling, @Nonnull Class<T> typeInstelling);
 
 	List<Instelling> getInstellingByOrganisatieTypes(List<OrganisatieType> organisatieTypes);
 
@@ -80,12 +81,7 @@ public interface InstellingService
 
 	void deleteDocumentForInstelling(UploadDocument document, Instelling instelling);
 
-	IFobtLaboratorium getIfobtLabByLabID(String labID);
-
-	Criteria getAllILAdressenZonderCoordinanten();
-
-	ScreeningOrganisatie getScreeningOrganisatie(String regioCode);
-
 	ScreeningOrganisatie getScreeningOrganisatie(long screeningOrganisatieId);
 
+	List<Long> getOrganisatieIdsMetType(OrganisatieType type);
 }

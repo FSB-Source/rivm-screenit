@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,6 +34,7 @@ import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNullExten
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class HibernateObjectSpecification
 {
+
 	public static <T extends HibernateObject> ExtendedSpecification<T> heeftId(Long id)
 	{
 		return (r, q, cb) -> cb.equal(r.get(AbstractHibernateObject_.ID), id);
@@ -54,14 +55,24 @@ public class HibernateObjectSpecification
 		return skipWhenNullExtended(id, heeftNietId(id));
 	}
 
-	public static <T extends HibernateObject> ExtendedSpecification<T> heeftIdIn(Collection<Long> beoordelingIds)
+	public static <T extends HibernateObject> ExtendedSpecification<T> heeftIdIn(Collection<Long> ids)
 	{
-		return (r, q, cb) -> r.get(AbstractHibernateObject_.ID).in(beoordelingIds);
+		return (r, q, cb) -> r.get(AbstractHibernateObject_.ID).in(ids);
+	}
+
+	public static <T extends HibernateObject> ExtendedSpecification<T> heeftNietIdIn(Collection<Long> ids)
+	{
+		return (r, q, cb) -> cb.not(r.get(AbstractHibernateObject_.ID).in(ids));
 	}
 
 	public static <T extends HibernateObject> ExtendedSpecification<T> heeftGeenId()
 	{
 		return (r, q, cb) -> cb.isNull(r.get(AbstractHibernateObject_.ID));
+	}
+
+	public static <T extends HibernateObject> ExtendedSpecification<T> heeftId()
+	{
+		return (r, q, cb) -> cb.isNotNull(r.get(AbstractHibernateObject_.ID));
 	}
 
 	public static <S extends HibernateObject> ExtendedSpecification<S> heeftIdGroterDan(Long id)

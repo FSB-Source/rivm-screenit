@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.algemeen;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,7 @@ package nl.rivm.screenit.specification.algemeen;
  */
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContact;
@@ -30,12 +30,22 @@ import nl.rivm.screenit.model.ClientContact_;
 
 import org.springframework.data.jpa.domain.Specification;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ClientContactSpecification
 {
 	public static Specification<ClientContact> heeftClient(Client client)
 	{
 		return (r, q, cb) -> cb.equal(r.get(ClientContact_.client), client);
+	}
+
+	public static Specification<ClientContact> heeftClientId(Long clientId)
+	{
+		return (r, q, cb) -> cb.equal(r.get(ClientContact_.client), clientId);
+	}
+
+	public static Specification<ClientContact> heeftOpmerking()
+	{
+		return (r, q, cb) -> cb.isNotNull(r.get(ClientContact_.opmerking));
 	}
 
 }

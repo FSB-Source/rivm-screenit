@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.stub.services.impl;
  * ========================LICENSE_START=================================
  * se-mammograaf-stub
  * %%
- * Copyright (C) 2017 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,8 +24,6 @@ package nl.rivm.screenit.mamma.se.stub.services.impl;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.concurrent.Executors;
-
-import javax.annotation.PostConstruct;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,6 +46,8 @@ import org.dcm4che3.net.pdu.PresentationContext;
 import org.dcm4che3.util.UIDUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import jakarta.annotation.PostConstruct;
 
 @Service
 @Slf4j

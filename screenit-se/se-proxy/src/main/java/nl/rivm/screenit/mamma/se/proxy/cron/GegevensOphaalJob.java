@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.cron;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ package nl.rivm.screenit.mamma.se.proxy.cron;
  * =========================LICENSE_END==================================
  */
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -68,26 +69,27 @@ public class GegevensOphaalJob implements SchedulingConfigurer
 	public void configureTasks(ScheduledTaskRegistrar scheduledTaskRegistrar)
 	{
 		LOG.info("GegevensOphaalJob draait met maxMinutenWachttijd: {}", maxMinutenWachttijd);
-		scheduledTaskRegistrar.addTriggerTask(() -> {
-			int delay = berekenWachttijd(seStatusService.getSeCode(), maxMinutenWachttijd);
-			LOG.debug("Start: {} met maxMinutenWachttijd: {} op na {} ms {}", JOB_OMSCHRIJVING, maxMinutenWachttijd, delay, LocalDateTime.now().plus(delay, ChronoUnit.MILLIS));
-			try
+		scheduledTaskRegistrar.addTriggerTask(() ->
 			{
-				Thread.sleep(delay);
-			}
-			catch (InterruptedException e)
-			{
-				LOG.error("Fout opgetreden tijdens wachten ", e);
-				return;
-			}
-			cleanUpService.nightlyCleanupAndRefresh();
-			LOG.debug("Eind: " + JOB_OMSCHRIJVING);
-		},
-			this::haalGegevensOp);
+				int delay = berekenWachttijd(seStatusService.getSeCode(), maxMinutenWachttijd);
+				LOG.debug("Start: {} met maxMinutenWachttijd: {} op na {} ms {}", JOB_OMSCHRIJVING, maxMinutenWachttijd, delay, LocalDateTime.now().plus(delay, ChronoUnit.MILLIS));
+				try
+				{
+					Thread.sleep(delay);
+				}
+				catch (InterruptedException e)
+				{
+					LOG.error("Fout opgetreden tijdens wachten ", e);
+					return;
+				}
+				cleanUpService.nightlyCleanupAndRefresh();
+				LOG.debug("Eind: " + JOB_OMSCHRIJVING);
+			},
+			this::bepaalVolgendeExecution);
 
 	}
 
-	private Date haalGegevensOp(TriggerContext triggerContext)
+	private Instant bepaalVolgendeExecution(TriggerContext triggerContext)
 	{
 		String cron = configuratieService.getConfiguratieValue(SeConfiguratieKey.SE_INFORMATIE_OPHALEN_CRON);
 
@@ -97,8 +99,10 @@ public class GegevensOphaalJob implements SchedulingConfigurer
 		}
 
 		CronTrigger trigger = new CronTrigger(cron);
-		Date nextExec = trigger.nextExecutionTime(triggerContext);
-		LOG.debug("Volgende job execution om " + nextExec + ". Gebruikte cron: " + cron);
+		Instant nextExec = trigger.nextExecution(triggerContext);
+
+		LOG.debug("Volgende job execution om {}. Gebruikte cron: {}", Date.from(nextExec), cron);
+
 		return nextExec;
 	}
 

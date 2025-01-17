@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,9 +22,9 @@ package nl.rivm.screenit.main.service.cervix.impl;
  */
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,6 +44,7 @@ import nl.rivm.screenit.model.cervix.facturatie.CervixHuisartsTarief;
 import nl.rivm.screenit.model.cervix.facturatie.CervixHuisartsTarief_;
 import nl.rivm.screenit.model.cervix.facturatie.CervixLabTarief;
 import nl.rivm.screenit.model.enums.BestandStatus;
+import nl.rivm.screenit.repository.cervix.CervixBoekRegelRepository;
 import nl.rivm.screenit.repository.cervix.CervixHuisartsTariefRepository;
 import nl.rivm.screenit.repository.cervix.CervixLabTariefRepository;
 import nl.rivm.screenit.util.cervix.CervixTariefUtil;
@@ -92,6 +93,9 @@ public class CervixVerrichtingServiceImpl implements CervixVerrichtingService
 
 	@Autowired
 	private CervixHuisartsTariefRepository haTariefRepository;
+
+	@Autowired
+	private CervixBoekRegelRepository boekRegelRepository;
 
 	@Override
 	public List<CervixBoekRegel> getLabVerrichtingen(CervixVerrichtingenZoekObject verrichtingenZoekObject, ScreeningOrganisatie screeningOrganisatie,
@@ -215,9 +219,7 @@ public class CervixVerrichtingServiceImpl implements CervixVerrichtingService
 
 	private List<CervixBetaalopdrachtRegel> regelsNietPlusBedrag(CervixBetaalopdracht opdracht)
 	{
-		var verwijderRegels = new ArrayList<CervixBetaalopdrachtRegel>();
-		opdracht.getBetaalopdrachtRegels().stream().filter(regel -> regel.getBedrag().compareTo(BigDecimal.ZERO) <= 0).forEach(verwijderRegels::add);
-		return verwijderRegels;
+		return opdracht.getBetaalopdrachtRegels().stream().filter(regel -> regel.getBedrag().compareTo(BigDecimal.ZERO) <= 0).collect(Collectors.toList());
 	}
 
 	private BigDecimal getTeBetalenBedrag(CervixBoekRegel boekRegel)
@@ -369,28 +371,24 @@ public class CervixVerrichtingServiceImpl implements CervixVerrichtingService
 	private @NotNull BigDecimal getTotaalBedrag(CervixVerrichtingenZoekObject verrichtingenZoekObject, CervixTariefType tariefType, boolean debet)
 	{
 		verrichtingenZoekObject.setDebet(debet);
-		var cb = sessionFactory.getCriteriaBuilder();
-		var q = cb.createQuery(BigDecimal.class);
-		var r = q.from(CervixBoekRegel.class);
 		if (tariefType == CervixTariefType.HUISARTS_UITSTRIJKJE)
 		{
-			q.select(cb.sum(cb.treat(join(r, CervixBoekRegel_.tarief), CervixHuisartsTarief.class).get(CervixHuisartsTarief_.tarief)));
-			q.where(huisartsBoekregelsDataProviderService.getSpecification(verrichtingenZoekObject, Sort.unsorted())
-				.and(filterVerrichtingType(tariefType)).toPredicate(r, q, cb));
+			return boekRegelRepository.findWith(huisartsBoekregelsDataProviderService.getSpecification(verrichtingenZoekObject, Sort.unsorted())
+				.and(filterVerrichtingType(tariefType)), BigDecimal.class, q -> q.projection((cb, r) ->
+			{
+				var huisartsTarief = cb.treat(join(r, CervixBoekRegel_.tarief), CervixHuisartsTarief.class);
+				return cb.sum(huisartsTarief.get(CervixHuisartsTarief_.tarief));
+			})).one().orElse(BigDecimal.ZERO);
 		}
 		else
 		{
-			q.select(cb.sum(cb.treat(join(r, CervixBoekRegel_.tarief), CervixLabTarief.class).get(tariefType.getBedragProperty())));
-			q.where(labBoekregelsDataProviderService.getSpecification(verrichtingenZoekObject, Sort.unsorted())
-				.and(filterVerrichtingType(tariefType)).toPredicate(r, q, cb));
+			return boekRegelRepository.findWith(labBoekregelsDataProviderService.getSpecification(verrichtingenZoekObject, Sort.unsorted())
+				.and(filterVerrichtingType(tariefType)), BigDecimal.class, q -> q.projection((cb, r) ->
+			{
+				var labTarief = cb.treat(join(r, CervixBoekRegel_.tarief), CervixLabTarief.class);
+				return cb.sum(labTarief.get(tariefType.getBedragProperty()));
+			})).one().orElse(BigDecimal.ZERO);
 		}
-
-		var totaalBedrag = sessionFactory.getCurrentSession().createQuery(q).getSingleResult();
-		if (totaalBedrag == null)
-		{
-			totaalBedrag = BigDecimal.ZERO;
-		}
-		return totaalBedrag;
 	}
 
 	private static CervixVerrichtingenZoekObject completeZoekObject(CervixVerrichtingenZoekObject verrichtingenZoekObject, ScreeningOrganisatie screeningOrganisatie,

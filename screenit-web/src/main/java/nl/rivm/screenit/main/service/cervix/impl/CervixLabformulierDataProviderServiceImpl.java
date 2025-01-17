@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -124,23 +124,9 @@ public class CervixLabformulierDataProviderServiceImpl extends RepositoryDataPro
 			.and(filterBsnCheck(filter.getLabprocesStap(), filter.getBsn()));
 	}
 
-	public List<Long> getLabformulierenIds(CervixLabformulierenFilter filter, String sortProperty, boolean asc)
+	public List<Long> getLabformulierenIds(CervixLabformulierenFilter filter, Sort sort)
 	{
-		var currentSession = sessionFactory.getCurrentSession();
-		var cb = currentSession.getCriteriaBuilder();
-		var q = cb.createQuery(Long.class);
-		var r = q.from(CervixLabformulier.class);
-
 		var spec = labFormulierSpecification(filter);
-		var predicate = spec.toPredicate(r, q, cb);
-		q.where(predicate);
-
-		q.select(r.get(TablePerClassHibernateObject_.id));
-
-		var order = asc ? cb.asc(r.get(sortProperty)) : cb.desc(r.get(sortProperty));
-		q.orderBy(order);
-
-		var typedQuery = currentSession.createQuery(q);
-		return typedQuery.getResultList();
+		return getRepository().findWith(spec, Long.class, q -> q.sortBy(sort).projection((cb, r) -> r.get(TablePerClassHibernateObject_.id))).all();
 	}
 }

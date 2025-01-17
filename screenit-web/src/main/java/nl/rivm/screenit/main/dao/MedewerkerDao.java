@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.dao;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,6 @@ package nl.rivm.screenit.main.dao;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -29,11 +28,9 @@ import nl.rivm.screenit.model.Functie;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.InstellingGebruikerRol;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.Rol;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.rivm.screenit.model.enums.Recht;
 
 public interface MedewerkerDao
 {
@@ -43,18 +40,6 @@ public interface MedewerkerDao
 	long countMedewerkers(Gebruiker searchObject, List<Functie> selectedFuncties, List<Rol> selectedRollen, Map<OrganisatieType, List<Instelling>> hierarchieCriteria,
 		List<Bevolkingsonderzoek> bevolkingsonderzoeken);
 
-	List<InstellingGebruiker> searchInstellingGebruiker(InstellingGebruiker instellingGebruiker, long first, long count, String orderByProperty, boolean ascending);
-
-	List<InstellingGebruiker> getActieveRadiologen(InstellingGebruiker zoekInstellingGebruiker, List<Long> exclIds, String orderByProperty, boolean ascending);
-
-	long countInstellingGebruiker(InstellingGebruiker instellingGebruiker);
-
-	InstellingGebruiker getInstellingGebruiker(Instelling organisatie, Gebruiker medewerker);
-
 	void saveOrUpdateInstellingGebruiker(InstellingGebruiker organisatieMedewerker);
-
-	List<InstellingGebruikerRol> getInstellingGebruikersRollenMetRol(Rol rol, Date nu);
-
-	List<Gebruiker> getActieveGebruikersMetRecht(Recht recht);
 
 }

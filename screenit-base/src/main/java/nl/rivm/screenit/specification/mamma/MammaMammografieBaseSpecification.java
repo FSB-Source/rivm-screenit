@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,14 +24,17 @@ package nl.rivm.screenit.specification.mamma;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
+
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.mamma.MammaAfspraak_;
 import nl.rivm.screenit.model.mamma.MammaMammografie;
 import nl.rivm.screenit.model.mamma.MammaMammografie_;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
-import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
 import nl.rivm.screenit.model.mamma.enums.MammaDenseWaarde;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
@@ -41,7 +44,7 @@ import nl.rivm.screenit.util.DateUtil;
 
 import org.springframework.data.jpa.domain.Specification;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MammaMammografieBaseSpecification
 {
 	public static ExtendedSpecification<MammaMammografie> heeftDensiteit(MammaDenseWaarde densiteit)
@@ -56,14 +59,7 @@ public class MammaMammografieBaseSpecification
 
 	public static Specification<MammaMammografie> heeftUitnodigingsNummer(long uitnodigingsNummer)
 	{
-		return (r, q, cb) ->
-		{
-			var onderzoekJoin = SpecificationUtil.join(r, MammaMammografie_.onderzoek);
-			var afspraakJoin = SpecificationUtil.join(onderzoekJoin, MammaOnderzoek_.afspraak);
-			var uitnodigingJoin = SpecificationUtil.join(afspraakJoin, MammaAfspraak_.uitnodiging);
-			var rondeJoin = SpecificationUtil.join(uitnodigingJoin, MammaUitnodiging_.screeningRonde);
-			return cb.equal(rondeJoin.get(MammaScreeningRonde_.uitnodigingsNr), uitnodigingsNummer);
-		};
+		return MammaScreeningRondeSpecification.heeftUitnogigingsNummer(uitnodigingsNummer).with(r -> screeningRondeJoin(r));
 	}
 
 	public static ExtendedSpecification<MammaMammografie> heeftIlmStatusDatumVoor(LocalDateTime peilMoment)
@@ -79,5 +75,13 @@ public class MammaMammografieBaseSpecification
 	public static ExtendedSpecification<MammaMammografie> heeftIlmStatusIn(List<MammaMammografieIlmStatus> ilmStatussen)
 	{
 		return (r, q, cb) -> r.get(MammaMammografie_.ilmStatus).in(ilmStatussen);
+	}
+
+	private static Join<?, MammaScreeningRonde> screeningRondeJoin(From<?, ? extends MammaMammografie> root)
+	{
+		var onderzoekJoin = SpecificationUtil.join(root, MammaMammografie_.onderzoek);
+		var afspraakJoin = SpecificationUtil.join(onderzoekJoin, MammaOnderzoek_.afspraak);
+		var uitnodigingJoin = SpecificationUtil.join(afspraakJoin, MammaAfspraak_.uitnodiging);
+		return SpecificationUtil.join(uitnodigingJoin, MammaUitnodiging_.screeningRonde);
 	}
 }

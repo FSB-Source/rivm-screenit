@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.model.mamma.beoordeling;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,20 +24,14 @@ package nl.rivm.screenit.main.model.mamma.beoordeling;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.mamma.enums.MammaFotobesprekingType;
 
+@Setter
+@Getter
 public class MammaFotobesprekingWerklijstZoekObject extends MammaKwaliteitscontroleWerklijstZoekObject
 {
-	private List<MammaFotobesprekingType> typen = new ArrayList<>();
-
-	public List<MammaFotobesprekingType> getTypen()
-	{
-		return typen;
-	}
-
-	public void setType(List<MammaFotobesprekingType> typen)
-	{
-		this.typen = typen;
-	}
-
+	private List<MammaFotobesprekingType> types = new ArrayList<>();
 }

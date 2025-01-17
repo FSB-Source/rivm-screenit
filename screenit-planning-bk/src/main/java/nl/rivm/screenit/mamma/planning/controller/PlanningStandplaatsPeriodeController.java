@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.controller;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,8 +21,6 @@ package nl.rivm.screenit.mamma.planning.controller;
  * =========================LICENSE_END==================================
  */
 
-import java.util.stream.Collectors;
-
 import nl.rivm.screenit.dto.mamma.planning.PlanningRestConstants;
 import nl.rivm.screenit.dto.mamma.planning.PlanningStandplaatsPeriodeDto;
 import nl.rivm.screenit.mamma.planning.index.PlanningScreeningsOrganisatieIndex;
@@ -33,16 +31,16 @@ import nl.rivm.screenit.mamma.planning.model.PlanningStandplaatsRonde;
 import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningDoorrekenenManager;
 import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningWijzigingen;
 
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController()
+@RestController
 @RequestMapping("/" + PlanningRestConstants.C_STANDPLAATS_PERIODE)
 public class PlanningStandplaatsPeriodeController
 {
-	@RequestMapping(method = RequestMethod.PUT)
+	@PutMapping
 	public void put(@RequestBody PlanningStandplaatsPeriodeDto standplaatsPeriodeDto)
 	{
 		PlanningStandplaatsPeriode standplaatsPeriode = PlanningStandplaatsPeriodeIndex.get(standplaatsPeriodeDto.conceptId);
@@ -65,6 +63,6 @@ public class PlanningStandplaatsPeriodeController
 		standplaatsPeriode.getStandplaatsRonde().setMinderValideUitwijkStandplaats(PlanningStandplaatsIndex.get(standplaatsPeriodeDto.minderValideUitwijkStandplaatsId));
 		standplaatsPeriode.getStandplaatsRonde().setMinderValideUitnodigenVanaf(standplaatsPeriodeDto.minderValideUitnodigenVanaf);
 		standplaatsPeriode.getStandplaatsRonde().setAfspraakcapaciteitBeschikbaarVoor(
-			standplaatsPeriodeDto.afspraakcapaciteitBeschikbaarVoorIds.stream().map(id -> PlanningScreeningsOrganisatieIndex.get(id)).collect(Collectors.toList()));
+			standplaatsPeriodeDto.afspraakcapaciteitBeschikbaarVoorIds.stream().map(PlanningScreeningsOrganisatieIndex::get).toList());
 	}
 }

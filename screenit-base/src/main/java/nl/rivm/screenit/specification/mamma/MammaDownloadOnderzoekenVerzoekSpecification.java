@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ package nl.rivm.screenit.specification.mamma;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.util.List;
 
 import lombok.AccessLevel;
@@ -38,9 +39,11 @@ import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
 import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.specification.SpecificationUtil;
 import nl.rivm.screenit.specification.algemeen.OrganisatieMedewerkerSpecification;
+import nl.rivm.screenit.util.DateUtil;
 
 import org.springframework.data.jpa.domain.Specification;
 
+import static nl.rivm.screenit.specification.ExtendedSpecification.not;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNullExtended;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -71,6 +74,22 @@ public class MammaDownloadOnderzoekenVerzoekSpecification
 	public static ExtendedSpecification<MammaDownloadOnderzoekenVerzoek> heeftGeenStatusIn(List<BestandStatus> bestandStatussen)
 	{
 		return (r, q, cb) -> cb.not(r.get(MammaDownloadOnderzoekenVerzoek_.status).in(bestandStatussen));
+	}
+
+	public static ExtendedSpecification<MammaDownloadOnderzoekenVerzoek> heeftStatus(BestandStatus bestandStatus)
+	{
+		return (r, q, cb) -> cb.equal(r.get(MammaDownloadOnderzoekenVerzoek_.status), bestandStatus);
+	}
+
+	public static ExtendedSpecification<MammaDownloadOnderzoekenVerzoek> heeftNietStatus(BestandStatus bestandStatus)
+	{
+		return not(heeftStatus(bestandStatus));
+	}
+
+	public static ExtendedSpecification<MammaDownloadOnderzoekenVerzoek> isAangemaaktOpVoor(LocalDate datum)
+	{
+
+		return (r, q, cb) -> cb.lessThanOrEqualTo(r.get(MammaDownloadOnderzoekenVerzoek_.aangemaaktOp), DateUtil.toUtilDate(datum));
 	}
 
 }

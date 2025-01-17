@@ -4,7 +4,7 @@ package nl.rivm.screenit.service;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,11 +29,12 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.List;
 
+import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Gemeente;
+import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.rivm.screenit.model.gba.Land;
 import nl.rivm.screenit.service.impl.ImportBvoViaCsv;
 
 public interface TestService
@@ -41,7 +42,7 @@ public interface TestService
 
 	Client getClientByBsn(String bsn);
 
-    GbaPersoon maakPersoon(LocalDate geboorteDatum);
+	GbaPersoon maakPersoon(LocalDate geboorteDatum);
 
 	Client maakClient(GbaPersoon persoon);
 
@@ -55,9 +56,17 @@ public interface TestService
 
 	boolean verwijderClientContacten(Client client, List<Bevolkingsonderzoek> onderzoeken);
 
-	Gemeente getGemeenteMetScreeningOrganisatie();
-
-	Land getGbaLand();
-
 	void projectenVerwijderen(Client client);
+
+	BMHKLaboratorium getEersteBMHKLaboratorium();
+
+	Gemeente getGemeenteByCode(String code);
+
+	Gemeente getEersteGemeenteMetScreeningOrganisatie();
+
+	List<Gemeente> getGemeentesMetScreeningOrganisatie();
+
+	Gemeente getEersteGemeenteMetNaam(String naam);
+
+	Instelling getOrganisatieByNaam(String naam);
 }

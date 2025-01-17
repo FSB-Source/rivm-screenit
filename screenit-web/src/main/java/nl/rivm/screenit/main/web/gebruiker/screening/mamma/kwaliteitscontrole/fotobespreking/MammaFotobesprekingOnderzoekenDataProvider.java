@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.f
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.f
 import java.util.Iterator;
 
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaFotobesprekingOnderzoekenWerklijstZoekObject;
-import nl.rivm.screenit.main.service.mamma.MammaKwaliteitscontroleService;
+import nl.rivm.screenit.main.service.mamma.MammaFotobesprekingService;
 import nl.rivm.screenit.model.mamma.MammaFotobesprekingOnderzoek;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -34,12 +34,12 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import com.google.common.primitives.Ints;
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
 
 public class MammaFotobesprekingOnderzoekenDataProvider extends SortableDataProvider<MammaFotobesprekingOnderzoek, String>
 {
 	@SpringBean
-	private MammaKwaliteitscontroleService kwaliteitscontroleService;
+	private MammaFotobesprekingService fotobesprekingService;
 
 	private IModel<MammaFotobesprekingOnderzoekenWerklijstZoekObject> criteria;
 
@@ -53,22 +53,13 @@ public class MammaFotobesprekingOnderzoekenDataProvider extends SortableDataProv
 	@Override
 	public Iterator<? extends MammaFotobesprekingOnderzoek> iterator(long first, long count)
 	{
-		MammaFotobesprekingOnderzoekenWerklijstZoekObject zoekObject = getZoekObject();
-
-		return kwaliteitscontroleService
-			.zoekFotobesprekingOnderzoeken(zoekObject, Ints.checkedCast(first), Ints.checkedCast(count), getSort().getProperty(), getSort().isAscending()).iterator();
-	}
-
-	private MammaFotobesprekingOnderzoekenWerklijstZoekObject getZoekObject()
-	{
-		return ModelUtil.nullSafeGet(criteria);
+		return fotobesprekingService.zoekFotobesprekingOnderzoeken(ModelUtil.nullSafeGet(criteria), first, count, toSpringSort(getSort())).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		MammaFotobesprekingOnderzoekenWerklijstZoekObject zoekObject = getZoekObject();
-		return kwaliteitscontroleService.countFotobesprekingOnderzoeken(zoekObject);
+		return fotobesprekingService.countFotobesprekingOnderzoeken(ModelUtil.nullSafeGet(criteria));
 	}
 
 	@Override

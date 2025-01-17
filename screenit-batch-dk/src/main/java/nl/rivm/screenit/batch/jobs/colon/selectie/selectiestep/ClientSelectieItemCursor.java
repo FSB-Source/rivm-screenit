@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,25 +22,31 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  */
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.criteria.JoinType;
+
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.jobs.colon.selectie.SelectieConstants;
-import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.ScreeningRonde_;
 import nl.rivm.screenit.model.colon.ClientCategorieEntry;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
+import nl.rivm.screenit.repository.algemeen.ClientRepository;
 import nl.rivm.screenit.service.colon.ColonBaseFITService;
+import nl.rivm.screenit.specification.ExtendedSpecification;
+import nl.rivm.screenit.specification.colon.ColonUitnodigingBaseSpecification;
 
 import org.apache.commons.lang.NotImplementedException;
-import org.hibernate.Criteria;
-import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.springframework.batch.item.ExecutionContext;
+
+import static nl.rivm.screenit.specification.colon.ColonUitnodigingBaseSpecification.laatsteScreeningRondeJoin;
 
 @Slf4j
 public class ClientSelectieItemCursor implements ClientSelectieItemIterator
@@ -67,8 +73,10 @@ public class ClientSelectieItemCursor implements ClientSelectieItemIterator
 
 	private final ColonBaseFITService fitService;
 
+	private final ClientRepository clientRepository;
+
 	public ClientSelectieItemCursor(Session hibernateSession, int fetchSize, ExecutionContext context, List<Long> uitgenodigdeClientIds, ColonBaseFITService fitService,
-		LocalDate vandaag)
+		LocalDate vandaag, ClientRepository clientRepository)
 	{
 		this.hibernateSession = hibernateSession;
 		this.fetchSize = fetchSize;
@@ -76,6 +84,7 @@ public class ClientSelectieItemCursor implements ClientSelectieItemIterator
 		this.uitgenodigdeClientIds = uitgenodigdeClientIds;
 		this.fitService = fitService;
 		this.vandaag = vandaag;
+		this.clientRepository = clientRepository;
 
 		initialiseCursor(context);
 	}
@@ -186,24 +195,22 @@ public class ClientSelectieItemCursor implements ClientSelectieItemIterator
 
 	private void setCursor()
 	{
-		Criteria crit;
-		switch (colonUitnodigingCategorie)
+		ExtendedSpecification<Client> specification = switch (colonUitnodigingCategorie)
 		{
-		case U3:
-			crit = ColonRestrictions.getQueryU3(hibernateSession, vandaag);
-			break;
-		case U4:
-			crit = ColonRestrictions.getQueryU4(hibernateSession, vandaag);
-			break;
-		case U6:
-			crit = ColonRestrictions.getQueryU6(hibernateSession, vandaag);
-			break;
-		default:
-			throw new NotImplementedException("Niet bekende categorie");
-		}
-
-		cursor = crit.setFetchSize(fetchSize).scroll(ScrollMode.FORWARD_ONLY);
-
+			case U3 -> ColonUitnodigingBaseSpecification.getSpecificationU3(vandaag);
+			case U4 -> ColonUitnodigingBaseSpecification.getSpecificationU4(vandaag);
+			case U6 -> ColonUitnodigingBaseSpecification.getSpecificationU6(vandaag);
+			default -> throw new NotImplementedException("Niet bekende categorie");
+		};
+		cursor = clientRepository.findWith(specification,
+				q -> q.sortBy((r, cb) ->
+				{
+					var orders = new ArrayList<>(ColonUitnodigingBaseSpecification.getU1OrderByList(r, cb));
+					orders.add(0, cb.asc(laatsteScreeningRondeJoin(r, JoinType.INNER).get(ScreeningRonde_.statusDatum)));
+					return orders;
+				}))
+			.setScrollFetchSize(fetchSize)
+			.scroll(-1);
 	}
 
 	@Override

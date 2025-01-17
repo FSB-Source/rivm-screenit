@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.specification;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,7 @@ package nl.rivm.screenit.mamma.se.specification;
 import java.util.List;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.Instelling_;
@@ -34,7 +34,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrganisatieSpecification
 {
 	public static Specification<Instelling> heeftSubInstellingVanType(List<OrganisatieType> organisatieTypes)

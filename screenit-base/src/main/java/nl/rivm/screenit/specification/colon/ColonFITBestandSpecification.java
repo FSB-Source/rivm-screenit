@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,7 +25,7 @@ import java.util.Date;
 import java.util.List;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.colon.IFOBTBestand;
 import nl.rivm.screenit.model.colon.IFOBTBestand_;
@@ -40,7 +40,7 @@ import com.google.common.collect.Range;
 import static nl.rivm.screenit.specification.RangeSpecification.bevat;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNullExtended;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ColonFITBestandSpecification
 {
 	public static Specification<IFOBTBestand> heeftStatussen(List<IFOBTBestandStatus> statussen)

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.specification.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -93,7 +93,7 @@ import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.filte
 import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.filterHuisnummer;
 import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.filterPostcode;
 import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.filterBeoordelingsEenheid;
-import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.filterStatus;
+import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.filterStatusIn;
 import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.heeftStatus;
 import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.heeftStatusDatumVanaf;
 import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.heeftStatusDatumVoor;
@@ -116,13 +116,13 @@ public class MammaBeoordelingWerklijstSpecification
 
 	public static ExtendedSpecification<MammaOnderzoek> heeftOnbevestigdeLezing()
 	{
-		return filterStatus(List.of(EERSTE_LEZING_OPGESLAGEN, TWEEDE_LEZING_OPGESLAGEN)).with(beoordelingAttribute());
+		return filterStatusIn(List.of(EERSTE_LEZING_OPGESLAGEN, TWEEDE_LEZING_OPGESLAGEN)).with(beoordelingAttribute());
 	}
 
 	public static Specification<MammaOnderzoek> beWerklijstSpecification(MammaBeWerklijstZoekObject zoekObject)
 	{
 		return basisFilterBeoordelingWerklijst(zoekObject)
-			.and(filterStatus(zoekObject.getBeoordelingStatussen()).with(beoordelingAttribute()))
+			.and(filterStatusIn(zoekObject.getBeoordelingStatussen()).with(beoordelingAttribute()))
 			.and(filterBeWerklijst(zoekObject));
 	}
 
@@ -193,10 +193,10 @@ public class MammaBeoordelingWerklijstSpecification
 
 	private static ExtendedSpecification<MammaBeoordeling> beoordelenEersteEnTweedeLezerSpecification(InstellingGebruiker radioloog)
 	{
-		var beschikbaarVoorEersteLezing = filterStatus(List.of(EERSTE_LEZING, EERSTE_LEZING_OPGESLAGEN))
+		var beschikbaarVoorEersteLezing = filterStatusIn(List.of(EERSTE_LEZING, EERSTE_LEZING_OPGESLAGEN))
 			.and(isAfwezigOfGedaanDoor(radioloog).with(MammaBeoordeling_.eersteLezing, LEFT));
 
-		var beschikbaarVoorTweedeLezing = filterStatus(List.of(TWEEDE_LEZING, TWEEDE_LEZING_OPGESLAGEN))
+		var beschikbaarVoorTweedeLezing = filterStatusIn(List.of(TWEEDE_LEZING, TWEEDE_LEZING_OPGESLAGEN))
 			.and(isNietGedaanDoor(radioloog).with(MammaBeoordeling_.eersteLezing, LEFT))
 			.and(isAfwezigOfGedaanDoor(radioloog).with(MammaBeoordeling_.tweedeLezing, LEFT));
 
@@ -232,7 +232,7 @@ public class MammaBeoordelingWerklijstSpecification
 
 	private static ExtendedSpecification<MammaBeoordeling> verslagToegewezenSpecification(InstellingGebruiker radioloog)
 	{
-		return filterStatus(List.of(VERSLAG_GEREED, VERSLAG_AFGEKEURD, VERSLAG_MAKEN))
+		return filterStatusIn(List.of(VERSLAG_GEREED, VERSLAG_AFGEKEURD, VERSLAG_MAKEN))
 			.and(isToegewezenAan(radioloog));
 	}
 
@@ -292,14 +292,14 @@ public class MammaBeoordelingWerklijstSpecification
 			return filterOnGunstigeUitslagAlleenMetNietAfgedrukteBrieven(statussen, peildatumOngunstigeUitslagen);
 		}
 
-		return filterStatus(statussen).with(beoordelingAttribute());
+		return filterStatusIn(statussen).with(beoordelingAttribute());
 	}
 
 	private static ExtendedSpecification<MammaOnderzoek> filterOnGunstigeUitslagAlleenMetNietAfgedrukteBrieven(List<MammaBeoordelingStatus> statussen,
 		LocalDate peildatumOngunstigeUitslagen)
 	{
 		var overigeStatussen = statussen.stream().filter(s -> s != UITSLAG_ONGUNSTIG).collect(Collectors.toList());
-		return filterStatus(overigeStatussen).with(beoordelingAttribute())
+		return filterStatusIn(overigeStatussen).with(beoordelingAttribute())
 			.or(heeftOnGunstigeUitslagMetNietGegenereerdeBrief(peildatumOngunstigeUitslagen));
 	}
 

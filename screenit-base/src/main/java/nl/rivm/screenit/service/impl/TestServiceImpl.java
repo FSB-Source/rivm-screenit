@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,31 +36,27 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
 
 import lombok.extern.slf4j.Slf4j;
 
+import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.ClientContact;
 import nl.rivm.screenit.model.ClientContactActie;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Gemeente;
-import nl.rivm.screenit.model.MergedBrieven;
+import nl.rivm.screenit.model.Gemeente_;
+import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
+import nl.rivm.screenit.model.SingleTableHibernateObject_;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.GbaStatus;
-import nl.rivm.screenit.model.gba.Land;
-import nl.rivm.screenit.model.gba.Nationaliteit;
-import nl.rivm.screenit.model.project.ProjectBrief;
-import nl.rivm.screenit.model.project.ProjectClient;
-import nl.rivm.screenit.model.project.ProjectGroep;
-import nl.rivm.screenit.model.project.ProjectInactiveerDocument;
-import nl.rivm.screenit.repository.algemeen.LandRepository;
-import nl.rivm.screenit.repository.algemeen.NationaliteitRepository;
+import nl.rivm.screenit.repository.algemeen.GemeenteRepository;
+import nl.rivm.screenit.repository.algemeen.InstellingRepository;
+import nl.rivm.screenit.repository.cervix.BmhkLaboratoriumRepository;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.CoordinatenService;
 import nl.rivm.screenit.service.DossierFactory;
@@ -68,8 +64,11 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.TestService;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
+import nl.rivm.screenit.specification.algemeen.GemeenteSpecification;
+import nl.rivm.screenit.specification.algemeen.OrganisatieSpecification;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.TestBsnGenerator;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.NaamGebruik;
@@ -77,9 +76,8 @@ import nl.topicuszorg.util.postcode.PostcodeFormatter;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,9 +85,10 @@ import com.google.common.base.Charsets;
 
 import au.com.bytecode.opencsv.CSVParser;
 
+import static nl.rivm.screenit.specification.algemeen.GemeenteSpecification.heeftScreeningOrganisatie;
+
 @Slf4j
 @Service
-@Transactional
 public class TestServiceImpl implements TestService
 {
 	@Autowired
@@ -105,12 +104,6 @@ public class TestServiceImpl implements TestService
 	private CoordinatenService coordinatenService;
 
 	@Autowired
-	private NationaliteitRepository nationaliteitRepository;
-
-	@Autowired
-	private LandRepository landRepository;
-
-	@Autowired
 	private DossierFactory dossierFactory;
 
 	@Autowired
@@ -118,6 +111,15 @@ public class TestServiceImpl implements TestService
 
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
+
+	@Autowired
+	private GemeenteRepository gemeenteRepository;
+
+	@Autowired
+	private InstellingRepository organisatieRepository;
+
+	@Autowired
+	private BmhkLaboratoriumRepository bmhkLaboratoriumRepository;
 
 	private static String getValue2(String value)
 	{
@@ -133,7 +135,7 @@ public class TestServiceImpl implements TestService
 	{
 		if (value != null)
 		{
-			int diff = value.getBytes(Charsets.UTF_8).length - length;
+			var diff = value.getBytes(Charsets.UTF_8).length - length;
 			if (diff > 0)
 			{
 				value = value.substring(0, length - diff);
@@ -149,14 +151,14 @@ public class TestServiceImpl implements TestService
 	@Override
 	public GbaPersoon maakPersoon(LocalDate geboorteDatum)
 	{
-		GbaPersoon persoon = new GbaPersoon();
+		var persoon = new GbaPersoon();
 		persoon.setGeslacht(Geslacht.VROUW);
 		persoon.setAchternaam("Lange");
 		persoon.setTussenvoegsel("de");
 		persoon.setVoornaam("Jenissi Gratia Bouwena Engeltje Herberdina Elisabeth Christina Daniëlle Willemijntje Johanna Maria Morgenstar");
 		persoon.setBsn(TestBsnGenerator.getValideBsn());
 		persoon.setGeboortedatum(DateUtil.toUtilDate(geboorteDatum));
-		BagAdres adres = new BagAdres();
+		var adres = new BagAdres();
 		adres.setPostcode("1234AA");
 		adres.setPlaats("Hamsterdam");
 		adres.setStraat("Hamsterdamseweg");
@@ -168,9 +170,10 @@ public class TestServiceImpl implements TestService
 	}
 
 	@Override
+	@Transactional
 	public Client maakClient(GbaPersoon filter)
 	{
-		Client client = geefClient(filter.getBsn(), filter.getGeboortedatum(), filter.getOverlijdensdatum(), filter.getGeslacht());
+		var client = geefClient(filter.getBsn(), filter.getGeboortedatum(), filter.getOverlijdensdatum(), filter.getGeslacht());
 		geefAdres(client, filter.getGbaAdres());
 
 		hibernateService.saveOrUpdate(client.getPersoon());
@@ -178,22 +181,23 @@ public class TestServiceImpl implements TestService
 	}
 
 	@Override
+	@Transactional
 	public void createGbaFile(GbaPersoon persoon, InputStream vo107template, OutputStream vo107)
 	{
-		OutputStreamWriter vo107Bestand = null;
+		OutputStreamWriter vo107Bestand;
 
-		try (Scanner scanner = new Scanner(vo107template, StandardCharsets.UTF_8))
+		try (var scanner = new Scanner(vo107template, StandardCharsets.UTF_8))
 		{
 			vo107Bestand = new OutputStreamWriter(vo107);
-			String vo107TemplateString = scanner.useDelimiter("\\A").next().substring(1);
+			var vo107TemplateString = scanner.useDelimiter("\\A").next().substring(1);
 
-			int arecordNr = 1;
-			String vo107Regel = vo107TemplateString;
-			Client client = geefClient(persoon.getBsn(), persoon.getGeboortedatum(), persoon.getOverlijdensdatum(), persoon.getGeslacht());
-			GbaPersoon gbaPersoon = client.getPersoon();
-			String anummer = gbaPersoon.getAnummer();
-			BagAdres gbaAdres = gbaPersoon.getGbaAdres();
-			String postcode = PostcodeFormatter.formatPostcode(gbaAdres.getPostcode(), false);
+			var arecordNr = 1;
+			var vo107Regel = vo107TemplateString;
+			var client = geefClient(persoon.getBsn(), persoon.getGeboortedatum(), persoon.getOverlijdensdatum(), persoon.getGeslacht());
+			var gbaPersoon = client.getPersoon();
+			var anummer = gbaPersoon.getAnummer();
+			var gbaAdres = gbaPersoon.getGbaAdres();
+			var postcode = PostcodeFormatter.formatPostcode(gbaAdres.getPostcode(), false);
 			if (postcode == null)
 			{
 				postcode = "1234AA";
@@ -201,11 +205,11 @@ public class TestServiceImpl implements TestService
 			vo107Regel = vo107Regel.replaceAll("100000000110", "1" + StringUtils.leftPad("" + arecordNr++, 11, '0'));
 
 			vo107Regel = vo107Regel.replaceAll("<Anummer>", anummer);
-			String gbaBerichtType = "Ag31";
+			var gbaBerichtType = "Ag31";
 
 			vo107Regel = vo107Regel.replace("Ag31", gbaBerichtType);
 
-			String bsn = gbaPersoon.getBsn();
+			var bsn = gbaPersoon.getBsn();
 			vo107Regel = vo107Regel.replaceAll("<BSN>", StringUtils.rightPad(bsn, 9, ' '));
 			vo107Regel = vo107Regel.replaceAll("<Geslachtsaanduiding>", gbaPersoon.getGeslacht().getMnem());
 			vo107Regel = vo107Regel.replaceAll("<Geboortedatum>", StringUtils.rightPad(getGbaDatum("yyyyMMdd", gbaPersoon.getGeboortedatum()), 8, ' '));
@@ -258,7 +262,6 @@ public class TestServiceImpl implements TestService
 
 			vo107Bestand.append(vo107Regel);
 			vo107Bestand.flush();
-			scanner.close();
 		}
 		catch (Exception e)
 		{
@@ -274,14 +277,12 @@ public class TestServiceImpl implements TestService
 
 	private Client geefClient(String bsn, Date geboortedatum, Date overlijdensDatum, Geslacht geslacht)
 	{
-		Client client = clientService.getClientByBsn(bsn);
+		var client = clientService.getClientByBsn(bsn);
 		if (client == null)
 		{
 			client = new Client();
-			GbaPersoon persoon = new GbaPersoon();
+			var persoon = new GbaPersoon();
 			client.setPersoon(persoon);
-			persoon.setGbaGeboorteLand(getGbaLand());
-			persoon.getGbaNationaliteiten().add(getGbaNationaliteit());
 			persoon.setGeboorteplaats("Deventer");
 			persoon.setNaamGebruik(NaamGebruik.EIGEN);
 			switch (geslacht)
@@ -321,14 +322,14 @@ public class TestServiceImpl implements TestService
 			}
 		}
 
-		GbaPersoon persoon = client.getPersoon();
+		var persoon = client.getPersoon();
 		persoon.setOverlijdensdatum(overlijdensDatum);
 		hibernateService.saveOrUpdate(persoon);
 
 		return client;
 	}
 
-	public static void zetGeboortedatum(Date geboortedatum, GbaPersoon persoon)
+	private static void zetGeboortedatum(Date geboortedatum, GbaPersoon persoon)
 	{
 		if (geboortedatum == null)
 		{
@@ -347,10 +348,10 @@ public class TestServiceImpl implements TestService
 		}
 	}
 
-	private BagAdres geefAdres(Client client, BagAdres bagAdres)
+	private void geefAdres(Client client, BagAdres bagAdres)
 	{
-		BagAdres gbaAdres = client.getPersoon().getGbaAdres();
-		Gemeente gemeente = bagAdres.getGbaGemeente();
+		var gbaAdres = client.getPersoon().getGbaAdres();
+		var gemeente = bagAdres.getGbaGemeente();
 		if (gbaAdres == null)
 		{
 			gbaAdres = new BagAdres();
@@ -359,7 +360,7 @@ public class TestServiceImpl implements TestService
 			hibernateService.saveOrUpdate(gbaAdres);
 			if (gemeente == null)
 			{
-				gemeente = getGemeenteMetScreeningOrganisatie();
+				gemeente = getEersteGemeenteMetScreeningOrganisatie();
 			}
 
 			setDatumVertrokkenNederland(client, gemeente);
@@ -367,7 +368,7 @@ public class TestServiceImpl implements TestService
 			gbaAdres.setPlaats(gemeente.getNaam());
 			gbaAdres.setStraat("Teststraat");
 			gbaAdres.setHuisnummer(9);
-			String postcode = "1111XX";
+			var postcode = "1111XX";
 			if (bagAdres.getPostcode() != null)
 			{
 				postcode = bagAdres.getPostcode();
@@ -383,7 +384,6 @@ public class TestServiceImpl implements TestService
 
 			hibernateService.saveOrUpdate(gbaAdres);
 		}
-		return gbaAdres;
 	}
 
 	private void setDatumVertrokkenNederland(Client client, Gemeente gemeente)
@@ -399,42 +399,6 @@ public class TestServiceImpl implements TestService
 		}
 	}
 
-	@Override
-	public Gemeente getGemeenteMetScreeningOrganisatie()
-	{
-		return (Gemeente) hibernateService.getHibernateSession().createCriteria(Gemeente.class).add(Restrictions.isNotNull("screeningOrganisatie"))
-			.addOrder(Order.asc("naam")).list().get(0);
-	}
-
-	@Override
-	public Land getGbaLand()
-	{
-		List<Land> landen = hibernateService.getHibernateSession().createCriteria(Land.class).add(Restrictions.eq("code", "6030")).list();
-		if (landen.isEmpty())
-		{
-			Land nederland = new Land();
-			nederland.setNaam("Nederland");
-			nederland.setCode("6030");
-			hibernateService.saveOrUpdate(nederland);
-			return nederland;
-		}
-		return landen.get(0);
-	}
-
-	private Nationaliteit getGbaNationaliteit()
-	{
-		List<Nationaliteit> nationaliteiten = hibernateService.getHibernateSession().createCriteria(Nationaliteit.class).add(Restrictions.eq("code", "0001")).list();
-		if (nationaliteiten.isEmpty())
-		{
-			Nationaliteit nat = new Nationaliteit();
-			nat.setNaam("Nederlandse");
-			nat.setCode("0001");
-			hibernateService.saveOrUpdate(nat);
-			return nat;
-		}
-		return nationaliteiten.get(0);
-	}
-
 	private String getGbaDatum(String format, Date datum)
 	{
 		if (datum != null)
@@ -445,157 +409,152 @@ public class TestServiceImpl implements TestService
 	}
 
 	@Override
+	@Transactional
 	public void importClientenViaCsv(File file, ImportBvoViaCsv importBvoViaCsv) throws IOException, ParseException
 	{
-		List<Client> clienten = new ArrayList<>();
-		Scanner scanner = new Scanner(new FileInputStream(file), Charsets.ISO_8859_1);
-
-		Map<String, Integer> headersIndex = new HashMap<>();
-		try
+		var clienten = new ArrayList<Client>();
+		try (var scanner = new Scanner(new FileInputStream(file), Charsets.ISO_8859_1))
 		{
-			CSVParser csvParser = new CSVParser(';');
 
-			boolean first = true;
-			while (scanner.hasNextLine())
+			var headersIndex = new HashMap<String, Integer>();
+			try
 			{
-				String line = scanner.nextLine();
+				var csvParser = new CSVParser(';');
 
-				String[] columns = csvParser.parseLine(line);
-
-				if (first)
+				var first = true;
+				while (scanner.hasNextLine())
 				{
-					int i = 0;
-					for (String columnHeader : columns)
+					var line = scanner.nextLine();
+
+					var columns = csvParser.parseLine(line);
+
+					if (first)
 					{
-						headersIndex.put(columnHeader, i++);
-					}
-					first = false;
-				}
-				else
-				{
-
-					Client client = null;
-
-					String bsn = columns[headersIndex.get("BSN")];
-					client = clientService.getClientByBsn(bsn);
-
-					if (client == null)
-					{
-						client = new Client();
-						client.setGbaStatus(GbaStatus.INDICATIE_AANWEZIG);
-					}
-
-					GbaPersoon persoon = new GbaPersoon();
-					client.setPersoon(persoon);
-					persoon.setPatient(client);
-
-					persoon.setBsn(bsn);
-					persoon.setAnummer(columns[headersIndex.get("Anummer")]);
-					persoon.setGeslacht(Geslacht.getGeslacht(columns[headersIndex.get("Geslacht")].toUpperCase()));
-					persoon.setGeboortedatum(new SimpleDateFormat("yyyyMMdd").parse(columns[headersIndex.get("GeboorteDatum")]));
-					persoon.setGeboorteplaats(columns[headersIndex.get("Geboorteplaats")]);
-					persoon.setVoorletters(columns[headersIndex.get("Voorletters")]);
-
-					persoon.setTussenvoegsel(columns[headersIndex.get("VoorvGeslachtsnaam")]);
-					persoon.setAchternaam(columns[headersIndex.get("Geslachtsnaam")]);
-					persoon.setPartnerTussenvoegsel(columns[headersIndex.get("VoorvNaamEchtgenoot")]);
-					persoon.setPartnerAchternaam(columns[headersIndex.get("GeslachtsnaamEchtgenoot")]);
-					if (StringUtils.isNotBlank(columns[headersIndex.get("DatumOverlijden")]))
-					{
-						persoon.setOverlijdensdatum(new SimpleDateFormat("yyyyMMdd").parse(columns[headersIndex.get("DatumOverlijden")]));
-					}
-
-					var nationaliteit = nationaliteitRepository.findOneByCode(StringUtils.leftPad(columns[headersIndex.get("CodeNationaliteit")], 4, "0")).orElse(null);
-					client.getPersoon().getGbaNationaliteiten().add(nationaliteit);
-
-					var geboorteLand = landRepository.findOneByCode(columns[headersIndex.get("CodeGeboorteland")]).orElse(null);
-					client.getPersoon().setGbaGeboorteLand(geboorteLand);
-
-					BagAdres adres = new BagAdres();
-					adres.setStraat(columns[headersIndex.get("Straat")]);
-
-					if (StringUtils.isNotBlank(columns[headersIndex.get("HuisNummer")]))
-					{
-						adres.setHuisnummer(Integer.parseInt(columns[headersIndex.get("HuisNummer")]));
-					}
-
-					adres.setHuisletter(columns[headersIndex.get("HuisLetter")]);
-					adres.setHuisnummerToevoeging(columns[headersIndex.get("HuisnrToevoeging")]);
-					adres.setHuisnummerAanduiding(columns[headersIndex.get("HuisAanduiding")]);
-					adres.setGemeentedeel(columns[headersIndex.get("Gemeentedeel")]);
-
-					String postcode = columns[headersIndex.get("Postcode")];
-					postcode = postcode.toUpperCase().replaceAll(" ", "");
-
-					if (StringUtils.isBlank(postcode))
-					{
-						LOG.error("Skipping patient, invalide postcode");
-						continue;
-					}
-
-					adres.setPostcode(postcode);
-					adres.setPlaats(columns[headersIndex.get("Woonplaats")]);
-					String gemeenteCode = columns[headersIndex.get("Gemeentecode")];
-
-					Gemeente gemeente = (Gemeente) hibernateService.getHibernateSession().createCriteria(Gemeente.class).add(Restrictions.eq("code", gemeenteCode)).uniqueResult();
-					if (gemeente == null)
-					{
-						List<ScreeningOrganisatie> allSOs = hibernateService.loadAll(ScreeningOrganisatie.class);
-						if (allSOs.size() > 0)
+						var i = 0;
+						for (var columnHeader : columns)
 						{
-							gemeente = new Gemeente();
-							gemeente.setCode(gemeenteCode);
-							gemeente.setNaam("Gemeente " + gemeenteCode);
-							gemeente.setScreeningOrganisatie(allSOs.get(0));
-							hibernateService.saveOrUpdate(gemeente);
+							headersIndex.put(columnHeader, i++);
+						}
+						first = false;
+					}
+					else
+					{
+						var bsn = columns[headersIndex.get("BSN")];
+						var client = clientService.getClientByBsn(bsn);
+
+						if (client == null)
+						{
+							client = new Client();
+							client.setGbaStatus(GbaStatus.INDICATIE_AANWEZIG);
+						}
+
+						var persoon = new GbaPersoon();
+						client.setPersoon(persoon);
+						persoon.setPatient(client);
+
+						persoon.setBsn(bsn);
+						persoon.setAnummer(columns[headersIndex.get("Anummer")]);
+						persoon.setGeslacht(Geslacht.getGeslacht(columns[headersIndex.get("Geslacht")].toUpperCase()));
+						persoon.setGeboortedatum(new SimpleDateFormat("yyyyMMdd").parse(columns[headersIndex.get("GeboorteDatum")]));
+						persoon.setGeboorteplaats(columns[headersIndex.get("Geboorteplaats")]);
+						persoon.setVoorletters(columns[headersIndex.get("Voorletters")]);
+
+						persoon.setTussenvoegsel(columns[headersIndex.get("VoorvGeslachtsnaam")]);
+						persoon.setAchternaam(columns[headersIndex.get("Geslachtsnaam")]);
+						persoon.setPartnerTussenvoegsel(columns[headersIndex.get("VoorvNaamEchtgenoot")]);
+						persoon.setPartnerAchternaam(columns[headersIndex.get("GeslachtsnaamEchtgenoot")]);
+						if (StringUtils.isNotBlank(columns[headersIndex.get("DatumOverlijden")]))
+						{
+							persoon.setOverlijdensdatum(new SimpleDateFormat("yyyyMMdd").parse(columns[headersIndex.get("DatumOverlijden")]));
+						}
+
+						var adres = new BagAdres();
+						adres.setStraat(columns[headersIndex.get("Straat")]);
+
+						if (StringUtils.isNotBlank(columns[headersIndex.get("HuisNummer")]))
+						{
+							adres.setHuisnummer(Integer.parseInt(columns[headersIndex.get("HuisNummer")]));
+						}
+
+						adres.setHuisletter(columns[headersIndex.get("HuisLetter")]);
+						adres.setHuisnummerToevoeging(columns[headersIndex.get("HuisnrToevoeging")]);
+						adres.setHuisnummerAanduiding(columns[headersIndex.get("HuisAanduiding")]);
+						adres.setGemeentedeel(columns[headersIndex.get("Gemeentedeel")]);
+
+						var postcode = columns[headersIndex.get("Postcode")];
+						postcode = postcode.toUpperCase().replaceAll(" ", "");
+
+						if (StringUtils.isBlank(postcode))
+						{
+							LOG.error("Skipping patient, invalide postcode");
+							continue;
+						}
+
+						adres.setPostcode(postcode);
+						adres.setPlaats(columns[headersIndex.get("Woonplaats")]);
+						var gemeenteCode = columns[headersIndex.get("Gemeentecode")];
+						var gemeente = getGemeenteByCode(gemeenteCode);
+
+						if (gemeente == null)
+						{
+							var allSOs = hibernateService.loadAll(ScreeningOrganisatie.class);
+							if (!allSOs.isEmpty())
+							{
+								gemeente = new Gemeente();
+								gemeente.setCode(gemeenteCode);
+								gemeente.setNaam("Gemeente " + gemeenteCode);
+								gemeente.setScreeningOrganisatie(allSOs.get(0));
+								hibernateService.saveOrUpdate(gemeente);
+							}
+						}
+						adres.setGbaGemeente(gemeente);
+						adres.setPostcodeCoordinaten(coordinatenService.getCoordinaten(adres));
+						persoon.setGbaAdres(adres);
+
+						if (StringUtils.isNotBlank(columns[headersIndex.get("DatumVertrekUitNederland")]))
+						{
+							persoon.setDatumVertrokkenUitNederland(new SimpleDateFormat("yyyyMMdd").parse(columns[headersIndex.get("DatumVertrekUitNederland")]));
+						}
+
+						persoon.setTelefoonnummer1(columns[headersIndex.get("TelNrPrive")]);
+						persoon.setTelefoonnummer2(columns[headersIndex.get("TelNrWerk")]);
+						persoon.setEmailadres(columns[headersIndex.get("EmailAdres")]);
+
+						clientService.saveOrUpdateClient(client);
+
+						importBvoViaCsv.importBvoViaCsv(headersIndex, columns, client);
+
+						clientService.saveOrUpdateClient(client);
+						clienten.add(client);
+
+						dossierFactory.maakDossiers(client);
+						if (client.getMammaDossier() != null)
+						{
+							baseKansberekeningService.maakDossierEvent(client.getMammaDossier());
 						}
 					}
-					adres.setGbaGemeente(gemeente);
-					adres.setPostcodeCoordinaten(coordinatenService.getCoordinaten(adres));
-					persoon.setGbaAdres(adres);
 
-					if (org.apache.commons.lang.StringUtils.isNotBlank(columns[headersIndex.get("DatumVertrekUitNederland")]))
-					{
-						persoon.setDatumVertrokkenUitNederland(new SimpleDateFormat("yyyyMMdd").parse(columns[headersIndex.get("DatumVertrekUitNederland")]));
-					}
-
-					persoon.setTelefoonnummer1(columns[headersIndex.get("TelNrPrive")]);
-					persoon.setTelefoonnummer2(columns[headersIndex.get("TelNrWerk")]);
-					persoon.setEmailadres(columns[headersIndex.get("EmailAdres")]);
-
-					clientService.saveOrUpdateClient(client);
-
-					importBvoViaCsv.importBvoViaCsv(headersIndex, columns, client);
-
-					clientService.saveOrUpdateClient(client);
-					clienten.add(client);
-
-					dossierFactory.maakDossiers(client);
-					if (client.getMammaDossier() != null)
-					{
-						baseKansberekeningService.maakDossierEvent(client.getMammaDossier());
-					}
 				}
-
 			}
-		}
-		finally
-		{
-			LOG.info("Stopped bij verwerking van client #" + (clienten.size() + 1));
-			scanner.close();
+			finally
+			{
+				LOG.info("Stopped bij verwerking van client #" + (clienten.size() + 1));
+			}
 		}
 	}
 
 	@Override
+	@Transactional
 	public boolean verwijderClientContacten(Client client, Bevolkingsonderzoek... onderzoeken)
 	{
 		return verwijderClientContacten(client, Arrays.asList(onderzoeken));
 	}
 
 	@Override
+	@Transactional
 	public boolean verwijderClientContacten(Client client, boolean isDossierVerwijderdDK, boolean isDossierVerwijderdBMHK, boolean isDossierVerwijderdBK)
 	{
-		List<Bevolkingsonderzoek> onderzoeken = new ArrayList<Bevolkingsonderzoek>();
+		var onderzoeken = new ArrayList<Bevolkingsonderzoek>();
 		if (isDossierVerwijderdBMHK)
 		{
 			onderzoeken.add(Bevolkingsonderzoek.CERVIX);
@@ -612,17 +571,18 @@ public class TestServiceImpl implements TestService
 	}
 
 	@Override
+	@Transactional
 	public boolean verwijderClientContacten(Client client, List<Bevolkingsonderzoek> onderzoeken)
 	{
 
 		if (CollectionUtils.isNotEmpty(client.getContacten()))
 		{
-			List<ClientContact> verwijderdeContactenLijst = new ArrayList<>();
-			for (ClientContact contact : client.getContacten())
+			var verwijderdeContactenLijst = new ArrayList<ClientContact>();
+			for (var contact : client.getContacten())
 			{
-				boolean clientContactMagWeg = true;
-				List<ClientContactActie> verwijderenContactActieLijst = new ArrayList<>();
-				for (ClientContactActie actie : contact.getActies())
+				var clientContactMagWeg = true;
+				var verwijderenContactActieLijst = new ArrayList<ClientContactActie>();
+				for (var actie : contact.getActies())
 				{
 					if (onderzoeken.equals(actie.getType().getBevolkingsonderzoeken()))
 					{
@@ -647,19 +607,20 @@ public class TestServiceImpl implements TestService
 	}
 
 	@Override
+	@Transactional
 	public void projectenVerwijderen(Client client)
 	{
-		for (ProjectClient pclient : client.getProjecten())
+		for (var pclient : client.getProjecten())
 		{
-			List<ProjectBrief> projectBrieven = pclient.getBrieven();
+			var projectBrieven = pclient.getBrieven();
 			projectBrieven.forEach(projectBrief ->
 			{
-				ClientBrief clientBrief = projectBrief.getBrief();
+				var clientBrief = projectBrief.getBrief();
 				if (clientBrief != null)
 				{
 					clientBrief.setProjectBrief(null);
 				}
-				MergedBrieven mergedBrieven = projectBrief.getMergedBrieven();
+				var mergedBrieven = projectBrief.getMergedBrieven();
 				if (mergedBrieven != null)
 				{
 					mergedBrieven.getBrieven().remove(projectBrief);
@@ -667,10 +628,10 @@ public class TestServiceImpl implements TestService
 				}
 			});
 
-			ProjectInactiveerDocument projectInactiveerDocument = pclient.getProjectInactiveerDocument();
+			var projectInactiveerDocument = pclient.getProjectInactiveerDocument();
 			if (projectInactiveerDocument != null)
 			{
-				List<ProjectClient> projectClienten = projectInactiveerDocument.getProjectClienten();
+				var projectClienten = projectInactiveerDocument.getProjectClienten();
 				pclient.setProjectInactiveerDocument(null);
 				if (projectClienten.isEmpty())
 				{
@@ -684,7 +645,7 @@ public class TestServiceImpl implements TestService
 				}
 			}
 			hibernateService.deleteAll(projectBrieven);
-			ProjectGroep groep = pclient.getGroep();
+			var groep = pclient.getGroep();
 			groep.setPopulatie(groep.getPopulatie() - 1);
 			groep.getClienten().remove(pclient);
 			hibernateService.saveOrUpdateAll(groep);
@@ -693,4 +654,39 @@ public class TestServiceImpl implements TestService
 		hibernateService.saveOrUpdate(client);
 	}
 
+	@Override
+	public BMHKLaboratorium getEersteBMHKLaboratorium()
+	{
+		return bmhkLaboratoriumRepository.findFirst(null, Sort.by(SingleTableHibernateObject_.ID)).orElse(null);
+	}
+
+	@Override
+	public Gemeente getGemeenteByCode(String code)
+	{
+		return gemeenteRepository.findOneByCode(code).orElse(null);
+	}
+
+	@Override
+	public Gemeente getEersteGemeenteMetScreeningOrganisatie()
+	{
+		return gemeenteRepository.findFirst(heeftScreeningOrganisatie(), Sort.by(Sort.Order.asc(Gemeente_.NAAM))).orElse(null);
+	}
+
+	@Override
+	public List<Gemeente> getGemeentesMetScreeningOrganisatie()
+	{
+		return gemeenteRepository.findAll(heeftScreeningOrganisatie(), Sort.by(Sort.Order.asc(Gemeente_.NAAM)));
+	}
+
+	@Override
+	public Gemeente getEersteGemeenteMetNaam(String naam)
+	{
+		return gemeenteRepository.findFirst(GemeenteSpecification.heeftNaam(naam), Sort.by(AbstractHibernateObject_.ID)).orElse(null);
+	}
+
+	@Override
+	public Instelling getOrganisatieByNaam(String naam)
+	{
+		return organisatieRepository.findOne(OrganisatieSpecification.heeftNaam(naam).and(OrganisatieSpecification.isActief(true))).orElse(null);
+	}
 }

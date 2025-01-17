@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.services.impl;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,14 +33,6 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.websocket.ClientEndpoint;
-import javax.websocket.ContainerProvider;
-import javax.websocket.OnClose;
-import javax.websocket.OnError;
-import javax.websocket.OnMessage;
-import javax.websocket.Session;
-import javax.websocket.WebSocketContainer;
-
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.mamma.se.proxy.SeProxyApplication;
@@ -64,6 +56,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
+
+import jakarta.websocket.ClientEndpoint;
+import jakarta.websocket.ContainerProvider;
+import jakarta.websocket.OnClose;
+import jakarta.websocket.OnError;
+import jakarta.websocket.OnMessage;
+import jakarta.websocket.Session;
+import jakarta.websocket.WebSocketContainer;
 
 @Service
 @ClientEndpoint

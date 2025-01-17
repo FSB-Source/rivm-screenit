@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.brieven;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -50,7 +50,6 @@ import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectBriefActieType;
 import nl.rivm.screenit.model.project.ProjectType;
-import nl.rivm.screenit.model.vragenlijsten.Vragenlijst_;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.UploadDocumentService;
@@ -79,7 +78,6 @@ import static nl.rivm.screenit.model.project.ProjectBriefActie_.ACTIEF;
 import static nl.rivm.screenit.model.project.ProjectBriefActie_.DOCUMENT;
 import static nl.rivm.screenit.model.project.ProjectBriefActie_.LAATST_GEWIJZIGD;
 import static nl.rivm.screenit.model.project.ProjectBriefActie_.TYPE;
-import static nl.rivm.screenit.model.project.ProjectBriefActie_.VRAGENLIJST;
 
 @SecurityConstraint(
 	actie = Actie.TOEVOEGEN,
@@ -220,7 +218,6 @@ public class ProjectBriefActiePage extends ProjectBasePage
 
 		columns.add(new UploadDocumentDownloadColumn<>(Model.of("Downloaden"), DOCUMENT));
 		columns.add(new DateTimePropertyColumn<>(Model.of("Laatst gewijzigd"), LAATST_GEWIJZIGD, LAATST_GEWIJZIGD, new SimpleDateFormat("dd-MM-yyyy")));
-		columns.add(new PropertyColumn<>(Model.of("Vragenlijst"), VRAGENLIJST + "." + Vragenlijst_.NAAM, VRAGENLIJST + "." + Vragenlijst_.NAAM));
 
 		columns.add(new AbstractColumn<>(Model.of("Details / Test Projectbrief template"))
 		{

@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.services.impl;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -45,6 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -75,16 +76,16 @@ public class TransactionQueueVerwerker extends Thread
 	@Override
 	public void run()
 	{
-		HttpStatus responseStatus = null;
-		while (!HttpStatus.GATEWAY_TIMEOUT.equals(responseStatus) && statusService.isOnline() && persistableTransactionService.zijnErWachtendeTransacties())
+		HttpStatusCode responseStatusCode = null;
+		while (!HttpStatus.GATEWAY_TIMEOUT.equals(responseStatusCode) && statusService.isOnline() && persistableTransactionService.zijnErWachtendeTransacties())
 		{
 			PersistableTransaction transaction = persistableTransactionService.takeFirst();
 			if (transaction != null)
 			{
 				synchronized (transactionQueueService.getDaglijstEnTransactieLock())
 				{
-					responseStatus = executeTransaction(transaction);
-					if (responseStatus.equals(HttpStatus.GATEWAY_TIMEOUT))
+					responseStatusCode = executeTransaction(transaction);
+					if (responseStatusCode.equals(HttpStatus.GATEWAY_TIMEOUT))
 					{
 						restSocketService.closeSocket();
 					}
@@ -92,7 +93,7 @@ public class TransactionQueueVerwerker extends Thread
 					{
 						String transactionJSON = transaction.getTransactie();
 
-						if (responseStatus.equals(HttpStatus.OK) || transaction.getClientId() == 0)
+						if (responseStatusCode.equals(HttpStatus.OK) || transaction.getClientId() == 0)
 						{
 							LocalDate afspraakDatum = new TransactionParser(transactionJSON).getAfspraakVanafDatum();
 							daglijstService.voegVerwerkteTransactionDtoToe(afspraakDatum, transactionJSON);
@@ -123,7 +124,7 @@ public class TransactionQueueVerwerker extends Thread
 		return requestBuilder.body(transaction.getTransactie());
 	}
 
-	private HttpStatus executeTransaction(PersistableTransaction transaction)
+	private HttpStatusCode executeTransaction(PersistableTransaction transaction)
 	{
 		String transactieJson = transaction.getTransactie();
 

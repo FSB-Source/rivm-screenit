@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.uitnodigingenversturen.cleanupstep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,33 +23,19 @@ package nl.rivm.screenit.batch.jobs.cervix.uitnodigingenversturen.cleanupstep;
 
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.batch.jobs.brieven.cleanup.AbstractBrievenCleanUpReader;
-import nl.rivm.screenit.batch.service.UitnodigingenCleanUpService;
+import nl.rivm.screenit.batch.jobs.brieven.cleanup.AbstractInpakcentrumBrievenCleanUpReader;
 import nl.rivm.screenit.model.cervix.CervixMergedBrieven;
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
 import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class ZasUitnodigingenBrievenCleanUpReader extends AbstractBrievenCleanUpReader<CervixMergedBrieven>
+public class ZasUitnodigingenBrievenCleanUpReader extends AbstractInpakcentrumBrievenCleanUpReader<CervixMergedBrieven>
 {
-
-	private final UitnodigingenCleanUpService uitnodigingenCleanUpService;
-
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Bevolkingsonderzoek getBevolkingsonderzoek()
 	{
-		try
-		{
-			return uitnodigingenCleanUpService.cleanUpUitnodigingen(session, getMergedBrievenClass(), getMinimaleBestaanOpFilestore());
-		}
-		catch (Exception e)
-		{
-			crashMelding("Brieven konden niet geselecteerd worden om opgeruimte te worden", e);
-			throw e;
-		}
+		return Bevolkingsonderzoek.CERVIX;
 	}
 }

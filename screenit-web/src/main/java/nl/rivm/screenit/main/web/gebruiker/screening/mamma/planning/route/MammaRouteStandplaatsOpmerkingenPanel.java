@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.route;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,8 +21,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.route;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.main.dao.mamma.MammaRouteDao;
-import nl.rivm.screenit.main.service.mamma.MammaRouteService;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.MammaStandplaatsOpmerkingenPanel;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 
@@ -31,17 +29,9 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public abstract class MammaRouteStandplaatsOpmerkingenPanel extends GenericPanel<MammaStandplaats>
 {
-
-	@SpringBean
-	private MammaRouteDao routeDao;
-
-	@SpringBean
-	private MammaRouteService routeService;
-
 	public MammaRouteStandplaatsOpmerkingenPanel(String id, IModel<MammaStandplaats> model)
 	{
 		super(id);
@@ -52,9 +42,6 @@ public abstract class MammaRouteStandplaatsOpmerkingenPanel extends GenericPanel
 
 		add(new AjaxLink<Void>("close")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{

@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.controller;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -20,8 +20,6 @@ package nl.rivm.screenit.mamma.se.proxy.controller;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
-
-import javax.servlet.http.HttpSession;
 
 import nl.rivm.screenit.mamma.se.proxy.model.CacheProxyActie;
 import nl.rivm.screenit.mamma.se.proxy.model.RequestTypeCentraal;
@@ -48,7 +46,7 @@ public class HuisartsProxyController
 	private LogischeSessieService logischeSessieService;
 
 	@RequestMapping(value = "/all", method = RequestMethod.GET)
-	public ResponseEntity<String> getAllHuisartsen(HttpSession httpSession, @RequestHeader("YubikeyIdentificatie") String yubikeyIdentificatie)
+	public ResponseEntity<String> getAllHuisartsen(@RequestHeader("YubikeyIdentificatie") String yubikeyIdentificatie)
 	{
 		if (!logischeSessieService.geldigeYubikey(yubikeyIdentificatie))
 		{

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.f
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,10 +29,11 @@ import java.util.Map;
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaFotobesprekingOnderzoekenWerklijstZoekObject;
 import nl.rivm.screenit.main.service.mamma.MammaBeoordelingService;
+import nl.rivm.screenit.main.service.mamma.MammaFotobesprekingService;
 import nl.rivm.screenit.main.service.mamma.MammaKwaliteitscontroleService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ConfirmingIndicatingAjaxLink;
-import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
+import nl.rivm.screenit.main.web.component.modal.IDialog;
 import nl.rivm.screenit.main.web.component.table.AjaxImageCellPanel;
 import nl.rivm.screenit.main.web.component.table.ClientColumn;
 import nl.rivm.screenit.main.web.component.table.EnumPropertyColumn;
@@ -43,13 +44,23 @@ import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.MammaBeTabelCounterPanel;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.werklijst.MammaBeoordelingenWerklijstPage;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
+import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.GbaPersoon;
+import nl.rivm.screenit.model.GbaPersoon_;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.model.mamma.MammaAfspraak_;
+import nl.rivm.screenit.model.mamma.MammaBeoordeling_;
+import nl.rivm.screenit.model.mamma.MammaDossier_;
 import nl.rivm.screenit.model.mamma.MammaFotobespreking;
 import nl.rivm.screenit.model.mamma.MammaFotobesprekingOnderzoek;
+import nl.rivm.screenit.model.mamma.MammaFotobesprekingOnderzoek_;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid_;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
 import nl.rivm.screenit.model.mamma.enums.MammaFotobesprekingOnderzoekStatus;
 import nl.rivm.screenit.model.mamma.enums.MammobridgeRole;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
@@ -71,7 +82,10 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.springframework.data.domain.Sort;
 import org.wicketstuff.shiro.ShiroConstraint;
+
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
 
 @SecurityConstraint(
 	actie = Actie.INZIEN,
@@ -93,6 +107,9 @@ public class MammaFotobesprekingOnderzoekenWerklijstPage extends MammaFotobespre
 
 	@SpringBean
 	private MammaKwaliteitscontroleService kwaliteitscontroleService;
+
+	@SpringBean
+	private MammaFotobesprekingService fotobesprekingService;
 
 	@SpringBean
 	private HibernateService hibernateService;
@@ -120,7 +137,8 @@ public class MammaFotobesprekingOnderzoekenWerklijstPage extends MammaFotobespre
 	{
 		super.onInitialize();
 
-		MammaFotobesprekingOnderzoekenDataProvider onderzoekDataProvider = new MammaFotobesprekingOnderzoekenDataProvider("onderzoek.creatieDatum", zoekObjectModel);
+		MammaFotobesprekingOnderzoekenDataProvider onderzoekDataProvider = new MammaFotobesprekingOnderzoekenDataProvider(
+			propertyChain(MammaFotobesprekingOnderzoek_.BEOORDELING, MammaBeoordeling_.ONDERZOEK, MammaOnderzoek_.CREATIE_DATUM), zoekObjectModel);
 
 		add(new Label("naam", getFotobespreking().getOmschrijving()));
 
@@ -128,20 +146,29 @@ public class MammaFotobesprekingOnderzoekenWerklijstPage extends MammaFotobespre
 		refreshContainer.setOutputMarkupId(Boolean.TRUE);
 		add(refreshContainer);
 
+		var onderzoekProperty = propertyChain(MammaFotobesprekingOnderzoek_.BEOORDELING, MammaBeoordeling_.ONDERZOEK);
+		var persoonProperty = propertyChain(onderzoekProperty, MammaOnderzoek_.AFSPRAAK, MammaAfspraak_.UITNODIGING, MammaUitnodiging_.SCREENING_RONDE,
+			MammaScreeningRonde_.DOSSIER, MammaDossier_.CLIENT, Client_.PERSOON);
+
 		List<IColumn<MammaFotobesprekingOnderzoek, String>> columns = new ArrayList<>();
-		columns.add(new DateTimePropertyColumn<>(Model.of("Onderzoeksdatum"), "beoordeling.onderzoek.creatieDatum", "onderzoek.creatieDatum",
-			Constants.getDateTimeSecondsFormat()));
-		columns.add(new PropertyColumn<>(Model.of("Volgnummer"), "volgnummer", "volgnummer"));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Onderzoeksdatum"), "beoordeling.onderzoek.creatieDatum",
+			propertyChain(onderzoekProperty, MammaOnderzoek_.CREATIE_DATUM), Constants.getDateTimeSecondsFormat()));
+		columns.add(new PropertyColumn<>(Model.of("Volgnummer"), MammaFotobesprekingOnderzoek_.VOLGNUMMER, "volgnummer"));
 
 		if (!MammobridgeRole.anoniemeRollen().contains(ScreenitSession.get().getMammaHuidigeIDS7Role())
 			|| ScreenitSession.get().getInstelling().getOrganisatieType() != OrganisatieType.BEOORDELINGSEENHEID)
 		{
-			columns.add(new ClientColumn<>("persoon.achternaam", "beoordeling.onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client"));
-			columns.add(new GeboortedatumColumn<>("persoon.geboortedatum", "beoordeling.onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon"));
-			columns.add(new PropertyColumn<>(Model.of("BSN"), "persoon.bsn", "beoordeling.onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon.bsn"));
+			columns.add(new ClientColumn<>(propertyChain(persoonProperty, GbaPersoon_.ACHTERNAAM), "beoordeling.onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client"));
+			columns.add(
+				new GeboortedatumColumn<>(propertyChain(persoonProperty, GbaPersoon_.GEBOORTEDATUM),
+					"beoordeling.onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon"));
+			columns.add(new PropertyColumn<>(Model.of("BSN"), propertyChain(persoonProperty, GbaPersoon_.BSN),
+				"beoordeling.onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon.bsn"));
 		}
-		columns.add(new PropertyColumn<>(Model.of("SE"), "se.naam", "beoordeling.onderzoek.screeningsEenheid.naam"));
-		columns.add(new EnumPropertyColumn<>(Model.of("Status"), "status", "status", this));
+
+		columns.add(new PropertyColumn<>(Model.of("SE"), propertyChain(onderzoekProperty, MammaOnderzoek_.SCREENINGS_EENHEID, MammaScreeningsEenheid_.NAAM),
+			"beoordeling.onderzoek.screeningsEenheid.naam"));
+		columns.add(new EnumPropertyColumn<>(Model.of("Status"), MammaFotobesprekingOnderzoek_.STATUS, "status", this));
 
 		if (!ScreenitSession.get().getInstelling().getOrganisatieType().equals(OrganisatieType.BEOORDELINGSEENHEID)
 			&& !ScreenitSession.get().getInstelling().getOrganisatieType().equals(OrganisatieType.KWALITEITSPLATFORM)
@@ -150,7 +177,7 @@ public class MammaFotobesprekingOnderzoekenWerklijstPage extends MammaFotobespre
 			columns.add(getOnderzoekVerwijderenColumn());
 		}
 
-		refreshContainer.add(new ScreenitDataTable<MammaFotobesprekingOnderzoek, String>("resultaten", columns, onderzoekDataProvider, 10, Model.of("onderzoek(en)"))
+		refreshContainer.add(new ScreenitDataTable<>("resultaten", columns, onderzoekDataProvider, 10, Model.of("onderzoek(en)"))
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<MammaFotobesprekingOnderzoek> model)
@@ -169,7 +196,7 @@ public class MammaFotobesprekingOnderzoekenWerklijstPage extends MammaFotobespre
 					@Override
 					public Integer getObject()
 					{
-						return kwaliteitscontroleService.getAantalBesproken(getFotobespreking());
+						return (int) fotobesprekingService.getAantalBesproken(getFotobespreking());
 					}
 				};
 
@@ -191,12 +218,12 @@ public class MammaFotobesprekingOnderzoekenWerklijstPage extends MammaFotobespre
 
 	private IColumn<MammaFotobesprekingOnderzoek, String> getOnderzoekVerwijderenColumn()
 	{
-		return new NotClickableAbstractColumn<MammaFotobesprekingOnderzoek, String>(Model.of("Verwijderen"))
+		return new NotClickableAbstractColumn<>(Model.of("Verwijderen"))
 		{
 			@Override
 			public void populateItem(Item<ICellPopulator<MammaFotobesprekingOnderzoek>> cellItem, String componentId, IModel<MammaFotobesprekingOnderzoek> rowModel)
 			{
-				cellItem.add(new AjaxImageCellPanel<MammaFotobesprekingOnderzoek>(componentId, rowModel, "icon-trash")
+				cellItem.add(new AjaxImageCellPanel<>(componentId, rowModel, "icon-trash")
 				{
 					@Override
 					protected void onClick(AjaxRequestTarget target)
@@ -207,7 +234,7 @@ public class MammaFotobesprekingOnderzoekenWerklijstPage extends MammaFotobespre
 							if (MammaFotobesprekingOnderzoekStatus.NIET_BESPROKEN.equals(fotobesprekingOnderzoek.getStatus()))
 							{
 								dialog.openWith(target,
-									new MammaFotobesprekingOnderzoekVerwijderenPopupPanel(BootstrapDialog.CONTENT_ID,
+									new MammaFotobesprekingOnderzoekVerwijderenPopupPanel(IDialog.CONTENT_ID,
 										new CompoundPropertyModel<>(ModelUtil.sModel(fotobesprekingOnderzoek)))
 									{
 										@Override
@@ -255,12 +282,12 @@ public class MammaFotobesprekingOnderzoekenWerklijstPage extends MammaFotobespre
 
 	private void addFotobesprekingAfrondenButton()
 	{
-		boolean kanFotobesprekingAfronden = kwaliteitscontroleService.kanFotobesprekingAfronden(getFotobespreking())
+		boolean kanFotobesprekingAfronden = fotobesprekingService.kanFotobesprekingAfronden(getFotobespreking())
 			&& OrganisatieType.BEOORDELINGSEENHEID.equals(ScreenitSession.get().getInstelling().getOrganisatieType());
 
 		add(new ConfirmingIndicatingAjaxLink<Void>("besprekingAfronden", dialog, "confirm.fotobespreking.afronden")
 		{
-			private boolean popupNietNodig = !kwaliteitscontroleService.nieuweBeoordelingenAangevraagdNavFotobespreking(getFotobespreking());
+			private boolean popupNietNodig = !fotobesprekingService.nieuweBeoordelingenAangevraagdNavFotobespreking(getFotobespreking());
 
 			@Override
 			public void onClick(AjaxRequestTarget target)
@@ -287,14 +314,14 @@ public class MammaFotobesprekingOnderzoekenWerklijstPage extends MammaFotobespre
 			protected boolean skipConfirmation()
 			{
 				return popupNietNodig;
-			};
+			}
 
 			@Override
 			protected void onNo(AjaxRequestTarget target)
 			{
 				afronden(target);
 				info(getString("fotobespreking.afgerond"));
-			};
+			}
 
 		}.setVisible(kanFotobesprekingAfronden).setOutputMarkupId(true));
 	}
@@ -308,7 +335,7 @@ public class MammaFotobesprekingOnderzoekenWerklijstPage extends MammaFotobespre
 	{
 		if (getFotobespreking().getAfgerondOp() == null)
 		{
-			dialog.openWith(target, new MammaFotobesprekingOnderzoekToevoegenPopupPanel(BootstrapDialog.CONTENT_ID, ModelUtil.cModel(getFotobespreking()))
+			dialog.openWith(target, new MammaFotobesprekingOnderzoekToevoegenPopupPanel(IDialog.CONTENT_ID, ModelUtil.cModel(getFotobespreking()))
 			{
 				@Override
 				protected void onOpslaanSuccesvol(AjaxRequestTarget target)
@@ -327,7 +354,8 @@ public class MammaFotobesprekingOnderzoekenWerklijstPage extends MammaFotobespre
 	private void openBesprekenScherm(AjaxRequestTarget target, IModel<MammaFotobesprekingOnderzoek> model, String sortProperty)
 	{
 		Map<Long, Long> onderzoekenIdMapping = new LinkedHashMap<>();
-		for (MammaFotobesprekingOnderzoek onderzoek : kwaliteitscontroleService.zoekFotobesprekingOnderzoeken(zoekObjectModel.getObject(), -1, -1, sortProperty, true))
+		var sort = Sort.by(sortProperty);
+		for (MammaFotobesprekingOnderzoek onderzoek : fotobesprekingService.zoekFotobesprekingOnderzoeken(zoekObjectModel.getObject(), -1, -1, sort))
 		{
 			onderzoekenIdMapping.put(onderzoek.getBeoordeling().getId(), onderzoek.getId());
 		}

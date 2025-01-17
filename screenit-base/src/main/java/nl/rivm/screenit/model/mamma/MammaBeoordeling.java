@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -43,7 +43,6 @@ import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.mamma.berichten.MammaHuisartsBericht;
-import nl.rivm.screenit.model.mamma.berichten.xds.XdsStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingOpschortenReden;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
@@ -136,10 +135,6 @@ public class MammaBeoordeling extends AbstractHibernateObject
 
 	@OneToOne(fetch = FetchType.LAZY, optional = true)
 	private UploadDocument verslagPdf;
-
-	@Column(nullable = false)
-	@Enumerated(EnumType.STRING)
-	private XdsStatus xdsVerslagStatus;
 
 	@Column
 	private String redenAnnuleren;
@@ -332,16 +327,6 @@ public class MammaBeoordeling extends AbstractHibernateObject
 	public UploadDocument getVerslagPdf()
 	{
 		return verslagPdf;
-	}
-
-	public XdsStatus getXdsVerslagStatus()
-	{
-		return xdsVerslagStatus;
-	}
-
-	public void setXdsVerslagStatus(XdsStatus xdsVerslagStatus)
-	{
-		this.xdsVerslagStatus = xdsVerslagStatus;
 	}
 
 	public String getRedenAnnuleren()

@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -50,6 +50,7 @@ import nl.rivm.screenit.model.colon.ColonScreeningRonde_;
 import nl.rivm.screenit.model.colon.ColonVerslag;
 import nl.rivm.screenit.model.colon.ColonVerslag_;
 import nl.rivm.screenit.model.colon.IFOBTTest_;
+import nl.rivm.screenit.model.colon.MdlVerslag;
 import nl.rivm.screenit.model.colon.OpenUitnodiging;
 import nl.rivm.screenit.model.colon.OpenUitnodiging_;
 import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
@@ -59,6 +60,7 @@ import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.specification.algemeen.AfmeldingSpecification;
 import nl.rivm.screenit.specification.algemeen.BriefSpecification;
 import nl.rivm.screenit.util.DateUtil;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 
 import org.springframework.data.jpa.domain.Specification;
 
@@ -89,9 +91,23 @@ public class ColonScreeningRondeSpecification
 			subquery.select((subRoot.get(TablePerClassHibernateObject_.id)))
 				.where(
 					isEersteOngunstigeUitslagUitLaatsteRonde(testenJoin.get(IFOBTTest_.statusDatum), subRoot.get(TablePerClassHibernateObject_.id), peilDatum)
-						.and(heefGeenVervolg(afspraakJoin, conclusieJoin, afmeldingJoin)
-						).toPredicate(r, q, cb)
+						.and(heefGeenVervolg(afspraakJoin, conclusieJoin, afmeldingJoin)).toPredicate(r, q, cb)
 				);
+			return cb.not(r.in(subquery));
+		};
+	}
+
+	public static ExtendedSpecification<ColonScreeningRonde> heeftGeenRondeZonderVerslagNaVerlopenOngunstigeUitslag(LocalDate peilDatum)
+	{
+		return (r, q, cb) ->
+		{
+			var subquery = q.subquery(Long.class);
+			var subRoot = subquery.from(ColonScreeningRonde.class);
+			var testenJoin = join(subRoot, ColonScreeningRonde_.ifobtTesten);
+
+			subquery.select(subRoot.get(TablePerClassHibernateObject_.id))
+				.where(isEersteOngunstigeUitslagUitLaatsteRonde(testenJoin.get(IFOBTTest_.statusDatum), subRoot.get(TablePerClassHibernateObject_.id), peilDatum).toPredicate(r, q,
+					cb));
 			return cb.not(r.in(subquery));
 		};
 	}
@@ -167,6 +183,24 @@ public class ColonScreeningRondeSpecification
 		};
 	}
 
+	public static ExtendedSpecification<ColonScreeningRonde> heeftGeenAfgerondeMdlVerslagen()
+	{
+		return (r, q, cb) -> cb.not(heeftAfgerondeMdlVerslagen().toPredicate(r, q, cb));
+	}
+
+	public static ExtendedSpecification<ColonScreeningRonde> heeftAfgerondeMdlVerslagen()
+	{
+		return (r, q, cb) ->
+		{
+			var subquery = q.subquery(ColonScreeningRonde.class);
+			var subRoot = subquery.from(MdlVerslag.class);
+			subquery.select(join(subRoot, ColonVerslag_.screeningRonde))
+				.where(heeftColonVerslagStatus(VerslagStatus.AFGEROND).toPredicate(subRoot, q, cb))
+				.distinct(true);
+			return r.in(subquery);
+		};
+	}
+
 	public static ExtendedSpecification<ColonScreeningRonde> heefGeenOpenUitnodigingNa(LocalDateTime peilmoment)
 	{
 		return (r, q, cb) ->
@@ -198,9 +232,23 @@ public class ColonScreeningRondeSpecification
 		};
 	}
 
+	public static ExtendedSpecification<ColonScreeningRonde> heeftOpenUitnodiging()
+	{
+		return (r, q, cb) ->
+		{
+			var uitnodigingJoin = join(r, ColonScreeningRonde_.openUitnodiging, JoinType.LEFT);
+			return cb.isNotNull(uitnodigingJoin.get(AbstractHibernateObject_.id));
+		};
+	}
+
 	public static ExtendedSpecification<ColonScreeningRonde> heeftCreatieDatumVoorOfOp(LocalDateTime peilmoment)
 	{
-		return (r, q, cb) -> cb.lessThanOrEqualTo(r.get(ColonScreeningRonde_.creatieDatum), DateUtil.toUtilDate(peilmoment));
+		return (r, q, cb) -> cb.lessThanOrEqualTo(r.get(ScreeningRonde_.creatieDatum), DateUtil.toUtilDate(peilmoment));
+	}
+
+	public static ExtendedSpecification<ColonScreeningRonde> heeftCreatieDatum(Date datum)
+	{
+		return (r, q, cb) -> cb.equal(truncate("day", r.get(ScreeningRonde_.creatieDatum), cb), datum);
 	}
 
 	private static ExtendedSpecification<ColonScreeningRonde> heefGeenVervolg(From<?, ColonIntakeAfspraak> afspraakJoin,
@@ -225,10 +273,5 @@ public class ColonScreeningRondeSpecification
 	{
 		ExtendedSpecification<ColonScreeningRonde> heeftGeenConclusieType = ColonConclusieSpecification.heeftGeenType().with(r -> conclusieJoin);
 		return heeftGeenConclusieType.and(AfmeldingSpecification.isEenmaligAfgemeld().with(r -> afmeldingJoin));
-	}
-
-	public static ExtendedSpecification<ColonScreeningRonde> heeftCreatieDatum(Date datum)
-	{
-		return (r, q, cb) -> cb.equal(truncate("day", r.get(ScreeningRonde_.creatieDatum), cb), datum);
 	}
 }

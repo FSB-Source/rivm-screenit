@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.brieven.client.genererenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.cervix.brieven.client.genererenstep;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.PreferenceKey;
@@ -32,11 +34,17 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
-import org.springframework.batch.item.ExecutionContext;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.model.enums.BriefType.CERVIX_CONTROLEUITSTRIJKJE_AFWIJKING;
+import static nl.rivm.screenit.model.enums.BriefType.CERVIX_CYTOLOGIE_AFWIJKING;
+import static nl.rivm.screenit.model.enums.BriefType.CERVIX_VOLGEND_MONSTER_CYTOLOGIE_AFWIJKING;
+import static nl.rivm.screenit.specification.algemeen.BriefSpecification.heeftBriefType;
+import static nl.rivm.screenit.specification.algemeen.BriefSpecification.isAangemaaktVoorOfOp;
+import static nl.rivm.screenit.specification.algemeen.ClientSpecification.heeftGbaStatus;
+import static nl.rivm.screenit.specification.algemeen.GemeenteSpecification.heeftBmhkLaboratorium;
+import static nl.rivm.screenit.specification.cervix.CervixBriefSpecification.heeftGeenUitnodiging;
 
 @Component
 @AllArgsConstructor
@@ -48,32 +56,27 @@ public class CervixBrievenGenererenReader extends AbstractBrievenGenererenReader
 	private final SimplePreferenceService preferenceService;
 
 	@Override
-	protected Long getScreeningOrganisatieId(ExecutionContext context)
+	protected Long getScreeningOrganisatieId()
 	{
-		return context.getLong(CervixBrievenGenererenPartitioner.KEY_SCREENINGORGANISATIEID);
+		return getStepExecutionContext().getLong(CervixBrievenGenererenPartitioner.KEY_SCREENINGORGANISATIEID);
 	}
 
 	@Override
-	protected Criteria additionalRestrictions(Criteria crit, ExecutionContext context)
+	protected Specification<CervixBrief> createSpecification()
 	{
-		crit.add(Restrictions.eq("client.gbaStatus", GbaStatus.INDICATIE_AANWEZIG));
-
-		var briefType = BriefType.valueOf(context.getString(CervixBrievenGenererenPartitioner.KEY_BRIEFTYPE));
-		crit.add(Restrictions.eq("briefType", briefType));
-
-		switch (briefType)
+		var briefType = BriefType.valueOf(getStepExecutionContext().getString(CervixBrievenGenererenPartitioner.KEY_BRIEFTYPE));
+		var specification = super.createSpecification()
+			.and(heeftGbaStatus(GbaStatus.INDICATIE_AANWEZIG).with(r -> clientJoin(r)))
+			.and(heeftBriefType(briefType));
+		if (List.of(CERVIX_CYTOLOGIE_AFWIJKING, CERVIX_VOLGEND_MONSTER_CYTOLOGIE_AFWIJKING, CERVIX_CONTROLEUITSTRIJKJE_AFWIJKING).contains(briefType))
 		{
-		case CERVIX_CYTOLOGIE_AFWIJKING:
-		case CERVIX_VOLGEND_MONSTER_CYTOLOGIE_AFWIJKING:
-		case CERVIX_CONTROLEUITSTRIJKJE_AFWIJKING:
-			crit.add(Restrictions.le("creatieDatum",
+			specification = specification.and(isAangemaaktVoorOfOp(
 				DateUtil.minDagen(currentDateSupplier.getDate(), preferenceService.getInteger(PreferenceKey.CERVIX_UITSTEL_UITSLAGBRIEF_PAP3A2_OF_HOGER.toString()))));
-			break;
 		}
 
-		crit.createAlias("uitnodiging", "uitnodiging", JoinType.LEFT_OUTER_JOIN);
-		crit.add(Restrictions.or(Restrictions.isNull("uitnodiging.id"), Restrictions.isNotNull("gemeente.bmhkLaboratorium")));
+		specification = specification.and(heeftGeenUitnodiging().or(heeftBmhkLaboratorium().with(r -> gemeenteJoin(r))));
 
-		return crit;
+		return specification;
 	}
+
 }

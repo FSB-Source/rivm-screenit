@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.cervix.facturatie;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,6 +35,9 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
@@ -43,6 +46,8 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.envers.Audited;
 
 @Entity
+@Getter
+@Setter
 @Table(schema = "cervix", name = "betaalopdracht_regel_specificatie")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 @Audited
@@ -71,86 +76,4 @@ public class CervixBetaalopdrachtRegelSpecificatie extends AbstractHibernateObje
 
 	@Column(nullable = false)
 	private Integer aantalBetaalRegels;
-
-	public BigDecimal getBedrag()
-	{
-		return bedrag;
-	}
-
-	public void setBedrag(BigDecimal subTotaal)
-	{
-		this.bedrag = subTotaal;
-	}
-
-	public CervixBetaalopdrachtRegel getBetaalopdrachtRegel()
-	{
-		return betaalopdrachtRegel;
-	}
-
-	public void setBetaalopdrachtRegel(CervixBetaalopdrachtRegel betaalopdrachtRegel)
-	{
-		this.betaalopdrachtRegel = betaalopdrachtRegel;
-	}
-
-	public List<CervixBoekRegel> getBoekRegels()
-	{
-		return boekRegels;
-	}
-
-	public void setBoekRegels(List<CervixBoekRegel> boekRegels)
-	{
-		this.boekRegels = boekRegels;
-	}
-
-	public CervixTariefType getTariefType()
-	{
-		return tariefType;
-	}
-
-	public void setTariefType(CervixTariefType type)
-	{
-		this.tariefType = type;
-	}
-
-	public CervixTarief getTarief()
-	{
-		return tarief;
-	}
-
-	public void setTarief(CervixTarief tarief)
-	{
-		this.tarief = tarief;
-	}
-
-	public BigDecimal getTariefBedrag()
-	{
-		return tariefBedrag;
-	}
-
-	public void setTariefBedrag(BigDecimal tariefBedrag)
-	{
-		this.tariefBedrag = tariefBedrag;
-	}
-
-	public Integer getAantalBetaalRegels()
-	{
-		return aantalBetaalRegels;
-	}
-
-	public void setAantalBetaalRegels(Integer aantalBetaalRegels)
-	{
-		this.aantalBetaalRegels = aantalBetaalRegels;
-	}
-
-	@Transient
-	public BigDecimal getDebets()
-	{
-		return debets;
-	}
-
-	@Transient
-	public void setDebets(BigDecimal debets)
-	{
-		this.debets = debets;
-	}
 }

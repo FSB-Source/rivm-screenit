@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,23 +22,22 @@ package nl.rivm.screenit.specification.colon;
  */
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
 import nl.rivm.screenit.model.colon.planning.ColonIntakekamer_;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 
-import org.springframework.data.jpa.domain.Specification;
-
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ColonIntakeKamerSpecification
 {
-	public static Specification<ColonIntakekamer> isActief()
+	public static ExtendedSpecification<ColonIntakekamer> isActief()
 	{
-		return (r, q, cb) -> cb.equal(r.get(ColonIntakekamer_.actief), true);
+		return (r, q, cb) -> cb.isTrue(r.get(ColonIntakekamer_.actief));
 	}
 
-	public static Specification<ColonIntakekamer> heeftIntakelocatie(ColonIntakelocatie intakelocatie)
+	public static ExtendedSpecification<ColonIntakekamer> heeftIntakelocatie(ColonIntakelocatie intakelocatie)
 	{
 		return (r, q, cb) -> cb.equal(r.get(ColonIntakekamer_.intakelocatie), intakelocatie);
 	}

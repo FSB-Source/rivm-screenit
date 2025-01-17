@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,7 +28,7 @@ import java.util.List;
 import javax.persistence.criteria.JoinType;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.Brief_;
 import nl.rivm.screenit.model.Client;
@@ -48,16 +48,18 @@ import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.specification.algemeen.ClientSpecification;
 import nl.rivm.screenit.util.DateUtil;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.domain.Specification;
 
 import com.google.common.collect.Range;
 
+import static nl.rivm.screenit.specification.HibernateObjectSpecification.heeftGeenId;
 import static nl.rivm.screenit.specification.RangeSpecification.bevat;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ColonUitnodigingSpecification
 {
 	public static Specification<ColonUitnodiging> heeftActieveClient()
@@ -68,6 +70,16 @@ public class ColonUitnodigingSpecification
 			var dossier = join(ronde, ColonScreeningRonde_.dossier);
 			return join(dossier, ColonDossier_.client);
 		});
+	}
+
+	public static ExtendedSpecification<ColonUitnodiging> isVerstuurd()
+	{
+		return (r, q, cb) -> cb.isTrue(r.get(InpakbareUitnodiging_.verstuurd));
+	}
+
+	public static ExtendedSpecification<ColonUitnodiging> heeftGeenUitnodiging()
+	{
+		return heeftGeenId();
 	}
 
 	public static Specification<ColonUitnodiging> heeftGeenVerstuurdDatum()
@@ -136,7 +148,17 @@ public class ColonUitnodigingSpecification
 		return (r, q, cb) ->
 		{
 			var fitJoin = join(r, ColonUitnodiging_.gekoppeldeTest, JoinType.LEFT);
-			return cb.isNull(fitJoin.get(IFOBTTest_.id));
+			return cb.isNull(fitJoin.get(AbstractHibernateObject_.id));
 		};
+	}
+
+	public static ExtendedSpecification<ColonUitnodiging> heeftGeenRetourzendingReden()
+	{
+		return (r, q, cb) -> cb.isNull(r.get(InpakbareUitnodiging_.retourzendingReden));
+	}
+
+	public static ExtendedSpecification<ColonUitnodiging> heeftTrackTraceId(String trackTraceId)
+	{
+		return (r, q, cb) -> cb.equal(r.get(InpakbareUitnodiging_.trackTraceId), trackTraceId);
 	}
 }

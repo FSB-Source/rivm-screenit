@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,15 +23,9 @@ package nl.rivm.screenit.service.colon.impl;
 
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.dao.colon.ComplicatieDao;
-import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.SortState;
-import nl.rivm.screenit.model.colon.Complicatie;
 import nl.rivm.screenit.model.colon.MdlVerslag;
 import nl.rivm.screenit.model.enums.ComplicatieMoment;
 import nl.rivm.screenit.service.colon.ComplicatieService;
@@ -40,37 +34,13 @@ import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @Component
-@Transactional(propagation = Propagation.SUPPORTS)
 public class ComplicatieServiceImpl implements ComplicatieService
 {
 
 	@Autowired
-	private ComplicatieDao complicatieDao;
-
-	@Autowired
 	private SimplePreferenceService preferenceService;
-
-	@Override
-	public Iterator<Complicatie> getComplicaties(Complicatie searchObject, List<Long> hierarchieCriteria, int first, int count, SortState<String> sortState)
-	{
-		return complicatieDao.getComplicaties(searchObject, hierarchieCriteria, first, count, sortState);
-	}
-
-	@Override
-	public long countComplicaties(Complicatie searchObject, List<Long> hierarchieCriteria)
-	{
-		return complicatieDao.countComplicaties(searchObject, hierarchieCriteria);
-	}
-
-	@Override
-	public List<Complicatie> geefAlleNietGekoppeldeComplicaties(Client client, Date date)
-	{
-		return complicatieDao.geefAlleNietGekoppeldeComplicaties(client, date);
-	}
 
 	@Override
 	public ComplicatieMoment getCorrecteComplicatieMoment(Date complicatieDatum, MdlVerslag verslag)

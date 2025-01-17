@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.controller;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,8 +22,6 @@ package nl.rivm.screenit.mamma.se.proxy.controller;
  */
 
 import java.time.LocalDate;
-
-import javax.servlet.http.HttpSession;
 
 import nl.rivm.screenit.mamma.se.proxy.model.CacheProxyActie;
 import nl.rivm.screenit.mamma.se.proxy.services.LogischeSessieService;
@@ -50,7 +48,7 @@ public class PlanningProxyController
 	private LogischeSessieService logischeSessieService;
 
 	@RequestMapping(value = "/{datum}", method = RequestMethod.GET)
-	public ResponseEntity<String> readPlanning(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate datum, HttpSession httpSession,
+	public ResponseEntity<String> readPlanning(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate datum,
 		@RequestHeader("YubikeyIdentificatie") String yubikeyIdentificatie)
 	{
 		if (!logischeSessieService.geldigeYubikey(yubikeyIdentificatie))

@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -37,14 +37,12 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.From;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.InstellingGebruiker;
@@ -129,7 +127,7 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 		for (var koppelingMetIntakelocatie : uitnodigingsGebied.getVerdeling())
 		{
 			if (verwijderdeKoppelingen.contains(koppelingMetIntakelocatie)
-				|| !koppelingMetIntakelocatie.getPercentageAdherentie().equals(nieuweAdherentiePercentages.get(ColonRestrictions.getUniekIdOf(koppelingMetIntakelocatie))))
+				|| !koppelingMetIntakelocatie.getPercentageAdherentie().equals(nieuweAdherentiePercentages.get(getUniekIdOf(koppelingMetIntakelocatie))))
 			{
 				bepaalWijzigingen(nieuweAdherentiePercentages, verwijderdeKoppelingen, wijzigingen, benodigdeIntakecapaciteiten,
 					koppelingMetIntakelocatie.getIntakelocatie().getCapaciteitVerdeling());
@@ -504,7 +502,7 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 				var huidigeAdherentiePercentage = getAdherentiePercentage(koppelingNaarAndereIntakelocatie, verwijderdeKoppelingen, nieuweAdherentiePercentages);
 				var nieuweAdherentiePercentage = BigDecimal.valueOf(huidigeAdherentiePercentage).add(BigDecimal.valueOf(huidigeAdherentiePercentage)
 					.multiply(BigDecimal.valueOf(adherentieVerschil)).divide(BigDecimal.valueOf(totaalOverigeAdherentie), RoundingMode.HALF_UP));
-				var uniekIdOfKoppelingAndereIntakelocatie = ColonRestrictions.getUniekIdOf(koppelingNaarAndereIntakelocatie);
+				var uniekIdOfKoppelingAndereIntakelocatie = getUniekIdOf(koppelingNaarAndereIntakelocatie);
 				nieuweAdherentiePercentages.put(uniekIdOfKoppelingAndereIntakelocatie, nieuweAdherentiePercentage.intValue());
 				onzichtbareAdherentieWijzigingen.add(uniekIdOfKoppelingAndereIntakelocatie);
 				nieuwTotaalAdherentieGewijzigdGebied += nieuweAdherentiePercentage.intValue();
@@ -529,7 +527,7 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 			var koppelingMetHoogsteAdherentieOptional = uitnodigingsGebied.getVerdeling().stream()
 				.max(Comparator.comparing(koppeling -> getAdherentiePercentage(koppeling, verwijderdeKoppelingen, nieuweAdherentiePercentages)));
 			koppelingMetHoogsteAdherentieOptional.ifPresent(
-				koppeling -> nieuweAdherentiePercentages.put(ColonRestrictions.getUniekIdOf(koppeling),
+				koppeling -> nieuweAdherentiePercentages.put(getUniekIdOf(koppeling),
 					getAdherentiePercentage(koppeling, verwijderdeKoppelingen, nieuweAdherentiePercentages) + afwijking));
 		}
 	}
@@ -558,7 +556,7 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 		Integer adherentie = 0;
 		if (!verwijderdeVerdelingen.contains(koppeling))
 		{
-			adherentie = nieuweAdherentiePercentages.get(ColonRestrictions.getUniekIdOf(koppeling));
+			adherentie = nieuweAdherentiePercentages.get(getUniekIdOf(koppeling));
 			if (adherentie == null)
 			{
 				adherentie = koppeling.getPercentageAdherentie();
@@ -659,7 +657,7 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 			spec = spec.and(u1Spec.or(u2Spec));
 		}
 
-		return clientRepository.findWith(spec, Long.class, q -> q.projection(CriteriaBuilder::countDistinct)).one().orElse(0L);
+		return clientRepository.countDistinct(spec);
 	}
 
 	private Function<From<?, ? extends Client>, From<?, ? extends ColonScreeningRonde>> screeningRondeJoin()
@@ -684,5 +682,31 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 			.and(heeftCreatieDatum(DateUtil.toUtilDate(uitnodigingsDatum)).with(screeningRondeJoin()));
 
 		return clientRepository.count(spec);
+	}
+
+	@Override
+	public String getUniekIdOf(ColoscopieCentrumColonCapaciteitVerdeling verdeling)
+	{
+		if (verdeling.getId() != null)
+		{
+			return verdeling.getId().toString();
+		}
+		else
+		{
+			String transientId = "";
+			if (verdeling.getIntakelocatie() != null)
+			{
+				transientId += verdeling.getIntakelocatie().getId().toString();
+			}
+			if (verdeling.getUitnodigingsGebied() != null)
+			{
+				if (!transientId.isEmpty())
+				{
+					transientId += "_";
+				}
+				transientId += verdeling.getUitnodigingsGebied().getId().toString();
+			}
+			return transientId;
+		}
 	}
 }

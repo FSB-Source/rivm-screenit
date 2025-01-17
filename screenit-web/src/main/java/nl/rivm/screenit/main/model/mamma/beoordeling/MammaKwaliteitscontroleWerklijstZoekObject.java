@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.model.mamma.beoordeling;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,8 +21,11 @@ package nl.rivm.screenit.main.model.mamma.beoordeling;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.CentraleEenheid;
@@ -36,7 +39,9 @@ public class MammaKwaliteitscontroleWerklijstZoekObject extends MammaBaseWerklij
 
 	private IModel<List<CentraleEenheid>> centraleEenheden;
 
-	private Date totMet;
+	@Setter
+	@Getter
+	private LocalDate vanaf;
 
 	public List<BeoordelingsEenheid> getBeoordelingsEenheden()
 	{
@@ -58,16 +63,6 @@ public class MammaKwaliteitscontroleWerklijstZoekObject extends MammaBaseWerklij
 		this.centraleEenheden = ModelUtil.listRModel(centraleEenheden);
 	}
 
-	public Date getTotMet()
-	{
-		return totMet;
-	}
-
-	public void setTotMet(Date totMet)
-	{
-		this.totMet = totMet;
-	}
-
 	@Override
 	public void detach()
 	{
@@ -75,5 +70,4 @@ public class MammaKwaliteitscontroleWerklijstZoekObject extends MammaBaseWerklij
 		ModelUtil.nullSafeDetach(beoordelingsEenheden);
 		ModelUtil.nullSafeDetach(centraleEenheden);
 	}
-
 }

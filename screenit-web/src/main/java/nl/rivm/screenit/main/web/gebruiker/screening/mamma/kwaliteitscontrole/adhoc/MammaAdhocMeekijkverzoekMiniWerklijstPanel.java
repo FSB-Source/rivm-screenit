@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.a
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.main.service.mamma.MammaKwaliteitscontroleService;
+import nl.rivm.screenit.main.service.mamma.MammaAdhocMeekijkverzoekService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.table.ClientColumn;
 import nl.rivm.screenit.main.web.component.table.EnumPropertyColumn;
@@ -36,7 +36,6 @@ import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.MammaBeTabelCounte
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.werklijst.MammaOnderzoekMiniWerklijstDataProvider;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.mamma.MammaAdhocMeekijkverzoek;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -51,10 +50,7 @@ public class MammaAdhocMeekijkverzoekMiniWerklijstPanel extends Panel
 {
 
 	@SpringBean
-	private MammaKwaliteitscontroleService kwaliteitscontroleService;
-
-	@SpringBean
-	private HibernateService hibernateService;
+	private MammaAdhocMeekijkverzoekService adhocMeekijkverzoekService;
 
 	public MammaAdhocMeekijkverzoekMiniWerklijstPanel(String id, AbstractMammaBeoordelenPage parent, Long huidigeOnderzoekId, List<Long> onderzoekenIds)
 	{
@@ -76,7 +72,7 @@ public class MammaAdhocMeekijkverzoekMiniWerklijstPanel extends Panel
 		columns.add(new PropertyColumn<>(Model.of("SE"), "onderzoek.screeningsEenheid.naam"));
 		columns.add(new EnumPropertyColumn<>(Model.of("Status"), "status", this));
 
-		addOrReplace(new ScreenitDataTable<MammaAdhocMeekijkverzoek, String>("miniwerklijst", columns, miniWerklijstDataProvider, 5, Model.of("onderzoek(en)"), false)
+		addOrReplace(new ScreenitDataTable<>("miniwerklijst", columns, miniWerklijstDataProvider, 5, Model.of("onderzoek(en)"), false)
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<MammaAdhocMeekijkverzoek> model)
@@ -108,7 +104,7 @@ public class MammaAdhocMeekijkverzoekMiniWerklijstPanel extends Panel
 					@Override
 					public Integer getObject()
 					{
-						return kwaliteitscontroleService.getAantalGezienAdhocMeekijkverzoekOnderzoekenInList(onderzoekenIds);
+						return (int) adhocMeekijkverzoekService.countAantalGezienByIds(onderzoekenIds);
 					}
 				};
 

@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.service;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,10 +27,11 @@ import java.util.List;
 import nl.rivm.screenit.model.BerichtZoekFilter;
 import nl.rivm.screenit.model.berichten.cda.MeldingOngeldigCdaBericht;
 
+import org.springframework.data.domain.Sort;
+
 public interface OngeldigeBerichtenService
 {
-
-	List<MeldingOngeldigCdaBericht> searchOngeldigeBerichten(BerichtZoekFilter filter, long first, long count, String property, boolean ascending);
+	List<MeldingOngeldigCdaBericht> zoekOngeldigeBerichten(BerichtZoekFilter filter, long first, long count, Sort sort);
 
 	long countOngeldigeBerichten(BerichtZoekFilter filter);
 
@@ -39,5 +40,4 @@ public interface OngeldigeBerichtenService
 	void verwijderenOngeldigBericht(MeldingOngeldigCdaBericht object);
 
 	void herverwerkAlleBerichten(BerichtenZoekFilter berichtenZoekFilter);
-
 }

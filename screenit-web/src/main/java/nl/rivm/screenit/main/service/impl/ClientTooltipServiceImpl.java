@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,36 +21,32 @@ package nl.rivm.screenit.main.service.impl;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.main.dao.ClientTooltipDao;
+import nl.rivm.screenit.main.repository.algemeen.ClientTooltipRepository;
 import nl.rivm.screenit.main.service.ClientTooltipService;
 import nl.rivm.screenit.model.ClientTooltip;
 import nl.rivm.screenit.model.ClientTooltipType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
 public class ClientTooltipServiceImpl implements ClientTooltipService
 {
-
 	@Autowired
-	private ClientTooltipDao tooltipDao;
+	private ClientTooltipRepository clientTooltipRepository;
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS)
 	public ClientTooltip getClientTooltipByType(ClientTooltipType type)
 	{
-		return tooltipDao.getClientTooltipByType(type);
+		return clientTooltipRepository.findByType(type);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void saveOrUpdate(ClientTooltip tooltip)
 	{
-		tooltipDao.saveOrUpdate(tooltip);
+		clientTooltipRepository.save(tooltip);
 	}
 
 }

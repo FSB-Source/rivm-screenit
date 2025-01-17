@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,10 +30,13 @@ import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.modal.ConfirmPanel;
 import nl.rivm.screenit.main.web.component.modal.DefaultConfirmCallback;
+import nl.rivm.screenit.main.web.component.modal.IDialog;
 import nl.rivm.screenit.main.web.component.price.BigDecimalPricePropertyColumn;
 import nl.rivm.screenit.main.web.component.table.AjaxImageCellPanel;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.model.cervix.facturatie.CervixHuisartsTarief;
+import nl.rivm.screenit.model.cervix.facturatie.CervixHuisartsTarief_;
+import nl.rivm.screenit.model.cervix.facturatie.CervixTarief_;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
@@ -79,7 +82,7 @@ public class CervixHuisartsTarievenPanel extends GenericPanel<CervixHuisartsTari
 
 	private WebMarkupContainer tableContainer;
 
-	private SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+	private final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
 
 	public CervixHuisartsTarievenPanel(String id)
 	{
@@ -102,7 +105,7 @@ public class CervixHuisartsTarievenPanel extends GenericPanel<CervixHuisartsTari
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				dialog.openWith(target, new CervixHuisartsTarievenPopupPanel(BootstrapDialog.CONTENT_ID)
+				dialog.openWith(target, new CervixHuisartsTarievenPopupPanel(IDialog.CONTENT_ID)
 				{
 					@Override
 					protected void opslaan(AjaxRequestTarget target)
@@ -122,7 +125,7 @@ public class CervixHuisartsTarievenPanel extends GenericPanel<CervixHuisartsTari
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				dialog.openWith(target, new CervixHuisartsIndexerenPopupPanel(BootstrapDialog.CONTENT_ID)
+				dialog.openWith(target, new CervixHuisartsIndexerenPopupPanel(IDialog.CONTENT_ID)
 				{
 					@Override
 					protected void opslaan(AjaxRequestTarget target, String melding)
@@ -154,17 +157,14 @@ public class CervixHuisartsTarievenPanel extends GenericPanel<CervixHuisartsTari
 		WebMarkupContainer container = new WebMarkupContainer("tarievenTableContainer");
 		container.setOutputMarkupPlaceholderTag(true);
 
-		List<IColumn<CervixHuisartsTarief, String>> columns = new ArrayList<IColumn<CervixHuisartsTarief, String>>();
-		columns.add(new BigDecimalPricePropertyColumn<CervixHuisartsTarief, String>(Model.of("Tarief"), "tarief"));
-		columns.add(new DateTimePropertyColumn<CervixHuisartsTarief, String>(Model.of("Geldig vanaf"), "geldigVanafDatum", "geldigVanafDatum", format));
-		columns.add(new DateTimePropertyColumn<CervixHuisartsTarief, String>(Model.of("Geldig t/m"), "geldigTotenmetDatum", "geldigTotenmetDatum", format));
+		List<IColumn<CervixHuisartsTarief, String>> columns = new ArrayList<>();
+		columns.add(new BigDecimalPricePropertyColumn<>(Model.of("Tarief"), CervixHuisartsTarief_.TARIEF));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Geldig vanaf"), CervixTarief_.GELDIG_VANAF_DATUM, CervixHuisartsTarief_.GELDIG_VANAF_DATUM, format));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Geldig t/m"), CervixTarief_.GELDIG_TOTENMET_DATUM, CervixTarief_.GELDIG_TOTENMET_DATUM, format));
 		if (Actie.VERWIJDEREN == actie)
 		{
-			columns.add(new AbstractColumn<CervixHuisartsTarief, String>(Model.of("Verwijderen"))
+			columns.add(new AbstractColumn<>(Model.of("Verwijderen"))
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				public void populateItem(Item<ICellPopulator<CervixHuisartsTarief>> cellItem, String componentId, IModel<CervixHuisartsTarief> rowModel)
 				{

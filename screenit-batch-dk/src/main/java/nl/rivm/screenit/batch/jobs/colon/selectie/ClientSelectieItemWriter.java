@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,7 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.UitnodigingsDao;
-import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.Instelling;
@@ -61,6 +60,7 @@ import nl.rivm.screenit.model.project.ProjectStatus;
 import nl.rivm.screenit.model.verwerkingverslag.SelectieRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.SelectieRapportageEntry;
 import nl.rivm.screenit.model.verwerkingverslag.SelectieRapportageProjectGroepEntry;
+import nl.rivm.screenit.repository.algemeen.ClientRepository;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
@@ -73,13 +73,14 @@ import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.hibernate.criterion.Projections;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.colon.ColonUitnodigingBaseSpecification.getSpecificationU1;
 
 @Component
 @StepScope
@@ -105,6 +106,8 @@ public class ClientSelectieItemWriter implements ItemWriter<ClientCategorieEntry
 	private final ColonDossierBaseService dossierBaseService;
 
 	private final ColonBaseAfspraakService afspraakService;
+
+	private final ClientRepository clientRepository;
 
 	private StepExecution stepExecution;
 
@@ -431,10 +434,9 @@ public class ClientSelectieItemWriter implements ItemWriter<ClientCategorieEntry
 
 			Set<Integer> alleGeboortejarenVanActiveCohorten = uitnodigingService.getAlleGeboortejarenTotMetHuidigJaar();
 
-			var criteria = ColonRestrictions.getQueryVooraankondigen(hibernateService.getHibernateSession(), null, new ArrayList<>(alleGeboortejarenVanActiveCohorten),
-				true, minimaleLeeftijd, maximaleLeeftijd, projectGroep.getId(), null, currentDateSupplier.getLocalDate());
-			criteria.setProjection(Projections.rowCount());
-			Long aantalNogTeGaan = (Long) criteria.uniqueResult();
+			var aantalNogTeGaan = clientRepository.count(getSpecificationU1(minimaleLeeftijd, maximaleLeeftijd, currentDateSupplier.getLocalDate(), null,
+				new ArrayList<>(alleGeboortejarenVanActiveCohorten), projectGroep.getId(), null, currentDateSupplier.getLocalDate()));
+
 			int aantalWerkDagen = 0;
 			Date uitnodigenVoorDKvoor = projectGroep.getUitnodigenVoorDKvoor();
 			if (uitnodigenVoorDKvoor != null)

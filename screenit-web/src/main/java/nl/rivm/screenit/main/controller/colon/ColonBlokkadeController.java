@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.controller.colon;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,7 +35,6 @@ import nl.rivm.screenit.main.exception.BulkAanmakenException;
 import nl.rivm.screenit.main.exception.BulkVerwijderenException;
 import nl.rivm.screenit.main.exception.ValidatieException;
 import nl.rivm.screenit.main.service.colon.ColonBlokkadeService;
-import nl.rivm.screenit.main.service.colon.RoosterService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.mappers.colon.ColonBlokkadeMapper;
@@ -69,8 +68,6 @@ import com.google.common.collect.Range;
 @RequestMapping("/api/colon/rooster/blokkade")
 public class ColonBlokkadeController
 {
-	private final RoosterService roosterService;
-
 	private final ColonBlokkadeMapper blokkadeMapper;
 
 	private final ColonBlokkadeService blokkadeService;
@@ -91,8 +88,8 @@ public class ColonBlokkadeController
 			throw new IllegalStateException("error.geen.eind.datum");
 		}
 
-		var periode = Range.closed(startDate.atStartOfDay(), endDate.atStartOfDay());
-		return roosterService.getBlokkades(periode, null).stream().map(blokkadeMapper::colonBlokkadeToDto).collect(Collectors.toList());
+		var periode = Range.open(startDate.atStartOfDay(), endDate.atStartOfDay());
+		return blokkadeService.zoekBlokkadesInRange(periode).stream().map(blokkadeMapper::colonBlokkadeToDto).collect(Collectors.toList());
 	}
 
 	@PostMapping

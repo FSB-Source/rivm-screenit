@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,7 @@ import java.time.LocalDate;
 import javax.persistence.criteria.JoinType;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.Dossier_;
 import nl.rivm.screenit.model.cervix.CervixDossier;
@@ -34,31 +34,27 @@ import nl.rivm.screenit.model.cervix.CervixDossier_;
 import nl.rivm.screenit.model.cervix.cis.CervixCISHistorie_;
 import nl.rivm.screenit.model.enums.Deelnamemodus;
 import nl.rivm.screenit.specification.ExtendedSpecification;
+import nl.rivm.screenit.specification.algemeen.DossierSpecification;
 import nl.rivm.screenit.util.DateUtil;
 
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixDossierSpecification
 {
-	public static ExtendedSpecification<CervixDossier> heeftDeelnamemodus(Deelnamemodus deelnamemodus)
-	{
-		return (r, q, cb) -> cb.equal(r.get(CervixDossier_.deelnamemodus), deelnamemodus);
-	}
-
-	public static ExtendedSpecification<CervixDossier> heeftNietDeelnamemodus(Deelnamemodus deelnamemodus)
-	{
-		return (r, q, cb) -> cb.notEqual(r.get(CervixDossier_.deelnamemodus), deelnamemodus);
-	}
-
 	public static ExtendedSpecification<CervixDossier> heeftVolgendeRondeVoorOfOp(LocalDate peilDatum)
 	{
 		return (r, q, cb) -> cb.lessThanOrEqualTo(r.get(CervixDossier_.volgendeRondeVanaf), DateUtil.toUtilDate(peilDatum));
 	}
 
+	public static ExtendedSpecification<CervixDossier> heeftGeenVolgendeRondeVanaf()
+	{
+		return (r, q, cb) -> cb.isNull(r.get(CervixDossier_.volgendeRondeVanaf));
+	}
+
 	public static ExtendedSpecification<CervixDossier> magNietDeelnemen(LocalDate peilDatum)
 	{
-		return heeftDeelnamemodus(Deelnamemodus.SELECTIEBLOKKADE).and(heeftVolgendeRondeVoorOfOp(peilDatum));
+		return DossierSpecification.<CervixDossier> heeftDeelnamemodus(Deelnamemodus.SELECTIEBLOKKADE).and(heeftVolgendeRondeVoorOfOp(peilDatum));
 	}
 
 	public static ExtendedSpecification<CervixDossier> heeftGeenScreeningRondeInCISHistorie()
@@ -68,6 +64,11 @@ public class CervixDossierSpecification
 			var cisHistorieJoin = join(r, CervixDossier_.cisHistorie, JoinType.LEFT);
 			return cb.equal(r.get(CervixDossier_.laatsteScreeningRonde), cisHistorieJoin.get(CervixCISHistorie_.screeningRonde));
 		};
+	}
+
+	public static ExtendedSpecification<CervixDossier> heeftGeenLaatsteScreeningronde()
+	{
+		return (r, q, cb) -> cb.isNull(r.get(CervixDossier_.laatsteScreeningRonde));
 	}
 
 	public static ExtendedSpecification<CervixDossier> heeftGeenVooraankondigingsBrief()

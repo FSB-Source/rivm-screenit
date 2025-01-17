@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,8 +32,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import static nl.rivm.screenit.specification.mamma.MammaBaseFollowUpSpecification.filterLaatsteRadioVerslagenOpBeoordelingStatus;
-import static nl.rivm.screenit.specification.mamma.MammaBaseFollowUpSpecification.heeftOpenstaandeRadioVerslagenVanInstelling;
+import static nl.rivm.screenit.specification.mamma.MammaFollowUpRadiologieVerslagSpecification.filterLaatsteRadioVerslagenOpBeoordelingStatus;
+import static nl.rivm.screenit.specification.mamma.MammaFollowUpRadiologieVerslagSpecification.heeftOpenstaandeRadioVerslagenVanInstelling;
 
 @Service("MammaFollowUpRadiologieInstellingDataProviderService")
 public class MammaFollowUpRadiologieInstellingDataProviderServiceImpl

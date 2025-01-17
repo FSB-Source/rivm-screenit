@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,16 +33,11 @@ import java.util.NoSuchElementException;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.main.dao.mamma.MammaKwaliteitscontroleDao;
-import nl.rivm.screenit.main.model.mamma.beoordeling.MammaAdhocMeekijkverzoekWerklijstZoekObject;
-import nl.rivm.screenit.main.model.mamma.beoordeling.MammaFotobesprekingOnderzoekenWerklijstZoekObject;
-import nl.rivm.screenit.main.model.mamma.beoordeling.MammaFotobesprekingWerklijstZoekObject;
-import nl.rivm.screenit.main.model.mamma.beoordeling.MammaVisitatieOnderzoekenWerklijstZoekObject;
-import nl.rivm.screenit.main.model.mamma.beoordeling.MammaVisitatieWerklijstZoekObject;
+import nl.rivm.screenit.main.service.mamma.MammaFotobesprekingService;
 import nl.rivm.screenit.main.service.mamma.MammaKwaliteitscontroleService;
+import nl.rivm.screenit.main.service.mamma.MammaVisitatieService;
 import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BezwaarType;
@@ -74,11 +69,14 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Slf4j
 @Service
@@ -86,7 +84,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class MammaKwaliteitscontroleServiceImpl implements MammaKwaliteitscontroleService
 {
 	@Autowired
-	private MammaKwaliteitscontroleDao kwaliteitscontroleDao;
+	private MammaFotobesprekingService fotobesprekingService;
+
+	@Autowired
+	private MammaVisitatieService visitatieService;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -108,18 +109,6 @@ public class MammaKwaliteitscontroleServiceImpl implements MammaKwaliteitscontro
 
 	@Autowired
 	private UploadDocumentService uploadDocumentService;
-
-	@Override
-	public List<MammaFotobespreking> zoekFotobesprekingen(MammaFotobesprekingWerklijstZoekObject zoekObject, int first, int count, String sortProperty, boolean asc)
-	{
-		return kwaliteitscontroleDao.zoekFotobesprekingen(zoekObject, first, count, sortProperty, asc);
-	}
-
-	@Override
-	public long countFotobesprekingen(MammaFotobesprekingWerklijstZoekObject zoekObject)
-	{
-		return kwaliteitscontroleDao.countFotobesprekingen(zoekObject);
-	}
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
@@ -146,7 +135,7 @@ public class MammaKwaliteitscontroleServiceImpl implements MammaKwaliteitscontro
 					try
 					{
 						String melding = verwerkRegel(fotobespreking, context);
-						if (StringUtils.isNotBlank(melding))
+						if (isNotBlank(melding))
 						{
 							meldingen.add(melding);
 						}
@@ -185,25 +174,24 @@ public class MammaKwaliteitscontroleServiceImpl implements MammaKwaliteitscontro
 		String melding = null;
 		try
 		{
-			MammaBeoordeling beoordeling = getBeoordeling(fotobespreking.getBeoordelingsEenheid(), fotobespreking.getScreeningsEenheid(), client);
-			if (!kwaliteitscontroleDao.isBeoordelingInBespreking(beoordeling, fotobespreking))
-			{
-				MammaFotobesprekingOnderzoek fotobesprekingOnderzoek = new MammaFotobesprekingOnderzoek();
-				List<MammaFotobesprekingOnderzoek> onderzoeken = fotobespreking.getOnderzoeken();
-				fotobesprekingOnderzoek.setFotobespreking(fotobespreking);
-				fotobesprekingOnderzoek.setBeoordeling(beoordeling);
-				fotobesprekingOnderzoek.setStatus(MammaFotobesprekingOnderzoekStatus.NIET_BESPROKEN);
-				int volgnummer = onderzoeken.isEmpty() ? 1
-					: onderzoeken.stream().mapToInt(MammaFotobesprekingOnderzoek::getVolgnummer).max().orElseThrow(NoSuchElementException::new) + 1;
-				fotobesprekingOnderzoek.setVolgnummer(volgnummer);
-				onderzoeken.add(fotobesprekingOnderzoek);
-				hibernateService.saveOrUpdateAll(fotobesprekingOnderzoek, fotobespreking);
-			}
-			else
+			var beoordeling = getBeoordeling(fotobespreking.getBeoordelingsEenheid(), fotobespreking.getScreeningsEenheid(), client);
+
+			if (fotobesprekingService.isBeoordelingInBespreking(beoordeling, fotobespreking))
 			{
 				throw new IllegalStateException(String.format("Onderzoek van cliënt met bsn %s en geboortedatum %s kan niet worden toegevoegd: Onderzoek staat al in de werklijst",
 					client.getPersoon().getBsn(), DateUtil.getGeboortedatum(client)));
 			}
+
+			var fotobesprekingOnderzoek = new MammaFotobesprekingOnderzoek();
+			var onderzoeken = fotobespreking.getOnderzoeken();
+			fotobesprekingOnderzoek.setFotobespreking(fotobespreking);
+			fotobesprekingOnderzoek.setBeoordeling(beoordeling);
+			fotobesprekingOnderzoek.setStatus(MammaFotobesprekingOnderzoekStatus.NIET_BESPROKEN);
+			int volgnummer = onderzoeken.isEmpty() ? 1 : onderzoeken.stream().mapToInt(MammaFotobesprekingOnderzoek::getVolgnummer).max()
+				.orElseThrow(NoSuchElementException::new) + 1;
+			fotobesprekingOnderzoek.setVolgnummer(volgnummer);
+			onderzoeken.add(fotobesprekingOnderzoek);
+			hibernateService.saveOrUpdateAll(fotobesprekingOnderzoek, fotobespreking);
 		}
 		catch (Exception e)
 		{
@@ -285,7 +273,7 @@ public class MammaKwaliteitscontroleServiceImpl implements MammaKwaliteitscontro
 				&& !BezwaarUtil.isBezwaarActiefVoor(client, BezwaarType.GEEN_KWALITEITSWAARBORGING, Bevolkingsonderzoek.MAMMA))
 			{
 				MammaBeoordeling beoordeling = getBeoordeling(visitatie.getBeoordelingsEenheid(), null, client);
-				if (!kwaliteitscontroleDao.isBeoordelingInVisitatieOnderdeel(beoordeling, visitatie, visitatieOnderdeel))
+				if (!visitatieService.isBeoordelingInVisitatieOnderdeel(beoordeling, visitatie, visitatieOnderdeel))
 				{
 					List<MammaVisitatieOnderzoek> onderzoeken = visitatie.getOnderzoeken();
 					MammaVisitatieOnderzoek visitatieOnderzoek = new MammaVisitatieOnderzoek();
@@ -378,19 +366,6 @@ public class MammaKwaliteitscontroleServiceImpl implements MammaKwaliteitscontro
 	}
 
 	@Override
-	public List<MammaFotobesprekingOnderzoek> zoekFotobesprekingOnderzoeken(MammaFotobesprekingOnderzoekenWerklijstZoekObject zoekObject, int first, int count,
-		String sortProperty, boolean ascending)
-	{
-		return kwaliteitscontroleDao.zoekFotobesprekingOnderzoeken(zoekObject, first, count, sortProperty, ascending);
-	}
-
-	@Override
-	public long countFotobesprekingOnderzoeken(MammaFotobesprekingOnderzoekenWerklijstZoekObject zoekObject)
-	{
-		return kwaliteitscontroleDao.countFotobesprekingOnderzoeken(zoekObject);
-	}
-
-	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void wijzigOnderzoekStatus(MammaFotobesprekingOnderzoek fotobesprekingOnderzoek, MammaFotobesprekingOnderzoekStatus nieuweStatus)
 	{
@@ -446,18 +421,6 @@ public class MammaKwaliteitscontroleServiceImpl implements MammaKwaliteitscontro
 	}
 
 	@Override
-	public boolean kanFotobesprekingAfronden(MammaFotobespreking fotobespreking)
-	{
-		return kwaliteitscontroleDao.isAllesBesproken(fotobespreking) && fotobespreking.getAfgerondOp() == null;
-	}
-
-	@Override
-	public Integer getAantalBesproken(MammaFotobespreking fotobespreking)
-	{
-		return kwaliteitscontroleDao.getAantalBesproken(fotobespreking);
-	}
-
-	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void wijzigOnderzoekStatus(MammaVisitatieOnderzoek visitatieOnderzoek, MammaVisitatieOnderzoekStatus nieuweOnderzoekStatus)
 	{
@@ -498,7 +461,7 @@ public class MammaKwaliteitscontroleServiceImpl implements MammaKwaliteitscontro
 	private List<String> verwerkCsvFiles(MammaVisitatie visitatie, Map<MammaVisitatieOnderdeel, File> fileMap, Map<File, String> fileNameMap)
 	{
 		List<String> meldingen = new ArrayList<>();
-		if (fileMap.size() > 0 && !visitatie.getOnderzoeken().isEmpty())
+		if (MapUtils.isNotEmpty(fileMap) && CollectionUtils.isNotEmpty(visitatie.getOnderzoeken()))
 		{
 			hibernateService.deleteAll(visitatie.getOnderzoeken());
 			visitatie.getOnderzoeken().clear();
@@ -520,7 +483,7 @@ public class MammaKwaliteitscontroleServiceImpl implements MammaKwaliteitscontro
 						try
 						{
 							String melding = verwerkRegel(visitatie, fileEntry.getKey(), context);
-							if (StringUtils.isNotBlank(melding))
+							if (isNotBlank(melding))
 							{
 								meldingen.add(String.format("%1$s (Bestand: %2$s)", melding, fileName));
 							}
@@ -581,48 +544,11 @@ public class MammaKwaliteitscontroleServiceImpl implements MammaKwaliteitscontro
 	}
 
 	@Override
-	public List<MammaVisitatieOnderzoek> zoekVisitatieOnderzoeken(MammaVisitatieOnderzoekenWerklijstZoekObject zoekObject, int first, int count, String sortProperty,
-		boolean ascending)
-	{
-		return kwaliteitscontroleDao.zoekVisitatieOnderzoeken(zoekObject, first, count, sortProperty, ascending);
-	}
-
-	@Override
-	public long countVisitatieOnderzoeken(MammaVisitatieOnderzoekenWerklijstZoekObject zoekObject)
-	{
-		return kwaliteitscontroleDao.countVisitatieOnderzoeken(zoekObject);
-	}
-
-	@Override
-	public List<MammaVisitatie> zoekVisitaties(MammaVisitatieWerklijstZoekObject zoekObject, int first, int count, String sortProperty, boolean asc)
-	{
-		return kwaliteitscontroleDao.zoekVisitaties(zoekObject, first, count, sortProperty, asc);
-	}
-
-	@Override
-	public long countVisitaties(MammaVisitatieWerklijstZoekObject zoekObject)
-	{
-		return kwaliteitscontroleDao.countVisitaties(zoekObject);
-	}
-
-	@Override
-	public Integer getAantalGezien(MammaVisitatie visitatie, MammaVisitatieOnderdeel onderdeel)
-	{
-		return kwaliteitscontroleDao.getAantalGezien(visitatie, onderdeel);
-	}
-
-	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void kwaliteitscontroleAfronden(MammaIKwaliteitscontrole kwaliteitscontrole)
 	{
 		kwaliteitscontrole.setAfgerondOp(dateSuppier.getDate());
 		hibernateService.saveOrUpdate(kwaliteitscontrole);
-	}
-
-	@Override
-	public boolean kanVisitatieAfronden(MammaVisitatie visitatie)
-	{
-		return kwaliteitscontroleDao.isAllesGezien(visitatie) && visitatie.getAfgerondOp() == null;
 	}
 
 	@Override
@@ -634,42 +560,10 @@ public class MammaKwaliteitscontroleServiceImpl implements MammaKwaliteitscontro
 	}
 
 	@Override
-	public boolean nieuweBeoordelingenAangevraagdNavFotobespreking(MammaFotobespreking fotobespreking)
-	{
-		return kwaliteitscontroleDao.nieuweBeoordelingenAangevraagdNavFotobespreking(fotobespreking);
-	}
-
-	@Override
-	public List<MammaAdhocMeekijkverzoek> zoekAdhocMeekijkverzoekOnderzoeken(MammaAdhocMeekijkverzoekWerklijstZoekObject zoekObject, int first, int count,
-		SortState<String> sortState)
-	{
-		return kwaliteitscontroleDao.zoekAdhocMeekijkverzoekOnderzoeken(zoekObject, first, count, sortState);
-	}
-
-	@Override
-	public long countAdhocMeekijkverzoekOnderzoeken(MammaAdhocMeekijkverzoekWerklijstZoekObject zoekObject)
-	{
-		return kwaliteitscontroleDao.countAdhocMeekijkverzoekOnderzoeken(zoekObject);
-	}
-
-	@Override
-	public Integer getAantalGezienAdhocMeekijkverzoekOnderzoeken(MammaAdhocMeekijkverzoekWerklijstZoekObject zoekObject)
-	{
-		return kwaliteitscontroleDao.getAantalGezienAdhocMeekijkverzoekOnderzoeken(zoekObject);
-	}
-
-	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void wijzigOnderzoekStatus(MammaAdhocMeekijkverzoek onderzoek, MammaVisitatieOnderzoekStatus nieuweStatus)
 	{
 		onderzoek.setStatus(nieuweStatus);
 		hibernateService.saveOrUpdate(onderzoek);
 	}
-
-	@Override
-	public Integer getAantalGezienAdhocMeekijkverzoekOnderzoekenInList(List<Long> onderzoekenIds)
-	{
-		return kwaliteitscontroleDao.getAantalGezienAdhocMeekijkverzoekOnderzoekenInList(onderzoekenIds);
-	}
-
 }

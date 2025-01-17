@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,6 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
-import nl.rivm.screenit.dao.InstellingDao;
 import nl.rivm.screenit.main.service.mamma.MammaBeoordelingsEenheidService;
 import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.CentraleEenheid;
@@ -38,6 +37,7 @@ import nl.rivm.screenit.repository.algemeen.BeoordelingsEenheidRepository;
 import nl.rivm.screenit.repository.mamma.MammaBaseOnderzoekRepository;
 import nl.rivm.screenit.repository.mamma.MammaScreeningsEenheidRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.specification.algemeen.BeoordelingsEenheidSpecification;
 import nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification;
 import nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecification;
@@ -57,7 +57,7 @@ import static nl.rivm.screenit.specification.mamma.MammaScreeningsEenheidSpecifi
 @RequiredArgsConstructor
 public class MammaBeoordelingsEenheidServiceImpl implements MammaBeoordelingsEenheidService
 {
-	private final InstellingDao instellingDao;
+	private final InstellingService instellingService;
 
 	private final MammaScreeningsEenheidRepository screeningsEenheidRepository;
 
@@ -127,18 +127,13 @@ public class MammaBeoordelingsEenheidServiceImpl implements MammaBeoordelingsEen
 		}
 		instelling = (Instelling) HibernateHelper.deproxy(instelling);
 		OrganisatieType organisatieType = instelling.getOrganisatieType();
-		switch (organisatieType)
+		return switch (organisatieType)
 		{
-		case RIVM:
-		case KWALITEITSPLATFORM:
-			return instellingDao.getActieveInstellingen(BeoordelingsEenheid.class);
-		case BEOORDELINGSEENHEID:
-			return Collections.singletonList((BeoordelingsEenheid) instelling);
-		case SCREENINGSORGANISATIE:
-			return getActieveBeoordelingsEenhedenVoorScreeningsOrganisatie(instelling);
-		default:
-			return Collections.emptyList();
-		}
+			case RIVM, KWALITEITSPLATFORM -> instellingService.getActieveInstellingen(BeoordelingsEenheid.class);
+			case BEOORDELINGSEENHEID -> Collections.singletonList((BeoordelingsEenheid) instelling);
+			case SCREENINGSORGANISATIE -> getActieveBeoordelingsEenhedenVoorScreeningsOrganisatie(instelling);
+			default -> Collections.emptyList();
+		};
 	}
 
 	@Override
@@ -150,21 +145,19 @@ public class MammaBeoordelingsEenheidServiceImpl implements MammaBeoordelingsEen
 		}
 		OrganisatieType organisatieType = instelling.getOrganisatieType();
 		instelling = (Instelling) HibernateHelper.deproxy(instelling);
-		switch (organisatieType)
+		return switch (organisatieType)
 		{
-		case RIVM:
-		case KWALITEITSPLATFORM:
-		case SCREENINGSORGANISATIE:
-			if (centraleEenheden.isEmpty())
+			case RIVM, KWALITEITSPLATFORM, SCREENINGSORGANISATIE ->
 			{
-				return Collections.emptyList();
+				if (centraleEenheden.isEmpty())
+				{
+					yield Collections.emptyList();
+				}
+				yield getActieveBeoordelingsEenhedenVoorCentraleEenheden(centraleEenheden);
 			}
-			return getActieveBeoordelingsEenhedenVoorCentraleEenheden(centraleEenheden);
-		case BEOORDELINGSEENHEID:
-			return Collections.singletonList((BeoordelingsEenheid) instelling);
-		default:
-			return Collections.emptyList();
-		}
+			case BEOORDELINGSEENHEID -> Collections.singletonList((BeoordelingsEenheid) instelling);
+			default -> Collections.emptyList();
+		};
 	}
 
 	private List<BeoordelingsEenheid> getActieveBeoordelingsEenhedenVoorScreeningsOrganisatie(Instelling instelling)

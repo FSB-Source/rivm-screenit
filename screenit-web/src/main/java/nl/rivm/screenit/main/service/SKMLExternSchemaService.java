@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,20 +22,25 @@ package nl.rivm.screenit.main.service;
  */
 
 import java.util.Date;
-import java.util.Iterator;
+import java.util.List;
 
 import nl.rivm.screenit.model.colon.SKMLExternSchema;
 
+import org.springframework.data.domain.Sort;
+
 public interface SKMLExternSchemaService
 {
+	List<SKMLExternSchema> zoekSchemas(SKMLExternSchema zoekObject, Sort sort, int first, int count);
 
-	Iterator<? extends SKMLExternSchema> zoekSchemas(SKMLExternSchema zoekObject, String sortProperty, boolean ascending, int first, int count);
+	long countSchemas(SKMLExternSchema zoekObject);
 
-	long telSchemas(SKMLExternSchema zoekObject);
-
-	int telAantalGekoppeldeBarcodes(SKMLExternSchema zoekObject);
+	long telAantalGekoppeldeBarcodes(SKMLExternSchema zoekObject);
 
 	boolean magSchemaVerwijderdWorden(SKMLExternSchema zoekObject);
 
 	SKMLExternSchema haalEerstvolgendeSchemaOp(Date deadline);
+
+	List<SKMLExternSchema> zoekSchema(SKMLExternSchema zoekObject);
+
+	List<SKMLExternSchema> haalSchemasVanafDeadlineDatum(Date deadline);
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.controller;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,33 +21,31 @@ package nl.rivm.screenit.mamma.se.proxy.controller;
  * =========================LICENSE_END==================================
  */
 
-import javax.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 
 import nl.rivm.screenit.mamma.se.proxy.model.CacheProxyActie;
 import nl.rivm.screenit.mamma.se.proxy.model.RequestTypeCentraal;
 import nl.rivm.screenit.mamma.se.proxy.services.LogischeSessieService;
 import nl.rivm.screenit.mamma.se.proxy.services.ProxyService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/mammografen")
+@RequiredArgsConstructor
 public class MammografenProxyController
 {
-	@Autowired
-	private ProxyService proxyService;
+	private final ProxyService proxyService;
 
-	@Autowired
-	private LogischeSessieService logischeSessieService;
+	private final LogischeSessieService logischeSessieService;
 
-	@RequestMapping(method = RequestMethod.GET)
-	public ResponseEntity<String> readMammografen(HttpSession httpSession, @RequestHeader("YubikeyIdentificatie") String yubikeyIdentificatie)
+	@GetMapping
+	public ResponseEntity<String> readMammografen(@RequestHeader("YubikeyIdentificatie") String yubikeyIdentificatie)
 	{
 		if (!logischeSessieService.geldigeYubikey(yubikeyIdentificatie))
 		{

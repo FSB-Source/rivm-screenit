@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -56,9 +56,11 @@ public enum LogGebeurtenis
 
 	CERVIX_HERINNEREN_BEEINDIGD(Level.INFO, DashboardType.CERVIX_HERINNEREN, DashboardActieType.OVERIG),
 
-	CERVIX_HEROVERWEGERS_BRIEVEN_GENEREREN_START(Level.INFO, DashboardType.CERVIX_HEROVERWEGERS, DashboardActieType.START),
+	@Deprecated
+	CERVIX_HEROVERWEGERS_BRIEVEN_GENEREREN_START(Level.INFO),
 
-	CERVIX_HEROVERWEGERS_BRIEVEN_GENEREREN_AFGEROND(Level.INFO, DashboardType.CERVIX_HEROVERWEGERS, DashboardActieType.OVERIG),
+	@Deprecated
+	CERVIX_HEROVERWEGERS_BRIEVEN_GENEREREN_AFGEROND(Level.INFO),
 
 	CERVIX_MIGRANTEN_UITNODIGEN_GESTART(Level.INFO),
 
@@ -584,12 +586,6 @@ public enum LogGebeurtenis
 
 	BRIEFPROJECT_GROEP_VERWIJDERD(Level.INFO),
 
-	VRAGENLIJST_AFGEROND(Level.INFO),
-
-	VRAGENLIJST_OPGESLAGEN(Level.INFO),
-
-	VRAGENLIJST_AFGEWEZEN(Level.INFO),
-
 	SCANDATUM_CORRECTIE_GESTART(Level.INFO),
 
 	SCANDATUM_CORRECTIE_GESTOPT(Level.INFO),
@@ -790,16 +786,20 @@ public enum LogGebeurtenis
 
 	CERVIX_BEPALEN_VERRICHTINGEN_AFGEROND(Level.INFO, DashboardType.CERVIX_BEPALEN_VERRICHTINGEN, DashboardActieType.OVERIG),
 
-	CERVIX_HPV_ORU_BERICHTEN_START(Level.INFO, DashboardType.CERVIX_HPV_ORU, DashboardActieType.START),
+	@Deprecated
+	CERVIX_HPV_ORU_BERICHTEN_START(Level.INFO),
 
-	CERVIX_HPV_ORU_BERICHTEN_AFGEROND(Level.INFO, DashboardType.CERVIX_HPV_ORU, DashboardActieType.OVERIG),
+	@Deprecated
+	CERVIX_HPV_ORU_BERICHTEN_AFGEROND(Level.INFO),
 
-	CERVIX_HPV_ORU_BERICHTEN_VERSTUREN_MISLUKT(Level.ERROR, DashboardType.CERVIX_HPV_ORU, DashboardActieType.OVERIG),
+	@Deprecated
+	CERVIX_HPV_ORU_BERICHTEN_VERSTUREN_MISLUKT(Level.ERROR),
 
 	CERVIX_HPVMIN_UITSLAGEN_VERWIJDEREN_START(Level.INFO, DashboardType.CERVIX_HPVMIN_UITSLAGEN_VERWIJDEREN, DashboardActieType.START),
 
 	CERVIX_HPVMIN_UITSLAGEN_VERWIJDEREN_AFGEROND(Level.INFO, DashboardType.CERVIX_HPVMIN_UITSLAGEN_VERWIJDEREN, DashboardActieType.OVERIG),
 
+	@Deprecated
 	CERVIX_HEROVERWEGERSBRIEF_AANGEMAAKT(Level.INFO),
 
 	CERVIX_LAB_TARIEF_AANGEMAAKT(Level.INFO),
@@ -1061,10 +1061,6 @@ public enum LogGebeurtenis
 
 	MAMMA_ILM_STATUS_GEFORCEERD(Level.INFO),
 
-	MAMMA_XDS_BATCH_JOB_GESTART(Level.INFO),
-
-	MAMMA_XDS_BATCH_JOB_GESTOPT(Level.INFO),
-
 	MAMMA_BERICHT_ONTVANGEN(Level.INFO, DashboardType.MAMMA_VERSLAG_FOLLOW_UP, DashboardActieType.DAG),
 
 	MAMMA_VERSLAG_FOLLOW_UP_VERWERKT(Level.INFO, DashboardType.MAMMA_VERSLAG_FOLLOW_UP, DashboardActieType.DAG),
@@ -1129,8 +1125,7 @@ public enum LogGebeurtenis
 
 	MAMMA_DENSE2_CSV_EXPORT_GESTART(Level.INFO, DashboardType.MAMMA_DENSE2_CSV_EXPORT, DashboardActieType.START),
 
-	MAMMA_DENSE2_CSV_EXPORT_AFGEROND(Level.INFO, DashboardType.MAMMA_DENSE2_CSV_EXPORT, DashboardActieType.OVERIG)
-	;
+	MAMMA_DENSE2_CSV_EXPORT_AFGEROND(Level.INFO, DashboardType.MAMMA_DENSE2_CSV_EXPORT, DashboardActieType.OVERIG);
 
 	private final Level defaultLevel;
 
@@ -1138,14 +1133,14 @@ public enum LogGebeurtenis
 
 	private final DashboardActieType dashboardType;
 
-	private LogGebeurtenis(Level defaultLevel)
+	LogGebeurtenis(Level defaultLevel)
 	{
 		this.defaultLevel = defaultLevel;
 		this.type = null;
 		this.dashboardType = null;
 	}
 
-	private LogGebeurtenis(Level defaultLevel, DashboardType item, DashboardActieType dashboardType)
+	LogGebeurtenis(Level defaultLevel, DashboardType item, DashboardActieType dashboardType)
 	{
 		this.defaultLevel = defaultLevel;
 		this.type = item;

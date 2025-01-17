@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.ce.werklijst.onderbr
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -128,7 +128,7 @@ public class MammaCeOnderbrokenOnderzoekenWerklijstPage extends AbstractMammaCeW
 		List<MammaScreeningsEenheid> mogelijkeScreeningsEenheden = new ArrayList<>();
 		for (CentraleEenheid ce : zoekObjectModel.getObject().getCentraleEenheden())
 		{
-			for (BeoordelingsEenheid be : instellingService.getChildrenInstellingen(ce, BeoordelingsEenheid.class))
+			for (BeoordelingsEenheid be : instellingService.getChildrenOrganisaties(ce, BeoordelingsEenheid.class))
 			{
 				mogelijkeScreeningsEenheden.addAll(screeningsEenheidService.getActieveScreeningsEenhedenVoorBeoordelingsEenheid(be));
 			}

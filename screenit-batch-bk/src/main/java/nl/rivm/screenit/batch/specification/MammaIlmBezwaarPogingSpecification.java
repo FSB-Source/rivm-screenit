@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.specification;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,13 +24,13 @@ package nl.rivm.screenit.batch.specification;
 import java.time.LocalDateTime;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.mamma.MammaIlmBezwaarPoging;
 import nl.rivm.screenit.model.mamma.MammaIlmBezwaarPoging_;
 import nl.rivm.screenit.specification.ExtendedSpecification;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MammaIlmBezwaarPogingSpecification
 {
 	public static ExtendedSpecification<MammaIlmBezwaarPoging> heeftStatusDatumVoor(LocalDateTime signaleerTermijn)

@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,7 +29,7 @@ import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.BagAdres_;
 import nl.rivm.screenit.model.Client;
@@ -76,8 +76,7 @@ import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenFalse;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNull;
 import static nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification.labformulierJoin;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixLabformulierSpecification
 {
 
@@ -105,7 +104,7 @@ public class CervixLabformulierSpecification
 		return skipWhenNull(monsterId, (r, q, cb) -> cb.equal(r.get(ScannedFormulier_.barcode), monsterId));
 	}
 
-	public static Specification<CervixLabformulier> filterHeeftLabformulierStatussen(List<CervixLabformulierStatus> labformulierStatussen)
+	public static ExtendedSpecification<CervixLabformulier> filterHeeftLabformulierStatussen(List<CervixLabformulierStatus> labformulierStatussen)
 	{
 		return skipWhenEmpty(labformulierStatussen, (r, q, cb) -> r.get(CervixLabformulier_.status).in(labformulierStatussen));
 	}
@@ -123,6 +122,11 @@ public class CervixLabformulierSpecification
 	public static Specification<CervixLabformulier> heeftScanDatumTotEnMet(Date scanDatumTotEnMet)
 	{
 		return (r, q, cb) -> cb.lessThanOrEqualTo(r.get(ScannedFormulier_.scanDatum), DateUtil.eindDag(scanDatumTotEnMet));
+	}
+
+	public static ExtendedSpecification<CervixLabformulier> heeftGeenScanDatum()
+	{
+		return (r, q, cb) -> cb.isNull(r.get(ScannedFormulier_.scanDatum));
 	}
 
 	public static Specification<CervixLabformulier> filterHeeftGeboortedatum(Date geboorteDatum)
@@ -170,7 +174,7 @@ public class CervixLabformulierSpecification
 		{
 			var huisartsOnbekendBriefJoin = join(r, CervixLabformulier_.huisartsOnbekendBrief);
 			var mergedBrievenJoin = join(huisartsOnbekendBriefJoin, CervixBrief_.mergedBrieven);
-			return cb.equal(mergedBrievenJoin.get(MergedBrieven_.geprint), true);
+			return cb.isTrue(mergedBrievenJoin.get(MergedBrieven_.geprint));
 		});
 	}
 

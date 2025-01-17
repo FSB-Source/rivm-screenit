@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,30 +21,39 @@ package nl.rivm.screenit.service.colon.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Function;
+
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.JoinType;
 
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.dao.colon.AfspraakDao;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.colon.ColonConclusie;
+import nl.rivm.screenit.model.colon.ColonConclusie_;
+import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.ColonDossier_;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
+import nl.rivm.screenit.model.colon.ColonIntakeAfspraak_;
 import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde_;
+import nl.rivm.screenit.model.colon.ConclusieTypeFilter;
 import nl.rivm.screenit.model.colon.OpenUitnodiging;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
 import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
@@ -69,15 +78,23 @@ import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonHuisartsBerichtService;
-import nl.rivm.screenit.specification.colon.ColonAfspraakslotSpecification;
+import nl.rivm.screenit.specification.ExtendedSpecification;
+import nl.rivm.screenit.specification.algemeen.PersoonSpecification;
+import nl.rivm.screenit.specification.colon.ColonConclusieSpecification;
+import nl.rivm.screenit.specification.colon.ColonDossierSpecification;
 import nl.rivm.screenit.specification.colon.ColonIntakeAfspraakSpecification;
+import nl.rivm.screenit.specification.colon.ColonIntakeKamerSpecification;
+import nl.rivm.screenit.specification.colon.ColonScreeningRondeSpecification;
+import nl.rivm.screenit.specification.colon.ColonTijdslotSpecification;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.ColonScreeningRondeUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.FITTestUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.support.PropertyComparator;
 import org.springframework.data.domain.Sort;
@@ -90,8 +107,15 @@ import static nl.rivm.screenit.specification.RangeSpecification.overlapt;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.heeftBsn;
 import static nl.rivm.screenit.specification.colon.ColonAfspraakslotSpecification.heeftGeenAfspraak;
-import static nl.rivm.screenit.specification.colon.ColonAfspraakslotSpecification.heeftVanaf;
+import static nl.rivm.screenit.specification.colon.ColonIntakeAfspraakSpecification.heeftAfspraakNa;
+import static nl.rivm.screenit.specification.colon.ColonIntakeAfspraakSpecification.heeftAfspraakVoor;
 import static nl.rivm.screenit.specification.colon.ColonIntakeAfspraakSpecification.heeftBezwaar;
+import static nl.rivm.screenit.specification.colon.ColonIntakeAfspraakSpecification.heeftGeenNieuweAfspraak;
+import static nl.rivm.screenit.specification.colon.ColonIntakeAfspraakSpecification.heeftStatus;
+import static nl.rivm.screenit.specification.colon.ColonIntakeAfspraakSpecification.heeftStatusIn;
+import static nl.rivm.screenit.specification.colon.ColonIntakeAfspraakSpecification.onderdeelVanLaatsteScreeningRonde;
+import static nl.rivm.screenit.specification.colon.ColonTijdslotSpecification.heeftVanaf;
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
 import static org.springframework.data.jpa.domain.Specification.where;
 
 @Slf4j
@@ -100,7 +124,7 @@ public class ColonBaseAfspraakServiceImpl implements ColonBaseAfspraakService
 {
 
 	@Autowired
-	private AfspraakDao afspraakDao;
+	private ColonIntakeAfspraakRepository afspraakRepository;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -156,7 +180,7 @@ public class ColonBaseAfspraakServiceImpl implements ColonBaseAfspraakService
 			uitnodiging.setAfspraak(null);
 			hibernateService.saveOrUpdate(uitnodiging);
 		}
-		afspraakDao.saveOrUpdate(intakeAfspraak);
+		hibernateService.saveOrUpdate(intakeAfspraak);
 		var format = DateUtil.LOCAL_DATE_TIME_FORMAT;
 		var melding = String.format("Intake afspraak van %1$s in %2$s van %3$s afgezegd%4$s", format.format(intakeAfspraak.getVanaf()), intakeAfspraak.getKamer().getNaam(),
 			intakeAfspraak.getKamer().getIntakelocatie().getNaam(), afzegReden);
@@ -218,16 +242,208 @@ public class ColonBaseAfspraakServiceImpl implements ColonBaseAfspraakService
 	}
 
 	@Override
-	public List<ColonIntakeAfspraak> getAfsprakenVoorColoscopiecentrum(WerklijstIntakeFilter zoekObject, ColonIntakelocatie intakelocatie, long first, long count,
-		String property, boolean ascending)
+	public List<ColonIntakeAfspraak> getAfsprakenVoorIntakelocatie(WerklijstIntakeFilter zoekObject, ColonIntakelocatie intakelocatie, long first, long count,
+		Sort sort)
 	{
-		return afspraakDao.getAfsprakenVoorIntakelocatie(zoekObject, intakelocatie, currentDateSupplier.getLocalDate(), first, count, property, ascending);
+		var afspraken = afspraakRepository.findWith(getAfsprakenVoorIntakelocatieSpecification(zoekObject, intakelocatie)
+			, q -> q.sortBy(getSorteringVoorAfspraken(sort), (order, r, cb) ->
+			{
+				var sortProperty = order.getProperty();
+				if (sortProperty.startsWith(ColonIntakeAfspraak_.CONCLUSIE))
+				{
+					join(r, ColonIntakeAfspraak_.conclusie, JoinType.LEFT);
+				}
+				else if (sortProperty.startsWith(propertyChain(ColonIntakeAfspraak_.CLIENT, Client_.COLON_DOSSIER, ColonDossier_.VOLGENDE_UITNODIGING)))
+				{
+					var clientJoin = join(r, ColonIntakeAfspraak_.client);
+					var dossierJoin = join(clientJoin, Client_.colonDossier);
+					join(dossierJoin, ColonDossier_.volgendeUitnodiging);
+				}
+				return null;
+			})).all(first, count);
+		if (moetNogOpGeboortedatumFilteren(zoekObject))
+		{
+			filterGeboortedatum(zoekObject.getGeboortedatum(), afspraken);
+		}
+		return afspraken;
+	}
+
+	private ExtendedSpecification<ColonIntakeAfspraak> getAfsprakenVoorIntakelocatieSpecification(WerklijstIntakeFilter zoekFilter, ColonIntakelocatie intakelocatie)
+	{
+		var vandaag = currentDateSupplier.getLocalDate();
+		var specification = heeftStatusIn(ColonAfspraakStatus.VOOR_AGENDA)
+			.and(ColonIntakeKamerSpecification.heeftIntakelocatie(intakelocatie).with(r -> join(r, ColonTijdslot_.kamer)))
+			.and(onderdeelVanLaatsteScreeningRonde());
+
+		if (StringUtils.isNotBlank(zoekFilter.getBsn()) && (ColonAfspraakStatus.UITGEVOERD != zoekFilter.getStatus() || zoekFilter.getGeboortedatum() != null))
+		{
+			specification = specification.and(PersoonSpecification.heeftBsn(zoekFilter.getBsn()).with(persoonJoin()));
+		}
+		else if (ColonAfspraakStatus.UITGEVOERD == zoekFilter.getStatus())
+		{
+			specification = specification.and(PersoonSpecification.heeftBsn("nobsn").with(persoonJoin()));
+		}
+
+		LocalDate vanaf = DateUtil.toLocalDate(zoekFilter.getVanaf());
+		LocalDate totEnMet = null;
+		if (zoekFilter.getTotEnMet() != null)
+		{
+			totEnMet = DateUtil.toLocalDate(zoekFilter.getTotEnMet()).plusDays(1);
+		}
+		if (ColonAfspraakStatus.GEPLAND == zoekFilter.getStatus())
+		{
+
+			specification = specification.and(heeftStatus(ColonAfspraakStatus.GEPLAND));
+			if (vanaf == null || !vanaf.isAfter(vandaag))
+			{
+				vanaf = vandaag;
+			}
+			if (Boolean.TRUE.equals(zoekFilter.getEersteKeerZoeken()))
+			{
+				totEnMet = vandaag.plusDays(1);
+			}
+		}
+		else if (ColonAfspraakStatus.UITGEVOERD == zoekFilter.getStatus())
+		{
+			specification = specification.and(ColonScreeningRondeSpecification.heeftAfgerondeMdlVerslagen().with(screeningRondeJoin())
+				.or(heeftStatus(ColonAfspraakStatus.UITGEVOERD)
+					.and(ColonConclusieSpecification.heeftType().with(conclusieJoin()))
+					.and(ColonConclusieSpecification.heeftNietTypeIn(List.of(ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM, ColonConclusieType.ON_HOLD))
+						.with(conclusieJoin()))
+				)
+			);
+			specification = specification.and(PersoonSpecification.isNietOverleden().with(persoonJoin()));
+			specification = specification.and(PersoonSpecification.valtBinnenLeeftijdGrensRestricties(null, zoekFilter.getMaxLeeftijd(), null, vandaag).with(persoonJoin())
+				.or(ColonScreeningRondeSpecification.heeftGeenRondeZonderVerslagNaVerlopenOngunstigeUitslag(vandaag.minusDays(zoekFilter.getInterval())).with(screeningRondeJoin()))
+				.or(ColonScreeningRondeSpecification.heeftOpenUitnodiging().with(screeningRondeJoin()))
+			);
+			specification = specification.and(heeftGeenNieuweAfspraak());
+		}
+		else
+		{
+			var heeftGeenConclusie = ColonConclusieSpecification.heeftGeenType().with(conclusieJoin());
+			if (totEnMet != null && totEnMet.isBefore(vandaag))
+			{
+				heeftGeenConclusie = heeftGeenConclusie.and(heeftAfspraakVoor(totEnMet.atStartOfDay()));
+			}
+			else
+			{
+				heeftGeenConclusie = heeftGeenConclusie.and(heeftAfspraakVoor(vandaag.atStartOfDay()));
+			}
+
+			var heeftConclusieOnHold = ColonConclusieSpecification.heeftType(ColonConclusieType.ON_HOLD).with(conclusieJoin());
+			var isDoorverwezenOmMedischeRedenen = ColonConclusieSpecification.heeftType(ColonConclusieType.DOORVERWIJZEN_NAAR_ANDER_CENTRUM).with(conclusieJoin())
+				.and(ColonConclusieSpecification.isDoorverwijzingBevestigd(false).with(conclusieJoin())
+					.and(ColonIntakeAfspraakSpecification.heeftNieuweAfspraak())
+				)
+				.or(ColonConclusieSpecification.isDoorverwijzingBevestigd(true).with(conclusieJoin())
+					.and(ColonIntakeAfspraakSpecification.heeftGeenNieuweAfspraak())
+				);
+
+			if (totEnMet != null)
+			{
+				heeftConclusieOnHold = heeftConclusieOnHold.and(heeftAfspraakVoor(totEnMet.atStartOfDay()));
+				isDoorverwezenOmMedischeRedenen = isDoorverwezenOmMedischeRedenen.and(heeftAfspraakVoor(totEnMet.atStartOfDay()));
+			}
+
+			specification = specification.and(ColonDossierSpecification.heeftVolgendeUitnodigingNaInterval().with(dossierJoin()));
+			specification = specification.and(heeftGeenConclusie.or(heeftConclusieOnHold).or(isDoorverwezenOmMedischeRedenen));
+		}
+
+		if (ColonAfspraakStatus.UITGEVOERD != zoekFilter.getStatus())
+		{
+			specification = specification.and(ColonScreeningRondeSpecification.heeftGeenAfgerondeMdlVerslagen().with(screeningRondeJoin()));
+		}
+
+		if (vanaf != null)
+		{
+			specification = specification.and((heeftAfspraakNa(vanaf.atStartOfDay())));
+		}
+		if (zoekFilter.getStatus() != null && totEnMet != null)
+		{
+			specification = specification.and((heeftAfspraakVoor(totEnMet.atStartOfDay())));
+		}
+		if (zoekFilter.getConclusieTypeFilter() != null)
+		{
+			if (ConclusieTypeFilter.GEEN_CONCLUSIE == zoekFilter.getConclusieTypeFilter())
+			{
+				specification = specification.and(ColonConclusieSpecification.heeftGeenType().with(conclusieJoin()));
+			}
+			else if (!zoekFilter.getConclusieTypeFilter().getConclusieTypes().isEmpty())
+			{
+				specification = specification.and((ColonConclusieSpecification.heeftTypeIn(zoekFilter.getConclusieTypeFilter().getConclusieTypes()).with(conclusieJoin())));
+			}
+		}
+		return specification;
+	}
+
+	private Function<From<?, ? extends ColonIntakeAfspraak>, From<?, ? extends GbaPersoon>> persoonJoin()
+	{
+		return r ->
+		{
+			var clientJoin = join(r, ColonIntakeAfspraak_.client);
+			return join(clientJoin, Client_.persoon);
+		};
+	}
+
+	private Function<From<?, ? extends ColonIntakeAfspraak>, From<?, ? extends ColonDossier>> dossierJoin()
+	{
+		return r ->
+		{
+			var clientJoin = join(r, ColonIntakeAfspraak_.client);
+			return join(clientJoin, Client_.colonDossier);
+		};
+	}
+
+	private Function<From<?, ? extends ColonIntakeAfspraak>, From<?, ? extends ColonConclusie>> conclusieJoin()
+	{
+		return r -> join(r, ColonIntakeAfspraak_.conclusie, JoinType.LEFT);
+	}
+
+	private Function<From<?, ? extends ColonIntakeAfspraak>, From<?, ? extends ColonScreeningRonde>> screeningRondeJoin()
+	{
+		return r -> join(r, ColonIntakeAfspraak_.colonScreeningRonde);
+	}
+
+	private Sort getSorteringVoorAfspraken(Sort sort)
+	{
+		var sortering = new ArrayList<Sort.Order>();
+
+		sort.forEach(order ->
+		{
+			var sortProperty = order.getProperty();
+			sortering.add(order);
+
+			if (sortProperty.equals(propertyChain(ColonIntakeAfspraak_.CONCLUSIE, ColonConclusie_.TYPE)))
+			{
+				sortering.add(new Sort.Order(order.getDirection(), propertyChain(ColonIntakeAfspraak_.CONCLUSIE, ColonConclusie_.ON_HOLD_REDEN)));
+			}
+
+			sortering.add(new Sort.Order(order.getDirection(), AbstractHibernateObject_.ID));
+		});
+
+		return Sort.by(sortering);
 	}
 
 	@Override
 	public long countAfsprakenVoorColoscopiecentrum(WerklijstIntakeFilter zoekObject, ColonIntakelocatie intakelocatie)
 	{
-		return afspraakDao.countAfsprakenVoorIntakelocatie(zoekObject, intakelocatie, currentDateSupplier.getLocalDate());
+		var afspraken = afspraakRepository.findAll(getAfsprakenVoorIntakelocatieSpecification(zoekObject, intakelocatie));
+		if (moetNogOpGeboortedatumFilteren(zoekObject))
+		{
+			filterGeboortedatum(zoekObject.getGeboortedatum(), afspraken);
+		}
+		return afspraken.size();
+	}
+
+	private boolean moetNogOpGeboortedatumFilteren(WerklijstIntakeFilter zoekFilter)
+	{
+		return ColonAfspraakStatus.UITGEVOERD == zoekFilter.getStatus() && zoekFilter.getGeboortedatum() != null;
+	}
+
+	private boolean filterGeboortedatum(Date geboortedatum, List<ColonIntakeAfspraak> afspraken)
+	{
+		return afspraken.removeIf(a -> !DateUtil.isGeboortedatumGelijk(DateUtil.toLocalDate(geboortedatum), a.getClient()));
 	}
 
 	@Override
@@ -632,7 +848,7 @@ public class ColonBaseAfspraakServiceImpl implements ColonBaseAfspraakService
 	public ColonAfspraakslot getAfspraakslotVoorAfspraak(ColonIntakeAfspraak newAfspraak)
 	{
 		var range = Range.open(newAfspraak.getVanaf(), newAfspraak.getTot());
-		return afspraakslotRepository.findFirst(ColonAfspraakslotSpecification.heeftKamer(newAfspraak.getKamer())
+		return afspraakslotRepository.findFirst(ColonTijdslotSpecification.<ColonAfspraakslot> heeftKamer(newAfspraak.getKamer())
 				.and(overlapt(range, r -> r.get(ColonTijdslot_.vanaf), r -> r.get(ColonTijdslot_.tot))),
 			Sort.by(Sort.Order.asc(ColonTijdslot_.VANAF))).orElse(null);
 	}
@@ -640,7 +856,7 @@ public class ColonBaseAfspraakServiceImpl implements ColonBaseAfspraakService
 	@Override
 	public ColonAfspraakslot getVrijAfspraakslotVoorAfspraak(ColonIntakeAfspraak newAfspraak)
 	{
-		return afspraakslotRepository.findFirst(ColonAfspraakslotSpecification.heeftKamer(newAfspraak.getKamer())
+		return afspraakslotRepository.findFirst(ColonTijdslotSpecification.<ColonAfspraakslot> heeftKamer(newAfspraak.getKamer())
 				.and(heeftVanaf(newAfspraak.getVanaf()))
 				.and(heeftGeenAfspraak()),
 			Sort.by(Sort.Order.asc(ColonTijdslot_.VANAF))).orElse(null);

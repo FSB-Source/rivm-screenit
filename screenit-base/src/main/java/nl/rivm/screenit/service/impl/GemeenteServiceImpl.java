@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -46,7 +46,6 @@ import static nl.rivm.screenit.specification.algemeen.BagAdresSpecification.heef
 import static nl.rivm.screenit.specification.algemeen.GemeenteSpecification.heeftGeenBMHKLaboratoriumOfGekoppeldAan;
 import static nl.rivm.screenit.specification.algemeen.GemeenteSpecification.heeftGeenScreeningOrganisatieOfGekoppeldAan;
 import static nl.rivm.screenit.specification.algemeen.GemeenteSpecification.heeftNaamEnScreeningOrganisatie;
-import static nl.rivm.screenit.specification.algemeen.GemeenteSpecification.heeftScreeningOrganisatie;
 import static nl.rivm.screenit.specification.algemeen.GemeenteSpecification.isGemeenteActiefOpMoment;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.springframework.data.jpa.domain.Specification.where;
@@ -206,21 +205,4 @@ public class GemeenteServiceImpl implements GemeenteService
 		return true;
 	}
 
-	@Override
-	public Gemeente getGemeenteByCode(String code)
-	{
-		return gemeenteRepository.findOneByCode(code).orElse(null);
-	}
-
-	@Override
-	public Gemeente getEersteGemeenteMetScreeningOrganisatie()
-	{
-		return gemeenteRepository.findFirst(heeftScreeningOrganisatie(), Sort.by(Sort.Order.asc(Gemeente_.NAAM))).orElse(null);
-	}
-
-	@Override
-	public List<Gemeente> getGemeentesMetScreeningOrganisatie()
-	{
-		return gemeenteRepository.findAll(heeftScreeningOrganisatie(), Sort.by(Sort.Order.asc(Gemeente_.NAAM)));
-	}
 }

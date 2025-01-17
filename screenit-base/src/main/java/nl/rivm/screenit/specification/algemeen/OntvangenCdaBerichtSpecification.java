@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.algemeen;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 import javax.persistence.criteria.Predicate;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.BerichtZoekFilter;
 import nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht;
@@ -53,7 +53,7 @@ import static nl.rivm.screenit.specification.SpecificationUtil.composePredicates
 import static nl.rivm.screenit.specification.SpecificationUtil.containsCaseInsensitive;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OntvangenCdaBerichtSpecification
 {
 	public static Specification<OntvangenCdaBericht> heeftBerichtId(String berichtId)

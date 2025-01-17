@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.overeenkomstenzoeken
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,12 +33,11 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
+
 public class OvereenkomstZoekenDataProvider extends SortableDataProvider<Instelling, String>
 {
-
-	private static final long serialVersionUID = 1L;
-
-	private IModel<OvereenkomstZoekFilter> zoekModel;
+	private final IModel<OvereenkomstZoekFilter> zoekModel;
 
 	@SpringBean
 	private OvereenkomstService overeenkomstService;
@@ -46,14 +45,14 @@ public class OvereenkomstZoekenDataProvider extends SortableDataProvider<Instell
 	public OvereenkomstZoekenDataProvider(IModel<OvereenkomstZoekFilter> zoekModel, String sortProperty)
 	{
 		setSort(sortProperty, SortOrder.ASCENDING);
-		setZoekModel(zoekModel);
+		this.zoekModel = zoekModel;
 		Injector.get().inject(this);
 	}
 
 	@Override
 	public Iterator<? extends Instelling> iterator(long first, long count)
 	{
-		return overeenkomstService.getAfgeslotenOvereenkomsten(ModelUtil.nullSafeGet(zoekModel), getSort().getProperty(), getSort().isAscending(), (int) first, (int) count)
+		return overeenkomstService.getAfgeslotenOvereenkomsten(ModelUtil.nullSafeGet(zoekModel), toSpringSort(getSort()), (int) first, (int) count)
 			.iterator();
 	}
 
@@ -67,16 +66,6 @@ public class OvereenkomstZoekenDataProvider extends SortableDataProvider<Instell
 	public IModel<Instelling> model(Instelling object)
 	{
 		return ModelUtil.nullSafeSet(object);
-	}
-
-	public IModel<OvereenkomstZoekFilter> getZoekModel()
-	{
-		return zoekModel;
-	}
-
-	public void setZoekModel(IModel<OvereenkomstZoekFilter> zoekModel)
-	{
-		this.zoekModel = zoekModel;
 	}
 
 	@Override

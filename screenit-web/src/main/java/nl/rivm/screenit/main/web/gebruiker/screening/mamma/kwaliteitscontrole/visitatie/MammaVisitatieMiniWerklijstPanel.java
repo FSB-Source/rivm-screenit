@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.v
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,7 @@ import java.util.List;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaVisitatieOnderzoekenWerklijstZoekObject;
-import nl.rivm.screenit.main.service.mamma.MammaKwaliteitscontroleService;
+import nl.rivm.screenit.main.service.mamma.MammaVisitatieService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.table.ClientColumn;
 import nl.rivm.screenit.main.web.component.table.EnumPropertyColumn;
@@ -54,7 +54,7 @@ public class MammaVisitatieMiniWerklijstPanel extends Panel
 {
 
 	@SpringBean
-	private MammaKwaliteitscontroleService kwaliteitscontroleService;
+	private MammaVisitatieService visitatieService;
 
 	@SpringBean
 	private HibernateService hibernateService;
@@ -89,7 +89,7 @@ public class MammaVisitatieMiniWerklijstPanel extends Panel
 
 		MammaVisitatieOnderdeel onderdeel = hibernateService.load(MammaVisitatieOnderzoek.class, huidigeBeoordelingId).getOnderdeel();
 
-		addOrReplace(new ScreenitDataTable<MammaVisitatieOnderzoek, String>("miniwerklijst", columns, miniWerklijstDataProvider, 5, Model.of("onderzoek(en)"), false)
+		addOrReplace(new ScreenitDataTable<>("miniwerklijst", columns, miniWerklijstDataProvider, 5, Model.of("onderzoek(en)"), false)
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<MammaVisitatieOnderzoek> model)
@@ -124,7 +124,7 @@ public class MammaVisitatieMiniWerklijstPanel extends Panel
 					{
 						MammaVisitatieOnderzoek visitatieOnderzoek = hibernateService.load(MammaVisitatieOnderzoek.class, huidigeBeoordelingId);
 
-						return kwaliteitscontroleService.getAantalGezien(visitatieOnderzoek.getVisitatie(), onderdeel);
+						return (int) visitatieService.countAantalGezien(visitatieOnderzoek.getVisitatie(), onderdeel);
 					}
 				};
 

@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.algemeen;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,9 +24,12 @@ package nl.rivm.screenit.specification.algemeen;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import nl.rivm.screenit.model.DeelnamemodusDossier;
 import nl.rivm.screenit.model.Dossier;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.Dossier_;
+import nl.rivm.screenit.model.enums.Deelnamemodus;
+import nl.rivm.screenit.model.mamma.MammaDossier_;
 import nl.rivm.screenit.specification.ExtendedSpecification;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -45,5 +48,10 @@ public class DossierSpecification
 	public static <D extends Dossier<?, ?>> ExtendedSpecification<D> wachtOpStartProject(Boolean wachtOpstartProject)
 	{
 		return (r, q, cb) -> cb.equal(r.get(Dossier_.wachtOpStartProject), wachtOpstartProject);
+	}
+
+	public static <D extends Dossier<?, ?> & DeelnamemodusDossier> ExtendedSpecification<D> heeftDeelnamemodus(Deelnamemodus deelnamemodus)
+	{
+		return (r, q, cb) -> cb.equal(r.get(MammaDossier_.DEELNAMEMODUS), deelnamemodus);
 	}
 }

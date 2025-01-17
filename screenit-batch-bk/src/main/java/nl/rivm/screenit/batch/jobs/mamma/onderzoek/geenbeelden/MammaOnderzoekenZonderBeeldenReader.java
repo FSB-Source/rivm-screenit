@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.onderzoek.geenbeelden;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,51 +21,85 @@ package nl.rivm.screenit.batch.jobs.mamma.onderzoek.geenbeelden;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.model.mamma.MammaDossier;
-import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
-import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
-import nl.rivm.screenit.model.mamma.enums.OnvolledigOnderzoekOption;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Root;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Projection;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.mamma.MammaAfspraak;
+import nl.rivm.screenit.model.mamma.MammaAfspraak_;
+import nl.rivm.screenit.model.mamma.MammaDossier;
+import nl.rivm.screenit.model.mamma.MammaDossier_;
+import nl.rivm.screenit.model.mamma.MammaMammografie;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
+import nl.rivm.screenit.specification.ExtendedSpecification;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
+
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus.NIET_BESCHIKBAAR;
+import static nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus.AFGEROND;
+import static nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus.ONVOLLEDIG;
+import static nl.rivm.screenit.model.mamma.enums.OnvolledigOnderzoekOption.MET_FOTOS;
+import static nl.rivm.screenit.specification.HibernateObjectSpecification.heeftGeenId;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.mamma.MammaMammografieBaseSpecification.heeftIlmStatus;
+import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.heeftOnvolledigOnderzoek;
+import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.heeftStatus;
+
 @Component
-public class MammaOnderzoekenZonderBeeldenReader extends BaseScrollableResultReader
+public class MammaOnderzoekenZonderBeeldenReader extends BaseSpecificationScrollableResultReader<MammaDossier>
 {
-
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<MammaDossier> createSpecification()
 	{
-		var criteria = session.createCriteria(MammaDossier.class, "dossier");
-		criteria.createAlias("dossier.client", "client");
-		criteria.createAlias("client.persoon", "persoon");
-		criteria.createAlias("dossier.laatsteScreeningRonde", "ronde");
-		criteria.createAlias("ronde.laatsteUitnodiging", "uitnodiging");
-		criteria.createAlias("uitnodiging.laatsteAfspraak", "afspraak");
-		criteria.createAlias("afspraak.onderzoek", "onderzoek");
-		criteria.createAlias("onderzoek.mammografie", "mammografie", JoinType.LEFT_OUTER_JOIN);
-		criteria.add(Restrictions.or(
-			Restrictions.eq("onderzoek.status", MammaOnderzoekStatus.AFGEROND),
-			Restrictions.and(
-				Restrictions.eq("onderzoek.status", MammaOnderzoekStatus.ONVOLLEDIG),
-				Restrictions.eq("onderzoek.onvolledigOnderzoek", OnvolledigOnderzoekOption.MET_FOTOS))));
-		criteria.add(Restrictions.or(
-			Restrictions.eq("mammografie.ilmStatus", MammaMammografieIlmStatus.NIET_BESCHIKBAAR),
-			Restrictions.isNull("onderzoek.mammografie")));
+		return isAfgerondOfOnvolledigMetFotos().withRoot(this::laatsteOnderzoekJoin)
+			.and(heeftGeenMammografieOfIlmStatusIsNietBeschikbaar().withRoot(this::laatsteMammografieJoin));
+	}
 
-		return criteria;
+	private ExtendedSpecification<MammaOnderzoek> isAfgerondOfOnvolledigMetFotos()
+	{
+		return heeftStatus(AFGEROND).or(isOnvolledigMetFotos());
+	}
+
+	private ExtendedSpecification<MammaOnderzoek> isOnvolledigMetFotos()
+	{
+		return heeftStatus(ONVOLLEDIG).and(heeftOnvolledigOnderzoek(MET_FOTOS));
+	}
+
+	private ExtendedSpecification<MammaMammografie> heeftGeenMammografieOfIlmStatusIsNietBeschikbaar()
+	{
+		return heeftIlmStatus(NIET_BESCHIKBAAR).or(heeftGeenId());
 	}
 
 	@Override
-	protected Projection getProjection()
+	protected Expression<Long> createProjection(Root<MammaDossier> r, CriteriaBuilder cb)
 	{
-		return Projections.property("afspraak.id");
+		return laatsteAfspraakJoin(r).get(AbstractHibernateObject_.id);
+	}
+
+	private Join<?, MammaAfspraak> laatsteAfspraakJoin(Root<MammaDossier> root)
+	{
+		var laatsteScreeningRondeJoin = join(root, MammaDossier_.laatsteScreeningRonde);
+		var laatsteUitnodigingJoin = join(laatsteScreeningRondeJoin, MammaScreeningRonde_.laatsteUitnodiging);
+		return join(laatsteUitnodigingJoin, MammaUitnodiging_.laatsteAfspraak);
+	}
+
+	private Join<?, MammaOnderzoek> laatsteOnderzoekJoin(Root<MammaDossier> root)
+	{
+		var afspraakJoin = laatsteAfspraakJoin(root);
+		return join(afspraakJoin, MammaAfspraak_.onderzoek);
+	}
+
+	private Join<?, MammaMammografie> laatsteMammografieJoin(Root<MammaDossier> root)
+	{
+		var onderzoekJoin = laatsteOnderzoekJoin(root);
+		return join(onderzoekJoin, MammaOnderzoek_.mammografie, JoinType.LEFT);
 	}
 }

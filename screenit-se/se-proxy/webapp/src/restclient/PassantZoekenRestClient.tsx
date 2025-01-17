@@ -20,7 +20,7 @@ import {store} from "../Store"
 import {Dispatch} from "redux"
 
 export const readPassant = (bsn: string, geboortedatum: string, dispatch: any): void => {
-	fetchApiPromise("GET", `passanten/?bsn=${bsn}&geboortedatum=${geboortedatum}`).then(response => {
+	fetchApiPromise("GET", `passanten?bsn=${bsn}&geboortedatum=${geboortedatum}`).then(response => {
 		if (response.status === 404) {
 			response.json().then((err: ErrorDto) => {
 				showErrorToast(err.errorReferentie)

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.overeenkomsten;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -37,8 +37,11 @@ import nl.rivm.screenit.main.web.gebruiker.algemeen.medewerker.MedewerkerPaspoor
 import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.OrganisatiePaspoortPanel;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Instelling;
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.overeenkomsten.AbstractAfgeslotenOvereenkomst;
+import nl.rivm.screenit.model.overeenkomsten.AbstractAfgeslotenOvereenkomst_;
+import nl.rivm.screenit.model.overeenkomsten.Overeenkomst_;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -61,6 +64,8 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
 
 public abstract class AfgeslotenOvereenkomstPanel extends Panel
 {
@@ -120,25 +125,31 @@ public abstract class AfgeslotenOvereenkomstPanel extends Panel
 		}.setVisible(isMinimumActie(actie, Actie.TOEVOEGEN)));
 
 		List<IColumn<AbstractAfgeslotenOvereenkomst, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<>(new SimpleStringResourceModel("label.codeovereenkomst"), "code", "code"));
-		columns.add(new PropertyColumn<>(new SimpleStringResourceModel("label.naamovereenkomst"), "overeenkomst.naam", "overeenkomst.naam"));
-		columns.add(new PropertyColumn<>(new SimpleStringResourceModel("label.screeningsorganisatie"), "screeningOrganisatie.naam",
-			"screeningOrganisatie.naam"));
-		columns.add(new DateTimePropertyColumn<>(new SimpleStringResourceModel("label.startdatum"), "startDatum", "startDatum",
+		columns.add(new PropertyColumn<>(new SimpleStringResourceModel("label.codeovereenkomst"), AbstractAfgeslotenOvereenkomst_.CODE, AbstractAfgeslotenOvereenkomst_.CODE));
+		columns.add(new PropertyColumn<>(new SimpleStringResourceModel("label.naamovereenkomst"), propertyChain(AbstractAfgeslotenOvereenkomst_.OVEREENKOMST, Overeenkomst_.NAAM),
+			propertyChain(AbstractAfgeslotenOvereenkomst_.OVEREENKOMST, Overeenkomst_.NAAM)));
+		columns.add(new PropertyColumn<>(new SimpleStringResourceModel("label.screeningsorganisatie"), propertyChain(AbstractAfgeslotenOvereenkomst_.SCREENING_ORGANISATIE,
+			Instelling_.NAAM), propertyChain(AbstractAfgeslotenOvereenkomst_.SCREENING_ORGANISATIE, Instelling_.NAAM)));
+		columns.add(new DateTimePropertyColumn<>(new SimpleStringResourceModel("label.startdatum"), AbstractAfgeslotenOvereenkomst_.START_DATUM,
+			AbstractAfgeslotenOvereenkomst_.START_DATUM,
 			new SimpleDateFormat("dd-MM-yyyy")));
-		columns.add(new DateTimePropertyColumn<>(new SimpleStringResourceModel("label.einddatum"), "eindDatum", "eindDatum",
-			new SimpleDateFormat("dd-MM-yyyy")));
-		columns.add(new DateTimePropertyColumn<>(new SimpleStringResourceModel("label.akkoorddatum"), "akkoordDatum", "akkoordDatum",
+		columns.add(
+			new DateTimePropertyColumn<>(new SimpleStringResourceModel("label.einddatum"), AbstractAfgeslotenOvereenkomst_.EIND_DATUM, AbstractAfgeslotenOvereenkomst_.EIND_DATUM,
+				new SimpleDateFormat("dd-MM-yyyy")));
+		columns.add(new DateTimePropertyColumn<>(new SimpleStringResourceModel("label.akkoorddatum"), AbstractAfgeslotenOvereenkomst_.AKKOORD_DATUM,
+			AbstractAfgeslotenOvereenkomst_.AKKOORD_DATUM,
 			new SimpleDateFormat("dd-MM-yyyy")));
 		columns.add(new BooleanStringPropertyColumn<>(new SimpleStringResourceModel("label.nieuwereovereenkomst"),
-			Constants.getBooleanWeergave(), "nieuwereOvereenkomst", "nieuwereOvereenkomst"));
+			Constants.getBooleanWeergave(), AbstractAfgeslotenOvereenkomst_.NIEUWERE_OVEREENKOMST, AbstractAfgeslotenOvereenkomst_.NIEUWERE_OVEREENKOMST));
 		if (!inzien)
 		{
-			columns.add(new GeneratedDocumentDownloadColumn(new SimpleStringResourceModel("label.downloaden"), "overeenkomst.document"));
+			columns.add(new GeneratedDocumentDownloadColumn(new SimpleStringResourceModel("label.downloaden"),
+				propertyChain(AbstractAfgeslotenOvereenkomst_.OVEREENKOMST, Overeenkomst_.DOCUMENT)));
 		}
-		columns.add(new UploadDocumentDownloadColumn<>(new SimpleStringResourceModel("label.gescanddocumentdownloaden"), "gescandDocument"));
+		columns.add(new UploadDocumentDownloadColumn<>(new SimpleStringResourceModel("label.gescanddocumentdownloaden"), AbstractAfgeslotenOvereenkomst_.GESCAND_DOCUMENT));
 		columns
-			.add(new BooleanStringPropertyColumn<>(Model.of("Te accorderen"), Constants.getBooleanWeergave(), "teAccoderen", "teAccoderen"));
+			.add(new BooleanStringPropertyColumn<>(Model.of("Te accorderen"), Constants.getBooleanWeergave(), AbstractAfgeslotenOvereenkomst_.TE_ACCODEREN,
+				AbstractAfgeslotenOvereenkomst_.TE_ACCODEREN));
 		columns.add(new AbstractColumn<>(new Model<>(""))
 		{
 			@Override

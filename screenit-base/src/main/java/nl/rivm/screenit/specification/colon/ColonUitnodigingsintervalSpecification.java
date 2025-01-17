@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,19 +24,24 @@ package nl.rivm.screenit.specification.colon;
 import java.util.List;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.colon.ColonUitnodigingsinterval;
 import nl.rivm.screenit.model.colon.ColonUitnodigingsinterval_;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
 import nl.rivm.screenit.specification.ExtendedSpecification;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ColonUitnodigingsintervalSpecification
 {
 	public static ExtendedSpecification<ColonUitnodigingsinterval> heeftTypeIn(List<ColonUitnodigingsintervalType> types)
 	{
 		return (r, q, cb) -> r.get(ColonUitnodigingsinterval_.type).in(types);
+	}
+
+	public static ExtendedSpecification<ColonUitnodigingsinterval> heeftType(ColonUitnodigingsintervalType type)
+	{
+		return (r, q, cb) -> cb.equal(r.get(ColonUitnodigingsinterval_.type), type);
 	}
 
 	public static ExtendedSpecification<ColonUitnodigingsinterval> heeftAantal()

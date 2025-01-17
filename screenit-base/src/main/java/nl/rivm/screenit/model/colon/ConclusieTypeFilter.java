@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -20,6 +20,8 @@ package nl.rivm.screenit.model.colon;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
+
+import java.util.List;
 
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 
@@ -41,24 +43,24 @@ public enum ConclusieTypeFilter
 
 	GEEN_VERVOLGONDERZOEK(ColonConclusieType.GEEN_VERVOLGONDERZOEK);
 
-	private ColonConclusieType[] conclusieTypes;
+	private final List<ColonConclusieType> conclusieTypes;
 
-	public static ConclusieTypeFilter[] getOpenstaandeAfspraken()
+	public static List<ConclusieTypeFilter> getOpenstaandeAfspraken()
 	{
-		return new ConclusieTypeFilter[] { GEEN_CONCLUSIE, ON_HOLD, DOORVERWIJZEN_NAAR_ANDER_CENTRUM };
+		return List.of(GEEN_CONCLUSIE, ON_HOLD, DOORVERWIJZEN_NAAR_ANDER_CENTRUM);
 	}
 
-	public static ConclusieTypeFilter[] getAfgerondeAfspraken()
+	public static List<ConclusieTypeFilter> getAfgerondeAfspraken()
 	{
-		return new ConclusieTypeFilter[] { CLIENT_WIL_ANDERE_INTAKELOKATIE, NO_SHOW, COLOSCOPIE, CT_COLOGRAFIE, GEEN_VERVOLGONDERZOEK, GEEN_CONCLUSIE, ON_HOLD };
+		return List.of(CLIENT_WIL_ANDERE_INTAKELOKATIE, NO_SHOW, COLOSCOPIE, CT_COLOGRAFIE, GEEN_VERVOLGONDERZOEK, GEEN_CONCLUSIE, ON_HOLD);
 	}
 
 	ConclusieTypeFilter(ColonConclusieType... conclusieTypes)
 	{
-		this.conclusieTypes = conclusieTypes;
+		this.conclusieTypes = List.of(conclusieTypes);
 	}
 
-	public ColonConclusieType[] getConclusieTypes()
+	public List<ColonConclusieType> getConclusieTypes()
 	{
 		return conclusieTypes;
 	}

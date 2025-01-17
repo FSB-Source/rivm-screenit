@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.kwaliteitscontrole.r
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,15 +33,14 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
+
 public class SKMLExternSchemaProvider extends SortableDataProvider<SKMLExternSchema, String>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private SKMLExternSchemaService schemaService;
 
-	private IModel<SKMLExternSchema> zoekModel;
+	private final IModel<SKMLExternSchema> zoekModel;
 
 	public SKMLExternSchemaProvider(String sortProperty, SortOrder sortOrder, IModel<SKMLExternSchema> schemaModel)
 	{
@@ -53,13 +52,13 @@ public class SKMLExternSchemaProvider extends SortableDataProvider<SKMLExternSch
 	@Override
 	public Iterator<? extends SKMLExternSchema> iterator(long first, long count)
 	{
-		return schemaService.zoekSchemas(ModelUtil.nullSafeGet(zoekModel), getSort().getProperty(), getSort().isAscending(), (int) first, (int) count);
+		return schemaService.zoekSchemas(ModelUtil.nullSafeGet(zoekModel), toSpringSort(getSort()), (int) first, (int) count).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return schemaService.telSchemas(ModelUtil.nullSafeGet(zoekModel));
+		return schemaService.countSchemas(ModelUtil.nullSafeGet(zoekModel));
 	}
 
 	@Override

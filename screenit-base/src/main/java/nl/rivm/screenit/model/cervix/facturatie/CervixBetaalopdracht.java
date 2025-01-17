@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.cervix.facturatie;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -40,6 +40,9 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.BestandStatus;
@@ -51,6 +54,8 @@ import org.hibernate.annotations.Type;
 import org.hibernate.envers.Audited;
 
 @Entity
+@Getter
+@Setter
 @Table(
 	schema = "cervix",
 	name = "betaalopdracht",
@@ -94,114 +99,4 @@ public class CervixBetaalopdracht extends AbstractHibernateObject
 	@Lob
 	@Type(type = "org.hibernate.type.TextType")
 	private String omschrijving;
-
-	public String getHashtotaal()
-	{
-		return hashtotaal;
-	}
-
-	public void setHashtotaal(String hashtotaal)
-	{
-		this.hashtotaal = hashtotaal;
-	}
-
-	public String getVanIban()
-	{
-		return vanIban;
-	}
-
-	public void setVanIban(String vanIban)
-	{
-		this.vanIban = vanIban;
-	}
-
-	public String getBetalingskenmerk()
-	{
-		return betalingskenmerk;
-	}
-
-	public void setBetalingskenmerk(String betalingskenmerk)
-	{
-		this.betalingskenmerk = betalingskenmerk;
-	}
-
-	public List<CervixBetaalopdrachtRegel> getBetaalopdrachtRegels()
-	{
-		return betaalopdrachtRegels;
-	}
-
-	public void setBetaalopdrachtRegels(List<CervixBetaalopdrachtRegel> betaalopdrachtRegels)
-	{
-		this.betaalopdrachtRegels = betaalopdrachtRegels;
-	}
-
-	public ScreeningOrganisatie getScreeningOrganisatie()
-	{
-		return screeningOrganisatie;
-	}
-
-	public void setScreeningOrganisatie(ScreeningOrganisatie organisatie)
-	{
-		this.screeningOrganisatie = organisatie;
-	}
-
-	public Date getStatusDatum()
-	{
-		return statusDatum;
-	}
-
-	public void setStatusDatum(Date statusDatum)
-	{
-		this.statusDatum = statusDatum;
-	}
-
-	public UploadDocument getSepaSpecificatiePdf()
-	{
-		return sepaSpecificatiePdf;
-	}
-
-	public void setSepaSpecificatiePdf(UploadDocument sepaSpecificatiePdf)
-	{
-		this.sepaSpecificatiePdf = sepaSpecificatiePdf;
-	}
-
-	public UploadDocument getSepaDocument()
-	{
-		return sepaDocument;
-	}
-
-	public void setSepaDocument(UploadDocument sepaDocument)
-	{
-		this.sepaDocument = sepaDocument;
-	}
-
-	public String getOmschrijving()
-	{
-		return omschrijving;
-	}
-
-	public void setOmschrijving(String omschrijving)
-	{
-		this.omschrijving = omschrijving;
-	}
-
-	public String getVanTenaamstelling()
-	{
-		return vanTenaamstelling;
-	}
-
-	public void setVanTenaamstelling(String tenaamstelling)
-	{
-		this.vanTenaamstelling = tenaamstelling;
-	}
-
-	public BestandStatus getStatus()
-	{
-		return status;
-	}
-
-	public void setStatus(BestandStatus status)
-	{
-		this.status = status;
-	}
 }

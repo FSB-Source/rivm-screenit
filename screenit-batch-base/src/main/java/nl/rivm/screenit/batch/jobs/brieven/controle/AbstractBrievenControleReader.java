@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.brieven.controle;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,35 +21,23 @@ package nl.rivm.screenit.batch.jobs.brieven.controle;
  * =========================LICENSE_END==================================
  */
 
-import java.lang.reflect.ParameterizedType;
-
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.specification.algemeen.MergedBrievenSpecification;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 
-public abstract class AbstractBrievenControleReader<MB extends MergedBrieven<?>> extends BaseScrollableResultReader
+public abstract class AbstractBrievenControleReader<MB extends MergedBrieven<?>> extends BaseSpecificationScrollableResultReader<MB>
 {
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<MB> createSpecification()
 	{
-		Criteria crit = session.createCriteria(getMergedBrievenClass());
-		crit.add(Restrictions.eq("vrijgegeven", false));
-		crit.add(Restrictions.eq("verwijderd", false));
-		crit.add(Restrictions.or(Restrictions.isNull("briefType"), Restrictions.in("briefType", BriefType.getBriefTypesMetOrganisatieType(OrganisatieType.SCREENINGSORGANISATIE))));
-
-		return crit;
-	}
-
-	@SuppressWarnings("unchecked")
-	private final Class<MB> getMergedBrievenClass()
-	{
-		return (Class<MB>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+		return MergedBrievenSpecification.<MB> isVerwijderd(false)
+			.and(MergedBrievenSpecification.isVrijgegeven(false))
+			.and(MergedBrievenSpecification.<MB> heeftGeenBriefType()
+				.or(MergedBrievenSpecification.heeftBriefTypeIn(BriefType.getBriefTypesMetOrganisatieType(OrganisatieType.SCREENINGSORGANISATIE))));
 	}
 }

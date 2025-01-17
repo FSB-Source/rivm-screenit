@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -48,7 +48,6 @@ import nl.rivm.screenit.model.DeelnamemodusDossier;
 import nl.rivm.screenit.model.Dossier;
 import nl.rivm.screenit.model.enums.Deelnamemodus;
 import nl.rivm.screenit.model.helper.HibernateMagicNumber;
-import nl.rivm.screenit.model.mamma.berichten.xds.XdsStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
 import nl.rivm.screenit.util.SkipFieldForDiff;
 
@@ -134,10 +133,6 @@ public class MammaDossier extends Dossier<MammaScreeningRonde, MammaAfmelding> i
 	@NotAudited
 	@SkipFieldForDiff
 	private MammaDeelnamekans deelnamekans;
-
-	@Column(nullable = false)
-	@Enumerated(EnumType.STRING)
-	private XdsStatus xdsStatus;
 
 	@OneToMany(mappedBy = "dossier", fetch = FetchType.LAZY)
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "mamma.cache")

@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,13 +22,14 @@ package nl.rivm.screenit.specification.mamma;
  */
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.mamma.MammaUitstel;
 import nl.rivm.screenit.model.mamma.MammaUitstel_;
+import nl.rivm.screenit.model.mamma.enums.MammaUitstelReden;
 import nl.rivm.screenit.specification.ExtendedSpecification;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MammaUitstelSpecification
 {
 	public static ExtendedSpecification<MammaUitstel> heeftUitnodiging()
@@ -39,5 +40,10 @@ public class MammaUitstelSpecification
 	public static ExtendedSpecification<MammaUitstel> isGeannuleerd()
 	{
 		return (r, q, cb) -> cb.isNotNull(r.get(MammaUitstel_.geannuleerdOp));
+	}
+
+	public static ExtendedSpecification<MammaUitstel> heeftUitstelReden(MammaUitstelReden uitstelReden)
+	{
+		return (r, q, cb) -> cb.equal(r.get(MammaUitstel_.uitstelReden), uitstelReden);
 	}
 }

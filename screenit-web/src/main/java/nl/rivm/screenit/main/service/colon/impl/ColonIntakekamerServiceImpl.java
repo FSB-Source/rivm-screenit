@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.service.colon.impl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +23,6 @@ package nl.rivm.screenit.main.service.colon.impl;
 
 import java.util.List;
 
-import nl.rivm.screenit.main.dao.LocatieDao;
 import nl.rivm.screenit.main.service.colon.ColonIntakekamerService;
 import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
@@ -32,7 +30,6 @@ import nl.rivm.screenit.model.colon.planning.ColonIntakekamer_;
 import nl.rivm.screenit.repository.colon.ColonIntakekamerRepository;
 import nl.rivm.screenit.specification.colon.ColonIntakeKamerSpecification;
 
-import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -40,8 +37,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class ColonIntakekamerServiceImpl implements ColonIntakekamerService
 {
-	@Autowired
-	private LocatieDao locatieDao;
 
 	@Autowired
 	private ColonIntakekamerRepository kamerRepository;
@@ -51,12 +46,6 @@ public class ColonIntakekamerServiceImpl implements ColonIntakekamerService
 	{
 		return kamerRepository.findAll(ColonIntakeKamerSpecification.isActief().and(ColonIntakeKamerSpecification.heeftIntakelocatie(intakelocatie)),
 			Sort.by(Sort.Order.asc(ColonIntakekamer_.ID)));
-	}
-
-	@Override
-	public List<ColonIntakekamer> getKamers(int first, int count, SortParam<String> sort)
-	{
-		return locatieDao.getKamers(first, count, sort);
 	}
 
 }

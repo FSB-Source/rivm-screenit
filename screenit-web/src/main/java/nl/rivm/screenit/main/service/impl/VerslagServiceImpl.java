@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -187,18 +187,16 @@ public class VerslagServiceImpl implements VerslagService
 		for (Antwoord<?> antwoord : resultaat.getAntwoorden())
 		{
 			VraagDefinitie<?> vraagDefinitie = antwoord.getVraagInstantie().getVraagDefinitie();
-			if (vraagDefinitie instanceof IdentifierElement)
+			if (vraagDefinitie instanceof IdentifierElement identifierElement)
 			{
-				IdentifierElement identifierElement = (IdentifierElement) vraagDefinitie;
 				if (identifierElement.getIdentifier() != null)
 				{
 					switch (identifierElement.getIdentifier())
 					{
 					case VRAAG_PATHOLOOG:
 					case VRAAG_ENDOSCOPIST:
-						if (antwoord instanceof GebruikerAntwoord)
+						if (antwoord instanceof GebruikerAntwoord gebruikerAntwoord)
 						{
-							GebruikerAntwoord gebruikerAntwoord = (GebruikerAntwoord) antwoord;
 							Gebruiker gebruiker = gebruikerAntwoord.getValue();
 							if (gebruiker != null)
 							{
@@ -208,9 +206,8 @@ public class VerslagServiceImpl implements VerslagService
 						}
 						break;
 					case VRAAG_AANTAL_POTJES:
-						if (antwoord instanceof PalgaNumberAntwoord)
+						if (antwoord instanceof PalgaNumberAntwoord palgaNumberAntwoord)
 						{
-							PalgaNumberAntwoord palgaNumberAntwoord = (PalgaNumberAntwoord) antwoord;
 							PalgaNumber palgaNumber = palgaNumberAntwoord.getValue();
 							Integer waarde = 0;
 							int start = 0;
@@ -251,9 +248,8 @@ public class VerslagServiceImpl implements VerslagService
 						}
 						break;
 					case Constants.VRAAG_DATUM_VERRICHTING:
-						if (antwoord instanceof DateAntwoord)
+						if (antwoord instanceof DateAntwoord dateAntwoord)
 						{
-							DateAntwoord dateAntwoord = (DateAntwoord) antwoord;
 							Date value = dateAntwoord.getValue();
 							if (value != null)
 							{
@@ -264,9 +260,8 @@ public class VerslagServiceImpl implements VerslagService
 						}
 						break;
 					case VRAAG_SEDATIE_JA_NEE:
-						if (antwoord instanceof BooleanAntwoord)
+						if (antwoord instanceof BooleanAntwoord booleanAntwoord)
 						{
-							BooleanAntwoord booleanAntwoord = (BooleanAntwoord) antwoord;
 							Boolean value = booleanAntwoord.getValue();
 							if (!Boolean.TRUE.equals(value))
 							{
@@ -289,9 +284,8 @@ public class VerslagServiceImpl implements VerslagService
 						}
 						break;
 					case Constants.VRAAG_LAESIE_JA_NEE:
-						if (antwoord instanceof BooleanAntwoord)
+						if (antwoord instanceof BooleanAntwoord booleanAntwoord)
 						{
-							BooleanAntwoord booleanAntwoord = (BooleanAntwoord) antwoord;
 							Boolean value = booleanAntwoord.getValue();
 							if (!Boolean.TRUE.equals(value))
 							{
@@ -308,9 +302,8 @@ public class VerslagServiceImpl implements VerslagService
 						}
 						break;
 					case Constants.VRAAG_INCIDENT_COMPLICATIE_JA_NEE:
-						if (antwoord instanceof BooleanAntwoord)
+						if (antwoord instanceof BooleanAntwoord booleanAntwoord)
 						{
-							BooleanAntwoord booleanAntwoord = (BooleanAntwoord) antwoord;
 							Boolean value = booleanAntwoord.getValue();
 							if (!Boolean.TRUE.equals(value))
 							{
@@ -327,9 +320,8 @@ public class VerslagServiceImpl implements VerslagService
 						}
 						break;
 					case PATIENTNUMMER:
-						if (antwoord instanceof StringAntwoord)
+						if (antwoord instanceof StringAntwoord stringAntwoord)
 						{
-							StringAntwoord stringAntwoord = (StringAntwoord) antwoord;
 							String value = stringAntwoord.getValue();
 							MdlVerslag mdlVerslag = (MdlVerslag) verslag;
 							mdlVerslag.setPatientnummer(value);
@@ -487,8 +479,8 @@ public class VerslagServiceImpl implements VerslagService
 			{
 				uitvoerderMedewerkerKey = VRAAG_PATHOLOOG;
 			}
-			VraagInstantieImpl<Gebruiker> vraagInstatie = formulierService.findVraagInstantieByIdentifier(formulierResultaat.getFormulierInstantie(), uitvoerderMedewerkerKey);
-			antwoord.setVraagInstantie(vraagInstatie);
+			VraagInstantieImpl<Gebruiker> vraagInstantie = formulierService.findVraagInstantieByIdentifier(formulierResultaat.getFormulierInstantie(), uitvoerderMedewerkerKey);
+			antwoord.setVraagInstantie(vraagInstantie);
 
 			formulierResultaat.getAntwoorden().add(antwoord);
 		}

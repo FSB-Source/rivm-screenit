@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -51,7 +51,6 @@ import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.berichten.MammaIMSBericht;
-import nl.rivm.screenit.model.mamma.berichten.xds.XdsStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingOpschortenReden;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
@@ -231,7 +230,6 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 		beoordeling.setStatusDatum(currentDateSupplier.getDate());
 		beoordeling.setStatus(MammaBeoordelingStatus.EERSTE_LEZING);
 		beoordeling.setOpschortReden(MammaBeoordelingOpschortenReden.NIET_OPSCHORTEN);
-		beoordeling.setXdsVerslagStatus(XdsStatus.NIET_AANGEMELD);
 		beoordeling.setOnderzoek(onderzoek);
 		var beoordelingen = onderzoek.getBeoordelingen();
 		beoordelingen.add(beoordeling);

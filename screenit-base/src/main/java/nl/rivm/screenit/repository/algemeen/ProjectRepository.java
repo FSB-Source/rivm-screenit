@@ -4,7 +4,7 @@ package nl.rivm.screenit.repository.algemeen;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,6 @@ package nl.rivm.screenit.repository.algemeen;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
 import java.util.Optional;
 
 import nl.rivm.screenit.model.project.Project;
@@ -29,8 +28,5 @@ import nl.rivm.screenit.repository.BaseJpaRepository;
 
 public interface ProjectRepository extends BaseJpaRepository<Project>
 {
-
 	Optional<Project> findOneByNaam(String naam);
-
-	boolean existsByEindDatumAfterAndProjectBriefActiesVragenlijstId(Date date, Long vragenlijstId);
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.brieven.genereren;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,24 +22,28 @@ package nl.rivm.screenit.batch.jobs.brieven.genereren;
  */
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import nl.rivm.screenit.batch.jobs.helpers.BasePartitioner;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
+import nl.rivm.screenit.repository.algemeen.ScreeningOrganisatieRepository;
 
 import org.springframework.batch.item.ExecutionContext;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class AbstractBrievenGenererenPartitioner extends BasePartitioner
 {
 
+	@Autowired
+	private ScreeningOrganisatieRepository screeningOrganisatieRepository;
+
 	@Override
 	public Map<String, ExecutionContext> setPartition(int gridSize)
 	{
-		Map<String, ExecutionContext> partities = new HashMap<String, ExecutionContext>(gridSize);
-		List<ScreeningOrganisatie> screeningOrganisaties = getHibernateSession().createCriteria(ScreeningOrganisatie.class).list();
+		var partities = new HashMap<String, ExecutionContext>(gridSize);
+		var screeningOrganisaties = screeningOrganisatieRepository.findAll();
 
-		for (ScreeningOrganisatie screeningOrganisatie : screeningOrganisaties)
+		for (var screeningOrganisatie : screeningOrganisaties)
 		{
 			fillingData(partities, screeningOrganisatie);
 		}

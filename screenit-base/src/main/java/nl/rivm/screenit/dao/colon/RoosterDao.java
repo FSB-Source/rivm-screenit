@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,25 +29,16 @@ import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.RoosterListViewFilter;
 import nl.rivm.screenit.model.colon.dto.VrijSlotZonderKamer;
 import nl.rivm.screenit.model.colon.dto.VrijSlotZonderKamerFilter;
-import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
 import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
-import nl.rivm.screenit.model.colon.planning.ColonTijdslot;
-
-import com.google.common.collect.Range;
 
 public interface RoosterDao
 {
-
-	<T extends ColonTijdslot> List<T> zoekTijdslotsVoorKamersInRange(Range<LocalDateTime> range, List<ColonIntakekamer> kamers, Class<T> type);
-
 	List<ColonAfspraakslotListViewWrapper> getAlleAfspraakslotsInPeriode(String sortProperty, boolean asc, RoosterListViewFilter filter, ColonIntakelocatie intakeLocatie);
 
 	List<ColonAfspraakslotListViewWrapper> getAfspraakslots(String sortProperty, boolean asc, long first, long count, RoosterListViewFilter filter,
 		ColonIntakelocatie intakeLocatie);
 
 	long getAfspraakslotsCount(RoosterListViewFilter filter, ColonIntakelocatie intakeLocatie);
-
-	List<Object> getCurrentAfspraakslots(ColonIntakekamer kamer, Range<LocalDateTime> periode);
 
 	List<VrijSlotZonderKamer> getVrijeSlotenZonderKamer(String sortProperty, boolean asc, long first, long count, VrijSlotZonderKamerFilter filter);
 
@@ -59,9 +50,4 @@ public interface RoosterDao
 
 	List<ColonIntakekamer> getKamers(LocalDateTime startTijd, Long intakelocatieId);
 
-	List<ColonBlokkade> getBlokkades(String sortProperty, boolean ascending, long first, long count, RoosterListViewFilter filter, ColonIntakelocatie intakelocatie);
-
-	List<ColonBlokkade> getBlokkades(ColonIntakekamer kamer, LocalDateTime vanaf, LocalDateTime tot);
-
-	long getBlokkadesCount(RoosterListViewFilter filter, ColonIntakelocatie intakelocatie);
 }

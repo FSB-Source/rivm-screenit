@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.overeenkomstenzoeken
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,9 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.overeenkomstenzoeken
 
 import java.util.Date;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.overeenkomsten.Overeenkomst;
@@ -33,54 +36,33 @@ import org.apache.wicket.model.IModel;
 
 public class OvereenkomstZoekFilter implements IDetachable
 {
-
-	private static final long serialVersionUID = 1L;
-
+	@Getter
+	@Setter
 	private String organisatieNaam;
 
+	@Getter
+	@Setter
 	private String organisatiePlaats;
 
+	@Getter
+	@Setter
 	private String organisatiePostcode;
 
 	private IModel<ScreeningOrganisatie> regio;
 
+	@Getter
+	@Setter
 	private String organisatieUra;
 
+	@Getter
+	@Setter
 	private OrganisatieType organisatieType;
 
 	private IModel<Overeenkomst> overeenkomst;
 
+	@Getter
+	@Setter
 	private Date lopendeDatum;
-
-	public String getOrganisatieNaam()
-	{
-		return organisatieNaam;
-	}
-
-	public void setOrganisatieNaam(String organisatieNaam)
-	{
-		this.organisatieNaam = organisatieNaam;
-	}
-
-	public String getOrganisatiePlaats()
-	{
-		return organisatiePlaats;
-	}
-
-	public void setOrganisatiePlaats(String organisatiePlaats)
-	{
-		this.organisatiePlaats = organisatiePlaats;
-	}
-
-	public String getOrganisatiePostcode()
-	{
-		return organisatiePostcode;
-	}
-
-	public void setOrganisatiePostcode(String organisatiePostcode)
-	{
-		this.organisatiePostcode = organisatiePostcode;
-	}
 
 	public ScreeningOrganisatie getRegio()
 	{
@@ -90,26 +72,6 @@ public class OvereenkomstZoekFilter implements IDetachable
 	public void setRegio(ScreeningOrganisatie regio)
 	{
 		this.regio = ModelUtil.nullSafeSet(regio);
-	}
-
-	public String getOrganisatieUra()
-	{
-		return organisatieUra;
-	}
-
-	public void setOrganisatieUra(String organisatieUra)
-	{
-		this.organisatieUra = organisatieUra;
-	}
-
-	public OrganisatieType getOrganisatieType()
-	{
-		return organisatieType;
-	}
-
-	public void setOrganisatieType(OrganisatieType organisatieType)
-	{
-		this.organisatieType = organisatieType;
 	}
 
 	public Overeenkomst getOvereenkomst()
@@ -127,15 +89,5 @@ public class OvereenkomstZoekFilter implements IDetachable
 	{
 		ModelUtil.nullSafeDetach(regio);
 		ModelUtil.nullSafeDetach(overeenkomst);
-	}
-
-	public Date getLopendeDatum()
-	{
-		return lopendeDatum;
-	}
-
-	public void setLopendeDatum(Date lopendeDatum)
-	{
-		this.lopendeDatum = lopendeDatum;
 	}
 }

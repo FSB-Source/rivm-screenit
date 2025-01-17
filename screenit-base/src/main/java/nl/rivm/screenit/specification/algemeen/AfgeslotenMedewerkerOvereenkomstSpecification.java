@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.algemeen;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,27 +27,33 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.Gebruiker;
+import nl.rivm.screenit.model.overeenkomsten.AbstractAfgeslotenOvereenkomst;
 import nl.rivm.screenit.model.overeenkomsten.AbstractAfgeslotenOvereenkomst_;
 import nl.rivm.screenit.model.overeenkomsten.AfgeslotenMedewerkerOvereenkomst;
 import nl.rivm.screenit.model.overeenkomsten.AfgeslotenMedewerkerOvereenkomst_;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.util.DateUtil;
 
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.util.Pair;
 
 import com.google.common.collect.BoundType;
 
 import static nl.rivm.screenit.specification.RangeSpecification.bevat;
+import static nl.rivm.screenit.specification.SpecificationUtil.treat;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AfgeslotenMedewerkerOvereenkomstSpecification
 {
-	public static Specification<AfgeslotenMedewerkerOvereenkomst> heeftGebruiker(Gebruiker gebruiker)
+	public static <O extends AbstractAfgeslotenOvereenkomst> ExtendedSpecification<O> heeftGebruiker(Gebruiker gebruiker)
 	{
-		return (r, q, cb) -> cb.equal(r.get(AfgeslotenMedewerkerOvereenkomst_.gebruiker), gebruiker);
+		return (r, q, cb) ->
+		{
+			var medewerkerRoot = treat(r, AfgeslotenMedewerkerOvereenkomst.class, cb);
+			return cb.equal(medewerkerRoot.get(AfgeslotenMedewerkerOvereenkomst_.gebruiker), gebruiker);
+		};
 	}
 
-	public static Specification<AfgeslotenMedewerkerOvereenkomst> bevatPeildatum(Date peilmoment)
+	public static <O extends AbstractAfgeslotenOvereenkomst> ExtendedSpecification<O> bevatPeildatum(Date peilmoment)
 	{
 		return (r, q, cb) ->
 		{

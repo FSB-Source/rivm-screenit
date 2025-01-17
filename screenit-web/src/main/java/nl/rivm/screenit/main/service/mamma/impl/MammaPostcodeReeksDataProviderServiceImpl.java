@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -58,7 +58,7 @@ public class MammaPostcodeReeksDataProviderServiceImpl extends RepositoryDataPro
 			}
 			else if (standplaats.getRegio() != null)
 			{
-				return MammaStandplaatsSpecification.heeftRegio(standplaats.getRegio()).with(MammaPostcodeReeks_.standplaats);
+				return MammaStandplaatsSpecification.heeftScreeningOrganisatieId(standplaats.getRegio()).with(MammaPostcodeReeks_.standplaats);
 			}
 		}
 		return (r, q, cb) -> null;

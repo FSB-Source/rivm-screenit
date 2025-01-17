@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,17 +21,22 @@ package nl.rivm.screenit.specification.mamma;
  * =========================LICENSE_END==================================
  */
 
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
+
 import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker_;
 import nl.rivm.screenit.model.Instelling_;
+import nl.rivm.screenit.model.enums.BestandStatus;
 import nl.rivm.screenit.model.mamma.MammaAfspraak_;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoek_;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoekenVerzoek_;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
 import nl.rivm.screenit.specification.ExtendedSpecification;
 
@@ -66,5 +71,23 @@ public class MammaDownloadOnderzoekSpecification
 	public static ExtendedSpecification<MammaDownloadOnderzoek> isGedownload()
 	{
 		return (r, q, cb) -> cb.isNotNull(join(r, MammaDownloadOnderzoek_.verzoek).get(MammaDownloadOnderzoekenVerzoek_.gedownloadOp));
+	}
+
+	public static Specification<MammaDownloadOnderzoek> heeftStatus(BestandStatus status)
+	{
+		return (r, q, cb) -> cb.equal(r.get(MammaDownloadOnderzoek_.status), status);
+	}
+
+	public static ExtendedSpecification<MammaDownloadOnderzoek> heeftUitnodigingsNummer(long uitnodigingsNummer)
+	{
+		return MammaScreeningRondeSpecification.heeftUitnogigingsNummer(uitnodigingsNummer).with(r -> screeningRondeJoin(r));
+	}
+
+	private static Join<?, MammaScreeningRonde> screeningRondeJoin(From<?, ? extends MammaDownloadOnderzoek> root)
+	{
+		var onderzoekJoin = join(root, MammaDownloadOnderzoek_.onderzoek);
+		var afspraakJoin = join(onderzoekJoin, MammaOnderzoek_.afspraak);
+		var uitnodigingJoin = join(afspraakJoin, MammaAfspraak_.uitnodiging);
+		return join(uitnodigingJoin, MammaUitnodiging_.screeningRonde);
 	}
 }

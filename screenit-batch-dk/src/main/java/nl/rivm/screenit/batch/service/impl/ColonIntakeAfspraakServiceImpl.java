@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -235,7 +235,7 @@ public class ColonIntakeAfspraakServiceImpl implements ColonIntakeAfspraakServic
 		return (r, q, cb) -> isNietOverledenOfAfgevoerd()
 			.and(DossierSpecification.heeftStatus(DossierStatus.ACTIEF).with(Client_.colonDossier))
 			.and(ScreeningRondeSpecification.isLopend().with(root -> screeningRondeJoin(root)))
-			.and(ColonFITSpecification.heeftStatussen(List.of(IFOBTTestStatus.UITGEVOERD, IFOBTTestStatus.DOETNIETMEE)).with(root -> ifobtJoin(root)))
+			.and(ColonFITSpecification.heeftStatusIn(List.of(IFOBTTestStatus.UITGEVOERD, IFOBTTestStatus.DOETNIETMEE)).with(root -> ifobtJoin(root)))
 			.and(ColonFITSpecification.heeftOngunstigeReguliereOfStudieUitslag().with(root -> ifobtJoin(root)))
 			.and(ColonScreeningRondeSpecification.heeftGeenBriefVanTypeIn(BriefType.COLON_BRIEVEN_GEEN_INTAKE_NODIG).with(root -> screeningRondeJoin(root)))
 			.and(ColonScreeningRondeSpecification.heeftGeenAfsprakenZonderVervolg(uitnodigingsintervalVerlopen)

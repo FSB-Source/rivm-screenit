@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.algemeen.overeenkomsten;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,16 +29,19 @@ import nl.rivm.screenit.main.service.OvereenkomstService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.SimpleStringResourceModel;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
+import nl.rivm.screenit.main.web.component.modal.IDialog;
 import nl.rivm.screenit.main.web.component.table.ActiefPropertyColumn;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.component.table.UploadDocumentDownloadColumn;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.AlgemeenPage;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
+import nl.rivm.screenit.model.UploadDocument_;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
 import nl.rivm.screenit.model.overeenkomsten.Overeenkomst;
+import nl.rivm.screenit.model.overeenkomsten.Overeenkomst_;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -56,6 +58,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
 
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
+
 @SecurityConstraint(
 	actie = Actie.INZIEN,
 	checkScope = false,
@@ -66,9 +70,6 @@ import org.wicketstuff.shiro.ShiroConstraint;
 		Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX })
 public class OvereenkomstenBeheerPage extends AlgemeenPage
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private final WebMarkupContainer overeenkomstenContainer;
 
 	@SpringBean
@@ -82,11 +83,8 @@ public class OvereenkomstenBeheerPage extends AlgemeenPage
 		overeenkomstenContainer.setOutputMarkupId(true);
 		add(overeenkomstenContainer);
 
-		final OvereenkomstEditPanel overeenkomstEditPanel = new OvereenkomstEditPanel(BootstrapDialog.CONTENT_ID)
+		final OvereenkomstEditPanel overeenkomstEditPanel = new OvereenkomstEditPanel(IDialog.CONTENT_ID)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
@@ -101,9 +99,6 @@ public class OvereenkomstenBeheerPage extends AlgemeenPage
 
 		add(new AjaxLink<Void>("toevoegen")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -113,31 +108,28 @@ public class OvereenkomstenBeheerPage extends AlgemeenPage
 		});
 
 		List<IColumn<Overeenkomst, String>> columns = new ArrayList<>();
-		columns.add(new AbstractColumn<Overeenkomst, String>(new SimpleStringResourceModel("label.type"), "overeenkomst")
+		columns.add(new AbstractColumn<>(new SimpleStringResourceModel("label.type"), "overeenkomst")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<Overeenkomst>> cellItem, String componentId, IModel<Overeenkomst> rowModel)
 			{
 				cellItem.add(new Label(componentId, getString("label.overeenkomsttype." + rowModel.getObject().getOvereenkomst().name().toLowerCase())));
 			}
 		});
-		columns.add(new PropertyColumn<Overeenkomst, String>(new SimpleStringResourceModel("label.naamovereenkomst"), "naam", "naam"));
-		columns.add(new PropertyColumn<Overeenkomst, String>(new SimpleStringResourceModel("label.organisatieType"), "organisatieType", "organisatieType.naam"));
-		columns.add(new PropertyColumn<Overeenkomst, String>(new SimpleStringResourceModel("label.naambestand"), "document.naam", "document.naam"));
-		columns.add(new DateTimePropertyColumn<Overeenkomst, String>(new SimpleStringResourceModel("label.laatstgewijzigd"), "laatsteUpdateDocument", "laatsteUpdateDocument",
-			Constants.getDateTimeSecondsFormat()));
-		columns.add(new UploadDocumentDownloadColumn<Overeenkomst, String>(new SimpleStringResourceModel("label.downloaden"), "document"));
+		columns.add(new PropertyColumn<>(new SimpleStringResourceModel("label.naamovereenkomst"), Overeenkomst_.NAAM, Overeenkomst_.NAAM));
+		columns.add(new PropertyColumn<>(new SimpleStringResourceModel("label.organisatieType"), Overeenkomst_.ORGANISATIE_TYPE, "organisatieType.naam"));
+		columns.add(new PropertyColumn<>(new SimpleStringResourceModel("label.naambestand"), propertyChain(Overeenkomst_.DOCUMENT, UploadDocument_.NAAM),
+			propertyChain(Overeenkomst_.DOCUMENT, UploadDocument_.NAAM)));
+		columns.add(
+			new DateTimePropertyColumn<>(new SimpleStringResourceModel("label.laatstgewijzigd"), Overeenkomst_.LAATSTE_UPDATE_DOCUMENT, Overeenkomst_.LAATSTE_UPDATE_DOCUMENT,
+				Constants.getDateTimeSecondsFormat()));
+		columns.add(new UploadDocumentDownloadColumn<>(new SimpleStringResourceModel("label.downloaden"), Overeenkomst_.DOCUMENT));
 
-		IModel<Overeenkomst> actief = new Model<>(new Overeenkomst());
-		actief.getObject().setActief(null);
+		IModel<Overeenkomst> zoekObject = new Model<>(new Overeenkomst());
+		zoekObject.getObject().setActief(null);
 		columns
-			.add(new ActiefPropertyColumn<Overeenkomst, Overeenkomst>(Model.of(""), "actief", overeenkomstenContainer, actief, true, confirmDialog, "label.overeenkomstdeactiveren")
+			.add(new ActiefPropertyColumn<>(Model.of(""), Overeenkomst_.ACTIEF, overeenkomstenContainer, zoekObject, true, confirmDialog, "label.overeenkomstdeactiveren")
 			{
-
-				private static final long serialVersionUID = 1L;
 
 				@Override
 				protected void onAfterToggleActief(AjaxRequestTarget target, Overeenkomst actiefObject)
@@ -149,11 +141,8 @@ public class OvereenkomstenBeheerPage extends AlgemeenPage
 			});
 
 		overeenkomstenContainer.add(
-			new ScreenitDataTable<Overeenkomst, String>("overeenkomsten", columns, new OvereenkomstenDataProvider(actief), new SimpleStringResourceModel("label.overeenkomsten"))
+			new ScreenitDataTable<>("overeenkomsten", columns, new OvereenkomstenDataProvider(zoekObject), new SimpleStringResourceModel("label.overeenkomsten"))
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				public void onClick(AjaxRequestTarget target, IModel<Overeenkomst> model)
 				{

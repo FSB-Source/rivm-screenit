@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.dicom;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,8 +25,6 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.concurrent.Executors;
 
-import javax.annotation.PostConstruct;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,6 +43,8 @@ import org.dcm4che3.net.TransferCapability;
 import org.dcm4che3.net.service.BasicCEchoSCP;
 import org.dcm4che3.net.service.DicomServiceRegistry;
 import org.springframework.stereotype.Component;
+
+import jakarta.annotation.PostConstruct;
 
 @Component
 @Slf4j

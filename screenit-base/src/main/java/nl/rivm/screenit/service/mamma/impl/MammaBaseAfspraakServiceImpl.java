@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -108,7 +108,7 @@ import com.google.common.collect.Range;
 import static nl.rivm.screenit.specification.RangeSpecification.bevat;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.filterStatus;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftClientInTehuis;
-import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftDoelgroep;
+import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftDoelgroepIn;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftGeenCapaciteitBlok;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftGeenClientInTehuis;
 import static nl.rivm.screenit.specification.mamma.MammaAfspraakSpecification.heeftScreeningsEenheid;
@@ -538,7 +538,7 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 		}
 		else
 		{
-			specification = specification.and(heeftGeenClientInTehuis()).and(heeftDoelgroep(blokType.getDoelgroepen()));
+			specification = specification.and(heeftGeenClientInTehuis()).and(heeftDoelgroepIn(blokType.getDoelgroepen()));
 		}
 
 		return baseAfspraakRepository.findAll(specification);

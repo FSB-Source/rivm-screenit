@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,9 +22,10 @@ package nl.rivm.screenit.specification.mamma;
  */
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
@@ -43,7 +44,7 @@ import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmpty;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNull;
 import static nl.rivm.screenit.util.DateUtil.toUtilDate;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MammaStandplaatsSpecification
 {
 	public static Specification<MammaStandplaatsPeriode> heeftStandplaatsOpOfNaDatum(MammaStandplaats standplaats, LocalDate afsprakenVanafDatum)
@@ -77,9 +78,9 @@ public class MammaStandplaatsSpecification
 		});
 	}
 
-	public static Specification<MammaStandplaats> filterOpRegio(ScreeningOrganisatie screeningOrganisatie)
+	public static Specification<MammaStandplaats> filterOpScreeningOrganisatie(ScreeningOrganisatie so)
 	{
-		return skipWhenNull(screeningOrganisatie, (r, q, cb) -> cb.equal(r.get(MammaStandplaats_.regio), screeningOrganisatie));
+		return skipWhenNull(so, (r, q, cb) -> cb.equal(r.get(MammaStandplaats_.regio), so));
 	}
 
 	public static Specification<MammaStandplaats> filterOpActief(Boolean actief)
@@ -87,9 +88,9 @@ public class MammaStandplaatsSpecification
 		return skipWhenNull(actief, (r, q, cb) -> cb.equal(r.get(MammaStandplaats_.ACTIEF), actief));
 	}
 
-	public static Specification<MammaStandplaats> isActief()
+	public static ExtendedSpecification<MammaStandplaats> isActief()
 	{
-		return (r, q, cb) -> cb.equal(r.get(MammaStandplaats_.ACTIEF), true);
+		return (r, q, cb) -> cb.isTrue(r.get(MammaStandplaats_.ACTIEF));
 	}
 
 	public static Specification<MammaStandplaats> heeftPostcode(String postcode)
@@ -97,8 +98,13 @@ public class MammaStandplaatsSpecification
 		return isActief().and(MammaPostcodeReeksSpecification.bevatPostcode(postcode).with(r -> join(r, MammaStandplaats_.postcodeReeksen)));
 	}
 
-	public static ExtendedSpecification<MammaStandplaats> heeftRegio(ScreeningOrganisatie regio)
+	public static ExtendedSpecification<MammaStandplaats> heeftScreeningOrganisatieId(ScreeningOrganisatie so)
 	{
-		return (r, q, cb) -> cb.equal(r.get(MammaStandplaats_.regio), regio);
+		return heeftScreeningOrganisatieId(Optional.ofNullable(so).map(ScreeningOrganisatie::getId).orElse(null));
+	}
+
+	public static ExtendedSpecification<MammaStandplaats> heeftScreeningOrganisatieId(Long soId)
+	{
+		return (r, q, cb) -> cb.equal(r.get(MammaStandplaats_.regio), soId);
 	}
 }

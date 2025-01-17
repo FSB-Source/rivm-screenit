@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -72,7 +72,7 @@ import com.google.common.collect.Range;
 
 import static nl.rivm.screenit.specification.mamma.MammaStandplaatsPeriodeSpecification.begintOpOfNaVrijgegevenTotEnMetDatum;
 import static nl.rivm.screenit.specification.mamma.MammaStandplaatsPeriodeSpecification.eindigtOpOfNaDatum;
-import static nl.rivm.screenit.specification.mamma.MammaStandplaatsPeriodeSpecification.heeftBeoordelingsEenheidEnStandplaatsGekoppeldAanRegio;
+import static nl.rivm.screenit.specification.mamma.MammaStandplaatsPeriodeSpecification.heeftBeoordelingsEenheidEnStandplaatsGekoppeldAanScreeningOrganisatie;
 import static nl.rivm.screenit.util.StringUtil.propertyChain;
 
 @RequiredArgsConstructor
@@ -111,7 +111,7 @@ public class MammaStandplaatsPeriodeServiceImpl implements MammaStandplaatsPerio
 			simplePreferenceService.getInteger(PreferenceKey.MAMMA_AFSPRAAK_VERZETTEN_ZONDER_CLIENT_CONTACT_VANAF_AANTAL_WERKDAGEN.name()));
 
 		return standplaatsPeriodeRepository.findAll(
-			heeftBeoordelingsEenheidEnStandplaatsGekoppeldAanRegio(regio)
+			heeftBeoordelingsEenheidEnStandplaatsGekoppeldAanScreeningOrganisatie(regio)
 				.and(begintOpOfNaVrijgegevenTotEnMetDatum())
 				.and(MammaScreeningsEenheidSpecification.heeftVrijgegevenTotEnMetOpOfNaDatum(verzettenVanaf).with(MammaStandplaatsPeriode_.screeningsEenheid))
 				.and(eindigtOpOfNaDatum(verzettenVanaf)),

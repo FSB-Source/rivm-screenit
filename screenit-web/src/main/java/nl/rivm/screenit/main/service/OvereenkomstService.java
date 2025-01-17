@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.service;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,32 +25,38 @@ import java.util.List;
 
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.overeenkomstenzoeken.OvereenkomstZoekFilter;
 import nl.rivm.screenit.model.Account;
+import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.overeenkomsten.AbstractAfgeslotenOvereenkomst;
 import nl.rivm.screenit.model.overeenkomsten.AfgeslotenInstellingOvereenkomst;
+import nl.rivm.screenit.model.overeenkomsten.AfgeslotenMedewerkerOvereenkomst;
 import nl.rivm.screenit.model.overeenkomsten.Overeenkomst;
 import nl.rivm.screenit.model.overeenkomsten.OvereenkomstType;
 
+import org.springframework.data.domain.Sort;
+
 public interface OvereenkomstService
 {
-
 	void saveOrUpdateOvereenkomst(Overeenkomst overeenkomst, UploadDocument uploadDocument, Account account);
 
 	void saveOrUpdateOvereenkomst(AbstractAfgeslotenOvereenkomst overeenkomst, UploadDocument uploadDocument, Account account);
 
-	List<Overeenkomst> getOvereenkomsten(Boolean actief, long first, long size, String sortProperty, boolean asc);
+	List<Overeenkomst> getOvereenkomsten(Boolean actief, long first, long size, Sort sort);
 
 	long countOvereenkomsten(Boolean actief);
 
 	void updateOvereenkomst(Overeenkomst overeenkomst, Account account);
 
-	<T> List<AbstractAfgeslotenOvereenkomst> getAfgeslotenOvereenkomsten(Class<? extends AbstractAfgeslotenOvereenkomst> returnType, T filter, Boolean actief, Long first,
-		Long size, String sortProperty, boolean asc);
+	List<AfgeslotenInstellingOvereenkomst> getAfgeslotenOrganisatieOvereenkomsten(Instelling zoekObject, Boolean actief, Long first, Long size, Sort sort);
 
-	<T> long countAfgeslotenOvereenkomsten(Class<? extends AbstractAfgeslotenOvereenkomst> returnType, T filter, Boolean actief);
+	long countAfgeslotenOrganisatieOvereenkomsten(Instelling zoekObject, Boolean actief);
+
+	List<AfgeslotenMedewerkerOvereenkomst> getAfgeslotenMedewerkerOvereenkomsten(Gebruiker zoekObject, Boolean actief, Long first, Long size, Sort sort);
+
+	long countAfgeslotenMedewerkerOvereenkomsten(Gebruiker zoekObject, Boolean actief);
 
 	List<Overeenkomst> getOvereenkomsten(OrganisatieType organisatieType, OvereenkomstType... overeenkomstTypes);
 
@@ -61,12 +66,13 @@ public interface OvereenkomstService
 
 	void accodeerOvereenkomsten(InstellingGebruiker instellingGebruiker, Account account);
 
-	List<Instelling> getAfgeslotenOvereenkomsten(OvereenkomstZoekFilter filter, String sortProperty, boolean ascending, int first, int count);
+	List<Instelling> getAfgeslotenOvereenkomsten(OvereenkomstZoekFilter filter, Sort sort, int first, int count);
 
 	long countAfgeslotenOvereenkomsten(OvereenkomstZoekFilter filter);
 
-	List<AfgeslotenInstellingOvereenkomst> getAfgeslotenOvereenkomstenBijInstelling(OvereenkomstZoekFilter filter, Instelling instelling);
+	List<AfgeslotenInstellingOvereenkomst> getAfgeslotenOvereenkomstenVanOrganisatie(OvereenkomstZoekFilter filter, Instelling instelling);
 
 	List<Overeenkomst> getAlleOvereenkomstenVanTypeOvereenkomst();
 
+	boolean isErAlEenZakelijkOvereenkomst(Overeenkomst overeenkomst);
 }

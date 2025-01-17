@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.brieven.genereren;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,80 +21,78 @@ package nl.rivm.screenit.batch.jobs.brieven.genereren;
  * =========================LICENSE_END==================================
  */
 
-import java.lang.reflect.ParameterizedType;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Root;
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.model.Brief;
-import nl.rivm.screenit.util.query.ScreenitRestrictions;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.BagAdres;
+import nl.rivm.screenit.model.BagAdres_;
+import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.ClientBrief;
+import nl.rivm.screenit.model.ClientBrief_;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.GbaPersoon;
+import nl.rivm.screenit.model.GbaPersoon_;
+import nl.rivm.screenit.model.Gemeente;
+import nl.rivm.screenit.specification.ExtendedSpecification;
+import nl.topicuszorg.organisatie.model.Adres_;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projection;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
-import org.springframework.batch.item.ExecutionContext;
+import org.springframework.data.jpa.domain.Specification;
 
-public abstract class AbstractBrievenGenererenReader<B extends Brief> extends BaseScrollableResultReader
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.ClientBriefSpecification.heeftScreeningsOrganisatieId;
+import static nl.rivm.screenit.specification.algemeen.ClientBriefSpecification.isClientGekoppeldAanEenScreeningOrganisatie;
+import static nl.rivm.screenit.specification.algemeen.ClientBriefSpecification.magGegenereerdWorden;
+
+public abstract class AbstractBrievenGenererenReader<B extends ClientBrief<?, ?, ?>> extends BaseSpecificationScrollableResultReader<B>
 {
-	protected abstract Long getScreeningOrganisatieId(ExecutionContext context);
-
-	@SuppressWarnings("unchecked")
-	protected final Class<B> getBriefClass()
-	{
-		return (Class<B>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
-	}
+	protected abstract Long getScreeningOrganisatieId();
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<B> createSpecification()
 	{
-		ExecutionContext stepContext = getStepExecutionContext();
-
-		Criteria crit = session.createCriteria(getBriefClass());
-		crit.createAlias("client", "client");
-		crit.createAlias("client.persoon", "persoon");
-		crit.createAlias("persoon.gbaAdres", "gbaAdres");
-		crit.createAlias("gbaAdres.gbaGemeente", "gemeente");
-		Long screeningOrganisatieId = getScreeningOrganisatieId(stepContext);
+		var screeningOrganisatieId = getScreeningOrganisatieId();
+		ExtendedSpecification<B> specification;
 		if (screeningOrganisatieId != null)
 		{
-			crit.createAlias("gemeente.screeningOrganisatie", "screeningOrganisatie");
-			crit.add(Restrictions.eq("screeningOrganisatie.id", screeningOrganisatieId));
+			specification = heeftScreeningsOrganisatieId(screeningOrganisatieId);
 		}
 		else
 		{
-			crit.add(Restrictions.isNotNull("gemeente.screeningOrganisatie"));
+			specification = isClientGekoppeldAanEenScreeningOrganisatie();
 		}
-
-		ScreenitRestrictions.addPersoonBaseRestrictions(crit, "persoon");
-
-		crit.add(Restrictions.eq("gegenereerd", false));
-		crit.add(Restrictions.eq("vervangen", false));
-		crit.add(Restrictions.eq("tegenhouden", false));
-		crit.add(Restrictions.eq("vervangendeProjectBrief", false));
-
-		crit.addOrder(Order.asc("gbaAdres.postcode"));
-
-		crit = additionalRestrictions(crit, stepContext);
-
-		return crit;
+		return specification.and(magGegenereerdWorden());
 	}
 
 	@Override
-	protected Projection getProjection()
+	protected Order getOrder(Root<B> r, CriteriaBuilder cb)
 	{
-		return Projections.id();
+		return cb.asc(adresJoin(r).get(Adres_.postcode));
 	}
 
-	protected Criteria additionalRestrictions(Criteria crit, ExecutionContext context)
+	@Override
+	protected Class<?> getResultClass()
 	{
-		return crit;
-
+		return Object[].class;
 	}
 
-	protected int getFetchSize()
+	private Join<GbaPersoon, BagAdres> adresJoin(From<?, ? extends B> r)
 	{
-		return 20;
+		var persoonJoin = join(clientJoin(r), Client_.persoon);
+		return join(persoonJoin, GbaPersoon_.gbaAdres);
+	}
+
+	protected Join<? extends B, Client> clientJoin(From<?, ? extends B> r)
+	{
+		return join(r, ClientBrief_.client);
+	}
+
+	protected Join<BagAdres, Gemeente> gemeenteJoin(From<?, ? extends B> r)
+	{
+		var adresJoin = adresJoin(r);
+		return join(adresJoin, BagAdres_.gbaGemeente);
 	}
 }

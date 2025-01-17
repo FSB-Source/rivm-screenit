@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.ce.werklijst.verwijs
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -42,6 +42,7 @@ import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaGeenHuisartsOption;
+import nl.rivm.screenit.repository.mamma.MammaBeoordelingRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.MammaHuisartsService;
@@ -77,6 +78,9 @@ public class MammaCeVerwijsVerslagPage extends AbstractMammaCePage
 
 	@SpringBean
 	private MammaBeoordelingService beoordelingService;
+
+	@SpringBean
+	private MammaBeoordelingRepository beoordelingRepository;
 
 	@SpringBean
 	private MammaBaseBeoordelingService baseBeoordelingService;
@@ -254,6 +258,9 @@ public class MammaCeVerwijsVerslagPage extends AbstractMammaCePage
 			public void onClick(AjaxRequestTarget target)
 			{
 				MammaBeoordeling beoordeling = ModelProxyHelper.deproxy(beoordelingModel.getObject());
+
+				beoordeling.setStatus(beoordelingRepository.vindBeoordelingStatusVanId(beoordeling.getId()));
+
 				MammaScreeningRonde screeningRonde = baseBeoordelingService.getScreeningRonde(beoordeling);
 				if (screeningRonde.getHuisarts() != null && screeningRonde.getHuisarts().isVerwijderd())
 				{

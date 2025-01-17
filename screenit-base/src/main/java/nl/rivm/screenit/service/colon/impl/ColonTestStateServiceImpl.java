@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -62,9 +62,9 @@ import nl.rivm.screenit.model.enums.RedenNietTeBeoordelen;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.DossierFactory;
-import nl.rivm.screenit.service.GemeenteService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.OrganisatieParameterService;
+import nl.rivm.screenit.service.TestService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonTestStateService;
 import nl.rivm.screenit.util.DateUtil;
@@ -112,7 +112,7 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 	private OrganisatieParameterService organisatieParameterService;
 
 	@Autowired
-	private GemeenteService gemeenteService;
+	private TestService testService;
 
 	@Override
 	public String setClientInState(TestModel model)
@@ -517,7 +517,7 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 			hibernateService.saveOrUpdate(gbaAdres);
 			if (gemeente == null)
 			{
-				gemeente = gemeenteService.getEersteGemeenteMetScreeningOrganisatie();
+				gemeente = testService.getEersteGemeenteMetScreeningOrganisatie();
 			}
 			gbaAdres.setGbaGemeente(gemeente);
 			gbaAdres.setPlaats(gemeente.getNaam());

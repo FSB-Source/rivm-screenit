@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.retourzending;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -59,8 +59,6 @@ import org.wicketstuff.shiro.ShiroConstraint;
 public class RetourzendingenVerwerkenPage extends RetourzendingBasePage
 {
 
-	private static final long serialVersionUID = 1L;
-
 	private static final Logger LOG = LoggerFactory.getLogger(RetourzendingenVerwerkenPage.class);
 
 	@SpringBean
@@ -69,7 +67,6 @@ public class RetourzendingenVerwerkenPage extends RetourzendingBasePage
 	public RetourzendingenVerwerkenPage()
 	{
 		Form<Void> form = new Form<>("form");
-
 		final IModel<List<FileUpload>> retourzendingBestanden = new ListModel<>();
 
 		FormComponent<List<FileUpload>> retourzendingBestand = new FileUploadField("retourzendingBestand", retourzendingBestanden)
@@ -82,9 +79,6 @@ public class RetourzendingenVerwerkenPage extends RetourzendingBasePage
 		add(dialog);
 		form.add(new IndicatingAjaxButton("verwerken", form)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{

@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.controller;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,6 +24,7 @@ package nl.rivm.screenit.mamma.planning.controller;
 import java.util.List;
 import java.util.NavigableSet;
 
+import nl.rivm.screenit.dto.mamma.planning.PlanningAfspraakDrempelOverzichtDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningRestConstants;
 import nl.rivm.screenit.dto.mamma.planning.PlanningStandplaatsDto;
 import nl.rivm.screenit.mamma.planning.index.PlanningScreeningsOrganisatieIndex;
@@ -39,13 +40,16 @@ import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningWijzigingen;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController()
+@RestController
 @RequestMapping("/" + PlanningRestConstants.C_STANDPLAATS)
 public class PlanningStandplaatsController
 {
@@ -57,19 +61,19 @@ public class PlanningStandplaatsController
 		this.afspraakDrempelOverzichtService = afspraakDrempelOverzichtService;
 	}
 
-	@RequestMapping(method = RequestMethod.POST)
+	@PostMapping
 	public void post(@RequestBody PlanningStandplaatsDto standplaatsDto)
 	{
 		addOrChangeStandplaats(standplaatsDto);
 	}
 
-	@RequestMapping(method = RequestMethod.PUT)
+	@PutMapping
 	public void put(@RequestBody PlanningStandplaatsDto standplaatsDto)
 	{
 		addOrChangeStandplaats(standplaatsDto);
 	}
 
-	@RequestMapping(value = "/zonderRoute/{screeningsOrganisatieId}", method = RequestMethod.GET)
+	@GetMapping("/zonderRoute/{screeningsOrganisatieId}")
 	public ResponseEntity<Long[]> getZonderRoute(@PathVariable Long screeningsOrganisatieId)
 	{
 		List<Long> standplaatsenZonderRonde = PlanningStandplaatsIndex.getStandplaatsenZonderRoute(screeningsOrganisatieId);
@@ -77,7 +81,7 @@ public class PlanningStandplaatsController
 		return response;
 	}
 
-	@RequestMapping(value = "/metRoute/{screeningsOrganisatieId}", method = RequestMethod.GET)
+	@GetMapping("/metRoute/{screeningsOrganisatieId}")
 	public ResponseEntity<Long[]> getMetRoute(@PathVariable Long screeningsOrganisatieId)
 	{
 		List<Long> standplaatsenMetRonde = PlanningStandplaatsIndex.getStandplaatsenMetRoute(screeningsOrganisatieId);
@@ -85,7 +89,7 @@ public class PlanningStandplaatsController
 		return response;
 	}
 
-	@RequestMapping(value = "/{standplaatsId}", method = RequestMethod.DELETE)
+	@DeleteMapping("/{standplaatsId}")
 	public void delete(@PathVariable Long standplaatsId)
 	{
 		PlanningStandplaats knownStandplaats = PlanningStandplaatsIndex.get(standplaatsId);
@@ -138,10 +142,10 @@ public class PlanningStandplaatsController
 		PlanningWijzigingen.getStandplaatsSet().add(knownStandplaats);
 	}
 
-	@RequestMapping(value = "/getAfspraakDrempelOverzicht/{standplaatsId}", method = RequestMethod.GET)
-	public ResponseEntity<PlanningStandplaatsDto> getAfspraakDrempelOverzicht(@PathVariable long standplaatsId)
+	@GetMapping("/getAfspraakDrempelOverzicht/{standplaatsId}")
+	public ResponseEntity<PlanningAfspraakDrempelOverzichtDto> getAfspraakDrempelOverzicht(@PathVariable long standplaatsId)
 	{
 		PlanningStandplaats standplaats = PlanningStandplaatsIndex.get(standplaatsId);
-		return new ResponseEntity(afspraakDrempelOverzichtService.getAfspraakDrempelOverzicht(standplaats), HttpStatus.OK);
+		return new ResponseEntity<>(afspraakDrempelOverzichtService.getAfspraakDrempelOverzicht(standplaats), HttpStatus.OK);
 	}
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatiemedewerker;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,6 +33,8 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
+
 public class OrganisatieMedewerkerDataProvider extends SortableDataProvider<InstellingGebruiker, String>
 {
 
@@ -59,15 +61,7 @@ public class OrganisatieMedewerkerDataProvider extends SortableDataProvider<Inst
 	@Override
 	public Iterator<? extends InstellingGebruiker> iterator(long first, long count)
 	{
-
-		String sortProperty = null;
-		boolean asc = true;
-		if (getSort() != null)
-		{
-			sortProperty = getSort().getProperty();
-			asc = getSort().isAscending();
-		}
-		return medewerkerService.searchInstellingGebruiker(ModelUtil.nullSafeGet(searchObjectModel), first, count, sortProperty, asc).iterator();
+		return medewerkerService.zoekOrganisatieMedewerker(ModelUtil.nullSafeGet(searchObjectModel), first, count, toSpringSort(getSort())).iterator();
 	}
 
 	@Override

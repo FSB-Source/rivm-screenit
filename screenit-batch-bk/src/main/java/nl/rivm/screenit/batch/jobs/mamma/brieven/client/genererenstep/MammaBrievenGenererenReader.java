@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.brieven.client.genererenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,23 +21,47 @@ package nl.rivm.screenit.batch.jobs.mamma.brieven.client.genererenstep;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
+
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenReader;
+import nl.rivm.screenit.model.Brief_;
+import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.ClientBrief_;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.TijdelijkAdres_;
 import nl.rivm.screenit.model.enums.BriefType;
-import nl.rivm.screenit.model.enums.GbaStatus;
+import nl.rivm.screenit.model.mamma.MammaAfspraak;
+import nl.rivm.screenit.model.mamma.MammaAfspraak_;
 import nl.rivm.screenit.model.mamma.MammaBrief;
-import nl.rivm.screenit.util.query.DateRestrictions;
-import nl.topicuszorg.hibernate.restrictions.NvlRestrictions;
+import nl.rivm.screenit.model.mamma.MammaDossier;
+import nl.rivm.screenit.model.mamma.MammaStandplaats;
+import nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie;
+import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode_;
+import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
+import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde_;
+import nl.rivm.screenit.model.mamma.MammaStandplaats_;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
-import org.hibernate.sql.JoinType;
-import org.springframework.batch.item.ExecutionContext;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static javax.persistence.criteria.JoinType.LEFT;
+import static nl.rivm.screenit.specification.ExtendedSpecification.not;
+import static nl.rivm.screenit.specification.HibernateObjectSpecification.heeftId;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.BriefSpecification.heeftBriefType;
+import static nl.rivm.screenit.specification.algemeen.ClientSpecification.heeftIndicatie;
+import static nl.rivm.screenit.specification.algemeen.MammaBriefSpecification.clientHeeftAfspraak;
+import static nl.rivm.screenit.specification.algemeen.MammaBriefSpecification.laatsteUitnodigingJoin;
+import static nl.rivm.screenit.specification.mamma.MammaStandplaatsLocatieSpecification.heeftBijlageOfApartPrinten;
+import static nl.rivm.screenit.specification.mamma.MammaStandplaatsLocatieSpecification.heeftGeenBijlageOfApartPrinten;
 
 @Component
 @Slf4j
@@ -45,155 +69,181 @@ public class MammaBrievenGenererenReader extends AbstractBrievenGenererenReader<
 {
 
 	@Override
-	protected Long getScreeningOrganisatieId(ExecutionContext context)
+	protected Long getScreeningOrganisatieId()
 	{
-		return context.getLong(MammaBrievenGenererenPartitioner.KEY_SCREENINGORGANISATIEID);
+		return getStepExecutionContext().getLong(MammaBrievenGenererenPartitioner.KEY_SCREENINGORGANISATIEID);
 	}
 
 	@Override
-	protected Criteria additionalRestrictions(Criteria crit, ExecutionContext context)
+	protected Specification<MammaBrief> createSpecification()
 	{
-		crit.add(Restrictions.eq("client.gbaStatus", GbaStatus.INDICATIE_AANWEZIG));
-		var briefType = BriefType.valueOf(context.getString(MammaBrievenGenererenPartitioner.KEY_BRIEFTYPE));
-		crit.add(Restrictions.eq("briefType", briefType));
+		ExtendedSpecification<MammaBrief> specification = heeftBriefType(briefType());
 
-		if ((boolean) context.get(MammaBrievenGenererenPartitioner.KEY_BRIEFTYPEAPART))
+		var isVoorTijdelijkeLocaties = isVoorTijdelijkeLocaties();
+		var standplaatsId = getStandplaatsId();
+
+		if (isAparteBrieven())
 		{
-			crit.createAlias("client.mammaDossier", "mammaDossier");
-			crit.createAlias("mammaDossier.laatsteScreeningRonde", "laatsteScreeningRonde");
-			crit.createAlias("laatsteScreeningRonde.laatsteUitnodiging", "laatsteUitnodiging");
-
-			crit.createAlias("laatsteUitnodiging.laatsteAfspraak", "laatsteAfspraak", JoinType.LEFT_OUTER_JOIN);
-			crit.createAlias("laatsteAfspraak.standplaatsPeriode", "afspraakstandplaatsPeriode", JoinType.LEFT_OUTER_JOIN);
-			crit.createAlias("afspraakstandplaatsPeriode.standplaatsRonde", "afspraakStandplaatsRonde", JoinType.LEFT_OUTER_JOIN);
-			crit.createAlias("afspraakStandplaatsRonde.standplaats", "afspraakStandplaats", JoinType.LEFT_OUTER_JOIN);
-
-			crit.createAlias("afspraakStandplaats.tijdelijkeLocatie", "afspraakTijdelijkeLocatie", JoinType.LEFT_OUTER_JOIN);
-			crit.createAlias("afspraakTijdelijkeLocatie.standplaatsLocatieBijlage", "afspraakTijdelijkeLocatieBijlage", JoinType.LEFT_OUTER_JOIN);
-
-			crit.createAlias("afspraakStandplaats.locatie", "afspraakLocatie", JoinType.LEFT_OUTER_JOIN);
-			crit.createAlias("afspraakLocatie.standplaatsLocatieBijlage", "afspraakLocatieBijlage", JoinType.LEFT_OUTER_JOIN);
-
-			crit.createAlias("laatsteUitnodiging.standplaatsRonde", "uitnodigingStandplaatsRonde");
-			crit.createAlias("uitnodigingStandplaatsRonde.standplaats", "uitnodigingStandplaats");
-			crit.createAlias("uitnodigingStandplaats.locatie", "uitnodigingLocatie");
-			crit.createAlias("uitnodigingLocatie.standplaatsLocatieBijlage", "uitnodigingLocatieBijlage", JoinType.LEFT_OUTER_JOIN);
-
-			var tijdelijk = (boolean) context.get(MammaBrievenGenererenPartitioner.KEY_TIJDELIJK);
-			var standplaatsId = (Long) context.get(MammaBrievenGenererenPartitioner.KEY_MAMMASTANDPLAATSID);
-			if (tijdelijk && standplaatsId != null)
+			if (isVoorTijdelijkeLocaties && standplaatsId != null)
 			{
-
-				crit.add(Restrictions.isNotNull("laatsteAfspraak.id"));
-
-				crit.add(DateRestrictions.geProperty("laatsteAfspraak.vanaf",
-					"afspraakTijdelijkeLocatie.startDatum"));
-
-				crit.add(DateRestrictions.leProperty("laatsteAfspraak.vanaf",
-					"afspraakTijdelijkeLocatie.eindDatum"));
-				crit.add(Restrictions.eq("afspraakStandplaats.id", standplaatsId));
-
-				crit.add(Restrictions.or(
-					Restrictions.eq("afspraakTijdelijkeLocatie.brievenApartPrinten", true),
-					Restrictions.and(
-						Restrictions.isNotNull("afspraakTijdelijkeLocatie.standplaatsLocatieBijlage"),
-						Restrictions.eq("afspraakTijdelijkeLocatieBijlage.actief", true))));
+				specification = specification
+					.and(clientHeeftAfspraak())
+					.and(afspraakValtBinnenTijdelijkeLocatie())
+					.and(heeftAfspraakStandplaatsId(standplaatsId))
+					.and(heeftBijlageOfApartPrinten().with(r -> tijdelijkeLocatieJoin(laatsteAfspraakJoin(r))));
 			}
-			else if (!tijdelijk && standplaatsId != null)
+			else if (!isVoorTijdelijkeLocaties && standplaatsId != null)
 			{
-				crit.add(Restrictions.or(
+				var normaleLocatieMetAfspraak = clientHeeftAfspraak()
+					.and(not(afspraakValtBinnenTijdelijkeLocatie()))
+					.and(heeftAfspraakStandplaatsId(standplaatsId))
+					.and(heeftBijlageOfApartPrinten().with(r -> normaleLocatieJoin(laatsteAfspraakJoin(r))));
 
-					Restrictions.and(
-						Restrictions.isNotNull("laatsteAfspraak.id"),
-						Restrictions.or(
-							Restrictions.isNull("afspraakTijdelijkeLocatie.startDatum"),
-							DateRestrictions.ltProperty("laatsteAfspraak.vanaf",
-								"afspraakTijdelijkeLocatie.startDatum"),
-							DateRestrictions.gtProperty("laatsteAfspraak.vanaf",
-								"afspraakTijdelijkeLocatie.eindDatum")),
-						Restrictions.eq("afspraakStandplaats.id", standplaatsId),
+				var normaleLocatieZonderAfspraak = not(clientHeeftAfspraak())
+					.and(heeftUitnodigingStandplaatsId(standplaatsId))
+					.and(heeftBijlageOfApartPrinten().with(r -> uitnodigingslocatieJoin(r)));
 
-						Restrictions.or(
-							Restrictions.eq("afspraakLocatie.brievenApartPrinten", true),
-							Restrictions.and(
-								Restrictions.isNotNull("afspraakLocatie.standplaatsLocatieBijlage"),
-								Restrictions.eq("afspraakLocatieBijlage.actief", true)))),
-
-					Restrictions.and(
-						Restrictions.isNull("laatsteAfspraak.id"),
-						Restrictions.eq("uitnodigingStandplaats.id", standplaatsId),
-
-						Restrictions.or(
-							Restrictions.eq("uitnodigingLocatie.brievenApartPrinten", true),
-							Restrictions.and(
-								Restrictions.isNotNull("uitnodigingLocatie.standplaatsLocatieBijlage"),
-								Restrictions.eq("uitnodigingLocatieBijlage.actief", true))))));
+				specification = specification.and(normaleLocatieMetAfspraak.or(normaleLocatieZonderAfspraak));
 			}
-			else if (tijdelijk) 
+			else if (isVoorTijdelijkeLocaties)
 			{
-
-				crit.add(Restrictions.isNotNull("laatsteAfspraak.id"));
-
-				crit.add(DateRestrictions.geProperty("laatsteAfspraak.vanaf",
-					"afspraakTijdelijkeLocatie.startDatum"));
-				crit.add(DateRestrictions.leProperty("laatsteAfspraak.vanaf",
-					"afspraakTijdelijkeLocatie.eindDatum"));
-
-				crit.add(Restrictions.and(
-					NvlRestrictions.eq("afspraakTijdelijkeLocatie.brievenApartPrinten", false, "false"),
-					Restrictions.or(
-						Restrictions.isNull("afspraakTijdelijkeLocatie.standplaatsLocatieBijlage"),
-						Restrictions.eq("afspraakTijdelijkeLocatieBijlage.actief", false))));
-			}
-			else 
-			{
-				crit.add(Restrictions.or(
-
-					Restrictions.and(
-						Restrictions.isNotNull("laatsteAfspraak.id"),
-						Restrictions.or(
-							Restrictions.isNull("afspraakTijdelijkeLocatie.startDatum"),
-							DateRestrictions.ltProperty("laatsteAfspraak.vanaf",
-								"afspraakTijdelijkeLocatie.startDatum"),
-							DateRestrictions.gtProperty("laatsteAfspraak.vanaf",
-								"afspraakTijdelijkeLocatie.eindDatum")),
-
-						Restrictions.and(
-							NvlRestrictions.eq("afspraakLocatie.brievenApartPrinten", false, "false"),
-							Restrictions.or(
-								Restrictions.isNull("afspraakLocatie.standplaatsLocatieBijlage"),
-								Restrictions.eq("afspraakLocatieBijlage.actief", false)))),
-
-					Restrictions.and(
-						Restrictions.isNull("laatsteAfspraak.id"),
-						NvlRestrictions.eq("uitnodigingLocatie.brievenApartPrinten", false, "false"),
-						Restrictions.or(
-							Restrictions.isNull("uitnodigingLocatie.standplaatsLocatieBijlage"),
-							Restrictions.eq("uitnodigingLocatieBijlage.actief", false)))));
-			}
-			verifieerOfHetDeEersteBriefIs(crit, (Boolean) context.get(MammaBrievenGenererenPartitioner.KEY_EERSTE_RONDE));
-
-		}
-		return crit;
-	}
-
-	private void verifieerOfHetDeEersteBriefIs(Criteria criteria, Boolean eersteRonde)
-	{
-		if (eersteRonde != null)
-		{
-			var subQuery = DetachedCriteria.forClass(MammaBrief.class);
-			subQuery.createAlias("client", "briefClient");
-			subQuery.add(Restrictions.eqProperty("briefClient.mammaDossier", "mammaDossier.id"));
-			subQuery.add(Restrictions.in("briefType", BriefType.getMammaEersteRondeBrieftype()));
-			subQuery.setProjection(Projections.count("id"));
-			if (eersteRonde)
-			{
-				criteria.add(Subqueries.eq(1L, subQuery));
+				specification = specification
+					.and(clientHeeftAfspraak())
+					.and(afspraakValtBinnenTijdelijkeLocatie())
+					.and(heeftGeenBijlageOfApartPrinten().with(r -> tijdelijkeLocatieJoin(laatsteAfspraakJoin(r))));
 			}
 			else
 			{
-				criteria.add(Subqueries.lt(1L, subQuery));
+				var normaleLocatieMetAfspraak = clientHeeftAfspraak()
+					.and(not(afspraakValtBinnenTijdelijkeLocatie()))
+					.and(heeftGeenBijlageOfApartPrinten().with(r -> normaleLocatieJoin(laatsteAfspraakJoin(r))));
+
+				var normaleLocatieZonderAfspraak = not(clientHeeftAfspraak())
+					.and(heeftGeenBijlageOfApartPrinten().with(r -> uitnodigingslocatieJoin(r)));
+
+				specification = specification.and(normaleLocatieMetAfspraak.or(normaleLocatieZonderAfspraak));
+
 			}
+			specification = specification.and(eersteOfVervolgRondeSpecification());
 		}
+
+		return specification
+			.and(heeftIndicatie().with(r -> clientJoin(r))) 
+			.and(super.createSpecification());
+	}
+
+	private static ExtendedSpecification<MammaBrief> afspraakValtBinnenTijdelijkeLocatie()
+	{
+		return (r, q, cb) ->
+		{
+			var laatsteAfspraakJoin = laatsteAfspraakJoin(r);
+			var tijdelijkeLocatieJoin = tijdelijkeLocatieJoin(laatsteAfspraakJoin);
+			var laatsteAfspraakVanafDatum = laatsteAfspraakJoin.get(MammaAfspraak_.vanaf).as(LocalDate.class);
+			return cb.and(
+				cb.isNotNull(tijdelijkeLocatieJoin.get(TijdelijkAdres_.startDatum)), 
+				cb.greaterThanOrEqualTo(laatsteAfspraakVanafDatum, tijdelijkeLocatieJoin.get(TijdelijkAdres_.startDatum).as(LocalDate.class)),
+				cb.lessThanOrEqualTo(laatsteAfspraakVanafDatum, tijdelijkeLocatieJoin.get(TijdelijkAdres_.eindDatum).as(LocalDate.class))
+			);
+		};
+	}
+
+	private static ExtendedSpecification<MammaBrief> heeftAfspraakStandplaatsId(long standplaatsId)
+	{
+		return heeftId(standplaatsId).with(r -> afspraakStandplaatsJoin(laatsteAfspraakJoin(r)));
+	}
+
+	private static ExtendedSpecification<MammaBrief> heeftUitnodigingStandplaatsId(long standplaatsId)
+	{
+		return heeftId(standplaatsId).with(r -> uitnodigingStandplaatsJoin(laatsteUitnodigingJoin(r)));
+	}
+
+	private ExtendedSpecification<MammaBrief> eersteOfVervolgRondeSpecification()
+	{
+		var eersteRonde = isEersteRonde();
+
+		if (eersteRonde == null)
+		{
+			return null;
+		}
+
+		return (r, q, cb) ->
+		{
+			var subquery = q.subquery(Long.class);
+			var subRoot = subquery.from(MammaBrief.class);
+			subquery.select(cb.count(cb.literal(1)));
+
+			var clientJoin = join(subRoot, ClientBrief_.client);
+			subquery.where(cb.and(
+				cb.equal(clientJoin.get(Client_.mammaDossier), dossierJoin(r)),
+				subRoot.get(Brief_.briefType).in(BriefType.getMammaEersteRondeBrieftype())
+			));
+
+			return eersteRonde ? cb.equal(subquery, 1L) : cb.greaterThan(subquery, 1L);
+		};
+	}
+
+	private static Join<MammaStandplaatsRonde, MammaStandplaats> afspraakStandplaatsJoin(Join<?, MammaAfspraak> afspraakJoin)
+	{
+		var standplaatsPeriodeJoin = join(afspraakJoin, MammaAfspraak_.standplaatsPeriode, LEFT);
+		var standplaatsRondeJoin = join(standplaatsPeriodeJoin, MammaStandplaatsPeriode_.standplaatsRonde, LEFT);
+		return join(standplaatsRondeJoin, MammaStandplaatsRonde_.standplaats, LEFT);
+	}
+
+	private static Join<MammaStandplaats, MammaStandplaatsLocatie> tijdelijkeLocatieJoin(Join<?, MammaAfspraak> afspraakJoin)
+	{
+		var standplaatsJoin = afspraakStandplaatsJoin(afspraakJoin);
+		return join(standplaatsJoin, MammaStandplaats_.tijdelijkeLocatie, LEFT);
+	}
+
+	private static Join<MammaStandplaats, MammaStandplaatsLocatie> normaleLocatieJoin(Join<?, MammaAfspraak> afspraakJoin)
+	{
+		return join(afspraakStandplaatsJoin(afspraakJoin), MammaStandplaats_.locatie, LEFT);
+	}
+
+	private static Join<MammaStandplaatsRonde, MammaStandplaats> uitnodigingStandplaatsJoin(Join<?, MammaUitnodiging> uitnodigingJoin)
+	{
+		var standplaatsRondeJoin = join(uitnodigingJoin, MammaUitnodiging_.standplaatsRonde);
+		return join(standplaatsRondeJoin, MammaStandplaatsRonde_.standplaats);
+	}
+
+	private static Join<MammaStandplaats, MammaStandplaatsLocatie> uitnodigingslocatieJoin(From<?, ? extends MammaBrief> briefRoot)
+	{
+		return join(uitnodigingStandplaatsJoin(laatsteUitnodigingJoin(briefRoot)), MammaStandplaats_.locatie);
+	}
+
+	private static Join<MammaUitnodiging, MammaAfspraak> laatsteAfspraakJoin(From<?, ? extends MammaBrief> r)
+	{
+		var laatsteUitnodigingJoin = laatsteUitnodigingJoin(r);
+		return join(laatsteUitnodigingJoin, MammaUitnodiging_.laatsteAfspraak, LEFT);
+	}
+
+	private Join<Client, MammaDossier> dossierJoin(From<?, ? extends MammaBrief> briefRoot)
+	{
+		return join(clientJoin(briefRoot), Client_.mammaDossier);
+	}
+
+	private BriefType briefType()
+	{
+		return BriefType.valueOf(getStepExecutionContext().getString(MammaBrievenGenererenPartitioner.KEY_BRIEFTYPE));
+	}
+
+	private boolean isAparteBrieven()
+	{
+		return Boolean.TRUE.equals(getStepExecutionContext().get(MammaBrievenGenererenPartitioner.KEY_BRIEFTYPEAPART));
+	}
+
+	private boolean isVoorTijdelijkeLocaties()
+	{
+		return Boolean.TRUE.equals(getStepExecutionContext().get(MammaBrievenGenererenPartitioner.KEY_TIJDELIJK));
+	}
+
+	private Long getStandplaatsId()
+	{
+		return (Long) getStepExecutionContext().get(MammaBrievenGenererenPartitioner.KEY_MAMMASTANDPLAATSID);
+	}
+
+	private Boolean isEersteRonde()
+	{
+		return (Boolean) getStepExecutionContext().get(MammaBrievenGenererenPartitioner.KEY_EERSTE_RONDE);
 	}
 }

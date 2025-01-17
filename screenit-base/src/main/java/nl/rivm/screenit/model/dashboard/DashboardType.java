@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.dashboard;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -104,10 +104,6 @@ public enum DashboardType
 	CERVIX_VERSLAG_CYTOLOGIE("Verslag cytologie", List.of(OrganisatieType.RIVM, OrganisatieType.BMHK_LABORATORIUM), Bevolkingsonderzoek.CERVIX),
 
 	CERVIX_BEPALEN_VERRICHTINGEN("Bepalen verrichtingen", List.of(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.CERVIX),
-
-	CERVIX_HPV_ORU("HPV-uitslag ORU berichten verwerking", List.of(OrganisatieType.RIVM, OrganisatieType.BMHK_LABORATORIUM), Bevolkingsonderzoek.CERVIX),
-
-	CERVIX_HEROVERWEGERS("Heroverwegers brief aanmaken", List.of(OrganisatieType.RIVM), Bevolkingsonderzoek.CERVIX),
 
 	CERVIX_HPVMIN_UITSLAGEN_VERWIJDEREN("HPV(-) labformuliergegevens wissen + scans verwijderen", Bevolkingsonderzoek.CERVIX),
 

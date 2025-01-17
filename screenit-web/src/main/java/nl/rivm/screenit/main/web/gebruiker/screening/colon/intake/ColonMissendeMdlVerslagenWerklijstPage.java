@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.intake;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,12 +31,17 @@ import nl.rivm.screenit.main.web.component.table.ClientColumn;
 import nl.rivm.screenit.main.web.component.table.GeboortedatumColumn;
 import nl.rivm.screenit.main.web.component.table.ScreenitDateTimePropertyColumn;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.GbaPersoon_;
 import nl.rivm.screenit.model.OrganisatieType;
+import nl.rivm.screenit.model.colon.ColonConclusie_;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
+import nl.rivm.screenit.model.colon.ColonIntakeAfspraak_;
 import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ConclusieTypeFilter;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
 import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
+import nl.rivm.screenit.model.colon.planning.ColonTijdslot_;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
@@ -53,6 +58,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.validator.DateValidator;
 import org.wicketstuff.shiro.ShiroConstraint;
+
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
 
 @SecurityConstraint(
 	actie = Actie.INZIEN,
@@ -88,12 +95,17 @@ public class ColonMissendeMdlVerslagenWerklijstPage extends WerklijstIntakePage
 	{
 		List<IColumn<ColonIntakeAfspraak, String>> columns = new ArrayList<>();
 
-		columns.add(new ClientColumn<>("client.persoon.achternaam", "client"));
-		columns.add(new PropertyColumn<>(Model.of("BSN"), "client.persoon.bsn", "client.persoon.bsn"));
-		columns.add(new GeboortedatumColumn<>("client.persoon.geboortedatum", "client.persoon"));
-		columns.add(new ScreenitDateTimePropertyColumn<>(Model.of("Intakeafspraak"), "vanaf", "vanaf"));
-		columns.add(new DateTimePropertyColumn<>(Model.of("Datum intake conclusie"), "conclusie.datum", "conclusie.datum"));
-		columns.add(new DateTimePropertyColumn<>(Model.of("Datum coloscopie"), "conclusie.datumColoscopie", "conclusie.datumColoscopie", new SimpleDateFormat("dd-MM-yyyy")));
+		columns.add(new ClientColumn<>(propertyChain(ColonIntakeAfspraak_.CLIENT, Client_.PERSOON, GbaPersoon_.ACHTERNAAM), ColonIntakeAfspraak_.CLIENT));
+		columns.add(
+			new PropertyColumn<>(Model.of("BSN"), propertyChain(ColonIntakeAfspraak_.CLIENT, Client_.PERSOON, GbaPersoon_.BSN),
+				propertyChain(ColonIntakeAfspraak_.CLIENT, Client_.PERSOON, GbaPersoon_.BSN)));
+		columns.add(new GeboortedatumColumn<>(propertyChain(ColonIntakeAfspraak_.CLIENT, Client_.PERSOON, GbaPersoon_.GEBOORTEDATUM),
+			propertyChain(ColonIntakeAfspraak_.CLIENT, Client_.PERSOON)));
+		columns.add(new ScreenitDateTimePropertyColumn<>(Model.of("Intakeafspraak"), ColonTijdslot_.VANAF, ColonTijdslot_.VANAF));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Datum intake conclusie"), propertyChain(ColonIntakeAfspraak_.CONCLUSIE, ColonConclusie_.DATUM),
+			propertyChain(ColonIntakeAfspraak_.CONCLUSIE, ColonConclusie_.DATUM)));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Datum coloscopie"), propertyChain(ColonIntakeAfspraak_.CONCLUSIE, ColonConclusie_.DATUM_COLOSCOPIE),
+			propertyChain(ColonIntakeAfspraak_.CONCLUSIE, ColonConclusie_.DATUM_COLOSCOPIE), new SimpleDateFormat("dd-MM-yyyy")));
 
 		return columns;
 	}

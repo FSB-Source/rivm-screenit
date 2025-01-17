@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.generalis.gba.dossiers;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,33 +21,41 @@ package nl.rivm.screenit.batch.jobs.generalis.gba.dossiers;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import java.util.List;
+
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Client_;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.ClientSpecification.heeftCervixDossier;
+import static nl.rivm.screenit.specification.algemeen.ClientSpecification.heeftColonDossier;
+import static nl.rivm.screenit.specification.algemeen.ClientSpecification.heeftMammaDossier;
+import static nl.rivm.screenit.specification.algemeen.PersoonSpecification.heeftGeslachtIn;
+import static org.springframework.data.jpa.domain.Specification.not;
+
 @Component
-public class DossierReader extends BaseScrollableResultReader
+public class DossierReader extends BaseSpecificationScrollableResultReader<Client>
 {
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<Client> createSpecification()
 	{
-		Criteria crit = session.createCriteria(Client.class, "client");
-		crit.createAlias("client.persoon", "persoon");
+		return not(heeftColonDossier())
+			.or(isVrouwOfOnbekend().and(heeftGeenMammaOfCervixDossier()));
+	}
 
-		crit.add(Restrictions.or(
-			Restrictions.isNull("client.colonDossier"),
-			Restrictions.and(
-				Restrictions.in("persoon.geslacht", Geslacht.VROUW, Geslacht.ONBEKEND),
-				Restrictions.or(
-					Restrictions.isNull("client.cervixDossier"),
-					Restrictions.isNull("client.mammaDossier")))));
+	private Specification<Client> isVrouwOfOnbekend()
+	{
+		return heeftGeslachtIn(List.of(Geslacht.VROUW, Geslacht.ONBEKEND)).with(r ->
+			join(r, Client_.persoon));
+	}
 
-		return crit;
+	private Specification<Client> heeftGeenMammaOfCervixDossier()
+	{
+		return not(heeftMammaDossier()).or(not(heeftCervixDossier()));
 	}
 }

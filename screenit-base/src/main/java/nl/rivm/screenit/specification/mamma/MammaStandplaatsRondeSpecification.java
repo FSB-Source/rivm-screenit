@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,7 @@ package nl.rivm.screenit.specification.mamma;
 import java.util.Date;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode_;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
@@ -34,7 +34,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MammaStandplaatsRondeSpecification
 {
 	public static Specification<MammaStandplaatsRonde> heeftEersteStandplaatsPeriodeVoor(Date datum)
@@ -48,5 +48,10 @@ public class MammaStandplaatsRondeSpecification
 				cb.lessThan(standplaatsPeriodenJoin.get(MammaStandplaatsPeriode_.vanaf), datum)
 			);
 		};
+	}
+
+	public static Specification<MammaStandplaatsRonde> heeftAfspraakcapaciteitBeschikbaarVoor()
+	{
+		return (r, q, cb) -> cb.isNotEmpty(r.get(MammaStandplaatsRonde_.afspraakcapaciteitBeschikbaarVoor));
 	}
 }

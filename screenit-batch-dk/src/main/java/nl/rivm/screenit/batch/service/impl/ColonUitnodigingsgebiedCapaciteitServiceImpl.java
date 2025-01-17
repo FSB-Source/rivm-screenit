@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,7 +38,7 @@ import java.util.Set;
 
 import nl.rivm.screenit.batch.jobs.colon.selectie.SelectieConstants;
 import nl.rivm.screenit.batch.service.ColonUitnodigingsgebiedCapaciteitService;
-import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
+import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ColoscopieCentrumColonCapaciteitVerdeling;
@@ -49,6 +49,7 @@ import nl.rivm.screenit.model.colon.planning.ColonAfspraakslot;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.project.ProjectGroep;
+import nl.rivm.screenit.repository.algemeen.ClientRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.LogService;
@@ -60,15 +61,17 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Projections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import static nl.rivm.screenit.specification.colon.ColonUitnodigingBaseSpecification.getSpecificationU1;
+import static nl.rivm.screenit.specification.colon.ColonUitnodigingBaseSpecification.getSpecificationU2;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -96,6 +99,9 @@ public class ColonUitnodigingsgebiedCapaciteitServiceImpl implements ColonUitnod
 
 	@Autowired
 	private LogService logService;
+
+	@Autowired
+	private ClientRepository clientRepository;
 
 	@Override
 	public Collection<ColonUitnodigingsgebiedSelectieContext> bepaalCapaciteit(ExecutionContext executionContext, boolean vooraankondigen, boolean aanpassenCapaciteitBijHerstart)
@@ -438,20 +444,19 @@ public class ColonUitnodigingsgebiedCapaciteitServiceImpl implements ColonUitnod
 				projectGroep.getNaam());
 		}
 
-		Criteria query;
+		Specification<Client> specification;
+		var vandaag = currentDateSupplier.getLocalDate();
 		if (categorie == ColonUitnodigingCategorie.U2)
 		{
-			query = ColonRestrictions.getQueryU2(hibernateService.getHibernateSession(), uitnodigingsGebied, minimaleLeeftijd, maximaleLeeftijd, true, projectGroupId, null,
-				currentDateSupplier.getLocalDate());
+			specification = getSpecificationU2(minimaleLeeftijd, maximaleLeeftijd, vandaag, uitnodigingsGebied, projectGroupId, null, vandaag);
 		}
 		else
 		{
-			query = ColonRestrictions.getQueryVooraankondigen(hibernateService.getHibernateSession(), uitnodigingsGebied, null, true, minimaleLeeftijd, maximaleLeeftijd,
-				projectGroupId, null, currentDateSupplier.getLocalDate());
+			specification = getSpecificationU1(minimaleLeeftijd, maximaleLeeftijd, vandaag, uitnodigingsGebied, new ArrayList<>(), projectGroupId, null, vandaag);
 		}
-		query.setProjection(Projections.projectionList().add(Projections.rowCount()));
 
-		int aantalClientenInProjectGroep = ((Number) query.uniqueResult()).intValue();
+		var aantalClientenInProjectGroep = clientRepository.count(specification);
+
 		Date uitnodigenVoorDKvoor = projectGroep.getUitnodigenVoorDKvoor();
 
 		int aantalWerkdagen = DateUtil.getDaysBetweenIgnoreWeekends(currentDateSupplier.getDateMidnight(), uitnodigenVoorDKvoor, false);

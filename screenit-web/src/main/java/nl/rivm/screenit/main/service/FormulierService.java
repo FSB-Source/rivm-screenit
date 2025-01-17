@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,6 +27,7 @@ import java.util.List;
 
 import nl.rivm.screenit.model.formulieren.ScreenitFormulierInstantie;
 import nl.rivm.screenit.model.formulieren.TypeFormulier;
+import nl.topicuszorg.formulieren2.api.definitie.VraagDefinitie;
 import nl.topicuszorg.formulieren2.persistence.instantie.FormulierInstantieImpl;
 import nl.topicuszorg.formulieren2.persistence.instantie.VraagInstantieImpl;
 
@@ -34,7 +35,6 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
 public interface FormulierService
 {
-
 	List<ScreenitFormulierInstantie> importFormulier(TypeFormulier typeFormulier, File file, String domein, boolean replace)
 		throws InvalidFormatException, IOException, ClassNotFoundException;
 
@@ -42,6 +42,7 @@ public interface FormulierService
 
 	<T> VraagInstantieImpl<T> findVraagInstantieByIdentifier(FormulierInstantieImpl formulierInstantie, String identifier);
 
-	ScreenitFormulierInstantie getFormulierInstatie(TypeFormulier typeFormulier);
+	ScreenitFormulierInstantie getFormulierInstantie(TypeFormulier typeFormulier);
 
+	<T> VraagDefinitie<T> findSimpleVraagDefinitieImplByIdentifier(String identifier, String domein);
 }

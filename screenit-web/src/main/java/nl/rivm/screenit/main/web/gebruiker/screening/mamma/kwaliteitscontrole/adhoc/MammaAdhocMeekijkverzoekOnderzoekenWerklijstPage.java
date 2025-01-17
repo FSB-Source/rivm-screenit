@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.a
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,8 +29,7 @@ import java.util.Map;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaAdhocMeekijkverzoekWerklijstZoekObject;
-import nl.rivm.screenit.main.service.mamma.MammaBeoordelingService;
-import nl.rivm.screenit.main.service.mamma.MammaKwaliteitscontroleService;
+import nl.rivm.screenit.main.service.mamma.MammaAdhocMeekijkverzoekService;
 import nl.rivm.screenit.main.service.mamma.MammaScreeningsEenheidService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
@@ -45,7 +44,6 @@ import nl.rivm.screenit.main.web.gebruiker.screening.mamma.MammaScreeningBasePag
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.MammaBeTabelCounterPanel;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.OrganisatieType;
-import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
@@ -53,7 +51,6 @@ import nl.rivm.screenit.model.mamma.MammaAdhocMeekijkverzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.enums.MammaVisitatieOnderzoekStatus;
 import nl.rivm.screenit.model.mamma.enums.MammobridgeRole;
-import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.SimpleListHibernateModel;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
@@ -76,6 +73,8 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
 
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
+
 @SecurityConstraint(
 	actie = Actie.INZIEN,
 	checkScope = true,
@@ -85,15 +84,8 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.MAMMA })
 public class MammaAdhocMeekijkverzoekOnderzoekenWerklijstPage extends MammaScreeningBasePage
 {
-
 	@SpringBean
-	private MammaBeoordelingService beoordelingService;
-
-	@SpringBean
-	private MammaBaseBeoordelingService baseBeoordelingService;
-
-	@SpringBean
-	private MammaKwaliteitscontroleService kwaliteitscontroleService;
+	private MammaAdhocMeekijkverzoekService adhocMeekijkverzoekService;
 
 	@SpringBean
 	private MammaScreeningsEenheidService screeningsEenheidService;
@@ -167,7 +159,7 @@ public class MammaAdhocMeekijkverzoekOnderzoekenWerklijstPage extends MammaScree
 		columns.add(new PropertyColumn<>(Model.of("SE"), "se.naam", "onderzoek.screeningsEenheid.naam"));
 		columns.add(new EnumPropertyColumn<>(Model.of("Status"), "status", "status", this));
 
-		ScreenitDataTable<MammaAdhocMeekijkverzoek, String> table = new ScreenitDataTable<MammaAdhocMeekijkverzoek, String>("resultaten", columns,
+		ScreenitDataTable<MammaAdhocMeekijkverzoek, String> table = new ScreenitDataTable<>("resultaten", columns,
 			onderzoekDataProvider, 10,
 			Model.of("onderzoek(en)"))
 		{
@@ -177,8 +169,7 @@ public class MammaAdhocMeekijkverzoekOnderzoekenWerklijstPage extends MammaScree
 			{
 				if (ScreenitSession.get().getInstelling().getOrganisatieType() == OrganisatieType.KWALITEITSPLATFORM)
 				{
-					SortParam<String> sortParam = onderzoekDataProvider.getSort();
-					openBesprekenScherm(target, model, new SortState<String>(sortParam.getProperty(), sortParam.isAscending()));
+					openBesprekenScherm(target, model, onderzoekDataProvider.getSort());
 				}
 			}
 
@@ -190,7 +181,8 @@ public class MammaAdhocMeekijkverzoekOnderzoekenWerklijstPage extends MammaScree
 					@Override
 					public Integer getObject()
 					{
-						return kwaliteitscontroleService.getAantalGezienAdhocMeekijkverzoekOnderzoeken(zoekObjectModel.getObject());
+						var zoekObject = zoekObjectModel.getObject();
+						return (int) adhocMeekijkverzoekService.countAantalGezienByScreeningsEenheden(zoekObject.getScreeningsEenheden());
 					}
 
 				};
@@ -218,11 +210,11 @@ public class MammaAdhocMeekijkverzoekOnderzoekenWerklijstPage extends MammaScree
 		response.render(CssHeaderItem.forUrl("assets/css/base_styles_be.css"));
 	}
 
-	private void openBesprekenScherm(AjaxRequestTarget target, IModel<MammaAdhocMeekijkverzoek> model,
-		SortState<String> sortState)
+	private void openBesprekenScherm(AjaxRequestTarget target, IModel<MammaAdhocMeekijkverzoek> model, SortParam<String> sort)
 	{
 		Map<Long, Long> onderzoekenIdMapping = new LinkedHashMap<>();
-		for (MammaAdhocMeekijkverzoek meekijkverzoek : kwaliteitscontroleService.zoekAdhocMeekijkverzoekOnderzoeken(zoekObjectModel.getObject(), -1, -1, sortState))
+		var zoekObject = zoekObjectModel.getObject();
+		for (var meekijkverzoek : adhocMeekijkverzoekService.find(zoekObject.getScreeningsEenheden(), zoekObject.getStatus(), -1, -1, toSpringSort(sort)))
 		{
 			onderzoekenIdMapping.put(meekijkverzoek.getOnderzoek().getId(), meekijkverzoek.getId());
 		}

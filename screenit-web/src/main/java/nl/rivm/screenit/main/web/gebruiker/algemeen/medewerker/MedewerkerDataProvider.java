@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.algemeen.medewerker;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,25 +21,18 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.medewerker;
  * =========================LICENSE_END==================================
  */
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
-import nl.rivm.screenit.main.service.MedewerkerService;
+import nl.rivm.screenit.main.service.algemeen.MedewerkerZoekService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.model.Functie;
 import nl.rivm.screenit.model.Gebruiker;
-import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.Rol;
 import nl.rivm.screenit.model.enums.Actie;
-import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
-import nl.rivm.screenit.service.OrganisatieZoekService;
-import nl.rivm.screenit.service.ScopeService;
 import nl.topicuszorg.wicket.hibernate.SimpleHibernateModel;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -52,136 +44,98 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class MedewerkerDataProvider extends SortableDataProvider<Gebruiker, String>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
-	private MedewerkerService medewerkerService;
+	private MedewerkerZoekService medewerkerZoekService;
 
-	@SpringBean
-	private ScopeService scopeService;
+	private final IModel<Gebruiker> zoekObjectModel;
 
-	@SpringBean
-	private OrganisatieZoekService organisatieZoekService;
+	private final IModel<List<Functie>> selectedFunctiesModel;
 
-	private IModel<Gebruiker> criteria;
+	private final IModel<List<Rol>> selectedRollenModel;
 
-	private final IModel<List<Functie>> selectedFuncties;
+	private final boolean voorOrganisatieKoppelen;
 
-	private final IModel<List<Rol>> selectedRollen;
-
-	private final boolean checkOpHierarchieScope;
-
-	private final boolean checkOpBevolkingsonderzoeken;
-
-	public MedewerkerDataProvider(String sortProperty, IModel<Gebruiker> criteria, IModel<List<Functie>> selectedFuncties, IModel<List<Rol>> selectedRollen,
-		boolean checkOpHierarchieScope, boolean checkOpBevolkingsonderzoeken)
+	public MedewerkerDataProvider(String sortProperty, IModel<Gebruiker> zoekObjectModel, IModel<List<Functie>> selectedFunctiesModel, IModel<List<Rol>> selectedRollenModel,
+		boolean voorOrganisatieKoppelen)
 	{
-		this.selectedFuncties = selectedFuncties;
-		this.selectedRollen = selectedRollen;
-		this.checkOpHierarchieScope = checkOpHierarchieScope;
-		this.checkOpBevolkingsonderzoeken = checkOpBevolkingsonderzoeken;
+		this.selectedFunctiesModel = selectedFunctiesModel;
+		this.selectedRollenModel = selectedRollenModel;
+		this.voorOrganisatieKoppelen = voorOrganisatieKoppelen;
 		Injector.get().inject(this);
 		setSort(sortProperty, SortOrder.ASCENDING);
-		this.criteria = criteria;
+		this.zoekObjectModel = zoekObjectModel;
 	}
 
-	public MedewerkerDataProvider(String sortProperty, IModel<Gebruiker> criteria, boolean bevolkingsonderzoekenCheck)
+	public MedewerkerDataProvider(String sortProperty, IModel<Gebruiker> zoekObjectModel)
 	{
-		this(sortProperty, criteria, null, null, false, bevolkingsonderzoekenCheck);
+		this(sortProperty, zoekObjectModel, null, null, true);
 	}
 
 	@Override
 	public Iterator<? extends Gebruiker> iterator(long first, long count)
 	{
-		InstellingGebruiker loggedInInstellingGebruiker = ScreenitSession.get().getLoggedInInstellingGebruiker();
-		Gebruiker zoekObject = getZoekObject();
-		ToegangLevel toeganglevel = ScreenitSession.get().getToegangsLevel(Actie.INZIEN, Recht.GEBRUIKER_MEDEWERKER_BEHEER);
-		if (ToegangLevel.EIGEN.equals(toeganglevel))
-		{
-			zoekObject.setId(loggedInInstellingGebruiker.getMedewerker().getId());
-		}
-		List<Bevolkingsonderzoek> bevolkingsonderzoeken = null;
-		if (checkOpBevolkingsonderzoeken)
-		{
-			bevolkingsonderzoeken = loggedInInstellingGebruiker.getBevolkingsonderzoeken();
-		}
-		List<Gebruiker> searchMedewerkers = medewerkerService.searchMedewerkers(zoekObject, ModelUtil.nullSafeGet(selectedFuncties), ModelUtil.nullSafeGet(selectedRollen),
-			getHierarchieCriteria(), bevolkingsonderzoeken, (int) first, (int) count, getSort().getProperty(), getSort().isAscending());
-		zoekObject.setId(null);
+		updateZoekObjectVoorZoekActie();
+		var searchMedewerkers = medewerkerZoekService.searchMedewerkers(getZoekObject(), getSelectedFuncties(), getSelectedRollen(), getLoggedInInstellingGebruiker(),
+			voorOrganisatieKoppelen, (int) first, (int) count, getSort().getProperty(), getSort().isAscending());
+		updateZoekObjectNaZoekActie();
 		return searchMedewerkers.iterator();
-	}
-
-	private Map<OrganisatieType, List<Instelling>> getHierarchieCriteria()
-	{
-		Map<OrganisatieType, List<Instelling>> hierarchieCriteria = new HashMap<>();
-		if (checkOpHierarchieScope)
-		{
-			ToegangLevel toegangsLevel = ScreenitSession.get().getToegangsLevel(Actie.INZIEN, Recht.GEBRUIKER_MEDEWERKER_BEHEER);
-			InstellingGebruiker loggedInInstellingGebruiker = ScreenitSession.get().getLoggedInInstellingGebruiker();
-			boolean addToHierarchieCriteria = false;
-			for (OrganisatieType type : OrganisatieType.values())
-			{
-				switch (type)
-				{
-				case RIVM:
-				case INPAKCENTRUM:
-				case LABORATORIUM:
-					addToHierarchieCriteria = toegangsLevel.getNiveau() == ToegangLevel.LANDELIJK.getNiveau();
-					break;
-				case SCREENINGSORGANISATIE:
-					addToHierarchieCriteria = toegangsLevel.getNiveau() >= ToegangLevel.REGIO.getNiveau();
-					break;
-				default:
-					addToHierarchieCriteria = toegangsLevel.getNiveau() >= ToegangLevel.INSTELLING.getNiveau();
-					break;
-				}
-				if (addToHierarchieCriteria)
-				{
-					hierarchieCriteria.put(type, organisatieZoekService.getOrganisatiesForNiveau(loggedInInstellingGebruiker, type, toegangsLevel));
-				}
-			}
-		}
-		return hierarchieCriteria;
-	}
-
-	private Gebruiker getZoekObject()
-	{
-		return ModelUtil.nullSafeGet(criteria);
 	}
 
 	@Override
 	public long size()
 	{
-		InstellingGebruiker loggedInInstellingGebruiker = ScreenitSession.get().getLoggedInInstellingGebruiker();
-		Gebruiker zoekObject = getZoekObject();
-		ToegangLevel toegangsLevel = ScreenitSession.get().getToegangsLevel(Actie.INZIEN, Recht.GEBRUIKER_MEDEWERKER_BEHEER);
-		if (ToegangLevel.EIGEN.equals(toegangsLevel))
-		{
-			zoekObject.setId(loggedInInstellingGebruiker.getMedewerker().getId());
-		}
-		List<Bevolkingsonderzoek> bevolkingsonderzoeken = null;
-		if (checkOpBevolkingsonderzoeken)
-		{
-			bevolkingsonderzoeken = loggedInInstellingGebruiker.getBevolkingsonderzoeken();
-		}
-		long countMedewerkers = medewerkerService.countMedewerkers(getZoekObject(), ModelUtil.nullSafeGet(selectedFuncties), ModelUtil.nullSafeGet(selectedRollen),
-			getHierarchieCriteria(), bevolkingsonderzoeken);
-		zoekObject.setId(null); 
+		updateZoekObjectVoorZoekActie();
+		var countMedewerkers = medewerkerZoekService.countMedewerkers(getZoekObject(), getSelectedFuncties(), getSelectedRollen(), getLoggedInInstellingGebruiker(),
+			voorOrganisatieKoppelen);
+		updateZoekObjectNaZoekActie();
 		return countMedewerkers;
+	}
+
+	private void updateZoekObjectVoorZoekActie()
+	{
+		var toeganglevel = ScreenitSession.get().getToegangsLevel(Actie.INZIEN, Recht.GEBRUIKER_MEDEWERKER_BEHEER);
+		if (ToegangLevel.EIGEN.equals(toeganglevel))
+		{
+			getZoekObject().setId(getLoggedInInstellingGebruiker().getMedewerker().getId());
+		}
+	}
+
+	private InstellingGebruiker getLoggedInInstellingGebruiker()
+	{
+		return ScreenitSession.get().getLoggedInInstellingGebruiker();
+	}
+
+	private void updateZoekObjectNaZoekActie()
+	{
+		getZoekObject().setId(null); 
+	}
+
+	private Gebruiker getZoekObject()
+	{
+		return ModelUtil.nullSafeGet(zoekObjectModel);
+	}
+
+	private List<Rol> getSelectedRollen()
+	{
+		return ModelUtil.nullSafeGet(selectedRollenModel);
+	}
+
+	private List<Functie> getSelectedFuncties()
+	{
+		return ModelUtil.nullSafeGet(selectedFunctiesModel);
 	}
 
 	@Override
 	public IModel<Gebruiker> model(Gebruiker object)
 	{
-		return new SimpleHibernateModel<Gebruiker>(object);
+		return new SimpleHibernateModel<>(object);
 	}
 
 	@Override
 	public void detach()
 	{
-		ModelUtil.nullSafeDetach(criteria);
-		ModelUtil.nullSafeDetach(selectedFuncties);
-		ModelUtil.nullSafeDetach(selectedRollen);
+		ModelUtil.nullSafeDetach(zoekObjectModel);
+		ModelUtil.nullSafeDetach(selectedFunctiesModel);
+		ModelUtil.nullSafeDetach(selectedRollenModel);
 	}
 }

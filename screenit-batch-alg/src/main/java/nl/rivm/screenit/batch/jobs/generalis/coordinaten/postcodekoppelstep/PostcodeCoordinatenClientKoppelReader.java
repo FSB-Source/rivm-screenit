@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.generalis.coordinaten.postcodekoppelstep;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,25 +23,21 @@ package nl.rivm.screenit.batch.jobs.generalis.coordinaten.postcodekoppelstep;
 
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.batch.service.GbaService;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.BagAdres;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.algemeen.BagAdresSpecification.heeftGeenPostcodeCoordinaten;
 
 @Component
 @AllArgsConstructor
-public class PostcodeCoordinatenClientKoppelReader extends BaseScrollableResultReader
+public class PostcodeCoordinatenClientKoppelReader extends BaseSpecificationScrollableResultReader<BagAdres>
 {
-
-	private final GbaService gbaService;
-
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<BagAdres> createSpecification()
 	{
-		return gbaService.getAllAdressenZonderCoordinanten();
+		return heeftGeenPostcodeCoordinaten();
 	}
-
 }

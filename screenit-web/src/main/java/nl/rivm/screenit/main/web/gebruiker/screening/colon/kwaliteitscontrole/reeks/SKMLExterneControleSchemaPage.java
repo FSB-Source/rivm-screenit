@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.screening.colon.kwaliteitscontrole.reeks;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,14 +25,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.Transient;
-
 import nl.rivm.screenit.main.service.SKMLExternSchemaService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ScreenitIndicatingAjaxLinkPanel;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.colon.SKMLExternSchema;
+import nl.rivm.screenit.model.colon.SKMLExternSchema_;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
@@ -62,9 +60,6 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON })
 public class SKMLExterneControleSchemaPage extends KwaliteitscontroleBasePage
 {
-	private static final long serialVersionUID = 1L;
-
-	@Transient
 	private IModel<SKMLExternSchema> zoekModel;
 
 	@SpringBean
@@ -81,18 +76,14 @@ public class SKMLExterneControleSchemaPage extends KwaliteitscontroleBasePage
 
 		add(new Link<Void>("toevoegen")
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick()
 			{
-				setResponsePage(new SKMLExterneControleSchemaToevoegenPage(ModelUtil.cModel(new SKMLExternSchema())));
+				setResponsePage(new SKMLExterneControleSchemaToevoegenPage(ModelUtil.ccModel(new SKMLExternSchema())));
 			}
 		}.setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BEHEER_SCHEMA_EXTERNE_CONTROLE, Actie.TOEVOEGEN)));
 		add(new Link<Void>("toevoegenXls")
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick()
 			{
@@ -105,28 +96,26 @@ public class SKMLExterneControleSchemaPage extends KwaliteitscontroleBasePage
 
 	private ScreenitDataTable<SKMLExternSchema, String> maakSchemaOverzicht()
 	{
-		SKMLExternSchemaProvider provider = new SKMLExternSchemaProvider("deadline", SortOrder.DESCENDING, zoekModel);
+		var provider = new SKMLExternSchemaProvider("deadline", SortOrder.DESCENDING, zoekModel);
 		List<IColumn<SKMLExternSchema, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<SKMLExternSchema, String>(Model.of("SKML jaar"), "jaar"));
-		columns.add(new PropertyColumn<SKMLExternSchema, String>(Model.of("SKML ronde"), "ronde"));
-		columns.add(new PropertyColumn<SKMLExternSchema, String>(Model.of("Monster letter"), "letter"));
-		columns.add(new DateTimePropertyColumn<SKMLExternSchema, String>(Model.of("Deadline"), "deadline", new SimpleDateFormat("dd-MM-yyyy")));
-		columns.add(new AbstractColumn<SKMLExternSchema, String>(Model.of(""))
+		columns.add(new PropertyColumn<>(Model.of("SKML jaar"), SKMLExternSchema_.JAAR));
+		columns.add(new PropertyColumn<>(Model.of("SKML ronde"), SKMLExternSchema_.RONDE));
+		columns.add(new PropertyColumn<>(Model.of("Monster letter"), SKMLExternSchema_.LETTER));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Deadline"), SKMLExternSchema_.DEADLINE, new SimpleDateFormat("dd-MM-yyyy")));
+		columns.add(new AbstractColumn<>(Model.of(""))
 		{
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void populateItem(Item<ICellPopulator<SKMLExternSchema>> cellItem, String componentId, IModel<SKMLExternSchema> rowModel)
 			{
-				ScreenitIndicatingAjaxLinkPanel<SKMLExternSchema> linkPanel = new ScreenitIndicatingAjaxLinkPanel<SKMLExternSchema>(componentId, rowModel, "Verwijderen")
+				var linkPanel = new ScreenitIndicatingAjaxLinkPanel<>(componentId, rowModel, "Verwijderen")
 				{
-					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target, IModel<SKMLExternSchema> model)
 					{
 						hibernateService.delete(model.getObject());
-						ScreenitDataTable<SKMLExternSchema, String> nieuwOverzicht = maakSchemaOverzicht();
+						var nieuwOverzicht = maakSchemaOverzicht();
 						overzicht.replaceWith(nieuwOverzicht);
 						overzicht = nieuwOverzicht;
 						target.add(overzicht);
@@ -140,10 +129,8 @@ public class SKMLExterneControleSchemaPage extends KwaliteitscontroleBasePage
 						linkPanel.getModelObject()));
 			}
 		});
-		ScreenitDataTable<SKMLExternSchema, String> overzicht = new ScreenitDataTable<SKMLExternSchema, String>("overzicht", columns, provider, Model.of("schema's"))
+		var overzicht = new ScreenitDataTable<>("overzicht", columns, provider, Model.of("schema's"))
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected boolean isRowClickable(IModel<SKMLExternSchema> model)
 			{
@@ -156,7 +143,7 @@ public class SKMLExterneControleSchemaPage extends KwaliteitscontroleBasePage
 
 	private void maakZoekObject()
 	{
-		SKMLExternSchema zoekObject = new SKMLExternSchema();
+		var zoekObject = new SKMLExternSchema();
 		zoekObject.setActief(true);
 		zoekModel = ModelUtil.sModel(zoekObject);
 	}

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -58,7 +58,11 @@ import nl.rivm.screenit.repository.colon.ColonBlokkadeRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
+import nl.rivm.screenit.specification.ExtendedSpecification;
+import nl.rivm.screenit.specification.colon.ColonIntakeKamerSpecification;
+import nl.rivm.screenit.specification.colon.ColonTijdslotSpecification;
 import nl.rivm.screenit.util.DateUtil;
+import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.data.domain.Sort;
@@ -67,8 +71,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Range;
 
-import static nl.rivm.screenit.specification.colon.ColonBlokkadeSpecification.heeftKamerUitLijst;
-import static nl.rivm.screenit.specification.colon.ColonBlokkadeSpecification.valtBinnenDatumRange;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.colon.ColonTijdslotSpecification.heeftKamer;
+import static nl.rivm.screenit.specification.colon.ColonTijdslotSpecification.heeftKamerUitLijst;
+import static nl.rivm.screenit.specification.colon.ColonTijdslotSpecification.valtBinnenDatumTijdRange;
 
 @AllArgsConstructor
 @Service
@@ -84,6 +90,8 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 	private final ICurrentDateSupplier currentDateSupplier;
 
 	private final ColonBaseAfspraakService afspraakService;
+
+	private final HibernateService hibernateService; 
 
 	@Override
 	@Transactional
@@ -348,7 +356,7 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 
 	private List<ColonBlokkade> getBlokkadeTijden(Range<LocalDateTime> range, List<ColonIntakekamer> kamers)
 	{
-		var specification = valtBinnenDatumRange(range);
+		var specification = ColonTijdslotSpecification.<ColonBlokkade> valtBinnenDatumTijdRange(range);
 		if (!kamers.isEmpty())
 		{
 
@@ -477,6 +485,43 @@ public class ColonBlokkadeServiceImpl implements ColonBlokkadeService
 			blokkadeRepository.deleteAll(teVerwijderenBlokkades);
 			logService.logGebeurtenis(LogGebeurtenis.COLON_BLOKKADES_VERWIJDEREN, loggedInInstellingGebruiker, exception.getMessage(), Bevolkingsonderzoek.COLON);
 		}
+	}
+
+	@Override
+	public List<ColonBlokkade> zoekBlokkadesInRange(Range<LocalDateTime> range)
+	{
+		return blokkadeRepository.findAll(valtBinnenDatumTijdRange(range), Sort.by(ColonTijdslot_.VANAF));
+	}
+
+	@Override
+	public List<ColonBlokkade> getBlokkades(ColonIntakekamer kamer, LocalDateTime vanaf, LocalDateTime tot)
+	{
+		return blokkadeRepository.findAll(
+			ColonTijdslotSpecification.<ColonBlokkade> valtBinnenDatumTijdRange(Range.open(vanaf, tot))
+				.and(heeftKamer(kamer)));
+	}
+
+	@Override
+	public List<ColonBlokkade> getBlokkades(Sort sort, long first, long count, RoosterListViewFilter filter, ColonIntakelocatie intakelocatie)
+	{
+		var criteria = getBlokkadeSpecification(filter, intakelocatie);
+		return blokkadeRepository.findWith(criteria, q -> q.sortBy(sort)).all(first, count);
+	}
+
+	@Override
+	public long getBlokkadesCount(RoosterListViewFilter filter, ColonIntakelocatie intakelocatie)
+	{
+		var criteria = getBlokkadeSpecification(filter, intakelocatie);
+		return blokkadeRepository.count(criteria);
+	}
+
+	private ExtendedSpecification<ColonBlokkade> getBlokkadeSpecification(RoosterListViewFilter filter, ColonIntakelocatie intakelocatie)
+	{
+		var vanaf = DateUtil.toLocalDateTime(filter.getStartDatum());
+		var tot = DateUtil.toLocalDate(filter.getEindDatum()).plusDays(1).atStartOfDay();
+		return ColonTijdslotSpecification.<ColonBlokkade> valtBinnenDatumTijdRange(Range.open(vanaf, tot))
+			.and(ColonIntakeKamerSpecification.isActief()
+				.and(ColonIntakeKamerSpecification.heeftIntakelocatie(intakelocatie)).with(r -> join(r, ColonTijdslot_.kamer)));
 	}
 
 }

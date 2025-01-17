@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.intake;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -45,17 +45,25 @@ import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.ColonScreeningBasePage;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.ClientBrief;
+import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.GbaPersoon;
+import nl.rivm.screenit.model.GbaPersoon_;
 import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.colon.ColonBrief;
+import nl.rivm.screenit.model.colon.ColonConclusie_;
+import nl.rivm.screenit.model.colon.ColonDossier_;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
+import nl.rivm.screenit.model.colon.ColonIntakeAfspraak_;
 import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
+import nl.rivm.screenit.model.colon.ColonVolgendeUitnodiging_;
 import nl.rivm.screenit.model.colon.ConclusieTypeFilter;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
 import nl.rivm.screenit.model.colon.enums.ColonAfspraakStatus;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
+import nl.rivm.screenit.model.colon.planning.ColonIntakekamer_;
+import nl.rivm.screenit.model.colon.planning.ColonTijdslot_;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -68,6 +76,7 @@ import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.topicuszorg.organisatie.model.Adres;
+import nl.topicuszorg.organisatie.model.Adres_;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.util.postcode.PostcodeFormatter;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -96,6 +105,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
+
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
 
 @SecurityConstraint(
 	actie = Actie.INZIEN,
@@ -316,7 +327,7 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 	protected List<IColumn<ColonIntakeAfspraak, String>> getColumns()
 	{
 		List<IColumn<ColonIntakeAfspraak, String>> columns = new ArrayList<>();
-		columns.add(new ScreenitDateTimePropertyColumn<>(Model.of("Intakeafspraak"), "vanaf", "vanaf", new SimpleDateFormat("dd-MM-yyyy HH:mm"))
+		columns.add(new ScreenitDateTimePropertyColumn<>(Model.of("Intakeafspraak"), ColonTijdslot_.VANAF, ColonTijdslot_.VANAF, new SimpleDateFormat("dd-MM-yyyy HH:mm"))
 		{
 			@Override
 			public IModel<Object> getDataModel(IModel<ColonIntakeAfspraak> embeddedModel)
@@ -329,12 +340,17 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 				return dataModel;
 			}
 		});
-		columns.add(new PropertyColumn<>(Model.of("Kamer"), "kamer.naam", "kamer.naam"));
-		columns.add(new ClientColumn<>("persoon.achternaam", "client"));
-		columns.add(new PropertyColumn<>(Model.of("BSN"), "persoon.bsn", "client.persoon.bsn"));
-		columns.add(new GeboortedatumColumn<>("persoon.geboortedatum", "client.persoon"));
-		columns.add(new EnumPropertyColumn<>(Model.of("Gender"), "persoon.geslacht", "client.persoon.geslacht"));
-		columns.add(new PropertyColumn<>(Model.of("Adres"), "client.persoon.adres.straat")
+		columns.add(
+			new PropertyColumn<>(Model.of("Kamer"), propertyChain(ColonTijdslot_.KAMER, ColonIntakekamer_.NAAM), propertyChain(ColonTijdslot_.KAMER, ColonIntakekamer_.NAAM)));
+		columns.add(new ClientColumn<>(propertyChain(ColonIntakeAfspraak_.CLIENT, Client_.PERSOON, GbaPersoon_.ACHTERNAAM), ColonIntakeAfspraak_.CLIENT));
+		columns.add(
+			new PropertyColumn<>(Model.of("BSN"), propertyChain(ColonIntakeAfspraak_.CLIENT, Client_.PERSOON, GbaPersoon_.BSN),
+				propertyChain(ColonIntakeAfspraak_.CLIENT, Client_.PERSOON, GbaPersoon_.BSN)));
+		columns.add(new GeboortedatumColumn<>(propertyChain(ColonIntakeAfspraak_.CLIENT, Client_.PERSOON, GbaPersoon_.GEBOORTEDATUM),
+			propertyChain(ColonIntakeAfspraak_.CLIENT, Client_.PERSOON)));
+		columns.add(new EnumPropertyColumn<>(Model.of("Gender"), propertyChain(ColonIntakeAfspraak_.CLIENT, Client_.PERSOON, GbaPersoon_.GESLACHT),
+			propertyChain(ColonIntakeAfspraak_.CLIENT, Client_.PERSOON, GbaPersoon_.GESLACHT)));
+		columns.add(new PropertyColumn<>(Model.of("Adres"), propertyChain(ColonIntakeAfspraak_.CLIENT, GbaPersoon_.GBA_ADRES, Adres_.STRAAT))
 		{
 
 			@Override
@@ -347,7 +363,7 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 			}
 		});
 
-		columns.add(new PropertyColumn<>(Model.of("PC/Plaats"), "client.persoon.adres.plaats")
+		columns.add(new PropertyColumn<>(Model.of("PC/Plaats"), propertyChain(ColonIntakeAfspraak_.CLIENT, Client_.PERSOON, GbaPersoon_.GBA_ADRES, Adres_.PLAATS))
 		{
 
 			@Override
@@ -429,7 +445,7 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 
 	protected void addHuisartsColumn(List<IColumn<ColonIntakeAfspraak, String>> columns)
 	{
-		columns.add(new PropertyColumn<>(Model.of("Huisarts"), "client.huisarts")
+		columns.add(new PropertyColumn<>(Model.of("Huisarts"), propertyChain(ColonIntakeAfspraak_.CLIENT, "huisarts"))
 		{
 			@Override
 			public IModel<String> getDataModel(IModel<ColonIntakeAfspraak> rowModel)
@@ -449,8 +465,9 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 
 	protected void addDagenTotVolgendeUitnodigingColumn(List<IColumn<ColonIntakeAfspraak, String>> columns)
 	{
-		columns.add(new PropertyColumn<>(Model.of("#dagen tot nieuwe BVO uitnodiging"), "volgendeUitnodiging.peildatum",
-			"client.colonDossier.volgendeUitnodiging")
+		columns.add(new PropertyColumn<>(Model.of("#dagen tot nieuwe BVO uitnodiging"),
+			propertyChain(ColonIntakeAfspraak_.CLIENT, Client_.COLON_DOSSIER, ColonDossier_.VOLGENDE_UITNODIGING, ColonVolgendeUitnodiging_.PEILDATUM),
+			propertyChain(ColonIntakeAfspraak_.CLIENT, Client_.COLON_DOSSIER, ColonDossier_.VOLGENDE_UITNODIGING))
 		{
 
 			@Override
@@ -469,7 +486,7 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 
 	protected void addStatusColumn(List<IColumn<ColonIntakeAfspraak, String>> columns)
 	{
-		columns.add(new EnumPropertyColumn<ColonIntakeAfspraak, String, ColonConclusieType>(Model.of("Status"), "conclusie.type")
+		columns.add(new EnumPropertyColumn<ColonIntakeAfspraak, String, ColonConclusieType>(Model.of("Status"), propertyChain(ColonIntakeAfspraak_.CONCLUSIE, ColonConclusie_.TYPE))
 					{
 						@Override
 						public IModel<?> getDataModel(IModel<ColonIntakeAfspraak> rowModel)

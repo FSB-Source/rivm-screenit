@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.colon;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,12 +26,8 @@ import java.util.List;
 import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
 
-import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
-
 public interface ColonIntakekamerService
 {
 	List<ColonIntakekamer> getKamers(ColonIntakelocatie intakelocatie);
-
-	List<ColonIntakekamer> getKamers(int first, int count, SortParam<String> sortParam);
 
 }

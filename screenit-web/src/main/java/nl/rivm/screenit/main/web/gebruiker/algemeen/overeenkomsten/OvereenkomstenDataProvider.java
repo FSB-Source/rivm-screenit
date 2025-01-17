@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.algemeen.overeenkomsten;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +25,7 @@ import java.util.Iterator;
 
 import nl.rivm.screenit.main.service.OvereenkomstService;
 import nl.rivm.screenit.model.overeenkomsten.Overeenkomst;
+import nl.rivm.screenit.model.overeenkomsten.Overeenkomst_;
 import nl.topicuszorg.wicket.hibernate.SimpleHibernateModel;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -34,38 +34,37 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
+
 public class OvereenkomstenDataProvider extends SortableDataProvider<Overeenkomst, String>
 {
-
-	private static final long serialVersionUID = 1L;
-
-	private final IModel<Overeenkomst> actiefModel;
+	private final IModel<Overeenkomst> zoekObject;
 
 	@SpringBean
 	private OvereenkomstService overeenkomstService;
 
-	public OvereenkomstenDataProvider(IModel<Overeenkomst> actiefModel)
+	public OvereenkomstenDataProvider(IModel<Overeenkomst> zoekObject)
 	{
-		this.actiefModel = actiefModel;
+		this.zoekObject = zoekObject;
 		Injector.get().inject(this);
-		setSort("naam", SortOrder.ASCENDING);
+		setSort(Overeenkomst_.NAAM, SortOrder.ASCENDING);
 	}
 
 	@Override
 	public Iterator<? extends Overeenkomst> iterator(long first, long count)
 	{
-		return overeenkomstService.getOvereenkomsten(actiefModel.getObject().getActief(), first, count, getSort().getProperty(), getSort().isAscending()).iterator();
+		return overeenkomstService.getOvereenkomsten(zoekObject.getObject().getActief(), first, count, toSpringSort(getSort())).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return overeenkomstService.countOvereenkomsten(actiefModel.getObject().getActief());
+		return overeenkomstService.countOvereenkomsten(zoekObject.getObject().getActief());
 	}
 
 	@Override
 	public IModel<Overeenkomst> model(Overeenkomst object)
 	{
-		return new SimpleHibernateModel<Overeenkomst>(object);
+		return new SimpleHibernateModel<>(object);
 	}
 }

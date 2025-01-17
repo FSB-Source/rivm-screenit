@@ -4,7 +4,7 @@ package nl.rivm.screenit.model;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,11 +21,7 @@ package nl.rivm.screenit.model;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.model.colon.enums.RetourzendingStatus;
-import nl.rivm.screenit.model.colon.enums.RetourzendingWijze;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.envers.Audited;
+import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -34,150 +30,51 @@ import javax.persistence.Enumerated;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import java.util.Date;
+
+import lombok.Getter;
+import lombok.Setter;
+
+import nl.rivm.screenit.model.colon.enums.RetourzendingStatus;
+import nl.rivm.screenit.model.colon.enums.RetourzendingWijze;
+
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.envers.Audited;
 
 @Entity
 @Table
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 @Audited
+@Getter
+@Setter
 public abstract class InpakbareUitnodiging<SR extends ScreeningRonde<?, ?, ?, ?>> extends Uitnodiging<SR>
 {
-    @Column(nullable = false)
-    private Long uitnodigingsId;
+	@Column(nullable = false)
+	private Long uitnodigingsId;
 
-    private boolean verstuurd;
+	private boolean verstuurd;
 
-    private boolean verstuurdDoorInpakcentrum;
+	private boolean verstuurdDoorInpakcentrum;
 
-    @Deprecated
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date datumTerugOntvangen;
+	@Deprecated
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date datumTerugOntvangen;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date retourOntvangen;
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date retourOntvangen;
 
-    private String retourzendingReden;
+	private String retourzendingReden;
 
-    @Enumerated(EnumType.STRING)
-    private RetourzendingStatus retourzendingStatus;
+	@Enumerated(EnumType.STRING)
+	private RetourzendingStatus retourzendingStatus;
 
-    @Enumerated(EnumType.STRING)
-    private RetourzendingWijze retourzendingWijze;
+	@Enumerated(EnumType.STRING)
+	private RetourzendingWijze retourzendingWijze;
 
-    private String templateNaam;
+	private String templateNaam;
 
-    private String trackTraceId;
+	private String trackTraceId;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date verstuurdDatum;
-
-    public Long getUitnodigingsId()
-    {
-        return uitnodigingsId;
-    }
-
-    public void setUitnodigingsId(Long uitnodigingsId)
-    {
-        this.uitnodigingsId = uitnodigingsId;
-    }
-
-    public boolean isVerstuurd()
-    {
-        return verstuurd;
-    }
-
-    public void setVerstuurd(boolean verstuurd)
-    {
-        this.verstuurd = verstuurd;
-    }
-
-    public Date getVerstuurdDatum()
-    {
-        return verstuurdDatum;
-    }
-
-    public void setVerstuurdDatum(Date verstuurdDatum)
-    {
-        this.verstuurdDatum = verstuurdDatum;
-    }
-
-    public boolean isVerstuurdDoorInpakcentrum()
-    {
-        return verstuurdDoorInpakcentrum;
-    }
-
-    public void setVerstuurdDoorInpakcentrum(boolean verstuurdDoorInpakcentrum)
-    {
-        this.verstuurdDoorInpakcentrum = verstuurdDoorInpakcentrum;
-    }
-
-    public Date getDatumTerugOntvangen()
-    {
-        return datumTerugOntvangen;
-    }
-
-    public void setDatumTerugOntvangen(Date datumTerugOntvangen)
-    {
-        this.datumTerugOntvangen = datumTerugOntvangen;
-    }
-
-    public String getTemplateNaam()
-    {
-        return templateNaam;
-    }
-
-    public void setTemplateNaam(String templateNaam)
-    {
-        this.templateNaam = templateNaam;
-    }
-
-    public String getTrackTraceId()
-    {
-        return trackTraceId;
-    }
-
-    public void setTrackTraceId(String trackTraceId)
-    {
-        this.trackTraceId = trackTraceId;
-    }
-
-    public String getRetourzendingReden()
-    {
-        return retourzendingReden;
-    }
-
-    public void setRetourzendingReden(String retourzendingReden)
-    {
-        this.retourzendingReden = retourzendingReden;
-    }
-
-    public RetourzendingStatus getRetourzendingStatus()
-    {
-        return retourzendingStatus;
-    }
-
-    public void setRetourzendingStatus(RetourzendingStatus retourzendingStatus)
-    {
-        this.retourzendingStatus = retourzendingStatus;
-    }
-
-    public Date getRetourOntvangen()
-    {
-        return retourOntvangen;
-    }
-
-    public void setRetourOntvangen(Date retourOntvangen)
-    {
-        this.retourOntvangen = retourOntvangen;
-    }
-
-    public RetourzendingWijze getRetourzendingWijze()
-    {
-        return retourzendingWijze;
-    }
-
-    public void setRetourzendingWijze(RetourzendingWijze retourzendingWijze)
-    {
-        this.retourzendingWijze = retourzendingWijze;
-    }
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date verstuurdDatum;
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.colon;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ package nl.rivm.screenit.main.service.colon;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,7 +38,12 @@ import nl.rivm.screenit.model.colon.dto.ColonBlokkadeDto;
 import nl.rivm.screenit.model.colon.dto.ColonHerhalingDto;
 import nl.rivm.screenit.model.colon.dto.ColonTijdslotDto;
 import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
+import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+
+import org.springframework.data.domain.Sort;
+
+import com.google.common.collect.Range;
 
 public interface ColonBlokkadeService
 {
@@ -58,4 +64,12 @@ public interface ColonBlokkadeService
 	List<ColonTijdslotDto> zoekBlokkades(RoosterListViewFilter filter, long intakelocatieId);
 
 	void bulkDeleteBlokkades(List<Long> blokkadeIds, InstellingGebruiker loggedInInstellingGebruiker, boolean alleenValidatie) throws BulkVerwijderenException;
+
+	List<ColonBlokkade> zoekBlokkadesInRange(Range<LocalDateTime> range);
+
+	List<ColonBlokkade> getBlokkades(ColonIntakekamer kamer, LocalDateTime vanaf, LocalDateTime tot);
+
+	List<ColonBlokkade> getBlokkades(Sort sort, long first, long count, RoosterListViewFilter filter, ColonIntakelocatie intakelocatie);
+
+	long getBlokkadesCount(RoosterListViewFilter filter, ColonIntakelocatie intakelocatie);
 }

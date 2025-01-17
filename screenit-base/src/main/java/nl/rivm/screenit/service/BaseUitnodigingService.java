@@ -4,7 +4,7 @@ package nl.rivm.screenit.service;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,8 @@ package nl.rivm.screenit.service;
 
 import nl.rivm.screenit.model.InpakbareUitnodiging;
 import nl.rivm.screenit.model.Uitnodiging;
+import nl.rivm.screenit.model.cervix.CervixUitnodiging;
+import nl.rivm.screenit.model.colon.ColonUitnodiging;
 
 public interface BaseUitnodigingService
 {
@@ -32,6 +34,11 @@ public interface BaseUitnodigingService
 
 	<U extends InpakbareUitnodiging<?>> boolean isAdresGewijzigdNaUitnodigingsdatum(U uitnodiging);
 
-	<U extends Uitnodiging<?>> U getUitnodiging(Class<U> clazz, String trackId, String postcode, Integer huisnummer);
+	ColonUitnodiging getColonUitnodiging(String trackId, String postcode, Integer huisnummer);
 
+	CervixUitnodiging getCervixUitnodiging(String trackId, String postcode, Integer huisnummer);
+
+	boolean colonUitnodigingExists(String trackId);
+
+	boolean cervixUitnodigingExists(String trackId);
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.vervolgonderzoek.step;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,57 +21,84 @@ package nl.rivm.screenit.batch.jobs.cervix.vervolgonderzoek.step;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.model.ScreeningRondeStatus;
-import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
-import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.query.ScreenitRestrictions;
-import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
+import java.util.function.Function;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.JoinType;
+
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.TablePerClassHibernateObject_;
+import nl.rivm.screenit.model.cervix.CervixDossier;
+import nl.rivm.screenit.model.cervix.CervixDossier_;
+import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
+import nl.rivm.screenit.model.cervix.CervixScreeningRonde_;
+import nl.rivm.screenit.model.cervix.CervixUitstel;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.ClientSpecification.heeftActieveClient;
+import static nl.rivm.screenit.specification.algemeen.ScreeningRondeSpecification.isLopend;
+import static nl.rivm.screenit.specification.cervix.CervixScreeningRondeSpecification.heeftControleUitstrijkjeDatumVoorOfOp;
+import static nl.rivm.screenit.specification.cervix.CervixScreeningRondeSpecification.heeftGeenUitnodigingVervolgonderzoek;
+import static nl.rivm.screenit.specification.cervix.CervixScreeningRondeSpecification.heeftGeenUitstel;
+import static nl.rivm.screenit.specification.cervix.CervixScreeningRondeSpecification.heeftInVervolgonderzoekDatum;
+import static nl.rivm.screenit.specification.cervix.CervixScreeningRondeSpecification.heeftInVervolgonderzoekDatumVoorOntvangstDatumOfScanDatum;
+import static nl.rivm.screenit.specification.cervix.CervixUitstelSpecification.heeftGeannuleerdDatum;
+import static org.springframework.data.jpa.domain.Specification.where;
+
 @Component
-public class CervixVervolgonderzoekReader extends BaseScrollableResultReader
+public class CervixVervolgonderzoekReader extends BaseSpecificationScrollableResultReader<CervixScreeningRonde>
 {
+	@Autowired
+	private ICurrentDateSupplier dateSupplier;
 
-	private final ICurrentDateSupplier dateSupplier;
-
-	private final SimplePreferenceService preferenceService;
-
-	public CervixVervolgonderzoekReader(ICurrentDateSupplier dateSupplier, SimplePreferenceService preferenceService)
+	public CervixVervolgonderzoekReader()
 	{
 		super.setFetchSize(50);
-		this.dateSupplier = dateSupplier;
-		this.preferenceService = preferenceService;
 	}
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<CervixScreeningRonde> createSpecification()
 	{
-		var crit = session.createCriteria(CervixScreeningRonde.class, "ronde");
-		crit.createAlias("ronde.dossier", "dossier");
-		crit.createAlias("ronde.uitstel", "uitstel", JoinType.LEFT_OUTER_JOIN);
-		crit.createAlias("dossier.client", "client");
-		crit.createAlias("client.persoon", "persoon");
+		return (r, q, cb) ->
+		{
+			var subquery = heeftInVervolgonderzoekDatumVoorOntvangstDatumOfScanDatum(q, cb);
 
-		ScreenitRestrictions.addClientBaseRestrictions(crit, "client", "persoon");
+			return where(heeftActieveClient().with(clientJoin()))
+				.and(isLopend())
+				.and(heeftInVervolgonderzoekDatum())
+				.and(heeftGeenUitnodigingVervolgonderzoek())
+				.and(where(heeftGeenUitstel())
+					.or(heeftGeannuleerdDatum().with(uitstelJoin())))
+				.and(heeftControleUitstrijkjeDatumVoorOfOp(dateSupplier.getLocalDate()))
+				.and((subRoot, subQuery, subBuilder) ->
+					subBuilder.not(subRoot.get(TablePerClassHibernateObject_.id).in(subquery))
+				)
+				.toPredicate(r, q, cb);
+		};
+	}
 
-		crit.add(Restrictions.eq("ronde.status", ScreeningRondeStatus.LOPEND));
+	private static Function<From<?, ? extends CervixScreeningRonde>, From<?, ? extends CervixDossier>> cervixDossierJoin()
+	{
+		return q -> join(q, CervixScreeningRonde_.dossier);
+	}
 
-		crit.add(Restrictions.isNotNull("ronde.inVervolgonderzoekDatum"));
-		crit.add(Restrictions.isNull("ronde.uitnodigingVervolgonderzoek"));
-		crit.add(Restrictions.or(Restrictions.isNull("ronde.uitstel"), Restrictions.isNotNull("uitstel.geannuleerdDatum")));
+	private static Function<From<?, ? extends CervixScreeningRonde>, From<?, ? extends Client>> clientJoin()
+	{
+		return q ->
+		{
+			var dossierJoin = cervixDossierJoin().apply(q);
+			return join(dossierJoin, CervixDossier_.client);
+		};
+	}
 
-		crit.add(Restrictions.le("ronde.controleUitstrijkjeDatum", dateSupplier.getLocalDate()));
-
-		crit.add(Restrictions.sqlRestriction(
-			"{alias}.id NOT IN (SELECT DISTINCT r.id FROM cervix.screening_ronde r JOIN cervix.monster m ON r.id = m.ontvangst_screening_ronde AND m.dtype != 'CervixZas' LEFT JOIN cervix.labformulier l ON m.labformulier = l.id AND (l.status = 'GECONTROLEERD' OR l.status = 'GECONTROLEERD_CYTOLOGIE' OR l.status = 'HUISARTS_ONBEKEND') WHERE r.in_vervolgonderzoek_datum NOTNULL AND (r.in_vervolgonderzoek_datum < m.ontvangstdatum AND l.scan_datum ISNULL OR r.in_vervolgonderzoek_datum < l.scan_datum AND m.ontvangstdatum ISNULL OR r.in_vervolgonderzoek_datum < m.ontvangstdatum AND r.in_vervolgonderzoek_datum < l.scan_datum))"));
-
-		return crit;
+	private static Function<From<?, ? extends CervixScreeningRonde>, From<?, ? extends CervixUitstel>> uitstelJoin()
+	{
+		return q -> join(q, CervixScreeningRonde_.uitstel, JoinType.LEFT);
 	}
 }

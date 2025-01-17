@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,61 +22,93 @@ package nl.rivm.screenit.main.service.impl;
  */
 
 import java.util.Date;
-import java.util.Iterator;
+import java.util.List;
 
-import nl.rivm.screenit.main.dao.SKMLExternSchemaDao;
 import nl.rivm.screenit.main.service.SKMLExternSchemaService;
 import nl.rivm.screenit.model.colon.SKMLExternSchema;
+import nl.rivm.screenit.model.colon.SKMLExternSchema_;
+import nl.rivm.screenit.repository.colon.ColonSKMLExternSchemaRepository;
+import nl.rivm.screenit.repository.colon.ColonSKMLExterneControleBarcodeRepository;
+import nl.rivm.screenit.specification.ExtendedSpecification;
+import nl.rivm.screenit.specification.HibernateObjectSpecification;
+import nl.rivm.screenit.specification.colon.ColonSKMLControleBarcodeSpecification;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+
+import static nl.rivm.screenit.specification.colon.ColonSKMLExternSchemaSpecification.filterActief;
+import static nl.rivm.screenit.specification.colon.ColonSKMLExternSchemaSpecification.filterDeadline;
+import static nl.rivm.screenit.specification.colon.ColonSKMLExternSchemaSpecification.filterJaar;
+import static nl.rivm.screenit.specification.colon.ColonSKMLExternSchemaSpecification.filterLetter;
+import static nl.rivm.screenit.specification.colon.ColonSKMLExternSchemaSpecification.filterRonde;
+import static nl.rivm.screenit.specification.colon.ColonSKMLExternSchemaSpecification.heeftDeadlineVanaf;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
 public class SKMLExternSchemaServiceImpl implements SKMLExternSchemaService
 {
+	@Autowired
+	private ColonSKMLExternSchemaRepository skmlExternSchemaRepository;
 
 	@Autowired
-	private SKMLExternSchemaDao schemaDao;
+	private ColonSKMLExterneControleBarcodeRepository skmlExterneControleBarcodeRepository;
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS)
-	public Iterator<? extends SKMLExternSchema> zoekSchemas(SKMLExternSchema zoekObject, String sortProperty, boolean ascending, int first, int count)
+	public List<SKMLExternSchema> zoekSchemas(SKMLExternSchema zoekObject, Sort sort, int first, int count)
 	{
-		return schemaDao.zoekSchemas(zoekObject, sortProperty, ascending, first, count);
+		return skmlExternSchemaRepository.findWith(getSpecification(zoekObject), q -> q.sortBy(sort)).all(first, count);
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS)
-	public long telSchemas(SKMLExternSchema zoekObject)
+	public long countSchemas(SKMLExternSchema zoekObject)
 	{
-		return schemaDao.telSchemas(zoekObject);
+		return skmlExternSchemaRepository.countDistinct(getSpecification(zoekObject));
+	}
+
+	private Specification<SKMLExternSchema> getSpecification(SKMLExternSchema zoekObject)
+	{
+		return filterRonde(zoekObject.getRonde())
+			.and(filterLetter(zoekObject.getLetter()))
+			.and(filterJaar(zoekObject.getJaar()))
+			.and(filterDeadline(zoekObject.getDeadline()))
+			.and(HibernateObjectSpecification.filterId(zoekObject.getId()))
+			.and(filterActief(zoekObject.getActief()));
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS)
-	public int telAantalGekoppeldeBarcodes(SKMLExternSchema zoekObject)
+	public long telAantalGekoppeldeBarcodes(SKMLExternSchema zoekObject)
 	{
-		return schemaDao.telAantalGekoppeldeBarcodes(zoekObject);
+		return skmlExterneControleBarcodeRepository.countDistinct(ColonSKMLControleBarcodeSpecification.heeftSchemaId(zoekObject.getId()));
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS)
 	public boolean magSchemaVerwijderdWorden(SKMLExternSchema zoekObject)
 	{
-		boolean mag = false;
-		if (telAantalGekoppeldeBarcodes(zoekObject) <= 0)
-		{
-			mag = true;
-		}
-		return mag;
+		return telAantalGekoppeldeBarcodes(zoekObject) == 0;
 	}
 
 	@Override
 	public SKMLExternSchema haalEerstvolgendeSchemaOp(Date deadline)
 	{
-		return schemaDao.haalEerstvolgendeSchemaOp(deadline);
+		return skmlExternSchemaRepository.findFirst(getSchemaVanafDeadlineSpecification(deadline), Sort.by(SKMLExternSchema_.DEADLINE)).orElse(null);
 	}
+
+	@Override
+	public List<SKMLExternSchema> zoekSchema(SKMLExternSchema zoekObject)
+	{
+		return skmlExternSchemaRepository.findAll(filterActief(true).and(filterDeadline(zoekObject.getDeadline())));
+	}
+
+	@Override
+	public List<SKMLExternSchema> haalSchemasVanafDeadlineDatum(Date deadline)
+	{
+		return skmlExternSchemaRepository.findAll(getSchemaVanafDeadlineSpecification(deadline));
+	}
+
+	private static ExtendedSpecification<SKMLExternSchema> getSchemaVanafDeadlineSpecification(Date deadline)
+	{
+		return filterActief(true).and(heeftDeadlineVanaf(deadline));
+	}
+
 }

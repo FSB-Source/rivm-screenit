@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -40,16 +40,15 @@ import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
 import nl.rivm.screenit.model.mamma.enums.MammaFollowUpConclusieStatus;
 import nl.rivm.screenit.repository.mamma.MammaConclusieReviewRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.specification.SpecificationUtil;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.stereotype.Service;
 
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.mamma.MammaConclusieReviewSpecification.filterOpFollowUpStatusGewijzigdOpOfNaMoment;
 import static nl.rivm.screenit.specification.mamma.MammaConclusieReviewSpecification.heeftFollowUpConclusieStatus;
 import static nl.rivm.screenit.specification.mamma.MammaConclusieReviewSpecification.heeftGeenConclusieReviewMetRetourCeRedenInRonde;
@@ -77,6 +76,9 @@ public class MammaConclusieReviewDataProviderServiceImpl extends RepositoryDataP
 
 	private static final String PERSOON_PROPERTY = "screeningRonde.dossier.client.persoon.";
 
+	@Autowired
+	private MammaConclusieReviewRepository conclusieReviewRepository;
+
 	@Override
 	protected Specification<MammaConclusieReview> getSpecification(MammaConclusieReviewZoekObject filter, Sort sortParam)
 	{
@@ -94,21 +96,25 @@ public class MammaConclusieReviewDataProviderServiceImpl extends RepositoryDataP
 
 	public List<Long> zoekBeoordelingIdsMetConclusie(MammaConclusieReviewZoekObject zoekObject, Sort sort)
 	{
-		var currentSession = sessionFactory.getCurrentSession();
-		var cb = currentSession.getCriteriaBuilder();
-		var q = cb.createQuery(Long.class);
-		var r = q.from(MammaConclusieReview.class);
-		var beoordelingJoin = r.join(MammaConclusieReview_.screeningRonde).join(MammaScreeningRonde_.laatsteOnderzoek).join(MammaOnderzoek_.laatsteBeoordeling);
+		return conclusieReviewRepository.findWith(heeftBeoordelingMetConclusie(zoekObject, sort), Long.class,
+			q -> q.projection((cb, r) ->
+			{
+				var beoordelingJoin = join(join(join(r, MammaConclusieReview_.screeningRonde), MammaScreeningRonde_.laatsteOnderzoek), MammaOnderzoek_.laatsteBeoordeling);
+				return beoordelingJoin.get(AbstractHibernateObject_.id);
+			}).sortBy(sort).all());
+	}
 
-		var subquery = q.subquery(Long.class);
-		var subqueryRoot = subquery.from(MammaConclusieReview.class);
-		var baseWerklijstSpecification = getSpecification(zoekObject, sort);
+	private Specification<MammaConclusieReview> heeftBeoordelingMetConclusie(MammaConclusieReviewZoekObject zoekObject, Sort sort)
+	{
+		return (r, q, cb) ->
+		{
+			var subquery = q.subquery(Long.class);
+			var subqueryRoot = subquery.from(MammaConclusieReview.class);
+			var baseWerklijstSpecification = getSpecification(zoekObject, sort);
 
-		subquery.select(subqueryRoot.get(AbstractHibernateObject_.id)).where(baseWerklijstSpecification.toPredicate(subqueryRoot, q, cb));
-
-		q.select(beoordelingJoin.get(AbstractHibernateObject_.id)).where(cb.in(r.get(AbstractHibernateObject_.id)).value(subquery))
-			.orderBy(QueryUtils.toOrders(sort, r, cb));
-		return currentSession.createQuery(q).getResultList();
+			subquery.select(subqueryRoot.get(AbstractHibernateObject_.id)).where(baseWerklijstSpecification.toPredicate(subqueryRoot, q, cb));
+			return cb.in(r.get(AbstractHibernateObject_.id)).value(subquery);
+		};
 	}
 
 	private LocalDateTime bepaalDatumTonenVanuitZoekobject(MammaConclusieReviewZoekObject filter)
@@ -131,37 +137,31 @@ public class MammaConclusieReviewDataProviderServiceImpl extends RepositoryDataP
 	{
 		if (sortProperty.startsWith(LAATSTE_ONDERZOEK_PROPERTY))
 		{
-			var rondeJoin = SpecificationUtil.join(r, MammaConclusieReview_.screeningRonde);
-			SpecificationUtil.join(rondeJoin, MammaScreeningRonde_.laatsteOnderzoek);
+			var rondeJoin = join(r, MammaConclusieReview_.screeningRonde);
+			join(rondeJoin, MammaScreeningRonde_.laatsteOnderzoek);
 		}
 		else if (sortProperty.startsWith(PERSOON_PROPERTY))
 		{
-			var rondeJoin = SpecificationUtil.join(r, MammaConclusieReview_.screeningRonde);
-			var dossierJoin = SpecificationUtil.join(rondeJoin, MammaScreeningRonde_.dossier);
-			var clientJoin = SpecificationUtil.join(dossierJoin, MammaDossier_.client);
-			SpecificationUtil.join(clientJoin, Client_.persoon);
+			var rondeJoin = join(r, MammaConclusieReview_.screeningRonde);
+			var dossierJoin = join(rondeJoin, MammaScreeningRonde_.dossier);
+			var clientJoin = join(dossierJoin, MammaDossier_.client);
+			join(clientJoin, Client_.persoon);
 		}
 	}
 
 	private static Specification<MammaConclusieReview> getSpecificationBijReviewFilterOptie(MammaConclusieReviewZoekObject filter)
 	{
-		switch (filter.getFilterOptie())
+		return switch (filter.getFilterOptie())
 		{
-		case FALSE_NEGATIVE_MBB_SIGNALERING:
-			return heeftSignalerenMetAfwijking()
+			case FALSE_NEGATIVE_MBB_SIGNALERING -> heeftSignalerenMetAfwijking()
 				.and(heeftFollowUpConclusieStatus(MammaFollowUpConclusieStatus.FALSE_NEGATIVE));
-		case FALSE_NEGATIVE:
-			return heeftFollowUpConclusieStatus(MammaFollowUpConclusieStatus.FALSE_NEGATIVE);
-		case FALSE_POSITIVE:
-			return heeftFollowUpConclusieStatus(MammaFollowUpConclusieStatus.FALSE_POSITIVE);
-		case TRUE_POSITIVE:
-			return heeftFollowUpConclusieStatus(MammaFollowUpConclusieStatus.TRUE_POSITIVE);
-		case TRUE_POSITIVE_INDIVIDU_GEMIST:
-			return heeftFollowUpConclusieStatus(MammaFollowUpConclusieStatus.TRUE_POSITIVE).and(
+			case FALSE_NEGATIVE -> heeftFollowUpConclusieStatus(MammaFollowUpConclusieStatus.FALSE_NEGATIVE);
+			case FALSE_POSITIVE -> heeftFollowUpConclusieStatus(MammaFollowUpConclusieStatus.FALSE_POSITIVE);
+			case TRUE_POSITIVE -> heeftFollowUpConclusieStatus(MammaFollowUpConclusieStatus.TRUE_POSITIVE);
+			case TRUE_POSITIVE_INDIVIDU_GEMIST -> heeftFollowUpConclusieStatus(MammaFollowUpConclusieStatus.TRUE_POSITIVE).and(
 				heeftRadioloogEnNietVerwijzendeLezing(filter.getRadioloog()));
-		default:
-			return (r, q, cb) -> null;
-		}
+			default -> (r, q, cb) -> null;
+		};
 	}
 
 	private static Specification<MammaConclusieReview> bepaalEnMaakCoordinerendRadioloogSpecification(MammaConclusieReviewZoekObject filter)

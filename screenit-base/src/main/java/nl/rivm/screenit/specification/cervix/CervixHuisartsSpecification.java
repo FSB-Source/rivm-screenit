@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,43 +22,39 @@ package nl.rivm.screenit.specification.cervix;
  */
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.huisartsenportaal.enums.CervixLocatieStatus;
 import nl.rivm.screenit.model.Instelling_;
+import nl.rivm.screenit.model.SingleTableHibernateObject_;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie_;
 import nl.rivm.screenit.model.cervix.CervixHuisarts_;
 import nl.rivm.screenit.model.cervix.enums.CervixHuisartsAanmeldStatus;
-import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 
 import org.springframework.data.jpa.domain.Specification;
 
 import static nl.rivm.screenit.specification.SpecificationUtil.containsCaseInsensitive;
-import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenBlankPredicate;
+import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmptyExtended;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixHuisartsSpecification
 {
 	public static Specification<CervixHuisarts> heeftAgbCode(String agbCode)
 	{
-		return (r, q, cb) -> cb.equal(r.get(CervixHuisarts_.agbcode), agbCode.trim());
+		return (r, q, cb) -> cb.equal(r.get(Instelling_.agbcode), agbCode.trim());
 	}
 
-	public static Specification<CervixHuisarts> filterOpAgbCodeContaining(String agbCode)
+	public static ExtendedSpecification<CervixHuisarts> filterAgbCodeContaining(String agbCode)
 	{
-		return filterOpAgbCodeContainingPredicate(agbCode).toSpecification();
+		return skipWhenEmptyExtended(agbCode, (r, q, cb) -> containsCaseInsensitive(cb, r.get(Instelling_.agbcode), agbCode));
 	}
 
-	public static PathAwarePredicate<CervixHuisarts> filterOpAgbCodeContainingPredicate(String agbCode)
+	public static ExtendedSpecification<CervixHuisarts> isGeregistreerd()
 	{
-		return (cb, r) -> skipWhenBlankPredicate(agbCode, containsCaseInsensitive(cb, r.get(Instelling_.agbcode), agbCode));
-	}
-
-	public static PathAwarePredicate<CervixHuisarts> isGeregistreerd()
-	{
-		return (cb, r) -> cb.equal(r.get(CervixHuisarts_.aanmeldStatus), CervixHuisartsAanmeldStatus.GEREGISTREERD);
+		return (r, q, cb) -> cb.equal(r.get(CervixHuisarts_.aanmeldStatus), CervixHuisartsAanmeldStatus.GEREGISTREERD);
 	}
 
 	public static Specification<CervixHuisarts> heeftActieveLocatie()
@@ -71,21 +67,15 @@ public class CervixHuisartsSpecification
 			subquery.select(cb.count(subqueryRoot)).where(
 				cb.and(
 					cb.equal(subqueryRoot.get(CervixHuisartsLocatie_.status), CervixLocatieStatus.ACTIEF),
-					cb.equal(subqueryRoot.get(CervixHuisartsLocatie_.huisarts).get(CervixHuisarts_.id), r.get(CervixHuisarts_.id))
+					cb.equal(subqueryRoot.get(CervixHuisartsLocatie_.huisarts).get(SingleTableHibernateObject_.id), r.get(SingleTableHibernateObject_.id))
 				)
 			);
 			return cb.equal(subquery, 1);
 		};
 	}
 
-	public static Specification<CervixHuisarts> isActief()
+	public static ExtendedSpecification<CervixHuisarts> isActief()
 	{
-		return isActiefPredicate().toSpecification();
+		return (r, q, cb) -> cb.isTrue(r.get(Instelling_.actief));
 	}
-
-	public static PathAwarePredicate<CervixHuisarts> isActiefPredicate()
-	{
-		return (cb, r) -> cb.equal(r.get(Instelling_.actief), Boolean.TRUE);
-	}
-
 }

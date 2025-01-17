@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.brieven.cleanup;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,55 +21,52 @@ package nl.rivm.screenit.batch.jobs.brieven.cleanup;
  * =========================LICENSE_END==================================
  */
 
-import java.lang.reflect.ParameterizedType;
+import java.time.LocalDateTime;
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.MergedBrieven;
+import nl.rivm.screenit.model.MergedBrieven_;
+import nl.rivm.screenit.model.algemeen.AlgemeneMergedBrieven_;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 
-public abstract class AbstractBrievenCleanUpReader<MB extends MergedBrieven<?>> extends BaseScrollableResultReader
+import static nl.rivm.screenit.util.DateUtil.toUtilDate;
+
+public abstract class AbstractBrievenCleanUpReader<MB extends MergedBrieven<?>> extends BaseSpecificationScrollableResultReader<MB>
 {
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<MB> createSpecification()
 	{
-		try
-		{
-			Criteria crit = session.createCriteria(getMergedBrievenClass());
+		var peilMoment = currentDateSupplier.getLocalDateTime().minusDays(getBewaarTermijnInDagen());
 
-			crit.add(Restrictions.eq("verwijderd", Boolean.FALSE));
-
-			crit.add(
-				Restrictions.or(Restrictions.isEmpty("brieven"),
-					Restrictions.and(
-						Restrictions.eq("geprint", Boolean.TRUE),
-						Restrictions.le("printDatum", DateUtil.minDagen(currentDateSupplier.getDate(), getMinimaleBestaanOpFilestore())))));
-			return crit;
-		}
-		catch (Exception e)
-		{
-			crashMelding("Brieven konden niet geselecteerd worden om opgeruimte te worden", e);
-			throw e;
-		}
-
+		return isVerwijderd(false)
+			.and(heeftGeenBrieven()
+				.or(heeftPrintDatumOpOfVoor(peilMoment)));
 	}
 
-	@SuppressWarnings("unchecked")
-	protected final Class<MB> getMergedBrievenClass()
+	private Specification<MB> heeftPrintDatumOpOfVoor(LocalDateTime peilMoment)
 	{
-		return (Class<MB>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+		return (r, q, cb) -> cb.and(
+			cb.isTrue(r.get(MergedBrieven_.geprint)),
+			cb.lessThanOrEqualTo(r.get(MergedBrieven_.printDatum), toUtilDate(peilMoment)));
 	}
 
-	protected int getMinimaleBestaanOpFilestore()
+	private Specification<MB> heeftGeenBrieven()
+	{
+		return (r, q, cb) -> cb.isEmpty(r.get(AlgemeneMergedBrieven_.BRIEVEN));
+	}
+
+	protected Specification<MB> isVerwijderd(Boolean verwijderd)
+	{
+		return (r, q, cb) -> cb.equal(r.get(MergedBrieven_.verwijderd), verwijderd);
+	}
+
+	protected int getBewaarTermijnInDagen()
 	{
 		return 14;
 	}

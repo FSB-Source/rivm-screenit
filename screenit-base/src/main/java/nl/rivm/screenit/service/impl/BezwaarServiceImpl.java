@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -55,7 +55,6 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.envers.RevisionKenmerk;
 import nl.rivm.screenit.model.envers.RevisionKenmerkInThreadHolder;
 import nl.rivm.screenit.model.logging.LogEvent;
-import nl.rivm.screenit.model.mamma.berichten.xds.XdsStatus;
 import nl.rivm.screenit.model.project.ProjectInactiefReden;
 import nl.rivm.screenit.repository.algemeen.BezwaarBriefRepository;
 import nl.rivm.screenit.repository.cervix.CervixBaseMonsterRepository;
@@ -300,7 +299,6 @@ public class BezwaarServiceImpl implements BezwaarService
 				}
 				break;
 			case GEEN_DIGITALE_UITWISSELING_MET_HET_ZIEKENHUIS:
-				verstuurXdsConsent(client);
 				break;
 			default:
 			}
@@ -728,12 +726,6 @@ public class BezwaarServiceImpl implements BezwaarService
 		adres.setLand(null);
 		adres.setSoort(null);
 		hibernateService.saveOrUpdateAll(client, adres);
-	}
-
-	private void verstuurXdsConsent(Client client)
-	{
-		client.getMammaDossier().setXdsStatus(XdsStatus.TE_VERZENDEN);
-		hibernateService.saveOrUpdate(client.getMammaDossier());
 	}
 
 	private void bezwaarOpnameUitBrp(Client client)

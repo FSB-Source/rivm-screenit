@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,8 +33,6 @@ import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
 
-import nl.rivm.screenit.dao.InstellingDao;
-import nl.rivm.screenit.model.CentraleEenheid;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
@@ -57,6 +55,7 @@ import nl.rivm.screenit.repository.algemeen.InstellingRepository;
 import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.CoordinatenService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.OrganisatieZoekService;
 import nl.rivm.screenit.util.BigDecimalUtil;
 import nl.topicuszorg.organisatie.model.Adres;
@@ -83,7 +82,7 @@ import static nl.topicuszorg.organisatie.model.Adres_.STRAAT;
 public class OrganisatieZoekServiceImpl implements OrganisatieZoekService
 {
 	@Autowired
-	private InstellingDao instellingDao;
+	private InstellingService instellingService;
 
 	@Autowired
 	private AutorisatieService autorisatieService;
@@ -176,7 +175,7 @@ public class OrganisatieZoekServiceImpl implements OrganisatieZoekService
 	{
 		var hierarchieCriteria = getHierarchieCriteria(searchObject, selectedOrganisatieTypes, organisatieMedewerker);
 		var spec = getZoekOrganisatiesSpecification(searchObject, hierarchieCriteria, excludeOrganisatieTypes, currentDateSupplier.getLocalDateTime());
-		return organisatieRepository.findWith(spec, Long.class, q -> q.projection(CriteriaBuilder::countDistinct)).one().orElse(0L);
+		return organisatieRepository.countDistinct(spec);
 	}
 
 	private Map<OrganisatieType, List<Instelling>> getHierarchieCriteria(Instelling zoekInstelling, List<OrganisatieType> selectedOrganisatieTypes,
@@ -363,7 +362,7 @@ public class OrganisatieZoekServiceImpl implements OrganisatieZoekService
 			break;
 		}
 
-		return (List<Instelling>) instellingDao.getActieveInstellingen(filter);
+		return (List<Instelling>) instellingService.getActieveInstellingen(filter);
 	}
 
 	private List<Instelling> getMogelijkeParentsVoorBeoordelingsEenheid(InstellingGebruiker loggedInInstellingGebruiker)
@@ -371,9 +370,8 @@ public class OrganisatieZoekServiceImpl implements OrganisatieZoekService
 		var loggedInInstelling = loggedInInstellingGebruiker.getOrganisatie();
 		if (OrganisatieType.SCREENINGSORGANISATIE == loggedInInstelling.getOrganisatieType())
 		{
-			Class<? extends Instelling> filter = CentraleEenheid.class;
 			var screeningOrganisatie = (ScreeningOrganisatie) loggedInInstelling;
-			return (List<Instelling>) instellingDao.getActieveInstellingenBinnenRegio(filter, screeningOrganisatie);
+			return instellingService.getActieveCentraleEenhedenBinnenRegio(screeningOrganisatie).stream().map(ce -> (Instelling) ce).toList();
 		}
 		else
 		{
@@ -384,7 +382,7 @@ public class OrganisatieZoekServiceImpl implements OrganisatieZoekService
 	@Override
 	public List<Instelling> getAllActieveOrganisatiesWithType(Class<? extends Instelling> organisatie)
 	{
-		return (List<Instelling>) instellingDao.getActieveInstellingen(organisatie);
+		return (List<Instelling>) instellingService.getActieveInstellingen(organisatie);
 	}
 
 	@Override
@@ -408,7 +406,7 @@ public class OrganisatieZoekServiceImpl implements OrganisatieZoekService
 		{
 			for (var type : types)
 			{
-				zichtbaar.addAll(instellingDao.getLandelijkeInstellingIds(type));
+				zichtbaar.addAll(instellingService.getOrganisatieIdsMetType(type));
 			}
 		}
 		else

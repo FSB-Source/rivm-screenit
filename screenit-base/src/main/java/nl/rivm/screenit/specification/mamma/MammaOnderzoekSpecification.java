@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,7 +36,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.Brief_;
@@ -68,6 +68,7 @@ import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
+import nl.rivm.screenit.model.mamma.enums.OnvolledigOnderzoekOption;
 import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.specification.algemeen.ClientSpecification;
 import nl.rivm.screenit.specification.algemeen.PersoonSpecification;
@@ -81,12 +82,12 @@ import com.google.common.collect.Range;
 import static nl.rivm.screenit.specification.DateSpecification.bevatLocalDateToDate;
 import static nl.rivm.screenit.specification.DateSpecification.truncate;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
-import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmpty;
+import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmptyExtended;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNullExtended;
 import static nl.rivm.screenit.specification.algemeen.ClientBriefSpecification.heeftGegenereerdeBriefOfProjectBriefVanType;
 import static nl.rivm.screenit.specification.algemeen.ScreeningRondeSpecification.isLopend;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MammaOnderzoekSpecification
 {
 	public static ExtendedSpecification<MammaOnderzoek> isAangemaaktVanaf(LocalDate datum)
@@ -160,9 +161,9 @@ public class MammaOnderzoekSpecification
 		);
 	}
 
-	public static Specification<MammaOnderzoek> heeftOnderzoekStatus(MammaOnderzoekStatus status)
+	public static ExtendedSpecification<MammaOnderzoek> heeftOnvolledigOnderzoek(OnvolledigOnderzoekOption onvolledigOnderzoek)
 	{
-		return (r, q, cb) -> cb.equal(r.get(MammaOnderzoek_.status), status);
+		return (r, q, cb) -> cb.equal(r.get(MammaOnderzoek_.onvolledigOnderzoek), onvolledigOnderzoek);
 	}
 
 	public static ExtendedSpecification<MammaOnderzoek> heeftStatusIn(Collection<MammaOnderzoekStatus> statussen)
@@ -227,14 +228,19 @@ public class MammaOnderzoekSpecification
 		};
 	}
 
-	public static Specification<MammaOnderzoek> filterScreeningsEenheid(List<MammaScreeningsEenheid> screeningsEenheden)
+	public static ExtendedSpecification<MammaOnderzoek> filterScreeningsEenheid(Collection<MammaScreeningsEenheid> screeningsEenheden)
 	{
-		return skipWhenEmpty(screeningsEenheden, (r, q, cb) -> r.get(MammaOnderzoek_.screeningsEenheid).in(screeningsEenheden));
+		return skipWhenEmptyExtended(screeningsEenheden, (r, q, cb) -> r.get(MammaOnderzoek_.screeningsEenheid).in(screeningsEenheden));
 	}
 
 	public static Specification<MammaOnderzoek> heeftScreeningsEenheid(MammaScreeningsEenheid screeningsEenheid)
 	{
 		return (r, q, cb) -> cb.equal(r.get(MammaOnderzoek_.screeningsEenheid), screeningsEenheid);
+	}
+
+	public static ExtendedSpecification<MammaOnderzoek> heeftMammografie()
+	{
+		return (r, q, cb) -> cb.isNotNull(r.get(MammaOnderzoek_.mammografie));
 	}
 
 	public static Specification<MammaOnderzoek> heeftLaatsteAfspraakVanLaatsteUitnodigingVanLaatsteRonde()

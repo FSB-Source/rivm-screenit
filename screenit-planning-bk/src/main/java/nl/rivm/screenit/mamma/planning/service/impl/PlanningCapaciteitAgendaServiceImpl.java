@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.service.impl;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,7 +29,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.NavigableMap;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -112,7 +111,7 @@ public class PlanningCapaciteitAgendaServiceImpl implements PlanningCapaciteitAg
 		Preconditions.checkArgument(!doelDate.isBefore(PlanningConstanten.prognoseVanafDatum), "doelDag mag niet voor prognoseVanafDatum liggen");
 
 		var bronDagBlokken = capaciteitBlokService.getCapaciteitsBlokkenVanDag(bronScreeningsEenheid, bronDate)
-			.stream().filter(blok -> heeftOverlap(bronVanTijd, bronTotTijd, blok.getVanaf(), blok.getTot())).collect(Collectors.toList());
+			.stream().filter(blok -> heeftOverlap(bronVanTijd, bronTotTijd, blok.getVanaf(), blok.getTot())).toList();
 
 		var vanTijd = bronDagBlokken.stream().min(Comparator.comparing(PlanningBlok::getVanaf)).map(PlanningBlok::getVanaf).orElse(bronVanTijd);
 		var totTijd = bronDagBlokken.stream().max(Comparator.comparing(PlanningBlok::getTot)).map(PlanningBlok::getTot).orElse(bronTotTijd);

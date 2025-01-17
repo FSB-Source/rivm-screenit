@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.model.formulieren;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,9 +33,6 @@ import nl.topicuszorg.formulieren2.persistence.definitie.DefaultAntwoordKeuzeVra
 @Table(uniqueConstraints = @UniqueConstraint(name = "form_vraag_definite_id_domein_ukey", columnNames = { "identifier", "domein" }))
 public class SimpleAntwoordKeuzeVraagDefinitieImpl<T> extends DefaultAntwoordKeuzeVraagDefinitieImpl<T> implements IdentifierElement
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@Column
 	private String identifier;
 

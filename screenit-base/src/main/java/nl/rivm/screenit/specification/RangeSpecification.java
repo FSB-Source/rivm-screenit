@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,7 +31,7 @@ import javax.persistence.criteria.From;
 import javax.persistence.criteria.Predicate;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.util.functionalinterfaces.TriFunction;
 
@@ -42,7 +42,7 @@ import com.google.common.collect.Range;
 
 import static nl.rivm.screenit.specification.SpecificationUtil.composePredicates;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RangeSpecification
 {
 

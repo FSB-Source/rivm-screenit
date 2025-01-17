@@ -4,7 +4,7 @@ package nl.rivm.screenit.util;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -262,6 +262,15 @@ public final class DateUtil
 		return toLocalDateTime(utilDate).toLocalDate();
 	}
 
+	public static LocalDate toLocalDate(LocalDateTime localDateTime)
+	{
+		if (localDateTime == null)
+		{
+			return null;
+		}
+		return localDateTime.toLocalDate();
+	}
+
 	public static LocalDateTime toLocalDateTime(Date utilDate)
 	{
 		if (utilDate == null)
@@ -290,6 +299,15 @@ public final class DateUtil
 			return ((java.sql.Time) utilDate).toLocalTime(); 
 		}
 		return toLocalDateTime(utilDate).toLocalTime();
+	}
+
+	public static LocalTime toLocalTime(LocalDateTime localDateTime)
+	{
+		if (localDateTime == null)
+		{
+			return null;
+		}
+		return localDateTime.toLocalTime();
 	}
 
 	public static Date toUtilDate(Temporal temporal)

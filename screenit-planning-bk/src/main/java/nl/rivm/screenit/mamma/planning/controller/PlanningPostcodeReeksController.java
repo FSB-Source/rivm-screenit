@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.controller;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -37,17 +37,19 @@ import nl.rivm.screenit.mamma.planning.model.PlanningStandplaats;
 import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningDoorrekenenManager;
 import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningWijzigingen;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController()
+@RestController
 @RequestMapping("/" + PlanningRestConstants.C_POSTCODEREEKS)
 public class PlanningPostcodeReeksController
 {
-	@RequestMapping(method = RequestMethod.POST)
+	@PostMapping
 	public void post(@RequestBody PlanningPostcodeReeksDto postcodeReeksDto)
 	{
 		PlanningStandplaats standplaats = PlanningStandplaatsIndex.get(postcodeReeksDto.standplaatsId);
@@ -66,7 +68,7 @@ public class PlanningPostcodeReeksController
 		PlanningDoorrekenenManager.run();
 	}
 
-	@RequestMapping(method = RequestMethod.PUT)
+	@PutMapping
 	public void put(@RequestBody PlanningPostcodeReeksDto postcodeReeksDto)
 	{
 		PlanningPostcodeReeks postcodeReeks = PlanningPostcodeReeksIndex.get(postcodeReeksDto.id);
@@ -127,7 +129,7 @@ public class PlanningPostcodeReeksController
 		}
 	}
 
-	@RequestMapping(value = "/{postcodeReeksId}", method = RequestMethod.DELETE)
+	@DeleteMapping("/{postcodeReeksId}")
 	public void delete(@PathVariable Long postcodeReeksId)
 	{
 		PlanningPostcodeReeks postcodeReeks = PlanningPostcodeReeksIndex.get(postcodeReeksId);

@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,7 +28,7 @@ import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Client_;
@@ -48,7 +48,7 @@ import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel_;
 import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting;
 import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting_;
-import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 
 import org.springframework.data.jpa.domain.Specification;
@@ -57,7 +57,7 @@ import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNotTrue;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNull;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixBoekRegelSpecification
 {
 	public static Specification<CervixBoekRegel> baseSpecification()
@@ -70,9 +70,9 @@ public class CervixBoekRegelSpecification
 		return (r, q, cb) -> cb.isNotNull(r.get(CervixBoekRegel_.specificatie));
 	}
 
-	public static PathAwarePredicate<CervixBoekRegel> heeftNogGeenBetaalopdracht()
+	public static ExtendedSpecification<CervixBoekRegel> heeftNogGeenBetaalopdracht()
 	{
-		return (cb, r) -> cb.isNull(r.get(CervixBoekRegel_.specificatie));
+		return (r, q, cb) -> cb.isNull(r.get(CervixBoekRegel_.specificatie));
 	}
 
 	public static Specification<CervixBoekRegel> metDebet(boolean debet)
@@ -93,7 +93,7 @@ public class CervixBoekRegelSpecification
 
 	public static Specification<CervixBoekRegel> filterAlleenZonderBetalingskenmerk(Boolean alleenZonderBetalingskenmerk)
 	{
-		return skipWhenNotTrue(alleenZonderBetalingskenmerk, (r, q, cb) -> heeftNogGeenBetaalopdracht().withPath(cb, r));
+		return skipWhenNotTrue(alleenZonderBetalingskenmerk, heeftNogGeenBetaalopdracht());
 	}
 
 	public static Join<CervixBoekRegel, CervixVerrichting> verrichtingJoin(Root<CervixBoekRegel> r)

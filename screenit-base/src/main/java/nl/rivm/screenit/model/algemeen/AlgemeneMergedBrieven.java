@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.algemeen;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,8 +39,6 @@ import org.hibernate.envers.Audited;
 @Audited
 public class AlgemeneMergedBrieven extends MergedBrieven<AlgemeneBrief>
 {
-	private static final long serialVersionUID = 1L;
-
 	@OneToMany(mappedBy = "mergedBrieven", cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
 	@Cascade(CascadeType.SAVE_UPDATE)
 	private List<AlgemeneBrief> brieven = new ArrayList<>();

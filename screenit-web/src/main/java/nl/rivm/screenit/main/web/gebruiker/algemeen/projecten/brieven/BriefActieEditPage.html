@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -20,106 +20,59 @@
   -->
 <html xmlns:wicket>
 <wicket:extend>
-    <h1 class="pageTitle">
-        Project brieven toevoegen
-    </h1>
+	<h1 class="pageTitle">
+		Project brieven toevoegen
+	</h1>
 
-    <div class="row-fluid">
-        <div class="span9">
-            <form wicket:id="form" class="form-horizontal">
-                <fieldset>
-                    <h2>Brief toevoegen</h2>
+	<div class="row-fluid">
+		<div class="span9">
+			<form wicket:id="form" class="form-horizontal">
+				<fieldset>
+					<h2>Brief toevoegen</h2>
 
-                    <div class="span12">
-                        <div class="control-group">
-                            <label class="control-label">Type <i class="icon-asterisk icon-purple"></i></label>
+					<div class="span12">
+						<div class="control-group">
+							<label class="control-label">Type <i class="icon-asterisk icon-purple"></i></label>
 
-                            <div class="controls">
-                                <select wicket:id="type">
-                                    <option>Datum</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div wicket:id="typePanelContainer">
-                            <wicket:container wicket:id="typePanel"></wicket:container>
-                        </div>
-                        <div class="control-group" wicket:id="fileUploadContainer">
-                            <label class="control-label">
-                                <wicket:message key="fileUpload">Template</wicket:message>
-                                <i class="icon-asterisk icon-purple"></i></label>
+							<div class="controls">
+								<select wicket:id="type">
+									<option>Datum</option>
+								</select>
+							</div>
+						</div>
+						<div wicket:id="typePanelContainer">
+							<wicket:container wicket:id="typePanel"></wicket:container>
+						</div>
+						<div class="control-group" wicket:id="fileUploadContainer">
+							<label class="control-label">
+								<wicket:message key="fileUpload">Template</wicket:message>
+								<i class="icon-asterisk icon-purple"></i></label>
 
-                            <div class="controls">
-                                <input type="file" wicket:id="fileUpload"/>
-                            </div>
-                        </div>
-                        <div class="control-group">
-                            <label class="control-label">
-                                Printomschrijving
-                            </label>
-                            <div class="controls">
-                                <input wicket:id="printomschrijving" class="input-large" type="text" value="">
-                            </div>
-                        </div>
-                    </div>
-                </fieldset>
-                <fieldset wicket:id="vragenlijstContainer">
-                    <h2>Vragenlijst</h2>
-
-                    <div class="span6">
-                        <div class="control-group">
-                            <label class="control-label">Vragenlijst</label>
-
-                            <div class="controls">
-                                <select wicket:id="vragenlijst"></select>
-                            </div>
-                        </div>
-                        <div wicket:id="vragenlijstInfoContainer">
-                            <div class="control-group">
-                                <label class="control-label">Uitzetten via</label>
-
-                                <div class="controls">
-                                    <select wicket:id="projectVragenlijstUitzettenVia"></select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="span5" wicket:id="vragenlijstHerinnerenContainer">
-                        <div class="control-group">
-                            <label class="control-label">Herinneren</label>
-
-                            <div class="controls">
-                                <input type="checkbox" wicket:id="herinneren"/>
-                            </div>
-                        </div>
-                        <div wicket:id="herinnerenInfoContainer">
-                            <div class="control-group">
-                                <label class="control-label">Herinnering aantal dagen</label>
-
-                                <div class="controls">
-                                    <input type="text" class="input-small" wicket:id="aantalDagen"/>
-                                </div>
-                            </div>
-                            <div class="control-group">
-                                <label class="control-label">Herinnering template</label>
-
-                                <div class="controls">
-                                    <input type="file" wicket:id="herinnerUpload"/>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </fieldset>
-            </form>
-            <div class="buttons">
-                <button class="btn" wicket:id="annuleren">Annuleren</button>
-                <button class="btn btn-primary" wicket:id="opslaan">Opslaan</button>
-            </div>
-        </div>
-        <div class="span3">
-            <div class="passpoort">
-                <wicket:container wicket:id="projectPasspoort"></wicket:container>
-            </div>
-        </div>
-    </div>
+							<div class="controls">
+								<input type="file" wicket:id="fileUpload"/>
+							</div>
+						</div>
+						<div class="control-group">
+							<label class="control-label">
+								Printomschrijving
+							</label>
+							<div class="controls">
+								<input wicket:id="printomschrijving" class="input-large" type="text" value="">
+							</div>
+						</div>
+					</div>
+				</fieldset>
+			</form>
+			<div class="buttons">
+				<button class="btn" wicket:id="annuleren">Annuleren</button>
+				<button class="btn btn-primary" wicket:id="opslaan">Opslaan</button>
+			</div>
+		</div>
+		<div class="span3">
+			<div class="passpoort">
+				<wicket:container wicket:id="projectPasspoort"></wicket:container>
+			</div>
+		</div>
+	</div>
 </wicket:extend>
 </html>

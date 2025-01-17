@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.model;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,7 @@ package nl.rivm.screenit.mamma.se.proxy.model;
 import java.time.LocalDateTime;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shiro.codec.Base64;
+import org.apache.shiro.lang.codec.Base64;
 import org.springframework.http.ResponseEntity;
 
 public class LogischeSessie

@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.wijzigingen;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -153,7 +153,7 @@ public enum PlanningDoorrekenenManager
 		{
 			PlanningStandplaatsPeriode vanafStandplaatsPeriode = wijzigingenRoute.getVanafStandplaatsPeriode();
 			PlanningScreeningsEenheid screeningsEenheid = vanafStandplaatsPeriode.getScreeningsEenheid();
-			screeningsEenheid.getStandplaatsPeriodeNavigableSet().tailSet(vanafStandplaatsPeriode, true).stream().filter(standplaatsPeriode -> standplaatsPeriode.gesplitst())
+			screeningsEenheid.getStandplaatsPeriodeNavigableSet().tailSet(vanafStandplaatsPeriode, true).stream().filter(PlanningStandplaatsPeriode::gesplitst)
 				.forEach(standplaatsPeriode ->
 				{
 					if (lock)

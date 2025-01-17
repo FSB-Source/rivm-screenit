@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.controller;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,16 +29,16 @@ import nl.rivm.screenit.mamma.planning.index.PlanningScreeningsOrganisatieIndex;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController()
+@RestController
 @RequestMapping("/" + PlanningRestConstants.C_UNCOVEREDPOSTCODES)
 public class PlanningUncoveredPostcodesController
 {
-	@RequestMapping(value = "/{screeningsOrganisatieId}", method = RequestMethod.GET)
+	@GetMapping("/{screeningsOrganisatieId}")
 	public ResponseEntity<NavigableSet<String>> uncoveredPostcodes(@PathVariable Long screeningsOrganisatieId)
 	{
 		ResponseEntity<NavigableSet<String>> response = new ResponseEntity<>(

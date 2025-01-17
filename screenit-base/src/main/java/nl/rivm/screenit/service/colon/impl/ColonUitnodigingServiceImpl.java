@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,12 +32,13 @@ import lombok.extern.slf4j.Slf4j;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.model.BriefDefinitie;
 import nl.rivm.screenit.model.ProjectParameterKey;
+import nl.rivm.screenit.model.TablePerClassHibernateObject_;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
-import nl.rivm.screenit.model.colon.ColonUitnodiging_;
 import nl.rivm.screenit.model.colon.UitnodigingCohort;
 import nl.rivm.screenit.model.colon.UitnodigingCohortGeboortejaren;
 import nl.rivm.screenit.model.colon.UitnodigingCohort_;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.repository.colon.ColonUitnodigingRepository;
 import nl.rivm.screenit.repository.colon.UitnodigingCohortRepository;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BaseUitnodigingService;
@@ -87,6 +88,9 @@ public class ColonUitnodigingServiceImpl implements ColonUitnodigingService
 
 	@Autowired
 	private UitnodigingCohortRepository uitnodigingCohortRepository;
+
+	@Autowired
+	private ColonUitnodigingRepository uitnodigingRepository;
 
 	@Override
 	public BriefDefinitie getBriefType(ColonUitnodiging colonUitnodiging)
@@ -187,17 +191,14 @@ public class ColonUitnodigingServiceImpl implements ColonUitnodigingService
 	@Override
 	public List<Long> getTeVersturenUitnodigingen()
 	{
-		var currentSession = sessionFactory.getCurrentSession();
-		var cb = currentSession.getCriteriaBuilder();
-		var q = cb.createQuery(Long.class);
-		var r = q.from(ColonUitnodiging.class);
 		var specification = ColonUitnodigingSpecification.heeftActieveClient()
 			.and(ColonUitnodigingSpecification.heeftGeenVerstuurdDatum())
 			.and(ColonUitnodigingSpecification.heeftUitnodigingsDatumVoorDatum(currentDateSupplier.getDate()))
 			.and(ColonUitnodigingSpecification.heeftGeenBriefTypes(List.of(BriefType.COLON_UITNODIGING_INTAKE, BriefType.COLON_GUNSTIGE_UITSLAG)));
 
-		var query = q.select(r.get(ColonUitnodiging_.id)).where(specification.toPredicate(r, q, cb));
-		return currentSession.createQuery(query).getResultList();
+		return uitnodigingRepository.findWith(specification, Long.class, q -> q
+			.projection((cb, r) -> r.get(TablePerClassHibernateObject_.id))
+			.all());
 	}
 
 	@Override

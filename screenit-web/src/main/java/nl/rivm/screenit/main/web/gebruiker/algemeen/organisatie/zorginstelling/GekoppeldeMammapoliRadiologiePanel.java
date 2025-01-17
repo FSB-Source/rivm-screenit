@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.zorginstelling;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,7 +29,6 @@ import nl.rivm.screenit.model.Mammapoli;
 import nl.rivm.screenit.model.RadiologieAfdeling;
 import nl.rivm.screenit.model.ZorgInstelling;
 import nl.rivm.screenit.service.InstellingService;
-import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.GenericPanel;
@@ -38,35 +37,22 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class GekoppeldeMammapoliRadiologiePanel extends GenericPanel<ZorgInstelling>
 {
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private InstellingService instellingService;
-
-	private IModel<List<Mammapoli>> mammapolis;
-
-	private IModel<List<RadiologieAfdeling>> radiologieafdelingen;
 
 	public GekoppeldeMammapoliRadiologiePanel(String id, IModel<ZorgInstelling> model)
 	{
 		super(id, model);
 
-		List<RadiologieAfdeling> radiologieafdelingen = instellingService.getChildrenInstellingen(getModelObject(), RadiologieAfdeling.class);
-		List<Mammapoli> mammapolis = instellingService.getChildrenInstellingen(getModelObject(), Mammapoli.class);
+		var radiologieAfdelingen = instellingService.getChildrenOrganisaties(getModelObject(), RadiologieAfdeling.class);
+		var mammapolis = instellingService.getChildrenOrganisaties(getModelObject(), Mammapoli.class);
 		add(new Label("mammapoliLijst", stringLocaties(mammapolis)));
-		add(new Label("radiologieAfdelingLijst", stringLocaties(radiologieafdelingen)));
+		add(new Label("radiologieAfdelingLijst", stringLocaties(radiologieAfdelingen)));
 	}
 
 	protected String stringLocaties(List<? extends Instelling> instellingLijst)
 	{
-		List<String> instellingsNamen = instellingLijst.stream().map(Instelling::getNaam).collect(Collectors.toList());
-		return !instellingsNamen.isEmpty() ? String.join(", ", instellingsNamen) : "Er zijn geen afdelingen gekoppeld";
-	}
-
-	@Override
-	protected void onDetach()
-	{
-		super.onDetach();
-		ModelUtil.nullSafeDetach(mammapolis);
+		var instellingNamen = instellingLijst.stream().map(Instelling::getNaam).collect(Collectors.toList());
+		return !instellingNamen.isEmpty() ? String.join(", ", instellingNamen) : "Er zijn geen afdelingen gekoppeld";
 	}
 }

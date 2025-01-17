@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -160,6 +160,8 @@ import org.springframework.transaction.annotation.Transactional;
 import static nl.rivm.screenit.model.ClientContactManier.AANVRAGEN_FORMULIEREN;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.algemeen.ClientContactSpecification.heeftClient;
+import static nl.rivm.screenit.specification.algemeen.ClientContactSpecification.heeftClientId;
+import static nl.rivm.screenit.specification.algemeen.ClientContactSpecification.heeftOpmerking;
 import static nl.rivm.screenit.util.StringUtil.propertyChain;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
@@ -1093,7 +1095,7 @@ public class ClientContactServiceImpl implements ClientContactService
 				continue;
 			}
 			if (Bevolkingsonderzoek.heeftAlleBevolkingsonderzoeken(actieType.getBevolkingsonderzoeken())
-				&& availableGen(client, actieType, viaClientportaal))
+				&& availableGen(client, actieType))
 			{
 				availableActies.add(actieType);
 			}
@@ -1131,7 +1133,13 @@ public class ClientContactServiceImpl implements ClientContactService
 		return beschikbareActies.contains(benodigdeActie);
 	}
 
-	private boolean availableGen(Client client, ClientContactActieType actieType, boolean viaClientportaal)
+	@Override
+	public Long countClientContactenMetOpmerking(Long clientId)
+	{
+		return clientContactRepository.count(heeftClientId(clientId).and(heeftOpmerking()));
+	}
+
+	private boolean availableGen(Client client, ClientContactActieType actieType)
 	{
 		switch (actieType)
 		{

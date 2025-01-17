@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.medewerker;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -88,8 +88,6 @@ public class MedewerkerZoeken extends MedewerkerBeheer
 
 	private static final String MEDEWERKER_ZOEKEN_SELECTED_FUNCTIES = "MedewerkerZoeken.selectedFuncties";
 
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private StamtabellenService stamtabellenService;
 
@@ -103,7 +101,7 @@ public class MedewerkerZoeken extends MedewerkerBeheer
 
 	private final IModel<List<Rol>> selectedRollen;
 
-	private Form<Gebruiker> zoekForm;
+	private final Form<Gebruiker> zoekForm;
 
 	public MedewerkerZoeken()
 	{
@@ -113,7 +111,7 @@ public class MedewerkerZoeken extends MedewerkerBeheer
 
 		InstellingGebruiker loggedInInstellingGebruiker = ScreenitSession.get().getLoggedInInstellingGebruiker();
 		zoekObject.setActief(true);
-		zoekObject.setOrganisatieMedewerkers(new ArrayList<InstellingGebruiker>());
+		zoekObject.setOrganisatieMedewerkers(new ArrayList<>());
 		zoekObject.getOrganisatieMedewerkers().add(new InstellingGebruiker());
 		zoekObject.getOrganisatieMedewerkers().get(0).setOrganisatie(new Instelling());
 		zoekObject.getOrganisatieMedewerkers().get(0).getOrganisatie().add(new Adres());
@@ -133,7 +131,7 @@ public class MedewerkerZoeken extends MedewerkerBeheer
 		}
 		else
 		{
-			selectedFuncties = ModelUtil.listModel(new ArrayList<Functie>());
+			selectedFuncties = ModelUtil.listModel(new ArrayList<>());
 		}
 		if (ScreenitSession.get().isZoekObjectGezetForComponent(MEDEWERKER_ZOEKEN_SELECTED_ROLLEN))
 		{
@@ -141,28 +139,25 @@ public class MedewerkerZoeken extends MedewerkerBeheer
 		}
 		else
 		{
-			selectedRollen = ModelUtil.listModel(new ArrayList<Rol>());
+			selectedRollen = ModelUtil.listModel(new ArrayList<>());
 		}
-		MedewerkerDataProvider medewerkerDataProvider = new MedewerkerDataProvider("achternaam", criteriaModel, selectedFuncties, selectedRollen, true, true);
+		MedewerkerDataProvider medewerkerDataProvider = new MedewerkerDataProvider("achternaam", criteriaModel, selectedFuncties, selectedRollen, false);
 
 		final WebMarkupContainer refreshContainer = new WebMarkupContainer("refreshContainer");
 		refreshContainer.setOutputMarkupId(Boolean.TRUE);
 		add(refreshContainer);
 
 		List<IColumn<Gebruiker, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<Gebruiker, String>(Model.of("Naam medewerker"), "achternaam", "naamVolledigMetVoornaam"));
-		columns.add(new PropertyColumn<Gebruiker, String>(Model.of("Organisaties"), "instelling")
+		columns.add(new PropertyColumn<>(Model.of("Naam medewerker"), "achternaam", "naamVolledigMetVoornaam"));
+		columns.add(new PropertyColumn<>(Model.of("Organisaties"), "instelling")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<Gebruiker>> item, String componentId, IModel<Gebruiker> rowModel)
 			{
 				Gebruiker medewerker = rowModel.getObject();
 				String organisaties = "";
 
-				if (medewerker.getOrganisatieMedewerkers() != null && medewerker.getOrganisatieMedewerkers().size() > 0)
+				if (medewerker.getOrganisatieMedewerkers() != null && !medewerker.getOrganisatieMedewerkers().isEmpty())
 				{
 					boolean first = true;
 					for (InstellingGebruiker organisatieMedewerker : medewerker.getOrganisatieMedewerkers())
@@ -181,12 +176,9 @@ public class MedewerkerZoeken extends MedewerkerBeheer
 				item.add(new Label(componentId, organisaties));
 			}
 		});
-		columns.add(new PropertyColumn<Gebruiker, String>(Model.of("Functie"), "functie", "functie.naam"));
-		columns.add(new PropertyColumn<Gebruiker, String>(Model.of("Rollen"), "rol")
+		columns.add(new PropertyColumn<>(Model.of("Functie"), "functie", "functie.naam"));
+		columns.add(new PropertyColumn<>(Model.of("Rollen"), "rol")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<Gebruiker>> item, String componentId, IModel<Gebruiker> rowModel)
 			{
@@ -194,7 +186,7 @@ public class MedewerkerZoeken extends MedewerkerBeheer
 				String rollen = "";
 
 				Set<String> rolSet = new HashSet<>();
-				if (medewerker.getOrganisatieMedewerkers() != null && medewerker.getOrganisatieMedewerkers().size() > 0)
+				if (medewerker.getOrganisatieMedewerkers() != null && !medewerker.getOrganisatieMedewerkers().isEmpty())
 				{
 					for (InstellingGebruiker organisatieMedewerker : medewerker.getOrganisatieMedewerkers())
 					{
@@ -221,13 +213,10 @@ public class MedewerkerZoeken extends MedewerkerBeheer
 
 		List<Bevolkingsonderzoek> bevolkingsonderzoeken = loggedInInstellingGebruiker.getBevolkingsonderzoeken();
 
-		columns.add(new ActiefPropertyColumn<Gebruiker, Gebruiker>(Model.of(""), "actief", refreshContainer, criteriaModel));
+		columns.add(new ActiefPropertyColumn<>(Model.of(""), "actief", refreshContainer, criteriaModel));
 
-		refreshContainer.add(new ScreenitDataTable<Gebruiker, String>("medewerkers", columns, medewerkerDataProvider, 10, Model.of("medewerkers"))
+		refreshContainer.add(new ScreenitDataTable<>("medewerkers", columns, medewerkerDataProvider, 10, Model.of("medewerkers"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<Gebruiker> model)
 			{
@@ -238,11 +227,8 @@ public class MedewerkerZoeken extends MedewerkerBeheer
 
 		});
 
-		AjaxLink<Void> toevoegen = new AjaxLink<Void>("medewerkerToevoegen")
+		AjaxLink<Void> toevoegen = new AjaxLink<>("medewerkerToevoegen")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -258,7 +244,7 @@ public class MedewerkerZoeken extends MedewerkerBeheer
 		toevoegen.setVisible(isMinimumActie(actie, Actie.TOEVOEGEN));
 		add(toevoegen);
 		setDefaultModel(new CompoundPropertyModel<>(criteriaModel));
-		zoekForm = new Form<Gebruiker>("zoekForm", (IModel<Gebruiker>) getDefaultModel());
+		zoekForm = new Form<>("zoekForm", (IModel<Gebruiker>) getDefaultModel());
 		add(zoekForm);
 
 		var rollen = rolService.getActieveRollen(bevolkingsonderzoeken);
@@ -270,16 +256,13 @@ public class MedewerkerZoeken extends MedewerkerBeheer
 		zoekForm.add(new TextField<>("uzinummer"));
 		zoekForm.add(new TextField<>("emailextra"));
 		zoekForm.add(new TextField<>("organisatieMedewerkers[0].organisatie.uziAbonneenummer"));
-		zoekForm.add(new ListMultipleChoice<Functie>("functies", new PropertyModel<List<Functie>>(this, "selectedFuncties"),
+		zoekForm.add(new ListMultipleChoice<>("functies", new PropertyModel<List<Functie>>(this, "selectedFuncties"),
 			ModelUtil.listRModel(stamtabellenService.getFuncties(null), false), new NaamChoiceRenderer<>()));
-		zoekForm.add(new ListMultipleChoice<Rol>("rollen", new PropertyModel<List<Rol>>(this, "selectedRollen"),
+		zoekForm.add(new ListMultipleChoice<>("rollen", new PropertyModel<List<Rol>>(this, "selectedRollen"),
 			ModelUtil.listRModel(rollen, false), new ChoiceRenderer<>("naam")));
 
 		AjaxSubmitLink submitLink = new AjaxSubmitLink("zoeken", zoekForm)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -299,7 +282,7 @@ public class MedewerkerZoeken extends MedewerkerBeheer
 	@Override
 	protected List<GebruikerMenuItem> getContextMenuItems()
 	{
-		List<GebruikerMenuItem> contextMenuItems = new ArrayList<GebruikerMenuItem>();
+		List<GebruikerMenuItem> contextMenuItems = new ArrayList<>();
 		contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.medewerkers.zoeken", MedewerkerZoeken.class));
 		return contextMenuItems;
 	}

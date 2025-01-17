@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,7 +32,7 @@ import {CervixDossier} from "../../../datatypes/CervixDossier"
 import {ClientContactActieType} from "../../../datatypes/ClientContactActieType"
 import bvoStyles from "../../../components/BvoStyle.module.scss"
 import ImageBlobComponent from "../../../components/blob/ImageBlobComponent"
-import blob_cervix from "../../../scss/media/blob-cervix.jpg"
+import blob_cervix from "../../../scss/media/blob-cervix.png"
 import {useSelector} from "react-redux"
 import {State} from "../../../datatypes/State"
 

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -44,6 +44,7 @@ import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.UploadDocument;
+import nl.rivm.screenit.model.berichten.cda.MeldingOngeldigCdaBericht_;
 import nl.rivm.screenit.model.berichten.enums.VerslagType;
 import nl.rivm.screenit.model.colon.ColonAfmelding;
 import nl.rivm.screenit.model.colon.ColonBrief;
@@ -86,6 +87,7 @@ import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.ObjectNotFoundException;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -262,7 +264,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 			filter.setBsn(client.getPersoon().getBsn());
 			filter.setMdlBerichten(true);
 			filter.setPaLabBerichten(true);
-			var berichten = ongeldigeBerichtenService.searchOngeldigeBerichten(filter, -1, -1, "datum", true);
+			var berichten = ongeldigeBerichtenService.zoekOngeldigeBerichten(filter, -1, -1, Sort.by(MeldingOngeldigCdaBericht_.DATUM));
 			for (var bericht : berichten)
 			{
 				if (Boolean.TRUE.equals(bericht.getActief()) && Boolean.TRUE.equals(bericht.getHerstelbaar())

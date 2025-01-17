@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,8 +22,9 @@ package nl.rivm.screenit.specification.cervix;
  */
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
+import nl.rivm.screenit.model.SingleTableHibernateObject_;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixRegioBrief;
 import nl.rivm.screenit.model.cervix.CervixRegioBrief_;
@@ -32,7 +33,9 @@ import nl.rivm.screenit.specification.ExtendedSpecification;
 
 import org.springframework.data.jpa.domain.Specification;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixRegioBriefSpecification
 {
 	public static Specification<CervixRegioBrief> heeftGeenMergedBrieven()
@@ -48,5 +51,14 @@ public class CervixRegioBriefSpecification
 	public static ExtendedSpecification<CervixRegioBrief> heeftHuisarts(CervixHuisarts huisarts)
 	{
 		return (r, q, cb) -> cb.equal(r.get(CervixRegioBrief_.huisarts), huisarts);
+	}
+
+	public static ExtendedSpecification<CervixRegioBrief> heeftScreeningOrganisatieId(Long soId)
+	{
+		return (r, q, cb) ->
+		{
+			var organisatieJoin = join(r, CervixRegioBrief_.regio);
+			return cb.equal(organisatieJoin.get(SingleTableHibernateObject_.id), soId);
+		};
 	}
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.review;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -43,7 +43,9 @@ import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.component.table.ScreenitDateTimePropertyColumn;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.AbstractMammaBePage;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
+import nl.rivm.screenit.model.Gebruiker_;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.InstellingGebruiker_;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -71,6 +73,8 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Sort;
 import org.wicketstuff.shiro.ShiroConstraint;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
+
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
 
 @SecurityConstraint(
 	actie = Actie.AANPASSEN,
@@ -307,9 +311,10 @@ public class MammaReviewWerklijstPage extends AbstractMammaBePage
 		var instellingGebruikerZoekObject = new InstellingGebruiker();
 		instellingGebruikerZoekObject.setOrganisatie(ScreenitSession.get().getLoggedInInstellingGebruiker().getOrganisatie());
 
+		var sort = Sort.by(Sort.Order.asc(propertyChain(InstellingGebruiker_.MEDEWERKER, Gebruiker_.ACHTERNAAM)));
 		var radiologenDropdown = new ScreenitDropdown<>("radioloog",
 			ModelUtil.listModel(
-				medewerkerService.getActieveRadiologen(instellingGebruikerZoekObject, new ArrayList<>(), "medewerker.gebruikersnaam", true)),
+				medewerkerService.getActieveRadiologen(instellingGebruikerZoekObject, new ArrayList<>(), sort)),
 			new ChoiceRenderer<>("medewerker.gebruikersnaam"));
 
 		radiologenDropdown.add(new AjaxFormComponentUpdatingBehavior("change")

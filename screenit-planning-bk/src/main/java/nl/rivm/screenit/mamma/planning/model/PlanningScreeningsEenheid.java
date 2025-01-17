@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.model;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,6 +24,7 @@ package nl.rivm.screenit.mamma.planning.model;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.NavigableMap;
 import java.util.NavigableSet;
@@ -32,6 +33,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import nl.rivm.screenit.model.mamma.enums.MammaMeldingNiveau;
+import nl.rivm.screenit.util.DateUtil;
 
 import static java.time.DayOfWeek.MONDAY;
 
@@ -95,6 +97,14 @@ public class PlanningScreeningsEenheid extends PlanningEntiteit
 
 		herhalingsWeek = getWeek(herhalingsWeekMaandag.isBefore(PlanningConstanten.plannenVanafDatum) ? PlanningConstanten.plannenVanafDatum : herhalingsWeekMaandag);
 		initieelHerhalingsWeek = herhalingsWeek;
+	}
+
+	public PlanningScreeningsEenheid(Long id, Date uitgenodigdTotEnMet, Date uitnodigenTotEnMet, BigDecimal initieelInterval, Date herhalingsWeekMaandag,
+		Long aantalMammografen, Integer maxStandplaatsPeriodeVolgnummer)
+	{
+		this(id, DateUtil.toLocalDate(uitgenodigdTotEnMet), DateUtil.toLocalDate(uitnodigenTotEnMet), initieelInterval, DateUtil.toLocalDate(herhalingsWeekMaandag));
+		this.aantalMammografen = Math.max(1, aantalMammografen.intValue());  
+		this.volgNrOffset = maxStandplaatsPeriodeVolgnummer == null ? 0 : maxStandplaatsPeriodeVolgnummer + 1;
 	}
 
 	public PlanningScreeningsOrganisatie getScreeningsOrganisatie()

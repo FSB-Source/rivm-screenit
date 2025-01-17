@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten.frag
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,7 +31,9 @@ import nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten.Docum
 import nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten.behavior.EnableBehavior;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten.behavior.VisibleBehavior;
 import nl.rivm.screenit.model.Gebruiker;
+import nl.rivm.screenit.model.Gebruiker_;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.InstellingGebruiker_;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.util.NaamUtil;
@@ -45,6 +47,9 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.springframework.data.domain.Sort;
+
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
 
 public class BKRadioloogFragment extends DocumentTemplateTestenFieldsPanelComponentFragment<Gebruiker>
 {
@@ -79,7 +84,8 @@ public class BKRadioloogFragment extends DocumentTemplateTestenFieldsPanelCompon
 			so = ((BaseDocumentTemplateTestenPage) page).getSelectedRegio();
 		}
 		final ScreeningOrganisatie regio = so;
-		return medewerkerService.getActieveRadiologen(new InstellingGebruiker(), Collections.emptyList(), "medewerker.achternaam", true).stream()
+		var sort = Sort.by(Sort.Order.asc(propertyChain(InstellingGebruiker_.MEDEWERKER, Gebruiker_.ACHTERNAAM)));
+		return medewerkerService.getActieveRadiologen(new InstellingGebruiker(), Collections.emptyList(), sort).stream()
 			.filter(ig -> ig.getOrganisatie().getOrganisatieType() == OrganisatieType.BEOORDELINGSEENHEID
 				&& ig.getOrganisatie().getParent() != null
 				&& ig.getOrganisatie().getParent().getRegio() != null

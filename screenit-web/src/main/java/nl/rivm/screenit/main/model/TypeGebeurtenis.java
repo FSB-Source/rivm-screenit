@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.model;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -44,7 +44,6 @@ import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.mamma
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.mamma.MammaOnderzoekInzienPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.mamma.MammaUploadBeeldenVerzoekGebeurtenisDetailPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.mamma.MammaVerslagInzienPanel;
-import nl.rivm.screenit.main.web.gebruiker.clienten.project.VragenlijstInzienPanel;
 
 @Getter
 public enum TypeGebeurtenis
@@ -148,12 +147,6 @@ public enum TypeGebeurtenis
 	PROJECT_BRIEF_TEGENHOUDEN(BriefKlaargezetPanel.class),
 
 	PROJECT_BRIEF_VERVANGEN(BriefKlaargezetPanel.class),
-
-	PROJECT_VRAGENLIJST_ONTVANGEN_PAPIER(VragenlijstInzienPanel.class),
-
-	PROJECT_VRAGENLIJST_ONTVANGEN_PAPIER_VERWIJDERD(VragenlijstInzienPanel.class),
-
-	PROJECT_VRAGENLIJST_ONTVANGEN_DIGITAAL(VragenlijstInzienPanel.class),
 
 	COLON_HUISARTS_TOEGEVOEGD(ColonHuisartsInzienPanel.class),
 

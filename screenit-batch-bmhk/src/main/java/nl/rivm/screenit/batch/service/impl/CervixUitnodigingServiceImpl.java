@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,15 +25,17 @@ import java.util.List;
 
 import nl.rivm.screenit.batch.service.CervixUitnodigingService;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
+import nl.rivm.screenit.model.TablePerClassHibernateObject_;
 import nl.rivm.screenit.model.Uitnodiging_;
-import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
+import nl.rivm.screenit.repository.cervix.CervixUitnodigingRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.OrganisatieParameterService;
+import nl.rivm.screenit.specification.algemeen.InpakbareUitnodigingSpecification;
 import nl.rivm.screenit.specification.cervix.CervixUitnodigingSpecification;
 
-import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -43,35 +45,33 @@ public class CervixUitnodigingServiceImpl implements CervixUitnodigingService
 	private OrganisatieParameterService organisatieParameterService;
 
 	@Autowired
-	private SessionFactory sessionFactory;
+	private ICurrentDateSupplier currentDateSupplier;
 
 	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private CervixUitnodigingRepository uitnodigingRepository;
 
 	@Override
 	public List<Long> getTeVersturenZasUitnodigingen()
 	{
-		var currentSession = sessionFactory.getCurrentSession();
-		var cb = currentSession.getCriteriaBuilder();
-		var q = cb.createQuery(Long.class);
-		var r = q.from(CervixUitnodiging.class);
 		var specification = CervixUitnodigingSpecification.heeftActieveClient()
 			.and(CervixUitnodigingSpecification.heeftGemeenteMetBmhkLaboratorium())
 			.and(CervixUitnodigingSpecification.heeftLopendeRonde())
-			.and(CervixUitnodigingSpecification.heeftGeenVerstuurdDatum())
+			.and(InpakbareUitnodigingSpecification.heeftGeenVerstuurdDatum())
 			.and(CervixUitnodigingSpecification.heeftUitnodigingsDatumVoorDatum(currentDateSupplier.getDate()))
 			.and(CervixUitnodigingSpecification.heeftMonsterType(CervixMonsterType.ZAS))
 			.and(CervixUitnodigingSpecification.heeftGeenGeannuleerdDatum())
 			.and(CervixUitnodigingSpecification.heeftTeVersturenZasUitnodigingen());
 
-		var query = q.select(r.get(Uitnodiging_.id)).where(specification.toPredicate(r, q, cb));
 		var maxAantalUitnodigingen = getMaxAantalZasUitnodigingen();
+		var query = uitnodigingRepository.findWith(specification, Long.class,
+			q -> q.projection((cb, r) -> r.get(TablePerClassHibernateObject_.id)));
 		if (maxAantalUitnodigingen != null)
 		{
-			query.orderBy(cb.asc(r.get(Uitnodiging_.uitnodigingsDatum)));
-			return currentSession.createQuery(query).setMaxResults(maxAantalUitnodigingen).getResultList();
+			return query
+				.sortBy(Sort.by(Sort.Order.asc(Uitnodiging_.UITNODIGINGS_DATUM)))
+				.all(0, maxAantalUitnodigingen);
 		}
-		return currentSession.createQuery(query).getResultList();
+		return query.all();
 	}
 
 	private Integer getMaxAantalZasUitnodigingen()

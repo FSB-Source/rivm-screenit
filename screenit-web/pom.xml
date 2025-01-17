@@ -426,11 +426,6 @@
         </dependency>
 
         <dependency>
-            <groupId>nl.topicuszorg.crypto-util</groupId>
-            <artifactId>crypto-util</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>nl.topicuszorg</groupId>
             <artifactId>zorgid</artifactId>
         </dependency>

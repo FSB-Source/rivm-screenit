@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,7 @@ import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.colon.ColonIntakelocatie;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie_;
 import nl.rivm.screenit.model.colon.enums.ColonTijdslotType;
 import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
 import nl.rivm.screenit.model.colon.planning.ColonIntakekamer_;
@@ -77,5 +78,10 @@ public class ColonIntakelocatieSpecification
 	public static Specification<ColonIntakelocatie> isIntakelocatie(ColonIntakelocatie intakelocatie)
 	{
 		return (r, q, cb) -> cb.equal(r, intakelocatie);
+	}
+
+	public static Specification<ColonIntakelocatie> heeftGeenPostcodeCoordinaten()
+	{
+		return (r, q, cb) -> cb.isNull(r.get(ColonIntakelocatie_.postcodeCoordinaten));
 	}
 }

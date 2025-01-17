@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.colon;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -47,7 +47,6 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.HuisartsBerichtType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.ClientService;
-import nl.rivm.screenit.service.GemeenteService;
 import nl.rivm.screenit.service.TestService;
 import nl.rivm.screenit.service.colon.ColonTestService;
 import nl.rivm.screenit.util.TestBsnGenerator;
@@ -99,9 +98,6 @@ public class ColonTestProcesPage extends TestenBasePage
 
 	@SpringBean
 	private ClientService clientService;
-
-	@SpringBean
-	private GemeenteService gemeenteService;
 
 	@SpringBean
 	private SimplePreferenceService preferenceService;
@@ -162,7 +158,7 @@ public class ColonTestProcesPage extends TestenBasePage
 			}
 		}));
 
-		form.add(new DropDownChoice<>("gbaAdres.gbaGemeente", ModelUtil.listRModel(gemeenteService.getGemeentesMetScreeningOrganisatie(), false),
+		form.add(new DropDownChoice<>("gbaAdres.gbaGemeente", ModelUtil.listRModel(testService.getGemeentesMetScreeningOrganisatie(), false),
 			new ChoiceRenderer<>("naam")));
 
 		form.add(new AjaxButton("maakClient", form)

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.gedeeld.verslagen;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.gedeeld.verslagen;
  */
 
 import java.util.ArrayList;
-import java.util.List;
 
 import nl.rivm.screenit.main.service.BerichtenZoekFilter;
 import nl.rivm.screenit.main.service.OngeldigeBerichtenService;
@@ -38,7 +37,6 @@ import nl.rivm.screenit.main.web.component.table.AjaxImageCellPanel;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerBasePage;
 import nl.rivm.screenit.main.web.gebruiker.clienten.inzien.ClientInzienPage;
-import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.berichten.cda.MeldingOngeldigCdaBericht;
 import nl.rivm.screenit.model.berichten.enums.BerichtType;
@@ -51,7 +49,6 @@ import nl.rivm.screenit.model.enums.ToegangLevel;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.LogService;
-import nl.rivm.screenit.service.ScopeService;
 import nl.topicuszorg.wicket.hibernate.SimpleHibernateModel;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
@@ -73,12 +70,16 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import static nl.rivm.screenit.model.berichten.cda.MeldingOngeldigCdaBericht_.DATUM;
+import static nl.rivm.screenit.model.berichten.cda.MeldingOngeldigCdaBericht_.MELDING;
+import static nl.rivm.screenit.model.berichten.cda.MeldingOngeldigCdaBericht_.ONTVANGEN_CDA_BERICHT;
+import static nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht_.BERICHT_TYPE;
+import static nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht_.ONTVANGEN;
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
+
 public abstract class VerwerkOngeldigeBerichtenPage extends GebruikerBasePage
 {
 	private final BootstrapDialog dialog;
-
-	@SpringBean
-	private ScopeService scopeService;
 
 	@SpringBean
 	private OngeldigeBerichtenService ongeldigeBerichtenService;
@@ -116,8 +117,8 @@ public abstract class VerwerkOngeldigeBerichtenPage extends GebruikerBasePage
 			return filterIModel;
 		}
 		filterIModel = new Model<>(new BerichtenZoekFilter());
-		BerichtenZoekFilter berichtenZoekFilter = filterIModel.getObject();
-		List<Bevolkingsonderzoek> onderzoeken = ScreenitSession.get().getOnderzoeken();
+		var berichtenZoekFilter = filterIModel.getObject();
+		var onderzoeken = ScreenitSession.get().getOnderzoeken();
 		berichtenZoekFilter.setCytologieBerichten(onderzoeken.contains(Bevolkingsonderzoek.CERVIX));
 		berichtenZoekFilter.setFollowUpBerichten(onderzoeken.contains(Bevolkingsonderzoek.MAMMA));
 		berichtenZoekFilter.setMdlBerichten(onderzoeken.contains(Bevolkingsonderzoek.COLON));
@@ -128,36 +129,34 @@ public abstract class VerwerkOngeldigeBerichtenPage extends GebruikerBasePage
 	private void addOrReplaceTable(AjaxRequestTarget target)
 	{
 
-		List<IColumn<MeldingOngeldigCdaBericht, String>> columns = new ArrayList<>();
-		columns.add(new DateTimePropertyColumn<MeldingOngeldigCdaBericht, String>(Model.of("Datum/tijd melding"), "datum", "datum"));
+		var columns = new ArrayList<IColumn<MeldingOngeldigCdaBericht, String>>();
+		columns.add(new DateTimePropertyColumn<>(Model.of("Datum/tijd melding"), "datum", DATUM));
 		columns
-			.add(new DateTimePropertyColumn<MeldingOngeldigCdaBericht, String>(Model.of("Datum/tijd ontvangst"), "ontvangenCdaBericht.ontvangen", "ontvangenCdaBericht.ontvangen"));
-		columns.add(new PropertyColumn<MeldingOngeldigCdaBericht, String>(Model.of("Type"), "ontvangenCdaBericht.berichtType", "ontvangenCdaBericht.berichtType"));
-		columns.add(new PropertyColumn<MeldingOngeldigCdaBericht, String>(Model.of("Reden ongeldigheid"), "melding", "melding"));
-		ToegangLevel toegangsLevel = ScreenitSession.get().getToegangsLevel(Actie.INZIEN, Recht.GEBRUIKER_SCREENING_VERWERKEN_ONGELIDGE_BERICHTEN);
+			.add(new DateTimePropertyColumn<>(Model.of("Datum/tijd ontvangst"), "ontvangenCdaBericht.ontvangen", propertyChain(ONTVANGEN_CDA_BERICHT, ONTVANGEN)));
+		columns.add(new PropertyColumn<>(Model.of("Type"), propertyChain(ONTVANGEN_CDA_BERICHT, BERICHT_TYPE), "ontvangenCdaBericht.berichtType"));
+		columns.add(new PropertyColumn<>(Model.of("Reden ongeldigheid"), MELDING, "melding"));
+		var toegangsLevel = ScreenitSession.get().getToegangsLevel(Actie.INZIEN, Recht.GEBRUIKER_SCREENING_VERWERKEN_ONGELIDGE_BERICHTEN);
 		if (toegangsLevel == ToegangLevel.LANDELIJK)
 		{
-			columns.add(new PropertyColumn<MeldingOngeldigCdaBericht, String>(Model.of("Screeningsorganisatie"), "screeningOrganisatie.naam", "screeningOrganisatie.naam"));
+			columns.add(new PropertyColumn<>(Model.of("Screeningsorganisatie"), "screeningOrganisatie.naam", "screeningOrganisatie.naam"));
 		}
 
-		final boolean magClientDossierInzien = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_GEGEVENS, Actie.INZIEN);
+		final var magClientDossierInzien = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_GEGEVENS, Actie.INZIEN);
 
 		if (magClientDossierInzien)
 		{
-			columns.add(new AbstractColumn<MeldingOngeldigCdaBericht, String>(Model.of(getString("bekijkClientdossier")))
+			columns.add(new AbstractColumn<>(Model.of(getString("bekijkClientdossier")))
 			{
-
 				private static final long serialVersionUID = 1L;
 
 				@Override
 				public void populateItem(Item<ICellPopulator<MeldingOngeldigCdaBericht>> cellItem, String componentId, IModel<MeldingOngeldigCdaBericht> rowModel)
 				{
-					Client client = clientService.getClientByBsn(rowModel.getObject().getBsn());
+					var client = clientService.getClientByBsn(rowModel.getObject().getBsn());
 					if (client != null && !GbaStatus.BEZWAAR.equals(client.getGbaStatus()) && !GbaStatus.AFGEVOERD.equals(client.getGbaStatus()))
 					{
-						cellItem.add(new AjaxImageCellPanel<MeldingOngeldigCdaBericht>(componentId, rowModel, "icon-user")
+						cellItem.add(new AjaxImageCellPanel<>(componentId, rowModel, "icon-user")
 						{
-
 							private static final long serialVersionUID = 1L;
 
 							@Override
@@ -182,7 +181,7 @@ public abstract class VerwerkOngeldigeBerichtenPage extends GebruikerBasePage
 			});
 		}
 
-		columns.add(new AbstractColumn<MeldingOngeldigCdaBericht, String>(Model.of("Bekijk bericht"))
+		columns.add(new AbstractColumn<>(Model.of("Bekijk bericht"))
 		{
 
 			private static final long serialVersionUID = 1L;
@@ -190,7 +189,7 @@ public abstract class VerwerkOngeldigeBerichtenPage extends GebruikerBasePage
 			@Override
 			public void populateItem(Item<ICellPopulator<MeldingOngeldigCdaBericht>> cellItem, String componentId, IModel<MeldingOngeldigCdaBericht> rowModel)
 			{
-				cellItem.add(new AjaxImageCellPanel<MeldingOngeldigCdaBericht>(componentId, rowModel, "icon-info-sign")
+				cellItem.add(new AjaxImageCellPanel<>(componentId, rowModel, "icon-info-sign")
 				{
 
 					private static final long serialVersionUID = 1L;
@@ -230,12 +229,11 @@ public abstract class VerwerkOngeldigeBerichtenPage extends GebruikerBasePage
 			}
 
 		});
-		final boolean magAanpassen = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_SCREENING_VERWERKEN_ONGELIDGE_BERICHTEN, Actie.AANPASSEN);
+		final var magAanpassen = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_SCREENING_VERWERKEN_ONGELIDGE_BERICHTEN, Actie.AANPASSEN);
 		if (magAanpassen)
 		{
-			columns.add(new AbstractColumn<MeldingOngeldigCdaBericht, String>(Model.of("Opnieuw aanbieden"))
+			columns.add(new AbstractColumn<>(Model.of("Opnieuw aanbieden"))
 			{
-
 				private static final long serialVersionUID = 1L;
 
 				@Override
@@ -243,7 +241,7 @@ public abstract class VerwerkOngeldigeBerichtenPage extends GebruikerBasePage
 				{
 					if (Boolean.TRUE.equals(rowModel.getObject().getHerstelbaar()))
 					{
-						cellItem.add(new AjaxImageCellPanel<MeldingOngeldigCdaBericht>(componentId, rowModel, "icon-refresh")
+						cellItem.add(new AjaxImageCellPanel<>(componentId, rowModel, "icon-refresh")
 						{
 
 							private static final long serialVersionUID = 1L;
@@ -269,18 +267,17 @@ public abstract class VerwerkOngeldigeBerichtenPage extends GebruikerBasePage
 
 			});
 		}
-		final boolean magVerwijderen = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_SCREENING_VERWERKEN_ONGELIDGE_BERICHTEN, Actie.VERWIJDEREN);
+		final var magVerwijderen = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_SCREENING_VERWERKEN_ONGELIDGE_BERICHTEN, Actie.VERWIJDEREN);
 		if (magVerwijderen)
 		{
-			columns.add(new AbstractColumn<MeldingOngeldigCdaBericht, String>(Model.of("Verwijderen"))
+			columns.add(new AbstractColumn<>(Model.of("Verwijderen"))
 			{
-
 				private static final long serialVersionUID = 1L;
 
 				@Override
 				public void populateItem(Item<ICellPopulator<MeldingOngeldigCdaBericht>> cellItem, String componentId, final IModel<MeldingOngeldigCdaBericht> rowModel)
 				{
-					final AjaxImageCellPanel<MeldingOngeldigCdaBericht> imageCellPanel = new AjaxImageCellPanel<MeldingOngeldigCdaBericht>(componentId, rowModel, "icon-trash")
+					final var imageCellPanel = new AjaxImageCellPanel<>(componentId, rowModel, "icon-trash")
 					{
 
 						private static final long serialVersionUID = 1L;
@@ -317,7 +314,7 @@ public abstract class VerwerkOngeldigeBerichtenPage extends GebruikerBasePage
 			});
 		}
 
-		Component newScreenitDataTable = new ScreenitDataTable<MeldingOngeldigCdaBericht, String>("tabel", columns, new OngeldigeBerichtenDataProvider(berichtenZoekFilter), 10,
+		var newScreenitDataTable = new ScreenitDataTable<>("tabel", columns, new OngeldigeBerichtenDataProvider(berichtenZoekFilter), 10,
 			Model.of("ongeldig(e) bericht(en)"));
 		newScreenitDataTable.setOutputMarkupId(true);
 		if (berichtenTabel != null)
@@ -345,18 +342,18 @@ public abstract class VerwerkOngeldigeBerichtenPage extends GebruikerBasePage
 		{
 			super(id, new CompoundPropertyModel<>(model));
 
-			List<ScreeningOrganisatie> list = instellingService.getAllActiefScreeningOrganisaties();
-			List<ScreeningOrganisatie> toegestaneSos = new ArrayList<>();
-			for (ScreeningOrganisatie so : list)
+			var list = instellingService.getAllActiefScreeningOrganisaties();
+			var toegestaneSos = new ArrayList<ScreeningOrganisatie>();
+			for (var so : list)
 			{
 				if (ScreenitSession.get().checkPermission(Recht.GEBRUIKER_SCREENING_VERWERKEN_ONGELIDGE_BERICHTEN, Actie.INZIEN, so))
 				{
 					toegestaneSos.add(so);
 				}
 			}
-			ScreenitDropdown<ScreeningOrganisatie> screeningOrganisatie = new ScreenitDropdown<>("screeningOrganisatie", ModelUtil.listRModel(toegestaneSos));
+			var screeningOrganisatie = new ScreenitDropdown<>("screeningOrganisatie", ModelUtil.listRModel(toegestaneSos));
 			add(screeningOrganisatie);
-			ToegangLevel toegangsLevel = ScreenitSession.get().getToegangsLevel(Actie.INZIEN, Recht.GEBRUIKER_SCREENING_VERWERKEN_ONGELIDGE_BERICHTEN);
+			var toegangsLevel = ScreenitSession.get().getToegangsLevel(Actie.INZIEN, Recht.GEBRUIKER_SCREENING_VERWERKEN_ONGELIDGE_BERICHTEN);
 			if (toegestaneSos.size() == 1 && toegangsLevel != ToegangLevel.LANDELIJK)
 			{
 				screeningOrganisatie.setNullValid(false);
@@ -366,15 +363,15 @@ public abstract class VerwerkOngeldigeBerichtenPage extends GebruikerBasePage
 
 			add(new TextField<>("text"));
 
-			List<Bevolkingsonderzoek> onderzoeken = ScreenitSession.get().getOnderzoeken();
-			boolean colon = onderzoeken.contains(Bevolkingsonderzoek.COLON);
-			boolean cervix = onderzoeken.contains(Bevolkingsonderzoek.CERVIX);
-			boolean mamma = onderzoeken.contains(Bevolkingsonderzoek.MAMMA);
+			var onderzoeken = ScreenitSession.get().getOnderzoeken();
+			var colon = onderzoeken.contains(Bevolkingsonderzoek.COLON);
+			var cervix = onderzoeken.contains(Bevolkingsonderzoek.CERVIX);
+			var mamma = onderzoeken.contains(Bevolkingsonderzoek.MAMMA);
 
-			CheckBox mdlBerichten = new CheckBox("mdlBerichten");
-			CheckBox paLabBerichten = new CheckBox("paLabBerichten");
-			CheckBox cytologieBerichten = new CheckBox("cytologieBerichten");
-			CheckBox followUpBerichten = new CheckBox("followUpBerichten");
+			var mdlBerichten = new CheckBox("mdlBerichten");
+			var paLabBerichten = new CheckBox("paLabBerichten");
+			var cytologieBerichten = new CheckBox("cytologieBerichten");
+			var followUpBerichten = new CheckBox("followUpBerichten");
 			mdlBerichten.setVisible(colon);
 			paLabBerichten.setVisible(colon);
 			cytologieBerichten.setVisible(cervix);
@@ -420,8 +417,8 @@ public abstract class VerwerkOngeldigeBerichtenPage extends GebruikerBasePage
 	{
 		ongeldigeBerichtenService.verwijderenOngeldigBericht(model.getObject());
 
-		StringBuilder berichtInformatie = new StringBuilder();
-		MeldingOngeldigCdaBericht ontvangenMelding = model.getObject();
+		var berichtInformatie = new StringBuilder();
+		var ontvangenMelding = model.getObject();
 		if (ontvangenMelding.getOntvangenCdaBericht().getBerichtType().equals(BerichtType.MDL_VERSLAG))
 		{
 			berichtInformatie.append(" Patient bsn: ");
@@ -441,7 +438,7 @@ public abstract class VerwerkOngeldigeBerichtenPage extends GebruikerBasePage
 
 	private String getMelding(IModel<MeldingOngeldigCdaBericht> model, StringBuilder berichtInformatie, MeldingOngeldigCdaBericht ontvangenMelding)
 	{
-		StringBuilder melding = new StringBuilder();
+		var melding = new StringBuilder();
 		if (model.getObject() != null)
 		{
 			melding.append("Bericht: ");

@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.cervix.facturatie;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,6 +38,9 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
@@ -50,6 +53,8 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.envers.Audited;
 
 @Entity
+@Getter
+@Setter
 @Table(
 	schema = "cervix",
 	name = "verrichting",
@@ -68,7 +73,7 @@ public class CervixVerrichting extends AbstractHibernateObject
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	private ScreeningOrganisatie regio;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@ManyToOne(fetch = FetchType.LAZY)
 	private CervixHuisartsLocatie huisartsLocatie;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -83,85 +88,4 @@ public class CervixVerrichting extends AbstractHibernateObject
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
 	private CervixTariefType type;
-
-	public Client getClient()
-	{
-		return client;
-	}
-
-	public void setClient(Client client)
-	{
-		this.client = client;
-	}
-
-	public CervixMonster getMonster()
-	{
-		return monster;
-	}
-
-	public void setMonster(CervixMonster monster)
-	{
-		this.monster = monster;
-	}
-
-	public Date getVerrichtingsDatum()
-	{
-		return verrichtingsDatum;
-	}
-
-	public void setVerrichtingsDatum(Date verrichtingsDatum)
-	{
-		this.verrichtingsDatum = verrichtingsDatum;
-	}
-
-	public CervixHuisartsLocatie getHuisartsLocatie()
-	{
-		return huisartsLocatie;
-	}
-
-	public void setHuisartsLocatie(CervixHuisartsLocatie huisartsLocatie)
-	{
-		this.huisartsLocatie = huisartsLocatie;
-	}
-
-	public ScreeningOrganisatie getRegio()
-	{
-		return regio;
-	}
-
-	public void setRegio(ScreeningOrganisatie regio)
-	{
-		this.regio = regio;
-	}
-
-	public CervixTariefType getType()
-	{
-		return type;
-	}
-
-	public void setType(CervixTariefType type)
-	{
-		this.type = type;
-	}
-
-	public List<CervixBoekRegel> getBoekRegels()
-	{
-		return boekRegels;
-	}
-
-	public void setBoekRegels(List<CervixBoekRegel> boekRegels)
-	{
-		this.boekRegels = boekRegels;
-	}
-
-	public CervixBoekRegel getLaatsteBoekRegel()
-	{
-		return laatsteBoekRegel;
-	}
-
-	public void setLaatsteBoekRegel(CervixBoekRegel laatsteBoekRegel)
-	{
-		this.laatsteBoekRegel = laatsteBoekRegel;
-	}
-
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.v
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.v
 import java.util.Iterator;
 
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaVisitatieWerklijstZoekObject;
-import nl.rivm.screenit.main.service.mamma.MammaKwaliteitscontroleService;
+import nl.rivm.screenit.main.service.mamma.MammaVisitatieService;
 import nl.rivm.screenit.model.mamma.MammaVisitatie;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -34,39 +34,33 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import com.google.common.primitives.Ints;
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
 
 public class MammaVisitatieProvider extends SortableDataProvider<MammaVisitatie, String>
 {
 	@SpringBean
-	private MammaKwaliteitscontroleService kwaliteitscontroleService;
+	private MammaVisitatieService visitatieService;
 
-	private IModel<MammaVisitatieWerklijstZoekObject> zoekModel;
+	private IModel<MammaVisitatieWerklijstZoekObject> zoekObject;
 
-	public MammaVisitatieProvider(IModel<MammaVisitatieWerklijstZoekObject> zoekModel)
+	public MammaVisitatieProvider(IModel<MammaVisitatieWerklijstZoekObject> zoekObject)
 	{
 		Injector.get().inject(this);
 		setSort("aangemaaktOp", SortOrder.ASCENDING);
-		this.zoekModel = zoekModel;
+		this.zoekObject = zoekObject;
 	}
 
 	@Override
 	public Iterator<MammaVisitatie> iterator(long first, long count)
 	{
-		String sortProperty = null;
-		boolean asc = true;
-		if (getSort() != null)
-		{
-			sortProperty = getSort().getProperty();
-			asc = getSort().isAscending();
-		}
-		return kwaliteitscontroleService.zoekVisitaties(ModelUtil.nullSafeGet(zoekModel), Ints.checkedCast(first), Ints.checkedCast(count), sortProperty, asc).iterator();
+		return visitatieService.zoekVisitaties(getZoekObject().getVanaf(), getZoekObject().getScreeningsEenheden(), getZoekObject().getStatussen(), first, count,
+			toSpringSort(getSort())).iterator();
 	}
 
 	@Override
 	public long size()
 	{
-		return kwaliteitscontroleService.countVisitaties(ModelUtil.nullSafeGet(zoekModel));
+		return visitatieService.countVisitaties(getZoekObject().getVanaf(), getZoekObject().getScreeningsEenheden(), getZoekObject().getStatussen());
 	}
 
 	@Override
@@ -79,6 +73,11 @@ public class MammaVisitatieProvider extends SortableDataProvider<MammaVisitatie,
 	public void detach()
 	{
 		super.detach();
-		ModelUtil.nullSafeDetach(zoekModel);
+		ModelUtil.nullSafeDetach(zoekObject);
+	}
+
+	private MammaVisitatieWerklijstZoekObject getZoekObject()
+	{
+		return ModelUtil.nullSafeGet(zoekObject);
 	}
 }

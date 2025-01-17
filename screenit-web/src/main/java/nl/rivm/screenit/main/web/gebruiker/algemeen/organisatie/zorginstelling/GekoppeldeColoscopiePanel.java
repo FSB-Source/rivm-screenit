@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.zorginstelling;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,8 +36,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class GekoppeldeColoscopiePanel<T extends Instelling> extends GenericPanel<T>
 {
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private InstellingService instellingService;
 
@@ -51,8 +49,8 @@ public class GekoppeldeColoscopiePanel<T extends Instelling> extends GenericPane
 	{
 		super.onInitialize();
 
-		List<ColonIntakelocatie> coloscopiesCentrums = instellingService.getChildrenInstellingen(getModelObject(), ColonIntakelocatie.class);
-		List<ColoscopieLocatie> coloscopiesLocaties = instellingService.getChildrenInstellingen(getModelObject(), ColoscopieLocatie.class);
+		List<ColonIntakelocatie> coloscopiesCentrums = instellingService.getChildrenOrganisaties(getModelObject(), ColonIntakelocatie.class);
+		List<ColoscopieLocatie> coloscopiesLocaties = instellingService.getChildrenOrganisaties(getModelObject(), ColoscopieLocatie.class);
 		add(new Label("coloscopieLocaties", stringLocaties(coloscopiesLocaties)));
 		add(new Label("intakeLocaties", stringLocaties(coloscopiesCentrums)));
 	}

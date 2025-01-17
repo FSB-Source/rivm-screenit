@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.selectie.vooraankondiging;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -46,6 +46,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import static nl.rivm.screenit.model.DossierStatus.ACTIEF;
+import static nl.rivm.screenit.specification.ExtendedSpecification.not;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.algemeen.ClientSpecification.heeftActieveClient;
 
@@ -79,7 +80,7 @@ public class CervixVooraankondigingSelectieReader extends BaseSpecificationScrol
 			.and(CervixDossierSpecification.heeftGeenVooraankondigingsBrief().with(Client_.cervixDossier))
 			.and(DossierSpecification.heeftStatus(ACTIEF).with(Client_.cervixDossier))
 			.and(CervixDossierSpecification.wachtOpStartProject(false).with(Client_.cervixDossier))
-			.and(CervixDossierSpecification.heeftNietDeelnamemodus(Deelnamemodus.SELECTIEBLOKKADE).with(Client_.cervixDossier))
+			.and(not(DossierSpecification.heeftDeelnamemodus(Deelnamemodus.SELECTIEBLOKKADE)).with(Client_.cervixDossier))
 			.and(PersoonSpecification.isGeborenNa(exactDertigJaarGeleden).with(Client_.persoon))
 			.and(PersoonSpecification.isGeborenVoorOfOp(dertigJaarGeledenPlusVooraankondigingsDagen).with(Client_.persoon))
 			.and(GemeenteSpecification.heeftScreeningOrganisatie().with(r -> gemeenteJoin(r)))

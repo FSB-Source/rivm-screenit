@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.services.impl;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +22,7 @@ package nl.rivm.screenit.mamma.se.proxy.services.impl;
  */
 
 import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,12 +31,11 @@ import nl.rivm.screenit.mamma.se.proxy.model.WebsocketBerichtType;
 import nl.rivm.screenit.mamma.se.proxy.services.WebSocketProxyService;
 import nl.rivm.screenit.mamma.se.proxy.util.DateUtil;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.http.entity.ContentType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -72,10 +72,10 @@ public class WebSocketProxyServiceImpl implements WebSocketProxyService
 			broadcast(WebsocketBerichtType.TIJD_UPDATE.name() + "###" + offset);
 
 			HttpHeaders headers = new HttpHeaders();
-			headers.add("Content-Type", ContentType.APPLICATION_JSON.getMimeType());
+			headers.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
 			var auth = "beheer:mammograafStub!";
-			var encodedAuth = Base64.encodeBase64(auth.getBytes());
-			var authHeader = "Basic " + new String(encodedAuth);
+			var encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes());
+			var authHeader = "Basic " + encodedAuth;
 			headers.add("Authorization", authHeader);
 
 			var restTemplate = new RestTemplate();

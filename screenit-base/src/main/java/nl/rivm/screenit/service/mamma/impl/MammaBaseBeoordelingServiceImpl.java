@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -56,7 +56,6 @@ import nl.rivm.screenit.model.mamma.MammaLaesieIcoon;
 import nl.rivm.screenit.model.mamma.MammaLezing;
 import nl.rivm.screenit.model.mamma.MammaMassaLaesie;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.rivm.screenit.model.mamma.berichten.xds.XdsStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaBIRADSWaarde;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingOpschortenReden;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
@@ -94,8 +93,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.heeftLezing;
 import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.heeftDossier;
+import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.heeftLezing;
 import static nl.rivm.screenit.specification.mamma.MammaBeoordelingSpecification.heeftUitslagStatus;
 
 @Service
@@ -126,6 +125,7 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	@Lazy
 	@Autowired
 	private MammaHuisartsBerichtService huisartsBerichtService;
+
 	@Autowired
 	private MammaBaseKansberekeningService kansberekeningService;
 
@@ -229,18 +229,6 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 		{
 			throw new IllegalStateException("Lezing " + lezing + " is niet geldig.");
 		}
-	}
-
-	@Override
-	public void verstuurXdsBericht(MammaBeoordeling beoordeling)
-	{
-		beoordeling.setXdsVerslagStatus(XdsStatus.TE_VERZENDEN);
-		var dossier = getScreeningRonde(beoordeling).getDossier();
-		if (dossier.getXdsStatus() == XdsStatus.NIET_AANGEMELD)
-		{
-			dossier.setXdsStatus(XdsStatus.TE_VERZENDEN);
-		}
-
 	}
 
 	@Override
@@ -624,7 +612,6 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 				}
 				if (beoordeling.getStatus() == MammaBeoordelingStatus.UITSLAG_GUNSTIG)
 				{
-					verstuurXdsBericht(beoordeling);
 					kansberekeningService.dossierEventHerzien(ronde.getDossier());
 				}
 			}

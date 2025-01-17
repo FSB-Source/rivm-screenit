@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.generalis.coordinaten.postcodekoppelstep;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,24 +23,21 @@ package nl.rivm.screenit.batch.jobs.generalis.coordinaten.postcodekoppelstep;
 
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.service.InstellingService;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
+import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.colon.ColonIntakelocatieSpecification.heeftGeenPostcodeCoordinaten;
 
 @Component
 @AllArgsConstructor
-public class PostcodeCoordinatenIntakeLocatieKoppelReader extends BaseScrollableResultReader
+public class PostcodeCoordinatenIntakeLocatieKoppelReader extends BaseSpecificationScrollableResultReader<ColonIntakelocatie>
 {
-	private final InstellingService instellingService;
-
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	public Specification<ColonIntakelocatie> createSpecification()
 	{
-		return instellingService.getAllILAdressenZonderCoordinanten();
+		return heeftGeenPostcodeCoordinaten();
 	}
-
 }

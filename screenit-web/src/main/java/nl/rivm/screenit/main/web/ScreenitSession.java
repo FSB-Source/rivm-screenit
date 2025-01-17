@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.main.service.OvereenkomstService;
+import nl.rivm.screenit.main.util.crypto.UZIpasCertInfo;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.nieuws.NieuwsPage;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerBasePage;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerHoofdMenuItem;
@@ -76,7 +77,6 @@ import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.NieuwsService;
 import nl.rivm.screenit.service.ScopeService;
 import nl.rivm.screenit.util.MedewerkerUtil;
-import nl.topicuszorg.crypto.util.UZIpas.UziCertInfo;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.object.model.HibernateObject;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -699,7 +699,7 @@ public class ScreenitSession extends WebSession
 		currentSelectedOrganisatieClass = organisatie != null ? HibernateHelper.getDeproxiedClass(organisatie) : null;
 	}
 
-	public boolean loginUzipasZonderApplet(UziCertInfo uziCertInfo)
+	public boolean loginUzipasZonderApplet(UZIpasCertInfo uziCertInfo)
 	{
 		this.ingelogdMetZorgId = true;
 		uzipasMeldingen = new ArrayList<>();

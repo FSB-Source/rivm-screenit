@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,7 +25,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.huisartsenportaal.dto.LocatieDto;
 import nl.rivm.screenit.huisartsenportaal.enums.CervixLocatieStatus;
@@ -40,8 +40,8 @@ import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie_;
 import nl.rivm.screenit.model.cervix.enums.CervixHuisartsLocatieMutatieSoort;
 import nl.rivm.screenit.specification.ExtendedSpecification;
-import nl.rivm.screenit.specification.SpecificationUtil;
 import nl.rivm.screenit.util.RangeUtil;
+import nl.topicuszorg.organisatie.model.Adres_;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
@@ -51,8 +51,10 @@ import com.google.common.collect.BoundType;
 import static nl.rivm.screenit.specification.DateSpecification.bevatLocalDateToDate;
 import static nl.rivm.screenit.specification.SpecificationUtil.containsCaseInsensitive;
 import static nl.rivm.screenit.specification.SpecificationUtil.exactCaseInsensitive;
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmpty;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixHuisartsLocatieSpecification
 {
 	public static ExtendedSpecification<CervixHuisartsLocatie> isVolledig()
@@ -70,17 +72,17 @@ public class CervixHuisartsLocatieSpecification
 
 	public static Specification<CervixHuisartsLocatie> filterHuisartsMetAgbCodeContaining(String agbCode)
 	{
-		return CervixHuisartsSpecification.filterOpAgbCodeContainingPredicate(agbCode).toSpecification(CervixHuisartsLocatie_.huisarts);
+		return CervixHuisartsSpecification.filterAgbCodeContaining(agbCode).with(CervixHuisartsLocatie_.huisarts);
 	}
 
 	public static Specification<CervixHuisartsLocatie> heeftGeregistreerdeHuisarts()
 	{
-		return CervixHuisartsSpecification.isGeregistreerd().toSpecification(CervixHuisartsLocatie_.huisarts);
+		return CervixHuisartsSpecification.isGeregistreerd().with(CervixHuisartsLocatie_.huisarts);
 	}
 
 	public static Specification<CervixHuisartsLocatie> heeftActieveHuisarts()
 	{
-		return CervixHuisartsSpecification.isActiefPredicate().toSpecification(CervixHuisartsLocatie_.huisarts);
+		return CervixHuisartsSpecification.isActief().with(CervixHuisartsLocatie_.huisarts);
 	}
 
 	public static Specification<CervixHuisartsLocatie> isActief()
@@ -95,7 +97,7 @@ public class CervixHuisartsLocatieSpecification
 
 	public static Specification<CervixHuisartsLocatie> filterMutatieSoortIn(List<CervixHuisartsLocatieMutatieSoort> mutatieSoorten)
 	{
-		return SpecificationUtil.skipWhenEmpty(mutatieSoorten, (r, q, cb) -> r.get(CervixHuisartsLocatie_.mutatieSoort).in(mutatieSoorten));
+		return skipWhenEmpty(mutatieSoorten, (r, q, cb) -> r.get(CervixHuisartsLocatie_.mutatieSoort).in(mutatieSoorten));
 	}
 
 	public static Specification<CervixHuisartsLocatie> valtBinnenMutatieDatum(LocalDate vanaf, LocalDate totEnMet)
@@ -108,13 +110,13 @@ public class CervixHuisartsLocatieSpecification
 	{
 		return (r, q, cb) -> gemeentes.isEmpty() ?
 			cb.disjunction() :
-			SpecificationUtil.join(r, CervixHuisartsLocatie_.locatieAdres).join(CervixHuisartsAdres_.woonplaats).join(Woonplaats_.gemeente)
+			join(r, CervixHuisartsLocatie_.locatieAdres).join(CervixHuisartsAdres_.woonplaats).join(Woonplaats_.gemeente)
 				.in(gemeentes);
 	}
 
 	public static Specification<CervixHuisartsLocatie> filterOpAchternaamMedewerkerContaining(String achternaam)
 	{
-		return SpecificationUtil.skipWhenEmpty(achternaam, (r, q, cb) ->
+		return skipWhenEmpty(achternaam, (r, q, cb) ->
 		{
 			var organisatieMedewerkerListJoin = r
 				.join(CervixHuisartsLocatie_.huisarts)
@@ -127,28 +129,28 @@ public class CervixHuisartsLocatieSpecification
 
 	public static Specification<CervixHuisartsLocatie> filterOpLocatieNaamContaining(String locatieNaam)
 	{
-		return SpecificationUtil.skipWhenEmpty(locatieNaam, (r, q, cb) -> containsCaseInsensitive(cb, r.get(CervixHuisartsLocatie_.naam), locatieNaam));
+		return skipWhenEmpty(locatieNaam, (r, q, cb) -> containsCaseInsensitive(cb, r.get(CervixHuisartsLocatie_.naam), locatieNaam));
 	}
 
 	public static Specification<CervixHuisartsLocatie> filterOpPostcodeContaining(String postcode)
 	{
-		return SpecificationUtil.skipWhenEmpty(postcode, (r, q, cb) ->
-			containsCaseInsensitive(cb, SpecificationUtil.join(r, CervixHuisartsLocatie_.locatieAdres).get(CervixHuisartsAdres_.postcode), StringUtils.deleteWhitespace(postcode))
+		return skipWhenEmpty(postcode, (r, q, cb) ->
+			containsCaseInsensitive(cb, join(r, CervixHuisartsLocatie_.locatieAdres).get(Adres_.postcode), StringUtils.deleteWhitespace(postcode))
 		);
 	}
 
 	public static Specification<CervixHuisartsLocatie> filterOpPlaatsContaining(String plaats)
 	{
-		return SpecificationUtil.skipWhenEmpty(plaats,
-			(r, q, cb) -> containsCaseInsensitive(cb, SpecificationUtil.join(r, CervixHuisartsLocatie_.locatieAdres).join(CervixHuisartsAdres_.woonplaats).get(Woonplaats_.naam),
+		return skipWhenEmpty(plaats,
+			(r, q, cb) -> containsCaseInsensitive(cb, join(r, CervixHuisartsLocatie_.locatieAdres).join(CervixHuisartsAdres_.woonplaats).get(Woonplaats_.naam),
 				plaats));
 
 	}
 
 	public static Specification<CervixHuisartsLocatie> filterOpStraat(String straat)
 	{
-		return SpecificationUtil.skipWhenEmpty(straat,
-			(r, q, cb) -> containsCaseInsensitive(cb, SpecificationUtil.join(r, CervixHuisartsLocatie_.locatieAdres).get(CervixHuisartsAdres_.straat), straat));
+		return skipWhenEmpty(straat,
+			(r, q, cb) -> containsCaseInsensitive(cb, join(r, CervixHuisartsLocatie_.locatieAdres).get(Adres_.straat), straat));
 	}
 
 	public static ExtendedSpecification<CervixHuisartsLocatie> heeftHuisarts(CervixHuisarts huisarts)

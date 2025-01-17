@@ -4,7 +4,7 @@ package nl.rivm.screenit.wsb.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,13 +31,10 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.model.enums.BestandStatus;
-import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoek;
 import nl.rivm.screenit.model.mamma.dicom.CMoveConfig;
 import nl.rivm.screenit.model.mamma.dicom.SCPConfig;
 import nl.rivm.screenit.service.mamma.MammaBaseUitwisselportaalService;
-import nl.topicuszorg.hibernate.criteria.BaseCriteria;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.rivm.screenit.wsb.service.mamma.MammaDownloadOnderzoekService;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5Session;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
@@ -64,7 +61,6 @@ import org.dcm4che3.util.SafeClose;
 import org.dcm4che3.util.StreamUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -83,7 +79,7 @@ public class MammaDicomCStroreServiceProviderImpl implements ApplicationListener
 	private SessionFactory sessionFactory;
 
 	@Autowired
-	private HibernateService hibernateService;
+	private MammaDownloadOnderzoekService downloadOnderzoekService;
 
 	@Autowired
 	private SimplePreferenceService preferenceService;
@@ -200,14 +196,14 @@ public class MammaDicomCStroreServiceProviderImpl implements ApplicationListener
 					session = sessionFactory.openSession();
 					TransactionSynchronizationManager.bindResource(sessionFactory, new SessionHolder(session));
 
-					var downloadOnderzoek = getDownloadOnderzoek(accessionNumber);
-					if (downloadOnderzoek != null)
+					var downloadOnderzoek = downloadOnderzoekService.findDownloadOnderzoekInVerwerking(Long.parseLong(accessionNumber));
+					if (downloadOnderzoek.isPresent())
 					{
 						var newFile = new File(System.getProperty("java.io.tmpdir") + File.separator + "IMG" + StringUtils.leftPad(instanceNumber, 5, "0") + ".dcm");
 						if (file.renameTo(newFile))
 						{
 							file = newFile;
-							uitwisselPortaalService.kopieerDicomBestandNaarDownloadVerzoekMap(file, seriesNumber, downloadOnderzoek);
+							uitwisselPortaalService.kopieerDicomBestandNaarDownloadVerzoekMap(file, seriesNumber, downloadOnderzoek.get());
 						}
 						else
 						{
@@ -310,19 +306,5 @@ public class MammaDicomCStroreServiceProviderImpl implements ApplicationListener
 			uids[i] = toUID(uids[i]);
 		}
 		return uids;
-	}
-
-	private MammaDownloadOnderzoek getDownloadOnderzoek(String accessionNumber)
-	{
-		BaseCriteria<MammaDownloadOnderzoek> criteria = new BaseCriteria<>(MammaDownloadOnderzoek.class);
-		criteria.alias("onderzoek");
-		criteria.alias("onderzoek.afspraak", "afspraak");
-		criteria.alias("afspraak.uitnodiging", "uitnodiging");
-		criteria.alias("uitnodiging.screeningRonde", "ronde");
-		criteria.alias("verzoek");
-		criteria.add(Restrictions.eq("status", BestandStatus.BEZIG_MET_VERWERKEN));
-		criteria.add(Restrictions.eq("verzoek.status", BestandStatus.BEZIG_MET_VERWERKEN));
-		criteria.add(Restrictions.eq("ronde.uitnodigingsNr", Long.parseLong(accessionNumber)));
-		return criteria.uniqueResult(hibernateService.getHibernateSession());
 	}
 }

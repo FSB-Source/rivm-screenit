@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.bmhklaboratoriu
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -42,6 +42,7 @@ import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
 import nl.rivm.screenit.model.cervix.facturatie.CervixLabTarief;
+import nl.rivm.screenit.model.cervix.facturatie.CervixTarief_;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
@@ -121,7 +122,7 @@ public class CervixLaboratoriumTarievenPage extends OrganisatieBeheer
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				dialog.openWith(target, new CervixLaboratoriumTarievenPopupPanel(BootstrapDialog.CONTENT_ID)
+				dialog.openWith(target, new CervixLaboratoriumTarievenPopupPanel(IDialog.CONTENT_ID)
 				{
 					@Override
 					protected void opslaan(AjaxRequestTarget target)
@@ -146,7 +147,7 @@ public class CervixLaboratoriumTarievenPage extends OrganisatieBeheer
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				dialog.openWith(target, new CervixLaboratoriumIndexerenPopupPanel(BootstrapDialog.CONTENT_ID)
+				dialog.openWith(target, new CervixLaboratoriumIndexerenPopupPanel(IDialog.CONTENT_ID)
 				{
 					@Override
 					protected void opslaan(AjaxRequestTarget target, String melding)
@@ -191,8 +192,8 @@ public class CervixLaboratoriumTarievenPage extends OrganisatieBeheer
 			columns
 				.add(new BigDecimalPricePropertyColumn<>(new SimpleStringResourceModel(EnumStringUtil.getPropertyString(type)), type.getBedragProperty()));
 		}
-		columns.add(new DateTimePropertyColumn<>(Model.of("Geldig vanaf"), "geldigVanafDatum", "geldigVanafDatum", format));
-		columns.add(new DateTimePropertyColumn<>(Model.of("Geldig t/m"), "geldigTotenmetDatum", "geldigTotenmetDatum", format));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Geldig vanaf"), CervixTarief_.GELDIG_VANAF_DATUM, CervixTarief_.GELDIG_VANAF_DATUM, format));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Geldig t/m"), CervixTarief_.GELDIG_TOTENMET_DATUM, CervixTarief_.GELDIG_TOTENMET_DATUM, format));
 
 		if (Actie.VERWIJDEREN == actie)
 		{

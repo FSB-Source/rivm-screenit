@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.aftergba.retourzendingstep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,24 +21,35 @@ package nl.rivm.screenit.batch.jobs.cervix.aftergba.retourzendingstep;
  * =========================LICENSE_END==================================
  */
 
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Root;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.batch.jobs.aftergba.retourzendingstep.BaseRetourzendingReader;
+import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.InpakbareUitnodiging;
+import nl.rivm.screenit.model.cervix.CervixDossier_;
+import nl.rivm.screenit.model.cervix.CervixScreeningRonde_;
 
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
 @Component
 public class RetourzendingReader extends BaseRetourzendingReader
 {
-
 	@Override
-	protected String getBvoDossierPropertyInClient()
+	protected String getRetourzendingMarker()
 	{
-		return "cervixDossier";
+		return Constants.CERVIX_RETOURZENDING_MARKER;
 	}
 
 	@Override
-	protected String getRetoursendingMarker()
+	protected From<?, ? extends InpakbareUitnodiging<?>> getUitnodigingJoin(Root<Client> r)
 	{
-		return Constants.CERVIX_RETOURZENDING_MARKER;
+		var dossierJoin = join(r, Client_.cervixDossier);
+		var screeningRondeJoin = join(dossierJoin, CervixDossier_.screeningRondes);
+		return join(screeningRondeJoin, CervixScreeningRonde_.uitnodigingen);
 	}
 }

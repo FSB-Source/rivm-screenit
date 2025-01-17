@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.gedeeld.verslagen;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,9 +35,10 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
+
 public class OngeldigeBerichtenDataProvider extends SortableDataProvider<MeldingOngeldigCdaBericht, String>
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@SpringBean
@@ -56,8 +57,8 @@ public class OngeldigeBerichtenDataProvider extends SortableDataProvider<Melding
 	@Override
 	public Iterator<? extends MeldingOngeldigCdaBericht> iterator(long first, long count)
 	{
-		List<MeldingOngeldigCdaBericht> searchOngeldigeBerichten = ongeldigeBerichtenService.searchOngeldigeBerichten(ModelUtil.nullSafeGet(filter), first, count,
-			getSort().getProperty(), getSort().isAscending());
+		List<MeldingOngeldigCdaBericht> searchOngeldigeBerichten = ongeldigeBerichtenService.zoekOngeldigeBerichten(ModelUtil.nullSafeGet(filter), first, count,
+			toSpringSort(getSort()));
 		return searchOngeldigeBerichten.iterator();
 	}
 

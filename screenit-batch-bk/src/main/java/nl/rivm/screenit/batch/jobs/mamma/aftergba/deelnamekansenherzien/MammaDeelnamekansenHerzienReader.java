@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.aftergba.deelnamekansenherzien;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,7 +33,7 @@ import org.springframework.stereotype.Component;
 
 import static nl.rivm.screenit.batch.jobs.mamma.aftergba.AfterGbaJobConfiguration.AFTER_GBA_JOB_READER_FETCH_SIZE;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
-import static nl.rivm.screenit.specification.algemeen.GbaMutatieSpecification.filterOpAanvullendeInformatieContaining;
+import static nl.rivm.screenit.specification.algemeen.GbaMutatieSpecification.heeftAanvullendeInformatieContaining;
 
 @Component
 public class MammaDeelnamekansenHerzienReader extends BaseSpecificationScrollableResultReader<MammaDossier>
@@ -53,7 +53,7 @@ public class MammaDeelnamekansenHerzienReader extends BaseSpecificationScrollabl
 
 	private Specification<MammaDossier> heeftMutatieMetAdresGewijzigdMarker()
 	{
-		return filterOpAanvullendeInformatieContaining(Constants.MAMMA_ADRES_GEWIJZIGD_MARKER).with(r ->
+		return heeftAanvullendeInformatieContaining(Constants.MAMMA_ADRES_GEWIJZIGD_MARKER).with(r ->
 		{
 			var client = join(r, MammaDossier_.client);
 			return join(client, Client_.laatsteGbaMutatie);

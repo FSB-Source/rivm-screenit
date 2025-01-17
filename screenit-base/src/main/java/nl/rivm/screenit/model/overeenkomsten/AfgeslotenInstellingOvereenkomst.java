@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.model.overeenkomsten;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,24 +24,16 @@ package nl.rivm.screenit.model.overeenkomsten;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.Instelling;
 
 @Entity
+@Getter
+@Setter
 public class AfgeslotenInstellingOvereenkomst extends AbstractAfgeslotenOvereenkomst
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@ManyToOne
 	private Instelling instelling;
-
-	public Instelling getInstelling()
-	{
-		return instelling;
-	}
-
-	public void setInstelling(Instelling instelling)
-	{
-		this.instelling = instelling;
-	}
 }

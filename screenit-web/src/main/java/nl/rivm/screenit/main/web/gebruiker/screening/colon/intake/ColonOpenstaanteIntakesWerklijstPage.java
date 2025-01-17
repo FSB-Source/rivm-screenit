@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.intake;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,16 +21,21 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.intake;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Arrays;
 import java.util.List;
 
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.colon.ColonDossier_;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
+import nl.rivm.screenit.model.colon.ColonIntakeAfspraak_;
 import nl.rivm.screenit.model.colon.ColonIntakelocatie;
+import nl.rivm.screenit.model.colon.ColonVolgendeUitnodiging_;
 import nl.rivm.screenit.model.colon.ConclusieTypeFilter;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
+
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
 
 public class ColonOpenstaanteIntakesWerklijstPage extends WerklijstIntakePage
 {
@@ -43,14 +48,15 @@ public class ColonOpenstaanteIntakesWerklijstPage extends WerklijstIntakePage
 	@Override
 	protected List<ConclusieTypeFilter> getFilterOpties()
 	{
-		return Arrays.asList(ConclusieTypeFilter.getOpenstaandeAfspraken());
+		return ConclusieTypeFilter.getOpenstaandeAfspraken();
 	}
 
 	@Override
 	protected SortableDataProvider<ColonIntakeAfspraak, String> getWerklijstIntakeDataProvider(ColonIntakelocatie intakelocatie, int aantalPerPagina)
 	{
 		var werklijstIntakeDataProvider = super.getWerklijstIntakeDataProvider(intakelocatie, aantalPerPagina);
-		werklijstIntakeDataProvider.setSort("volgendeUitnodiging.peildatum", SortOrder.ASCENDING);
+		werklijstIntakeDataProvider.setSort(
+			propertyChain(ColonIntakeAfspraak_.CLIENT, Client_.COLON_DOSSIER, ColonDossier_.VOLGENDE_UITNODIGING, ColonVolgendeUitnodiging_.PEILDATUM), SortOrder.ASCENDING);
 		return werklijstIntakeDataProvider;
 	}
 

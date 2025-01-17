@@ -38,20 +38,6 @@
                                     </bindingFiles>
                                 </wsdlOption>
                                 <wsdlOption>
-                                    <wsdl>${basedir}/src/main/resources/wsdl/VragenlijstAntwoordenService.wsdl</wsdl>
-                                    <bindingFiles>
-                                        <bindingFile>${basedir}/src/main/resources/bindings/jaxb-bindings-vrla.xml</bindingFile>
-                                        <bindingFile>${basedir}/src/main/resources/bindings/jaxws-bindings-vrla.xml</bindingFile>
-                                    </bindingFiles>
-                                </wsdlOption>
-                                <wsdlOption>
-                                    <wsdl>${basedir}/src/main/resources/wsdl/VragenlijstDefinitieService.wsdl</wsdl>
-                                    <bindingFiles>
-                                        <bindingFile>${basedir}/src/main/resources/bindings/jaxb-bindings-vrld.xml</bindingFile>
-                                        <bindingFile>${basedir}/src/main/resources/bindings/jaxws-bindings-vrld.xml</bindingFile>
-                                    </bindingFiles>
-                                </wsdlOption>
-                                <wsdlOption>
                                     <wsdl>${basedir}/src/main/resources/wsdl/LabformulierService.wsdl</wsdl>
                                     <bindingFiles>
                                         <bindingFile>${basedir}/src/main/resources/bindings/jaxb-bindings-labformulier.xml</bindingFile>

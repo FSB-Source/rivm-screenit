@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,16 +25,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.main.comparator.SKMLExterneSchemaComparator;
-import nl.rivm.screenit.main.dao.SKMLExternSchemaDao;
 import nl.rivm.screenit.main.model.SKMLImportVoortgang;
 import nl.rivm.screenit.main.model.SKMLSchemaMapping;
+import nl.rivm.screenit.main.service.SKMLExternSchemaService;
 import nl.rivm.screenit.main.service.SKMLExterneSchemaXlsService;
 import nl.rivm.screenit.main.util.SKMLXlsUtil;
 import nl.rivm.screenit.model.colon.SKMLExternSchema;
@@ -52,28 +51,27 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.REQUIRED)
 @Slf4j
 @AllArgsConstructor
 public class SKMLExterneSchemaXlsServiceImpl implements SKMLExterneSchemaXlsService
 {
-
-	private final SKMLExternSchemaDao skmlDao;
+	private final SKMLExternSchemaService schemaService;
 
 	private final HibernateService hibernateService;
 
 	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public SKMLImportVoortgang importSchemaXls(InputStream inputStream, boolean allesOverschrijven)
 	{
 		LOG.info("Start met import xls SKML Extern Schema");
-		SKMLImportVoortgang voortgang = new SKMLImportVoortgang();
+		var voortgang = new SKMLImportVoortgang();
 		voortgang.setStart(currentDateSupplier.getDate());
 		List<SKMLExternSchema> schemaLijst = new ArrayList<>();
-		Workbook workbook = maakWorkBook(inputStream);
+		var workbook = maakWorkBook(inputStream);
 		voortgang = verwerkWorkbook(workbook, schemaLijst, voortgang);
-		Collections.sort(schemaLijst, new SKMLExterneSchemaComparator());
+		schemaLijst.sort(new SKMLExterneSchemaComparator());
 		voortgang = verwerkSchemas(schemaLijst, allesOverschrijven, voortgang);
 		voortgang.setEind(currentDateSupplier.getDate());
 		LOG.info("Klaar met import xls SKML Extern Schema");
@@ -86,29 +84,25 @@ public class SKMLExterneSchemaXlsServiceImpl implements SKMLExterneSchemaXlsServ
 		{
 			if (allesOverschrijven)
 			{
-				List<SKMLExternSchema> oudeSchemas = new ArrayList<>();
-				oudeSchemas.addAll(skmlDao.haalSchemasVanafDeadlineDatum(schemas.get(0).getDeadline()));
-				if (CollectionUtils.isNotEmpty(oudeSchemas))
+				var oudeSchemas = new ArrayList<>(schemaService.haalSchemasVanafDeadlineDatum(schemas.get(0).getDeadline()));
+				for (var schema : oudeSchemas)
 				{
-					for (SKMLExternSchema schema : oudeSchemas)
-					{
-						LOG.debug("Schema met ID: " + schema.getId() + " wordt verwijderd.");
-						schema.setActief(false);
-						voortgang.setVerwijderd(voortgang.getVerwijderd() + 1);
-					}
-					hibernateService.saveOrUpdateAll(oudeSchemas);
+					LOG.debug("Schema met ID: '{}' wordt verwijderd.", schema.getId());
+					schema.setActief(false);
+					voortgang.setVerwijderd(voortgang.getVerwijderd() + 1);
 				}
+				hibernateService.saveOrUpdateAll(oudeSchemas);
 			}
-			for (SKMLExternSchema schema : schemas)
+			for (var schema : schemas)
 			{
-				List<SKMLExternSchema> lijst = skmlDao.zoekSchema(schema, true);
+				var lijst = schemaService.zoekSchema(schema);
 				if (CollectionUtils.isNotEmpty(lijst))
 				{
-					SKMLExternSchema dbSchema = lijst.get(0);
+					var dbSchema = lijst.get(0);
 					dbSchema.setJaar(schema.getJaar());
 					dbSchema.setRonde(schema.getRonde());
 					dbSchema.setLetter(schema.getLetter());
-					LOG.debug("Bestaand schema met ID: " + dbSchema.getId() + " wordt geupdate.");
+					LOG.debug("Bestaand schema met ID: '{}' wordt geüpdated.", dbSchema.getId());
 					voortgang.setGeupdate(voortgang.getGeupdate() + 1);
 					hibernateService.saveOrUpdate(dbSchema);
 				}
@@ -122,7 +116,7 @@ public class SKMLExterneSchemaXlsServiceImpl implements SKMLExterneSchemaXlsServ
 		}
 		else
 		{
-			String foutmelding = "Er waren geen SKML externe controle schemas om te verwerken";
+			var foutmelding = "Er waren geen SKML externe controle schemas om te verwerken";
 			LOG.warn(foutmelding);
 			voortgang.getFoutmeldingen().add(foutmelding);
 		}
@@ -148,8 +142,8 @@ public class SKMLExterneSchemaXlsServiceImpl implements SKMLExterneSchemaXlsServ
 	{
 		if (workbook != null)
 		{
-			int aantalSheets = workbook.getNumberOfSheets();
-			int sheetCounter = 0;
+			var aantalSheets = workbook.getNumberOfSheets();
+			var sheetCounter = 0;
 			while (sheetCounter < aantalSheets)
 			{
 				verwerkSheet(workbook.getSheetAt(sheetCounter), schemaLijst, voortgang);
@@ -158,7 +152,7 @@ public class SKMLExterneSchemaXlsServiceImpl implements SKMLExterneSchemaXlsServ
 		}
 		else
 		{
-			String foutmelding = "Workbook is null. Er was een probleem bij het omzetten van de inputtream naar Workbook. SKML extern schema import is gestaakt";
+			var foutmelding = "Workbook is null. Er was een probleem bij het omzetten van de inputtream naar Workbook. SKML extern schema import is gestaakt";
 			LOG.error(foutmelding);
 			voortgang.getFoutmeldingen().add(foutmelding);
 		}
@@ -168,12 +162,12 @@ public class SKMLExterneSchemaXlsServiceImpl implements SKMLExterneSchemaXlsServ
 	private SKMLImportVoortgang verwerkSheet(Sheet sheet, List<SKMLExternSchema> schemaLijst, SKMLImportVoortgang voortgang)
 	{
 		LOG.info("Verwerk sheet met naam: " + sheet.getSheetName());
-		int rowCounter = 0;
-		boolean klaarMetSheet = false;
+		var rowCounter = 0;
+		var klaarMetSheet = false;
 		SKMLSchemaMapping mapping = null;
 		while (!klaarMetSheet)
 		{
-			Row row = sheet.getRow(rowCounter);
+			var row = sheet.getRow(rowCounter);
 			if (row != null && rowCounter == 0)
 			{
 				mapping = maakMapping(row);
@@ -195,7 +189,7 @@ public class SKMLExterneSchemaXlsServiceImpl implements SKMLExterneSchemaXlsServ
 
 	private SKMLImportVoortgang verwerkRow(Row row, SKMLSchemaMapping mapping, List<SKMLExternSchema> schemaLijst, SKMLImportVoortgang voortgang)
 	{
-		SKMLExternSchema schema = new SKMLExternSchema();
+		var schema = new SKMLExternSchema();
 		schema.setActief(Boolean.TRUE);
 		schema.setJaar(SKMLXlsUtil.getIntFromCell(row.getCell(mapping.getSkmljaar())));
 		schema.setRonde(SKMLXlsUtil.getIntFromCell(row.getCell(mapping.getSkmlronde())));
@@ -207,13 +201,13 @@ public class SKMLExterneSchemaXlsServiceImpl implements SKMLExterneSchemaXlsServ
 		}
 		else
 		{
-			SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
-			String deadline = "";
+			var format = new SimpleDateFormat("dd-MM-yyyy");
+			var deadline = "";
 			if (schema.getDeadline() != null)
 			{
 				deadline = format.format(schema.getDeadline());
 			}
-			String foutmelding = "Fout bij regel " + row.getRowNum() + " [J: " + schema.getJaar() + ", R: " + schema.getRonde() + ", L: " + schema.getLetter() + ", D: " + deadline
+			var foutmelding = "Fout bij regel " + row.getRowNum() + " [J: " + schema.getJaar() + ", R: " + schema.getRonde() + ", L: " + schema.getLetter() + ", D: " + deadline
 				+ "]";
 			LOG.warn(foutmelding);
 			voortgang.getFoutmeldingen().add(foutmelding);
@@ -224,11 +218,11 @@ public class SKMLExterneSchemaXlsServiceImpl implements SKMLExterneSchemaXlsServ
 	private SKMLSchemaMapping maakMapping(Row row)
 	{
 		LOG.debug("Begonnen met aanmaken mappings object.");
-		SKMLSchemaMapping mapping = new SKMLSchemaMapping();
-		int rijenTeller = 0;
+		var mapping = new SKMLSchemaMapping();
+		var rijenTeller = 0;
 		while (rijenTeller < 100)
 		{
-			String mappingString = row.getCell(rijenTeller).getStringCellValue();
+			var mappingString = row.getCell(rijenTeller).getStringCellValue();
 			if (StringUtils.isNotBlank(mappingString))
 			{
 				if (StringUtils.equalsIgnoreCase("skml jaar", mappingString))

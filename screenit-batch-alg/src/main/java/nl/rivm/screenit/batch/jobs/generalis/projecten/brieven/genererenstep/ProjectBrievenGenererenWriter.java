@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.generalis.projecten.brieven.genererenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -43,7 +43,6 @@ import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectClientAttribuut;
 import nl.rivm.screenit.model.project.ProjectMergedBrieven;
-import nl.rivm.screenit.service.BaseProjectService;
 import nl.rivm.screenit.service.ClientService;
 
 import org.apache.commons.lang.StringUtils;
@@ -51,14 +50,9 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.aspose.words.Document;
-
 @Component
 public class ProjectBrievenGenererenWriter extends AbstractBrievenGenererenWriter<ProjectBrief, ProjectMergedBrieven>
 {
-
-	@Autowired
-	private BaseProjectService projectService;
 
 	@Autowired
 	private ClientService clientService;
@@ -81,15 +75,6 @@ public class ProjectBrievenGenererenWriter extends AbstractBrievenGenererenWrite
 	protected String getRapportageAantalBrievenKey()
 	{
 		return ProjectBrievenConstants.RAPPORTAGEKEYAANTALBRIEVEN;
-	}
-
-	@Override
-	public void additionalActiesWithDocument(MailMergeContext context, ProjectBrief projectBrief, Document chunkDocument) throws Exception
-	{
-
-		ProjectBriefActie actie = getHibernateService().load(ProjectBriefActie.class, getStepExecutionContext().getLong(ProjectBrievenConstants.KEY_PROJECT_ACTIE_ID));
-
-		projectService.addVragenlijstAanTemplate(context, chunkDocument, actie, projectBrief);
 	}
 
 	@Override
@@ -128,10 +113,6 @@ public class ProjectBrievenGenererenWriter extends AbstractBrievenGenererenWrite
 			context.putValue(MailMergeContext.CONTEXT_MAMMA_CE, clientService.bepaalCe(context.getClient()));
 		}
 		context.setProjectBrief(brief);
-		if (brief != null && brief.getDefinitie().getVragenlijst() != null)
-		{
-			context.setVragenlijstNaam(brief.getDefinitie().getVragenlijst().getNaam());
-		}
 
 		ProjectClient projectClient = brief.getProjectClient();
 		Project project = projectClient.getProject();

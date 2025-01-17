@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,6 +35,9 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.mamma.enums.MammaUitstelGeannuleerdReden;
 import nl.rivm.screenit.model.mamma.enums.MammaUitstelReden;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
@@ -51,6 +54,8 @@ import org.hibernate.envers.Audited;
 		@UniqueConstraint(columnNames = "uitnodiging") })
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "mamma.cache")
 @Audited
+@Getter
+@Setter
 public class MammaUitstel extends AbstractHibernateObject
 {
 
@@ -84,84 +89,4 @@ public class MammaUitstel extends AbstractHibernateObject
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
 	private MammaUitstelReden uitstelReden;
-
-	public MammaScreeningRonde getScreeningRonde()
-	{
-		return screeningRonde;
-	}
-
-	public void setScreeningRonde(MammaScreeningRonde screeningRonde)
-	{
-		this.screeningRonde = screeningRonde;
-	}
-
-	public Date getGemaaktOp()
-	{
-		return gemaaktOp;
-	}
-
-	public void setGemaaktOp(Date gemaaktOp)
-	{
-		this.gemaaktOp = gemaaktOp;
-	}
-
-	public Date getStreefDatum()
-	{
-		return streefDatum;
-	}
-
-	public void setStreefDatum(Date streefDatum)
-	{
-		this.streefDatum = streefDatum;
-	}
-
-	public Date getGeannuleerdOp()
-	{
-		return geannuleerdOp;
-	}
-
-	public void setGeannuleerdOp(Date geannuleerdOp)
-	{
-		this.geannuleerdOp = geannuleerdOp;
-	}
-
-	public MammaStandplaats getStandplaats()
-	{
-		return standplaats;
-	}
-
-	public void setStandplaats(MammaStandplaats standplaats)
-	{
-		this.standplaats = standplaats;
-	}
-
-	public MammaUitnodiging getUitnodiging()
-	{
-		return uitnodiging;
-	}
-
-	public void setUitnodiging(MammaUitnodiging uitnodiging)
-	{
-		this.uitnodiging = uitnodiging;
-	}
-
-	public MammaUitstelGeannuleerdReden getGeannuleerdReden()
-	{
-		return geannuleerdReden;
-	}
-
-	public void setGeannuleerdReden(MammaUitstelGeannuleerdReden geannuleerdReden)
-	{
-		this.geannuleerdReden = geannuleerdReden;
-	}
-
-	public MammaUitstelReden getUitstelReden()
-	{
-		return uitstelReden;
-	}
-
-	public void setUitstelReden(MammaUitstelReden uitstelReden)
-	{
-		this.uitstelReden = uitstelReden;
-	}
 }

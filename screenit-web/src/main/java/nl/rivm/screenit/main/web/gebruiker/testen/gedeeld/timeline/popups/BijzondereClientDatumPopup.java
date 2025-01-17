@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.popups;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,7 +32,6 @@ import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.INaam;
 import nl.rivm.screenit.service.ClientService;
-import nl.rivm.screenit.service.GemeenteService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.TestService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -48,9 +47,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public abstract class BijzondereClientDatumPopup extends GenericPanel<List<Client>>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private ICurrentDateSupplier currentDateSupplier;
 
@@ -61,12 +57,9 @@ public abstract class BijzondereClientDatumPopup extends GenericPanel<List<Clien
 	private HibernateService hibernateService;
 
 	@SpringBean
-	private GemeenteService gemeenteService;
-
-	@SpringBean
 	private TestService testService;
 
-	private IModel<GbaPersoonDatum> persoonDatumModel;
+	private final IModel<GbaPersoonDatum> persoonDatumModel;
 
 	public BijzondereClientDatumPopup(String id, IModel<List<Client>> model)
 	{
@@ -111,9 +104,6 @@ public abstract class BijzondereClientDatumPopup extends GenericPanel<List<Clien
 	{
 		IndicatingAjaxSubmitLink link = new IndicatingAjaxSubmitLink("opslaan", form)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -134,12 +124,12 @@ public abstract class BijzondereClientDatumPopup extends GenericPanel<List<Clien
 						adres.setHuisnummer(null);
 						adres.setStraat(null);
 						adres.setPlaats(null);
-						adres.setGbaGemeente(gemeenteService.getGemeenteByCode(Gemeente.RNI_CODE));
+						adres.setGbaGemeente(testService.getGemeenteByCode(Gemeente.RNI_CODE));
 						persoon.setDatumVestigingNederland(null);
 						break;
 					case DATUM_VESTIGING_NEDERLAND:
 						persoon.setDatumVestigingNederland(currentDateSupplier.getDate());
-						Gemeente gemeente = testService.getGemeenteMetScreeningOrganisatie();
+						Gemeente gemeente = testService.getEersteGemeenteMetScreeningOrganisatie();
 						adres.setPostcode("1234AA");
 						adres.setHuisnummer(9);
 						adres.setStraat("Teststraat");
@@ -167,9 +157,9 @@ public abstract class BijzondereClientDatumPopup extends GenericPanel<List<Clien
 
 		DATUM_VESTIGING_NEDERLAND("Vestiging in Nederland");
 
-		private String naam;
+		private final String naam;
 
-		private GbaPersoonDatum(String naam)
+		GbaPersoonDatum(String naam)
 		{
 			this.naam = naam;
 		}

@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -104,20 +104,6 @@ public class MammaScreeningRondeSpecification
 		};
 	}
 
-	private static Join<MammaOnderzoek, MammaBeoordeling> beoordelingenJoin(Root<MammaScreeningRonde> r)
-	{
-		var uitnodigingen = join(r, MammaScreeningRonde_.uitnodigingen);
-		var afspraken = join(uitnodigingen, MammaUitnodiging_.afspraken);
-		var onderzoeken = join(afspraken, MammaAfspraak_.onderzoek);
-		return join(onderzoeken, MammaOnderzoek_.beoordelingen);
-	}
-
-	private static Join<MammaOnderzoek, MammaBeoordeling> laatsteBeoordelingenJoin(Root<MammaScreeningRonde> r)
-	{
-		var laatsteOnderzoek = join(r, MammaScreeningRonde_.laatsteOnderzoek);
-		return join(laatsteOnderzoek, MammaOnderzoek_.laatsteBeoordeling);
-	}
-
 	public static Specification<MammaScreeningRonde> heeftBeeldenMetGunstigeUitslag(Root<MammaDossier> dossierRoot)
 	{
 		return heeftBeeldenMetGunstigeUitslag().and(heeftDossier(dossierRoot));
@@ -184,5 +170,29 @@ public class MammaScreeningRondeSpecification
 	public static ExtendedSpecification<MammaScreeningRonde> heeftGeenScreeningRondeEvent()
 	{
 		return (r, q, cb) -> cb.isNull(r.get(MammaScreeningRonde_.screeningRondeEvent));
+	}
+
+	public static ExtendedSpecification<MammaScreeningRonde> heeftGeenLaatsteOnderzoek()
+	{
+		return (r, q, cb) -> cb.isNull(r.get(MammaScreeningRonde_.laatsteOnderzoek));
+	}
+
+	public static ExtendedSpecification<MammaScreeningRonde> heeftUitnogigingsNummer(long uitnodigingsNummer)
+	{
+		return (r, q, cb) -> cb.equal(r.get(MammaScreeningRonde_.uitnodigingsNr), uitnodigingsNummer);
+	}
+
+	private static Join<MammaOnderzoek, MammaBeoordeling> beoordelingenJoin(Root<MammaScreeningRonde> r)
+	{
+		var uitnodigingen = join(r, MammaScreeningRonde_.uitnodigingen);
+		var afspraken = join(uitnodigingen, MammaUitnodiging_.afspraken);
+		var onderzoeken = join(afspraken, MammaAfspraak_.onderzoek);
+		return join(onderzoeken, MammaOnderzoek_.beoordelingen);
+	}
+
+	private static Join<MammaOnderzoek, MammaBeoordeling> laatsteBeoordelingenJoin(Root<MammaScreeningRonde> r)
+	{
+		var laatsteOnderzoek = join(r, MammaScreeningRonde_.laatsteOnderzoek);
+		return join(laatsteOnderzoek, MammaOnderzoek_.laatsteBeoordeling);
 	}
 }

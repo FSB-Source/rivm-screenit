@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,7 @@ import java.util.Arrays;
 import java.util.Date;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.BagAdres_;
 import nl.rivm.screenit.model.Brief_;
@@ -49,15 +49,17 @@ import nl.rivm.screenit.model.cervix.CervixZas;
 import nl.rivm.screenit.model.cervix.CervixZas_;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.specification.SpecificationUtil;
 import nl.rivm.screenit.specification.algemeen.ClientSpecification;
+import nl.rivm.screenit.specification.algemeen.MergedBrievenSpecification;
 import nl.rivm.screenit.util.DateUtil;
 
 import org.springframework.data.jpa.domain.Specification;
 
 import static nl.rivm.screenit.specification.algemeen.BriefSpecification.heeftBriefTypeIn;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixUitnodigingSpecification
 {
 	public static Specification<CervixUitnodiging> heeftActieveClient()
@@ -111,8 +113,8 @@ public class CervixUitnodigingSpecification
 
 	public static Specification<CervixUitnodiging> heeftMergedBrievenVoorDatum(LocalDate datum)
 	{
-		return CervixMergedBrievenSpecification.heeftPrintDatumVoorDatum(datum)
-			.toSpecification(r ->
+		return MergedBrievenSpecification.heeftPrintDatumVoor(datum)
+			.with(r ->
 			{
 				var brief = SpecificationUtil.join(r, CervixUitnodiging_.brief);
 				return SpecificationUtil.join(brief, CervixBrief_.mergedBrieven);
@@ -156,11 +158,6 @@ public class CervixUitnodigingSpecification
 		};
 	}
 
-	public static Specification<CervixUitnodiging> heeftGeenVerstuurdDatum()
-	{
-		return (r, q, cb) -> cb.isNull(r.get(InpakbareUitnodiging_.verstuurdDatum));
-	}
-
 	public static Specification<CervixUitnodiging> heeftUitnodigingsDatumVoorDatum(Date datum)
 	{
 		return (r, q, cb) -> cb.lessThanOrEqualTo(r.get(Uitnodiging_.uitnodigingsDatum), datum);
@@ -201,5 +198,10 @@ public class CervixUitnodigingSpecification
 	public static Specification<CervixUitnodiging> heeftGeenMonster()
 	{
 		return (r, q, cb) -> cb.isNull(r.get(CervixUitnodiging_.monster));
+	}
+
+	public static ExtendedSpecification<CervixUitnodiging> heeftTrackTraceId(String trackTraceId)
+	{
+		return (r, q, cb) -> cb.equal(r.get(InpakbareUitnodiging_.trackTraceId), trackTraceId);
 	}
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.formulierdefinities;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,6 @@ import java.util.Collections;
 import java.util.List;
 
 import nl.rivm.screenit.main.service.FormulierService;
-import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.web.component.SimpleStringResourceModel;
 import nl.rivm.screenit.main.web.component.validator.FileValidator;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.AlgemeenPage;
@@ -40,6 +39,7 @@ import nl.rivm.screenit.model.enums.FileType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.formulieren.ScreenitFormulierInstantie;
 import nl.rivm.screenit.model.formulieren.TypeFormulier;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.topicuszorg.wicket.hibernate.SimpleListHibernateModel;
 
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -68,9 +68,6 @@ import org.wicketstuff.shiro.ShiroConstraint;
 		Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA })
 public class FormulierenBeheerPage extends AlgemeenPage
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private static final Logger LOG = LoggerFactory.getLogger(FormulierenBeheerPage.class);
 
 	@SpringBean
@@ -84,8 +81,6 @@ public class FormulierenBeheerPage extends AlgemeenPage
 
 	private class UploadForm extends Form<Void>
 	{
-
-		private static final long serialVersionUID = 1L;
 
 		private final IModel<List<FileUpload>> fileUploads = new ListModel<>();
 
@@ -105,9 +100,6 @@ public class FormulierenBeheerPage extends AlgemeenPage
 
 			add(new SubmitLink("opslaan")
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				public void onSubmit()
 				{
@@ -146,32 +138,23 @@ public class FormulierenBeheerPage extends AlgemeenPage
 	{
 
 		List<ScreenitFormulierInstantie> formulierInstanties = new ArrayList<>();
-		formulierInstanties.add(formulierService.getFormulierInstatie(TypeFormulier.MDL));
-		formulierInstanties.add(formulierService.getFormulierInstatie(TypeFormulier.PALGA));
-		formulierInstanties.add(formulierService.getFormulierInstatie(TypeFormulier.CYTOLOGIE));
-		formulierInstanties.add(formulierService.getFormulierInstatie(TypeFormulier.MAMMA_PA_FOLLOW_UP));
+		formulierInstanties.add(formulierService.getFormulierInstantie(TypeFormulier.MDL));
+		formulierInstanties.add(formulierService.getFormulierInstantie(TypeFormulier.PALGA));
+		formulierInstanties.add(formulierService.getFormulierInstantie(TypeFormulier.CYTOLOGIE));
+		formulierInstanties.add(formulierService.getFormulierInstantie(TypeFormulier.MAMMA_PA_FOLLOW_UP));
 		formulierInstanties.removeAll(Collections.singleton(null));
-		return new ListView<ScreenitFormulierInstantie>("formulieren", new SimpleListHibernateModel<ScreenitFormulierInstantie>(formulierInstanties))
+		return new ListView<>("formulieren", new SimpleListHibernateModel<>(formulierInstanties))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void populateItem(ListItem<ScreenitFormulierInstantie> item)
 			{
-				Link<ScreenitFormulierInstantie> renderLink = new Link<ScreenitFormulierInstantie>("renderLink", item.getModel())
+				Link<ScreenitFormulierInstantie> renderLink = new Link<>("renderLink", item.getModel())
 				{
-
-					private static final long serialVersionUID = 1L;
-
 					@Override
 					public void onClick()
 					{
 						setResponsePage(new FormulierRenderPreviewPage(getModel())
 						{
-
-							private static final long serialVersionUID = 1L;
-
 							@Override
 							protected Class<? extends GebruikerBasePage> getActiveSubMenuClass()
 							{

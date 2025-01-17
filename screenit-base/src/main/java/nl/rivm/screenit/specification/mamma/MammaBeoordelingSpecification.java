@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,7 +28,7 @@ import java.util.List;
 import javax.persistence.criteria.JoinType;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.Client;
@@ -49,7 +49,6 @@ import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
 
 import org.springframework.data.jpa.domain.Specification;
 
@@ -58,7 +57,7 @@ import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmptyExte
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNullExtended;
 import static nl.rivm.screenit.specification.mamma.MammaLezingSpecification.heeftNietBeoordeeldSindsSubquery;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MammaBeoordelingSpecification
 {
 	public static Specification<Client> heeftClientLaatsteOnderzoekBeoordelingStatus(MammaBeoordelingStatus status)
@@ -73,12 +72,7 @@ public class MammaBeoordelingSpecification
 		};
 	}
 
-	public static PathAwarePredicate<MammaBeoordeling> heeftStatusPredicate(MammaBeoordelingStatus status)
-	{
-		return (cb, r) -> cb.equal(r.get(MammaBeoordeling_.status), status);
-	}
-
-	public static ExtendedSpecification<MammaBeoordeling> filterStatus(List<MammaBeoordelingStatus> statussen)
+	public static ExtendedSpecification<MammaBeoordeling> filterStatusIn(List<MammaBeoordelingStatus> statussen)
 	{
 		return skipWhenEmptyExtended(statussen, (r, q, cb) -> r.get(MammaBeoordeling_.status).in(statussen));
 	}

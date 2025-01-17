@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -522,13 +522,17 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 	private ExtendedSpecification<CervixHuisartsLocatie> getLocatiesVanHuisartsSpecification(CervixHuisartsLocatie zoekObject)
 	{
 		var specification = heeftHuisarts(zoekObject.getHuisarts());
-		if (CervixLocatieStatus.INACTIEF.equals(zoekObject.getStatus()))
+		var status = zoekObject.getStatus();
+		if (status != null)
 		{
-			specification = specification.and(heeftStatus(CervixLocatieStatus.INACTIEF));
-		}
-		else
-		{
-			specification = specification.and(CervixHuisartsLocatieSpecification.heeftNietStatus(CervixLocatieStatus.INACTIEF));
+			if (CervixLocatieStatus.INACTIEF.equals(status))
+			{
+				specification = specification.and(heeftStatus(CervixLocatieStatus.INACTIEF));
+			}
+			else
+			{
+				specification = specification.and(CervixHuisartsLocatieSpecification.heeftNietStatus(CervixLocatieStatus.INACTIEF));
+			}
 		}
 		return specification;
 	}

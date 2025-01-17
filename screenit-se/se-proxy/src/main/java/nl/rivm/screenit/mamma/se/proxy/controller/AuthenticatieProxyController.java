@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.controller;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,9 +22,6 @@ package nl.rivm.screenit.mamma.se.proxy.controller;
  */
 
 import java.io.IOException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 import nl.rivm.screenit.mamma.se.proxy.SeProxyApplication;
 import nl.rivm.screenit.mamma.se.proxy.model.AutorisatieDto;
@@ -53,9 +50,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -67,6 +64,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 @RestController
 @RequestMapping("/api/authenticatie")
@@ -275,7 +275,7 @@ public class AuthenticatieProxyController
 		return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT).build();
 	}
 
-	private void updateLaatstSuccesvolleOtp(String yubikey, HttpStatus statusCode, String yubikeyIdentificatie)
+	private void updateLaatstSuccesvolleOtp(String yubikey, HttpStatusCode statusCode, String yubikeyIdentificatie)
 	{
 		if (statusCode.equals(HttpStatus.OK) && !Constants.GEEN_IDENTIFICATIE.equals(yubikeyIdentificatie) && StringUtils.isNoneEmpty(yubikey))
 		{

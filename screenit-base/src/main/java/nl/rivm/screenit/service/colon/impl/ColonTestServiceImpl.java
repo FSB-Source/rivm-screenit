@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -631,7 +631,6 @@ public class ColonTestServiceImpl implements ColonTestService
 			var persoon = new GbaPersoon();
 			client.setPersoon(persoon);
 			persoon.setVoornaam("John");
-			persoon.setGbaGeboorteLand(testService.getGbaLand());
 			persoon.setAchternaam("Doe-" + bsn);
 			persoon.setGeslacht(Geslacht.MAN);
 			persoon.setBsn(bsn);
@@ -681,7 +680,7 @@ public class ColonTestServiceImpl implements ColonTestService
 			hibernateService.saveOrUpdate(gbaAdres);
 			if (gemeente == null)
 			{
-				gemeente = gemeenteService.getEersteGemeenteMetScreeningOrganisatie();
+				gemeente = testService.getEersteGemeenteMetScreeningOrganisatie();
 			}
 			gbaAdres.setGbaGemeente(gemeente);
 			gbaAdres.setPlaats(gemeente.getNaam());

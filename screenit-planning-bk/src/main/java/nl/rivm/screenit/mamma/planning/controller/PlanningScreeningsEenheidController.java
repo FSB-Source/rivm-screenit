@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.controller;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,13 +32,16 @@ import nl.rivm.screenit.mamma.planning.model.PlanningScreeningsEenheid;
 import nl.rivm.screenit.mamma.planning.model.PlanningScreeningsOrganisatie;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController()
+@RestController
 @RequestMapping("/" + PlanningRestConstants.C_SCREENINGSEENHEID)
 public class PlanningScreeningsEenheidController
 {
@@ -49,19 +52,19 @@ public class PlanningScreeningsEenheidController
 		this.dateSupplier = dateSupplier;
 	}
 
-	@RequestMapping(method = RequestMethod.POST)
+	@PostMapping
 	public void post(@RequestBody PlanningScreeningsEenheidDto screeningsEenheidDto)
 	{
 		addOrChangeScreeningsEenheid(screeningsEenheidDto);
 	}
 
-	@RequestMapping(method = RequestMethod.PUT)
+	@PutMapping
 	public void put(@RequestBody PlanningScreeningsEenheidDto screeningsEenheidDto)
 	{
 		addOrChangeScreeningsEenheid(screeningsEenheidDto);
 	}
 
-	@RequestMapping(value = "/{screeningsEenheidId}", method = RequestMethod.DELETE)
+	@DeleteMapping("/{screeningsEenheidId}")
 	public void delete(@PathVariable Long screeningsEenheidId)
 	{
 		PlanningScreeningsEenheid knownScreeningsEenheid = PlanningScreeningsEenheidIndex.get(screeningsEenheidId);
@@ -92,7 +95,7 @@ public class PlanningScreeningsEenheidController
 		screeningsOrganisatie.getScreeningsEenheidSet().add(knownScreeningsEenheid);
 	}
 
-	@RequestMapping(value = "/metaData/{screeningsEenheidId}", method = RequestMethod.GET)
+	@GetMapping("/metaData/{screeningsEenheidId}")
 	public PlanningScreeningsEenheidMetaDataDto getMetaData(@PathVariable Long screeningsEenheidId)
 	{
 		return PlanningMapper.from(PlanningScreeningsEenheidIndex.get(screeningsEenheidId));

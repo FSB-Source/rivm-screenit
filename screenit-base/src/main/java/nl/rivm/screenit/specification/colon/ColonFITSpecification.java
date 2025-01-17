@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,7 +28,7 @@ import java.util.List;
 import javax.persistence.criteria.JoinType;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.Brief_;
 import nl.rivm.screenit.model.ClientBrief_;
@@ -60,7 +60,7 @@ import org.springframework.data.jpa.domain.Specification;
 import static nl.rivm.screenit.specification.DateSpecification.truncate;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ColonFITSpecification
 {
 
@@ -126,14 +126,14 @@ public class ColonFITSpecification
 				cb.equal(briefRoot.get(ColonBrief_.ifobtTest), r.get(AbstractHibernateObject_.id)),
 				cb.or(
 					cb.and(
-						cb.equal(briefRoot.get(ClientBrief_.vervangendeProjectBrief), false),
+						cb.isFalse(briefRoot.get(ClientBrief_.vervangendeProjectBrief)),
 						briefRoot.get(Brief_.briefType).in(List.of(BriefType.COLON_UITSLAG_BRIEVEN)),
-						cb.equal(briefRoot.get(Brief_.gegenereerd), true)
+						cb.isTrue(briefRoot.get(Brief_.gegenereerd))
 					),
 					cb.and(
-						cb.equal(briefRoot.get(ClientBrief_.vervangendeProjectBrief), true),
+						cb.isTrue(briefRoot.get(ClientBrief_.vervangendeProjectBrief)),
 						projectBriefJoin.get(Brief_.briefType).in(List.of(BriefType.COLON_UITSLAG_BRIEVEN)),
-						cb.equal(projectBriefJoin.get(Brief_.gegenereerd), true)
+						cb.isTrue(projectBriefJoin.get(Brief_.gegenereerd))
 					)
 				)
 			);
@@ -194,11 +194,11 @@ public class ColonFITSpecification
 				),
 				cb.or(
 					cb.and(
-						heeftStatussen(List.of(IFOBTTestStatus.UITGEVOERD)).toPredicate(r, q, cb),
+						heeftStatusIn(List.of(IFOBTTestStatus.UITGEVOERD)).toPredicate(r, q, cb),
 						heeftGeenUitslagBrief().toPredicate(r, q, cb)
 					),
 					cb.and(
-						heeftStatussen(List.of(IFOBTTestStatus.VERVALDATUMVERLOPEN, IFOBTTestStatus.NIETTEBEOORDELEN)).toPredicate(r, q, cb),
+						heeftStatusIn(List.of(IFOBTTestStatus.VERVALDATUMVERLOPEN, IFOBTTestStatus.NIETTEBEOORDELEN)).toPredicate(r, q, cb),
 						cb.or(
 							cb.and(
 								heeftGeenNieuweUitnodiging().toPredicate(r, q, cb),
@@ -221,7 +221,7 @@ public class ColonFITSpecification
 		});
 	}
 
-	public static ExtendedSpecification<IFOBTTest> heeftStatussen(List<IFOBTTestStatus> statussen)
+	public static ExtendedSpecification<IFOBTTest> heeftStatusIn(List<IFOBTTestStatus> statussen)
 	{
 		return (r, q, cb) -> r.get(IFOBTTest_.status).in(statussen);
 	}
@@ -229,6 +229,11 @@ public class ColonFITSpecification
 	public static ExtendedSpecification<IFOBTTest> heeftStatus(IFOBTTestStatus fitStatus)
 	{
 		return (r, q, cb) -> cb.equal(r.get(IFOBTTest_.status), fitStatus);
+	}
+
+	public static ExtendedSpecification<IFOBTTest> heeftGeenStatus()
+	{
+		return (r, q, cb) -> cb.isNull(r.get(IFOBTTest_.status));
 	}
 
 	public static ExtendedSpecification<IFOBTTest> heeftGunstigeUitslag()

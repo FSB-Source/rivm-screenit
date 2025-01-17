@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.overeenkomsten;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,12 +26,7 @@ import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.Index;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -41,9 +36,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import nl.rivm.screenit.model.ScreeningOrganisatie;
+import nl.rivm.screenit.model.SingleTableHibernateObject;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.helper.HibernateMagicNumber;
-import nl.topicuszorg.hibernate.object.model.HibernateObject;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -52,15 +47,10 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @Getter
 @Setter
 @Table(schema = "gedeeld", indexes = { @Index(name = "IDX_AFG_OVEREENKOMST_AKKOORD", columnList = "akkoordDatum, eindDatum, startDatum") })
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(length = HibernateMagicNumber.L100)
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "organisatie.cache")
-public abstract class AbstractAfgeslotenOvereenkomst implements HibernateObject
+public abstract class AbstractAfgeslotenOvereenkomst extends SingleTableHibernateObject
 {
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Long id;
-
 	@Column(unique = true)
 	private String code;
 

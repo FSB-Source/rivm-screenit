@@ -3,7 +3,7 @@
   ========================LICENSE_START=================================
   screenit-base
   %%
-  Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -61,10 +61,6 @@
         <mapping class="nl.rivm.screenit.model.GbaPersoon"/>
         <mapping class="nl.rivm.screenit.model.PostcodeCoordinaten"/>
         <mapping class="nl.rivm.screenit.model.colon.Complicatie"/>
-
-        <mapping class="nl.rivm.screenit.model.vragenlijsten.Vragenlijst"/>
-        <mapping class="nl.rivm.screenit.model.vragenlijsten.VragenlijstAntwoorden"/>
-        <mapping class="nl.rivm.screenit.model.vragenlijsten.VragenlijstAntwoordenHolder"/>
 
         <mapping class="nl.rivm.screenit.model.BriefDefinitie"/>
         <mapping class="nl.rivm.screenit.model.colon.ColonBrief"/>
@@ -268,10 +264,7 @@
         <mapping class="nl.rivm.screenit.model.project.ProjectBriefActie"/>
         <mapping class="nl.rivm.screenit.model.project.ProjectMergedBrieven"/>
 
-        <mapping class="nl.rivm.screenit.model.project.ProjectVragenlijst"/>
-        <mapping class="nl.rivm.screenit.model.project.ProjectVragenlijstAntwoordenHolder"/>
         <mapping class="nl.rivm.screenit.model.project.ProjectInactiveerDocument"/>
-        <mapping class="nl.rivm.screenit.model.project.ScannedVragenlijst"/>
 
         
         <mapping class="nl.rivm.screenit.model.formulieren.ScreenitFormulierInstantie"/>

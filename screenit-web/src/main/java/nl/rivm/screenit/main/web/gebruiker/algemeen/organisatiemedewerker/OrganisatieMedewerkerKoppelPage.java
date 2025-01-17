@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatiemedewerker;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -125,7 +125,6 @@ public abstract class OrganisatieMedewerkerKoppelPage extends AlgemeenPage
 		columns.add(new PropertyColumn<InstellingGebruiker, String>(Model.of("Naam"), organisatieMedewerkerSort, organisatieMedewerkerProperty));
 		columns.add(new PropertyColumn<InstellingGebruiker, String>(Model.of("Rollen"), "rollen.naam", "rollen.naam")
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -367,7 +366,6 @@ public abstract class OrganisatieMedewerkerKoppelPage extends AlgemeenPage
 
 		AjaxLink<Void> link = new AjaxLink<Void>("toevoegen")
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override

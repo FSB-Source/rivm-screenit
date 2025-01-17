@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.uitwisselportaal.cleanup;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,32 +23,27 @@ package nl.rivm.screenit.batch.jobs.mamma.uitwisselportaal.cleanup;
 
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.enums.BestandStatus;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoekenVerzoek;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.mamma.MammaDownloadOnderzoekenVerzoekSpecification.heeftNietStatus;
+import static nl.rivm.screenit.specification.mamma.MammaDownloadOnderzoekenVerzoekSpecification.isAangemaaktOpVoor;
 
 @Component
 @AllArgsConstructor
-public class MammaDownloadedDataCleanUpReader extends BaseScrollableResultReader
+public class MammaDownloadedDataCleanUpReader extends BaseSpecificationScrollableResultReader<MammaDownloadOnderzoekenVerzoek>
 {
-
 	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<MammaDownloadOnderzoekenVerzoek> createSpecification()
 	{
-		var crit = session.createCriteria(MammaDownloadOnderzoekenVerzoek.class);
-		crit.add(Restrictions.le("aangemaaktOp", DateUtil.toUtilDate(currentDateSupplier.getLocalDate().minusDays(7))));
-		crit.add(Restrictions.ne("status", BestandStatus.VERWIJDERD));
-		return crit;
+		return heeftNietStatus(BestandStatus.VERWIJDERD)
+			.and(isAangemaaktOpVoor(currentDateSupplier.getLocalDate().minusDays(7)));
 	}
-
 }

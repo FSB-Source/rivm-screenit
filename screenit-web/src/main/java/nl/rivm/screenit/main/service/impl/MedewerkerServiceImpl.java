@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,9 +24,12 @@ package nl.rivm.screenit.main.service.impl;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import javax.persistence.criteria.From;
 
 import lombok.AllArgsConstructor;
 
@@ -34,37 +37,54 @@ import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dto.InstellingGebruikerRolDto;
 import nl.rivm.screenit.main.dao.MedewerkerDao;
 import nl.rivm.screenit.main.service.MedewerkerService;
-import nl.rivm.screenit.model.Functie;
 import nl.rivm.screenit.model.Gebruiker;
+import nl.rivm.screenit.model.Gebruiker_;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.InstellingGebruikerRol;
-import nl.rivm.screenit.model.OrganisatieType;
+import nl.rivm.screenit.model.InstellingGebruikerRol_;
+import nl.rivm.screenit.model.InstellingGebruiker_;
+import nl.rivm.screenit.model.Permissie;
 import nl.rivm.screenit.model.Rol;
+import nl.rivm.screenit.model.Rol_;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.InlogMethode;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.repository.FluentJpaQuery;
+import nl.rivm.screenit.repository.algemeen.GebruikerRepository;
+import nl.rivm.screenit.repository.algemeen.InstellingGebruikerRepository;
+import nl.rivm.screenit.repository.algemeen.InstellingGebruikerRolRepository;
 import nl.rivm.screenit.service.AuthenticatieService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.MailService;
 import nl.rivm.screenit.service.UploadDocumentService;
+import nl.rivm.screenit.specification.HibernateObjectSpecification;
+import nl.rivm.screenit.specification.algemeen.MedewerkerSpecification;
+import nl.rivm.screenit.specification.algemeen.OrganisatieMedewerkerRolSpecification;
+import nl.rivm.screenit.specification.algemeen.OrganisatieMedewerkerSpecification;
+import nl.rivm.screenit.specification.algemeen.PermissieSpecification;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang.StringUtils;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.algemeen.MedewerkerSpecification.heeftHandtekening;
+import static nl.rivm.screenit.specification.algemeen.OrganisatieMedewerkerSpecification.filterActief;
+import static nl.rivm.screenit.specification.algemeen.PermissieSpecification.heeftRecht;
+
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
 @AllArgsConstructor
 public class MedewerkerServiceImpl implements MedewerkerService
 {
-
 	private final MedewerkerDao medewerkerDao;
 
 	private final HibernateService hibernateService;
@@ -79,45 +99,60 @@ public class MedewerkerServiceImpl implements MedewerkerService
 
 	private final UploadDocumentService uploadDocumentService;
 
+	private final InstellingGebruikerRepository organisatieMedewerkerRepository;
+
+	private final InstellingGebruikerRolRepository organisatieMedewerkerRolRepository;
+
+	private final GebruikerRepository medewerkerRepository;
+
 	private final LogService logService;
 
 	@Override
-	public List<Gebruiker> searchMedewerkers(Gebruiker searchObject, List<Functie> selectedFuncties, List<Rol> selectedRollen,
-		Map<OrganisatieType, List<Instelling>> hierarchieCriteria, List<Bevolkingsonderzoek> bevolkingsonderzoeken, int first, int count, String sortProperty, boolean ascending)
+	public List<InstellingGebruiker> zoekOrganisatieMedewerker(InstellingGebruiker zoekInstellingGebruiker, long first, long count, Sort sort)
 	{
-		return medewerkerDao.searchMedewerkers(searchObject, selectedFuncties, selectedRollen, hierarchieCriteria, bevolkingsonderzoeken, first, count, sortProperty, ascending);
+		var spec = getSpecificationVoorOrganisatieMedewerker(zoekInstellingGebruiker);
+		return organisatieMedewerkerRepository.findWith(spec, InstellingGebruiker.class, q -> q.sortBy(sort))
+			.fetch(g ->
+			{
+				g.addSubgraph(InstellingGebruiker_.MEDEWERKER);
+				g.addSubgraph(InstellingGebruiker_.ORGANISATIE);
+			})
+			.distinct()
+			.all(first, count);
 	}
 
 	@Override
-	public long countMedewerkers(Gebruiker searchObject, List<Functie> selectedFuncties, List<Rol> selectedRollen, Map<OrganisatieType, List<Instelling>> hierarchieCriteria,
-		List<Bevolkingsonderzoek> bevolkingsonderzoeken)
+	public List<InstellingGebruiker> getActieveRadiologen(InstellingGebruiker zoekOrganisatieMedewerker, List<Long> exclIds, Sort sort)
 	{
-		return medewerkerDao.countMedewerkers(searchObject, selectedFuncties, selectedRollen, hierarchieCriteria, bevolkingsonderzoeken);
+		var spec = getSpecificationVoorOrganisatieMedewerker(zoekOrganisatieMedewerker);
+
+		if (!exclIds.isEmpty())
+		{
+			spec = spec.and(HibernateObjectSpecification.heeftNietIdIn(exclIds));
+		}
+
+		spec = spec
+			.and(heeftHandtekening().with(InstellingGebruiker_.medewerker))
+			.and(heeftRecht(Recht.GEBRUIKER_SCREENING_MAMMA_BEOORDELING_WERKLIJST).with(permissieJoin()));
+
+		return organisatieMedewerkerRepository.findWith(spec, InstellingGebruiker.class, q -> q.sortBy(sort))
+			.fetch(g -> g.addSubgraph(InstellingGebruiker_.MEDEWERKER))
+			.distinct()
+			.all();
 	}
 
 	@Override
-	public List<InstellingGebruiker> searchInstellingGebruiker(InstellingGebruiker zoekInstellingGebruiker, long first, long count, String orderByProperty, boolean ascending)
+	public long countInstellingGebruiker(InstellingGebruiker zoekOrganisatieMedewerker)
 	{
-		return medewerkerDao.searchInstellingGebruiker(zoekInstellingGebruiker, first, count, orderByProperty, ascending);
-	}
-
-	@Override
-	public List<InstellingGebruiker> getActieveRadiologen(InstellingGebruiker zoekInstellingGebruiker, List<Long> exclIds, String orderByProperty, boolean ascending)
-	{
-		return medewerkerDao.getActieveRadiologen(zoekInstellingGebruiker, exclIds, orderByProperty, ascending);
-	}
-
-	@Override
-	public long countInstellingGebruiker(InstellingGebruiker instellingGebruiker)
-	{
-		return medewerkerDao.countInstellingGebruiker(instellingGebruiker);
+		var spec = getSpecificationVoorOrganisatieMedewerker(zoekOrganisatieMedewerker);
+		return organisatieMedewerkerRepository.countDistinct(spec);
 	}
 
 	@Override
 	public void addOrganisatieMedewerker(Instelling organisatie, Gebruiker medewerker)
 	{
 
-		var organisatieMedewerker = medewerkerDao.getInstellingGebruiker(organisatie, medewerker);
+		var organisatieMedewerker = getOrganisatieMedewerker(organisatie, medewerker);
 
 		if (organisatieMedewerker != null)
 		{
@@ -327,39 +362,97 @@ public class MedewerkerServiceImpl implements MedewerkerService
 	@Override
 	public List<Gebruiker> getActieveGebruikersMetRecht(Recht recht)
 	{
-		return medewerkerDao.getActieveGebruikersMetRecht(recht);
+		var spec = MedewerkerSpecification.isActief()
+			.and(PermissieSpecification.heeftRecht(recht).with(permissieJoin())
+				.and(OrganisatieMedewerkerSpecification.filterActief(true)).with(organisatieMedewerkerJoin()));
+		return medewerkerRepository.findWith(spec, FluentJpaQuery::distinct).fetch(g -> g.addSubgraph(Gebruiker_.yubiKey)).all();
 	}
 
 	@Override
 	public List<InstellingGebruikerRol> getInstellingGebruikersMetRolEnBvos(Rol rol, List<Bevolkingsonderzoek> onderzoeken)
 	{
 		var rollen = new ArrayList<InstellingGebruikerRol>();
-		var instellingGebruikersRollen = medewerkerDao.getInstellingGebruikersRollenMetRol(rol, currentDateSupplier.getDate());
+		var organisatieMedewerkersRollen = getOrganisatieMedewerkersMetRol(rol);
 		if (onderzoeken == null)
 		{
-			rollen.addAll(instellingGebruikersRollen);
+			rollen.addAll(organisatieMedewerkersRollen);
 		}
 		else
 		{
-			for (var igRol : instellingGebruikersRollen)
-			{
-				for (var verwijderdeOnderzoek : onderzoeken)
-				{
-					if (igRol.getBevolkingsonderzoeken().contains(verwijderdeOnderzoek))
-					{
-						rollen.add(igRol);
-						break;
-					}
-				}
-			}
+			rollen = organisatieMedewerkersRollen.stream()
+				.filter(igRol -> onderzoeken.stream().anyMatch(verwijderdeOnderzoek -> igRol.getBevolkingsonderzoeken().contains(verwijderdeOnderzoek)))
+				.collect(Collectors.toCollection(ArrayList::new));
 		}
 		return rollen;
+	}
+
+	@Override
+	public InstellingGebruiker getOrganisatieMedewerker(Instelling organisatie, Gebruiker medewerker)
+	{
+		var spec = HibernateObjectSpecification.heeftId(organisatie.getId()).with(InstellingGebruiker_.organisatie)
+			.and(HibernateObjectSpecification.heeftId(medewerker.getId()).with(InstellingGebruiker_.medewerker));
+		return organisatieMedewerkerRepository.findOne(spec).orElse(null);
+	}
+
+	private List<InstellingGebruikerRol> getOrganisatieMedewerkersMetRol(Rol rol)
+	{
+		var spec = OrganisatieMedewerkerRolSpecification.isActief(Boolean.TRUE)
+			.and(OrganisatieMedewerkerRolSpecification.heeftRol(rol));
+
+		return organisatieMedewerkerRolRepository.findWith(spec, q -> q)
+			.fetch(g -> g.addAttributeNodes(InstellingGebruikerRol_.BEVOLKINGSONDERZOEKEN))
+			.all();
 	}
 
 	@Override
 	public boolean zijnErInstellingGebruikersMetRol(Rol rol)
 	{
 		return !getInstellingGebruikersMetRolEnBvos(rol, null).isEmpty();
+	}
+
+	public Specification<InstellingGebruiker> getSpecificationVoorOrganisatieMedewerker(InstellingGebruiker zoekOrganisatieMedewerker)
+	{
+		var spec = filterActief(zoekOrganisatieMedewerker.getActief());
+
+		if (zoekOrganisatieMedewerker.getOrganisatie() != null)
+		{
+			if (zoekOrganisatieMedewerker.getOrganisatie().getId() != null)
+			{
+				spec = spec.and(HibernateObjectSpecification.heeftId(zoekOrganisatieMedewerker.getOrganisatie().getId()).with(InstellingGebruiker_.organisatie));
+			}
+			else
+			{
+				spec = spec.and(HibernateObjectSpecification.heeftGeenId().with(InstellingGebruiker_.organisatie));
+			}
+		}
+
+		var medewerker = zoekOrganisatieMedewerker.getMedewerker();
+
+		if (medewerker != null)
+		{
+			spec = spec.and(MedewerkerSpecification.filterActief(medewerker.getActief())
+				.and(MedewerkerSpecification.filterActiefVanaf(medewerker.getActiefVanaf())
+					.and(MedewerkerSpecification.filterActiefTotEnMet(medewerker.getActiefTotEnMet())
+						.and(HibernateObjectSpecification.filterId(medewerker.getId())))).with(InstellingGebruiker_.medewerker));
+		}
+
+		return spec;
+	}
+
+	private Function<From<?, ? extends InstellingGebruiker>, From<?, ? extends Permissie>> permissieJoin()
+	{
+		return r ->
+		{
+			var rollenJoin = join(r, InstellingGebruiker_.rollen);
+			var rolJoin = join(rollenJoin, InstellingGebruikerRol_.rol);
+			return join(rolJoin, Rol_.permissies);
+		};
+	}
+
+	private Function<From<?, ? extends Gebruiker>, From<?, ? extends InstellingGebruiker>> organisatieMedewerkerJoin()
+	{
+		return r ->
+			join(r, Gebruiker_.organisatieMedewerkers);
 	}
 
 }

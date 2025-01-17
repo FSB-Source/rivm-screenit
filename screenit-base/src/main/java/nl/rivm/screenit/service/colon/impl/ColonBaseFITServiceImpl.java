@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -37,7 +37,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ProjectParameterKey;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
@@ -692,16 +691,67 @@ public class ColonBaseFITServiceImpl implements ColonBaseFITService
 
 		var clientenOpAdres = clientService.getClientenOpAdresMetLimiet(client.getPersoon().getGbaAdres(), minimaleLeeftijd,
 			maximaleLeeftijd, uitnodigingsInterval);
-		var andereClient = ColonRestrictions.getAndereClient(clientenOpAdres, client);
+		var andereClient = getAndereClient(clientenOpAdres, client);
 
 		if (clientenOpAdres.size() == 2
-			&& ColonRestrictions.isIfobtActief(andereClient, uitgenodigdeClientIds)
-			&& !ColonRestrictions.isWachttijdOpPakketVerstreken(andereClient, wachttijdVerzendenPakket, uitgenodigdeClientIds,
+			&& isIfobtActief(andereClient, uitgenodigdeClientIds)
+			&& !isWachttijdOpPakketVerstreken(andereClient, wachttijdVerzendenPakket, uitgenodigdeClientIds,
 			currentDateSupplier.getLocalDate()))
 		{
 			return andereClient;
 		}
 		return null;
+	}
+
+	private Client getAndereClient(List<Client> clientenOpAdres, Client item)
+	{
+		return clientenOpAdres.stream().filter(client -> !client.getId().equals(item.getId())).findFirst().orElse(null);
+	}
+
+	private boolean isIfobtActief(Client andereClient, List<Long> uitgenodigdeClientIds)
+	{
+		if (andereClient == null)
+		{
+			return false;
+		}
+
+		if (uitgenodigdeClientIds.contains(andereClient.getId()))
+		{
+			return true;
+		}
+
+		if (andereClient.getColonDossier().getLaatsteScreeningRonde() == null
+			|| andereClient.getColonDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging() == null)
+		{
+			return false;
+		}
+
+		IFOBTTest ifobtTest = andereClient.getColonDossier().getLaatsteScreeningRonde().getLaatsteIFOBTTest();
+		if (ifobtTest == null)
+		{
+			return true;
+		}
+
+		return ifobtTest.getStatus() == IFOBTTestStatus.ACTIEF;
+	}
+
+	private boolean isWachttijdOpPakketVerstreken(Client andereClient, Integer wachttijdVerzendenPakket, List<Long> uitgenodigdeClientIds, LocalDate vandaag)
+	{
+		if (andereClient.getColonDossier().getLaatsteScreeningRonde() != null
+			&& andereClient.getColonDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging() != null
+			&& andereClient.getColonDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging().getCreatieDatum() != null)
+		{
+
+			if (uitgenodigdeClientIds.contains(andereClient.getId()))
+			{
+				return false;
+			}
+
+			LocalDate createDatumUitnodiging = DateUtil.toLocalDate(andereClient.getColonDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging().getCreatieDatum());
+			createDatumUitnodiging = createDatumUitnodiging.plusDays(wachttijdVerzendenPakket);
+			return !createDatumUitnodiging.isAfter(vandaag);
+		}
+		return false;
 	}
 
 	@Override

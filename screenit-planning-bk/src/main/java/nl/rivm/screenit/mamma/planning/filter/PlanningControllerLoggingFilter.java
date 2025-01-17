@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.filter;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -107,7 +107,7 @@ public class PlanningControllerLoggingFilter implements Filter
 
 	private Map<String, String> getTypesafeRequestMap(HttpServletRequest request)
 	{
-		Map<String, String> typesafeRequestMap = new HashMap<String, String>();
+		Map<String, String> typesafeRequestMap = new HashMap<>();
 		Enumeration<?> requestParamNames = request.getParameterNames();
 		while (requestParamNames.hasMoreElements())
 		{

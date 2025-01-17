@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.algemeen;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,7 @@ package nl.rivm.screenit.specification.algemeen;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -36,6 +37,7 @@ import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.GbaPersoon_;
 import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.util.DateUtil;
+import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 
 import com.google.common.collect.Range;
 
@@ -161,5 +163,10 @@ public class PersoonSpecification
 	public static ExtendedSpecification<GbaPersoon> heeftGeboortedatumIn(Range<LocalDate> bereik)
 	{
 		return bevatLocalDateToDate(bereik, r -> r.get(GbaPersoon_.geboortedatum));
+	}
+
+	public static ExtendedSpecification<GbaPersoon> heeftGeslachtIn(Collection<Geslacht> geslachten)
+	{
+		return (r, q, cb) -> r.get(GbaPersoon_.geslacht).in(geslachten);
 	}
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.cervix.facturatie;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,25 +26,19 @@ import java.math.BigDecimal;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.helper.HibernateMagicNumber;
 
 import org.hibernate.envers.Audited;
 
 @Entity
 @Audited
+@Getter
+@Setter
 public class CervixHuisartsTarief extends CervixTarief
 {
-
-	@Column(nullable = true, precision = HibernateMagicNumber.P5, scale = HibernateMagicNumber.S2) 
+	@Column(precision = HibernateMagicNumber.P5, scale = HibernateMagicNumber.S2)
 	private BigDecimal tarief;
-
-	public BigDecimal getTarief()
-	{
-		return tarief;
-	}
-
-	public void setTarief(BigDecimal tarief)
-	{
-		this.tarief = tarief;
-	}
 }

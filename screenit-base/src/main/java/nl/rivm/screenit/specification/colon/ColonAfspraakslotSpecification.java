@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,9 +21,6 @@ package nl.rivm.screenit.specification.colon;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
 import javax.persistence.criteria.JoinType;
 
 import lombok.AccessLevel;
@@ -31,39 +28,13 @@ import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.colon.planning.ColonAfspraakslot;
 import nl.rivm.screenit.model.colon.planning.ColonAfspraakslot_;
-import nl.rivm.screenit.model.colon.planning.ColonIntakekamer;
-import nl.rivm.screenit.model.colon.planning.ColonTijdslot_;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 
 import org.springframework.data.jpa.domain.Specification;
 
-import com.google.common.collect.Range;
-
-import static nl.rivm.screenit.specification.DateSpecification.overlaptLocalDate;
-import static nl.rivm.screenit.specification.RangeSpecification.overlapt;
-
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ColonAfspraakslotSpecification
 {
-	public static Specification<ColonAfspraakslot> valtBinnenDatumTijdRange(Range<LocalDateTime> range)
-	{
-		return overlapt(range, r -> r.get(ColonTijdslot_.vanaf), r -> r.get(ColonTijdslot_.tot));
-	}
-
-	public static Specification<ColonAfspraakslot> valtBinnenDatumRange(Range<LocalDate> range)
-	{
-		return overlaptLocalDate(range, r -> r.get(ColonTijdslot_.vanaf), r -> r.get(ColonTijdslot_.tot));
-	}
-
-	public static Specification<ColonAfspraakslot> heeftKamer(ColonIntakekamer kamer)
-	{
-		return (r, q, cb) -> cb.equal(r.get(ColonTijdslot_.kamer), kamer);
-	}
-
-	public static Specification<ColonAfspraakslot> heeftVanaf(LocalDateTime vanaf)
-	{
-		return (r, q, cb) -> cb.equal(r.get(ColonTijdslot_.vanaf), vanaf);
-	}
 
 	public static Specification<ColonAfspraakslot> heeftGeenAfspraak()
 	{

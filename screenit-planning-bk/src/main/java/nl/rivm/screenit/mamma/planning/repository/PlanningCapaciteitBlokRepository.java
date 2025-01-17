@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.repository;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,14 +22,15 @@ package nl.rivm.screenit.mamma.planning.repository;
  */
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import nl.rivm.screenit.mamma.planning.dao.dto.PlanningCapaciteitBlokProjectie;
 import nl.rivm.screenit.mamma.planning.model.PlanningBlok;
 import nl.rivm.screenit.mamma.planning.model.PlanningScreeningsEenheid;
+import nl.rivm.screenit.mamma.planning.repository.projectie.PlanningCapaciteitBlokProjectie;
 import nl.rivm.screenit.model.mamma.MammaCapaciteitBlok;
 import nl.rivm.screenit.model.mamma.MammaCapaciteitBlok_;
 import nl.rivm.screenit.repository.BaseJpaRepository;
@@ -42,13 +43,11 @@ import com.google.common.collect.BoundType;
 
 import static nl.rivm.screenit.specification.DateSpecification.bevatLocalDateToDate;
 import static nl.rivm.screenit.specification.mamma.MammaCapaciteitBlokSpecification.heeftScreeningsEenheidId;
-import static nl.rivm.screenit.util.DateUtil.toLocalDateTime;
-import static nl.rivm.screenit.util.DateUtil.toLocalTime;
 
 public interface PlanningCapaciteitBlokRepository extends BaseJpaRepository<MammaCapaciteitBlok>
 {
 	@Query("SELECT CAST( MAX(vanaf) as LocalDate) FROM MammaCapaciteitBlok")
-	Optional<LocalDate> findMaxDatumVanAlleCapaciteitsBlokken();
+	Optional<LocalDate> findMaxDatumVanAlleCapaciteitBlokken();
 
 	default Set<PlanningBlok> leesCapaciteitBlokken(PlanningScreeningsEenheid screeningsEenheid, LocalDate vanaf, LocalDate totEnMet)
 	{
@@ -59,13 +58,13 @@ public interface PlanningCapaciteitBlokRepository extends BaseJpaRepository<Mamm
 				.and(bevatLocalDateToDate(nullSafeRange, r -> r.get(MammaCapaciteitBlok_.vanaf))),
 			PlanningCapaciteitBlokProjectie.class,
 			q -> q.projections((cb, r) -> List.of(
-					r.get(AbstractHibernateObject_.id).alias("id"),
-					r.get(MammaCapaciteitBlok_.vanaf).alias("vanaf"),
-					r.get(MammaCapaciteitBlok_.tot).alias("tot"),
-					r.get(MammaCapaciteitBlok_.aantalOnderzoeken).alias("aantalOnderzoeken"),
-					r.get(MammaCapaciteitBlok_.blokType).alias("blokType"),
-					r.get(MammaCapaciteitBlok_.opmerkingen).alias("opmerkingen"),
-					r.get(MammaCapaciteitBlok_.minderValideAfspraakMogelijk).alias("minderValideAfspraakMogelijk")))
+					r.get(AbstractHibernateObject_.id),
+					r.get(MammaCapaciteitBlok_.vanaf).as(LocalDateTime.class),
+					r.get(MammaCapaciteitBlok_.tot).as(LocalDateTime.class),
+					r.get(MammaCapaciteitBlok_.aantalOnderzoeken),
+					r.get(MammaCapaciteitBlok_.blokType),
+					r.get(MammaCapaciteitBlok_.opmerkingen),
+					r.get(MammaCapaciteitBlok_.minderValideAfspraakMogelijk)))
 				.all());
 
 		return capaciteitblokken.stream()
@@ -75,9 +74,9 @@ public interface PlanningCapaciteitBlokRepository extends BaseJpaRepository<Mamm
 
 	private PlanningBlok mapNaarPlanningBlok(PlanningScreeningsEenheid screeningsEenheid, PlanningCapaciteitBlokProjectie blokProjectie)
 	{
-		var vanaf = toLocalDateTime(blokProjectie.getVanaf());
+		var vanaf = blokProjectie.getVanaf();
 
-		var blok = new PlanningBlok(blokProjectie.getId(), vanaf.toLocalTime(), toLocalTime(blokProjectie.getTot()),
+		var blok = new PlanningBlok(blokProjectie.getId(), vanaf.toLocalTime(), blokProjectie.getTot().toLocalTime(),
 			blokProjectie.getAantalOnderzoeken(), blokProjectie.getBlokType(), blokProjectie.getOpmerkingen(), blokProjectie.isMinderValideAfspraakMogelijk());
 
 		var dag = screeningsEenheid.getDagNavigableMap().get(vanaf.toLocalDate());

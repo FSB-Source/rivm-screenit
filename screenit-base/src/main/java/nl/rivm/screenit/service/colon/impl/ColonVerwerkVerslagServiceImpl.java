@@ -5,7 +5,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -231,7 +231,6 @@ public class ColonVerwerkVerslagServiceImpl implements ColonVerwerkVerslagServic
 
 		if (verslag.getDatumOnderzoek() == null || complicatieService.magComplicatieVastleggen(verslag.getDatumOnderzoek()))
 		{
-			koppelMdlVerslagAanComplicatie(verslag);
 			maakClientComplicatieUitMdlVerslag(verslag, content);
 		}
 		else if (content.getVerrichting() != null && CollectionUtils.isNotEmpty(content.getVerrichting().getIncidentcomplicatie()))
@@ -520,19 +519,6 @@ public class ColonVerwerkVerslagServiceImpl implements ColonVerwerkVerslagServic
 		}
 	}
 
-	private void koppelMdlVerslagAanComplicatie(MdlVerslag verslag)
-	{
-		Client client = verslag.getScreeningRonde().getDossier().getClient();
-		List<Complicatie> complicaties = complicatieService.geefAlleNietGekoppeldeComplicaties(client, verslag.getDatumOnderzoek());
-		for (Complicatie complicatie : complicaties)
-		{
-			complicatie.setMoment(complicatieService.getCorrecteComplicatieMoment(complicatie.getDatum(), verslag));
-			complicatie.setMdlverslag(verslag);
-			hibernateService.saveOrUpdate(complicatie);
-		}
-		hibernateService.saveOrUpdate(client);
-	}
-
 	@Override
 	@Transactional
 	public void ontkoppelOfVerwijderComplicaties(MdlVerslag mdlVerslag)
@@ -734,18 +720,16 @@ public class ColonVerwerkVerslagServiceImpl implements ColonVerwerkVerslagServic
 		for (Antwoord<?> antwoord : antwoorden)
 		{
 			VraagDefinitie<?> vraagDefinitie = antwoord.getVraagInstantie().getVraagDefinitie();
-			if (vraagDefinitie instanceof IdentifierElement)
+			if (vraagDefinitie instanceof IdentifierElement identifierElement)
 			{
-				IdentifierElement identifierElement = (IdentifierElement) vraagDefinitie;
 				if (identifierElement.getIdentifier() != null)
 				{
 					switch (identifierElement.getIdentifier())
 					{
 					case Constants.VRAAG_LAESIE_JA_NEE:
 
-						if (antwoord instanceof BooleanAntwoord)
+						if (antwoord instanceof BooleanAntwoord booleanAntwoord)
 						{
-							BooleanAntwoord booleanAntwoord = (BooleanAntwoord) antwoord;
 							Boolean value = booleanAntwoord.getValue();
 							if (!Boolean.TRUE.equals(value))
 							{
@@ -755,9 +739,8 @@ public class ColonVerwerkVerslagServiceImpl implements ColonVerwerkVerslagServic
 						leasieJaNeeFound = true;
 						break;
 					case Constants.VRAAG_DATUM_VERRICHTING:
-						if (antwoord instanceof DateAntwoord)
+						if (antwoord instanceof DateAntwoord dateAntwoord)
 						{
-							DateAntwoord dateAntwoord = (DateAntwoord) antwoord;
 							Date value = dateAntwoord.getValue();
 							if (value != null)
 							{
@@ -767,9 +750,8 @@ public class ColonVerwerkVerslagServiceImpl implements ColonVerwerkVerslagServic
 						datumVerrichtingFound = true;
 						break;
 					case Constants.VRAAG_INCIDENT_COMPLICATIE_JA_NEE:
-						if (antwoord instanceof BooleanAntwoord)
+						if (antwoord instanceof BooleanAntwoord booleanAntwoord)
 						{
-							BooleanAntwoord booleanAntwoord = (BooleanAntwoord) antwoord;
 							Boolean value = booleanAntwoord.getValue();
 							incidentComplicatieGeselecteerd = Boolean.TRUE.equals(value);
 						}

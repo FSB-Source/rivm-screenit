@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.f
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,13 +36,17 @@ import nl.rivm.screenit.main.web.component.table.GebruikerColumn;
 import nl.rivm.screenit.main.web.component.table.NotClickableAbstractColumn;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
+import nl.rivm.screenit.model.Gebruiker_;
+import nl.rivm.screenit.model.InstellingGebruiker_;
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaFotobespreking;
+import nl.rivm.screenit.model.mamma.MammaFotobespreking_;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid_;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
@@ -61,6 +65,8 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wicketstuff.shiro.ShiroConstraint;
+
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
 
 @SecurityConstraint(
 	constraint = ShiroConstraint.HasPermission,
@@ -112,7 +118,7 @@ public class MammaFotobesprekingOverzichtPage extends MammaFotobesprekingBasePag
 		zoekModel = new CompoundPropertyModel<>(new MammaFotobesprekingWerklijstZoekObject());
 		if (ScreenitSession.get().getInstelling().getOrganisatieType() == OrganisatieType.BEOORDELINGSEENHEID)
 		{
-			zoekModel.getObject().setTotMet(DateUtil.toUtilDate(dateSupplier.getLocalDate().minusMonths(3)));
+			zoekModel.getObject().setVanaf(dateSupplier.getLocalDate().minusMonths(3));
 		}
 		add(new MammaFotobesprekingZoekPanel("filter", zoekModel)
 		{
@@ -128,15 +134,16 @@ public class MammaFotobesprekingOverzichtPage extends MammaFotobesprekingBasePag
 	{
 		List<IColumn<MammaFotobespreking, String>> columns = new ArrayList<>();
 
-		columns.add(new PropertyColumn<>(Model.of("Omschrijving"), "omschrijving", "omschrijving"));
-		columns.add(new DateTimePropertyColumn<>(Model.of("Gestart"), "gestartOp", "gestartOp", Constants.getDateTimeFormat()));
-		columns.add(new DateTimePropertyColumn<>(Model.of("Afgerond"), "afgerondOp", "afgerondOp", Constants.getDateTimeFormat()));
-		columns.add(new DateTimePropertyColumn<>(Model.of("Aangemaakt"), "aangemaaktOp", "aangemaaktOp", Constants.getDateTimeFormat()));
-		columns.add(new GebruikerColumn<>(Model.of("Door"), "medewerker.achternaam", "aangemaaktDoor.medewerker"));
-		columns.add(new EnumPropertyColumn<>(Model.of("Type"), "type", "type", this));
-		columns.add(new EnumPropertyColumn<>(Model.of("Role"), "role", "role", this));
-		columns.add(new PropertyColumn<>(Model.of("BE"), "beoordelingsEenheid.naam", "beoordelingsEenheid.naam"));
-		columns.add(new PropertyColumn<>(Model.of("SE"), "screeningsEenheid.naam", "screeningsEenheid.naam"));
+		columns.add(new PropertyColumn<>(Model.of("Omschrijving"), MammaFotobespreking_.OMSCHRIJVING, "omschrijving"));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Gestart"), "gestartOp", MammaFotobespreking_.GESTART_OP, Constants.getDateTimeFormat()));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Afgerond"), "afgerondOp", MammaFotobespreking_.AFGEROND_OP, Constants.getDateTimeFormat()));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Aangemaakt"), "aangemaaktOp", MammaFotobespreking_.AANGEMAAKT_OP, Constants.getDateTimeFormat()));
+		columns.add(new GebruikerColumn<>(Model.of("Door"), propertyChain(MammaFotobespreking_.AANGEMAAKT_DOOR, InstellingGebruiker_.MEDEWERKER, Gebruiker_.ACHTERNAAM),
+			"aangemaaktDoor.medewerker"));
+		columns.add(new EnumPropertyColumn<>(Model.of("Type"), MammaFotobespreking_.TYPE, "type", this));
+		columns.add(new EnumPropertyColumn<>(Model.of("Role"), MammaFotobespreking_.ROLE, "role", this));
+		columns.add(new PropertyColumn<>(Model.of("BE"), propertyChain(MammaFotobespreking_.BEOORDELINGS_EENHEID, Instelling_.NAAM), "beoordelingsEenheid.naam"));
+		columns.add(new PropertyColumn<>(Model.of("SE"), propertyChain(MammaFotobespreking_.SCREENINGS_EENHEID, MammaScreeningsEenheid_.NAAM), "screeningsEenheid.naam"));
 		if (!ScreenitSession.get().getInstelling().getOrganisatieType().equals(OrganisatieType.RIVM))
 		{
 			columns.add(new AbstractColumn<MammaFotobespreking, String>(Model.of(""))

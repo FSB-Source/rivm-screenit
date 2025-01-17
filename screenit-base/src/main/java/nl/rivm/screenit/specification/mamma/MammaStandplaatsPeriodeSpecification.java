@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,13 +24,14 @@ package nl.rivm.screenit.specification.mamma;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
@@ -43,6 +44,7 @@ import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde_;
 import nl.rivm.screenit.model.mamma.MammaStandplaats_;
 import nl.rivm.screenit.specification.DateSpecification;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.organisatie.model.Adres_;
 
@@ -56,7 +58,7 @@ import static nl.rivm.screenit.specification.RangeSpecification.bevat;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmpty;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MammaStandplaatsPeriodeSpecification
 {
 
@@ -139,10 +141,10 @@ public class MammaStandplaatsPeriodeSpecification
 		};
 	}
 
-	public static Specification<MammaStandplaatsPeriode> heeftBeoordelingsEenheidEnStandplaatsGekoppeldAanRegio(ScreeningOrganisatie regio)
+	public static Specification<MammaStandplaatsPeriode> heeftBeoordelingsEenheidEnStandplaatsGekoppeldAanScreeningOrganisatie(ScreeningOrganisatie so)
 	{
-		return MammaScreeningsEenheidSpecification.heeftScreeningsOrganisatie(regio).with(MammaStandplaatsPeriode_.screeningsEenheid)
-			.and(MammaStandplaatsSpecification.heeftRegio(regio).with(root -> standplaatsJoin(root)));
+		return MammaScreeningsEenheidSpecification.heeftScreeningOrganisatie(so).with(MammaStandplaatsPeriode_.screeningsEenheid)
+			.and(MammaStandplaatsSpecification.heeftScreeningOrganisatieId(so).with(root -> standplaatsJoin(root)));
 	}
 
 	public static Specification<MammaStandplaatsPeriode> begintOpOfNaVrijgegevenTotEnMetDatum()
@@ -154,14 +156,19 @@ public class MammaStandplaatsPeriodeSpecification
 		};
 	}
 
-	public static Specification<MammaStandplaatsPeriode> eindigtOpOfNaDatum(LocalDate datum)
+	public static ExtendedSpecification<MammaStandplaatsPeriode> eindigtOpOfNaDatum(LocalDate datum)
 	{
 		return (r, q, cb) -> cb.greaterThanOrEqualTo(r.get(MammaStandplaatsPeriode_.totEnMet), DateUtil.toUtilDate(datum));
 	}
 
 	public static Specification<MammaStandplaatsPeriode> heeftScreeningsEenheid(MammaScreeningsEenheid screeningsEenheid)
 	{
-		return (r, q, cb) -> cb.equal(r.get(MammaStandplaatsPeriode_.screeningsEenheid), screeningsEenheid);
+		return heeftScreeningsEenheidId(Optional.ofNullable(screeningsEenheid).map(MammaScreeningsEenheid::getId).orElse(null));
+	}
+
+	public static Specification<MammaStandplaatsPeriode> heeftScreeningsEenheidId(Long screeningsEenheidId)
+	{
+		return (r, q, cb) -> cb.equal(r.get(MammaStandplaatsPeriode_.screeningsEenheid), screeningsEenheidId);
 	}
 
 	public static Specification<MammaStandplaatsPeriode> isActiefOpDatum(Date datum)
@@ -169,9 +176,14 @@ public class MammaStandplaatsPeriodeSpecification
 		return bevat(r -> r.get(MammaStandplaatsPeriode_.vanaf), r -> r.get(MammaStandplaatsPeriode_.totEnMet), Pair.of(BoundType.CLOSED, BoundType.CLOSED), datum);
 	}
 
-	private static Join<MammaStandplaatsRonde, MammaStandplaats> standplaatsJoin(From<?, ? extends MammaStandplaatsPeriode> standplaatsPeriodeRoot)
+	public static Specification<MammaStandplaatsPeriode> heeftScreeningsEenheidVolgNrVanaf(int volgnummer)
 	{
-		var standplaatsRondeJoin = join(standplaatsPeriodeRoot, MammaStandplaatsPeriode_.standplaatsRonde);
+		return (r, q, cb) -> cb.greaterThanOrEqualTo(r.get(MammaStandplaatsPeriode_.screeningsEenheidVolgNr), volgnummer);
+	}
+
+	private static Join<MammaStandplaatsRonde, MammaStandplaats> standplaatsJoin(From<?, ? extends MammaStandplaatsPeriode> r)
+	{
+		var standplaatsRondeJoin = join(r, MammaStandplaatsPeriode_.standplaatsRonde);
 		return join(standplaatsRondeJoin, MammaStandplaatsRonde_.standplaats);
 	}
 }

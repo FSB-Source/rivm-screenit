@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,7 +34,6 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Deelnamemodus;
 import nl.rivm.screenit.model.mamma.MammaDeelnamekans;
 import nl.rivm.screenit.model.mamma.MammaDossier;
-import nl.rivm.screenit.model.mamma.berichten.xds.XdsStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
 import nl.rivm.screenit.service.DossierFactory;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -109,7 +108,7 @@ public class DossierFactoryImpl implements DossierFactory
 		CervixDossier cervixDossier = new CervixDossier();
 		cervixDossier.setStatus(DossierStatus.ACTIEF);
 		cervixDossier.setAangemeld(true);
-		cervixDossier.setDeelnamemodus(initieleDeelnameModus(client));
+		cervixDossier.setDeelnamemodus(initieleDeelnamemodus(client));
 		cervixDossier.setClient(client);
 		client.setCervixDossier(cervixDossier);
 
@@ -124,8 +123,7 @@ public class DossierFactoryImpl implements DossierFactory
 		mammaDossier.setStatus(DossierStatus.ACTIEF);
 		mammaDossier.setDoelgroep(MammaDoelgroep.REGULIER);
 		mammaDossier.setAangemeld(true);
-		mammaDossier.setDeelnamemodus(initieleDeelnameModus(client));
-		mammaDossier.setXdsStatus(XdsStatus.NIET_AANGEMELD);
+		mammaDossier.setDeelnamemodus(initieleDeelnamemodus(client));
 		mammaDossier.setClient(client);
 		mammaDossier.setEersteOnderzoek(true);
 		client.setMammaDossier(mammaDossier);
@@ -137,7 +135,7 @@ public class DossierFactoryImpl implements DossierFactory
 		hibernateService.saveOrUpdateAll(mammaDossier, mammaDeelnamekans, client);
 	}
 
-	private static Deelnamemodus initieleDeelnameModus(Client client)
+	private static Deelnamemodus initieleDeelnamemodus(Client client)
 	{
 		return client.getPersoon().getGeslacht() == Geslacht.VROUW ? Deelnamemodus.STANDAARD : Deelnamemodus.SELECTIEBLOKKADE;
 	}

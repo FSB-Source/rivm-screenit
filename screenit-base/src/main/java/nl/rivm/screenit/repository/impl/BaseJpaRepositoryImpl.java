@@ -4,7 +4,7 @@ package nl.rivm.screenit.repository.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
 
 import nl.rivm.screenit.repository.BaseJpaRepository;
 import nl.rivm.screenit.repository.FluentJpaQuery;
@@ -55,6 +56,12 @@ public class BaseJpaRepositoryImpl<T extends HibernateObject> extends SimpleJpaR
 	{
 		super(entityInformation, entityManager);
 		this.entityManager = entityManager;
+	}
+
+	@Override
+	public long countDistinct(Specification<T> spec)
+	{
+		return findWith(spec, Long.class, q -> q.projection(CriteriaBuilder::countDistinct)).one().orElse(0L);
 	}
 
 	@Override

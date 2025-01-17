@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.followup.followuppat
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,10 +21,14 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.followup.followuppat
  * =========================LICENSE_END==================================
  */
 
+import java.util.Iterator;
+import java.util.List;
+
 import nl.rivm.screenit.dto.mamma.MammaFollowUpInstellingDto;
+import nl.rivm.screenit.main.service.mamma.MammaFollowUpService;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.service.mamma.MammaBaseFollowUpService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
+
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.injection.Injector;
@@ -33,13 +37,10 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.springframework.beans.support.PropertyComparator;
 
-import java.util.Iterator;
-import java.util.List;
-
 public class MammaFollowUpPathologieRegioProvider extends SortableDataProvider<MammaFollowUpInstellingDto, String>
 {
 	@SpringBean
-	private MammaBaseFollowUpService followUpService;
+	private MammaFollowUpService followUpService;
 
 	private IModel<ScreeningOrganisatie> regioModel;
 

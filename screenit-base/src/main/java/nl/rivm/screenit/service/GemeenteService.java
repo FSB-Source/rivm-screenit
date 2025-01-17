@@ -4,7 +4,7 @@ package nl.rivm.screenit.service;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,7 +35,7 @@ public interface GemeenteService
 
 	List<Gemeente> zoekGemeentes(Gemeente zoekObject, long first, long count, String property, boolean ascending);
 
-	long countGemeentes(Gemeente nullSafeGet);
+	long countGemeentes(Gemeente zoekObject);
 
 	Boolean getGesplitsOpPostcode(Gemeente gemeente);
 
@@ -49,9 +49,4 @@ public interface GemeenteService
 
 	boolean magAlleGebiedenVerwijderen(Gemeente gemeente);
 
-	Gemeente getGemeenteByCode(String code);
-
-	Gemeente getEersteGemeenteMetScreeningOrganisatie();
-
-	List<Gemeente> getGemeentesMetScreeningOrganisatie();
 }

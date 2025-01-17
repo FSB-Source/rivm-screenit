@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,14 +25,9 @@ import nl.rivm.screenit.batch.jobs.generalis.gba.exception.GbaImportException;
 import nl.rivm.screenit.model.gba.GbaVerwerkingsLog;
 import nl.topicuszorg.gba.vertrouwdverbonden.model.Vo107Bericht;
 
-import org.hibernate.Criteria;
-
 public interface GbaService
 {
-
 	void importVo107Bericht(Vo107Bericht bericht, GbaVerwerkingsLog log) throws GbaImportException;
 
 	void logGbaImportError(GbaImportException e, GbaVerwerkingsLog verwerkingLog);
-
-	Criteria getAllAdressenZonderCoordinanten();
 }

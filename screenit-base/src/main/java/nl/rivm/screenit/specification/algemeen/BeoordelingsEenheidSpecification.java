@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.algemeen;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,9 +22,10 @@ package nl.rivm.screenit.specification.algemeen;
  */
 
 import java.util.Collection;
+import java.util.Optional;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.CentraleEenheid;
@@ -38,7 +39,7 @@ import org.springframework.data.jpa.domain.Specification;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmptyExtended;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class BeoordelingsEenheidSpecification
 {
 	public static Specification<BeoordelingsEenheid> isActief(boolean actief)
@@ -48,10 +49,15 @@ public class BeoordelingsEenheidSpecification
 
 	public static ExtendedSpecification<BeoordelingsEenheid> heeftScreeningOrganisatie(Instelling screeningOrganisatie)
 	{
+		return heeftScreeningOrganisatieId(Optional.ofNullable(screeningOrganisatie).map(Instelling::getId).orElse(null));
+	}
+
+	public static ExtendedSpecification<BeoordelingsEenheid> heeftScreeningOrganisatieId(Long screeningOrganisatieId)
+	{
 		return (r, q, cb) ->
 		{
 			var centraleEenheidJoin = join(r, Instelling_.parent);
-			return cb.equal(centraleEenheidJoin.get(Instelling_.regio), screeningOrganisatie);
+			return cb.equal(centraleEenheidJoin.get(Instelling_.regio), screeningOrganisatieId);
 		};
 	}
 

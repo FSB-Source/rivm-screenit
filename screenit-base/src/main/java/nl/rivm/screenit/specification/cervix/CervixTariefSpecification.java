@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,9 +30,8 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
-import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.SingleTableHibernateObject_;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
@@ -44,16 +43,17 @@ import nl.rivm.screenit.model.cervix.facturatie.CervixTarief;
 import nl.rivm.screenit.model.cervix.facturatie.CervixTarief_;
 import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting;
 import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting_;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
 
 import org.springframework.data.jpa.domain.Specification;
 
 import static nl.rivm.screenit.specification.SpecificationUtil.composePredicates;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNull;
+import static nl.rivm.screenit.specification.SpecificationUtil.treat;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixTariefSpecification
 {
 
@@ -69,12 +69,13 @@ public class CervixTariefSpecification
 
 	public static Specification<CervixBoekRegel> filterLabVoorBoekRegel(BMHKLaboratorium laboratorium)
 	{
-		return skipWhenNull(laboratorium, (r, q, cb) -> heeftLabPredicate(laboratorium).withPath(cb, cb.treat(join(r, CervixBoekRegel_.tarief), CervixLabTarief.class)));
+		return skipWhenNull(laboratorium,
+			(r, q, cb) -> heeftBmhkLaboratorium(laboratorium).with(root -> treat(join(r, CervixBoekRegel_.tarief), CervixLabTarief.class, cb)).toPredicate(r, q, cb));
 	}
 
 	public static Specification<CervixLabTarief> heeftLabVoorTarief(BMHKLaboratorium laboratorium)
 	{
-		return (r, q, cb) -> heeftLabPredicate(laboratorium).withPath(cb, r);
+		return heeftBmhkLaboratorium(laboratorium);
 	}
 
 	public static Specification<CervixLabTarief> heeftGeldigVanafdatumVoorLab(Date datum)
@@ -109,12 +110,12 @@ public class CervixTariefSpecification
 
 	public static Specification<CervixLabTarief> isGroterOfGelijkAanGeldigTotEnMetLabTarief(LocalDate totEnMetDatum)
 	{
-		return (r, q, cb) -> isGroterOfGelijkAanGeldigTotEnMet(totEnMetDatum).withPath(cb, r);
+		return (r, q, cb) -> isGroterOfGelijkAanGeldigTotEnMet(totEnMetDatum).toPredicate(r, q, cb);
 	}
 
 	public static Specification<CervixHuisartsTarief> isGroterOfGelijkAanGeldigTotEnMetHaTarief(LocalDate totEnMetDatum)
 	{
-		return (r, q, cb) -> isGroterOfGelijkAanGeldigTotEnMet(totEnMetDatum).withPath(cb, r);
+		return (r, q, cb) -> isGroterOfGelijkAanGeldigTotEnMet(totEnMetDatum).toPredicate(r, q, cb);
 	}
 
 	public static Specification<CervixVerrichting> isTariefVoorVerrichting(Long oudTariefId)
@@ -122,9 +123,9 @@ public class CervixTariefSpecification
 		return (r, q, cb) -> cb.equal(join(join(r, CervixVerrichting_.laatsteBoekRegel), CervixBoekRegel_.tarief).get(SingleTableHibernateObject_.id), oudTariefId);
 	}
 
-	private static PathAwarePredicate<CervixLabTarief> heeftLabPredicate(BMHKLaboratorium bmhkLaboratorium)
+	private static ExtendedSpecification<CervixLabTarief> heeftBmhkLaboratorium(BMHKLaboratorium bmhkLaboratorium)
 	{
-		return (cb, r) -> cb.equal(r.get(CervixLabTarief_.bmhkLaboratorium), bmhkLaboratorium);
+		return (r, q, cb) -> cb.equal(r.get(CervixLabTarief_.bmhkLaboratorium), bmhkLaboratorium);
 	}
 
 	private static Predicate checkRange(LocalDate vanafDatum, LocalDate totEnMetDatum, Root<? extends CervixTarief> r, CriteriaBuilder cb)
@@ -133,23 +134,23 @@ public class CervixTariefSpecification
 
 		if (vanafDatum != null)
 		{
-			predicates.add(isKleinerOfGelijkAanGeldigVanafDatum(vanafDatum).withPath(cb, r));
+			predicates.add(isKleinerOfGelijkAanGeldigVanafDatum(vanafDatum).toPredicate(r, null, cb));
 		}
 		if (totEnMetDatum != null)
 		{
-			predicates.add(isGroterOfGelijkAanGeldigTotEnMet(totEnMetDatum).withPath(cb, r));
+			predicates.add(isGroterOfGelijkAanGeldigTotEnMet(totEnMetDatum).toPredicate(r, null, cb));
 		}
 		return composePredicates(cb, predicates);
 	}
 
-	private static PathAwarePredicate<CervixTarief> isKleinerOfGelijkAanGeldigVanafDatum(LocalDate vanafDatum)
+	private static ExtendedSpecification<CervixTarief> isKleinerOfGelijkAanGeldigVanafDatum(LocalDate vanafDatum)
 	{
-		return (cb, r) -> cb.lessThanOrEqualTo(r.get(CervixTarief_.geldigVanafDatum), DateUtil.toUtilDate(vanafDatum));
+		return (r, q, cb) -> cb.lessThanOrEqualTo(r.get(CervixTarief_.geldigVanafDatum), DateUtil.toUtilDate(vanafDatum));
 	}
 
-	private static PathAwarePredicate<CervixTarief> isGroterOfGelijkAanGeldigTotEnMet(LocalDate totEnMetDatum)
+	private static ExtendedSpecification<CervixTarief> isGroterOfGelijkAanGeldigTotEnMet(LocalDate totEnMetDatum)
 	{
-		return (cb, r) -> cb.greaterThanOrEqualTo(cb.coalesce(r.get(CervixTarief_.geldigTotenmetDatum), DateUtil.parseDateForPattern("01-01-4000", Constants.DEFAULT_DATE_FORMAT)),
+		return (r, q, cb) -> cb.greaterThanOrEqualTo(cb.coalesce(r.get(CervixTarief_.geldigTotenmetDatum), DateUtil.END_OF_TIME),
 			DateUtil.toUtilDate(totEnMetDatum));
 	}
 

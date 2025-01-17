@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.generalis.projecten.brieven.genererenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,24 +26,23 @@ import java.util.Map;
 
 import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenPartitioner;
 import nl.rivm.screenit.batch.jobs.generalis.projecten.brieven.ProjectBrievenConstants;
+import nl.rivm.screenit.batch.repository.ProjectBriefRepository;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.model.project.ProjectBrief;
-import nl.rivm.screenit.util.query.ScreenitRestrictions;
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
 import org.springframework.batch.item.ExecutionContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ProjectBrievenGenererenPartitioner extends AbstractBrievenGenererenPartitioner
 {
+	@Autowired
+	private ProjectBriefRepository projectBriefRepository;
 
 	@Override
 	protected void fillingData(Map<String, ExecutionContext> partities, ScreeningOrganisatie organisatie)
 	{
-		List<Long> projectBriefActies = getActieveProjectBriefActieDefinities(organisatie);
+		List<Long> projectBriefActies = projectBriefRepository.getActieveProjectBriefActieDefinities(organisatie);
 		for (Long projectBriefActieId : projectBriefActies)
 		{
 			ExecutionContext executionContext = new ExecutionContext();
@@ -51,32 +50,5 @@ public class ProjectBrievenGenererenPartitioner extends AbstractBrievenGenereren
 			executionContext.put(ProjectBrievenConstants.KEY_PROJECT_ACTIE_ID, projectBriefActieId);
 			partities.put(organisatie.getId().toString() + "_" + projectBriefActieId.toString(), executionContext);
 		}
-	}
-
-	private List<Long> getActieveProjectBriefActieDefinities(ScreeningOrganisatie so)
-	{
-		Criteria crit = getHibernateSession().createCriteria(ProjectBrief.class);
-		crit.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
-
-		crit.createAlias("definitie", "definitie");
-		crit.createAlias("projectClient", "projectClient");
-		crit.createAlias("projectClient.groep", "groep");
-		crit.createAlias("projectClient.project", "project");
-
-		crit.createAlias("client", "client");
-		crit.createAlias("client.persoon", "persoon");
-		crit.createAlias("persoon.gbaAdres", "adres");
-		crit.createAlias("adres.gbaGemeente", "gemeente");
-		crit.createAlias("gemeente.screeningOrganisatie", "org");
-
-		crit.add(Restrictions.eq("org.id", so.getId()));
-
-		ScreenitRestrictions.addClientBaseRestrictions(crit, "client", "persoon");
-
-		crit.add(Restrictions.isNull("mergedBrieven"));
-
-		crit.setProjection(Projections.property("definitie.id"));
-
-		return crit.list();
 	}
 }

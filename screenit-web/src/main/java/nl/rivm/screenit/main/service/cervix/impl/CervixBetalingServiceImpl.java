@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -60,7 +60,6 @@ import nl.rivm.screenit.model.cervix.facturatie.CervixHuisartsTarief;
 import nl.rivm.screenit.model.cervix.facturatie.CervixLabTarief;
 import nl.rivm.screenit.model.cervix.facturatie.CervixTarief;
 import nl.rivm.screenit.model.cervix.facturatie.CervixTarief_;
-import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting;
 import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting_;
 import nl.rivm.screenit.model.enums.BestandStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -72,6 +71,7 @@ import nl.rivm.screenit.model.messagequeue.dto.VerwijderBetaalOpdrachtDto;
 import nl.rivm.screenit.repository.cervix.CervixBetaalopdrachtRepository;
 import nl.rivm.screenit.repository.cervix.CervixHuisartsTariefRepository;
 import nl.rivm.screenit.repository.cervix.CervixLabTariefRepository;
+import nl.rivm.screenit.repository.cervix.CervixVerrichtingRepository;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.DistributedLockService;
 import nl.rivm.screenit.service.HuisartsenportaalSyncService;
@@ -100,6 +100,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.cervix.CervixBoekRegelSpecification.heeftNogGeenBetaalopdracht;
 import static nl.rivm.screenit.specification.cervix.CervixTariefSpecification.heeftHaTariefOverlap;
 import static nl.rivm.screenit.specification.cervix.CervixTariefSpecification.heeftLabTariefOverlap;
@@ -108,9 +109,9 @@ import static nl.rivm.screenit.specification.cervix.CervixTariefSpecification.is
 import static nl.rivm.screenit.specification.cervix.CervixTariefSpecification.isGroterOfGelijkAanGeldigTotEnMetLabTarief;
 import static nl.rivm.screenit.specification.cervix.CervixTariefSpecification.isHuisartsTariefActief;
 import static nl.rivm.screenit.specification.cervix.CervixTariefSpecification.isLabTariefActief;
-import static nl.rivm.screenit.specification.cervix.CervixVerrichtingSpecification.filterVerrichtingBinnenRegio;
+import static nl.rivm.screenit.specification.cervix.CervixVerrichtingSpecification.filterVerrichtingBinnenScreeningOrganisatie;
 import static nl.rivm.screenit.specification.cervix.CervixVerrichtingSpecification.filterVerrichtingType;
-import static nl.rivm.screenit.specification.cervix.CervixVerrichtingSpecification.isKleinerDanVerrichtingsDatumVoorVerrichting;
+import static nl.rivm.screenit.specification.cervix.CervixVerrichtingSpecification.isKleinerDanVerrichtingsdatumVoorVerrichting;
 
 @Slf4j
 @Service
@@ -165,6 +166,9 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 
 	@Autowired
 	private CervixLabTariefRepository labTariefRepository;
+
+	@Autowired
+	private CervixVerrichtingRepository verrichtingRepository;
 
 	public CervixBetalingServiceImpl()
 	{
@@ -458,14 +462,14 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void genereerCervixBetalingsSpecificatieEnSepaBestand(Long betaalopdrachtId)
 	{
 		executorService.submit(new CervixBetalingsBestandenThread(betaalopdrachtId));
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public Long opslaanBetaalopdracht(CervixBetaalopdracht opdracht, InstellingGebruiker ingelogedeGebruiker)
 	{
 		var nu = currentDateSupplier.getDate();
@@ -588,7 +592,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void verwijderSepaBestanden(CervixBetaalopdracht betaalopdracht)
 	{
 		betaalopdracht.setStatus(BestandStatus.BEZIG_MET_VERWIJDEREN);
@@ -599,7 +603,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void archiveerBestaandeOpdrachten(ScreeningOrganisatie screeningOrganisatie)
 	{
 		Map<String, Object> params = new HashMap<>();
@@ -614,7 +618,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void toevoegenTarief(CervixTarief tarief, Account account)
 	{
 		hibernateService.saveOrUpdate(tarief);
@@ -637,7 +641,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void verwijderCervixTarief(CervixTarief tarief, Account account)
 	{
 		tarief.setActief(Boolean.FALSE);
@@ -661,20 +665,11 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 	@Override
 	public List<CervixBoekRegel> getVerrichtingenVoorBetaling(CervixBetalingsZoekObject zoekObject)
 	{
-		var session = hibernateService.getHibernateSession();
-
-		var cb = session.getCriteriaBuilder();
-		var q = cb.createQuery(CervixBoekRegel.class);
-		var r = q.from(CervixVerrichting.class);
-
-		q.select(r.get(CervixVerrichting_.laatsteBoekRegel))
-			.where(filterVerrichtingType(zoekObject.isVerrichtingenHuisarts(), zoekObject.isVerrichtingenLaboratorium())
-				.and(isKleinerDanVerrichtingsDatumVoorVerrichting(DateUtil.toLocalDate(zoekObject.getVerrichtingsdatumTotEnMet())))
-				.and(filterVerrichtingBinnenRegio(zoekObject.getScreeningOrganisatieId()))
-				.and(heeftNogGeenBetaalopdracht().toSpecification(CervixVerrichting_.laatsteBoekRegel))
-				.toPredicate(r, q, cb));
-
-		return session.createQuery(q).getResultList();
+		return verrichtingRepository.findWith(filterVerrichtingType(zoekObject.isVerrichtingenHuisarts(), zoekObject.isVerrichtingenLaboratorium())
+				.and(isKleinerDanVerrichtingsdatumVoorVerrichting(DateUtil.toLocalDate(zoekObject.getVerrichtingsdatumTotEnMet())))
+				.and(filterVerrichtingBinnenScreeningOrganisatie(zoekObject.getScreeningOrganisatieId()))
+				.and(heeftNogGeenBetaalopdracht().with(CervixVerrichting_.laatsteBoekRegel)), CervixBoekRegel.class,
+			q -> q.projection((cb, r) -> join(r, CervixVerrichting_.laatsteBoekRegel))).all();
 	}
 
 	@Override

@@ -4,7 +4,7 @@ package nl.rivm.screenit.factory.algemeen;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,7 @@ import java.util.Date;
 import nl.rivm.screenit.model.Afmelding;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientBrief;
+import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.algemeen.AlgemeneBrief;
@@ -41,6 +42,8 @@ import nl.rivm.screenit.repository.BaseJpaRepository;
 public interface BriefFactory
 {
 	<B extends ClientBrief<?, ?, ?>> BaseJpaRepository<B> getBriefTypeRepository(Class<B> briefClass);
+
+	<M extends MergedBrieven<?>> BaseJpaRepository<M> getMergedBriefTypeRepository(Class<M> mergedBrievenClass);
 
 	BezwaarBrief maakBezwaarBrief(Client client, BriefType type, Date date);
 

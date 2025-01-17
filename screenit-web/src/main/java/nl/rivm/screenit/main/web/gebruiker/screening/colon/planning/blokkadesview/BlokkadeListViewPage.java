@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.blokkadesvi
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,7 +23,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.blokkadesvi
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -34,6 +33,9 @@ import nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.PlanningBase
 import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.RoosterListViewFilter;
 import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
+import nl.rivm.screenit.model.colon.planning.ColonBlokkade_;
+import nl.rivm.screenit.model.colon.planning.ColonIntakekamer_;
+import nl.rivm.screenit.model.colon.planning.ColonTijdslot_;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
 
@@ -49,6 +51,8 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
 
 public class BlokkadeListViewPage extends PlanningBasePage
 {
@@ -119,8 +123,8 @@ public class BlokkadeListViewPage extends PlanningBasePage
 
 	private void maakTabel(ColonIntakelocatie intakelocatie, final IModel<RoosterListViewFilter> zoekModel)
 	{
-		List<IColumn<ColonBlokkade, String>> columns = new ArrayList<>();
-		columns.add(new ScreenitDateTimePropertyColumn<>(Model.of("Datum/tijd"), "vanaf", "vanaf")
+		var columns = new ArrayList<IColumn<ColonBlokkade, String>>();
+		columns.add(new ScreenitDateTimePropertyColumn<>(Model.of("Datum/tijd"), ColonTijdslot_.VANAF, ColonTijdslot_.VANAF)
 		{
 			@Override
 			public IModel<Object> getDataModel(IModel<ColonBlokkade> embeddedModel)
@@ -133,8 +137,9 @@ public class BlokkadeListViewPage extends PlanningBasePage
 			}
 
 		});
-		columns.add(new PropertyColumn<>(Model.of("Kamer"), "kamer.naam", "kamer.naam"));
-		columns.add(new PropertyColumn<>(Model.of("Omschrijving"), "omschrijving", "omschrijving"));
+		columns.add(
+			new PropertyColumn<>(Model.of("Kamer"), propertyChain(ColonTijdslot_.KAMER, ColonIntakekamer_.NAAM), propertyChain(ColonTijdslot_.KAMER, ColonIntakekamer_.NAAM)));
+		columns.add(new PropertyColumn<>(Model.of("Omschrijving"), ColonBlokkade_.OMSCHRIJVING, ColonBlokkade_.OMSCHRIJVING));
 
 		table = new ScreenitDataTable<>("tabel", columns, new BlokkadeListViewDataProvider(zoekModel, intakelocatie), 10,
 			Model.of("blokkade(s)"))

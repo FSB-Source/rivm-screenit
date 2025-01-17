@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,28 +24,12 @@ package nl.rivm.screenit.service.mamma;
 import java.time.LocalDate;
 import java.util.List;
 
-import nl.rivm.screenit.dto.mamma.MammaFollowUpInstellingDto;
-import nl.rivm.screenit.dto.mamma.MammaFollowUpInstellingRadiologieDto;
-import nl.rivm.screenit.model.Instelling;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.model.SortState;
-import nl.rivm.screenit.model.enums.MammaFollowUpDoorverwezenFilterOptie;
 import nl.rivm.screenit.model.mamma.MammaDossier;
-import nl.rivm.screenit.model.mamma.MammaFollowUpRadiologieVerslag;
 import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 
 public interface MammaBaseFollowUpService
 {
-	List<MammaFollowUpInstellingRadiologieDto> zoekOpenstaandeRadiologieVerslagenPerOrganisatie(ScreeningOrganisatie regio,
-		MammaFollowUpDoorverwezenFilterOptie doorverwezenFilterOptie, Integer jaar);
-
-	List<MammaFollowUpInstellingDto> zoekInstellingenMetOpenstaandePaVerslagen(ScreeningOrganisatie regio);
-
-	List<MammaFollowUpRadiologieVerslag> zoekDossiersMetOpenstaandePaVerslagen(Instelling instelling, int first, int count, SortState<String> sortState);
-
-	long countDossiersMetOpenstaandePaVerslagen(Instelling instelling);
-
 	void refreshUpdateFollowUpConclusie(MammaDossier dossier);
 
 	LocalDate getEersteAutorisatieDatumPaVerslag(MammaScreeningRonde screeningRonde);

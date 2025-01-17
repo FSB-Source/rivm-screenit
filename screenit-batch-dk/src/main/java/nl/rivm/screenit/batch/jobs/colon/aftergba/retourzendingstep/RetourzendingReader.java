@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.aftergba.retourzendingstep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,24 +21,35 @@ package nl.rivm.screenit.batch.jobs.colon.aftergba.retourzendingstep;
  * =========================LICENSE_END==================================
  */
 
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Root;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.batch.jobs.aftergba.retourzendingstep.BaseRetourzendingReader;
+import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.InpakbareUitnodiging;
+import nl.rivm.screenit.model.colon.ColonDossier_;
+import nl.rivm.screenit.model.colon.ColonScreeningRonde_;
 
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
 @Component
 public class RetourzendingReader extends BaseRetourzendingReader
 {
-
 	@Override
-	protected String getBvoDossierPropertyInClient()
+	protected String getRetourzendingMarker()
 	{
-		return "colonDossier";
+		return Constants.COLON_RETOURZENDING_MARKER;
 	}
 
 	@Override
-	protected String getRetoursendingMarker()
+	protected From<?, ? extends InpakbareUitnodiging<?>> getUitnodigingJoin(Root<Client> r)
 	{
-		return Constants.COLON_RETOURZENDING_MARKER;
+		var dossierJoin = join(r, Client_.colonDossier);
+		var screeningRondeJoin = join(dossierJoin, ColonDossier_.screeningRondes);
+		return join(screeningRondeJoin, ColonScreeningRonde_.uitnodigingen);
 	}
 }

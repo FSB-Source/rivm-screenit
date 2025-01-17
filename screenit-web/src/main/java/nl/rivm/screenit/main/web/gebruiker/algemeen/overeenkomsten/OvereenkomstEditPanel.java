@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.overeenkomsten;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,6 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.overeenkomsten;
 import java.util.Arrays;
 import java.util.List;
 
-import nl.rivm.screenit.main.dao.OvereenkomstDao;
 import nl.rivm.screenit.main.service.OvereenkomstService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
@@ -62,11 +61,6 @@ import org.apache.wicket.validation.validator.StringValidator;
 public abstract class OvereenkomstEditPanel extends Panel
 {
 
-	private static final long serialVersionUID = 1L;
-
-	@SpringBean
-	private OvereenkomstDao overeenkomstDao;
-
 	private final IModel<Overeenkomst> overeenkomstModel = new CglibHibernateModel<>();
 
 	private final IModel<List<FileUpload>> fileUploadModel = new ListModel<>();
@@ -80,25 +74,17 @@ public abstract class OvereenkomstEditPanel extends Panel
 		OvereenkomstEditForm editForm = new OvereenkomstEditForm("form", overeenkomstModel);
 		add(editForm);
 
-		add(new Label("titel", new IModel<String>()
+		add(new Label("titel", (IModel<String>) () ->
 		{
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public String getObject()
+			if (ModelUtil.nullSafeGet(overeenkomstModel) != null && overeenkomstModel.getObject().getId() == null)
 			{
-				if (ModelUtil.nullSafeGet(overeenkomstModel) != null && overeenkomstModel.getObject().getId() == null)
-				{
-					return "Nieuwe modelovereenkomst";
-				}
-				return "Bewerk modelovereenkomst";
+				return "Nieuwe modelovereenkomst";
 			}
+			return "Bewerk modelovereenkomst";
 		}));
 
 		add(new AjaxSubmitLink("submit", editForm)
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -111,7 +97,7 @@ public abstract class OvereenkomstEditPanel extends Panel
 				{
 					error(getString("error.onjuistaantalfiles"));
 				}
-				else if (OvereenkomstType.ZAKELIJKE_OVEREENKOMST.equals(overeenkomst.getOvereenkomst()) && overeenkomstDao.isErAlEenZakelijkOvereenkomst(overeenkomst))
+				else if (OvereenkomstType.ZAKELIJKE_OVEREENKOMST.equals(overeenkomst.getOvereenkomst()) && overeenkomstService.isErAlEenZakelijkOvereenkomst(overeenkomst))
 				{
 					error(getString("error.erisalzakelijkovereenkomst"));
 				}
@@ -149,8 +135,6 @@ public abstract class OvereenkomstEditPanel extends Panel
 
 	private class OvereenkomstEditForm extends Form<Overeenkomst>
 	{
-		private static final long serialVersionUID = 1L;
-
 		public OvereenkomstEditForm(String id, IModel<Overeenkomst> model)
 		{
 			super(id, new CompoundPropertyModel<>(model));
@@ -162,8 +146,6 @@ public abstract class OvereenkomstEditPanel extends Panel
 			RadioGroup<OvereenkomstType> radioGroup = new RadioGroup<OvereenkomstType>("overeenkomst");
 			radioGroup.add(new AjaxFormChoiceComponentUpdatingBehavior()
 			{
-
-				private static final long serialVersionUID = 1L;
 
 				@Override
 				protected void onUpdate(AjaxRequestTarget target)
@@ -193,9 +175,6 @@ public abstract class OvereenkomstEditPanel extends Panel
 
 			radioGroup.add(new AjaxFormChoiceComponentUpdatingBehavior()
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected void onUpdate(AjaxRequestTarget target)
 				{
@@ -204,15 +183,13 @@ public abstract class OvereenkomstEditPanel extends Panel
 			});
 			radioGroup.setRequired(true);
 			add(radioGroup);
-			radioGroup.add(new Radio<OvereenkomstType>("typeOvereenkomst", new Model<OvereenkomstType>(OvereenkomstType.OVEREENKOMST)));
-			radioGroup.add(new Radio<OvereenkomstType>("typeKwaliteitsovereenkomst", new Model<OvereenkomstType>(OvereenkomstType.KWALITEITSOVEREENKOMST)));
-			radioGroup.add(new Radio<OvereenkomstType>("typeZakelijkeovereenkomst", new Model<OvereenkomstType>(OvereenkomstType.ZAKELIJKE_OVEREENKOMST)));
+			radioGroup.add(new Radio<>("typeOvereenkomst", new Model<>(OvereenkomstType.OVEREENKOMST)));
+			radioGroup.add(new Radio<>("typeKwaliteitsovereenkomst", new Model<>(OvereenkomstType.KWALITEITSOVEREENKOMST)));
+			radioGroup.add(new Radio<>("typeZakelijkeovereenkomst", new Model<>(OvereenkomstType.ZAKELIJKE_OVEREENKOMST)));
 
 			organisatieTypeContainer
-				.add(new ScreenitDropdown<OrganisatieType>("organisatieType", Arrays.asList(OrganisatieType.values()), new EnumChoiceRenderer<OrganisatieType>())
+				.add(new ScreenitDropdown<>("organisatieType", Arrays.asList(OrganisatieType.values()), new EnumChoiceRenderer<>())
 				{
-					private static final long serialVersionUID = 1L;
-
 					@Override
 					protected void onConfigure()
 					{

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.v
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -47,7 +47,6 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaVisitatie;
 import nl.rivm.screenit.model.mamma.enums.MammaVisitatieStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
 
@@ -116,7 +115,7 @@ public class MammaVisitatieOverzichtPage extends MammaVisitatieBasePage
 		zoekModel = new CompoundPropertyModel<>(new MammaVisitatieWerklijstZoekObject());
 		if (isKwaliteitsplatform)
 		{
-			zoekModel.getObject().setTotMet(DateUtil.toUtilDate(dateSupplier.getLocalDate().minusMonths(3)));
+			zoekModel.getObject().setVanaf(dateSupplier.getLocalDate().minusMonths(3));
 		}
 		defaultZoekFilter();
 		add(new MammaVisitatieZoekPanel("filter", zoekModel)

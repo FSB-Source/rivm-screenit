@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.v
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,6 +29,7 @@ import java.util.Map;
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaVisitatieOnderzoekenWerklijstZoekObject;
 import nl.rivm.screenit.main.service.mamma.MammaKwaliteitscontroleService;
+import nl.rivm.screenit.main.service.mamma.MammaVisitatieService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.table.AjaxImageCellPanel;
@@ -41,13 +42,26 @@ import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.MammaBeTabelCounterPanel;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
+import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.GbaPersoon;
+import nl.rivm.screenit.model.GbaPersoon_;
+import nl.rivm.screenit.model.Gebruiker_;
+import nl.rivm.screenit.model.InstellingGebruiker_;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.model.mamma.MammaAfspraak_;
+import nl.rivm.screenit.model.mamma.MammaBeoordeling_;
+import nl.rivm.screenit.model.mamma.MammaDossier_;
+import nl.rivm.screenit.model.mamma.MammaMammografie_;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek_;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid_;
+import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
 import nl.rivm.screenit.model.mamma.MammaVisitatie;
 import nl.rivm.screenit.model.mamma.MammaVisitatieOnderzoek;
+import nl.rivm.screenit.model.mamma.MammaVisitatieOnderzoek_;
 import nl.rivm.screenit.model.mamma.enums.MammaVisitatieOnderdeel;
 import nl.rivm.screenit.model.mamma.enums.MammaVisitatieOnderzoekStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaVisitatieStatus;
@@ -70,7 +84,11 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.springframework.data.domain.Sort;
 import org.wicketstuff.shiro.ShiroConstraint;
+
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
+import static org.springframework.data.domain.Sort.Direction.ASC;
 
 @SecurityConstraint(
 	actie = Actie.INZIEN,
@@ -85,6 +103,9 @@ public abstract class MammaVisitatieOnderzoekenWerklijstPage extends MammaVisita
 
 	@SpringBean
 	private MammaKwaliteitscontroleService kwaliteitscontroleService;
+
+	@SpringBean
+	private MammaVisitatieService visitatieService;
 
 	private final IModel<MammaVisitatieOnderzoekenWerklijstZoekObject> zoekObjectModel;
 
@@ -116,7 +137,14 @@ public abstract class MammaVisitatieOnderzoekenWerklijstPage extends MammaVisita
 	{
 		super.onInitialize();
 
-		MammaVisitatieOnderzoekenDataProvider onderzoekDataProvider = new MammaVisitatieOnderzoekenDataProvider("onderzoek.creatieDatum", zoekObjectModel);
+		var onderzoekProperty = propertyChain(MammaVisitatieOnderzoek_.BEOORDELING, MammaBeoordeling_.ONDERZOEK);
+		var screeningsEenheidProperty = propertyChain(onderzoekProperty, MammaOnderzoek_.SCREENINGS_EENHEID);
+		var medewerkerProperty = propertyChain(onderzoekProperty, MammaOnderzoek_.MAMMOGRAFIE, MammaMammografie_.AFGEROND_DOOR, InstellingGebruiker_.MEDEWERKER);
+		var persoonProperty = propertyChain(onderzoekProperty, MammaOnderzoek_.AFSPRAAK, MammaAfspraak_.UITNODIGING, MammaUitnodiging_.SCREENING_RONDE,
+			MammaScreeningRonde_.DOSSIER, MammaDossier_.CLIENT, Client_.PERSOON);
+
+		MammaVisitatieOnderzoekenDataProvider onderzoekDataProvider = new MammaVisitatieOnderzoekenDataProvider(propertyChain(onderzoekProperty, MammaOnderzoek_.CREATIE_DATUM),
+			zoekObjectModel);
 
 		add(new Label("naam", getVisitatie().getOmschrijving()));
 		refreshContainer = new WebMarkupContainer("refreshContainer");
@@ -125,21 +153,24 @@ public abstract class MammaVisitatieOnderzoekenWerklijstPage extends MammaVisita
 		addOnderzoekToevoegenButton();
 
 		List<IColumn<MammaVisitatieOnderzoek, String>> columns = new ArrayList<>();
-		columns.add(new DateTimePropertyColumn<>(Model.of("Onderzoeksdatum"), "beoordeling.onderzoek.creatieDatum", "onderzoek.creatieDatum",
+		columns.add(new DateTimePropertyColumn<>(Model.of("Onderzoeksdatum"), "beoordeling.onderzoek.creatieDatum", propertyChain(onderzoekProperty, MammaOnderzoek_.CREATIE_DATUM),
 			Constants.getDateTimeSecondsFormat()));
 		if (zoekObjectModel.getObject().getOnderdeel() == MammaVisitatieOnderdeel.INSTELTECHNIEK)
 		{
-			columns.add(new PropertyColumn<>(Model.of("MBBer code"), "medewerker.medewerkercode", "beoordeling.onderzoek.mammografie.afgerondDoor.medewerker.medewerkercode"));
+			columns.add(new PropertyColumn<>(Model.of("MBBer code"), propertyChain(medewerkerProperty, Gebruiker_.MEDEWERKERCODE),
+				"beoordeling.onderzoek.mammografie.afgerondDoor.medewerker.medewerkercode"));
 		}
-		columns.add(new PropertyColumn<>(Model.of("Volgnummer"), "volgnummer", "volgnummer"));
+		columns.add(new PropertyColumn<>(Model.of("Volgnummer"), MammaVisitatieOnderzoek_.VOLGNUMMER, "volgnummer"));
 		if (ScreenitSession.get().getInstelling().getOrganisatieType() != OrganisatieType.KWALITEITSPLATFORM)
 		{
-			columns.add(new ClientColumn<>("persoon.achternaam", "beoordeling.onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client"));
-			columns.add(new GeboortedatumColumn<>("persoon.geboortedatum", "beoordeling.onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon"));
-			columns.add(new PropertyColumn<>(Model.of("BSN"), "persoon.bsn", "beoordeling.onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon.bsn"));
+			columns.add(new ClientColumn<>(propertyChain(persoonProperty, GbaPersoon_.ACHTERNAAM), "beoordeling.onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client"));
+			columns.add(new GeboortedatumColumn<>(propertyChain(persoonProperty, GbaPersoon_.GEBOORTEDATUM),
+				"beoordeling.onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon"));
+			columns.add(new PropertyColumn<>(Model.of("BSN"), propertyChain(persoonProperty, GbaPersoon_.BSN),
+				"beoordeling.onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon.bsn"));
 		}
-		columns.add(new PropertyColumn<>(Model.of("SE"), "se.naam", "beoordeling.onderzoek.screeningsEenheid.naam"));
-		columns.add(new EnumPropertyColumn<>(Model.of("Status"), "status", "status", this));
+		columns.add(new PropertyColumn<>(Model.of("SE"), propertyChain(screeningsEenheidProperty, MammaScreeningsEenheid_.NAAM), "beoordeling.onderzoek.screeningsEenheid.naam"));
+		columns.add(new EnumPropertyColumn<>(Model.of("Status"), MammaVisitatieOnderzoek_.STATUS, "status", this));
 
 		if (!ScreenitSession.get().getInstelling().getOrganisatieType().equals(OrganisatieType.BEOORDELINGSEENHEID)
 			&& !ScreenitSession.get().getInstelling().getOrganisatieType().equals(OrganisatieType.KWALITEITSPLATFORM)
@@ -148,8 +179,7 @@ public abstract class MammaVisitatieOnderzoekenWerklijstPage extends MammaVisita
 			columns.add(getOnderzoekVerwijderenColumn());
 		}
 
-		ScreenitDataTable<MammaVisitatieOnderzoek, String> table = new ScreenitDataTable<MammaVisitatieOnderzoek, String>("resultaten", columns, onderzoekDataProvider, 10,
-			Model.of("onderzoek(en)"))
+		ScreenitDataTable<MammaVisitatieOnderzoek, String> table = new ScreenitDataTable<>("resultaten", columns, onderzoekDataProvider, 10, Model.of("onderzoek(en)"))
 		{
 
 			@Override
@@ -169,7 +199,7 @@ public abstract class MammaVisitatieOnderzoekenWerklijstPage extends MammaVisita
 					@Override
 					public Integer getObject()
 					{
-						return kwaliteitscontroleService.getAantalGezien(getVisitatie(), zoekObjectModel.getObject().getOnderdeel());
+						return (int) visitatieService.countAantalGezien(getVisitatie(), zoekObjectModel.getObject().getOnderdeel());
 					}
 
 				};
@@ -194,12 +224,12 @@ public abstract class MammaVisitatieOnderzoekenWerklijstPage extends MammaVisita
 
 	private IColumn<MammaVisitatieOnderzoek, String> getOnderzoekVerwijderenColumn()
 	{
-		return new NotClickableAbstractColumn<MammaVisitatieOnderzoek, String>(Model.of("Verwijderen"))
+		return new NotClickableAbstractColumn<>(Model.of("Verwijderen"))
 		{
 			@Override
 			public void populateItem(Item<ICellPopulator<MammaVisitatieOnderzoek>> cellItem, String componentId, IModel<MammaVisitatieOnderzoek> rowModel)
 			{
-				cellItem.add(new AjaxImageCellPanel<MammaVisitatieOnderzoek>(componentId, rowModel, "icon-trash")
+				cellItem.add(new AjaxImageCellPanel<>(componentId, rowModel, "icon-trash")
 				{
 					@Override
 					protected void onClick(AjaxRequestTarget target)
@@ -282,7 +312,7 @@ public abstract class MammaVisitatieOnderzoekenWerklijstPage extends MammaVisita
 
 	private void addVisitatieAfrondenButton()
 	{
-		boolean kanVisitatieAfronden = kwaliteitscontroleService.kanVisitatieAfronden(getVisitatie());
+		boolean kanVisitatieAfronden = visitatieService.kanVisitatieAfronden(getVisitatie());
 
 		add(new IndicatingAjaxLink<Void>("visitatieAfronden")
 		{
@@ -302,7 +332,8 @@ public abstract class MammaVisitatieOnderzoekenWerklijstPage extends MammaVisita
 	private void openBesprekenScherm(AjaxRequestTarget target, IModel<MammaVisitatieOnderzoek> model, String sortProperty)
 	{
 		Map<Long, Long> onderzoekenIdMapping = new LinkedHashMap<>();
-		for (MammaVisitatieOnderzoek onderzoek : kwaliteitscontroleService.zoekVisitatieOnderzoeken(zoekObjectModel.getObject(), -1, -1, sortProperty, true))
+		var zoekObject = zoekObjectModel.getObject();
+		for (var onderzoek : visitatieService.zoekVisitatieOnderzoeken(zoekObject.getOnderdeel(), zoekObject.getVisitatie(), -1, -1, Sort.by(ASC, sortProperty)))
 		{
 			onderzoekenIdMapping.put(onderzoek.getBeoordeling().getId(), onderzoek.getId());
 		}

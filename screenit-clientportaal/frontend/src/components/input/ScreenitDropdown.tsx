@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-clientportaal
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -55,11 +55,12 @@ function ScreenitDropdown(props: ScreenitDropdownProps) {
 						id: props.propertyName,
 					}}
 					variant={"standard"}
-					placeholder={props.placeholder}
 					defaultValue={props.initialValue ? props.initialValue : ""}
 					value={props.value ? props.value : ""}
 					onChange={props.onChange}>
-
+					<MenuItem disabled value="">
+						{props.placeholder}
+					</MenuItem>
 					{props.options.map((option, key) =>
 						<MenuItem key={key} value={option.value}>{option.label}</MenuItem>,
 					)}

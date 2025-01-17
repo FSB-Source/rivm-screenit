@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.technischbeheer;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -47,8 +47,6 @@ public class TechnischeParametersPage extends TechnischBeheerPage
 
 		IModel<IMSConfiguratie> imsConfiguratieModel = Model.of(parameterisatieService.getIMSConfiguratie());
 		add(new TechnischBeheerIMSPanel("imsConfiguratie", imsConfiguratieModel));
-
-		add(new TechnischBeheerXdsPanel("xdsParameters", new Model<>(parameterisatie)));
 
 		add(new TechnischBeheerZorgIdPanel("zorgIdParameters", new Model<>(parameterisatie)));
 

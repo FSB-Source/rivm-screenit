@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.ilm.applicatielogging;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,24 +21,24 @@ package nl.rivm.screenit.batch.jobs.ilm.applicatielogging;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
+import lombok.Setter;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.logging.LogRegel;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.persister.collection.CollectionPropertyNames;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 
-public class IlmApplicatieLoggingVerwijderenReader extends BaseScrollableResultReader
+import static nl.rivm.screenit.specification.algemeen.LogRegelSpecification.heeftAantalBevolkingsonderzoekenGelijkAan;
+import static nl.rivm.screenit.specification.algemeen.LogRegelSpecification.heeftAantalBevolkingsonderzoekenNietGelijkAan;
+import static nl.rivm.screenit.specification.algemeen.LogRegelSpecification.heeftBevolkingsonderzoek;
+import static nl.rivm.screenit.specification.algemeen.LogRegelSpecification.heeftGebeurtenisDatumVoor;
+
+public class IlmApplicatieLoggingVerwijderenReader extends BaseSpecificationScrollableResultReader<LogRegel>
 {
 	@Autowired
 	private SimplePreferenceService preferenceService;
@@ -46,31 +46,25 @@ public class IlmApplicatieLoggingVerwijderenReader extends BaseScrollableResultR
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
 
+	@Setter
 	private Bevolkingsonderzoek bvo;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<LogRegel> createSpecification()
 	{
-		Date wachttijd = DateUtil
-			.toUtilDate(currentDateSupplier.getLocalDate().minusDays(preferenceService.getInteger(PreferenceKey.ILM_BEWAARTERMIJN_NIET_MEDISCH.name())));
+		var peilDatum = currentDateSupplier.getLocalDate().minusDays(preferenceService.getInteger(PreferenceKey.ILM_BEWAARTERMIJN_NIET_MEDISCH.name()));
 
-		Criteria criteria = session.createCriteria(LogRegel.class);
-		criteria.add(Restrictions.lt("gebeurtenisDatum", wachttijd));
-		if (bvo == null)
-		{
-			criteria.add(Restrictions.sizeNe("bevolkingsonderzoeken", 1));
-		}
-		else
-		{
-			criteria.createAlias("bevolkingsonderzoeken", "bevolkingsonderzoeken");
-			criteria.add(Restrictions.sizeEq("bevolkingsonderzoeken", 1));
-			criteria.add(Restrictions.eq("bevolkingsonderzoeken." + CollectionPropertyNames.COLLECTION_ELEMENTS, bvo));
-		}
-		return criteria;
+		return heeftGebeurtenisDatumVoor(peilDatum)
+			.and(bvoSpecifiekeSpecification());
 	}
 
-	public void setBvo(Bevolkingsonderzoek bvo)
+	private Specification<LogRegel> bvoSpecifiekeSpecification()
 	{
-		this.bvo = bvo;
+		if (bvo == null)
+		{
+			return heeftAantalBevolkingsonderzoekenNietGelijkAan(1);
+		}
+
+		return heeftBevolkingsonderzoek(bvo).and(heeftAantalBevolkingsonderzoekenGelijkAan(1));
 	}
 }

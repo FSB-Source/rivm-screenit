@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.algemeen;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,7 @@ package nl.rivm.screenit.specification.algemeen;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -36,7 +37,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.BeoordelingsEenheid;
@@ -67,6 +68,9 @@ import nl.rivm.screenit.model.colon.ColoscopieLocatie_;
 import nl.rivm.screenit.model.colon.IFobtLaboratorium;
 import nl.rivm.screenit.model.colon.PaLaboratorium;
 import nl.rivm.screenit.model.colon.PaLaboratorium_;
+import nl.rivm.screenit.model.overeenkomsten.AfgeslotenInstellingOvereenkomst;
+import nl.rivm.screenit.model.overeenkomsten.AfgeslotenInstellingOvereenkomst_;
+import nl.rivm.screenit.model.overeenkomsten.Overeenkomst;
 import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.topicuszorg.organisatie.model.Adres;
 
@@ -83,13 +87,14 @@ import static nl.rivm.screenit.specification.SpecificationUtil.exactCaseInsensit
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmpty;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenEmptyExtended;
+import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNull;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNullExtended;
 import static nl.rivm.screenit.specification.SpecificationUtil.treat;
 import static nl.rivm.screenit.specification.algemeen.AdresSpecification.filterPostcodeContaining;
 import static nl.rivm.screenit.specification.algemeen.MedewerkerSpecification.filterAchternaamContaining;
 import static nl.rivm.screenit.specification.algemeen.MedewerkerSpecification.filterUzinummerContaining;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrganisatieSpecification
 {
 
@@ -128,6 +133,16 @@ public class OrganisatieSpecification
 		return skipWhenEmpty(excludeOrganisatieTypes, (r, q, cb) -> cb.not(r.get(Instelling_.organisatieType).in(excludeOrganisatieTypes)));
 	}
 
+	public static Specification<Instelling> heeftOrganisatieTypes(List<OrganisatieType> organisatieTypes)
+	{
+		return (r, q, cb) -> r.get(Instelling_.organisatieType).in(organisatieTypes);
+	}
+
+	public static ExtendedSpecification<Instelling> heeftOrganisatieType(OrganisatieType organisatieType)
+	{
+		return (r, q, cb) -> cb.equal(r.get(Instelling_.organisatieType), organisatieType);
+	}
+
 	public static Specification<Instelling> filterUniekeCodeContaining(String uniekeCode)
 	{
 		return skipWhenEmpty(uniekeCode, (r, q, cb) -> cb.or(
@@ -135,6 +150,73 @@ public class OrganisatieSpecification
 			containsCaseInsensitive(cb, r.get(Instelling_.agbcode), uniekeCode),
 			containsCaseInsensitive(cb, r.get(Instelling_.rootOid), uniekeCode)
 		));
+	}
+
+	public static Specification<Instelling> filterUziAbonneeNummer(String uziAbonneeNummer)
+	{
+		return skipWhenEmpty(uziAbonneeNummer, (r, q, cb) -> cb.equal(r.get(Instelling_.uziAbonneenummer), uziAbonneeNummer));
+	}
+
+	public static Specification<Instelling> filterOrganisatieType(OrganisatieType organisatieType)
+	{
+		return skipWhenNull(organisatieType, (r, q, cb) -> cb.equal(r.get(Instelling_.organisatieType), organisatieType));
+	}
+
+	public static ExtendedSpecification<Instelling> filterOvereenkomst(Overeenkomst overeenkomst, Date peildatum)
+	{
+		return (r, q, cb) ->
+		{
+			var subquery = q.subquery(Long.class);
+			var subqueryRoot = subquery.from(AfgeslotenInstellingOvereenkomst.class);
+			var instellingJoin = join(subqueryRoot, AfgeslotenInstellingOvereenkomst_.instelling);
+			var predicates = new ArrayList<Predicate>();
+			if (overeenkomst != null)
+			{
+				predicates.add(AbstractAfgeslotenOvereenkomstSpecification.heeftOvereenkomst(overeenkomst).toPredicate(subqueryRoot, q, cb));
+			}
+			if (peildatum != null)
+			{
+				predicates.add(AbstractAfgeslotenOvereenkomstSpecification.bevatPeildatum(peildatum).toPredicate(subqueryRoot, q, cb));
+			}
+
+			subquery.select(instellingJoin.get(SingleTableHibernateObject_.id));
+			if (!predicates.isEmpty())
+			{
+				subquery.where(composePredicates(cb, predicates));
+			}
+
+			return r.get(SingleTableHibernateObject_.id).in(subquery);
+		};
+	}
+
+	public static Specification<Instelling> filterParent(ScreeningOrganisatie parent)
+	{
+		return skipWhenNull(parent, (r, q, cb) ->
+		{
+			var parentJoin = join(r, Instelling_.parent, JoinType.LEFT);
+			return cb.or(cb.equal(r.get(Instelling_.parent), parent), cb.equal(parentJoin.get(Instelling_.parent), parent));
+		});
+	}
+
+	public static Specification<Instelling> filterAdres(String plaats, String postcode)
+	{
+		return (r, q, cb) ->
+		{
+			var subquery = q.subquery(Long.class);
+			var subRoot = subquery.from(Instelling.class);
+			var adressenJoin = join(subRoot, Instelling_.adressen, JoinType.LEFT);
+			if (StringUtils.isNotBlank(plaats) || StringUtils.isNotBlank(postcode))
+			{
+				var spec = AdresSpecification.filterPlaatsContaining(plaats)
+					.and(AdresSpecification.filterPostcodeContaining(postcode)).with(root -> adressenJoin);
+				subquery.select(subRoot.get(SingleTableHibernateObject_.id)).where(spec.toPredicate(subRoot, q, cb));
+				return r.get(SingleTableHibernateObject_.id).in(subquery);
+			}
+			else
+			{
+				return null;
+			}
+		};
 	}
 
 	public static Specification<Instelling> heeftFqdn(String fqdn)
@@ -208,8 +290,7 @@ public class OrganisatieSpecification
 			}
 			if (adres.getPostcode() != null)
 			{
-				var postcode = StringUtils.deleteWhitespace(adres.getPostcode());
-				var postcodeFilter = filterPostcodeContaining(postcode);
+				var postcodeFilter = filterPostcodeContaining(adres.getPostcode());
 				spec = postcodeFilter.with(adresJoin()).or(postcodeFilter.with(ri -> postadresJoin(cb, ri))).and(spec);
 			}
 		}
@@ -292,6 +373,69 @@ public class OrganisatieSpecification
 			}
 		}
 		return composePredicates(cb, predicates);
+	}
+
+	public static Specification<Instelling> heeftNaam(String naam)
+	{
+		return (r, q, cb) -> cb.equal(r.get(Instelling_.naam), naam);
+	}
+
+	public static <T extends Instelling> ExtendedSpecification<T> isActief(boolean actief)
+	{
+		return (r, q, cb) -> cb.equal(r.get(Instelling_.actief), actief);
+	}
+
+	public static <T extends Instelling> ExtendedSpecification<T> isActieveInstelling(Class<? extends Instelling> typeInstelling)
+	{
+		return (r, q, cb) ->
+		{
+			var instelling = treat(r, typeInstelling, cb);
+			return cb.isTrue(instelling.get(Instelling_.actief));
+		};
+	}
+
+	public static <T extends Instelling> ExtendedSpecification<T> heeftParent(Instelling instelling, Class<? extends Instelling> typeInstelling)
+	{
+		return (r, q, cb) ->
+		{
+			var root = treat(r, typeInstelling, cb);
+			return cb.equal(root.get(Instelling_.parent), instelling);
+		};
+	}
+
+	public static <T extends Instelling> ExtendedSpecification<T> heeftColoscopielocatieId(Long locatieId)
+	{
+		return (r, q, cb) ->
+		{
+			var root = treat(r, PaLaboratorium.class, cb);
+			var coloscopielocatieJoin = join(root, PaLaboratorium_.coloscopielocaties);
+			return cb.equal(coloscopielocatieJoin.get(SingleTableHibernateObject_.id), locatieId);
+		};
+	}
+
+	public static <T extends Instelling> ExtendedSpecification<T> heeftColoscopielocatieParent(Long locatieId)
+	{
+		return (r, q, cb) ->
+		{
+			var root = treat(r, PaLaboratorium.class, cb);
+			var coloscopielocatieJoin = join(root, PaLaboratorium_.coloscopielocaties);
+			return cb.equal(coloscopielocatieJoin.get(Instelling_.parent), locatieId);
+		};
+	}
+
+	public static <T extends Instelling> ExtendedSpecification<T> heeftRegio(Instelling regio)
+	{
+		return (r, q, cb) -> cb.equal(r.get(Instelling_.regio), regio);
+	}
+
+	public static Specification<Instelling> heeftUziAbonneenummer(String uziAbonneenummer)
+	{
+		return (r, q, cb) -> cb.equal(r.get(Instelling_.uziAbonneenummer), uziAbonneenummer);
+	}
+
+	public static Specification<Instelling> heeftRootOid(String rootOid)
+	{
+		return (r, q, cb) -> cb.equal(r.get(Instelling_.rootOid), rootOid);
 	}
 
 	@NotNull

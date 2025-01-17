@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,23 +22,12 @@ package nl.rivm.screenit.service.colon;
  */
 
 import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
 
-import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.colon.Complicatie;
-import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.colon.MdlVerslag;
 import nl.rivm.screenit.model.enums.ComplicatieMoment;
 
 public interface ComplicatieService
 {
-
-	long countComplicaties(Complicatie searchObject, List<Long> hierarchieCriteria);
-
-	Iterator<Complicatie> getComplicaties(Complicatie searchObject, List<Long> hierarchieCriteria, int first, int count, SortState<String> sortState);
-
-	List<Complicatie> geefAlleNietGekoppeldeComplicaties(Client client, Date date);
 
 	ComplicatieMoment getCorrecteComplicatieMoment(Date complicatieDatum, MdlVerslag verslag);
 

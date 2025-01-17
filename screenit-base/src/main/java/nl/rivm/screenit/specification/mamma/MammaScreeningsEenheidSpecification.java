@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -58,7 +58,7 @@ public class MammaScreeningsEenheidSpecification
 		return skipWhenEmpty(naam, (r, q, cb) -> containsCaseInsensitive(cb, r.get(MammaScreeningsEenheid_.naam), naam));
 	}
 
-	public static Specification<MammaScreeningsEenheid> isActief()
+	public static ExtendedSpecification<MammaScreeningsEenheid> isActief()
 	{
 		return (r, q, cb) -> cb.isTrue(r.get(MammaScreeningsEenheid_.actief));
 	}
@@ -94,14 +94,14 @@ public class MammaScreeningsEenheidSpecification
 			cb.greaterThanOrEqualTo(r.get(MammaScreeningsEenheid_.tijdelijkeBeTotEnMetDatum), DateUtil.toUtilDate(moment)));
 	}
 
-	public static ExtendedSpecification<MammaScreeningsEenheid> heeftScreeningsOrganisatie(ScreeningOrganisatie screeningOrganisatie)
+	public static ExtendedSpecification<MammaScreeningsEenheid> heeftScreeningOrganisatie(ScreeningOrganisatie screeningOrganisatie)
 	{
 		return BeoordelingsEenheidSpecification.heeftScreeningOrganisatie(screeningOrganisatie).with(MammaScreeningsEenheid_.beoordelingsEenheid);
 	}
 
-	public static Specification<MammaScreeningsEenheid> filterScreeningsOrganisatie(ScreeningOrganisatie screeningOrganisatie)
+	public static Specification<MammaScreeningsEenheid> filterScreeningOrganisatie(ScreeningOrganisatie screeningOrganisatie)
 	{
-		return skipWhenNull(screeningOrganisatie, heeftScreeningsOrganisatie(screeningOrganisatie));
+		return skipWhenNull(screeningOrganisatie, heeftScreeningOrganisatie(screeningOrganisatie));
 	}
 
 	public static ExtendedSpecification<MammaScreeningsEenheid> heeftVrijgegevenTotEnMetOpOfNaDatum(LocalDate datum)

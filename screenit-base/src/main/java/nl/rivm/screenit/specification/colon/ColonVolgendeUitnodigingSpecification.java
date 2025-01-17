@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,7 +29,7 @@ import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.colon.ColonUitnodigingsinterval;
 import nl.rivm.screenit.model.colon.ColonUitnodigingsinterval_;
@@ -41,7 +41,7 @@ import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 import static nl.rivm.screenit.specification.DateSpecification.intervalInDagen;
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ColonVolgendeUitnodigingSpecification
 {
 	public static ExtendedSpecification<ColonVolgendeUitnodiging> heeftGeenDatumVolgendeRonde()

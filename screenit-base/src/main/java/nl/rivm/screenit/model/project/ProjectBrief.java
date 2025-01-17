@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.project;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -72,11 +72,6 @@ public class ProjectBrief extends ClientBrief<ScreeningRonde, Afmelding, Project
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	private ProjectMergedBrieven mergedBrieven;
-
-	@OneToOne(fetch = FetchType.LAZY, optional = true, cascade = { javax.persistence.CascadeType.PERSIST, javax.persistence.CascadeType.MERGE })
-	@Cascade({ CascadeType.SAVE_UPDATE })
-	@NotAudited
-	private ProjectVragenlijstAntwoordenHolder vragenlijstAntwoordenHolder;
 
 	@ManyToOne(optional = true, fetch = FetchType.LAZY)
 	private ScreeningRonde screeningRonde;

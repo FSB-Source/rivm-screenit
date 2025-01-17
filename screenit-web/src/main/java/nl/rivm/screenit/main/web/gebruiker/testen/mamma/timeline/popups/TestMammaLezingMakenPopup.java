@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.popups;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -44,6 +44,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaLezingType;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.markup.html.basic.Label;
@@ -51,6 +52,7 @@ import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.springframework.data.domain.Sort;
 
 public class TestMammaLezingMakenPopup extends TestMammaAbstractPopupPanel
 {
@@ -134,7 +136,8 @@ public class TestMammaLezingMakenPopup extends TestMammaAbstractPopupPanel
 		{
 			InstellingGebruiker zoekInstellingGebruiker = new InstellingGebruiker();
 			zoekInstellingGebruiker.setOrganisatie(beoordeling.getBeoordelingsEenheid());
-			instellingGebruikersListModel = ModelUtil.listRModel(medewerkerService.getActieveRadiologen(zoekInstellingGebruiker, exclIds, null, true)
+			var sort = Sort.by(Sort.Order.asc(AbstractHibernateObject_.ID));
+			instellingGebruikersListModel = ModelUtil.listRModel(medewerkerService.getActieveRadiologen(zoekInstellingGebruiker, exclIds, sort)
 				.stream()
 				.filter(m -> huidigeOnderzoeksStatus != MammaBeoordelingStatus.ARBITRAGE ||
 					beoordelingService.isBevoegdVoorArbitrage(m))

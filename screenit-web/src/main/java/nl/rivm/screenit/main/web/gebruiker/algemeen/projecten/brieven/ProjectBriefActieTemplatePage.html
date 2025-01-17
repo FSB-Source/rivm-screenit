@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -20,94 +20,82 @@
   -->
 <html xmlns:wicket>
 <wicket:extend>
-    <div class="content-inner">
-        <h1 class="pageTitle">
-            <a  wicket:id="terugViaTitle" class="page">Brieven</a>
-            <span class="divider">&gt;</span> <span class="subpage">Projectbrief template test</span>
-        </h1>
-        <form wicket:id="regioForm">
-            <div class="form-horizontal">
-                <fieldset>
-                    <div class="row-fluid">
-                        <div class="span6">
-                            <div class="control-group value">
-                                <label class="control-label">Naam</label>
-                                <div class="controls">
-                                    <span wicket:id="naam"></span>
-                                </div>
-                            </div>
-                            <div class="control-group value">
-                                <label class="control-label">Soort</label>
-                                <div class="controls">
-                                    <span wicket:id="soort"></span>
-                                </div>
-                            </div>
-                            <div class="control-group value">
-                                <label class="control-label">Moment</label>
-                                <div class="controls">
-                                    <span wicket:id="moment"></span>
-                                </div>
-                            </div>
-                            <div class="control-group value">
-                                <label class="control-label">Uitzetten via</label>
-                                <div class="controls">
-                                    <span wicket:id="uitzettenVia"></span>
-                                </div>
-                            </div>
-                            <div class="control-group value">
-                                <label class="control-label">Orion werkbak</label>
-                                <div class="controls">
-                                    <span wicket:id="orionWerkbak"></span>
-                                </div>
-                            </div>
-                            <div class="control-group value">
-                                <label class="control-label">Download herinnering</label>
-                                <div class="controls">
-                                    <span wicket:id="herrinneringDownloaden"></span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="span6">
-                            <div class="control-group value">
-                                <label class="control-label">Laatst gewijzigd</label>
-                                <div class="controls">
-                                    <span wicket:id="laatstGewijzigd"></span>
-                                </div>
-                            </div>
-                            <div class="control-group value">
-                                <label class="control-label">Formuliernummer</label>
-                                <div class="controls">
-                                    <span wicket:id="formulierNummer"></span>
-                                </div>
-                            </div>
-                            <div class="control-group value">
-                                <label class="control-label">Vragenlijst</label>
-                                <div class="controls">
-                                    <span wicket:id="vragenlijst"></span>
-                                </div>
-                            </div>
-                            <div class="control-group value">
-                                <label class="control-label">Herinnering</label>
-                                <div class="controls">
-                                    <div wicket:id="herrinering" class="span6"></div>
-                                    <div wicket:id="herrinneringPrinten" class="span6"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </fieldset>
-                <fieldset>
-                    <div class="row-fluid">
-                        <div class="span6">
-                            <h2>
-                                Regio
-                                <i class="icon-asterisk icon-purple"></i>
-                            </h2>
-                            <div class="control-group">
-                                <select wicket:id="regio"></select>
-                            </div>
-                        </div>
-                        <div class="span6">
+	<div class="content-inner">
+		<h1 class="pageTitle">
+			<a wicket:id="terugViaTitle" class="page">Brieven</a>
+			<span class="divider">&gt;</span> <span class="subpage">Projectbrief template test</span>
+		</h1>
+		<form wicket:id="regioForm">
+			<div class="form-horizontal">
+				<fieldset>
+					<div class="row-fluid">
+						<div class="span6">
+							<div class="control-group value">
+								<label class="control-label">Naam</label>
+								<div class="controls">
+									<span wicket:id="naam"></span>
+								</div>
+							</div>
+							<div class="control-group value">
+								<label class="control-label">Soort</label>
+								<div class="controls">
+									<span wicket:id="soort"></span>
+								</div>
+							</div>
+							<div class="control-group value">
+								<label class="control-label">Moment</label>
+								<div class="controls">
+									<span wicket:id="moment"></span>
+								</div>
+							</div>
+							<div class="control-group value">
+								<label class="control-label">Orion werkbak</label>
+								<div class="controls">
+									<span wicket:id="orionWerkbak"></span>
+								</div>
+							</div>
+							<div class="control-group value">
+								<label class="control-label">Download herinnering</label>
+								<div class="controls">
+									<span wicket:id="herrinneringDownloaden"></span>
+								</div>
+							</div>
+						</div>
+						<div class="span6">
+							<div class="control-group value">
+								<label class="control-label">Laatst gewijzigd</label>
+								<div class="controls">
+									<span wicket:id="laatstGewijzigd"></span>
+								</div>
+							</div>
+							<div class="control-group value">
+								<label class="control-label">Formuliernummer</label>
+								<div class="controls">
+									<span wicket:id="formulierNummer"></span>
+								</div>
+							</div>
+							<div class="control-group value">
+								<label class="control-label">Herinnering</label>
+								<div class="controls">
+									<div wicket:id="herrinering" class="span6"></div>
+									<div wicket:id="herrinneringPrinten" class="span6"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</fieldset>
+				<fieldset>
+					<div class="row-fluid">
+						<div class="span6">
+							<h2>
+								Regio
+								<i class="icon-asterisk icon-purple"></i>
+							</h2>
+							<div class="control-group">
+								<select wicket:id="regio"></select>
+							</div>
+						</div>
+						<div class="span6">
 							<h2>
 								Bron: <i class="icon-asterisk icon-purple"></i>
 							</h2>
@@ -116,14 +104,14 @@
 								<div><input type="file" wicket:id="upload"></div>
 							</div>
 						</div>
-                    </div>
-                </fieldset>
-                <wicket:container wicket:id="fieldsContainer"></wicket:container>
-            </div>
-            <div class="buttons">
-                <button class="btn btn-primary right" wicket:id="printen">Genereren</button>
-            </div>
-        </form>
-    </div>   
+					</div>
+				</fieldset>
+				<wicket:container wicket:id="fieldsContainer"></wicket:container>
+			</div>
+			<div class="buttons">
+				<button class="btn btn-primary right" wicket:id="printen">Genereren</button>
+			</div>
+		</form>
+	</div>
 </wicket:extend>
 </html>

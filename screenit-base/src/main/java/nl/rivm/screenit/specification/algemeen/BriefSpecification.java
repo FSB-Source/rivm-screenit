@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.algemeen;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,10 +22,11 @@ package nl.rivm.screenit.specification.algemeen;
  */
 
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.Brief;
 import nl.rivm.screenit.model.Brief_;
@@ -33,7 +34,7 @@ import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.util.DateUtil;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class BriefSpecification
 {
 	public static <B extends Brief> ExtendedSpecification<B> heeftNietBriefType(BriefType briefType)
@@ -53,17 +54,17 @@ public class BriefSpecification
 
 	public static <B extends Brief> ExtendedSpecification<B> isNietVervangen()
 	{
-		return (r, q, cb) -> cb.equal(r.get(Brief_.vervangen), false);
+		return (r, q, cb) -> cb.isFalse(r.get(Brief_.vervangen));
 	}
 
 	public static <B extends Brief> ExtendedSpecification<B> isNietGegenereerd()
 	{
-		return (r, q, cb) -> cb.equal(r.get(Brief_.gegenereerd), false);
+		return (r, q, cb) -> cb.isFalse(r.get(Brief_.gegenereerd));
 	}
 
 	public static <B extends Brief> ExtendedSpecification<B> isNietTegengehouden()
 	{
-		return (r, q, cb) -> cb.equal(r.get(Brief_.tegenhouden), false);
+		return (r, q, cb) -> cb.isFalse(r.get(Brief_.tegenhouden));
 	}
 
 	public static <B extends Brief> ExtendedSpecification<B> isGegenereerd(boolean isGegenereerd)
@@ -74,6 +75,11 @@ public class BriefSpecification
 	public static <B extends Brief> ExtendedSpecification<B> isAangemaaktVoor(LocalDate peilmoment)
 	{
 		return (r, q, cb) -> cb.lessThan(r.get(Brief_.creatieDatum), DateUtil.toUtilDate(peilmoment));
+	}
+
+	public static <B extends Brief> ExtendedSpecification<B> isAangemaaktVoorOfOp(Date peildatum)
+	{
+		return (r, q, cb) -> cb.lessThanOrEqualTo(r.get(Brief_.creatieDatum), peildatum);
 	}
 
 }

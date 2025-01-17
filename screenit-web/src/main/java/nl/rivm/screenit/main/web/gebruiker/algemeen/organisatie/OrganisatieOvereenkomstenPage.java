@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,13 +27,13 @@ import nl.rivm.screenit.main.service.OvereenkomstService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.overeenkomsten.AfgeslotenOvereenkomstPanel;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
-import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
 import nl.rivm.screenit.model.overeenkomsten.AbstractAfgeslotenOvereenkomst;
+import nl.rivm.screenit.model.overeenkomsten.AbstractAfgeslotenOvereenkomst_;
 import nl.rivm.screenit.model.overeenkomsten.AfgeslotenInstellingOvereenkomst;
 import nl.rivm.screenit.service.AutorisatieService;
 import nl.topicuszorg.wicket.hibernate.SimpleHibernateModel;
@@ -46,13 +45,12 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
 
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
+
 @SecurityConstraint(actie = Actie.INZIEN, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_OVEREENKOMSTEN_BEHEER, checkScope = true, level = ToegangLevel.INSTELLING, bevolkingsonderzoekScopes = {
 	Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.COLON })
 public class OrganisatieOvereenkomstenPage extends OrganisatieBeheer
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private OvereenkomstService overeenkomstService;
 
@@ -62,29 +60,26 @@ public class OrganisatieOvereenkomstenPage extends OrganisatieBeheer
 	public OrganisatieOvereenkomstenPage()
 	{
 		IModel<Boolean> actiefModel = new Model<>(Boolean.TRUE);
-		Instelling organisatie = getCurrentSelectedOrganisatie();
-		Actie actie = autorisatieService.getActieVoorOrganisatie(ScreenitSession.get().getLoggedInInstellingGebruiker(), organisatie, Recht.GEBRUIKER_OVEREENKOMSTEN_BEHEER);
+		var organisatie = getCurrentSelectedOrganisatie();
+		var actie = autorisatieService.getActieVoorOrganisatie(ScreenitSession.get().getLoggedInInstellingGebruiker(), organisatie, Recht.GEBRUIKER_OVEREENKOMSTEN_BEHEER);
 
 		add(new AfgeslotenOvereenkomstPanel("overeenkomstenPanel", actie, getCurrentSelectedOrganisatie(), new KwaliteitsOvereenkomstDataProvider(actiefModel), actiefModel)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected AbstractAfgeslotenOvereenkomst createAfgeslotenOvereenkomst()
 			{
-				AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst = new AfgeslotenInstellingOvereenkomst();
+				var afgeslotenOvereenkomst = new AfgeslotenInstellingOvereenkomst();
 				afgeslotenOvereenkomst.setInstelling(ScreenitSession.get().getCurrentSelectedOrganisatie());
 				afgeslotenOvereenkomst.setScreeningOrganisatie(ScreenitSession.get().getScreeningOrganisatie());
 
 				if (afgeslotenOvereenkomst.getScreeningOrganisatie() == null)
 				{
-					Instelling instelling = ScreenitSession.get().getCurrentSelectedOrganisatie();
+					var instelling = ScreenitSession.get().getCurrentSelectedOrganisatie();
 					while (instelling.getParent() != null)
 					{
 						if (instelling.getParent() instanceof ScreeningOrganisatie)
 						{
-							ScreeningOrganisatie screeningOrganisatie = (ScreeningOrganisatie) instelling.getParent();
+							var screeningOrganisatie = (ScreeningOrganisatie) instelling.getParent();
 							afgeslotenOvereenkomst.setScreeningOrganisatie(screeningOrganisatie);
 							break;
 						}
@@ -99,28 +94,25 @@ public class OrganisatieOvereenkomstenPage extends OrganisatieBeheer
 
 	private class KwaliteitsOvereenkomstDataProvider extends SortableDataProvider<AbstractAfgeslotenOvereenkomst, String>
 	{
-
-		private static final long serialVersionUID = 1L;
-
 		private final IModel<Boolean> actiefModel;
 
 		public KwaliteitsOvereenkomstDataProvider(IModel<Boolean> actiefModel)
 		{
-			setSort("code", SortOrder.ASCENDING);
+			setSort(AbstractAfgeslotenOvereenkomst_.CODE, SortOrder.ASCENDING);
 			this.actiefModel = actiefModel;
 		}
 
 		@Override
 		public Iterator<? extends AbstractAfgeslotenOvereenkomst> iterator(long first, long count)
 		{
-			return overeenkomstService.getAfgeslotenOvereenkomsten(AfgeslotenInstellingOvereenkomst.class, ScreenitSession.get().getCurrentSelectedOrganisatie(),
-				actiefModel.getObject(), first, count, getSort().getProperty(), getSort().isAscending()).iterator();
+			return overeenkomstService.getAfgeslotenOrganisatieOvereenkomsten(ScreenitSession.get().getCurrentSelectedOrganisatie(),
+				actiefModel.getObject(), first, count, toSpringSort(getSort())).iterator();
 		}
 
 		@Override
 		public long size()
 		{
-			return overeenkomstService.countAfgeslotenOvereenkomsten(AfgeslotenInstellingOvereenkomst.class, ScreenitSession.get().getCurrentSelectedOrganisatie(),
+			return overeenkomstService.countAfgeslotenOrganisatieOvereenkomsten(ScreenitSession.get().getCurrentSelectedOrganisatie(),
 				actiefModel.getObject());
 		}
 

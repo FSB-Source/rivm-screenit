@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.cervix.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,7 +32,9 @@ import lombok.Getter;
 
 import nl.rivm.screenit.model.INaam;
 import nl.rivm.screenit.model.cervix.facturatie.CervixHuisartsTarief;
+import nl.rivm.screenit.model.cervix.facturatie.CervixHuisartsTarief_;
 import nl.rivm.screenit.model.cervix.facturatie.CervixLabTarief;
+import nl.rivm.screenit.model.cervix.facturatie.CervixLabTarief_;
 import nl.rivm.screenit.model.cervix.facturatie.CervixTarief;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 
@@ -41,27 +43,27 @@ import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 public enum CervixTariefType implements INaam
 {
 
-	LAB_HPV_ANALYSE_UITSTRIJKJE("hpvAnalyseUitstrijkjeTarief", "HPV analyse uitstrijkje", false),
+	LAB_HPV_ANALYSE_UITSTRIJKJE(CervixLabTarief_.HPV_ANALYSE_UITSTRIJKJE_TARIEF, "HPV analyse uitstrijkje", false),
 
-	LAB_HPV_ANALYSE_ZAS("hpvAnalyseZasTarief", "HPV analyse ZAS", false),
+	LAB_HPV_ANALYSE_ZAS(CervixLabTarief_.HPV_ANALYSE_ZAS_TARIEF, "HPV analyse ZAS", false),
 
-	LAB_CYTOLOGIE_NA_HPV_UITSTRIJKJE("cytologieNaHpvUitstrijkjeTarief", "Cytologie uitstrijkje HPV(+)", false),
+	LAB_CYTOLOGIE_NA_HPV_UITSTRIJKJE(CervixLabTarief_.CYTOLOGIE_NA_HPV_UITSTRIJKJE_TARIEF, "Cytologie uitstrijkje HPV(+)", false),
 
-	LAB_CYTOLOGIE_NA_HPV_ZAS("cytologieNaHpvZasTarief", "Cytologie ZAS HPV(+)", false),
+	LAB_CYTOLOGIE_NA_HPV_ZAS(CervixLabTarief_.CYTOLOGIE_NA_HPV_ZAS_TARIEF, "Cytologie ZAS HPV(+)", false),
 
-	LAB_CYTOLOGIE_VERVOLGUITSTRIJKJE("cytologieVervolguitstrijkjeTarief", "Cytologie vervolguitstrijkje", false),
+	LAB_CYTOLOGIE_VERVOLGUITSTRIJKJE(CervixLabTarief_.CYTOLOGIE_VERVOLGUITSTRIJKJE_TARIEF, "Cytologie vervolguitstrijkje", false),
 
-	HUISARTS_UITSTRIJKJE("tarief", "Uitstrijkje", false),
+	HUISARTS_UITSTRIJKJE(CervixHuisartsTarief_.TARIEF, "Uitstrijkje", false),
 
-	LAB_LOGISTIEK("logistiekTarief", "P1 Logistiek", true),
+	LAB_LOGISTIEK(CervixLabTarief_.LOGISTIEK_TARIEF, "P1 Logistiek", true),
 
-	LAB_MONSTERONTVANGST_EN_MONSTEROPWERKING_ZAS("monsterontvangstEnMonsterverwerkingZasTarief", "P2 Monsterontvangst & Monsteropwerking ZAS", true),
+	LAB_MONSTERONTVANGST_EN_MONSTEROPWERKING_ZAS(CervixLabTarief_.MONSTERONTVANGST_EN_MONSTERVERWERKING_ZAS_TARIEF, "P2 Monsterontvangst & Monsteropwerking ZAS", true),
 
-	LAB_HPV_ANALYSE_KLINISCH_EN_ZELF_AFGENOMEN("hpvAnalyseKlinischEnZelfAfgenomenTarief", "P3 HPV-analyse Klinisch & zelf afgenomen", true),
+	LAB_HPV_ANALYSE_KLINISCH_EN_ZELF_AFGENOMEN(CervixLabTarief_.HPV_ANALYSE_KLINISCH_EN_ZELF_AFGENOMEN_TARIEF, "P3 HPV-analyse Klinisch & zelf afgenomen", true),
 
-	LAB_CERVIXCYTOLOGIE_MANUEEL_SCREENEN("cervixcytologieManueelScreenenTarief", "P4a Cervixcytologie manueel screenen", true),
+	LAB_CERVIXCYTOLOGIE_MANUEEL_SCREENEN(CervixLabTarief_.CERVIXCYTOLOGIE_MANUEEL_SCREENEN_TARIEF, "P4a Cervixcytologie manueel screenen", true),
 
-	LAB_CERVIXCYTOLOGIE_MET_COS("cervixcytologieMetCosTarief", "P4b Cervixcytologie met COS", true);
+	LAB_CERVIXCYTOLOGIE_MET_COS(CervixLabTarief_.CERVIXCYTOLOGIE_MET_COS_TARIEF, "P4b Cervixcytologie met COS", true);
 
 	private final String bedragProperty;
 

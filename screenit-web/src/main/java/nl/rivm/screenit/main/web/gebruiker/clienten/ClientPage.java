@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-import nl.rivm.screenit.main.dao.ClientContactDao;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerBasePage;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerHoofdMenuItem;
@@ -44,6 +43,7 @@ import nl.rivm.screenit.main.web.gebruiker.screening.mamma.afspraken.MammaAfspra
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContact;
 import nl.rivm.screenit.model.enums.GbaStatus;
+import nl.rivm.screenit.service.ClientContactService;
 import nl.topicuszorg.wicket.hibernate.SimpleHibernateModel;
 
 import org.apache.commons.lang.reflect.ConstructorUtils;
@@ -67,7 +67,7 @@ public abstract class ClientPage extends GebruikerBasePage
 	private static final Logger LOG = LoggerFactory.getLogger(ClientPage.class);
 
 	@SpringBean
-	private ClientContactDao clientContactDao;
+	private ClientContactService clientContactService;
 
 	private final List<Component> postfixes = new ArrayList<>();
 
@@ -210,13 +210,10 @@ public abstract class ClientPage extends GebruikerBasePage
 	{
 		Label label = new Label(id, new LoadableDetachableModel<String>()
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected String load()
 			{
-				long aantalContactenMetVrijeTekstvelden = clientContactDao.countClientContactenMetOpmerking(clientId);
+				long aantalContactenMetVrijeTekstvelden = clientContactService.countClientContactenMetOpmerking(clientId);
 
 				if (aantalContactenMetVrijeTekstvelden > 0L)
 				{

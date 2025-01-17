@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,7 +32,7 @@ import org.springframework.stereotype.Service;
 import static nl.rivm.screenit.specification.mamma.MammaStandplaatsSpecification.filterOpActief;
 import static nl.rivm.screenit.specification.mamma.MammaStandplaatsSpecification.filterOpLocatie;
 import static nl.rivm.screenit.specification.mamma.MammaStandplaatsSpecification.filterOpNaam;
-import static nl.rivm.screenit.specification.mamma.MammaStandplaatsSpecification.filterOpRegio;
+import static nl.rivm.screenit.specification.mamma.MammaStandplaatsSpecification.filterOpScreeningOrganisatie;
 
 @Service("MammaStandplaatsDataProviderService")
 public class MammaStandplaatsDataProviderServiceImpl extends RepositoryDataProviderService<MammaStandplaats, MammaStandplaatsRepository, MammaStandplaats>
@@ -43,6 +43,6 @@ public class MammaStandplaatsDataProviderServiceImpl extends RepositoryDataProvi
 		return filterOpNaam(filter.getNaam())
 			.and(filterOpLocatie(filter.getLocatie().getPlaats()))
 			.and(filterOpActief(filter.getActief()))
-			.and(filterOpRegio(filter.getRegio()));
+			.and(filterOpScreeningOrganisatie(filter.getRegio()));
 	}
 }

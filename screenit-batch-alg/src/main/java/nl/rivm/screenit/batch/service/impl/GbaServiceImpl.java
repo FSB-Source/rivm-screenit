@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,7 +28,6 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.batch.dao.GbaDao;
 import nl.rivm.screenit.batch.jobs.generalis.gba.exception.GbaImportException;
 import nl.rivm.screenit.batch.jobs.generalis.gba.wrappers.GbaValidatieWrapper;
 import nl.rivm.screenit.batch.service.GbaService;
@@ -75,7 +74,6 @@ import nl.topicuszorg.util.postcode.PostcodeFormatter;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.Criteria;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -95,9 +93,6 @@ public class GbaServiceImpl implements GbaService
 
 	@Autowired
 	private LogService logService;
-
-	@Autowired
-	private GbaDao gbaDao;
 
 	@Autowired
 	private LandRepository landRepository;
@@ -1316,11 +1311,5 @@ public class GbaServiceImpl implements GbaService
 		}
 
 		return client.getPersoon().getGbaAdres().getGbaGemeente().getScreeningOrganisatie().getId();
-	}
-
-	@Override
-	public Criteria getAllAdressenZonderCoordinanten()
-	{
-		return gbaDao.getAllAdressenZonderCoordinanten();
 	}
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -46,7 +46,7 @@ import static nl.rivm.screenit.specification.cervix.CervixTariefSpecification.is
 import static nl.rivm.screenit.specification.cervix.CervixTariefSpecification.isLabTariefActief;
 import static nl.rivm.screenit.specification.cervix.CervixTariefSpecification.isTariefVoorVerrichting;
 import static nl.rivm.screenit.specification.cervix.CervixVerrichtingSpecification.filterVerrichtingTypeVoorVerrichting;
-import static nl.rivm.screenit.specification.cervix.CervixVerrichtingSpecification.verichtingsDatumValtTussenVoorVerrichting;
+import static nl.rivm.screenit.specification.cervix.CervixVerrichtingSpecification.verrichtingsdatumValtTussenVoorVerrichting;
 
 @Service
 @RequiredArgsConstructor
@@ -59,9 +59,9 @@ public class CervixBaseVerrichtingServiceImpl implements CervixBaseVerrichtingSe
 	private final CervixVerrichtingRepository verrichtingRepository;
 
 	@Override
-	public CervixTarief getTariefVoorDatum(Date verrichtingsDatum, BMHKLaboratorium laboratorium)
+	public CervixTarief getTariefVoorDatum(Date verrichtingsdatum, BMHKLaboratorium laboratorium)
 	{
-		var peildatum = DateUtil.toLocalDate(verrichtingsDatum);
+		var peildatum = DateUtil.toLocalDate(verrichtingsdatum);
 		if (laboratorium == null)
 		{
 			return huisartsTariefRepository.findOne(isHuisartsTariefActief()
@@ -78,7 +78,7 @@ public class CervixBaseVerrichtingServiceImpl implements CervixBaseVerrichtingSe
 		var pageable = Pageable.ofSize(Integer.getInteger("BMHK_VERRICHTINGEN_HERINDEXEREN_CHUNK_SIZE", 500));
 		return verrichtingRepository.findAll(filterVerrichtingTypeVoorVerrichting(tariefType)
 				.and(isTariefVoorVerrichting(oudTariefId))
-				.and(verichtingsDatumValtTussenVoorVerrichting(DateUtil.toLocalDate(nieuweTarief.getGeldigVanafDatum()), DateUtil.toLocalDate(nieuweTarief.getGeldigTotenmetDatum()))),
+				.and(verrichtingsdatumValtTussenVoorVerrichting(DateUtil.toLocalDate(nieuweTarief.getGeldigVanafDatum()), DateUtil.toLocalDate(nieuweTarief.getGeldigTotenmetDatum()))),
 			pageable).toList();
 	}
 

@@ -4,7 +4,7 @@ package nl.rivm.screenit.service;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,7 +25,6 @@ import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -36,8 +35,6 @@ import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectClientAttribuut;
 import nl.rivm.screenit.model.project.ProjectGroep;
-
-import com.aspose.words.Document;
 
 public interface BaseProjectService
 {
@@ -51,13 +48,7 @@ public interface BaseProjectService
 
 	List<ProjectBrief> getAllProjectBriefForHerinnering(ProjectBriefActie actie, Date verstuurdOp);
 
-	String generateVragenlijstUrl(ProjectBrief projectBrief);
-
-	String generateVragenlijstKey(ProjectBrief projectBrief);
-
 	ProjectBriefActie getProjectBriefActie(Client client, BriefType briefType);
-
-	boolean addVragenlijstAanTemplate(MailMergeContext context, Document chunkDocument, ProjectBriefActie actie, ProjectBrief projectBrief) throws Exception;
 
 	List<ProjectGroep> getActieveProjectGroepenVoorUitnodigingDK();
 

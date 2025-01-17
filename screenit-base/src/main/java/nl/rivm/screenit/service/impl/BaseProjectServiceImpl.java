@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,14 +31,12 @@ import javax.persistence.criteria.Root;
 import nl.rivm.screenit.dao.ProjectDao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Dossier;
-import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.ProjectParameter_;
 import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BezwaarType;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.GbaStatus;
-import nl.rivm.screenit.model.formulieren.ScreenitFormulierInstantie;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectAttribuut;
 import nl.rivm.screenit.model.project.ProjectBrief;
@@ -49,41 +47,30 @@ import nl.rivm.screenit.model.project.ProjectClient_;
 import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.rivm.screenit.model.project.ProjectGroep_;
 import nl.rivm.screenit.model.project.ProjectType;
-import nl.rivm.screenit.model.project.ProjectVragenlijstAntwoordenHolder;
-import nl.rivm.screenit.model.project.ProjectVragenlijstStatus;
-import nl.rivm.screenit.model.project.ProjectVragenlijstUitzettenVia;
 import nl.rivm.screenit.model.project.Project_;
-import nl.rivm.screenit.model.vragenlijsten.VragenlijstAntwoorden;
+import nl.rivm.screenit.repository.algemeen.BaseProjectBriefRepository;
 import nl.rivm.screenit.repository.algemeen.ProjectBriefActieRepository;
-import nl.rivm.screenit.repository.algemeen.ProjectBriefRepository;
 import nl.rivm.screenit.repository.algemeen.ProjectClientAttribuutRepository;
 import nl.rivm.screenit.repository.algemeen.ProjectClientRepository;
 import nl.rivm.screenit.repository.algemeen.ProjectGroepRepository;
-import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.BaseProjectService;
 import nl.rivm.screenit.service.ClientDoelgroepService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.specification.algemeen.ProjectBriefActieSpecification;
 import nl.rivm.screenit.specification.algemeen.ProjectGroepSpecification;
 import nl.rivm.screenit.util.AfmeldingUtil;
 import nl.rivm.screenit.util.BezwaarUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.ProjectUtil;
-import nl.topicuszorg.formulieren2.persistence.resultaat.FormulierResultaatImpl;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.aspose.words.Document;
-import com.aspose.words.ImportFormatMode;
 
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 import static nl.rivm.screenit.specification.algemeen.ProjectBriefActieSpecification.heeftActieveClientInProjectVoorProjectBriefActie;
@@ -91,10 +78,8 @@ import static nl.rivm.screenit.specification.algemeen.ProjectBriefActieSpecifica
 import static nl.rivm.screenit.specification.algemeen.ProjectBriefActieSpecification.isProjectBriefActieTypeVervangendeBrief;
 import static nl.rivm.screenit.specification.algemeen.ProjectBriefSpecification.heeftActieveClientInProjectVoorProjectBrief;
 import static nl.rivm.screenit.specification.algemeen.ProjectBriefSpecification.heeftDefinitieGelijkAanBaseActie;
-import static nl.rivm.screenit.specification.algemeen.ProjectBriefSpecification.heeftDefinitieVragenlijst;
 import static nl.rivm.screenit.specification.algemeen.ProjectBriefSpecification.heeftGeenVerstuurdeBrief;
 import static nl.rivm.screenit.specification.algemeen.ProjectBriefSpecification.heeftPrintDatumNaOfOpDatum;
-import static nl.rivm.screenit.specification.algemeen.ProjectBriefSpecification.heeftVragenlijstAntwoordenStatusNullOfNietAfgerond;
 import static nl.rivm.screenit.specification.algemeen.ProjectClientSpecification.heeftActieveClient;
 import static nl.rivm.screenit.specification.algemeen.ProjectClientSpecification.heeftActieveProjectGroep;
 import static nl.rivm.screenit.specification.algemeen.ProjectClientSpecification.heeftExcludeerAfmelding;
@@ -106,8 +91,6 @@ import static nl.rivm.screenit.specification.algemeen.ProjectSpecification.isAct
 @Service
 public class BaseProjectServiceImpl implements BaseProjectService
 {
-	private static final String VRAGENLIJST_PREFIX = "vragenlijst/";
-
 	@Autowired
 	private ProjectDao projectDao;
 
@@ -124,19 +107,13 @@ public class BaseProjectServiceImpl implements BaseProjectService
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Autowired
-	private UploadDocumentService uploadDocumentService;
-
-	@Autowired
-	private AsposeService asposeService;
-
-	@Autowired
 	private String applicationUrl;
 
 	@Autowired
 	private ProjectClientRepository projectClientRepository;
 
 	@Autowired
-	private ProjectBriefRepository projectBriefRepository;
+	private BaseProjectBriefRepository projectBriefRepository;
 
 	@Autowired
 	private ProjectBriefActieRepository projectBriefActieRepository;
@@ -269,93 +246,10 @@ public class BaseProjectServiceImpl implements BaseProjectService
 		var vandaag = currentDateSupplier.getLocalDate();
 
 		var spec = heeftActieveClientInProjectVoorProjectBrief(vandaag)
-			.and(heeftDefinitieVragenlijst())
 			.and(heeftPrintDatumNaOfOpDatum(verstuurdOp))
 			.and(heeftDefinitieGelijkAanBaseActie(actie))
-			.and(heeftVragenlijstAntwoordenStatusNullOfNietAfgerond())
 			.and(heeftGeenVerstuurdeBrief(actie));
 		return projectBriefRepository.findAll(spec);
-	}
-
-	@Override
-	public String generateVragenlijstUrl(ProjectBrief projectBrief)
-	{
-		var sb = new StringBuilder(applicationUrl);
-		if (!applicationUrl.endsWith("/"))
-		{
-			sb.append("/");
-		}
-		sb.append(VRAGENLIJST_PREFIX);
-		sb.append(generateVragenlijstKey(projectBrief));
-		return sb.toString();
-	}
-
-	@Override
-	public String generateVragenlijstKey(ProjectBrief projectBrief)
-	{
-		var sb = new StringBuilder("B");
-		sb.append(projectBrief.getId().toString());
-		var controleGetal = projectBrief.getProjectClient().getClient().getId().toString();
-		sb.append(controleGetal.substring(controleGetal.length() - 4));
-		for (var i = sb.length() - 4; i > 0; i = i - 4)
-		{
-			sb.insert(i, '-');
-		}
-		return sb.toString();
-	}
-
-	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
-	public boolean addVragenlijstAanTemplate(MailMergeContext context, Document chunkDocument, ProjectBriefActie actie, ProjectBrief projectBrief) throws Exception
-	{
-		var vragenlijst = actie.getVragenlijst();
-		if (vragenlijst != null && ProjectVragenlijstUitzettenVia.isPapier(actie.getProjectVragenlijstUitzettenVia()))
-		{
-			Document vragenlijstDocument = null;
-			ScreenitFormulierInstantie vragenlijstFormulierInstantie;
-			vragenlijstFormulierInstantie = vragenlijst.getFormulierInstantie();
-
-			if (vragenlijstFormulierInstantie != null)
-			{
-				if (vragenlijstFormulierInstantie.getTemplateVanGebruiker() == null)
-				{
-					vragenlijstDocument = asposeService.processVragenlijst(context, vragenlijstFormulierInstantie, true);
-				}
-				else
-				{
-					var vragenlijstTemplate = uploadDocumentService.load(vragenlijstFormulierInstantie.getTemplateVanGebruiker());
-					var vragenlijstTemplateBytes = FileUtils.readFileToByteArray(vragenlijstTemplate);
-					vragenlijstDocument = asposeService.processDocument(vragenlijstTemplateBytes, context);
-				}
-			}
-			if (vragenlijstDocument != null)
-			{
-				chunkDocument.getLastSection().getHeadersFooters().linkToPrevious(false);
-				chunkDocument.appendDocument(vragenlijstDocument, ImportFormatMode.KEEP_SOURCE_FORMATTING);
-
-				var holder = new ProjectVragenlijstAntwoordenHolder();
-				holder.setStatus(ProjectVragenlijstStatus.AANGEMAAKT);
-				holder.setVragenlijst(vragenlijst);
-
-				var antwoorden = new VragenlijstAntwoorden<ProjectVragenlijstAntwoordenHolder>();
-				antwoorden.setFormulierInstantie(vragenlijstFormulierInstantie);
-				antwoorden.setAntwoordenHolder(holder);
-				holder.setVragenlijstAntwoorden(antwoorden);
-				var resultaat = new FormulierResultaatImpl();
-				resultaat.setFormulierInstantie(vragenlijstFormulierInstantie);
-				antwoorden.setResultaat(resultaat);
-				hibernateService.saveOrUpdate(antwoorden);
-				hibernateService.saveOrUpdate(holder);
-				hibernateService.saveOrUpdate(resultaat);
-
-				if (projectBrief != null)
-				{
-					projectBrief.setVragenlijstAntwoordenHolder(holder);
-				}
-			}
-			return true;
-		}
-		return false;
 	}
 
 	@Override

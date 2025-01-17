@@ -4,7 +4,7 @@ package nl.rivm.screenit.factory.algemeen.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,27 +30,42 @@ import nl.rivm.screenit.factory.algemeen.BriefFactory;
 import nl.rivm.screenit.model.Afmelding;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientBrief;
+import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.algemeen.AlgemeneBrief;
+import nl.rivm.screenit.model.algemeen.AlgemeneMergedBrieven;
 import nl.rivm.screenit.model.algemeen.BezwaarBrief;
+import nl.rivm.screenit.model.algemeen.BezwaarMergedBrieven;
 import nl.rivm.screenit.model.cervix.CervixBrief;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
+import nl.rivm.screenit.model.cervix.CervixMergedBrieven;
 import nl.rivm.screenit.model.cervix.CervixRegioBrief;
+import nl.rivm.screenit.model.cervix.CervixRegioMergedBrieven;
 import nl.rivm.screenit.model.colon.ColonBrief;
+import nl.rivm.screenit.model.colon.ColonMergedBrieven;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.mamma.MammaBrief;
+import nl.rivm.screenit.model.mamma.MammaMergedBrieven;
 import nl.rivm.screenit.model.project.ProjectBrief;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectClient;
+import nl.rivm.screenit.model.project.ProjectMergedBrieven;
 import nl.rivm.screenit.repository.BaseJpaRepository;
 import nl.rivm.screenit.repository.algemeen.AlgemeneBriefRepository;
+import nl.rivm.screenit.repository.algemeen.AlgemeneMergedBrievenRepository;
+import nl.rivm.screenit.repository.algemeen.BaseProjectBriefRepository;
 import nl.rivm.screenit.repository.algemeen.BezwaarBriefRepository;
-import nl.rivm.screenit.repository.algemeen.ProjectBriefRepository;
+import nl.rivm.screenit.repository.algemeen.BezwaarMergedBrievenRepository;
+import nl.rivm.screenit.repository.algemeen.ProjectMergedBrievenRepository;
 import nl.rivm.screenit.repository.cervix.CervixBriefRepository;
+import nl.rivm.screenit.repository.cervix.CervixMergedBrievenRepository;
 import nl.rivm.screenit.repository.cervix.CervixRegioBriefRepository;
+import nl.rivm.screenit.repository.cervix.CervixRegioMergedBrievenRepository;
 import nl.rivm.screenit.repository.colon.ColonBriefRepository;
-import nl.rivm.screenit.repository.mamma.MammaBriefRepository;
+import nl.rivm.screenit.repository.colon.ColonMergedBrievenRepository;
+import nl.rivm.screenit.repository.mamma.MammaBaseBriefRepository;
+import nl.rivm.screenit.repository.mamma.MammaMergedBrievenRepository;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.specification.cervix.CervixRegioBriefSpecification;
 import nl.rivm.screenit.util.AfmeldingUtil;
@@ -78,19 +93,40 @@ public class BriefFactoryImpl implements BriefFactory
 	private AlgemeneBriefRepository algemeneBriefRepository;
 
 	@Autowired
-	private ProjectBriefRepository projectBriefRepository;
+	private AlgemeneMergedBrievenRepository algemeneMergedBrievenRepository;
+
+	@Autowired
+	private BaseProjectBriefRepository projectBriefRepository;
+
+	@Autowired
+	private ProjectMergedBrievenRepository projectMergedBrievenRepository;
 
 	@Autowired
 	private BezwaarBriefRepository bezwaarBriefRepository;
 
 	@Autowired
-	private MammaBriefRepository mammaBriefRepository;
+	private BezwaarMergedBrievenRepository bezwaarMergedBrievenRepository;
+
+	@Autowired
+	private MammaBaseBriefRepository mammaBriefRepository;
+
+	@Autowired
+	private MammaMergedBrievenRepository mammaMergedBrievenRepository;
 
 	@Autowired
 	private CervixBriefRepository cervixBriefRepository;
 
 	@Autowired
+	private CervixMergedBrievenRepository cervixMergedBrievenRepository;
+
+	@Autowired
+	private CervixRegioMergedBrievenRepository cervixRegioMergedBrievenRepository;
+
+	@Autowired
 	private ColonBriefRepository colonBriefRepository;
+
+	@Autowired
+	private ColonMergedBrievenRepository colonMergedBrievenRepository;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -126,7 +162,42 @@ public class BriefFactoryImpl implements BriefFactory
 			return (BaseJpaRepository<B>) colonBriefRepository;
 		}
 
-		throw new IllegalArgumentException("Onbekend briefClass: " + briefClass.getName());
+		throw new IllegalArgumentException("Onbekend mergedBrievenClass: " + briefClass.getName());
+	}
+
+	@Override
+	public <M extends MergedBrieven<?>> BaseJpaRepository<M> getMergedBriefTypeRepository(Class<M> mergedBrievenClass)
+	{
+		if (mergedBrievenClass.isAssignableFrom(AlgemeneMergedBrieven.class))
+		{
+			return (BaseJpaRepository<M>) algemeneMergedBrievenRepository;
+		}
+		else if (mergedBrievenClass.isAssignableFrom(CervixMergedBrieven.class))
+		{
+			return (BaseJpaRepository<M>) cervixMergedBrievenRepository;
+		}
+		else if (mergedBrievenClass.isAssignableFrom(CervixRegioMergedBrieven.class))
+		{
+			return (BaseJpaRepository<M>) cervixRegioMergedBrievenRepository;
+		}
+		else if (mergedBrievenClass.isAssignableFrom(ProjectMergedBrieven.class))
+		{
+			return (BaseJpaRepository<M>) projectMergedBrievenRepository;
+		}
+		else if (mergedBrievenClass.isAssignableFrom(BezwaarMergedBrieven.class))
+		{
+			return (BaseJpaRepository<M>) bezwaarMergedBrievenRepository;
+		}
+		else if (mergedBrievenClass.isAssignableFrom(MammaMergedBrieven.class))
+		{
+			return (BaseJpaRepository<M>) mammaMergedBrievenRepository;
+		}
+		else if (mergedBrievenClass.isAssignableFrom(ColonMergedBrieven.class))
+		{
+			return (BaseJpaRepository<M>) colonMergedBrievenRepository;
+		}
+
+		throw new IllegalArgumentException("Onbekend mergedBrievenClass: " + mergedBrievenClass.getName());
 	}
 
 	@Override

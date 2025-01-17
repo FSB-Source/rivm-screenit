@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.service.impl;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,16 +39,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.mamma.planning.dao.PlanningClientDao;
-import nl.rivm.screenit.mamma.planning.dao.PlanningScreeningRondeDao;
-import nl.rivm.screenit.mamma.planning.dao.PlanningScreeningsEenheidDao;
-import nl.rivm.screenit.mamma.planning.dao.PlanningStandplaatsDao;
-import nl.rivm.screenit.mamma.planning.dao.PlanningStandplaatsPeriodeDao;
-import nl.rivm.screenit.mamma.planning.dao.PlanningStandplaatsRondeDao;
-import nl.rivm.screenit.mamma.planning.dao.PlanningTehuisDao;
-import nl.rivm.screenit.mamma.planning.dao.dto.BlokkadeProjectie;
-import nl.rivm.screenit.mamma.planning.dao.dto.ClientDaoDto;
-import nl.rivm.screenit.mamma.planning.dao.dto.StandplaatsPeriodeDaoDto;
 import nl.rivm.screenit.mamma.planning.index.PlanningBlokIndex;
 import nl.rivm.screenit.mamma.planning.index.PlanningBlokkadeIndex;
 import nl.rivm.screenit.mamma.planning.index.PlanningClientFactorTypeIndex;
@@ -75,8 +65,17 @@ import nl.rivm.screenit.mamma.planning.model.PlanningTehuis;
 import nl.rivm.screenit.mamma.planning.repository.PlanningAfspraakRepository;
 import nl.rivm.screenit.mamma.planning.repository.PlanningBlokkadeRepository;
 import nl.rivm.screenit.mamma.planning.repository.PlanningCapaciteitBlokRepository;
+import nl.rivm.screenit.mamma.planning.repository.PlanningClientRepository;
 import nl.rivm.screenit.mamma.planning.repository.PlanningPostcodeReeksRepository;
+import nl.rivm.screenit.mamma.planning.repository.PlanningScreeningRondeRepository;
+import nl.rivm.screenit.mamma.planning.repository.PlanningScreeningsEenheidRepository;
 import nl.rivm.screenit.mamma.planning.repository.PlanningStandplaatsPeriodeRepository;
+import nl.rivm.screenit.mamma.planning.repository.PlanningStandplaatsRepository;
+import nl.rivm.screenit.mamma.planning.repository.PlanningStandplaatsRondeRepository;
+import nl.rivm.screenit.mamma.planning.repository.PlanningTehuisRepository;
+import nl.rivm.screenit.mamma.planning.repository.projectie.BlokkadeProjectie;
+import nl.rivm.screenit.mamma.planning.repository.projectie.ClientProjectie;
+import nl.rivm.screenit.mamma.planning.repository.projectie.StandplaatsPeriodeProjectie;
 import nl.rivm.screenit.mamma.planning.service.PlanningCapaciteitAgendaService;
 import nl.rivm.screenit.mamma.planning.service.PlanningConceptOpslaanService;
 import nl.rivm.screenit.mamma.planning.service.PlanningConceptmodelService;
@@ -98,6 +97,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import static nl.rivm.screenit.util.DateUtil.toLocalDate;
 
 @Service
 @Slf4j
@@ -122,29 +123,27 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 
 	private final ScreeningOrganisatieRepository screeningOrganisatieRepository;
 
-	private final PlanningScreeningsEenheidDao planningScreeningsEenheidDao;
-
-	private final PlanningStandplaatsPeriodeDao planningStandplaatsPeriodeDao;
+	private final PlanningScreeningsEenheidRepository planningScreeningsEenheidRepository;
 
 	private final PlanningCapaciteitBlokRepository planningCapaciteitBlokRepository;
 
-	private final PlanningStandplaatsDao planningStandplaatsDao;
+	private final PlanningStandplaatsRepository planningStandplaatsRepository;
 
 	private final PlanningPostcodeReeksRepository planningPostcodeReeksRepository;
 
-	private final PlanningStandplaatsRondeDao planningStandplaatsRondeDao;
-
 	private final PlanningStandplaatsPeriodeRepository planningStandplaatsPeriodeRepository;
 
-	private final PlanningTehuisDao planningTehuisDao;
+	private final PlanningClientRepository planningClientRepository;
 
-	private final PlanningClientDao planningClientDao;
-
-	private final PlanningScreeningRondeDao planningScreeningRondeDao;
+	private final PlanningScreeningRondeRepository planningScreeningRondeRepository;
 
 	private final PlanningBlokkadeRepository planningBlokkadeRepository;
 
 	private final PlanningAfspraakRepository planningAfspraakRepository;
+
+	private final PlanningStandplaatsRondeRepository planningStandplaatsRondeRepository;
+
+	private final PlanningTehuisRepository planningTehuisRepository;
 
 	private boolean doInit = true; 
 
@@ -295,7 +294,7 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 
 		var plannenVanaf = beginDatumEersteStandplaatsPeriodeMinusWekenVanTeVorenUitnodigen(actieveStandplaatsPeriodeDtos);
 		var eindDatumLaatsteStandplaatsPeriode = eindDatumLaatsteStandplaatsPeriode(actieveStandplaatsPeriodeDtos);
-		var datumLaatsteCapaciteitsBlok = planningCapaciteitBlokRepository.findMaxDatumVanAlleCapaciteitsBlokken().orElse(dateSupplier.getLocalDate());
+		var datumLaatsteCapaciteitsBlok = planningCapaciteitBlokRepository.findMaxDatumVanAlleCapaciteitBlokken().orElse(dateSupplier.getLocalDate());
 
 		herhalenVanaf = datumLaatsteCapaciteitsBlok.plusWeeks(1).with(DayOfWeek.MONDAY);
 
@@ -314,7 +313,7 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 		PlanningConstanten.set(plannenVanaf, plannenTotEnMet, dateSupplier.getLocalDateTime(), vanafLeeftijd, totEnMetLeeftijd);
 	}
 
-	private LocalDate beginDatumEersteStandplaatsPeriodeMinusWekenVanTeVorenUitnodigen(List<StandplaatsPeriodeDaoDto> actieveStandplaatsPeriodeDtos)
+	private LocalDate beginDatumEersteStandplaatsPeriodeMinusWekenVanTeVorenUitnodigen(List<StandplaatsPeriodeProjectie> actieveStandplaatsPeriodeDtos)
 	{
 		return actieveStandplaatsPeriodeDtos.stream()
 			.map(spp -> spp.getVanaf().minusWeeks(spp.getWekenVanTevorenUitnodigen()))
@@ -322,29 +321,30 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 			.orElse(dateSupplier.getLocalDate());
 	}
 
-	private LocalDate eindDatumLaatsteStandplaatsPeriode(List<StandplaatsPeriodeDaoDto> actieveStandplaatsPeriodeDtos)
+	private LocalDate eindDatumLaatsteStandplaatsPeriode(List<StandplaatsPeriodeProjectie> actieveStandplaatsPeriodeDtos)
 	{
 		return actieveStandplaatsPeriodeDtos.stream()
-			.map(StandplaatsPeriodeDaoDto::getTotEnMet)
+			.map(StandplaatsPeriodeProjectie::getTotEnMet)
 			.max(Comparator.naturalOrder())
 			.orElse(dateSupplier.getLocalDate());
 	}
 
-	private List<StandplaatsPeriodeDaoDto> leesActieveStandplaatsPeriodes()
+	private List<StandplaatsPeriodeProjectie> leesActieveStandplaatsPeriodes()
 	{
-		var volgnummersEersteActieveStandplaatsPeriodePerSe = planningScreeningsEenheidDao.volgnummersEersteActieveStandplaatsPeriodePerSe();
-		return planningStandplaatsPeriodeDao.standplaatsPeriodesVanafVolgnummer(volgnummersEersteActieveStandplaatsPeriodePerSe);
+		var vandaag = dateSupplier.getLocalDate();
+		var volgnummersEersteActieveStandplaatsPeriodePerSe = planningStandplaatsPeriodeRepository.findVolgnummersEersteActieveStandplaatsPeriodePerSe(vandaag);
+		return planningStandplaatsPeriodeRepository.findStandplaatsPeriodesVanafVolgnummer(volgnummersEersteActieveStandplaatsPeriodePerSe);
 	}
 
-	private void vulTeLezenStandplaatsPeriodesEnRondes(List<StandplaatsPeriodeDaoDto> actieveStandplaatsPeriodeDtos)
+	private void vulTeLezenStandplaatsPeriodesEnRondes(List<StandplaatsPeriodeProjectie> actieveStandplaatsPeriodeDtos)
 	{
 		teLezenStandplaatsPeriodeIdsPerScreeningsOrganisatieId.forEach((k, v) -> v.clear());
 		teLezenStandplaatsRondeIdsPerScreeningsOrganisatieId.forEach((k, v) -> v.clear());
 
 		for (var standplaatsPeriodeDto : actieveStandplaatsPeriodeDtos)
 		{
-			teLezenStandplaatsPeriodeIdsPerScreeningsOrganisatieId.get(standplaatsPeriodeDto.getRegioId()).add(standplaatsPeriodeDto.getStandplaatsPeriodeId());
-			teLezenStandplaatsRondeIdsPerScreeningsOrganisatieId.get(standplaatsPeriodeDto.getRegioId()).add(standplaatsPeriodeDto.getStandplaatsRondeId());
+			teLezenStandplaatsPeriodeIdsPerScreeningsOrganisatieId.get(standplaatsPeriodeDto.getScreeningOrganisatieId()).add(standplaatsPeriodeDto.getStandplaatsPeriodeId());
+			teLezenStandplaatsRondeIdsPerScreeningsOrganisatieId.get(standplaatsPeriodeDto.getScreeningOrganisatieId()).add(standplaatsPeriodeDto.getStandplaatsRondeId());
 		}
 	}
 
@@ -352,7 +352,7 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 	{
 		LOG.info("leesScreeningsEenheden so: {}", planningScreeningsOrganisatie.getId());
 
-		var planningScreeningsEenheden = planningScreeningsEenheidDao.actieveScreeningsEenhedenVanScreeningsOrganisatie(planningScreeningsOrganisatie);
+		var planningScreeningsEenheden = planningScreeningsEenheidRepository.findActieveScreeningsEenhedenVanScreeningsOrganisatie(planningScreeningsOrganisatie.getId());
 
 		for (var planningScreeningsEenheid : planningScreeningsEenheden)
 		{
@@ -392,7 +392,7 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 	{
 		LOG.info("leesStandplaatsen so: {}", planningScreeningsOrganisatie.getId());
 
-		var actieveStandplaatsIds = planningStandplaatsDao.findActieveStandplaatsIds(planningScreeningsOrganisatie);
+		var actieveStandplaatsIds = planningStandplaatsRepository.findActieveStandplaatsIds(planningScreeningsOrganisatie.getId());
 
 		for (var standplaatsId : actieveStandplaatsIds)
 		{
@@ -436,7 +436,7 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 
 		if (!teLezenStandplaatsRondeIds.isEmpty())
 		{
-			var standplaatsRondeDtos = planningStandplaatsRondeDao.standplaatsRondenVoorConceptmodel(teLezenStandplaatsRondeIds);
+			var standplaatsRondeDtos = planningStandplaatsRondeRepository.findStandplaatsRondenVoorConceptmodel(teLezenStandplaatsRondeIds);
 
 			for (var standplaatsRondeDto : standplaatsRondeDtos)
 			{
@@ -448,7 +448,7 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 				var planningStandplaatsRonde = new PlanningStandplaatsRonde(standplaatsRondeDto.getId(), standplaatsRondeDto.getAfspraakDrempel(),
 					standplaatsRondeDto.getInterval(),
 					planningAchtervangStandplaats, planningMinderValideUitwijkStandplaats, standplaatsRondeDto.getAchtervangToegepast(),
-					DateUtil.toLocalDate(standplaatsRondeDto.getMinderValideUitnodigenVanaf()), standplaatsRondeDto.getExtraMinderValideCapaciteitUitgenodigd());
+					toLocalDate(standplaatsRondeDto.getMinderValideUitnodigenVanaf()), standplaatsRondeDto.getExtraMinderValideCapaciteitUitgenodigd());
 
 				planningStandplaatsRonde.setStandplaats(PlanningStandplaatsIndex.get(standplaatsRondeDto.getStandplaatsId()));
 
@@ -464,7 +464,7 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 	private void leesScreeningOrganisatiesMetCapaciteitBeschikbaarVoor(Set<Long> teLezenStandplaatsRondeIdSet)
 	{
 		LOG.info("leesScreeningOrganisatiesMetCapaciteitBeschikbaarVoor");
-		var capaciteitBeschikbaarVoorSoDtos = planningStandplaatsRondeDao.capaciteitBeschikbaarVoorScreeningOrganisaties(teLezenStandplaatsRondeIdSet);
+		var capaciteitBeschikbaarVoorSoDtos = planningStandplaatsRondeRepository.findCapaciteitBeschikbaarVoorScreeningOrganisaties(teLezenStandplaatsRondeIdSet);
 		for (var capaciteitBeschikbaarVoorSoDto : capaciteitBeschikbaarVoorSoDtos)
 		{
 			var planningStandplaatsRonde = PlanningStandplaatsRondeIndex.get(capaciteitBeschikbaarVoorSoDto.getStandplaatsRondeId());
@@ -492,8 +492,8 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 	private void voegStandplaatsPeriodeToeAanConceptmodel(MammaStandplaatsPeriode persistentStandplaatsPeriode)
 	{
 		var planningStandplaatsPeriode = new PlanningStandplaatsPeriode(persistentStandplaatsPeriode.getId(), persistentStandplaatsPeriode.getScreeningsEenheidVolgNr(),
-			persistentStandplaatsPeriode.getStandplaatsRondeVolgNr(), DateUtil.toLocalDate(persistentStandplaatsPeriode.getVanaf()), persistentStandplaatsPeriode.getPrognose(),
-			DateUtil.toLocalDate(persistentStandplaatsPeriode.getTotEnMet()));
+			persistentStandplaatsPeriode.getStandplaatsRondeVolgNr(), toLocalDate(persistentStandplaatsPeriode.getVanaf()), persistentStandplaatsPeriode.getPrognose(),
+			toLocalDate(persistentStandplaatsPeriode.getTotEnMet()));
 
 		var planningScreeningsEenheid = PlanningScreeningsEenheidIndex.get(persistentStandplaatsPeriode.getScreeningsEenheid().getId());
 		planningScreeningsEenheid.getStandplaatsPeriodeNavigableSet().add(planningStandplaatsPeriode);
@@ -521,7 +521,7 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 	{
 		LOG.info("leesTehuizen");
 
-		var tehuisDtos = planningTehuisDao.actieveTehuizen();
+		var tehuisDtos = planningTehuisRepository.findActieveTehuizen();
 
 		for (var tehuisDto : tehuisDtos)
 		{
@@ -537,10 +537,10 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 	private void leesClienten()
 	{
 		LOG.info("leesClienten: start query vorigeScreeningRondeDatums");
-		var vorigeScreeningRondeDatumPerDossier = planningScreeningRondeDao.vorigeScreeningRondeDatumPerDossier();
+		var vorigeScreeningRondeDatumPerDossier = planningScreeningRondeRepository.findVorigeScreeningRondeDatumPerDossierToMap();
 		LOG.info("leesClienten: {} vorigeScreeningRondeDatums gelezen", vorigeScreeningRondeDatumPerDossier.size());
 
-		var clientDtos = planningClientDao.clientenVoorConceptmodel();
+		var clientDtos = planningClientRepository.findClientenVoorConceptmodel();
 		LOG.info("leesClienten: einde query ophalen clienten");
 
 		for (var clientDto : clientDtos)
@@ -551,7 +551,7 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 		LOG.info("{} clienten gelezen in conceptmodel", clientDtos.size());
 	}
 
-	private void leesClientDtoInConceptmodel(ClientDaoDto clientDto, Map<Long, LocalDate> vorigeScreeningRondeDatumPerDossier)
+	private void leesClientDtoInConceptmodel(ClientProjectie clientDto, Map<Long, LocalDate> vorigeScreeningRondeDatumPerDossier)
 	{
 		var planningClient = registreerNieuweClientInConceptmodel(clientDto);
 
@@ -566,7 +566,7 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 	}
 
 	@NotNull
-	private PlanningClient registreerNieuweClientInConceptmodel(ClientDaoDto clientDto)
+	private PlanningClient registreerNieuweClientInConceptmodel(ClientProjectie clientDto)
 	{
 		var uitstelStandplaats = bepaalUitstelStandplaats(clientDto);
 		var afspraakStandplaats = bepaalAfspraakStandplaats(clientDto);
@@ -585,25 +585,25 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 
 		var planningClient = new PlanningClient(
 			clientDto.getId(),
-			DateUtil.toLocalDate(clientDto.getGeboortedatum()),
+			clientDto.getGeboortedatum(),
 			postcodeVoorClientIndienNietInTehuis(clientDto),
 			clientDto.getEersteOnderzoek(),
 			clientDto.getDoelgroep(),
 			clientDto.getDeelnamekans(),
 			clientDto.getVoorgaandeScreeningRondes() != null && clientDto.getVoorgaandeScreeningRondes() > 0,
-			PlanningScreeningsOrganisatieIndex.get(clientDto.getScreeningOrgansatieId()),
+			PlanningScreeningsOrganisatieIndex.get(clientDto.getScreeningOrganisatieId()),
 			uitstelStandplaats,
-			uitstelStandplaats == null ? null : DateUtil.toLocalDate(clientDto.getUitstelStreefDatum()),
+			uitstelStandplaats == null ? null : clientDto.getUitstelStreefDatum(),
 			uitstelStandplaats == null ? null : clientDto.getUitstelUitnodigingId() != null,
 			uitstelStandplaats == null ? null : clientDto.getUitstelReden(),
 			afspraakStandplaats,
 			clientDto.getTehuisId() != null ? PlanningTehuisIndex.get(clientDto.getTehuisId()) : null,
-			DateUtil.toLocalDate(clientDto.getScreeningRondeCreatieDatum()),
-			DateUtil.toLocalDate(clientDto.getLaatsteMammografieAfgerondOp()),
+			toLocalDate(clientDto.getScreeningRondeCreatieDatum()),
+			toLocalDate(clientDto.getLaatsteMammografieAfgerondOp()),
 			clientDto.getUitnodigingsIntervalType(),
-			DateUtil.toLocalDate(clientDto.getLaatsteUitnodigingDatum()));
+			toLocalDate(clientDto.getLaatsteUitnodigingDatum()));
 
-		planningClient.setNoShow(afspraakService.isNoShow(clientDto.getAfspraakStatus(), DateUtil.toLocalDateTime(clientDto.getAfspraakMoment())));
+		planningClient.setNoShow(afspraakService.isNoShow(clientDto.getAfspraakStatus(), clientDto.getAfspraakMoment()));
 
 		PlanningClientIndex.put(planningClient);
 		PlanningWijzigingen.getClientSet().add(planningClient);
@@ -612,7 +612,7 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 	}
 
 	@Nullable
-	private PlanningStandplaats bepaalUitstelStandplaats(ClientDaoDto clientDto)
+	private PlanningStandplaats bepaalUitstelStandplaats(ClientProjectie clientDto)
 	{
 		if (clientDto.getOorspronkelijkeStandplaatsRondeId() != null
 			&& clientDto.getUitstelStandplaatsId() != null
@@ -624,7 +624,7 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 	}
 
 	@Nullable
-	private PlanningStandplaats bepaalAfspraakStandplaats(ClientDaoDto clientDto)
+	private PlanningStandplaats bepaalAfspraakStandplaats(ClientProjectie clientDto)
 	{
 		if (clientDto.getAfspraakStandplaatsRondeId() != null
 			&& clientDto.getAfspraakAfgezegdOp() == null
@@ -636,7 +636,7 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 	}
 
 	@Nullable
-	private String postcodeVoorClientIndienNietInTehuis(ClientDaoDto clientDto)
+	private String postcodeVoorClientIndienNietInTehuis(ClientProjectie clientDto)
 	{
 		if (clientDto.getTehuisId() == null)
 		{
@@ -686,7 +686,7 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 		PlanningWijzigingen.getPostcodeReeksRegioSet().add(postcodeReeksRegio);
 	}
 
-	private void registreerUitnodigingStatusVanClient(PlanningClient planningClient, ClientDaoDto clientDto, PlanningStandplaats standplaatsVanPostcodeOfTehuis,
+	private void registreerUitnodigingStatusVanClient(PlanningClient planningClient, ClientProjectie clientDto, PlanningStandplaats standplaatsVanPostcodeOfTehuis,
 		PlanningStandplaatsRonde oorspronkelijkeStandplaatsRonde, Map<Long, LocalDate> vorigeScreeningRondeDatumPerDossier)
 	{
 		if (standplaatsVanPostcodeOfTehuis != null && !standplaatsVanPostcodeOfTehuis.getStandplaatsRondeNavigableSet().isEmpty())
@@ -702,7 +702,7 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 			}
 			else
 			{
-				planningClient.setVorigeScreeningRondeCreatieDatum(DateUtil.toLocalDate(clientDto.getScreeningRondeCreatieDatum()));
+				planningClient.setVorigeScreeningRondeCreatieDatum(toLocalDate(clientDto.getScreeningRondeCreatieDatum()));
 			}
 		}
 	}
@@ -794,7 +794,7 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 		}
 
 		return new PlanningBlokkade(blokkadeProjectie.getId(), blokkadeProjectie.getType(), planningStandplaats, planningScreeningsEenheid, planningScreeningsOrganisatie,
-			DateUtil.toLocalDate(blokkadeProjectie.getVanaf()), DateUtil.toLocalDate(blokkadeProjectie.getTotEnMet()));
+			toLocalDate(blokkadeProjectie.getVanaf()), toLocalDate(blokkadeProjectie.getTotEnMet()));
 	}
 
 	private void leesGebruikteCapaciteit()
@@ -806,14 +806,14 @@ public class PlanningConceptmodelServiceImpl implements PlanningConceptmodelServ
 
 		if (!teLezenStandplaatsPeriodeIdsVanAlleScreeningOrganisaties.isEmpty())
 		{
-			var afspraakProjecties = planningAfspraakRepository.afsprakenMetGebruikteCapaciteit(teLezenStandplaatsPeriodeIdsVanAlleScreeningOrganisaties);
+			var afspraakProjecties = planningAfspraakRepository.findAfsprakenMetGebruikteCapaciteit(teLezenStandplaatsPeriodeIdsVanAlleScreeningOrganisaties);
 			for (var afspraakProjectie : afspraakProjecties)
 			{
 				var planningClient = PlanningClientIndex.get(afspraakProjectie.getClientId());
 				if (planningClient != null)
 				{
 					var screeningsEenheid = PlanningScreeningsEenheidIndex.get(afspraakProjectie.getScreeningsEenheidId());
-					var dag = screeningsEenheid.getDagNavigableMap().get(DateUtil.toLocalDate(afspraakProjectie.getAfspraakMoment()));
+					var dag = screeningsEenheid.getDagNavigableMap().get(toLocalDate(afspraakProjectie.getAfspraakMoment()));
 					dag.getBeschikbaar().add(planningClient.getGebruikteCapaciteit(screeningsEenheid.getScreeningsOrganisatie()), planningClient.getBlokType());
 				}
 			}

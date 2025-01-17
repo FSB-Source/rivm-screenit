@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.controller;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,8 +23,6 @@ package nl.rivm.screenit.mamma.se.proxy.controller;
 
 import java.time.LocalDate;
 
-import javax.servlet.http.HttpSession;
-
 import nl.rivm.screenit.mamma.se.proxy.services.LogischeSessieService;
 import nl.rivm.screenit.mamma.se.proxy.services.ProxyService;
 import nl.rivm.screenit.mamma.se.proxy.services.SeStatusService;
@@ -40,6 +38,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
+import jakarta.servlet.http.HttpSession;
 
 @RestController
 @RequestMapping("/api/dagverslag")
@@ -58,7 +58,7 @@ public class DagverslagProxyController
 	public ResponseEntity readDagproductie(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate datum,
 		HttpSession httpSession, @RequestHeader("YubikeyIdentificatie") String yubikeyIdentificatie)
 	{
-		if(!logischeSessieService.geldigeYubikey(yubikeyIdentificatie))
+		if (!logischeSessieService.geldigeYubikey(yubikeyIdentificatie))
 		{
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 		}

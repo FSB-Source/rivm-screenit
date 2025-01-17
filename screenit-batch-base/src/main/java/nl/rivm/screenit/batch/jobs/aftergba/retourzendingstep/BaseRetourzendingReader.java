@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.aftergba.retourzendingstep;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,34 +21,42 @@ package nl.rivm.screenit.batch.jobs.aftergba.retourzendingstep;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Root;
+
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Client_;
+import nl.rivm.screenit.model.InpakbareUitnodiging;
 import nl.rivm.screenit.model.colon.enums.RetourzendingStatus;
+import nl.rivm.screenit.specification.algemeen.GbaMutatieSpecification;
+import nl.rivm.screenit.specification.algemeen.InpakbareUitnodigingSpecification;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.MatchMode;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 
-public abstract class BaseRetourzendingReader extends BaseScrollableResultReader
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+
+public abstract class BaseRetourzendingReader extends BaseSpecificationScrollableResultReader<Client>
 {
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<Client> createSpecification()
 	{
-		Criteria crit = session.createCriteria(Client.class);
-		crit.createAlias("gbaMutaties", "mutaties");
-		crit.add(Restrictions.like("mutaties.aanvullendeInformatie", "|" + getRetoursendingMarker() + "|", MatchMode.ANYWHERE));
-		crit.createAlias(getBvoDossierPropertyInClient(), "dossier");
-		crit.createAlias("dossier.screeningRondes", "screeningRonde");
-		crit.createAlias("screeningRonde.uitnodigingen", "uitnodiging");
-		crit.add(Restrictions.eq("uitnodiging.retourzendingStatus", RetourzendingStatus.NIEUWE_GBA_ADRES_AANGEVRAAGD));
-
-		return crit;
+		return (r, q, cb) ->
+		{
+			var specification = GbaMutatieSpecification.heeftAanvullendeInformatieContaining("|" + getRetourzendingMarker() + "|").with(ri -> join(r, Client_.gbaMutaties))
+				.and(InpakbareUitnodigingSpecification.heeftRetourzendingStatus(RetourzendingStatus.NIEUWE_GBA_ADRES_AANGEVRAAGD).with(ri -> getUitnodigingJoin(r)));
+			return specification.toPredicate(r, q, cb);
+		};
 	}
 
-	protected abstract String getBvoDossierPropertyInClient();
+	protected abstract String getRetourzendingMarker();
 
-	protected abstract String getRetoursendingMarker();
+	protected abstract From<?, ? extends InpakbareUitnodiging<?>> getUitnodigingJoin(Root<Client> r);
+
+	@Override
+	protected Class<Client> getEntityClass()
+	{
+		return Client.class;
+	}
 }

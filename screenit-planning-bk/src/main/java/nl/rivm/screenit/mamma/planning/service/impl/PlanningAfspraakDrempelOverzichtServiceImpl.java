@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.service.impl;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,7 +27,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 
 import nl.rivm.screenit.dto.mamma.planning.PlanningAfspraakDrempelOverzichtDto;
 import nl.rivm.screenit.mamma.planning.model.PlanningClient;
@@ -43,16 +44,12 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class PlanningAfspraakDrempelOverzichtServiceImpl implements PlanningAfspraakDrempelOverzichtService
 {
 	private static final int MAX_CDV_INDEX = 100;
 
 	private final ICurrentDateSupplier dateSupplier;
-
-	public PlanningAfspraakDrempelOverzichtServiceImpl(ICurrentDateSupplier dateSupplier)
-	{
-		this.dateSupplier = dateSupplier;
-	}
 
 	public PlanningAfspraakDrempelOverzichtDto getAfspraakDrempelOverzicht(PlanningStandplaats standplaats)
 	{
@@ -89,7 +86,7 @@ public class PlanningAfspraakDrempelOverzichtServiceImpl implements PlanningAfsp
 
 		clientCollection = clientCollection.stream()
 			.filter(client -> client.getUitnodigenVanafJaar() <= uitnodigenJaar && uitnodigenJaar <= client.getUitnodigenTotEnMetJaar())
-			.collect(Collectors.toList());
+			.toList();
 
 		Long[] cdvTotaal = nieuweCumulatieveDeelnamekansVerdeling();
 		Long[] cdvVervolgRonde = nieuweCumulatieveDeelnamekansVerdeling();

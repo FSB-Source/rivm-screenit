@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
-import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel_;
 import nl.rivm.screenit.model.cervix.facturatie.CervixHuisartsTarief;
 import nl.rivm.screenit.model.cervix.facturatie.CervixHuisartsTarief_;
@@ -69,19 +68,16 @@ public class CervixBaseBetalingServiceImpl implements CervixBaseBetalingService
 	@Override
 	public BigDecimal totaalBedragHuisartsBoekRegelsInBetaalopdracht(CervixBetaalopdracht betaalopdracht, boolean debet)
 	{
-		var entityManager = hibernateService.getHibernateSession();
-		var cb = entityManager.getCriteriaBuilder();
-		var query = cb.createQuery(BigDecimal.class);
-		var root = query.from(CervixBoekRegel.class);
-		root.alias("boekRegel");
-
-		query.select(cb.sum(cb.treat(root.get(CervixBoekRegel_.tarief), CervixHuisartsTarief.class).get(CervixHuisartsTarief_.tarief)));
-		query.where(heeftOpdrachtID(betaalopdracht.getId())
+		var specification = heeftOpdrachtID(betaalopdracht.getId())
 			.and(isHuisartsBetaalopdrachtRegel())
-			.and(metDebet(debet)).toPredicate(root, query, cb));
+			.and(metDebet(debet));
 
-		var result = entityManager.createQuery(query).getSingleResult();
-		return result != null ? result : BigDecimal.ZERO;
+		return boekRegelRepository.findWith(specification, BigDecimal.class, q -> q.projection((cb, r) ->
+		{
+			r.alias("boekRegel");
+			var huisartsTarief = cb.treat(r.get(CervixBoekRegel_.tarief), CervixHuisartsTarief.class);
+			return cb.sum(huisartsTarief.get(CervixHuisartsTarief_.tarief));
+		})).one().orElse(BigDecimal.ZERO);
 	}
 
 	@Override

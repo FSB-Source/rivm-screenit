@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,7 @@ package nl.rivm.screenit.main.service.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -35,7 +36,6 @@ import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.dto.PermissieDto;
 import nl.rivm.screenit.dto.RolDto;
-import nl.rivm.screenit.main.dao.RolDao;
 import nl.rivm.screenit.main.service.RolService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.model.Account;
@@ -43,8 +43,10 @@ import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.InstellingGebruikerRol;
 import nl.rivm.screenit.model.Permissie;
 import nl.rivm.screenit.model.Rol;
+import nl.rivm.screenit.model.Rol_;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.repository.algemeen.RolRepository;
 import nl.rivm.screenit.service.LogService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -52,12 +54,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static nl.rivm.screenit.specification.algemeen.RolSpecification.filterBevolkingsonderzoek;
+import static nl.rivm.screenit.specification.algemeen.RolSpecification.isActief;
+
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
 @AllArgsConstructor
 public class RolServiceImpl implements RolService
 {
-	private final RolDao rolDao;
+	private final RolRepository rolRepository;
 
 	private final LogService logService;
 
@@ -74,12 +79,6 @@ public class RolServiceImpl implements RolService
 		opslaanRol.setActief(actief);
 		saveLoginformatieVoorActieverenRol(opslaanRol, ingelogdeAccount);
 		hibernateService.saveOrUpdate(opslaanRol);
-	}
-
-	@Override
-	public void saveOrUpdateRol(Rol rol)
-	{
-		rolDao.saveOrUpdateRol(rol);
 	}
 
 	@Override
@@ -152,13 +151,15 @@ public class RolServiceImpl implements RolService
 	@Override
 	public List<Rol> getActieveRollen()
 	{
-		return rolDao.getActieveRollen();
+		return getActieveRollen(null);
 	}
 
 	@Override
-	public List<Rol> getActieveRollen(List<Bevolkingsonderzoek> bevolkingsonderzoeken)
+	public List<Rol> getActieveRollen(Collection<Bevolkingsonderzoek> bevolkingsonderzoeken)
 	{
-		return rolDao.getActieveRollen(bevolkingsonderzoeken);
+		return rolRepository.findWith(isActief(true).and(filterBevolkingsonderzoek(bevolkingsonderzoeken)), q -> q)
+			.fetch(g -> g.addSubgraph(Rol_.permissies))
+			.all();
 	}
 
 	@Override

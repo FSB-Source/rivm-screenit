@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,7 @@ package nl.rivm.screenit.specification.cervix;
 import java.time.LocalDate;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.Client_;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
@@ -33,6 +33,7 @@ import nl.rivm.screenit.model.cervix.CervixDossier_;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde_;
 import nl.rivm.screenit.model.cervix.CervixUitstel;
 import nl.rivm.screenit.model.cervix.CervixUitstel_;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.specification.algemeen.ClientSpecification;
 import nl.rivm.screenit.specification.algemeen.PersoonSpecification;
 import nl.rivm.screenit.util.DateUtil;
@@ -41,12 +42,17 @@ import org.springframework.data.jpa.domain.Specification;
 
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixUitstelSpecification
 {
-	public static Specification<CervixUitstel> heeftGeenGeannuleerdDatum()
+	public static ExtendedSpecification<CervixUitstel> heeftGeenGeannuleerdDatum()
 	{
 		return (r, q, cb) -> cb.isNull(r.get(CervixUitstel_.geannuleerdDatum));
+	}
+
+	public static ExtendedSpecification<CervixUitstel> heeftGeannuleerdDatum()
+	{
+		return (r, q, cb) -> cb.isNotNull(r.get(CervixUitstel_.geannuleerdDatum));
 	}
 
 	public static Specification<CervixUitstel> heeftUitstellenTotDatumEerderDan(LocalDate datum)

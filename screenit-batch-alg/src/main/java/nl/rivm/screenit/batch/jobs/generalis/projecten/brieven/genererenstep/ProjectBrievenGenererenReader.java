@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.generalis.projecten.brieven.genererenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,30 +23,30 @@ package nl.rivm.screenit.batch.jobs.generalis.projecten.brieven.genererenstep;
 
 import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenReader;
 import nl.rivm.screenit.batch.jobs.generalis.projecten.brieven.ProjectBrievenConstants;
-import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.model.project.ProjectBrief;
+import nl.rivm.screenit.specification.algemeen.ClientSpecification;
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
-import org.springframework.batch.item.ExecutionContext;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.algemeen.ProjectBriefSpecification.heeftDefinitieId;
 
 @Component
 public class ProjectBrievenGenererenReader extends AbstractBrievenGenererenReader<ProjectBrief>
 {
-
 	@Override
-	protected Long getScreeningOrganisatieId(ExecutionContext context)
+	protected Long getScreeningOrganisatieId()
 	{
-		return context.getLong(ProjectBrievenConstants.KEY_PROJECT_SCREENINGORGANISATIE_ID);
+		return getStepExecutionContext().getLong(ProjectBrievenConstants.KEY_PROJECT_SCREENINGORGANISATIE_ID);
 	}
 
 	@Override
-	protected Criteria additionalRestrictions(Criteria crit, ExecutionContext context)
+	protected Specification<ProjectBrief> createSpecification()
 	{
-		crit.add(Restrictions.eq("client.gbaStatus", GbaStatus.INDICATIE_AANWEZIG));
-		Long projectBriefActieId = context.getLong(ProjectBrievenConstants.KEY_PROJECT_ACTIE_ID);
-		crit.add(Restrictions.eq("definitie.id", projectBriefActieId));
-		return crit;
+		var specification = super.createSpecification();
+		var projectBriefActieId = getStepExecutionContext().getLong(ProjectBrievenConstants.KEY_PROJECT_ACTIE_ID);
+		return specification
+			.and(heeftDefinitieId(projectBriefActieId))
+			.and(ClientSpecification.heeftIndicatie().with(r -> clientJoin(r)));
 	}
 }

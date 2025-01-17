@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.service.impl;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Set;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.mamma.planning.index.PlanningClientIndex;
@@ -58,7 +59,6 @@ import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.mamma.MammaUitstel;
 import nl.rivm.screenit.model.mamma.enums.MammaUitstelReden;
 import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaStandplaatsRondeRapportageStatus;
-import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.service.mamma.MammaBaseFactory;
@@ -79,9 +79,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
 @Slf4j
+@RequiredArgsConstructor
 public class PlanningUitnodigenServiceImpl implements PlanningUitnodigenService
 {
-
 	private final Map<Long, Integer> screeningsEenheidLaatsteVolgNrMap = new HashMap<>();
 
 	private final MammaBaseScreeningrondeService screeningrondeService;
@@ -97,23 +97,6 @@ public class PlanningUitnodigenServiceImpl implements PlanningUitnodigenService
 	private final MammaBaseKansberekeningService baseKansberekeningService;
 
 	private final MammaBaseAfspraakService baseAfspraakService;
-
-	private final InstellingService instellingService;
-
-	public PlanningUitnodigenServiceImpl(MammaBaseScreeningrondeService screeningrondeService, LogService logService,
-		HibernateService hibernateService, MammaBaseFactory baseFactory,
-		MammaBaseUitstelService baseUitstelService, MammaBaseKansberekeningService baseKansberekeningService,
-		MammaBaseAfspraakService baseAfspraakService, InstellingService instellingService)
-	{
-		this.screeningrondeService = screeningrondeService;
-		this.logService = logService;
-		this.hibernateService = hibernateService;
-		this.baseFactory = baseFactory;
-		this.baseUitstelService = baseUitstelService;
-		this.baseKansberekeningService = baseKansberekeningService;
-		this.baseAfspraakService = baseAfspraakService;
-		this.instellingService = instellingService;
-	}
 
 	@Override
 	public void uitnodigen(PlanningStandplaatsRonde standplaatsRonde, Set<PlanningClient> openUitnodigingClientSet, NavigableSet<PlanningClient> afspraakUitnodigingClientSet,

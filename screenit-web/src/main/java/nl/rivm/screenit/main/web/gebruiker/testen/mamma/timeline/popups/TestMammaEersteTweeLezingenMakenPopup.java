@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.popups;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,7 +32,9 @@ import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.MammaTestTimelinePage;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Gebruiker_;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.InstellingGebruiker_;
 import nl.rivm.screenit.model.enums.MammaOnderzoekType;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaLezing;
@@ -46,6 +48,9 @@ import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.springframework.data.domain.Sort;
+
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
 
 public class TestMammaEersteTweeLezingenMakenPopup extends TestMammaAbstractPopupPanel
 {
@@ -64,10 +69,11 @@ public class TestMammaEersteTweeLezingenMakenPopup extends TestMammaAbstractPopu
 		super(id, clientModel);
 
 		MammaBeoordeling beoordeling = MammaScreeningRondeUtil.getLaatsteBeoordeling(clientModel.getObject().get(0).getMammaDossier().getLaatsteScreeningRonde());
-		InstellingGebruiker zoekInstellingGebruiker = new InstellingGebruiker();
-		zoekInstellingGebruiker.setOrganisatie(beoordeling.getBeoordelingsEenheid());
-		List<InstellingGebruiker> instellingGebruikers = medewerkerService.getActieveRadiologen(zoekInstellingGebruiker, new ArrayList<>(), "medewerker.gebruikersnaam", true);
-		Iterator<InstellingGebruiker> iterator = instellingGebruikers.iterator();
+		var zoekOrganisatieMedewerker = new InstellingGebruiker();
+		zoekOrganisatieMedewerker.setOrganisatie(beoordeling.getBeoordelingsEenheid());
+		var sort = Sort.by(Sort.Order.asc(propertyChain(InstellingGebruiker_.MEDEWERKER, Gebruiker_.GEBRUIKERSNAAM)));
+		var radiologen = medewerkerService.getActieveRadiologen(zoekOrganisatieMedewerker, new ArrayList<>(), sort);
+		Iterator<InstellingGebruiker> iterator = radiologen.iterator();
 		InstellingGebruiker eersteBeoordelaar = iterator.next();
 		InstellingGebruiker tweedeBeoordelaar = null;
 		while (iterator.hasNext())
@@ -88,7 +94,7 @@ public class TestMammaEersteTweeLezingenMakenPopup extends TestMammaAbstractPopu
 		Form<MammaLezing> eersteLezingForm = new Form<>("eersteLezingForm", eersteLezingModel);
 		add(eersteLezingForm);
 
-		IModel<List<InstellingGebruiker>> instellingGebruikersModel = ModelUtil.listRModel(instellingGebruikers, false);
+		IModel<List<InstellingGebruiker>> instellingGebruikersModel = ModelUtil.listRModel(radiologen, false);
 		addLezingComponenten(instellingGebruikersModel, eersteLezingForm);
 
 		Form<MammaLezing> tweedeLezingForm = new Form<>("tweedeLezingForm", tweedeLezingModel);

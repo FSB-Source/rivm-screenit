@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.generalis.brieven.bezwaar.genererenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,32 +21,35 @@ package nl.rivm.screenit.batch.jobs.generalis.brieven.bezwaar.genererenstep;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
+
 import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenReader;
 import nl.rivm.screenit.model.algemeen.BezwaarBrief;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.GbaStatus;
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
-import org.springframework.batch.item.ExecutionContext;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.algemeen.BriefSpecification.heeftBriefType;
+import static nl.rivm.screenit.specification.algemeen.ClientSpecification.heeftGbaStatusIn;
 
 @Component
 public class BezwaarBrievenGenererenReader extends AbstractBrievenGenererenReader<BezwaarBrief>
 {
-
 	@Override
-	protected Long getScreeningOrganisatieId(ExecutionContext context)
+	protected Long getScreeningOrganisatieId()
 	{
-		return context.getLong(BezwaarBrievenGenererenPartitioner.KEY_SCREENINGORGANISATIEID);
+		return getStepExecutionContext().getLong(BezwaarBrievenGenererenPartitioner.KEY_SCREENINGORGANISATIEID);
 	}
 
 	@Override
-	protected Criteria additionalRestrictions(Criteria crit, ExecutionContext context)
+	protected Specification<BezwaarBrief> createSpecification()
 	{
-		crit.add(Restrictions.or(Restrictions.eq("client.gbaStatus", GbaStatus.INDICATIE_AANWEZIG), Restrictions.eq("client.gbaStatus", GbaStatus.BEZWAAR)));
-		BriefType briefType = BriefType.valueOf(context.getString(BezwaarBrievenGenererenPartitioner.KEY_BRIEFTYPE));
-		crit.add(Restrictions.eq("briefType", briefType));
-		return crit;
+		var specification = super.createSpecification();
+		var briefType = BriefType.valueOf(getStepExecutionContext().getString(BezwaarBrievenGenererenPartitioner.KEY_BRIEFTYPE));
+		return specification
+			.and(heeftGbaStatusIn(List.of(GbaStatus.INDICATIE_AANWEZIG, GbaStatus.BEZWAAR)).with(r -> clientJoin(r)))
+			.and(heeftBriefType(briefType));
 	}
 }

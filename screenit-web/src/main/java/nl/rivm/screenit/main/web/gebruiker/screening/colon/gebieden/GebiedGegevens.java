@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.gebieden;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.base.BasePage;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -48,16 +47,18 @@ import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.Gemeente;
+import nl.rivm.screenit.model.Instelling_;
 import nl.rivm.screenit.model.colon.CapaciteitsPercWijziging;
 import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.ColoscopieCentrumColonCapaciteitVerdeling;
+import nl.rivm.screenit.model.colon.ColoscopieCentrumColonCapaciteitVerdeling_;
 import nl.rivm.screenit.model.colon.UitnodigingsGebied;
+import nl.rivm.screenit.model.colon.UitnodigingsGebied_;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
 import nl.rivm.screenit.service.InstellingService;
-import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.colon.ColonUitnodigingsgebiedService;
 import nl.rivm.screenit.util.BigDecimalUtil;
 import nl.rivm.screenit.util.PercentageUtil;
@@ -100,6 +101,8 @@ import org.wicketstuff.shiro.ShiroConstraint;
 
 import com.google.common.primitives.Ints;
 
+import static nl.rivm.screenit.util.StringUtil.propertyChain;
+
 @SecurityConstraint(
 	actie = Actie.INZIEN,
 	constraint = ShiroConstraint.HasPermission,
@@ -109,11 +112,6 @@ import com.google.common.primitives.Ints;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON })
 public class GebiedGegevens extends GebiedenBeheerPage
 {
-
-	private static final long serialVersionUID = 1L;
-
-	@SpringBean
-	private LogService logService;
 
 	@SpringBean
 	private HibernateService hibernateService;
@@ -130,7 +128,7 @@ public class GebiedGegevens extends GebiedenBeheerPage
 
 	private WebMarkupContainer controleResultaatPanel;
 
-	private IModel<ColonIntakelocatie> intakelocatieModel = new SimpleHibernateModel<ColonIntakelocatie>();
+	private IModel<ColonIntakelocatie> intakelocatieModel = new SimpleHibernateModel<>();
 
 	private IModel<List<ColonIntakelocatie>> intakelocatiesModel;
 
@@ -153,7 +151,7 @@ public class GebiedGegevens extends GebiedenBeheerPage
 	{
 		setDefaultModel(model);
 
-		add(new GemeentePaspoortPanel("paspoort", new CompoundPropertyModel<Gemeente>(new PropertyModel<Gemeente>(model, "gemeente"))));
+		add(new GemeentePaspoortPanel("paspoort", new CompoundPropertyModel<>(new PropertyModel<>(model, UitnodigingsGebied_.GEMEENTE))));
 
 		Form<UitnodigingsGebied> form = new Form<>("form", model);
 		add(form);
@@ -195,8 +193,6 @@ public class GebiedGegevens extends GebiedenBeheerPage
 		ScreenitIndicatingAjaxSubmitLink opslaan = new ScreenitIndicatingAjaxSubmitLink("opslaan", form)
 		{
 
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -215,8 +211,6 @@ public class GebiedGegevens extends GebiedenBeheerPage
 
 		form.add(new AjaxLink<UitnodigingsGebied>("annuleren")
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick(AjaxRequestTarget target)
@@ -247,19 +241,17 @@ public class GebiedGegevens extends GebiedenBeheerPage
 		}
 		intakelocatiesModel = ModelUtil.listRModel(actieveIntakelocaties);
 		final ScreenitDropdown<ColonIntakelocatie> intakelocaties = ComponentHelper.newDropDownChoice("intakelocaties", intakelocatiesModel,
-			new ChoiceRenderer<ColonIntakelocatie>("naam"));
-		intakelocaties.setModel(new CompoundPropertyModel<>(new PropertyModel<ColonIntakelocatie>(GebiedGegevens.this, "intakelocatie")));
+			new ChoiceRenderer<>("naam"));
+		intakelocaties.setModel(new CompoundPropertyModel<>(new PropertyModel<>(GebiedGegevens.this, ColoscopieCentrumColonCapaciteitVerdeling_.INTAKELOCATIE)));
 		intakelocaties.setVisible(magAdherentieAanpassen);
 		adherentieForm.add(intakelocaties);
 
 		initAdherentiePercentages();
 
 		List<IColumn<ColoscopieCentrumColonCapaciteitVerdeling, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<ColoscopieCentrumColonCapaciteitVerdeling, String>(Model.of("Naam intakelocatie"), "intakelocatie.naam"));
-		columns.add(new PropertyColumn<ColoscopieCentrumColonCapaciteitVerdeling, String>(Model.of("Huidige adherentiepercentage"), "percentageCapaciteit")
+		columns.add(new PropertyColumn<>(Model.of("Naam intakelocatie"), propertyChain(ColoscopieCentrumColonCapaciteitVerdeling_.INTAKELOCATIE, Instelling_.NAAM)));
+		columns.add(new PropertyColumn<>(Model.of("Huidige adherentiepercentage"), ColoscopieCentrumColonCapaciteitVerdeling_.PERCENTAGE_CAPACITEIT)
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public IModel<Object> getDataModel(IModel<ColoscopieCentrumColonCapaciteitVerdeling> rowModel)
@@ -268,10 +260,8 @@ public class GebiedGegevens extends GebiedenBeheerPage
 			}
 
 		});
-		columns.add(new AbstractColumn<ColoscopieCentrumColonCapaciteitVerdeling, String>(Model.of("Adherentiepercentage wijzigen"))
+		columns.add(new AbstractColumn<>(Model.of("Adherentiepercentage wijzigen"))
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void populateItem(Item<ICellPopulator<ColoscopieCentrumColonCapaciteitVerdeling>> cellItem, String componentId,
@@ -281,10 +271,8 @@ public class GebiedGegevens extends GebiedenBeheerPage
 			}
 
 		});
-		columns.add(new PropertyColumn<ColoscopieCentrumColonCapaciteitVerdeling, String>(Model.of("Huidige capaciteitspercentage"), "percentageCapaciteit")
+		columns.add(new PropertyColumn<>(Model.of("Huidige capaciteitspercentage"), ColoscopieCentrumColonCapaciteitVerdeling_.PERCENTAGE_CAPACITEIT)
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public IModel<Object> getDataModel(IModel<ColoscopieCentrumColonCapaciteitVerdeling> rowModel)
@@ -298,15 +286,12 @@ public class GebiedGegevens extends GebiedenBeheerPage
 			columns.add(new AbstractColumn<ColoscopieCentrumColonCapaciteitVerdeling, String>(Model.of("Verwijderen"))
 			{
 
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				public void populateItem(Item<ICellPopulator<ColoscopieCentrumColonCapaciteitVerdeling>> cellItem, String componentId,
 					final IModel<ColoscopieCentrumColonCapaciteitVerdeling> rowModel)
 				{
 					cellItem.add(new AjaxImageCellPanel<ColoscopieCentrumColonCapaciteitVerdeling>(componentId, rowModel, "icon-trash")
 					{
-						private static final long serialVersionUID = 1L;
 
 						@Override
 						protected void onClick(AjaxRequestTarget target)
@@ -326,7 +311,7 @@ public class GebiedGegevens extends GebiedenBeheerPage
 							List<ColonIntakelocatie> locaties = intakelocatiesModel.getObject();
 							locaties.add(intakelocatie);
 							intakelocatiesModel.setObject(new ArrayList<>(locaties));
-							newAdherentiePercentages.remove(ColonRestrictions.getUniekIdOf(verdeling));
+							newAdherentiePercentages.remove(uitnodigingsGebiedService.getUniekIdOf(verdeling));
 							target.add(adherentieForm, intakelocaties, adherentieTabel);
 
 						}
@@ -335,11 +320,9 @@ public class GebiedGegevens extends GebiedenBeheerPage
 			});
 		}
 
-		adherentieTabel = new ScreenitDataTable<ColoscopieCentrumColonCapaciteitVerdeling, String>("adherentie", columns,
-			new SortableDataProvider<ColoscopieCentrumColonCapaciteitVerdeling, String>()
+		adherentieTabel = new ScreenitDataTable<>("adherentie", columns,
+			new SortableDataProvider<>()
 			{
-
-				private static final long serialVersionUID = 1L;
 
 				@Override
 				public Iterator<? extends ColoscopieCentrumColonCapaciteitVerdeling> iterator(long first, long count)
@@ -376,8 +359,6 @@ public class GebiedGegevens extends GebiedenBeheerPage
 		IndicatingAjaxButton intakeLocatieKoppelenKnop = new IndicatingAjaxButton("toevoegen")
 		{
 
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -392,7 +373,7 @@ public class GebiedGegevens extends GebiedenBeheerPage
 					if (verwijderdeItem != null)
 					{
 						ColoscopieCentrumColonCapaciteitVerdeling verdeling = ModelUtil.nullSafeGet(verwijderdeItem);
-						newAdherentiePercentages.put(ColonRestrictions.getUniekIdOf(verdeling), verdeling.getPercentageAdherentie());
+						newAdherentiePercentages.put(uitnodigingsGebiedService.getUniekIdOf(verdeling), verdeling.getPercentageAdherentie());
 						verwijderdeItemModels.remove(intakelocatie.getId());
 					}
 					else
@@ -408,7 +389,7 @@ public class GebiedGegevens extends GebiedenBeheerPage
 						nieuweVerdeling.setIntakelocatie(intakelocatie);
 						intakelocatie = nieuweVerdeling.getIntakelocatie(); 
 						intakelocatie.getCapaciteitVerdeling().add(nieuweVerdeling);
-						newAdherentiePercentages.put(ColonRestrictions.getUniekIdOf(nieuweVerdeling), 0);
+						newAdherentiePercentages.put(uitnodigingsGebiedService.getUniekIdOf(nieuweVerdeling), 0);
 					}
 					setIntakelocatie(null);
 					target.add(adherentieTabel, intakelocaties);
@@ -429,8 +410,6 @@ public class GebiedGegevens extends GebiedenBeheerPage
 
 		IndicatingAjaxButton controlerenKnop = new IndicatingAjaxButton("controleren", adherentieForm)
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
@@ -465,18 +444,15 @@ public class GebiedGegevens extends GebiedenBeheerPage
 	@Override
 	protected List<GebruikerMenuItem> getContextMenuItems()
 	{
-		List<GebruikerMenuItem> contextMenuItems = new ArrayList<GebruikerMenuItem>();
+		List<GebruikerMenuItem> contextMenuItems = new ArrayList<>();
 		contextMenuItems.add(new GebruikerMenuItem("menu.beheer.gemeente.zoeken", GemeenteZoeken.class));
 		contextMenuItems.add(new GebruikerMenuItem("menu.beheer.gemeentegegevens", GemeenteGegevens.class)
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public IndicatingAjaxLink<?> createWicketLink(String markupId)
 			{
 				return new IndicatingAjaxLink<UitnodigingsGebied>(markupId, getPageModel())
 				{
-					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target)
@@ -528,7 +504,7 @@ public class GebiedGegevens extends GebiedenBeheerPage
 		newAdherentiePercentages = new HashMap<>();
 		for (ColoscopieCentrumColonCapaciteitVerdeling verdeling : getPageModel().getObject().getVerdeling())
 		{
-			newAdherentiePercentages.put(ColonRestrictions.getUniekIdOf(verdeling), verdeling.getPercentageAdherentie());
+			newAdherentiePercentages.put(uitnodigingsGebiedService.getUniekIdOf(verdeling), verdeling.getPercentageAdherentie());
 		}
 		verwijderdeItemModels.clear();
 	}
@@ -563,14 +539,12 @@ public class GebiedGegevens extends GebiedenBeheerPage
 	private class AdherentieCellFragment extends Fragment
 	{
 
-		private static final long serialVersionUID = 1L;
-
 		public AdherentieCellFragment(String id, IModel<ColoscopieCentrumColonCapaciteitVerdeling> model)
 		{
 			super(id, "adherentieFragment", fragments, model);
 
 			PercentageIntegerField nieuweAdherentieInput = new PercentageIntegerField("nieuweAdherentie",
-				new MapModel<>(newAdherentiePercentages, ColonRestrictions.getUniekIdOf(model.getObject())));
+				new MapModel<>(newAdherentiePercentages, uitnodigingsGebiedService.getUniekIdOf(model.getObject())));
 			nieuweAdherentieInput.setEnabled(magAdherentieAanpassen);
 			add(nieuweAdherentieInput);
 		}
@@ -578,8 +552,6 @@ public class GebiedGegevens extends GebiedenBeheerPage
 
 	private class ControleResultaatFragment extends Fragment
 	{
-
-		private static final long serialVersionUID = 1L;
 
 		public ControleResultaatFragment(String id, final List<CapaciteitsPercWijziging> capaciteitsPercWijzigingen)
 		{
@@ -642,11 +614,8 @@ public class GebiedGegevens extends GebiedenBeheerPage
 
 			}
 
-			add(new ListView<String>("intakelocaties", new ArrayList<>(intakelocaties))
+			add(new ListView<>("intakelocaties", new ArrayList<>(intakelocaties))
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected void populateItem(ListItem<String> item)
 				{
@@ -655,10 +624,8 @@ public class GebiedGegevens extends GebiedenBeheerPage
 				}
 
 			});
-			add(new ListView<String>("oudNieuw", new ArrayList<>(intakelocaties))
+			add(new ListView<>("oudNieuw", new ArrayList<>(intakelocaties))
 			{
-
-				private static final long serialVersionUID = 1L;
 
 				@Override
 				protected void populateItem(ListItem<String> item)
@@ -668,10 +635,8 @@ public class GebiedGegevens extends GebiedenBeheerPage
 
 			});
 
-			add(new ListView<String>("totaalIntakelocaties", new ArrayList<>(intakelocaties))
+			add(new ListView<>("totaalIntakelocaties", new ArrayList<>(intakelocaties))
 			{
-
-				private static final long serialVersionUID = 1L;
 
 				@Override
 				protected void populateItem(ListItem<String> item)
@@ -684,11 +649,8 @@ public class GebiedGegevens extends GebiedenBeheerPage
 
 			});
 
-			add(new ListView<String>("gebieden", new ArrayList<>(gebieden))
+			add(new ListView<>("gebieden", new ArrayList<>(gebieden))
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected void populateItem(ListItem<String> item)
 				{
@@ -698,9 +660,6 @@ public class GebiedGegevens extends GebiedenBeheerPage
 					final Long gebiedId = Long.valueOf(splittedGebied[0]);
 					item.add(new ListView<String>("intakelocaties", new ArrayList<>(intakelocaties))
 					{
-
-						private static final long serialVersionUID = 1L;
-
 						@Override
 						protected void populateItem(ListItem<String> item)
 						{
@@ -767,16 +726,12 @@ public class GebiedGegevens extends GebiedenBeheerPage
 			IndicatingAjaxButton doorvoeren = new IndicatingAjaxButton("doorvoeren")
 			{
 
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected void onSubmit(AjaxRequestTarget target)
 				{
 
 					dialog.openWith(target, new ConfirmPanel(IDialog.CONTENT_ID, new SimpleStringResourceModel("wijzigingenDoorvoeren"), null, new DefaultConfirmCallback()
 					{
-
-						private static final long serialVersionUID = 1L;
 
 						@Override
 						public void onYesClick(AjaxRequestTarget target)
@@ -826,8 +781,6 @@ public class GebiedGegevens extends GebiedenBeheerPage
 			add(new AjaxLink<Void>("annuleren")
 			{
 
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				public void onClick(AjaxRequestTarget target)
 				{
@@ -842,8 +795,6 @@ public class GebiedGegevens extends GebiedenBeheerPage
 
 		private class Tooltip extends Fragment
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			public Tooltip(String id, CapaciteitsPercWijziging wijziging)
 			{

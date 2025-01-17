@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -93,7 +93,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import static nl.rivm.screenit.specification.cervix.CervixMonsterSpecification.heeftMonsterId;
@@ -139,10 +138,10 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 	private VerslagRepository verslagRepository;
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void verwerkBericht(Long berichtID)
 	{
-		LOG.info("Bericht " + berichtID + ": start verwerking.");
+		LOG.info("Bericht {}: start verwerking.", berichtID);
 		var ontvangenCdaBericht = hibernateService.load(OntvangenCdaBericht.class, berichtID);
 		ontvangenCdaBericht.setStatus(BerichtStatus.VERWERKT);
 		hibernateService.saveOrUpdate(ontvangenCdaBericht);
@@ -247,7 +246,7 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 		}
 		logService.logGebeurtenis(berichtType.getLbBerichtVerwerkt(), instellingen, logEvent, null, verslag.getScreeningRonde().getDossier().getClient(),
 			verslag.getType().getBevolkingsonderzoek());
-		LOG.info("Bericht " + ontvangenCdaBericht.getId() + ": verwerkt.");
+		LOG.info("Bericht {}: verwerkt.", ontvangenCdaBericht.getId());
 
 	}
 
@@ -286,7 +285,7 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public void verwerkError(Long berichtID, Exception e)
 	{
 		var ontvangenCdaBericht = hibernateService.load(OntvangenCdaBericht.class, berichtID);
@@ -306,7 +305,7 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public List<Long> getAlleNietVerwerkteCdaBerichten(Bevolkingsonderzoek bvo)
 	{
 		return baseCdaVerslagService.getAlleNietVerwerkteCdaBerichten(bvo);
@@ -1022,7 +1021,7 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 						{
 							if (StringUtils.isNotBlank(extension))
 							{
-								foundInstelling = instellingService.getInstellingBy("uziAbonneenummer", StringUtils.leftPad(extension.trim(), 8, '0'));
+								foundInstelling = instellingService.getOrganisatieByUzinummer(StringUtils.leftPad(extension.trim(), 8, '0'));
 
 								if (organisationId.length() > 0)
 								{
@@ -1045,7 +1044,7 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 							}
 							if (organisationId != null)
 							{
-								foundInstelling = instellingService.getInstellingBy("rootOid", organisationOid);
+								foundInstelling = instellingService.getOrganisatieByRootOid(organisationOid);
 								if (organisationId.length() > 0)
 								{
 									organisationId.append(", ");

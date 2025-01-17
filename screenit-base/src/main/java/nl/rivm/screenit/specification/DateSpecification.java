@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,7 +31,7 @@ import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.From;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.util.DateUtil;
 
@@ -41,7 +41,7 @@ import static nl.rivm.screenit.specification.RangeSpecification.bevat;
 import static nl.rivm.screenit.specification.RangeSpecification.maakRangePredicates;
 import static nl.rivm.screenit.specification.RangeSpecification.overlapt;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DateSpecification
 {
 	public static Expression<Date> truncate(String part, Expression<Date> datePath, CriteriaBuilder cb)

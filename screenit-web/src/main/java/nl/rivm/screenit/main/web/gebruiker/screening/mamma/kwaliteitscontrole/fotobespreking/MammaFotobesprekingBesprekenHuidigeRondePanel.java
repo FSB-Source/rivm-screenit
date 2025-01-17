@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.f
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +22,8 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.f
  */
 
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.main.service.mamma.MammaKwaliteitscontroleService;
 import nl.rivm.screenit.main.web.ScreenitSession;
@@ -49,6 +51,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+@Slf4j
 public class MammaFotobesprekingBesprekenHuidigeRondePanel extends MammaKwaliteitscontroleHuidigeRondePanel
 {
 	private static final String ID_OPNIEUW_BEOORDELEN = "opnieuwBeoordelen";
@@ -156,6 +159,7 @@ public class MammaFotobesprekingBesprekenHuidigeRondePanel extends MammaKwalitei
 			catch (Exception e)
 			{
 				GbaPersoon persoon = getModelObject().getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().getDossier().getClient().getPersoon();
+				LOG.error("Er is een fout opgetreden bij aanvraag herbeoordeling tijdens fotobespreking: ", e);
 				warn(String.format(getString("error.herbeoordelen"),
 					persoon.getBsn(),
 					DateUtil.getGeboortedatum(persoon),

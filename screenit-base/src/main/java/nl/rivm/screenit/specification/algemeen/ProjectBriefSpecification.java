@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.algemeen;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,41 +23,29 @@ package nl.rivm.screenit.specification.algemeen;
 
 import java.time.LocalDate;
 import java.util.Date;
-
-import javax.persistence.criteria.JoinType;
+import java.util.Optional;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientBrief_;
 import nl.rivm.screenit.model.MergedBrieven_;
 import nl.rivm.screenit.model.project.ProjectBrief;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
-import nl.rivm.screenit.model.project.ProjectBriefActie_;
 import nl.rivm.screenit.model.project.ProjectBrief_;
 import nl.rivm.screenit.model.project.ProjectClient_;
 import nl.rivm.screenit.model.project.ProjectGroep_;
-import nl.rivm.screenit.model.project.ProjectVragenlijstAntwoordenHolder_;
-import nl.rivm.screenit.model.project.ProjectVragenlijstStatus;
 import nl.rivm.screenit.model.project.Project_;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.rivm.screenit.specification.SpecificationUtil;
 import nl.rivm.screenit.util.DateUtil;
 
 import org.springframework.data.jpa.domain.Specification;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ProjectBriefSpecification
 {
-
-	public static Specification<ProjectBrief> heeftDefinitieVragenlijst()
-	{
-		return (r, q, cb) ->
-		{
-			var definitieJoin = SpecificationUtil.join(r, ProjectBrief_.definitie);
-			return cb.isNotNull(definitieJoin.get(ProjectBriefActie_.vragenlijst));
-		};
-	}
 
 	public static Specification<ProjectBrief> heeftPrintDatumNaOfOpDatum(Date verstuurdOp)
 	{
@@ -68,21 +56,14 @@ public class ProjectBriefSpecification
 		};
 	}
 
+	public static Specification<ProjectBrief> heeftGeenMergedBrieven()
+	{
+		return (r, q, cb) -> r.get(ProjectBrief_.mergedBrieven).isNull();
+	}
+
 	public static Specification<ProjectBrief> heeftDefinitieGelijkAanBaseActie(ProjectBriefActie actie)
 	{
 		return (r, q, cb) -> cb.equal(r.get(ProjectBrief_.definitie), actie.getBaseActie());
-	}
-
-	public static Specification<ProjectBrief> heeftVragenlijstAntwoordenStatusNullOfNietAfgerond()
-	{
-		return (r, q, cb) ->
-		{
-			var vragenlijstAntwoordenHolderJoin = SpecificationUtil.join(r, ProjectBrief_.vragenlijstAntwoordenHolder, JoinType.LEFT);
-			return cb.or(
-				cb.isNull(vragenlijstAntwoordenHolderJoin.get(ProjectVragenlijstAntwoordenHolder_.status)),
-				cb.notEqual(vragenlijstAntwoordenHolderJoin.get(ProjectVragenlijstAntwoordenHolder_.status), ProjectVragenlijstStatus.AFGEROND)
-			);
-		};
 	}
 
 	public static Specification<ProjectBrief> heeftNietNullMergedBrievenPrintDatum()
@@ -94,9 +75,14 @@ public class ProjectBriefSpecification
 		};
 	}
 
-	public static Specification<ProjectBrief> heeftDefinitie(ProjectBriefActie actie)
+	public static ExtendedSpecification<ProjectBrief> heeftDefinitie(ProjectBriefActie actie)
 	{
-		return (r, q, cb) -> cb.equal(r.get(ProjectBrief_.definitie), actie);
+		return heeftDefinitieId(Optional.ofNullable(actie).map(ProjectBriefActie::getId).orElse(null));
+	}
+
+	public static ExtendedSpecification<ProjectBrief> heeftDefinitieId(Long actieId)
+	{
+		return (r, q, cb) -> cb.equal(r.get(ProjectBrief_.definitie), actieId);
 	}
 
 	public static Specification<ProjectBrief> heeftGeenVerstuurdeBrief(ProjectBriefActie actie)
@@ -110,7 +96,7 @@ public class ProjectBriefSpecification
 			subquery.where(cb.and(
 				heeftDefinitie(actie).toPredicate(subRoot, q, cb),
 				heeftNietNullMergedBrievenPrintDatum().toPredicate(subRoot, q, cb)
-				));
+			));
 			return cb.not(r.get(ClientBrief_.client).in(subquery));
 		};
 	}

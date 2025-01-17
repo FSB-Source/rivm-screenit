@@ -4,7 +4,7 @@ package nl.rivm.screenit;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ import java.sql.Types;
 
 import org.hibernate.dialect.PostgreSQL95Dialect;
 import org.hibernate.dialect.function.SQLFunctionTemplate;
+import org.hibernate.dialect.function.StandardSQLFunction;
 import org.hibernate.type.StandardBasicTypes;
 
 public class ScreenITPostgreSQLDialect extends PostgreSQL95Dialect
@@ -35,6 +36,8 @@ public class ScreenITPostgreSQLDialect extends PostgreSQL95Dialect
 		registerColumnType(Types.TIMESTAMP, "timestamptz");
 
 		registerFunction("intervalInDagen", new SQLFunctionTemplate(StandardBasicTypes.DATE, "?2 + INTERVAL '?1 day'"));
+
+		registerFunction("to_char", new StandardSQLFunction("to_char", StandardBasicTypes.STRING));
 
 	}
 }

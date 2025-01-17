@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -290,7 +290,7 @@ public class MammaBaseDense2ServiceImpl implements MammaBaseDense2Service
 				.and(MammaBeoordelingSpecification.heeftStatus(MammaBeoordelingStatus.UITSLAG_GUNSTIG)
 					.with((From<?, ? extends Client> r) -> join(onderzoekJoin(r), MammaOnderzoek_.laatsteBeoordeling))
 					.and(ProjectSpecification.heeftNaamIn(configuratie.getDenseOnderzoekProjecten()).with(projectJoin()))
-					.and(ProjectClientSpecification.clientIsToegevoegdVoorDatum(getMinimaleOnderzoekDatum()).with(r -> join(r, Client_.projecten)))),
+					.and(ProjectClientSpecification.clientIsToegevoegdVoorDatum(getMinimaleOnderzoekDatum()).with(r -> join(r, Client_.projecten, JoinType.LEFT)))),
 			getSorteerVolgorde()
 		);
 	}

@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.algemeen;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,14 +22,17 @@ package nl.rivm.screenit.specification.algemeen;
  */
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
+import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.InstellingGebruiker_;
 import nl.rivm.screenit.specification.ExtendedSpecification;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNullExtended;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrganisatieMedewerkerSpecification
 {
 	public static ExtendedSpecification<InstellingGebruiker> isActief()
@@ -40,5 +43,15 @@ public class OrganisatieMedewerkerSpecification
 	public static ExtendedSpecification<InstellingGebruiker> heeftInstelling(Instelling instelling)
 	{
 		return (r, q, cb) -> cb.equal(r.get(InstellingGebruiker_.organisatie), instelling);
+	}
+
+	public static ExtendedSpecification<InstellingGebruiker> heeftMedewerker(Gebruiker medewerker)
+	{
+		return (r, q, cb) -> cb.equal(r.get(InstellingGebruiker_.medewerker), medewerker);
+	}
+
+	public static ExtendedSpecification<InstellingGebruiker> filterActief(Boolean actief)
+	{
+		return skipWhenNullExtended(actief, (r, q, cb) -> cb.equal(r.get(InstellingGebruiker_.actief), actief));
 	}
 }

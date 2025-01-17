@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.aftergba.deelnamemodus;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,11 +27,6 @@ import nl.rivm.screenit.model.cervix.CervixDossier;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CervixDeelnamemodusReader extends AbstractDeelnamemodusReader
+public class CervixDeelnamemodusReader extends AbstractDeelnamemodusReader<CervixDossier>
 {
-	@Override
-	protected Class<CervixDossier> dossierClass()
-	{
-		return CervixDossier.class;
-	}
 }

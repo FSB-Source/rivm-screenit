@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.generalis.brieven.algemeen.genererenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,26 +26,28 @@ import nl.rivm.screenit.model.algemeen.AlgemeneBrief;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.GbaStatus;
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
-import org.springframework.batch.item.ExecutionContext;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.algemeen.BriefSpecification.heeftBriefType;
+import static nl.rivm.screenit.specification.algemeen.ClientSpecification.heeftGbaStatus;
 
 @Component
 public class AlgemeneBrievenGenererenReader extends AbstractBrievenGenererenReader<AlgemeneBrief>
 {
 	@Override
-	protected Long getScreeningOrganisatieId(ExecutionContext context)
+	protected Long getScreeningOrganisatieId()
 	{
 		return null;
 	}
 
 	@Override
-	protected Criteria additionalRestrictions(Criteria crit, ExecutionContext context)
+	protected Specification<AlgemeneBrief> createSpecification()
 	{
-		crit.add(Restrictions.eq("client.gbaStatus", GbaStatus.INDICATIE_AANWEZIG));
-		BriefType briefType = BriefType.valueOf(context.getString(AlgemeneBrievenGenererenPartitioner.KEY_BRIEFTYPE));
-		crit.add(Restrictions.eq("briefType", briefType));
-		return crit;
+		var specification = super.createSpecification();
+		var briefType = BriefType.valueOf(getStepExecutionContext().getString(AlgemeneBrievenGenererenPartitioner.KEY_BRIEFTYPE));
+		return specification
+			.and(heeftGbaStatus(GbaStatus.INDICATIE_AANWEZIG).with(r -> clientJoin(r)))
+			.and(heeftBriefType(briefType));
 	}
 }

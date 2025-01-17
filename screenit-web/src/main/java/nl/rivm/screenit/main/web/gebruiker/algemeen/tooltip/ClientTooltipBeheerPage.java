@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.tooltip;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -57,79 +57,68 @@ import org.wicketstuff.shiro.ShiroConstraint;
 		Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA })
 public class ClientTooltipBeheerPage extends AlgemeenPage
 {
-
-	private static final long serialVersionUID = 1L;
-
-	private IModel<ClientTooltipFilter> filter;
+	private final IModel<ClientTooltipFilter> filter;
 
 	private WebMarkupContainer typeContainer;
 
-	private Label selecteerEenType;
+	private final Label selecteerEenType;
 
 	@SpringBean
 	private ClientTooltipService tooltipService;
 
 	public ClientTooltipBeheerPage()
 	{
-		setFilter(new Model<ClientTooltipFilter>(new ClientTooltipFilter()));
+		filter = new Model<>(new ClientTooltipFilter());
 
-		add(new FilterForm("typeForm", getFilter()));
-		setTypeContainer(new WebMarkupContainer("typeContainer"));
-		getTypeContainer().setOutputMarkupPlaceholderTag(true);
-		add(getTypeContainer());
-		setSelecteerEenType(new Label("selecteerEenType", getString("selecteerEenType")));
-		getSelecteerEenType().setOutputMarkupPlaceholderTag(true);
-		add(getSelecteerEenType());
+		add(new FilterForm("typeForm", filter));
+		typeContainer = new WebMarkupContainer("typeContainer");
+		typeContainer.setOutputMarkupPlaceholderTag(true);
+		add(typeContainer);
+		selecteerEenType = new Label("selecteerEenType", getString("selecteerEenType"));
+		selecteerEenType.setOutputMarkupPlaceholderTag(true);
+		add(selecteerEenType);
 	}
 
 	private class FilterForm extends Form<ClientTooltipFilter>
 	{
-
-		private static final long serialVersionUID = 1L;
-
 		public FilterForm(String id, IModel<ClientTooltipFilter> model)
 		{
 			super(id, new CompoundPropertyModel<>(model));
 
-			ScreenitDropdown<ClientTooltipType> typeSelectie = new ScreenitDropdown<ClientTooltipType>("type", Arrays.asList(ClientTooltipType.values()));
-			typeSelectie.setChoiceRenderer(new EnumChoiceRenderer<ClientTooltipType>(typeSelectie));
+			ScreenitDropdown<ClientTooltipType> typeSelectie = new ScreenitDropdown<>("type", Arrays.asList(ClientTooltipType.values()));
+			typeSelectie.setChoiceRenderer(new EnumChoiceRenderer<>(typeSelectie));
 			typeSelectie.add(new AjaxFormComponentUpdatingBehavior("change")
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected void onUpdate(AjaxRequestTarget target)
 				{
-					if (getFilter().getObject() != null && getFilter().getObject().getType() != null)
+					if (filter.getObject() != null && filter.getObject().getType() != null)
 					{
-						ClientTooltip tooltip = null;
-						tooltip = tooltipService.getClientTooltipByType(getFilter().getObject().getType());
+						var tooltip = tooltipService.getClientTooltipByType(filter.getObject().getType());
 
 						if (tooltip == null)
 						{
 							tooltip = new ClientTooltip();
-							tooltip.setType(getFilter().getObject().getType());
+							tooltip.setType(filter.getObject().getType());
 						}
 
 						ClientTooltipEditPanel editPanel = new ClientTooltipEditPanel("typeContainer", ModelUtil.cModel(tooltip));
 						editPanel.setOutputMarkupPlaceholderTag(true);
-						getTypeContainer().replaceWith(editPanel);
-						setTypeContainer(editPanel);
-						target.add(getTypeContainer());
-						getSelecteerEenType().setVisible(false);
-						target.add(getSelecteerEenType());
-
+						typeContainer.replaceWith(editPanel);
+						typeContainer = editPanel;
+						target.add(typeContainer);
+						selecteerEenType.setVisible(false);
+						target.add(selecteerEenType);
 					}
 					else
 					{
 						WebMarkupContainer editPanel = new WebMarkupContainer("typeContainer");
 						editPanel.setOutputMarkupPlaceholderTag(true);
-						getTypeContainer().replaceWith(editPanel);
-						setTypeContainer(editPanel);
-						getSelecteerEenType().setVisible(true);
-						target.add(getSelecteerEenType());
-						target.add(getTypeContainer());
+						typeContainer.replaceWith(editPanel);
+						typeContainer = editPanel;
+						selecteerEenType.setVisible(true);
+						target.add(selecteerEenType);
+						target.add(typeContainer);
 					}
 				}
 			});
@@ -138,35 +127,4 @@ public class ClientTooltipBeheerPage extends AlgemeenPage
 			add(typeSelectie);
 		}
 	}
-
-	public IModel<ClientTooltipFilter> getFilter()
-	{
-		return filter;
-	}
-
-	public void setFilter(IModel<ClientTooltipFilter> filter)
-	{
-		this.filter = filter;
-	}
-
-	public Label getSelecteerEenType()
-	{
-		return selecteerEenType;
-	}
-
-	public void setSelecteerEenType(Label selecteerEenType)
-	{
-		this.selecteerEenType = selecteerEenType;
-	}
-
-	public WebMarkupContainer getTypeContainer()
-	{
-		return typeContainer;
-	}
-
-	public void setTypeContainer(WebMarkupContainer typeContainer)
-	{
-		this.typeContainer = typeContainer;
-	}
-
 }

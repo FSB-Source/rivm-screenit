@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.fitherinnering.step;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,7 +23,6 @@ package nl.rivm.screenit.batch.jobs.colon.fitherinnering.step;
 
 import java.time.LocalDateTime;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
 
@@ -87,7 +86,7 @@ public class ColonFITHerinneringBriefReader extends BaseSpecificationScrollableR
 			.and(ColonFITSpecification.fitIsHoudbaar(peildatum).with(r -> fitJoin(r)))
 			.and(ColonScreeningRondeSpecification.heeftGeenBriefVanTypeIn(BriefType.COLON_UITSLAG_BRIEVEN).with(r -> laatsteScreeningRondeJoin(r)));
 
-		var uniqueResults = clientRepository.findWith(specification, Long.class, q -> q.projection(CriteriaBuilder::countDistinct)).one().orElse(0L);
+		var uniqueResults = clientRepository.countDistinct(specification);
 		getExecutionContext().putInt(ColonFITHerinneringJobConstants.GESELECTEERD, Ints.checkedCast(uniqueResults));
 
 		return specification;

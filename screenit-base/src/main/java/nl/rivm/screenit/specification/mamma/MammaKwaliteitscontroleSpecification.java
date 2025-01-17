@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,7 @@ package nl.rivm.screenit.specification.mamma;
  */
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.mamma.MammaAdhocMeekijkverzoek;
 import nl.rivm.screenit.model.mamma.MammaAdhocMeekijkverzoek_;
@@ -36,18 +36,18 @@ import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging_;
 import nl.rivm.screenit.model.mamma.MammaVisitatieOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaVisitatieOnderzoek_;
-import nl.rivm.screenit.util.functionalinterfaces.PathAwarePredicate;
+import nl.rivm.screenit.specification.ExtendedSpecification;
 
 import org.springframework.data.jpa.domain.Specification;
 
 import static nl.rivm.screenit.specification.SpecificationUtil.join;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MammaKwaliteitscontroleSpecification
 {
 	public static Specification<MammaFotobesprekingOnderzoek> fotoBesprekingHeeftScreeningRonde(MammaScreeningRonde screeningRonde)
 	{
-		return heeftScreeningRonde(screeningRonde).toSpecification(r ->
+		return heeftScreeningRonde(screeningRonde).with(r ->
 		{
 			var beoordelingJoin = join(r, MammaFotobesprekingOnderzoek_.beoordeling);
 			var onderzoekJoin = join(beoordelingJoin, MammaBeoordeling_.onderzoek);
@@ -58,7 +58,7 @@ public class MammaKwaliteitscontroleSpecification
 
 	public static Specification<MammaVisitatieOnderzoek> visitatieHeeftScreeningRonde(MammaScreeningRonde screeningRonde)
 	{
-		return heeftScreeningRonde(screeningRonde).toSpecification(r ->
+		return heeftScreeningRonde(screeningRonde).with(r ->
 		{
 			var beoordelingJoin = join(r, MammaVisitatieOnderzoek_.beoordeling);
 			var onderzoekJoin = join(beoordelingJoin, MammaBeoordeling_.onderzoek);
@@ -69,7 +69,7 @@ public class MammaKwaliteitscontroleSpecification
 
 	public static Specification<MammaAdhocMeekijkverzoek> adhocMeekijkverzoekHeeftScreeningRonde(MammaScreeningRonde screeningRonde)
 	{
-		return heeftScreeningRonde(screeningRonde).toSpecification(r ->
+		return heeftScreeningRonde(screeningRonde).with(r ->
 		{
 			var onderzoekJoin = join(r, MammaAdhocMeekijkverzoek_.onderzoek);
 			var afspraakJoin = join(onderzoekJoin, MammaOnderzoek_.afspraak);
@@ -77,8 +77,8 @@ public class MammaKwaliteitscontroleSpecification
 		});
 	}
 
-	public static PathAwarePredicate<MammaUitnodiging> heeftScreeningRonde(MammaScreeningRonde screeningRonde)
+	public static ExtendedSpecification<MammaUitnodiging> heeftScreeningRonde(MammaScreeningRonde screeningRonde)
 	{
-		return (cb, r) -> cb.equal(r.get(MammaUitnodiging_.screeningRonde), screeningRonde);
+		return (r, q, cb) -> cb.equal(r.get(MammaUitnodiging_.screeningRonde), screeningRonde);
 	}
 }

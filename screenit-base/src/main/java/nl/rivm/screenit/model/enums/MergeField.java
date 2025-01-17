@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -92,10 +92,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaVerzettenReden;
 import nl.rivm.screenit.model.mamma.enums.MammaZijde;
 import nl.rivm.screenit.model.overeenkomsten.AfgeslotenInstellingOvereenkomst;
 import nl.rivm.screenit.model.overeenkomsten.AfgeslotenMedewerkerOvereenkomst;
-import nl.rivm.screenit.model.project.ProjectBriefActieType;
-import nl.rivm.screenit.model.project.ProjectVragenlijstUitzettenVia;
 import nl.rivm.screenit.service.BarcodeService;
-import nl.rivm.screenit.service.BaseProjectService;
 import nl.rivm.screenit.service.HeraanmeldenMergeVeldService;
 import nl.rivm.screenit.service.OrganisatieParameterService;
 import nl.rivm.screenit.service.cervix.CervixBaseBetalingService;
@@ -131,7 +128,6 @@ import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.envers.query.AuditEntity;
 import org.krysalis.barcode4j.impl.AbstractBarcodeBean;
-import org.krysalis.barcode4j.impl.code128.Code128Bean;
 import org.krysalis.barcode4j.impl.fourstate.RoyalMailCBCBean;
 import org.springframework.beans.support.PropertyComparator;
 
@@ -2785,131 +2781,6 @@ public enum MergeField
 				if (context.getOvereenkomst() != null)
 				{
 					return getFormattedDateMetDagnaam(DateUtil.toLocalDateTime(context.getOvereenkomst().getStartDatum()));
-				}
-				return null;
-			}
-
-		},
-
-	OV_VRAGENLIJST_NAAM("_OV_VRAGENLIJST_NAAM")
-		{
-			@Override
-			public Object getFieldValue(MailMergeContext context)
-			{
-				return context.getVragenlijstNaam();
-			}
-
-		},
-
-	OV_VRAGENLIJST_TIP("_OV_VRAGENLIJST_TIP")
-		{
-			@Override
-			public Object getFieldValue(MailMergeContext context)
-			{
-
-				if (OV_VRAGENLIJST_URL.getFieldValue(context) != null)
-				{
-					return "\nTip";
-				}
-				return null;
-			}
-
-		},
-
-	OV_VRAGENLIJST_PRE_URL_TEKST("_OV_VRAGENLIJST_PRE_URL_TEKST")
-		{
-			@Override
-			public Object getFieldValue(MailMergeContext context)
-			{
-				if (OV_VRAGENLIJST_URL.getFieldValue(context) != null)
-				{
-					return "U kunt dit formulier ook online invullen. \nGa naar";
-				}
-				return null;
-			}
-
-		},
-
-	OV_VRAGENLIJST_POST_URL_TEKST("_OV_VRAGENLIJST_POST_URL_TEKST")
-		{
-			@Override
-			public Object getFieldValue(MailMergeContext context)
-			{
-				if (OV_VRAGENLIJST_URL.getFieldValue(context) != null)
-				{
-					return "\n";
-				}
-				return null;
-			}
-
-		},
-
-	OV_VRAGENLIJST_URL("_OV_VRAGENLIJST_URL")
-		{
-			@Override
-			public Object getFieldValue(MailMergeContext context)
-			{
-				var brief = context.getProjectBrief();
-				if (brief != null)
-				{
-					if (brief.getDefinitie().getType().equals(ProjectBriefActieType.HERINNERING))
-					{
-						brief = brief.getTeHerinnerenBrief();
-					}
-					var projectVragenlijstUitzettenVia = brief.getDefinitie().getProjectVragenlijstUitzettenVia();
-					if (ProjectVragenlijstUitzettenVia.isWeb(projectVragenlijstUitzettenVia))
-					{
-						var projectService = getBean(BaseProjectService.class);
-						return projectService.generateVragenlijstUrl(brief);
-					}
-				}
-				return null;
-			}
-
-		},
-
-	OV_VRAGENLIJST_KEY("_OV_VRAGENLIJST_KEY")
-		{
-			@Override
-			public Object getFieldValue(MailMergeContext context)
-			{
-				var brief = context.getProjectBrief();
-				if (brief != null)
-				{
-					if (brief.getDefinitie().getType().equals(ProjectBriefActieType.HERINNERING))
-					{
-						brief = brief.getTeHerinnerenBrief();
-					}
-					var projectVragenlijstUitzettenVia = brief.getDefinitie().getProjectVragenlijstUitzettenVia();
-					if (ProjectVragenlijstUitzettenVia.isWeb(projectVragenlijstUitzettenVia))
-					{
-						var projectService = getBean(BaseProjectService.class);
-						return projectService.generateVragenlijstKey(brief);
-					}
-				}
-				return null;
-			}
-
-		},
-
-	OV_VRAGENLIJST_FORMULIERNUMMER("_OV_VRAGENLIJST_FORMULIERNUMMER", Code128Bean.class, Double.valueOf(5))
-		{
-			@Override
-			public Object getFieldValue(MailMergeContext context)
-			{
-				return "++FN+901";
-			}
-
-		},
-
-	OV_VRAGENLIJST_PROJECT_BRIEF_ID("_OV_VRAGENLIJST_PROJECT_BRIEF_ID", Code128Bean.class, Double.valueOf(5))
-		{
-			@Override
-			public Object getFieldValue(MailMergeContext context)
-			{
-				if (context.getProjectBrief() != null)
-				{
-					return context.getProjectBrief().getId().toString();
 				}
 				return null;
 			}

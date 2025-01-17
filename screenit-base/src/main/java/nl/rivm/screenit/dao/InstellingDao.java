@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,49 +21,9 @@ package nl.rivm.screenit.dao;
  * =========================LICENSE_END==================================
  */
 
-import java.util.List;
-
-import javax.annotation.Nonnull;
-
-import nl.rivm.screenit.model.BeoordelingsEenheid;
-import nl.rivm.screenit.model.Gebruiker;
-import nl.rivm.screenit.model.Instelling;
-import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.OrganisatieType;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.model.colon.IFobtLaboratorium;
-
-import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
 
 public interface InstellingDao
 {
-
-	Instelling getInstellingBy(String key, String value);
-
-	List<Instelling> getInstellingByOrganisatieTypes(List<OrganisatieType> organisatieTypes);
-
-	List<InstellingGebruiker> getActieveInstellingGebruikers(@Nonnull Gebruiker gebruiker);
-
-	List getInstellingGebruikersVoorInloggen(@Nonnull Gebruiker medewerker);
-
 	Criterion getActieveRolCriterion(String igRolAlias, String rolAlias);
-
-	<T extends Instelling> List<T> getActieveInstellingen(Class<T> typeInstelling);
-
-	<T extends Instelling> List<T> getActieveInstellingenBinnenRegio(Class<T> typeInstelling, ScreeningOrganisatie regio);
-
-	List<BeoordelingsEenheid> getActieveBeoordelingsEenhedenBinnenRegio(ScreeningOrganisatie regio);
-
-	List<Instelling> getPathologieLabs(Instelling instelling);
-
-	<T extends Instelling> List<T> getChildrenInstellingen(@Nonnull Instelling instelling, @Nonnull Class<T> typeInstelling);
-
-	IFobtLaboratorium getIfobtLabByLabID(String labID);
-
-	List<Long> getLandelijkeInstellingIds(OrganisatieType type);
-
-	Criteria getAllILAdressenZonderCoordinanten();
-
-	ScreeningOrganisatie getScreeningOrganisatie(String regioCode);
 }

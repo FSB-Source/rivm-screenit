@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.intake;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,6 +27,7 @@ import java.util.Iterator;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
+import nl.rivm.screenit.model.colon.planning.ColonTijdslot_;
 import nl.rivm.screenit.service.colon.ColonBaseAfspraakService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -35,6 +36,8 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvid
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+
+import static nl.rivm.screenit.main.util.WicketSpringDataUtil.toSpringSort;
 
 public class WerklijstIntakeDataProvider extends SortableDataProvider<ColonIntakeAfspraak, String>
 {
@@ -50,15 +53,15 @@ public class WerklijstIntakeDataProvider extends SortableDataProvider<ColonIntak
 	{
 		this.zoekModel = zoekModel;
 		this.intakelocatie = ModelUtil.sModel(intakelocatie);
-		setSort("vanaf", SortOrder.ASCENDING);
+		setSort(ColonTijdslot_.VANAF, SortOrder.ASCENDING);
 		Injector.get().inject(this);
 	}
 
 	@Override
 	public Iterator<? extends ColonIntakeAfspraak> iterator(long first, long count)
 	{
-		return afspraakService.getAfsprakenVoorColoscopiecentrum(ModelUtil.nullSafeGet(zoekModel), ModelUtil.nullSafeGet(intakelocatie),
-			first, count, getSort().getProperty(), getSort().isAscending()).iterator();
+		return afspraakService.getAfsprakenVoorIntakelocatie(ModelUtil.nullSafeGet(zoekModel), ModelUtil.nullSafeGet(intakelocatie),
+			first, count, toSpringSort(getSort())).iterator();
 	}
 
 	@Override

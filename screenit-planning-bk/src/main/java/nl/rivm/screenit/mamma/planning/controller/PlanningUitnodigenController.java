@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.controller;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,7 +36,6 @@ import java.util.TreeSet;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -666,7 +665,7 @@ public class PlanningUitnodigenController
 		long uitTeNodigenTehuis = 0L;
 		long uitTeNodigenSuspect = 0L;
 		for (PlanningClient client : clientSet.stream().filter(client -> !achtervangUitstelSet.contains(client) && !mindervalideUitwijkUitstelSet.contains(client))
-			.collect(Collectors.toList()))
+			.toList())
 		{
 			totaalTotaal++;
 			if (uitTeNodigen(client))

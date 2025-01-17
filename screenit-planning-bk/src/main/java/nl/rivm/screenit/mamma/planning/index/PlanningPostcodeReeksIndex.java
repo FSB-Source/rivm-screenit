@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.index;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,9 +31,9 @@ public enum PlanningPostcodeReeksIndex
 {
 	;
 
-	private final static Map<Long, PlanningPostcodeReeks> postcodeReeksIdMap = new HashMap<>();
+	private static final Map<Long, PlanningPostcodeReeks> postcodeReeksIdMap = new HashMap<>();
 
-	private final static Map<String, PlanningPostcodeReeks> postcodeReeksMap = new HashMap<>();
+	private static final Map<String, PlanningPostcodeReeks> postcodeReeksMap = new HashMap<>();
 
 	public static void put(PlanningPostcodeReeks postcodeReeks)
 	{

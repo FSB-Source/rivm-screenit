@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -58,8 +58,8 @@ import nl.rivm.screenit.model.enums.GebeurtenisBron;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
-import nl.rivm.screenit.service.GemeenteService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.TestService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.TestBsnGenerator;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -115,7 +115,7 @@ public class MammaTestTimelinePage extends TestenBasePage
 	private HibernateService hibernateService;
 
 	@SpringBean
-	private GemeenteService gemeenteService;
+	private TestService testService;
 
 	@SpringBean
 	private ICurrentDateSupplier dateSupplier;
@@ -155,7 +155,7 @@ public class MammaTestTimelinePage extends TestenBasePage
 		};
 		add(dialog);
 
-		var gemeenten = gemeenteService.getGemeentesMetScreeningOrganisatie();
+		var gemeenten = testService.getGemeentesMetScreeningOrganisatie();
 
 		gemeentenModel = ModelUtil.listRModel(gemeenten, false);
 
@@ -311,7 +311,7 @@ public class MammaTestTimelinePage extends TestenBasePage
 			protected void onSubmit(AjaxRequestTarget target)
 			{
 				var timelineModel = model.getObject();
-				if ((timelineModel.getDoelgroep() != null) != (timelineModel.getDeelnamekans() != null))
+				if ((timelineModel.getDoelgroep() == null) == (timelineModel.getDeelnamekans() != null))
 				{
 					error("Als de doelgroep ingevuld is moet ook de deelnamekans ingevuld worden en vice versa");
 					return;

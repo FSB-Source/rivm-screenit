@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.followup.followuprad
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,9 +25,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import nl.rivm.screenit.dto.mamma.MammaFollowUpInstellingRadiologieDto;
+import nl.rivm.screenit.main.service.mamma.MammaFollowUpService;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.enums.MammaFollowUpDoorverwezenFilterOptie;
-import nl.rivm.screenit.service.mamma.MammaBaseFollowUpService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -36,13 +36,12 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-
 import org.springframework.beans.support.PropertyComparator;
 
 public class MammaFollowUpRadiologieRegioProvider extends SortableDataProvider<MammaFollowUpInstellingRadiologieDto, String>
 {
 	@SpringBean
-	private MammaBaseFollowUpService followUpService;
+	private MammaFollowUpService followUpService;
 
 	private IModel<ScreeningOrganisatie> regioModel;
 

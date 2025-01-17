@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.colon;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,9 +35,12 @@ import nl.rivm.screenit.model.colon.ColonIntakelocatie;
 import nl.rivm.screenit.model.colon.RoosterListViewFilter;
 import nl.rivm.screenit.model.colon.dto.ColonAfspraakslotDto;
 import nl.rivm.screenit.model.colon.dto.ColonTijdslotDto;
+import nl.rivm.screenit.model.colon.enums.ColonAfspraakslotStatus;
 import nl.rivm.screenit.model.colon.enums.ColonRoosterBeperking;
 import nl.rivm.screenit.model.colon.planning.ColonAfspraakslot;
 import nl.rivm.screenit.model.colon.planning.ColonTijdslot;
+
+import com.google.common.collect.Range;
 
 public interface ColonAfspraakslotService
 {
@@ -60,6 +63,10 @@ public interface ColonAfspraakslotService
 	List<ColonAfspraakslotDto> getAfspraakslots(LocalDate startDate, LocalDate endDate, ColonIntakelocatie intakeLocatie);
 
 	List<ColonTijdslotDto> searchAfspraakslots(RoosterListViewFilter filter, long intakelocatieId);
+
+	ColonAfspraakslotStatus getAfspraakslotStatus(ColonAfspraakslot afspraakslot);
+
+	Integer getCurrentAantalAfspraakslots(ColonIntakelocatie intakeLocatie, Range<LocalDateTime> periode);
 
 	void valideerBeperkingen(ColonTijdslot tijdslot, ColonRoosterBeperking beperkingType) throws BeperkingException;
 }

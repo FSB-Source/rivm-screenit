@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.algemeen;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,7 @@ package nl.rivm.screenit.specification.algemeen;
 import java.util.Date;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.Gemeente;
@@ -44,7 +44,7 @@ import static nl.rivm.screenit.specification.SpecificationUtil.containsCaseInsen
 import static nl.rivm.screenit.specification.SpecificationUtil.exactCaseInsensitive;
 import static nl.rivm.screenit.specification.SpecificationUtil.skipWhenNull;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class GemeenteSpecification
 {
 	public static Specification<Gemeente> heeftNaamContaining(String naam)
@@ -119,5 +119,10 @@ public class GemeenteSpecification
 	public static ExtendedSpecification<Gemeente> heeftGeenUitnodigingsGebieden()
 	{
 		return (r, q, cb) -> cb.isEmpty(r.get(Gemeente_.UITNODIGINGS_GEBIEDEN));
+	}
+
+	public static ExtendedSpecification<Gemeente> heeftCode(String code)
+	{
+		return (r, q, cb) -> cb.equal(r.get(Gemeente_.code), code);
 	}
 }

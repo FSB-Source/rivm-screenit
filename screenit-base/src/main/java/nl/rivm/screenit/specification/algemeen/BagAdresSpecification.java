@@ -4,7 +4,7 @@ package nl.rivm.screenit.specification.algemeen;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,7 +27,7 @@ import java.util.List;
 import javax.persistence.metamodel.SingularAttribute;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.BagAdres_;
@@ -37,9 +37,14 @@ import nl.rivm.screenit.specification.ExtendedSpecification;
 import nl.topicuszorg.organisatie.model.Adres;
 import nl.topicuszorg.organisatie.model.Adres_;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class BagAdresSpecification
 {
+	public static ExtendedSpecification<BagAdres> heeftGeenPostcodeCoordinaten()
+	{
+		return (r, q, cb) -> cb.isNull(r.get(BagAdres_.postcodeCoordinaten));
+
+	}
 
 	public static ExtendedSpecification<BagAdres> heeftGbaGemeente(Gemeente gbaGemeente)
 	{

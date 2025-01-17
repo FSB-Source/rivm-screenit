@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.uitnodigingenversturen.versturenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,6 @@ package nl.rivm.screenit.batch.jobs.uitnodigingenversturen.versturenstep;
  * =========================LICENSE_END==================================
  */
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -93,8 +92,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.tempuri.IUpload;
 import org.tempuri.UploadRequest;
 
-import com.aspose.words.Document;
-import com.aspose.words.SaveFormat;
 import com.google.common.collect.Lists;
 
 @Slf4j
@@ -358,18 +355,6 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 				}
 
 				byte[] briefTemplateBytes = FileUtils.readFileToByteArray(briefTemplate);
-				if (briefActie != null)
-				{
-					var templateDocument = new Document(new ByteArrayInputStream(briefTemplateBytes));
-					var context = new MailMergeContext();
-					if (projectService.addVragenlijstAanTemplate(context, templateDocument, briefActie, null))
-					{
-
-						ByteArrayOutputStream baos = new ByteArrayOutputStream();
-						templateDocument.save(baos, SaveFormat.DOCX);
-						briefTemplateBytes = baos.toByteArray();
-					}
-				}
 				var mailMergeContext = new MailMergeContext();
 				mailMergeContext.setClient(client);
 				setMergeContext(uitnodiging, mailMergeContext);

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.onderzoek.onderbrokenonderzoeken;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,47 +21,58 @@ package nl.rivm.screenit.batch.jobs.mamma.onderzoek.onderbrokenonderzoeken;
  * =========================LICENSE_END==================================
  */
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Root;
+
 import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.mamma.MammaDossier;
+import nl.rivm.screenit.model.mamma.MammaDossier_;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde_;
 import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject_;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Projection;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.SpecificationUtil.join;
+import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.heeftStatus;
+import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.isAangemaaktVoor;
+import static nl.rivm.screenit.specification.mamma.MammaOnderzoekSpecification.isDoorgevoerd;
 
 @Component
 @AllArgsConstructor
-public class MammaVervolgTeOudeOnderbrokenOnderzoekenReader extends BaseScrollableResultReader
+public class MammaVervolgTeOudeOnderbrokenOnderzoekenReader extends BaseSpecificationScrollableResultReader<MammaDossier>
 {
 
 	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException
+	protected Specification<MammaDossier> createSpecification()
 	{
-		var criteria = session.createCriteria(MammaDossier.class, "dossier");
-		criteria.createAlias("dossier.client", "client");
-		criteria.createAlias("client.persoon", "persoon");
-		criteria.createAlias("dossier.laatsteScreeningRonde", "ronde");
-		criteria.createAlias("ronde.laatsteOnderzoek", "onderzoek");
-		criteria.add(Restrictions.lt("onderzoek.creatieDatum", DateUtil.toUtilDate(currentDateSupplier.getLocalDate().minusMonths(6))));
-		criteria.add(Restrictions.eq("onderzoek.status", MammaOnderzoekStatus.ONDERBROKEN));
-		criteria.add(Restrictions.eq("onderzoek.isDoorgevoerd", true));
+		return heeftStatus(MammaOnderzoekStatus.ONDERBROKEN)
+			.and(isDoorgevoerd(true))
+			.and(isAangemaaktVoor(currentDateSupplier.getLocalDate().minusMonths(6).atStartOfDay()))
+			.with(r -> laatsteOnderZoekJoin(r));
 
-		return criteria;
 	}
 
 	@Override
-	protected Projection getProjection()
+	protected Expression<Long> createProjection(Root<MammaDossier> r, CriteriaBuilder cb)
 	{
-		return Projections.property("onderzoek.id");
+		return laatsteOnderZoekJoin(r).get(AbstractHibernateObject_.id);
+	}
+
+	private static Join<MammaScreeningRonde, MammaOnderzoek> laatsteOnderZoekJoin(From<?, ? extends MammaDossier> dossierRoot)
+	{
+		var rondeJoin = join(dossierRoot, MammaDossier_.laatsteScreeningRonde);
+		return join(rondeJoin, MammaScreeningRonde_.laatsteOnderzoek);
 	}
 }

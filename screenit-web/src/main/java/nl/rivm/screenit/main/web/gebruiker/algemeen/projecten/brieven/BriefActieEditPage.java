@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.brieven;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,16 +22,12 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.brieven;
  */
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.main.comparator.ProjectVragenlijstComparator;
 import nl.rivm.screenit.main.web.ScreenitSession;
-import nl.rivm.screenit.main.web.component.ComponentHelper;
-import nl.rivm.screenit.main.web.component.NaamChoiceRenderer;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.component.validator.FileValidator;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.ProjectBasePage;
@@ -45,16 +41,12 @@ import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectBriefActieType;
 import nl.rivm.screenit.model.project.ProjectType;
-import nl.rivm.screenit.model.project.ProjectVragenlijst;
-import nl.rivm.screenit.model.project.ProjectVragenlijstUitzettenVia;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.UploadDocumentService;
-import nl.rivm.screenit.service.VragenlijstBaseService;
 import nl.rivm.screenit.util.EnumStringUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
-import nl.topicuszorg.wicket.hibernate.SimpleListHibernateModel;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -63,7 +55,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
@@ -72,11 +63,8 @@ import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.apache.wicket.validation.validator.RangeValidator;
 import org.bouncycastle.util.Strings;
 
 @Slf4j
@@ -94,16 +82,9 @@ public class BriefActieEditPage extends ProjectBasePage
 	@SpringBean
 	private LogService logService;
 
-	@SpringBean
-	private VragenlijstBaseService vragenlijstBaseService;
-
 	private final Form<ProjectBriefActie> form;
 
 	private WebMarkupContainer typePanelContainer;
-
-	private WebMarkupContainer vragenlijstContainer;
-
-	private WebMarkupContainer vragenlijstHerinnerenContainer;
 
 	private final IModel<ProjectBriefActie> briefActieModel;
 
@@ -141,9 +122,6 @@ public class BriefActieEditPage extends ProjectBasePage
 		fileUploadContainer.add(upload);
 		form.add(fileUploadContainer);
 
-		vragenlijstContainer = getVragenlijstContainer();
-		form.add(vragenlijstContainer);
-
 		var types = new ArrayList<ProjectBriefActieType>();
 		types.add(ProjectBriefActieType.DATUM);
 		types.add(ProjectBriefActieType.VANAF_DATUM);
@@ -168,12 +146,6 @@ public class BriefActieEditPage extends ProjectBasePage
 				target.add(typePanelContainer);
 				fileUploadContainer.setVisible(actie.getType() != null);
 				target.add(fileUploadContainer);
-
-				container = getVragenlijstContainer();
-				vragenlijstContainer.replaceWith(container);
-				vragenlijstContainer = container;
-				target.add(vragenlijstContainer);
-				target.add(vragenlijstContainer);
 			}
 		});
 		form.add(typeDropDown);
@@ -182,8 +154,6 @@ public class BriefActieEditPage extends ProjectBasePage
 
 		add(new IndicatingAjaxLink<>("annuleren", model)
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick(AjaxRequestTarget target)
@@ -225,7 +195,6 @@ public class BriefActieEditPage extends ProjectBasePage
 							herinnerActie.setDocument(herinneringsDocument);
 							herinnerActie.setLaatstGewijzigd(nu);
 							herinnerActie.setType(ProjectBriefActieType.HERINNERING);
-							herinnerActie.setProjectVragenlijstUitzettenVia(actie.getProjectVragenlijstUitzettenVia());
 							herinnerActie.setActief(true);
 							hibernateService.saveOrUpdate(herinnerActie);
 							actie.setHerinneringsActie(herinnerActie);
@@ -291,100 +260,6 @@ public class BriefActieEditPage extends ProjectBasePage
 		return true;
 	}
 
-	private WebMarkupContainer getVragenlijstContainer()
-	{
-		WebMarkupContainer vragenlijstContainer = new WebMarkupContainer("vragenlijstContainer");
-		vragenlijstContainer.setVisible(getProjectModel().getObject().getType().equals(ProjectType.PROJECT));
-		vragenlijstContainer.setOutputMarkupPlaceholderTag(true);
-
-		vragenlijstHerinnerenContainer = getVragenlijstHerinnerenContainer();
-		vragenlijstContainer.add(vragenlijstHerinnerenContainer);
-
-		final WebMarkupContainer vragenlijstInfoContainer = new WebMarkupContainer("vragenlijstInfoContainer");
-		vragenlijstInfoContainer.setVisible(briefActieModel.getObject().getVragenlijst() != null);
-		vragenlijstInfoContainer.setOutputMarkupPlaceholderTag(true);
-		vragenlijstContainer.add(vragenlijstInfoContainer);
-
-		ScreenitDropdown<ProjectVragenlijstUitzettenVia> uitzettenVia = new ScreenitDropdown<>("projectVragenlijstUitzettenVia",
-			new ListModel<>(Collections.singletonList(ProjectVragenlijstUitzettenVia.WEB)), new EnumChoiceRenderer<>());
-		uitzettenVia.setRequired(true);
-		uitzettenVia.setNullValid(true);
-		uitzettenVia.setLabel(Model.of("Uitzetten via"));
-		vragenlijstInfoContainer.add(uitzettenVia);
-
-		ProjectVragenlijst projectVragenlijst = new ProjectVragenlijst();
-		projectVragenlijst.setActief(true);
-		List<ProjectVragenlijst> vragenlijsten = vragenlijstBaseService.searchVragenlijsten(projectVragenlijst, 0L, -1L, "naam", true);
-		ProjectVragenlijst huidigeVragenlijst = form.getModelObject().getVragenlijst();
-		if (huidigeVragenlijst != null && huidigeVragenlijst.getId() != null && !vragenlijsten.contains(huidigeVragenlijst))
-		{
-			vragenlijsten.add(huidigeVragenlijst);
-		}
-
-		vragenlijsten.sort(new ProjectVragenlijstComparator());
-		SimpleListHibernateModel<ProjectVragenlijst> projectVragenlijsten = new SimpleListHibernateModel<>(vragenlijsten);
-
-		ScreenitDropdown<ProjectVragenlijst> vragenlijst = new ScreenitDropdown<>("vragenlijst", projectVragenlijsten, new NaamChoiceRenderer<>());
-		vragenlijst.setNullValid(true);
-		vragenlijst.add(new AjaxFormComponentUpdatingBehavior("change")
-		{
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void onUpdate(AjaxRequestTarget target)
-			{
-				vragenlijstInfoContainer.setVisible(briefActieModel.getObject().getVragenlijst() != null);
-				target.add(vragenlijstInfoContainer);
-				WebMarkupContainer container = getVragenlijstHerinnerenContainer();
-				vragenlijstHerinnerenContainer.replaceWith(container);
-				vragenlijstHerinnerenContainer = container;
-				target.add(vragenlijstHerinnerenContainer);
-			}
-		});
-		vragenlijstContainer.add(vragenlijst);
-		return vragenlijstContainer;
-	}
-
-	private WebMarkupContainer getVragenlijstHerinnerenContainer()
-	{
-		WebMarkupContainer vragenlijstHerinnerenContainer = new WebMarkupContainer("vragenlijstHerinnerenContainer");
-		vragenlijstHerinnerenContainer.setVisible(briefActieModel.getObject().getVragenlijst() != null);
-		vragenlijstHerinnerenContainer.setOutputMarkupPlaceholderTag(true);
-
-		final WebMarkupContainer vragenlijstHerinnerenInfoContainer = new WebMarkupContainer("herinnerenInfoContainer");
-		vragenlijstHerinnerenInfoContainer.setVisible(briefActieModel.getObject().isHerinneren());
-		vragenlijstHerinnerenInfoContainer.setOutputMarkupPlaceholderTag(true);
-		vragenlijstHerinnerenContainer.add(vragenlijstHerinnerenInfoContainer);
-
-		CheckBox checkHerinneren = ComponentHelper.newCheckBox("herinneren");
-		vragenlijstHerinnerenContainer.add(checkHerinneren);
-
-		TextField<Integer> aantalDagenText = new TextField<Integer>("aantalDagen", new PropertyModel<>(briefHerinnerenVragenlijstModel, "aantalDagen"), Integer.class);
-		aantalDagenText.add(RangeValidator.minimum(1));
-		aantalDagenText.setLabel(Model.of("Herinnering aantal dagen"));
-		vragenlijstHerinnerenInfoContainer.add(aantalDagenText);
-
-		FileUploadField upload = new FileUploadField("herinnerUpload", herinnerFileUploads);
-		upload.setRequired(true);
-		upload.setLabel(Model.of("Herinnering template"));
-		upload.add(new FileValidator(FileType.WORD_NIEUW));
-		vragenlijstHerinnerenInfoContainer.add(upload);
-
-		checkHerinneren.add(new AjaxFormComponentUpdatingBehavior("change")
-		{
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void onUpdate(AjaxRequestTarget target)
-			{
-				vragenlijstHerinnerenInfoContainer.setVisible(briefActieModel.getObject().isHerinneren());
-				target.add(vragenlijstHerinnerenInfoContainer);
-			}
-		});
-		return vragenlijstHerinnerenContainer;
-
-	}
-
 	private WebMarkupContainer getTypePanelContainer(ProjectBriefActieType type)
 	{
 		WebMarkupContainer container = new WebMarkupContainer("typePanelContainer");
@@ -399,27 +274,15 @@ public class BriefActieEditPage extends ProjectBasePage
 		Panel panel;
 		if (type != null)
 		{
-			switch (type)
+			panel = switch (type)
 			{
-			case DATUM:
-			case VANAF_DATUM:
-				panel = new BriefActieTypeDatumPanel("typePanel", briefActieModel);
-				break;
-			case VERVANGENDEBRIEF:
-				panel = new BriefActieTypeVervangendeBriefPanel("typePanel", briefActieModel);
-				break;
-			case HERINNERING:
-				panel = new BriefActieTypeHerinneringPanel("typePanel", briefActieModel);
-				break;
-			case XDAGENNAY:
-				panel = new BriefActieTypeXnaYPanel("typePanel", briefActieModel);
-				break;
-			case XMETY:
-				panel = new BriefActieTypeXmetYPanel("typePanel", briefActieModel);
-				break;
-			default:
-				panel = new EmptyPanel("typePanel");
-			}
+				case DATUM, VANAF_DATUM -> new BriefActieTypeDatumPanel("typePanel", briefActieModel);
+				case VERVANGENDEBRIEF -> new BriefActieTypeVervangendeBriefPanel("typePanel", briefActieModel);
+				case HERINNERING -> new BriefActieTypeHerinneringPanel("typePanel", briefActieModel);
+				case XDAGENNAY -> new BriefActieTypeXnaYPanel("typePanel", briefActieModel);
+				case XMETY -> new BriefActieTypeXmetYPanel("typePanel", briefActieModel);
+				default -> new EmptyPanel("typePanel");
+			};
 		}
 		else
 		{

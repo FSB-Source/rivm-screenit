@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.uitstel.step;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,11 +24,17 @@ package nl.rivm.screenit.batch.jobs.cervix.uitstel.step;
 import nl.rivm.screenit.batch.jobs.helpers.BaseSpecificationScrollableResultReader;
 import nl.rivm.screenit.model.cervix.CervixUitstel;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.specification.cervix.CervixUitstelSpecification;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import static nl.rivm.screenit.specification.cervix.CervixUitstelSpecification.heeftClientMetIndicatieAanwezig;
+import static nl.rivm.screenit.specification.cervix.CervixUitstelSpecification.heeftGeenGeannuleerdDatum;
+import static nl.rivm.screenit.specification.cervix.CervixUitstelSpecification.heeftGeenPersoonMetOverledenDatum;
+import static nl.rivm.screenit.specification.cervix.CervixUitstelSpecification.heeftGeenVertrokkenPersoonUitNederlandDatum;
+import static nl.rivm.screenit.specification.cervix.CervixUitstelSpecification.heeftLopendeRonde;
+import static nl.rivm.screenit.specification.cervix.CervixUitstelSpecification.heeftUitstellenTotDatumEerderDan;
 
 @Component
 public class CervixUitstelReader extends BaseSpecificationScrollableResultReader<CervixUitstel>
@@ -45,11 +51,11 @@ public class CervixUitstelReader extends BaseSpecificationScrollableResultReader
 	public Specification<CervixUitstel> createSpecification()
 	{
 		var vandaag = currentDateSupplier.getLocalDate();
-		return CervixUitstelSpecification.heeftClientMetIndicatieAanwezig()
-			.and(CervixUitstelSpecification.heeftGeenPersoonMetOverledenDatum())
-			.and(CervixUitstelSpecification.heeftGeenVertrokkenPersoonUitNederlandDatum())
-			.and(CervixUitstelSpecification.heeftLopendeRonde())
-			.and(CervixUitstelSpecification.heeftGeenGeannuleerdDatum())
-			.and(CervixUitstelSpecification.heeftUitstellenTotDatumEerderDan(vandaag));
+		return heeftClientMetIndicatieAanwezig()
+			.and(heeftGeenPersoonMetOverledenDatum())
+			.and(heeftGeenVertrokkenPersoonUitNederlandDatum())
+			.and(heeftLopendeRonde())
+			.and(heeftGeenGeannuleerdDatum())
+			.and(heeftUitstellenTotDatumEerderDan(vandaag));
 	}
 }

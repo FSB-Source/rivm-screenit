@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.colon;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,7 +36,7 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.ColonTest;
 import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.model.enums.Recht;
-import nl.rivm.screenit.service.GemeenteService;
+import nl.rivm.screenit.service.TestService;
 import nl.rivm.screenit.service.colon.ColonTestService;
 import nl.rivm.screenit.service.colon.ColonTestStateService;
 import nl.rivm.screenit.util.TestBsnGenerator;
@@ -79,10 +79,10 @@ public class ColonTestPage extends TestenBasePage
 	private ColonTestStateService testStateService;
 
 	@SpringBean
-	private ColonTestService testService;
+	private ColonTestService colonTestService;
 
 	@SpringBean
-	private GemeenteService gemeenteService;
+	private TestService testService;
 
 	private IModel<TestModel> testModel;
 
@@ -136,7 +136,7 @@ public class ColonTestPage extends TestenBasePage
 		}));
 
 		form.add(new DropDownChoice<Gemeente>("gemeente",
-			ModelUtil.listRModel(gemeenteService.getGemeentesMetScreeningOrganisatie(), false),
+			ModelUtil.listRModel(testService.getGemeentesMetScreeningOrganisatie(), false),
 			new ChoiceRenderer<>("naam")));
 
 		form.add(new EnumDropDownChoice<>("gbaStatus", GbaStatus.class, false).setOutputMarkupId(true));
@@ -196,7 +196,7 @@ public class ColonTestPage extends TestenBasePage
 			@Override
 			public void onClick(AjaxRequestTarget ajaxRequestTarget)
 			{
-				final int aantal = testService.markeerNogNietNaarInpakcentrumVerstuurdeUitnodigingenAlsVerstuurd();
+				final int aantal = colonTestService.markeerNogNietNaarInpakcentrumVerstuurdeUitnodigingenAlsVerstuurd();
 				aantalModel.setObject("Aantal als verstuurd gemarkeerde uitnodigingen: " + aantal);
 				ajaxRequestTarget.add(aantalLabel);
 			}

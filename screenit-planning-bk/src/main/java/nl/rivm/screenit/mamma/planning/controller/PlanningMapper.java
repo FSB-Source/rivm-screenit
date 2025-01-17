@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.controller;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2024 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2025 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,6 @@ package nl.rivm.screenit.mamma.planning.controller;
  */
 
 import java.math.BigDecimal;
-import java.util.stream.Collectors;
 
 import nl.rivm.screenit.dto.mamma.planning.PlanningBlokkadeDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningCapaciteitBlokDto;
@@ -34,6 +33,7 @@ import nl.rivm.screenit.mamma.planning.index.PlanningScreeningsOrganisatieIndex;
 import nl.rivm.screenit.mamma.planning.index.PlanningStandplaatsIndex;
 import nl.rivm.screenit.mamma.planning.model.PlanningBlok;
 import nl.rivm.screenit.mamma.planning.model.PlanningBlokkade;
+import nl.rivm.screenit.mamma.planning.model.PlanningEntiteit;
 import nl.rivm.screenit.mamma.planning.model.PlanningMelding;
 import nl.rivm.screenit.mamma.planning.model.PlanningScreeningsEenheid;
 import nl.rivm.screenit.mamma.planning.model.PlanningScreeningsOrganisatie;
@@ -96,7 +96,7 @@ public class PlanningMapper
 		standplaatsPeriodeDto.standplaatsId = standplaatsRonde.getStandplaats().getId();
 		standplaatsPeriodeDto.vanaf = standplaatsPeriode.getVanaf();
 		standplaatsPeriodeDto.totEnMet = standplaatsPeriode.getTotEnMet();
-		standplaatsPeriodeDto.blokkadeIds = standplaatsPeriode.getBlokkadeNavigableSet().stream().map(planningBlokkade -> planningBlokkade.getId()).collect(Collectors.toList());
+		standplaatsPeriodeDto.blokkadeIds = standplaatsPeriode.getBlokkadeNavigableSet().stream().map(PlanningEntiteit::getId).toList();
 		standplaatsPeriodeDto.conceptId = standplaatsPeriode.getConceptId();
 		standplaatsPeriodeDto.initieelIntervalMaanden = intervalToMonth(standplaatsRonde.getIntieelInterval());
 		standplaatsPeriodeDto.intervalMaanden = intervalToMonth(standplaatsRonde.getInterval());
@@ -114,7 +114,7 @@ public class PlanningMapper
 
 		standplaatsPeriodeDto.afspraakcapaciteitBeschikbaarVoorIds = standplaatsRonde.getAfspraakcapaciteitBeschikbaarVoor().stream()
 			.map(PlanningScreeningsOrganisatie::getId)
-			.collect(Collectors.toList());
+			.toList();
 
 		PlanningMeldingenDto meldingenDto = new PlanningMeldingenDto();
 		for (PlanningMelding melding : standplaatsRonde.getMeldingList())
